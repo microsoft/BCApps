@@ -1,0 +1,10 @@
+{
+    "appFolders":  [
+        "..\\..\\Apps\\DevTools\\TestFramework\\TestStabilityTools\\PreventMetadataUpdates"
+    ],
+    "testFolders":  [
+    ],
+    "doNotPublishApps": true,
+    "enableAppSourceCop": true,
+    "enablePerTenantExtensionCop":  true
+}
