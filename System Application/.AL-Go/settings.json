@@ -1,10 +1,10 @@
 {
     "appFolders":  [
-        "..\\..\\Apps\\System"
+        "..\\Modules\\System"
     ],
     "testFolders":  [
-        "..\\..\\Apps\\System Test Libraries",
-        "..\\..\\Apps\\System Tests"
+        "..\\Modules\\System Test Libraries",
+        "..\\Modules\\System Tests"
     ],
     "buildModes": [
         "Translated"

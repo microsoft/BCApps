@@ -1,6 +1,6 @@
 {
     "appFolders":  [
-        "..\\..\\Apps\\DevTools\\TestFramework\\TestStabilityTools\\PreventMetadataUpdates"
+        "..\\Modules\\DevTools\\TestFramework\\TestStabilityTools\\PreventMetadataUpdates"
     ],
     "testFolders":  [
     ],
