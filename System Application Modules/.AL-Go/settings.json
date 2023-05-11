@@ -1,9 +1,9 @@
 {
     "appFolders":  [
-        "..\\Modules\\System\\*"
+        "..\\Apps\\System\\*"
     ],
     "testFolders":  [
-        "..\\Modules\\System Test Libraries\\*",
+        "..\\Apps\\System Test Libraries\\*",
         "..\\Modules\\System Tests\\*"
     ],
     "enableAppSourceCop": false,

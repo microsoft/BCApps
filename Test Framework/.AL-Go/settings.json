@@ -1,7 +1,7 @@
 {
     "appFolders":  [
-        "..\\Modules\\DevTools\\TestFramework\\TestLibraries\\*",
-        "..\\Modules\\DevTools\\TestFramework\\TestRunner"
+        "..\\Apps\\DevTools\\TestFramework\\TestLibraries\\*",
+        "..\\Apps\\DevTools\\TestFramework\\TestRunner"
     ],
     "testFolders":  [
     ],
