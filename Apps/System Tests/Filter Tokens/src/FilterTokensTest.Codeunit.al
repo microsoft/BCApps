@@ -58,13 +58,13 @@ codeunit 135034 "Filter Tokens Test"
         ExpectedFilterText := STRSUBSTNO(ExpectedText, CURRENTDATETIME());
 
         NoOfAttempts := 0;
-        while (NoOfAttempts < 10) and (FilterText <> ExpectedFilterText) do begin // retry because time (seconds) may have shifted between the two calls to CURRENTDATETIME
+        WHILE (NoOfAttempts < 10) AND (FilterText <> ExpectedFilterText) DO BEGIN // retry because time (seconds) may have shifted between the two calls to CURRENTDATETIME
 
             NoOfAttempts += 1;
             FilterText := OrgFilterText;
             FilterTokens.MakeDateTimeFilter(FilterText);
             ExpectedFilterText := STRSUBSTNO(ExpectedText, CURRENTDATETIME());
-        end;
+        END;
 
         // [THEN] A date and time in a valid format is extracted in the variable passed as VAR.
         Assert.AreEqual(ExpectedFilterText, FilterText, STRSUBSTNO(FilterTextErr, OrgFilterText));
@@ -103,12 +103,12 @@ codeunit 135034 "Filter Tokens Test"
         ExpectedFilterText := STRSUBSTNO(ExpectedText, TIME());
 
         NoOfAttempts := 0;
-        while (NoOfAttempts < 10) and (FilterText <> ExpectedFilterText) do begin // retry because time may have shifted between the two calls to TIME
+        WHILE (NoOfAttempts < 10) AND (FilterText <> ExpectedFilterText) DO BEGIN // retry because time may have shifted between the two calls to TIME
             NoOfAttempts += 1;
             FilterText := OrgFilterText;
             FilterTokens.MakeTimeFilter(FilterText);
             ExpectedFilterText := STRSUBSTNO(ExpectedText, TIME());
-        end;
+        END;
 
         // [THEN] The time in a valid format is extracted in the variable passed as VAR.
         Assert.AreEqual(ExpectedFilterText, FilterText, STRSUBSTNO(FilterTextErr, OrgFilterText));
@@ -158,10 +158,10 @@ codeunit 135034 "Filter Tokens Test"
 
         // [WHEN] MakeTimeFilter is called.
         FilterTokens.MakeDateFilter(FilterText);
-        if FilterText <> ExpectedText then begin // retry because time may have shifted between the two calls to CURRENTDATETIME
+        IF FilterText <> ExpectedText THEN BEGIN // retry because time may have shifted between the two calls to CURRENTDATETIME
             FilterText := OrgFilterText;
             FilterTokens.MakeDateFilter(FilterText);
-        end;
+        END;
 
         // [THEN] Verify that date in a valid format is extracted in the variable passed as VAR.
         Assert.AreEqual(ExpectedText, FilterText, STRSUBSTNO(FilterTextErr, OrgFilterText));
@@ -218,7 +218,7 @@ codeunit 135034 "Filter Tokens Test"
 
     local procedure GetExpectedDateFilterExpression(Date1: Text; Date2: Text): Text
     begin
-        exit(STRSUBSTNO(DateFilterLbl, Date1, Date2));
+        EXIT(STRSUBSTNO(DateFilterLbl, Date1, Date2));
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Filter Tokens", 'OnResolveDateTokenFromDateTimeFilter', '', false, false)]
@@ -226,14 +226,14 @@ codeunit 135034 "Filter Tokens Test"
     var
         ChristmasTxt: Label 'CHRISTMAS';
     begin
-        if not Handled then
-            case DateToken of
+        IF NOT Handled THEN
+            CASE DateToken OF
                 COPYSTR(ChristmasTxt, 1, STRLEN(ChristmasTxt)):
-                    begin
+                    BEGIN
                         DateFilter := DMY2DATE(25, 12, 2019);
-                        Handled := true;
-                    end;
-            end;
+                        Handled := TRUE;
+                    END;
+            END;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Filter Tokens", 'OnResolveTimeTokenFromDateTimeFilter', '', false, false)]
@@ -241,14 +241,14 @@ codeunit 135034 "Filter Tokens Test"
     var
         LunchTxt: Label 'LUNCH';
     begin
-        if not Handled then
-            case TimeToken of
+        IF NOT Handled THEN
+            CASE TimeToken OF
                 COPYSTR(LunchTxt, 1, STRLEN(LunchTxt)):
-                    begin
+                    BEGIN
                         TimeFilter := 120000T;
-                        Handled := true;
-                    end;
-            end;
+                        Handled := TRUE;
+                    END;
+            END;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Filter Tokens", 'OnResolveDateFilterToken', '', false, false)]
@@ -256,15 +256,15 @@ codeunit 135034 "Filter Tokens Test"
     var
         SummerTxt: Label 'SUMMER';
     begin
-        if not Handled then
-            case DateToken of
+        IF NOT Handled THEN
+            CASE DateToken OF
                 COPYSTR(SummerTxt, 1, STRLEN(SummerTxt)):
-                    begin
+                    BEGIN
                         EVALUATE(FromDate, FORMAT(DMY2DATE(21, 06, 2012)));
                         EVALUATE(ToDate, FORMAT(DMY2DATE(23, 09, 2012)));
-                        Handled := true;
-                    end;
-            end;
+                        Handled := TRUE;
+                    END;
+            END;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Filter Tokens", 'OnResolveTimeFilterToken', '', false, false)]
@@ -272,14 +272,14 @@ codeunit 135034 "Filter Tokens Test"
     var
         LunchTxt: Label 'LUNCH';
     begin
-        if not Handled then
-            case TimeToken of
+        IF NOT Handled THEN
+            CASE TimeToken OF
                 COPYSTR(LunchTxt, 1, STRLEN(LunchTxt)):
-                    begin
+                    BEGIN
                         TimeFilter := 120000T;
-                        Handled := true;
-                    end;
-            end;
+                        Handled := TRUE;
+                    END;
+            END;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Filter Tokens", 'OnResolveTextFilterToken', '', false, false)]
@@ -287,14 +287,14 @@ codeunit 135034 "Filter Tokens Test"
     var
         MyFilterTxt: Label 'MyFilter';
     begin
-        if not Handled then
-            case TextToken of
+        IF NOT Handled THEN
+            CASE TextToken OF
                 COPYSTR(MyFilterTxt, 1, STRLEN(MyFilterTxt)):
-                    begin
+                    BEGIN
                         TextFilter := 'Custom Filter';
-                        Handled := true;
-                    end;
-            end;
+                        Handled := TRUE;
+                    END;
+            END;
     end;
 }
 

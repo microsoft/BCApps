@@ -1082,7 +1082,7 @@ codeunit 132602 "Checklist Administration Test"
     local procedure PopulateSetupFields(var Title: Text[2048]; var ExpectedDuration: Integer; var OrderID: Integer)
     begin
         Title := CopyStr(Any.AlphanumericText(MaxStrLen(Title)), 1, MaxStrLen(Title));
-        ExpectedDuration := Any.IntegerInRange(29999);
+        ExpectedDuration := Any.IntegerInRange(50000);
         OrderID := any.IntegerInRange(100000);
     end;
 

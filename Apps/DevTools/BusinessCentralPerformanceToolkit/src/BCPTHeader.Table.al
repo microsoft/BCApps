@@ -49,10 +49,9 @@ table 149000 "BCPT Header"
             InitValue = 1000;
             MinValue = 100;
             MaxValue = 30000;
-
             trigger OnValidate()
             begin
-                if "Default Max. User Delay (ms)" < "Default Min. User Delay (ms)" then
+                If "Default Max. User Delay (ms)" < "Default Min. User Delay (ms)" then
                     "Default Max. User Delay (ms)" := "Default Min. User Delay (ms)";
             end;
         }

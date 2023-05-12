@@ -54,14 +54,14 @@ codeunit 9044 "ABS Format Helper"
         "Value": Text;
     begin
         "Value" := 'Committed';
-        if OverwriteValueToLatest then
+        If OverwriteValueToLatest then
             "Value" := 'Latest';
         Keys := CommitedBlocks.Keys;
         foreach "Key" in Keys do
             BlockList.Add("Key", "Value");
 
         "Value" := 'Uncommitted';
-        if OverwriteValueToLatest then
+        If OverwriteValueToLatest then
             "Value" := 'Latest';
         Keys := UncommitedBlocks.Keys;
         foreach "Key" in Keys do

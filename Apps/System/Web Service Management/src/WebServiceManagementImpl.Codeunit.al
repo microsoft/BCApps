@@ -342,7 +342,7 @@ codeunit 9751 "Web Service Management Impl."
         if TenantWebService.Find('-') then
             repeat
                 TenantWebServiceColumns.SetRange(TenantWebServiceID, TenantWebService.RecordId());
-                if not TenantWebServiceColumns.IsEmpty() then begin
+                if NOT TenantWebServiceColumns.IsEmpty() then begin
                     TenantWebServiceRec := TenantWebService;
                     TenantWebServiceRec.Insert();
                 end;

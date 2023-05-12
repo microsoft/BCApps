@@ -180,9 +180,7 @@ page 149004 "BCPT Lines"
                     // Missing implementation for very first record
                     NextBCPTLine := Rec;
                     Rec.init();
-#pragma warning disable AA0181
                     if NextBCPTLine.Next() <> 0 then
-#pragma warning restore AA0181
                         Rec."Line No." := (NextBCPTLine."Line No." - Rec."Line No.") div 2
                     else
                         Rec."Line No." += 10000;

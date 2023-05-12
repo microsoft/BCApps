@@ -5,7 +5,6 @@
 
 table 134686 "Test Email Account"
 {
-    DataClassification = SystemMetadata;
     ReplicateData = false;
 
     fields

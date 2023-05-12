@@ -17,16 +17,13 @@ table 8 Language
     {
         field(1; "Code"; Code[10])
         {
-            DataClassification = SystemMetadata;
             NotBlank = true;
         }
         field(2; Name; Text[50])
         {
-            DataClassification = SystemMetadata;
         }
         field(6; "Windows Language ID"; Integer)
         {
-            DataClassification = SystemMetadata;
             BlankZero = true;
             TableRelation = "Windows Language";
 
@@ -37,7 +34,7 @@ table 8 Language
         }
         field(7; "Windows Language Name"; Text[80])
         {
-            CalcFormula = lookup("Windows Language".Name where("Language ID" = field("Windows Language ID")));
+            CalcFormula = Lookup("Windows Language".Name WHERE("Language ID" = FIELD("Windows Language ID")));
             Editable = false;
             FieldClass = FlowField;
         }
@@ -48,9 +45,6 @@ table 8 Language
         key(Key1; "Code")
         {
             Clustered = true;
-        }
-        key(Key2; "Windows Language ID")
-        {
         }
     }
 

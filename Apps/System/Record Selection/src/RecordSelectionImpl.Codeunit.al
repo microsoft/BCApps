@@ -105,7 +105,7 @@ codeunit 9556 "Record Selection Impl."
         exit(false);
     end;
 
-    procedure GetRecordsFromTableId(TableId: Integer; var PrimaryKeyCaptions: array[10] of Text; var RecordSelectionBuffer: Record "Record Selection Buffer"): Integer
+    procedure GetRecordsFromTableId(TableId: Integer; var PrimaryKeyCaptions: Array[10] of Text; var RecordSelectionBuffer: Record "Record Selection Buffer"): Integer
     var
         FieldCount: Integer;
         PageId: Integer;
@@ -138,7 +138,7 @@ codeunit 9556 "Record Selection Impl."
         exit(0);
     end;
 
-    local procedure GetFieldsFromPage(TableId: Integer; PageId: Integer; var FieldCount: Integer; var PageSummaryCaptions: array[10] of Text; var RecordSelectionBuffer: Record "Record Selection Buffer"): Boolean
+    local procedure GetFieldsFromPage(TableId: Integer; PageId: Integer; var FieldCount: Integer; var PageSummaryCaptions: Array[10] of Text; var RecordSelectionBuffer: Record "Record Selection Buffer"): Boolean
     var
         FromRecordRef: RecordRef;
         PageSummaryFieldList: List of [Integer];
@@ -190,7 +190,7 @@ codeunit 9556 "Record Selection Impl."
         RecordSelectionBuffer.Insert();
     end;
 
-    local procedure GetFieldsFromPrimaryKey(TableId: Integer; var FieldCount: Integer; var PrimaryKeyCaptions: array[10] of Text; var RecordSelectionBuffer: Record "Record Selection Buffer")
+    local procedure GetFieldsFromPrimaryKey(TableId: Integer; var FieldCount: Integer; var PrimaryKeyCaptions: Array[10] of Text; var RecordSelectionBuffer: Record "Record Selection Buffer")
     var
         FromRecordRef: RecordRef;
         KeyRef: KeyRef;
@@ -270,7 +270,7 @@ codeunit 9556 "Record Selection Impl."
         end;
     end;
 
-    local procedure SetCaptionsFromPageSummary(var PageSummaryFieldList: List of [Integer]; var FromRecordRef: RecordRef; var PrimaryKeyCaptions: array[10] of Text)
+    local procedure SetCaptionsFromPageSummary(var PageSummaryFieldList: List of [Integer]; var FromRecordRef: RecordRef; var PrimaryKeyCaptions: Array[10] of Text)
     var
         FromFieldRef: FieldRef;
         FieldIndex: Integer;
@@ -302,7 +302,7 @@ codeunit 9556 "Record Selection Impl."
         end;
     end;
 
-    local procedure SetCaptionsFromKeyRef(FieldCount: Integer; FromKeyRef: KeyRef; var PrimaryKeyCaptions: array[10] of Text)
+    local procedure SetCaptionsFromKeyRef(FieldCount: Integer; FromKeyRef: KeyRef; var PrimaryKeyCaptions: Array[10] of Text)
     var
         FromFieldRef: FieldRef;
         Index: Integer;

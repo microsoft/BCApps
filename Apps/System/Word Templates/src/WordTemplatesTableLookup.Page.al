@@ -20,13 +20,13 @@ page 9988 "Word Templates Table Lookup"
         {
             repeater(GroupName)
             {
-                field(ID; Rec."Table ID")
+                field(ID; "Table ID")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Table ID.';
                     Caption = 'Id';
                 }
-                field(Name; Rec."Table Caption")
+                field(Name; "Table Caption")
                 {
                     ApplicationArea = All;
                     Caption = 'Caption';
@@ -38,12 +38,13 @@ page 9988 "Word Templates Table Lookup"
 
 #if not CLEAN22
     [Obsolete('Use Page.GetRecord instead.', '22.0')]
-#pragma warning disable AL0523, AL0749, AL0755
+#pragma warning disable AL0523
+#pragma warning disable AL0749
     procedure GetRecord(var SelectedWordTemplatesTable: Record "Word Templates Table")
-#pragma warning restore AL0523, AL0749, AL0755
+#pragma warning restore AL0749
+#pragma warning restore AL0523
     begin
         SelectedWordTemplatesTable := Rec;
     end;
 #endif
 }
-

@@ -12,7 +12,7 @@ codeunit 130448 "Word Templates Cust Field Test"
     EventSubscriberInstance = Manual;
 
     var
-        TempWordTemplateFieldGlobal: Record "Word Template Field" temporary;
+        TempWordTemplateField: Record "Word Template Field" temporary;
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
         WordTemplatesCustFieldTest: Codeunit "Word Templates Cust Field Test";
@@ -108,30 +108,30 @@ codeunit 130448 "Word Templates Cust Field Test"
 
     internal procedure AddFieldToTemplate(TableId: Integer; FieldName: Text[20])
     begin
-        TempWordTemplateFieldGlobal."Table ID" := TableId;
-        TempWordTemplateFieldGlobal."Field Name" := FieldName;
-        TempWordTemplateFieldGlobal.Insert();
+        TempWordTemplateField."Table ID" := TableId;
+        TempWordTemplateField."Field Name" := FieldName;
+        TempWordTemplateField.Insert();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Word Template", 'OnGetCustomFieldNames', '', false, false)]
     local procedure OnGetCustomFieldNames(WordTemplateCustomField: Codeunit "Word Template Custom Field")
     begin
-        TempWordTemplateFieldGlobal.Reset();
-        TempWordTemplateFieldGlobal.SetRange("Table ID", WordTemplateCustomField.GetTableID());
-        if TempWordTemplateFieldGlobal.FindSet() then
+        TempWordTemplateField.Reset();
+        TempWordTemplateField.SetRange("Table ID", WordTemplateCustomField.GetTableID());
+        if TempWordTemplateField.FindSet() then
             repeat
-                WordTemplateCustomField.AddField(CopyStr(TempWordTemplateFieldGlobal."Field Name", 1, 20));
-            until TempWordTemplateFieldGlobal.Next() = 0;
+                WordTemplateCustomField.AddField(CopyStr(TempWordTemplateField."Field Name", 1, 20));
+            until TempWordTemplateField.Next() = 0;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Word Template", 'OnGetCustomRecordValues', '', false, false)]
     local procedure OnGetCustomRecordValues(WordTemplateFieldValue: Codeunit "Word Template Field Value")
     begin
-        TempWordTemplateFieldGlobal.Reset();
-        TempWordTemplateFieldGlobal.SetRange("Table ID", WordTemplateFieldValue.GetRecord().Number());
-        if TempWordTemplateFieldGlobal.FindSet() then
+        TempWordTemplateField.Reset();
+        TempWordTemplateField.SetRange("Table ID", WordTemplateFieldValue.GetRecord().Number());
+        if TempWordTemplateField.FindSet() then
             repeat
-                WordTemplateFieldValue.AddFieldValue(TempWordTemplateFieldGlobal."Field Name", 'Value: ' + TempWordTemplateFieldGlobal."Field Name");
-            until TempWordTemplateFieldGlobal.Next() = 0;
+                WordTemplateFieldValue.AddFieldValue(TempWordTemplateField."Field Name", 'Value: ' + TempWordTemplateField."Field Name");
+            until TempWordTemplateField.Next() = 0;
     end;
 }

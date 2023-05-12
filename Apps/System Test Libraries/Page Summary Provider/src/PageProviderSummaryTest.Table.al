@@ -1,7 +1,5 @@
 table 132548 "Page Provider Summary Test"
 {
-    DataClassification = SystemMetadata;
-
     fields
     {
         field(1; TestInteger; Integer)

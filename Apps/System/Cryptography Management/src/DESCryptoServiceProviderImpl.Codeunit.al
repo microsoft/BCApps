@@ -42,7 +42,7 @@ codeunit 1382 "DESCryptoServiceProvider Impl."
     end;
 
     [NonDebuggable]
-    procedure EncryptStream(Password: Text; Salt: Text; InputInstream: InStream; var OutputOutstream: Outstream)
+    procedure EncryptStream(Password: Text; Salt: Text; InputInstream: InStream; VAR OutputOutstream: Outstream)
     var
         MemoryStream: DotNet MemoryStream;
         ByteArray: DotNet Array;

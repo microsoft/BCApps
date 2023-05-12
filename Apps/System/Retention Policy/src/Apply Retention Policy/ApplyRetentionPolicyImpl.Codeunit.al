@@ -77,7 +77,7 @@ codeunit 3904 "Apply Retention Policy Impl."
 
         RetentionPolicySetup.SetRange(Enabled, true);
         RetentionPolicySetup.SetRange(Manual, false);
-        if RetentionPolicySetup.FindSet(false) then begin
+        if RetentionPolicySetup.FindSet(false, false) then begin
             if GuiAllowed() then begin
                 Dialog.HideSubsequentDialogs(true);
                 Dialog.Open(WaitDialogMsg);

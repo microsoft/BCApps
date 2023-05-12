@@ -199,9 +199,9 @@ codeunit 3920 "Reten. Pol. Record Ref. Impl." implements "Record Reference"
         VerifyCallerModuleId(CallerModuleInfo.Id);
 #pragma warning disable AA0181
         if not UseReturnValue then
-            RecordRef.FindSet(ForUpdate)
+            RecordRef.FindSet(ForUpdate, UpdateKey)
         else
-            exit(RecordRef.FindSet(ForUpdate))
+            exit(RecordRef.FindSet(ForUpdate, UpdateKey))
 #pragma warning restore AA0181
     end;
 

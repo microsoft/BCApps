@@ -17,7 +17,7 @@ table 2889 "Query Navigation Validation"
     ObsoleteTag = '19.0';
     ObsoleteState = Pending;
 #else
-    ObsoleteTag = '23.0';
+    ObsoleteTag = '22.0';
     ObsoleteState = Removed;
 #endif
 

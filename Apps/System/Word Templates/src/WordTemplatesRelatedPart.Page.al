@@ -191,7 +191,7 @@ page 9987 "Word Templates Related Part"
         if Rec."Related Table ID" = SourceTableId then
             Error(CannotDeleteSourceRecordErr);
         TempWordTemplateField.Reset();
-        TempWordTemplateField.SetRange("Table ID", Rec."Related Table ID");
+        TempWordTemplateField.SetRange("Table ID", "Related Table ID");
         TempWordTemplateField.DeleteAll();
     end;
 
@@ -310,7 +310,9 @@ page 9987 "Word Templates Related Part"
         TempWordTemplateField: Record "Word Template Field" temporary;
         WordTemplateImpl: Codeunit "Word Template Impl.";
         SelectedFieldsCount: Dictionary of [Integer, Integer];
+        [InDataSet]
         RecordTypeTxt: Text;
+        [InDataSet]
         NumberOfSelectedFields: Integer;
         EditEnabled: Boolean;
         SourceTableId: Integer;

@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 9993 "Upgrade Tags - View"
+PermissionSet 9993 "Upgrade Tags - View"
 {
     Access = Public;
     Assignable = false;

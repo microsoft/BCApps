@@ -371,8 +371,8 @@ codeunit 132593 "Document Sharing Test"
     var
         DocumentSharing: Codeunit "Document Sharing";
         FilenameTxt: Label 'filename';
-        EditShouldBeEnabledErr: Label '%1 extension should be enabled for editing', Comment = '%1 = file extension';
-        EditShouldNotBeEnabledErr: Label '%1 extension should not be enabled for editing', Comment = '%1 = file extension';
+        EditShouldBeEnabledErr: Label '%1 extension should be enabled for editing';
+        EditShouldNotBeEnabledErr: Label '%1 extension should not be enabled for editing';
         Extension: Text;
         ExtensionsString: Text;
         Extensions: List of [Text];
@@ -498,21 +498,21 @@ codeunit 132593 "Document Sharing Test"
     procedure AddEditedDocument(Question: Text[1024]; var Reply: Boolean)
     begin
         LibraryAssert.AreEqual(AddEditedDocQst, Question, 'The prompt does not match the expected question');
-        Reply := true;
+        Reply := True;
     end;
 
     [ConfirmHandler]
     procedure ConfirmOpenHyperlink(Question: Text[1024]; var Reply: Boolean)
     begin
         LibraryAssert.AreEqual(NoShareQst, Question, 'The prompt does not match the expected question');
-        Reply := true;
+        Reply := True;
     end;
 
     [ConfirmHandler]
     procedure PromptOpenHyperlink(Question: Text[1024]; var Reply: Boolean)
     begin
         LibraryAssert.AreEqual(NoPromptOpenOnlyQst, Question, 'The prompt does not match the expected question');
-        Reply := true;
+        Reply := True;
     end;
 
     [StrMenuHandler]

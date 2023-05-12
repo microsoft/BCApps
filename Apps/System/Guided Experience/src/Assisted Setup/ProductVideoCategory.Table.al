@@ -16,27 +16,23 @@ table 1471 "Product Video Category"
     {
         field(1; ID; Integer)
         {
-            DataClassification = SystemMetadata;
             AutoIncrement = true;
             Caption = 'ID';
             Editable = false;
         }
         field(2; Category; Option)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Category';
             OptionCaption = ' ,Getting Started,,Finance & Bookkeeping,Sales,Reporting & BI,Inventory Management,Project Management,Workflows,Services & Extensions,Setup,Warehouse Management';
             OptionMembers = " ","Getting Started",,"Finance & Bookkeeping",Sales,"Reporting & BI","Inventory Management","Project Management",Workflows,"Services & Extensions",Setup,"Warehouse Management";
         }
         field(3; "Assisted Setup ID"; Integer)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Assisted Setup ID';
             TableRelation = "Guided Experience Item"."Object ID to Run";
         }
         field(4; "Alternate Title"; Text[250])
         {
-            DataClassification = CustomerContent;
             Caption = 'Alternate Title';
         }
     }

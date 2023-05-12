@@ -20,7 +20,7 @@ page 1994 "Checklist Item Roles"
         {
             repeater(Control1)
             {
-                field("Role ID"; Rec."Role ID")
+                field("Role ID"; "Role ID")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the ID of the role.';

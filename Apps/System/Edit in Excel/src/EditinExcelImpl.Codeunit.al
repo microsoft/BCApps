@@ -783,7 +783,7 @@ codeunit 1482 "Edit in Excel Impl."
         if StrPos(ODataFilter, '$filter=') = 0 then
 #pragma warning disable AA0217
             ODataFilter := StrSubstNo('%1%2', '$filter=', ODataFilter);
-#pragma warning restore AA0217
+#pragma warning restore
         EditinExcel.OnEditInExcel(ServiceName, ODataFilter, '', Handled);
         if Handled then begin
             Session.LogMessage('0000F7M', EditInExcelHandledTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
@@ -798,7 +798,7 @@ codeunit 1482 "Edit in Excel Impl."
         if StrPos(ODataFilter, '$filter=') = 0 then
 #pragma warning disable AA0217
             ODataFilter := StrSubstNo('%1%2', '$filter=', ODataFilter);
-#pragma warning restore AA0217
+#pragma warning restore
         EditinExcel.OnEditInExcel(ServiceName, ODataFilter, '', Handled);
         if Handled then begin
             Session.LogMessage('0000F7M', EditInExcelHandledTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
@@ -816,7 +816,7 @@ codeunit 1482 "Edit in Excel Impl."
         if StrPos(ODataFilter, '$filter=') = 0 then
 #pragma warning disable AA0217
             ODataFilter := StrSubstNo('%1%2', '$filter=', ODataFilter);
-#pragma warning restore AA0217
+#pragma warning restore
         EditinExcel.OnEditInExcel(ServiceName, ODataFilter, SearchString, Handled);
         if Handled then begin
             Session.LogMessage('0000F7N', EditInExcelHandledTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);

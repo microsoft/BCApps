@@ -10,8 +10,8 @@ page 1565 "Privacy Notices"
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "Privacy Notice";
-    SourceTableView = sorting("Integration Service Name")
-                      where("User SID Filter" = filter('00000000-0000-0000-0000-000000000000'));
+    SourceTableView = Sorting("Integration Service Name")
+                      Where("User SID Filter" = filter('00000000-0000-0000-0000-000000000000'));
     Extensible = true;
     AccessByPermission = tabledata "Privacy Notice" = IM; // Only admin can see this page
     RefreshOnActivate = true;

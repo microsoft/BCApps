@@ -25,22 +25,22 @@ page 1996 "Guided Experience Item List"
             {
                 ShowCaption = false;
 
-                field(Title; Rec.Title)
+                field(Title; Title)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the name of the item.';
                 }
-                field(Description; Rec.Description)
+                field(Description; Description)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the description of the item.';
                 }
-                field(Extension; Rec."Extension Name")
+                field(Extension; "Extension Name")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the app that added the guided experience item.';
                 }
-                field(Link; Rec.Link)
+                field(Link; Link)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the link to start the guided experience.';

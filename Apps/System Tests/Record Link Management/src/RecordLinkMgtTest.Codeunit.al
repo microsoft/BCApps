@@ -192,9 +192,7 @@ codeunit 132508 "Record Link Mgt. Test"
         FromRecordLink.SetRange("Record ID", FromRecordLinkTestCrossCompany.RecordId);
         ToRecordLink.SetRange("Record ID", ToRecordLinkTestCrossCompany.RecordId);
         Assert.RecordCount(ToRecordLink, 5);
-#pragma warning disable AA0210
         ToRecordLink.SetRange(Notify, false);
-#pragma warning restore AA0210
         Assert.RecordCount(ToRecordLink, 5);
 
         FromRecordLink.FindSet();
@@ -257,9 +255,7 @@ codeunit 132508 "Record Link Mgt. Test"
         ToRecordLink.SetRange("Record ID", ToRecordLinkRecordTest.RecordId);
         ToRecordLink.SetRange(Company, CompanyName());
         Assert.RecordCount(ToRecordLink, FromRecordLink.Count());
-#pragma warning disable AA0210
         ToRecordLink.SetRange(Notify, false);
-#pragma warning restore AA0210
         Assert.RecordCount(ToRecordLink, FromRecordLink.Count());
 
         FromRecordLink.FindSet();

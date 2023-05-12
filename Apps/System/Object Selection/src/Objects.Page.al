@@ -82,13 +82,13 @@ page 358 Objects
     begin
         AppName := '';
 
-        if IsNullGuid(Rec."App Package ID") then
+        if IsNullGuid("App Package ID") then
             exit;
 
         if not PublishedApplication.ReadPermission() then
             exit;
 
-        PublishedApplication.SetRange("Package ID", Rec."App Package ID");
+        PublishedApplication.SetRange("Package ID", "App Package ID");
         PublishedApplication.SetRange("Tenant Visible", true);
 
         if PublishedApplication.FindFirst() then
@@ -127,5 +127,4 @@ page 358 Objects
         VisibleObjName: Boolean;
         HiddenObjCaption: Boolean;
 }
-
 

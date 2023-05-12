@@ -2,7 +2,7 @@ codeunit 132905 "User Settings Tests"
 {
     Subtype = Test;
     EventSubscriberInstance = Manual;
-    Permissions = tabledata "Tenant Profile Setting" = rm,
+    Permissions = tabledata "Tenant Profile" = rm,
                   tabledata "User Personalization" = rim,
                   tabledata "Windows Language" = r;
 

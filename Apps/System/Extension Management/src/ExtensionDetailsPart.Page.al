@@ -19,8 +19,8 @@ page 2504 "Extension Details Part"
     RefreshOnActivate = true;
     ShowFilter = false;
     SourceTable = "Published Application";
-    SourceTableView = where("Package Type" = filter(= Extension | Designer),
-                    "Tenant Visible" = const(true));
+    SourceTableView = WHERE("Package Type" = FILTER(= Extension | Designer),
+                    "Tenant Visible" = CONST(true));
     ContextSensitiveHelpPage = 'ui-extensions';
     Permissions = tabledata "Published Application" = r;
 
@@ -34,7 +34,7 @@ page 2504 "Extension Details Part"
                 group(Control2)
                 {
                     ShowCaption = false;
-                    field(Logo; Rec.Logo)
+                    field(Logo; Logo)
                     {
                         ApplicationArea = All;
                         Caption = 'Logo';
@@ -50,14 +50,14 @@ page 2504 "Extension Details Part"
                 group(Control9)
                 {
                     ShowCaption = false;
-                    field(Name; Rec.Name)
+                    field(Name; Name)
                     {
                         ApplicationArea = All;
                         Caption = 'Name';
                         MultiLine = true;
                         ToolTip = 'Specifies the name of the extension.';
                     }
-                    field(Publisher; Rec.Publisher)
+                    field(Publisher; Publisher)
                     {
                         ApplicationArea = All;
                         Caption = 'Publisher';
@@ -89,5 +89,4 @@ page 2504 "Extension Details Part"
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         VersionDisplay: Text;
 }
-
 

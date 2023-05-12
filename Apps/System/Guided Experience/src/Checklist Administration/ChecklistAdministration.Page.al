@@ -20,13 +20,13 @@ page 1992 "Checklist Administration"
     {
         area(content)
         {
-            field(Type; Rec."Guided Experience Type")
+            field(Type; "Guided Experience Type")
             {
                 ApplicationArea = All;
                 ToolTip = 'Specifies the type of action that the checklist item is for, such as a link to a setup guide or a link to learn more.';
                 Editable = true;
             }
-            field(Title; Rec.Title)
+            field(Title; Title)
             {
                 Caption = 'Task';
                 ApplicationArea = All;
@@ -35,17 +35,17 @@ page 1992 "Checklist Administration"
 
                 trigger OnLookup(var Text: Text): Boolean
                 begin
-                    ChecklistAdministration.LookupGuidedExperienceItem(Rec, Rec."Guided Experience Type");
+                    ChecklistAdministration.LookupGuidedExperienceItem(Rec, "Guided Experience Type");
                     CurrPage.Update();
                 end;
             }
-            field(Description; Rec.Description)
+            field(Description; Description)
             {
                 ApplicationArea = All;
                 ToolTip = 'Specifies the description of the checklist item.';
                 Editable = false;
             }
-            field("Expected Duration"; Rec."Expected Duration")
+            field("Expected Duration"; "Expected Duration")
             {
                 Caption = 'Expected Duration (in minutes)';
                 ApplicationArea = All;
@@ -54,9 +54,9 @@ page 1992 "Checklist Administration"
             }
             group("Object to Run")
             {
-                Visible = (Rec.Code <> '') and (Rec.Code <> '0')
-                    and (Rec."Object Type to Run" <> Rec."Object Type to Run"::Uninitialized)
-                    and (Rec."Object ID to Run" <> 0);
+                Visible = (Code <> '') and (Code <> '0')
+                    and ("Object Type to Run" <> "Object Type to Run"::Uninitialized)
+                    and ("Object ID to Run" <> 0);
                 ShowCaption = false;
 
                 field(ObjectCaption; ObjectCaption)
@@ -69,10 +69,10 @@ page 1992 "Checklist Administration"
             }
             group(URL)
             {
-                Visible = (Rec.Code <> '') and (Rec.Code <> '0') and (Rec.Link <> '');
+                Visible = (Code <> '') and (Code <> '0') and (Link <> '');
                 ShowCaption = false;
 
-                field(Link; Rec.Link)
+                field(Link; Link)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the link that the checklist item will open.';
@@ -82,10 +82,10 @@ page 1992 "Checklist Administration"
             }
             group(VideoURL)
             {
-                Visible = (Rec.Code <> '') and (Rec.Code <> '0') and (Rec."Video Url" <> '');
+                Visible = (Code <> '') and (Code <> '0') and ("Video Url" <> '');
                 ShowCaption = false;
 
-                field("Video Url"; Rec."Video Url")
+                field("Video Url"; "Video Url")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the URL of the video that the checklist item will open.';
@@ -95,10 +95,10 @@ page 1992 "Checklist Administration"
             }
             group("Spotlight Tour")
             {
-                Visible = (Rec.Code <> '') and (Rec.Code <> '0')
-                    and (Rec."Spotlight Tour Type" <> Rec."Spotlight Tour Type"::None);
+                Visible = (Code <> '') and (Code <> '0')
+                    and ("Spotlight Tour Type" <> "Spotlight Tour Type"::None);
 
-                field("Spotlight Tour Type"; Rec."Spotlight Tour Type")
+                field("Spotlight Tour Type"; "Spotlight Tour Type")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the type of spotlight tour that the checklist item will run.';
@@ -108,10 +108,10 @@ page 1992 "Checklist Administration"
             }
             group("Checklist Item Details")
             {
-                Visible = (Rec.Code <> '') and (Rec.Code <> '0');
+                Visible = (Code <> '') and (Code <> '0');
                 ShowCaption = false;
 
-                field("Completion Requirements"; Rec."Completion Requirements")
+                field("Completion Requirements"; "Completion Requirements")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the completion requirements of the checklist item.';
@@ -119,11 +119,11 @@ page 1992 "Checklist Administration"
 
                     trigger OnValidate()
                     begin
-                        if ChecklistAdministration.ConfirmCompletionRequirementsChange(Rec.Code, Rec."Completion Requirements") then
-                            ChecklistImplementation.UpdateChecklistItem(Rec.Code, Rec."Completion Requirements", Rec."Order ID");
+                        if ChecklistAdministration.ConfirmCompletionRequirementsChange(Code, "Completion Requirements") then
+                            ChecklistImplementation.UpdateChecklistItem(Code, "Completion Requirements", "Order ID");
                     end;
                 }
-                field("Order ID"; Rec."Order ID")
+                field("Order ID"; "Order ID")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies which step in the checklist this task will appear at.';
@@ -131,10 +131,10 @@ page 1992 "Checklist Administration"
 
                     trigger OnValidate()
                     begin
-                        if Rec."Order ID" < 1 then
+                        if "Order ID" < 1 then
                             Error(OrderGreaterThanZeroErr);
 
-                        ChecklistImplementation.UpdateChecklistItem(Rec.Code, Rec."Completion Requirements", Rec."Order ID");
+                        ChecklistImplementation.UpdateChecklistItem(Code, "Completion Requirements", "Order ID");
                     end;
                 }
             }
@@ -142,14 +142,14 @@ page 1992 "Checklist Administration"
             {
                 ApplicationArea = All;
                 SubPageLink = Code = field(Code);
-                Visible = (Rec.Code <> '') and (Rec.Code <> '0') and
-                    ((Rec."Completion Requirements" = Rec."Completion Requirements"::Anyone) or (Rec."Completion Requirements" = Rec."Completion Requirements"::Everyone));
+                Visible = (Code <> '') and (Code <> '0') and
+                    (("Completion Requirements" = "Completion Requirements"::Anyone) or ("Completion Requirements" = "Completion Requirements"::Everyone));
             }
             part(Users; "Checklist Item Users")
             {
                 ApplicationArea = All;
                 SubPageLink = Code = field(Code), "Assigned to User" = const(true);
-                Visible = (Rec.Code <> '') and (Rec.Code <> '0') and (Rec."Completion Requirements" = Rec."Completion Requirements"::"Specific users");
+                Visible = (Code <> '') and (Code <> '0') and ("Completion Requirements" = "Completion Requirements"::"Specific users");
             }
         }
     }
@@ -170,7 +170,7 @@ page 1992 "Checklist Administration"
                     GuidedExperienceItem: Record "Guided Experience Item";
                     Translation: Codeunit Translation;
                 begin
-                    if GuidedExperienceItem.Get(Rec.Code, Rec.Version) then
+                    if GuidedExperienceItem.Get(Code, Version) then
                         Translation.Show(GuidedExperienceItem, GuidedExperienceItem.FieldNo(Title));
                 end;
             }
@@ -186,7 +186,7 @@ page 1992 "Checklist Administration"
                     GuidedExperienceItem: Record "Guided Experience Item";
                     Translation: Codeunit Translation;
                 begin
-                    if GuidedExperienceItem.Get(Rec.Code, Rec.Version) then
+                    if GuidedExperienceItem.Get(Code, Version) then
                         Translation.Show(GuidedExperienceItem, GuidedExperienceItem.FieldNo("Short Title"));
                 end;
             }
@@ -202,7 +202,7 @@ page 1992 "Checklist Administration"
                     GuidedExperienceItem: Record "Guided Experience Item";
                     Translation: Codeunit Translation;
                 begin
-                    if GuidedExperienceItem.Get(Rec.Code, Rec.Version) then
+                    if GuidedExperienceItem.Get(Code, Version) then
                         Translation.Show(GuidedExperienceItem, GuidedExperienceItem.FieldNo(Description));
                 end;
             }
@@ -217,14 +217,14 @@ page 1992 "Checklist Administration"
 
     trigger OnAfterGetRecord()
     begin
-        if Rec."Order ID" = 0 then
-            Rec."Order ID" := 1;
+        if "Order ID" = 0 then
+            "Order ID" := 1;
 
-        ObjectCaption := ChecklistAdministration.GetObjectCaption(Rec."Object Type to Run", Rec."Object ID to Run");
+        ObjectCaption := ChecklistAdministration.GetObjectCaption("Object Type to Run", "Object ID to Run");
     end;
 
     trigger OnDeleteRecord(): Boolean
     begin
-        ChecklistImplementation.Delete(Rec.Code);
+        ChecklistImplementation.Delete(Code);
     end;
 }

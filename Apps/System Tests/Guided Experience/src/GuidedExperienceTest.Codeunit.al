@@ -139,7 +139,6 @@ codeunit 132594 "Guided Experience Test"
     end;
 
 #if not CLEAN19
-#pragma warning disable AL0432
     [Test]
     [Scope('OnPrem')]
     procedure TestInsertLearnPage()
@@ -203,7 +202,6 @@ codeunit 132594 "Guided Experience Test"
 
         VerifyAfterIdenticalInsertion(Code);
     end;
-#pragma warning restore AL0432
 #endif
 
     [Test]

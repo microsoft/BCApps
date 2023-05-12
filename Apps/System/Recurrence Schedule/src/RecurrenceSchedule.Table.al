@@ -24,7 +24,7 @@ table 4690 "Recurrence Schedule"
                 "Recurs Every" := 1;
 
                 if (Pattern = RecurrencePattern::Monthly) or (Pattern = RecurrencePattern::Yearly) then
-                    Rec.Validate("Monthly Pattern", RecurrenceMonthlyPattern::"Specific Day");
+                    VALIDATE("Monthly Pattern", RecurrenceMonthlyPattern::"Specific Day");
             end;
         }
         field(3; "Recurs Every"; Integer)
@@ -108,8 +108,8 @@ table 4690 "Recurrence Schedule"
 
     trigger OnInsert()
     begin
-        if IsNullGuid(ID) then
-            ID := CreateGuid();
+        IF ISNULLGUID(ID) THEN
+            ID := CREATEGUID();
     end;
 }
 

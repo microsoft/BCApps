@@ -121,7 +121,7 @@ codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
         Assert.AreNotEqual(0, AllowedTables.Count(), ' The list of allowed tables should not be empty');
         AllowedTablesCommaSep := ConvertStr(AllowedTablesFilter, '|', ',');
         Assert.AreEqual(StrLen(DelChr(AllowedTablesFilter, '=', '0123456789')), AllowedTables.Count() - 1, 'The filter should contain all allowed tables.');
-        for i := 1 to AllowedTables.Count do begin
+        For i := 1 to AllowedTables.Count do begin
             Evaluate(TableId, SelectStr(i, AllowedTablesCommaSep));
             Assert.IsTrue(AllowedTables.Contains(TableId), StrSubstNo(TableIdinFilterNotListLbl, TableId));
         end;

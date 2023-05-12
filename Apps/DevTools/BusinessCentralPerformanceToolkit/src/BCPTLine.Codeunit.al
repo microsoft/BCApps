@@ -248,7 +248,7 @@ codeunit 149005 "BCPT Line"
         exit(BCPTLine."No. of SQL Statements" div BCPTLine."No. of Iterations");
     end;
 
-    procedure GetParam(var BCPTLine: Record "BCPT Line"; ParamName: Text): Text
+    Procedure GetParam(var BCPTLine: Record "BCPT Line"; ParamName: Text): Text
     var
         dict: Dictionary of [Text, Text];
     begin

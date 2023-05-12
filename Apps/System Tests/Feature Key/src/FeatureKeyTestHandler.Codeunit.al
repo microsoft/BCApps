@@ -30,7 +30,7 @@ codeunit 135004 "Feature Key Test Handler" implements "Feature Data Update"
 
     procedure GetTaskDescription() TaskDescription: Text;
     begin
-        exit(IdImplemented + '...');
+        Exit(IdImplemented + '...');
     end;
 
     var

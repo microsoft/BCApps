@@ -6,7 +6,7 @@
 permissionset 95 "Session - Read"
 {
     Access = Public;
-    Assignable = false;
+    Assignable = False;
 
     Permissions = tabledata "Active Session" = R,
                   tabledata "Database Locks" = R,

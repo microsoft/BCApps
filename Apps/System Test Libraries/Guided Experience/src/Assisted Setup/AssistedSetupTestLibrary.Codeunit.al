@@ -58,16 +58,12 @@ codeunit 132585 "Assisted Setup Test Library"
     var
         GuidedExperienceItem: Codeunit "Guided Experience";
 #if not CLEAN18
-#pragma warning disable AL0432
         AssistedSetup: Codeunit "Assisted Setup";
-#pragma warning restore AL0432
 #endif
     begin
         GuidedExperienceItem.OnRegisterAssistedSetup();
 #if not CLEAN18
-#pragma warning disable AL0432
         AssistedSetup.OnRegister();
-#pragma warning restore AL0432
 #endif
     end;
 

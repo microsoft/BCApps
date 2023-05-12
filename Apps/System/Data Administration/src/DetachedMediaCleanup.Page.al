@@ -39,9 +39,9 @@ page 1927 "Detached Media Cleanup"
                 trigger OnValidate()
                 begin
                     if CompanyFilter <> '' then
-                        Rec.SetRange("Company Name", CompanyFilter)
+                        SetRange("Company Name", CompanyFilter)
                     else
-                        Rec.SetRange("Company Name");
+                        SetRange("Company Name");
                 end;
             }
             field(LoadDetachedMediaSetField; LoadDetachedMediaSet)

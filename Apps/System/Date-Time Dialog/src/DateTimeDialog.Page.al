@@ -45,6 +45,7 @@ page 684 "Date-Time Dialog"
     var
         DateValue: Date;
         TimeValue: Time;
+        [InDataSet]
         TimeHidden: Boolean;
 
     /// <summary>

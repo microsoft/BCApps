@@ -17,7 +17,6 @@ codeunit 1991 "Guided Experience Impl."
         TempBlob: Codeunit "Temp Blob";
         ObjectAndLinkToRunErr: Label 'You cannot insert a guided experience item with both an object to run and a link.';
         InvalidObjectTypeErr: Label 'The object type to run is not valid';
-        ExpectedDurationOverflowErr: Label 'The Expected Duration is too large: %1, it needs to be lower than 30000.', Comment = '%1 = Expected Duration in minutes';
         ObjectDoesNotExistErr: Label 'The object %1 %2 does not exist', Comment = '%1 = Object type, %2 = The object ID';
         RunSetupAgainQst: Label 'You have already completed the %1 assisted setup guide. Do you want to run it again?', Comment = '%1 = Assisted Setup Name';
         CodeFormatLbl: Label '%1_%2_%3_%4_%5', Locked = true;
@@ -719,9 +718,6 @@ codeunit 1991 "Guided Experience Impl."
     var
         IconInStream: InStream;
     begin
-        if ExpectedDuration > 30000 then
-            Error(ExpectedDurationOverflowErr, ExpectedDuration);
-
         GuidedExperienceItem.Code := Code;
         GuidedExperienceItem.Version := Version;
         GuidedExperienceItem.Title := Title;

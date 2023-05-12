@@ -12,8 +12,6 @@ page 2610 "Feature Management"
     Caption = 'Feature Management';
     ApplicationArea = All;
     UsageCategory = Administration;
-    AboutTitle = 'Managing change';
-    AboutText = 'Some new features are turned off when Business Central is updated to a newer version. These features are optional for a period of time until they are automatically enabled for all users in a later software update according to the [Release Plan](https://go.microsoft.com/fwlink/?linkid=2227906). You can prepare in advance by enabling these features for all users on the right environment at the right time that suits your schedule.';
     AdditionalSearchTerms = 'new features,feature key,opt in,turn off features,enable features,early access,preview';
     SourceTable = "Feature Key";
     PromotedActionCategories = 'New,Process,Report,Data Update';
@@ -62,7 +60,7 @@ page 2610 "Feature Management"
                     Caption = 'Enabled for';
                     ToolTip = 'Specifies whether the feature is enabled for all users or for none. The change takes effect the next time each user signs in.';
                     ApplicationArea = All;
-                    Editable = (not Rec."Is One Way") or (Rec.Enabled = Rec.Enabled::None);
+                    Editable = (not "Is One Way") or (Enabled = Enabled::None);
                     StyleExpr = EnabledForStyle;
 
                     trigger OnValidate()
@@ -100,7 +98,7 @@ page 2610 "Feature Management"
                     Caption = 'Get started';
                     ApplicationArea = All;
                     Editable = false;
-                    Enabled = Rec."Can Try";
+                    Enabled = "Can Try";
                     ToolTip = 'Starts a new session with the feature temporarily enabled (opens in a new tab). This does not affect any other users.';
                     trigger OnDrillDown()
                     begin
@@ -148,19 +146,13 @@ page 2610 "Feature Management"
                 }
             }
         }
-#if not CLEAN23
         area(factboxes)
         {
             part("Upcoming Changes FactBox"; "Upcoming Changes Factbox")
             {
                 ApplicationArea = All;
-                Visible = false;
-                ObsoleteReason = 'Replaced by teaching tips';
-                ObsoleteState = Pending;
-                ObsoleteTag = '23.0';
             }
         }
-#endif
     }
     actions
     {
@@ -214,7 +206,7 @@ page 2610 "Feature Management"
                     PromotedCategory = Category4;
                     trigger OnAction()
                     begin
-                        FeatureManagementFacade.CancelTask(FeatureDataUpdateStatus, true);
+                        FeatureManagementFacade.CancelTask(FeatureDataUpdateStatus, True);
                     end;
                 }
             }

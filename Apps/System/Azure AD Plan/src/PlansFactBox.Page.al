@@ -23,7 +23,7 @@ page 9825 "Plans FactBox"
         {
             repeater(Group)
             {
-                field(Name; Rec.Name)
+                field(Name; Name)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the name of the record.';

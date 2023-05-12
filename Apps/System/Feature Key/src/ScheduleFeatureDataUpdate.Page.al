@@ -84,13 +84,13 @@ page 2612 "Schedule Feature Data Update"
                 group(CurrSessionText)
                 {
                     ShowCaption = false;
-                    Visible = not Rec."Background Task";
+                    Visible = not "Background Task";
                     InstructionalText = 'The data update task will be running in the current session.';
                 }
                 group(BackgroundSessionText)
                 {
                     ShowCaption = false;
-                    Visible = Rec."Background Task";
+                    Visible = "Background Task";
                     InstructionalText = 'The data update task will be running in the background session.';
                 }
                 group(Background)
@@ -107,7 +107,7 @@ page 2612 "Schedule Feature Data Update"
                 group(setup)
                 {
                     Caption = 'Schedule Background Task';
-                    Visible = Rec."Background Task";
+                    Visible = "Background Task";
                     group(SetupBackgroundTask)
                     {
                         ShowCaption = false;
@@ -176,7 +176,7 @@ page 2612 "Schedule Feature Data Update"
             {
                 ApplicationArea = All;
                 Caption = '&Update';
-                Visible = not Rec."Background Task";
+                Visible = not "Background Task";
                 Enabled = FinishEnable;
                 Image = Approve;
                 InFooterBar = true;
@@ -191,7 +191,7 @@ page 2612 "Schedule Feature Data Update"
             {
                 ApplicationArea = All;
                 Caption = '&Schedule';
-                Visible = Rec."Background Task";
+                Visible = "Background Task";
                 Enabled = FinishEnable;
                 Image = Approve;
                 InFooterBar = true;
@@ -230,11 +230,17 @@ page 2612 "Schedule Feature Data Update"
         ReviewDataTok: Label 'Review affected data';
         NoDataMsg: Label 'There is no data to be updated. Complete the update in the current session to enable the feature.';
         NotImplementedMsg: Label 'The feature %1 cannot be enabled because data update handling is not implemented.', Comment = '%1 - feature key id';
+        [InDataSet]
         DataUpdateImplemented: Boolean;
+        [InDataSet]
         Step1Visible: Boolean;
+        [InDataSet]
         Step2Visible: Boolean;
+        [InDataSet]
         NextEnable: Boolean;
+        [InDataSet]
         BackEnable: Boolean;
+        [InDataSet]
         FinishEnable: Boolean;
         WizardStep: Integer;
 

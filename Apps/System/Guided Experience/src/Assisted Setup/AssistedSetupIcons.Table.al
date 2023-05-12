@@ -17,17 +17,14 @@ table 1810 "Assisted Setup Icons"
     {
         field(1; "No."; Code[50])
         {
-            DataClassification = CustomerContent;
             Caption = 'No.';
         }
         field(2; Image; Media)
         {
-            DataClassification = CustomerContent;
             Caption = 'Image';
         }
         field(3; "Media Resources Ref"; Code[50])
         {
-            DataClassification = CustomerContent;
             Caption = 'Media Resources Ref';
         }
     }

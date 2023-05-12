@@ -92,9 +92,7 @@ page 2011 "Entity Text Factbox Part"
                 ApplicationArea = All;
                 Caption = 'Create with Copilot';
                 Visible = CanCreate;
-#pragma warning disable AL0482
                 Image = Sparkle;
-#pragma warning restore AL0482
                 ToolTip = 'Let Copilot create a new draft';
 
                 trigger OnAction()

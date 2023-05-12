@@ -44,7 +44,7 @@ page 2508 "Extension Deployment Status"
                     ToolTip = 'Specifies the deployment type.';
                     OptionCaption = 'Upload,Install';
                 }
-                field(Status; Rec.Status)
+                field(Status; Status)
                 {
                     ApplicationArea = All;
                     Caption = 'Status';
@@ -64,7 +64,7 @@ page 2508 "Extension Deployment Status"
                     ToolTip = 'Specifies the version of the app.';
                     Width = 6;
                 }
-                field("Started On"; Rec."Started On")
+                field("Started On"; "Started On")
                 {
                     ApplicationArea = All;
                     Caption = 'Started Date';
@@ -104,21 +104,21 @@ page 2508 "Extension Deployment Status"
     var
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
     begin
-        if Rec."Operation Type" = 0 then
+        if "Operation Type" = 0 then
             OperationType := OperationType::Install
         else
             OperationType := OperationType::Upload;
 
-        ExtensionOperationImpl.GetDeployOperationInfo(Rec."Operation ID", Version, DeploymentSchedule, AppPublisher, AppName, Rec.Description);
+        ExtensionOperationImpl.GetDeployOperationInfo("Operation ID", Version, DeploymentSchedule, AppPublisher, AppName, Description);
 
-        if Rec.Status = Rec.Status::InProgress then
-            ExtensionOperationImpl.RefreshStatus(Rec."Operation ID");
+        if Status = Status::InProgress then
+            ExtensionOperationImpl.RefreshStatus("Operation ID");
     end;
 
     trigger OnOpenPage()
     begin
-        Rec.SetCurrentKey("Started On");
-        Rec.Ascending(false);
+        SetCurrentKey("Started On");
+        Ascending(false);
     end;
 
     var
@@ -128,5 +128,4 @@ page 2508 "Extension Deployment Status"
         AppName: Text;
         OperationType: Option Upload,Install;
 }
-
 

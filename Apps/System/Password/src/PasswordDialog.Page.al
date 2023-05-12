@@ -86,8 +86,11 @@ page 9810 "Password Dialog"
     var
         PasswordDialogImpl: Codeunit "Password Dialog Impl.";
         PasswordMismatchErr: Label 'The passwords that you entered do not match.';
+        [InDataSet]
         PasswordValue: Text;
+        [InDataSet]
         ConfirmPasswordValue: Text;
+        [InDataSet]
         OldPasswordValue: Text;
         ShowOldPassword: Boolean;
         ValidPassword: Boolean;

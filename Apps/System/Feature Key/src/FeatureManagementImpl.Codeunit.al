@@ -375,7 +375,7 @@ codeunit 2610 "Feature Management Impl."
     /// <returns>id of the scheduled task</returns>
     procedure CreateTask(var FeatureDataUpdateStatus: Record "Feature Data Update Status") TaskId: Guid
     begin
-        CancelTask(FeatureDataUpdateStatus, false);
+        CancelTask(FeatureDataUpdateStatus, False);
         AdjustStartDateTime(FeatureDataUpdateStatus);
         TaskId :=
             TaskScheduler.CreateTask(

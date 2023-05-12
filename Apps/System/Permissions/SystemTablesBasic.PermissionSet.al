@@ -50,8 +50,6 @@ permissionset 66 "System Tables - Basic"
                   tabledata "Signup Context" = R,
                   tabledata "Style Sheet" = RIMD,
                   tabledata "System Object" = Rimd,
-#pragma warning disable AL0432
                   tabledata "Tenant Profile Page Metadata" = Rimd,
-#pragma warning restore AL0432
                   tabledata "Token Cache" = Rimd;
 }

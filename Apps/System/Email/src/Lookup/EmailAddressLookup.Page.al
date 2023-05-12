@@ -162,6 +162,7 @@ page 8944 "Email Address Lookup"
     end;
 
     protected var
+        [InDataSet]
         EntityType: enum "Email Address Entity";
 
     var

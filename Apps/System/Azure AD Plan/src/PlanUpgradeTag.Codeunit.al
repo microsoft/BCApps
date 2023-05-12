@@ -24,7 +24,6 @@ codeunit 9058 "Plan Upgrade Tag"
         PerDatabaseUpgradeTags.Add(GetRenameTeamMemberPlanUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetPlanfigurationsUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetMicrosoft365UpgradeTag());
-        PerDatabaseUpgradeTags.Add(GetMD365AdminUpgradeTag());
     end;
 
     /// <summary>
@@ -80,16 +79,6 @@ codeunit 9058 "Plan Upgrade Tag"
     begin
         exit('MS-410756-AddMicrosoft365-20220825');
     end;
-
-    /// <summary>
-    /// Returns the Dynamics 365 Administrator upgrade tag.
-    /// </summary>
-    /// <returns>The Dynamics 365 Administrator upgrade tag.</returns>
-    internal procedure GetMD365AdminUpgradeTag(): Code[250]
-    begin
-        exit('MS-465490-AddD365Admin-20230103');
-    end;
-
 
     internal procedure GetPlanfigurationsUpgradeTag(): Code[250]
     begin

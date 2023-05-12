@@ -14,7 +14,7 @@ page 9843 "User Lookup"
     InsertAllowed = false;
     PageType = List;
     SourceTable = User;
-    SourceTableView = sorting("User Name");
+    SourceTableView = SORTING("User Name");
     Permissions = tabledata User = r;
 
     layout
@@ -23,28 +23,28 @@ page 9843 "User Lookup"
         {
             repeater(Group)
             {
-                field("User Name"; Rec."User Name")
+                field("User Name"; "User Name")
                 {
                     ApplicationArea = All;
                     Caption = 'User Name';
                     Editable = false;
                     ToolTip = 'Specifies the name of the user. If the user must enter credentials when they sign in, this is the name they must enter.';
                 }
-                field("Full Name"; Rec."Full Name")
+                field("Full Name"; "Full Name")
                 {
                     ApplicationArea = All;
                     Caption = 'Full Name';
                     Editable = false;
                     ToolTip = 'Specifies the full name of the user.';
                 }
-                field("Windows Security ID"; Rec."Windows Security ID")
+                field("Windows Security ID"; "Windows Security ID")
                 {
                     ApplicationArea = All;
                     Editable = false;
                     ToolTip = 'Specifies the Windows Security ID of the user. This is only relevant for Windows authentication.';
-                    Visible = not IsSaaS;
+                    Visible = NOT IsSaaS;
                 }
-                field("Authentication Email"; Rec."Authentication Email")
+                field("Authentication Email"; "Authentication Email")
                 {
                     ApplicationArea = All;
                     Editable = false;
@@ -96,5 +96,4 @@ page 9843 "User Lookup"
         end;
     end;
 }
-
 

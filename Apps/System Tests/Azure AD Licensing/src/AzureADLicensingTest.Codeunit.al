@@ -235,7 +235,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
-        AzureADLicensing.SetIncludeUnknownPlans(true);
+        AzureADLicensing.SetIncludeUnknownPlans(TRUE);
 
         // [When] Query the first Subscribed SKU object
         // [WHEN] SubscribedSKUCapabilityStatus is called
@@ -254,7 +254,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [When] Try to query the third Subscribed SKU object
         // [WHEN] SubscribedSKUCapabilityStatus is called
         // [THEN] NextSubscribedSKU should return FALSE and last capability status should be returned
-        Assert.AreEqual(false, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
+        Assert.AreEqual(FALSE, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
         Assert.AreEqual('SKU Capability Status Two', AzureADLicensing.SubscribedSKUCapabilityStatus(), 'Wrong SKU capability status!');
 
         UnBindSubscription(AzureADGraphTestLibrary);
@@ -273,7 +273,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
-        AzureADLicensing.SetIncludeUnknownPlans(true);
+        AzureADLicensing.SetIncludeUnknownPlans(TRUE);
 
         // [When] Query the first Subscribed SKU object
         // [WHEN] SubscribedSKUConsumedUnits is called
@@ -292,7 +292,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [When] Try to query the third Subscribed SKU object
         // [WHEN] SubscribedSKUConsumedUnits is called
         // [THEN] NextSubscribedSKU should return FALSE and the consumed units of the last subscribed sku should be returned
-        Assert.AreEqual(false, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
+        Assert.AreEqual(FALSE, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
         Assert.AreEqual(2, AzureADLicensing.SubscribedSKUConsumedUnits(), 'Wrong subscribed SKU consumed units!');
 
         UnBindSubscription(AzureADGraphTestLibrary);
@@ -311,7 +311,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
-        AzureADLicensing.SetIncludeUnknownPlans(true);
+        AzureADLicensing.SetIncludeUnknownPlans(TRUE);
 
         // [When] Query the first Subscribed SKU object
         // [WHEN] SubscribedSKUObjectId is called
@@ -330,7 +330,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [When] Try to query the third Subscribed SKU object
         // [WHEN] SubscribedSKUObjectId is called
         // [THEN] NextSubscribedSKU should return FALSE and last object id is returned
-        Assert.AreEqual(false, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
+        Assert.AreEqual(FALSE, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
         Assert.AreEqual('SKU Object Id Two', AzureADLicensing.SubscribedSKUObjectId(), 'Wrong subscribed SKU Object ID!');
 
         UnBindSubscription(AzureADGraphTestLibrary);
@@ -349,7 +349,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
-        AzureADLicensing.SetIncludeUnknownPlans(true);
+        AzureADLicensing.SetIncludeUnknownPlans(TRUE);
 
         // [When] Query the first Subscribed SKU object
         // [WHEN] SubscribedSKUPrepaidUnitsInEnabledState is called
@@ -368,7 +368,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [When] Try to query the third Subscribed SKU object
         // [WHEN] SubscribedSKUPrepaidUnitsInEnabledState is called
         // [THEN] NextSubscribedSKU should return FALSE
-        Assert.AreEqual(false, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
+        Assert.AreEqual(FALSE, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
         Assert.AreEqual(2, AzureADLicensing.SubscribedSKUPrepaidUnitsInEnabledState(), 'Wrong nr of units in enabled state!');
 
         UnBindSubscription(AzureADGraphTestLibrary);
@@ -387,7 +387,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
-        AzureADLicensing.SetIncludeUnknownPlans(true);
+        AzureADLicensing.SetIncludeUnknownPlans(TRUE);
 
         // [When] Query the first Subscribed SKU object
         // [WHEN] SubscribedSKUPrepaidUnitsInSuspendedState is called
@@ -406,7 +406,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [When] Try to query the third Subscribed SKU object
         // [WHEN] SubscribedSKUPrepaidUnitsInSuspendedState is called
         // [THEN] NextSubscribedSKU should return FALSE
-        Assert.AreEqual(false, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
+        Assert.AreEqual(FALSE, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
         Assert.AreEqual(2, AzureADLicensing.SubscribedSKUPrepaidUnitsInSuspendedState(), 'Wrong nr of units in suspended state!');
 
         UnBindSubscription(AzureADGraphTestLibrary);
@@ -425,7 +425,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
-        AzureADLicensing.SetIncludeUnknownPlans(true);
+        AzureADLicensing.SetIncludeUnknownPlans(TRUE);
 
         // [When] Query the first Subscribed SKU object
         // [WHEN] SubscribedSKUPrepaidUnitsInWarningState is called
@@ -444,7 +444,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [When] Try to query the third Subscribed SKU object
         // [WHEN] SubscribedSKUPrepaidUnitsInWarningState is called
         // [THEN] NextSubscribedSKU should return FALSE
-        Assert.AreEqual(false, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
+        Assert.AreEqual(FALSE, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
         Assert.AreEqual(2, AzureADLicensing.SubscribedSKUPrepaidUnitsInWarningState(), 'Wrong nr of units in warning state!');
 
         UnBindSubscription(AzureADGraphTestLibrary);
@@ -463,7 +463,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
-        AzureADLicensing.SetIncludeUnknownPlans(true);
+        AzureADLicensing.SetIncludeUnknownPlans(TRUE);
 
         // [When] Query the first Subscribed SKU object
         // [WHEN] SubscribedSKUId is called
@@ -482,7 +482,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [When] Try to query the third Subscribed SKU object
         // [WHEN] SubscribedSKUId is called
         // [THEN] NextSubscribedSKU should return FALSE
-        Assert.AreEqual(false, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
+        Assert.AreEqual(FALSE, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
         Assert.AreEqual(SubscribedSkuTwoIdTxt, AzureADLicensing.SubscribedSKUId(), 'Wrong id retrieved!');
 
         UnBindSubscription(AzureADGraphTestLibrary);
@@ -501,7 +501,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [Given] A mock SKU data
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
-        AzureADLicensing.SetIncludeUnknownPlans(true);
+        AzureADLicensing.SetIncludeUnknownPlans(TRUE);
 
         // [When] Query the first Subscribed SKU object
         // [WHEN] SubscribedSKUPartNumber is called
@@ -520,7 +520,7 @@ codeunit 138458 "Azure AD Licensing Test"
         // [When] Try to query the third Subscribed SKU object
         // [WHEN] SubscribedSKUPartNumber is called
         // [THEN] NextSubscribedSKU should return FALSE
-        Assert.AreEqual(false, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
+        Assert.AreEqual(FALSE, AzureADLicensing.NextSubscribedSKU(), 'Next subscribed SKU is not as expected.');
         Assert.AreEqual('SKU Part number Two', AzureADLicensing.SubscribedSKUPartNumber(), 'Wrong part number!');
 
         UnBindSubscription(AzureADGraphTestLibrary);
@@ -540,7 +540,7 @@ codeunit 138458 "Azure AD Licensing Test"
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
         AzureADLicensing.ResetServicePlans();
-        AzureADLicensing.SetIncludeUnknownPlans(true);
+        AzureADLicensing.SetIncludeUnknownPlans(TRUE);
 
         // [When] Query the first Subscribed SKU object
         // [When] Query the first service plan from the SKU object
@@ -572,7 +572,7 @@ codeunit 138458 "Azure AD Licensing Test"
 
         // [When] Try to query the third service plan
         // [THEN] NextServicePlan should return FALSE
-        Assert.AreEqual(false, AzureADLicensing.NextServicePlan(), 'Next service plan is not as expected.');
+        Assert.AreEqual(FALSE, AzureADLicensing.NextServicePlan(), 'Next service plan is not as expected.');
         // [WHEN] ServicePlanCapabilityStatus is called
         // [THEN] The capability status of the last service plan queried is returned
         Assert.AreEqual('Plan Capability Status Three', AzureADLicensing.ServicePlanCapabilityStatus(), 'Wrong capability status the second subscribed SKU!');
@@ -594,7 +594,7 @@ codeunit 138458 "Azure AD Licensing Test"
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
         AzureADLicensing.ResetServicePlans();
-        AzureADLicensing.SetIncludeUnknownPlans(true);
+        AzureADLicensing.SetIncludeUnknownPlans(TRUE);
 
         // [When] Query the first Subscribed SKU object
         // [When] Query the first service plan from the SKU object
@@ -626,7 +626,7 @@ codeunit 138458 "Azure AD Licensing Test"
 
         // [When] Try to query the third service plan
         // [THEN] NextServicePlan should return FALSE
-        Assert.AreEqual(false, AzureADLicensing.NextServicePlan(), 'Next service plan is not as expected.');
+        Assert.AreEqual(FALSE, AzureADLicensing.NextServicePlan(), 'Next service plan is not as expected.');
         // [WHEN] ServicePlanId is called
         // [THEN] The plan id of the last service plan returned is retrieved
         Assert.AreEqual(ServicePlanThreeIdTxt, AzureADLicensing.ServicePlanId(), 'Wrong capability status the second subscribed SKU!');
@@ -648,7 +648,7 @@ codeunit 138458 "Azure AD Licensing Test"
         BindSubscription(AzureADGraphTestLibrary);
         AzureADLicensing.ResetSubscribedSKU();
         AzureADLicensing.ResetServicePlans();
-        AzureADLicensing.SetIncludeUnknownPlans(true);
+        AzureADLicensing.SetIncludeUnknownPlans(TRUE);
 
         // [When] Query the first Subscribed SKU object
         // [When] Query the first service plan from the SKU object
@@ -680,7 +680,7 @@ codeunit 138458 "Azure AD Licensing Test"
 
         // [When] Try to query the third service plan
         // [THEN] NextServicePlan should return FALSE
-        Assert.AreEqual(false, AzureADLicensing.NextServicePlan(), 'Next service plan is not as expected.');
+        Assert.AreEqual(FALSE, AzureADLicensing.NextServicePlan(), 'Next service plan is not as expected.');
         // [WHEN] ServicePlanName is called
         // [THEN] The service plan name of the last service plan queried is returned
         Assert.AreEqual('Plan name Three', AzureADLicensing.ServicePlanName(), 'Wrong service plan name!');

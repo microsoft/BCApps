@@ -38,7 +38,7 @@ page 132618 "Views Page Action Test"
         view(BooleanView)
         {
             Caption = 'TestBoolean';
-            Filters = where(TestBoolean = const(true));
+            Filters = where(TestBoolean = Const(true));
         }
         view(BooleanDecimalView)
         {

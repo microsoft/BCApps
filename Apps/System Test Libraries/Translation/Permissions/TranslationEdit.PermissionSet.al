@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 137121 "Translation Edit"
+PermissionSet 137121 "Translation Edit"
 {
     Assignable = true;
 

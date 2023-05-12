@@ -26,7 +26,7 @@ codeunit 134691 "Recurrence Schedule Test"
         PermissionsMock.Set('Recurrence View');
         // [GIVEN] A missing Recurrence
         // [WHEN] Next occurrence is calculated with the first occurrence as last
-        asserterror RecurrenceSchedule.CalculateNextOccurrence(RecurrenceID, 0DT);
+        ASSERTERROR RecurrenceSchedule.CalculateNextOccurrence(RecurrenceID, 0DT);
 
         // [THEN] Next occurrence is equal to start time and start date + 1
         Assert.ExpectedMessage('The Recurrence Schedule does not exist', GetLastErrorText());
@@ -309,7 +309,7 @@ codeunit 134691 "Recurrence Schedule Test"
         PermissionsMock.Set('Recurrence View');
 
         // [WHEN] Create weekly recurrence no date and time
-        RecurrenceID := RecurrenceSchedule.CreateWeekly(0T, 0D, 0D, 0, false, false, false, false, false, false, false);
+        RecurrenceID := RecurrenceSchedule.CreateWeekly(0T, 0D, 0D, 0, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
         // [THEN] A recurrence GUID ID is returned
         Assert.IsFalse(ISNULLGUID(RecurrenceID), 'ID was empty');
 
@@ -331,7 +331,7 @@ codeunit 134691 "Recurrence Schedule Test"
         PermissionsMock.Set('Recurrence View');
 
         // [WHEN] Create weekly recurrence no date
-        RecurrenceID := RecurrenceSchedule.CreateWeekly(Time(), 0D, 0D, 0, false, false, false, false, false, false, false);
+        RecurrenceID := RecurrenceSchedule.CreateWeekly(Time(), 0D, 0D, 0, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
         // [THEN] A recurrence GUID ID is returned
         Assert.IsFalse(ISNULLGUID(RecurrenceID), 'ID was empty');
 
@@ -353,7 +353,7 @@ codeunit 134691 "Recurrence Schedule Test"
         PermissionsMock.Set('Recurrence View');
 
         // [WHEN] Create weekly recurrence no days
-        RecurrenceID := RecurrenceSchedule.CreateWeekly(Time(), Today(), Today() + 10, 1, false, false, false, false, false, false, false);
+        RecurrenceID := RecurrenceSchedule.CreateWeekly(Time(), Today(), Today() + 10, 1, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
         // [THEN] A recurrence GUID ID is returned
         Assert.IsFalse(ISNULLGUID(RecurrenceID), 'ID was empty');
 
@@ -383,7 +383,7 @@ codeunit 134691 "Recurrence Schedule Test"
         RecurrenceSchedule.SetMinDateTime(CREATEDATETIME(StartDay, StartTime));
 
         // [WHEN] Create weekly recurrence starting on Monday
-        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 7, 1, true, false, false, false, false, false, false);
+        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 7, 1, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
         // [THEN] A recurrence GUID ID is returned
         Assert.IsFalse(ISNULLGUID(RecurrenceID), 'ID was empty');
 
@@ -423,7 +423,7 @@ codeunit 134691 "Recurrence Schedule Test"
         RecurrenceSchedule.SetMinDateTime(CREATEDATETIME(StartDay, StartTime));
 
         // [WHEN] Create weekly recurrence starting on Tuesday
-        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 7, 1, true, false, false, false, false, false, true);
+        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 7, 1, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE);
         // [THEN] A recurrence GUID ID is returned
         Assert.IsFalse(ISNULLGUID(RecurrenceID), 'ID was empty');
 
@@ -463,7 +463,7 @@ codeunit 134691 "Recurrence Schedule Test"
         RecurrenceSchedule.SetMinDateTime(CREATEDATETIME(StartDay, StartTime));
 
         // [WHEN] Create weekly recurrence starting on Tuesday
-        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay - 14, StartDay + 7, 1, true, false, false, false, false, false, true);
+        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay - 14, StartDay + 7, 1, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE);
         // [THEN] A recurrence GUID ID is returned
         Assert.IsFalse(ISNULLGUID(RecurrenceID), 'ID was empty');
 
@@ -503,7 +503,7 @@ codeunit 134691 "Recurrence Schedule Test"
         RecurrenceSchedule.SetMinDateTime(CREATEDATETIME(StartDay, StartTime));
 
         // [WHEN] Create weekly recurrence starting on Monday
-        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 7, 1, true, false, true, false, false, false, true);
+        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 7, 1, TRUE, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE);
 
         // [WHEN] Next occurrence is calculated with no last occurrence
         NextOccurrence := RecurrenceSchedule.CalculateNextOccurrence(RecurrenceID, 0DT);
@@ -551,7 +551,7 @@ codeunit 134691 "Recurrence Schedule Test"
         RecurrenceSchedule.SetMinDateTime(CREATEDATETIME(StartDay, StartTime));
 
         // [WHEN] Create weekly recurrence starting on Tuesday
-        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 7, 1, true, false, true, false, false, false, true);
+        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 7, 1, TRUE, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE);
 
         // [WHEN] Next occurrence is calculated with no last occurrence
         NextOccurrence := RecurrenceSchedule.CalculateNextOccurrence(RecurrenceID, 0DT);
@@ -594,7 +594,7 @@ codeunit 134691 "Recurrence Schedule Test"
         RecurrenceSchedule.SetMinDateTime(CREATEDATETIME(StartDay, StartTime));
 
         // [WHEN] Create weekly recurrence starting on Sunday
-        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 7, 1, true, false, true, false, false, false, true);
+        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 7, 1, TRUE, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE);
 
         // [WHEN] Next occurrence is calculated with no last occurrence
         NextOccurrence := RecurrenceSchedule.CalculateNextOccurrence(RecurrenceID, 0DT);
@@ -642,7 +642,7 @@ codeunit 134691 "Recurrence Schedule Test"
         RecurrenceSchedule.SetMinDateTime(CREATEDATETIME(StartDay, StartTime));
 
         // [WHEN] Create weekly recurrence starting on Monday
-        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 21, 3, true, false, false, false, false, false, false);
+        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 21, 3, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
 
         // [WHEN] Next occurrence is calculated with no last occurrence
         NextOccurrence := RecurrenceSchedule.CalculateNextOccurrence(RecurrenceID, 0DT);
@@ -680,7 +680,7 @@ codeunit 134691 "Recurrence Schedule Test"
         RecurrenceSchedule.SetMinDateTime(CREATEDATETIME(StartDay, StartTime));
 
         // [WHEN] Create weekly recurrence starting on Tuesday
-        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 41, 3, true, false, false, false, false, false, false);
+        RecurrenceID := RecurrenceSchedule.CreateWeekly(StartTime, StartDay, StartDay + 41, 3, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE);
 
         // [WHEN] Next occurrence is calculated with no last occurrence
         NextOccurrence := RecurrenceSchedule.CalculateNextOccurrence(RecurrenceID, 0DT);
@@ -1121,7 +1121,7 @@ codeunit 134691 "Recurrence Schedule Test"
     [Scope('OnPrem')]
     procedure RandTime(): Time
     begin
-        exit(000000T + ROUND(Any.IntegerInRange(235959.999T - 000000T + 1) - 1, 10));
+        EXIT(000000T + ROUND(Any.IntegerInRange(235959.999T - 000000T + 1) - 1, 10));
     end;
 }
 

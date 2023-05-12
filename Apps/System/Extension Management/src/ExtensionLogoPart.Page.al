@@ -19,8 +19,8 @@ page 2506 "Extension Logo Part"
     RefreshOnActivate = true;
     ShowFilter = false;
     SourceTable = "Published Application";
-    SourceTableView = where("Package Type" = filter(= Extension | Designer),
-                            "Tenant Visible" = const(true));
+    SourceTableView = WHERE("Package Type" = FILTER(= Extension | Designer),
+                            "Tenant Visible" = CONST(true));
     ContextSensitiveHelpPage = 'ui-extensions';
     Permissions = tabledata "Published Application" = r;
 
@@ -34,7 +34,7 @@ page 2506 "Extension Logo Part"
                 group(Control3)
                 {
                     ShowCaption = false;
-                    field(Logo; Rec.Logo)
+                    field(Logo; Logo)
                     {
                         ApplicationArea = All;
                         ToolTip = 'Specifies the logo of the extension, such as the logo of the service provider.';
@@ -48,5 +48,4 @@ page 2506 "Extension Logo Part"
     {
     }
 }
-
 

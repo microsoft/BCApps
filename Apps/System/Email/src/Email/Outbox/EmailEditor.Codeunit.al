@@ -274,7 +274,7 @@ codeunit 8906 "Email Editor"
         RelatedId: Integer;
     begin
         // If there is only one key in the dict, then there is no need to use DB resources.
-        if RelatedIds.Count = 1 then begin
+        If RelatedIds.Count = 1 then begin
             PrimarySource := RelatedIds.Get(1);
             exit(true);
         end;

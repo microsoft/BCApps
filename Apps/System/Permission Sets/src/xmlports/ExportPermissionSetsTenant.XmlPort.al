@@ -47,7 +47,7 @@ xmlport 9863 "Export Permission Sets Tenant"
                 tableelement("Tenant Permission Set Rel."; "Tenant Permission Set Rel.")
                 {
                     LinkTable = "Tenant Permission Set";
-                    LinkFields = "App ID" = field("App ID"), "Role ID" = field("Role ID");
+                    LinkFields = "App ID" = Field("App ID"), "Role ID" = field("Role ID");
                     MinOccurs = Zero;
                     XmlName = 'TenantPermissionSetRel';
                     SourceTableView = sorting("App ID", "Role ID", "Related App ID", "Related Role ID");
@@ -66,11 +66,11 @@ xmlport 9863 "Export Permission Sets Tenant"
                 }
                 tableelement("Tenant Permission"; "Tenant Permission")
                 {
-                    LinkFields = "App ID" = field("App ID"), "Role ID" = field("Role ID");
+                    LinkFields = "App ID" = field("App ID"), "Role ID" = FIELD("Role ID");
                     LinkTable = "Tenant Permission Set";
                     MinOccurs = Zero;
                     XmlName = 'TenantPermission';
-                    SourceTableView = sorting("Role ID", "Object Type", "Object ID");
+                    SourceTableView = SORTING("Role ID", "Object Type", "Object ID");
                     fieldelement(ObjectType; "Tenant Permission"."Object Type")
                     {
                     }

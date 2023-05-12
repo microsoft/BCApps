@@ -94,7 +94,7 @@ page 1991 "App Setup List"
         GuidedExperience.OnRegisterManualSetup();
         GuidedExperienceImpl.GetContentForAllSetups(Rec);
 
-        Rec.SetCurrentKey("Guided Experience Type");
+        SetCurrentKey("Guided Experience Type");
 
         if Rec.Count() = 0 then begin
             Message(SetupNotDefinedErr);
@@ -155,11 +155,11 @@ page 1991 "App Setup List"
     end;
 
     var
+        [InDataSet]
         StatusStyleTxt: Text;
         SetupNotDefinedErr: Label 'This app doesn''t require set-up.';
         CaptionTok: Label 'Setups for %1', Comment = '%1 = App Name';
         RunInitialSetupQst: Label 'Do you want to run the initial setup?';
         FirstRun: Boolean;
 }
-
 

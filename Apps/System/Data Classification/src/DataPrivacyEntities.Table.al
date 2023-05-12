@@ -22,8 +22,8 @@ table 1180 "Data Privacy Entities"
         field(2; "Table Caption"; Text[80])
 #pragma warning restore AL0685
         {
-            CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
-                                                                           "Object ID" = field("Table No.")));
+            CalcFormula = Lookup(AllObjWithCaption."Object Caption" WHERE("Object Type" = CONST(Table),
+                                                                           "Object ID" = FIELD("Table No.")));
             Caption = 'Table Caption';
             FieldClass = FlowField;
         }
@@ -34,8 +34,8 @@ table 1180 "Data Privacy Entities"
         }
         field(4; "Key Field Name"; Text[30])
         {
-            CalcFormula = lookup(Field.FieldName where(TableNo = field("Table No."),
-                                                        "No." = field("Key Field No.")));
+            CalcFormula = Lookup(Field.FieldName WHERE(TableNo = FIELD("Table No."),
+                                                        "No." = FIELD("Key Field No.")));
             Caption = 'Key Field Name';
             FieldClass = FlowField;
         }
@@ -46,32 +46,28 @@ table 1180 "Data Privacy Entities"
         }
         field(6; Include; Boolean)
         {
-            DataClassification = CustomerContent;
             Caption = 'Include';
         }
         field(7; "Fields"; Integer)
         {
-            CalcFormula = count(Field where(TableNo = field("Table No."),
-                                             Enabled = const(true),
-                                             Class = const(Normal)));
+            CalcFormula = Count(Field WHERE(TableNo = FIELD("Table No."),
+                                             Enabled = CONST(true),
+                                             Class = CONST(Normal)));
             Caption = 'Fields';
             FieldClass = FlowField;
         }
         field(8; Status; Option)
         {
-            DataClassification = CustomerContent;
             Caption = 'Status';
             OptionCaption = 'Review Needed,Reviewed';
             OptionMembers = "Review Needed",Reviewed;
         }
         field(9; Reviewed; Boolean)
         {
-            DataClassification = CustomerContent;
             Caption = 'Reviewed';
         }
         field(10; "Status 2"; Option)
         {
-            DataClassification = CustomerContent;
             Caption = 'Status 2';
             OptionCaption = 'Review Needed,Reviewed';
             OptionMembers = "Review Needed",Reviewed;
@@ -83,17 +79,14 @@ table 1180 "Data Privacy Entities"
         }
         field(12; "Similar Fields Reviewed"; Boolean)
         {
-            DataClassification = CustomerContent;
             Caption = 'Similar Fields Reviewed';
         }
         field(13; "Similar Fields Label"; Text[120])
         {
-            DataClassification = CustomerContent;
             Caption = 'Similar Fields Label';
         }
         field(14; "Default Data Sensitivity"; Option)
         {
-            DataClassification = CustomerContent;
             Caption = 'Default Data Sensitivity';
             OptionCaption = 'Unclassified,Sensitive,Personal,Company Confidential,Normal';
             OptionMembers = Unclassified,Sensitive,Personal,"Company Confidential",Normal;

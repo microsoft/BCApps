@@ -37,7 +37,7 @@ codeunit 4690 "Recurrence Schedule"
     /// </example>
     procedure CalculateNextOccurrence(RecurrenceID: Guid; LastOccurrence: DateTime): DateTime
     begin
-        exit(RecurrenceScheduleImpl.CalculateNextOccurrence(RecurrenceID, LastOccurrence));
+        EXIT(RecurrenceScheduleImpl.CalculateNextOccurrence(RecurrenceID, LastOccurrence));
     end;
 
     /// <summary>
@@ -54,7 +54,7 @@ codeunit 4690 "Recurrence Schedule"
     /// </example>
     procedure CreateDaily(StartTime: Time; StartDate: Date; EndDate: Date; DaysBetween: Integer): Guid
     begin
-        exit(RecurrenceScheduleImpl.CreateDaily(StartTime, StartDate, EndDate, DaysBetween));
+        EXIT(RecurrenceScheduleImpl.CreateDaily(StartTime, StartDate, EndDate, DaysBetween));
     end;
 
     /// <summary>
@@ -78,7 +78,7 @@ codeunit 4690 "Recurrence Schedule"
     /// </example>
     procedure CreateWeekly(StartTime: Time; StartDate: Date; EndDate: Date; WeeksBetween: Integer; Monday: Boolean; Tuesday: Boolean; Wednesday: Boolean; Thursday: Boolean; Friday: Boolean; Saturday: Boolean; Sunday: Boolean): Guid
     begin
-        exit(
+        EXIT(
           RecurrenceScheduleImpl.CreateWeekly(StartTime, StartDate, EndDate, WeeksBetween, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday));
     end;
 
@@ -98,7 +98,7 @@ codeunit 4690 "Recurrence Schedule"
     procedure CreateMonthlyByDay(StartTime: Time; StartDate: Date; EndDate: Date; MonthsBetween: Integer; DayOfMonth: Integer): Guid
     begin
 
-        exit(RecurrenceScheduleImpl.CreateMonthlyByDay(StartTime, StartDate, EndDate, MonthsBetween, DayOfMonth));
+        EXIT(RecurrenceScheduleImpl.CreateMonthlyByDay(StartTime, StartDate, EndDate, MonthsBetween, DayOfMonth));
     end;
 
     /// <summary>
@@ -117,7 +117,7 @@ codeunit 4690 "Recurrence Schedule"
     /// </example>
     procedure CreateMonthlyByDayOfWeek(StartTime: Time; StartDate: Date; EndDate: Date; MonthsBetween: Integer; InWeek: Enum "Recurrence - Ordinal No."; DayOfWeek: Enum "Recurrence - Day of Week"): Guid
     begin
-        exit(RecurrenceScheduleImpl.CreateMonthlyByDayOfWeek(StartTime, StartDate, EndDate, MonthsBetween, InWeek, DayOfWeek));
+        EXIT(RecurrenceScheduleImpl.CreateMonthlyByDayOfWeek(StartTime, StartDate, EndDate, MonthsBetween, InWeek, DayOfWeek));
     end;
 
     /// <summary>
@@ -136,7 +136,7 @@ codeunit 4690 "Recurrence Schedule"
     /// </example>
     procedure CreateYearlyByDay(StartTime: Time; StartDate: Date; EndDate: Date; YearsBetween: Integer; DayOfMonth: Integer; Month: Enum "Recurrence - Month"): Guid
     begin
-        exit(RecurrenceScheduleImpl.CreateYearlyByDay(StartTime, StartDate, EndDate, YearsBetween, DayOfMonth, Month));
+        EXIT(RecurrenceScheduleImpl.CreateYearlyByDay(StartTime, StartDate, EndDate, YearsBetween, DayOfMonth, Month));
     end;
 
     /// <summary>
@@ -156,7 +156,7 @@ codeunit 4690 "Recurrence Schedule"
     /// </example>
     procedure CreateYearlyByDayOfWeek(StartTime: Time; StartDate: Date; EndDate: Date; YearsBetween: Integer; InWeek: Enum "Recurrence - Ordinal No."; DayOfWeek: Enum "Recurrence - Day of Week"; Month: Enum "Recurrence - Month"): Guid
     begin
-        exit(RecurrenceScheduleImpl.CreateYearlyByDayOfWeek(StartTime, StartDate, EndDate, YearsBetween, InWeek, DayOfWeek, Month));
+        EXIT(RecurrenceScheduleImpl.CreateYearlyByDayOfWeek(StartTime, StartDate, EndDate, YearsBetween, InWeek, DayOfWeek, Month));
     end;
 
     /// <summary>
@@ -175,7 +175,7 @@ codeunit 4690 "Recurrence Schedule"
     /// <returns>The short text to display.</returns>
     procedure RecurrenceDisplayText(RecurrenceID: Guid): Text
     begin
-        exit(RecurrenceScheduleImpl.RecurrenceDisplayText(RecurrenceID));
+        EXIT(RecurrenceScheduleImpl.RecurrenceDisplayText(RecurrenceID));
     end;
 
     var

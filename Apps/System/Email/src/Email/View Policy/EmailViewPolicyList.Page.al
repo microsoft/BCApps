@@ -77,6 +77,7 @@ page 8930 "Email View Policy List"
     end;
 
     var
+        [InDataSet]
         IsDefault: Boolean;
         EmailViewPolicyLbl: Label 'Email View Policy', Locked = true;
 }

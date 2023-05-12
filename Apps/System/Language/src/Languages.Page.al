@@ -23,23 +23,23 @@ page 9 Languages
             repeater(Control2)
             {
                 ShowCaption = false;
-                field("Code"; Rec.Code)
+                field("Code"; Code)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the code for a language.';
                 }
-                field(Name; Rec.Name)
+                field(Name; Name)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the name of the language.';
                 }
-                field("Windows Language ID"; Rec."Windows Language ID")
+                field("Windows Language ID"; "Windows Language ID")
                 {
                     ApplicationArea = All;
                     LookupPageID = "Windows Languages";
                     ToolTip = 'Specifies the ID of the Windows language associated with the language code you have set up in this line.';
                 }
-                field("Windows Language Name"; Rec."Windows Language Name")
+                field("Windows Language Name"; "Windows Language Name")
                 {
                     ApplicationArea = All;
                     DrillDown = false;
@@ -53,5 +53,4 @@ page 9 Languages
     {
     }
 }
-
 

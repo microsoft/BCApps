@@ -24,17 +24,14 @@ table 1876 "Business Setup Icon"
     {
         field(1; "Business Setup Name"; Text[50])
         {
-            DataClassification = CustomerContent;
             Caption = 'Business Setup Name';
         }
         field(2; Icon; Media)
         {
-            DataClassification = CustomerContent;
             Caption = 'Icon';
         }
         field(3; "Media Resources Ref"; Code[50])
         {
-            DataClassification = CustomerContent;
             Caption = 'Media Resources Ref';
         }
     }

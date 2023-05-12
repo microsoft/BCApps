@@ -10,7 +10,13 @@ codeunit 9175 "User Settings Impl."
     InherentPermissions = X;
     Permissions = tabledata "All Profile" = r,
                   tabledata Company = r,
+#if not CLEAN20
+#pragma warning disable AL0432
+                  tabledata "Extra Settings" = rim,
+#pragma warning restore AL0432
+#endif
                   tabledata "Application User Settings" = rim,
+                  tabledata "Tenant Profile" = r,
                   tabledata User = r,
                   tabledata "User Personalization" = rim;
 
@@ -338,12 +344,35 @@ codeunit 9175 "User Settings Impl."
         UserPersonalization.Insert();
     end;
 
+#if not CLEAN20
+#pragma warning disable AL0432
+    [Obsolete('Replaced with function that takes Application User Settings record', '20.0')]
+    procedure InitializeAppSettings(UserSecurityID: Guid; var ExtraSettings: Record "Extra Settings")
+    begin
+        ExtraSettings."User Security ID" := UserSecurityID;
+        ExtraSettings."Teaching Tips" := true;
+        ExtraSettings.Insert();
+    end;
+#pragma warning restore AL0432
+#endif
+
     procedure InitializeAppSettings(UserSecurityID: Guid; var ApplicationUserSettings: Record "Application User Settings")
     begin
         ApplicationUserSettings."User Security ID" := UserSecurityID;
         ApplicationUserSettings."Teaching Tips" := true;
         ApplicationUserSettings.Insert();
     end;
+
+#if not CLEAN20
+#pragma warning disable AL0432
+    [Obsolete('Replaced with function that takes Application User Settings record', '20.0')]
+    procedure GetAppSettings(UserSecurityID: Guid; var ExtraSettings: Record "Extra Settings")
+    begin
+        if not ExtraSettings.Get(UserSecurityID) then
+            InitializeAppSettings(UserSecurityID, ExtraSettings);
+    end;
+#pragma warning restore AL0432
+#endif
 
     procedure GetAppSettings(UserSecurityID: Guid; var ApplicationUserSettings: Record "Application User Settings")
     begin

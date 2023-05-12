@@ -367,7 +367,6 @@ page 8886 "Email Account Wizard"
                 Caption = 'Send Test Email';
                 ToolTip = 'Send Test Email';
                 InFooterBar = true;
-                Image = Action;
 
                 trigger OnAction()
                 begin
@@ -475,9 +474,7 @@ page 8886 "Email Account Wizard"
             Session.LogMessage('0000CTH', Format(Rec.Connector) + ' account has been setup.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
             NextStep(false);
         end else begin
-#pragma warning disable AA0217
             Session.LogMessage('0000CTI', StrSubstNo(Format(Rec.Connector) + ' account has failed to setup. Error: %1', GetLastErrorCallStack()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
-#pragma warning restore AA0217
             NextStep(true);
         end;
 
@@ -556,7 +553,9 @@ page 8886 "Email Account Wizard"
         AccountCreationSuccessfullyCompletedDurationLbl: Label 'Successful creation of account completed. Duration: %1 milliseconds.', Comment = '%1 - Duration', Locked = true;
         AccountCreationFailureDurationLbl: Label 'Creation of account failed. Duration: %1 milliseconds.', Comment = '%1 - Duration', Locked = true;
         EmailConnectorHasBeenUninstalledMsg: Label 'The selected email extension has been uninstalled. You must reinstall the extension to add an account with it.';
+        [InDataSet]
         AppSourceAvailable: Boolean;
+        [InDataSet]
         TopBannerVisible: Boolean;
         BackActionVisible: Boolean;
         BackActionEnabled: Boolean;

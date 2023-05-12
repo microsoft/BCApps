@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 3902 "Retention Policy - Admin"
+PermissionSet 3902 "Retention Policy - Admin"
 {
     Access = Public;
     Assignable = false;

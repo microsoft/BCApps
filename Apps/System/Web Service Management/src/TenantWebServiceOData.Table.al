@@ -23,17 +23,14 @@ table 6710 "Tenant Web Service OData"
         }
         field(2; ODataSelectClause; BLOB)
         {
-            DataClassification = CustomerContent;
             Caption = 'OData Select Clause';
         }
         field(3; ODataFilterClause; BLOB)
         {
-            DataClassification = CustomerContent;
             Caption = 'OData Filter Clause';
         }
         field(4; ODataV4FilterClause; BLOB)
         {
-            DataClassification = CustomerContent;
             Caption = 'OData V4 Filter Clause';
         }
     }

@@ -18,7 +18,6 @@ table 9008 "User Login"
         }
         field(2; "First Login Date"; Date)
         {
-            DataClassification = SystemMetadata;
         }
         field(3; "Penultimate Login Date"; DateTime)
         {

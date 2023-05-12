@@ -418,7 +418,7 @@ codeunit 9018 "Azure AD Plan Impl."
             exit;
 
         repeat
-            TempNavUserPlan.COPY(NavUserPlan, false);
+            TempNavUserPlan.COPY(NavUserPlan, FALSE);
             TempNavUserPlan.Insert();
         until NavUserPlan.Next() = 0;
 
@@ -441,9 +441,7 @@ codeunit 9018 "Azure AD Plan Impl."
                     NavUserPlan.Delete();
                     if RemovePermissionsOnDeletePlan then begin
 #if not CLEAN22
-#pragma warning disable AL0432
                         AzureADPlan.OnRemoveUserGroupsForUserAndPlan(NavUserPlan."Plan ID", NavUserPlan."User Security ID");
-#pragma warning restore AL0432
 #endif
                         IsCustomized := PlanConfiguration.IsCustomized(NavUserPlan."Plan ID");
                         if IsCustomized then
@@ -502,7 +500,7 @@ codeunit 9018 "Azure AD Plan Impl."
         // Check if the user is a member of the Device group
         if IsDeviceRole(GraphUserInfo) then begin
             // Only assign the device plan if the user doesn't have any other plans (except possibly Internal Admin or M365 Collaboration)
-            TempPlan.SetFilter("Plan ID", '<>%1&<>%2&<>%3', PlanIDs.GetGlobalAdminPlanId(), PlanIds.GetD365AdminPlanId(), PlanIDs.GetMicrosoft365PlanId());
+            TempPlan.SetFilter("Plan ID", '<>%1&<>%2', PlanIDs.GetInternalAdminPlanId(), PlanIDs.GetMicrosoft365PlanId());
 
             if TempPlan.IsEmpty() then begin
                 // Remove the Internal Admin and M365 Collaboration plans, if assigned
@@ -536,7 +534,7 @@ codeunit 9018 "Azure AD Plan Impl."
     begin
         if not IsNull(GraphUserInfo.Roles()) then
             foreach DirectoryRole in GraphUserInfo.Roles() do
-                if DirectoryRole.RoleTemplateId() in [PlanIds.GetGlobalAdminPlanId(), PlanIds.GetD365AdminPlanId()] then
+                if DirectoryRole.RoleTemplateId() = PlanIds.GetInternalAdminPlanId() then
                     exit(true);
 
         exit(false);
@@ -780,19 +778,20 @@ codeunit 9018 "Azure AD Plan Impl."
         Plan: Record "Plan";
         Handled: Boolean;
     begin
-        if TempPlan.GET(ServicePlanId) then
-            exit;
+        WITH TempPlan do begin
+            if GET(ServicePlanId) then
+                exit;
 
-        if Plan.GET(ServicePlanId) then;
+            if Plan.GET(ServicePlanId) then;
 
-        TempPlan.Init();
-        TempPlan."Plan ID" := ServicePlanId;
-        TempPlan.Name := CopyStr(ServicePlanName, 1, MaxStrLen(TempPlan.Name));
-        OnInitializeRoleCenter(TempPlan."Role Center ID", Handled);
-        if not Handled then
-            TempPlan."Role Center ID" := Plan."Role Center ID";
-        TempPlan.Insert();
-
+            Init();
+            "Plan ID" := ServicePlanId;
+            Name := CopyStr(ServicePlanName, 1, MaxStrLen(Name));
+            OnInitializeRoleCenter("Role Center ID", Handled);
+            if not Handled then
+                "Role Center ID" := Plan."Role Center ID";
+            Insert();
+        end;
     end;
 
     [NonDebuggable]
@@ -801,9 +800,8 @@ codeunit 9018 "Azure AD Plan Impl."
         PlanIds: Codeunit "Plan Ids";
     begin
         exit(
-            IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId(), SecurityID)
-            or IsPlanAssignedToUser(PlanIds.GetDelegatedAdminPlanId(), SecurityID)
-            or IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId(), SecurityID));
+            IsPlanAssignedToUser(PlanIds.GetInternalAdminPlanId(), SecurityID)
+            or IsPlanAssignedToUser(PlanIds.GetDelegatedAdminPlanId(), SecurityID));
     end;
 
     [NonDebuggable]

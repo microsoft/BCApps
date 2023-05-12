@@ -53,7 +53,7 @@ codeunit 8700 "Table Information Cache Impl."
         CompanySizeCache: Record "Company Size Cache";
     begin
         CompanySizeCache.CalcSums("Size (KB)");
-        exit(CompanySizeCache."Size (KB)");
+        Exit(CompanySizeCache."Size (KB)");
     end;
 
     local procedure RefreshCompanySizeCache()

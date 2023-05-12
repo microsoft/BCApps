@@ -4,7 +4,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 2888 "SL Designer Subscribers - Read"
+PermissionSet 2888 "SL Designer Subscribers - Read"
 {
     Access = Internal;
     Assignable = false;

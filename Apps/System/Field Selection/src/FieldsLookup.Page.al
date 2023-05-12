@@ -66,7 +66,7 @@ page 9806 "Fields Lookup"
         LastTableNo: Integer;
     begin
         Rec.FindLast();
-        LastTableNo := Rec.TableNo;
+        LastTableNo := TableNo;
         Rec.FindFirst();
         TableNameVisible := LastTableNo <> Rec.TableNo;
     end;
@@ -98,5 +98,4 @@ page 9806 "Fields Lookup"
         end;
     end;
 }
-
 

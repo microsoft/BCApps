@@ -25,13 +25,13 @@ page 9212 Roles
         {
             repeater(Group)
             {
-                field(CaptionField; Rec.Caption)
+                field(CaptionField; Caption)
                 {
                     Caption = 'Display Name';
                     ApplicationArea = All;
                     ToolTip = 'Specifies the name of the organizational role.';
                 }
-                field(AppNameField; Rec."App Name")
+                field(AppNameField; "App Name")
                 {
                     Caption = 'Source';
                     ApplicationArea = All;
@@ -44,8 +44,8 @@ page 9212 Roles
 
     trigger OnOpenPage()
     begin
-        if Rec.IsEmpty() then
-            Initialize();
+       if Rec.IsEmpty() then
+           Initialize();
     end;
 
     /// <summary>
@@ -58,5 +58,4 @@ page 9212 Roles
         UserSettingsImpl.PopulateProfiles(Rec);
     end;
 }
-
 

@@ -6,7 +6,7 @@
 /// <summary>
 /// this is the minimum permission set needed to install an extension that adds a retention policy.
 /// </summary>
-permissionset 3901 "Retention Policy - View"
+PermissionSet 3901 "Retention Policy - View"
 {
     Access = Public;
     Assignable = false;

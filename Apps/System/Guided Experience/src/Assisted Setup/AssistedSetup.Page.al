@@ -32,7 +32,7 @@ page 1801 "Assisted Setup"
                 IndentationColumn = NameIndent;
                 IndentationControls = Name;
                 ShowAsTree = true;
-                field(Name; Rec.Title)
+                field(Name; Title)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the name.';
@@ -44,7 +44,7 @@ page 1801 "Assisted Setup"
                         RunPage();
                     end;
                 }
-                field(Completed; Rec.Completed)
+                field(Completed; Completed)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies whether the setup is complete.';
@@ -80,8 +80,8 @@ page 1801 "Assisted Setup"
                     var
                         Video: Codeunit Video;
                     begin
-                        if Rec."Video Url" <> '' then
-                            Video.Play(Rec."Video Url");
+                        if "Video Url" <> '' then
+                            Video.Play("Video Url");
                     end;
                 }
                 field(TranslatedName; TranslatedNameValue)
@@ -96,17 +96,17 @@ page 1801 "Assisted Setup"
                         GuidedExperienceItem: Record "Guided Experience Item";
                         Translation: Codeunit Translation;
                     begin
-                        if GuidedExperienceItem.Get(Rec.Code, Rec.Version) then
+                        if GuidedExperienceItem.Get(Code, Version) then
                             Translation.Show(GuidedExperienceItem, GuidedExperienceItem.FieldNo(Title));
                     end;
                 }
-                field("Extension Name"; Rec."Extension Name")
+                field("Extension Name"; "Extension Name")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the extension which has added this setup.';
                     Visible = false;
                 }
-                field(Description; Rec.Description)
+                field(Description; Description)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the description of the set up.';
@@ -167,10 +167,10 @@ page 1801 "Assisted Setup"
 #endif
         GuidedExperience.OnRegisterAssistedSetup();
         GuidedExperienceImpl.GetContentForAssistedSetup(Rec);
-        Rec.SetCurrentKey("Assisted Setup Group");
+        SetCurrentKey("Assisted Setup Group");
 
         if FilterSet then
-            Rec.SetRange("Assisted Setup Group", AssistedSetupGroup);
+            SetRange("Assisted Setup Group", AssistedSetupGroup);
 
         if Rec.FindFirst() then; // Set selected record to first record
 
@@ -183,9 +183,9 @@ page 1801 "Assisted Setup"
     begin
         HelpAvailable := '';
         VideoAvailable := '';
-        if Rec."Help Url" <> '' then
+        if "Help Url" <> '' then
             HelpAvailable := HelpLinkTxt;
-        if Rec."Video Url" <> '' then
+        if "Video Url" <> '' then
             VideoAvailable := VideoLinkTxt;
         if GuidedExperienceImpl.IsAssistedSetupSetupRecord(Rec) then
             SetPageVariablesForSetupRecord()
@@ -207,7 +207,7 @@ page 1801 "Assisted Setup"
     var
         GuidedExperienceImpl: Codeunit "Guided Experience Impl.";
     begin
-        TranslatedNameValue := GuidedExperienceImpl.GetTranslationForField(Rec, Rec.FieldNo(Title));
+        TranslatedNameValue := GuidedExperienceImpl.GetTranslationForField(Rec, FieldNo(Title));
         NameIndent := 1;
         NameEmphasize := false;
     end;
@@ -230,11 +230,13 @@ page 1801 "Assisted Setup"
         VideoLinkTxt: Label 'Watch';
         HelpAvailable: Text;
         VideoAvailable: Text;
+        [InDataSet]
         TranslatedNameValue: Text;
+        [InDataSet]
         NameIndent: Integer;
+        [InDataSet]
         NameEmphasize: Boolean;
         AssistedSetupGroup: Enum "Assisted Setup Group";
         FilterSet: Boolean;
 }
-
 

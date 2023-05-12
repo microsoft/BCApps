@@ -23,24 +23,20 @@ table 1807 "Assisted Setup Log"
     {
         field(1; "No."; Integer)
         {
-            DataClassification = SystemMetadata;
             AutoIncrement = true;
             Caption = 'No.';
         }
         field(3; "Entery No."; Integer)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Entery No.';
             TableRelation = "Guided Experience Item"."Object ID to Run";
         }
         field(10; "Date Time"; DateTime)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Date Time';
         }
         field(11; "Invoked Action"; Option)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Invoked Action';
             OptionCaption = ' ,Video,Help,Tour,Assisted Setup';
             OptionMembers = " ",Video,Help,Tour,"Assisted Setup";

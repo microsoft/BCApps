@@ -101,7 +101,7 @@ page 9061 "Plan Configuration List"
                 Caption = 'Configure';
                 Image = Setup;
                 RunObject = Page "Plan Configuration Card";
-                RunPageLink = "Plan ID" = field("Plan ID");
+                RunPageLink = "Plan ID" = Field("Plan ID");
                 Scope = Repeater;
                 ToolTip = 'Customize license permissions.';
             }

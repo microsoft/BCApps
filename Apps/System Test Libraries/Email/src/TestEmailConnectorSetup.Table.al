@@ -5,7 +5,6 @@
 
 table 134687 "Test Email Connector Setup"
 {
-    DataClassification = SystemMetadata;
     ReplicateData = false;
 
     fields

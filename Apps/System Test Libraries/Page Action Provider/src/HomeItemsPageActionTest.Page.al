@@ -19,7 +19,7 @@ page 132617 "Home Items Page Action Test"
             action(PageWithViews)
             {
                 ApplicationArea = All;
-                Caption = 'Page with views';
+                CaptionML = ENU = 'Page with views';
                 RunObject = Page "Views Page Action Test";
                 ToolTip = 'Test page with views';
             }
@@ -36,7 +36,7 @@ page 132617 "Home Items Page Action Test"
             action(PageWithViewsInProcesing)
             {
                 ApplicationArea = All;
-                Caption = 'Page with views';
+                CaptionML = ENU = 'Page with views';
                 RunObject = Page "Views Page Action Test";
                 ToolTip = 'Test page with views';
             }

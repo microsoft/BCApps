@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 3900 "Retention Policy - Read"
+PermissionSet 3900 "Retention Policy - Read"
 {
     Access = Internal;
     Assignable = false;

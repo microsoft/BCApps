@@ -19,17 +19,14 @@ table 9004 Plan
     {
         field(1; "Plan ID"; Guid)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Plan ID';
         }
         field(2; Name; Text[50])
         {
-            DataClassification = SystemMetadata;
             Caption = 'Name';
         }
         field(3; "Role Center ID"; Integer)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Role Center ID';
         }
     }

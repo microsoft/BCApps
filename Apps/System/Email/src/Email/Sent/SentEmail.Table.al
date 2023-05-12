@@ -65,7 +65,7 @@ table 8889 "Sent Email"
         {
             Access = Internal;
             FieldClass = FlowField;
-            CalcFormula = lookup(User."User Name" where("User Security ID" = field("User Security Id")));
+            CalcFormula = Lookup(User."User Name" where("User Security ID" = field("User Security Id")));
             Description = 'The field is marked as internal in order to prevent modifying it from code.';
         }
 

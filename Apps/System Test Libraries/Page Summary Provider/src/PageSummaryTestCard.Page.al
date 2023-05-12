@@ -7,7 +7,7 @@ page 132548 "Page Summary Test Card"
 {
     PageType = Card;
     SourceTable = "Page Provider Summary Test";
-    Caption = 'Page summary';
+    CaptionML = ENU = 'Page summary', DAN = 'Side opsummering';
     CardPageId = "Page Summary Empty Page";
 
     layout

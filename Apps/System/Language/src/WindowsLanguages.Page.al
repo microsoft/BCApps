@@ -24,14 +24,14 @@ page 535 "Windows Languages"
             repeater(Control2)
             {
                 ShowCaption = false;
-                field("Language ID"; Rec."Language ID")
+                field("Language ID"; "Language ID")
                 {
                     ApplicationArea = All;
                     Caption = 'ID';
                     ToolTip = 'Specifies the unique language ID for the Windows language.';
                     Visible = false;
                 }
-                field(Name; Rec.Name)
+                field(Name; Name)
                 {
                     ApplicationArea = All;
                     Caption = 'Name';
@@ -45,5 +45,4 @@ page 535 "Windows Languages"
     {
     }
 }
-
 

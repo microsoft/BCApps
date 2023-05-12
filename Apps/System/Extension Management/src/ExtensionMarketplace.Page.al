@@ -18,49 +18,49 @@ page 2502 "Extension Marketplace"
     {
         area(Content)
         {
-            usercontrol(Marketplace; WebPageViewerExtMgmt)
+            usercontrol(Marketplace; "Microsoft.Dynamics.Nav.Client.WebPageViewer")
             {
                 ApplicationArea = Basic, Suite;
                 trigger ControlAddInReady(callbackUrl: Text)
                 var
                     MarketplaceUrl: Text;
-                begin
+                BEGIN
                     if AppsourceUrl <> '' then
                         MarketplaceUrl := AppsourceUrl
                     else
                         MarketplaceUrl := ExtensionMarketplace.GetMarketplaceEmbeddedUrl();
                     CurrPage.Marketplace.SubscribeToEvent('message', MarketplaceUrl);
                     CurrPage.Marketplace.Navigate(MarketplaceUrl);
-                end;
+                END;
 
                 trigger DocumentReady()
-                begin
-                end;
+                BEGIN
+                END;
 
                 trigger Callback(data: Text);
-                begin
-                    if TryGetMsgType(data) then
+                BEGIN
+                    IF TryGetMsgType(data) THEN
                         PerformAction(MessageType);
-                end;
+                END;
 
                 trigger Refresh(callbackUrl: Text);
-                var
+                VAR
                     MarketplaceUrl: Text;
-                begin
+                BEGIN
                     MarketplaceUrl := ExtensionMarketplace.GetMarketplaceEmbeddedUrl();
                     CurrPage.Marketplace.SubscribeToEvent('message', MarketplaceUrl);
                     CurrPage.Marketplace.Navigate(MarketplaceUrl);
-                end;
+                END;
             }
 
         }
     }
 
-    local procedure PerformAction(ActionName: Text);
-    var
+    LOCAL PROCEDURE PerformAction(ActionName: Text);
+    VAR
         applicationId: Text;
         ActionOption: Option acquireApp;
-    begin
+    BEGIN
         if EVALUATE(ActionOption, ActionName) then
             if ActionOption = ActionOption::acquireApp then begin
                 TelemetryUrl := ExtensionMarketplace.GetTelementryUrlFromData(JObject);

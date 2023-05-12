@@ -5,7 +5,7 @@
 
 permissionset 89 "Permissions & Licenses - Edit"
 {
-    Assignable = false;
+    Assignable = False;
 
     IncludedPermissionSets = "Permissions & Licenses - Read";
 

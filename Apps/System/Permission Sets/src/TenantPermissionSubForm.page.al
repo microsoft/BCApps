@@ -381,6 +381,7 @@ page 9859 "Tenant Permission Subform"
         CurrentScope: Option System,Tenant;
         CurrentRoleID: Code[30];
         CurrentAppID: Guid;
+        [InDataSet]
         IsTableData: Boolean;
         IsNewRecord: Boolean;
         PermissionRecExists: Boolean;

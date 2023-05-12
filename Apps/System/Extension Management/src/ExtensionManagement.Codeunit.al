@@ -260,7 +260,7 @@ codeunit 2504 "Extension Management"
     /// </summary>
     /// <returns></returns>
     [Obsolete('Replaced by "Extension Marketplace".GetMarketplaceEmbeddedUrl procedure.', '17.0')]
-    procedure GetMarketplaceEmbeddedUrl(): Text;
+    PROCEDURE GetMarketplaceEmbeddedUrl(): Text;
     begin
         exit(ExtensionMarketplace.GetMarketplaceEmbeddedUrl());
     end;

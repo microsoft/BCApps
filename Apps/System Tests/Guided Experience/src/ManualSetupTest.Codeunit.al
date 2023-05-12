@@ -79,7 +79,6 @@ codeunit 134934 "Manual Setup Test"
     end;
 
 #if not CLEAN18
-#pragma warning disable AL0432
     [Test]
     [Scope('OnPrem')]
     procedure VerifyListOfPageIDs()
@@ -110,7 +109,6 @@ codeunit 134934 "Manual Setup Test"
         // [Then] and the new entry is found
         Assert.IsTrue(PageIDs.Contains(Page::"My Manual Setup"), 'The added setup page is not in list.');
     end;
-#pragma warning restore AL0432
 #endif
 
     local procedure Initialize(var ManualSetupTest: Codeunit "Manual Setup Test")

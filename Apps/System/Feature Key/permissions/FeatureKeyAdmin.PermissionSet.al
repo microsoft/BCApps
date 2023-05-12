@@ -6,7 +6,7 @@
 /// <summary>
 /// This permission set is required to turn a feature on or off.
 /// </summary>
-permissionset 2611 "Feature Key - Admin"
+PermissionSet 2611 "Feature Key - Admin"
 {
     Access = Internal;
     Assignable = false;

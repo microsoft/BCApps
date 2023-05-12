@@ -20,7 +20,7 @@ page 1995 "Checklist Item Users"
         {
             repeater(Control1)
             {
-                field("User Name"; Rec."User ID")
+                field("User Name"; "User ID")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the user.';
@@ -35,7 +35,7 @@ page 1995 "Checklist Item Users"
     var
         ChecklistItemUser: Record "Checklist Item User";
     begin
-        if ChecklistItemUser.Get(Rec.Code, Rec."User ID") then begin
+        if ChecklistItemUser.Get(Code, "User ID") then begin
             ChecklistItemUser."Assigned to User" := true;
             ChecklistItemUser.Modify();
             exit(false);

@@ -30,18 +30,19 @@ codeunit 132618 "Page Summary Setup Test"
         // [Given] Page Summary Provider Setup is completed and Show Summary is enabled
         PageSummarySettings.Trap();
         Page.Run(Page::"Page Summary Settings");
-        LibraryAssert.IsTrue(PageSummarySettings.ActionNext.Visible(), 'Next is not visible');
-        LibraryAssert.IsFalse(PageSummarySettings.ActionBack.Visible(), 'Back is visible');
-        PageSummarySettings.ActionNext.Invoke();
-        LibraryAssert.IsTrue(PageSummarySettings.ActionNext.Visible(), 'Next is not visible');
-        LibraryAssert.IsTrue(PageSummarySettings.ActionBack.Visible(), 'Back is not visible');
-        PageSummarySettings.ShowRecordSummary.SetValue(true);
-        PageSummarySettings.ActionNext.Invoke();
-        LibraryAssert.IsFalse(PageSummarySettings.ActionNext.Visible(), 'Next is visible');
-        LibraryAssert.IsTrue(PageSummarySettings.ActionBack.Visible(), 'Back is not visible');
-        LibraryAssert.IsTrue(PageSummarySettings.ActionTryItOut.Visible(), 'Try it out is not visible');
-        LibraryAssert.IsTrue(PageSummarySettings.ActionDone.Visible(), 'Done is not visible');
-
+        with PageSummarySettings do begin
+            LibraryAssert.IsTrue(ActionNext.Visible(), 'Next is not visible');
+            LibraryAssert.IsFalse(ActionBack.Visible(), 'Back is visible');
+            ActionNext.Invoke();
+            LibraryAssert.IsTrue(ActionNext.Visible(), 'Next is not visible');
+            LibraryAssert.IsTrue(ActionBack.Visible(), 'Back is not visible');
+            ShowRecordSummary.SetValue(true);
+            ActionNext.Invoke();
+            LibraryAssert.IsFalse(ActionNext.Visible(), 'Next is visible');
+            LibraryAssert.IsTrue(ActionBack.Visible(), 'Back is not visible');
+            LibraryAssert.IsTrue(ActionTryItOut.Visible(), 'Try it out is not visible');
+            LibraryAssert.IsTrue(ActionDone.Visible(), 'Done is not visible');
+        end;
 
         // [Given] A record
         PageProviderSummaryTest.TestInteger := 1;
@@ -83,18 +84,19 @@ codeunit 132618 "Page Summary Setup Test"
         // [Given] Page Summary Provider Setup is completed and Show Summary is enabled
         PageSummarySettings.Trap();
         Page.Run(Page::"Page Summary Settings");
-        LibraryAssert.IsTrue(PageSummarySettings.ActionNext.Visible(), 'Next is not visible');
-        LibraryAssert.IsFalse(PageSummarySettings.ActionBack.Visible(), 'Back is visible');
-        PageSummarySettings.ActionNext.Invoke();
-        LibraryAssert.IsTrue(PageSummarySettings.ActionNext.Visible(), 'Next is not visible');
-        LibraryAssert.IsTrue(PageSummarySettings.ActionBack.Visible(), 'Back is not visible');
-        PageSummarySettings.ShowRecordSummary.SetValue(true);
-        PageSummarySettings.ActionNext.Invoke();
-        LibraryAssert.IsFalse(PageSummarySettings.ActionNext.Visible(), 'Next is visible');
-        LibraryAssert.IsTrue(PageSummarySettings.ActionBack.Visible(), 'Back is not visible');
-        LibraryAssert.IsTrue(PageSummarySettings.ActionTryItOut.Visible(), 'Try it out is not visible');
-        LibraryAssert.IsTrue(PageSummarySettings.ActionDone.Visible(), 'Done is not visible');
-
+        with PageSummarySettings do begin
+            LibraryAssert.IsTrue(ActionNext.Visible(), 'Next is not visible');
+            LibraryAssert.IsFalse(ActionBack.Visible(), 'Back is visible');
+            ActionNext.Invoke();
+            LibraryAssert.IsTrue(ActionNext.Visible(), 'Next is not visible');
+            LibraryAssert.IsTrue(ActionBack.Visible(), 'Back is not visible');
+            ShowRecordSummary.SetValue(true);
+            ActionNext.Invoke();
+            LibraryAssert.IsFalse(ActionNext.Visible(), 'Next is visible');
+            LibraryAssert.IsTrue(ActionBack.Visible(), 'Back is not visible');
+            LibraryAssert.IsTrue(ActionTryItOut.Visible(), 'Try it out is not visible');
+            LibraryAssert.IsTrue(ActionDone.Visible(), 'Done is not visible');
+        end;
 
         // [Given] A record
         PageProviderSummaryTest.TestInteger := 1;
@@ -137,18 +139,19 @@ codeunit 132618 "Page Summary Setup Test"
         // [Given] Page Summary Provider Setup is completed and Show Summary is not enabled
         PageSummarySettingsTestPage.Trap();
         Page.Run(Page::"Page Summary Settings");
-        LibraryAssert.IsTrue(PageSummarySettingsTestPage.ActionNext.Visible(), 'Next is not visible');
-        LibraryAssert.IsFalse(PageSummarySettingsTestPage.ActionBack.Visible(), 'Back is visible');
-        PageSummarySettingsTestPage.ActionNext.Invoke();
-        LibraryAssert.IsTrue(PageSummarySettingsTestPage.ActionNext.Visible(), 'Next is not visible');
-        LibraryAssert.IsTrue(PageSummarySettingsTestPage.ActionBack.Visible(), 'Back is not visible');
-        PageSummarySettingsTestPage.ShowRecordSummary.SetValue(false);
-        PageSummarySettingsTestPage.ActionNext.Invoke();
-        LibraryAssert.IsFalse(PageSummarySettingsTestPage.ActionNext.Visible(), 'Next is visible');
-        LibraryAssert.IsTrue(PageSummarySettingsTestPage.ActionBack.Visible(), 'Back is not visible');
-        LibraryAssert.IsTrue(PageSummarySettingsTestPage.ActionTryItOut.Visible(), 'Try it out is not visible');
-        LibraryAssert.IsTrue(PageSummarySettingsTestPage.ActionDone.Visible(), 'Done is not visible');
-
+        with PageSummarySettingsTestPage do begin
+            LibraryAssert.IsTrue(ActionNext.Visible(), 'Next is not visible');
+            LibraryAssert.IsFalse(ActionBack.Visible(), 'Back is visible');
+            ActionNext.Invoke();
+            LibraryAssert.IsTrue(ActionNext.Visible(), 'Next is not visible');
+            LibraryAssert.IsTrue(ActionBack.Visible(), 'Back is not visible');
+            ShowRecordSummary.SetValue(false);
+            ActionNext.Invoke();
+            LibraryAssert.IsFalse(ActionNext.Visible(), 'Next is visible');
+            LibraryAssert.IsTrue(ActionBack.Visible(), 'Back is not visible');
+            LibraryAssert.IsTrue(ActionTryItOut.Visible(), 'Try it out is not visible');
+            LibraryAssert.IsTrue(ActionDone.Visible(), 'Done is not visible');
+        end;
 
         // [Given] A record
         PageProviderSummaryTest.TestInteger := 1;
@@ -186,18 +189,19 @@ codeunit 132618 "Page Summary Setup Test"
         // [Given] Page Summary Provider Setup is completed and Show Summary is not enabled
         PageSummarySettingsTestPage.Trap();
         Page.Run(Page::"Page Summary Settings");
-        LibraryAssert.IsTrue(PageSummarySettingsTestPage.ActionNext.Visible(), 'Next is not visible');
-        LibraryAssert.IsFalse(PageSummarySettingsTestPage.ActionBack.Visible(), 'Back is visible');
-        PageSummarySettingsTestPage.ActionNext.Invoke();
-        LibraryAssert.IsTrue(PageSummarySettingsTestPage.ActionNext.Visible(), 'Next is not visible');
-        LibraryAssert.IsTrue(PageSummarySettingsTestPage.ActionBack.Visible(), 'Back is not visible');
-        PageSummarySettingsTestPage.ShowRecordSummary.SetValue(false);
-        PageSummarySettingsTestPage.ActionNext.Invoke();
-        LibraryAssert.IsFalse(PageSummarySettingsTestPage.ActionNext.Visible(), 'Next is visible');
-        LibraryAssert.IsTrue(PageSummarySettingsTestPage.ActionBack.Visible(), 'Back is not visible');
-        LibraryAssert.IsTrue(PageSummarySettingsTestPage.ActionTryItOut.Visible(), 'Try it out is not visible');
-        LibraryAssert.IsTrue(PageSummarySettingsTestPage.ActionDone.Visible(), 'Done is not visible');
-
+        with PageSummarySettingsTestPage do begin
+            LibraryAssert.IsTrue(ActionNext.Visible(), 'Next is not visible');
+            LibraryAssert.IsFalse(ActionBack.Visible(), 'Back is visible');
+            ActionNext.Invoke();
+            LibraryAssert.IsTrue(ActionNext.Visible(), 'Next is not visible');
+            LibraryAssert.IsTrue(ActionBack.Visible(), 'Back is not visible');
+            ShowRecordSummary.SetValue(false);
+            ActionNext.Invoke();
+            LibraryAssert.IsFalse(ActionNext.Visible(), 'Next is visible');
+            LibraryAssert.IsTrue(ActionBack.Visible(), 'Back is not visible');
+            LibraryAssert.IsTrue(ActionTryItOut.Visible(), 'Try it out is not visible');
+            LibraryAssert.IsTrue(ActionDone.Visible(), 'Done is not visible');
+        end;
 
         // [Given] A record and no fields are being returned
         PageProviderSummaryTest.TestInteger := 1;

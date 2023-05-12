@@ -6,7 +6,7 @@
 permissionset 96 "Session - Edit"
 {
     Access = Public;
-    Assignable = false;
+    Assignable = False;
 
     IncludedPermissionSets = "Session - Read";
 

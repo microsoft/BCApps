@@ -68,8 +68,7 @@ codeunit 9029 "Azure AD User Sync Impl."
 
         AllPlanIds := AzureADPlan.GetAllPlanIds();
         AllPlanIds.Remove(PlanIds.GetMicrosoft365PlanId());
-        AllPlanIds.Remove(PlanIds.GetGlobalAdminPlanId());
-        AllPlanIds.Remove(PlanIds.GetD365AdminPlanId());
+        AllPlanIds.Remove(PlanIds.GetInternalAdminPlanId());
         ConvertList(AllPlanIds, AssignedPlansList);
 
         AzureADGraph.GetLicensedUsersPage(AssignedPlansList, UsersPerPage, GraphUserInfoPage);
@@ -126,22 +125,21 @@ codeunit 9029 "Azure AD User Sync Impl."
         UserPlanIds: List of [Guid];
         GraphUserInfo: DotNet UserInfo;
     begin
-        // If the environment is not defined, update global admins and Teams users, as they are not pulled in automatically
-        // If the environment is defined, only update the global admins, as they are still allowed to access the environment
+        // If the environment is not defined, update internal admins and Teams users, as they are not pulled in automatically
+        // If the environment is defined, only update the internal admins, as they are still allowed to access the environment
 
         if not User.FindSet() then
             exit;
 
         repeat
             // Only iterate over the users who have not been scanned yet.
-            // These should only Global Admins, Dynamics 365 Admins and Teams users (handled here)
+            // These should only include Internal Admins and Teams users (handled here)
             // and the users who have been deleted in Azure AD / had their BC plans unassigned (handled in HandleRemovedUsers)
             if not OfficeUsersInBC.Contains(User."User Security ID") then
                 if TryGetUserByAuthorizationEmail(User."Authentication Email", GraphUserInfo) then
                     if not IsNull(GraphUserInfo) then begin
                         AzureADPlan.GetPlanIDs(GraphUserInfo, UserPlanIds);
-                        if UserPlanIds.Contains(PlanIds.GetGlobalAdminPlanId()) or // global admins are not affected by the environment security group
-                           UserPlanIds.Contains(PlanIds.GetD365AdminPlanId()) or // dynamics 365 admins are not affected by the environment security group
+                        if UserPlanIds.Contains(PlanIds.GetInternalAdminPlanId()) or // internal admins are not affected by the environment security group
                            ((not AzureADGraph.IsEnvironmentSecurityGroupDefined()) and UserPlanIds.Contains(PlanIds.GetMicrosoft365PlanId()))
                         then
                             GetUpdatesFromGraphUserInfo(GraphUserInfo, AzureADUserUpdate, OfficeUsersInBC);
@@ -199,7 +197,7 @@ codeunit 9029 "Azure AD User Sync Impl."
     end;
 
     // If the AAD user's plans are any of the following:
-    // - Internal Administrator (Global Administrator or Dynamics 365 Administrator)
+    // - Internal Administrator
     // - Microsoft 365
     // - Internal Administrator + Microsoft 365
     // and there is no environemnt security group defined,
@@ -213,7 +211,7 @@ codeunit 9029 "Azure AD User Sync Impl."
             exit(false);
 
         foreach PlanID in UserPlanIDs do
-            if not (PlanID in [PlanIDs.GetGlobalAdminPlanId(), PlanIDs.GetD365AdminPlanId(), PlanIDs.GetMicrosoft365PlanId()]) then
+            if not (PlanID in [PlanIDs.GetInternalAdminPlanId(), PlanIDs.GetMicrosoft365PlanId()]) then
                 exit(false);
 
         exit(true);

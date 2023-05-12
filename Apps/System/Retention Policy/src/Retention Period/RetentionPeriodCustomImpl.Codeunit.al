@@ -19,12 +19,12 @@ codeunit 3901 "Retention Period Custom Impl." implements "Retention Period"
         if RetentionPeriod <> RetentionPeriod::Custom then
             RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(WrongInterfaceImplementationErr, RetentionPeriod));
 
-        exit('');
+        Exit('');
     end;
 
     procedure RetentionPeriodDateFormula(RetentionPeriod: Record "Retention Period"): Text;
     begin
-        exit(RetentionPeriodDateFormula(RetentionPeriod, false))
+        Exit(RetentionPeriodDateFormula(RetentionPeriod, false))
     end;
 
     procedure RetentionPeriodDateFormula(RetentionPeriod: Record "Retention Period"; Translated: Boolean) DateFormulaText: Text;
@@ -36,24 +36,24 @@ codeunit 3901 "Retention Period Custom Impl." implements "Retention Period"
             RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(WrongInterfaceImplementationErr, RetentionPeriod."Retention Period"));
 
         if Translated then
-            exit(Format(RetentionPeriod."Ret. Period Calculation", 0, 1))
+            Exit(Format(RetentionPeriod."Ret. Period Calculation", 0, 1))
         else
-            exit(Format(RetentionPeriod."Ret. Period Calculation", 0, 2))
+            Exit(Format(RetentionPeriod."Ret. Period Calculation", 0, 2))
     end;
 
     procedure CalculateExpirationDate(RetentionPeriod: Record "Retention Period"): Date
     begin
-        exit(CalcDate(RetentionPeriodDateFormula(RetentionPeriod), Today()))
+        Exit(CalcDate(RetentionPeriodDateFormula(RetentionPeriod), Today()))
     end;
 
     procedure CalculateExpirationDate(RetentionPeriod: Record "Retention Period"; UseDate: Date): Date
     begin
-        exit(CalcDate(RetentionPeriodDateFormula(RetentionPeriod), UseDate))
+        Exit(CalcDate(RetentionPeriodDateFormula(RetentionPeriod), UseDate))
     end;
 
     procedure CalculateExpirationDate(RetentionPeriod: Record "Retention Period"; UseDateTime: DateTime): DateTime
     begin
-        exit(CreateDateTime(CalcDate(RetentionPeriodDateFormula(RetentionPeriod), DT2Date(UseDateTime)), DT2Time(UseDateTime)))
+        Exit(CreateDateTime(CalcDate(RetentionPeriodDateFormula(RetentionPeriod), DT2Date(UseDateTime)), DT2Time(UseDateTime)))
     end;
 
     local procedure LogCategory(): Enum "Retention Policy Log Category"

@@ -130,7 +130,7 @@ page 9868 "Security Group Permission Sets"
     end;
 
     var
-        PermissionSetRec: Record "Metadata Permission Set";
+        PermissionSetRec: Record "Permission Set";
         TenantPermissionSetRec: Record "Tenant Permission Set";
         AppRoleName: Text[30];
         PageCaption: Text;

@@ -21,7 +21,7 @@ codeunit 135015 "Perf. Profiler Chart Test"
         Initialize();
 
         // [WHEN] Get chart data, retrieving self time aggregated by app publisher
-        PerfProfilerTestLibrary.GetChartData(Enum::"Test Prof. Aggregation Type"::"App Publisher", true, ChartLabels, ChartValues);
+        PerfProfilerTestLibrary.GetChartData(Enum::"Profiling Aggregation Type"::"App Publisher", true, ChartLabels, ChartValues);
 
         // [THEN] Chart labels are "TestPublisher1" and "TestPublisher2" with respective times 1000 and 200 ms
         Assert.AreEqual('TestPublisher1', ChartLabels.Get(1), WrongChartLabelErr);
@@ -44,7 +44,7 @@ codeunit 135015 "Perf. Profiler Chart Test"
         Initialize();
 
         // [WHEN] Get chart data, retrieving full time aggregated by app publisher
-        PerfProfilerTestLibrary.GetChartData(Enum::"Test Prof. Aggregation Type"::"App Publisher", false, ChartLabels, ChartValues);
+        PerfProfilerTestLibrary.GetChartData(Enum::"Profiling Aggregation Type"::"App Publisher", false, ChartLabels, ChartValues);
 
         // [THEN] Chart labels are "TestPublisher2" and "TestPublisher1" with respective times 1200 and 1100 ms
         Assert.AreEqual('TestPublisher2', ChartLabels.Get(1), WrongChartLabelErr);

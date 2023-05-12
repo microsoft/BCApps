@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-codeunit 138049 "User Login Test Library"
+Codeunit 138049 "User Login Test Library"
 {
     Permissions = tabledata "User Login" = rimd,
                   tabledata "User Environment Login" = rid;

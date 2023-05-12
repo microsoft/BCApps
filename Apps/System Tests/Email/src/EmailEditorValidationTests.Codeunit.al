@@ -709,7 +709,7 @@ codeunit 134696 "Email Editor Validation Tests"
     begin
         Choice := 1;
     end;
-#pragma warning disable AA0150
+
     [StrMenuHandler]
     [Scope('OnPrem')]
     procedure ValidateDraftDefaultOptionEmailEditorHandler(Options: Text[1024]; var Choice: Integer; Instruction: Text[1024])
@@ -723,5 +723,4 @@ codeunit 134696 "Email Editor Validation Tests"
     begin
         Assert.AreEqual(2, Choice, 'The default option is not discard.');
     end;
-#pragma warning restore AA0150
 }

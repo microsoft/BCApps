@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 9018 "Azure AD Plan - View"
+PermissionSet 9018 "Azure AD Plan - View"
 {
     Access = Public;
     Assignable = false;

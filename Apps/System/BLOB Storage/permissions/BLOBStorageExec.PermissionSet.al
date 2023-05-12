@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 4101 "BLOB Storage - Exec"
+PermissionSet 4101 "BLOB Storage - Exec"
 {
     Access = Internal;
     Assignable = false;

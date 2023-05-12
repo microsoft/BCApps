@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 8902 "Email - Admin"
+PermissionSet 8902 "Email - Admin"
 {
     Access = Public;
     Assignable = true;

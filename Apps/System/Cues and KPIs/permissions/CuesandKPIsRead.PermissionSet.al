@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 9701 "Cues and KPIs - Read"
+PermissionSet 9701 "Cues and KPIs - Read"
 {
     Access = Internal;
     Assignable = false;

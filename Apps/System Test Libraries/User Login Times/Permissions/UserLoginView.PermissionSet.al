@@ -4,7 +4,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 138049 "User Login View"
+PermissionSet 138049 "User Login View"
 {
     Access = Public;
     Assignable = false;

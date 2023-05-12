@@ -5,7 +5,7 @@
 
 permissionset 93 "Company - Edit"
 {
-    Assignable = false;
+    Assignable = False;
 
     IncludedPermissionSets = "Company - Read";
 

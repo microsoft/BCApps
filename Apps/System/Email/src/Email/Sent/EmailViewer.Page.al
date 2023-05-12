@@ -231,6 +231,7 @@ page 12 "Email Viewer"
         EmailSubject: Text;
         EmailBody: Text;
         HasSourceRecord: Boolean;
+        [InDataSet]
         IsHTMLFormatted, HasAttachments : Boolean;
         FromDisplayNameLbl: Label '%1 (%2)', Comment = '%1 - Account Name, %2 - Email address', Locked = true;
         PageCaptionTxt: Label 'Sent Email';

@@ -460,6 +460,7 @@ page 13 "Email Editor"
         HasSourceRecord: Boolean;
         EmailBody, EmailSubject : Text;
         EmailScenario: Enum "Email Scenario";
+        [InDataSet]
         IsHTMLFormatted: Boolean;
         FromDisplayNameLbl: Label '%1 (%2)', Comment = '%1 - Account Name, %2 - Email address', Locked = true;
         CloseThePageQst: Label 'The email has not been sent.';

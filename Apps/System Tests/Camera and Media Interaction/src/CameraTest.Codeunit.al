@@ -83,7 +83,6 @@ codeunit 135011 "Camera Test"
     end;
 
 #if not CLEAN20
-#pragma warning disable AL0432
     [Test]
     [Scope('OnPrem')]
     procedure AddPictureErrorsTest()
@@ -368,7 +367,6 @@ codeunit 135011 "Camera Test"
     begin
         Reply := false;
     end;
-#pragma warning restore AL0432
 #endif
 
     [ModalPageHandler]

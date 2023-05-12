@@ -181,7 +181,7 @@ codeunit 1996 "Checklist Banner Impl."
                 end else
                     IsChecklistItemComplete := RunObject(GuidedExperienceItem, ChecklistItemBuffer);
             "Guided Experience Type"::Video:
-                IsChecklistItemComplete := RunVideo(ChecklistItemBuffer, GuidedExperienceItem."Video Url");
+                RunVideo(GuidedExperienceItem."Video Url");
         end;
 
         exit(IsChecklistItemComplete);
@@ -550,14 +550,15 @@ codeunit 1996 "Checklist Banner Impl."
         if not GuidedExperienceImpl.IsObjectToRunValid(GuidedExperienceItem."Object Type to Run", GuidedExperienceItem."Object ID to Run") then
             exit;
 
-        if GuidedExperienceItem."Guided Experience Type" in [GuidedExperienceItem."Guided Experience Type"::"Manual Setup", GuidedExperienceItem."Guided Experience Type"::"Application Feature"]
+        if GuidedExperienceItem."Guided Experience Type" in
+            [GuidedExperienceItem."Guided Experience Type"::"Manual Setup",
+            GuidedExperienceItem."Guided Experience Type"::"Application Feature"]
         then begin
             RunObject(GuidedExperienceItem);
             UpdateChecklistItemUserStatus(ChecklistItemBuffer, UserId(), ChecklistItemStatus::Started);
         end else
             if GuidedExperienceItem."Guided Experience Type" = GuidedExperienceItem."Guided Experience Type"::"Assisted Setup" then begin
                 GuidedExperienceImpl.RunAndRefreshAssistedSetup(GuidedExperienceItem);
-
                 if IsAssistedSetupComplete(GuidedExperienceItem) then
                     UpdateChecklistItemUserStatus(ChecklistItemBuffer, UserId(), ChecklistItemStatus::Completed)
                 else
@@ -589,14 +590,11 @@ codeunit 1996 "Checklist Banner Impl."
         Tour.StartTour(ChecklistItemBuffer."Object ID to Run", ChecklistItemBuffer.Code);
     end;
 
-    local procedure RunVideo(var ChecklistItemBuffer: Record "Checklist Item Buffer"; VideoUrl: Text[250]): Boolean
+    local procedure RunVideo(VideoUrl: Text[250])
     var
         Video: Codeunit Video;
-        ChecklistItemStatus: Enum "Checklist Item Status";
     begin
         Video.Play(VideoUrl);
-        UpdateChecklistItemUserStatus(ChecklistItemBuffer, UserId(), ChecklistItemStatus::Completed);
-        exit(true);
     end;
 
     local procedure RunObject(GuidedExperienceItem: Record "Guided Experience Item")
@@ -609,7 +607,7 @@ codeunit 1996 "Checklist Banner Impl."
         ObjectID := GuidedExperienceItem."Object ID to Run";
         case ObjectType of
             ObjectType::Page:
-                if GuidedExperienceItem."Guided Experience Type" = GuidedExperienceItem."Guided Experience Type"::"Application Feature" then
+                If GuidedExperienceItem."Guided Experience Type" = GuidedExperienceItem."Guided Experience Type"::"Application Feature" then
                     Page.Run(ObjectID)
                 else
                     Page.RunModal(ObjectID);

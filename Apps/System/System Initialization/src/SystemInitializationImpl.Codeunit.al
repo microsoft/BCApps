@@ -19,9 +19,13 @@ codeunit 151 "System Initialization Impl."
         NoNameKeySignupContextTxt: Label 'The signup context did not contain a ''name'' key.', Locked = true;
         DisableSystemUserCheck: Boolean;
 
+#if not CLEAN20
 #pragma warning disable AL0432
+#endif
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company Triggers", OnCompanyOpen, '', false, false)]
+#if not CLEAN20
 #pragma warning restore AL0432
+#endif
     local procedure Init()
     var
         SystemInitialization: Codeunit "System Initialization";

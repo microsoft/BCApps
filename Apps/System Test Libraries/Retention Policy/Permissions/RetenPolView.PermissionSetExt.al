@@ -1,4 +1,4 @@
-permissionsetextension 138701 "Reten Pol View" extends "Retention Pol. View"
+PermissionSetExtension 138701 "Reten Pol View" extends "Retention Pol. View"
 {
     // Include Test tables
     Permissions = tabledata "Retention Policy Test Data" = RIMD,

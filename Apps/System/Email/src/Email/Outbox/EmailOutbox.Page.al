@@ -79,13 +79,13 @@ page 8882 "Email Outbox"
                     end;
                 }
 
-                field("Date Queued"; Rec."Date Queued")
+                field("Date Queued"; "Date Queued")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the date when this email was queued up to be sent.';
                 }
 
-                field("Date Failed"; Rec."Date Failed")
+                field("Date Failed"; "Date Failed")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the date when this email failed to send.';
@@ -316,7 +316,9 @@ page 8882 "Email Outbox"
         EmailAccountId: Guid;
         RefreshOutbox: Boolean;
         NoEmailsInOutbox: Boolean;
+        [InDataSet]
         FailedStatus: Boolean;
+        [InDataSet]
         HasSourceRecord: Boolean;
         EmailConnectorHasBeenUninstalledMsg: Label 'The email extension that was used to send this email has been uninstalled. To view information about the email account, you must reinstall the extension.';
         EmailThrottledMsg: Label 'Your emails are being throttled due to the rate limit set on an account.';

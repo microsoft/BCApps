@@ -28,7 +28,7 @@ page 7568 Geolocation
             {
                 Caption = 'Could not access the geographical location';
                 InstructionalText = 'Could not access the geographical location of the device. Make sure that you are using the app for Windows, Android, or iOS.';
-                Visible = not LocationAvailable;
+                Visible = NOT LocationAvailable;
             }
         }
     }

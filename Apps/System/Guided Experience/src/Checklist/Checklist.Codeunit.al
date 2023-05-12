@@ -202,7 +202,7 @@ codeunit 1992 "Checklist"
     end;
 
     /// <summary>
-    /// Initializes the guided experience items. Mostly called once in a company's lifecycle from BaseApp, if used in an extension, please see also ShouldInitializeChecklist.
+    /// Initializes the guided experience items.
     /// </summary>
     procedure InitializeGuidedExperienceItems()
     var

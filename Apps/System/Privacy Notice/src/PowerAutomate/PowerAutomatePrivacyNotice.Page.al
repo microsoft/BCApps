@@ -138,7 +138,7 @@ page 1568 "Power Automate Privacy Notice"
                 ToolTip = 'Go back to the previous page.';
                 Image = PreviousRecord;
                 InFooterBar = true;
-                Visible = not (Step = Step::Finish);
+                Visible = NOT (Step = Step::Finish);
 
                 trigger OnAction()
                 begin
@@ -153,7 +153,7 @@ page 1568 "Power Automate Privacy Notice"
                 ToolTip = 'Go to the next page.';
                 Image = NextRecord;
                 InFooterBar = true;
-                Visible = not (Step = Step::Finish);
+                Visible = NOT (Step = Step::Finish);
 
                 trigger OnAction()
                 begin

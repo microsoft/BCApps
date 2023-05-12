@@ -12,13 +12,6 @@ codeunit 8889 "Email Account Impl."
                   tabledata "Email Scenario" = imd,
                   tabledata "Email Rate Limit" = rd;
 
-    var
-        ConfirmDeleteQst: Label 'Go ahead and delete?';
-        ChooseNewDefaultTxt: Label 'Choose a Default Account';
-        InvalidEmailAddressErr: Label 'The email address "%1" is not valid.', Comment = '%1=The email address';
-        EmptyEmailAddressErr: Label 'The email address cannot be empty.';
-        CannotManageSetupErr: Label 'Your user account does not give you permission to set up email. Please contact your administrator.';
-
     procedure GetAllAccounts(LoadLogos: Boolean; var TempEmailAccount: Record "Email Account" temporary)
     var
         EmailAccounts: Record "Email Account";
@@ -164,21 +157,6 @@ codeunit 8889 "Email Account Impl."
         exit(not EmailAccount.IsEmpty());
     end;
 
-    procedure IsAccountRegistered(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"): Boolean
-    var
-        EmailAccount: Record "Email Account";
-    begin
-        if IsNullGuid(EmailAccountId) then
-            exit(false);
-
-        if not IsValidConnector(EmailConnector) then
-            exit(false);
-
-        GetAllAccounts(false, EmailAccount);
-
-        exit(EmailAccount.Get(EmailAccountId, EmailConnector));
-    end;
-
     internal procedure IsUserEmailAdmin(): Boolean
     var
         EmailScenario: Record "Email Scenario";
@@ -209,12 +187,7 @@ codeunit 8889 "Email Account Impl."
 
     procedure IsValidConnector(Connector: Enum "Email Connector"): Boolean
     begin
-        exit(IsValidConnector(Connector.AsInteger()));
-    end;
-
-    procedure IsValidConnector(Connector: Integer): Boolean
-    begin
-        exit("Email Connector".Ordinals().Contains(Connector));
+        exit("Email Connector".Ordinals().Contains(Connector.AsInteger()));
     end;
 
     procedure MakeDefault(var EmailAccount: Record "Email Account")
@@ -294,4 +267,11 @@ codeunit 8889 "Email Account Impl."
     internal procedure OnAfterSetSelectionFilter(var EmailAccount: Record "Email Account")
     begin
     end;
+
+    var
+        ConfirmDeleteQst: Label 'Go ahead and delete?';
+        ChooseNewDefaultTxt: Label 'Choose a Default Account';
+        InvalidEmailAddressErr: Label 'The email address "%1" is not valid.', Comment = '%1=The email address';
+        EmptyEmailAddressErr: Label 'The email address cannot be empty.';
+        CannotManageSetupErr: Label 'Your user account does not give you permission to set up email. Please contact your administrator.';
 }

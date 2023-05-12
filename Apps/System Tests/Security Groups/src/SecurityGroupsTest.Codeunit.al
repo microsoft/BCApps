@@ -567,7 +567,6 @@ codeunit 135016 "Security Groups Test"
     [HandlerFunctions('MessageHandler')]
     procedure TestImport()
     var
-        TenantPermissionSet: Record "Tenant Permission Set";
         AccessControl: Record "Access Control";
         SecurityGroupBuffer: Record "Security Group Buffer";
         SecurityGroup: Codeunit "Security Group";
@@ -593,16 +592,6 @@ codeunit 135016 "Security Groups Test"
         MockGraphQueryTestLibrary.AddGroup(Sg1NameTxt, Sg1IdTxt);
         MockGraphQueryTestLibrary.AddGroup(Sg2NameTxt, Sg2IdTxt);
         MockGraphQueryTestLibrary.AddGroup(Sg3NameTxt, Sg3IdTxt);
-
-        TenantPermissionSet."App ID" := NullAppId;
-        TenantPermissionSet."Role ID" := RoleId1Txt;
-        TenantPermissionSet.Insert();
-        TenantPermissionSet."App ID" := NullAppId;
-        TenantPermissionSet."Role ID" := RoleId2Txt;
-        TenantPermissionSet.Insert();
-        TenantPermissionSet."App ID" := NullAppId;
-        TenantPermissionSet."Role ID" := RoleId3Txt;
-        TenantPermissionSet.Insert();
 
         // [WHEN] The security groups are imported
         TempBlob.CreateOutStream(OutStr, TextEncoding::UTF16);

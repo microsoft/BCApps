@@ -124,7 +124,7 @@ codeunit 1483 "XmlWriter"
     /// Writes the text within Xml Writer to the BigText variable. 
     /// </summary>
     /// <param name="XmlBigText">The BigText the Xml Writer has to be write to.</param>
-    procedure ToBigText(var XmlBigText: BigText)
+    procedure ToBigText(Var XmlBigText: BigText)
     begin
         XmlWriterImpl.ToBigText(XmlBigText);
     end;

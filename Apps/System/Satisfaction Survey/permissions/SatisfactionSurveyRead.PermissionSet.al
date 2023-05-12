@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 1432 "Satisfaction Survey - Read"
+PermissionSet 1432 "Satisfaction Survey - Read"
 {
     Access = Internal;
     Assignable = false;

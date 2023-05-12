@@ -34,7 +34,7 @@ table 9018 "Custom Permission Set In Plan"
         }
         field(4; "Role Name"; Text[30])
         {
-            CalcFormula = lookup("Aggregate Permission Set".Name where("Role ID" = field("Role ID")));
+            CalcFormula = Lookup("Aggregate Permission Set".Name Where("Role ID" = Field("Role ID")));
             Caption = 'Name';
             Editable = false;
             FieldClass = FlowField;
@@ -46,7 +46,7 @@ table 9018 "Custom Permission Set In Plan"
         }
         field(6; "App Name"; Text[250])
         {
-            CalcFormula = lookup("Published Application".Name where(ID = field("App ID"), "Tenant Visible" = const(true)));
+            CalcFormula = Lookup("Published Application".Name Where(ID = Field("App ID"), "Tenant Visible" = Const(true)));
             Caption = 'Extension Name';
             Editable = false;
             FieldClass = FlowField;
@@ -88,9 +88,7 @@ table 9018 "Custom Permission Set In Plan"
     begin
         PlanConfiguration.VerifyUserHasRequiredPermissionSet(Rec."Role ID", Rec."App ID", Rec.Scope, Rec."Company Name");
 #if not CLEAN22
-#pragma warning disable AL0432
         PlanConfiguration.OnCustomPermissionSetChange(Rec."Plan ID", Rec."Role ID", Rec."App ID", Rec.Scope, Rec."Company Name");
-#pragma warning restore AL0432
 #endif
     end;
 
@@ -98,10 +96,8 @@ table 9018 "Custom Permission Set In Plan"
     begin
         PlanConfiguration.VerifyUserHasRequiredPermissionSet(Rec."Role ID", Rec."App ID", Rec.Scope, Rec."Company Name");
 #if not CLEAN22
-#pragma warning disable AL0432
         if (Rec."Company Name" <> xRec."Company Name") or (Rec."Role ID" <> xRec."Role ID") then
             PlanConfiguration.OnCustomPermissionSetChange(xRec."Plan ID", xRec."Role ID", xRec."App ID", xRec.Scope, xRec."Company Name");
-#pragma warning restore AL0432
 #endif
     end;
 
@@ -109,10 +105,8 @@ table 9018 "Custom Permission Set In Plan"
     begin
         PlanConfiguration.VerifyUserHasRequiredPermissionSet(Rec."Role ID", Rec."App ID", Rec.Scope, Rec."Company Name");
 #if not CLEAN22
-#pragma warning disable AL0432
         if (Rec."Company Name" <> xRec."Company Name") or (Rec."Role ID" <> xRec."Role ID") then
             PlanConfiguration.OnCustomPermissionSetChange(xRec."Plan ID", xRec."Role ID", xRec."App ID", xRec.Scope, xRec."Company Name");
-#pragma warning restore AL0432
 #endif
     end;
 

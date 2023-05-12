@@ -11,24 +11,20 @@
 table 3900 "Retention Period"
 {
     LookupPageId = "Retention Periods";
-    Extensible = false;
+    Extensible = False;
     DataCaptionFields = Code, Description;
 
     fields
     {
         field(1; Code; Code[20])
         {
-            DataClassification = CustomerContent;
             NotBlank = true;
         }
         field(2; Description; Text[100])
         {
-            DataClassification = CustomerContent;
         }
         field(3; "Retention Period"; Enum "Retention Period Enum")
         {
-            DataClassification = SystemMetadata;
-
             trigger OnValidate()
             var
                 RetentionPeriod: Interface "Retention Period";
@@ -45,8 +41,6 @@ table 3900 "Retention Period"
         }
         field(4; "Ret. Period Calculation"; DateFormula)
         {
-            DataClassification = CustomerContent;
-
             trigger OnValidate()
             var
                 RetentionPeriodImpl: Codeunit "Retention Period Impl.";

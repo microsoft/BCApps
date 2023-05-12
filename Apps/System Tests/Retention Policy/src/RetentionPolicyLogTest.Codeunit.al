@@ -80,7 +80,7 @@ codeunit 138705 "Retention Policy Log Test"
         LastRetentionPolicyLogEntryNo := RetentionPolicyLogEntry."Entry No.";
 
         //Exercise
-        asserterror
+        AssertError
     RetentionPolicyLog.LogError(RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Error, LastRetentionPolicyLogEntryNo + 1)); // runs a background task
 
         // Verify
@@ -101,7 +101,7 @@ codeunit 138705 "Retention Policy Log Test"
         LastRetentionPolicyLogEntryNo := RetentionPolicyLogEntry."Entry No.";
 
         //Exercise
-        asserterror
+        AssertError
     RetentionPolicyLog.LogError(RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Error, LastRetentionPolicyLogEntryNo + 1), true); // runs a background task
 
         // Verify

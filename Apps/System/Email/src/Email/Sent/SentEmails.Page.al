@@ -234,6 +234,7 @@ page 8883 "Sent Emails"
         NewerThanDate: DateTime;
         EmailAccountId, SourceSystemID : Guid;
         SourceTableID: Integer;
+        [InDataSet]
         HasSourceRecord: Boolean;
         NoSentEmails: Boolean;
         EmailConnectorHasBeenUninstalledMsg: Label 'The email extension that was used to send this email has been uninstalled. To view information about the email account, you must reinstall the extension.';

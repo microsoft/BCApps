@@ -90,20 +90,17 @@ codeunit 425 "Data Compression"
         DataCompressionImpl.GetEntryList(EntryList);
     end;
 
-#if not CLEAN23
     /// <summary>
     /// Extracts an entry from the ZipArchive.
     /// </summary>
     /// <param name="EntryName">The name of the ZipArchive entry to be extracted.</param>
     /// <param name="OutputOutStream">The OutStream to which binary content of the extracted entry is saved.</param>
     /// <param name="EntryLength">The length of the extracted entry.</param>
-    [Obsolete('This function has been replaced by the function ExtractEntry(EntryName: Text; OutputOutStream: OutStream) which instead returns the entry length.', '23.0')]
     procedure ExtractEntry(EntryName: Text; OutputOutStream: OutStream; var EntryLength: Integer)
     begin
         DataCompressionImpl.ExtractEntry(EntryName, OutputOutStream, EntryLength);
     end;
 
-#endif
     /// <summary>
     /// Extracts an entry from the ZipArchive.
     /// </summary>
@@ -142,7 +139,7 @@ codeunit 425 "Data Compression"
     /// <returns>Returns true if and only if the given InStream is compressed with GZip</returns>
     procedure IsGZip(InStream: InStream): Boolean
     begin
-        exit(DataCompressionImpl.IsGZip(InStream));
+        EXIT(DataCompressionImpl.IsGZip(InStream));
     end;
 
     /// <summary>

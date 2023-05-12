@@ -103,7 +103,7 @@ page 1990 "Checklist Banner"
                 field(TaskStatusText; ChecklistBannerImpl.GetStatusText(Rec))
                 {
                     ApplicationArea = All;
-                    Visible = Rec.Status <> Rec.Status::Started;
+                    Visible = Status <> Status::Started;
                     ToolTip = 'Status';
                     Caption = 'Status';
                 }
@@ -131,7 +131,7 @@ page 1990 "Checklist Banner"
 
                         UpdateLabelTexts();
 
-                        IsChecklistItemStarted := Rec.Status = Rec.Status::Started;
+                        IsChecklistItemStarted := Status = Status::Started;
                     end;
                 }
             }
@@ -219,11 +219,11 @@ page 1990 "Checklist Banner"
                 Caption = 'Start';
                 ToolTip = 'Start';
                 Scope = Repeater;
-                Visible = IsChecklistInProgress and ((Rec.Status = Rec.Status::"Not Started") or (Rec.Status = Rec.Status::Skipped))
-                    and ((Rec."Guided Experience Type" = Rec."Guided Experience Type"::"Assisted Setup")
-                    or (Rec."Guided Experience Type" = Rec."Guided Experience Type"::"Manual Setup")
-                    or (Rec."Guided Experience Type" = Rec."Guided Experience Type"::"Application Feature")
-                    or (Rec."Guided Experience Type" = Rec."Guided Experience Type"::Learn));
+                Visible = IsChecklistInProgress and ((Status = Status::"Not Started") or (Status = Status::Skipped))
+                    and (("Guided Experience Type" = "Guided Experience Type"::"Assisted Setup")
+                    or ("Guided Experience Type" = "Guided Experience Type"::"Manual Setup")
+                    or ("Guided Experience Type" = "Guided Experience Type"::"Application Feature")
+                    or ("Guided Experience Type" = "Guided Experience Type"::Learn));
                 Image = AssessFinanceCharges;
 
                 trigger OnAction()
@@ -237,9 +237,9 @@ page 1990 "Checklist Banner"
                 Caption = 'Start tour';
                 ToolTip = 'Start tour';
                 Scope = Repeater;
-                Visible = IsChecklistInProgress and ((Rec.Status = Rec.Status::"Not Started") or (Rec.Status = Rec.Status::Skipped))
-                    and ((Rec."Guided Experience Type" = Rec."Guided Experience Type"::Tour)
-                    or (Rec."Guided Experience Type" = Rec."Guided Experience Type"::"Spotlight Tour"));
+                Visible = IsChecklistInProgress and ((Status = Status::"Not Started") or (Status = Status::Skipped))
+                    and (("Guided Experience Type" = "Guided Experience Type"::Tour)
+                    or ("Guided Experience Type" = "Guided Experience Type"::"Spotlight Tour"));
                 Image = AssessFinanceCharges;
 
                 trigger OnAction()
@@ -254,8 +254,8 @@ page 1990 "Checklist Banner"
                 ToolTip = 'Play video';
                 Scope = Repeater;
                 Image = Start;
-                Visible = IsChecklistInProgress and ((Rec.Status = Rec.Status::"Not Started") or (Rec.Status = Rec.Status::Skipped))
-                    and (Rec."Guided Experience Type" = Rec."Guided Experience Type"::Video);
+                Visible = IsChecklistInProgress and ((Status = Status::"Not Started") or (Status = Status::Skipped))
+                    and ("Guided Experience Type" = "Guided Experience Type"::Video);
 
                 trigger OnAction()
                 begin
@@ -268,7 +268,7 @@ page 1990 "Checklist Banner"
                 Caption = 'Revisit';
                 ToolTip = 'Revisit';
                 Scope = Repeater;
-                Visible = IsChecklistInProgress and ((Rec.Status = Rec.Status::Started) or (Rec.Status = Rec.Status::Completed));
+                Visible = IsChecklistInProgress and ((Status = Status::Started) or (Status = Status::Completed));
                 Image = AssessFinanceCharges;
 
                 trigger OnAction()
@@ -282,7 +282,7 @@ page 1990 "Checklist Banner"
                 Caption = 'Skip for now';
                 ToolTip = 'Skip for now';
                 Scope = Repeater;
-                Visible = IsChecklistInProgress and ((Rec.Status = Rec.Status::"Not Started") or (Rec.Status = Rec.Status::Started));
+                Visible = IsChecklistInProgress and ((Status = Status::"Not Started") or (Status = Status::Started));
                 Image = AssessFinanceCharges;
 
                 trigger OnAction()
@@ -356,16 +356,16 @@ page 1990 "Checklist Banner"
 
     trigger OnAfterGetCurrRecord()
     begin
-        IsChecklistItemStarted := (Rec.Status = Rec.Status::Started) and
-            (not (Rec."Guided Experience Type" in [Rec."Guided Experience Type"::Tour, Rec."Guided Experience Type"::"Spotlight Tour"]));
+        IsChecklistItemStarted := (Status = Status::Started) and
+            (not ("Guided Experience Type" in ["Guided Experience Type"::Tour, "Guided Experience Type"::"Spotlight Tour"]));
     end;
 
     trigger OnAfterGetRecord()
     begin
-        MarkChecklistItemAsCompleted := Rec.Status = Rec.Status::Completed;
+        MarkChecklistItemAsCompleted := Status = Status::Completed;
 
-        IsChecklistItemStarted := (Rec.Status = Rec.Status::Started) and
-            (not (Rec."Guided Experience Type" in [Rec."Guided Experience Type"::Tour, Rec."Guided Experience Type"::"Spotlight Tour"]));
+        IsChecklistItemStarted := (Status = Status::Started) and
+            (not ("Guided Experience Type" in ["Guided Experience Type"::Tour, "Guided Experience Type"::"Spotlight Tour"]));
     end;
 
     trigger OnClosePage()
@@ -419,11 +419,11 @@ page 1990 "Checklist Banner"
 
     local procedure SetChecklistRecord()
     begin
-        Rec.SetRange(Status, Rec.Status::Started);
+        Rec.SetRange(Status, Status::Started);
         if Rec.FindFirst() then
             CurrPage.SetRecord(Rec)
         else begin
-            Rec.SetRange(Status, Rec.Status::"Not Started");
+            Rec.SetRange(Status, Status::"Not Started");
             if Rec.FindFirst() then
                 CurrPage.SetRecord(Rec);
         end;
@@ -472,10 +472,10 @@ page 1990 "Checklist Banner"
     begin
         ChecklistTotalCount := Rec.Count;
 
-        Rec.SetFilter(Status, '=%1', Rec.Status::Skipped);
+        Rec.SetFilter(Status, '=%1', Status::Skipped);
         ChecklistSkipCount := Rec.Count;
 
-        Rec.SetFilter(Status, '=%1', Rec.Status::Completed);
+        Rec.SetFilter(Status, '=%1', Status::Completed);
         ChecklistCompletionCount := Rec.Count;
 
         SetChecklistRecord();
@@ -494,7 +494,7 @@ page 1990 "Checklist Banner"
     var
         IsLastChecklistItem: Boolean;
     begin
-        UpdateChecklistCountsAfterStatusUpdate(Rec.Status);
+        UpdateChecklistCountsAfterStatusUpdate(Status);
 
         if ChecklistItemBuffer.FindLast() then
             if ChecklistItemBuffer.Code = Rec.Code then
@@ -529,4 +529,3 @@ page 1990 "Checklist Banner"
         UpdateLabelTexts();
     end;
 }
-

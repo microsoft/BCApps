@@ -12,8 +12,13 @@ table 9173 "Extra Settings"
     InherentEntitlements = rimX;
     InherentPermissions = rimX;
     DataPerCompany = false;
+#if not CLEAN20
+    ObsoleteState = Pending;
+    ObsoleteTag = '20.0';
+#else
     ObsoleteState = Removed;
     ObsoleteTag = '23.0';
+#endif
     ObsoleteReason = 'Replaced with table 9222 "Application User Settings".';
     ReplicateData = false;
 

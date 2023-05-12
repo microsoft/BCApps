@@ -14,8 +14,7 @@ table 3901 "Retention Policy Setup"
     {
         field(1; "Table Id"; Integer)
         {
-            DataClassification = SystemMetadata;
-            TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table));
+            TableRelation = AllObjWithCaption."Object ID" where("Object Type" = Const(Table));
             BlankZero = true;
             NotBlank = true;
             MinValue = 0;
@@ -39,7 +38,7 @@ table 3901 "Retention Policy Setup"
         field(2; "Table Name"; Text[30])
         {
             FieldClass = FlowField;
-            CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = const(Table), "Object ID" = field("Table Id")));
+            CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = const(Table), "Object ID" = Field("Table Id")));
             Editable = false;
 
             trigger OnLookup()
@@ -53,12 +52,11 @@ table 3901 "Retention Policy Setup"
         field(3; "Table Caption"; Text[249])
         {
             FieldClass = FlowField;
-            CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table), "Object ID" = field("Table Id")));
+            CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table), "Object ID" = Field("Table Id")));
             Editable = false;
         }
         field(4; "Retention Period"; Code[20])
         {
-            DataClassification = CustomerContent;
             TableRelation = "Retention Period".Code;
 
             trigger OnValidate()
@@ -72,8 +70,6 @@ table 3901 "Retention Policy Setup"
         }
         field(5; Enabled; Boolean)
         {
-            DataClassification = SystemMetadata;
-
             trigger OnValidate()
             var
                 RetentionPolicySetupLine: Record "Retention Policy Setup Line";
@@ -90,7 +86,6 @@ table 3901 "Retention Policy Setup"
         }
         field(6; "Apply to all records"; Boolean)
         {
-            DataClassification = SystemMetadata;
             InitValue = true;
 
             trigger OnValidate()
@@ -114,7 +109,6 @@ table 3901 "Retention Policy Setup"
         }
         field(7; "Date Field No."; Integer)
         {
-            DataClassification = SystemMetadata;
             TableRelation = Field."No." where(TableNo = field("Table ID"), "Type" = filter(Date | DateTime));
 
             trigger OnValidate()
@@ -143,7 +137,6 @@ table 3901 "Retention Policy Setup"
         }
         field(10; Manual; Boolean)
         {
-            DataClassification = SystemMetadata;
         }
         field(100; "Number Of Records Deleted"; Integer)
         {

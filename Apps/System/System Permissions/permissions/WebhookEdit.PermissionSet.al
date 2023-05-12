@@ -6,7 +6,7 @@
 permissionset 97 "Webhook - Edit"
 {
     Access = Public;
-    Assignable = false;
+    Assignable = False;
 
     IncludedPermissionSets = "Webhook - Read";
 

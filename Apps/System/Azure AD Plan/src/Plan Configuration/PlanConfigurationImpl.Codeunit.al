@@ -113,9 +113,7 @@ codeunit 9822 "Plan Configuration Impl."
 #pragma warning disable AA0013
             begin
 #pragma warning restore AA0013
-#pragma warning disable AL0432
                 PlanConfiguration.OnBeforeRemoveCustomPermissionsFromUser(AccessControl, IsAssignedViaUserGroups);
-#pragma warning restore AL0432
                 if not IsAssignedViaUserGroups then
 #endif
                     if not GetUserPlansAsFilter(UserSecurityId, PlanId, PlanIdFilter) then
@@ -213,9 +211,7 @@ codeunit 9822 "Plan Configuration Impl."
 #pragma warning disable AA0013
             begin
 #pragma warning restore AA0013
-#pragma warning disable AL0432
                 PlanConfiguration.OnBeforeRemoveDefaultPermissionsFromUser(AccessControl, IsAssignedViaUserGroups);
-#pragma warning restore AL0432
                 if not IsAssignedViaUserGroups then
 #endif
                     if not GetUserPlansAsFilter(UserSecurityId, PlanId, PlanIdFilter) then
@@ -319,10 +315,8 @@ codeunit 9822 "Plan Configuration Impl."
     var
         CustomPermissionSetInPlan: Record "Custom Permission Set In Plan";
 #if not CLEAN22
-#pragma warning disable AL0432
         DefaultPermissionSetInPlan: Record "Permission Set In Plan Buffer";
         DefaultPermissionSetInPlanController: Codeunit "Default Permission Set In Plan";
-#pragma warning restore AL0432
 #else
         DefaultPermissionSetInPlan: Record "Default Permission Set In Plan";
 #endif
@@ -345,9 +339,7 @@ codeunit 9822 "Plan Configuration Impl."
                 if CustomPermissionSetInPlan.Insert() then;
             until DefaultPermissionSetInPlan.Next() = 0;
 #if not CLEAN22
-#pragma warning disable AL0432
         PlanConfiguration.OnAfterTransferPermissions(PlanId);
-#pragma warning restore AL0432
 #endif
     end;
 
@@ -361,9 +353,7 @@ codeunit 9822 "Plan Configuration Impl."
         CustomPermissionSetInPlan.SetRange("Plan ID", PlanId);
         CustomPermissionSetInPlan.DeleteAll();
 #if not CLEAN22
-#pragma warning disable AL0432
         PlanConfiguration.OnAfterDeleteCustomPermissions(PlanId);
-#pragma warning restore AL0432
 #endif
     end;
 

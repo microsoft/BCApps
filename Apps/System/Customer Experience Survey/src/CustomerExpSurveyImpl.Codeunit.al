@@ -275,16 +275,16 @@ codeunit 9261 "Customer Exp. Survey Impl."
     begin
         OnTryGetIsEurope(Result, IsHandled);
         if IsHandled then
-            exit;
+            exit(true);
 
         AzureADGraph.GetTenantDetail(TenantInfo);
         if not IsNull(TenantInfo) then
             if TenantInfo.CountryLetterCode <> '' then begin
                 Result := TenantInfo.CountryLetterCode in ['AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE'];
-                exit;
+                exit(true);
             end;
         Session.LogMessage('0000J9O', TenantInfoNotFoundLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CustomerExperienceSurveyTok);
-        error('');
+        exit(false);
     end;
 
     internal procedure RemoveUserIdFromMessage(Message: Text): Text

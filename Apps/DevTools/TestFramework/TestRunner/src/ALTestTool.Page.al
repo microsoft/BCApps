@@ -164,7 +164,7 @@ page 130451 "AL Test Tool"
                     DrillDown = true;
                     Editable = false;
                     Style = Unfavorable;
-                    StyleExpr = true;
+                    StyleExpr = TRUE;
                     ToolTip = 'Specifies full error message with stack trace';
 
                     trigger OnDrillDown()
@@ -443,10 +443,14 @@ page 130451 "AL Test Tool"
         Success: Integer;
         Failure: Integer;
         NotExecuted: Integer;
+        [InDataSet]
         NameIndent: Integer;
+        [InDataSet]
         LineTypeEmphasize: Boolean;
         NameEmphasize: Boolean;
+        [InDataSet]
         TestCodeunitEmphasize: Boolean;
+        [InDataSet]
         ResultEmphasize: Boolean;
         RunDuration: Duration;
         TestRunnerDisplayName: Text;
@@ -517,7 +521,7 @@ page 130451 "AL Test Tool"
     begin
         CurrPage.SetSelectionFilter(TestMethodLine);
 
-        if TestMethodLine.FindSet(true) then
+        if TestMethodLine.FindSet(true, false) then
             repeat
                 TestMethodLine.Validate(Run, not TestMethodLine.Run);
                 TestMethodLine.Modify(true);

@@ -46,14 +46,4 @@ dotnet
         {
         }
     }
-
-    assembly("Microsoft.Dynamics.Nav.Client.WebPageViewer")
-    {
-        Culture = 'neutral';
-
-        type("Microsoft.Dynamics.Nav.Client.WebPageViewer.IWebPageViewer"; WebPageViewerExtMgmt)
-        {
-            IsControlAddIn = true;
-        }
-    }
 }

@@ -10,10 +10,6 @@ permissionset 132585 "System Application Test Tables"
 
     Permissions = tabledata "Cues And KPIs Test 1 Cue" = RIMD,
                   tabledata "Cues And KPIs Test 2 Cue" = RIMD,
-                  tabledata "Edit In Excel Test Table" = RIMD,
-#if not CLEAN20
-                  tabledata "Table With Media" = RIMD,
-#endif
                   tabledata "Test Email Account" = RIMD,
                   tabledata "Test Email Connector Setup" = RIMD,
                   tabledata "Test Table A" = RIMD,

@@ -36,7 +36,7 @@ table 9862 "PermissionSet Buffer"
         field(4; Name; Text[30])
         {
             Caption = 'Name';
-            CalcFormula = lookup("Aggregate Permission Set".Name where("Role ID" = field("Role ID")));
+            CalcFormula = Lookup("Aggregate Permission Set".Name Where("Role ID" = Field("Role ID")));
             FieldClass = FlowField;
         }
         field(5; "App Name"; Text[250])

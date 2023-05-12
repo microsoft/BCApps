@@ -14,28 +14,23 @@ table 2610 "Feature Data Update Status"
     {
         field(1; "Feature Key"; Text[50])
         {
-            DataClassification = SystemMetadata;
             Caption = 'Feature Key';
         }
         field(2; "Company Name"; Text[30])
         {
-            DataClassification = OrganizationIdentifiableInformation;
             Caption = 'Company Name';
             TableRelation = Company;
         }
         field(3; "Data Update Required"; Boolean)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Data Update Required';
         }
         field(4; "Feature Status"; Enum "Feature Status")
         {
-            DataClassification = SystemMetadata;
             Caption = 'Current Company Status';
         }
         field(5; "Start Date/Time"; DateTime)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Start Date/Time';
 
             trigger OnLookup()
@@ -73,7 +68,6 @@ table 2610 "Feature Data Update Status"
         }
         field(10; "Background Task"; Boolean)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Background Task';
 
             trigger OnValidate()

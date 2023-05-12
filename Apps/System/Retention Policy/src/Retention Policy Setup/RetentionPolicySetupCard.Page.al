@@ -117,8 +117,8 @@ page 3901 "Retention Policy Setup Card"
             {
                 ApplicationArea = All;
                 Caption = 'Record Retention Policy', Comment = 'Record as in ''a record in a table''.';
-                SubPageLink = "Table ID" = field("Table ID");
-                Visible = not Rec."Apply to all records";
+                SubPageLink = "Table ID" = Field("Table ID");
+                Visible = NOT Rec."Apply to all records";
             }
         }
     }
@@ -219,7 +219,7 @@ page 3901 "Retention Policy Setup Card"
         ReadPermissionNotification: Notification;
         PageBackgroundParameters: Dictionary of [Text, Text];
     begin
-        if not RetentionPolicySetup.GetBySystemId(Rec.SystemId) then
+        if not RetentionPolicySetup.GetBySystemId(SystemId) then
             exit;
 
         if not RetentionPolicySetupImpl.TableExists(Rec."Table Id") then

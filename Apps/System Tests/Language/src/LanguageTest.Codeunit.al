@@ -447,7 +447,7 @@ codeunit 130043 "Language Test"
         LanguageLocal: Record Language;
     begin
         if IsInitialized then
-            exit;
+            EXIT;
 
         LanguageLocal.DeleteAll();
 

@@ -231,13 +231,13 @@ codeunit 2501 "Extension Marketplace"
     end;
 
     [TryFunction]
-    procedure InstallAppsourceExtension(ApplicationID: Text; TelemetryURL: Text);
-    var
+    PROCEDURE InstallAppsourceExtension(ApplicationID: Text; TelemetryURL: Text);
+    VAR
         PublishedApplication: Record "Published Application";
         ExtensionInstallation: Page "Extension Installation";
         AppId: GUID;
         PackageID: GUID;
-    begin
+    BEGIN
         AppId := MapMarketplaceIdToAppId(ApplicationID);
         if not IsNullGuid(AppId) then begin
             PublishedApplication.SETFILTER(ID, '%1', AppId);
@@ -287,8 +287,6 @@ codeunit 2501 "Extension Marketplace"
         MySessionSettings: SessionSettings;
         AppId: Guid;
     begin
-        ExtensionInstallationImpl.CheckPermissions();
-
         if not InstallAppsourceExtension(ApplicationID, TelemetryURL) then begin // successful installation returns false
             AppId := MapMarketplaceIdToAppId(ApplicationID);
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
@@ -308,8 +306,6 @@ codeunit 2501 "Extension Marketplace"
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         MySessionSettings: SessionSettings;
     begin
-        ExtensionInstallationImpl.CheckPermissions();
-
         if not InstallAppsourceExtension(AppId, TelemetryURL) then // successful installation returns false
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
                 SaveExtensionPendingSetup(AppId);
@@ -475,25 +471,25 @@ codeunit 2501 "Extension Marketplace"
         exit(false);
     end;
 
-    procedure GetMarketplaceEmbeddedUrl(): Text;
-    begin
-        exit(AppsourceTxt + EmbedRelativeTxt);
-    end;
+    PROCEDURE GetMarketplaceEmbeddedUrl(): Text;
+    BEGIN
+        EXIT(AppsourceTxt + EmbedRelativeTxt);
+    END;
 
-    procedure GetMessageType(JObject: DotNet JObject): Text;
-    begin
+    PROCEDURE GetMessageType(JObject: DotNet JObject): Text;
+    BEGIN
         // Extracts the 'msgType' property from the
-        exit(GetValue(JObject, 'msgType', true));
-    end;
+        EXIT(GetValue(JObject, 'msgType', TRUE));
+    END;
 
-    procedure GetApplicationIdFromData(JObject: DotNet JObject): Text;
-    var
+    PROCEDURE GetApplicationIdFromData(JObject: DotNet JObject): Text;
+    VAR
         TempObject: DotNet JObject;
-    begin
+    BEGIN
         // Extracts the applicationId property out of the data object return by the SPZA site
-        TempObject := TempObject.Parse(GetValue(JObject, 'data', true));
-        exit(GetValue(TempObject, 'applicationId', true));
-    end;
+        TempObject := TempObject.Parse(GetValue(JObject, 'data', TRUE));
+        EXIT(GetValue(TempObject, 'applicationId', true));
+    END;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", InvokeExtensionInstallation, '', false, false)]
     local procedure InvokeExtensionInstallation(AppId: Text; ResponseUrl: Text)

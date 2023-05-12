@@ -303,7 +303,7 @@ codeunit 139036 "Data Compression Tests"
         foreach EntryKey in EntryList do begin
             Clear(TempBlob);
             TempBlob.CreateOutStream(OutStream);
-            EntryLength := DataCompressionLocal.ExtractEntry(EntryKey, OutStream);
+            DataCompressionLocal.ExtractEntry(EntryKey, OutStream, EntryLength);
             TempBlob.CreateInStream(InStream);
             InStream.ReadText(FileText);
             Assert.AreEqual(FileContent[Index], FileText, 'wrong content extracted');

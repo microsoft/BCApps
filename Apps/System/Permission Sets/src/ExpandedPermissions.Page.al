@@ -36,7 +36,6 @@ page 9862 "Expanded Permissions"
                 field("Object Name"; ObjectName)
                 {
                     ApplicationArea = All;
-                    Caption = 'Object Name';
                     ToolTip = 'Specifies the name of the object to which the permissions apply.';
                     Style = Strong;
                     StyleExpr = ZeroObjStyleExpr;

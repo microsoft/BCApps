@@ -93,7 +93,7 @@ page 149001 "BCPT Setup Card"
             {
                 ApplicationArea = All;
                 Enabled = Rec.Status <> Rec.Status::Running;
-                SubPageLink = "BCPT Code" = field("Code"), "Version Filter" = field(Version), "Base Version Filter" = field("Base Version");
+                SubPageLink = "BCPT Code" = FIELD("Code"), "Version Filter" = field(Version), "Base Version Filter" = field("Base Version");
                 UpdatePropagation = Both;
             }
 
@@ -227,7 +227,7 @@ page 149001 "BCPT Setup Card"
                 PromotedCategory = Process;
                 ToolTip = 'Open log entries.';
                 RunObject = page "BCPT Log Entries";
-                RunPageLink = "BCPT Code" = field(Code), Version = field(Version);
+                RunPageLink = "BCPT Code" = Field(Code), Version = field(Version);
             }
         }
     }

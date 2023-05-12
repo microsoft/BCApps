@@ -15,11 +15,6 @@ permissionset 2609 "Feature Key - Objects"
                   Codeunit "Update Feature Data" = X,
                   Page "Feature Management" = X,
                   Page "Schedule Feature Data Update" = X,
-#if not CLEAN23
-#pragma warning disable AL0432
-
                   Page "Upcoming Changes Factbox" = X,
-#pragma warning restore AL0432
-#endif
                   Table "Feature Data Update Status" = X;
 }

@@ -16,6 +16,11 @@ permissionset 154 "System Application - Admin"
                              "Data Cleanup - Admin",
                              "Email - Admin",
                              "Exten. Mgt. - Admin",
+#if not CLEAN20
+#pragma warning disable AL0432
+                             "SMARTLIST DESIGNER",
+#pragma warning restore
+#endif
                              "Edit in Excel-Admin",
                              "Feature Key - Admin",
                              "Permissions & Licenses - Edit",

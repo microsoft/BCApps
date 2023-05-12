@@ -122,11 +122,11 @@ codeunit 9561 "Document Sharing Impl."
                     // Downloads file into DocumentSharing.Data, otherwise uploaded file is in DocumentSharing.Data
                     if Dialog.Confirm(FinishedEditingDocumentLbl, true) then begin
                         Sleep(2000); // This sleep is to ensure the OneDrive clears the lock on the file after the user saves and closes.
-                        Handled := false;
+                        Handled := False;
                         DocumentSharingCodeunit.OnGetFileContents(DocumentSharing, Handled);
                     end;
 
-                    Handled := false;
+                    Handled := False;
                     DocumentSharingCodeunit.OnDeleteDocument(DocumentSharing, Handled);
                 end;
             else begin

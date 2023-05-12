@@ -1,8 +1,5 @@
 table 132525 "Edit In Excel Test Table"
 {
-    DataClassification = SystemMetadata;
-    ReplicateData = false;
-
     fields
     {
         field(1; "No."; Code[20])

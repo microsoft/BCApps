@@ -23,17 +23,14 @@ table 1803 "Assisted Setup"
     {
         field(1; "Page ID"; Integer)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Page ID';
         }
         field(2; Name; Text[2048])
         {
-            DataClassification = SystemMetadata;
             Caption = 'Name';
         }
         field(3; "Order"; Integer)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Order';
             ObsoleteState = Removed;
             ObsoleteReason = 'Order cannot be determined at compile time because the extensions that add to the table are unknown and can insert records in any order.';
@@ -41,7 +38,6 @@ table 1803 "Assisted Setup"
         }
         field(4; Status; Option)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Status';
             OptionCaption = 'Not Completed,Completed,Not Started,Seen,Watched,Read, ';
             OptionMembers = "Not Completed",Completed,"Not Started",Seen,Watched,Read," ";
@@ -51,7 +47,6 @@ table 1803 "Assisted Setup"
         }
         field(5; Visible; Boolean)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Visible';
             ObsoleteState = Removed;
             ObsoleteReason = 'Only those setup records that are visible should be added.';
@@ -59,7 +54,6 @@ table 1803 "Assisted Setup"
         }
         field(6; Parent; Integer)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Parent';
             ObsoleteState = Removed;
             ObsoleteReason = 'Hierarchy is removed. Instead the Group Name is populated for each record.';
@@ -67,17 +61,14 @@ table 1803 "Assisted Setup"
         }
         field(7; "Video Url"; Text[250])
         {
-            DataClassification = SystemMetadata;
             Caption = 'Video Url';
         }
         field(8; Icon; Media)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Icon';
         }
         field(9; "Item Type"; Option)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Item Type';
             InitValue = "Setup and Help";
             OptionCaption = ' ,Group,Setup and Help';
@@ -88,7 +79,6 @@ table 1803 "Assisted Setup"
         }
         field(10; Featured; Boolean)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Featured';
             ObsoleteState = Removed;
             ObsoleteReason = 'Not used in any UI component.';
@@ -96,12 +86,10 @@ table 1803 "Assisted Setup"
         }
         field(11; "Help Url"; Text[250])
         {
-            DataClassification = CustomerContent;
             Caption = 'Help Url';
         }
         field(12; "Assisted Setup Page ID"; Integer)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Assisted Setup Page ID';
             ObsoleteState = Removed;
             ObsoleteReason = 'Redundant field- duplication of Page ID field.';
@@ -109,7 +97,6 @@ table 1803 "Assisted Setup"
         }
         field(13; "Tour Id"; Integer)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Tour Id';
             ObsoleteState = Removed;
             ObsoleteReason = 'Not used in any UI component.';
@@ -117,7 +104,6 @@ table 1803 "Assisted Setup"
         }
         field(14; "Video Status"; Boolean)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Video Status';
             ObsoleteState = Removed;
             ObsoleteReason = 'Not needed to track if user has seen video.';
@@ -125,7 +111,6 @@ table 1803 "Assisted Setup"
         }
         field(15; "Help Status"; Boolean)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Help Status';
             ObsoleteState = Removed;
             ObsoleteReason = 'Not needed to track if user has seen help.';
@@ -133,7 +118,6 @@ table 1803 "Assisted Setup"
         }
         field(16; "Tour Status"; Boolean)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Tour Status';
             ObsoleteState = Removed;
             ObsoleteReason = 'Not used in any UI component.';
@@ -149,29 +133,25 @@ table 1803 "Assisted Setup"
         {
             Caption = 'Extension Name';
             FieldClass = FlowField;
-            CalcFormula = lookup("Published Application".Name where(ID = field("App ID"), "Tenant Visible" = const(true)));
+            CalcFormula = Lookup("Published Application".Name where(ID = FIELD("App ID"), "Tenant Visible" = CONST(true)));
             Editable = false;
         }
         field(21; "Group Name"; Enum "Assisted Setup Group")
         {
-            DataClassification = SystemMetadata;
             Caption = 'Group';
             Editable = false;
         }
         field(22; Completed; Boolean)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Completed';
             Editable = false;
         }
         field(23; "Video Category"; Enum "Video Category")
         {
-            DataClassification = SystemMetadata;
             Editable = false;
         }
         field(24; Description; Text[1024])
         {
-            DataClassification = CustomerContent;
             Caption = 'Description';
             Editable = false;
         }

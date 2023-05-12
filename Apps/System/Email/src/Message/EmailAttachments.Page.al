@@ -70,6 +70,9 @@ page 8889 "Email Attachments"
             action(UploadFromScenario)
             {
                 ApplicationArea = All;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedOnly = true;
                 Image = Attach;
                 Caption = 'Add files from default selection';
                 ToolTip = 'Add additional attachments from default email attachments. These files are not attached by default.';
@@ -250,6 +253,7 @@ page 8889 "Email Attachments"
 
     var
         EmailMessageImpl: Codeunit "Email Message Impl.";
+        [InDataSet]
         DeleteActionEnabled: Boolean;
         IsEmailEditable: Boolean;
         EditOptionVisible: Boolean;

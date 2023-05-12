@@ -399,10 +399,10 @@ codeunit 135092 "Upgrade Tag Test"
         Any: Codeunit Any;
         I: Integer;
     begin
-        for I := 1 to 10 do
+        for I := 1 To 10 do
             MockedPerCompanyUpgradeTags.Add(CopyStr(Any.AlphanumericText(250), 1, 250));
 
-        for I := 1 to 10 do
+        for I := 1 To 10 do
             MockedPerDatabaseUpgradeTags.Add(CopyStr(Any.AlphanumericText(250), 1, 250));
 
         SetAllUpgradeTagsMock.SetPerCompanyUpgradeTags(MockedPerCompanyUpgradeTags);

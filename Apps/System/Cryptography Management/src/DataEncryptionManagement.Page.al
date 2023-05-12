@@ -53,7 +53,7 @@ page 9905 "Data Encryption Management"
                 Promoted = true;
                 PromotedCategory = Process;
                 ToolTip = 'Generate an encryption key on the server to enable encryption.';
-                Visible = not IsSaaS;
+                Visible = NOT IsSaaS;
 
                 trigger OnAction()
                 begin
@@ -71,7 +71,7 @@ page 9905 "Data Encryption Management"
                 Promoted = true;
                 PromotedCategory = Process;
                 ToolTip = 'Import the encryption key to a server instance from an encryption key file that was exported from another server instance or saved as a copy when the encryption was enabled.';
-                Visible = not IsSaaS;
+                Visible = NOT IsSaaS;
 
                 trigger OnAction()
                 begin
@@ -90,7 +90,7 @@ page 9905 "Data Encryption Management"
                 Promoted = true;
                 PromotedCategory = Process;
                 ToolTip = 'Change to a different encryption key file.';
-                Visible = not IsSaaS;
+                Visible = NOT IsSaaS;
 
                 trigger OnAction()
                 begin
@@ -109,7 +109,7 @@ page 9905 "Data Encryption Management"
                 Promoted = true;
                 PromotedCategory = Process;
                 ToolTip = 'Export the encryption key to make a copy of the key or so that it can be imported on another server instance.';
-                Visible = not IsSaaS;
+                Visible = NOT IsSaaS;
 
                 trigger OnAction()
                 begin
@@ -127,7 +127,7 @@ page 9905 "Data Encryption Management"
                 Promoted = true;
                 PromotedCategory = Process;
                 ToolTip = 'Decrypt encrypted data.';
-                Visible = not IsSaaS;
+                Visible = NOT IsSaaS;
 
                 trigger OnAction()
                 begin

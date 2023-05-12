@@ -37,7 +37,7 @@ table 8900 "Email Message"
         {
             Access = Internal;
             DataClassification = SystemMetadata;
-            InitValue = true;
+            InitValue = True;
         }
         field(6; "No. of Modifies"; Integer)
         {

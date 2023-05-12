@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 9004 "Azure AD Plan - Admin"
+PermissionSet 9004 "Azure AD Plan - Admin"
 {
     Access = Public;
     Assignable = false;

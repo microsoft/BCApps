@@ -6,8 +6,8 @@
 
 table 135011 "Table With Media"
 {
-    DataClassification = SystemMetadata;
-    ReplicateData = false;
+    Access = Internal;
+	ReplicateData = false;
 
     fields
     {

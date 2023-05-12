@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 8900 "Email - Read"
+PermissionSet 8900 "Email - Read"
 {
     Access = Internal;
     Assignable = false;

@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 219 "System Application - Objects"
+PermissionSet 219 "System Application - Objects"
 {
     Access = Internal;
     Assignable = false;

@@ -24,7 +24,6 @@ codeunit 9057 "Plan Upgrade"
         RenameDevicePlan();
         AddPremiumPartnerSandbox();
         AddMicrosoft365();
-        AddD365Admin();
 
         AddDefaultPlanConfigurations();
     end;
@@ -174,32 +173,6 @@ codeunit 9057 "Plan Upgrade"
         CreatePlan(PlanId, PlanName, RoleCenterId);
 
         UpgradeTag.SetUpgradeTag(PlanUpgradeTag.GetMicrosoft365UpgradeTag());
-    end;
-
-    [NonDebuggable]
-    local procedure AddD365Admin()
-    var
-        Plan: Record "Plan";
-        UpgradeTag: Codeunit "Upgrade Tag";
-        PlanUpgradeTag: Codeunit "Plan Upgrade Tag";
-        PlanIds: Codeunit "Plan Ids";
-        PlanId: Guid;
-        PlanName: Text[50];
-        RoleCenterId: Integer;
-    begin
-        if UpgradeTag.HasUpgradeTag(PlanUpgradeTag.GetMD365AdminUpgradeTag()) then
-            exit;
-
-        PlanId := PlanIds.GetD365AdminPlanId();
-        PlanName := 'Dynamics 365 Administrator';
-        RoleCenterId := 9022;
-
-        if Plan.Get(PlanId) then
-            exit;
-
-        CreatePlan(PlanId, PlanName, RoleCenterId);
-
-        UpgradeTag.SetUpgradeTag(PlanUpgradeTag.GetMD365AdminUpgradeTag());
     end;
 
     local procedure AddDefaultPlanConfigurations()

@@ -110,23 +110,6 @@ codeunit 130002 "Library Assert"
     end;
 
     /// <summary>
-    /// Tests whether the specified DateTime values are nearly equal and throws an exception if the two DateTime values are not nearly equal.
-    /// </summary>
-    /// <param name="Expected">The first DateTime value to compare. This is the DateTime value the tests expects.</param>
-    /// <param name="Actual">The second DateTime value to compare. This is the DateTime value produced by the code under test.</param>
-    /// <param name="Delta">The maximum difference between the two DateTime values.</param>
-    /// <param name="Msg">The message to include in the exception when actual is not equal to expected. The message is shown in test results.</param>
-    procedure AreEqualDateTime(Expected: DateTime; Actual: DateTime; Delta: Duration; Msg: Text)
-    begin
-        if (Expected < Actual) and ((Actual - Expected) < Delta) then
-            exit;
-
-        if (Expected - Actual) < Delta then
-            exit;
-        Error(AreEqualFailedErr, Format(Expected, 0, 1), TypeNameOf(Expected), Format(Actual, 0, 1), TypeNameOf(Actual), Msg)
-    end;
-
-    /// <summary>
     /// Tests whether the specified values are unequal and throws an exception if they are equal.
     /// </summary>
     /// <param name="ExpectedVariant">The first value to compare. This is the value the test expects not to match actual.</param>

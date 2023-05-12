@@ -23,12 +23,12 @@ codeunit 59 "Auto Format Impl."
             EnumType::DefaultFormat:
                 begin
                     Result := '';
-                    Resolved := true;
+                    Resolved := TRUE;
                 end;
             EnumType::CustomFormatExpr:
                 begin
                     Result := AutoFormatExpr;
-                    Resolved := true;
+                    Resolved := TRUE;
                 end;
             else
                 AutoFormat.OnResolveAutoFormat(AutoFormatType, AutoFormatExpr, Result, Resolved);

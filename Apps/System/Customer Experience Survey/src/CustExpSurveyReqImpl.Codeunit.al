@@ -36,7 +36,7 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
     begin
         OnGetRequest(RequestUri, ResponseJsonObject, ErrorMessage, IsGraph, IsHandled);
         if IsHandled then
-            exit;
+            exit(true);
 
         if not Get(RequestUri, ResponseJsonObject, ErrorMessage, IsGraph) then
             Error('');
@@ -49,7 +49,7 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
     begin
         OnPostRequest(RequestUri, ResponseJsonObject, ErrorMessage, IsHandled);
         if IsHandled then
-            exit;
+            exit(true);
 
         if not Post(RequestUri, ResponseJsonObject, ErrorMessage) then
             Error('');

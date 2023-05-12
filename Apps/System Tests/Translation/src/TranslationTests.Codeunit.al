@@ -135,7 +135,7 @@ codeunit 137121 "Translation Tests"
         TranslationTestPage.TextField.AssistEdit();
 
         // [THEN] Page caption is set to Record ID
-        Assert.AreEqual('Translation - ' + Format(TranslationTestTable.RecordId()), TranslationPage.Caption(), 'Custom caption is to be shown');
+        Assert.AreEqual('Edit - Translation - ' + Format(TranslationTestTable.RecordId()), TranslationPage.Caption(), 'Custom caption is to be shown');
 
         // [THEN] Two records show up
         TranslationPage.First();
@@ -243,7 +243,7 @@ codeunit 137121 "Translation Tests"
         Translation.ShowForAllRecords(TranslationTestTableA.RecordId().TableNo(), TranslationTestTableA.FieldNo(TextField));
 
         // [THEN] No custom caption
-        if TranslationPage.Caption() <> 'Translation' then
+        if TranslationPage.Caption() <> 'Edit - Translation' then
             Error('Custom caption is not to be shown');
 
         // [THEN] Verify the content of the page as all the translations for the 3 records

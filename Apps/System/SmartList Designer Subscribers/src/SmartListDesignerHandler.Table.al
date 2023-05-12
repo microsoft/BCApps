@@ -20,7 +20,7 @@ table 2888 "SmartList Designer Handler"
     ObsoleteTag = '19.0';
 #else
     ObsoleteState = Removed;
-    ObsoleteTag = '23.0';
+    ObsoleteTag = '22.0';
 #endif
     ObsoleteReason = 'The SmartList Designer is not supported in Business Central.';
 

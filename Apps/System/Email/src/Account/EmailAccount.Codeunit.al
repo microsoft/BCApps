@@ -39,17 +39,6 @@ codeunit 8894 "Email Account"
     end;
 
     /// <summary>
-    /// Checks if a specific email account is registered in Business Central.
-    /// </summary>
-    /// <param name="EmailAccountId"> The email account ID </param>
-    /// <param name="EmailConnector"> The email connector </param>
-    /// <returns></returns>
-    procedure IsAccountRegistered(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"): Boolean
-    begin
-        exit(EmailAccountImpl.IsAccountRegistered(EmailAccountId, EmailConnector));
-    end;
-
-    /// <summary>
     /// Validates an email address and throws an error if it is invalid.
     /// </summary>
     /// <remarks>If the provided email address is an empty string, the function will do nothing.</remarks>

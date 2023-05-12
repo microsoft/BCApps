@@ -6,7 +6,7 @@
 permissionset 98 "Webhook - Read"
 {
     Access = Internal;
-    Assignable = false;
+    Assignable = False;
 
     Permissions = tabledata "API Webhook Notification" = R,
                   tabledata "API Webhook Notification Aggr" = R,

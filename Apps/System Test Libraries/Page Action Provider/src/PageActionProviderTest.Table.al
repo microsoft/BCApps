@@ -5,8 +5,6 @@
 
 table 132616 "Page Action Provider Test"
 {
-    DataClassification = SystemMetadata;
-
     fields
     {
         field(1; TestInteger; Integer)

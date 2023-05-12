@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 1750 "Data Classification - Read"
+PermissionSet 1750 "Data Classification - Read"
 {
     Access = Internal;
     Assignable = false;

@@ -248,6 +248,7 @@ page 9855 "Permission Set"
     var
         LogTablePermissions: Codeunit "Log Activity Permissions";
         PermissionSetRelationImpl: Codeunit "Permission Set Relation Impl.";
+        [InDataSet]
         IsTenant: Boolean;
         ComposablePermissionSetsTok: Label 'Composable Permission Sets', Locked = true;
         StartRecordingQst: Label 'Do you want to start the recording now?';

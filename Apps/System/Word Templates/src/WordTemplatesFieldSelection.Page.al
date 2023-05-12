@@ -140,7 +140,9 @@ page 9992 "Word Templates Field Selection"
 
     var
         WordTemplateFieldSelection: Codeunit "Word Template Field Selection";
+        [InDataSet]
         Included: Boolean;
+        [InDataSet]
         FieldType: Text;
         CustomFieldTypeTxt: Label 'Calculated';
 }

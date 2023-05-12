@@ -291,9 +291,7 @@ codeunit 134685 "Email Test"
         Assert.IsFalse(EmailEditor.SubjectField.Editable(), 'Subject field was editable');
         Assert.IsFalse(EmailEditor.BodyField.Editable(), 'Body field was editable');
 #if not CLEAN19
-#pragma warning disable AL0432
         Assert.IsFalse(EmailEditor.Upload.Enabled(), 'Upload Action was not disabled.');
-#pragma warning restore AL0432
 #else
         Assert.IsFalse(EmailEditor.Attachments.Upload.Visible(), 'Upload Action is visible.');
 #endif
@@ -314,9 +312,7 @@ codeunit 134685 "Email Test"
         Assert.IsFalse(EmailEditor.SubjectField.Editable(), 'Subject field was editable');
         Assert.IsFalse(EmailEditor.BodyField.Editable(), 'Body field was editable');
 #if not CLEAN19
-#pragma warning disable AL0432
         Assert.IsFalse(EmailEditor.Upload.Enabled(), 'Upload Action was not disabled.');
-#pragma warning restore AL0432
 #else
         Assert.IsFalse(EmailEditor.Attachments.Upload.Visible(), 'Upload Action is visible.');
 #endif
@@ -627,7 +623,6 @@ codeunit 134685 "Email Test"
         ConnectorMock: Codeunit "Connector Mock";
         AccountId: Guid;
         DateTime: DateTime;
-        MaxDurationDifference: Duration;
     begin
         // [Scenario] When enqueuing an existing email, it appears in the outbox
         PermissionsMock.Set('Email Edit');
@@ -651,8 +646,7 @@ codeunit 134685 "Email Test"
         // [Then] Job is enqueued
         Assert.AreEqual(ScheduleTasks.Count, 1, 'Enqueue should only add one entry to scheduled tasks');
         Assert.IsTrue(ScheduleTasks.FindFirst(), 'The job should be in scheduled tasks');
-        MaxDurationDifference := 100; // 100 ms
-        Assert.AreEqualDateTime(ScheduleTasks."Not Before", DateTime, MaxDurationDifference, 'The jobs not before date should be equal to the datetime provided when enqueueing');
+        Assert.AreEqual(Format(ScheduleTasks."Not Before", 0, '<Day,2>-<Month,2>-<Year> <Hours24,2>.<Minutes,2>.<Seconds,2>'), Format(DateTime, 0, '<Day,2>-<Month,2>-<Year> <Hours24,2>.<Minutes,2>.<Seconds,2>'), 'The jobs not before date should be equal to the datetime provided when enqueueing');
 
         // [Then] The enqueued email should be the correct one 
         EmailOutbox.SetRange("Message Id", EmailMessage.GetId());
@@ -1457,9 +1451,7 @@ codeunit 134685 "Email Test"
         Assert.IsTrue(EmailEditor.SubjectField.Editable(), 'Subject field was not editable');
         Assert.IsTrue(EmailEditor.BodyField.Editable(), 'Body field was not editable');
 #if not CLEAN19
-#pragma warning disable AL0432
         Assert.IsTrue(EmailEditor.Upload.Enabled(), 'Upload Action was not enabled.');
-#pragma warning restore AL0432
 #else
         Assert.IsTrue(EmailEditor.Attachments.Upload.Visible(), 'Upload Action is not visible.');
 #endif
@@ -1494,7 +1486,7 @@ codeunit 134685 "Email Test"
     local procedure OnAfterEmailSentSubscriber(SentEmail: Record "Sent Email")
     begin
         VariableStorage.Enqueue(SentEmail."Message Id");
-        VariableStorage.Enqueue(true);
+        VariableStorage.Enqueue(True);
         if ThrowError then
             Error('');
     end;
@@ -1503,7 +1495,7 @@ codeunit 134685 "Email Test"
     local procedure OnAfterEmailSendFailedSubscriber(EmailOutbox: Record "Email Outbox")
     begin
         VariableStorage.Enqueue(EmailOutbox."Message Id");
-        VariableStorage.Enqueue(false);
+        VariableStorage.Enqueue(False);
         if ThrowError then
             Error('');
     end;

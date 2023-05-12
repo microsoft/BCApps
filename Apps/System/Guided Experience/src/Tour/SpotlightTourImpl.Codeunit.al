@@ -6,8 +6,6 @@
 codeunit 3726 "Spotlight Tour Impl."
 {
     Access = Internal;
-    InherentEntitlements = X;
-    InherentPermissions = X;
 
     procedure Start(PageId: Integer; SpotlightTourType: Enum "Spotlight Tour Type"; Title1: Text; Text1: Text; Title2: Text; Text2: Text)
     var
@@ -25,7 +23,7 @@ codeunit 3726 "Spotlight Tour Impl."
             Tour.StartSpotlightTour(PageId, SpotlightTour, TourDictionary, '0');
         end;
     end;
-
+    
     local procedure GetSpolightTour(var SpotlightTour: DotNet SpotlightTour; SpotlightTourType: Enum "Spotlight Tour Type")
     begin
         case SpotlightTourType of

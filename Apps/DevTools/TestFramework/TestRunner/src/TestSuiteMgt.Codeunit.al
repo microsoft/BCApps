@@ -545,7 +545,7 @@ codeunit 130456 "Test Suite Mgt."
 
         TestMethodLine.SETRANGE("Line Type", TestMethodLine."Line Type"::"Function");
         TestMethodLine.SETRANGE("Test Codeunit", BackupTestMethodLine."Test Codeunit");
-        TestMethodLine.MODIFYALL(Run, BackupTestMethodLine.Run, true);
+        TestMethodLine.MODIFYALL(Run, BackupTestMethodLine.Run, TRUE);
 
         TestMethodLine.Copy(BackupTestMethodLine);
     end;

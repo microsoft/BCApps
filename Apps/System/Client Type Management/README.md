@@ -4,7 +4,7 @@ Use this module to do the following:
 
 - Get the client type of the user.
 
-To see how to mock the client type in tests, see `SetClientType` in [codeunit "Test Client Type Subscriber"](https://github.com/microsoft/BCApps/blob/main/Apps/System%20Test%20Libraries/Client%20Type%20Management/src/TestClientTypeSubscriber.Codeunit.al).
+To see how to mock the client type in tests, see `SetClientType` in [codeunit "Test Client Type Subscriber"](https://github.com/microsoft/ALAppExtensions/blob/master/Modules/System%20Test%20Libraries/Client%20Type%20Management/src/TestClientTypeSubscriber.Codeunit.al).
 
 
 # Public Objects

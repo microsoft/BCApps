@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 1993 "Guided Experience - Edit"
+PermissionSet 1993 "Guided Experience - Edit"
 {
     Access = Internal;
     Assignable = false;

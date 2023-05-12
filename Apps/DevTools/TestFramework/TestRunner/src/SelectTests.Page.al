@@ -8,8 +8,8 @@ page 130453 "Select Tests"
     Editable = false;
     PageType = List;
     SourceTable = AllObjWithCaption;
-    SourceTableView = where("Object Type" = const(Codeunit),
-                            "Object Subtype" = const('Test'));
+    SourceTableView = WHERE("Object Type" = CONST(Codeunit),
+                            "Object Subtype" = CONST('Test'));
 
     layout
     {

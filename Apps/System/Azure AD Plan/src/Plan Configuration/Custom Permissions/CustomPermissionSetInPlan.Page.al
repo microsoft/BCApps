@@ -71,7 +71,7 @@ page 9058 "Custom Permission Set In Plan"
                         end;
 
                         // Get the Scope and App ID for a matching Role ID
-                        AggregatePermissionSet.SetRange("Role ID", Rec."Role ID");
+                        AggregatePermissionSet.SetRange("Role ID", "Role ID");
                         AggregatePermissionSet.FindFirst();
 
                         if AggregatePermissionSet.Count > 1 then
@@ -162,5 +162,6 @@ page 9058 "Custom Permission Set In Plan"
         LocalPlanId: Guid;
         SkipValidation: Boolean;
         PermissionScope: Text;
+        [InDataSet]
         PermissionSetNotFound: Boolean;
 }

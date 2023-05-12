@@ -1,4 +1,3 @@
-#pragma warning disable AS0099
 enumextension 132584 AutoFormatTest extends "Auto Format"
 {
     value(100; Whatever)
@@ -10,4 +9,3 @@ enumextension 132584 AutoFormatTest extends "Auto Format"
         Caption = '1 decimal';
     }
 }
-#pragma warning restore AS0099

@@ -26,6 +26,7 @@ codeunit 2503 "Extension Operation Impl"
         DownloadExtensionSourceIsNotAllowedErr: Label 'The effective policies for this package do not allow you to download the source code. Contact the extension provider for more information.';
         DialogTitleTxt: Label 'Export';
         OutExtTxt: Label 'Text Files (*.txt)|*.txt|*.*';
+        NotSufficientPermissionErr: Label 'You do not have sufficient permissions to manage extensions. Please contact your administrator.';
         InstallationFailedOpenDetailsQst: Label 'Sorry, we couldn''t install the app. Do you want to see the details?';
         InstallationFailedOpenDetailsTxt: Label 'App installation failed. User has chosen to see the details.';
         InstallationFailedDoNotOpenDetailsTxt: Label 'App installation failed. User has chosen not to check out the details.';
@@ -247,9 +248,10 @@ codeunit 2503 "Extension Operation Impl"
 
     local procedure CheckPermissions()
     var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
+        ApplicationObjectMetadata: Record "Application Object Metadata";
     begin
-        ExtensionInstallationImpl.CheckPermissions();
+        if not ApplicationObjectMetadata.ReadPermission() then
+            Error(NotSufficientPermissionErr);
     end;
 
 #if not CLEAN17

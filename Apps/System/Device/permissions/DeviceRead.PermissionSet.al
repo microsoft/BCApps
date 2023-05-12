@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 776 "Device - Read"
+PermissionSet 776 "Device - Read"
 {
     Access = Internal;
     Assignable = false;

@@ -73,26 +73,6 @@ codeunit 134686 "Email Accounts Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    procedure IsAccountRegisteredTest()
-    var
-        EmailAccountRecord: Record "Email Account";
-        ConnectorMock: Codeunit "Connector Mock";
-        EmailAccount: Codeunit "Email Account";
-    begin
-        // [Scenario] When there's a email account for a connector, it should return true for IsAccountRegistered
-
-        // [Given] An email account
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccountRecord);
-
-        PermissionsMock.Set('Email Edit');
-
-        // [Then] The email account is registered
-        Assert.IsTrue(EmailAccount.IsAccountRegistered(EmailAccountRecord."Account Id", EmailAccountRecord.Connector), 'The email account should be registered');
-    end;
-
-    [Test]
     [Scope('OnPrem')]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure AddNewAccountTest()
@@ -125,7 +105,7 @@ codeunit 134686 "Email Accounts Test"
         // [THEN] The Connector registers the Account and the last page is shown
         Assert.AreEqual(AccountWizardPage.EmailAddressfield.Value(), 'Test email address', 'A different Email address was expected');
         Assert.AreEqual(AccountWizardPage.NameField.Value(), 'Test account', 'A different name was expected');
-        Assert.AreEqual(AccountWizardPage.DefaultField.AsBoolean(), true, 'Default should be set to true if it''s the first account to be set up');
+        Assert.AreEqual(AccountWizardPage.DefaultField.AsBoolean(), True, 'Default should be set to true if it''s the first account to be set up');
     end;
 
     [Test]
