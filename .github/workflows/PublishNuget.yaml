@@ -6,7 +6,10 @@ on:
     types: [completed]
     branches: ['main']
 
-permissions: read-all
+permissions:
+  actions: read
+  contents: write
+  packages: write
 
 defaults:
   run:

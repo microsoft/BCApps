@@ -18,11 +18,6 @@ $packageVersion = ($appsFolders -replace ".*-Apps-","" | Select-Object -First 1)
 $RepoOwner = (Get-Culture).TextInfo.ToTitleCase($RepoOwner)
 $packageId = "$RepoOwner-Dynamics-BusinessCentral-$RepoName"
 
-# set first character to upper
-if ($RepoOwner -eq "Microsoft") {
-    $RepoOwner = "DynamicsBusinessCentral"
-}
-
 Write-Host "App folder(s): $($appsFolders -join ', ')" -ForegroundColor Magenta
 Write-Host "Package folder: $OutputPackageFolder" -ForegroundColor Magenta
 Write-Host "Package ID: $packageId" -ForegroundColor Magenta
