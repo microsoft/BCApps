@@ -19,7 +19,9 @@ $RepoOwner = (Get-Culture).TextInfo.ToTitleCase($RepoOwner)
 $packageId = "$RepoOwner-Dynamics-BusinessCentral-$RepoName"
 
 # set first character to upper
-$RepoOwner = $RepoOwner.Substring(0,1).ToUpper() + $RepoOwner.Substring(1)
+if ($RepoOwner -eq "Microsoft") {
+    $RepoOwner = "DynamicsBusinessCentral"
+}
 
 Write-Host "App folder(s): $($appsFolders -join ', ')" -ForegroundColor Magenta
 Write-Host "Package folder: $OutputPackageFolder" -ForegroundColor Magenta
