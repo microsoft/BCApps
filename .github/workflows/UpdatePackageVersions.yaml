@@ -15,7 +15,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        branch: ['main']
+        branch: ['main', 'releases/22.x']
     steps:
       - name: Checkout
         uses: actions/checkout@v3
