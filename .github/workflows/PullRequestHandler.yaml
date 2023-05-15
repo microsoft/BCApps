@@ -4,7 +4,7 @@ on:
   pull_request_target:
     paths-ignore:
       - '**.md'
-    branches: [ 'main' ]
+    branches: [ 'main', 'releases/*' ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
