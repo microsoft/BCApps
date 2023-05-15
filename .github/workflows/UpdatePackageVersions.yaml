@@ -21,7 +21,8 @@ jobs:
       - name: Get Branches
         id: GetBranches
         run: |
-          $branches = git for-each-ref --format="%(refname:short)" git for-each-ref --format="'%(refname:short)'" refs/heads/releases/
+          git fetch 
+          $branches = git for-each-ref --format="'%(refname:short)'" refs/heads/releases/
           $branches += "'main'"
 
           $branchMatrix = "[$($branches -join ',')]"
