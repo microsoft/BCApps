@@ -10,12 +10,30 @@ defaults:
     shell: powershell
 
 jobs:
-  UpdatePackageVersions:
-    if: github.repository_owner == 'microsoft'
+  GetBranches:
     runs-on: windows-latest
+    outputs:
+      UpdateBranches: ${{ steps.GetBranches.outputs.UpdateBranches }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Get Branches
+        id: GetBranches
+        run: |
+          $branches = git for-each-ref --format="%(refname:short)" git for-each-ref --format="'%(refname:short)'" refs/heads/releases/
+          $branches += "'main'"
+
+          $branchMatrix = "[$($branches -join ',')]"
+          Write-Host "Updating branches: $branchMatrix"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "UpdateBranches=$branchMatrix"
+
+  UpdatePackageVersions:
+    runs-on: windows-latest
+    needs: GetBranches
     strategy:
       matrix:
-        branch: ['main', 'releases/22.x']
+        branch: ${{ fromJson(needs.GetBranches.outputs.UpdateBranches) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
