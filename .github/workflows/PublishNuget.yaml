@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: [' CI/CD']
     types: [completed]
-    branches: ['main', 'releases/*']
+    branches: ['main', 'release/*']
 
 permissions:
   actions: read
