@@ -42,5 +42,6 @@
     "main",
     "releases/*"
   ],
-  "rulesetFile": "..\\..\\Build\\Rulesets\\module.ruleset.json"
+  "rulesetFile": "..\\..\\Build\\Rulesets\\module.ruleset.json",
+  "skipUpgrade": true
 }
