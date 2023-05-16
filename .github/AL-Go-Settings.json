@@ -36,11 +36,11 @@
   "enableCodeCop": true,
   "CICDPushBranches": [
     "main",
-    "releases/*"
+    "release/*"
   ],
   "CICDPullRequestBranches": [
     "main",
-    "releases/*"
+    "release/*"
   ],
   "rulesetFile": "..\\..\\Build\\Rulesets\\module.ruleset.json"
 }

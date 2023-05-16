@@ -41,7 +41,7 @@ if ($updatesAvailable) {
     # Create branch and push changes
     Set-GitConfig -Actor $Actor
     $BranchName = New-TopicBranch -Category "UpdatePackageVersions"
-    $title = "Update package versions"
+    $title = "[$TargetBranch] Update package versions"
     Push-GitBranch -BranchName $BranchName -Files @("Build/Packages.json") -CommitMessage $title
 
     # Create PR
