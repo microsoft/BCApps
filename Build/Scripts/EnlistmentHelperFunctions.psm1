@@ -137,7 +137,7 @@ function Get-PackageLatestVersion() {
 .Synopsis
     Installs a package from a NuGet.org feed
 .Parameter PackageName
-    The name of the package to look for in the Packages config
+    The name of the package to install
 .Parameter OutputPath
     The path to install the package to
 .Parameter PackageVersion
