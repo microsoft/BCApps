@@ -123,12 +123,6 @@ function Get-PackageLatestVersion() {
         [string] $PackageName
     )
 
-    if($PackageName -eq "AppBaselines-BCArtifacts") {
-        # Temp solution until we have enough baseline packages
-        # Handle special case for AppBaselines-BCArtifacts, as there is no package, the BC artifacts are used instead
-        return Get-LatestBaselineVersionFromArtifacts
-    }
-
     $majorMinorVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
     $maxVerion = "$majorMinorVersion.99999999.99" # maximum version for the given major/minor
 
@@ -137,32 +131,6 @@ function Get-PackageLatestVersion() {
     $latestVersion = (Find-Package $PackageName -Source $packageSource -MaximumVersion $maxVerion -AllVersions | Sort-Object -Property Version -Descending | Select-Object -First 1).Version
 
     return $latestVersion
-}
-
-<#
-.Synopsis
-    Gets the latest baseline version to use for the breaking change check
-#>
-function Get-LatestBaselineVersionFromArtifacts {
-
-    Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
-
-    [System.Version] $repoVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
-
-    if ($repoVersion.Minor -gt 0) {
-        $baselineMajorMinor = "$($repoVersion.Major).$($repoVersion.Minor - 1)"
-    } else {
-        $baselineMajorMinor = "$($repoVersion.Major - 1)"
-    }
-    $artifactUrl = Get-BCArtifactUrl -type Sandbox -country 'W1' -version $baselineMajorMinor -select 'Latest'
-
-    if ($artifactUrl -and ($artifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
-        $updatedBaseline = $Matches[0]
-    } else {
-        throw "Could not find baseline version from artifact url: $artifactUrl"
-    }
-
-    return $updatedBaseline
 }
 
 <#
