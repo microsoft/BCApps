@@ -38,12 +38,12 @@ function Enable-BreakingChangesCheck {
     if ($BuildMode -eq 'Clean') {
         $appMajorMinor = "$($applicationVersion.Major).$($applicationVersion.Minor)"
         if ($baselineVersion -match $appMajorMinor) {
-            $baselinePackageRestored = Restore-BaselinesFromNuget -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName
+            $baselinePackageRestored = Restore-BaselinesFromNuget -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName -PackageVersion $baselineVersion
         } else {
             Write-Host "Skipping breaking changes check because of version change. Baseline version is $baselineVersion and app version is $appMajorMinor"
         }
     } else {
-        $baselinePackageRestored = Restore-BaselinesFromArtifacts -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName -BaselineVersion $baselineVersion
+        $baselinePackageRestored = Restore-BaselinesFromNuget -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName -PackageVersion $baselineVersion
     }
 
     if ($baselinePackageRestored) {
@@ -113,20 +113,24 @@ function Restore-BaselinesFromArtifacts {
     Name of the application for which to restore a baseline
 .Parameter AppSymbolsFolder
     Local AppSymbols folder
+.Parameter PackageVersion
+    Version of the package to restore
 #>
 function Restore-BaselinesFromNuget {
     Param(
         [Parameter(Mandatory = $true)] 
         [string] $AppName,
         [Parameter(Mandatory = $true)] 
-        [string] $AppSymbolsFolder
+        [string] $AppSymbolsFolder,
+        [Parameter(Mandatory = $false)] 
+        [string] $PackageVersion
     )
     Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
     $baselineFolder = Join-Path (Get-BaseFolder) "out/baselines/"
     $baselineRestored = $false
 
-    $baselineFolder = Install-PackageFromConfig -PackageName 'microsoft-ALAppExtensions-Modules-preview' -OutputPath $baselineFolder
+    $baselineFolder = Install-PackageFromConfig -PackageName 'Microsoft-Dynamics-BusinessCentral-BCApps' -OutputPath $baselineFolder -PackageVersion $PackageVersion
  
     $baselineApp = Get-ChildItem -Path "$baselineFolder/Apps/$AppName/Default/*.app" -ErrorAction SilentlyContinue
 
