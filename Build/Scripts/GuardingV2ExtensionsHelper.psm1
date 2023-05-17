@@ -241,12 +241,12 @@ function Get-BaselineVersion {
     Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
     if ($BuildMode -eq "Clean") {
-        $baselinePackage = Get-ConfigValue -Key "microsoft-ALAppExtensions-Modules-preview" -ConfigType Packages
+        $baselinePackage = Get-PackageLatestVersion -PackageName "Microsoft-Dynamics-BusinessCentral-BCApps"
     } else {
-        $baselinePackage = Get-ConfigValue -Key "AppBaselines-BCArtifacts" -ConfigType Packages
+        $baselinePackage = (Get-ConfigValue -Key "Microsoft-Dynamics-BusinessCentral-BCApps" -ConfigType Packages).Version
     }
 
-    return $baselinePackage.Version
+    return $baselinePackage
 }
 
 Export-ModuleMember -Function *-*
