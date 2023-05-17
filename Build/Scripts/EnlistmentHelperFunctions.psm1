@@ -123,12 +123,6 @@ function Get-PackageLatestVersion() {
         [string] $PackageName
     )
 
-    if($PackageName -eq "AppBaselines-BCArtifacts") {
-        # Temp solution until we have enough baseline packages
-        # Handle special case for AppBaselines-BCArtifacts, as there is no package, the BC artifacts are used instead
-        return Get-LatestBaselineVersionFromArtifacts
-    }
-
     $majorMinorVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
     $maxVerion = "$majorMinorVersion.99999999.99" # maximum version for the given major/minor
 
@@ -141,37 +135,13 @@ function Get-PackageLatestVersion() {
 
 <#
 .Synopsis
-    Gets the latest baseline version to use for the breaking change check
-#>
-function Get-LatestBaselineVersionFromArtifacts {
-
-    Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
-
-    [System.Version] $repoVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
-
-    if ($repoVersion.Minor -gt 0) {
-        $baselineMajorMinor = "$($repoVersion.Major).$($repoVersion.Minor - 1)"
-    } else {
-        $baselineMajorMinor = "$($repoVersion.Major - 1)"
-    }
-    $artifactUrl = Get-BCArtifactUrl -type Sandbox -country 'W1' -version $baselineMajorMinor -select 'Latest'
-
-    if ($artifactUrl -and ($artifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
-        $updatedBaseline = $Matches[0]
-    } else {
-        throw "Could not find baseline version from artifact url: $artifactUrl"
-    }
-
-    return $updatedBaseline
-}
-
-<#
-.Synopsis
     Installs a package from a NuGet.org feed
 .Parameter PackageName
-    The name of the package to look for in the Packages config
+    The name of the package to install
 .Parameter OutputPath
     The path to install the package to
+.Parameter PackageVersion
+    The version of the package to install. If not specified, the version will be read from the Packages config
 .Returns
     The path to the installed package
 #>
@@ -181,31 +151,36 @@ function Install-PackageFromConfig
     [string] $PackageName,
     [Parameter(Mandatory=$true)]
     [string] $OutputPath,
+    [string] $PackageVersion,
     [switch] $Force
 ) {
-    $packageConfig = Get-ConfigValue -Key $PackageName -ConfigType Packages
-    
-    if(!$packageConfig) {
-        throw "Package $PackageName not found in Packages config"
+    if (!$PackageVersion) {
+        $packageConfig = Get-ConfigValue -Key $PackageName -ConfigType Packages
+        
+        if(!$packageConfig) {
+            throw "Package $PackageName not found in Packages config"
+        }
+
+        $PackageVersion = $packageConfig.Version
+
     }
 
-    $packageVersion = $packageConfig.Version
     $packageSource = "https://api.nuget.org/v3/index.json" # default source
 
-    $packagePath = Join-Path $OutputPath "$PackageName.$packageVersion"
+    $packagePath = Join-Path $OutputPath "$PackageName.$PackageVersion"
 
     if((Test-Path $packagePath) -and !$Force) {
-        Write-Host "Package $PackageName is already installed; version: $packageVersion"
+        Write-Host "Package $PackageName is already installed; version: $PackageVersion"
         return $packagePath
     }
 
-    $package = Find-Package $PackageName -Source $packageSource -RequiredVersion $packageVersion
+    $package = Find-Package $PackageName -Source $packageSource -RequiredVersion $PackageVersion
     if(!$package) {
-        throw "Package $PackageName not found; source $packageSource. Version: $packageVersion"
+        throw "Package $PackageName not found; source $packageSource. Version: $PackageVersion"
     }
 
-    Write-Host "Installing package $PackageName; source $packageSource; version: $packageVersion; destination: $OutputPath"
-    Install-Package $PackageName -Source $packageSource -RequiredVersion $packageVersion -Destination $OutputPath -Force | Out-Null
+    Write-Host "Installing package $PackageName; source $packageSource; version: $PackageVersion; destination: $OutputPath"
+    Install-Package $PackageName -Source $packageSource -RequiredVersion $PackageVersion -Destination $OutputPath -Force | Out-Null
 
     return $packagePath
 }
