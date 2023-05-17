@@ -241,8 +241,10 @@ function Get-BaselineVersion {
     Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
     if ($BuildMode -eq "Clean") {
+        # Get the latest version of the package with the same major.minor version as the current build
         $baselinePackage = Get-PackageLatestVersion -PackageName "Microsoft-Dynamics-BusinessCentral-BCApps"
     } else {
+        # Get the baseline version from the build config
         $baselinePackage = (Get-ConfigValue -Key "Microsoft-Dynamics-BusinessCentral-BCApps" -ConfigType Packages).Version
     }
 
