@@ -30,8 +30,7 @@
     "PublishToEnvironment.yaml"
   ],
   "buildModes": [
-    "Default",
-    "Clean"
+    "Default"
   ],
   "enableCodeCop": true,
   "CICDPushBranches": [
