@@ -36,6 +36,7 @@ page 2610 "Feature Management"
                     ToolTip = 'The name of the new capability or change in design.';
                     ApplicationArea = All;
                     Editable = false;
+                    Width = 60;
                 }
                 field(LearnMore; LearnMoreLbl)
                 {
