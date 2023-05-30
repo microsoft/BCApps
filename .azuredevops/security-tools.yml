@@ -8,6 +8,7 @@ schedules:
   branches:
     include:
     - main
+    - releases/*
 
 pool:
   vmImage: 'windows-latest'

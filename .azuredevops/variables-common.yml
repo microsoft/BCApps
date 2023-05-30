@@ -1,5 +1,5 @@
 variables:
-- group: Infrastructure - BCApps
+- group: Infrastructure - AlAppExtensions
 - name: OutputPath
   value: $(Pipeline.Workspace)\out
 - name: SourcePath  
