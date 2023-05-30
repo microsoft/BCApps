@@ -10,7 +10,7 @@ codeunit 1817 "Advanced Settings Impl."
     InherentPermissions = X;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Navigation Bar Subscribers", OnBeforeDefaultOpenGeneralSetupExperience, '', false, false)]
-    local procedure OpenGeneralSetupExperience(var Handled: Boolean)
+    local procedure OpenGeneralSetupExperience(var Handled: Boolean)  
     var
         AdvancedSettings: Codeunit "Advanced Settings";
         GeneralSetupID: Integer;
