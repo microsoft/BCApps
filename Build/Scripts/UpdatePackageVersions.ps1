@@ -22,7 +22,13 @@ foreach($packageName in $packageNames)
 {
     $currentPackage = Get-ConfigValue -Key $packageName -ConfigType Packages
     $currentVersion = $currentPackage.Version
-    $latestVersion = Get-PackageLatestVersion -PackageName $packageName
+
+    if ($currentPackage.UsePreviousMajorMinor) {
+        $majorMinorVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
+        $latestVersion = Get-PackageLatestVersion -PackageName $packageName -MaxVersion $majorMinorVersion
+    } else {
+        $latestVersion = Get-PackageLatestVersion -PackageName $packageName
+    }
 
     if ([System.Version] $latestVersion -gt [System.Version] $currentVersion) {
         Write-Host "Updating $packageName version from $currentVersion to $latestVersion"

@@ -116,19 +116,24 @@ function Set-ConfigValue() {
     For example, if the repo version is 1.2, the function will look for the latest version of the package that has major.minor = 1.2.
 .Parameter PackageName
     The name of the package
+.Parameter MaxVersion
+    The maximum version to look for. If not specified, the function will use the `repoVersion` setting.
 #>
 function Get-PackageLatestVersion() {
     param(
         [Parameter(Mandatory=$true)]
-        [string] $PackageName
+        [string] $PackageName,
+        [string] $MaxVersion
     )
 
-    $majorMinorVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
-    $maxVerion = "$majorMinorVersion.99999999.99" # maximum version for the given major/minor
+    if (!$MaxVersion) {
+        $majorMinorVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
+        $MaxVersion = "$majorMinorVersion.99999999.99" # maximum version for the given major/minor
+    }
 
     $packageSource = "https://api.nuget.org/v3/index.json" # default source
 
-    $latestVersion = (Find-Package $PackageName -Source $packageSource -MaximumVersion $maxVerion -AllVersions | Sort-Object -Property Version -Descending | Select-Object -First 1).Version
+    $latestVersion = (Find-Package $PackageName -Source $packageSource -MaximumVersion $MaxVersion -AllVersions | Sort-Object -Property Version -Descending | Select-Object -First 1).Version
 
     return $latestVersion
 }
