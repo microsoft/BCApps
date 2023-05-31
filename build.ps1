@@ -18,7 +18,7 @@ param
     [Parameter(Mandatory=$true)]
     [string] $ALGoProject,
     [string] $InsiderSasToken = "",
-    [switch] $AutoFill
+    [switch] $AutoFill 
 )
 
 if ($AutoFill) {
