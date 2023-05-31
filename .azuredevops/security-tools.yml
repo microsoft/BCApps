@@ -2,6 +2,7 @@
 name: 1.0.$(Year:yy)$(DayOfYear).$(Rev:r) # This is the build number
 
 trigger: none
+pr: none
 schedules:
 - cron: "0 0 * * 1"
   displayName: Monday at midnight
