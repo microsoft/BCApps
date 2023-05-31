@@ -4,6 +4,6 @@
                                                         },
     "Microsoft-Dynamics-BusinessCentral-BCApps":  {
                                                       "Version":  "22.2.45",
-                                                      "UsePreviousMajorMinor":  true
+                                                      "MaxVersion": "23"
                                                   }
 }

@@ -23,9 +23,9 @@ foreach($packageName in $packageNames)
     $currentPackage = Get-ConfigValue -Key $packageName -ConfigType Packages
     $currentVersion = $currentPackage.Version
 
-    if ($currentPackage.UsePreviousMajorMinor) {
+    if ($currentPackage.MaxVersion) {
         $majorMinorVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
-        $latestVersion = Get-PackageLatestVersion -PackageName $packageName -MaxVersion $majorMinorVersion
+        $latestVersion = Get-PackageLatestVersion -PackageName $packageName -MaxVersion $currentPackage.MaxVersion
     } else {
         $latestVersion = Get-PackageLatestVersion -PackageName $packageName
     }
