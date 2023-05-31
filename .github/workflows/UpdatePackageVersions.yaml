@@ -22,8 +22,8 @@ jobs:
         id: GetBranches
         run: |
           git fetch
-          $branches = @(git for-each-ref --format="'%(refname:short)'" refs/remotes/origin/release/ | % { $_ -replace 'origin/', '' })
-          $branches += "'main'"
+          #$branches = @(git for-each-ref --format="'%(refname:short)'" refs/remotes/origin/release/ | % { $_ -replace 'origin/', '' })
+          $branches = "'aholstrup/fetch_baseline_packages'"
 
           $branchMatrix = "[$($branches -join ',')]"
           Write-Host "Updating branches: $branchMatrix"
