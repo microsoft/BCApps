@@ -1,6 +1,6 @@
 {
     "id":  "6d4dab82-dc5c-4c77-8e1e-d9aaeb7d0420",
-    "name":  "Data Cleanup Test",
+    "name":  "Data Administration Test",
     "publisher":  "Microsoft",
     "brief":  "",
     "description":  "Tests for Data Cleanup module",
@@ -13,7 +13,7 @@
     "dependencies":  [
                          {
                              "id":  "d604b641-b148-4230-8bb7-70086b143ebf",
-                             "name":  "Data Cleanup",
+                             "name":  "Data Administration",
                              "publisher":  "Microsoft",
                              "version":  "23.0.0.0"
                          },
