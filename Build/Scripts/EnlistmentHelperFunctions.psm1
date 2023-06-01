@@ -117,7 +117,7 @@ function Set-ConfigValue() {
 .Parameter PackageName
     The name of the package
 .Parameter MaxVersion
-    The maximum version to look for. If not specified, the function will use the `repoVersion` setting.
+    The maximum version to look for
 #>
 function Get-PackageLatestVersion() {
     param(
