@@ -1,6 +1,6 @@
 {
     "id":  "d604b641-b148-4230-8bb7-70086b143ebf",
-    "name":  "Data administration",
+    "name":  "Data Administration",
     "publisher":  "Microsoft",
     "brief":  "Provides an interface for managing and cleaning up data data in the database.",
     "description":  "Provides the ability to manage data in the database.",
