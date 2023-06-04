@@ -22,7 +22,12 @@ foreach($packageName in $packageNames)
 {
     $currentPackage = Get-ConfigValue -Key $packageName -ConfigType Packages
     $currentVersion = $currentPackage.Version
-    $latestVersion = Get-PackageLatestVersion -PackageName $packageName
+
+    if ($currentPackage.PSobject.Properties.name -eq "MaxVersion") {
+        $latestVersion = Get-PackageLatestVersion -PackageName $packageName -MaxVersion $currentPackage.MaxVersion
+    } else {
+        $latestVersion = Get-PackageLatestVersion -PackageName $packageName
+    }
 
     if ([System.Version] $latestVersion -gt [System.Version] $currentVersion) {
         Write-Host "Updating $packageName version from $currentVersion to $latestVersion"
