@@ -11,7 +11,8 @@ codeunit 54 "Language Impl."
     InherentPermissions = X;
     Permissions = tabledata Language = rimd,
                   tabledata "User Personalization" = rm,
-                  tabledata "Windows Language" = r;
+                  tabledata "Windows Language" = r,
+                  tabledata "Language Selection" = r;
 
     var
         LanguageNotFoundErr: Label 'The language %1 could not be found.', Comment = '%1 = Language ID';
@@ -37,6 +38,25 @@ codeunit 54 "Language Impl."
             LanguageId := GlobalLanguage();
 
         exit(LanguageId);
+    end;
+
+    procedure GetFormatRegionOrDefault(FormatRegion: Text[80]): Text[80]
+    var
+        LanguageSelection: Record "Language Selection";
+        UserSessionSettings: SessionSettings;
+        LocalId: Integer;
+    begin
+        if FormatRegion <> '' then
+            exit(FormatRegion);
+         
+        // Lookup based on locale in user session
+        UserSessionSettings.Init();
+        LocalId := UserSessionSettings.LocaleId();
+        LanguageSelection.SetRange("Language ID", LocalId);
+        if LanguageSelection.FindFirst() then
+            exit(LanguageSelection."Language Tag");
+        
+        exit('en-US');
     end;
 
     procedure GetLanguageId(LanguageCode: Code[10]): Integer
