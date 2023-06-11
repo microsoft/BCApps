@@ -562,6 +562,15 @@ codeunit 8901 "Email"
     begin
     end;
 
+    /// <summary>
+    /// Integration event that allows adding filters to the Email Scenario Attachments before they are retrieved.
+    /// </summary>
+    /// <param name="EmailScenarioAttachments">The record to add filters to.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeGetEmailAttachmentsByEmailScenarios(EmailScenarioAttachments: Record "Email Scenario Attachments")
+    begin
+    end;
+
     #endregion
 
     var

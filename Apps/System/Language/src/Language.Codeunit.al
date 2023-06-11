@@ -39,6 +39,20 @@ codeunit 43 Language
         exit(LanguageImpl.GetLanguageIdOrDefault(LanguageCode));
     end;
 
+
+    /// <summary>
+    /// Returns format region for a given language. If format region is provided it itself will be returned. If format region is empty the region is taken from UserSessionSettings. 
+    /// If no valid tag is found, the default 'en-US' tag is returned.
+    /// </summary>
+    /// <param name="FormatRegion">The variable for the format region id.</param>
+    /// <returns>The ID for the format region that was found.</returns>
+    procedure GetFormatRegionOrDefault(FormatRegion: Text[80]): Text[80]
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        exit(LanguageImpl.GetFormatRegionOrDefault(FormatRegion));
+    end;
+
     /// <summary>
     /// Gets the language ID based on its code.
     /// </summary>
