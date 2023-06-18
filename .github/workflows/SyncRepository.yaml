@@ -19,7 +19,7 @@ jobs:
         with:
           ref: ${{ env.GITHUB_REF }}
           repository: ${{ secrets.MIRRORREPONAME }}
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.SYNCREPOSITORYTOKEN }}
           fetch-depth: 0
 
       - name: Push latest changes to mirror
