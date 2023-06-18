@@ -1,0 +1,39 @@
+name: 'Sync Repository'
+
+on:
+  push:
+    branches: [ 'main', 'release/*' ]
+
+defaults:
+  run:
+    shell: pwsh
+
+
+jobs:
+  SyncRepository:
+    if: github.repository == 'microsoft/BCApps'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ env.GITHUB_REF }}
+          repository: ${{ secrets.MIRRORREPONAME }}
+          token: ${{ secrets.PAT }}
+          fetch-depth: 0
+
+      - name: Push latest changes to mirror
+        id: Sync
+        run : |
+          Write-Host "Syncing commit $ENV:GITHUB_SHA by $ENV:GITHUB_ACTOR to $ENV:GITHUB_REF"
+          $Branch = $ENV:GITHUB_REF -replace "refs/heads/"
+          $UpstreamRepo = "https://github.com/$ENV:GITHUB_REPOSITORY"
+
+          Write-Host "Adding upstream"
+          git remote add upstream $UpstreamRepo
+
+          git fetch --all --prune
+          git pull upstream $Branch
+
+          Write-Host "Pushing $Branch to origin"
+          git push origin $Branch
