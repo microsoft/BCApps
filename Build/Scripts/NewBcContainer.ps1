@@ -3,7 +3,7 @@ Param(
 )
 
 Write-Host "Getting all env vars:"
-Get-ChildItem env:
+Get-Content "$env:GITHUB_ENV" 
 
 $parameters.multitenant = $false
 $parameters.RunSandboxAsOnPrem = $true
