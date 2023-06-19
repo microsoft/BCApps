@@ -3,7 +3,7 @@ Param(
 )
 
 Write-Host "?!?:"
-$st = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String([string]"$ENV:insiderSasToken")
+$st = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String([string]"$ENV:insiderSasToken"))
 $st.ToCharArray() -join ' '
 
 $parameters.multitenant = $false
