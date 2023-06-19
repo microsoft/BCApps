@@ -2,6 +2,8 @@ Param(
     [Hashtable]$parameters
 )
 
+Get-ChildItem env:
+
 $parameters.multitenant = $false
 $parameters.RunSandboxAsOnPrem = $true
 if ("$env:GITHUB_RUN_ID" -eq "") {
