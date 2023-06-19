@@ -1,18 +1,20 @@
-name: 'Create Build Tag'
+name: 'Create tag and sync to mirror'
 
 on:
-  workflow_run:
-    workflows: [' CI/CD']
-    types: ['completed']
-    branches: ['main', 'release/*']
+  push:
+    branches: [ 'main', 'release/*' ]
 
-run-name: Create build tag on branch ${{ github.ref_name }}.
+defaults:
+  run:
+    shell: pwsh
+
 
 jobs:
-  TagSuccessfulBuild:
-    if: github.event.workflow_run.conclusion == 'success' && github.repository_owner == 'microsoft'
-    runs-on: windows-latest
+  TagAndSyncRepository:
+    if: github.repository == 'microsoft/BCApps'
+    runs-on: ubuntu-latest
     steps:
+      # TODO: What should the tag be? 
       - name: Create version tag
         uses: actions/github-script@v6
         with:
@@ -52,3 +54,28 @@ jobs:
               ref: tag,
               sha: context.sha
             });
+
+      - name: Checkout mirror
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ env.GITHUB_REF }}
+          repository: ${{ secrets.MIRRORREPONAME }}
+          token: ${{ secrets.SYNCREPOSITORYTOKEN }}
+          fetch-depth: 0
+
+      - name: Push latest changes to mirror
+        id: Sync
+        run : |
+          Write-Host "Syncing commit $ENV:GITHUB_SHA by $ENV:GITHUB_ACTOR to $ENV:GITHUB_REF"
+          $Branch = $ENV:GITHUB_REF -replace "refs/heads/"
+          $UpstreamRepo = "https://github.com/$ENV:GITHUB_REPOSITORY"
+
+          Write-Host "Adding upstream"
+          git remote add upstream $UpstreamRepo
+
+          git fetch --all --prune
+          git pull upstream $Branch
+
+          Write-Host "Pushing $Branch to origin"
+          git push origin $Branch
+          git push origin --tags
