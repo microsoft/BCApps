@@ -6,7 +6,7 @@
 /// <summary>
 /// This library should be used to generate Pseudo-random values for tests
 /// This approach is needed to ensure that it is possible to reproduce the failures, since tests will be using the same values
-/// To ensure that there are no cross test dependencies, this library must be added as a local variable to the test method
+/// To ensure that there are no cross test dependencies, this library must be added as a local variable to the test method!
 /// </summary>
 codeunit 130500 "Any"
 {
