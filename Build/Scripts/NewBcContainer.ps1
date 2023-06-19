@@ -2,6 +2,7 @@ Param(
     [Hashtable]$parameters
 )
 
+Write-Host "Getting all env vars:"
 Get-ChildItem env:
 
 $parameters.multitenant = $false
