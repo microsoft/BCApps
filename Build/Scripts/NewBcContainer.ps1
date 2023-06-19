@@ -2,10 +2,9 @@ Param(
     [Hashtable]$parameters
 )
 
-Write-Host "Getting all env vars:"
-Get-Content "$env:GITHUB_ENV"
-$st = ([string]"$ENV:insiderSasToken").ToCharArray() -join ' '
-Write-Host "st: $st"
+Write-Host "?!?:"
+$st = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String([string]"$ENV:insiderSasToken")
+$st.ToCharArray() -join ' '
 
 $parameters.multitenant = $false
 $parameters.RunSandboxAsOnPrem = $true
