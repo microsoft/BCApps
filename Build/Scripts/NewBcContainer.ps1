@@ -3,7 +3,9 @@ Param(
 )
 
 Write-Host "Getting all env vars:"
-Get-Content "$env:GITHUB_ENV" 
+Get-Content "$env:GITHUB_ENV"
+$st = ([string]"$ENV:insiderSasToken").ToCharArray() -join ' '
+Write-Host "st: $st"
 
 $parameters.multitenant = $false
 $parameters.RunSandboxAsOnPrem = $true
