@@ -1,0 +1,62 @@
+name: 'Create tag and sync to mirror'
+
+on:
+  workflow_run:
+    workflows: [' CI/CD']
+    types: [requested]
+    branches: ['main', 'release/*']
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  CreateTag:
+    if: github.repository == 'microsoft/BCApps'
+    runs-on: ubuntu-latest
+    env:
+      HEAD_COMMIT: ${{ github.event.workflow_run.head_commit.id }}
+    steps:
+     - name: Checkout
+       uses: actions/checkout@v3
+       with:
+          ref: ${{ env.HEAD_COMMIT }}
+          fetch-depth: 0
+
+     - name: Set build tag
+       id: GetBuildVersion
+       env: 
+        WORKFLOW_RUN_NUMBER: ${{ github.event.workflow_run.run_number}}
+       run : .\Build\Scripts\Set-BuildTag.ps1 -BuildNumber $ENV:WORKFLOW_RUN_NUMBER
+
+  SyncRepository:
+    needs: [ CreateTag ]
+    if: needs.CreateTag.result == 'Success' && github.repository == 'microsoft/BCApps'
+    runs-on: ubuntu-latest
+    env:
+      HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+    steps:
+    - name: Checkout mirror
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ env.HEAD_BRANCH }}
+        repository: ${{ secrets.MIRRORREPONAME }}
+        token: ${{ secrets.SYNCREPOSITORYTOKEN }}
+        fetch-depth: 0
+
+    - name: Push latest changes to mirror
+      id: Sync
+      run : |
+        $Branch = $ENV:HEAD_BRANCH -replace "refs/heads/"
+        $RepositoryUrl = "https://github.com/$ENV:GITHUB_REPOSITORY"
+        
+        Write-Host "Adding remote $RepositoryUrl as upstream"
+        git remote add upstream $RepositoryUrl
+        git fetch --all --prune
+
+        Write-Host "Pulling $Branch from upstream"
+        git pull upstream $Branch
+
+        Write-Host "Pushing $Branch to origin"
+        git push origin $Branch
+        git push origin --tags
