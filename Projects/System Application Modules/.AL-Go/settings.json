@@ -1,0 +1,12 @@
+{
+    "appFolders":  [
+        "..\\..\\Apps\\System\\*"
+    ],
+    "testFolders":  [
+        "..\\..\\Apps\\System Test Libraries\\*",
+        "..\\..\\Apps\\System Tests\\*"
+    ],
+    "enableAppSourceCop": false,
+    "enablePerTenantExtensionCop":  false,
+    "doNotBuildTests": true
+}
