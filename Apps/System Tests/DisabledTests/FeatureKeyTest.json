@@ -1,0 +1,18 @@
+[
+    {
+        "CodeunitName": "Feature Key Test",
+        "Method": "T003_CannotDisableOneWayFeatureOnPage"
+    },
+    {
+        "CodeunitName": "Feature Key Test",
+        "Method": "T004_CannotEnableOneWayFeatureAsNotImplemented"
+    },
+    {
+        "CodeunitName": "Feature Key Test",
+        "Method": "T005_EnableOneWayFeatureReviewData"
+    },
+    {
+        "CodeunitName": "Feature Key Test",
+        "Method": "T006_EnableOneWayFeatureRunUpdateData"
+    }
+]
