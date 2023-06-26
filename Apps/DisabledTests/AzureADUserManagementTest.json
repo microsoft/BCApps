@@ -1,0 +1,4 @@
+{
+    "CodeunitName":  "Azure AD User Management Test",
+    "Method":  "TestOfficeSyncWizard TestCodeunitRunPlansAreRefreshed"
+}

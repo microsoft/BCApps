@@ -1,0 +1,4 @@
+{
+    "CodeunitName":  "Feature Key Test",
+    "Method":  "T003_CannotDisableOneWayFeatureOnPage T004_CannotEnableOneWayFeatureAsNotImplemented T005_EnableOneWayFeatureReviewData T006_EnableOneWayFeatureRunUpdateData"
+}

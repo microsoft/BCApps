@@ -1,0 +1,4 @@
+{
+    "CodeunitName":  "Azure AD Graph User Test",
+    "Method":  "TestUpdateUserFromAzureGraphForAValidUserWithUpdatedFullName TestEnsureAuthenticationEmailIsNotInUse TestUpdateUserFromAzureGraphForAValidUserWithUpdatedContactEmail TestUpdateUserFromAzureGraphForAValidUserWithUpdatedAuthenticationEmail"
+}

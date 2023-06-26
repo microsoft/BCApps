@@ -1,0 +1,4 @@
+{
+    "CodeunitName":  "Cues And KPIs Test",
+    "Method":  "CueUserPageShowsRecordsInsertedForCurrentUser CueSetupAdminPageCanInsertAndEdit CueSetupAdminPageCanInsertForDifferentUsers ChangeUsersForSetupEntries TestPersonalizedCueSetupExistsForCurrentUser"
+}
