@@ -1,4 +1,18 @@
-{
-    "CodeunitName":  "Azure AD Graph User Test",
-    "Method":  "TestUpdateUserFromAzureGraphForAValidUserWithUpdatedFullName TestEnsureAuthenticationEmailIsNotInUse TestUpdateUserFromAzureGraphForAValidUserWithUpdatedContactEmail TestUpdateUserFromAzureGraphForAValidUserWithUpdatedAuthenticationEmail"
-}
+[
+    {
+        "CodeunitName": "Azure AD Graph User Test",
+        "Method": "TestUpdateUserFromAzureGraphForAValidUserWithUpdatedFullName"
+    },
+    {
+        "CodeunitName": "Azure AD Graph User Test",
+        "Method": "TestEnsureAuthenticationEmailIsNotInUse"
+    },
+    {
+        "CodeunitName": "Azure AD Graph User Test",
+        "Method": "TestUpdateUserFromAzureGraphForAValidUserWithUpdatedContactEmail"
+    },
+    {
+        "CodeunitName": "Azure AD Graph User Test",
+        "Method": "TestUpdateUserFromAzureGraphForAValidUserWithUpdatedAuthenticationEmail"
+    }
+]

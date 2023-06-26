@@ -1,4 +1,10 @@
-{
-    "CodeunitName":  "X509Certificate2 Test",
-    "Method":  "VerifyCertificateExpirationFromBase64Cert VerifyCertificateNotBeforeFromBase64Cert"
-}
+[
+    {
+        "CodeunitName": "X509Certificate2 Test",
+        "Method": "VerifyCertificateExpirationFromBase64Cert"
+    },
+    {
+        "CodeunitName":  "X509Certificate2 Test",
+        "Method":  "VerifyCertificateNotBeforeFromBase64Cert"
+    }    
+]

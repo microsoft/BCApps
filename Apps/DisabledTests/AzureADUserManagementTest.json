@@ -1,4 +1,10 @@
-{
-    "CodeunitName":  "Azure AD User Management Test",
-    "Method":  "TestOfficeSyncWizard TestCodeunitRunPlansAreRefreshed"
-}
+[
+    {
+        "CodeunitName": "Azure AD User Management Test",
+        "Method": "TestOfficeSyncWizard"
+    },
+    {
+        "CodeunitName": "Azure AD User Management Test",
+        "Method": "TestCodeunitRunPlansAreRefreshed"
+    }
+]

@@ -1,4 +1,22 @@
-{
-    "CodeunitName":  "Cues And KPIs Test",
-    "Method":  "CueUserPageShowsRecordsInsertedForCurrentUser CueSetupAdminPageCanInsertAndEdit CueSetupAdminPageCanInsertForDifferentUsers ChangeUsersForSetupEntries TestPersonalizedCueSetupExistsForCurrentUser"
-}
+[
+    {
+        "CodeunitName": "Cues And KPIs Test",
+        "Method": "CueUserPageShowsRecordsInsertedForCurrentUser"
+    },
+    {
+        "CodeunitName": "Cues And KPIs Test",
+        "Method": "CueSetupAdminPageCanInsertAndEdit"
+    },
+    {
+        "CodeunitName": "Cues And KPIs Test",
+        "Method": "CueSetupAdminPageCanInsertForDifferentUsers"
+    },
+    {
+        "CodeunitName": "Cues And KPIs Test",
+        "Method": "ChangeUsersForSetupEntries"
+    },
+    {
+        "CodeunitName": "Cues And KPIs Test",
+        "Method": "TestPersonalizedCueSetupExistsForCurrentUser"
+    }
+]
