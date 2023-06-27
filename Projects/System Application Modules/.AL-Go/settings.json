@@ -8,5 +8,6 @@
     ],
     "enableAppSourceCop": false,
     "enablePerTenantExtensionCop":  false,
-    "doNotBuildTests": true
+    "doNotBuildTests": true,
+    "rulesetFile": "..\\..\\Apps\\Rulesets\\internal.module.ruleset.json"
 }
