@@ -22,6 +22,8 @@ page 2511 "Extension Settings"
         {
             group(Group)
             {
+                Caption = 'General';
+                
                 field(AppId; AppIdValue)
                 {
                     ApplicationArea = All;

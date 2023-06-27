@@ -147,6 +147,15 @@ page 1801 "Assisted Setup"
                 end;
             }
         }
+        area(Promoted) 
+        {
+            actionref("Start Setup Ref"; "Start Setup")
+            {
+            }
+            actionref("General videos Ref"; "General videos")
+            {
+            }
+        }
     }
 
     trigger OnOpenPage()
