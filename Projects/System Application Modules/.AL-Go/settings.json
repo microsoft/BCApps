@@ -9,5 +9,5 @@
     "enableAppSourceCop": false,
     "enablePerTenantExtensionCop":  false,
     "doNotBuildTests": true,
-    "rulesetFile": "..\\..\\Apps\\Rulesets\\internal.module.ruleset.json"
+    "rulesetFile": "..\\..\\Build\\Rulesets\\internal.module.ruleset.json"
 }
