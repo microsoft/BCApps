@@ -449,6 +449,54 @@ codeunit 130043 "Language Test"
         Assert.AreEqual(2057, LanguageId, 'Wrong selected language.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('HandleSelectFormat')]
+    procedure GetFormatRegionOrDefaultEmptyCode()
+    var
+        WindowsLanguage: Record "Windows Language";
+        UserSettingsPage: TestPage "User Settings";
+        FormatRegion: Text[80];
+        LocalId: Integer;
+        UserSessionSettings: SessionSettings;
+    begin
+        PermissionsMock.Set('SUPER');
+        // [Given] A typical language setup
+        Init();
+
+        // Set region
+        UserSettingsPage.OpenEdit();
+        UserSettingsPage.Region.AssistEdit();
+        UserSettingsPage.Close();
+
+        // [When] Get format region by an empty code
+        FormatRegion := Language.GetFormatRegionOrDefault('');
+        UserSessionSettings.Init();
+        LocalId := UserSessionSettings.LocaleId();
+        WindowsLanguage.SetRange("Language ID", LocalId);
+        WindowsLanguage.FindFirst();
+        
+        // [Then] The format region is equal to the one in my settings
+        Assert.AreEqual(WindowsLanguage."Language Tag", FormatRegion, 'Wrong Format Region.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure GetFormatRegionOrDefaulWithCode()
+    var
+        FormatRegion: Text[80];
+    begin
+        PermissionsMock.Set('Language Edit');
+        // [Given] A typical language setup
+        Init();
+
+        // [When] Get Format region by a specific code
+        FormatRegion := Language.GetFormatRegionOrDefault('en-UK');
+
+        // [Then] The same code is returned
+        Assert.AreEqual('en-UK', FormatRegion, 'Wrong Format Region.');
+    end;
+
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure ApplicationLanguageCancelHandler(var WindowsLanguages: TestPage "Windows Languages")
@@ -469,6 +517,18 @@ codeunit 130043 "Language Test"
         UserLanguageCode := 'RANDOM';
         Handled := true;
     end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure HandleSelectFormat(var WindowsLanguages: Page "Windows Languages"; var Response: Action)
+    var
+        WindowsLanguage: Record "Windows Language";
+    begin
+        WindowsLanguage.Get(1033); // En-US
+        WindowsLanguages.SetRecord(WindowsLanguage);
+        Response := ACTION::LookupOK;
+    end;
+
 
     local procedure Init()
     var

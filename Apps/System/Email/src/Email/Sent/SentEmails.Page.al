@@ -8,7 +8,9 @@
 /// </summary>
 page 8883 "Sent Emails"
 {
+#pragma warning disable AS0035 // Changed from Worksheet to List
     PageType = List;
+#pragma warning restore AS0035
     Caption = 'Sent Emails';
     ApplicationArea = All;
     UsageCategory = Administration;

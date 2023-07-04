@@ -5,10 +5,6 @@
   "includedRuleSets": [
     {
       "action": "Error",
-      "path": "./Analyzer.ruleset.json"
-    },
-    {
-      "action": "Error",
       "path": "./AppSourceCop.ruleset.json"
     },
     {
@@ -26,9 +22,17 @@
     {
       "action": "Error",
       "path": "./UICop.ruleset.json"
+    },
+    {
+      "action": "Error",
+      "path": "./Analyzer.ruleset.json"
     }
   ],
   "rules": [
+    {
+      "id": "AL0667",
+      "action": "Warning"
+    },
     {
       "id": "AL0755",
       "action": "Warning",
@@ -38,6 +42,11 @@
       "id": "AL0780",
       "action": "Warning",
       "justification": "To be fixed. It is not allowed to assign a value to a field of FieldClass='FlowField'."
+    },
+    {
+      "id": "AA0247",
+      "action": "None",
+      "justification": "Elevate when the all apps are namespaced."
     },
     {
       "id": "AA0219",
@@ -58,6 +67,34 @@
       "id": "AA0072",
       "action": "None",
 	    "justification": "The name of variables and parameters must be suffixed with the type or object name"
+    },
+    {
+      "id": "AA0175",
+      "action": "Warning"
+    },
+    {
+      "id": "AA0181",
+      "action": "Warning"
+    },
+    {
+      "id": "AA0215",
+      "action": "Warning"
+    },
+    {
+      "id": "AA0241",
+      "action": "Warning"
+    },
+    {
+      "id": "AA0244",
+      "action": "Warning"
+    },
+    {
+      "id": "AA0470",
+      "action": "Warning"
+    },
+    {
+      "id": "AS0015",
+      "action": "Warning"
     },
     {
       "id": "AS0053",
@@ -138,26 +175,6 @@
       "id": "AW0008",
       "action": "None",
       "justification": "The Web client only supports displaying Repeater controls in pages of type List, ListPart, and Worksheet."
-    },
-    {
-      "id": "PTE0016",
-      "action": "None",
-      "justification": "This rule is identical to AS0110 and does not need to run in duplicate. It is meant for PTE uploads where the other analyzer suites do not run."
-    },
-    {
-      "id": "PTE0017",
-      "action": "None",
-      "justification": "This rule is identical to AS0111 and does not need to run in duplicate. It is meant for PTE uploads where the other analyzer suites do not run."
-    },
-    {
-      "id": "PTE0018",
-      "action": "None",
-      "justification": "This rule is identical to AS0112 and does not need to run in duplicate. It is meant for PTE uploads where the other analyzer suites do not run."
-    },
-    {
-      "id": "PTE0019",
-      "action": "None",
-      "justification": "This rule is identical to AS0113 and does not need to run in duplicate. It is meant for PTE uploads where the other analyzer suites do not run."
     }
   ]
 }
