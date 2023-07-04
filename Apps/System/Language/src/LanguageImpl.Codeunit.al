@@ -48,14 +48,14 @@ codeunit 54 "Language Impl."
     begin
         if FormatRegion <> '' then
             exit(FormatRegion);
-         
+
         // Lookup based on locale in user session
         UserSessionSettings.Init();
         LocalId := UserSessionSettings.LocaleId();
         LanguageSelection.SetRange("Language ID", LocalId);
         if LanguageSelection.FindFirst() then
             exit(LanguageSelection."Language Tag");
-        
+
         exit('en-US');
     end;
 
@@ -127,6 +127,36 @@ codeunit 54 "Language Impl."
     procedure GetDefaultApplicationLanguageId(): Integer
     begin
         exit(1033); // en-US
+    end;
+
+    procedure ToDefaultLanguage(ValueVariant: Variant): Text
+    var
+        Result: Text;
+        CurrentLanguage: Integer;
+        DummyBoolean: Boolean;
+    begin
+        case true of
+            // Handle specific data types in case the function is being called within a report that uses local language.
+            // In that case the current local language takes priority and the default case logic won't work.
+            ValueVariant.IsBoolean:
+                begin
+                    DummyBoolean := ValueVariant;
+                    if DummyBoolean then
+                        Result := 'Yes'
+                    else
+                        Result := 'No';
+                end;
+            else begin
+                CurrentLanguage := GlobalLanguage();
+                GlobalLanguage(GetDefaultApplicationLanguageId());
+
+                Result := Format(ValueVariant);
+
+                GlobalLanguage(CurrentLanguage);
+            end;
+        end;
+
+        exit(Result);
     end;
 
     procedure ValidateApplicationLanguageId(LanguageId: Integer)

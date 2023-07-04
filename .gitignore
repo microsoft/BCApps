@@ -316,3 +316,6 @@ TestResults.xml
 *.lcg
 #Build files
 *.al.bak
+
+# Exceptions
+!Apps/System Tests/Extension Management/testArtifacts/*.app

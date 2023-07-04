@@ -8,7 +8,7 @@
 /// </summary>
 page 8883 "Sent Emails"
 {
-    PageType = Worksheet;
+    PageType = List;
     Caption = 'Sent Emails';
     ApplicationArea = All;
     UsageCategory = Administration;
@@ -16,7 +16,6 @@ page 8883 "Sent Emails"
     SourceTableTemporary = true;
     Permissions = tabledata "Sent Email" = rd;
     InsertAllowed = false;
-    ModifyAllowed = false;
     Extensible = true;
 
     layout
@@ -42,6 +41,7 @@ page 8883 "Sent Emails"
             }
             repeater(SentEmails)
             {
+                Editable = false;
                 field(Desc; Rec.Description)
                 {
                     ApplicationArea = All;

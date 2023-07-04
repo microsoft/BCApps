@@ -361,23 +361,25 @@ codeunit 9871 "Security Group Impl."
     var
         UserProperty: Record "User Property";
         AzureAdGraph: Codeunit "Azure AD Graph";
-        GroupMembers: DotNet IEnumerable;
+        GraphUserInfoPage: Dotnet UserInfoPage;
         GraphUserInfo: DotNet UserInfo;
     begin
-        AzureADGraph.GetMembersForGroupId(AadGroupId, GroupMembers);
+        AzureADGraph.GetMembersPageForGroupId(AadGroupId, 50, GraphUserInfoPage);
 
-        if IsNull(GroupMembers) then
+        if IsNull(GraphUserInfoPage) then
             exit;
 
-        foreach GraphUserInfo in GroupMembers do begin
-            UserProperty.SetRange("Authentication Object ID", GraphUserInfo.ObjectId);
-            if UserProperty.FindFirst() then begin
-                SecurityGroupMemberBuffer."Security Group Code" := SecurityGroupCode;
-                SecurityGroupMemberBuffer."User Security ID" := UserProperty."User Security ID";
-                GetName(SecurityGroupCode, SecurityGroupMemberBuffer."Security Group Name");
-                SecurityGroupMemberBuffer.Insert();
+        repeat
+            foreach GraphUserInfo in GraphUserInfoPage.CurrentPage() do begin
+                UserProperty.SetRange("Authentication Object ID", GraphUserInfo.ObjectId);
+                if UserProperty.FindFirst() then begin
+                    SecurityGroupMemberBuffer."Security Group Code" := SecurityGroupCode;
+                    SecurityGroupMemberBuffer."User Security ID" := UserProperty."User Security ID";
+                    GetName(SecurityGroupCode, SecurityGroupMemberBuffer."Security Group Name");
+                    SecurityGroupMemberBuffer.Insert();
+                end;
             end;
-        end;
+        until (not GraphUserInfoPage.GetNextMembersPageForGroupId(AadGroupId));
     end;
 
     local procedure ValidateWindowsGroup(WindowsGroupId: Text)
