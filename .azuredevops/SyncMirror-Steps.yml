@@ -22,7 +22,7 @@ steps:
       git remote add upstream $repo
       git remote
 
-      git fetch --all --prune
+      git fetch --all
 
       git checkout $branch
       git pull origin $branch
