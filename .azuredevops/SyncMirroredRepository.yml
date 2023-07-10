@@ -1,0 +1,20 @@
+name: 1.0.$(Year:yy)$(DayOfYear).$(Rev:r) # This is the build number
+
+pr: none
+trigger:
+  batch: true
+  branches:
+    include:
+    - main
+    - release/*
+
+jobs:
+- job: SyncMirror
+  dependsOn: []
+  pool:
+    vmImage: 'windows-latest'
+  steps:      
+  - template: SyncMirror-Steps.yml
+    parameters:
+      SourceRepository: "https://$(GitHubPAT)@github.com/microsoft/BCApps.git"
+      Branch: "$(Build.SourceBranchName)"
