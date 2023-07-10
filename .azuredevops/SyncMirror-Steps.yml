@@ -1,9 +1,3 @@
-# This yml template is use to facilitate syncing public repositories to private mirrored repository.
-# These steps must be run on the target repository that is being synced. 
-
-# Requirements:
-# The pipeline agent that runs this must have "Contribute" permissions on the target repository.
-
 parameters:
   - name: SourceRepository
     type: string
