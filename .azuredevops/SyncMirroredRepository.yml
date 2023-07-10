@@ -20,4 +20,4 @@ jobs:
   - template: SyncMirror-Steps.yml
     parameters:
       SourceRepository: "https://$(GitHubPAT)@github.com/microsoft/BCApps.git"
-      Branch: "$(Build.SourceBranchName)"
+      Branch: "$(Build.SourceBranch)"
