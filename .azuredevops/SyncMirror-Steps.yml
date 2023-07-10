@@ -18,18 +18,18 @@ steps:
       $branch = "${{ parameters.Branch }}"
 
       Write-Host "Synching $branch from repo $repo"
-
-      git remote add mirror $repo
+      
+      git remote add upstream $repo
       git remote
 
-      git fetch origin $branch
+      git fetch --all --prune
+
       git checkout $branch
       git pull origin $branch
 
-      git fetch mirror $branch
-      git pull mirror $branch
+      Write-Host "Pulling $Branch from upstream"
+      git pull upstream $branch
 
-- task: CmdLine@2
-  inputs:
-    script: |
-      git push
+      Write-Host "Pushing $Branch to origin"
+      git push origin $Branch
+      git push origin --tags
