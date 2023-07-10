@@ -15,7 +15,7 @@ steps:
     targetType: 'inline'
     script: |
       $repo = "${{ parameters.SourceRepository }}"
-      $branch = "${{ parameters.Branch }}"
+      $branch = "${{ parameters.Branch }}" -replace "refs/heads/", ""
 
       Write-Host "Synching $branch from repo $repo"
       
