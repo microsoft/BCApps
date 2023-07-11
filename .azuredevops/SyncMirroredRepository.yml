@@ -16,7 +16,7 @@ resources:
   - repository: Mirror
     type: git
     name: BCApps-Mirror
-    ref: main
+    ref: $(Build.SourceBranch)
 
 jobs:
 - job: SyncMirror
