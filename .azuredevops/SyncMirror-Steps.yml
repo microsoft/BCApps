@@ -30,18 +30,14 @@ steps:
       Write-Host "Synching $branch from repo $repo"
 
       RunAndCheck git reset HEAD --hard
-
-      
       RunAndCheck git remote add upstream $repo
       RunAndCheck git fetch --all
-
       RunAndCheck git checkout origin/$branch --track
 
-      #RunAndCheck git pull origin $branch
+      # Merge changes from origin and upstream
+      RunAndCheck git pull origin $branch
+      RunAndCheck git pull upstream $branch
 
-      #RunAndCheck git pull upstream $branch
-      RunAndCheck git merge upstream/$branch --no-verify
-
+      # Push to origin
       RunAndCheck git push origin $Branch
-
       RunAndCheck git push origin --tags
