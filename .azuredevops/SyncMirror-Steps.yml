@@ -28,20 +28,19 @@ steps:
       $branch = "${{ parameters.Branch }}" -replace "refs/heads/", ""
 
       Write-Host "Synching $branch from repo $repo"
+
+      RunAndCheck git reset HEAD --hard
+
       
       RunAndCheck git remote add upstream $repo
       RunAndCheck git fetch --all
 
       RunAndCheck git checkout origin/$branch --track
 
-      Write-Host "Pulling $Branch from origin"
       RunAndCheck git pull origin $branch
 
-      Write-Host "Pulling $Branch from upstream"
       RunAndCheck git pull upstream $branch
 
-      Write-Host "Pushing $Branch to origin"
       RunAndCheck git push origin $Branch
 
-      Write-Host "Pushing tags"
       RunAndCheck git push origin --tags
