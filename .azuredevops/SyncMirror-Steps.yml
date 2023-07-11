@@ -13,6 +13,7 @@ steps:
 - task: powershell@2
   inputs:
     targetType: 'inline'
+    displayName: Sync mirror with upstream
     script: |
       $repo = "${{ parameters.SourceRepository }}"
       $branch = "${{ parameters.Branch }}" -replace "refs/heads/", ""
