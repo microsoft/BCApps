@@ -14,17 +14,17 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $repo = "https://$(GitHubPAT)@github.com/microsoft/BCApps.git"
+      $repo = "${{ parameters.SourceRepository }}"
       $branch = "${{ parameters.Branch }}" -replace "refs/heads/", ""
 
       Write-Host "Synching $branch from repo $repo"
       
       git remote add upstream $repo
-      git remote
-
       git fetch --all
 
       git checkout $branch
+
+      Write-Host "Pulling $Branch from origin"
       git pull origin $branch
 
       Write-Host "Pulling $Branch from upstream"
