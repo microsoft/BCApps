@@ -26,7 +26,7 @@ jobs:
   dependsOn: []
   steps:
   - checkout: mirror
-    persistCredentials: true
+    persistCredentials: false
 
   - template: SyncMirror-Steps.yml
     parameters:
