@@ -2,6 +2,9 @@ parameters:
   - name: SourceRepository
     type: string
     default: ""
+  - name: TargetRepository
+    type: string
+    default: ""
   - name: Branch
     type: string
     default: ""
@@ -26,6 +29,12 @@ steps:
 
       az login --identity --allow-no-subscriptions
       az account show
+
+      $accessToken = az account get-access-token
+
+      $targetRepository = "${{ parameters.TargetRepository }}"
+
+      RunAndCheck git clone "https://$accessToken@$targetRepository"
 
       $repo = "${{ parameters.SourceRepository }}"
       $branch = "${{ parameters.Branch }}" -replace "refs/heads/", ""

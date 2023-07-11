@@ -25,10 +25,11 @@ jobs:
 - job: SyncMirror
   dependsOn: []
   steps:
-  - checkout: mirror
-    persistCredentials: false
+  #- checkout: mirror
+  #  persistCredentials: false
 
   - template: SyncMirror-Steps.yml
     parameters:
       SourceRepository: "https://$(GitHubPAT)@github.com/microsoft/BCApps.git"
+      TargetRepository: "$(TargetRepository)"
       Branch: "$(Build.SourceBranch)"
