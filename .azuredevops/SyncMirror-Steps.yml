@@ -30,7 +30,7 @@ steps:
       az login --identity --allow-no-subscriptions
       az account show
 
-      $accessToken = az account get-access-token
+      $accessToken = Get-AzAccessToken
 
       $targetRepository = "${{ parameters.TargetRepository }}"
 
