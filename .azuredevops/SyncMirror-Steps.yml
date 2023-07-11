@@ -35,7 +35,7 @@ steps:
       RunAndCheck git remote add upstream $repo
       RunAndCheck git fetch --all
 
-      RunAndCheck git checkout origin/$branch
+      RunAndCheck git checkout origin/$branch --track
 
       Write-Host "Pulling $Branch from origin"
       RunAndCheck git pull origin $branch
@@ -44,7 +44,7 @@ steps:
       RunAndCheck git pull upstream $branch
 
       Write-Host "Pushing $Branch to origin"
-      RunAndCheck git push
+      RunAndCheck git push origin $Branch
 
       Write-Host "Pushing tags"
       RunAndCheck git push origin --tags
