@@ -24,8 +24,6 @@ resources:
 jobs:
 - job: SyncMirror
   dependsOn: []
-  pool:
-    vmImage: 'windows-latest'
   steps:
   - checkout: mirror
     persistCredentials: true
