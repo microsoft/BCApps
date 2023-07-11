@@ -19,7 +19,7 @@ steps:
 
       Write-Host "Synching $branch from repo $repo"
       
-      git remote add upstream $repo
+      git remote add mirror $repo
       git remote
 
       git fetch --all
@@ -27,8 +27,8 @@ steps:
       git checkout $branch
       git pull origin $branch
 
-      Write-Host "Pulling $Branch from upstream"
-      git pull upstream $branch
+      Write-Host "Pulling $Branch from mirror"
+      git pull mirror $branch
 
       Write-Host "Pushing $Branch to origin"
       git push origin $Branch

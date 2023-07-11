@@ -16,8 +16,8 @@ jobs:
   dependsOn: []
   pool:
     vmImage: 'windows-latest'
-  steps:      
+  steps:
   - template: SyncMirror-Steps.yml
     parameters:
-      SourceRepository: "https://$(GitHubPAT)@github.com/microsoft/BCApps.git"
+      SourceRepository: "$(MirrorRepo)" #"https://$(GitHubPAT)@github.com/microsoft/BCApps.git"
       Branch: "$(Build.SourceBranch)"
