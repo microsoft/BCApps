@@ -11,26 +11,40 @@ steps:
   persistCredentials: true
 
 - task: powershell@2
+  displayName: Sync mirror with upstream
   inputs:
     targetType: 'inline'
-    displayName: Sync mirror with upstream
     script: |
+      function RunAndCheck {
+          $loggable = $args -replace '"AUTHORIZATION: [^"]*"','***'
+          Write-Host "[command] $loggable"
+
+          $ErrorActionPreference = 'Continue'
+          $rest = if ($args.Count -gt 1) { $args[1..($args.Count - 1)] } else { $null }
+          & $args[0] $rest
+          if ($LASTEXITCODE -ne 0) {
+              throw "$loggable failed with exit code $LASTEXITCODE"
+          }
+      }
+
       $repo = "${{ parameters.SourceRepository }}"
       $branch = "${{ parameters.Branch }}" -replace "refs/heads/", ""
 
       Write-Host "Synching $branch from repo $repo"
       
-      git remote add upstream $repo
-      git fetch --all
+      RunAndCheck git remote add upstream $repo
+      RunAndCheck git fetch --all
 
-      git checkout origin/$branch
+      RunAndCheck git checkout origin/$branch
 
       Write-Host "Pulling $Branch from origin"
-      git pull origin $branch
+      RunAndCheck git pull origin $branch
 
       Write-Host "Pulling $Branch from upstream"
-      git pull upstream $branch
+      RunAndCheck git pull upstream $branch
 
       Write-Host "Pushing $Branch to origin"
-      git push origin $Branch
-      git push origin --tags
+      RunAndCheck git push origin $Branch
+
+      Write-Host "Pushing tags"
+      RunAndCheck git push origin --tags
