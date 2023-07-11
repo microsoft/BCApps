@@ -25,6 +25,7 @@ steps:
       }
 
       az login --identity
+      az account show
 
       $repo = "${{ parameters.SourceRepository }}"
       $branch = "${{ parameters.Branch }}" -replace "refs/heads/", ""
