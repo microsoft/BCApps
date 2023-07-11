@@ -44,7 +44,7 @@ steps:
       RunAndCheck git pull upstream $branch
 
       Write-Host "Pushing $Branch to origin"
-      RunAndCheck git push origin "${{ parameters.Branch }}"
+      RunAndCheck git push
 
       Write-Host "Pushing tags"
       RunAndCheck git push origin --tags
