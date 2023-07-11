@@ -24,7 +24,7 @@ steps:
           }
       }
 
-      az login --identity
+      az login --identity --allow-no-subscriptions
       az account show
 
       $repo = "${{ parameters.SourceRepository }}"
