@@ -14,7 +14,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $repo = "https://github.com/microsoft/BCApps.git"
+      $repo = "https://$(GitHubPAT)@github.com/microsoft/BCApps.git"
       $branch = "${{ parameters.Branch }}" -replace "refs/heads/", ""
 
       Write-Host "Synching $branch from repo $repo"
