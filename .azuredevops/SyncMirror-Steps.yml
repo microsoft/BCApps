@@ -22,7 +22,7 @@ steps:
       git remote add upstream $repo
       git fetch --all
 
-      git checkout origin $branch
+      git checkout origin/$branch
 
       Write-Host "Pulling $Branch from origin"
       git pull origin $branch
