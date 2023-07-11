@@ -24,6 +24,8 @@ steps:
           }
       }
 
+      az login --identity
+
       $repo = "${{ parameters.SourceRepository }}"
       $branch = "${{ parameters.Branch }}" -replace "refs/heads/", ""
 
