@@ -24,6 +24,9 @@ jobs:
   pool:
     vmImage: 'windows-latest'
   steps:
+  - checkout: mirror
+    persistCredentials: true
+
   - template: SyncMirror-Steps.yml
     parameters:
       SourceRepository: "https://$(GitHubPAT)@github.com/microsoft/BCApps.git"

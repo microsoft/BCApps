@@ -7,9 +7,6 @@ parameters:
     default: ""
 
 steps:
-- checkout: mirror
-  persistCredentials: true
-
 - task: powershell@2
   displayName: Sync mirror with upstream
   inputs:
