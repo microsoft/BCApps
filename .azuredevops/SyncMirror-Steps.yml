@@ -7,7 +7,7 @@ parameters:
     default: ""
 
 steps:
-- checkout: "${{ parameters.SourceRepository }}"
+- checkout: mirror
   persistCredentials: true
 
 - task: powershell@2

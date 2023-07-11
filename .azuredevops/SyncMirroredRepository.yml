@@ -11,6 +11,13 @@ trigger:
 variables:
 - template: ./variables-common.yml
 
+resources:
+  repositories:
+  - repository: Mirror
+    type: git
+    name: BCApps-Mirror
+    ref: main
+
 jobs:
 - job: SyncMirror
   dependsOn: []
