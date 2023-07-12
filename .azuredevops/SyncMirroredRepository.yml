@@ -18,8 +18,24 @@ jobs:
 - job: SyncMirror
   dependsOn: []
   steps:
-  - template: SyncMirror-Steps.yml
-    parameters:
-      SourceRepository: "https://$(GitHubPAT)@github.com/microsoft/BCApps.git"
-      TargetRepository: "$(TargetRepository)"
-      Branch: "$(Build.SourceBranch)"
+  - task: powershell@2
+    displayName: Set up repository
+    inputs:
+      targetType: 'inline'
+      script: |
+        function Get-AccessTokenFromManagedIdentity() {
+          az login --identity --allow-no-subscriptions
+          $accessToken = az account get-access-token | ConvertFrom-Json
+          return $accessToken.accessToken
+        }
+
+        git clone "https://$(Get-AccessTokenFromManagedIdentity)@$(TargetRepository)" BCApps
+        Push-Location BCApps
+
+        git config --global user.email "d365bc-agentpool-nonprod-bcapps-sync@microsoft.com"
+        git config --global user.name "BCApps-Sync"
+  - task: powershell@2
+    displayName: Sync mirror with upstream
+    inputs:
+      filePath: Build\Scripts\SyncMirror.ps1
+      arguments: '-SourceRepository "https://$(GitHubPAT)@github.com/microsoft/BCApps.git" -Branch $(Build.SourceBranch)'
