@@ -34,7 +34,7 @@ steps:
 
       $targetRepository = "${{ parameters.TargetRepository }}"
 
-      RunAndCheck git clone "https://$($accessToken.token)@$targetRepository"
+      RunAndCheck git clone "https://$($accessToken.accessToken)@$targetRepository"
 
       $repo = "${{ parameters.SourceRepository }}"
       $branch = "${{ parameters.Branch }}" -replace "refs/heads/", ""
