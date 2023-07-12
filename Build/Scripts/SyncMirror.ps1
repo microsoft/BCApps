@@ -3,7 +3,7 @@ param(
     [string] $Branch
 )
 
-Import-Module EnlistmentHelperFunctions.psm1
+Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
 $Branch = $Branch -replace "refs/heads/", ""
 
