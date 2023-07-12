@@ -30,7 +30,7 @@ jobs:
 
         $MIAccessToken = Get-AccessTokenFromManagedIdentity
 
-        git clone "https://$($$MIAccessToken.accessToken)@$(TargetRepository)" BCApps
+        git clone "https://$($MIAccessToken.accessToken)@$(TargetRepository)" BCApps
         Push-Location BCApps
 
         git config --global user.email "d365bc-agentpool-nonprod-bcapps-sync@microsoft.com"
