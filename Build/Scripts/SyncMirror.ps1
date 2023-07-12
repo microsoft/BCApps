@@ -1,23 +1,30 @@
 param(
     [string] $SourceRepository,
+    [string] $TargetRepository,
     [string] $Branch
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
+function Get-AccessTokenFromManagedIdentity() {
+    az login --identity --allow-no-subscriptions | Out-Null
+    return (az account get-access-token | ConvertFrom-Json)
+}
+
 $Branch = $Branch -replace "refs/heads/", ""
 
+$MIAccessToken = Get-AccessTokenFromManagedIdentity
+
+git clone "https://$($MIAccessToken.accessToken)@$TargetRepository" BCApps
+Push-Location BCApps
+
+git config --global user.email "d365bc-agentpool-nonprod-bcapps-sync@microsoft.com"
+git config --global user.name "BCApps-Sync"
 
 # Fetch repos and checkout branch
 RunAndCheck git reset HEAD --hard
 RunAndCheck git remote add upstream $SourceRepository
-#RunAndCheck git fetch --all
-Write-Host "RunAndCheck git fetch origin"
-RunAndCheck git fetch origin
-
-Write-Host "RunAndCheck git fetch upstream"
-RunAndCheck git fetch upstream
-
+RunAndCheck git fetch --all
 RunAndCheck git checkout origin/$branch --track
 
 # Merge changes from origin and upstream

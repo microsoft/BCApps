@@ -19,24 +19,7 @@ jobs:
   dependsOn: []
   steps:
   - task: powershell@2
-    displayName: Set up repository
-    inputs:
-      targetType: 'inline'
-      script: |
-        function Get-AccessTokenFromManagedIdentity() {
-          az login --identity --allow-no-subscriptions | Out-Null
-          return (az account get-access-token | ConvertFrom-Json)
-        }
-
-        $MIAccessToken = Get-AccessTokenFromManagedIdentity
-
-        git clone "https://$($MIAccessToken.accessToken)@$(TargetRepository)" BCApps
-        Push-Location BCApps
-
-        git config --global user.email "d365bc-agentpool-nonprod-bcapps-sync@microsoft.com"
-        git config --global user.name "BCApps-Sync"
-  - task: powershell@2
     displayName: Sync mirror with upstream
     inputs:
       filePath: Build\Scripts\SyncMirror.ps1
-      arguments: '-SourceRepository "https://$(GitHubPAT)@github.com/microsoft/BCApps.git" -Branch $(Build.SourceBranch)'
+      arguments: '-SourceRepository "https://$(GitHubPAT)@github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch)'
