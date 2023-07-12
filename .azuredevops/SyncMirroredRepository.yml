@@ -24,12 +24,13 @@ jobs:
       targetType: 'inline'
       script: |
         function Get-AccessTokenFromManagedIdentity() {
-          az login --identity --allow-no-subscriptions
-          $accessToken = az account get-access-token | ConvertFrom-Json
-          return $accessToken.accessToken
+          az login --identity --allow-no-subscriptions | Out-Null
+          return (az account get-access-token | ConvertFrom-Json)
         }
 
-        git clone "https://$(Get-AccessTokenFromManagedIdentity)@$(TargetRepository)" BCApps
+        $MIAccessToken = Get-AccessTokenFromManagedIdentity
+
+        git clone "https://$($$MIAccessToken.accessToken)@$(TargetRepository)" BCApps
         Push-Location BCApps
 
         git config --global user.email "d365bc-agentpool-nonprod-bcapps-sync@microsoft.com"
