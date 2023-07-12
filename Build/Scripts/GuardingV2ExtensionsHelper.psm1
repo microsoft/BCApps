@@ -246,20 +246,4 @@ function Get-BaselineVersion {
     return $baselinePackage
 }
 
-<#
-.SYNOPSIS
-Run an executable and check the exit code
-.EXAMPLE
-RunAndCheck git checkout -b xxx
-#>
-function RunAndCheck {
-    $ErrorActionPreference = 'Continue'
-    $rest = if ($args.Count -gt 1) { $args[1..($args.Count - 1)] } else { $null }
-    & $args[0] $rest
-    if ($LASTEXITCODE -ne 0) {
-        throw "$($args[0]) $($rest | ForEach-Object { $_ }) failed with exit code $LASTEXITCODE"
-    }
-}
-
 Export-ModuleMember -Function *-*
-Export-ModuleMember -Function RunAndCheck
