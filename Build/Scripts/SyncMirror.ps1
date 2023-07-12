@@ -7,6 +7,9 @@ Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
 $Branch = $Branch -replace "refs/heads/", ""
 
+git config --global user.email "d365bc-agentpool-nonprod-bcapps-sync@microsoft.com"
+git config --global user.name "BCApps-Sync"
+
 # Fetch repos and checkout branch
 RunAndCheck git reset HEAD --hard
 RunAndCheck git remote add upstream $SourceRepository
