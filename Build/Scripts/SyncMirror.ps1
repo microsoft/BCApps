@@ -23,8 +23,10 @@ function Get-AccessToken {
 $Branch = $Branch -replace "refs/heads/", ""
 $MIAccessToken = Get-AccessToken -ManagedIdentityAuth:$ManagedIdentityAuth
 
-git clone "https://$($MIAccessToken.accessToken)@$TargetRepository" BCApps
-Push-Location BCApps
+#git clone "https://$($MIAccessToken.accessToken)@$TargetRepository" BCApps
+git remote set-url origin "https://$($MIAccessToken.accessToken)@$TargetRepository"
+
+#Push-Location BCApps
 
 # Fetch repos and checkout branch
 RunAndCheck git reset HEAD --hard
@@ -46,4 +48,4 @@ RunAndCheck git pull upstream $branch
 RunAndCheck git push origin $Branch
 RunAndCheck git push origin --tags
 
-Pop-Location
+#Pop-Location

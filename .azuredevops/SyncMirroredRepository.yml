@@ -21,7 +21,7 @@ jobs:
   - powershell: |
       git config --global user.email "BCApps-Sync@microsoft.com"
       git config --global user.name "BCApps-Sync"
-    displayName: Get Latest Version
+    displayName: Update Git Config
   - task: powershell@2
     displayName: Sync mirror with upstream
     inputs:
