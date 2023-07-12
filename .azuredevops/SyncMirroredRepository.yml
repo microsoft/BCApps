@@ -14,20 +14,10 @@ pool:
 variables:
 - template: ./variables-common.yml
 
-resources:
-  repositories:
-  - repository: Mirror
-    type: git
-    name: BCApps-Mirror
-    ref: $(Build.SourceBranch)
-
 jobs:
 - job: SyncMirror
   dependsOn: []
   steps:
-  #- checkout: mirror
-  #  persistCredentials: false
-
   - template: SyncMirror-Steps.yml
     parameters:
       SourceRepository: "https://$(GitHubPAT)@github.com/microsoft/BCApps.git"

@@ -42,6 +42,9 @@ steps:
 
       Write-Host "Synching $branch from repo $repo"
 
+      git config --global user.email "d365bc-agentpool-nonprod-release-engsys@microsoft.com"
+      git config --global user.name "BCApps-Sync"
+
       RunAndCheck git reset HEAD --hard
       RunAndCheck git remote add upstream $repo
       RunAndCheck git fetch --all
