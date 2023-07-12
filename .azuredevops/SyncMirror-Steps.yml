@@ -44,9 +44,7 @@ steps:
 
       RunAndCheck git reset HEAD --hard
       RunAndCheck git remote add upstream $repo
-      #RunAndCheck git fetch --all
-      RunAndCheck git fetch origin
-      RunAndCheck git fetch upstream
+      RunAndCheck git fetch --all
 
       RunAndCheck git checkout origin/$branch --track
 
