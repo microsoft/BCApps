@@ -34,7 +34,8 @@ steps:
 
       $targetRepository = "${{ parameters.TargetRepository }}"
 
-      git clone "https://$($accessToken.accessToken)@$targetRepository" .
+      git clone "https://$($accessToken.accessToken)@$targetRepository" Repo
+      cd Repo
 
       $repo = "${{ parameters.SourceRepository }}"
       $branch = "${{ parameters.Branch }}" -replace "refs/heads/", ""
@@ -43,7 +44,10 @@ steps:
 
       RunAndCheck git reset HEAD --hard
       RunAndCheck git remote add upstream $repo
-      RunAndCheck git fetch --all
+      #RunAndCheck git fetch --all
+      RunAndCheck git fetch origin
+      RunAndCheck git fetch upstream
+
       RunAndCheck git checkout origin/$branch --track
 
       # Merge changes from origin and upstream
