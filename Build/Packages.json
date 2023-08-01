@@ -3,10 +3,10 @@
                                                             "Version":  "22.3.20230630.1"
                                                         },
     "Microsoft-Dynamics-BusinessCentral-BCApps":  {
-                                                      "Version":  "22.3.71"
+                                                      "Version":  "22.3.72"
                                                   },
     "AppBaselines-BCArtifacts":  {
-                                     "Version":  "22.2.56969.59104",
+                                     "Version":  "22.2.56969.59216",
                                      "_comment":  "Deprecated. Temporary workaround for not having enough baselines packages"
                                  }
 }
