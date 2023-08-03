@@ -44,6 +44,9 @@ RunAndCheck git pull upstream $branch
 
 # Push to origin
 RunAndCheck git push origin $Branch
+
+# Fetch latest tags and push to origin
+RunAndCheck git fetch --all --tags
 RunAndCheck git push origin --tags
 
 Pop-Location
