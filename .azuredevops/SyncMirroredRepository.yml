@@ -7,6 +7,9 @@ trigger:
     include:
     - main
     - release/*
+  tags:
+    include:
+    - builds/*
 
 pool:
   name: 'd365bc-agentpool-nonprod-bcapps-sync'
