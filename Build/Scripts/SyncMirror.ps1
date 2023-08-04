@@ -37,24 +37,28 @@ RunAndCheck git fetch --all
 # If a branch is provided, sync the branch with the target repository
 if ($Branch) {
     $Branch = $Branch -replace "refs/heads/", ""
-    if (RunAndCheck git ls-remote origin $branch) {
+    if (RunAndCheck git ls-remote origin $Branch) {
         # If branch exists in target, checkout branch and pull changes from target repository
-        RunAndCheck git checkout origin/$branch --track
-        RunAndCheck git pull origin $branch
+        Write-Host "Checking out $Branch from $TargetRepository"
+        RunAndCheck git checkout origin/$Branch --track
+        RunAndCheck git pull origin $Branch
     }
     else {
         # Checkout branch directly from upstream
-        RunAndCheck git checkout upstream/$branch --track
+        Write-Host "Checking out $Branch from $SourceRepository"
+        RunAndCheck git checkout upstream/$Branch --track
     }
     
     # Merge changes from upstream
-    RunAndCheck git pull upstream $branch
+    RunAndCheck git pull upstream $Branch
     
     # Push to origin
+    Write-Host "Pushing $Branch to $TargetRepository"
     RunAndCheck git push origin $Branch
 }
 
 # Push tags to the target
+Write-Host "Pushing tags to $TargetRepository"
 RunAndCheck git push origin --tags
 
 Pop-Location
