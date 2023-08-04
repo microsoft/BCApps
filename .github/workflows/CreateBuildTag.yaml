@@ -20,14 +20,12 @@ jobs:
 
       - name: Get Build Version
         id: GetBuildVersion
+        env: 
+          buildNumber: ${{ github.event.workflow_run.run_number }}
         run: |
-          $event = Get-Content $env:GITHUB_EVENT_PATH -Raw | ConvertFrom-Json
-          $buildNumber = $event.workflow_run.run_number
-          Write-Host "buildNumber: $buildNumber"
-
           Import-Module ".\Build\Scripts\EnlistmentHelperFunctions.psm1"
           $majorMinor = Get-ConfigValue -ConfigType "AL-GO" -Key RepoVersion
-          $buildVersion = "$($majorMinor).$($buildNumber)"
+          $buildVersion = "$($majorMinor).$($env:buildNumber)"
           Write-Host "Build Version: $buildVersion"
           Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "BuildVersion=$buildVersion"
 
