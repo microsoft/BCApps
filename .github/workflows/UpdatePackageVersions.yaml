@@ -44,5 +44,3 @@ jobs:
       - name: Update Package Versions
         run: | 
           Build/Scripts/UpdatePackageVersions.ps1 -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
