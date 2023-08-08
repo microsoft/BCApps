@@ -31,6 +31,7 @@ jobs:
           Add-Content -Path $env:GITHUB_OUTPUT -Value "UpdateBranches=$branchMatrix"
 
   UpdatePackageVersions:
+    name: "[${{ matrix.branch }}] Update Package Versions"
     runs-on: windows-latest
     needs: GetBranches
     strategy:
