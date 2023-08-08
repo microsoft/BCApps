@@ -11,6 +11,7 @@ defaults:
 
 jobs:
   GetBranches:
+    name: Get Branches
     runs-on: windows-latest
     outputs:
       UpdateBranches: ${{ steps.GetBranches.outputs.UpdateBranches }}
@@ -43,5 +44,7 @@ jobs:
           ref: ${{ matrix.branch }}
       
       - name: Update Package Versions
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: | 
           Build/Scripts/UpdatePackageVersions.ps1 -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
