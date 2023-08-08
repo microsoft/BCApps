@@ -46,6 +46,6 @@ jobs:
       
       - name: Update Package Versions
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
         run: | 
           Build/Scripts/UpdatePackageVersions.ps1 -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
