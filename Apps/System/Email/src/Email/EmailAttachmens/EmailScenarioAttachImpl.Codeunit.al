@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Email;
+
 codeunit 8902 "Email Scenario Attach Impl."
 {
     Access = Internal;
@@ -110,6 +112,7 @@ codeunit 8902 "Email Scenario Attach Impl."
         if not SelectedScenarios.FindSet() then
             exit;
 
+        ClearLastError();
         if not UploadIntoStream(AddeFileToScenariosMsg, '', '', FileName, Instream) then
             Error(GetLastErrorText());
 
@@ -134,6 +137,7 @@ codeunit 8902 "Email Scenario Attach Impl."
         FileName: Text;
         Instream: Instream;
     begin
+        ClearLastError();
         if not UploadIntoStream(AddFileToCurrentScenarioMsg, '', '', FileName, Instream) then
             Error(GetLastErrorText());
 

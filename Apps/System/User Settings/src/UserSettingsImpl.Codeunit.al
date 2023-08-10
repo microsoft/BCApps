@@ -3,6 +3,15 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System;
+using System.Security.User;
+using System.Environment;
+using System.Azure.ActiveDirectory;
+using System.Reflection;
+using System.Security.AccessControl;
+
 codeunit 9175 "User Settings Impl."
 {
     Access = Internal;

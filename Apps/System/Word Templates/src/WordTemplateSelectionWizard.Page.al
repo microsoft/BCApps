@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration.Word;
+
+using System.Integration;
+using System.Utilities;
+
 /// <summary>
 /// A wizard to select a Word template and apply it for a record.
 /// </summary>

@@ -1,7 +1,11 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace System.IO;
+
+using System.Utilities;
 
 /// <summary>
 /// Exposes functionality to provide ability to create, update, read and dispose a binary data compression archive.

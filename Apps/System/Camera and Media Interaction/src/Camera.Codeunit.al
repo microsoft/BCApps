@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Device;
+
 /// <summary>
 /// Provides the functions for getting the data from a camera on the client device.
 /// </summary>

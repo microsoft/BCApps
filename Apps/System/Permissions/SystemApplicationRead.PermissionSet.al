@@ -3,6 +3,29 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
+using System.Azure.ActiveDirectory;
+using System.Utilities;
+using System.Visualization;
+using System.Privacy;
+using System.Environment.Configuration;
+using System.Integration.Excel;
+using System.Reflection;
+using System.Globalization;
+using System.Integration;
+using System.Device;
+using System.DateTime;
+using System.DataAdministration;
+using System.Telemetry;
+using System.Tooling;
+using System.Environment;
+using System.Upgrade;
+using System.Security.User;
+using System.Media;
+using System.Integration.Word;
+using System.Feedback;
+
 permissionset 21 "System Application - Read"
 {
     Access = Internal;

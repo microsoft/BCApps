@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Tooling;
+
+using System.Integration;
+using System.Telemetry;
+
 /// <summary>
 /// Sampling-based in-client performance profiler
 /// </summary>
@@ -79,7 +84,7 @@ page 24 "Performance Profiler"
                     Editable = true;
                     Enabled = true;
                     Caption = 'Show technical information';
-                    ToolTip = 'Show details about the time each app took during the performance profiling.';
+                    ToolTip = 'Specifies details about the time each app took during the performance profiling.';
                 }
             }
             part("Profiling Self Time Chart"; "Profiling Self Time Chart")

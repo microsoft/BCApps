@@ -3,6 +3,17 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Security.AccessControl;
+
+using System.TestLibraries.Environment;
+using System.TestLibraries.Azure.ActiveDirectory;
+using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Mocking;
+using System.Security.AccessControl;
+using System;
+using System.Utilities;
+using System.TestLibraries.Utilities;
+
 codeunit 135016 "Security Groups Test"
 {
     Subtype = Test;

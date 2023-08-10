@@ -58,7 +58,13 @@
                              "name":  "DotNet Aliases",
                              "publisher":  "Microsoft",
                              "version":  "23.0.0.0"
-                         }
+                         },
+                         {
+                            "id":  "1b2efb4b-8c44-4d74-a56f-60646645bb21",
+                            "name":  "URI",
+                            "publisher":  "Microsoft",
+                            "version":  "23.0.0.0"
+                        }
                      ],
     "internalsVisibleTo":  [
                                {

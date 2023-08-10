@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.ActiveDirectory;
+
+using System;
+using System.Security.AccessControl;
+
 /// <summary>
 /// Exposes functionality to retrieve and update Azure AD users.
 /// </summary>

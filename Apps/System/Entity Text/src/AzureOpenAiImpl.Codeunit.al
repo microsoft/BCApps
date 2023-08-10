@@ -3,6 +3,16 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Text;
+
+using System.Privacy;
+using System.Globalization;
+using System.Environment;
+using System.Azure.KeyVault;
+using System.Azure.ActiveDirectory;
+using System.Environment.Configuration;
+using System.Azure.AI;
+
 /// <summary>
 /// Implements functionality to call Azure OpenAI.
 /// </summary>
@@ -189,8 +199,10 @@ codeunit 2011 "Azure OpenAi Impl."
         if Secret = '' then
             Error(NoSecretErr);
 
-        if AzureOpenAiSettings.IncludeSource(CallerModuleInfo) then
+        if AzureOpenAiSettings.IncludeSource(CallerModuleInfo) then begin
             Payload.Add('source', 'businesscentral');
+            Payload.Add('n', 1);
+        end;
 
         Payload.WriteTo(PayloadText);
 
@@ -341,8 +353,8 @@ codeunit 2011 "Azure OpenAi Impl."
 
     var
         FeatureDisabledErr: Label 'The feature has been disabled.';
-        RequestFailedErr: Label 'A completion could not be generated.\The error code returned was %1.\Open the Azure OpenAI settings page and verify the settings, or try again later.', Comment = '%1 is the http status code of the failed request (e.g. 401)';
-        RequestFailedUnknownErr: Label 'A completion could not be generated.\Open the Azure OpenAI settings page and verify the settings, or try again later.';
+        RequestFailedErr: Label 'A suggestion couldn''t be generated. Review the information provided, consider your choice of words, and try again.\The error code returned was %1.', Comment = '%1 is the http status code of the failed request (e.g. 401)';
+        RequestFailedUnknownErr: Label 'A suggestion couldn''t be generated. Review the information provided, consider your choice of words, and try again.';
         NoSecretErr: Label 'The service needs to be configured in the OpenAI settings page. No key has been provided.';
         NoEndpointErr: Label 'No OpenAI endpoint has been specified for this request, or the specified endpoint is invalid. Open the OpenAI settings page and verify the settings.';
         NotConfiguredQst: Label 'The service needs to be configured in the OpenAI settings page.\Would you like to open it?';

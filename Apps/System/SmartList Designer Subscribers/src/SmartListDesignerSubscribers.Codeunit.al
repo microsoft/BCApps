@@ -4,6 +4,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Tooling;
+
 /// <summary>
 /// Collection of the default subscribers to system events and corresponding overridable integration events for the SmartList Designer.
 /// </summary>

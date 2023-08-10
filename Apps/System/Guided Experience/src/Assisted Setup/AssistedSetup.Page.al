@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Media;
+using System.Globalization;
+
 /// <summary>This page shows all registered assisted setup guides.</summary>
 page 1801 "Assisted Setup"
 {
@@ -58,7 +63,9 @@ page 1801 "Assisted Setup"
                 {
                     ApplicationArea = All;
                     Caption = 'Learn more';
+#pragma warning disable AA0219
                     ToolTip = 'Learn more about the process.';
+#pragma warning restore AA0219
                     Width = 3;
 
                     trigger OnDrillDown()
@@ -72,7 +79,9 @@ page 1801 "Assisted Setup"
                 {
                     ApplicationArea = All;
                     Caption = 'Video';
+#pragma warning disable AA0219
                     ToolTip = 'Play a video that describes the process.';
+#pragma warning restore AA0219
                     Width = 3;
                     Visible = false;
 
@@ -147,7 +156,7 @@ page 1801 "Assisted Setup"
                 end;
             }
         }
-        area(Promoted) 
+        area(Promoted)
         {
             actionref("Start Setup Ref"; "Start Setup")
             {

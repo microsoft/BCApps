@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
+using System.Telemetry;
+using System.Utilities;
+using System.Security.User;
+
 /// <summary>
 /// The main page for interacting with security groups.
 /// </summary>
@@ -281,11 +287,17 @@ page 9871 "Security Groups"
     end;
 
     local procedure RefreshData(ShouldRefreshMembers: Boolean)
+    var
+        NumberOfGroupsBeforeRefresh: Integer;
     begin
+        NumberOfGroupsBeforeRefresh := Rec.Count();
+
         SecurityGroup.GetGroups(Rec);
-        if ShouldRefreshMembers then
-            CurrPage."Security Group Members Part".Page.Refresh();
         AreRecordsPresent := not Rec.IsEmpty();
+
+        if ShouldRefreshMembers then
+            if Rec.Count() > NumberOfGroupsBeforeRefresh then
+                CurrPage."Security Group Members Part".Page.Refresh();
     end;
 
     local procedure GetSelectedGroupCodes(): List of [Code[20]];

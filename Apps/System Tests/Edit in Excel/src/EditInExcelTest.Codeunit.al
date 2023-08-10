@@ -1,3 +1,15 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.Test.Integration.Excel;
+
+using System.Integration.Excel;
+using System.Integration;
+using System.TestLibraries.Integration.Excel;
+using System;
+using System.TestLibraries.Utilities;
 codeunit 132525 "Edit in Excel Test"
 {
     Subtype = Test;

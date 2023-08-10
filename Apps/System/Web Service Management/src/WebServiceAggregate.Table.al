@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration;
+
+using System.Reflection;
+
 /// <summary>
 /// Contains web services aggregated from Web Services and Tenant Web Services.
 /// </summary>

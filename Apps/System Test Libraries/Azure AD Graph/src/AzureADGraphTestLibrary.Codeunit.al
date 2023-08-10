@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestLibraries.Azure.ActiveDirectory;
+
+using System.TestLibraries.Mocking;
+using System;
+using System.Azure.ActiveDirectory;
+
 codeunit 132922 "Azure AD Graph Test Library"
 {
     EventSubscriberInstance = Manual;

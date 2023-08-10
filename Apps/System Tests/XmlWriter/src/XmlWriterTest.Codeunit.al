@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Xml;
+
+using System.Xml;
+using System.TestLibraries.Utilities;
+
 codeunit 139911 "Xml Writer Test"
 {
     Subtype = Test;

@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration;
+
+using System;
+using System.Reflection;
+
 codeunit 9751 "Web Service Management Impl."
 {
     Access = Internal;

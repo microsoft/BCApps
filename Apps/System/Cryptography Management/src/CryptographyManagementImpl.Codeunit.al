@@ -1,7 +1,13 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace System.Security.Encryption;
+
+using System;
+using System.Security.AccessControl;
+using System.Utilities;
 
 codeunit 1279 "Cryptography Management Impl."
 {

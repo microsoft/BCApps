@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Email;
+
 /// <summary>
 /// Provides functionality to create and send emails.
 /// </summary>
@@ -418,6 +420,16 @@ codeunit 8901 "Email"
     procedure HasRelations(EmailMessage: Codeunit "Email Message"): Boolean
     begin
         exit(EmailImpl.HasSourceRecord(EmailMessage.GetId()));
+    end;
+
+    /// <summary>
+    /// Adds the default attachments of a scenario to the email message.
+    /// </summary>
+    /// <param name="EmailMessage">The email message for which to add the attachments.</param>
+    /// <param name="EmailScenario">Includes the default attachments from this scenario.</param>
+    procedure AddDefaultAttachments(EmailMessage: Codeunit "Email Message"; EmailScenario: Enum "Email Scenario")
+    begin
+        EmailImpl.AddDefaultAttachments(EmailMessage, EmailScenario);
     end;
 
     #region Events

@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration.Sharepoint;
+
+using System.Security.Authentication;
+
 codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorization"
 {
     Access = Internal;

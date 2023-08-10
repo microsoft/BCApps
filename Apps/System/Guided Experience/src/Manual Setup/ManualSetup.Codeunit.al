@@ -4,6 +4,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Media;
+
 /// <summary>
 /// The manual setup aggregates all cases where the functionality is setup manually. Typically this is accomplished 
 /// by registering the setup page ID of the extension that contains the functionality.

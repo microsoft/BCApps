@@ -3,6 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration.Excel;
+
+using System;
+using System.Integration;
+using System.Environment;
+using System.Azure.ActiveDirectory;
+using System.Reflection;
+
 codeunit 1482 "Edit in Excel Impl."
 {
     Access = Internal;

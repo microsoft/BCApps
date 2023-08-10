@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Tooling;
+
+using System.Visualization;
+
 /// <summary>
 /// The chart showing the breakdown of time full spent by app name / app publisher on the performance profiler page.
 /// </summary>

@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.DataAdministration;
+
 /// <summary>
 /// The retention period interface provides functions to retrieve the date formula and calculate the expiration date based on a retention period record.
 /// </summary>

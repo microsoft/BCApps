@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
+using System.Reflection;
+
 codeunit 9864 "Permission Impl."
 {
     Access = Internal;
@@ -80,6 +84,68 @@ codeunit 9864 "Permission Impl."
         ExecutePermissionAsTxt := GetPermissionAsTxt(TenantPermission.Type, TenantPermission."Execute Permission");
     end;
 
+    procedure UpdateSelectedPermissionLines(var TenantPermission: Record "Tenant Permission"; RIMDX: Text[1]; PermissionOption: Option)
+    var
+        ModifyPermissionLine: Boolean;
+    begin
+        if TenantPermission.FindSet() then
+            repeat
+                ModifyPermissionLine := false;
+                case RIMDX of
+                    'R':
+                        if TenantPermission."Object Type" = TenantPermission."Object Type"::"Table Data" then
+                            if TenantPermission."Read Permission" <> PermissionOption then begin
+                                TenantPermission."Read Permission" := PermissionOption;
+                                ModifyPermissionLine := true;
+                            end;
+                    'I':
+                        if TenantPermission."Object Type" = TenantPermission."Object Type"::"Table Data" then
+                            if TenantPermission."Insert Permission" <> PermissionOption then begin
+                                TenantPermission."Insert Permission" := PermissionOption;
+                                ModifyPermissionLine := true;
+                            end;
+                    'M':
+                        if TenantPermission."Object Type" = TenantPermission."Object Type"::"Table Data" then
+                            if TenantPermission."Modify Permission" <> PermissionOption then begin
+                                TenantPermission."Modify Permission" := PermissionOption;
+                                ModifyPermissionLine := true;
+                            end;
+                    'D':
+                        if TenantPermission."Object Type" = TenantPermission."Object Type"::"Table Data" then
+                            if TenantPermission."Delete Permission" <> PermissionOption then begin
+                                TenantPermission."Delete Permission" := PermissionOption;
+                                ModifyPermissionLine := true;
+                            end;
+                    'X':
+                        if TenantPermission."Object Type" <> TenantPermission."Object Type"::"Table Data" then
+                            if TenantPermission."Execute Permission" <> PermissionOption then begin
+                                TenantPermission."Execute Permission" := PermissionOption;
+                                ModifyPermissionLine := true;
+                            end;
+                    '*':
+                        if TenantPermission."Object Type" = TenantPermission."Object Type"::"Table Data" then begin
+                            if (TenantPermission."Read Permission" <> PermissionOption) or
+                                (TenantPermission."Insert Permission" <> PermissionOption) or
+                                (TenantPermission."Modify Permission" <> PermissionOption) or
+                                (TenantPermission."Delete Permission" <> PermissionOption)
+                            then begin
+                                TenantPermission."Read Permission" := PermissionOption;
+                                TenantPermission."Insert Permission" := PermissionOption;
+                                TenantPermission."Modify Permission" := PermissionOption;
+                                TenantPermission."Delete Permission" := PermissionOption;
+                                ModifyPermissionLine := true;
+                            end;
+                        end else
+                            if TenantPermission."Execute Permission" <> PermissionOption then begin
+                                TenantPermission."Execute Permission" := PermissionOption;
+                                ModifyPermissionLine := true;
+                            end;
+                end;
+                if ModifyPermissionLine then
+                    TenantPermission.Modify();
+            until TenantPermission.Next() = 0;
+    end;
+
     procedure IsPermissionEmpty(var TenantPermission: Record "Tenant Permission"): Boolean
     begin
         exit(
@@ -138,7 +204,7 @@ codeunit 9864 "Permission Impl."
         end;
     end;
 
-    procedure GetObjectionCaptionAndName(var MetadataPermission: Record "Metadata Permission"; var ObjectCaption: Text; var ObjectName: Text)
+    procedure GetObjectCaptionAndName(var MetadataPermission: Record "Metadata Permission"; var ObjectCaption: Text; var ObjectName: Text)
     var
         AllObj: Record AllObj;
     begin
@@ -150,6 +216,22 @@ codeunit 9864 "Permission Impl."
                 ObjectName := AllObj."Object Name";
         end else begin
             ObjectName := CopyStr(StrSubstNo(AllObjTxt, MetadataPermission."Object Type"), 1, MaxStrLen(MetadataPermission."Object Name"));
+            ObjectCaption := ObjectName;
+        end;
+    end;
+
+    procedure GetObjectCaptionAndName(var ExpandedPermission: Record "Expanded Permission"; var ObjectCaption: Text; var ObjectName: Text)
+    var
+        AllObj: Record AllObj;
+    begin
+        if ExpandedPermission."Object ID" <> 0 then begin
+            ExpandedPermission.CalcFields("Object Name");
+            ObjectCaption := ExpandedPermission."Object Name";
+            ObjectName := '';
+            if AllObj.Get(ExpandedPermission."Object Type", ExpandedPermission."Object ID") then
+                ObjectName := AllObj."Object Name";
+        end else begin
+            ObjectName := CopyStr(StrSubstNo(AllObjExceptTxt, ExpandedPermission."Object Type"), 1, MaxStrLen(ExpandedPermission."Object Name"));
             ObjectCaption := ObjectName;
         end;
     end;

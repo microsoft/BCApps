@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestTools.TestRunner;
+
+using System.Reflection;
+using System.Environment;
+
 codeunit 130457 "Test Profile Management"
 {
     // Used to insert a profile into blank database

@@ -1,7 +1,12 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace System.Environment.Configuration;
+
+using System;
+using System.Utilities;
 
 /// <summary>
 /// Shows the Extension Marketplace.
@@ -23,12 +28,23 @@ page 2502 "Extension Marketplace"
                 ApplicationArea = Basic, Suite;
                 trigger ControlAddInReady(callbackUrl: Text)
                 var
+                    Uri: Codeunit Uri;
+                    UriBuilder: Codeunit "Uri Builder";
                     MarketplaceUrl: Text;
                 begin
                     if AppsourceUrl <> '' then
                         MarketplaceUrl := AppsourceUrl
                     else
                         MarketplaceUrl := ExtensionMarketplace.GetMarketplaceEmbeddedUrl();
+
+                    if SearchText <> '' then begin
+                        UriBuilder.Init(MarketplaceUrl);
+                        UriBuilder.AddQueryParameter('search', SearchText);
+                        UriBuilder.AddQueryParameter('page', '1');
+                        UriBuilder.GetUri(Uri);
+                        MarketplaceUrl := Uri.GetAbsoluteUri();
+                    end;
+
                     CurrPage.Marketplace.SubscribeToEvent('message', MarketplaceUrl);
                     CurrPage.Marketplace.Navigate(MarketplaceUrl);
                 end;
@@ -56,6 +72,16 @@ page 2502 "Extension Marketplace"
         }
     }
 
+    procedure SetSearchText(Text: Text)
+    begin
+        SearchText := Text;
+    end;
+
+    internal procedure SetAppsourceUrl(Url: Text)
+    begin
+        AppsourceUrl := Url;
+    end;
+
     local procedure PerformAction(ActionName: Text);
     var
         applicationId: Text;
@@ -76,14 +102,10 @@ page 2502 "Extension Marketplace"
         MessageType := ExtensionMarketplace.GetMessageType(JObject);
     end;
 
-    internal procedure SetAppsourceUrl(Url: Text)
-    begin
-        AppsourceUrl := Url;
-    end;
-
     var
         ExtensionMarketplace: Codeunit "Extension Marketplace";
         JObject: DotNet JObject;
+        SearchText: Text;
         MessageType: Text;
         TelemetryUrl: Text;
         AppsourceUrl: Text;

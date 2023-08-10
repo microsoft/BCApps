@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Security.AccessControl;
+using System.Reflection;
+
 /// <summary>
 /// Manage the checklist presented to users by inserting and deleting checklist items and controling the visibility of the checklist.
 /// </summary>

@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Email;
+
+using System.Telemetry;
+
 /// <summary>
 /// A page to create, edit and send e-mails.
 /// </summary>
@@ -155,6 +159,7 @@ page 13 "Email Editor"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the content of the email.';
                     MultiLine = true;
+                    ExtendedDataType = RichContent;
                     Editable = not EmailScheduled;
 
                     trigger OnValidate()
@@ -213,18 +218,8 @@ page 13 "Email Editor"
                 Image = SendMail;
 
                 trigger OnAction()
-                var
-                    IsEmailDataValid: Boolean;
                 begin
-                    IsEmailDataValid := EmailEditor.ValidateEmailData(TempEmailAccount."Email Address", EmailMessageImpl);
-
-                    if IsEmailDataValid then begin
-                        IsNewOutbox := false;
-                        EmailEditor.SendOutbox(Rec);
-                        EmailAction := Enum::"Email Action"::Sent;
-
-                        CurrPage.Close();
-                    end;
+                    ValidateAndSendEmailData();
                 end;
             }
             action(Discard)
@@ -447,6 +442,21 @@ page 13 "Email Editor"
     internal procedure SetEmailScenario(Scenario: Enum "Email Scenario")
     begin
         EmailScenario := Scenario;
+    end;
+
+    protected procedure ValidateAndSendEmailData()
+    var
+        IsEmailDataValid: Boolean;
+    begin
+        IsEmailDataValid := EmailEditor.ValidateEmailData(TempEmailAccount."Email Address", EmailMessageImpl);
+
+        if IsEmailDataValid then begin
+            IsNewOutbox := false;
+            EmailEditor.SendOutbox(Rec);
+            EmailAction := Enum::"Email Action"::Sent;
+
+            CurrPage.Close();
+        end;
     end;
 
     var

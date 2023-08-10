@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestTools.TestRunner;
+
+using System.TestTools.CodeCoverage;
+using System.Tooling;
+
 page 130455 "Command Line Test Tool"
 {
     AccessByPermission = TableData "Test Method Line" = RIMD;
@@ -126,7 +131,7 @@ page 130455 "Command Line Test Tool"
             {
                 ApplicationArea = All;
                 Caption = 'Code Coverage Map';
-                Tooltip = 'Code Coverage Map';
+                Tooltip = 'Specifies the Code Coverage Map';
                 trigger OnValidate()
                 begin
                     TestSuiteMgt.SetCCMap(GlobalALTestSuite, CCMap);
@@ -169,7 +174,7 @@ page 130455 "Command Line Test Tool"
             field(CCMapCSVText; CCMapCSVText)
             {
                 Caption = 'Code Coverage Map CSV Text';
-                Tooltip = 'Code Coverage Map CSV Text';
+                Tooltip = 'Specifies the Code Coverage Map CSV Text';
                 ApplicationArea = All;
                 Editable = false;
                 MultiLine = true;

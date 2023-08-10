@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestTools.TestRunner;
+
+using System.Reflection;
+
 codeunit 130456 "Test Suite Mgt."
 {
     Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;

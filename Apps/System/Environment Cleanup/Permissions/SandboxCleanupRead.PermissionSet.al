@@ -4,6 +4,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.DataAdministration;
+
+using System.Environment;
+
 permissionset 1884 "Sandbox Cleanup - Read"
 {
     ObsoleteReason = 'Replaced by Environment Cleanup module.';

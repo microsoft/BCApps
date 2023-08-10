@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Media;
+using System.Globalization;
+using System.Apps;
+
 table 1803 "Assisted Setup"
 {
     Access = Internal;

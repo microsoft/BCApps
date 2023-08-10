@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Privacy;
+
 page 1565 "Privacy Notices"
 {
     Caption = 'Privacy Notices Status';

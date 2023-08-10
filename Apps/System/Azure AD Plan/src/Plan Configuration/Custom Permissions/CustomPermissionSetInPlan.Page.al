@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.ActiveDirectory;
+
+using System.Apps;
+using System.Security.AccessControl;
+
 /// <summary>
 /// List part that holds the custom permission sets assigned to a plan.
 /// </summary>

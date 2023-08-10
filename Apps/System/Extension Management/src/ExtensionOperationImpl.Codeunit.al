@@ -1,7 +1,14 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace System.Environment.Configuration;
+
+using System;
+using System.Utilities;
+using System.Environment;
+using System.Apps;
 
 codeunit 2503 "Extension Operation Impl"
 {

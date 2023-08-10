@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.Storage;
+
+using System.Security.Authentication;
+
 /// <summary>
 /// Holder for the optional Azure Blob Storage HTTP headers and URL parameters.
 /// </summary>

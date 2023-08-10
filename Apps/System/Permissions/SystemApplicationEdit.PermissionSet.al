@@ -3,6 +3,17 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
+using System.Visualization;
+using System.Privacy;
+using System.Email;
+using System.Text;
+using System.Environment.Configuration;
+using System.Globalization;
+using System.Tooling;
+using System.Integration.Word;
+
 permissionset 22 "System Application - Edit"
 {
     Access = Internal;

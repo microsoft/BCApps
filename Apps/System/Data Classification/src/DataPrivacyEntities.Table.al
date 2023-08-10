@@ -1,7 +1,11 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace System.Privacy;
+
+using System.Reflection;
 
 /// <summary>
 /// Displays a list of data privacy entities.
@@ -18,12 +22,9 @@ table 1180 "Data Privacy Entities"
             Caption = 'Table No.';
             DataClassification = SystemMetadata;
         }
-#pragma warning disable AL0685
         field(2; "Table Caption"; Text[80])
-#pragma warning restore AL0685
         {
-            CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Table),
-                                                                           "Object ID" = field("Table No.")));
+            CalcFormula = lookup("Table Metadata".Caption where(ID = field("Table No.")));
             Caption = 'Table Caption';
             FieldClass = FlowField;
         }

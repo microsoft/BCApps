@@ -4,6 +4,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.Encryption;
+
+using System;
+
 /// <summary>
 /// Represents the key of asymmetric algorithm.
 /// </summary>

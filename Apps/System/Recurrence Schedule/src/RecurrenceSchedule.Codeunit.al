@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.DateTime;
+
 /// <summary>
 /// Calculates when the next event will occur. Events can recur daily, weekly, monthly or yearly.
 /// </summary>

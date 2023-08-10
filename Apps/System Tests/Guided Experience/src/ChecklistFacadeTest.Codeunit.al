@@ -3,6 +3,16 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Environment.Configuration;
+
+using System.Environment.Configuration;
+using System.Media;
+using System.Reflection;
+using System.Security.AccessControl;
+using System.Environment;
+using System.TestLibraries.Utilities;
+using System.TestLibraries.Security.AccessControl;
+
 codeunit 132604 "Checklist Facade Test"
 {
     Subtype = Test;

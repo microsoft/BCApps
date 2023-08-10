@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Tooling;
+
 /// <summary>
 /// A single-record table that can be used to handle contention between multiple subscribers of the events for the SmartList Designer.
 /// Consumers of the events should check this record to see if another extension is registered as the handler and then decide if they

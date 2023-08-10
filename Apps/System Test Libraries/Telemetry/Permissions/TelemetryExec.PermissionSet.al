@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestLibraries.Telemetry;
+
+using System.Telemetry;
+
 permissionset 139482 "Telemetry Exec"
 {
     Assignable = true;

@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration.Sharepoint;
+
 /// <summary>
 /// Provides functionality for creating means for authorizing HTTP requests made to SharePoint REST API.
 /// </summary>

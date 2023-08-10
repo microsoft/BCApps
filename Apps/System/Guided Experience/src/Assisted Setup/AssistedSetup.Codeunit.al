@@ -4,6 +4,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Media;
+
 /// <summary>Manage assisted setup guides by allowing the addition of new guides to the list, and updating whether a guide has been completed.</summary>
 codeunit 3725 "Assisted Setup"
 {

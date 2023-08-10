@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Text;
+
+using System.Azure.AI;
+
 /// <summary>
 /// A reusable component to modify entity texts with a rich text editor.
 /// See the "Entity Text" page for an example implementation.
@@ -29,6 +33,7 @@ page 2012 "Entity Text Part"
                 {
                     ApplicationArea = All;
                     MultiLine = true;
+                    ExtendedDatatype = RichContent;
                     CaptionClass = ContentCaption;
                     ToolTip = 'Specifies the rich text content of the text.';
                     Style = Attention;

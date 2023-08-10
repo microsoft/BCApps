@@ -1,7 +1,9 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace System.Environment.Configuration;
 
 /// <summary>
 /// Page that enables a user to pick which new features to use
@@ -33,7 +35,7 @@ page 2610 "Feature Management"
                 field(FeatureDescription; Rec.Description)
                 {
                     Caption = 'Feature';
-                    ToolTip = 'The name of the new capability or change in design.';
+                    Tooltip = 'Specifies the name of the new capability or change in design.';
                     ApplicationArea = All;
                     Editable = false;
                     Width = 60;
@@ -102,7 +104,9 @@ page 2610 "Feature Management"
                     ApplicationArea = All;
                     Editable = false;
                     Enabled = Rec."Can Try";
+#pragma warning disable AA0219
                     ToolTip = 'Starts a new session with the feature temporarily enabled (opens in a new tab). This does not affect any other users.';
+#pragma warning restore AA0219
                     trigger OnDrillDown()
                     begin
                         if Rec."Can Try" then begin

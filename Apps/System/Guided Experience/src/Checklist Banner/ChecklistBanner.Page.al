@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Environment;
+
 /// <summary>
 /// Lists the checklist items that a user should go through to finalize their onboarding experience.
 /// </summary>
@@ -30,37 +34,37 @@ page 1990 "Checklist Banner"
             field(Title; TitleTxt)
             {
                 ApplicationArea = All;
-                ToolTip = 'Title';
+                ToolTip = 'Specifies the title.';
                 Caption = 'Title';
             }
             field(Header; HeaderTxt)
             {
                 ApplicationArea = All;
-                ToolTip = 'Header';
+                ToolTip = 'Specifies the header.';
                 Caption = 'Header';
             }
             field(Description; DescriptionTxt)
             {
                 ApplicationArea = All;
-                ToolTip = 'Description';
+                ToolTip = 'Specifies the description.';
                 Caption = 'Description';
             }
             field(TitleCollapsed; TitleCollapsedTxt)
             {
                 ApplicationArea = All;
-                ToolTip = 'Title';
+                ToolTip = 'Specifies the title.';
                 Caption = 'Title';
             }
             field(HeaderCollapsed; HeaderCollapsedTxt)
             {
                 ApplicationArea = All;
-                ToolTip = 'Description';
+                ToolTip = 'Specifies the description.';
                 Caption = 'Description';
             }
             field(SetupMarkAsDone; MarkChecklistAsCompleted)
             {
                 ApplicationArea = All;
-                ToolTip = 'Mark as completed';
+                ToolTip = 'Specifies the task as completed.';
                 Caption = 'Mark as completed';
 
                 trigger OnValidate()
@@ -83,41 +87,41 @@ page 1990 "Checklist Banner"
                 field(TaskTitle; Rec."Short Title")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Title';
+                    ToolTip = 'Specifies the title.';
                 }
                 field(TaskHeader; Rec.Title)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Header';
+                    ToolTip = 'Specifies the header.';
                 }
                 field(TaskDescription; Rec.Description)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Description';
+                    ToolTip = 'Specifies the description.';
                 }
                 field(TaskStatus; Rec.Status)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Status';
+                    ToolTip = 'Specifies the status.';
                 }
                 field(TaskStatusText; ChecklistBannerImpl.GetStatusText(Rec))
                 {
                     ApplicationArea = All;
                     Visible = Rec.Status <> Rec.Status::Started;
-                    ToolTip = 'Status';
+                    ToolTip = 'Specifies the status.';
                     Caption = 'Status';
                 }
                 field(TaskExclusiveWhenStarted; true)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Exclusive when started';
+                    ToolTip = 'Specifies the task is exclusive when started.';
                     Caption = 'Exclusive when started';
                 }
                 field(TaskMarkAsCompleted; MarkChecklistItemAsCompleted)
                 {
                     ApplicationArea = All;
                     Caption = 'Mark as completed';
-                    ToolTip = 'Mark as completed';
+                    Tooltip = 'Specifies the task as completed.';
                     Visible = IsChecklistItemStarted;
 
                     trigger OnValidate()

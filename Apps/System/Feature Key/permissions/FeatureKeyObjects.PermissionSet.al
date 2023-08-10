@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.DateTime;
+
 permissionset 2609 "Feature Key - Objects"
 {
     Access = Internal;

@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Media;
+
 /// <summary>
 /// Manage the guided experience items that users can access.
 /// </summary>
@@ -454,6 +458,14 @@ codeunit 1990 "Guided Experience"
     procedure OpenCombinedSetupList(AppId: Guid)
     begin
         GuidedExperienceImpl.OpenCombinedSetupList(AppId);
+    end;
+
+    /// <summary> Clean up old guided experience items with too many old version. </summary>
+    /// <param name="OnlyFirstParty">If true, only clean up first party items.</param>
+    /// <param name="Limit">The threshold of old version.</param>
+    procedure CleanupOldGuidedExperienceItems(OnlyFirstParty: Boolean; Threshold: Integer)
+    begin
+        GuidedExperienceImpl.CleanupOldGuidedExperienceItems(OnlyFirstParty, Threshold);
     end;
 
     /// <summary>Notifies that the list of assisted setups is being gathered, and that new items might be added.</summary>

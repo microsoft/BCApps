@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.DataAdministration;
+
+using System.Reflection;
+using System.Environment.Configuration;
+
 codeunit 3903 "Retention Policy Setup Impl."
 {
     Access = Internal;

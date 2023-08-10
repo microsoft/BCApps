@@ -3,6 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.ActiveDirectory;
+
+using System;
+using System.Security.User;
+using System.Environment;
+using System.Environment.Configuration;
+using System.Security.AccessControl;
+
 codeunit 9018 "Azure AD Plan Impl."
 {
     Access = Internal;
@@ -533,11 +541,14 @@ codeunit 9018 "Azure AD Plan Impl."
     var
         PlanIds: Codeunit "Plan IDs";
         DirectoryRole: DotNet RoleInfo;
+        RoleId: Guid;
     begin
         if not IsNull(GraphUserInfo.Roles()) then
-            foreach DirectoryRole in GraphUserInfo.Roles() do
-                if DirectoryRole.RoleTemplateId() in [PlanIds.GetGlobalAdminPlanId(), PlanIds.GetD365AdminPlanId()] then
+            foreach DirectoryRole in GraphUserInfo.Roles() do begin
+                RoleId := DirectoryRole.RoleTemplateId();
+                if RoleId in [PlanIds.GetGlobalAdminPlanId(), PlanIds.GetD365AdminPlanId()] then
                     exit(true);
+            end;
 
         exit(false);
     end;
@@ -627,7 +638,7 @@ codeunit 9018 "Azure AD Plan Impl."
     This procedure can be moved to app AzureADGraphUser when usage of UserPlans is no longer needed.
     */
     [NonDebuggable]
-    local procedure IsUserExternalAccountant(): Boolean
+    procedure IsUserExternalAccountant(): Boolean
     var
         UserPlan: Record "User Plan";
         PlanIds: Codeunit "Plan Ids";

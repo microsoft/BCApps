@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Media;
+
 /// <summary>This page shows all registered videos.</summary>
 page 1470 "Product Videos"
 {

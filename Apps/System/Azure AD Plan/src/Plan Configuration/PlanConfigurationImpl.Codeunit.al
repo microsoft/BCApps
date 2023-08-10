@@ -3,6 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.ActiveDirectory;
+
+using System.Telemetry;
+using System.Security.User;
+using System.Security.AccessControl;
+using System.Environment;
+
 codeunit 9822 "Plan Configuration Impl."
 {
     Access = Internal;

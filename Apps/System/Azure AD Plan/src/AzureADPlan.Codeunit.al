@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.ActiveDirectory;
+
+using System;
+
 /// <summary>
 /// Retrieve plans in Azure AD and manage plans
 /// </summary>
@@ -365,6 +369,17 @@ codeunit 9016 "Azure AD Plan"
     procedure IsUserExternal(): Boolean
     begin
         exit(AzureAdPlanImpl.IsUserExternal());
+    end;
+
+    /// <summary>    
+    /// Checks whether the current user is external accountant.
+    /// </summary>
+    /// <returns>True if the current user is external accountant, false otherwise.</returns>
+    [Scope('OnPrem')]
+    [NonDebuggable]
+    procedure IsUserExternalAccountant(): Boolean
+    begin
+        exit(AzureAdPlanImpl.IsUserExternalAccountant());
     end;
 
 #if not CLEAN22

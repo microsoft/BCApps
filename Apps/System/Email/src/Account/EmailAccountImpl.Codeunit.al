@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Email;
+
+using System;
+using System.Utilities;
+using System.Text;
+
 codeunit 8889 "Email Account Impl."
 {
     Access = Internal;

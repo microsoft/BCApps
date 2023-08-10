@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Email;
+
+using System.Security.AccessControl;
+
 /// <summary>Holds information about draft emails and email that are about to be sent.</summary>
 table 8888 "Email Outbox"
 {

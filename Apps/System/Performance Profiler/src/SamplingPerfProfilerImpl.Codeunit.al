@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Tooling;
+
+using System;
+using System.Utilities;
+
 codeunit 1925 "Sampling Perf. Profiler Impl."
 {
     Access = Internal;

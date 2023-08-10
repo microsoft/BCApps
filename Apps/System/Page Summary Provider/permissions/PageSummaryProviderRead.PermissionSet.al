@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration;
+
+using System.Environment;
+using System.Environment.Configuration;
+using System.Reflection;
+
 permissionset 2715 "Page Summary Provider - Read"
 {
     Access = Internal;

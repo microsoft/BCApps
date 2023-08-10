@@ -3,6 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.ActiveDirectory;
+
+using System;
+using System.Security.User;
+using System.Globalization;
+using System.Security.AccessControl;
+using System.Environment.Configuration;
+
 codeunit 9029 "Azure AD User Sync Impl."
 {
     Access = Internal;

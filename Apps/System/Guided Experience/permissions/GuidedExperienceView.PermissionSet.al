@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Upgrade;
+using System.Globalization;
+using System.Reflection;
+
 permissionset 1992 "Guided Experience - View"
 {
     Access = Public;

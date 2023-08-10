@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
 /// <summary>
 /// Exposes functionality for working with security groups.
 /// Security groups correspond to either Windows groups or AAD security groups depending on the authentication type.

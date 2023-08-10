@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Reflection;
+
+using System;
+using System.Integration;
+
 /// <summary>
 /// Implementation for looking up records.
 /// </summary>

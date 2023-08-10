@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.ActiveDirectory;
+
+using System.Utilities;
+using System.Environment.Configuration;
+using System.Security.User;
+
 /// <summary>
 /// Administrators can use this page to synchronize information about users from Microsoft 365 to Business Central.
 /// </summary>
@@ -101,27 +107,27 @@ page 9515 "Azure AD User Update Wizard"
                     {
                         field(DisplayName; Rec."Display Name")
                         {
-                            ToolTip = 'The display name';
+                            Tooltip = 'Specifies the display name';
                             ApplicationArea = All;
                         }
                         field(CurrentLicense; Rec."Current Value")
                         {
                             Caption = 'Current plan';
-                            ToolTip = 'The current of user entity';
+                            Tooltip = 'Specifies the current of user entity';
                             Editable = false;
                             ApplicationArea = All;
                         }
                         field(NewLicense; Rec."New Value")
                         {
                             Caption = 'New plan';
-                            ToolTip = 'The new value of user entity';
+                            Tooltip = 'Specifies the new value of user entity';
                             Editable = false;
                             ApplicationArea = All;
                         }
                         field(PermissionAction; Rec."Permission Change Action")
                         {
                             Caption = 'Action';
-                            ToolTip = 'Choose how this license change should be handled';
+                            ToolTip = 'Specifies how this license change should be handled';
                             ApplicationArea = All;
                             Enabled = Rec."Update Type" = Rec."Update Type"::Change;
 

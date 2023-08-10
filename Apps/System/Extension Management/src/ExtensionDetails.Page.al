@@ -1,7 +1,13 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace System.Environment.Configuration;
+
+using System.Environment;
+using System.Globalization;
+using System.Apps;
 
 /// <summary>
 /// Displays details about the selected extension, and offers features for installing and uninstalling it.
@@ -300,7 +306,7 @@ page 2501 "Extension Details"
                         {
                             ApplicationArea = All;
                             Caption = 'I accept the terms and conditions';
-                            ToolTip = 'Acceptance of terms and conditions.';
+                            ToolTip = 'Specifies the acceptance of terms and conditions.';
                             Visible = Legal;
                         }
                     }

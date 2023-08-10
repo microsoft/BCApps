@@ -3,6 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration;
+
+using System;
+using System.Text;
+using System.Reflection;
+using System.Environment;
+
 /// <summary>
 /// Implements functionality to get summary data for a given object.
 /// </summary>

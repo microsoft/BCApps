@@ -4,6 +4,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Tooling;
+
 permissionset 2888 "SL Designer Subscribers - Read"
 {
     Access = Internal;

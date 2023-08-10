@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Device;
+
+using System.Utilities;
+
 /// <summary>
 /// Provides an interface for accessing the camera on the client device.
 /// </summary>

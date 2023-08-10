@@ -3,6 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Email;
+
+using System.Telemetry;
+using System.IO;
+using System.Utilities;
+using System.Integration.Word;
+using System.Environment;
+
 codeunit 8906 "Email Editor"
 {
     Access = Internal;

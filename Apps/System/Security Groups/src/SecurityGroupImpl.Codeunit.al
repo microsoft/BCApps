@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
+using System;
+using System.Telemetry;
+using System.Azure.ActiveDirectory;
+
 codeunit 9871 "Security Group Impl."
 {
     Access = Internal;
@@ -516,20 +522,6 @@ codeunit 9871 "Security Group Impl."
             exit(CopyStr(GroupDomainAndNameList.Get(GroupDomainAndNameList.Count()), 1, 20));
         end else
             exit(CopyStr(GroupName, 1, 20));
-    end;
-
-    procedure LookupPermissionSet(AllowMultiselect: Boolean; var AccessControl: Record "Access Control"; var PermissionSetLookupRecord: Record "Aggregate Permission Set"): Boolean
-    var
-        PermissionSetRelation: Codeunit "Permission Set Relation";
-    begin
-        if PermissionSetRelation.LookupPermissionSet(AllowMultiselect, PermissionSetLookupRecord) then begin
-            AccessControl."Role ID" := PermissionSetLookupRecord."Role ID";
-            AccessControl.Scope := PermissionSetLookupRecord.Scope;
-            AccessControl."App ID" := PermissionSetLookupRecord."App ID";
-            AccessControl.CalcFields("Role Name");
-            exit(true);
-        end;
-        exit(false);
     end;
 
     [InternalEvent(false)]

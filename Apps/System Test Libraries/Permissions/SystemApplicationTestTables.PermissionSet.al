@@ -3,6 +3,19 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestLibraries.Security.AccessControl;
+
+using System.TestLibraries.Visualization;
+using System.TestLibraries.Integration.Excel;
+using System.TestLibraries.Device;
+using System.TestLibraries.Email;
+using System.TestLibraries.Reflection;
+using System.TestLibraries.Integration;
+using System.TestLibraries.Utilities;
+using System.TestLibraries.DataAdministration;
+using System.TestLibraries.Globalization;
+using System.TestLibraries.Media;
+
 permissionset 132585 "System Application Test Tables"
 {
     Access = Public;

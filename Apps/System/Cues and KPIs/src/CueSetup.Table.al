@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Visualization;
+
+using System.Security.User;
+using System.Reflection;
+using System.Security.AccessControl;
+
 table 9701 "Cue Setup"
 {
     Access = Internal;

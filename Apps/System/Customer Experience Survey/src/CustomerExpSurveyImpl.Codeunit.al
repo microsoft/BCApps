@@ -3,6 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Feedback;
+
+using System;
+using System.Globalization;
+using System.Azure.ActiveDirectory;
+using System.Environment;
+using System.Environment.Configuration;
+
 codeunit 9261 "Customer Exp. Survey Impl."
 {
     Access = Internal;

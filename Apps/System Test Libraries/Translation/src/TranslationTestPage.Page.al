@@ -1,7 +1,11 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace System.TestLibraries.Globalization;
+
+using System.Globalization;
 
 page 137121 "Translation Test Page"
 {
@@ -23,7 +27,7 @@ page 137121 "Translation Test Page"
                 {
                     ApplicationArea = All;
                     Caption = 'Text field';
-                    ToolTip = 'Specified the translated value.';
+                    ToolTip = 'Specifies the translated value.';
 
                     trigger OnAssistEdit()
                     begin
