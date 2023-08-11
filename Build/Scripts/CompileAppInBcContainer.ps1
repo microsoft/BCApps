@@ -27,34 +27,46 @@ if($app)
         Restore-TranslationsForApp -AppProjectFolder $parameters["appProjectFolder"]
     }
 
-    # Restore the baseline app and generate the AppSourceCop.json file
     if (($parameters.ContainsKey("EnableAppSourceCop") -and $parameters["EnableAppSourceCop"]) -or ($parameters.ContainsKey("EnablePerTenantExtensionCop") -and $parameters["EnablePerTenantExtensionCop"])) {
-        Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
-        if($appBuildMode -ne 'Clean') {
-            Enable-BreakingChangesCheck -AppSymbolsFolder $parameters["appSymbolsFolder"] -AppProjectFolder $parameters["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
-        }
-        else {
-            # TODO make better
+        # Breaking changes check is enabled, so we need to generate the AppSourceCop.json file and provide the baseline app file
+        
+        if($appBuildMode -eq 'Clean') {
+            # For the clean build mode, compile the app to generate the default app file to use as a baseline
 
-            $tempParams = $parameters.Clone()
-            if ($tempParams.ContainsKey("EnableAppSourceCop")) {
-                $tempParams.Remove("EnableAppSourceCop")
-            }
-            if ($tempParams.ContainsKey("EnablePerTenantExtensionCop")) {
-                $tempParams.Remove("EnablePerTenantExtensionCop")
-            }
-            # wipe the preprocessor symbols (build in default mode)
-            $tempParams["preProcessorSymbols"] = @()
+            $defaultAppParams = $parameters.Clone()
 
-            $defaultAppFile = Compile-AppInBcContainer @tempParams
+            # No need to generate the AppSourceCop.json file for the default app file
+            $defaultAppParams.Remove("EnableAppSourceCop")
+            $defaultAppParams.Remove("EnablePerTenantExtensionCop")
 
-            $appSymbolsFolder = $tempParams["appSymbolsFolder"]
+            # Wipe the preprocessor symbols (build in default mode)
+            $defaultAppParams["preProcessorSymbols"] = @()
+
+            $defaultAppFilePath = Compile-AppInBcContainer @defaultAppParams
+
+            $defaultAppFilePath -match "(.*)_(.*)_(.*).app$" | Out-Null
+            $defaultAppVersion = $Matches[3]
+
+            $appSymbolsFolder = $parameters["appSymbolsFolder"]
             if (-not (Test-Path $appSymbolsFolder)) {
                 New-Item -ItemType Directory -Path $appSymbolsFolder | Out-Null
             }
     
             # Copy the default app file to the app symbols folder to be used as a baseline
-            Copy-Item -Path $defaultAppFile -Destination $appSymbolsFolder | Out-Null
+            Copy-Item -Path $defaultAppFilePath -Destination $appSymbolsFolder | Out-Null
+
+            # Get name of the app from app.json
+            $appJson = Join-Path $parameters["appProjectFolder"] "app.json"
+            $applicationName = (Get-Content -Path $appJson | ConvertFrom-Json).Name
+
+            # Generate the AppSourceCop.json file
+            Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
+            Update-AppSourceCopVersion -ExtensionFolder $parameters["appProjectFolder"] -AppName $applicationName -BaselineVersion $defaultAppVersion
+        }
+        else {
+            # Restore the baseline app and generate the AppSourceCop.json file
+            Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
+            Enable-BreakingChangesCheck -AppSymbolsFolder $parameters["appSymbolsFolder"] -AppProjectFolder $parameters["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
         }
     }
 }
