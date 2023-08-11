@@ -25,7 +25,6 @@ function Enable-BreakingChangesCheck {
     # Get name of the app from app.json
     $appJson = Join-Path $AppProjectFolder "app.json"
     $applicationName = (Get-Content -Path $appJson | ConvertFrom-Json).Name
-    [System.Version] $applicationVersion = (Get-Content -Path $appJson | ConvertFrom-Json).Version
 
     # Get the baseline version
     $baselineVersion = Get-BaselineVersion -BuildMode $BuildMode

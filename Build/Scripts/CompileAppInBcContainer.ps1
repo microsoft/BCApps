@@ -30,7 +30,32 @@ if($app)
     # Restore the baseline app and generate the AppSourceCop.json file
     if (($parameters.ContainsKey("EnableAppSourceCop") -and $parameters["EnableAppSourceCop"]) -or ($parameters.ContainsKey("EnablePerTenantExtensionCop") -and $parameters["EnablePerTenantExtensionCop"])) {
         Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
-        Enable-BreakingChangesCheck -AppSymbolsFolder $parameters["appSymbolsFolder"] -AppProjectFolder $parameters["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
+        if($appBuildMode -ne 'Clean') {
+            Enable-BreakingChangesCheck -AppSymbolsFolder $parameters["appSymbolsFolder"] -AppProjectFolder $parameters["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
+        }
+        else {
+            # TODO make better
+
+            $tempParams = $parameters.Clone()
+            if ($tempParams.ContainsKey("EnableAppSourceCop")) {
+                $tempParams.Remove("EnableAppSourceCop")
+            }
+            if ($tempParams.ContainsKey("EnablePerTenantExtensionCop")) {
+                $tempParams.Remove("EnablePerTenantExtensionCop")
+            }
+            # wipe the preprocessor symbols (build in default mode)
+            $tempParams["preProcessorSymbols"] = @()
+
+            $defaultAppFile = Compile-AppInBcContainer @tempParams
+
+            $appSymbolsFolder = $tempParams["appSymbolsFolder"]
+            if (-not (Test-Path $appSymbolsFolder)) {
+                New-Item -ItemType Directory -Path $appSymbolsFolder | Out-Null
+            }
+    
+            # Copy the default app file to the app symbols folder to be used as a baseline
+            Copy-Item -Path $defaultAppFile -Destination $appSymbolsFolder | Out-Null
+        }
     }
 }
 
