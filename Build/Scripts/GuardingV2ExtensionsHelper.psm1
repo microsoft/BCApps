@@ -216,8 +216,6 @@ function Update-AppSourceCopVersion
     if (-not (Test-Path $appSourceCopJsonPath)) {
         throw "AppSourceCop.json does not exist in path: $appSourceCopJsonPath"
     }
-
-    return $appSourceCopJsonPath
 }
 
 <#
