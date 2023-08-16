@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
 /// <summary>This page shows all registered manual setups.</summary>
 page 1875 "Manual Setup"
 {
@@ -93,19 +95,8 @@ page 1875 "Manual Setup"
     var
         GuidedExperienceImpl: Codeunit "Guided Experience Impl.";
         GuidedExperience: Codeunit "Guided Experience";
-#if not CLEAN18
-#pragma warning disable AL0432
-        ManualSetup: Codeunit "Manual Setup";
-#pragma warning restore
-#endif
     begin
         GuidedExperience.OnRegisterManualSetup();
-#if not CLEAN18
-#pragma warning disable AL0432
-        ManualSetup.OnRegisterManualSetup();
-#pragma warning restore
-#endif
-
         GuidedExperienceImpl.GetContentForSetupPage(Rec, Rec."Guided Experience Type"::"Manual Setup");
 
         if FilterSet then

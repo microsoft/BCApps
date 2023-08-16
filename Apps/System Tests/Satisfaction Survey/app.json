@@ -66,6 +66,12 @@
                              "version":  "23.0.0.0"
                          },
                          {
+                             "id":  "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
+                             "name":  "Any",
+                             "publisher":  "Microsoft",
+                             "version":  "23.0.0.0"
+                         },
+                         {
                              "id":  "03ecb409-cce1-4f5b-b194-6ad3ad3d7378",
                              "name":  "Satisfaction Survey Test Library",
                              "publisher":  "Microsoft",

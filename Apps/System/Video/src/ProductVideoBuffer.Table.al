@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Media;
+
+using System.Apps;
+
 table 1470 "Product Video Buffer"
 {
     Access = Internal;

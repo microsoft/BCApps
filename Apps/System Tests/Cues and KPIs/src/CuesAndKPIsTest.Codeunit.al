@@ -3,6 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Visualization;
+
+using System.TestLibraries.Visualization;
+using System.Visualization;
+using System.TestLibraries.Utilities;
+using System.TestLibraries.Security.AccessControl;
+
 codeunit 135039 "Cues And KPIs Test"
 {
     Subtype = Test;

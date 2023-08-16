@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.DateTime;
+
+using System.Environment.Configuration;
+
 permissionset 9216 "Time Zone Selection - Read"
 {
     Assignable = false;

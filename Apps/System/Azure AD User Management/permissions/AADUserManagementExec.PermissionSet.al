@@ -3,6 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.Identity;
+
+using System.Globalization;
+using System.Telemetry;
+using System.Security.AccessControl;
+using System.Environment.Configuration;
+
 permissionset 9515 "AAD User Management - Exec"
 {
     Access = Public;

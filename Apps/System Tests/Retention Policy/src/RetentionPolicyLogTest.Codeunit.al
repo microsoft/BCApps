@@ -3,6 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.DataAdministration;
+
+using System.DataAdministration;
+using System.TestLibraries.DataAdministration;
+using System.TestLibraries.Utilities;
+using System.TestLibraries.Security.AccessControl;
+
 // This codeunit must be executed by a test-runnner which has test-isolation disabled. 
 
 codeunit 138705 "Retention Policy Log Test"

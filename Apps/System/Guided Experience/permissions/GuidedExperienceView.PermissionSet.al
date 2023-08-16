@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Upgrade;
+using System.Globalization;
+using System.Reflection;
+
 permissionset 1992 "Guided Experience - View"
 {
     Access = Public;
@@ -13,12 +19,6 @@ permissionset 1992 "Guided Experience - View"
                              "Translation - Edit";
 
     Permissions = tabledata AllObj = r,
-#if not CLEAN18
-#pragma warning disable AL0432
-                  tabledata "Assisted Setup Log" = imd,
-                  tabledata "Business Setup Icon" = imd,
-#pragma warning restore
-#endif
                   tabledata "Checklist Item" = imd,
                   tabledata "Checklist Item Role" = imd, // the modify permissions are necessary for the Checklist Item Roles page to work correctly
                   tabledata "Checklist Item User" = imd,

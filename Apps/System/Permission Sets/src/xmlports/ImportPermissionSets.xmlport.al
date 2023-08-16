@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
+using System.Security.User;
+
 /// <summary>
 /// Xmlport for importing permission sets.
 /// </summary>

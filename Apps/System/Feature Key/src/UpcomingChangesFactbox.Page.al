@@ -4,6 +4,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
 /// <summary>
 /// Factbox part page that enables a user to learn more about upcoming changes
 /// </summary>

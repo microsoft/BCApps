@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.DataAdministration;
+
 /// <summary>
 /// The Retention Periods table is used to define retention periods.
 /// You define a retention period by selecting one of the default values in the Retention Period field, or by selecting the Custom value and providing a date formula.

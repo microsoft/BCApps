@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestLibraries.Visualization;
+
 table 135039 "Cues And KPIs Test 1 Cue"
 {
     DataClassification = SystemMetadata;

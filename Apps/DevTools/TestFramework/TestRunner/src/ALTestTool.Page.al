@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestTools.TestRunner;
+
+using System.TestTools.CodeCoverage;
+
 page 130451 "AL Test Tool"
 {
     AccessByPermission = TableData "Test Method Line" = RIMD;
@@ -111,7 +115,7 @@ page 130451 "AL Test Tool"
                 field(LineType; Rec."Line Type")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specified the line type.';
+                    Tooltip = 'Specifies the line type.';
                     Caption = 'Line Type';
                     Editable = false;
                     Style = Strong;

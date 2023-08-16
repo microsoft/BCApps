@@ -1,7 +1,11 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace System.Security.Encryption;
+
+using System.Environment;
 
 /// <summary>
 /// Exposes functionality that allows super users for on-premises versions to enable or disable encryption, import, export or change the encryption key.

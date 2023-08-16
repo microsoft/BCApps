@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestTools.TestRunner;
+
+using System.Reflection;
+
 table 130450 "Test Method Line"
 {
     DataClassification = CustomerContent;

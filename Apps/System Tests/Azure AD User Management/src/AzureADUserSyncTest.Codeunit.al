@@ -3,6 +3,18 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Azure.ActiveDirectory;
+
+using System.TestLibraries.Environment;
+using System.TestLibraries.Azure.ActiveDirectory;
+using System.TestLibraries.Mocking;
+using System.Security.AccessControl;
+using System.Azure.Identity;
+using System;
+using System.Environment.Configuration;
+using System.Globalization;
+using System.TestLibraries.Utilities;
+
 codeunit 132928 "Azure AD User Sync Test"
 {
     Subtype = Test;

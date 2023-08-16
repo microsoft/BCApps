@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration.Word;
+
+using System.Globalization;
+using System.Reflection;
+using System.Telemetry;
+
 permissionset 9986 "Word Templates - Read"
 {
     Access = Internal;

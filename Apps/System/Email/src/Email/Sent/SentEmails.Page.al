@@ -3,12 +3,16 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Email;
+
 /// <summary>
 /// Provides an overview of all e-mail that were sent out.
 /// </summary>
 page 8883 "Sent Emails"
 {
+#pragma warning disable AS0035 // Changed from Worksheet to List
     PageType = List;
+#pragma warning restore AS0035
     Caption = 'Sent Emails';
     ApplicationArea = All;
     UsageCategory = Administration;

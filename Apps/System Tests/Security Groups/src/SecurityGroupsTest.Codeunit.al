@@ -3,6 +3,17 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Security.AccessControl;
+
+using System.TestLibraries.Environment;
+using System.TestLibraries.Azure.ActiveDirectory;
+using System.TestLibraries.Security.AccessControl;
+using System.TestLibraries.Mocking;
+using System.Security.AccessControl;
+using System;
+using System.Utilities;
+using System.TestLibraries.Utilities;
+
 codeunit 135016 "Security Groups Test"
 {
     Subtype = Test;
@@ -19,7 +30,7 @@ codeunit 135016 "Security Groups Test"
         TestCompanyNameTxt: Label 'TestCompany';
         TestSecurityGroupIdTxt: Label 'security group test ID';
         TestSecurityGroupNameTxt: Label 'Test AAD group';
-        InvalidAadGroupErr: Label 'The group ID %1 does not correspond to a valid AAD group.', Comment = '%1 = AAD security group ID';
+        InvalidAadGroupErr: Label 'The group ID %1 does not correspond to a valid Microsoft Entra group.', Comment = '%1 = Microsoft Entra security group ID';
         InsertedMsg: Label '%1 security groups with a total of %2 permission sets were inserted.', Comment = '%1 and %2 are numbers/quantities.';
         ExpectedTheSameValueErr: Label 'Expected the values to be the same';
         Scope: Option System,Tenant;

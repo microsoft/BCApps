@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
 table 1807 "Assisted Setup Log"
 {
     Access = Internal;
@@ -10,13 +12,8 @@ table 1807 "Assisted Setup Log"
     InherentPermissions = X;
     Caption = 'Assisted Setup Log';
     ReplicateData = false;
-#if CLEAN18
     ObsoleteState = Removed;
     ObsoleteTag = '23.0';
-#else
-    ObsoleteState = Pending;
-    ObsoleteTag = '18.0';
-#endif
     ObsoleteReason = 'The logs are not used.';
 
     fields

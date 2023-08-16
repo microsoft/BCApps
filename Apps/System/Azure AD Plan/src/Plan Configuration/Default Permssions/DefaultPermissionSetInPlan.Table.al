@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.Identity;
+
+using System.Security.AccessControl;
+using System.Apps;
+
 table 9019 "Default Permission Set In Plan"
 {
     Caption = 'Default Permissions in License';

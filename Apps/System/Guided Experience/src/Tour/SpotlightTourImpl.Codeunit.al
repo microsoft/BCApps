@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System;
+
 codeunit 3726 "Spotlight Tour Impl."
 {
     Access = Internal;

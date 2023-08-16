@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Media;
+using System.Globalization;
+using System.Apps;
+
 table 1803 "Assisted Setup"
 {
     Access = Internal;
@@ -10,13 +16,8 @@ table 1803 "Assisted Setup"
     InherentPermissions = X;
     Caption = 'Assisted Setup';
     ReplicateData = false;
-#if CLEAN18
     ObsoleteState = Removed;
     ObsoleteTag = '23.0';
-#else
-    ObsoleteState = Pending;
-    ObsoleteTag = '18.0';
-#endif
     ObsoleteReason = 'The Assisted Setup module and its objects have been consolidated in the Guided Experience module. Use the Guided Experience Item table instead.';
 
     fields

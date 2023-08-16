@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Feedback;
+
+using System.Upgrade;
+using System.Reflection;
+
 permissionset 1433 "Satisfaction Survey - View"
 {
     Access = Internal;

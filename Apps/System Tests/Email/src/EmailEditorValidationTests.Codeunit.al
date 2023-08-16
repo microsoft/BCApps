@@ -3,6 +3,15 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Email;
+
+using System.Email;
+using System.TestLibraries.Email;
+using System.TestLibraries.Integration.Word;
+using System.Integration.Word;
+using System.TestLibraries.Utilities;
+using System.TestLibraries.Security.AccessControl;
+
 codeunit 134696 "Email Editor Validation Tests"
 {
     SubType = Test;

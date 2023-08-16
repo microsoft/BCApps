@@ -3,6 +3,16 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Environment.Configuration;
+
+using System.Environment.Configuration;
+using System.Media;
+using System.Reflection;
+using System.Security.AccessControl;
+using System.Environment;
+using System.TestLibraries.Utilities;
+using System.TestLibraries.Security.AccessControl;
+
 codeunit 132604 "Checklist Facade Test"
 {
     Subtype = Test;
@@ -2798,11 +2808,6 @@ ObjectIDToRun2, ManualSetupCategory::Uncategorized, '');
         // [THEN] The result is false
         Assert.IsFalse(Checklist.ShouldInitializeChecklist(true),
             'The checklist should not be initialized for evaluation companies.');
-#if not CLEAN19
-#pragma warning disable AL0432
-        Assert.IsFalse(Checklist.ShouldInitializeChecklist(), 'The checklist should not be initialized for evaluation companies.');
-#pragma warning restore AL0432
-#endif
     end;
 
     [Test]
@@ -2824,11 +2829,6 @@ ObjectIDToRun2, ManualSetupCategory::Uncategorized, '');
         // [THEN] The result is true
         Assert.IsTrue(Checklist.ShouldInitializeChecklist(true),
             'The checklist should be initialized when the Checklist Setup table is empty.');
-#if not CLEAN19
-#pragma warning disable AL0432
-        Assert.IsTrue(Checklist.ShouldInitializeChecklist(), 'The checklist should be initialized when the Checklist Setup table is empty.');
-#pragma warning restore AL0432
-#endif
     end;
 
     [Test]
@@ -2852,11 +2852,6 @@ ObjectIDToRun2, ManualSetupCategory::Uncategorized, '');
         // [THEN] The result is true
         Assert.IsTrue(Checklist.ShouldInitializeChecklist(true),
             'The checklist should be initialized when the setup is not done.');
-#if not CLEAN19
-#pragma warning disable AL0432
-        Assert.IsTrue(Checklist.ShouldInitializeChecklist(), 'The checklist should be initialized when the setup is not done.');
-#pragma warning restore AL0432
-#endif
     end;
 
     [Test]
@@ -2880,11 +2875,6 @@ ObjectIDToRun2, ManualSetupCategory::Uncategorized, '');
         // [THEN] The result is true
         Assert.IsFalse(Checklist.ShouldInitializeChecklist(true),
             'The checklist should not be initialized when the setup is done.');
-#if not CLEAN19
-#pragma warning disable AL0432
-        Assert.IsFalse(Checklist.ShouldInitializeChecklist(), 'The checklist should not be initialized when the setup is done.');
-#pragma warning restore AL0432
-#endif
     end;
 
     [Test]

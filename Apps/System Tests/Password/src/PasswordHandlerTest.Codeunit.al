@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Security.AccessControl;
+
+using System.Security.AccessControl;
+using System.TestLibraries.Utilities;
+using System.TestLibraries.Security.AccessControl;
+
 codeunit 132578 "Password Handler Test"
 {
     Subtype = Test;

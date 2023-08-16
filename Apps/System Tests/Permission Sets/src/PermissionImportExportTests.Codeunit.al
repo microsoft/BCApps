@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Security.AccessControl;
+
+using System.Security.AccessControl;
+using System.Utilities;
+using System.TestLibraries.Utilities;
+
 codeunit 132437 "Permission Import Export Tests"
 {
     // [FEATURE] [Permission Sets] [UT]

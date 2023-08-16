@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
 /// <summary>
 /// This permission set is required to turn a feature on or off.
 /// </summary>

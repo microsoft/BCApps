@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestLibraries.DateTime;
+
+using System.DateTime;
+
 permissionset 134691 "Recurrence View"
 {
     Assignable = true;

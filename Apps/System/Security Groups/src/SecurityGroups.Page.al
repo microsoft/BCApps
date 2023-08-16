@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
+using System.Telemetry;
+using System.Utilities;
+using System.Security.User;
+
 /// <summary>
 /// The main page for interacting with security groups.
 /// </summary>
@@ -270,22 +276,22 @@ page 9871 "Security Groups"
     begin
         CanManageUsersOnTenant := UserPermissions.CanManageUsersOnTenant(UserSecurityId());
         FeatureTelemetry.LogUptake('0000JGR', 'Security Groups', Enum::"Feature Uptake Status"::Discovered);
-        RefreshData(false);
+        RefreshData();
         IsWindowsAuthentication := SecurityGroup.IsWindowsAuthentication();
         SecurityGroup.SendNotificationForDeletedGroups(Rec);
     end;
 
     local procedure RefreshData()
+    var
+        NumberOfGroupsBeforeRefresh: Integer;
     begin
-        RefreshData(true);
-    end;
+        NumberOfGroupsBeforeRefresh := Rec.Count();
 
-    local procedure RefreshData(ShouldRefreshMembers: Boolean)
-    begin
         SecurityGroup.GetGroups(Rec);
-        if ShouldRefreshMembers then
-            CurrPage."Security Group Members Part".Page.Refresh();
         AreRecordsPresent := not Rec.IsEmpty();
+
+        if Rec.Count() > NumberOfGroupsBeforeRefresh then
+            CurrPage."Security Group Members Part".Page.Refresh(SecurityGroup);
     end;
 
     local procedure GetSelectedGroupCodes(): List of [Code[20]];

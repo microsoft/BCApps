@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.Identity;
+
 table 9017 "Plan Configuration"
 {
     Access = Internal;

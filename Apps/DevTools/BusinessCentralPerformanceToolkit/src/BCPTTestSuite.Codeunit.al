@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Tooling;
+
 codeunit 149006 "BCPT Test Suite"
 {
     var

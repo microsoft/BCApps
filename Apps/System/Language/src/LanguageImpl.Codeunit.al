@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Globalization;
+
+using System;
+using System.Environment.Configuration;
+using System.Environment;
+
 codeunit 54 "Language Impl."
 {
     Access = Internal;

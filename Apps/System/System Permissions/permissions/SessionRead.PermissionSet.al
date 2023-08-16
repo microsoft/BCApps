@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
+using System.Environment;
+using System.Diagnostics;
+
 permissionset 95 "Session - Read"
 {
     Access = Public;

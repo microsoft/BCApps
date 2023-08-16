@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Media;
+
+using System.Environment.Configuration;
+
 permissionset 1470 "Video - Read"
 {
     Assignable = false;

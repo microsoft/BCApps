@@ -3,6 +3,16 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Media;
+using System.Utilities;
+using System.Globalization;
+using System.Telemetry;
+using System.Reflection;
+using System.Apps;
+using System.Environment;
+
 codeunit 1991 "Guided Experience Impl."
 {
     Access = Internal;
@@ -130,20 +140,10 @@ codeunit 1991 "Guided Experience Impl."
         GuidedExperienceItem: Record "Guided Experience Item";
         PrevGuidedExperienceItem: Record "Guided Experience Item";
         GuidedExperience: Codeunit "Guided Experience";
-#if not CLEAN18
-#pragma warning disable AL0432
-        ManualSetup: Codeunit "Manual Setup";
-#pragma warning restore
-#endif
     begin
         Clear(PageIDs);
 
         GuidedExperience.OnRegisterManualSetup();
-#if not CLEAN18
-#pragma warning disable AL0432
-        ManualSetup.OnRegisterManualSetup();
-#pragma warning restore
-#endif
 
         GuidedExperienceItem.SetCurrentKey("Guided Experience Type", "Object Type to Run", "Object ID to Run", Link, Version);
         GuidedExperienceItem.SetRange("Guided Experience Type", GuidedExperienceItem."Guided Experience Type"::"Manual Setup");
@@ -909,12 +909,6 @@ codeunit 1991 "Guided Experience Impl."
     var
         ConfirmManagement: Codeunit "Confirm Management";
         GuidedExperience: Codeunit "Guided Experience";
-#if not CLEAN18
-#pragma warning disable AL0432
-        AssistedSetup: Codeunit "Assisted Setup";
-        HandledAssistedSetup: Boolean;
-#pragma warning restore
-#endif
         Handled: Boolean;
         ObjectType: ObjectType;
     begin
@@ -924,16 +918,8 @@ codeunit 1991 "Guided Experience Impl."
             GuidedExperience.OnReRunOfCompletedAssistedSetup(GuidedExperienceItem."Extension ID", ObjectType,
                 GuidedExperienceItem."Object ID to Run", Handled);
 
-#if CLEAN18
             if Handled then
                 exit;           
-#else
-#pragma warning disable AL0432
-            AssistedSetup.OnReRunOfCompletedSetup(GuidedExperienceItem."Extension ID", GuidedExperienceItem."Object ID to Run", HandledAssistedSetup);
-            if Handled or HandledAssistedSetup then
-                exit;
-#pragma warning restore
-#endif
 
             if not ConfirmManagement.GetResponse(StrSubstNo(RunSetupAgainQst, GuidedExperienceItem.Title), false) then
                 exit;
@@ -941,12 +927,6 @@ codeunit 1991 "Guided Experience Impl."
 
         RunObject(GuidedExperienceItem);
 
-#if not CLEAN18
-#pragma warning disable AL0432
-        if GuidedExperienceItem."Guided Experience Type" = GuidedExperienceItem."Guided Experience Type"::"Assisted Setup" then
-            AssistedSetup.OnAfterRun(GuidedExperienceItem."Extension ID", GuidedExperienceItem."Object ID to Run");
-#pragma warning restore
-#endif
         if GuidedExperienceItem."Guided Experience Type" = GuidedExperienceItem."Guided Experience Type"::"Assisted Setup" then
             GuidedExperience.OnAfterRunAssistedSetup(GuidedExperienceItem."Extension ID", ObjectType, GuidedExperienceItem."Object ID to Run");
     end;
@@ -1078,25 +1058,12 @@ codeunit 1991 "Guided Experience Impl."
     local procedure OpenRoleBasedSetupExperience(var Handled: Boolean)
     var
         GuidedExperience: Codeunit "Guided Experience";
-#if not CLEAN18
-#pragma warning disable AL0432
-        AssistedSetup: Codeunit "Assisted Setup";
-        HandledAssistedSetup: Boolean;
-#pragma warning restore
-#endif
         RoleBasedSetupExperienceID: Integer;
     begin
         RoleBasedSetupExperienceID := Page::"Assisted Setup";
 
         GuidedExperience.OnBeforeOpenRoleBasedAssistedSetupExperience(RoleBasedSetupExperienceID, Handled);
-#if not CLEAN18
-#pragma warning disable AL0432
-        AssistedSetup.OnBeforeOpenRoleBasedSetupExperience(RoleBasedSetupExperienceID, HandledAssistedSetup);
-        if not (HandledAssistedSetup or Handled) then
-#pragma warning restore
-#else
         if not Handled then
-#endif
             Page.Run(RoleBasedSetupExperienceID);
 
         Handled := true;
@@ -1223,6 +1190,30 @@ codeunit 1991 "Guided Experience Impl."
 
         Telemetry.LogMessage(Tag, Message, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation,
             TelemetryScope::ExtensionPublisher, Dimensions);
+    end;
+
+    procedure CleanupOldGuidedExperienceItems(OnlyFirstParty: Boolean; Threshold: Integer)
+    var
+        GuidedExperienceItem: Record "Guided Experience Item";
+        GuidedExperienceItem2: Record "Guided Experience Item";
+        ItemsToCleanUp: List of [Code[300]];
+        ItemCode: Code[300];
+    begin
+        if OnlyFirstParty then
+            GuidedExperienceItem.SetRange("Extension Publisher", 'Microsoft');
+
+        if GuidedExperienceItem.FindSet() then
+            repeat
+                GuidedExperienceItem2.SetRange(Code, GuidedExperienceItem.Code);
+                if GuidedExperienceItem2.Count() > Threshold then
+                    ItemsToCleanUp.Add(GuidedExperienceItem.Code);
+            until GuidedExperienceItem.Next() = 0;
+
+        foreach ItemCode in ItemsToCleanUp do begin
+            GuidedExperienceItem.SetRange(Code, ItemCode);
+            GuidedExperienceItem.SetRange(Version, 0, GuidedExperienceItem.Count() - 2);
+            GuidedExperienceItem.DeleteAll();
+        end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Guided Experience Item", OnAfterDeleteEvent, '', true, true)]

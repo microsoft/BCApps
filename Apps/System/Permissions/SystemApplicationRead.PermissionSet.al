@@ -3,6 +3,28 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
+using System.Azure.Identity;
+using System.Utilities;
+using System.Visualization;
+using System.Privacy;
+using System.Environment.Configuration;
+using System.Integration.Excel;
+using System.Reflection;
+using System.Globalization;
+using System.Integration;
+using System.Device;
+using System.DateTime;
+using System.DataAdministration;
+using System.Telemetry;
+using System.Environment;
+using System.Upgrade;
+using System.Security.User;
+using System.Media;
+using System.Integration.Word;
+using System.Feedback;
+
 permissionset 21 "System Application - Read"
 {
     Access = Internal;
@@ -31,18 +53,8 @@ permissionset 21 "System Application - Read"
                              "Record Link Management - Read",
                              "Recurrence Schedule - Read",
                              "Retention Policy - Read",
-#if not CLEAN20
-#pragma warning disable AL0432
-                             "Sandbox Cleanup - Read",
-#pragma warning restore AL0432
-#endif
                              "Environment Cleanup - Read",
                              "Satisfaction Survey - Read",
-#if not CLEAN19
-#pragma warning disable AL0432
-                             "SL Designer Subscribers - Read",
-#pragma warning restore AL0432
-#endif
                              "System Initialization - Exec",
                              "Security Groups - Read",
                              "Table Information - Read",

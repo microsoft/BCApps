@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.DataAdministration;
+
+using System.Reflection;
+
 /// <summary>
 /// This table stores the filter used to apply retention policies to subsets of records in a table.
 /// </summary>

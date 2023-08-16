@@ -3,6 +3,15 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Globalization;
+using System.Environment;
+using System.DateTime;
+using System.Security.User;
+using System.Azure.Identity;
+using System.Reflection;
+
 permissionset 9176 "User Settings - View"
 {
     Assignable = false;

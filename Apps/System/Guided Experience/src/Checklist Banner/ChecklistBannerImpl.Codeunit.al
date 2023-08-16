@@ -3,6 +3,17 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System;
+using System.Telemetry;
+using System.Text;
+using System.Media;
+using System.Globalization;
+using System.Security.AccessControl;
+using System.Reflection;
+using System.Environment;
+
 codeunit 1996 "Checklist Banner Impl."
 {
     Access = Internal;
@@ -293,7 +304,7 @@ codeunit 1996 "Checklist Banner Impl."
         if Version <> 0 then
             GuidedExperienceItem.SetRange(Version, Version);
 
-        if (not EntityText.CanSuggest()) or IsThereThirdPartyGuidedExperienceItem() then
+        if (not EntityText.CanSuggest()) or IsThereThirdPartyGuidedExperienceItem(Version) then
             GuidedExperienceItem.SetFilter("Spotlight Tour Type", '<>%1', GuidedExperienceItem."Spotlight Tour Type"::Copilot);
 
         if GuidedExperienceItem.FindLast() then begin
@@ -312,10 +323,12 @@ codeunit 1996 "Checklist Banner Impl."
         end;
     end;
 
-    local procedure IsThereThirdPartyGuidedExperienceItem(): Boolean
+    local procedure IsThereThirdPartyGuidedExperienceItem(Version: Integer): Boolean
     var
         GuidedExperienceItem: Record "Guided Experience Item";
     begin
+        GuidedExperienceItem.ReadIsolation := IsolationLevel::ReadUncommitted;
+        GuidedExperienceItem.SetRange(Version, Version);
         GuidedExperienceItem.SetFilter("Extension Publisher", '<>%1', 'Microsoft');
         exit(not GuidedExperienceItem.IsEmpty());
     end;

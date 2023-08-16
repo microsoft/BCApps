@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Globalization;
+
 /// <summary>
 /// Management codeunit that exposes various functions to work with languages.
 /// </summary>

@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestLibraries.Reflection;
+
 table 135536 "Record Selection Test Table"
 {
     DataClassification = SystemMetadata;

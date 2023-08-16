@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Visualization;
+
+using System.Security.User;
+
 /// <summary>
 /// List page that contains settings that define the appearance of cues on all pages.
 /// Administrators can use this page to define a general style, which users can customize from the Cue Setup End User page.

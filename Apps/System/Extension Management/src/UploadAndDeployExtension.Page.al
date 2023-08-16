@@ -1,7 +1,12 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace System.Environment.Configuration;
+
+using System.Globalization;
+using System.Apps;
 
 /// <summary>
 /// Allows users to upload an extension and schedule its deployment.
@@ -54,7 +59,7 @@ page 2507 "Upload And Deploy Extension"
             {
                 ApplicationArea = All;
                 Caption = 'Language';
-                ToolTip = 'Language';
+                ToolTip = 'Specifies the language of the extension.';
                 Editable = false;
 
                 trigger OnAssistEdit()

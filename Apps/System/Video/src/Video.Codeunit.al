@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Media;
+
 /// <summary> Lists and enables playing of available videos.</summary>
 codeunit 3710 Video
 {

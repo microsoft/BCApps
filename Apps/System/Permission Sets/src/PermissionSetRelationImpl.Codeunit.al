@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
+using System;
+using System.Telemetry;
+using System.Security.User;
+
 /// <summary>
 /// Implementation codeunit that provides functions for copying permission sets, including/excluding permission sets and getting the permission set tree.
 /// </summary>
@@ -287,6 +293,7 @@ codeunit 9856 "Permission Set Relation Impl."
 
         // Including or excluding a permission set is both a set up and usage action
         FeatureTelemetry.LogUptake('0000HZR', ComposablePermissionSetsTok, Enum::"Feature Uptake Status"::"Set up");
+        FeatureTelemetry.LogUptake('0000KR3', ComposablePermissionSetsTok, Enum::"Feature Uptake Status"::Used);
 
         if PermissionType = PermissionType::Include then
             FeatureTelemetry.LogUsage('0000HZS', ComposablePermissionSetsTok, 'Permission set included.', GetCustomDimensions(CurrRoleID, CurrAppId, RelatedRoleId, RelatedAppId, RelatedScope))

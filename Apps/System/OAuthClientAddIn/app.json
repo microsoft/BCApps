@@ -16,6 +16,12 @@
 
                     ],
     "platform":  "23.0.0.0",
+    "idRanges":  [
+                     {
+                         "from":  1,
+                         "to":  9999
+                     }
+                 ],
     "resourceExposurePolicy":  {
                                    "allowDebugging":  false,
                                    "allowDownloadingSource":  true,

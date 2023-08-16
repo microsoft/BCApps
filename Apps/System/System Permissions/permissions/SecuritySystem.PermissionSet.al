@@ -3,6 +3,17 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
+using System.Reflection;
+using System.Tooling;
+using System.Privacy;
+using System.Utilities;
+using System.Integration;
+using System.Environment.Configuration;
+using System.Environment;
+using System.Globalization;
+
 permissionset 162 "SECURITY (System)"
 {
     Access = Internal;
