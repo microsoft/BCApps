@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
+using System.Reflection;
+using System.Environment.Configuration;
+
 permissionset 99 "Reporting - Edit"
 {
     Access = Public;

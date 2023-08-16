@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Media;
+
 /// <summary>
 /// Manage the guided experience items that users can access.
 /// </summary>
@@ -120,33 +124,6 @@ codeunit 1990 "Guided Experience"
             ObjectTypeToRun, ObjectIDToRun, '', AssistedSetupGroup, VideoUrl, VideoCategory, HelpUrl, ManualSetupCategory::Uncategorized, '',
             SpotlighTourType::None, SpotlightTourTexts, true, IsPrimarySetup);
     end;
-
-#if not CLEAN19
-    /// <summary>Inserts a learn page.</summary>
-    /// <param name="Title">The title of the learn page.</param>
-    /// <param name="ShortTitle">A short title used for the checklist.</param>
-    /// <param name="Description">The description of the learn page.</param>
-    /// <param name="ExpectedDuration">How many minutes the learn page would take to read, should be lower than 30000.</param>
-    /// <param name="PageID">The ID of the learn page.</param>
-    /// <error> If the ExpectedDuration parameter is greater than 30000. </error>
-    [Obsolete('Use InsertManualSetup instead.', '19.0')]
-    procedure InsertLearnPage(Title: Text[2048]; ShortTitle: Text[50]; Description: Text[1024]; ExpectedDuration: Integer; PageID: Integer)
-    var
-        CallerModuleInfo: ModuleInfo;
-        GuidedExperienceType: Enum "Guided Experience Type";
-        AssistedSetupGroup: Enum "Assisted Setup Group";
-        VideoCategory: Enum "Video Category";
-        ManualSetupCategory: Enum "Manual Setup Category";
-        SpotlighTourType: Enum "Spotlight Tour Type";
-        SpotlightTourTexts: Dictionary of [Enum "Spotlight Tour Text", Text];
-    begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
-
-        GuidedExperienceImpl.Insert(Title, ShortTitle, Description, ExpectedDuration, CallerModuleInfo.Id, GuidedExperienceType::Learn,
-            ObjectType::Page, PageID, '', AssistedSetupGroup::Uncategorized, '', VideoCategory::Uncategorized, '',
-            ManualSetupCategory::Uncategorized, '', SpotlighTourType::None, SpotlightTourTexts, true);
-    end;
-#endif
 
     /// <summary>Inserts a learn link.</summary>
     /// <param name="Title">The title of the learn link.</param>
@@ -454,6 +431,14 @@ codeunit 1990 "Guided Experience"
     procedure OpenCombinedSetupList(AppId: Guid)
     begin
         GuidedExperienceImpl.OpenCombinedSetupList(AppId);
+    end;
+
+    /// <summary> Clean up old guided experience items with too many old version. </summary>
+    /// <param name="OnlyFirstParty">If true, only clean up first party items.</param>
+    /// <param name="Limit">The threshold of old version.</param>
+    procedure CleanupOldGuidedExperienceItems(OnlyFirstParty: Boolean; Threshold: Integer)
+    begin
+        GuidedExperienceImpl.CleanupOldGuidedExperienceItems(OnlyFirstParty, Threshold);
     end;
 
     /// <summary>Notifies that the list of assisted setups is being gathered, and that new items might be added.</summary>

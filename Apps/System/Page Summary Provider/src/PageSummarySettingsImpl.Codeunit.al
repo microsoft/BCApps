@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration;
+
+using System.Environment;
+
 /// <summary>
 /// Implements functionality to get page summary provider settings.
 /// </summary>

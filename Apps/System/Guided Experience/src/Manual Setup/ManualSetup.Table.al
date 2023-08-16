@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Apps;
+
 #pragma warning disable AS0039
 table 3700 "Manual Setup"
 {
@@ -14,13 +18,8 @@ table 3700 "Manual Setup"
     TableType = Temporary;
 #pragma warning restore AS0034
 
-#if CLEAN18
     ObsoleteState = Removed;
     ObsoleteTag = '23.0';
-#else
-    ObsoleteState = Pending;
-    ObsoleteTag = '18.0';
-#endif
     ObsoleteReason = 'The Manual Setup module and its objects have been consolidated in the Guided Experience module. Use the Guided Experience Item table instead.';
     ReplicateData = false;
 

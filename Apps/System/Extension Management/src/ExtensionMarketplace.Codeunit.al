@@ -3,6 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System;
+using System.Utilities;
+using System.Azure.KeyVault;
+using System.Environment;
+using System.Apps;
+
 /// <summary>
 /// This codeunit is used as a helper for managing interactions between
 /// Business Central and the AppSource marketplace. The marketplace provides a gallery

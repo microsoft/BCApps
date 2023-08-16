@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Reflection;
+
 codeunit 3919 "Record Reference Default Impl." implements "Record Reference"
 {
     Access = Internal;

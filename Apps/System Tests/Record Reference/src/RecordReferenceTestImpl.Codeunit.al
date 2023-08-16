@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Reflection;
+
+using System.Reflection;
+
 codeunit 138708 "Record Reference Test Impl." implements "Record Reference"
 {
     Access = Internal;

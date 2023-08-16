@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestLibraries.Tooling;
+
 /// <summary>
 /// Interface for accessing the profiling aggregation types in tests.
 /// </summary>

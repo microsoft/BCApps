@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Integration;
+
+using System.Integration;
+using System.TestLibraries.Utilities;
+
 codeunit 132593 "Document Sharing Test"
 {
     EventSubscriberInstance = Manual;

@@ -3,6 +3,15 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Email;
+
+using System.DataAdministration;
+using System.Upgrade;
+using System.Telemetry;
+using System.Reflection;
+using System.Environment;
+using System.Security.AccessControl;
+
 permissionset 8900 "Email - Read"
 {
     Access = Internal;

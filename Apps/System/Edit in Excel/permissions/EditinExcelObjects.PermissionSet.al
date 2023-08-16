@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration.Excel;
+
 permissionset 1488 "Edit in Excel - Objects"
 {
     Access = Internal;

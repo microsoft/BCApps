@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Upgrade;
+
 permissionset 9993 "Upgrade Tags - View"
 {
     Access = Public;

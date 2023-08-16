@@ -1,19 +1,19 @@
-#if not CLEAN18
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-permissionset 8903 "EMAIL USAGE"
+namespace System.TestLibraries.Feedback;
+
+using System.Feedback;
+
+codeunit 138078 "Sat. Survey Test Library"
 {
-    Access = Public;
-    Assignable = true;
-    Caption = '(Obsolete) Email Usage';
+    var
+        SatisfactionSurveyImpl: Codeunit "Satisfaction Survey Impl.";
 
-    ObsoleteState = Pending;
-    ObsoleteReason = 'This permission set is included in mandatory permission set System App - Basic';
-    ObsoleteTag = '18.0';
-
-    IncludedPermissionSets = "Email - Edit";
+    procedure GetRenderUrl(): Text
+    begin
+        exit(SatisfactionSurveyImpl.GetRenderUrl());
+    end;
 }
-#endif

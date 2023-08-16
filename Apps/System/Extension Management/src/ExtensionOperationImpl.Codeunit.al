@@ -1,7 +1,14 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace System.Environment.Configuration;
+
+using System;
+using System.Utilities;
+using System.Environment;
+using System.Apps;
 
 codeunit 2503 "Extension Operation Impl"
 {
@@ -251,15 +258,6 @@ codeunit 2503 "Extension Operation Impl"
     begin
         ExtensionInstallationImpl.CheckPermissions();
     end;
-
-#if not CLEAN17
-    [Obsolete('This is the implementation of a method for which the required parameter is not accessible for Cloud development', '17.0')]
-    procedure GetAllExtensionDeploymentStatusEntries(var NavAppTenantOperation: Record "NAV App Tenant Operation")
-    begin
-        if not NavAppTenantOperation.FindSet() then
-            exit;
-    end;
-#endif
 
     procedure GetAllExtensionDeploymentStatusEntries(var TempExtensionDeploymentStatus: Record "Extension Deployment Status" temporary)
     var

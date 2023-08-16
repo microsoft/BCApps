@@ -3,6 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Email;
+
+using System.Telemetry;
+using System.Globalization;
+using System.Security.AccessControl;
+using System.Reflection;
+
 codeunit 8900 "Email Impl"
 {
     Access = Internal;
@@ -193,6 +200,13 @@ codeunit 8900 "Email Impl"
     begin
         SentEmail.SetRange("Message Id", EmailMessageId);
         exit(not SentEmail.IsEmpty());
+    end;
+
+    procedure AddDefaultAttachments(EmailMessage: Codeunit "Email Message"; EmailScenario: Enum "Email Scenario")
+    var
+        EmailScenarioAttachmentsImpl: Codeunit "Email Scenario Attach Impl.";
+    begin
+        EmailScenarioAttachmentsImpl.AddAttachmentToMessage(EmailMessage, EmailScenario);
     end;
 
     local procedure Send(EmailMessage: Codeunit "Email Message"; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; InBackground: Boolean; NotBefore: DateTime; var EmailOutbox: Record "Email Outbox"): Boolean

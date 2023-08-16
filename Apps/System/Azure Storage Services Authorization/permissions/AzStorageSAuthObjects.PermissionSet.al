@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.Storage;
+
+using System.Security.Encryption;
+
 permissionset 9065 "Az. Storage S. Auth. - Objects"
 {
     Access = Internal;

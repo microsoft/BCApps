@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestLibraries.Email;
+
 table 134687 "Test Email Connector Setup"
 {
     DataClassification = SystemMetadata;

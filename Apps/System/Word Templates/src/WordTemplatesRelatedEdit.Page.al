@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration.Word;
+
 /// <summary>
 /// A page to view and edit related entities for Word templates.
 /// </summary>

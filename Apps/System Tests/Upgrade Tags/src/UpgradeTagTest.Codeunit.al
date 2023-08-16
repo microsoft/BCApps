@@ -3,6 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Upgrade;
+
+using System.Integration;
+using System.Upgrade;
+using System.TestLibraries.Upgrade;
+using System.TestLibraries.Utilities;
+using System.TestLibraries.Security.AccessControl;
+
 codeunit 135092 "Upgrade Tag Test"
 {
     Subtype = Test;

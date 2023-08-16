@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Globalization;
+using System.Apps;
+using System.Environment;
+
 permissionset 2500 "Extension Management - Read"
 {
     Access = Public;

@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.DataAdministration;
+
+using System.Environment;
+using System.Reflection;
+using System.Apps;
+
 codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
 {
     Access = Internal;

@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment.Configuration;
+
+using System.Globalization;
+
 /// <summary>
 /// Provides capabilities to edit and insert new checklist items based on existing guided experience items.
 /// </summary>

@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Feedback;
+
+using System.Security.Authentication;
+using System.Azure.KeyVault;
+
 codeunit 9263 "Cust. Exp. Survey Req. Impl."
 {
     Access = Internal;

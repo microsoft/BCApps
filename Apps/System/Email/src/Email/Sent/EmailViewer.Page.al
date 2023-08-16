@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Email;
+
 /// <summary>
 /// A page to view sent emails.
 /// </summary>
@@ -92,6 +94,7 @@ page 12 "Email Viewer"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the content of the email.';
                     MultiLine = true;
+                    ExtendedDatatype = RichContent;
                     Editable = false;
                 }
             }

@@ -3,7 +3,7 @@
     "name": "Security Groups",
     "publisher": "Microsoft",
     "brief": "Manage permissions for groups of users",
-    "description": "Specify the permissions different users will have depending on their AAD security group or Windows group.",
+    "description": "Specify the permissions different users will have depending on their Microsoft Entra security group or Windows group.",
     "version": "23.0.0.0",
     "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
     "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
@@ -55,9 +55,9 @@
             "version": "23.0.0.0"
         },
         {
-            "id":  "4992eeac-2fd3-4515-a50b-7336a332d47f",
-            "name":  "Permission Sets",
-            "publisher":  "Microsoft",
+            "id": "4992eeac-2fd3-4515-a50b-7336a332d47f",
+            "name": "Permission Sets",
+            "publisher": "Microsoft",
             "version": "23.0.0.0"
         }
     ],

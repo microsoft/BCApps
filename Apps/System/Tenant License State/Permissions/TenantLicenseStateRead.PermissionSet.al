@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Environment;
+
+using System.Telemetry;
+using System.Security.AccessControl;
+
 permissionset 2300 "Tenant License State - Read"
 {
     Assignable = false;

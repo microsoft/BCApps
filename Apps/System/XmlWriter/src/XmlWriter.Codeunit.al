@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Xml;
+
 /// <summary>
 /// Provides helper functions for System.Xml.XmlWriter
 /// </summary>

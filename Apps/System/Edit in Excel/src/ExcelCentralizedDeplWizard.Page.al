@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration.Excel;
+
+using System.Environment.Configuration;
+using System.Environment;
+
 /// <summary>
 /// This is a wizard which guides the user through setting up their tenant for using Edit in Excel with Excel add-in installed through centralized deployments.
 /// </summary>
@@ -165,7 +170,7 @@ page 1480 "Excel Centralized Depl. Wizard"
                     field(DeploymentType; Rec."Use Centralized deployments")
                     {
                         Caption = 'Use Centralized Deployment';
-                        Tooltip = 'Enables Centralized Deployment on this environment.';
+                        Tooltip = 'Specifies the use of Centralized Deployment on this environment.';
                         ApplicationArea = All;
                     }
                     field(LearnAboutConfiguringBcForCentralizedDeployment; LearnAboutConfiguringBcForCentralizedDeploymentLinkTxt)

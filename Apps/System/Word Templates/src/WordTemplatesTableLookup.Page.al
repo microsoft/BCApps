@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration.Word;
+
 /// <summary>
 /// A look-up page to select a table to be used in a Word template.
 /// </summary>

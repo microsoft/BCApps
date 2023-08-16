@@ -4,6 +4,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Privacy;
+
+using System.Environment;
+
 page 1568 "Power Automate Privacy Notice"
 {
     Caption = 'Set Up Power Automate';

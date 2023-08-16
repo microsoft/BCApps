@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration;
+
+using System.Reflection;
+using System.Environment.Configuration;
+
 permissionset 2916 "Page Action Provider - Read"
 {
     Access = Internal;

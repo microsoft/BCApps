@@ -1,7 +1,9 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+
+namespace System.Globalization;
 
 /// <summary>This page shows the target language and the translation for data in a table field.</summary>
 page 3712 Translation
@@ -23,7 +25,7 @@ page 3712 Translation
                 {
                     ApplicationArea = All;
                     Caption = 'Target Language';
-                    ToolTip = 'The language to which the source text was translated.';
+                    ToolTip = 'Specifies the language to which the source text was translated.';
 
                     trigger OnAssistEdit()
                     var
@@ -36,7 +38,7 @@ page 3712 Translation
                 field(Value; Rec.Value)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'The translated text.';
+                    ToolTip = 'Specifies the translated text.';
                 }
             }
         }

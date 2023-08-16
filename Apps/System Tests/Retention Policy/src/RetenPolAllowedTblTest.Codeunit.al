@@ -3,6 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.DataAdministration;
+
+using System.DataAdministration;
+using System.TestLibraries.DataAdministration;
+using System.TestLibraries.Utilities;
+using System.TestLibraries.Security.AccessControl;
+
 // These tests rely on codeunit 138704 "Reten. Pol. Test Installer"
 // if/when we get the function NavApp.GetCalllerModuleInfo(var Info: ModuleInfo) we can refactor and remove the installer dependency
 

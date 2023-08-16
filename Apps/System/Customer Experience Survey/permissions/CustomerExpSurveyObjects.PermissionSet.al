@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Feedback;
+
 permissionset 9261 "Customer Exp. Survey - Objects"
 {
     Access = Internal;

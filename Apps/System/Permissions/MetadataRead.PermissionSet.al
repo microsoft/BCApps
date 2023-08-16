@@ -3,6 +3,15 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Security.AccessControl;
+
+using System.Reflection;
+using System.DataAdministration;
+using System.Utilities;
+using System.Environment.Configuration;
+using System.DateTime;
+using System.Globalization;
+
 permissionset 87 "Metadata - Read"
 {
     Access = Public;

@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestLibraries.Tooling;
+
+using System.Tooling;
+using System.Utilities;
+
 /// <summary>
 /// Exposes methods from "Profiling Data Processor" and "Profiling Chart Helper" codeunits
 /// </summary>

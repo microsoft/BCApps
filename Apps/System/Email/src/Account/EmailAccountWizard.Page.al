@@ -3,6 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Email;
+
+using System.Telemetry;
+using System.Environment.Configuration;
+using System.Environment;
+
 /// <summary>
 /// Step by step guide for adding a new email account in Business Central
 /// </summary>
@@ -258,7 +264,7 @@ page 8886 "Email Account Wizard"
                         Editable = true;
                         Enabled = true;
                         Caption = 'Set as default';
-                        ToolTip = 'Use this account for all scenarios for which an account is not specified. Scenarios are processes that involve sending documents or notifications by email.';
+                        ToolTip = 'Specifies the Account is the default. Use this account for all scenarios for which an account is not specified. Scenarios are processes that involve sending documents or notifications by email.';
                     }
                 }
 

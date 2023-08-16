@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Tooling;
+
+using System.Environment.Configuration;
+
 codeunit 132553 "Block Changes to System Tables"
 {
     SingleInstance = true;

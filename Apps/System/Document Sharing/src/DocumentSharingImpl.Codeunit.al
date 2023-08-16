@@ -3,6 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Integration;
+
+using System.Telemetry;
+using System.Globalization;
+using System.Azure.Identity;
+using System.Environment;
+
 /// <summary>
 /// Codeunit that contains the implementation for document sharing.
 /// </summary>
@@ -124,8 +131,8 @@ codeunit 9561 "Document Sharing Impl."
 
                     // Downloads file into DocumentSharing.Data, otherwise uploaded file is in DocumentSharing.Data
                     if Dialog.Confirm(FinishedEditingDocumentLbl, true) then begin
-                        Sleep(2000); // This sleep is to ensure the OneDrive clears the lock on the file after the user saves and closes.
                         Handled := false;
+                        Sleep(2000); // This sleep is to ensure the OneDrive clears the lock on the file after the user saves and closes.
                         DocumentSharingCodeunit.OnGetFileContents(DocumentSharing, Handled);
                     end;
 

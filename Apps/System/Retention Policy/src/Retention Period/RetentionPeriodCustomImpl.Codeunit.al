@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.DataAdministration;
+
 codeunit 3901 "Retention Period Custom Impl." implements "Retention Period"
 {
     Access = Internal;
