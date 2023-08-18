@@ -116,24 +116,60 @@ function Set-ConfigValue() {
     For example, if the repo version is 1.2, the function will look for the latest version of the package that has major.minor = 1.2.
 .Parameter PackageName
     The name of the package
-.Parameter MaxVersion
-    The maximum version to look for
 #>
 function Get-PackageLatestVersion() {
     param(
         [Parameter(Mandatory=$true)]
-        [string] $PackageName,
-        [string] $MaxVersion
+        [string] $PackageName
     )
 
-    if (!$MaxVersion) {
-        $majorMinorVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
-        $MaxVersion = "$majorMinorVersion.99999999.99" # maximum version for the given major/minor
+    if($PackageName -eq "AppBaselines-BCArtifacts") {
+        [System.Version] $repoVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
+
+        if ($repoVersion.Minor -gt 0) {
+            $minimumVersion = "$($repoVersion.Major).$($repoVersion.Minor - 1)"
+        } else {
+            $minimumVersion = "$($repoVersion.Major - 1)"
+        }
+
+        return Get-LatestBCArtifactVersion -minimumVersion $minimumVersion
     }
+
+    $majorMinorVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
+    $maxVersion = "$majorMinorVersion.99999999.99" # maximum version for the given major/minor
 
     $packageSource = "https://api.nuget.org/v3/index.json" # default source
 
-    $latestVersion = (Find-Package $PackageName -Source $packageSource -MaximumVersion $MaxVersion -AllVersions | Sort-Object -Property Version -Descending | Select-Object -First 1).Version
+    $latestVersion = (Find-Package $PackageName -Source $packageSource -MaximumVersion $maxVersion -AllVersions | Sort-Object -Property Version -Descending | Select-Object -First 1).Version
+
+    return $latestVersion
+}
+
+<#
+.Synopsis
+    Gets the latest version of a BC artifact
+.Parameter MinimumVersion
+    The minimum version of the artifact to look for
+#>
+function Get-LatestBCArtifactVersion
+(
+    [Parameter(Mandatory=$true)]
+    $minimumVersion
+)
+{
+    $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest
+
+    if(-not $artifactUrl) {
+        #Fallback to bcinsider. Should go away soon. Haha, yeah right.
+
+        $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount bcinsider -sasToken "$env:bcSASToken"
+    }
+
+    if ($artifactUrl -and ($artifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
+        $latestVersion = [System.Version] $Matches[0]
+    } else {
+        throw "Could not find BCArtifact version (for min version: $minimumVersion): $artifactUrl"
+    }
 
     return $latestVersion
 }
@@ -161,7 +197,7 @@ function Install-PackageFromConfig
 ) {
     if (!$PackageVersion) {
         $packageConfig = Get-ConfigValue -Key $PackageName -ConfigType Packages
-        
+
         if(!$packageConfig) {
             throw "Package $PackageName not found in Packages config"
         }

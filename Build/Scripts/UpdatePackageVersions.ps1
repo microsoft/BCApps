@@ -49,14 +49,7 @@ if ($updatesAvailable) {
     $title = "[$TargetBranch] Update package versions"
     Push-GitBranch -BranchName $BranchName -Files @("Build/Packages.json") -CommitMessage $title
 
-    # Create PR
-    $availableLabels = gh label list --json name | ConvertFrom-Json
-    if ("automation" -in $availableLabels.name) {
-        gh pr create --fill --head $BranchName --base $TargetBranch --label "automation"
-    } else {
-        gh pr create --fill --head $BranchName --base $TargetBranch
-    }
-    gh pr merge --auto --squash --delete-branch
+    New-GitHubPullRequest -BranchName $BranchName -TargetBranch $TargetBranch -label "automation"
 } else {
     Write-Host "No updates available"
 }
