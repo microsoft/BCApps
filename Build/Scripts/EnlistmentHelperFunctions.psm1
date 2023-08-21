@@ -176,8 +176,7 @@ function Get-LatestBCArtifactVersion
     $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest
 
     if(-not $artifactUrl) {
-        #Fallback to bcinsider. Should go away soon. Haha, yeah right.
-
+        #Fallback to bcinsider
         $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount bcinsider -sasToken "$env:bcSASToken"
     }
 
