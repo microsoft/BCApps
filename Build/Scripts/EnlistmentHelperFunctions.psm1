@@ -207,36 +207,36 @@ function Install-PackageFromConfig
     [string] $PackageName,
     [Parameter(Mandatory=$true)]
     [string] $OutputPath,
-    [string] $PackageVersion,
     [switch] $Force
 ) {
-    if (!$PackageVersion) {
-        $packageConfig = Get-ConfigValue -Key $PackageName -ConfigType Packages
+    $packageConfig = Get-ConfigValue -Key $PackageName -ConfigType Packages
 
-        if(!$packageConfig) {
-            throw "Package $PackageName not found in Packages config"
-        }
-
-        $PackageVersion = $packageConfig.Version
-
+    if(!$packageConfig) {
+        throw "Package $PackageName not found in Packages config"
     }
+
+    if($package.Source -ne 'NuGet.org') {
+        throw "Package $PackageName is not from NuGet.org"
+    }
+
+    $packageVersion = $packageConfig.Version
 
     $packageSource = "https://api.nuget.org/v3/index.json" # default source
 
-    $packagePath = Join-Path $OutputPath "$PackageName.$PackageVersion"
+    $packagePath = Join-Path $OutputPath "$PackageName.$packageVersion"
 
     if((Test-Path $packagePath) -and !$Force) {
-        Write-Host "Package $PackageName is already installed; version: $PackageVersion"
+        Write-Host "Package $PackageName is already installed; version: $packageVersion"
         return $packagePath
     }
 
-    $package = Find-Package $PackageName -Source $packageSource -RequiredVersion $PackageVersion
+    $package = Find-Package $PackageName -Source $packageSource -RequiredVersion $packageVersion
     if(!$package) {
-        throw "Package $PackageName not found; source $packageSource. Version: $PackageVersion"
+        throw "Package $PackageName not found; source $packageSource. Version: $packageVersion"
     }
 
-    Write-Host "Installing package $PackageName; source $packageSource; version: $PackageVersion; destination: $OutputPath"
-    Install-Package $PackageName -Source $packageSource -RequiredVersion $PackageVersion -Destination $OutputPath -Force | Out-Null
+    Write-Host "Installing package $PackageName; source $packageSource; version: $packageVersion; destination: $OutputPath"
+    Install-Package $PackageName -Source $packageSource -RequiredVersion $packageVersion -Destination $OutputPath -Force | Out-Null
 
     return $packagePath
 }
