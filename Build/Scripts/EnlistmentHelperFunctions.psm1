@@ -123,26 +123,41 @@ function Get-PackageLatestVersion() {
         [string] $PackageName
     )
 
-    if($PackageName -eq "AppBaselines-BCArtifacts") {
-        [System.Version] $repoVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
-
-        if ($repoVersion.Minor -gt 0) {
-            $minimumVersion = "$($repoVersion.Major).$($repoVersion.Minor - 1)"
-        } else {
-            $minimumVersion = "$($repoVersion.Major - 1)"
-        }
-
-        return Get-LatestBCArtifactVersion -minimumVersion $minimumVersion
+    $package = Get-ConfigValue -Key $PackageName -ConfigType Packages
+    if(!$package) {
+        throw "Package $PackageName not found in Packages config"
     }
 
-    $majorMinorVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
-    $maxVersion = "$majorMinorVersion.99999999.99" # maximum version for the given major/minor
+    [System.Version] $majorMinorVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
 
-    $packageSource = "https://api.nuget.org/v3/index.json" # default source
+    switch($package.Source)
+    {
+        'NuGet.org' {
+            $maxVersion = "$majorMinorVersion.99999999.99" # maximum version for the given major/minor
 
-    $latestVersion = (Find-Package $PackageName -Source $packageSource -MaximumVersion $maxVersion -AllVersions | Sort-Object -Property Version -Descending | Select-Object -First 1).Version
+            $packageSource = "https://api.nuget.org/v3/index.json" # default source
 
-    return $latestVersion
+            $latestVersion = (Find-Package $PackageName -Source $packageSource -MaximumVersion $maxVersion -AllVersions | Sort-Object -Property Version -Descending | Select-Object -First 1).Version
+
+            return $latestVersion
+        }
+        'BCArtifacts' {
+            if ($majorMinorVersion.Minor -gt 0) {
+                $minimumVersion = "$($majorMinorVersion.Major).$($majorMinorVersion.Minor - 1)"
+            } else {
+                $minimumVersion = "$($majorMinorVersion.Major - 1)"
+            }
+
+            return Get-LatestBCArtifactVersion -minimumVersion $minimumVersion
+        }
+        default {
+            throw "Unknown package source: $($package.Source)"
+        }
+    }
+
+    if($PackageName -eq "AppBaselines-BCArtifacts") {
+
+    }
 }
 
 <#
