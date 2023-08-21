@@ -136,16 +136,21 @@ function Get-PackageLatestVersion() {
             $maxVersion = "$majorMinorVersion.99999999.99" # maximum version for the given major/minor
 
             $packageSource = "https://api.nuget.org/v3/index.json" # default source
-
             $latestVersion = (Find-Package $PackageName -Source $packageSource -MaximumVersion $maxVersion -AllVersions | Sort-Object -Property Version -Descending | Select-Object -First 1).Version
 
             return $latestVersion
         }
         'BCArtifacts' {
-            if ($majorMinorVersion.Minor -gt 0) {
-                $minimumVersion = "$($majorMinorVersion.Major).$($majorMinorVersion.Minor - 1)"
-            } else {
-                $minimumVersion = "$($majorMinorVersion.Major - 1)"
+            # BC artifacts works with minimum version
+            $minimumVersion = $majorMinorVersion
+
+            if ($PackageName -eq "AppBaselines-BCArtifacts") {
+                # For app baselines, use the previous minor version as minimum version
+                if ($majorMinorVersion.Minor -gt 0) {
+                    $minimumVersion = "$($majorMinorVersion.Major).$($majorMinorVersion.Minor - 1)"
+                } else {
+                    $minimumVersion = "$($majorMinorVersion.Major - 1)"
+                }
             }
 
             return Get-LatestBCArtifactVersion -minimumVersion $minimumVersion
