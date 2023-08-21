@@ -32,7 +32,6 @@ codeunit 1991 "Guided Experience Impl."
         RunSetupAgainQst: Label 'You have already completed the %1 assisted setup guide. Do you want to run it again?', Comment = '%1 = Assisted Setup Name';
         CodeFormatLbl: Label '%1_%2_%3_%4_%5', Locked = true;
         GuidedExperienceItemInsertedLbl: Label 'Guided Experience Item inserted.', Locked = true;
-        GuidedExperienceItemDeletedLbl: Label 'Guided Experience Item deleted.', Locked = true;
         TitleDimensionLbl: Label '%1ItemTitle', Locked = true;
         ShortTitleDimensionLbl: Label '%1ItemShortTitle', Locked = true;
         DescriptionDimensionLbl: Label '%1ItemDescription', Locked = true;
@@ -919,7 +918,7 @@ codeunit 1991 "Guided Experience Impl."
                 GuidedExperienceItem."Object ID to Run", Handled);
 
             if Handled then
-                exit;           
+                exit;
 
             if not ConfirmManagement.GetResponse(StrSubstNo(RunSetupAgainQst, GuidedExperienceItem.Title), false) then
                 exit;
@@ -1196,32 +1195,39 @@ codeunit 1991 "Guided Experience Impl."
     var
         GuidedExperienceItem: Record "Guided Experience Item";
         GuidedExperienceItem2: Record "Guided Experience Item";
+        PublishedApplication: Record "Published Application";
+        FirstPartyPublisherFilterString: Text;
         ItemsToCleanUp: List of [Code[300]];
         ItemCode: Code[300];
     begin
-        if OnlyFirstParty then
-            GuidedExperienceItem.SetRange("Extension Publisher", 'Microsoft');
+        if OnlyFirstParty then begin
+            PublishedApplication.SetRange(Publisher, 'Microsoft');
+            FirstPartyPublisherFilterString := '';
+
+            if PublishedApplication.FindSet() then
+                repeat
+                    if FirstPartyPublisherFilterString = '' then
+                        FirstPartyPublisherFilterString := PublishedApplication.ID
+                    else
+                        FirstPartyPublisherFilterString += '|' + PublishedApplication.ID;
+                until PublishedApplication.Next() = 0;
+
+            GuidedExperienceItem.SetFilter("Extension ID", FirstPartyPublisherFilterString);
+        end;
 
         if GuidedExperienceItem.FindSet() then
             repeat
                 GuidedExperienceItem2.SetRange(Code, GuidedExperienceItem.Code);
+
                 if GuidedExperienceItem2.Count() > Threshold then
-                    ItemsToCleanUp.Add(GuidedExperienceItem.Code);
+                    if not ItemsToCleanUp.Contains(GuidedExperienceItem.Code) then
+                        ItemsToCleanUp.Add(GuidedExperienceItem.Code);
             until GuidedExperienceItem.Next() = 0;
 
         foreach ItemCode in ItemsToCleanUp do begin
             GuidedExperienceItem.SetRange(Code, ItemCode);
             GuidedExperienceItem.SetRange(Version, 0, GuidedExperienceItem.Count() - 2);
-            GuidedExperienceItem.DeleteAll();
+            GuidedExperienceItem.DeleteAll(false);
         end;
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"Guided Experience Item", OnAfterDeleteEvent, '', true, true)]
-    local procedure OnAfterGuidedExperienceItemDelete(var Rec: Record "Guided Experience Item")
-    begin
-        if Rec.IsTemporary() then
-            exit;
-
-        LogMessageOnDatabaseEvent(Rec, '0000EIN', GuidedExperienceItemDeletedLbl);
     end;
 }
