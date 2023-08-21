@@ -215,7 +215,7 @@ function Install-PackageFromConfig
         throw "Package $PackageName not found in Packages config"
     }
 
-    if($package.Source -ne 'NuGet.org') {
+    if($packageConfig.Source -ne 'NuGet.org') {
         throw "Package $PackageName is not from NuGet.org"
     }
 
