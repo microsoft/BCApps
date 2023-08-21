@@ -1,3 +1,14 @@
+<#
+.SYNOPSIS
+    Updates the BCArtifact version in the AL-Go settings file (artifact property)
+.DESCRIPTION
+    This script will update the BCArtifact version in the AL-Go settings file (artifact property) to the latest version available on the BC artifacts feed (bcinsider/bcartifacts storage account).
+    If the version is updated, a new branch will be created and a pull request will be created to merge the changes into the target branch.
+.PARAMETER TargetBranch
+    The branch to create the pull request to
+.PARAMETER Actor
+    The name of the user that will be used as commit author
+#>
 param(
     [Parameter(Mandatory = $true)]
     [string]$TargetBranch,

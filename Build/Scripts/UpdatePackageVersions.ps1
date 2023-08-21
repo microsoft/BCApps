@@ -1,3 +1,14 @@
+<#
+.SYNOPSIS
+    Updates the package versions in the Packages.json file to the latest version available on the corresponding source.
+.DESCRIPTION
+    This script will update the package versions in the Packages.json file to the latest version available on the corresponding source.
+    If the version is updated, a new branch will be created and a pull request will be created to merge the changes into the target branch.
+.PARAMETER TargetBranch
+    The branch to create the pull request to
+.PARAMETER Actor
+    The name of the user that will be used as commit author
+#>
 Param(
     [Parameter(Mandatory = $true)]
     [string]$TargetBranch,
