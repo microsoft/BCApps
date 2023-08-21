@@ -154,10 +154,6 @@ function Get-PackageLatestVersion() {
             throw "Unknown package source: $($package.Source)"
         }
     }
-
-    if($PackageName -eq "AppBaselines-BCArtifacts") {
-
-    }
 }
 
 <#
