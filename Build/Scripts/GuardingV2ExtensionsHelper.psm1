@@ -28,12 +28,10 @@ function Enable-BreakingChangesCheck {
 
     Write-Host "Enabling breaking changes check for app: $applicationName, build mode: $BuildMode"
 
-    $baselinePackageRestored = $false
-
     # Restore the baseline package and place it in the app symbols folder
-    $baselinePackageRestored = Restore-BaselinesFromArtifacts -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName
+    $baselineVersion = Restore-BaselinesFromArtifacts -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName
 
-    if ($baselinePackageRestored) {
+    if ($baselineVersion) {
         # Generate the app source cop json file
         Update-AppSourceCopVersion -ExtensionFolder $AppProjectFolder -AppName $applicationName -BaselineVersion $baselineVersion
     }
@@ -45,17 +43,15 @@ function Enable-BreakingChangesCheck {
 <#
 .Synopsis
     Given an extension and a baseline version, it restores the baseline for an app from bcartifacts
-.Parameter BaselineVersion
-    Baseline version of the extension
 .Parameter AppName
     Name of the extension
 .Parameter AppSymbolsFolder
     Local AppSymbols folder
+.Returns
+    The version of the baseline that was restored. If no baseline was restored, returns null
 #>
 function Restore-BaselinesFromArtifacts {
     Param(
-        [Parameter(Mandatory = $true)]
-        [string] $BaselineVersion,
         [Parameter(Mandatory = $true)]
         [string] $AppName,
         [Parameter(Mandatory = $true)]
@@ -70,7 +66,6 @@ function Restore-BaselinesFromArtifacts {
 
     $baselineVersion = $baselinePackage.Version
     $baselineFolder = Join-Path (Get-BaseFolder) "out/baselineartifacts/$baselineVersion"
-    $baselineRestored = $false
 
     if (-not (Test-Path $baselineFolder)) {
         $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $baselineVersion
@@ -85,19 +80,18 @@ function Restore-BaselinesFromArtifacts {
 
     if (-not $baselineApp) {
         Write-Host "Unable to find baseline app for $AppName in $baselineFolder"
-    } else {
-        Write-Host "Copying $($baselineApp.FullName) to $AppSymbolsFolder"
-
-        if (-not (Test-Path $AppSymbolsFolder)) {
-            Write-Host "Creating folder $AppSymbolsFolder"
-            New-Item -ItemType Directory -Path $AppSymbolsFolder | Out-Null
-        }
-
-        Copy-Item -Path $baselineApp.FullName -Destination $AppSymbolsFolder | Out-Null
-        $baselineRestored = $true
+        return
     }
 
-    return $baselineRestored
+    Write-Host "Copying $($baselineApp.FullName) to $AppSymbolsFolder"
+
+    if (-not (Test-Path $AppSymbolsFolder)) {
+        Write-Host "Creating folder $AppSymbolsFolder"
+        New-Item -ItemType Directory -Path $AppSymbolsFolder | Out-Null
+    }
+
+    Copy-Item -Path $baselineApp.FullName -Destination $AppSymbolsFolder | Out-Null
+    return $baselineVersion
 }
 
 <#
