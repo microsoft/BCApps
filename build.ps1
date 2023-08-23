@@ -30,5 +30,5 @@ if ($AutoFill) {
     $auth = "UserPassword"
 }
 
-$scriptPath = Join-Path $PSScriptRoot "$ALGoProject\.AL-Go\localDevEnv.ps1" -Resolve
+$scriptPath = Join-Path $PSScriptRoot "Projects\$ALGoProject\.AL-Go\localDevEnv.ps1" -Resolve
 & $scriptPath -containerName $containerName -auth $auth -credential $credential -licenseFileUrl $licenseFileUrl -insiderSasToken $InsiderSasToken
