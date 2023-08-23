@@ -8,5 +8,7 @@
     ],
     "enableAppSourceCop": false,
     "enablePerTenantExtensionCop":  false,
-    "doNotBuildTests": true
+    "useCompilerFolder": true,
+    "doNotPublishApps": true,
+    "rulesetFile": "..\\..\\Build\\Rulesets\\internal.module.ruleset.json"
 }
