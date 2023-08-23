@@ -13,9 +13,7 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$TargetBranch,
     [Parameter(Mandatory = $true)]
-    [string]$Actor,
-    [Parameter(Mandatory = $false)]
-
+    [string]$Actor
 )
 
 # BC Container Helper is needed to fetch the latest artifact version
