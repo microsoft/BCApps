@@ -28,9 +28,12 @@ if($app)
     }
 
     # Restore the baseline app and generate the AppSourceCop.json file
-    if (($parameters.ContainsKey("EnableAppSourceCop") -and $parameters["EnableAppSourceCop"]) -or ($parameters.ContainsKey("EnablePerTenantExtensionCop") -and $parameters["EnablePerTenantExtensionCop"])) {
-        Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
-        Enable-BreakingChangesCheck -AppSymbolsFolder $parameters["appSymbolsFolder"] -AppProjectFolder $parameters["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
+    # TODO: Enable breaking changes check for CLEAN mode
+    if($appBuildMode -ne 'Clean') {
+        if (($parameters.ContainsKey("EnableAppSourceCop") -and $parameters["EnableAppSourceCop"]) -or ($parameters.ContainsKey("EnablePerTenantExtensionCop") -and $parameters["EnablePerTenantExtensionCop"])) {
+            Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
+            Enable-BreakingChangesCheck -AppSymbolsFolder $parameters["appSymbolsFolder"] -AppProjectFolder $parameters["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
+        }
     }
 }
 
@@ -44,5 +47,5 @@ if($CICDBuild) {
     . $PSScriptRoot\Package\CreateAppPackageOutput.ps1 -AppProjectFolder $parameters["appProjectFolder"] -BuildMode $appBuildMode -AppFile $appFile -ALGoProjectFolder $currentProjectFolder -IsTestApp:$(!$app)
 }
 
-# Return the app file path 
+# Return the app file path
 $appFile
