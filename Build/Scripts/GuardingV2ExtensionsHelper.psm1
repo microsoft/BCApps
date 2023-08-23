@@ -14,39 +14,24 @@
 #>
 function Enable-BreakingChangesCheck {
     Param(
-        [Parameter(Mandatory = $true)] 
+        [Parameter(Mandatory = $true)]
         [string] $AppSymbolsFolder,
-        [Parameter(Mandatory = $true)] 
+        [Parameter(Mandatory = $true)]
         [string] $AppProjectFolder,
-        [Parameter(Mandatory = $true)] 
+        [Parameter(Mandatory = $true)]
         [string] $BuildMode
     )
 
     # Get name of the app from app.json
     $appJson = Join-Path $AppProjectFolder "app.json"
     $applicationName = (Get-Content -Path $appJson | ConvertFrom-Json).Name
-    [System.Version] $applicationVersion = (Get-Content -Path $appJson | ConvertFrom-Json).Version
 
-    # Get the baseline version
-    $baselineVersion = Get-BaselineVersion -BuildMode $BuildMode
-    
-    Write-Host "Enabling breaking changes check for app: $applicationName, build mode: $BuildMode, baseline version: $baselineVersion"
-
-    $baselinePackageRestored = $false
+    Write-Host "Enabling breaking changes check for app: $applicationName, build mode: $BuildMode"
 
     # Restore the baseline package and place it in the app symbols folder
-    if ($BuildMode -eq 'Clean') {
-        $appMajorMinor = "$($applicationVersion.Major).$($applicationVersion.Minor)"
-        if ($baselineVersion -match $appMajorMinor) {
-            $baselinePackageRestored = Restore-BaselinesFromNuget -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName
-        } else {
-            Write-Host "Skipping breaking changes check because of version change. Baseline version is $baselineVersion and app version is $appMajorMinor"
-        }
-    } else {
-        $baselinePackageRestored = Restore-BaselinesFromArtifacts -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName -BaselineVersion $baselineVersion
-    }
+    $baselineVersion = Restore-BaselinesFromArtifacts -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName
 
-    if ($baselinePackageRestored) {
+    if ($baselineVersion) {
         # Generate the app source cop json file
         Update-AppSourceCopVersion -ExtensionFolder $AppProjectFolder -AppName $applicationName -BaselineVersion $baselineVersion
     }
@@ -58,92 +43,55 @@ function Enable-BreakingChangesCheck {
 <#
 .Synopsis
     Given an extension and a baseline version, it restores the baseline for an app from bcartifacts
-.Parameter BaselineVersion
-    Baseline version of the extension
 .Parameter AppName
     Name of the extension
 .Parameter AppSymbolsFolder
-    Local AppSymbols folder 
+    Local AppSymbols folder
+.Returns
+    The version of the baseline that was restored. If no baseline was restored, returns null
 #>
 function Restore-BaselinesFromArtifacts {
     Param(
-        [Parameter(Mandatory = $true)] 
-        [string] $BaselineVersion,
-        [Parameter(Mandatory = $true)] 
+        [Parameter(Mandatory = $true)]
         [string] $AppName,
-        [Parameter(Mandatory = $true)] 
+        [Parameter(Mandatory = $true)]
         [string] $AppSymbolsFolder
     )
     Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
-    $baselineFolder = Join-Path (Get-BaseFolder) "out/baselineartifacts/$BaselineVersion"
-    $baselineRestored = $false
+
+    $baselinePackage = Get-ConfigValue -Key "AppBaselines-BCArtifacts" -ConfigType Packages
+    if (-not $baselinePackage) {
+        throw "Unable to find baseline package in Packages.json"
+    }
+
+    $baselineVersion = $baselinePackage.Version
+    $baselineFolder = Join-Path (Get-BaseFolder) "out/baselineartifacts/$baselineVersion"
 
     if (-not (Test-Path $baselineFolder)) {
-        $baselineURL = Get-BCArtifactUrl -type Sandbox -country 'W1' -version $BaselineVersion
+        $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $baselineVersion
         if (-not $baselineURL) {
-            throw "Unable to find URL for baseline version $BaselineVersion"
+            throw "Unable to find URL for baseline version $baselineVersion"
         }
         Write-Host "Downloading from $baselineURL to $baselineFolder"
         Download-Artifacts -artifactUrl $baselineURL -basePath $baselineFolder | Out-Null
-    } 
+    }
 
-    $baselineApp = Get-ChildItem -Path "$baselineFolder/sandbox/$BaselineVersion/W1/Extensions" -Filter "*$($AppName)_$($BaselineVersion).app" -ErrorAction SilentlyContinue
+    $baselineApp = Get-ChildItem -Path "$baselineFolder/sandbox/$baselineVersion/W1/Extensions" -Filter "*$($AppName)_$($baselineVersion).app" -ErrorAction SilentlyContinue
 
     if (-not $baselineApp) {
         Write-Host "Unable to find baseline app for $AppName in $baselineFolder"
-    } else {
-        Write-Host "Copying $($baselineApp.FullName) to $AppSymbolsFolder"
-
-        if (-not (Test-Path $AppSymbolsFolder)) {
-            Write-Host "Creating folder $AppSymbolsFolder"
-            New-Item -ItemType Directory -Path $AppSymbolsFolder | Out-Null
-        }
-    
-        Copy-Item -Path $baselineApp.FullName -Destination $AppSymbolsFolder | Out-Null
-        $baselineRestored = $true
+        return
     }
 
-    return $baselineRestored
-}
+    Write-Host "Copying $($baselineApp.FullName) to $AppSymbolsFolder"
 
-<#
-.Synopsis
-    Restores the baseline for an app into the app symbols folder
-.Parameter AppName
-    Name of the application for which to restore a baseline
-.Parameter AppSymbolsFolder
-    Local AppSymbols folder
-#>
-function Restore-BaselinesFromNuget {
-    Param(
-        [Parameter(Mandatory = $true)] 
-        [string] $AppName,
-        [Parameter(Mandatory = $true)] 
-        [string] $AppSymbolsFolder
-    )
-    Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
-
-    $baselineFolder = Join-Path (Get-BaseFolder) "out/baselines/"
-    $baselineRestored = $false
-
-    $baselineFolder = Install-PackageFromConfig -PackageName 'microsoft-ALAppExtensions-Modules-preview' -OutputPath $baselineFolder
- 
-    $baselineApp = Get-ChildItem -Path "$baselineFolder/Apps/$AppName/Default/*.app" -ErrorAction SilentlyContinue
-
-    if (-not $baselineApp) {
-        Write-Host "Unable to find baseline app for $AppName in $packagePath"
-    } else {
-        if (-not (Test-Path $AppSymbolsFolder)) {
-            Write-Host "Creating folder $AppSymbolsFolder"
-            New-Item -ItemType Directory -Path $AppSymbolsFolder | Out-Null
-        }
-
-        Write-Host "Copying $($baselineApp.FullName) to $AppSymbolsFolder"
-        Copy-Item -Path $baselineApp.FullName -Destination $AppSymbolsFolder | Out-Null
-        $baselineRestored = $true
+    if (-not (Test-Path $AppSymbolsFolder)) {
+        Write-Host "Creating folder $AppSymbolsFolder"
+        New-Item -ItemType Directory -Path $AppSymbolsFolder | Out-Null
     }
 
-    return $baselineRestored
+    Copy-Item -Path $baselineApp.FullName -Destination $AppSymbolsFolder | Out-Null
+    return $baselineVersion
 }
 
 <#
@@ -160,13 +108,13 @@ function Restore-BaselinesFromNuget {
 #>
 function Update-AppSourceCopVersion
 (
-    [Parameter(Mandatory = $true)] 
-    [string] $ExtensionFolder, 
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
+    [string] $ExtensionFolder,
+    [Parameter(Mandatory = $true)]
     [string] $AppName,
-    [Parameter(Mandatory = $true)] 
+    [Parameter(Mandatory = $true)]
     [string] $BaselineVersion,
-    [Parameter(Mandatory = $false)] 
+    [Parameter(Mandatory = $false)]
     [string] $Publisher = "Microsoft"
 ) {
     Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
@@ -224,29 +172,6 @@ function Update-AppSourceCopVersion
     }
 
     return $appSourceCopJsonPath
-}
-
-<#
-.Synopsis
-    Gets the baseline version for the extension
-.Parameter BuildMode
-    Build mode
-#>
-function Get-BaselineVersion {
-    Param(
-        [Parameter(Mandatory = $true)] 
-        [string] $BuildMode
-    )
-    
-    Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
-
-    if ($BuildMode -eq "Clean") {
-        $baselinePackage = Get-ConfigValue -Key "Microsoft-Dynamics-BusinessCentral-BCApps" -ConfigType Packages
-    } else {
-        $baselinePackage = Get-ConfigValue -Key "AppBaselines-BCArtifacts" -ConfigType Packages
-    }
-
-    return $baselinePackage.Version
 }
 
 Export-ModuleMember -Function *-*
