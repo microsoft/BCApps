@@ -47,6 +47,6 @@ jobs:
       - name: Update BC Artifact Version
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
-          bcSASToken: ${{ secrets.BCSASTOKEN }}
+          bcSASToken: ${{ secrets.INSIDERSASTOKEN }}
         run: |
           Build/Scripts/UpdateBCArtifactVersion.ps1 -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
