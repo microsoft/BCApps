@@ -5,8 +5,6 @@
 
 namespace System.Text;
 
-using System.Azure.AI;
-
 /// <summary>
 /// The fallback edit page shown if the OnEditEntityText is not handled.
 /// Uses the "Entity Text Part" to render the rich text editor.

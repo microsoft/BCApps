@@ -5,8 +5,6 @@
 
 namespace System.Text;
 
-using System.Azure.AI;
-
 permissionset 2011 "Entity Text - View"
 {
     Access = Internal;

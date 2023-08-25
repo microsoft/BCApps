@@ -353,5 +353,5 @@ page 24 "Performance Profiler"
         ProfileFileExtensionTxt: Label '.alcpuprofile', Locked = true;
         PerformanceProfilingFeatureTxt: Label 'Performance Profiling', Locked = true;
         PrivacyNoticeMsg: Label 'The file might contain sensitive data, so be sure to handle it securely and according to privacy requirements. Do you want to continue?';
-        SamplingIntervalChoiceTxt: Label 'Choose the sampling interval of the performance profiler. Smaller intervals will result in more precise timings, but the recording time limit will be reduced.';
+        SamplingIntervalChoiceTxt: Label 'Choose the sampling interval of the performance profiler. Smaller intervals will result in more precise timings, but it might result in higher load of the system.';
 }

@@ -11,7 +11,6 @@ using System.Environment;
 using System.Azure.KeyVault;
 using System.Azure.Identity;
 using System.Environment.Configuration;
-using System.Azure.AI;
 
 /// <summary>
 /// Implements functionality to call Azure OpenAI.
