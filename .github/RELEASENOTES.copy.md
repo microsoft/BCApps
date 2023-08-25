@@ -1,6 +1,4 @@
-## Preview
-
-Note that when using the preview version of AL-Go for GitHub, you need to Update your AL-Go system files, as soon as possible when told to do so.
+## v3.2
 
 ### Issues
 
