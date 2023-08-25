@@ -32,6 +32,7 @@ codeunit 1991 "Guided Experience Impl."
         RunSetupAgainQst: Label 'You have already completed the %1 assisted setup guide. Do you want to run it again?', Comment = '%1 = Assisted Setup Name';
         CodeFormatLbl: Label '%1_%2_%3_%4_%5', Locked = true;
         GuidedExperienceItemInsertedLbl: Label 'Guided Experience Item inserted.', Locked = true;
+        GuidedExperienceItemDeletedLbl: Label 'Guided Experience Item deleted.', Locked = true;
         TitleDimensionLbl: Label '%1ItemTitle', Locked = true;
         ShortTitleDimensionLbl: Label '%1ItemShortTitle', Locked = true;
         DescriptionDimensionLbl: Label '%1ItemDescription', Locked = true;
@@ -974,6 +975,8 @@ codeunit 1991 "Guided Experience Impl."
             ChecklistImplementation.Delete(GuidedExperienceItem.Code);
             DeleteSpotlightTourTexts(GuidedExperienceItem.Code);
         end;
+
+        LogMessageOnDatabaseEvent(GuidedExperienceItem, '0000EIN', GuidedExperienceItemDeletedLbl);
 
         GuidedExperienceItem.DeleteAll(true);
     end;

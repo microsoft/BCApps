@@ -5,8 +5,6 @@
 
 namespace System.Text;
 
-using System.Azure.AI;
-
 /// <summary>
 /// A card part to use on a factbox to display the entity text.
 /// Ensure the SetContext procedure is called OnAfterGetCurrentRecord on the parent page.

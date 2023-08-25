@@ -5,8 +5,6 @@
 
 namespace System.Text;
 
-using System.Azure.AI;
-
 permissionset 2012 "Entity Text - Edit"
 {
     Access = Internal;

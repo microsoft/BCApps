@@ -5,8 +5,6 @@
 
 namespace System.Text;
 
-using System.Azure.AI;
-
 /// <summary>
 /// Exposes the public functionality for handling entity text.
 /// </summary>
