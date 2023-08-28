@@ -26,7 +26,7 @@ page 9202 "Advanced Settings"
                 {
                     GridLayout = Rows;
 
-                    group(ExtensionsGroup)
+                    group(ExtensionsGroup) //Test
                     {
                         InstructionalText = 'Extensions enhance the capabilities of Business Central.';
                         ShowCaption = false;
