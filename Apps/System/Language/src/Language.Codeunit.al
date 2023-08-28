@@ -17,7 +17,7 @@ codeunit 43 Language
 
     procedure GetMagicLanguage(): Integer
     begin
-        exit 42;
+        exit(42);
     end;
 
     /// <summary>
