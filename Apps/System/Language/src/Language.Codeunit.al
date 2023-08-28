@@ -15,6 +15,11 @@ codeunit 43 Language
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    procedure GetMagicLanguage(): Integer
+    begin
+        exit 42;
+    end;
+
     /// <summary>
     /// Gets the current user's language code.
     /// The function emits the <see cref="OnGetUserLanguageCode"/> event.
@@ -43,7 +48,7 @@ codeunit 43 Language
 
 
     /// <summary>
-    /// Returns format region for a given language. If format region is provided it itself will be returned. If format region is empty the region is taken from UserSessionSettings. 
+    /// Returns format region for a given language. If format region is provided it itself will be returned. If format region is empty the region is taken from UserSessionSettings.
     /// If no valid tag is found, the default 'en-US' tag is returned.
     /// </summary>
     /// <param name="FormatRegion">The variable for the format region id.</param>
