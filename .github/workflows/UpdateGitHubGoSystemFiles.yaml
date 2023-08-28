@@ -32,20 +32,20 @@ jobs:
 
       - name: Initialize the workflow
         id: init
-        uses: microsoft/AL-Go-Actions/WorkflowInitialize@v3.2
+        uses: microsoft/AL-Go/Actions/WorkflowInitialize@cd65fef534b14be11e4d0e3c9905869fad786d36
         with:
           shell: powershell
           eventId: "DO0098"
 
       - name: Read settings
-        uses: microsoft/AL-Go-Actions/ReadSettings@v3.2
+        uses: microsoft/AL-Go/Actions/ReadSettings@cd65fef534b14be11e4d0e3c9905869fad786d36
         with:
           shell: powershell
           parentTelemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
           get: templateUrl
 
       - name: Read secrets
-        uses: microsoft/AL-Go-Actions/ReadSecrets@v3.2
+        uses: microsoft/AL-Go/Actions/ReadSecrets@cd65fef534b14be11e4d0e3c9905869fad786d36
         with:
           shell: powershell
           parentTelemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
@@ -78,7 +78,7 @@ jobs:
           Add-Content -Encoding UTF8 -Path $env:GITHUB_ENV -Value "DirectCommit=$directCommit"
 
       - name: Update AL-Go system files
-        uses: microsoft/AL-Go-Actions/CheckForUpdates@v3.2
+        uses: microsoft/AL-Go/Actions/CheckForUpdates@cd65fef534b14be11e4d0e3c9905869fad786d36
         with:
           shell: powershell
           parentTelemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
@@ -89,7 +89,7 @@ jobs:
 
       - name: Finalize the workflow
         if: always()
-        uses: microsoft/AL-Go-Actions/WorkflowPostProcess@v3.2
+        uses: microsoft/AL-Go/Actions/WorkflowPostProcess@cd65fef534b14be11e4d0e3c9905869fad786d36
         with:
           shell: powershell
           eventId: "DO0098"
