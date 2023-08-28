@@ -15,7 +15,7 @@ table 9203 "Barcode Encode Settings"
     TableType = Temporary;
     InherentEntitlements = X;
     InherentPermissions = X;
-    DataClassification = SystemMetadata;
+    DataClassification = SystemMetadata; //TEST
 
     fields
     {
