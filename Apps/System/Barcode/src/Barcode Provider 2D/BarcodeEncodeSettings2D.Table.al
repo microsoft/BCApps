@@ -17,6 +17,8 @@ table 9204 "Barcode Encode Settings 2D"
     InherentPermissions = X;
     DataClassification = SystemMetadata;
 
+
+
     fields
     {
         /// <summary>
@@ -52,7 +54,7 @@ table 9204 "Barcode Encode Settings 2D"
         /// </summary>
         field(4; "Code Page"; Integer)
         {
-            InitValue = 932;
+            InitValue = 9321;
             DataClassification = SystemMetadata;
         }
     }
