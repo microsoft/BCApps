@@ -31,11 +31,11 @@ function Enable-BreakingChangesCheck {
     # Restore the baseline package and place it in the app symbols folder
     switch ($BuildMode) {
         'Clean' {
-            $baselineAppFile = Get-ChildItem -Path $AppSymbolsFolder -Filter "$($applicationName)*.app" | ForEach-Object { $_.Name }
-            if(-not ($baselineAppFile -match "$applicationName_(.*)_(.*).app")) {
+            $baselineAppFile = Get-ChildItem -Path $AppSymbolsFolder -Filter "*_$($applicationName)_*.app" | ForEach-Object { $_.Name }
+            if(-not ($baselineAppFile -match "*_$applicationName_(.*).app")) {
                 throw "Unable to find baseline app in $AppSymbolsFolder"
             }
-            $baselineVersion = $Matches[2]
+            $baselineVersion = $Matches[1]
         }
         Default {
             $baselineVersion = Restore-BaselinesFromArtifacts -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName
@@ -53,7 +53,7 @@ function Enable-BreakingChangesCheck {
 
 function New-BaselineForApp {
     param (
-    [Hashtable] $parameters
+        $parameters
     )
 
     $tempParameters = $parameters.Clone()
@@ -64,8 +64,7 @@ function New-BaselineForApp {
     #Generate the app directly in the symbols folder
     $tempParameters["appOutputFolder"] = $tempParameters["appSymbolsFolder"]
 
-    Write-Host "Compiling app with parameters:"
-    $tempParameters | Format-Table -AutoSize
+    Write-Host "Compiling app with parameters: $($tempParameters | ConvertTo-Json -Depth 99)"
 
     Compile-AppInBcContainer @tempParameters | Out-Null
 }
