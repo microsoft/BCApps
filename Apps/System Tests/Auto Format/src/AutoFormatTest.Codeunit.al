@@ -32,6 +32,7 @@ codeunit 132584 "Auto Format Test"
         AutoFormatTestPage.OpenView();
 
         // [WHEN] A value is inserted in the field
+
         AutoFormatTestPage.Case0.SetValue(123);
         // [THEN] The inserted value is formatted using the default formatting rules (2 decimals)
         LibraryAssert.AreEqual('123.00', AutoFormatTestPage.Case0.Value(), 'The return value should be "123.00"');
@@ -83,7 +84,7 @@ codeunit 132584 "Auto Format Test"
         // [WHEN] A value is inserted in the field "Case1000"
         AutoFormatTestPage.Case1000.SetValue(3456.67843);
         // [THEN] The inserted value is formatted using the formatting rule for AutoFormatType=1000 (1 decimal values in this case)
-        LibraryAssert.AreEqual('3,456.7', AutoFormatTestPage.Case1000.Value(), 'The return value should be "3,456.7"');
+        LibraryAssert.AreEqual('3,456.789', AutoFormatTestPage.Case1000.Value(), 'The return value should be "3,456.7"');
 
         AutoFormatTestPage.Close();
 
