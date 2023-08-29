@@ -16,7 +16,7 @@ codeunit 135057 RegexTests
     var
         Regex: Codeunit Regex;
         InstanceRegex: Codeunit Regex;
-        Assert: Codeunit "Library Assert";
+        Assert: Codeunit "Library Assert"; //TEST
 
     [Test]
     procedure IsMatchTest()
@@ -143,6 +143,7 @@ codeunit 135057 RegexTests
 
         // [When] Regex matches pattern, and the resulting MatchCollection is copied to an array 
         Regex.Match(Input, Pattern, Matches);
+
         Regex.Groups(Matches, Groups);
 
         // [Then] Checks are performed
