@@ -34,6 +34,7 @@ codeunit 3960 Regex
     procedure Regex(Pattern: Text; var RegexOptions: Record "Regex Options")
     begin
         RegexImpl.Regex(Pattern, RegexOptions);
+        exit(1);
     end;
 
     /// <summary>
