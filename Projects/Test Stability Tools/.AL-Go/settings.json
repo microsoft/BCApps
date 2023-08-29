@@ -4,6 +4,7 @@
     ],
     "testFolders":  [
     ],
+    "doNotRunTests": true,
     "doNotPublishApps": true,
     "enableAppSourceCop": true,
     "enablePerTenantExtensionCop":  true
