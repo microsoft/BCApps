@@ -16,6 +16,7 @@ codeunit 132922 "Azure AD Graph Test Library"
     var
         MockGraphQuery: DotNet MockGraphQuery;
 
+
     procedure SetMockGraphQuery(MockGraphQueryTestLibrary: Codeunit "MockGraphQuery Test Library")
     begin
         MockGraphQueryTestLibrary.GetMockGraphQuery(MockGraphQuery);
@@ -25,6 +26,6 @@ codeunit 132922 "Azure AD Graph Test Library"
     local procedure OnGraphInitialization(var GraphQuery: DotNet GraphQuery; var Handled: Boolean)
     begin
         GraphQuery := GraphQuery.GraphQuery(MockGraphQuery);
-        Handled := true;
+        Handled := true; // Test
     end;
 }
