@@ -32,7 +32,7 @@ function Enable-BreakingChangesCheck {
     switch ($BuildMode) {
         'Clean' {
             $baselineAppFile = Get-ChildItem -Path $AppSymbolsFolder -Filter "*_$($applicationName)_*.app" | ForEach-Object { $_.Name }
-            if(-not ($baselineAppFile -match "*_$applicationName_(.*).app")) {
+            if(-not ($baselineAppFile -match ".*_(.*).app")) {
                 throw "Unable to find baseline app in $AppSymbolsFolder"
             }
             $baselineVersion = $Matches[1]
