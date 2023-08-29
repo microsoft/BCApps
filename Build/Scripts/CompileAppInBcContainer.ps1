@@ -31,7 +31,7 @@ if($app)
     if (($parameters.ContainsKey("EnableAppSourceCop") -and $parameters["EnableAppSourceCop"]) -or ($parameters.ContainsKey("EnablePerTenantExtensionCop") -and $parameters["EnablePerTenantExtensionCop"])) {
         Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
 
-        if($BuildMode -eq 'Clean') {
+        if($appBuildMode -eq 'Clean') {
             New-BaselineForApp -parameters $parameters
         }
 
