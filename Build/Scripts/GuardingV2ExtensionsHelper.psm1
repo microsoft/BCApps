@@ -64,7 +64,8 @@ function New-BaselineForApp {
     #Generate the app directly in the symbols folder
     $tempParameters["appOutputFolder"] = $tempParameters["appSymbolsFolder"]
 
-    Write-Host "Compiling app with parameters: $($tempParameters | ConvertTo-Json -Depth 99)"
+    Write-Host "Compiling app with parameters:"
+    $tempParameters
 
     Compile-AppInBcContainer @tempParameters | Out-Null
 }
