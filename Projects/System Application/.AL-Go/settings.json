@@ -6,6 +6,9 @@
         "..\\..\\App\\Modules\\System Test Libraries",
         "..\\..\\App\\Modules\\System Tests"
     ],
+    "buildModes": [
+        "Translated"
+    ],
     "enableAppSourceCop": true,
     "enablePerTenantExtensionCop":  true
 }

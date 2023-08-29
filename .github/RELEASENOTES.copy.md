@@ -2,6 +2,56 @@
 
 Note that when using the preview version of AL-Go for GitHub, you need to Update your AL-Go system files, as soon as possible when told to do so.
 
+### Issues 
+- Issue 227 Feature request: Allow deployments with "Schema Sync Mode" = Force
+- Issue 519 Deploying to onprem environment
+- Issue 520 Automatic deployment to environment with annotation
+- Issue 592 Internal Server Error when publishing
+- Issue 557 Deployment step fails when retried
+- After configuring deployment branches for an environment in GitHub and setting Deployment Branch Policy to **Protected Branches**, AL-Go for GitHub would fail during initialization (trying to get environments for deployment)
+
+### Breaking changes
+Earlier, you could specify a mapping to an environment name in an environment secret called `<environmentname>_EnvironmentName`, `<environmentname>-EnvironmentName` or just `EnvironmentName`. You could also specify the projects you want to deploy to an environment as an environment secret called `Projects`.
+This mechanism is no longer supported and you will get an error if your repository has these secrets. Instead you should use the `DeployTo<environmentName>` setting described below.
+Earlier, you could also specify the projects you want to deploy to an environment in a setting called `<environmentName>_Projects` or `<environmentName>-Projects`. This is also no longer supported. Instead use the `DeployTo<environmentName>` and remove the old settings.
+
+### New Actions
+- `DetermineDeliveryTargets`: Determine which delivery targets should be used for delivering artifacts from the build job.
+- `DetermineDeploymentEnvironments`: Determine which deployment environments should be used for the workflow.
+
+### New Settings
+- `fullBuildPatterns`: used by `DetermineProjectsToBuild` action to specify changes in which files and folders would trigger a full build (building all AL-Go projects).
+- `excludeEnvironments`: used by `DetermineDeploymentEnvironments` action to exclude environments from the list of environments considered for deployment.
+- `deployTo<environmentName>`: is not really new, but has new properties. The complete list of properties is here:
+  - **EnvironmentType** = specifies the type of environment. The environment type can be used to invoke a custom deployment. (Default SaaS)
+  - **EnvironmentName** = specifies the "real" name of the environment if it differs from the GitHub environment
+  - **Branches** = an array of branch patterns, which are allowed to deploy to this environment. (Default [ "main" ])
+  - **Projects** = In multi-project repositories, this property can be a comma separated list of project patterns to deploy to this environment. (Default *)
+  - **SyncMode** = ForceSync if deployment to this environment should happen with ForceSync, else Add. If deploying to the development endpoint you can also specify Development or Clean. (Default Add)
+  - **ContinuousDeployment** = true if this environment should be used for continuous deployment, else false. (Default: AL-Go will continuously deploy to sandbox environments or environments, which doesn't end in (PROD) or (FAT)
+  - **runs-on** = specifies which GitHub runner to use when deploying to this environment. (Default is settings.runs-on)
+
+### Custom Deployment
+By specifying a custom EnvironmentType in the DeployTo structure for an environment, you can now add a script in the .github folder called `DeployTo<environmentType>.ps1`. This script will be executed instead of the standard deployment mechanism with the following parameters in a HashTable:
+
+| Parameter | Description | Example |
+| --------- | :--- | :--- |
+| `$parameters.type` | Type of delivery (CD or Release) | CD |
+| `$parameters.apps` | Apps to deploy | /home/runner/.../GHP-Common-main-Apps-2.0.33.0.zip |
+| `$parameters.EnvironmentType` | Environment type | SaaS |
+| `$parameters.EnvironmentName` | Environment name | Production |
+| `$parameters.Branches` | Branches which should deploy to this environment (from settings) | main,dev |
+| `$parameters.AuthContext` | AuthContext in a compressed Json structure | {"refreshToken":"mytoken"} |
+| `$parameters.BranchesFromPolicy` | Branches which should deploy to this environment (from GitHub environments) | main |
+| `$parameters.Projects` | Projects to deploy to this environment | |
+| `$parameters.ContinuousDeployment` | Is this environment setup for continuous deployment | false |
+| `$parameters."runs-on"` | GitHub runner to be used to run the deployment script | windows-latest |
+
+### Status Checks in Pull Requests
+AL-Go for GitHub now adds status checks to Pull Requests Builds. In your GitHub branch protection rules, you can set up "Pull Request Status Check" to be a required status check to ensure Pull Request Builds succeed before merging.
+
+## v3.2
+
 ### Issues
 
 Issue 542 Deploy Workflow fails
