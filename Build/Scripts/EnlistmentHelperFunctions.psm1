@@ -181,7 +181,7 @@ function Get-LatestBCArtifactVersion
     }
 
     if ($artifactUrl -and ($artifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
-        $latestVersion = [System.Version] $Matches[0]
+        $latestVersion = $Matches[0]
     } else {
         throw "Could not find BCArtifact version (for min version: $minimumVersion): $artifactUrl"
     }
