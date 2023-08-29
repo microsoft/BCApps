@@ -2,7 +2,7 @@
     "id":  "eb303ff1-7a68-45b5-b7de-bf6965244dd7",
     "name":  "Email Test",
     "publisher":  "Microsoft",
-    "brief":  "Tests for the Email module",
+    "brief":  "Tests for the Email module ",
     "description":  "Tests for the Email module",
     "version":  "23.0.0.0",
     "privacyStatement":  "https://go.microsoft.com/fwlink/?linkid=724009",
