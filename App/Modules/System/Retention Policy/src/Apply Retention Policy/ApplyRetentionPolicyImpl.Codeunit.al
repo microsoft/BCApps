@@ -422,7 +422,7 @@ codeunit 3904 "Apply Retention Policy Impl."
 
     internal procedure MaxNumberOfRecordsToDelete(): Integer
     begin
-        exit(250000)
+        exit(10000)
     end;
 
     local procedure Count(RecordRef: RecordRef): Integer;

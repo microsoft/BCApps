@@ -9,7 +9,6 @@ using System;
 using System.Utilities;
 using System.Azure.KeyVault;
 using System.Environment.Configuration;
-using System.Azure.AI;
 
 /// <summary>
 /// Implements functionality to handle text suggestions.

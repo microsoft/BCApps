@@ -5,8 +5,6 @@
 
 namespace System.Text;
 
-using System.Azure.AI;
-
 /// <summary>
 /// A reusable component to modify entity texts with a rich text editor.
 /// See the "Entity Text" page for an example implementation.
