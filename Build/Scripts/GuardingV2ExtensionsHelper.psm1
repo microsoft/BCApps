@@ -29,7 +29,18 @@ function Enable-BreakingChangesCheck {
     Write-Host "Enabling breaking changes check for app: $applicationName, build mode: $BuildMode"
 
     # Restore the baseline package and place it in the app symbols folder
-    $baselineVersion = Restore-BaselinesFromArtifacts -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName
+    switch ($BuildMode) {
+        'Clean' {
+            $baselineAppFile = Get-ChildItem -Path $AppSymbolsFolder -Filter "$($applicationName)*.app" | ForEach-Object { $_.Name }
+            if(-not ($baselineAppFile -match "$applicationName_(.*)_(.*).app")) {
+                throw "Unable to find baseline app in $AppSymbolsFolder"
+            }
+            $baselineVersion = $Matches[2]
+        }
+        Default {
+            $baselineVersion = Restore-BaselinesFromArtifacts -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName
+        }
+    }
 
     if ($baselineVersion) {
         # Generate the app source cop json file
@@ -38,6 +49,25 @@ function Enable-BreakingChangesCheck {
     else {
         Write-Host "Breaking changes check will not be performed for $applicationName as no baseline was restored"
     }
+}
+
+function New-BaselineForApp {
+    param (
+    [Hashtable] $parameters
+    )
+
+    $tempParameters = $parameters.Clone()
+
+    # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
+    $tempParameters["preprocessorsymbols"] = @()
+
+    #Generate the app directly in the symbols folder
+    $tempParameters["appOutputFolder"] = $tempParameters["appSymbolsFolder"]
+
+    Write-Host "Compiling app with parameters:"
+    $tempParameters | Format-Table -AutoSize
+
+    Compile-AppInBcContainer @tempParameters | Out-Null
 }
 
 <#

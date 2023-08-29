@@ -30,6 +30,11 @@ if($app)
     # Restore the baseline app and generate the AppSourceCop.json file
     if (($parameters.ContainsKey("EnableAppSourceCop") -and $parameters["EnableAppSourceCop"]) -or ($parameters.ContainsKey("EnablePerTenantExtensionCop") -and $parameters["EnablePerTenantExtensionCop"])) {
         Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
+
+        if($BuildMode -eq 'Clean') {
+            New-BaselineForApp -parameters $parameters
+        }
+
         Enable-BreakingChangesCheck -AppSymbolsFolder $parameters["appSymbolsFolder"] -AppProjectFolder $parameters["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
     }
 }
