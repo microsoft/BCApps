@@ -25,7 +25,7 @@
                      }
                  ],
     "features": ["GenerateCaptions",
-                 "TranslationFile"],
+                 "TranslationFile" ],
     "resourceExposurePolicy":  {
                                    "allowDebugging":  true,
                                    "allowDownloadingSource":  true,
