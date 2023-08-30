@@ -1,11 +1,10 @@
 {
-    "appFolders":  [
-        "..\\..\\Apps\\DevTools\\BusinessCentralPerformanceToolkit"
+    "testFolders":  [
+        "..\\..\\Apps\\DevTools\\BusinessCentralPerformanceToolkit Tests"
     ],
     "buildModes": [
         "Translated"
     ],
-    "doNotRunTests": true,
     "enableAppSourceCop": true,
     "enablePerTenantExtensionCop":  true
 }
