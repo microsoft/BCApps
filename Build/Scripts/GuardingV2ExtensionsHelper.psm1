@@ -54,7 +54,6 @@ function Enable-BreakingChangesCheck {
     }
 }
 
-
 <#
 .Synopsis
     Given an extension and a baseline version, it restores the baseline for an app from bcartifacts
