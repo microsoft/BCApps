@@ -1,15 +1,14 @@
 name: 1.0.$(Year:yy)$(DayOfYear).$(Rev:r) # This is the build number 
 
 pr: none
-trigger:
-  batch: true
+trigger: none
+schedules:
+- cron: '0 8 * * *'
+  displayName: Daily Sync
   branches:
     include:
-    - main
+    - master
     - release/*
-  tags:
-    include:
-    - builds/*
 
 pool:
   name: 'd365bc-agentpool-nonprod-bcapps-sync'
