@@ -7,8 +7,7 @@ schedules:
   displayName: Daily Sync
   branches:
     include:
-    - master
-    - release/*
+    - main
 
 pool:
   name: 'd365bc-agentpool-nonprod-bcapps-sync'
