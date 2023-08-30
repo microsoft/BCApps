@@ -51,24 +51,6 @@ function Enable-BreakingChangesCheck {
     }
 }
 
-function New-BaselineForApp {
-    param (
-        $parameters
-    )
-
-    $tempParameters = $parameters.Clone()
-
-    # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
-    $tempParameters["preprocessorsymbols"] = @()
-
-    #Generate the app directly in the symbols folder
-    $tempParameters["appOutputFolder"] = $tempParameters["appSymbolsFolder"]
-
-    Write-Host "Compiling app with parameters:"
-    $tempParameters
-
-    Compile-AppInBcContainer @tempParameters | Out-Null
-}
 
 <#
 .Synopsis
