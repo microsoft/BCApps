@@ -3,10 +3,6 @@
         "..\\..\\Apps\\System Test Libraries",
         "..\\..\\Apps\\System Tests"
     ],
-    "buildModes": [
-        "Translated"
-    ],
-    "doNotIssueWarnings": true,
     "enableAppSourceCop": true,
     "enablePerTenantExtensionCop":  true
 }
