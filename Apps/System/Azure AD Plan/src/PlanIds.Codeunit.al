@@ -136,6 +136,7 @@ codeunit 9027 "Plan Ids"
         exit(D365AdminPartnerGUIDTxt);
     end;
 
+#if not CLEAN23
     /// <summary>
     /// Returns the ID for the Dynamics 365 Administrator plan.
     /// </summary>
@@ -144,6 +145,7 @@ codeunit 9027 "Plan Ids"
     begin
         exit(D365AdminGUIDTxt);
     end;
+#endif
 
 #if not CLEAN23
     /// <summary>
