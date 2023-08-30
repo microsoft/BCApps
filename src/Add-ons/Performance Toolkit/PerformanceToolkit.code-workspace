@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "Performance Toolkit"
+		},
+		{
+			"path": "../../DevTools/TestFramework/TestRunner"
+		},
+		{
+			"path": "Performance Toolkit Tests"
+		}
+	],
+	"settings": {}
+}
