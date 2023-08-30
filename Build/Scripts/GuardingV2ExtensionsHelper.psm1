@@ -31,7 +31,10 @@ function Enable-BreakingChangesCheck {
     # Restore the baseline package and place it in the app symbols folder
     switch ($BuildMode) {
         'Clean' {
+            Write-Host "Looking for baseline app to use in the symbols folder: $AppSymbolsFolder"
+
             $baselineAppFile = Get-ChildItem -Path $AppSymbolsFolder -Filter "*_$($applicationName)_*.app" | ForEach-Object { $_.Name }
+
             if(-not ($baselineAppFile -match ".*_(.*).app")) {
                 throw "Unable to find baseline app in $AppSymbolsFolder"
             }
