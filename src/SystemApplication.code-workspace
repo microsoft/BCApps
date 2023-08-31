@@ -17,16 +17,16 @@
 			"path": "DevTools\\TestFramework\\TestRunner"
 		},
 		{
-			"name": "System",
-			"path": "System"
+			"name": "System Applcation",
+			"path": "Application\\System Application\\System Application"
 		},
 		{
-			"name": "System Test Libraries",
-			"path": "System Test Libraries"
+			"name": "System Application Test Libraries",
+			"path": "Application\\System Application\\System Application Test Libraries"
 		},
 		{
-			"name": "System Tests",
-			"path": "System Tests"
+			"name": "System Application Tests",
+			"path": "Application\\System Application\\System Application Tests"
 		}
 	]
 }

@@ -1,13 +1,13 @@
 {
 	"folders": [
 		{
-			"path": "BusinessCentralPerformanceToolkit"
+			"path": "Performance Toolkit"
 		},
 		{
 			"path": "TestFramework/TestRunner"
 		},
 		{
-			"path": "BusinessCentralPerformanceToolkit Tests"
+			"path": "Performance Toolkit Tests"
 		}
 	],
 	"settings": {}

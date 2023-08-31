@@ -13,7 +13,7 @@
       "alternativeSignatures": [
         "fce33d739da30a4afc56e617d4697da47883f853be5899bc69fa2f014340578f"
       ],
-      "target": "Apps/System/OAuth/README.md",
+      "target": "src/Application/System Application/System Application/OAuth/README.md",
       "memberOf": [
         "default"
       ],
@@ -29,7 +29,7 @@
       "alternativeSignatures": [
         "19d1cf47653a045297e548d371f9f885f10bc5c321c7c101215b0b7aae50dae3"
       ],
-      "target": "Apps/System/OAuth/README.md",
+      "target": "src/Application/System Application/System Application/OAuth/README.md",
       "memberOf": [
         "default"
       ],
@@ -45,7 +45,7 @@
       "alternativeSignatures": [
         "595c22e7c4245d7ae22b80ebe6a4a3cf5397d950ece8c13582a765dddc77c22d"
       ],
-      "target": "Apps/System Tests/Cryptography Management/src/DESCryptoServiceProviderTest.Codeunit.al",
+      "target": "src/Application/System Application/System Application Tests/Cryptography Management/src/DESCryptoServiceProviderTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
@@ -61,7 +61,7 @@
       "alternativeSignatures": [
         "eaa93ff3095e3bc185463e35ea01011080e12bca3cb0d1c3033f1954cdcca68b"
       ],
-      "target": "Apps/System Tests/Password/src/PasswordHandlerTest.Codeunit.al",
+      "target": "src/Application/System Application/System Application Tests/Password/src/PasswordHandlerTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
@@ -77,7 +77,7 @@
       "alternativeSignatures": [
         "1d2c71cc45ca1b13e672887c8263d346ab6377480e46d79f2b68d062ed8e1e9a"
       ],
-      "target": "Apps/System Tests/Password/src/PasswordHandlerTest.Codeunit.al",
+      "target": "src/Application/System Application/System Application Tests/Password/src/PasswordHandlerTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
@@ -93,7 +93,7 @@
       "alternativeSignatures": [
         "4431b5ddc52472114df85b881202963ebf335abbe06677e0ce0340060ddcb942"
       ],
-      "target": "Apps/System Tests/Password/src/PasswordHandlerTest.Codeunit.al",
+      "target": "src/Application/System Application/System Application Tests/Password/src/PasswordHandlerTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
@@ -109,7 +109,7 @@
       "alternativeSignatures": [
         "0c716a427a7d9599632bfef79795353cf3cda99c1554f18759fcd0789d787e0a"
       ],
-      "target": "Apps/System Tests/Password/src/PasswordHandlerTest.Codeunit.al",
+      "target": "src/Application/System Application/System Application Tests/Password/src/PasswordHandlerTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
@@ -125,7 +125,7 @@
       "alternativeSignatures": [
         "4efc59b10b25c91b18a876677768e61e2a4b1b92a2c045f7d30723ffb28e3f5c"
       ],
-      "target": "Apps/System Tests/Password/src/PasswordHandlerTest.Codeunit.al",
+      "target": "src/Application/System Application/System Application Tests/Password/src/PasswordHandlerTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
@@ -141,7 +141,7 @@
       "alternativeSignatures": [
         "15fb32568e0b16b14a959c52a40792fc14b6c41b5843a453c3a62c6caaf5ff7b"
       ],
-      "target": "Apps/System Tests/Password/src/PasswordHandlerTest.Codeunit.al",
+      "target": "src/Application/System Application/System Application Tests/Password/src/PasswordHandlerTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
