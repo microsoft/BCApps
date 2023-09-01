@@ -1,5 +1,5 @@
 {
-    "appFolders":  [
+    "testFolders":  [
         "..\\..\\src\\DevTools\\TestFramework\\TestLibraries\\*",
         "..\\..\\src\\DevTools\\TestFramework\\TestRunner"
     ],
