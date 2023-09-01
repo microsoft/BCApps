@@ -1,14 +1,14 @@
 {
     "appFolders":  [
-        "..\\..\\Apps\\System\\*"
+        "..\\..\\src\\Application\\System Application\\System Application\\*"
     ],
     "testFolders":  [
-        "..\\..\\Apps\\System Test Libraries\\*",
-        "..\\..\\Apps\\System Tests\\*"
+        "..\\..\\src\\Application\\System Application\\System Application Test Libraries\\*",
+        "..\\..\\src\\Application\\System Application\\System Application Tests\\*"
     ],
     "enableAppSourceCop": false,
     "enablePerTenantExtensionCop":  false,
     "useCompilerFolder": true,
     "doNotPublishApps": true,
-    "rulesetFile": "..\\..\\Build\\Rulesets\\internal.module.ruleset.json"
+    "rulesetFile": "..\\..\\build\\Rulesets\\internal.module.ruleset.json"
 }

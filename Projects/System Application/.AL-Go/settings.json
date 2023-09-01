@@ -1,6 +1,6 @@
 {
     "appFolders":  [
-        "..\\..\\Apps\\System"
+        "..\\..\\src\\Application\\System Application\\System Application"
     ],
     "buildModes": [
         "Translated"

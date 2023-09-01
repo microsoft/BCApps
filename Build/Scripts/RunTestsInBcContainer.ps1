@@ -7,7 +7,7 @@ Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 function Get-DisabledTestsFolder
 {
     $baseFolder = Get-BaseFolder
-    return "$baseFolder\Apps\System Tests\DisabledTests"
+    return "$baseFolder\src\Application\System Application\System Application Tests\DisabledTests"
 }
 
 function Get-DisabledTests
@@ -21,7 +21,7 @@ function Get-DisabledTests
     }
 
     $disabledCodeunits = Get-ChildItem -Filter "*.json" -Path $DisabledTestsFolder
-    
+
     $disabledTests = @()
     foreach($disabledCodeunit in $disabledCodeunits)
     {

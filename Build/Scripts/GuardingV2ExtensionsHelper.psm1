@@ -29,7 +29,21 @@ function Enable-BreakingChangesCheck {
     Write-Host "Enabling breaking changes check for app: $applicationName, build mode: $BuildMode"
 
     # Restore the baseline package and place it in the app symbols folder
-    $baselineVersion = Restore-BaselinesFromArtifacts -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName
+    switch ($BuildMode) {
+        'Clean' {
+            Write-Host "Looking for baseline app to use in the symbols folder: $AppSymbolsFolder"
+
+            $baselineAppFile = Get-ChildItem -Path $AppSymbolsFolder -Filter "*_$($applicationName)_*.app" | ForEach-Object { $_.Name }
+
+            if(-not ($baselineAppFile -match ".*_(.*).app")) {
+                throw "Unable to find baseline app in $AppSymbolsFolder"
+            }
+            $baselineVersion = $Matches[1]
+        }
+        Default {
+            $baselineVersion = Restore-BaselinesFromArtifacts -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName
+        }
+    }
 
     if ($baselineVersion) {
         # Generate the app source cop json file
