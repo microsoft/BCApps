@@ -1,9 +1,9 @@
 {
     "appFolders":  [
-        "..\\..\\Apps\\DevTools\\BusinessCentralPerformanceToolkit"
+        "..\\..\\Apps\\DevTools\\Performance Toolkit"
     ],
     "testFolders":  [
-        "..\\..\\Apps\\DevTools\\BusinessCentralPerformanceToolkit Tests"
+        "..\\..\\Apps\\DevTools\\Performance Toolkit Tests"
     ],
     "buildModes": [
         "Translated"
