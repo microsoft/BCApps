@@ -1,8 +1,6 @@
 {
-    "appFolders":  [
-        "..\\..\\src\\DevTools\\Performance Toolkit\\Performance Toolkit"
-    ],
     "testFolders":  [
+        "..\\..\\src\\DevTools\\Performance Toolkit\\Performance Toolkit",
         "..\\..\\src\\DevTools\\Performance Toolkit\\Performance Toolkit Tests"
     ],
     "enableAppSourceCop": true,
