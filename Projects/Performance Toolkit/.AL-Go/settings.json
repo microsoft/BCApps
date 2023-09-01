@@ -1,9 +1,9 @@
 {
     "appFolders":  [
-        "..\\..\\Apps\\DevTools\\Performance Toolkit"
+        "..\\..\\src\\DevTools\\Performance Toolkit\\Performance Toolkit"
     ],
     "testFolders":  [
-        "..\\..\\Apps\\DevTools\\Performance Toolkit Tests"
+        "..\\..\\src\\DevTools\\Performance Toolkit\\Performance Toolkit Tests"
     ],
     "buildModes": [
         "Translated"
