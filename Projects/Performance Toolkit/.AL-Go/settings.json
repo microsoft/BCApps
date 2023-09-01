@@ -6,5 +6,6 @@
         "..\\..\\src\\DevTools\\Performance Toolkit\\Performance Toolkit Tests"
     ],
     "enableAppSourceCop": true,
-    "enablePerTenantExtensionCop":  true
+    "enablePerTenantExtensionCop":  true,
+    "installOnlyReferencedApps": false
 }
