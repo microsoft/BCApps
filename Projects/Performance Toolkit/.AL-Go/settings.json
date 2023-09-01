@@ -5,9 +5,6 @@
     "testFolders":  [
         "..\\..\\src\\DevTools\\Performance Toolkit\\Performance Toolkit Tests"
     ],
-    "buildModes": [
-        "Translated"
-    ],
     "enableAppSourceCop": true,
     "enablePerTenantExtensionCop":  true
 }
