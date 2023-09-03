@@ -2,13 +2,10 @@
     "appFolders":  [
         "..\\..\\src\\Application\\System Application\\System Application"
     ],
-    "testFolders":  [
-        "..\\..\\src\\Application\\System Application\\System Application Test Libraries",
-        "..\\..\\src\\Application\\System Application\\System Application Tests"
-    ],
     "buildModes": [
         "Translated"
     ],
+    "doNotRunTests": true,
     "enableAppSourceCop": true,
     "enablePerTenantExtensionCop":  true
 }
