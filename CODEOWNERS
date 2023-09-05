@@ -1,7 +1,23 @@
+# Default owners
+* @dynamics-365-business-central
+
+# App Permissions
+*.permissionset.al @d365-bc-app-permissions
+*.permissionsetext.al @d365-bc-app-permissions
+*.entitlement.al @d365-bc-app-permissions
+
+# App Rulesets
+/Build/Rulesets/ @d365-bc-app-rulesets
+
+# App Security
+*/dotnet.al @d365-bc-app-security
+
 # AL-Go files and build scripts are owned by Engineering Systems
-.AL-Go/ @microsoft/dynamics-smb-engineering-systems
-*.ps1 @microsoft/dynamics-smb-engineering-systems
-/.azuredevops @microsoft/dynamics-smb-engineering-systems
-/.github @microsoft/dynamics-smb-engineering-systems
-/Build @microsoft/dynamics-smb-engineering-systems
-/CODEOWNERS @microsoft/dynamics-smb-engineering-systems
+.AL-Go/ @d365-bc-engineering-systems
+*.ps1 @d365-bc-engineering-systems
+/.azuredevops @d365-bc-engineering-systems
+/.github @d365-bc-engineering-systems
+/Build @d365-bc-engineering-systems
+/CODEOWNERS @d365-bc-engineering-systems
+
+
