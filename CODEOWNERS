@@ -10,7 +10,7 @@
 /Build/Rulesets/ @microsoft/d365-bc-app-rulesets
 
 # App Security
-*/dotnet.al @microsoft/d365-bc-app-security
+dotnet.al @microsoft/d365-bc-app-security
 
 # AL-Go files and build scripts are owned by Engineering Systems
 .AL-Go/ @microsoft/d365-bc-engineering-systems
