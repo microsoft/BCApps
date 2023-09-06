@@ -8,7 +8,7 @@
     "artifact":  "bcinsider//23.0.12083.0/base//{INSIDERSASTOKEN}",
     "country":  "base",
     "useProjectDependencies":  true,
-    "repoVersion":  "23.0",
+    "repoVersion":  "24.0",
     "cleanModePreprocessorSymbols":  [
                                          "CLEAN17",
                                          "CLEAN18",
