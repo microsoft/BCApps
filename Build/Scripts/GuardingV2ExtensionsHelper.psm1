@@ -85,10 +85,10 @@ function Restore-BaselinesFromArtifacts {
         $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $baselineVersion
 
         # TODO: temporary workaround for baselines not being available in bcartifacts
-        if(-not $artifactUrl) {
+        if(-not $baselineURL) {
             $insiderSasToken = ($env:Secrets | ConvertFrom-JSON).insiderSasToken
             #Fallback to bcinsider
-            $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount bcinsider -sasToken "$insiderSasToken"
+            $baselineURL = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount bcinsider -sasToken "$insiderSasToken"
         }
 
         if (-not $baselineURL) {
