@@ -88,7 +88,7 @@ function Restore-BaselinesFromArtifacts {
         if(-not $baselineURL) {
             $insiderSasToken = ($env:Secrets | ConvertFrom-JSON).insiderSasToken
             #Fallback to bcinsider
-            $baselineURL = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount bcinsider -sasToken "$insiderSasToken"
+            $baselineURL = Get-BCArtifactUrl -type Sandbox -country base -version $baselineVersion -storageAccount bcinsider -sasToken "$insiderSasToken"
         }
 
         if (-not $baselineURL) {
