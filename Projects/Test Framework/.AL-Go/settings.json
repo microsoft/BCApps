@@ -1,7 +1,7 @@
 {
     "appFolders":  [
-        "..\\..\\src\\DevTools\\TestFramework\\TestLibraries\\*",
-        "..\\..\\src\\DevTools\\TestFramework\\TestRunner"
+        "..\\..\\src\\Tools\\TestFramework\\TestLibraries\\*",
+        "..\\..\\src\\Tools\\TestFramework\\TestRunner"
     ],
     "buildModes": [
         "Translated"

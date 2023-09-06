@@ -1,9 +1,9 @@
 {
     "appFolders":  [
-        "..\\..\\src\\DevTools\\Performance Toolkit\\Performance Toolkit"
+        "..\\..\\src\\Tools\\Performance Toolkit\\App"
     ],
     "testFolders":  [
-        "..\\..\\src\\DevTools\\Performance Toolkit\\Performance Toolkit Tests"
+        "..\\..\\src\\Tools\\Performance Toolkit\\Test"
     ],
     "enableAppSourceCop": true,
     "enablePerTenantExtensionCop":  true,
