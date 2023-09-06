@@ -5,10 +5,8 @@
 
 namespace System.TestLibraries.Azure.ActiveDirectory;
 
-using System.Azure.Identity;
-
 permissionset 138458 "AAD Licensing Exec"
 {
     Assignable = true;
-    IncludedPermissionSets = "Azure AD Licensing - Exec";
+    // No permissions required.
 }

@@ -5,10 +5,8 @@
 
 namespace System.TestLibraries.Telemetry;
 
-using System.Telemetry;
-
 permissionset 139482 "Telemetry Exec"
 {
     Assignable = true;
-    IncludedPermissionSets = "Telemetry - Exec";
+    // No permissions required.
 }

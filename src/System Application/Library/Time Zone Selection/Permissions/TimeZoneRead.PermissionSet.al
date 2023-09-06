@@ -5,9 +5,8 @@
 
 namespace System.TestLibraries.DateTime;
 
-using System.DateTime;
 permissionset 137122 "Time Zone Read"
 {
     Assignable = true;
-    IncludedPermissionSets = "Time Zone Selection - Read";
+    // No permissions required.
 }

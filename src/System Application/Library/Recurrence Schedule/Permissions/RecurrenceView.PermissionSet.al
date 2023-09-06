@@ -5,10 +5,9 @@
 
 namespace System.TestLibraries.DateTime;
 
-using System.DateTime;
 
 permissionset 134691 "Recurrence View"
 {
     Assignable = true;
-    IncludedPermissionSets = "Recurrence Schedule - View";
+    // No permissions required
 }

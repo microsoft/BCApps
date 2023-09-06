@@ -18,8 +18,8 @@ codeunit 134686 "Email Accounts Test"
     var
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
-        AccountNameLbl: Label '%1 (%2)', Locked = true;
         AccountToSelect: Guid;
+        AccountNameLbl: Label '%1 (%2)', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -230,8 +230,8 @@ codeunit 134686 "Email Accounts Test"
     procedure GetAllAccountsTest()
     var
         EmailAccountBuffer, EmailAccounts : Record "Email Account";
-        EmailAccount: Codeunit "Email Account";
         ConnectorMock: Codeunit "Connector Mock";
+        EmailAccount: Codeunit "Email Account";
     begin
         // [SCENARIO] GetAllAccounts retrieves all the registered accounts
 
@@ -264,8 +264,8 @@ codeunit 134686 "Email Accounts Test"
     [Test]
     procedure IsAnyAccountRegisteredTest()
     var
-        EmailAccount: Codeunit "Email Account";
         ConnectorMock: Codeunit "Connector Mock";
+        EmailAccount: Codeunit "Email Account";
         AccountId: Guid;
     begin
         // [SCENARIO] Email Account Exists works as expected
@@ -293,8 +293,8 @@ codeunit 134686 "Email Accounts Test"
     var
         ConnectorMock: Codeunit "Connector Mock";
         EmailAccountsSelectionMock: Codeunit "Email Accounts Selection Mock";
-        EmailAccountsTestPage: TestPage "Email Accounts";
         FirstAccountId, SecondAccountId, ThirdAccountId : Guid;
+        EmailAccountsTestPage: TestPage "Email Accounts";
     begin
         // [SCENARIO] When all accounts are deleted, the Email Accounts page is empty
         PermissionsMock.Set('Email Admin');
@@ -327,8 +327,8 @@ codeunit 134686 "Email Accounts Test"
     var
         ConnectorMock: Codeunit "Connector Mock";
         EmailAccountsSelectionMock: Codeunit "Email Accounts Selection Mock";
-        EmailAccountsTestPage: TestPage "Email Accounts";
         FirstAccountId, SecondAccountId, ThirdAccountId : Guid;
+        EmailAccountsTestPage: TestPage "Email Accounts";
     begin
         // [SCENARIO] When all accounts are about to be deleted but the action in canceled, the Email Accounts page contains all of them.
         PermissionsMock.Set('Email Admin');
@@ -363,8 +363,8 @@ codeunit 134686 "Email Accounts Test"
     var
         ConnectorMock: Codeunit "Connector Mock";
         EmailAccountsSelectionMock: Codeunit "Email Accounts Selection Mock";
-        EmailAccountsTestPage: TestPage "Email Accounts";
         FirstAccountId, SecondAccountId, ThirdAccountId : Guid;
+        EmailAccountsTestPage: TestPage "Email Accounts";
     begin
         // [SCENARIO] When some accounts are deleted, they cannot be found on the page
         PermissionsMock.Set('Email Admin');
@@ -400,8 +400,8 @@ codeunit 134686 "Email Accounts Test"
         ConnectorMock: Codeunit "Connector Mock";
         EmailAccountsSelectionMock: Codeunit "Email Accounts Selection Mock";
         EmailScenario: Codeunit "Email Scenario";
-        EmailAccountsTestPage: TestPage "Email Accounts";
         FirstAccountId, ThirdAccountId : Guid;
+        EmailAccountsTestPage: TestPage "Email Accounts";
     begin
         // [SCENARIO] When the a non default account is deleted, the user is not prompted to choose a new default account.
         PermissionsMock.Set('Email Admin');
@@ -443,8 +443,8 @@ codeunit 134686 "Email Accounts Test"
         ConnectorMock: Codeunit "Connector Mock";
         EmailAccountsSelectionMock: Codeunit "Email Accounts Selection Mock";
         EmailScenario: Codeunit "Email Scenario";
-        EmailAccountsTestPage: TestPage "Email Accounts";
         FirstAccountId, ThirdAccountId : Guid;
+        EmailAccountsTestPage: TestPage "Email Accounts";
     begin
         // [SCENARIO] When the default account is deleted, the user is not prompted to choose a new default account if there's only one account left
         PermissionsMock.Set('Email Admin');
@@ -485,8 +485,8 @@ codeunit 134686 "Email Accounts Test"
         ConnectorMock: Codeunit "Connector Mock";
         EmailAccountsSelectionMock: Codeunit "Email Accounts Selection Mock";
         EmailScenario: Codeunit "Email Scenario";
-        EmailAccountsTestPage: TestPage "Email Accounts";
         FirstAccountId, ThirdAccountId : Guid;
+        EmailAccountsTestPage: TestPage "Email Accounts";
     begin
         // [SCENARIO] When the default account is deleted, the user is prompted to choose a new default account but they cancel.
         PermissionsMock.Set('Email Admin');
@@ -529,8 +529,8 @@ codeunit 134686 "Email Accounts Test"
         ConnectorMock: Codeunit "Connector Mock";
         EmailAccountsSelectionMock: Codeunit "Email Accounts Selection Mock";
         EmailScenario: Codeunit "Email Scenario";
-        EmailAccountsTestPage: TestPage "Email Accounts";
         FirstAccountId, ThirdAccountId : Guid;
+        EmailAccountsTestPage: TestPage "Email Accounts";
     begin
         // [SCENARIO] When the default account is deleted, the user is prompted to choose a new default account
         PermissionsMock.Set('Email Admin');
@@ -565,6 +565,37 @@ codeunit 134686 "Email Accounts Test"
         Assert.IsTrue(GetDefaultFieldValueAsBoolean(EmailAccountsTestPage.DefaultField.Value), 'The third account should be marked as default');
     end;
 
+    [Test]
+    procedure DeleteAllAccountsWithoutUITest()
+    var
+        TempEmailAccount: Record "Email Account" temporary;
+        TempEmailAccountToDelete: Record "Email Account" temporary;
+        ConnectorMock: Codeunit "Connector Mock";
+        EmailAccount: Codeunit "Email Account";
+        FirstAccountId, SecondAccountId : Guid;
+    begin
+        // [SCENARIO] When all accounts are deleted, the Email Accounts page is empty
+        PermissionsMock.Set('Email Admin');
+
+        // [GIVEN] A connector is installed and two account are added
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(FirstAccountId);
+        ConnectorMock.AddAccount(SecondAccountId);
+
+        // [GIVEN] Mark first account for deletion
+        EmailAccount.GetAllAccounts(TempEmailAccountToDelete);
+        Assert.AreEqual(2, TempEmailAccountToDelete.Count(), 'Expected to have 2 accounts.');
+        TempEmailAccountToDelete.SetRange("Account Id", FirstAccountId);
+
+        // [WHEN] Email Accounts are deleted
+        EmailAccount.DeleteAccounts(TempEmailAccountToDelete, true);
+
+        // [THEN] Verify second account still exists
+        EmailAccount.GetAllAccounts(TempEmailAccount);
+        Assert.AreEqual(1, TempEmailAccount.Count(), 'Expected to have 1 account.');
+        TempEmailAccount.FindFirst();
+        Assert.AreEqual(SecondAccountId, TempEmailAccount."Account Id", 'The second email account should still exist.');
+    end;
 
     [ModalPageHandler]
     procedure AddAccountModalPageHandler(var AccountWizardTestPage: TestPage "Email Account Wizard")

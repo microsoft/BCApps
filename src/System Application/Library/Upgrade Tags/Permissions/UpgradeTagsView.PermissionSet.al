@@ -5,11 +5,10 @@
 
 namespace System.TestLibraries.Upgrade;
 
-using System.Upgrade;
+using System.Environment;
 
 permissionset 135092 "Upgrade Tags View"
 {
     Assignable = true;
-
-    IncludedPermissionSets = "Upgrade Tags - View";
+    Permissions = tabledata Company = r;
 }
