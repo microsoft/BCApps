@@ -92,6 +92,9 @@ function Restore-BaselinesFromArtifacts {
                 throw "Unable to find insiderSasToken as a secret"
             }
 
+            # Insider sas token is base64 encoded
+            $insiderSasToken = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($insiderSasToken))
+
             #Fallback to bcinsider
             $baselineURL = Get-BCArtifactUrl -type Sandbox -country base -version $baselineVersion -storageAccount bcinsider -sasToken "$insiderSasToken"
         }
