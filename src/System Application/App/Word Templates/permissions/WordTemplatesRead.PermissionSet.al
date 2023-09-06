@@ -5,9 +5,7 @@
 
 namespace System.Integration.Word;
 
-using System.Globalization;
 using System.Reflection;
-using System.Telemetry;
 
 permissionset 9986 "Word Templates - Read"
 {
@@ -15,9 +13,7 @@ permissionset 9986 "Word Templates - Read"
     Assignable = false;
 
     IncludedPermissionSets = "Word Templates - Objects",
-                             "Language - Read",
-                             "Object Selection - Read",
-                             "Telemetry - Exec";
+                             "Object Selection - Read";
 
     Permissions = tabledata "Word Template" = R,
                   tabledata "Word Template Field" = r,

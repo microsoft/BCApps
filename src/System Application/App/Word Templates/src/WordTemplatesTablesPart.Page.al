@@ -18,6 +18,8 @@ page 9997 "Word Templates Tables Part"
     DeleteAllowed = true;
     Extensible = false;
     Permissions = tabledata "Word Templates Table" = rmd;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

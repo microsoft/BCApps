@@ -14,6 +14,8 @@ page 1433 "Satisfaction Survey"
     Caption = ' ';
     Editable = false;
     PageType = Card;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

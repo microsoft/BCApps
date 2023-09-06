@@ -14,6 +14,7 @@ page 3712 Translation
     SourceTable = Translation;
     ContextSensitiveHelpPage = 'ui-get-ready-business';
     Permissions = tabledata Translation = rimd;
+    UsageCategory = None;
 
     layout
     {
@@ -39,6 +40,14 @@ page 3712 Translation
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the translated text.';
+
+                    trigger OnValidate()
+                    var
+                        TranslationImplementation: Codeunit "Translation Implementation";
+                    begin
+                        if FieldLengthCheckEnabled then
+                            TranslationImplementation.CheckLengthOfTranslationValue(Rec);
+                    end;
                 }
             }
         }
@@ -66,6 +75,7 @@ page 3712 Translation
     end;
 
     var
+        FieldLengthCheckEnabled: Boolean;
         TableId: Integer;
         CaptionTxt: Text;
         LanguageNameValue: Text;
@@ -73,6 +83,11 @@ page 3712 Translation
     internal procedure SetTableId(TableNo: Integer)
     begin
         TableId := TableNo;
+    end;
+
+    internal procedure SetCheckFieldLength(CheckFieldLength: Boolean)
+    begin
+        FieldLengthCheckEnabled := CheckFieldLength;
     end;
 
     /// <summary>

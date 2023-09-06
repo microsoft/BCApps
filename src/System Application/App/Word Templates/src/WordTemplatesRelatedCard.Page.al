@@ -20,6 +20,8 @@ page 9986 "Word Templates Related Card"
     SourceTable = "Word Templates Related Table";
     SourceTableTemporary = true;
     Extensible = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

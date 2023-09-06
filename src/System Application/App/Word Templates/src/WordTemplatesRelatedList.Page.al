@@ -20,6 +20,8 @@ page 9985 "Word Templates Related List"
     ObsoleteState = Pending;
     ObsoleteTag = '22.0';
     ObsoleteReason = 'No longer used. Use page 9987 Word Templates Related Part instead.';
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

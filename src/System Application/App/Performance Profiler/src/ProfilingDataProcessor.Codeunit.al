@@ -15,6 +15,8 @@ codeunit 1923 "Profiling Data Processor"
 {
     Access = Internal;
     SingleInstance = true;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         RawProfilingNodes: Record "Profiling Node";

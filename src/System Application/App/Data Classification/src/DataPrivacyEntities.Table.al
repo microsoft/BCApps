@@ -14,6 +14,8 @@ table 1180 "Data Privacy Entities"
 {
     Access = Public;
     Caption = 'Data Subjects';
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     fields
     {

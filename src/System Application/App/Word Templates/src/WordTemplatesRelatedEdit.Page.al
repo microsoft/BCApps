@@ -20,6 +20,8 @@ page 9983 "Word Templates Related Edit"
                   tabledata "Word Template Field" = rimd,
                   tabledata "Word Templates Related Table" = rimd;
     Extensible = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

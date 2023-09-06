@@ -6,7 +6,6 @@
 namespace System.Azure.Identity;
 
 using System.Globalization;
-using System.Telemetry;
 using System.Security.AccessControl;
 using System.Environment.Configuration;
 
@@ -18,8 +17,7 @@ permissionset 9515 "AAD User Management - Exec"
     IncludedPermissionSets = "AAD User Management - Objects",
                              "Azure AD User - View",
                              "Azure AD Plan - View",
-                             "Language - View",
-                             "Telemetry - Exec";
+                             "Language - View";
 
     Permissions = tabledata User = rm,
                   tabledata "User Personalization" = r,

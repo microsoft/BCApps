@@ -19,7 +19,10 @@ page 358 Objects
     InsertAllowed = false;
     ModifyAllowed = false;
     SourceTable = AllObjWithCaption;
-    Permissions = tabledata AllObjWithCaption = r, tabledata "Published Application" = r;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata AllObjWithCaption = r,
+                  tabledata "Published Application" = r;
 
     layout
     {

@@ -12,6 +12,8 @@ namespace System.Integration;
 codeunit 2915 "Page Action Provider"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>
     /// Gets home items for user's current role center.

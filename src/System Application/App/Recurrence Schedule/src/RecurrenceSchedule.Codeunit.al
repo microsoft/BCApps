@@ -11,6 +11,8 @@ namespace System.DateTime;
 codeunit 4690 "Recurrence Schedule"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>
     /// Sets the earliest date to be returned from CalculateNextOccurrence.

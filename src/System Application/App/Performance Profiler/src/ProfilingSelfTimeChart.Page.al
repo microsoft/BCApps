@@ -14,6 +14,8 @@ page 1922 "Profiling Self Time Chart"
 {
     Caption = 'Time Spent';
     PageType = CardPart;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

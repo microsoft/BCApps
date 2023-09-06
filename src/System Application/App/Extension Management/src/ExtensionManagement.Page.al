@@ -307,6 +307,14 @@ page 2500 "Extension Management"
                     ToolTip = 'Check status for upload process for extensions.';
                     Visible = IsSaaS;
                 }
+                action("Delete Orphaned Extension Data")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Delete Orphaned Extension Data';
+                    Image = Delete;
+                    RunObject = Page "Delete Orphaned Extension Data";
+                    ToolTip = 'Delete the data of orphaned extensions.';
+                }
             }
         }
     }

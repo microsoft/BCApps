@@ -23,6 +23,8 @@ page 9987 "Word Templates Related Part"
     Permissions = tabledata "Word Template" = r,
                   tabledata "Word Template Field" = r,
                   tabledata "Word Templates Related Table" = r;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

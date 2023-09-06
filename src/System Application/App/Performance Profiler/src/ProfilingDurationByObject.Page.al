@@ -17,6 +17,8 @@ page 1923 "Profiling Duration By Object"
     DeleteAllowed = false;
     ModifyAllowed = false;
     Editable = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

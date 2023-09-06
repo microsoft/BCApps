@@ -13,6 +13,8 @@ page 1821 "Video Link"
     Editable = false;
     PageType = Card;
     ContextSensitiveHelpPage = 'across-videos';
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

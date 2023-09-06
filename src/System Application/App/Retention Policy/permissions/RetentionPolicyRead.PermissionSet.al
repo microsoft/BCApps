@@ -7,8 +7,6 @@ namespace System.DataAdministration;
 
 using System.Reflection;
 using System.Environment.Configuration;
-using System.Upgrade;
-using System.Telemetry;
 using System.Apps;
 using System.Environment;
 
@@ -21,9 +19,7 @@ permissionset 3900 "Retention Policy - Read"
                              "Field Selection - Read",
                              "Guided Experience - Read",
                              "Object Selection - Read",
-                             "Upgrade Tags - Read",
-                             "System Initialization - Exec",
-                             "Telemetry - Exec";
+                             "System Initialization - Exec";
 
     Permissions = tabledata AllObj = r,
                   tabledata AllObjWithCaption = r,

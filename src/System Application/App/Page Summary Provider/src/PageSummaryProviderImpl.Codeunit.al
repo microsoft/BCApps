@@ -18,7 +18,8 @@ codeunit 2717 "Page Summary Provider Impl."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Page Metadata" = r,
+    Permissions = tabledata Company = r,
+                  tabledata "Page Metadata" = r,
                   tabledata "Tenant Media Set" = r,
                   tabledata "Tenant Media Thumbnails" = r;
 

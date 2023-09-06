@@ -22,7 +22,6 @@ permissionset 66 "System Tables - Basic"
     Caption = 'Basic User (All Inclusive)';
 
     IncludedPermissionSets = "Company - Read",
-                             "Device - Read",
                              "Media - View",
                              "Metadata - Read",
                              "Permissions & Licenses - Read",
@@ -33,7 +32,8 @@ permissionset 66 "System Tables - Basic"
                              "System Execute - Basic",
                              "User Personalization - Edit",
                              "User Selection - Read",
-                             "Webhook - Edit";
+                             "Webhook - Edit",
+                             "Data Analysis - Exec";
 
     Permissions = tabledata "Add-in" = R,
                   tabledata "Aggregate Permission Set" = Rimd,

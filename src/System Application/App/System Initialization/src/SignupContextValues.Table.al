@@ -13,8 +13,10 @@ table 150 "Signup Context Values"
     DataClassification = SystemMetadata;
     DataPerCompany = false;
     ReplicateData = false;
-    InherentEntitlements = X;
-    InherentPermissions = X;
+#pragma warning disable AS0034
+    InherentEntitlements = RIX;
+    InherentPermissions = RIX;
+#pragma warning restore AS0034
 
     fields
     {

@@ -5,7 +5,6 @@
 
 namespace System.Feedback;
 
-using System.Upgrade;
 using System.Reflection;
 
 permissionset 1433 "Satisfaction Survey - View"
@@ -13,8 +12,7 @@ permissionset 1433 "Satisfaction Survey - View"
     Access = Internal;
     Assignable = false;
 
-    IncludedPermissionSets = "Satisfaction Survey - Read",
-                             "Upgrade Tags - View";
+    IncludedPermissionSets = "Satisfaction Survey - Read";
 
     Permissions = tabledata "Add-in" = i,
                   tabledata "Net Promoter Score" = imd,

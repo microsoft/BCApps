@@ -10,10 +10,8 @@ using System.Azure.Identity;
 using System.Visualization;
 using System.Text;
 using System.Globalization;
-using System.DateTime;
 using System.DataAdministration;
 using System.Feedback;
-using System.Upgrade;
 using System.Privacy;
 using System.Utilities;
 using System.Security.User;
@@ -35,10 +33,8 @@ permissionset 75 "System Application - View"
                              "Extension Management - View",
                              "Feature Key - View",
                              "Language - View",
-                             "Recurrence Schedule - View",
                              "Retention Policy - View",
                              "Satisfaction Survey - View",
-                             "Upgrade Tags - View",
                              "Media - View",
                              "Priv. Notice - View",
                              "Record Link Management - View",

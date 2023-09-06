@@ -11,6 +11,8 @@ namespace System.Environment.Configuration;
 codeunit 2612 "Update Feature Data"
 {
     TableNo = "Feature Data Update Status";
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     trigger OnRun()
     var

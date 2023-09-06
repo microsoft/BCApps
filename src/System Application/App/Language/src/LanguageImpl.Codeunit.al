@@ -243,6 +243,9 @@ codeunit 54 "Language Impl."
     var
         UserPersonalization: Record "User Personalization";
     begin
+        if not UserPersonalization.ReadPermission() then
+            exit;
+
         if not UserPersonalization.Get(UserSecID) then
             exit;
 

@@ -11,6 +11,8 @@ namespace System.Environment.Configuration;
 codeunit 2613 "Feature Data Error Handler"
 {
     TableNo = "Feature Data Update Status";
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     trigger OnRun()
     var

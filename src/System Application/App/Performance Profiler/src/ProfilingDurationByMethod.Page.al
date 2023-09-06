@@ -19,6 +19,8 @@ page 1924 "Profiling Duration By Method"
     ModifyAllowed = false;
     Editable = false;
     DataCaptionExpression = Rec."Object Type" + ' "' + Rec."Object Name" + '"';
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

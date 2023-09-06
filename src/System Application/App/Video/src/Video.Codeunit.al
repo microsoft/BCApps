@@ -9,6 +9,8 @@ namespace System.Media;
 codeunit 3710 Video
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary> Use a link to display a video in a new page. </summary>
     /// <param name="Url"> The link to the video.</param>

@@ -28,8 +28,8 @@ codeunit 8889 "Email Account Impl."
     procedure GetAllAccounts(LoadLogos: Boolean; var TempEmailAccount: Record "Email Account" temporary)
     var
         EmailAccounts: Record "Email Account";
-        IEmailConnector: Interface "Email Connector";
         Connector: Enum "Email Connector";
+        IEmailConnector: Interface "Email Connector";
     begin
         TempEmailAccount.Reset();
         TempEmailAccount.DeleteAll();
@@ -58,8 +58,13 @@ codeunit 8889 "Email Account Impl."
         TempEmailAccount.SetCurrentKey(Name);
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Email Rate Limit", 'rd')]
     procedure DeleteAccounts(var EmailAccountsToDelete: Record "Email Account")
+    begin
+        DeleteAccounts(EmailAccountsToDelete, false);
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Email Rate Limit", 'rd')]
+    procedure DeleteAccounts(var EmailAccountsToDelete: Record "Email Account"; HideDialog: Boolean)
     var
         CurrentDefaultEmailAccount: Record "Email Account";
         EmailRateLimitToDelete: Record "Email Rate Limit";
@@ -69,8 +74,9 @@ codeunit 8889 "Email Account Impl."
     begin
         CheckPermissions();
 
-        if not ConfirmManagement.GetResponseOrDefault(ConfirmDeleteQst, true) then
-            exit;
+        if not HideDialog then
+            if not ConfirmManagement.GetResponseOrDefault(ConfirmDeleteQst, true) then
+                exit;
 
         if not EmailAccountsToDelete.FindSet() then
             exit;
@@ -91,14 +97,15 @@ codeunit 8889 "Email Account Impl."
             end;
         until EmailAccountsToDelete.Next() = 0;
 
-        HandleDefaultAccountDeletion(CurrentDefaultEmailAccount."Account Id", CurrentDefaultEmailAccount.Connector);
+        HandleDefaultAccountDeletion(CurrentDefaultEmailAccount."Account Id", CurrentDefaultEmailAccount.Connector, HideDialog);
     end;
 
-    local procedure HandleDefaultAccountDeletion(CurrentDefaultAccountId: Guid; Connector: Enum "Email Connector")
+    local procedure HandleDefaultAccountDeletion(CurrentDefaultAccountId: Guid; Connector: Enum "Email Connector"; HideDialog: Boolean)
     var
         AllEmailAccounts: Record "Email Account";
         NewDefaultEmailAccount: Record "Email Account";
         EmailScenario: Codeunit "Email Scenario";
+        NewDefaultEmailAccountSelected: Boolean;
     begin
         GetAllAccounts(false, AllEmailAccounts);
 
@@ -114,8 +121,12 @@ codeunit 8889 "Email Account Impl."
             exit;
         end;
 
-        Commit();  // Commit the accounts deletion in order to prompt for new default account
-        if PromptNewDefaultAccountChoice(NewDefaultEmailAccount) then
+        NewDefaultEmailAccountSelected := false;
+        if not HideDialog then begin
+            Commit();  // Commit the accounts deletion in order to prompt for new default account
+            NewDefaultEmailAccountSelected := PromptNewDefaultAccountChoice(NewDefaultEmailAccount);
+        end;
+        if NewDefaultEmailAccountSelected then
             MakeDefault(NewDefaultEmailAccount)
         else
             EmailScenario.UnassignScenario(Enum::"Email Scenario"::Default); // remove the default scenario as it is pointing to a non-existent account
@@ -139,12 +150,12 @@ codeunit 8889 "Email Account Impl."
     local procedure ImportLogo(var EmailAccount: Record "Email Account"; Connector: Interface "Email Connector")
     var
         EmailConnectorLogo: Record "Email Connector Logo";
-        TempBlob: Codeunit "Temp Blob";
         Base64Convert: Codeunit "Base64 Convert";
-        ConnectorLogoBase64: Text;
-        OutStream: Outstream;
+        TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         ConnectorLogoDescriptionTxt: Label '%1 Logo', Locked = true;
+        OutStream: Outstream;
+        ConnectorLogoBase64: Text;
     begin
         ConnectorLogoBase64 := Connector.GetLogoAsBase64();
 
@@ -195,10 +206,10 @@ codeunit 8889 "Email Account Impl."
     procedure FindAllConnectors(var EmailConnector: Record "Email Connector")
     var
         Base64Convert: Codeunit "Base64 Convert";
-        ConnectorInterface: Interface "Email Connector";
         Connector: Enum "Email Connector";
-        ConnectorLogoBase64: Text;
+        ConnectorInterface: Interface "Email Connector";
         OutStream: Outstream;
+        ConnectorLogoBase64: Text;
     begin
         foreach Connector in Enum::"Email Connector".Ordinals() do begin
             ConnectorInterface := Connector;
@@ -244,8 +255,8 @@ codeunit 8889 "Email Account Impl."
     local procedure ImportLogoBlob(var EmailAccount: Record "Email Account"; Connector: Interface "Email Connector")
     var
         Base64Convert: Codeunit "Base64 Convert";
-        ConnectorLogoBase64: Text;
         OutStream: Outstream;
+        ConnectorLogoBase64: Text;
     begin
         ConnectorLogoBase64 := Connector.GetLogoAsBase64();
 

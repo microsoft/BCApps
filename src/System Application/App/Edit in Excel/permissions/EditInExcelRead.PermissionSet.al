@@ -14,6 +14,5 @@ permissionset 1481 "Edit in Excel - Read"
 
     IncludedPermissionSets = "Edit in Excel - Objects";
 
-    Permissions = TableData "Edit in Excel Settings" = R,
-                  TableData "Media Resources" = r;
+    Permissions = TableData "Media Resources" = r;
 }

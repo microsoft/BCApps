@@ -10,6 +10,9 @@ namespace System.Azure.Identity;
 /// </summary>
 codeunit 9085 "Microsoft 365 License"
 {
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
     /// <summary>   
     /// Assign D365 Read Permission.
     /// </summary>

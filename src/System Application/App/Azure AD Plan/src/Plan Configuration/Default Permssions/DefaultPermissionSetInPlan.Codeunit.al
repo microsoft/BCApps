@@ -12,6 +12,8 @@ namespace System.Azure.Identity;
 codeunit 9823 "Default Permission Set In Plan"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
     ObsoleteState = Pending;
     ObsoleteReason = 'Getting the default permissions will be done only inside the Azure AD Plan module.';
     ObsoleteTag = '22.0';

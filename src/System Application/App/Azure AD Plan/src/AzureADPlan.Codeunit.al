@@ -12,6 +12,9 @@ using System;
 /// </summary>
 codeunit 9016 "Azure AD Plan"
 {
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
     var
         [NonDebuggable]
         AzureAdPlanImpl: Codeunit "Azure AD Plan Impl.";

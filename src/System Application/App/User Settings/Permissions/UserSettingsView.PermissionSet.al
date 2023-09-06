@@ -7,7 +7,6 @@ namespace System.Environment.Configuration;
 
 using System.Globalization;
 using System.Environment;
-using System.DateTime;
 using System.Security.User;
 using System.Azure.Identity;
 using System.Reflection;
@@ -19,7 +18,6 @@ permissionset 9176 "User Settings - View"
     IncludedPermissionSets = "User Settings - Objects",
                              "Language - View",
                              "Tenant License State - Read",
-                             "Time Zone Selection - Read",
                              "User Selection - Read",
                              "User Permissions - Read",
                              "AAD User Management - Exec",

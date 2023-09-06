@@ -13,6 +13,8 @@ using System.Security.AccessControl;
 codeunit 152 "User Permissions"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>
     /// Checks whether the user has the SUPER permissions set.

@@ -15,7 +15,7 @@ permissionset 535 "Language - View"
     Access = Public;
     Assignable = false;
 
-    IncludedPermissionSets = "Language - Read";
+    IncludedPermissionSets = "Language - Objects";
 
     Permissions = tabledata "User Personalization" = im;
 }

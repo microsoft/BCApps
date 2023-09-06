@@ -21,6 +21,8 @@ page 9982 "Word Templates Related FactBox"
     DeleteAllowed = false;
     Permissions = tabledata "Word Templates Related Table" = r;
     Extensible = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

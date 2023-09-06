@@ -11,6 +11,8 @@ namespace System.Security.AccessControl;
 query 776 Device
 {
     Caption = 'Device';
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Permissions = tabledata Device = r;
 
     elements

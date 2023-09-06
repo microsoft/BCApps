@@ -17,6 +17,8 @@ page 9825 "Plans FactBox"
     ShowFilter = false;
     SourceTable = Plan;
     ContextSensitiveHelpPage = 'ui-how-users-permissions';
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Permissions = tabledata Plan = r;
 
     layout

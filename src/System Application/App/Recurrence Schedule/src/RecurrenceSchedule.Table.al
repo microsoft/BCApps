@@ -8,6 +8,8 @@ namespace System.DateTime;
 table 4690 "Recurrence Schedule"
 {
     Access = Internal;
+    InherentEntitlements = rimdX;
+    InherentPermissions = rimdX;
 
     fields
     {

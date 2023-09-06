@@ -11,6 +11,8 @@ namespace System.Integration.Sharepoint;
 codeunit 9142 "SharePoint Auth."
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>
     /// Creates an authorization mechanism with authentication code.

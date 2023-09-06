@@ -14,6 +14,8 @@ table 1480 "Edit in Excel Settings"
     Extensible = false;
     DataPerCompany = false;
     ReplicateData = false;
+    InherentEntitlements = RX;
+    InherentPermissions = RX;
 
     fields
     {

@@ -5,7 +5,6 @@
 
 namespace System.Environment.Configuration;
 
-using System.Globalization;
 using System.Apps;
 using System.Environment;
 
@@ -14,8 +13,7 @@ permissionset 2500 "Extension Management - Read"
     Access = Public;
     Assignable = false;
 
-    IncludedPermissionSets = "Extension Management - Objects",
-                             "Language - Read";
+    IncludedPermissionSets = "Extension Management - Objects";
 
     Permissions = tabledata "Application Object Metadata" = r,
                   tabledata Media = r,

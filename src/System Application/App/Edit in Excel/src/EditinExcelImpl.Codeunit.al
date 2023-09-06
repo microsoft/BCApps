@@ -40,6 +40,7 @@ codeunit 1482 "Edit in Excel Impl."
         EditInExcelTelemetryCategoryTxt: Label 'Edit in Excel', Locked = true;
         CreateEndpointForObjectTxt: Label 'Creating endpoint for %1 %2.', Locked = true;
         EditInExcelHandledTxt: Label 'Edit in excel has been handled.', Locked = true;
+        EditInExcelOnlySupportPageWebServicesTxt: Label 'Edit in Excel only support web services created from pages.', Locked = true;
         DialogTitleTxt: Label 'Export';
         ExcelFileNameTxt: Text;
         XmlByteEncodingTok: Label '_x00%1_%2', Locked = true;
@@ -91,10 +92,8 @@ codeunit 1482 "Edit in Excel Impl."
         TenantWebService: Record "Tenant Web Service";
         EditinExcelWorkbook: Codeunit "Edit in Excel Workbook";
     begin
-        if (not TenantWebService.Get(TenantWebService."Object Type"::Page, ServiceName)) and
-            (not TenantWebService.Get(TenantWebService."Object Type"::Query, ServiceName)) and
-            (not TenantWebService.Get(TenantWebService."Object Type"::Codeunit, ServiceName)) then
-            exit;
+        if (not TenantWebService.Get(TenantWebService."Object Type"::Page, ServiceName)) then
+            error(EditInExcelOnlySupportPageWebServicesTxt);
 
         Session.LogMessage('0000DB6', StrSubstNo(CreateEndpointForObjectTxt, TenantWebService."Object Type", TenantWebService."Object ID"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
 

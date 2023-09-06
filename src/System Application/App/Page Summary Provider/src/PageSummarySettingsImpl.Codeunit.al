@@ -15,6 +15,7 @@ codeunit 2720 "Page Summary Settings Impl."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata Company = r;
 
     procedure GetPageSummaryProviderSettings(var PageSummarySettings: Record "Page Summary Settings"): Boolean
     var

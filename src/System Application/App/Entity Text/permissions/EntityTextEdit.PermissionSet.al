@@ -12,5 +12,5 @@ permissionset 2012 "Entity Text - Edit"
     IncludedPermissionSets = "Entity Text - View";
 
     Permissions = tabledata "Azure OpenAi Settings" = IMD,
-        tabledata "Entity Text" = IMD;
+                  tabledata "Entity Text" = IMD;
 }

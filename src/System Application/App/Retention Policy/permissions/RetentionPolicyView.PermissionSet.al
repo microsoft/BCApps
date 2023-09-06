@@ -6,7 +6,6 @@
 namespace System.DataAdministration;
 
 using System.Environment.Configuration;
-using System.Upgrade;
 
 /// <summary>
 /// this is the minimum permission set needed to install an extension that adds a retention policy.
@@ -17,8 +16,7 @@ permissionset 3901 "Retention Policy - View"
     Assignable = false;
 
     IncludedPermissionSets = "Guided Experience - View",
-                             "Retention Policy - Read",
-                             "Upgrade Tags - View";
+                             "Retention Policy - Read";
 
     Permissions = tabledata "Retention Period" = i,
                   tabledata "Retention Policy Allowed Table" = imd,

@@ -15,6 +15,8 @@ page 9260 "Customer Experience Survey"
     LinksAllowed = false;
     ModifyAllowed = false;
     PageType = Card;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

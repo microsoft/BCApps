@@ -13,8 +13,6 @@ permissionset 2916 "Page Action Provider - Read"
     Access = Internal;
     Assignable = false;
 
-    IncludedPermissionSets = "Page Action Provider - Obj.";
-
     Permissions = tabledata "Page Action" = r,
                   tabledata "All Profile" = r,
                   tabledata "User Personalization" = r,

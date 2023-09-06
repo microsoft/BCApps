@@ -27,6 +27,8 @@ page 1909 "Media Upload"
     LinksAllowed = false;
     PageType = Card;
     Extensible = true;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

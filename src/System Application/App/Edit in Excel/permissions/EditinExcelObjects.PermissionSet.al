@@ -12,6 +12,5 @@ permissionset 1488 "Edit in Excel - Objects"
 
     Permissions = Codeunit "Edit in Excel" = X,
                   Codeunit "Edit in Excel Workbook" = X,
-                  Page "Excel Centralized Depl. Wizard" = X,
-                  Table "Edit in Excel Settings" = X;
+                  Page "Excel Centralized Depl. Wizard" = X;
 }

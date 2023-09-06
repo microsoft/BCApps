@@ -11,6 +11,8 @@ namespace System.Feedback;
 codeunit 1433 "Satisfaction Survey Mgt."
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         SatisfactionSurveyImpl: Codeunit "Satisfaction Survey Impl.";

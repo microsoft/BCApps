@@ -5,7 +5,6 @@
 
 namespace System.Environment.Configuration;
 
-using System.Upgrade;
 using System.Globalization;
 using System.Reflection;
 
@@ -15,7 +14,6 @@ permissionset 1992 "Guided Experience - View"
     Assignable = false;
 
     IncludedPermissionSets = "Guided Experience - Read",
-                             "Upgrade Tags - View",
                              "Translation - Edit";
 
     Permissions = tabledata AllObj = r,

@@ -20,6 +20,8 @@ page 9992 "Word Templates Field Selection"
     SourceTableView = sorting("Field No.") order(ascending);
     DeleteAllowed = false;
     InsertAllowed = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

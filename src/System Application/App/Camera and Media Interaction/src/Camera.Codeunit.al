@@ -11,6 +11,8 @@ namespace System.Device;
 codeunit 1907 Camera
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         CameraImpl: Codeunit "Camera Impl.";

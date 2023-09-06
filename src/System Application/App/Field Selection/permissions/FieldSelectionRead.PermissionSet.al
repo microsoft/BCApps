@@ -11,8 +11,6 @@ permissionset 9806 "Field Selection - Read"
 {
     Assignable = false;
 
-    IncludedPermissionSets = "Field Selection - Objects";
-
     Permissions = tabledata "Page Data Personalization" = R, // Page.Run requires this
                   tabledata Field = r;
 }

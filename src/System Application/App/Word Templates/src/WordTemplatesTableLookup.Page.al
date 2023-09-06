@@ -15,6 +15,8 @@ page 9988 "Word Templates Table Lookup"
     SourceTable = "Word Templates Table";
     Permissions = tabledata "Word Templates Table" = r;
     Extensible = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

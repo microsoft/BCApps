@@ -13,6 +13,8 @@ using System.Security.AccessControl;
 query 775 Plan
 {
     Caption = 'Plan';
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     Permissions = tabledata Plan = r,
                   tabledata User = r;

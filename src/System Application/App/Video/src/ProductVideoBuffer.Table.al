@@ -13,8 +13,10 @@ table 1470 "Product Video Buffer"
     Extensible = false;
     Caption = 'Product Video Buffer';
     ReplicateData = false;
-    InherentEntitlements = X;
-    InherentPermissions = X;
+#pragma warning disable AS0034
+    InherentEntitlements = rX;
+    InherentPermissions = rX;
+#pragma warning restore AS0034
     //TableType = Temporary; // need to fix AS0034 and AS0039 first
 
     fields

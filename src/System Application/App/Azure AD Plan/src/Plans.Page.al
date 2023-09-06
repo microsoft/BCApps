@@ -18,6 +18,8 @@ page 9824 Plans
     ShowFilter = false;
     SourceTable = Plan;
     ContextSensitiveHelpPage = 'ui-how-users-permissions';
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Permissions = tabledata Plan = r;
 
     layout

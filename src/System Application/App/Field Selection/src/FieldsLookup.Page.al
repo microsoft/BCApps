@@ -14,6 +14,8 @@ page 9806 "Fields Lookup"
     Editable = false;
     PageType = List;
     SourceTable = "Field";
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Permissions = tabledata Field = r;
 
     layout

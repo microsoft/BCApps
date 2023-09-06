@@ -13,6 +13,8 @@ using System;
 codeunit 9010 "Azure AD User Management"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         [NonDebuggable]

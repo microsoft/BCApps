@@ -27,6 +27,8 @@ page 1908 Camera
     LinksAllowed = false;
     PageType = Card;
     Extensible = true;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

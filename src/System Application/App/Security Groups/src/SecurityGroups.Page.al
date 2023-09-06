@@ -25,6 +25,7 @@ page 9871 "Security Groups"
     SourceTable = "Security Group Buffer";
     SourceTableTemporary = true;
     UsageCategory = Lists;
+    ContextSensitiveHelpPage = 'ui-security-groups';
     AboutTitle = 'About security groups';
     AboutText = 'Security groups help you manage permissions for groups of users.';
 

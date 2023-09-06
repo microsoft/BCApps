@@ -12,6 +12,5 @@ permissionset 166 "User Permissions - Objects"
     Access = Internal;
     Assignable = false;
 
-    Permissions = Codeunit "User Permissions" = X,
-                  Page "Lookup Permission Set" = X;
+    Permissions = Page "Lookup Permission Set" = X;
 }

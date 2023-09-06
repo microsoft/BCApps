@@ -11,6 +11,8 @@ namespace System.Azure.Storage;
 codeunit 9062 "Storage Service Authorization"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>
     /// Creates an account SAS (Shared Access Signature) for authorizing HTTP request to Azure Storage Services.

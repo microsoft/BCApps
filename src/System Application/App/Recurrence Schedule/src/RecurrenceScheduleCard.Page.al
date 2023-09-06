@@ -12,6 +12,8 @@ using System.Utilities;
 /// </summary>
 page 4690 "Recurrence Schedule Card"
 {
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Extensible = false;
     DataCaptionExpression = FORMAT(Rec.Pattern);
     InsertAllowed = false;

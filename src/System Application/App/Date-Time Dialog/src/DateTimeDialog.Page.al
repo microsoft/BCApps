@@ -13,6 +13,8 @@ page 684 "Date-Time Dialog"
     Extensible = false;
     PageType = StandardDialog;
     ContextSensitiveHelpPage = 'ui-enter-date-ranges';
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {

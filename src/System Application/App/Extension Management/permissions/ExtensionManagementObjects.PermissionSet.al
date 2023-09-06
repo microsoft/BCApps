@@ -18,6 +18,8 @@ permissionset 2504 "Extension Management - Objects"
                   Page "Extension Deployment Status" = X,
                   Page "Extension Details Part" = X,
                   Page "Extension Details" = X,
+                  Page "Extn. Orphaned App Details" = X,
+                  Page "Delete Orphaned Extension Data" = X,
                   Page "Extension Installation" = X,
                   Page "Extn. Installation Progress" = X,
                   Page "Extension Logo Part" = X,
@@ -27,6 +29,5 @@ permissionset 2504 "Extension Management - Objects"
                   Page "Extn Deployment Status Detail" = X,
                   Page "Marketplace Extn Deployment" = X,
                   Page "Upload And Deploy Extension" = X,
-                  Page "Extension Setup Launcher" = X,
-                  Table "Extension Pending Setup" = X;
+                  Page "Extension Setup Launcher" = X;
 }

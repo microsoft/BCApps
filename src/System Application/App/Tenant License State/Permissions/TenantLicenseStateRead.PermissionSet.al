@@ -5,14 +5,11 @@
 
 namespace System.Environment;
 
-using System.Telemetry;
 using System.Security.AccessControl;
 
 permissionset 2300 "Tenant License State - Read"
 {
     Assignable = false;
-
-    IncludedPermissionSets = "Telemetry - Exec";
 
     Permissions = tabledata "Tenant License State" = r;
 }

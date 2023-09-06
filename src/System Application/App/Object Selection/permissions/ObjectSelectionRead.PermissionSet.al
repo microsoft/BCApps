@@ -12,8 +12,6 @@ permissionset 358 "Object Selection - Read"
 {
     Assignable = false;
 
-    IncludedPermissionSets = "Object Selection - Objects";
-
     Permissions = tabledata "Page Data Personalization" = R, // Page.Run requires this
                   tabledata "Published Application" = r,
                   tabledata AllObjWithCaption = r;

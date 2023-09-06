@@ -15,6 +15,8 @@ table 2718 "Page Summary Settings"
     DataPerCompany = false;
     ReplicateData = false;
     Extensible = false;
+    InherentEntitlements = RX;
+    InherentPermissions = RX;
 
     fields
     {

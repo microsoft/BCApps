@@ -13,6 +13,8 @@ using System.Security.AccessControl;
 codeunit 9825 "Plan Configuration"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>
     /// Checks if a plan configuration was customized.

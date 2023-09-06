@@ -17,6 +17,9 @@ page 1921 "Profiling Call Tree"
     DeleteAllowed = false;
     ModifyAllowed = false;
     Editable = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
 
     layout
     {

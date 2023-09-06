@@ -195,6 +195,7 @@ codeunit 9871 "Security Group Impl."
 
     procedure GetAvailableGroups(var SecurityGroupBuffer: Record "Security Group Buffer")
     var
+        User: Record User;
         UserProperty: Record "User Property";
         DummySecurityGroup: Record "Security Group";
         LocalSecurityGroupBuffer: Record "Security Group Buffer";
@@ -213,11 +214,13 @@ codeunit 9871 "Security Group Impl."
         if IsWindowsAuthentication() then
             foreach LocalWindowsGroupName in NavUserAccountHelper.GetLocalWindowsGroups() do begin
                 SecurityGroupBuffer."Group ID" := CopyStr(SID(LocalWindowsGroupName), 1, MaxStrLen(SecurityGroupBuffer."Group ID"));
-                if not GetDisallowedWindowsGroupIds().Contains(SecurityGroupBuffer."Group ID") then begin
-                    SecurityGroupBuffer.Code := CopyStr(CreateGuid(), 1, MaxStrLen(SecurityGroupBuffer.Code));
-                    SecurityGroupBuffer."Group Name" := CopyStr(LocalWindowsGroupName, 1, MaxStrLen(SecurityGroupBuffer."Group Name"));
-                    SecurityGroupBuffer.Insert();
-                end;
+                User.SetRange("Windows Security ID", SecurityGroupBuffer."Group ID");
+                if User.IsEmpty() then
+                    if not GetDisallowedWindowsGroupIds().Contains(SecurityGroupBuffer."Group ID") then begin
+                        SecurityGroupBuffer.Code := CopyStr(CreateGuid(), 1, MaxStrLen(SecurityGroupBuffer.Code));
+                        SecurityGroupBuffer."Group Name" := CopyStr(LocalWindowsGroupName, 1, MaxStrLen(SecurityGroupBuffer."Group Name"));
+                        SecurityGroupBuffer.Insert();
+                    end;
             end
         else begin
             FetchAllEntraGroups();
