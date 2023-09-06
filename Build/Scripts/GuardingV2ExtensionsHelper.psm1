@@ -96,7 +96,7 @@ function Restore-BaselinesFromArtifacts {
             $insiderSasToken = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($insiderSasToken))
 
             #Fallback to bcinsider
-            $baselineURL = Get-BCArtifactUrl -type Sandbox -country base -version $baselineVersion -storageAccount bcinsider -sasToken "$insiderSasToken"
+            $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $baselineVersion -storageAccount bcinsider -sasToken "$insiderSasToken"
         }
 
         if (-not $baselineURL) {
