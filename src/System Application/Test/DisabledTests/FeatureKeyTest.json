@@ -1,6 +1,14 @@
 [
     {
         "CodeunitName": "Feature Key Test",
+        "Method": "T001_EnableFeatureOnPage"
+    },
+    {
+        "CodeunitName": "Feature Key Test",
+        "Method": "T002_DisableFeatureOnPage"
+    },
+    {
+        "CodeunitName": "Feature Key Test",
         "Method": "T003_CannotDisableOneWayFeatureOnPage"
     },
     {
@@ -14,5 +22,17 @@
     {
         "CodeunitName": "Feature Key Test",
         "Method": "T006_EnableOneWayFeatureRunUpdateData"
+    },
+    {
+        "CodeunitName": "Feature Key Test",
+        "Method": "T007_EnableOneWayFeatureRunCancelUpdate"
+    },
+    {
+        "CodeunitName": "Feature Key Test",
+        "Method": "T008_EnableOneWayFeatureRunIncompleteUpdate"
+    },
+    {
+        "CodeunitName": "Feature Key Test",
+        "Method": "T009_EnableOneWayFeatureThatDoesNotRequireDataUpdate"
     }
 ]
