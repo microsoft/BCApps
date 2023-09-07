@@ -83,6 +83,22 @@ function Restore-BaselinesFromArtifacts {
 
     if (-not (Test-Path $baselineFolder)) {
         $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $baselineVersion
+
+        # TODO: temporary workaround for baselines not being available in bcartifacts
+        if(-not $baselineURL) {
+            $insiderSasToken = ($env:Secrets | ConvertFrom-Json).insiderSasToken
+
+            if (-not $insiderSasToken) {
+                throw "Unable to find insiderSasToken as a secret"
+            }
+
+            # Insider sas token is base64 encoded
+            $insiderSasToken = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($insiderSasToken))
+
+            #Fallback to bcinsider
+            $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $baselineVersion -storageAccount bcinsider -sasToken "$insiderSasToken"
+        }
+
         if (-not $baselineURL) {
             throw "Unable to find URL for baseline version $baselineVersion"
         }

@@ -1,0 +1,14 @@
+[
+    {
+        "CodeunitName": "Translation Tests",
+        "Method": "TestRetrivalAndStorageThroughUI"
+    },
+    {
+        "CodeunitName": "Translation Tests",
+        "Method": "TestRetrivalAndStorageThroughUIWithFieldLengthCheck"
+    },
+    {
+        "CodeunitName": "Translation Tests",
+        "Method": "TestShowForAllRecords"
+    }
+]

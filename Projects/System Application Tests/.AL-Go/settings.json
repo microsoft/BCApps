@@ -1,7 +1,7 @@
 {
     "testFolders":  [
-        "..\\..\\src\\Application\\System Application\\System Application Test Libraries",
-        "..\\..\\src\\Application\\System Application\\System Application Tests"
+        "..\\..\\src\\System Application\\Test",
+        "..\\..\\src\\System Application\\Library"
     ],
     "enableAppSourceCop": true,
     "enablePerTenantExtensionCop":  true

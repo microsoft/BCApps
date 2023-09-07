@@ -1,0 +1,10 @@
+[
+    {
+    "CodeunitName":  "Time Zone Selection Tests",
+    "Method":  "TimeZoneGetDisplayName"
+    },
+    {
+        "CodeunitName":  "Time Zone Selection Tests",
+        "Method":  "TestTimeZoneLookup"
+    }
+]

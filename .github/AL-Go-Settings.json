@@ -5,10 +5,10 @@
     "runs-on":  "windows-latest",
     "cacheImageName":  "",
     "UsePsSession":  false,
-    "artifact":  "bcinsider//23.0.12083.0/base//{INSIDERSASTOKEN}",
+    "artifact":  "bcinsider//24.0.12106.0/base//{INSIDERSASTOKEN}",
     "country":  "base",
     "useProjectDependencies":  true,
-    "repoVersion":  "23.0",
+    "repoVersion":  "24.0",
     "cleanModePreprocessorSymbols":  [
                                          "CLEAN17",
                                          "CLEAN18",
@@ -16,7 +16,8 @@
                                          "CLEAN20",
                                          "CLEAN21",
                                          "CLEAN22",
-                                         "CLEAN23"
+                                         "CLEAN23",
+                                         "CLEAN24"
                                      ],
     "unusedALGoSystemFiles":  [
                                   "AddExistingAppOrTestApp.yaml",

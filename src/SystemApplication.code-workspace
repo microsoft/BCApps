@@ -2,31 +2,31 @@
 	"folders": [
 		{
 			"name": "Any",
-			"path": "DevTools\\TestFramework\\TestLibraries\\Any"
+			"path": "Tools\\TestFramework\\TestLibraries\\Any"
 		},
 		{
 			"name": "Assert",
-			"path": "DevTools\\TestFramework\\TestLibraries\\Assert"
+			"path": "Tools\\TestFramework\\TestLibraries\\Assert"
 		},
 		{
 			"name": "Variable Storage",
-			"path": "DevTools\\TestFramework\\TestLibraries\\Variable Storage"
+			"path": "Tools\\TestFramework\\TestLibraries\\Variable Storage"
 		},
 		{
 			"name": "TestRunner",
-			"path": "DevTools\\TestFramework\\TestRunner"
+			"path": "Tools\\TestFramework\\TestRunner"
 		},
 		{
 			"name": "System Applcation",
-			"path": "Application\\System Application\\System Application"
+			"path": "System Application\\App"
 		},
 		{
 			"name": "System Application Test Libraries",
-			"path": "Application\\System Application\\System Application Test Libraries"
+			"path": "System Application\\Library"
 		},
 		{
 			"name": "System Application Tests",
-			"path": "Application\\System Application\\System Application Tests"
+			"path": "System Application\\Test"
 		}
 	]
 }

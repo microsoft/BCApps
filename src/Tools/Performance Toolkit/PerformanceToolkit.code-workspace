@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "App"
+		},
+		{
+			"path": "../TestFramework/TestRunner"
+		},
+		{
+			"path": "Test"
+		}
+	],
+	"settings": {}
+}
