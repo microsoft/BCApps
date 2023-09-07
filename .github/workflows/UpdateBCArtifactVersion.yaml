@@ -32,6 +32,7 @@ jobs:
 
   UpdateBCArtifactVersion:
     name: "[${{ matrix.branch }}] Update BC Artifact Version"
+    environment: Official-Build
     runs-on: windows-latest
     needs: GetBranches
     strategy:

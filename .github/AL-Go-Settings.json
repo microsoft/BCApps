@@ -26,10 +26,14 @@
                                   "CreateRelease.yaml",
                                   "CreateTestApp.yaml",
                                   "Current.yaml",
+                                  "IncrementVersionNumber.yaml",
                                   "NextMajor.yaml",
                                   "NextMinor.yaml",
                                   "PublishToEnvironment.yaml"
                               ],
+    "excludeEnvironments": [
+                                "Official-Build"
+                            ],
     "buildModes":  [
                        "Default",
                        "Clean"
