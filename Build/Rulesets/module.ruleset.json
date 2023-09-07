@@ -30,21 +30,6 @@
   ],
   "rules": [
     {
-      "id": "AL0755",
-      "action": "Warning",
-	    "justification": "To be fixed. The '{0}' already defines a method called '{1}'."
-    },
-    {
-      "id": "AL0780",
-      "action": "Warning",
-      "justification": "To be fixed. It is not allowed to assign a value to a field of FieldClass='FlowField'."
-    },
-    {
-      "id": "AA0219",
-      "action": "Warning",
-      "justification": "TBD Bug: fails for actions. The Tooltip property of Fields must start with 'Specifies'."
-    },
-    {
       "id": "AS0059",
       "action": "Warning",
       "justification": "Will be fixed. Reserved database tables are read-only in a multi-tenant environment"
@@ -138,26 +123,6 @@
       "id": "AW0008",
       "action": "None",
       "justification": "The Web client only supports displaying Repeater controls in pages of type List, ListPart, and Worksheet."
-    },
-    {
-      "id": "PTE0016",
-      "action": "None",
-      "justification": "This rule is identical to AS0110 and does not need to run in duplicate. It is meant for PTE uploads where the other analyzer suites do not run."
-    },
-    {
-      "id": "PTE0017",
-      "action": "None",
-      "justification": "This rule is identical to AS0111 and does not need to run in duplicate. It is meant for PTE uploads where the other analyzer suites do not run."
-    },
-    {
-      "id": "PTE0018",
-      "action": "None",
-      "justification": "This rule is identical to AS0112 and does not need to run in duplicate. It is meant for PTE uploads where the other analyzer suites do not run."
-    },
-    {
-      "id": "PTE0019",
-      "action": "None",
-      "justification": "This rule is identical to AS0113 and does not need to run in duplicate. It is meant for PTE uploads where the other analyzer suites do not run."
     }
   ]
 }

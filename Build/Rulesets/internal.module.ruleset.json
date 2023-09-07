@@ -10,16 +10,6 @@
   ],
   "rules": [
     {
-      "id": "AS0103",
-      "action": "Warning",
-      "justification": "Being fixed. Remove when CLEAN20 code is removed."
-    },
-    {
-      "id": "PTE0004",
-      "action": "Warning",
-      "justification": "Being fixed. Remove when CLEAN20 code is removed."
-    },
-    {
       "id": "AS0014",
       "action": "None",
       "justification": "The project manifest must contain the allocated identifier range"
