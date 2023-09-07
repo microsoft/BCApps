@@ -1,0 +1,10 @@
+[
+    {
+        "CodeunitName": "Language Test",
+        "Method": "LookupApplicationLanguageIdSelectLanguage"
+    },
+    {
+        "CodeunitName": "Language Test",
+        "Method": "LookupApplicationLanguageIdOnCancel"
+    }
+]
