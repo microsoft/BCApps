@@ -1,4 +1,5 @@
 {
+    "projectName": "Test Stability Tools",
     "appFolders":  [
         "..\\..\\src\\Tools\\Test Framework\\Test Stability Tools\\Prevent Metadata Updates"
     ],
