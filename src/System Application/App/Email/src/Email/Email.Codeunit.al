@@ -20,7 +20,7 @@ codeunit 8901 "Email"
     /// <param name="EmailMessage">The email message to save.</param>
     procedure SaveAsDraft(EmailMessage: Codeunit "Email Message")
     begin
-        EmailImpl.SaveAsDraft(EmailMessage);
+        EmailImpl.SaveAsDraft(EmailMessage) //Test
     end;
 
     /// <summary>
