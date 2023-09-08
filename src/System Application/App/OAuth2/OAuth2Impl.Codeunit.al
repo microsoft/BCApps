@@ -33,6 +33,7 @@ codeunit 502 OAuth2Impl
     procedure GetAuthRequestUrl(ClientId: Text; Url: Text; RedirectUrl: Text; var State: Text; ResourceUrl: Text; PromptConsent: Enum "Prompt Interaction"): Text
     var
         AuthRequestUrl: Text;
+        AnUnusedVariable: Text;
     begin
         if (ClientId = '') or (RedirectUrl = '') then begin
             Session.LogMessage('0000CCI', MissingClientIdRedirectUrlErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', Oauth2CategoryLbl);
