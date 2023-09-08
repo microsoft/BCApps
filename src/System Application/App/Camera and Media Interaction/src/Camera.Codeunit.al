@@ -22,7 +22,7 @@ codeunit 1907 Camera
     /// </summary>
     /// <param name="PictureInStream">An InStream object that will hold the image in case taking a picture was successful.</param>
     /// <param name="PictureName">A generated name for the taken picture. It will include the current date and time (for example, "Picture_05_03_2020_12_49_23.jpeg").</param>
-    /// <returns>True if the camera is available, the user took a picture and decided to use it, false otherwise.</returns>
+    /// <returns>True if the camera is available, the user took a picture and decided to use it. False otherwise.</returns>
     procedure GetPicture(PictureInStream: InStream; var PictureName: Text): Boolean
     var
         Quality: Decimal;
