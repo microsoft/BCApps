@@ -21,6 +21,8 @@ param
     [switch] $AutoFill
 )
 
+Write-Host "Hello world!"
+
 if ($AutoFill) {
     Add-Type -AssemblyName System.Web
 
