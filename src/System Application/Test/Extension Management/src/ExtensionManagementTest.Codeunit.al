@@ -548,7 +548,7 @@ codeunit 133100 "Extension Management Test"
         GuidedExperience.InsertAssistedSetup(Title, ShortTitle, Description, 0, ObjectType::Page, Page::"Extension Details", "Assisted Setup Group"::Uncategorized, '', "Video Category"::Uncategorized, '');
 
         // [WHEN] Unmark the setup as primary
-        GuidedExperience.InsertAssistedSetup(Title, ShortTitle, Description, 0, ObjectType::Page, Page::"Extension Settings", "Assisted Setup Group"::Uncategorized, '', "Video Category"::Uncategorized, '', false);
+        asserterror GuidedExperience.InsertAssistedSetup(Title, ShortTitle, Description, 0, ObjectType::Page, Page::"Extension Settings", "Assisted Setup Group"::Uncategorized, '', "Video Category"::Uncategorized, '', false);
 
         // [THEN] PrimaryGuidedExperienceItem has been deleted
         AppSetupList.Trap();
