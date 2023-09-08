@@ -38,6 +38,15 @@ codeunit 710 Math
     end;
 
     /// <summary>
+    /// Returns the value of K (Khinchin's constant).
+    /// </summary>
+    /// <returns>Value of K.</returns>
+    procedure K(): Decimal
+    begin
+        exit(1.2824271291);
+    end;
+
+    /// <summary>
     /// Returns the absolute value of a Decimal number.
     /// </summary>
     /// <param name="decimalValue">A decimal.</param>
