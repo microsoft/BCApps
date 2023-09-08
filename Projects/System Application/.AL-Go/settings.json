@@ -1,4 +1,5 @@
 {
+    "projectName": "System Application",
     "appFolders":  [
         "..\\..\\src\\System Application\\App"
     ],
