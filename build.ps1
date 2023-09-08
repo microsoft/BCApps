@@ -1,6 +1,6 @@
 <#
     .Synopsis
-        Build script for AL-Go projects
+        Build script for AL-Go project
     .Description
         This script will run localDevEnv.ps1 in the specified AL-Go project
     .Parameter ALGoProject
