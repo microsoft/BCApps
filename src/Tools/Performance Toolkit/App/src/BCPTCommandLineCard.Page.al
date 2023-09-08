@@ -57,13 +57,6 @@ page 149002 "BCPT CommandLine Card"
                     ApplicationArea = All;
                     Editable = false;
                 }
-                field("No. of Tests"; NoOfTests)
-                {
-                    Caption = 'No. of Tests', Locked = true;
-                    ToolTip = 'Specifies the number of BCPT Suite Lines present in the BCPT Suite';
-                    ApplicationArea = All;
-                    Editable = false;
-                }
             }
         }
     }
