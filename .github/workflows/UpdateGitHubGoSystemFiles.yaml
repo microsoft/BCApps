@@ -26,28 +26,30 @@ env:
 jobs:
   UpdateALGoSystemFiles:
     runs-on: [ windows-latest ]
+    environment: Official-Build
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
       - name: Initialize the workflow
         id: init
-        uses: microsoft/AL-Go/Actions/WorkflowInitialize@eabe480ba72260c6805e575f6bd03ac129367160
+        uses: microsoft/AL-Go/Actions/WorkflowInitialize@cd65fef534b14be11e4d0e3c9905869fad786d36
         with:
           shell: powershell
           eventId: "DO0098"
 
       - name: Read settings
-        uses: microsoft/AL-Go/Actions/ReadSettings@eabe480ba72260c6805e575f6bd03ac129367160
+        uses: microsoft/AL-Go/Actions/ReadSettings@cd65fef534b14be11e4d0e3c9905869fad786d36
         with:
           shell: powershell
+          parentTelemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
           get: templateUrl
 
       - name: Read secrets
-        id: ReadSecrets
-        uses: microsoft/AL-Go/Actions/ReadSecrets@eabe480ba72260c6805e575f6bd03ac129367160
+        uses: microsoft/AL-Go/Actions/ReadSecrets@cd65fef534b14be11e4d0e3c9905869fad786d36
         with:
           shell: powershell
+          parentTelemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
           gitHubSecrets: ${{ toJson(secrets) }}
           getSecrets: 'ghTokenWorkflow'
 
@@ -77,18 +79,18 @@ jobs:
           Add-Content -Encoding UTF8 -Path $env:GITHUB_ENV -Value "DirectCommit=$directCommit"
 
       - name: Update AL-Go system files
-        uses: microsoft/AL-Go/Actions/CheckForUpdates@eabe480ba72260c6805e575f6bd03ac129367160
+        uses: microsoft/AL-Go/Actions/CheckForUpdates@cd65fef534b14be11e4d0e3c9905869fad786d36
         with:
           shell: powershell
           parentTelemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
-          token: ${{ fromJson(steps.ReadSecrets.outputs.Secrets).ghTokenWorkflow }}
+          token: ${{ fromJson(env.Secrets).ghTokenWorkflow }}
           Update: Y
           templateUrl: ${{ env.templateUrl }}
           directCommit: ${{ env.directCommit }}
 
       - name: Finalize the workflow
         if: always()
-        uses: microsoft/AL-Go/Actions/WorkflowPostProcess@eabe480ba72260c6805e575f6bd03ac129367160
+        uses: microsoft/AL-Go/Actions/WorkflowPostProcess@cd65fef534b14be11e4d0e3c9905869fad786d36
         with:
           shell: powershell
           eventId: "DO0098"
