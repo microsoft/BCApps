@@ -20,10 +20,10 @@ $webClient.CachePolicy = New-Object System.Net.Cache.RequestCachePolicy -argumen
 $webClient.Encoding = [System.Text.Encoding]::UTF8
 Write-Host "Downloading GitHub Helper module"
 $GitHubHelperPath = "$([System.IO.Path]::GetTempFileName()).psm1"
-$webClient.DownloadFile('https://raw.githubusercontent.com/microsoft/AL-Go/cd65fef534b14be11e4d0e3c9905869fad786d36/Actions/Github-Helper.psm1', $GitHubHelperPath)
+$webClient.DownloadFile('https://raw.githubusercontent.com/microsoft/AL-Go/eabe480ba72260c6805e575f6bd03ac129367160/Actions/Github-Helper.psm1', $GitHubHelperPath)
 Write-Host "Downloading AL-Go Helper script"
 $ALGoHelperPath = "$([System.IO.Path]::GetTempFileName()).ps1"
-$webClient.DownloadFile('https://raw.githubusercontent.com/microsoft/AL-Go/cd65fef534b14be11e4d0e3c9905869fad786d36/Actions/AL-Go-Helper.ps1', $ALGoHelperPath)
+$webClient.DownloadFile('https://raw.githubusercontent.com/microsoft/AL-Go/eabe480ba72260c6805e575f6bd03ac129367160/Actions/AL-Go-Helper.ps1', $ALGoHelperPath)
 
 Import-Module $GitHubHelperPath
 . $ALGoHelperPath -local
@@ -34,13 +34,13 @@ $project = GetProject -baseFolder $baseFolder -projectALGoFolder $PSScriptRoot
 Clear-Host
 Write-Host
 Write-Host -ForegroundColor Yellow @'
-  _                     _   _____             ______            
- | |                   | | |  __ \           |  ____|           
+  _                     _   _____             ______
+ | |                   | | |  __ \           |  ____|
  | |     ___   ___ __ _| | | |  | | _____   __ |__   _ ____   __
  | |    / _ \ / __/ _` | | | |  | |/ _ \ \ / /  __| | '_ \ \ / /
- | |____ (_) | (__ (_| | | | |__| |  __/\ V /| |____| | | \ V / 
- |______\___/ \___\__,_|_| |_____/ \___| \_/ |______|_| |_|\_/  
-                                                                
+ | |____ (_) | (__ (_| | | | |__| |  __/\ V /| |____| | | \ V /
+ |______\___/ \___\__,_|_| |_____/ \___| \_/ |______|_| |_|\_/
+
 '@
 
 Write-Host @'
