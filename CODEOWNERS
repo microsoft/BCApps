@@ -6,9 +6,6 @@
 *.permissionsetext.al @microsoft/d365-bc-app-permissions
 *.entitlement.al @microsoft/d365-bc-app-permissions
 
-# App Rulesets
-/Build/Rulesets/ @microsoft/d365-bc-app-rulesets
-
 # App Security
 dotnet.al @microsoft/d365-bc-app-security
 
