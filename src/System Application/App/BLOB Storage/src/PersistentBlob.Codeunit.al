@@ -68,4 +68,3 @@ codeunit 4101 "Persistent Blob"
         exit(PersistentBlobImpl.CopyToOutStream(Key, DestinationOutStream));
     end;
 }
-
