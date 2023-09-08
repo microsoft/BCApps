@@ -30,9 +30,9 @@ codeunit 502 OAuth2Impl
         PopupBlockedErr: Label 'Your browser may be blocking pop-ups needed by %1.\\Change your browser settings to allow pop-ups or allow pop-ups from the %1 site, then try again.', Comment = '%1 = Short product name (e.g. Business Central)';
 
     [NonDebuggable]
-    procedure GetAuthRequestUrl(ClientId: Text; var State: Text; ResourceUrl: Text; PromptConsent: Enum "Prompt Interaction"): Text
+    procedure GetAuthRequestUrl(ClientId: Text; Url: Text; RedirectUrl: Text; var State: Text; ResourceUrl: Text; PromptConsent: Enum "Prompt Interaction"): Text
     var
-        AuthRequestUrl, Url: Text;
+        AuthRequestUrl: Text;
     begin
         if (ClientId = '') or (RedirectUrl = '') then begin
             Session.LogMessage('0000CCI', MissingClientIdRedirectUrlErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', Oauth2CategoryLbl);
