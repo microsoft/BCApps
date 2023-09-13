@@ -48,5 +48,6 @@ jobs:
       - name: Update Package Versions
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
+          InsiderSASToken: ${{ secrets.INSIDERSASTOKEN }}
         run: |
           Build/Scripts/UpdatePackageVersions.ps1 -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
