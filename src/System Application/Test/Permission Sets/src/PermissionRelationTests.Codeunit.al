@@ -6,7 +6,6 @@
 namespace System.Test.Security.AccessControl;
 
 using System.Security.AccessControl;
-using System.Security.User;
 using System.TestLibraries.Reflection;
 using System.TestLibraries.Utilities;
 

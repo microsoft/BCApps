@@ -5,7 +5,7 @@
 
 namespace System.Security.AccessControl;
 
-using System.Environment.Configuration;
+using System.Apps;
 
 entitlement "Azure AD Application Automation"
 {

@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Environment.Configuration;
+namespace System.Apps;
 
 /// <summary>
 /// Provides functions for adding, removing or checking if an App ID is within the list of apps that send data out of the Geolocation.

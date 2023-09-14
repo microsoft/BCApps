@@ -6,7 +6,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Environment.Configuration;
+namespace System.Apps;
 
 permissionset 2503 "D365 EXTENSION MGT"
 {

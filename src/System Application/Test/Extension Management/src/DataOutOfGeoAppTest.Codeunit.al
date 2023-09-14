@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Test.Environment.Configuration;
+namespace System.Test.Apps;
 
-using System.Environment.Configuration;
+using System.Apps;
 using System.TestLibraries.Environment;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;

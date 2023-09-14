@@ -3,10 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Environment.Configuration;
+namespace System.Apps;
 
 using System.Globalization;
-using System.Apps;
 
 /// <summary>
 /// Allows users to upload an extension and schedule its deployment.

@@ -22,6 +22,7 @@ using System.DataAdministration;
 using System.Integration.Sharepoint;
 using System.Security.User;
 using System.Integration.Word;
+using System.Apps;
 
 permissionset 219 "System Application - Objects"
 {

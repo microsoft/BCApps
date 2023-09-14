@@ -3,8 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Environment.Configuration;
-using System.Apps;
+namespace System.Apps;
 
 /// <summary>
 /// Displays details about the selected extension, and offers features for installing and uninstalling it.

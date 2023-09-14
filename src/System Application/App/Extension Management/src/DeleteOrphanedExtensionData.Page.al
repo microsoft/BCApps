@@ -3,10 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Environment.Configuration;
+namespace System.Apps;
 
 using System.Environment;
-using System.Apps;
 
 /// <summary>
 /// Lists the extension which have data but are not installed, and provides the ability to delete their data.
@@ -52,14 +51,6 @@ page 2514 "Delete Orphaned Extension Data"
                     ApplicationArea = All;
                     Caption = 'Version';
                     ToolTip = 'Specifies the version of the extension.';
-                }
-                field("Is Installed"; IsInstalled)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Is Installed';
-                    Style = Favorable;
-                    StyleExpr = InfoStyle;
-                    ToolTip = 'Specifies whether the extension is installed.';
                 }
                 field("Stale"; Rec.Status)
                 {
@@ -132,10 +123,7 @@ page 2514 "Delete Orphaned Extension Data"
 
     trigger OnAfterGetRecord()
     begin
-        DetermineExtensionConfigurations();
-
         VersionDisplay := GetVersionDisplayText();
-        SetInfoStyleForIsInstalled();
     end;
 
     trigger OnOpenPage()
@@ -152,42 +140,24 @@ page 2514 "Delete Orphaned Extension Data"
         ClearExtensionSchemaOrphanMsg: Label 'The %1 extension data was deleted.', Comment = '%1=The extension which data was deleted';
         IsMarketplaceEnabled: Boolean;
         IsOnPremDisplay: Boolean;
-        IsInstalled: Boolean;
-        IsInstallAllowed: Boolean;
-        InfoStyle: Boolean;
 
     local procedure DetermineEnvironmentConfigurations()
     var
         EnvironmentInformation: Codeunit "Environment Information";
         ExtensionMarketplace: Codeunit "Extension Marketplace";
-        ServerSetting: Codeunit "Server Setting";
-        IsSaaSInstallAllowed: Boolean;
     begin
         IsSaaS := EnvironmentInformation.IsSaaS();
-        IsSaaSInstallAllowed := ServerSetting.GetEnableSaaSExtensionInstallSetting();
 
         IsMarketplaceEnabled := ExtensionMarketplace.IsMarketplaceEnabled();
 
         // Composed configurations for the simplicity of representation
         IsOnPremDisplay := not IsMarketplaceEnabled or not IsSaaS;
-        IsInstallAllowed := IsOnPremDisplay or IsSaaSInstallAllowed;
-    end;
-
-    local procedure DetermineExtensionConfigurations()
-    begin
-        // Determining Record and Styling Configurations
-        IsInstalled := ExtensionInstallationImpl.IsInstalledByPackageId(Rec."Package ID");
     end;
 
     local procedure GetVersionDisplayText(): Text
     begin
         // Getting the version display text and adding a '- NotInstalled' if in SaaS for PerTenant extensions
         exit(StrSubstNo(VersionFormatTxt, Rec."Schema Version"));
-    end;
-
-    local procedure SetInfoStyleForIsInstalled()
-    begin
-        InfoStyle := IsInstalled and IsInstallAllowed;
     end;
 }
 

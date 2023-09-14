@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Environment.Configuration;
+namespace System.Apps;
 
 /// <summary>This temporary table is used to mirror the "NAV App Tenant Operation" system table and present details about the extension deployment status.///</summary>
 table 2508 "Extension Deployment Status"

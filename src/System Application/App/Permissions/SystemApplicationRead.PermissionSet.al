@@ -20,6 +20,7 @@ using System.Environment;
 using System.Security.User;
 using System.Integration.Word;
 using System.Feedback;
+using System.Apps;
 
 permissionset 21 "System Application - Read"
 {

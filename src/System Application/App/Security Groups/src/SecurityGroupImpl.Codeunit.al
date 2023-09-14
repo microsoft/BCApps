@@ -25,7 +25,7 @@ codeunit 9871 "Security Group Impl."
         InvalidWindowsGroupErr: Label 'The group ID %1 does not correspond to a valid Windows group.', Comment = '%1 = Windows group ID';
         InvalidEntraGroupErr: Label 'The group ID %1 does not correspond to a valid Microsoft Entra group.', Comment = '%1 = Microsoft Entra security group ID';
         InvalidGroupNameErr: Label 'The group %1 could not be found.', Comment = '%1 = group name';
-        GroupAlreadyExistsErr: Label 'The group %1 already exists.', Comment = '%1 = Microsoft Entra group ID / Windows group name / group code';
+        GroupAlreadyExistsErr: Label 'The group %1 already exists.', Comment = '%1 = group name or group code';
         WindowsAccountNotAllowedErr: Label 'The group %1 is not allowed.', Comment = '%1 = Windows group name';
         CouldNotFindGroupErr: Label 'Could not find %1 group.', Comment = '%1 = Active Directory / Microsoft Entra';
         NoPermissionsErr: Label 'You do not have permissions to create security groups. Ask your system administrator to give you Insert, Modify and Delete permissions for the Security Group table.';
@@ -444,14 +444,14 @@ codeunit 9871 "Security Group Impl."
     local procedure ValidateEntraGroup(EntraGroupObjectId: Text)
     var
         OtherUserProperty: Record "User Property";
-        DummyGroupName: Text[250];
+        GroupName: Text[250];
     begin
-        if not TryGetNameById(EntraGroupObjectId, DummyGroupName) then
+        if not TryGetNameById(EntraGroupObjectId, GroupName) then
             Error(InvalidEntraGroupErr, EntraGroupObjectId);
 
         OtherUserProperty.SetRange("Authentication Object ID", EntraGroupObjectId);
         if not OtherUserProperty.IsEmpty() then
-            Error(GroupAlreadyExistsErr, EntraGroupObjectId);
+            Error(GroupAlreadyExistsErr, GroupName);
     end;
 
     local procedure FetchAllEntraGroups()
