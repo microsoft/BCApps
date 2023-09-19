@@ -23,7 +23,7 @@ $GitHubHelperPath = "$([System.IO.Path]::GetTempFileName()).psm1"
 $webClient.DownloadFile('https://raw.githubusercontent.com/microsoft/AL-Go/31be77d8466260c22e324516ec543285e6dfc521/Actions/Github-Helper.psm1', $GitHubHelperPath)
 Write-Host "Downloading AL-Go Helper script"
 $ALGoHelperPath = "$([System.IO.Path]::GetTempFileName()).ps1"
-$webClient.DownloadFile('https://raw.githubusercontent.com/microsoft/AL-Go/31be77d8466260c22e324516ec543285e6dfc521/Actions/AL-Go-Helper.ps1', $ALGoHelperPath)
+$webClient.DownloadFile('https://raw.githubusercontent.com/aholstrup1/AL-Go/main/Actions/AL-Go-Helper.ps1', $ALGoHelperPath)
 
 Import-Module $GitHubHelperPath
 . $ALGoHelperPath -local
