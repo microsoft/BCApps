@@ -9,5 +9,6 @@
     ],
     "doNotRunTests": true,
     "enableAppSourceCop": true,
-    "enablePerTenantExtensionCop":  true
+    "enablePerTenantExtensionCop": true,
+    "enableUICop": true
 }
