@@ -6,8 +6,9 @@
     "testFolders":  [
     ],
     "doNotRunTests": true,
-    "doNotPublishApps": true,
     "enableAppSourceCop": true,
-    "enablePerTenantExtensionCop": true,
-    "enableUICop": true
+    "enablePerTenantExtensionCop":  true,
+    "enableUICop": true,
+    "useCompilerFolder": true,
+    "doNotPublishApps": true
 }
