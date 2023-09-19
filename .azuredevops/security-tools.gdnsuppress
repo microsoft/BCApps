@@ -1,156 +1,107 @@
 {
-  "version": "latest",
+  "hydrated": false,
+  "properties": {
+    "helpUri": "https://eng.ms/docs/microsoft-security/security/azure-security/cloudai-security-fundamentals-engineering/security-integration/guardian-wiki/microsoft-guardian/general/suppressions",
+    "hydrationStatus": "This file does not contain identifying data. It is safe to check into your repo. To hydrate this file with identifying data, run `guardian hydrate --help` and follow the guidance."
+  },
+  "version": "1.0.0",
   "suppressionSets": {
     "default": {
       "name": "default",
-      "createdDate": "2023-05-30 13:38:35Z",
-      "lastUpdatedDate": "2023-05-30 13:38:35Z"
+      "createdDate": "2023-09-19 13:37:20Z",
+      "lastUpdatedDate": "2023-09-19 13:37:20Z"
     }
   },
   "results": {
-    "6f55d575d481b3a2454d93b42b8a214c8554193f49c058005806bd3e6568296c": {
-      "signature": "6f55d575d481b3a2454d93b42b8a214c8554193f49c058005806bd3e6568296c",
+    "e98a5d2b47803c91694e5058c500cfc52e89d274902eefd1731a5543762efbf1": {
+      "signature": "e98a5d2b47803c91694e5058c500cfc52e89d274902eefd1731a5543762efbf1",
       "alternativeSignatures": [
-        "fce33d739da30a4afc56e617d4697da47883f853be5899bc69fa2f014340578f"
+        "3f9f6cfca12ece24ba9698cc9f3e6fb18da35ee566b48c6111ad55f927daec9a"
       ],
-      "target": "src/Application/System Application/System Application/OAuth/README.md",
       "memberOf": [
         "default"
       ],
-      "tool": "credscan",
-      "ruleId": "CSCAN-GENERAL0060",
-      "justification": null,
-      "createdDate": "2023-05-30 13:38:35Z",
-      "expirationDate": null,
-      "type": null
+      "createdDate": "2023-09-19 13:37:20Z"
     },
-    "cd3f0afffb6b9d01021ce89337fdb2f82319e8af6f62ba22405ea1702e028679": {
-      "signature": "cd3f0afffb6b9d01021ce89337fdb2f82319e8af6f62ba22405ea1702e028679",
+    "06e3844ab0852c03fb091a6ee7c661e65257b0fafba012208d5f5215e30add0a": {
+      "signature": "06e3844ab0852c03fb091a6ee7c661e65257b0fafba012208d5f5215e30add0a",
       "alternativeSignatures": [
-        "19d1cf47653a045297e548d371f9f885f10bc5c321c7c101215b0b7aae50dae3"
+        "f4138130b16b3eac835387c9ddf40477d9fdf4541f6a588be74c1250bb1a7b99"
       ],
-      "target": "src/Application/System Application/System Application/OAuth/README.md",
       "memberOf": [
         "default"
       ],
-      "tool": "credscan",
-      "ruleId": "CSCAN-GENERAL0060",
-      "justification": null,
-      "createdDate": "2023-05-30 13:38:35Z",
-      "expirationDate": null,
-      "type": null
+      "createdDate": "2023-09-19 13:37:20Z"
     },
-    "7a0ca6fac87f923244198fddb1e4fe3cbc32f8077c4ea6a8dd1ddb62d20e9b9c": {
-      "signature": "7a0ca6fac87f923244198fddb1e4fe3cbc32f8077c4ea6a8dd1ddb62d20e9b9c",
+    "a17a40a7d3ac9893e2655afb2a333e1210f1959ee7494492c424fdd73b46686e": {
+      "signature": "a17a40a7d3ac9893e2655afb2a333e1210f1959ee7494492c424fdd73b46686e",
       "alternativeSignatures": [
-        "595c22e7c4245d7ae22b80ebe6a4a3cf5397d950ece8c13582a765dddc77c22d"
+        "1c51b39e428450fba45d9f3b4d5fac074a58af9f30709ed14f6f77f735ab8605"
       ],
-      "target": "src/Application/System Application/System Application Tests/Cryptography Management/src/DESCryptoServiceProviderTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
-      "tool": "credscan",
-      "ruleId": "CSCAN-GENERAL0060",
-      "justification": null,
-      "createdDate": "2023-05-30 13:38:35Z",
-      "expirationDate": null,
-      "type": null
+      "createdDate": "2023-09-19 13:37:20Z"
     },
-    "32c74cd42f4abd9d59384949677e04b0e65631e72dfe4c6d882a2dd00237e2f4": {
-      "signature": "32c74cd42f4abd9d59384949677e04b0e65631e72dfe4c6d882a2dd00237e2f4",
+    "edd993962b8fc019c043244d6395de9c39b8a189317fbbad3ad6cef2a0598a85": {
+      "signature": "edd993962b8fc019c043244d6395de9c39b8a189317fbbad3ad6cef2a0598a85",
       "alternativeSignatures": [
-        "eaa93ff3095e3bc185463e35ea01011080e12bca3cb0d1c3033f1954cdcca68b"
+        "36ac264bee9d2a3d1eccfdcf65b77ac7ee4874791bed5182b26678297e1f3034"
       ],
-      "target": "src/Application/System Application/System Application Tests/Password/src/PasswordHandlerTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
-      "tool": "credscan",
-      "ruleId": "CSCAN-GENERAL0060",
-      "justification": null,
-      "createdDate": "2023-05-30 13:38:35Z",
-      "expirationDate": null,
-      "type": null
+      "createdDate": "2023-09-19 13:37:20Z"
     },
-    "bdc8b6dbe251b47e2888ebd40e916a9bd6d50f1a3487a9fc75235ed8d5f13987": {
-      "signature": "bdc8b6dbe251b47e2888ebd40e916a9bd6d50f1a3487a9fc75235ed8d5f13987",
+    "9dd39a27c55cb636e4198208ce6622dcd85a8cd5a8eabc54577d2b80e2fc8646": {
+      "signature": "9dd39a27c55cb636e4198208ce6622dcd85a8cd5a8eabc54577d2b80e2fc8646",
       "alternativeSignatures": [
-        "1d2c71cc45ca1b13e672887c8263d346ab6377480e46d79f2b68d062ed8e1e9a"
+        "266795d2180e56ab74618775b1103390a76b9e019455c1c72cceb3be3c7d9b86"
       ],
-      "target": "src/Application/System Application/System Application Tests/Password/src/PasswordHandlerTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
-      "tool": "credscan",
-      "ruleId": "CSCAN-GENERAL0060",
-      "justification": null,
-      "createdDate": "2023-05-30 13:38:35Z",
-      "expirationDate": null,
-      "type": null
+      "createdDate": "2023-09-19 13:37:20Z"
     },
-    "6c895f32cbe4edec30809411aa0809becdfaef8bf9badcf31b5681ed9b2bc26b": {
-      "signature": "6c895f32cbe4edec30809411aa0809becdfaef8bf9badcf31b5681ed9b2bc26b",
+    "803d71809afadb25f3550eedf7c7cccb5305ee2caa67b992200e0a6370cbcd19": {
+      "signature": "803d71809afadb25f3550eedf7c7cccb5305ee2caa67b992200e0a6370cbcd19",
       "alternativeSignatures": [
-        "4431b5ddc52472114df85b881202963ebf335abbe06677e0ce0340060ddcb942"
+        "620a3d5a35acd269546e212f79fc4000e69cc92d423e9687a046170684b5cf45"
       ],
-      "target": "src/Application/System Application/System Application Tests/Password/src/PasswordHandlerTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
-      "tool": "credscan",
-      "ruleId": "CSCAN-GENERAL0060",
-      "justification": null,
-      "createdDate": "2023-05-30 13:38:35Z",
-      "expirationDate": null,
-      "type": null
+      "createdDate": "2023-09-19 13:37:20Z"
     },
-    "45848175593cc8ff0435de180051d3abd665d8ba86d810aa16f75d9e5ca3e86c": {
-      "signature": "45848175593cc8ff0435de180051d3abd665d8ba86d810aa16f75d9e5ca3e86c",
+    "62e27c60bc17ba1737521dc592306554f97d996d3c399eb3532941dd976e38c4": {
+      "signature": "62e27c60bc17ba1737521dc592306554f97d996d3c399eb3532941dd976e38c4",
       "alternativeSignatures": [
-        "0c716a427a7d9599632bfef79795353cf3cda99c1554f18759fcd0789d787e0a"
+        "f313eb48d2760d530bc257ff927d893df93c789ffe20316779a19fa7bf1dcf04"
       ],
-      "target": "src/Application/System Application/System Application Tests/Password/src/PasswordHandlerTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
-      "tool": "credscan",
-      "ruleId": "CSCAN-GENERAL0060",
-      "justification": null,
-      "createdDate": "2023-05-30 13:38:35Z",
-      "expirationDate": null,
-      "type": null
+      "createdDate": "2023-09-19 13:37:20Z"
     },
-    "dbd3c425333f3d1d4000380e65bba63ab19a96bd414ac08d8f4b52d77671181c": {
-      "signature": "dbd3c425333f3d1d4000380e65bba63ab19a96bd414ac08d8f4b52d77671181c",
+    "f6fa03ce64ec59b247cbdbcfbc1e1089bc50e61924dccc0847ca359c245222d0": {
+      "signature": "f6fa03ce64ec59b247cbdbcfbc1e1089bc50e61924dccc0847ca359c245222d0",
       "alternativeSignatures": [
-        "4efc59b10b25c91b18a876677768e61e2a4b1b92a2c045f7d30723ffb28e3f5c"
+        "97dd8b3fc882c990713e70b739cbd0110ffbbae792c6d86b62a0025f6e0d7f15"
       ],
-      "target": "src/Application/System Application/System Application Tests/Password/src/PasswordHandlerTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
-      "tool": "credscan",
-      "ruleId": "CSCAN-GENERAL0060",
-      "justification": null,
-      "createdDate": "2023-05-30 13:38:35Z",
-      "expirationDate": null,
-      "type": null
+      "createdDate": "2023-09-19 13:37:20Z"
     },
-    "bbf96bf11561adac67af7af1bcfb871aa26c8fbad0e5bbae37f3f31c9a9e7fc7": {
-      "signature": "bbf96bf11561adac67af7af1bcfb871aa26c8fbad0e5bbae37f3f31c9a9e7fc7",
+    "9d8a6e86b1382689312bd626488a886bbb8d6dfdb1243a56ba89e5713db6133c": {
+      "signature": "9d8a6e86b1382689312bd626488a886bbb8d6dfdb1243a56ba89e5713db6133c",
       "alternativeSignatures": [
-        "15fb32568e0b16b14a959c52a40792fc14b6c41b5843a453c3a62c6caaf5ff7b"
+        "96fb605ac26101a84bf03e7d3cee1c856e1399bf56a0ae6ffcbb0ae119013a7d"
       ],
-      "target": "src/Application/System Application/System Application Tests/Password/src/PasswordHandlerTest.Codeunit.al",
       "memberOf": [
         "default"
       ],
-      "tool": "credscan",
-      "ruleId": "CSCAN-GENERAL0060",
-      "justification": null,
-      "createdDate": "2023-05-30 13:38:35Z",
-      "expirationDate": null,
-      "type": null
+      "createdDate": "2023-09-19 13:37:20Z"
     }
   }
 }
