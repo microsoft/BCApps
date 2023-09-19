@@ -2,14 +2,12 @@
 name: 1.0.$(Year:yy)$(DayOfYear).$(Rev:r) # This is the build number
 
 trigger: none
-pr: none
 schedules:
-- cron: "0 0 * * 1"
-  displayName: Monday at midnight
+- cron: "0 0 * * *"
+  displayName: Daily at midnight
   branches:
     include:
     - main
-    - releases/*
     
 pool:
   vmImage: 'windows-latest'
@@ -42,3 +40,6 @@ jobs:
       - CodeSignValidation # Not applicable yet (Code is not signed on Github) 
       IncludeOfficialBuildTools:
       - ComponentGovernance
+      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+        TSA: true
+        TSAIncludeTools: 'PoliCheck'
