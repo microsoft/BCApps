@@ -8,7 +8,7 @@
         "..\\..\\src\\System Application\\Test Library\\*"
     ],
     "enableAppSourceCop": false,
-    "enablePerTenantExtensionCop":  false,
+    "enablePerTenantExtensionCop": false,
     "enableUICop": false,
     "useCompilerFolder": true,
     "doNotPublishApps": true,
