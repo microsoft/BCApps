@@ -8,6 +8,6 @@
     "doNotRunTests": true,
     "enableAppSourceCop": true,
     "enablePerTenantExtensionCop":  true,
-    "useCompilerFolder": true, // To enable containerless compiling 
-    "doNotPublishApps": true // To enable containerless compiling
+    "useCompilerFolder": true,
+    "doNotPublishApps": true
 }
