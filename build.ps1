@@ -37,5 +37,12 @@ if ($AutoFill) {
     $auth = "UserPassword"
 }
 
+# TEST
+$ENV:GITHUB_ENV = (Join-Path $PSScriptRoot . -Resolve)
+
 $scriptPath = Join-Path $PSScriptRoot "Projects\$ALGoProject\.AL-Go\localDevEnv.ps1" -Resolve
 & $scriptPath -containerName $containerName -auth $auth -credential $credential -licenseFileUrl $licenseFileUrl -insiderSasToken $InsiderSasToken
+
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to build"
+}
