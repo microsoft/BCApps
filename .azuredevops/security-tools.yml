@@ -32,7 +32,7 @@ jobs:
     fetchTags: 'true'
   - template: security-tools-full.yml@PipelineTemplates
     parameters:
-      OutputPath: $(SourcePath)
+      OutputPath: $(OutputPath)
       SourcePath: $(SourcePath)
       BuildCommand: Powershell.exe -NonInteractive "cd $(Build.SourcesDirectory); .\build.ps1 -ALGoProject 'System Application' -InsiderSasToken '$(InsiderSasToken)' -AutoFill"
       GdnSuppressFile: $(Build.SourcesDirectory)\.azuredevops\security-tools.gdnsuppress

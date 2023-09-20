@@ -1,7 +1,7 @@
 variables:
 - group: Infrastructure - AlAppExtensions
 - name: OutputPath
-  value: $(Pipeline.Workspace)\out
+  value: $(Pipeline.Workspace)
 - name: SourcePath  
   value: $(Build.SourcesDirectory)
   readonly: true
