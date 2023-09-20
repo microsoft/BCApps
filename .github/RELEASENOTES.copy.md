@@ -12,6 +12,7 @@ Note that when using the preview version of AL-Go for GitHub, you need to Update
 - After configuring deployment branches for an environment in GitHub and setting Deployment Branch Policy to **Protected Branches**, AL-Go for GitHub would fail during initialization (trying to get environments for deployment)
 - The DetermineDeploymentEnvironments doesn't work in private repositories (needs the GITHUB_TOKEN)
 - Issue 683 Settings from GitHub variables ALGoRepoSettings and ALGoOrgSettings are not applied during build pipeline
+- Issue 708 Inconsistent AuthTokenSecret Behavior in Multiple Projects: 'Secrets are not available'
 
 ### Breaking changes
 
