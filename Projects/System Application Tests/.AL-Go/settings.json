@@ -5,5 +5,6 @@
         "..\\..\\src\\System Application\\Test Library"
     ],
     "enableAppSourceCop": true,
-    "enablePerTenantExtensionCop":  true
+    "enablePerTenantExtensionCop": true,
+    "enableUICop": true
 }
