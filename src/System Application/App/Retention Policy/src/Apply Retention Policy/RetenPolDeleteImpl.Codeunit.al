@@ -32,7 +32,7 @@ codeunit 3916 "Reten. Pol. Delete. Impl." implements "Reten. Pol. Deleting"
 
         RecordReference.Initialize(RecordRef, RecordReferenceIndirectPermission);
 
-        if not RecordRef.ReadPermission then
+        if not RecordReferenceIndirectPermission.ReadPermission(RecordRef) then
             RetentionPolicyLog.LogWarning(LogCategory(), StrSubstNo(MissingReadPermissionLbl, RecordRef.Number, RecordRef.Caption))
         else
             if not RecordReferenceIndirectPermission.IsEmpty(RecordRef) then

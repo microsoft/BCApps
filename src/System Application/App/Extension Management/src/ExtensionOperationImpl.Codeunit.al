@@ -3,12 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Environment.Configuration;
+namespace System.Apps;
 
 using System;
 using System.Utilities;
 using System.Environment;
-using System.Apps;
+using System.Environment.Configuration;
 
 codeunit 2503 "Extension Operation Impl"
 {

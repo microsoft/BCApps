@@ -11,5 +11,5 @@ permissionset 9631 "Data Analysis - Exec"
     Assignable = true;
     Caption = 'Allow Data Analysis Mode';
 
-    Permissions = system "Allow Data Analysis Mode." = X;
+    Permissions = system "Allow Data Analysis Mode" = X;
 }

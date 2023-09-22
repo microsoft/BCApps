@@ -5,6 +5,8 @@
 
 namespace System.Environment.Configuration;
 
+using System.Apps;
+
 permissionset 9202 "Advanced Settings - View"
 {
     Access = Internal;

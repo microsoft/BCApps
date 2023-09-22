@@ -6,6 +6,7 @@
 namespace System.Security.AccessControl;
 
 using System.Environment.Configuration;
+using System.Apps;
 using System.Email;
 
 entitlement "Azure AD Application Api"

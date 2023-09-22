@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Environment.Configuration;
+namespace System.Apps;
 
-using System.Apps;
+using System.Environment.Configuration;
 
 permissionset 2502 "Exten. Mgt. - Admin"
 {

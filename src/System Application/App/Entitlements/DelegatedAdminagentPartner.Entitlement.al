@@ -8,6 +8,7 @@ namespace System.Security.AccessControl;
 using System.Azure.Identity;
 using System.Environment.Configuration;
 using System.Email;
+using System.Apps;
 
 entitlement "Delegated Admin agent - Partner"
 {

@@ -3,13 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Environment.Configuration;
+namespace System.Apps;
 
 using System;
 using System.Utilities;
 using System.Azure.KeyVault;
 using System.Environment;
-using System.Apps;
+using System.Environment.Configuration;
 
 /// <summary>
 /// This codeunit is used as a helper for managing interactions between

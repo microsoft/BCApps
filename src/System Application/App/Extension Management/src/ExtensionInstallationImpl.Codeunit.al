@@ -3,10 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Environment.Configuration;
+namespace System.Apps;
 
 using System.Utilities;
-using System.Apps;
+using System.Environment.Configuration;
 
 codeunit 2500 "Extension Installation Impl"
 {

@@ -16,6 +16,7 @@ using System.Privacy;
 using System.Utilities;
 using System.Security.User;
 using System.Integration;
+using System.Apps;
 
 permissionset 75 "System Application - View"
 {

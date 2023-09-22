@@ -11,6 +11,7 @@ using System.Environment.Configuration;
 using System.Integration.Excel;
 using System.Privacy;
 using System.Integration;
+using System.Apps;
 
 permissionset 154 "System Application - Admin"
 {

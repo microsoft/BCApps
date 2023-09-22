@@ -8,7 +8,6 @@ namespace System.Test.Device;
 using System.Device;
 using System.TestLibraries.Device;
 using System.Text;
-using System.Utilities;
 using System.TestLibraries.Utilities;
 
 codeunit 135011 "Camera Test"
