@@ -21,6 +21,13 @@ param
     [switch] $AutoFill
 )
 
+$ErrorActionPreference = "Stop"
+
+if (-not (Get-Module -ListAvailable -Name "BCContainerHelper")) {
+    Write-Host "BCContainerHelper module not found. Installing..."
+    Install-Module -Name "BCContainerHelper" -Scope CurrentUser -Force
+}
+
 if ($AutoFill) {
     Add-Type -AssemblyName System.Web
 
@@ -32,3 +39,7 @@ if ($AutoFill) {
 
 $scriptPath = Join-Path $PSScriptRoot "Projects\$ALGoProject\.AL-Go\localDevEnv.ps1" -Resolve
 & $scriptPath -containerName $containerName -auth $auth -credential $credential -licenseFileUrl $licenseFileUrl -insiderSasToken $InsiderSasToken
+
+if ($LASTEXITCODE -ne 0) {
+    throw "Failed to build"
+}
