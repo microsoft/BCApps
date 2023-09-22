@@ -123,6 +123,11 @@
       "id": "AW0008",
       "action": "None",
       "justification": "The Web client only supports displaying Repeater controls in pages of type List, ListPart, and Worksheet."
+    },
+    {
+      "id": "AL0678",
+      "action": "None",
+      "justification": "Information diagnostic reported on obsolete symbols contributing to metadata name conflicts, ex: 'My Page' and 'My_Page'."
     }
   ]
 }
