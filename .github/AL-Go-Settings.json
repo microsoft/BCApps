@@ -1,57 +1,57 @@
 {
-  "type": "PTE",
-  "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
-  "bcContainerHelperVersion": "preview",
-  "runs-on": "windows-latest",
-  "cacheImageName": "",
-  "UsePsSession": false,
-  "artifact": "bcinsider//24.0.12600.0/base//{INSIDERSASTOKEN}",
-  "country": "base",
-  "useProjectDependencies": true,
-  "repoVersion": "24.0",
-  "cleanModePreprocessorSymbols": [
-    "CLEAN17",
-    "CLEAN18",
-    "CLEAN19",
-    "CLEAN20",
-    "CLEAN21",
-    "CLEAN22",
-    "CLEAN23",
-    "CLEAN24"
-  ],
-  "unusedALGoSystemFiles": [
-    "AddExistingAppOrTestApp.yaml",
-    "CreateApp.yaml",
-    "CreateOnlineDevelopmentEnvironment.yaml",
-    "CreatePerformanceTestApp.yaml",
-    "CreateRelease.yaml",
-    "CreateTestApp.yaml",
-    "Current.yaml",
-    "IncrementVersionNumber.yaml",
-    "NextMajor.yaml",
-    "NextMinor.yaml",
-    "PublishToEnvironment.yaml"
-  ],
-  "excludeEnvironments": [
-    "Official-Build"
-  ],
-  "buildModes": [
-    "Default",
-    "Clean"
-  ],
-  "enableCodeCop": true,
-  "CICDPushBranches": [
-    "main",
-    "release/*"
-  ],
-  "CICDPullRequestBranches": [
-    "main",
-    "release/*"
-  ],
-  "rulesetFile": "..\\..\\Build\\Rulesets\\module.ruleset.json",
-  "skipUpgrade": true,
-  "PartnerTelemetryConnectionString": "InstrumentationKey=403ba4d3-ad2b-4ca1-8602-b7746de4c048;IngestionEndpoint=https://swedencentral-0.in.applicationinsights.azure.com/",
-  "fullBuildPatterns": [
-    "Build/*"
-  ]
+    "type":  "PTE",
+    "templateUrl":  "https://github.com/microsoft/AL-Go-PTE@preview",
+    "bcContainerHelperVersion":  "preview",
+    "runs-on":  "windows-latest",
+    "cacheImageName":  "",
+    "UsePsSession":  false,
+    "artifact":  "bcinsider//24.0.12644.0/base//{INSIDERSASTOKEN}",
+    "country":  "base",
+    "useProjectDependencies":  true,
+    "repoVersion":  "24.0",
+    "cleanModePreprocessorSymbols":  [
+                                         "CLEAN17",
+                                         "CLEAN18",
+                                         "CLEAN19",
+                                         "CLEAN20",
+                                         "CLEAN21",
+                                         "CLEAN22",
+                                         "CLEAN23",
+                                         "CLEAN24"
+                                     ],
+    "unusedALGoSystemFiles":  [
+                                  "AddExistingAppOrTestApp.yaml",
+                                  "CreateApp.yaml",
+                                  "CreateOnlineDevelopmentEnvironment.yaml",
+                                  "CreatePerformanceTestApp.yaml",
+                                  "CreateRelease.yaml",
+                                  "CreateTestApp.yaml",
+                                  "Current.yaml",
+                                  "IncrementVersionNumber.yaml",
+                                  "NextMajor.yaml",
+                                  "NextMinor.yaml",
+                                  "PublishToEnvironment.yaml"
+                              ],
+    "excludeEnvironments":  [
+                                "Official-Build"
+                            ],
+    "buildModes":  [
+                       "Default",
+                       "Clean"
+                   ],
+    "enableCodeCop":  true,
+    "CICDPushBranches":  [
+                             "main",
+                             "release/*"
+                         ],
+    "CICDPullRequestBranches":  [
+                                    "main",
+                                    "release/*"
+                                ],
+    "rulesetFile":  "..\\..\\Build\\Rulesets\\module.ruleset.json",
+    "skipUpgrade":  true,
+    "PartnerTelemetryConnectionString":  "InstrumentationKey=403ba4d3-ad2b-4ca1-8602-b7746de4c048;IngestionEndpoint=https://swedencentral-0.in.applicationinsights.azure.com/",
+    "fullBuildPatterns":  [
+                              "Build/*"
+                          ]
 }
