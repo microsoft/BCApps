@@ -50,8 +50,3 @@ if($app)
         }
     }
 }
-
-$appFile = Compile-AppInBcContainer @parameters
-
-# Return the app file path
-$appFile
