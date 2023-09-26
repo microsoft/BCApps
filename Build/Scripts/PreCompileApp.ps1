@@ -44,7 +44,7 @@ if($appType -eq 'app')
                 # Place the app directly in the symbols folder
                 $tempParameters["appOutputFolder"] = $tempParameters["appSymbolsFolder"]
 
-                Compile-AppInBcContainer @tempParameters | Out-Null
+                Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
             }
 
             Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
