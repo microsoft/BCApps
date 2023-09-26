@@ -53,6 +53,14 @@ codeunit 1470 "Headlines Impl."
             exit(StrSubstNo(EmphasizeLbl, TextToEmphasize));
     end;
 
+    procedure Underline(TextToUnderline: Text): Text;
+    var
+        UnderlineLbl: Label '<underline>%1</underline>', Comment = '%1 - Text to be underlined', Locked = true;
+    begin
+        if TextToUnderline <> '' then
+            exit(StrSubstNo(UnderlineLbl, TextToUnderline));
+    end;
+
     procedure GetHeadlineText(Qualifier: Text; Payload: Text; var ResultText: Text): Boolean;
     var
         DotNetRegex: DotNet Regex;
