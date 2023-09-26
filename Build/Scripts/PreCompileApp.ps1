@@ -50,7 +50,7 @@ if($appType -eq 'app')
                 # Place the app directly in the symbols folder
                 $tempParameters["appOutputFolder"] = $(New-TemporaryDirectory).FullName
 
-                $appFile = Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
+                $appFile = Compile-AppWithBcCompilerFolder @tempParameters
 
                 Copy-Item -Path $appFile -Destination $parameters.Value["appSymbolsFolder"] -Force | Out-Null
             }
