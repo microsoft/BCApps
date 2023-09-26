@@ -3,7 +3,7 @@ Param(
     [string] $currentProjectFolder,
     [ValidateSet('app', 'testApp', 'bcptApp')]
     [string] $appType = 'app',
-    [Hashtable] $parameters
+    [ref] $parameters
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
@@ -13,30 +13,30 @@ $appBuildMode = Get-BuildMode
 if($appType -eq 'app')
 {
     # Setup compiler features to generate captions and LCGs
-    if (!$parameters.ContainsKey("Features")) {
-        $parameters["Features"] = @()
+    if (!$parameters.Value.ContainsKey("Features")) {
+        $parameters.Value["Features"] = @()
     }
-    $parameters["Features"] += @("generateCaptions")
+    $parameters.Value["Features"] += @("generateCaptions")
 
     # Setup compiler features to generate LCGs for the default build mode
     if($appBuildMode -eq 'Default') {
-        $parameters["Features"] += @("lcgtranslationfile")
+        $parameters.Value["Features"] += @("lcgtranslationfile")
     }
 
     if($appBuildMode -eq 'Translated') {
         Import-Module $PSScriptRoot\AppTranslations.psm1
-        Restore-TranslationsForApp -AppProjectFolder $parameters["appProjectFolder"]
+        Restore-TranslationsForApp -AppProjectFolder $parameters.Value["appProjectFolder"]
     }
 
     # Restore the baseline app and generate the AppSourceCop.json file
     if($gitHubActions) {
-        if (($parameters.ContainsKey("EnableAppSourceCop") -and $parameters["EnableAppSourceCop"]) -or ($parameters.ContainsKey("EnablePerTenantExtensionCop") -and $parameters["EnablePerTenantExtensionCop"])) {
+        if (($parameters.Value.ContainsKey("EnableAppSourceCop") -and $parameters.Value["EnableAppSourceCop"]) -or ($parameters.Value.ContainsKey("EnablePerTenantExtensionCop") -and $parameters.Value["EnablePerTenantExtensionCop"])) {
             Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
 
             if($appBuildMode -eq 'Clean') {
                 Write-Host "Compile the app without any preprocessor symbols to generate a baseline app to use for breaking changes check"
 
-                $tempParameters = $parameters.Clone()
+                $tempParameters = $parameters.Value.Clone()
 
                 # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
                 $tempParameters["preprocessorsymbols"] = @()
@@ -47,7 +47,7 @@ if($appType -eq 'app')
                 Compile-AppInBcContainer @tempParameters | Out-Null
             }
 
-            Enable-BreakingChangesCheck -AppSymbolsFolder $parameters["appSymbolsFolder"] -AppProjectFolder $parameters["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
+            Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
         }
     }
 }

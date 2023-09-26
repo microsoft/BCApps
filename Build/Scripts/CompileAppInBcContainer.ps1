@@ -12,7 +12,7 @@ $appType = switch ($true) {
     Default { "app" }
 }
 
-. $PSScriptRoot\PreCompileApp.ps1 -parameters $parameters -currentProjectFolder $currentProjectFolder -appType $appType
+. $PSScriptRoot\PreCompileApp.ps1 -parameters ([ref] $parameters) -currentProjectFolder $currentProjectFolder -appType $appType
 
 $appFile = Compile-AppInBcContainer @parameters
 
