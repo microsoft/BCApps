@@ -1,6 +1,8 @@
 Param(
     [Parameter(Mandatory=$true)]
     [string] $currentProjectFolder,
+    [ValidateSet('app', 'testApp', 'bcptApp')]
+    [string] $appType = 'app',
     [Hashtable] $parameters
 )
 
@@ -8,8 +10,7 @@ Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
 $appBuildMode = Get-BuildMode
 
-# $app is a variable that determines whether the current app is a normal app (not test app, for instance)
-if($app)
+if($appType -eq 'app')
 {
     # Setup compiler features to generate captions and LCGs
     if (!$parameters.ContainsKey("Features")) {

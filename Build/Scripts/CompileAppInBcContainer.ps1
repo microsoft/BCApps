@@ -4,7 +4,15 @@ Param(
     [Hashtable] $parameters
 )
 
-. $PSScriptRoot\PreCompileApp.ps1 -parameters $parameters -currentProjectFolder $currentProjectFolder
+# $app, $testApp and $bcptTestApp are boolean variables to determine the app type
+$appType = switch ($true) {
+    $app { "app" }
+    $testApp { "testApp" }
+    $bcptTestApp { "bcptApp" }
+    Default { "app" }
+}
+
+. $PSScriptRoot\PreCompileApp.ps1 -parameters $parameters -currentProjectFolder $currentProjectFolder -appType $appType
 
 $appFile = Compile-AppInBcContainer @parameters
 
