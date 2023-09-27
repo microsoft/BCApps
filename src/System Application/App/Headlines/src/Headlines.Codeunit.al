@@ -44,6 +44,11 @@ codeunit 1439 Headlines
         exit(HeadlinesImpl.Emphasize(TextToEmphasize));
     end;
 
+    procedure Underline(TextToUnderline: Text): Text;
+    begin
+        exit(HeadlinesImpl.Underline(TextToUnderline));
+    end;
+
     /// <summary>
     /// Combine the text from Qualifier and Payload in order to get a single string with headline
     /// text. This text is usually assigned to Expression property on the HeadlinePart page.
