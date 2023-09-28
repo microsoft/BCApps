@@ -184,7 +184,9 @@ function Update-AppSourceCopVersion
     Write-Host "Setting 'obsoleteTagVersion:$buildVersion' value in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["obsoleteTagVersion"] = $buildVersion
 
-    $appSourceJson["baselinePackageCachePath "] = Join-Path $AppProjectFolder '.baseline' #convention for baseline package cache path
+    $baselinePackageCachePath = Join-Path $AppProjectFolder '.baseline' #convention for baseline package cache path
+    Write-Host "Setting 'baselinePackageCachePath:$baselinePackageCachePath' value in AppSourceCop.json" -ForegroundColor Yellow
+    $appSourceJson["baselinePackageCachePath "] = $baselinePackageCachePath
 
     # All major versions greater than current but less or equal to main should be allowed
     $currentBuildVersion = [int] $buildVersion.Split('.')[0]
