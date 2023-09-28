@@ -46,7 +46,8 @@
                          ],
     "CICDPullRequestBranches":  [
                                     "main",
-                                    "release/*"
+                                    "release/*",
+                                    "features/*"
                                 ],
     "rulesetFile":  "..\\..\\Build\\Rulesets\\module.ruleset.json",
     "skipUpgrade":  true,
