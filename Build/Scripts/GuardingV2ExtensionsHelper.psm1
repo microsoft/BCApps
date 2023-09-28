@@ -108,7 +108,7 @@ function Restore-BaselinesFromArtifacts {
         Download-Artifacts -artifactUrl $baselineURL -basePath $baselineFolder | Out-Null
     }
 
-    $baselineApp = Get-ChildItem -Path "$baselineFolder/sandbox/$baselineVersion/W1/Extensions" -Filter "*$($AppName)_$($baselineVersion).app" -ErrorAction SilentlyContinue
+    $baselineApp = Get-ChildItem -Path "$baselineFolder/sandbox/$baselineVersion/W1/Extensions" -Filter "*_$($AppName)_$($baselineVersion).app" -ErrorAction SilentlyContinue
 
     if (-not $baselineApp) {
         Write-Host "Unable to find baseline app for $AppName in $baselineFolder"
@@ -187,6 +187,10 @@ function Update-AppSourceCopVersion
     $baselinePackageCachePath = "./.baseline" #convention for baseline package cache path, relevant to the app project folder
     Write-Host "Setting 'baselinePackageCachePath:$baselinePackageCachePath' value in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["baselinePackageCachePath "] = $baselinePackageCachePath
+
+    $baselinePackageCachePathFull = Join-Path $AppProjectFolder $baselinePackageCachePath
+    Write-Host "Files in baseline package cache path: $baselinePackageCachePathFull" -ForegroundColor Yellow
+    gci $baselinePackageCachePathFull | % { Write-Host " - $($_.FullName)" -ForegroundColor Yellow }
 
     # All major versions greater than current but less or equal to main should be allowed
     $currentBuildVersion = [int] $buildVersion.Split('.')[0]
