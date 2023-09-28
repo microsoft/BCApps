@@ -42,16 +42,16 @@ if($appType -eq 'app')
                 $tempParameters["preprocessorsymbols"] = @()
 
                 # Place the app directly in the sumbol folder
-                $tempParameters["appOutputFolder"] = $tempParameters["appSymbolsFolder"]
+                $tempParameters["appOutputFolder"] = Join $tempParameters["appProjectFolder"] '.baseline'
+                if(-not (Test-Path $tempParameters["appOutputFolder"])) {
+                    New-Item -ItemType Directory -Path $tempParameters["appOutputFolder"] | Out-Null
+                }
+                $tempParameters["CopyAppToSymbolsFolder"] = $false
 
                 Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
             }
 
             Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
-
-            # Directly place the app in the symbols folder. Do not copy it from the output folder as it errors out.
-            $parameters.Value["appOutputFolder"] = $parameters.Value["appSymbolsFolder"]
-            $parameters.Value["CopyAppToSymbolsFolder"] = $false
         }
     }
 }
