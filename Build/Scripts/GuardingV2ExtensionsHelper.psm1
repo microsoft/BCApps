@@ -188,10 +188,6 @@ P
     Write-Host "Setting 'baselinePackageCachePath:$baselinePackageCachePath' value in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["baselinePackageCachePath "] = $baselinePackageCachePath
 
-    $baselinePackageCachePathFull = Join-Path $AppProjectFolder $baselinePackageCachePath
-    Write-Host "Files in baseline package cache path: $baselinePackageCachePathFull" -ForegroundColor Yellow
-    gci $baselinePackageCachePathFull | % { Write-Host " - $($_.FullName)" -ForegroundColor Yellow }
-
     # All major versions greater than current but less or equal to main should be allowed
     $currentBuildVersion = [int] $buildVersion.Split('.')[0]
     $maxAllowedObsoleteVersion = [int] (Get-ConfigValue -ConfigType BuildConfig -Key "MaxAllowedObsoleteVersion")
@@ -210,6 +206,9 @@ P
     if (-not (Test-Path $appSourceCopJsonPath)) {
         throw "AppSourceCop.json does not exist in path: $appSourceCopJsonPath"
     }
+
+    $appSourceCopJsonContent = Get-Content $appSourceCopJsonPath -Raw
+    Write-Host "AppSourceCop.json content: $appSourceCopJsonContent" -ForegroundColor Yellow
 
     return $appSourceCopJsonPath
 }
