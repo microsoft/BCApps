@@ -50,9 +50,9 @@ if($appType -eq 'app')
                 # Place the app in a temporary folder to avoid polluting the source folder
                 $tempParameters["appOutputFolder"] = $(New-TemporaryDirectory).FullName
 
-                $appFile = Compile-AppWithBcCompilerFolder @tempParameters
+                Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
 
-                Copy-Item -Path $appFile -Destination $parameters.Value["appSymbolsFolder"] -Force | Out-Null
+                # Copy-Item -Path $appFile -Destination $parameters.Value["appSymbolsFolder"] -Force | Out-Null
             }
 
             Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
