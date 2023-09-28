@@ -29,7 +29,7 @@ function Enable-BreakingChangesCheck {
     Write-Host "Enabling breaking changes check for app: $applicationName, build mode: $BuildMode"
 
     # Restore the baseline package and place it in the app symbols folder
-    $baselineFolder = Join-Path $AppProjectFolder '.baseline'
+    $baselineFolder = Join-Path $AppProjectFolder '.appSourceCopPackages'
 
     switch ($BuildMode) {
         'Clean' {
@@ -184,7 +184,7 @@ P
     Write-Host "Setting 'obsoleteTagVersion:$buildVersion' value in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["obsoleteTagVersion"] = $buildVersion
 
-    $baselinePackageCachePath = "./.baseline" #convention for baseline package cache path, relevant to the app project folder
+    $baselinePackageCachePath = "./.appSourceCopPackages" #convention for baseline package cache path, relevant to the app project folder
     Write-Host "Setting 'baselinePackageCachePath:$baselinePackageCachePath' value in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["baselinePackageCachePath "] = $baselinePackageCachePath
 

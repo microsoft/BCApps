@@ -42,7 +42,7 @@ if($appType -eq 'app')
                 $tempParameters["preprocessorsymbols"] = @()
 
                 # Place the app directly in the baseline folder
-                $tempParameters["appOutputFolder"] = Join-Path $tempParameters["appProjectFolder"] '.baseline'
+                $tempParameters["appOutputFolder"] = Join-Path $tempParameters["appProjectFolder"] '.appSourceCopPackages'
                 if(-not (Test-Path $tempParameters["appOutputFolder"])) {
                     New-Item -ItemType Directory -Path $tempParameters["appOutputFolder"] | Out-Null
                 }
