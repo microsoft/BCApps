@@ -43,7 +43,7 @@ function Enable-BreakingChangesCheck {
             $baselineVersion = $Matches[1]
 
             Write-Host "Copying $($baselineAppFile.FullName) to $AppSymbolsFolder"
-            Copy-Item -Path "$($baselineAppFile.FullName)" -Destination $AppSymbolsFolder | Out-Null
+            Copy-Item -Path "$($baselineAppFile.FullName)" -Destination $AppSymbolsFolder -PassThru | Rename-Item -NewName cleanApp.app  |  Out-Null
         }
         Default {
             $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $applicationName
