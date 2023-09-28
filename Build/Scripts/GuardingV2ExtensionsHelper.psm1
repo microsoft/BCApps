@@ -115,14 +115,14 @@ function Restore-BaselinesFromArtifacts {
         return
     }
 
-    Write-Host "Copying $($baselineApp.FullName) to $TargetFolder"
-
     if (-not (Test-Path $TargetFolder)) {
-        Write-Host "Creating folder $TargetFolder"
+        Write-Host "Creating target folder for baselines: $TargetFolder"
         New-Item -ItemType Directory -Path $TargetFolder | Out-Null
     }
 
+    Write-Host "Copying $($baselineApp.FullName) to $TargetFolder"
     Copy-Item -Path $baselineApp.FullName -Destination $TargetFolder | Out-Null
+
     return $baselineVersion
 }
 
@@ -184,7 +184,7 @@ function Update-AppSourceCopVersion
     Write-Host "Setting 'obsoleteTagVersion:$buildVersion' value in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["obsoleteTagVersion"] = $buildVersion
 
-    $baselinePackageCachePath = Join-Path $AppProjectFolder '.baseline' #convention for baseline package cache path
+    $baselinePackageCachePath = Join-Path '.' '.baseline' #convention for baseline package cache path, relevant to the app project folder
     Write-Host "Setting 'baselinePackageCachePath:$baselinePackageCachePath' value in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["baselinePackageCachePath "] = $baselinePackageCachePath
 
