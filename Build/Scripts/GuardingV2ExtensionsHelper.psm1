@@ -173,7 +173,7 @@ function Update-AppSourceCopVersion
 
     Write-Host "Setting 'version:$BaselineVersion' in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["version"] = $BaselineVersion
-P
+
     Write-Host "Setting 'name:$AppName' value in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["name"] = $AppName
 
