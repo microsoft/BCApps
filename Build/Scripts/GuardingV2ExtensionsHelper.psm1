@@ -29,21 +29,24 @@ function Enable-BreakingChangesCheck {
     Write-Host "Enabling breaking changes check for app: $applicationName, build mode: $BuildMode"
 
     # Restore the baseline package and place it in the app symbols folder
-    $baselineFolder = Join-Path $AppProjectFolder '.appSourceCopPackages'
+    $baselineFolder =  Join-Path $AppProjectFolder '.appSourceCopPackages'
 
     switch ($BuildMode) {
         'Clean' {
             Write-Host "Looking for baseline app to use in the baseline folder: $baselineFolder"
 
-            $baselineAppFile = Get-ChildItem -Path $baselineFolder -Filter "*_$($applicationName)_*.app" | ForEach-Object { $_.Name }
+            $baselineAppFile = Get-ChildItem -Path $baselineFolder -Filter "*_$($applicationName)_*.app"
 
-            if(-not ($baselineAppFile -match ".*_(.*).app")) {
+            if(-not ($baselineAppFile.Name -match ".*_(.*).app")) {
                 throw "Unable to find baseline app in $baselineFolder"
             }
             $baselineVersion = $Matches[1]
+
+            Write-Host "Copying $($baselineAppFile.FullName) to $AppSymbolsFolder"
+            Copy-Item -Path "$($baselineAppFile.FullName)" -Destination $AppSymbolsFolder | Out-Null
         }
         Default {
-            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $baselineFolder -AppName $applicationName
+            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $applicationName
         }
     }
 
@@ -184,9 +187,9 @@ function Update-AppSourceCopVersion
     Write-Host "Setting 'obsoleteTagVersion:$buildVersion' value in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["obsoleteTagVersion"] = $buildVersion
 
-    $baselinePackageCachePath = "./.appSourceCopPackages" #convention for baseline package cache path, relevant to the app project folder
-    Write-Host "Setting 'baselinePackageCachePath:$baselinePackageCachePath' value in AppSourceCop.json" -ForegroundColor Yellow
-    $appSourceJson["baselinePackageCachePath "] = $baselinePackageCachePath
+    # $baselinePackageCachePath = "./.appSourceCopPackages" #convention for baseline package cache path, relevant to the app project folder
+    # Write-Host "Setting 'baselinePackageCachePath:$baselinePackageCachePath' value in AppSourceCop.json" -ForegroundColor Yellow
+    # $appSourceJson["baselinePackageCachePath "] = $baselinePackageCachePath
 
     # All major versions greater than current but less or equal to main should be allowed
     $currentBuildVersion = [int] $buildVersion.Split('.')[0]
