@@ -41,21 +41,17 @@ if($appType -eq 'app')
                 # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
                 $tempParameters["preprocessorsymbols"] = @()
 
-                function New-TemporaryDirectory {
-                    $parent = [System.IO.Path]::GetTempPath()
-                    [string] $name = [System.Guid]::NewGuid()
-                    New-Item -ItemType Directory -Path (Join-Path $parent $name)
-                }
-
-                # Place the app in a temporary folder to avoid polluting the source folder
-                $tempParameters["appOutputFolder"] = $(New-TemporaryDirectory).FullName
+                # Place the app directly in the sumbol folder
+                $tempParameters["appOutputFolder"] = $tempParameters["appSymbolsFolder"]
 
                 Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
-
-                # Copy-Item -Path $appFile -Destination $parameters.Value["appSymbolsFolder"] -Force | Out-Null
             }
 
             Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
+
+            # Directly place the app in the symbols folder. Do not copy it from the output folder as it errors out.
+            $parameters.Value["appOutputFolder"] = $parameters.Value["appSymbolsFolder"]
+            $parameters.Value["CopyAppToSymbolsFolder"] = $false
         }
     }
 }
