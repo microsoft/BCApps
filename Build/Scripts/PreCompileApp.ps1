@@ -47,7 +47,7 @@ if($appType -eq 'app')
                     New-Item -ItemType Directory -Path (Join-Path $parent $name)
                 }
 
-                # Place the app directly in the symbols folder
+                # Place the app in a temporary folder to avoid polluting the source folder
                 $tempParameters["appOutputFolder"] = $(New-TemporaryDirectory).FullName
 
                 $appFile = Compile-AppWithBcCompilerFolder @tempParameters
