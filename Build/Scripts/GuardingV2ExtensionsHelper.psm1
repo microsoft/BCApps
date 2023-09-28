@@ -33,7 +33,7 @@ function Enable-BreakingChangesCheck {
 
     switch ($BuildMode) {
         'Clean' {
-            Write-Host "Looking for baseline app to use in the symbols folder: $baselineFolder"
+            Write-Host "Looking for baseline app to use in the baseline folder: $baselineFolder"
 
             $baselineAppFile = Get-ChildItem -Path $baselineFolder -Filter "*_$($applicationName)_*.app" | ForEach-Object { $_.Name }
 
@@ -52,7 +52,7 @@ function Enable-BreakingChangesCheck {
         Update-AppSourceCopVersion -AppProjectFolder $AppProjectFolder -AppName $applicationName -BaselineVersion $baselineVersion
     }
     else {
-        Write-Host "Breaking changes check will not be performed for $applicationName as no baseline was restored"
+        Write-Host "Breaking changes check will not be performed for $applicationName as no baseline was restored or generated"
     }
 }
 
@@ -173,7 +173,7 @@ function Update-AppSourceCopVersion
 
     Write-Host "Setting 'version:$BaselineVersion' in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["version"] = $BaselineVersion
-
+P
     Write-Host "Setting 'name:$AppName' value in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["name"] = $AppName
 
