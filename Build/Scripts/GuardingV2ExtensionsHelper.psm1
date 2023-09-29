@@ -22,45 +22,48 @@ function Enable-BreakingChangesCheck {
         [string] $BuildMode
     )
 
-    # Get name of the app from app.json
-    $appJson = Join-Path $AppProjectFolder "app.json"
-    $applicationName = (Get-Content -Path $appJson | ConvertFrom-Json).Name
+    # Load the app.json
+    $appJsonFilePath = Join-Path $AppProjectFolder "app.json"
+    $appJson = Get-Content -Path $appJsonFilePath -Raw | ConvertFrom-Json
+    $appName = $appJson.name
 
-    Write-Host "Enabling breaking changes check for app: $applicationName, build mode: $BuildMode"
+    Write-Host "Enabling breaking changes check for app: $appName, build mode: $BuildMode"
 
     # Restore the baseline package and place it in the app symbols folder
+    $baselineFolder =  $AppSymbolsFolder
+
     switch ($BuildMode) {
         'Clean' {
-            Write-Host "Looking for baseline app to use in the symbols folder: $AppSymbolsFolder"
+            Write-Host "Looking for baseline app to use in the baseline folder: $baselineFolder"
 
-            $baselineAppFile = Get-ChildItem -Path $AppSymbolsFolder -Filter "*_$($applicationName)_*.app" | ForEach-Object { $_.Name }
+            $baselineAppFile = Get-ChildItem -Path $baselineFolder -Filter "$($appName)_clean.app"
 
-            if(-not ($baselineAppFile -match ".*_(.*).app")) {
-                throw "Unable to find baseline app in $AppSymbolsFolder"
+            if(-not ($baselineAppFile)) {
+                throw "Unable to find baseline app in $baselineFolder"
             }
-            $baselineVersion = $Matches[1]
+            $baselineVersion = $appJson.version # Use the version of the current app as the baseline version
         }
         Default {
-            $baselineVersion = Restore-BaselinesFromArtifacts -AppSymbolsFolder $AppSymbolsFolder -AppName $applicationName
+            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName
         }
     }
 
     if ($baselineVersion) {
         # Generate the app source cop json file
-        Update-AppSourceCopVersion -ExtensionFolder $AppProjectFolder -AppName $applicationName -BaselineVersion $baselineVersion
+        Update-AppSourceCopVersion -AppProjectFolder $AppProjectFolder -AppName $appName -BaselineVersion $baselineVersion
     }
     else {
-        Write-Host "Breaking changes check will not be performed for $applicationName as no baseline was restored"
+        Write-Host "Breaking changes check will not be performed for $appName as no baseline was restored or generated"
     }
 }
 
 <#
 .Synopsis
-    Given an extension and a baseline version, it restores the baseline for an app from bcartifacts
+    Given an app and a baseline version, it restores the baseline for an app from bcartifacts
 .Parameter AppName
-    Name of the extension
-.Parameter AppSymbolsFolder
-    Local AppSymbols folder
+    Name of the app
+.Parameter TargetFolder
+    Folder where to restore the baseline
 .Returns
     The version of the baseline that was restored. If no baseline was restored, returns null
 #>
@@ -69,7 +72,7 @@ function Restore-BaselinesFromArtifacts {
         [Parameter(Mandatory = $true)]
         [string] $AppName,
         [Parameter(Mandatory = $true)]
-        [string] $AppSymbolsFolder
+        [string] $TargetFolder
     )
     Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
@@ -97,28 +100,28 @@ function Restore-BaselinesFromArtifacts {
         Download-Artifacts -artifactUrl $baselineURL -basePath $baselineFolder | Out-Null
     }
 
-    $baselineApp = Get-ChildItem -Path "$baselineFolder/sandbox/$baselineVersion/W1/Extensions" -Filter "*$($AppName)_$($baselineVersion).app" -ErrorAction SilentlyContinue
+    $baselineApp = Get-ChildItem -Path "$baselineFolder/sandbox/$baselineVersion/W1/Extensions" -Filter "*_$($AppName)_$($baselineVersion).app" -ErrorAction SilentlyContinue
 
     if (-not $baselineApp) {
         Write-Host "Unable to find baseline app for $AppName in $baselineFolder"
         return
     }
 
-    Write-Host "Copying $($baselineApp.FullName) to $AppSymbolsFolder"
-
-    if (-not (Test-Path $AppSymbolsFolder)) {
-        Write-Host "Creating folder $AppSymbolsFolder"
-        New-Item -ItemType Directory -Path $AppSymbolsFolder | Out-Null
+    if (-not (Test-Path $TargetFolder)) {
+        Write-Host "Creating target folder for baselines: $TargetFolder"
+        New-Item -ItemType Directory -Path $TargetFolder | Out-Null
     }
 
-    Copy-Item -Path $baselineApp.FullName -Destination $AppSymbolsFolder | Out-Null
+    Write-Host "Copying $($baselineApp.FullName) to $TargetFolder"
+    Copy-Item -Path $baselineApp.FullName -Destination $TargetFolder | Out-Null
+
     return $baselineVersion
 }
 
 <#
 .Synopsis
     Generate an AppSourceCop.json with version and name of the extension
-.Parameter ExtensionFolder
+.Parameter AppProjectFolder
     Path to the folder where AppSourceCop.json should be generated to
 .Parameter Version
     Baseline version of the extension
@@ -130,7 +133,7 @@ function Restore-BaselinesFromArtifacts {
 function Update-AppSourceCopVersion
 (
     [Parameter(Mandatory = $true)]
-    [string] $ExtensionFolder,
+    [string] $AppProjectFolder,
     [Parameter(Mandatory = $true)]
     [string] $AppName,
     [Parameter(Mandatory = $true)]
@@ -149,7 +152,7 @@ function Update-AppSourceCopVersion
         throw "Extension Compatibile Version cannot be null or invalid format. Valid format should be like '1.0.2.0'"
     }
 
-    $appSourceCopJsonPath = Join-Path $ExtensionFolder AppSourceCop.json
+    $appSourceCopJsonPath = Join-Path $AppProjectFolder AppSourceCop.json
 
     if (!(Test-Path $appSourceCopJsonPath)) {
         Write-Host "Creating AppSourceCop.json with version $BaselineVersion in path $appSourceCopJsonPath" -ForegroundColor Yellow
