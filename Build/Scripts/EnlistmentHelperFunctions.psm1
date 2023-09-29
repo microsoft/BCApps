@@ -177,7 +177,7 @@ function Get-LatestBCArtifactVersion
 
     if(-not $artifactUrl) {
         #Fallback to bcinsider
-        $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount bcinsider -sasToken "$env:InsiderSASToken"
+        $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount bcinsider
     }
 
     if ($artifactUrl -and ($artifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
