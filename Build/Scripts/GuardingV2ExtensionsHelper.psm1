@@ -25,7 +25,7 @@ function Enable-BreakingChangesCheck {
     # Load the app.json
     $appJsonFilePath = Join-Path $AppProjectFolder "app.json"
     $appJson = Get-Content -Path $appJsonFilePath -Raw | ConvertFrom-Json
-    $appName = $appJson['Name']
+    $appName = $appJson.name
 
     Write-Host "Enabling breaking changes check for app: $appName, build mode: $BuildMode"
 
@@ -41,7 +41,7 @@ function Enable-BreakingChangesCheck {
             if(-not ($baselineAppFile)) {
                 throw "Unable to find baseline app in $baselineFolder"
             }
-            $baselineVersion = $appJson['Version'] # Use the version of the current app as the baseline version
+            $baselineVersion = $appJson.version # Use the version of the current app as the baseline version
         }
         Default {
             $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName
