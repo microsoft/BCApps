@@ -49,7 +49,12 @@ if($appType -eq 'app')
                 $appName = (Get-Content -Path $appJson | ConvertFrom-Json).Name
                 $tempParameters["appName"] = "$($appName)_clean.app"
 
-                Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
+                if($useCompilerFolder) {
+                    Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
+                }
+                else {
+                    Compile-AppInBcContainer @tempParameters | Out-Null
+                }
             }
 
             Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null

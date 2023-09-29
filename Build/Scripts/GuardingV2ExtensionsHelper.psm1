@@ -204,9 +204,6 @@ function Update-AppSourceCopVersion
         throw "AppSourceCop.json does not exist in path: $appSourceCopJsonPath"
     }
 
-    $appSourceCopJsonContent = Get-Content $appSourceCopJsonPath -Raw
-    Write-Host "AppSourceCop.json content: $appSourceCopJsonContent" -ForegroundColor Yellow
-
     return $appSourceCopJsonPath
 }
 
