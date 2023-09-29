@@ -23,39 +23,36 @@ function Enable-BreakingChangesCheck {
     )
 
     # Get name of the app from app.json
-    $appJson = Join-Path $AppProjectFolder "app.json"
-    $applicationName = (Get-Content -Path $appJson | ConvertFrom-Json).Name
+    $appJson = Join-Path $AppProjectFolder "app.json" | Get-Content -Raw | ConvertFrom-Json
+    $appName = $appJson['Name']
 
-    Write-Host "Enabling breaking changes check for app: $applicationName, build mode: $BuildMode"
+    Write-Host "Enabling breaking changes check for app: $appName, build mode: $BuildMode"
 
     # Restore the baseline package and place it in the app symbols folder
-    $baselineFolder =  Join-Path $AppProjectFolder '.appSourceCopPackages'
+    $baselineFolder =  $AppSymbolsFolder
 
     switch ($BuildMode) {
         'Clean' {
             Write-Host "Looking for baseline app to use in the baseline folder: $baselineFolder"
 
-            $baselineAppFile = Get-ChildItem -Path $baselineFolder -Filter "*_$($applicationName)_*.app"
+            $baselineAppFile = Get-ChildItem -Path $baselineFolder -Filter "$($appName)_clean.app"
 
-            if(-not ($baselineAppFile.Name -match ".*_(.*).app")) {
+            if(-not ($baselineAppFile)) {
                 throw "Unable to find baseline app in $baselineFolder"
             }
-            $baselineVersion = $Matches[1]
-
-            Write-Host "Copying $($baselineAppFile.FullName) to $AppSymbolsFolder"
-            Copy-Item -Path "$($baselineAppFile.FullName)" -Destination $AppSymbolsFolder -PassThru | Rename-Item -NewName "$($applicationName)_clean.app"  |  Out-Null
+            $baselineVersion = $appJson['Version'] # Use the version of the current app as the baseline version
         }
         Default {
-            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $applicationName
+            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName
         }
     }
 
     if ($baselineVersion) {
         # Generate the app source cop json file
-        Update-AppSourceCopVersion -AppProjectFolder $AppProjectFolder -AppName $applicationName -BaselineVersion $baselineVersion
+        Update-AppSourceCopVersion -AppProjectFolder $AppProjectFolder -AppName $appName -BaselineVersion $baselineVersion
     }
     else {
-        Write-Host "Breaking changes check will not be performed for $applicationName as no baseline was restored or generated"
+        Write-Host "Breaking changes check will not be performed for $appName as no baseline was restored or generated"
     }
 }
 
@@ -186,10 +183,6 @@ function Update-AppSourceCopVersion
     $buildVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
     Write-Host "Setting 'obsoleteTagVersion:$buildVersion' value in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["obsoleteTagVersion"] = $buildVersion
-
-    # $baselinePackageCachePath = "./.appSourceCopPackages" #convention for baseline package cache path, relevant to the app project folder
-    # Write-Host "Setting 'baselinePackageCachePath:$baselinePackageCachePath' value in AppSourceCop.json" -ForegroundColor Yellow
-    # $appSourceJson["baselinePackageCachePath "] = $baselinePackageCachePath
 
     # All major versions greater than current but less or equal to main should be allowed
     $currentBuildVersion = [int] $buildVersion.Split('.')[0]

@@ -41,17 +41,13 @@ if($appType -eq 'app')
                 # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
                 $tempParameters["preprocessorsymbols"] = @()
 
-                # Place the app directly in the baseline folder
-                $tempParameters["appOutputFolder"] = Join-Path $tempParameters["appProjectFolder"] '.appSourceCopPackages'
-                if(-not (Test-Path $tempParameters["appOutputFolder"])) {
-                    New-Item -ItemType Directory -Path $tempParameters["appOutputFolder"] | Out-Null
-                }
-                $tempParameters["CopyAppToSymbolsFolder"] = $false
+                # Place the app directly in the symbols folder
+                $tempParameters["appOutputFolder"] = $tempParameters["appSymbolsFolder"]
 
+                # Rename the app to avoid overwriting the app that will be generated with preprocessor symbols
                 $appJson = Join-Path $tempParameters["appProjectFolder"] "app.json"
-                $applicationVersion = (Get-Content -Path $appJson | ConvertFrom-Json).version
-
-                Write-Host "App version in app.json for baseline: $applicationVersion"
+                $appName = (Get-Content -Path $appJson | ConvertFrom-Json).Name
+                $tempParameters["appName"] = "$($appName)_clean.app"
 
                 Compile-AppWithBcCompilerFolder @tempParameters | Out-Null
             }
