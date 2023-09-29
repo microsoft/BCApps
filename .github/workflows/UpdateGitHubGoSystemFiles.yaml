@@ -26,6 +26,7 @@ env:
 jobs:
   UpdateALGoSystemFiles:
     runs-on: [ windows-latest ]
+    environment: Official-Build
     steps:
       - name: Checkout
         uses: actions/checkout@v3
