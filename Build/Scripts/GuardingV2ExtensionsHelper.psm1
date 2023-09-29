@@ -22,8 +22,9 @@ function Enable-BreakingChangesCheck {
         [string] $BuildMode
     )
 
-    # Get name of the app from app.json
-    $appJson = Join-Path $AppProjectFolder "app.json" | Get-Content -Raw | ConvertFrom-Json
+    # Load the app.json
+    $appJsonFilePath = Join-Path $AppProjectFolder "app.json"
+    $appJson = Get-Content -Path $appJsonFilePath -Raw | ConvertFrom-Json
     $appName = $appJson['Name']
 
     Write-Host "Enabling breaking changes check for app: $appName, build mode: $BuildMode"
