@@ -87,7 +87,7 @@ function Restore-BaselinesFromArtifacts {
         # TODO: temporary workaround for baselines not being available in bcartifacts
         if(-not $baselineURL) {
             #Fallback to bcinsider
-            $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $baselineVersion -storageAccount bcinsider
+            $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $baselineVersion -storageAccount bcinsider -accept_insiderEula
         }
 
         if (-not $baselineURL) {
