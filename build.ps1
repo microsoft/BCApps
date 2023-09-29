@@ -5,8 +5,6 @@
         This script will run localDevEnv.ps1 in the specified AL-Go project
     .Parameter ALGoProject
         The name of the AL-Go project
-    .Parameter InsiderSasToken
-        The SAS token to use for downloading insider builds
     .Parameter AutoFill
         If specified, the script will generate a random password and use that for the credential
     .Example
@@ -17,7 +15,6 @@ param
 (
     [Parameter(Mandatory=$true)]
     [string] $ALGoProject,
-    [string] $InsiderSasToken = "",
     [switch] $AutoFill
 )
 
@@ -38,7 +35,7 @@ if ($AutoFill) {
 }
 
 $scriptPath = Join-Path $PSScriptRoot "Projects\$ALGoProject\.AL-Go\localDevEnv.ps1" -Resolve
-& $scriptPath -containerName $containerName -auth $auth -credential $credential -licenseFileUrl $licenseFileUrl -insiderSasToken $InsiderSasToken
+& $scriptPath -containerName $containerName -auth $auth -credential $credential -licenseFileUrl $licenseFileUrl
 
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to build"
