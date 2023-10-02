@@ -17,7 +17,7 @@ Param(
 )
 
 # BC Container Helper is needed to fetch the latest version of one of the packages
-Install-Module -Name BcContainerHelper -Force
+Install-Module -Name BcContainerHelper -AllowPrerelease -Force
 Import-Module BcContainerHelper
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
