@@ -1,0 +1,29 @@
+name: 'Verify AL-Go Version'
+
+on:
+  pull_request:
+    branches: [ 'main', 'release/*']
+
+defaults:
+  run:
+    shell: powershell
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+jobs:
+  VerifyALGoVersion:
+    runs-on: [ windows-latest ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          lfs: true
+          ref: refs/pull/${{ github.event.number }}/merge
+
+      - name: Verify AL-Go version
+        id: verifyALGoVersion
+        run: |
+            Build/Scripts/VerifyALGoVersion.ps1
