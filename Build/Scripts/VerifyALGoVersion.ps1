@@ -12,7 +12,7 @@ $alGoSettingsPath = Join-Path $baseFolder '.github\AL-Go-Settings.json'
 
 $alGoSettings = Get-Content -Path $alGoSettingsPath -Raw | ConvertFrom-Json
 
-if(-not ($settings.PSObject.Properties.Name -contains 'templateUrl')) {
+if(-not ($alGoSettings.PSObject.Properties.Name -contains 'templateUrl')) {
     throw "AL-Go settings file does not contain the 'templateUrl' property"
 }
 
