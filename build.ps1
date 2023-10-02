@@ -22,7 +22,7 @@ $ErrorActionPreference = "Stop"
 
 if (-not (Get-Module -ListAvailable -Name "BCContainerHelper")) {
     Write-Host "BCContainerHelper module not found. Installing..."
-    Install-Module -Name "BCContainerHelper" -Scope CurrentUser -Force
+    Install-Module -Name "BCContainerHelper" -Scope CurrentUser -AllowPrerelease -Force
 }
 
 if ($AutoFill) {
