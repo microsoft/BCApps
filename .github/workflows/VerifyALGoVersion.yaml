@@ -25,5 +25,7 @@ jobs:
 
       - name: Verify AL-Go version
         id: verifyALGoVersion
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
             Build/Scripts/VerifyALGoVersion.ps1
