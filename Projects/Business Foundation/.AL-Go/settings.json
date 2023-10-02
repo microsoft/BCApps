@@ -12,5 +12,6 @@
     ],
     "enableAppSourceCop": true,
     "enablePerTenantExtensionCop": true,
-    "enableUICop": true
+    "enableUICop": true,
+    "installOnlyReferencedApps": false
 }
