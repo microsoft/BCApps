@@ -50,7 +50,7 @@ function Enable-BreakingChangesCheck {
 
     if ($baselineVersion) {
         # Generate the app source cop json file
-        Update-AppSourceCopVersion -AppProjectFolder $AppProjectFolder -AppName $appName -BaselineVersion $baselineVersion
+        Update-AppSourceCopVersion -AppProjectFolder $AppProjectFolder -AppName $appName -BaselineVersion $baselineVersion -BuildMode $BuildMode
     }
     else {
         Write-Host "Breaking changes check will not be performed for $appName as no baseline was restored or generated"
@@ -139,7 +139,9 @@ function Update-AppSourceCopVersion
     [Parameter(Mandatory = $true)]
     [string] $BaselineVersion,
     [Parameter(Mandatory = $false)]
-    [string] $Publisher = "Microsoft"
+    [string] $Publisher = "Microsoft",
+    [Parameter(Mandatory = $false)]
+    [string] $BuildMode
 ) {
     Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
@@ -183,6 +185,15 @@ function Update-AppSourceCopVersion
 
     for ($i = $currentBuildVersion + 1; $i -le $maxAllowedObsoleteVersion; $i++) {
         $obsoleteTagAllowedVersions += "$i.0"
+    }
+
+    # Add 3 versions for tasks built with CLEANpreProcessorSymbols
+    if ($BuildMode -eq "Clean")
+    {
+        for ($i = $maxAllowedObsoleteVersion + 1; $i -le $maxAllowedObsoleteVersion + 3; $i++)
+        {
+            $obsoleteTagAllowedVersions += "$i.0"
+        }
     }
 
     Write-Host "Setting 'obsoleteTagAllowedVersions:$obsoleteTagAllowedVersions' value in AppSourceCop.json" -ForegroundColor Yellow
