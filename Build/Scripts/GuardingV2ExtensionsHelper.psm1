@@ -183,17 +183,13 @@ function Update-AppSourceCopVersion
     $maxAllowedObsoleteVersion = [int] (Get-ConfigValue -ConfigType BuildConfig -Key "MaxAllowedObsoleteVersion")
     $obsoleteTagAllowedVersions = @()
 
-    for ($i = $currentBuildVersion + 1; $i -le $maxAllowedObsoleteVersion; $i++) {
-        $obsoleteTagAllowedVersions += "$i.0"
+    # Add 3 versions for tasks built with CLEANpreProcessorSymbols
+    if ($BuildMode -eq "Clean") {
+        $maxAllowedObsoleteVersion += 3
     }
 
-    # Add 3 versions for tasks built with CLEANpreProcessorSymbols
-    if ($BuildMode -eq "Clean")
-    {
-        for ($i = $maxAllowedObsoleteVersion + 1; $i -le $maxAllowedObsoleteVersion + 3; $i++)
-        {
-            $obsoleteTagAllowedVersions += "$i.0"
-        }
+    for ($i = $currentBuildVersion + 1; $i -le $maxAllowedObsoleteVersion; $i++) {
+        $obsoleteTagAllowedVersions += "$i.0"
     }
 
     Write-Host "Setting 'obsoleteTagAllowedVersions:$obsoleteTagAllowedVersions' value in AppSourceCop.json" -ForegroundColor Yellow
