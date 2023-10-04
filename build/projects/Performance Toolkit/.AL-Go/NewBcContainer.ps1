@@ -2,5 +2,5 @@ Param(
     [Hashtable]$parameters
 )
 
-$script = Join-Path $PSScriptRoot "../../../Build/Scripts/NewBcContainer.ps1" -Resolve
+$script = Join-Path $PSScriptRoot "../../../scripts/NewBcContainer.ps1" -Resolve
 . $script -parameters $parameters

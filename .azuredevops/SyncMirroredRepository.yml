@@ -1,4 +1,4 @@
-name: 1.0.$(Year:yy)$(DayOfYear).$(Rev:r) # This is the build number 
+name: 1.0.$(Year:yy)$(DayOfYear).$(Rev:r) # This is the build number
 
 pr: none
 trigger: none
@@ -26,5 +26,5 @@ jobs:
   - task: powershell@2
     displayName: Sync mirror with upstream
     inputs:
-      filePath: Build\Scripts\SyncMirror.ps1
+      filePath: build\scripts\SyncMirror.ps1
       arguments: '-SourceRepository "https://$(GitHubPAT)@github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch) -ManagedIdentityAuth'
