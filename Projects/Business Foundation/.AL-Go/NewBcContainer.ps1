@@ -3,4 +3,4 @@ Param(
 )
 
 $script = Join-Path $PSScriptRoot "../../../Build/Scripts/NewBcContainer.ps1" -Resolve
-. $script -parameters $parameters -deleteAllData
+. $script -parameters $parameters
