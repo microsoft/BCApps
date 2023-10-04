@@ -24,7 +24,7 @@ Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\GuardingV2ExtensionsHelper.psm1
 Import-Module $PSScriptRoot\AutomatedSubmission.psm1
 
-$packageConfig = Get-Content -Path (Join-Path (Get-BaseFolder) "Build\Packages.json") -Raw | ConvertFrom-Json
+$packageConfig = Get-Content -Path (Join-Path (Get-BaseFolder) "build\Packages.json") -Raw | ConvertFrom-Json
 $packageNames = ($packageConfig | Get-Member -MemberType NoteProperty).Name
 
 $updatesAvailable = $false

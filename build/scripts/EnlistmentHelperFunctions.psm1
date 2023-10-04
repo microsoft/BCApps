@@ -55,13 +55,13 @@ function Get-ConfigValue() {
 
     switch ($ConfigType) {
         "BuildConfig" {
-            $ConfigPath = Join-Path (Get-BaseFolder) "Build/BuildConfig.json" -Resolve
+            $ConfigPath = Join-Path (Get-BaseFolder) "build/BuildConfig.json" -Resolve
         }
         "AL-GO" {
             $ConfigPath = Join-Path (Get-BaseFolder) ".github/AL-Go-Settings.json" -Resolve
         }
         "Packages" {
-            $ConfigPath = Join-Path (Get-BaseFolder) "Build/Packages.json" -Resolve
+            $ConfigPath = Join-Path (Get-BaseFolder) "build/Packages.json" -Resolve
         }
     }
 
@@ -93,13 +93,13 @@ function Set-ConfigValue() {
 
     switch ($ConfigType) {
         "BuildConfig" {
-            $ConfigPath = Join-Path (Get-BaseFolder) "Build/BuildConfig.json" -Resolve
+            $ConfigPath = Join-Path (Get-BaseFolder) "build/BuildConfig.json" -Resolve
         }
         "AL-GO" {
             $ConfigPath = Join-Path (Get-BaseFolder) ".github/AL-Go-Settings.json" -Resolve
         }
         "Packages" {
-            $ConfigPath = Join-Path (Get-BaseFolder) "Build/Packages.json" -Resolve
+            $ConfigPath = Join-Path (Get-BaseFolder) "build/Packages.json" -Resolve
         }
     }
 
