@@ -155,13 +155,12 @@ jobs:
 
         - name: Calculate Artifact names
           id: calculateArtifactsNames
-          uses: microsoft/AL-Go/Actions/CalculateArtifactNames@54737c26ba5d1c8b647c089a372d9cd2cd907365
+          uses: mazhelez/AL-Go/Actions/CalculateArtifactNames@fix-artifacts-names
           if: success() || failure()
           with:
             shell: ${{ inputs.shell }}
             project: ${{ inputs.project }}
             buildMode: ${{ inputs.buildMode }}
-            branchName: ${{ github.ref_name }}
             suffix: ${{ inputs.artifactsNameSuffix }}
 
         - name: Upload thisbuild artifacts - apps
