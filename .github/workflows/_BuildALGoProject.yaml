@@ -119,7 +119,7 @@ jobs:
 
         - name: Download Project Dependencies
           id: DownloadProjectDependencies
-          uses: microsoft/AL-Go/Actions/DownloadProjectDependencies@54737c26ba5d1c8b647c089a372d9cd2cd907365
+          uses: mazhelez/AL-Go/Actions/DownloadProjectDependencies@fix-artifacts-names
           env:
             Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
           with:
