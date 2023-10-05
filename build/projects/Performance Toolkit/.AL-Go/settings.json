@@ -1,10 +1,10 @@
 {
     "projectName": "Performance Toolkit",
     "appFolders":  [
-        "..\\..\\src\\Tools\\Performance Toolkit\\App"
+        "..\\..\\..\\src\\Tools\\Performance Toolkit\\App"
     ],
     "testFolders":  [
-        "..\\..\\src\\Tools\\Performance Toolkit\\Test"
+        "..\\..\\..\\src\\Tools\\Performance Toolkit\\Test"
     ],
     "enableAppSourceCop": true,
     "enablePerTenantExtensionCop": true,

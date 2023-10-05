@@ -1,10 +1,9 @@
 {
-    "projectName": "System Application",
+    "projectName": "Test Stability Tools",
     "appFolders":  [
-        "..\\..\\src\\System Application\\App"
+        "..\\..\\..\\src\\Tools\\Test Framework\\Test Stability Tools\\Prevent Metadata Updates"
     ],
-    "buildModes": [
-        "Translated"
+    "testFolders":  [
     ],
     "doNotRunTests": true,
     "enableAppSourceCop": true,
