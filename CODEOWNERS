@@ -7,7 +7,7 @@
 *.entitlement.al @microsoft/d365-bc-app-permissions
 
 # App Rulesets
-/Build/Rulesets/ @microsoft/d365-bc-app-rulesets
+/src/rulesets/ @microsoft/d365-bc-app-rulesets
 
 # App Security
 dotnet.al @microsoft/d365-bc-app-security
@@ -17,7 +17,7 @@ dotnet.al @microsoft/d365-bc-app-security
 *.ps1 @microsoft/d365-bc-engineering-systems
 /.azuredevops @microsoft/d365-bc-engineering-systems
 /.github @microsoft/d365-bc-engineering-systems
-/Build @microsoft/d365-bc-engineering-systems
+/build @microsoft/d365-bc-engineering-systems
 /CODEOWNERS @microsoft/d365-bc-engineering-systems
 
 

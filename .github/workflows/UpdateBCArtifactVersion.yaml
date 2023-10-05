@@ -49,4 +49,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
         run: |
-          Build/Scripts/UpdateBCArtifactVersion.ps1 -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
+          build/scripts/UpdateBCArtifactVersion.ps1 -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
