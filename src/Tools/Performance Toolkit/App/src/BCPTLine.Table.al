@@ -12,6 +12,7 @@ table 149001 "BCPT Line"
     DataClassification = SystemMetadata;
     Extensible = false;
     Access = Internal;
+    ReplicateData = false;
 
     fields
     {

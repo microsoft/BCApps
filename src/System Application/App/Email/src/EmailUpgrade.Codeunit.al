@@ -41,12 +41,6 @@ codeunit 1597 "Email Upgrade"
         exit('MS-445654-DefaultEmailViewPolicyChanged-20220109');
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Initialization", OnAfterLogin, '', false, false)]
-    local procedure AddDefaultEmailViewPolicyAfterLogin()
-    begin
-        SetDefaultEmailViewPolicy(Enum::"Email View Policy"::AllRelatedRecordsEmails);
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     var

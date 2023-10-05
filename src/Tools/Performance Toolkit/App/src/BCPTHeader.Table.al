@@ -11,6 +11,7 @@ table 149000 "BCPT Header"
 {
     DataClassification = SystemMetadata;
     Extensible = false;
+    ReplicateData = false;
     Access = Internal;
 
     fields
