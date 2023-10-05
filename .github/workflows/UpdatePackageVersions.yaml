@@ -50,4 +50,4 @@ jobs:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
           InsiderSASToken: ${{ secrets.INSIDERSASTOKEN }}
         run: |
-          Build/Scripts/UpdatePackageVersions.ps1 -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
+          build/scripts/UpdatePackageVersions.ps1 -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR

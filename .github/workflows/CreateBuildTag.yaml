@@ -24,7 +24,7 @@ jobs:
         env:
           buildNumber: ${{ github.event.workflow_run.run_number }}
         run: |
-          Import-Module ".\Build\Scripts\EnlistmentHelperFunctions.psm1"
+          Import-Module ".\build\scripts\EnlistmentHelperFunctions.psm1"
           $majorMinor = Get-ConfigValue -ConfigType "AL-GO" -Key RepoVersion
           $buildVersion = "$($majorMinor).$($env:buildNumber)"
           Write-Host "Build Version: $buildVersion"
