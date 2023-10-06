@@ -5,27 +5,27 @@
   "includedRuleSets": [
     {
       "action": "Error",
-      "path": "./Core/Analyzer.ruleset.json"
+      "path": "./Analyzer.ruleset.json"
     },
     {
       "action": "Error",
-      "path": "./Core/AppSourceCop.ruleset.json"
+      "path": "./AppSourceCop.ruleset.json"
     },
     {
       "action": "Error",
-      "path": "./Core/CodeCop.ruleset.json"
+      "path": "./CodeCop.ruleset.json"
     },
     {
       "action": "Error",
-      "path": "./Core/Compiler.ruleset.json"
+      "path": "./Compiler.ruleset.json"
     },
     {
       "action": "Error",
-      "path": "./Core/PTECop.ruleset.json"
+      "path": "./PTECop.ruleset.json"
     },
     {
       "action": "Error",
-      "path": "./Core/UICop.ruleset.json"
+      "path": "./UICop.ruleset.json"
     }
   ],
   "rules": [
