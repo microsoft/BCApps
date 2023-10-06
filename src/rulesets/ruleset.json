@@ -1,6 +1,6 @@
 {
-  "name": "Ruleset for shipped modules",
-  "description": "This ruleset applies to shipped modules/apps.",
+  "name": "Ruleset for shipped apps",
+  "description": "This ruleset applies to shipped apps.",
   "generalAction": "Error",
   "includedRuleSets": [
     {
