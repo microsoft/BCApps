@@ -5,9 +5,19 @@ This repository contains the source code for several _Business Central_ applicat
 
 The source code in this repository is available to everyone under the standard [MIT license](https://github.com/microsoft/vscode/blob/main/LICENSE.txt).
 
+✨ **BCApps run on [AL-Go for GitHub](https://github.com/microsoft/AL-Go)** ✨
+
 ## Contributing
 
 **⚠IMPORTANT⚠:** This is not the right place to report product defects with customer impact to Microsoft! Issues created in this repository might not get picked up by the Microsoft engineering team and issues reported in this repository do not fall under SLAs (Service Level Agreements) and hence have no guaranteed time to mitigation, just as provided fixes won't get backported to all supported versions of the product.
+
+## Repository Structure
+
+- `src` folder stores the source code for Business Central application, such as `System Application` and developer tools like *test libraries*, *test runner* and others.
+- `src\rulesets` is where the rulesets for building the applications are stored.
+- `build` folder contain the *magic* around how the applications are build.
+- `build\projects` is where all AL-Go projects are defined.
+
 
 ## Business Central
 
@@ -17,8 +27,8 @@ The source code in this repository is available to everyone under the standard [
 
 ## Trademarks
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
+trademarks or logos is subject to and must follow
 [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.
