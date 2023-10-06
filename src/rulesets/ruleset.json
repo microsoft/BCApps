@@ -1,31 +1,31 @@
 {
-  "name": "Ruleset for shipped modules",
-  "description": "This ruleset applies to shipped modules/apps.",
+  "name": "Ruleset for for all apps we ship",
+  "description": "Ruleset for for all apps we ship",
   "generalAction": "Error",
   "includedRuleSets": [
     {
       "action": "Error",
-      "path": "./Analyzer.ruleset.json"
+      "path": "./Core/Analyzer.ruleset.json"
     },
     {
       "action": "Error",
-      "path": "./AppSourceCop.ruleset.json"
+      "path": "./Core/AppSourceCop.ruleset.json"
     },
     {
       "action": "Error",
-      "path": "./CodeCop.ruleset.json"
+      "path": "./Core/CodeCop.ruleset.json"
     },
     {
       "action": "Error",
-      "path": "./Compiler.ruleset.json"
+      "path": "./Core/Compiler.ruleset.json"
     },
     {
       "action": "Error",
-      "path": "./PTECop.ruleset.json"
+      "path": "./Core/PTECop.ruleset.json"
     },
     {
       "action": "Error",
-      "path": "./UICop.ruleset.json"
+      "path": "./Core/UICop.ruleset.json"
     }
   ],
   "rules": [
