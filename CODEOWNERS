@@ -15,7 +15,7 @@
 dotnet.al @microsoft/d365-bc-app-security
 
 # Developer Tools
-/src/System Application/App/Extension Management @microsoft/dynamics-smb-developertools
+"/src/System Application/App/Extension Management" @microsoft/dynamics-smb-developertools
 
 # AL-Go files and build scripts are owned by Engineering Systems
 .AL-Go/ @microsoft/d365-bc-engineering-systems
