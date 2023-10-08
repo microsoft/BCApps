@@ -1,0 +1,38 @@
+[
+    {
+        "CodeunitName": "Azure OpenAI Test",
+        "Method": "TestIsEnabledRejectPrivacyNotice"
+    },
+    {
+        "CodeunitName": "Azure OpenAI Test",
+        "Method": "TestIsEnabledPrivacyNoticeAccepted"
+    },
+    {
+        "CodeunitName": "Azure OpenAI Test",
+        "Method": "TestIsEnabledPrivacyNoticeDisagreed"
+    },
+    {
+        "CodeunitName": "Azure OpenAI Test",
+        "Method": "GenerateTextCompletionsAuthorizationNotSet"
+    },
+    {
+        "CodeunitName": "Azure OpenAI Test",
+        "Method": "GenerateTextCompletionsFails"
+    },
+    {
+        "CodeunitName": "Azure OpenAI Test",
+        "Method": "GenerateEmbeddingsAuthorizationNotSet"
+    },
+    {
+        "CodeunitName": "Azure OpenAI Test",
+        "Method": "GenerateEmbeddingsFails"
+    },
+    {
+        "CodeunitName": "Azure OpenAI Test",
+        "Method": "GenerateChatCompletionAuthorizationNotSet"
+    },
+    {
+        "CodeunitName": "Azure OpenAI Test",
+        "Method": "GenerateChatCompletionFails"
+    }
+]
