@@ -40,11 +40,6 @@
       "justification": "Using a Blob with subtype Bitmap on a page field is deprecated. Instead use the Media/MediaSet data types."
     },
     {
-      "id": "AA0072",
-      "action": "None",
-	    "justification": "The name of variables and parameters must be suffixed with the type or object name"
-    },
-    {
       "id": "AS0053",
       "action": "None",
       "justification": "The compilation target of an application must be a value that is allowed in a multi-tenant SaaS environment"
