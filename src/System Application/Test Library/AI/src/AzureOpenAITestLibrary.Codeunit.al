@@ -2,20 +2,17 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
+namespace System.TestLibraries.AI;
 
-namespace System.Text;
+using System.AI;
 
-permissionset 2012 "Entity Text - Edit"
+codeunit 132933 "Azure OpenAI Test Library"
 {
-    Access = Internal;
-    Assignable = false;
-    IncludedPermissionSets = "Entity Text - View";
 
-    Permissions =
-#if not CLEAN24
-#pragma warning disable AL0432
-                  tabledata "Azure OpenAi Settings" = IMD,
-#pragma warning restore AL0432
-#endif
-tabledata "Entity Text" = IMD;
+    procedure GetAOAIHistory(HistoryLength: Integer; var AOAIChatMessages: Codeunit "AOAI Chat Messages"): JsonArray
+    begin
+        AOAIChatMessages.SetHistoryLength(HistoryLength);
+        exit(AOAIChatMessages.AssembleHistory());
+    end;
+
 }
