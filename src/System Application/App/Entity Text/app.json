@@ -64,6 +64,12 @@
                              "name":  "OAuth2",
                              "publisher":  "Microsoft",
                              "version":  "24.0.0.0"
+                         },
+                         {
+                            "id":  "d3433b68-4901-445f-9547-fdfeca57575a",
+                            "name":  "AI SDK",
+                            "publisher":  "Microsoft",
+                            "version":  "24.0.0.0"
                          }
                      ],
     "internalsVisibleTo":  [
@@ -77,7 +83,7 @@
     "idRanges":  [
                      {
                          "from":  2010,
-                         "to":  2014
+                         "to":  2015
                      }
                  ],
     "contextSensitiveHelpUrl":  "https://learn.microsoft.com/dynamics365/business-central/"
