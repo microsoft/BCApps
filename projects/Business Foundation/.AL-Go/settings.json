@@ -4,8 +4,8 @@
         "..\\..\\src\\Business Foundation\\App"
     ],
     "testFolders":  [
-        "..\\..\\src\\Business Foundation\\Tests",
-        "..\\..\\src\\Business Foundation\\Test Libraries"
+        "..\\..\\src\\Business Foundation\\Test",
+        "..\\..\\src\\Business Foundation\\Test Library"
     ],
     "buildModes": [
         "Translated"

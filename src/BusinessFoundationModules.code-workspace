@@ -6,11 +6,11 @@
 		},
 		{
 			"name": "No. Series Test Library",
-			"path": "Business Foundation/Test Libraries/No Series"
+			"path": "Business Foundation/Test Library/No Series"
 		},
 		{
 			"name": "No. Series Tests",
-			"path": "Business Foundation/Tests/No Series"
+			"path": "Business Foundation/Test/No Series"
 		}
 	]
 }
