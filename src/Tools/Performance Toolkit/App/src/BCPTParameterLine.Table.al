@@ -10,6 +10,7 @@ table 149003 "BCPT Parameter Line"
     DataClassification = SystemMetadata;
     Extensible = false;
     Access = Internal;
+    ReplicateData = false;
 
     fields
     {

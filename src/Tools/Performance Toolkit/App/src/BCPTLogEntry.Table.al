@@ -13,6 +13,7 @@ table 149002 "BCPT Log Entry"
     DrillDownPageId = "BCPT Log Entries";
     Extensible = false;
     Access = Internal;
+    ReplicateData = false;
 
     fields
     {

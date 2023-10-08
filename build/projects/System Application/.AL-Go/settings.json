@@ -1,0 +1,15 @@
+{
+    "projectName": "System Application",
+    "appFolders":  [
+        "..\\..\\..\\src\\System Application\\App"
+    ],
+    "buildModes": [
+        "Translated"
+    ],
+    "doNotRunTests": true,
+    "enableAppSourceCop": true,
+    "enablePerTenantExtensionCop": true,
+    "enableUICop": true,
+    "useCompilerFolder": true,
+    "doNotPublishApps": true
+}
