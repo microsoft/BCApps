@@ -17,9 +17,9 @@ codeunit 308 "No. Series - Batch"
         exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesCode))
     end;
 
-    procedure PeekNextNo(NoSeriesCode: Code[20]; SeriesDate: Date): Code[20]
+    procedure PeekNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesCode, SeriesDate))
+        exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesCode, UsageDate))
     end;
 
     procedure PeekNextNo(NoSeries: Record "No. Series"): Code[20]
@@ -27,14 +27,14 @@ codeunit 308 "No. Series - Batch"
         exit(NoSeriesBatchImpl.PeekNextNo(NoSeries))
     end;
 
-    procedure PeekNextNo(NoSeries: Record "No. Series"; SeriesDate: Date): Code[20]
+    procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.PeekNextNo(NoSeries, SeriesDate))
+        exit(NoSeriesBatchImpl.PeekNextNo(NoSeries, UsageDate))
     end;
 
-    procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"): Code[20]
+    procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesLine))
+        exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesLine, UsageDate))
     end;
 
     procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]
@@ -42,9 +42,9 @@ codeunit 308 "No. Series - Batch"
         exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode))
     end;
 
-    procedure GetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date): Code[20]
+    procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode, SeriesDate))
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode, UsageDate))
     end;
 
     procedure GetNextNo(NoSeries: Record "No. Series"): Code[20]
@@ -52,13 +52,13 @@ codeunit 308 "No. Series - Batch"
         exit(NoSeriesBatchImpl.GetNextNo(NoSeries))
     end;
 
-    procedure GetNextNo(NoSeries: Record "No. Series"; SeriesDate: Date): Code[20]
+    procedure GetNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeries, SeriesDate))
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeries, UsageDate))
     end;
 
-    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"): Code[20]
+    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine))
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, UsageDate))
     end;
 }

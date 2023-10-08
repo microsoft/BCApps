@@ -9,9 +9,9 @@ interface "No. Series - Batch"
 {
     procedure SetInitialState(TempNoSeriesLine: Record "No. Series Line" temporary);
 
-    procedure PeekNextNo(TempNoSeriesLine: Record "No. Series Line" temporary): Code[20];
+    procedure PeekNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date): Code[20];
 
-    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary): Code[20];
+    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date): Code[20];
 
     procedure SaveState(TempNoSeriesLine: Record "No. Series Line" temporary);
 

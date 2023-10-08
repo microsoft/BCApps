@@ -77,6 +77,7 @@ codeunit 396 NoSeriesManagement
 
     procedure InitSeries(DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20])
     var
+        NoSeriesCodeunit: Codeunit "No. Series";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -97,7 +98,7 @@ codeunit 396 NoSeriesManagement
                 if not GlobalNoSeries.Find() then
                     GlobalNoSeries.Get(DefaultNoSeriesCode);
             end;
-            NewNo := GetNextNo(GlobalNoSeries.Code, NewDate, true);
+            NewNo := NoSeriesCodeunit.GetNextNo(GlobalNoSeries.Code, NewDate, true); // TODO: Revert
             NewNoSeriesCode := GlobalNoSeries.Code;
         end else
             TestManual(DefaultNoSeriesCode);
@@ -277,9 +278,9 @@ codeunit 396 NoSeriesManagement
         if NoSeriesLine."Allow Gaps in Nos." and (LastNoSeriesLine."Series Code" = '') then begin
             NoSeriesInterface := Enum::"No. Series Implementation"::Sequence;
             if ModifySeries then
-                NoSeriesLine."Last No. Used" := NoSeriesInterface.GetNextNo(NoSeriesLine, SeriesDate)
+                NoSeriesLine."Last No. Used" := NoSeriesInterface.GetNextNo(NoSeriesLine, SeriesDate, NoErrorsOrWarnings)
             else
-                NoSeriesLine."Last No. Used" := NoSeriesInterface.PeekNextNo(NoSeriesLine);
+                NoSeriesLine."Last No. Used" := NoSeriesInterface.PeekNextNo(NoSeriesLine, WorkDate());
             // exit(NoSeriesLine."Last No. Used");
         end else
             if NoSeriesLine."Last No. Used" = '' then begin
@@ -396,7 +397,7 @@ codeunit 396 NoSeriesManagement
 
     procedure SaveNoSeries()
     var
-        SequenceNoSeriesManagement: Codeunit SequenceNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -404,12 +405,12 @@ codeunit 396 NoSeriesManagement
         if not IsHandled then
             if LastNoSeriesLine."Series Code" <> '' then begin
                 if LastNoSeriesLine."Allow Gaps in Nos." then
-                    if (LastNoSeriesLine."Last No. Used" <> '') and (LastNoSeriesLine."Last No. Used" > SequenceNoSeriesManagement.GetLastNoUsed(LastNoSeriesLine)) then begin
+                    if (LastNoSeriesLine."Last No. Used" <> '') and (LastNoSeriesLine."Last No. Used" > NoSeriesMgt.GetLastNoUsed(LastNoSeriesLine)) then begin
                         LastNoSeriesLine.TestField("Sequence Name");
                         if NumberSequence.Exists(LastNoSeriesLine."Sequence Name") then
                             NumberSequence.Delete(LastNoSeriesLine."Sequence Name");
-                        LastNoSeriesLine."Starting Sequence No." := SequenceNoSeriesManagement.ExtractNoFromCode(LastNoSeriesLine."Last No. Used");
-                        SequenceNoSeriesManagement.CreateNewSequence(LastNoSeriesLine);
+                        LastNoSeriesLine."Starting Sequence No." := NoSeriesMgt.ExtractNoFromCode(LastNoSeriesLine."Last No. Used");
+                        NoSeriesMgt.CreateNewSequence(LastNoSeriesLine);
                     end;
                 if not LastNoSeriesLine."Allow Gaps in Nos." or UpdateLastUsedDate then
                     ModifyNoSeriesLine(LastNoSeriesLine);
@@ -578,18 +579,18 @@ codeunit 396 NoSeriesManagement
     [Scope('OnPrem')]
     procedure SetNoSeriesLineSalesFilter(var NoSeriesLineSales: Record "No. Series Line Sales"; NoSeriesCode: Code[20]; StartDate: Date)
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        StatelessNoSeriesManagement.SetNoSeriesLineSalesFilter(NoSeriesLineSales, NoSeriesCode, StartDate);
+        NoSeriesMgt.SetNoSeriesLineSalesFilter(NoSeriesLineSales, NoSeriesCode, StartDate);
     end;
 
     [Obsolete('The No. Series module cannot have a dependency on Purchases. Please use XXX instead', '24.0')]
     [Scope('OnPrem')]
     procedure SetNoSeriesLinePurchaseFilter(var NoSeriesLinePurchase: Record "No. Series Line Purchase"; NoSeriesCode: Code[20]; StartDate: Date)
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        StatelessNoSeriesManagement.SetNoSeriesLinePurchaseFilter(NoSeriesLinePurchase, NoSeriesCode, StartDate);
+        NoSeriesMgt.SetNoSeriesLinePurchaseFilter(NoSeriesLinePurchase, NoSeriesCode, StartDate);
     end;
 
     [Obsolete('The No. Series module cannot have a dependency on Sales. Please use XXX instead', '24.0')]

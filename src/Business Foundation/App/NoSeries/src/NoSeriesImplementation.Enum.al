@@ -13,12 +13,12 @@ enum 397 "No. Series Implementation" implements "No. Series - Single"
     value(0; Normal)
     {
         Caption = 'Normal';
-        Implementation = "No. Series - Single" = StatefulNoSeriesManagement;
+        Implementation = "No. Series - Single" = "No. Series - Stateless Impl.";
     }
     value(1; Sequence)
     {
         Caption = 'Sequence';
-        Implementation = "No. Series - Single" = SequenceNoSeriesManagement;
+        Implementation = "No. Series - Single" = "No. Series - Sequence Impl.";
     }
 
 }

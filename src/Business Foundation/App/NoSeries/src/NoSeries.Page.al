@@ -47,9 +47,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -63,9 +63,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -79,9 +79,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -94,9 +94,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -110,9 +110,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -126,9 +126,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -142,9 +142,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -171,10 +171,10 @@ page 456 "No. Series"
 
                     trigger OnValidate()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
                         Rec.TestField(Code);
-                        StatelessNoSeriesManagement.SetAllowGaps(Rec, AllowGaps);
+                        NoSeriesMgt.SetAllowGaps(Rec, AllowGaps);
                     end;
                 }
             }
@@ -212,9 +212,9 @@ page 456 "No. Series"
 
                     trigger OnAction()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.ShowNoSeriesLines(Rec);
+                        NoSeriesMgt.ShowNoSeriesLines(Rec);
                     end;
                 }
                 action(Relationships)
@@ -267,16 +267,16 @@ page 456 "No. Series"
 
     trigger OnAfterGetRecord()
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        StatelessNoSeriesManagement.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
+        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        StatelessNoSeriesManagement.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
+        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
     end;
 
     var
@@ -293,9 +293,9 @@ page 456 "No. Series"
     [Obsolete('Use UpdateLine on codeunit NoSeriesManagement instead.', '24.0')]
     protected procedure UpdateLineActionOnPage()
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        StatelessNoSeriesManagement.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
+        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
     end;
 #endif
 }

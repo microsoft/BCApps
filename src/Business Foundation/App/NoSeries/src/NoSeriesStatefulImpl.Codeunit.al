@@ -20,24 +20,24 @@ codeunit 310 "No. Series - Stateful Impl." implements "No. Series - Batch"
         if TempGlobalNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.") then
             exit;
 
-        TempGlobalNoSeriesLine := TempNoSeriesLine;
+        TempGlobalNoSeriesLine := TempNoSeriesLine; // TODO: Handle series date?
         TempglobalNoSeriesLine.Insert();
     end;
 
-    procedure PeekNextNo(TempNoSeriesLine: Record "No. Series Line" temporary): Code[20];
+    procedure PeekNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date): Code[20];
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         SetInitialState(TempNoSeriesLine);
-        exit(NoSeriesImpl.PeekNextNo(TempGlobalNoSeriesLine));
+        exit(NoSeriesImpl.PeekNextNo(TempGlobalNoSeriesLine, UsageDate));
     end;
 
-    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary): Code[20];
+    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date): Code[20];
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         SetInitialState(TempNoSeriesLine);
-        exit(NoSeriesImpl.GetNextNo(TempGlobalNoSeriesLine));
+        exit(NoSeriesImpl.GetNextNo(TempGlobalNoSeriesLine."Series Code", UsageDate, true));
     end;
 
     procedure SaveState(TempNoSeriesLine: Record "No. Series Line" temporary);

@@ -35,21 +35,21 @@ codeunit 309 "No. Series - Batch Impl."
         exit(PeekNextNo(NoSeries, WorkDate()))
     end;
 
-    procedure PeekNextNo(NoSeries: Record "No. Series"; SeriesDate: Date): Code[20]
+    procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
     var
         NoSeriesLine: Record "No. Series Line";
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
-        NoSeriesImpl.GetNoSeriesLine(NoSeriesLine, NoSeries, SeriesDate);
-        exit(PeekNextNo(NoSeriesLine))
+        NoSeriesImpl.GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate);
+        exit(PeekNextNo(NoSeriesLine, UsageDate))
     end;
 
-    procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"): Code[20]
+    procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     var
         TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
         TempNoSeriesLine := NoSeriesLine;
-        exit(NoSeriesBatch.PeekNextNo(TempNoSeriesLine));
+        exit(NoSeriesBatch.PeekNextNo(TempNoSeriesLine, UsageDate));
     end;
 
     procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]
@@ -76,15 +76,15 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         NoSeriesImpl.GetNoSeriesLine(NoSeriesLine, NoSeries, SeriesDate);
-        exit(GetNextNo(NoSeriesLine))
+        exit(GetNextNo(NoSeriesLine, SeriesDate))
     end;
 
-    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"): Code[20]
+    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     var
         TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
         TempNoSeriesLine := NoSeriesLine;
-        exit(NoSeriesBatch.GetNextNo(TempNoSeriesLine));
+        exit(NoSeriesBatch.GetNextNo(TempNoSeriesLine, UsageDate));
     end;
 
 }

@@ -111,18 +111,18 @@ page 457 "No. Series Lines"
 
     trigger OnAfterGetCurrRecord()
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
         if Rec."Allow Gaps in Nos." then
-            Rec."Last No. Used" := StatelessNoSeriesManagement.GetLastNoUsed(Rec);
+            Rec."Last No. Used" := NoSeriesMgt.GetLastNoUsed(Rec);
     end;
 
     trigger OnAfterGetRecord()
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
         if Rec."Allow Gaps in Nos." then
-            Rec."Last No. Used" := StatelessNoSeriesManagement.GetLastNoUsed(Rec);
+            Rec."Last No. Used" := NoSeriesMgt.GetLastNoUsed(Rec);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)

@@ -45,9 +45,9 @@ page 571 "No. Series List"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -61,9 +61,9 @@ page 571 "No. Series List"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -77,9 +77,9 @@ page 571 "No. Series List"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -92,9 +92,9 @@ page 571 "No. Series List"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -108,9 +108,9 @@ page 571 "No. Series List"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -124,9 +124,9 @@ page 571 "No. Series List"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -140,9 +140,9 @@ page 571 "No. Series List"
 
                     trigger OnDrillDown()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
-                        StatelessNoSeriesManagement.DrillDown(Rec);
+                        NoSeriesMgt.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -169,10 +169,10 @@ page 571 "No. Series List"
 
                     trigger OnValidate()
                     var
-                        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
                     begin
                         Rec.TestField(Code);
-                        StatelessNoSeriesManagement.SetAllowGaps(Rec, AllowGaps);
+                        NoSeriesMgt.SetAllowGaps(Rec, AllowGaps);
                     end;
                 }
             }
@@ -243,16 +243,16 @@ page 571 "No. Series List"
 #pragma warning restore AA0219
     trigger OnAfterGetRecord()
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        StatelessNoSeriesManagement.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
+        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        StatelessNoSeriesManagement.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
+        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
     end;
 
     var

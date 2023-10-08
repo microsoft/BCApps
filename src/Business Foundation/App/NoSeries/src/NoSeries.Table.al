@@ -34,9 +34,9 @@ table 308 "No. Series"
 
             trigger OnValidate()
             var
-                StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
-                StatelessNoSeriesManagement.ValidateDefaultNos(Rec, xRec);
+                NoSeriesMgt.ValidateDefaultNos(Rec, xRec);
             end;
         }
         field(4; "Manual Nos."; Boolean)
@@ -45,9 +45,9 @@ table 308 "No. Series"
 
             trigger OnValidate()
             var
-                StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
-                StatelessNoSeriesManagement.ValidateManualNos(Rec, xRec);
+                NoSeriesMgt.ValidateManualNos(Rec, xRec);
             end;
         }
         field(5; "Date Order"; Boolean)
@@ -60,9 +60,9 @@ table 308 "No. Series"
 
             trigger OnValidate()
             var
-                StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
-                StatelessNoSeriesManagement.ValidateNoSeriesType(Rec, xRec);
+                NoSeriesMgt.ValidateNoSeriesType(Rec, xRec);
             end;
         }
         field(12101; "VAT Register"; Code[10])
@@ -127,9 +127,9 @@ table 308 "No. Series"
 
     trigger OnDelete()
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        StatelessNoSeriesManagement.DeleteNoSeries(Rec);
+        NoSeriesMgt.DeleteNoSeries(Rec);
     end;
 
 #if not CLEAN24
@@ -137,9 +137,9 @@ table 308 "No. Series"
     [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
     procedure DrillDown()
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        StatelessNoSeriesManagement.DrillDown(Rec);
+        NoSeriesMgt.DrillDown(Rec);
     end;
 
     [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
@@ -153,17 +153,17 @@ table 308 "No. Series"
     [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
     procedure UpdateLine(var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var AllowGaps: Boolean)
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        StatelessNoSeriesManagement.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
+        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
     end;
 
     [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
     procedure FindNoSeriesLineToShow(var NoSeriesLine: Record "No. Series Line")
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        StatelessNoSeriesManagement.FindNoSeriesLineToShow(Rec, NoSeriesLine)
+        NoSeriesMgt.FindNoSeriesLineToShow(Rec, NoSeriesLine)
     end;
 
     [Obsolete('The event has been moved to codeunit NoSeriesManagement', '24.0')]

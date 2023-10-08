@@ -10,4 +10,6 @@ interface "No. Series Administration"
     procedure ResetNoSeries(var NoSeries: Record "No. Series Line")
 
     procedure SetStartingNo(var NoSeries: Record "No. Series Line"; StartingNo: Code[20])
+
+    // TODO: Make sure admin part of InitSeries is handled
 }

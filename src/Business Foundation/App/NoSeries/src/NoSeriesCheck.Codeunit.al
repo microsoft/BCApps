@@ -11,8 +11,8 @@ codeunit 4143 "No. Series Check"
 
     trigger OnRun()
     var
-        StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+        NoSeriesManagement: Codeunit NoSeriesManagement;
     begin
-        StatelessNoSeriesManagement.DoGetNextNo(Rec.Code, WorkDate(), false, false);
+        NoSeriesManagement.DoGetNextNo(Rec.Code, WorkDate(), false, false);
     end;
 }

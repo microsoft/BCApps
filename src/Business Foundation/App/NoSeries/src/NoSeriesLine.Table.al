@@ -35,11 +35,10 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
-                SequenceNoSeriesManagement: Codeunit SequenceNoSeriesManagement;
+                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
-                StatelessNoSeriesManagement.UpdateNoSeriesLine(Rec, "Starting No.", CopyStr(FieldCaption("Starting No."), 1, 100));
-                SequenceNoSeriesManagement.UpdateStartingSequenceNo(Rec);
+                NoSeriesMgt.UpdateNoSeriesLine(Rec, "Starting No.", CopyStr(FieldCaption("Starting No."), 1, 100));
+                NoSeriesMgt.UpdateStartingSequenceNo(Rec);
             end;
         }
         field(5; "Ending No."; Code[20])
@@ -48,11 +47,11 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
                 if "Ending No." = '' then
                     "Warning No." := '';
-                StatelessNoSeriesManagement.UpdateNoSeriesLine(Rec, "Ending No.", CopyStr(FieldCaption("Ending No."), 1, 100));
+                NoSeriesMgt.UpdateNoSeriesLine(Rec, "Ending No.", CopyStr(FieldCaption("Ending No."), 1, 100));
                 Validate(Open);
             end;
         }
@@ -62,10 +61,10 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
+                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
                 TestField("Ending No.");
-                StatelessNoSeriesManagement.UpdateNoSeriesLine(Rec, "Warning No.", CopyStr(FieldCaption("Warning No."), 1, 100));
+                NoSeriesMgt.UpdateNoSeriesLine(Rec, "Warning No.", CopyStr(FieldCaption("Warning No."), 1, 100));
             end;
         }
         field(7; "Increment-by No."; Integer)
@@ -76,11 +75,11 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                SequenceNoSeriesManagement: Codeunit SequenceNoSeriesManagement;
+                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
                 Validate(Open);
                 if "Allow Gaps in Nos." then begin
-                    SequenceNoSeriesManagement.RecreateSequence(Rec);
+                    NoSeriesMgt.RecreateSequence(Rec);
                     if "Line No." <> 0 then
                         if Modify() then;
                 end;
@@ -92,13 +91,12 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                StatelessNoSeriesManagement: Codeunit StatelessNoSeriesManagement;
-                SequenceNoSeriesManagement: Codeunit SequenceNoSeriesManagement;
+                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
-                StatelessNoSeriesManagement.UpdateNoSeriesLine(Rec, "Last No. Used", CopyStr(FieldCaption("Last No. Used"), 1, 100));
+                NoSeriesMgt.UpdateNoSeriesLine(Rec, "Last No. Used", CopyStr(FieldCaption("Last No. Used"), 1, 100));
                 Validate(Open);
                 if "Allow Gaps in Nos." then begin
-                    SequenceNoSeriesManagement.RecreateSequence(Rec);
+                    NoSeriesMgt.RecreateSequence(Rec);
                     if "Line No." <> 0 then
                         if Modify() then;
                 end;
@@ -126,16 +124,16 @@ table 309 "No. Series Line"
             trigger OnValidate()
             var
                 NoSeries: Record "No. Series";
-                SequenceNoSeriesManagement: Codeunit SequenceNoSeriesManagement;
+                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
                 NoSeries.Get("Series Code");
                 if "Allow Gaps in Nos." = xRec."Allow Gaps in Nos." then
                     exit;
                 if "Allow Gaps in Nos." then
-                    SequenceNoSeriesManagement.RecreateSequence(Rec)
+                    NoSeriesMgt.RecreateSequence(Rec)
                 else begin
-                    "Last No. Used" := SequenceNoSeriesManagement.GetLastNoUsed(xRec);
-                    SequenceNoSeriesManagement.DeleteSequence(Rec);
+                    "Last No. Used" := NoSeriesMgt.GetLastNoUsed(xRec);
+                    NoSeriesMgt.DeleteSequence(Rec);
                     "Starting Sequence No." := 0;
                     "Sequence Name" := '';
                 end;
@@ -246,9 +244,9 @@ table 309 "No. Series Line"
     [Obsolete('Moved to SequenceNoSeriesManagement.', '24.0')]
     procedure GetLastNoUsed(): Code[20]
     var
-        SequenceNoSeriesManagement: Codeunit SequenceNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        exit(SequenceNoSeriesManagement.GetLastNoUsed(Rec));
+        exit(NoSeriesMgt.GetLastNoUsed(Rec));
     end;
 
     [Obsolete('Moved to SequenceNoSeriesManagement.', '24.0')]
@@ -258,24 +256,24 @@ table 309 "No. Series Line"
     begin
         NoSeries := Enum::"No. Series Implementation"::Sequence;
         if ModifySeries then
-            exit(NoSeries.GetNextNo(Rec, WorkDate()));
-        exit(NoSeries.PeekNextNo(Rec));
+            exit(NoSeries.GetNextNo(Rec, WorkDate(), false));
+        exit(NoSeries.PeekNextNo(Rec, WorkDate()));
     end;
 
     [Obsolete('Moved to SequenceNoSeriesManagement.', '24.0')]
     procedure ExtractNoFromCode(NumberCode: Code[20]): BigInteger
     var
-        SequenceNoSeriesManagement: Codeunit SequenceNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        exit(SequenceNoSeriesManagement.ExtractNoFromCode(NumberCode));
+        exit(NoSeriesMgt.ExtractNoFromCode(NumberCode));
     end;
 
     [Obsolete('Moved to SequenceNoSeriesManagement.', '24.0')]
     procedure GetFormattedNo(Number: BigInteger): Code[20]
     var
-        SequenceNoSeriesManagement: Codeunit SequenceNoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        exit(SequenceNoSeriesManagement.GetFormattedNo(Rec, Number));
+        exit(NoSeriesMgt.GetFormattedNo(Rec, Number));
     end;
 #endif
 }
