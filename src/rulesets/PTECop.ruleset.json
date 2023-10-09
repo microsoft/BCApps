@@ -83,7 +83,8 @@
                   },
                   {
                       "id":  "PTE0021",
-                      "action":  "None"
+                      "action":  "None",
+                      "justification": "Defining reserved Microsoft and System namespaces is not allowed"
                   },
                   {
                       "id":  "PTE0022",
