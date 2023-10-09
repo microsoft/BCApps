@@ -71,6 +71,7 @@ codeunit 304 "No. Series - Impl."
         NoSeries: Record "No. Series";
         NoSeriesLine: Record "No. Series Line";
     begin
+        NoSeries.Get(NoSeriesCode);
         GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate, HideErrorsAndWarnings);
         GetNextNo(NoSeriesLine);
     end;
