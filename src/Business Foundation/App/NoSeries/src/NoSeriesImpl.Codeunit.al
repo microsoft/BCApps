@@ -49,14 +49,14 @@ codeunit 304 "No. Series - Impl."
 
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm', InherentPermissionsScope::Both)]
-    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"): Code[20]
+    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; LastDateUsed: Date): Code[20]
     begin
         // init interface
         // call impl. 
 
         // impl.temp fix
         NoSeriesLine."Last No. Used" := PeekNextNo(NoSeriesLine);
-        NoSeriesLine."Last Date Used" := WorkDate(); // UsageDate;
+        NoSeriesLine."Last Date Used" := LastDateUsed;
         NoSeriesLine.Modify(true);
         exit(NoSeriesLine."Last No. Used");
     end;
@@ -72,8 +72,8 @@ codeunit 304 "No. Series - Impl."
         NoSeriesLine: Record "No. Series Line";
     begin
         NoSeries.Get(NoSeriesCode);
-        GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate, HideErrorsAndWarnings);
-        exit(GetNextNo(NoSeriesLine));
+        if GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate, HideErrorsAndWarnings) then
+            exit(GetNextNo(NoSeriesLine, UsageDate));
     end;
 
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"): Boolean

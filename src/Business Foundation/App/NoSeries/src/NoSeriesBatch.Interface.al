@@ -13,7 +13,7 @@ interface "No. Series - Batch"
 
     procedure PeekNextNo(TempNoSeriesLine: Record "No. Series Line" temporary): Code[20];
 
-    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary): Code[20];
+    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; LastDateUsed: Date): Code[20];
 
     procedure SaveState(TempNoSeriesLine: Record "No. Series Line" temporary);
 

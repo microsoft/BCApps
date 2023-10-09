@@ -37,12 +37,12 @@ codeunit 309 "No. Series - Batch Impl."
         exit(PeekNextNo(NoSeriesCode, WorkDate()))
     end;
 
-    procedure PeekNextNo(NoSeriesCode: Code[20]; SeriesDate: Date): Code[20]
+    procedure PeekNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
     var
         NoSeries: Record "No. Series";
     begin
         NoSeries.Get(NoSeriesCode);
-        exit(PeekNextNo(NoSeries, SeriesDate))
+        exit(PeekNextNo(NoSeries, UsageDate))
     end;
 
     procedure PeekNextNo(NoSeries: Record "No. Series"): Code[20]
@@ -72,12 +72,12 @@ codeunit 309 "No. Series - Batch Impl."
         exit(GetNextNo(NoSeriesCode, WorkDate()))
     end;
 
-    procedure GetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date): Code[20]
+    procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
     var
         NoSeries: Record "No. Series";
     begin
         NoSeries.Get(NoSeriesCode);
-        exit(GetNextNo(NoSeries, SeriesDate))
+        exit(GetNextNo(NoSeries, UsageDate))
     end;
 
     procedure GetNextNo(NoSeries: Record "No. Series"): Code[20]
@@ -85,21 +85,21 @@ codeunit 309 "No. Series - Batch Impl."
         exit(GetNextNo(NoSeries, WorkDate()))
     end;
 
-    procedure GetNextNo(NoSeries: Record "No. Series"; SeriesDate: Date): Code[20]
+    procedure GetNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
     var
         NoSeriesLine: Record "No. Series Line";
     begin
-        GetNoSeriesLine(NoSeriesLine, NoSeries, SeriesDate);
-        exit(GetNextNo(NoSeriesLine))
+        GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate);
+        exit(GetNextNo(NoSeriesLine, UsageDate))
     end;
 
-    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"): Code[20]
+    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; LastDateUsed: Date): Code[20]
     var
         TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
         TempNoSeriesLine := NoSeriesLine;
         SetDefaultImplementation();
-        exit(NoSeriesBatch.GetNextNo(TempNoSeriesLine));
+        exit(NoSeriesBatch.GetNextNo(TempNoSeriesLine, LastDateUsed));
     end;
 
     procedure SetSimulationMode()
@@ -123,9 +123,9 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeriesBatch.SaveState();
     end;
 
-    local procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; SeriesDate: Date)
+    local procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; UsageDate: Date)
     begin
         SetDefaultImplementation();
-        NoSeriesBatch.GetNoSeriesLine(NoSeriesLine, NoSeries, SeriesDate);
+        NoSeriesBatch.GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate);
     end;
 }

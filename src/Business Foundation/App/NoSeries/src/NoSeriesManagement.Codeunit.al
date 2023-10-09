@@ -98,7 +98,7 @@ codeunit 396 NoSeriesManagement
                 if not GlobalNoSeries.Find() then
                     GlobalNoSeries.Get(DefaultNoSeriesCode);
             end;
-            NewNo := NoSeriesCodeunit.GetNextNo(GlobalNoSeries.Code, NewDate, true); // TODO: Revert
+            NewNo := NoSeriesCodeunit.GetNextNo(GlobalNoSeries.Code, NewDate, false); // TODO: Revert
             NewNoSeriesCode := GlobalNoSeries.Code;
         end else
             TestManual(DefaultNoSeriesCode);

@@ -17,11 +17,11 @@ codeunit 303 "No. Series"
     /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
     /// </summary>
     /// <param name="NoSeriesCode">Code for the number series.</param>
-    /// <param name="SeriesDate">The date of retrieval, this will influence which line is used.</param>
+    /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
     /// <returns>The next number in the series.</returns>
-    procedure GetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date): Code[20]
+    procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesImpl.GetNextNo(NoSeriesCode, SeriesDate, false));
+        exit(NoSeriesImpl.GetNextNo(NoSeriesCode, UsageDate, false));
     end;
 
     /// <summary>
@@ -29,12 +29,12 @@ codeunit 303 "No. Series"
     /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
     /// </summary>
     /// <param name="NoSeriesCode">Code for the number series.</param>
-    /// <param name="SeriesDate">The date of retrieval, this will influence which line is used.</param>
+    /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
     /// <param name="HideErrorsAndWarnings"></param>
     /// <returns>The next number in the series, if HideErrorsAndWarnings is true and errors occured, a blank code is returned.</returns>
-    procedure GetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; HideErrorsAndWarnings: Boolean): Code[20] // TODO: This should return true/false of whether we could get the next no., not a blank code.
+    procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20] // TODO: This should return true/false of whether we could get the next no., not a blank code.
     begin
-        exit(NoSeriesImpl.GetNextNo(NoSeriesCode, SeriesDate, HideErrorsAndWarnings));
+        exit(NoSeriesImpl.GetNextNo(NoSeriesCode, UsageDate, HideErrorsAndWarnings));
     end;
 
     procedure PeekNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20] // TODO: Return boolean whether a number could actually be retrieved or not? Don't rely on whether the code is blank or not

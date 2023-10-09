@@ -62,9 +62,9 @@ codeunit 308 "No. Series - Batch"
         exit(NoSeriesBatchImpl.GetNextNo(NoSeries, UsageDate))
     end;
 
-    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"): Code[20]
+    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; LastDateUsed: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine))
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, LastDateUsed))
     end;
 
     /// <summary>
