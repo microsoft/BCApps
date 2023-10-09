@@ -63,7 +63,7 @@ codeunit 304 "No. Series - Impl."
 
     procedure GetNextNo(NoSeriesCode: code[20]; UsageDate: Date): Code[20]
     begin
-        GetNextNo(NoSeriesCode, UsageDate, false)
+        exit(GetNextNo(NoSeriesCode, UsageDate, false))
     end;
 
     procedure GetNextNo(NoSeriesCode: code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
@@ -73,7 +73,7 @@ codeunit 304 "No. Series - Impl."
     begin
         NoSeries.Get(NoSeriesCode);
         GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate, HideErrorsAndWarnings);
-        GetNextNo(NoSeriesLine);
+        exit(GetNextNo(NoSeriesLine));
     end;
 
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"): Boolean
