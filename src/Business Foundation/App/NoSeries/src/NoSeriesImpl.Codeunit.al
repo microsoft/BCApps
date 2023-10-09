@@ -18,6 +18,16 @@ codeunit 304 "No. Series - Impl."
         CannotAssignNewBeforeDateErr: Label 'You cannot assign new numbers from the number series %1 on a date before %2.', Comment = '%1=No. Series Code,%2=Date';
         NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', comment = '%1=No.';
 
+
+    procedure PeekNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate, false);
+        exit(PeekNextNo(NoSeriesLine));
+    end;
+
     procedure PeekNextNo(var NoSeriesLine: Record "No. Series Line") NextNo: Code[20]
     begin
         // init interface
@@ -37,6 +47,7 @@ codeunit 304 "No. Series - Impl."
         exit(NextNo);
     end;
 
+
     [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm', InherentPermissionsScope::Both)]
     procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"): Code[20]
     begin
@@ -45,9 +56,23 @@ codeunit 304 "No. Series - Impl."
 
         // impl.temp fix
         NoSeriesLine."Last No. Used" := PeekNextNo(NoSeriesLine);
-        NoSeriesLine."Last Date Used" := WorkDate();
+        NoSeriesLine."Last Date Used" := WorkDate(); // UsageDate;
         NoSeriesLine.Modify(true);
         exit(NoSeriesLine."Last No. Used");
+    end;
+
+    procedure GetNextNo(NoSeriesCode: code[20]; UsageDate: Date): Code[20]
+    begin
+        GetNextNo(NoSeriesCode, UsageDate, false)
+    end;
+
+    procedure GetNextNo(NoSeriesCode: code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate, HideErrorsAndWarnings);
+        GetNextNo(NoSeriesLine);
     end;
 
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"): Boolean
@@ -105,6 +130,30 @@ codeunit 304 "No. Series - Impl."
         Error(
             CannotAssignNewErr,
             NoSeries.Code);
+    end;
+
+    procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20] // TODO: Change to NoSeriesCode?
+    begin
+    end;
+
+    /// <summary>
+    /// Verifies that the number series is set to manual.
+    /// This function allows manual numbers for blank No. Series Codes.
+    /// </summary>
+    /// <param name="NoSeriesCode"></param>
+    procedure TestManual(NoSeriesCode: Code[20])
+    begin
+
+    end;
+
+    procedure AreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean
+    begin
+
+    end;
+
+    procedure SelectRelatedNoSeries(OriginalNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
+    begin
+        NewNoSeriesCode := 'dummy';
     end;
 
     // temp: see if we can get rid of this code... 

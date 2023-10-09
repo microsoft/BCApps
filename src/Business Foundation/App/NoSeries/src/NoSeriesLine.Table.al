@@ -256,8 +256,8 @@ table 309 "No. Series Line"
     begin
         NoSeries := Enum::"No. Series Implementation"::Sequence;
         if ModifySeries then
-            exit(NoSeries.GetNextNo(Rec));
-        exit(NoSeries.PeekNextNo(Rec));
+            exit(NoSeries.GetNextNo(Rec, WorkDate(), false));
+        exit(NoSeries.PeekNextNo(Rec, WorkDate()));
     end;
 
     [Obsolete('Moved to SequenceNoSeriesManagement.', '24.0')]
