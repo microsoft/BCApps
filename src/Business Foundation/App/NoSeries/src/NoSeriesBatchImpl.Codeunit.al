@@ -8,13 +8,28 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 309 "No. Series - Batch Impl."
 {
     Access = Internal;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     var
         NoSeriesBatch: Interface "No. Series - Batch";
+        ImplementationSet: Boolean;
+        SimulationMode: Boolean;
 
-    procedure SetImpl(NoSeriesBatch2: Interface "No. Series - Batch")
+    procedure SetImplementation(NoSeriesBatch2: Interface "No. Series - Batch")
     begin
+        if ImplementationSet then
+            exit;
+
         NoSeriesBatch := NoSeriesBatch2;
+        ImplementationSet := true;
+    end;
+
+    local procedure SetDefaultImplementation()
+    var
+        NoSeriesStatefulImpl: Codeunit "No. Series - Stateful Impl.";
+    begin
+        SetImplementation(NoSeriesStatefulImpl);
     end;
 
     procedure PeekNextNo(NoSeriesCode: Code[20]): Code[20]
@@ -38,18 +53,18 @@ codeunit 309 "No. Series - Batch Impl."
     procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
     var
         NoSeriesLine: Record "No. Series Line";
-        NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
-        NoSeriesImpl.GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate);
-        exit(PeekNextNo(NoSeriesLine, UsageDate))
+        GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate);
+        exit(PeekNextNo(NoSeriesLine))
     end;
 
-    procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
+    procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"): Code[20]
     var
         TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
         TempNoSeriesLine := NoSeriesLine;
-        exit(NoSeriesBatch.PeekNextNo(TempNoSeriesLine, UsageDate));
+        SetDefaultImplementation();
+        exit(NoSeriesBatch.PeekNextNo(TempNoSeriesLine));
     end;
 
     procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]
@@ -73,18 +88,44 @@ codeunit 309 "No. Series - Batch Impl."
     procedure GetNextNo(NoSeries: Record "No. Series"; SeriesDate: Date): Code[20]
     var
         NoSeriesLine: Record "No. Series Line";
-        NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
-        NoSeriesImpl.GetNoSeriesLine(NoSeriesLine, NoSeries, SeriesDate);
-        exit(GetNextNo(NoSeriesLine, SeriesDate))
+        GetNoSeriesLine(NoSeriesLine, NoSeries, SeriesDate);
+        exit(GetNextNo(NoSeriesLine))
     end;
 
-    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
+    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"): Code[20]
     var
         TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
         TempNoSeriesLine := NoSeriesLine;
-        exit(NoSeriesBatch.GetNextNo(TempNoSeriesLine, UsageDate));
+        SetDefaultImplementation();
+        exit(NoSeriesBatch.GetNextNo(TempNoSeriesLine));
     end;
 
+    procedure SetSimulationMode()
+    begin
+        SimulationMode := true;
+    end;
+
+    procedure SaveState(TempNoSeriesLine: Record "No. Series Line" temporary);
+    begin
+        if SimulationMode then
+            exit;
+        SetDefaultImplementation();
+        NoSeriesBatch.SaveState(TempNoSeriesLine);
+    end;
+
+    procedure SaveState();
+    begin
+        if SimulationMode then
+            exit;
+        SetDefaultImplementation();
+        NoSeriesBatch.SaveState();
+    end;
+
+    local procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; SeriesDate: Date)
+    begin
+        SetDefaultImplementation();
+        NoSeriesBatch.GetNoSeriesLine(NoSeriesLine, NoSeries, SeriesDate);
+    end;
 }

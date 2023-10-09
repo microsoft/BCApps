@@ -5,7 +5,7 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-permissionset 1 "No. Series - Object"
+permissionset 300 "No. Series - Objects"
 {
     Access = Internal;
     Assignable = false;

@@ -8,173 +8,163 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 304 "No. Series - Impl."
 {
     Access = Internal;
-    Permissions = tabledata "No. Series Line" = rimd,
-                  tabledata "No. Series" = r;
+    permissions = tabledata "No. Series Line" = rm;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     var
-        CannotAssignManuallyErr: Label 'You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.', comment = '%1=Manual Nos. setting,%2=No. Series table caption,%3=No. Series Code';
         CannotAssignNewOnDateErr: Label 'You cannot assign new numbers from the number series %1 on %2.', Comment = '%1=No. Series Code,%2=Date';
         CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1=No. Series Code';
         CannotAssignNewBeforeDateErr: Label 'You cannot assign new numbers from the number series %1 on a date before %2.', Comment = '%1=No. Series Code,%2=Date';
-        CannotAssignAutomaticallyErr: Label 'It is not possible to assign numbers automatically. If you want the program to assign numbers automatically, please activate %1 in %2 %3.', Comment = '%1=Default Nos. setting,%2=No. Series table caption,%3=No. Series Code';
+        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', comment = '%1=No.';
 
-    procedure TestManual(NoSeriesCode: Code[20])
-    var
-        NoSeries: Record "No. Series";
+    procedure PeekNextNo(var NoSeriesLine: Record "No. Series Line") NextNo: Code[20]
     begin
-        if NoSeriesCode <> '' then begin
-            NoSeries.Get(NoSeriesCode);
-            if not NoSeries."Manual Nos." then
-                Error(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeries.Code);
-        end;
+        // init interface
+        // call impl. 
+
+        // impl.temp fix
+        if NoSeriesLine."Last No. Used" = '' then begin
+            NoSeriesLine.TestField("Starting No.");
+            exit(NoSeriesLine."Starting No.")
+        end else
+            NextNo := NoSeriesLine."Last No. Used";
+
+        if NoSeriesLine."Increment-by No." <= 1 then
+            exit(IncStr(NextNo));
+
+        IncrementNoText(NextNo, NoSeriesLine."Increment-by No.");
+        exit(NextNo);
     end;
 
-    procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm', InherentPermissionsScope::Both)]
+    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"): Code[20]
     begin
-        exit(GetImplementation(NoSeriesLine).GetLastNoUsed(NoSeriesLine));
+        // init interface
+        // call impl. 
+
+        // impl.temp fix
+        NoSeriesLine."Last No. Used" := PeekNextNo(NoSeriesLine);
+        NoSeriesLine."Last Date Used" := WorkDate();
+        NoSeriesLine.Modify(true);
+        exit(NoSeriesLine."Last No. Used");
     end;
 
-    procedure GetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
-    var
-        NoSeriesLine: Record "No. Series Line";
+    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"): Boolean
     begin
-        NoSeriesLine."Series Code" := NoSeriesCode;
-        exit(GetNextNo(NoSeriesLine, SeriesDate, HideErrorsAndWarnings));
+        exit(FindNoSeriesLineWithCheck(NoSeriesLine, NoSeries, WorkDate()));
     end;
 
-    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; SeriesDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
-    var
-        NoSeriesSingle: Interface "No. Series - Single";
+    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; UsageDate: Date): Boolean
     begin
-        if SeriesDate = 0D then
-            SeriesDate := WorkDate();
-        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", SeriesDate, HideErrorsAndWarnings) then
-            exit('');
-
-        if NoSeriesLine."Allow Gaps in Nos." then // TODO: Enum needs to be specified on the table and retrieved from there
-            NoSeriesSingle := Enum::"No. Series Implementation"::Sequence
-        else
-            NoSeriesSingle := Enum::"No. Series Implementation"::Normal;
-
-        exit(NoSeriesSingle.GetNextNo(NoSeriesLine, SeriesDate, HideErrorsAndWarnings));
+        exit(FindNoSeriesLineWithCheck(NoSeriesLine, NoSeries, UsageDate));
     end;
 
-    local procedure GetImplementation(var NoSeriesLine: Record "No. Series Line"): Interface "No. Series - Single"
+    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
     begin
-        if NoSeriesLine."Allow Gaps in Nos." then // TODO: Enum needs to be specified on the table and retrieved from there
-            exit(Enum::"No. Series Implementation"::Sequence);
-        exit(Enum::"No. Series Implementation"::Normal);
+        if HideErrorsAndWarnings then
+            exit(FindNoSeriesLine(NoSeriesLine, NoSeries.Code, UsageDate));
+        //else
+        exit(FindNoSeriesLineWithCheck(NoSeriesLine, NoSeries, UsageDate));
     end;
 
-    local procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
-    var
-        NoSeries: Record "No. Series";
+    procedure FindNoSeriesLineWithCheck(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; UsageDate: Date): Boolean
     begin
-        if UsageDate = 0D then
-            UsageDate := WorkDate();
+        if not FindNoSeriesLine(NoSeriesLine, NoSeries.Code, UsageDate) then
+            GetFindNoSeriesLineError(NoSeriesLine, NoSeries, UsageDate);
 
-        // Find the No. Series Line closest to the usage date
-        NoSeriesLine.Reset();
+        CheckDateOrder(NoSeriesLine, NoSeries, UsageDate);
+        exit(true)
+    end;
+
+    local procedure FindNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date): Boolean
+    begin
         NoSeriesLine.SetCurrentKey("Series Code", "Starting Date");
         NoSeriesLine.SetRange("Series Code", NoSeriesCode);
         NoSeriesLine.SetRange("Starting Date", 0D, UsageDate);
         NoSeriesLine.SetRange(Open, true);
-        if NoSeriesLine.FindLast() then begin
-            // There may be multiple No. Series Lines for the same day, so find the first one.
-            NoSeriesLine.SetRange("Starting Date", NoSeriesLine."Starting Date");
-            NoSeriesLine.FindFirst();
-        end else begin
-            // Throw an error depending on the reason we couldn't find a date
-            if HideErrorsAndWarnings then
-                exit(false);
-            NoSeriesLine.SetRange("Starting Date");
-            NoSeriesLine.SetRange(Open);
-            if not NoSeriesLine.IsEmpty() then
-                Error(
-                  CannotAssignNewOnDateErr,
-                  NoSeriesCode, UsageDate);
+        exit(NoSeriesLine.FindLast())
+    end;
+
+    local procedure CheckDateOrder(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; UsageDate: Date)
+    begin
+        if NoSeries."Date Order" and (UsageDate < NoSeriesLine."Last Date Used") then
             Error(
-                CannotAssignNewErr,
-                NoSeriesCode);
-        end;
+                CannotAssignNewBeforeDateErr,
+                NoSeries.Code, NoSeriesLine."Last Date Used");
+    end;
 
-        // If Date Order is required for this No. Series, make sure the usage date is not before the last date used
-        NoSeries.Get(NoSeriesCode);
-        if NoSeries."Date Order" and (UsageDate < NoSeriesLine."Last Date Used") then begin
-            if HideErrorsAndWarnings then
-                exit(false);
+    local procedure GetFindNoSeriesLineError(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; UsageDate: Date)
+    begin
+        NoSeriesLine.SetRange("Starting Date");
+        NoSeriesLine.SetRange(Open);
+        if not NoSeriesLine.IsEmpty() then
             Error(
-              CannotAssignNewBeforeDateErr,
-              NoSeries.Code, NoSeriesLine."Last Date Used");
-        end;
-        exit(true);
+              CannotAssignNewOnDateErr,
+              NoSeries.Code, UsageDate);
+        Error(
+            CannotAssignNewErr,
+            NoSeries.Code);
     end;
 
-    procedure PeekNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
+    // temp: see if we can get rid of this code... 
+    procedure IncrementNoText(var No: Code[20]; IncrementByNo: Decimal)
     var
-        NoSeriesLine: Record "No. Series Line";
+        BigIntNo: BigInteger;
+        BigIntIncByNo: BigInteger;
+        StartPos: Integer;
+        EndPos: Integer;
+        NewNo: Code[20];
     begin
-        NoSeriesLine."Series Code" := NoSeriesCode;
-        exit(PeekNextNo(NoSeriesLine, UsageDate));
+        GetIntegerPos(No, StartPos, EndPos);
+        Evaluate(BigIntNo, CopyStr(No, StartPos, EndPos - StartPos + 1));
+        BigIntIncByNo := IncrementByNo;
+        NewNo := CopyStr(Format(BigIntNo + BigIntIncByNo, 0, 1), 1, MaxStrLen(NewNo));
+        ReplaceNoText(No, NewNo, 0, StartPos, EndPos);
     end;
 
-    procedure PeekNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date) NextNo: Code[20]
+    local procedure GetIntegerPos(No: Code[20]; var StartPos: Integer; var EndPos: Integer)
     var
-        NoSeriesSingle: Interface "No. Series - Single";
+        IsDigit: Boolean;
+        i: Integer;
     begin
-        if UsageDate = 0D then
-            UsageDate := WorkDate();
-        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", UsageDate, true) then
-            exit('');
-
-        if NoSeriesLine."Allow Gaps in Nos." then
-            NoSeriesSingle := Enum::"No. Series Implementation"::Sequence
-        else
-            NoSeriesSingle := Enum::"No. Series Implementation"::Normal;
-
-        exit(NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate));
-    end;
-
-    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; SeriesDate: Date): Boolean
-    begin
-        exit(GetNoSeriesLine(NoSeriesLine, NoSeries.Code, SeriesDate, true));
-    end;
-
-    procedure AreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean
-    var
-        NoSeries: Record "No. Series";
-        NoSeriesRelationship: Record "No. Series Relationship";
-    begin
-        if not NoSeries.Get(DefaultNoSeriesCode) then
-            exit(false);
-
-        if not NoSeries."Default Nos." then
-            Error(
-              CannotAssignAutomaticallyErr,
-              NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
-        exit(NoSeriesRelationship.Get(DefaultNoSeriesCode, RelatedNoSeriesCode));
-    end;
-
-    procedure SelectRelatedNoSeries(OriginalNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
-    var
-        NoSeries: Record "No. Series";
-        NoSeriesRelationship: Record "No. Series Relationship";
-    begin
-        // Select all related series
-        NoSeriesRelationship.SetRange(Code, OriginalNoSeriesCode);
-
-        if NoSeriesRelationship.FindSet() then
+        StartPos := 0;
+        EndPos := 0;
+        if No <> '' then begin
+            i := StrLen(No);
             repeat
-                NoSeries.Code := NoSeriesRelationship."Series Code";
-                NoSeries.Mark := true;
-            until NoSeriesRelationship.Next() = 0;
-        NoSeries.Code := OriginalNoSeriesCode;
-        NoSeries.Mark := true;
-
-        if PAGE.RunModal(0, NoSeries) = ACTION::LookupOK then begin
-            NewNoSeriesCode := NoSeries.Code;
-            exit(true);
+                IsDigit := No[i] in ['0' .. '9'];
+                if IsDigit then begin
+                    if EndPos = 0 then
+                        EndPos := i;
+                    StartPos := i;
+                end;
+                i := i - 1;
+            until (i = 0) or (StartPos <> 0) and not IsDigit;
         end;
-        exit(false);
     end;
+
+    local procedure ReplaceNoText(var No: Code[20]; NewNo: Code[20]; FixedLength: Integer; StartPos: Integer; EndPos: Integer)
+    var
+        StartNo: Code[20];
+        EndNo: Code[20];
+        ZeroNo: Code[20];
+        NewLength: Integer;
+        OldLength: Integer;
+    begin
+        if StartPos > 1 then
+            StartNo := CopyStr(CopyStr(No, 1, StartPos - 1), 1, MaxStrLen(StartNo));
+        if EndPos < StrLen(No) then
+            EndNo := CopyStr(CopyStr(No, EndPos + 1), 1, MaxStrLen(EndNo));
+        NewLength := StrLen(NewNo);
+        OldLength := EndPos - StartPos + 1;
+        if FixedLength > OldLength then
+            OldLength := FixedLength;
+        if OldLength > NewLength then
+            ZeroNo := CopyStr(PadStr('', OldLength - NewLength, '0'), 1, MaxStrLen(ZeroNo));
+        if StrLen(StartNo) + StrLen(ZeroNo) + StrLen(NewNo) + StrLen(EndNo) > 20 then
+            Error(NumberLengthErr, No);
+        No := CopyStr(StartNo + ZeroNo + NewNo + EndNo, 1, MaxStrLen(No));
+    end;
+
 }
