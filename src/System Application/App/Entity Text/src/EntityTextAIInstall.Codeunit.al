@@ -8,7 +8,7 @@ codeunit 2014 "Entity Text AI Install"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    trigger OnInstallAppPerCompany()
+    trigger OnInstallAppPerDatabase()
     begin
         RegisterCapability();
     end;
