@@ -37,9 +37,9 @@ codeunit 308 "No. Series - Batch"
         exit(NoSeriesBatchImpl.PeekNextNo(NoSeries, UsageDate))
     end;
 
-    procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"): Code[20]
+    procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesLine))
+        exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesLine, UsageDate))
     end;
 
     procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]

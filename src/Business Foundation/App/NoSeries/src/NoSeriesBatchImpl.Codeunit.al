@@ -55,16 +55,16 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeriesLine: Record "No. Series Line";
     begin
         GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate);
-        exit(PeekNextNo(NoSeriesLine))
+        exit(PeekNextNo(NoSeriesLine, UsageDate))
     end;
 
-    procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"): Code[20]
+    procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     var
         TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
         TempNoSeriesLine := NoSeriesLine;
         SetDefaultImplementation();
-        exit(NoSeriesBatch.PeekNextNo(TempNoSeriesLine));
+        exit(NoSeriesBatch.PeekNextNo(TempNoSeriesLine, UsageDate));
     end;
 
     procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]

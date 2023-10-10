@@ -27,12 +27,12 @@ codeunit 310 "No. Series - Stateful Impl." implements "No. Series - Batch"
         TempglobalNoSeriesLine.Insert();
     end;
 
-    procedure PeekNextNo(TempNoSeriesLine: Record "No. Series Line" temporary): Code[20];
+    procedure PeekNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date): Code[20];
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         SetInitialState(TempNoSeriesLine);
-        exit(NoSeriesImpl.PeekNextNo(TempGlobalNoSeriesLine));
+        exit(NoSeriesImpl.PeekNextNo(TempGlobalNoSeriesLine, UsageDate));
     end;
 
     procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; LastDateUsed: Date): Code[20];
@@ -40,7 +40,7 @@ codeunit 310 "No. Series - Stateful Impl." implements "No. Series - Batch"
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         SetInitialState(TempNoSeriesLine);
-        exit(NoSeriesImpl.GetNextNo(TempGlobalNoSeriesLine, LastDateUsed));
+        exit(NoSeriesImpl.GetNextNo(TempGlobalNoSeriesLine, LastDateUsed, false));
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm', InherentPermissionsScope::Both)]
