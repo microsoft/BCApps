@@ -44,35 +44,6 @@ page 2510 "Marketplace Extn Deployment"
                     LanguageName := Language.GetWindowsLanguageName(LanguageID);
                 end;
             }
-#if not CLEAN21
-            group(links)
-            {
-                ShowCaption = false;
-                Visible = false;
-                ObsoleteState = Pending;
-                ObsoleteTag = '21.0';
-                ObsoleteReason = 'Not relevant anymore';
-
-                field(BestPractices; 'Read more about the best practices for installing and publishing extensions')
-                {
-                    ApplicationArea = All;
-                    ShowCaption = false;
-                    Editable = false;
-                    Visible = false;
-                    ToolTip = 'Read more about the best practices for installing and publishing extensions.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '21.0';
-                    ObsoleteReason = 'Not relevant anymore';
-
-                    trigger OnDrillDown()
-                    var
-                        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
-                    begin
-                        Hyperlink(ExtensionInstallationImpl.GetInstallationBestPracticesURL());
-                    end;
-                }
-            }
-#endif
             group(Info)
             {
                 ShowCaption = false;
