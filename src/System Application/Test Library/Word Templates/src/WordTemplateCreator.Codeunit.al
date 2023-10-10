@@ -18,7 +18,8 @@ codeunit 130446 "Word Template Creator"
     end;
 
     procedure CreateWordTemplateWithMergeValues(TableId: Integer)
-beginnitializeWordTemplate(GetWordTemplateWithMergeValues(), TableId, 'TEST');
+    begin
+        InitializeWordTemplate(GetWordTemplateWithMergeValues(), TableId, 'TEST');
     end;
 
     local procedure InitializeWordTemplate(WordTemplateBase64Txt: Text; TableId: Integer; WordTemplateCode: Code[30])
