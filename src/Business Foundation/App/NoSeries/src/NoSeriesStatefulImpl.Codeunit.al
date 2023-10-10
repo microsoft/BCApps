@@ -14,6 +14,7 @@ codeunit 310 "No. Series - Stateful Impl." implements "No. Series - Batch"
 
     var
         TempGlobalNoSeriesLine: Record "No. Series Line" temporary;
+        LockedNoSeriesLine: Record "No. Series Line";
 
     procedure SetInitialState(TempNoSeriesLine: Record "No. Series Line" temporary);
     begin
@@ -40,35 +41,37 @@ codeunit 310 "No. Series - Stateful Impl." implements "No. Series - Batch"
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         SetInitialState(TempNoSeriesLine);
+        LockedNoSeriesLine.LockTable();
         exit(NoSeriesImpl.GetNextNo(TempGlobalNoSeriesLine, LastDateUsed, false));
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm', InherentPermissionsScope::Both)]
     procedure SaveState(TempNoSeriesLine: Record "No. Series Line" temporary);
-    var
-        NoSeriesLine: Record "No. Series Line";
     begin
         if not TempGlobalNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.") then
             exit;
-
-        NoSeriesLine := TempGlobalNoSeriesLine;
-#pragma warning disable AA0214
-        NoSeriesLine.Modify(true);
-#pragma warning restore AA0214
+        UpdateNoSeriesLine(TempGlobalNoSeriesLine);
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm', InherentPermissionsScope::Both)]
     procedure SaveState();
-    var
-        NoSeriesLine: Record "No. Series Line";
     begin
         if TempGlobalNoSeriesLine.FindSet() then
             repeat
-                NoSeriesLine := TempGlobalNoSeriesLine;
-#pragma warning disable AA0214
-                NoSeriesLine.Modify(true);
-#pragma warning restore AA0214
+                UpdateNoSeriesLine(TempGlobalNoSeriesLine);
             until TempGlobalNoSeriesLine.Next() = 0;
+    end;
+
+    local procedure UpdateNoSeriesLine(var TempNoSeriesLine: Record "No. Series Line" temporary)
+    var
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        NoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
+        NoSeriesLine."Last No. Used" := TempNoSeriesLine."Last No. Used";
+        NoSeriesLine."Last Date Used" := TempNoSeriesLine."Last Date Used";
+#pragma warning disable AA0214
+        NoSeriesLine.Modify(true);
+#pragma warning restore AA0214
     end;
 
     local procedure IsSameNoSeriesLine(TempNoSeriesLine: Record "No. Series Line" temporary): Boolean;
