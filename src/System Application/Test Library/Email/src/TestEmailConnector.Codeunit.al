@@ -28,7 +28,6 @@ codeunit 134687 "Test Email Connector" implements "Email Connector"
     end;
 
     procedure RegisterAccount(var EmailAccount: Record "Email Account"): Boolean
-    var
     begin
         if ConnectorMock.FailOnRegisterAccount() then
             Error('Failed to register account');
