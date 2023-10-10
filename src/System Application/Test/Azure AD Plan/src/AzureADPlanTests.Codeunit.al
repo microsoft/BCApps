@@ -693,7 +693,6 @@ codeunit 132912 "Azure AD Plan Tests"
 
     [ModalPageHandler]
     procedure ModalHandler(var Plans: TestPage "Plans")
-    var
     begin
         Plans.OK().Invoke();
     end;
