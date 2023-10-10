@@ -464,46 +464,7 @@ codeunit 501 OAuth2
     begin
         OAuth2Impl.AcquireOnBehalfOfTokensByTokenCache(ClientId, ClientSecret, LoginHint, RedirectURL, Scopes, TokenCache, AccessToken, IdToken, NewTokenCache);
     end;
-
-#if not CLEAN21
-    /// <summary>
-    /// Gets the token with username and password.
-    /// </summary>
-    /// <param name="OAuthAuthorityUrl">The identity authorization provider URL.</param>
-    /// <param name="ClientId">The Application (client) ID that the Azure portal - App registrations experience assigned to your app.</param>
-    /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
-    /// <param name="UserName">The user name, i.e. authentication email..</param>
-    /// <param name="Credential">The user credential.</param>
-    /// <param name="AccessToken">Exit parameter containing the access token.</param>
-    /// <param name="IdToken">Exit parameter containing the id token.</param>
-    [NonDebuggable]
-    [Obsolete('AcquireTokensWithUserCredentials is deprecated and will be removed in version 23.0. We recommend that you switch to any of the remaining non-deprecated functions in this class to acquire tokens already now.', '21.0')]
-    [TryFunction]
-    procedure AcquireTokensWithUserCredentials(OAuthAuthorityUrl: Text; ClientId: Text; Scopes: List of [Text]; UserName: Text; Credential: Text; var AccessToken: Text; var IdToken: Text)
-    begin
-        OAuth2Impl.AcquireTokensWithUserCredentials(OAuthAuthorityUrl, ClientId, Scopes, UserName, Credential, AccessToken, IdToken);
-    end;
-#endif
-
-#if not CLEAN21
-    /// <summary>
-    /// Gets the token with username and password.
-    /// </summary>
-    /// <param name="OAuthAuthorityUrl">The identity authorization provider URL.</param>
-    /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
-    /// <param name="UserName">The user name, i.e. authentication email..</param>
-    /// <param name="Credential">The user credential.</param>
-    /// <param name="AccessToken">Exit parameter containing the access token.</param>
-    /// <param name="IdToken">Exit parameter containing the id token.</param>
-    [NonDebuggable]
-    [Obsolete('AcquireTokensWithUserCredentials is deprecated and will be removed in version 23.0. We recommend that you switch to any of the remaining non-deprecated functions in this class to acquire tokens already now', '21.0')]
-    [Scope('OnPrem')]
-    [TryFunction]
-    procedure AcquireTokensWithUserCredentials(OAuthAuthorityUrl: Text; Scopes: List of [Text]; UserName: Text; Credential: Text; var AccessToken: Text; var IdToken: Text)
-    begin
-        OAuth2Impl.AcquireTokensWithUserCredentials(OAuthAuthorityUrl, Scopes, UserName, Credential, AccessToken, IdToken);
-    end;
-#endif
+    
 #pragma warning restore AS0022
 
     /// <summary>

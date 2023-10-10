@@ -98,9 +98,6 @@ codeunit 9013 "User Login Time Tracker Impl."
     procedure CreateOrUpdateLoginInfo()
     var
         UserLogin: Record "User Login";
-#if not CLEAN21
-        UserLoginTimeTracker: Codeunit "User Login Time Tracker";
-#endif
         Now: DateTime;
     begin
         Now := CurrentDateTime();
@@ -129,12 +126,6 @@ codeunit 9013 "User Login Time Tracker Impl."
                 Session.LogMessage('0000KQX', CouldNotInsertUserLoginErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserLoginCategoryLbl);
         end;
         Commit();
-
-#if not CLEAN21
-#pragma warning disable AL0432
-        UserLoginTimeTracker.OnAfterCreateorUpdateLoginInfo(UserSecurityId());
-#pragma warning restore AL0432
-#endif
     end;
 
     var
