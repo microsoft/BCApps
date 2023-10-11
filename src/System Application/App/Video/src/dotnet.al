@@ -9,7 +9,7 @@ dotnet
 {
     assembly("Microsoft.Dynamics.Nav.Client.WebPageViewer")
     {
-        Culture = 'neutral';
+        Culture = 'neutral' ;
 
         type("Microsoft.Dynamics.Nav.Client.WebPageViewer.IWebPageViewer"; WebPageViewer)
         {
