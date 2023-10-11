@@ -13,7 +13,7 @@ dotnet
 
         type("Microsoft.Dynamics.Nav.Client.WebPageViewer.IWebPageViewer"; WebPageViewer)
         {
-            IsControlAddIn = true;
+            IsControlAddIn = true; // TEST
         }
     }
 }
