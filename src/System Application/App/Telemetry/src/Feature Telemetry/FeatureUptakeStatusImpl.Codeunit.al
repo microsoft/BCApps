@@ -157,7 +157,7 @@ codeunit 8705 "Feature Uptake Status Impl."
         StartDateTime := CurrentDateTime;
         while IsSessionActive(StartedSessionId) do begin
             if CurrentDateTime() - StartDateTime > Timeout then begin
-                Session.LogMessage('', StartedSessionHasNotEndedErr, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryLibraryCategoryTxt);
+                Session.LogMessage('0000LKY', StartedSessionHasNotEndedErr, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryLibraryCategoryTxt);
                 exit;
             end;
 
