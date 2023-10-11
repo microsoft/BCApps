@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Test.Environment.Configuration;
+namespace System.Test.Security.User;
 
 using System.Security.User;
 using System.TestLibraries.Azure.ActiveDirectory;
@@ -37,8 +37,10 @@ codeunit 132908 "User Details Test"
         // User 1 has a global administrator plan, Essential plan and SUPER permission set
         // User 2 has only M365 plan
         User1."User Security ID" := CreateGuid();
+        User1."User Name" := CreateGuid();
         User1.Insert();
         User2."User Security ID" := CreateGuid();
+        User2."User Name" := CreateGuid();
         User2.Insert();
 
         AzureADPlanTestLibrary.AssignUserToPlan(PlanIDs.GetGlobalAdminPlanId(), User1."User Security ID");
@@ -47,6 +49,7 @@ codeunit 132908 "User Details Test"
 
         AccessControl."User Security ID" := User1."User Security ID";
         AccessControl."Role ID" := 'SUPER';
+        AccessControl.Scope := AccessControl.Scope::System;
         AccessControl.Insert();
 
         // [WHEN] User details are retrieved with GetUserDetails
@@ -54,6 +57,7 @@ codeunit 132908 "User Details Test"
 
         // [THEN] The details are as expected
         Assert.RecordCount(UserDetailsRec, 2);
+        UserDetailsRec.SetAutoCalcFields();
 
         UserDetailsRec.SetRange("User Security ID", User1."User Security ID");
         UserDetailsRec.FindFirst();
