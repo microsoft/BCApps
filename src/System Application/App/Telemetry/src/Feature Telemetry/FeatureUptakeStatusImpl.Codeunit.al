@@ -13,6 +13,11 @@ codeunit 8705 "Feature Uptake Status Impl."
     TableNo = "Feature Uptake";
     Permissions = tabledata "Feature Uptake" = rimd;
 
+    var
+        StartedSessionId: Integer;
+        TelemetryLibraryCategoryTxt: Label 'TelemetryLibrary', Locked = true;
+        StartedSessionHasNotEndedErr: Label 'A session updating the feature uptake status is taking longer than expected. The feature uptake status might not be updated correctly.', Locked = true;
+
     trigger OnRun()
     begin
         if not Rec.IsTemporary() then
@@ -25,7 +30,6 @@ codeunit 8705 "Feature Uptake Status Impl."
     var
         TempFeatureUptake: Record "Feature Uptake" temporary;
         UserSecurityIDForTheFeature: Guid;
-        SessionID: Integer;
         IsExpectedTransition: Boolean;
     begin
         if IsPerUser then
@@ -36,9 +40,10 @@ codeunit 8705 "Feature Uptake Status Impl."
         TempFeatureUptake."Feature Uptake Status" := FeatureUptakeStatus;
         TempFeatureUptake.Publisher := CopyStr(Publisher, 1, MaxStrLen(TempFeatureUptake.Publisher));
 
+        WaitForStartedUpdateFeatureUptakeSession();
         if NeedToUpdateFeatureUptakeStatus(TempFeatureUptake, IsExpectedTransition) then
             if PerformWriteTransactionsInASeparateSession then
-                StartSession(SessionID, Codeunit::"Feature Uptake Status Impl.", CompanyName(), TempFeatureUptake)
+                StartSession(StartedSessionId, Codeunit::"Feature Uptake Status Impl.", CompanyName(), TempFeatureUptake)
             else
                 UpdateFeatureUptakeStatus(TempFeatureUptake);
 
@@ -138,5 +143,25 @@ codeunit 8705 "Feature Uptake Status Impl."
             exit(true);
 
         exit(false);
+    end;
+
+    local procedure WaitForStartedUpdateFeatureUptakeSession()
+    var
+        StartDateTime: DateTime;
+        Timeout: Duration;
+    begin
+        if StartedSessionId = 0 then
+            exit;
+
+        Timeout := 100; // wait for up 0.1 seconds
+        StartDateTime := CurrentDateTime;
+        while IsSessionActive(StartedSessionId) do begin
+            if CurrentDateTime() - StartDateTime > Timeout then begin
+                Session.LogMessage('', StartedSessionHasNotEndedErr, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryLibraryCategoryTxt);
+                exit;
+            end;
+
+            Sleep(10);
+        end;
     end;
 }
