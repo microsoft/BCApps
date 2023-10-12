@@ -36,6 +36,7 @@ table 774 "User Details"
             CalcFormula = lookup(User."User Name" where("User Security ID" = field("User Security ID")));
             Editable = false;
             FieldClass = FlowField;
+            Access = Internal;
         }
         /// <summary>
         /// User's full name.
@@ -45,6 +46,7 @@ table 774 "User Details"
             CalcFormula = lookup(User."Full Name" where("User Security ID" = field("User Security ID")));
             Editable = false;
             FieldClass = FlowField;
+            Access = Internal;
         }
         /// <summary>
         /// Specifies whether the user can access companies in the current environment.
@@ -56,6 +58,7 @@ table 774 "User Details"
             CalcFormula = lookup(User.State where("User Security ID" = field("User Security ID")));
             Editable = false;
             FieldClass = FlowField;
+            Access = Internal;
         }
         /// <summary>
         /// The authentication email of the user.
@@ -65,6 +68,7 @@ table 774 "User Details"
             CalcFormula = lookup(User."Authentication Email" where("User Security ID" = field("User Security ID")));
             Editable = false;
             FieldClass = FlowField;
+            Access = Internal;
         }
         /// <summary>
         /// The contact email of the user.
@@ -74,6 +78,7 @@ table 774 "User Details"
             CalcFormula = lookup(User."Contact Email" where("User Security ID" = field("User Security ID")));
             Editable = false;
             FieldClass = FlowField;
+            Access = Internal;
         }
         /// <summary>
         /// An ID that uniquely identifies the user for the purposes of sending telemetry.
@@ -84,6 +89,7 @@ table 774 "User Details"
             CalcFormula = lookup("User Property"."Telemetry User ID" where("User Security ID" = field("User Security ID")));
             Editable = false;
             FieldClass = FlowField;
+            Access = Internal;
         }
         /// <summary>
         /// An ID assigned to the user in Microsoft Entra.
@@ -94,6 +100,7 @@ table 774 "User Details"
             CalcFormula = lookup("User Property"."Authentication Object ID" where("User Security ID" = field("User Security ID")));
             Editable = false;
             FieldClass = FlowField;
+            Access = Internal;
         }
         /// <summary>
         /// True if the user SUPER permission set in any company, false otherwise.
@@ -106,6 +113,7 @@ table 774 "User Details"
                                                   "App ID" = const('{00000000-0000-0000-0000-000000000000}')));
             Editable = false;
             FieldClass = FlowField;
+            Access = Internal;
         }
         /// <summary>
         /// A semicolon-separated list of user's plan names
@@ -113,12 +121,14 @@ table 774 "User Details"
         field(24; "User Plans"; Text[2048])
         {
             Caption = 'User Licenses';
+            Access = Internal;
         }
         /// <summary>
         /// True if the user has Delegated Admin or Delegated Helpdesk plans, false otherwise.
         /// </summary>
         field(25; "Is Delegated"; Boolean)
         {
+            Access = Internal;
         }
         /// <summary>
         /// True if the user has a Microsoft 365 plan, false otherwise.
@@ -126,6 +136,7 @@ table 774 "User Details"
         field(26; "Has M365 Plan"; Boolean)
         {
             Caption = 'Has Microsoft 365 license';
+            Access = Internal;
         }
         /// <summary>
         /// True if the user an Essential, false otherwise.
@@ -133,6 +144,7 @@ table 774 "User Details"
         field(27; "Has Essential Plan"; Boolean)
         {
             Caption = 'Has Essential Or Premium license';
+            Access = Internal;
         }
         /// <summary>
         /// True if the user has a Premium plan, false otherwise.
@@ -140,6 +152,7 @@ table 774 "User Details"
         field(28; "Has Premium Plan"; Boolean)
         {
             Caption = 'Has Essential Or Premium license';
+            Access = Internal;
         }
         /// <summary>
         /// True if the user has any "full" licenses, such as Essential or Premium, false otherwise.
@@ -147,6 +160,7 @@ table 774 "User Details"
         field(29; "Has Essential Or Premium Plan"; Boolean)
         {
             Caption = 'Has Essential Or Premium license';
+            Access = Internal;
         }
     }
 
