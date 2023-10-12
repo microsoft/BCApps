@@ -3167,7 +3167,7 @@
         },
         {
             "id": "AL0792",
-            "action": "Warning"
+            "action": "Error"
         },
         {
             "id": "AL0793",
