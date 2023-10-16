@@ -85,7 +85,6 @@ codeunit 139482 "Custom Dimensions Test"
     end;
 
     local procedure RaiseOnAddCommonCustomDimensionsEvent(var TelemetryCustomDimensions: Codeunit "Telemetry Custom Dimensions")
-    var
     begin
         TelemetryCustomDimensions.AddAllowedCommonCustomDimensionPublisher('Microsoft');
         TelemetryCustomDimensions.OnAddCommonCustomDimensions();

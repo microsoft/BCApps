@@ -133,6 +133,11 @@
       "id": "AL0678",
       "action": "None",
       "justification": "Information diagnostic reported on obsolete symbols contributing to metadata name conflicts, ex: 'My Page' and 'My_Page'."
+    },
+    {
+      "id": "AL0792",
+      "action": "None",
+      "justification": "The rule was not being promoted to error, so BaseApp has multiple violations. They will have to be fixed and then the rule should be enabled."
     }
   ]
 }

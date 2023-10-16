@@ -8,7 +8,9 @@ namespace System.Integration.Excel;
 using System;
 using System.Integration;
 using System.Environment;
+#if not CLEAN22
 using System.Azure.Identity;
+#endif
 using System.Reflection;
 
 codeunit 1482 "Edit in Excel Impl."

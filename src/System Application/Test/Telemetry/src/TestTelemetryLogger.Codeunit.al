@@ -38,7 +38,6 @@ codeunit 139485 "Test Telemetry Logger" implements "Telemetry Logger"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Telemetry Custom Dimensions", 'OnAddCommonCustomDimensions', '', true, true)]
     local procedure OnAddCommonCustomDimensions(var Sender: Codeunit "Telemetry Custom Dimensions")
-    var
     begin
         Sender.AddCommonCustomDimension(CommonCustomDimensionNameTxt, CommonCustomDimensionValueTxt, TestPublisherTxt);
     end;

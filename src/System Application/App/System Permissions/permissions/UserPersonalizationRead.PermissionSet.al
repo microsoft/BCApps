@@ -15,10 +15,5 @@ permissionset 92 "User Personalization - Read"
     Permissions = tabledata "Page Data Personalization" = R,
                   tabledata "User Personalization" = R,
                   tabledata "User Default Style Sheet" = R,
-#if not CLEAN21
-#pragma warning disable AL0432
-                  tabledata "User Metadata" = R,
-#pragma warning restore AL0432
-#endif
                   tabledata "User Page Metadata" = R;
 }

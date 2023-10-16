@@ -31,7 +31,8 @@
                   },
                   {
                       "id":  "AS0008",
-                      "action":  "Error"
+                      "action":  "None",
+                      "justification": "Defining reserved Microsoft and System namespaces is not allowed"
                   },
                   {
                       "id":  "AS0009",

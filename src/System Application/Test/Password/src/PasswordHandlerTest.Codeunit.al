@@ -225,7 +225,6 @@ codeunit 132578 "Password Handler Test"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Password Dialog Management", 'OnSetMinPasswordLength', '', false, false)]
     local procedure OnSetMinPasswordLength(var MinPasswordLength: Integer)
-    var
     begin
         // Increase the minimum length of the password.
         MinPasswordLength := 16;
