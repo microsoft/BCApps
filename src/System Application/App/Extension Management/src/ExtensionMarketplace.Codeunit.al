@@ -207,7 +207,7 @@ codeunit 2501 "Extension Marketplace"
                 Session.LogMessage('00008M0', StrSubstNo(MarketPlaceUnsuccInstallTxt, InstallationResult, GetLastErrorText()), Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', 'AL Extensions');
     end;
 
-    procedure InstallMarketplaceExtension(ApplicationId: Guid; ResponseURL: Text; lcid: Integer)
+    procedure InstallMarketplaceExtension(ApplicationId: Guid; ResponseURL: Text; lcid: Integer; PreviewKey: Text)
     var
         PublishedApplication: Record "Published Application";
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
@@ -220,8 +220,13 @@ codeunit 2501 "Extension Marketplace"
         PublishedApplication.SetRange("Tenant Visible", true);
         if not PublishedApplication.FindFirst() then begin
             // If the extension is not found, send the request to the regional service.
-            ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true);
+            ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true, '');
             exit;
+        end;
+
+        if PreviewKey <> '' then begin
+            // Preview keys are not saved on the data plane and we must then trigger the deploy operation again.
+            ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true, PreviewKey);
         end;
 
         // Check if the extension is already installed
@@ -235,7 +240,7 @@ codeunit 2501 "Extension Marketplace"
             InstallApp(PublishedApplication."Package ID", PublishedApplication.ID, ResponseURL, lcid)
         else
             // If the extension is found and it's from a third party, then send the request to regional service.
-            ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true);
+            ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true, '');
     end;
 
     [TryFunction]
@@ -341,7 +346,7 @@ codeunit 2501 "Extension Marketplace"
         MarketplaceExtnDeployment.RunModal();
 
         if MarketplaceExtnDeployment.GetInstalledSelected() then
-            InstallMarketplaceExtension(ID, ResponseURL, MarketplaceExtnDeployment.GetLanguageId());
+            InstallMarketplaceExtension(ID, ResponseURL, MarketplaceExtnDeployment.GetLanguageId(), '');
     end;
 
     procedure IsMarketplaceEnabled(): Boolean
