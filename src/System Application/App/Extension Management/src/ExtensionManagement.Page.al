@@ -173,25 +173,6 @@ page 2500 "Extension Management"
                         ExtensionOperationImpl.UnpublishUninstalledPerTenantExtension(Rec."Package ID");
                     end;
                 }
-#if not CLEAN21
-                action(Configure)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Configure';
-                    Image = Setup;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Category5;
-                    RunObject = Page "Extension Settings";
-                    RunPageLink = "App ID" = field(ID);
-                    Scope = Repeater;
-                    ToolTip = 'Configure the extension.';
-                    Visible = false;
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '21.0';
-                    ObsoleteReason = 'Removed as it clashes with Set up this app action.';
-                }
-#endif
                 action(SetupApp)
                 {
                     ApplicationArea = All;

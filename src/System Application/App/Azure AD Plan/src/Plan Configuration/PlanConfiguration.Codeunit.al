@@ -5,7 +5,9 @@
 
 namespace System.Azure.Identity;
 
+#if not CLEAN22
 using System.Security.AccessControl;
+#endif
 
 /// <summary>
 /// Provides functionality to operation with plan configurations and customized permission sets related to a plan.

@@ -273,7 +273,6 @@ codeunit 9864 "Permission Impl."
     end;
 
     procedure FillLookupBuffer(var PermissionLookupBuffer: Record "Permission Lookup Buffer" temporary)
-    var
     begin
         if PermissionLookupBuffer.GetFilter("Lookup Type") = '' then
             exit;

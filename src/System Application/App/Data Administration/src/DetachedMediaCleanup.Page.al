@@ -200,7 +200,6 @@ page 1927 "Detached Media Cleanup"
     end;
 
     trigger OnOpenPage()
-    var
     begin
         LoadLimit := 10000;
     end;

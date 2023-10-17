@@ -5,7 +5,7 @@
     "runs-on":  "windows-latest",
     "cacheImageName":  "",
     "UsePsSession":  false,
-    "artifact":  "bcinsider//24.0.12977.0/base",
+    "artifact":  "bcinsider//24.0.13137.0/base",
     "country":  "base",
     "useProjectDependencies":  true,
     "repoVersion":  "24.0",
@@ -54,7 +54,10 @@
     "skipUpgrade":  true,
     "PartnerTelemetryConnectionString":  "InstrumentationKey=403ba4d3-ad2b-4ca1-8602-b7746de4c048;IngestionEndpoint=https://swedencentral-0.in.applicationinsights.azure.com/",
     "fullBuildPatterns":  [
-                              "build/*"
+                              "build/*",
+                              "src/rulesets/*",
+                              ".github/workflows/PullRequestHandler.yaml",
+                              ".github/workflows/_BuildALGoProject.yaml"
                           ],
     "PullRequestTrigger":  "pull_request"
 }

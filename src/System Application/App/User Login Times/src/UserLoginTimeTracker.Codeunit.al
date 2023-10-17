@@ -107,17 +107,5 @@ codeunit 9026 "User Login Time Tracker"
     begin
         UserLoginTimeTrackerImpl.CreateEnvironmentLoginInfo();
     end;
-
-#if not CLEAN21
-    /// <summary>
-    /// Publishes an event that is fired whenever a user's login information is created or updated.
-    /// </summary>
-    /// <param name="UserSecurityId">The User Security ID of the user that is being created or updated.</param>
-    [IntegrationEvent(false, false)]
-    [Obsolete('Use OnAfterLogin in codeunit "System Initialization" instead', '21.0')]
-    internal procedure OnAfterCreateorUpdateLoginInfo(UserSecurityId: Guid)
-    begin
-    end;
-#endif
 }
 

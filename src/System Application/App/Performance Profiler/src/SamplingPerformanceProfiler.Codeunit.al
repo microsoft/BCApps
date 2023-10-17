@@ -28,7 +28,6 @@ codeunit 1924 "Sampling Performance Profiler"
     /// Starts performance profiling.
     /// </summary>
     procedure Start(SamplingInterval: Enum "Sampling Interval")
-    var
     begin
         SamplingPerfProfilerImpl.Start(SamplingInterval);
     end;
