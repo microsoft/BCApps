@@ -30,6 +30,13 @@
             "version": "24.0.0.0"
         }
     ],
+    "internalsVisibleTo":  [
+        {
+            "id":  "9beafef7-a2fc-491c-85bd-8cd5c4650f2b",
+            "name":  "User Details Test Library",
+            "publisher":  "Microsoft"
+        }
+    ],
     "screenshots": [],
     "platform": "24.0.0.0",
     "idRanges": [

@@ -44,6 +44,7 @@ page 774 "User Details"
                 }
                 field("User Plans"; Rec."User Plans")
                 {
+                    Visible = IsSaaS;
                     ToolTip = 'Specifies the licenses that are assigned to the user.';
                 }
                 field("User Security ID"; Rec."User Security ID")
@@ -64,6 +65,27 @@ page 774 "User Details"
                 {
                     Visible = IsSaaS;
                     ToolTip = 'Specifies ID assigned to the user in Microsoft Entra.';
+                }
+                // Below are fields that can be added with "Personalize"
+                field("Has SUPER permission set"; Rec."Has SUPER permission set")
+                {
+                    Visible = false;
+                    ToolTip = 'Specifies if the SUPER permission set is assigned to the user.';
+                }
+                field("Is Delegated"; Rec."Is Delegated")
+                {
+                    Visible = false;
+                    ToolTip = 'Specifies if the user is a delegated admin or delegated helpdesk.';
+                }
+                field("Has Essential Or Premium Plan"; Rec."Has Essential Or Premium Plan")
+                {
+                    Visible = false;
+                    ToolTip = 'Specifies if the use has an Essential or Premium license.';
+                }
+                field("Has M365 Plan"; Rec."Has M365 Plan")
+                {
+                    Visible = false;
+                    ToolTip = 'Specifies if the use has the Microsoft 365 license.';
                 }
             }
         }

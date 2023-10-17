@@ -18,6 +18,12 @@
             "version": "24.0.0.0"
         },
         {
+            "id":  "9beafef7-a2fc-491c-85bd-8cd5c4650f2b",
+            "name":  "User Details Test Library",
+            "publisher": "Microsoft",
+            "version": "24.0.0.0"
+        },
+        {
             "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
             "name": "Library Assert",
             "publisher": "Microsoft",
