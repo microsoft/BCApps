@@ -29,9 +29,17 @@ codeunit 304 "No. Series - Impl."
         end;
     end;
 
-    procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20]
+    procedure GetLastNoUsed(NoSeriesCode: Code[20]): Code[20]
+    var
+        NoSeriesLine: Record "No. Series Line";
+        NoSeriesSingle: Interface "No. Series - Single";
     begin
-        exit(GetImplementation(NoSeriesLine).GetLastNoUsed(NoSeriesLine));
+        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", WorkDate(), true) then
+            exit('');
+
+        NoSeriesSingle := GetImplementation(NoSeriesLine);
+
+        exit(NoSeriesSingle.GetLastNoUsed(NoSeriesLine));
     end;
 
     procedure GetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
@@ -46,15 +54,10 @@ codeunit 304 "No. Series - Impl."
     var
         NoSeriesSingle: Interface "No. Series - Single";
     begin
-        if SeriesDate = 0D then
-            SeriesDate := WorkDate();
         if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", SeriesDate, HideErrorsAndWarnings) then
             exit('');
 
-        if NoSeriesLine."Allow Gaps in Nos." then // TODO: Enum needs to be specified on the table and retrieved from there
-            NoSeriesSingle := Enum::"No. Series Implementation"::Sequence
-        else
-            NoSeriesSingle := Enum::"No. Series Implementation"::Normal;
+        NoSeriesSingle := GetImplementation(NoSeriesLine);
 
         exit(NoSeriesSingle.GetNextNo(NoSeriesLine, SeriesDate, HideErrorsAndWarnings));
     end;
@@ -122,15 +125,10 @@ codeunit 304 "No. Series - Impl."
     var
         NoSeriesSingle: Interface "No. Series - Single";
     begin
-        if UsageDate = 0D then
-            UsageDate := WorkDate();
         if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", UsageDate, true) then
             exit('');
 
-        if NoSeriesLine."Allow Gaps in Nos." then
-            NoSeriesSingle := Enum::"No. Series Implementation"::Sequence
-        else
-            NoSeriesSingle := Enum::"No. Series Implementation"::Normal;
+        NoSeriesSingle := GetImplementation(NoSeriesLine);
 
         exit(NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate));
     end;

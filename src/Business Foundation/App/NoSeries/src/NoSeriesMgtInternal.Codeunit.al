@@ -22,9 +22,6 @@ codeunit 282 NoSeriesMgtInternal
 
     var
         LastWarningNoSeriesCode: Code[20];
-        Text004Err: Label 'You cannot assign new numbers from the number series %1 on %2.', Comment = '%1=No. Series Code,%2=Date';
-        Text005Err: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1=No. Series Code';
-        Text006Err: Label 'You cannot assign new numbers from the number series %1 on a date before %2.', Comment = '%1=No. Series Code,%2=Date';
         Text007Err: Label 'You cannot assign numbers greater than %1 from the number series %2.', Comment = '%1=Last No.,%2=No. Series Code';
 
     procedure EnsureLastNoUsedIsWithinValidRange(NoSeriesLine: Record "No. Series Line"; NoErrorsOrWarnings: Boolean): Boolean
@@ -51,45 +48,6 @@ codeunit 282 NoSeriesMgtInternal
             Message(
               Text007Err,
               NoSeriesLine."Ending No.", NoSeriesLine."Series Code");
-        end;
-        exit(true);
-    end;
-
-    procedure FindNoSeriesLine(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean; NoErrorsOrWarnings: Boolean; var NoSeriesLine: Record "No. Series Line"): Boolean
-    var
-        NoSeries: Record "No. Series";
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-        UpdateLastUsedDate: Boolean;
-    begin
-        if SeriesDate = 0D then
-            SeriesDate := WorkDate();
-
-        NoSeries.Get(NoSeriesCode);
-        NoSeriesManagement.SetNoSeriesLineFilter(NoSeriesLine, NoSeriesCode, SeriesDate);
-        if not NoSeriesLine.FindFirst() then begin
-            if NoErrorsOrWarnings then
-                exit(false);
-            NoSeriesLine.SetRange("Starting Date");
-            if not NoSeriesLine.IsEmpty() then
-                Error(
-                  Text004Err,
-                  NoSeriesCode, SeriesDate);
-            Error(
-              Text005Err,
-              NoSeriesCode);
-        end;
-        UpdateLastUsedDate := NoSeriesLine."Last Date Used" <> SeriesDate;
-        if ModifySeries and (not NoSeriesLine."Allow Gaps in Nos." or UpdateLastUsedDate) then begin
-            NoSeriesLine.LockTable();
-            NoSeriesLine.Find();
-        end;
-
-        if NoSeries."Date Order" and (SeriesDate < NoSeriesLine."Last Date Used") then begin
-            if NoErrorsOrWarnings then
-                exit(false);
-            Error(
-              Text006Err,
-              NoSeries.Code, NoSeriesLine."Last Date Used");
         end;
         exit(true);
     end;

@@ -10,7 +10,6 @@ interface "No. Series - Single"
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
 
     procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
-    // procedure GetNextNo(var NoSeries: Record "No. Series"; SaveRecord: Boolean): Code[20]
 
     procedure GetLastNoUsed(NoSeriesLine: Record "No. Series Line"): Code[20]
 }
