@@ -27,6 +27,7 @@ table 774 "User Details"
         /// </summary>
         field(1; "User Security ID"; Guid)
         {
+            Access = Internal;
         }
         /// <summary>
         /// User's name.
@@ -113,53 +114,6 @@ table 774 "User Details"
                                                   "App ID" = const('{00000000-0000-0000-0000-000000000000}')));
             Editable = false;
             FieldClass = FlowField;
-            Access = Internal;
-        }
-        /// <summary>
-        /// A semicolon-separated list of user's plan names
-        /// </summary>
-        field(24; "User Plans"; Text[2048])
-        {
-            Caption = 'User Licenses';
-            Access = Internal;
-        }
-        /// <summary>
-        /// True if the user has Delegated Admin or Delegated Helpdesk plans, false otherwise.
-        /// </summary>
-        field(25; "Is Delegated"; Boolean)
-        {
-            Access = Internal;
-        }
-        /// <summary>
-        /// True if the user has a Microsoft 365 plan, false otherwise.
-        /// </summary>
-        field(26; "Has M365 Plan"; Boolean)
-        {
-            Caption = 'Has Microsoft 365 license';
-            Access = Internal;
-        }
-        /// <summary>
-        /// True if the user an Essential, false otherwise.
-        /// </summary>
-        field(27; "Has Essential Plan"; Boolean)
-        {
-            Caption = 'Has Essential Or Premium license';
-            Access = Internal;
-        }
-        /// <summary>
-        /// True if the user has a Premium plan, false otherwise.
-        /// </summary>
-        field(28; "Has Premium Plan"; Boolean)
-        {
-            Caption = 'Has Essential Or Premium license';
-            Access = Internal;
-        }
-        /// <summary>
-        /// True if the user has any "full" licenses, such as Essential or Premium, false otherwise.
-        /// </summary>
-        field(29; "Has Essential Or Premium Plan"; Boolean)
-        {
-            Caption = 'Has Essential Or Premium license';
             Access = Internal;
         }
     }

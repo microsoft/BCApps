@@ -76,6 +76,12 @@
                              "name":  "Permission Sets",
                              "publisher":  "Microsoft",
                              "version":  "24.0.0.0"
+                         },
+                         {
+                             "id": "0e4ed208-7f60-4bad-a881-eeb03e09d832",
+                             "name": "User Details",
+                             "publisher":  "Microsoft",
+                             "version":  "24.0.0.0"
                          }
                      ],
     "screenshots":  [
@@ -83,6 +89,10 @@
                     ],
     "platform":  "24.0.0.0",
     "idRanges":  [
+                     {
+                         "from":  774,
+                         "to":  776
+                     },
                      {
                          "from":  9016,
                          "to":  9019

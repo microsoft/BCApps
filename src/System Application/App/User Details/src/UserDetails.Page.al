@@ -22,7 +22,7 @@ page 774 "User Details"
     {
         area(content)
         {
-            repeater(Group)
+            repeater(UserDetailsRepeater)
             {
                 field("User Name"; Rec."User Name")
                 {
@@ -41,11 +41,6 @@ page 774 "User Details"
                 {
                     ExtendedDatatype = EMail;
                     ToolTip = 'Specifies the user''s email address.';
-                }
-                field("User Plans"; Rec."User Plans")
-                {
-                    Visible = IsSaaS;
-                    ToolTip = 'Specifies the licenses that are assigned to the user.';
                 }
                 field("User Security ID"; Rec."User Security ID")
                 {
@@ -66,26 +61,11 @@ page 774 "User Details"
                     Visible = IsSaaS;
                     ToolTip = 'Specifies ID assigned to the user in Microsoft Entra.';
                 }
-                // Below are fields that can be added with "Personalize"
+                // Can be added with "Personalize"
                 field("Has SUPER permission set"; Rec."Has SUPER permission set")
                 {
                     Visible = false;
                     ToolTip = 'Specifies if the SUPER permission set is assigned to the user.';
-                }
-                field("Is Delegated"; Rec."Is Delegated")
-                {
-                    Visible = false;
-                    ToolTip = 'Specifies if the user is a delegated admin or delegated helpdesk.';
-                }
-                field("Has Essential Or Premium Plan"; Rec."Has Essential Or Premium Plan")
-                {
-                    Visible = false;
-                    ToolTip = 'Specifies if the use has an Essential or Premium license.';
-                }
-                field("Has M365 Plan"; Rec."Has M365 Plan")
-                {
-                    Visible = false;
-                    ToolTip = 'Specifies if the use has the Microsoft 365 license.';
                 }
             }
         }
@@ -97,24 +77,6 @@ page 774 "User Details"
         {
             Caption = 'Active users';
             Filters = where(State = const(Enabled));
-        }
-        view(ActiveEssentialOrPremiumUsers)
-        {
-            Caption = 'Active users with Essential or Premium license';
-            Filters = where(State = const(Enabled), "Has Essential Or Premium Plan" = const(true));
-            Visible = IsSaaS;
-        }
-        view(DelegatedUsers)
-        {
-            Caption = 'Delegated users';
-            Filters = where("Is Delegated" = const(true));
-            Visible = IsSaaS;
-        }
-        view(M365Users)
-        {
-            Caption = 'Users with Microsoft 365 license';
-            Filters = where("Has M365 Plan" = const(true));
-            Visible = IsSaaS;
         }
         view(SuperUsers)
         {
@@ -132,6 +94,6 @@ page 774 "User Details"
         UserDetails.GetUserDetails(Rec);
     end;
 
-    var
+    protected var
         IsSaaS: Boolean;
 }

@@ -22,4 +22,14 @@ codeunit 774 "User Details"
     begin
         UserDetailsImpl.GetUserDetails(UserDetails);
     end;
+
+    /// <summary>
+    /// If an extension adds fields to the User Details table, this event allows it to populate the added user details fields. 
+    /// </summary>
+    /// <param name="UserSecId">User Security ID of the user to add the details for.</param>
+    /// <param name="UserDetails">The table that holds the values for user details.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnAddUserDetails(UserSecId: Guid; var UserDetails: Record "User Details")
+    begin
+    end;
 }

@@ -5,16 +5,13 @@
 
 namespace System.Security.User;
 using System.Security.AccessControl;
-using System.Azure.Identity;
 using System.Environment.Configuration;
 
 permissionset 775 "User Details - View"
 {
     Assignable = false;
 
-    IncludedPermissionSets = "User Details - Objects",
-                             "Azure AD Plan - View",
-                             "AAD User Management - Exec";
+    IncludedPermissionSets = "User Details - Objects";
 
     Permissions = tabledata User = r,
                   tabledata "User Personalization" = r,
