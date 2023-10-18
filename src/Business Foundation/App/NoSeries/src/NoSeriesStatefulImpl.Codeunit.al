@@ -45,6 +45,14 @@ codeunit 310 "No. Series - Stateful Impl." implements "No. Series - Batch"
         exit(NoSeriesImpl.GetNextNo(TempGlobalNoSeriesLine, LastDateUsed, false));
     end;
 
+    procedure GetLastNoUsed(var TempNoSeriesLine: Record "No. Series Line" temporary): Code[20]
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        SetInitialState(TempNoSeriesLine);
+        exit(NoSeriesImpl.GetLastNoUsed(TempGlobalNoSeriesLine));
+    end;
+
     [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm', InherentPermissionsScope::Both)]
     procedure SaveState(TempNoSeriesLine: Record "No. Series Line" temporary);
     begin

@@ -88,6 +88,12 @@ codeunit 308 "No. Series - Batch"
         exit(NoSeriesBatchImplSim.SimulateGetNextNo(NoSeriesCode, UsageDate, PrevDocumentNo))
     end;
 
+    procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20]
+    begin
+        exit(NoSeriesBatchImpl.GetLastNoUsed(NoSeriesLine));
+    end;
+
+
     /// <summary>
     /// Puts the codeunit in simulation mode which disables the ability to save state.
     /// </summary>

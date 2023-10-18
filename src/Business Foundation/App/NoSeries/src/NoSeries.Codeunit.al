@@ -45,6 +45,13 @@ codeunit 303 "No. Series"
         exit(NoSeriesImpl.PeekNextNo(NoSeriesCode, UsageDate));
     end;
 
+    procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20] // TODO: Return boolean whether a number could actually be retrieved or not? Don't rely on whether the code is blank or not
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.PeekNextNo(NoSeries, UsageDate));
+    end;
+
     procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20] // TODO: Change to NoSeriesCode?
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
@@ -63,12 +70,14 @@ codeunit 303 "No. Series"
     begin
         NoSeriesImpl.TestManual(NoSeriesCode);
     end;
+
     procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20]) // TODO: Make this a try function, such that partners can handle cases where the no. series is not set to manual
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         NoSeriesImpl.TestManual(NoSeriesCode, DocumentNo);
     end;
+
     procedure AreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean // This is basically what InitSeries does, it then uses the other series if they are and gets a number
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";

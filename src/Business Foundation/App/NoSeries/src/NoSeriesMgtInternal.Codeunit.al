@@ -29,9 +29,7 @@ codeunit 282 NoSeriesMgtInternal
 
     procedure EnsureLastNoUsedIsWithinValidRange(NoSeriesLine: Record "No. Series Line"; NoErrorsOrWarnings: Boolean): Boolean
     begin
-        if (NoSeriesLine."Ending No." <> '') and
-                       (NoSeriesLine."Last No. Used" > NoSeriesLine."Ending No.")
-                    then begin
+        if (NoSeriesLine."Ending No." <> '') and (NoSeriesLine."Last No. Used" > NoSeriesLine."Ending No.") then begin
             if NoErrorsOrWarnings then
                 exit(false);
             Error(

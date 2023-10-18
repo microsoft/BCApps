@@ -118,6 +118,14 @@ codeunit 309 "No. Series - Batch Impl."
         exit(GetNextNo(TempNoSeriesLine, UsageDate))
     end;
 
+    procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20]
+    var
+        TempNoSeriesLine: Record "No. Series Line" temporary;
+    begin
+        TempNoSeriesLine := NoSeriesLine;
+        SetDefaultImplementation();
+        exit(NoSeriesBatch.GetLastNoUsed(TempNoSeriesLine));
+    end;
 
     procedure SetSimulationMode()
     begin

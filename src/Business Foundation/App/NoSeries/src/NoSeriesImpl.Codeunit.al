@@ -131,13 +131,21 @@ codeunit 304 "No. Series - Impl."
         exit(PeekNextNo(NoSeriesLine, UsageDate));
     end;
 
+    procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
+    var
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        NoSeriesLine."Series Code" := NoSeries.Code;
+        exit(PeekNextNo(NoSeriesLine, UsageDate));
+    end;
+
     procedure PeekNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date) NextNo: Code[20]
     var
         NoSeriesSingle: Interface "No. Series - Single";
     begin
         if UsageDate = 0D then
             UsageDate := WorkDate();
-        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", UsageDate, true) then
+        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", UsageDate, false) then
             exit('');
 
         if NoSeriesLine."Allow Gaps in Nos." then
