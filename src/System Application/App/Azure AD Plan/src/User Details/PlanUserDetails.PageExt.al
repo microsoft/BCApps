@@ -47,10 +47,10 @@ pageextension 774 "Plan User Details" extends "User Details"
     {
         addafter(ActiveUsers)
         {
-            view(ActiveEssentialOrPremiumUsers)
+            view(EssentialOrPremiumUsers)
             {
-                Caption = 'Active users with Essential or Premium license';
-                Filters = where(State = const(Enabled), "Has Essential Or Premium Plan" = const(true));
+                Caption = 'Users with Essential or Premium license';
+                Filters = where("Has Essential Or Premium Plan" = const(true));
                 Visible = IsSaaS;
             }
             view(DelegatedUsers)
