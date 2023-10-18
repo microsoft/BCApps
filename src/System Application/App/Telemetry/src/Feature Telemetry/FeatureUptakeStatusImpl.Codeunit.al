@@ -145,6 +145,14 @@ codeunit 8705 "Feature Uptake Status Impl."
         exit(false);
     end;
 
+    /// <summary>
+    /// The updates to Feature Uptake states must be done in a separate session (e. g. to not interfere with subsequent Page.RunModal() calls).
+    /// Normally we don't need to wait for this separate session to finish, as feature uptake states are expected to not change rapidly, and it only takes a few milliseconds for the session to complete.
+    /// But if the feature registers uptake states one right after another, then the session may not have enough time to start and acquire a lock on the "Feature Uptake" table by the time the next uptake state is registered.
+    /// For such cases, we can wait for this previous session to finish.
+    /// </summary>
+    /// <remarks>We will only ever wait when feature uptake states a registered for the first time, so there is no persistent performance penalty to this.</remarks>
+    /// <remarks>It is not hard requirement to actually wait for the session to finish, we only need to wait long enough, so that it calls FeatureUptake.LockTable().</remarks>
     local procedure WaitForStartedUpdateFeatureUptakeSession()
     var
         StartDateTime: DateTime;
@@ -157,11 +165,13 @@ codeunit 8705 "Feature Uptake Status Impl."
         StartDateTime := CurrentDateTime();
         while IsSessionActive(StartedSessionId) do begin
             if CurrentDateTime() - StartDateTime > Timeout then begin
+                StartedSessionId := 0;
                 Session.LogMessage('0000LKY', StartedSessionHasNotEndedErr, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryLibraryCategoryTxt);
                 exit;
             end;
 
             Sleep(10);
         end;
+        StartedSessionId := 0;
     end;
 }
