@@ -26,7 +26,6 @@ codeunit 134370 "ERM No. Series Tests"
     procedure TestStartingNoNoGaps()
     var
         NoSeriesLine: Record "No. Series Line";
-        NoSeriesManagement: Codeunit NoSeriesManagement;
         NoSeries: Codeunit "No. Series";
     begin
         Initialize();
@@ -35,8 +34,8 @@ codeunit 134370 "ERM No. Series Tests"
         LibraryAssert.AreEqual(0D, NoSeriesLine."Last Date Used", 'Last Date used should be 0D');
 
         // test
-        LibraryAssert.AreEqual(StartingNumberTxt, NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'No gaps diff');
-        LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'No gaps diff');
+        LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'No gaps diff');
+        LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeries.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'No gaps diff');
         NoSeriesLine.Find();
         LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeriesLine."Last No. Used", 'last no. used field');
         LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeries.GetLastNoUsed(NoSeriesLine), 'lastUsedNo function');
@@ -52,7 +51,6 @@ codeunit 134370 "ERM No. Series Tests"
     procedure TestStartingNoWithGaps()
     var
         NoSeriesLine: Record "No. Series Line";
-        NoSeriesManagement: Codeunit NoSeriesManagement;
         NoSeries: Codeunit "No. Series";
     begin
         Initialize();
@@ -63,9 +61,9 @@ codeunit 134370 "ERM No. Series Tests"
         LibraryAssert.AreEqual(0D, NoSeriesLine."Last Date Used", 'Last Date used should be 0D');
 
         // test
-        LibraryAssert.AreEqual(StartingNumberTxt, NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'With gaps diff');
+        LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'With gaps diff');
         LibraryAssert.AreEqual(ToBigInt(10), NumberSequence.Current(NoSeriesLine."Sequence Name"), 'Current value wrong');
-        LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'With gaps diff');
+        LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeries.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'With gaps diff');
         LibraryAssert.AreEqual(ToBigInt(11), NumberSequence.Current(NoSeriesLine."Sequence Name"), 'Current value wrong');
         NoSeriesLine.Find();
         LibraryAssert.AreEqual('', NoSeriesLine."Last No. Used", 'last no. used field');
@@ -82,7 +80,6 @@ codeunit 134370 "ERM No. Series Tests"
     procedure TestChangingToAllowGaps()
     var
         NoSeriesLine: Record "No. Series Line";
-        NoSeriesManagement: Codeunit NoSeriesManagement;
         NoSeries: Codeunit "No. Series";
     begin
         Initialize();
@@ -91,14 +88,14 @@ codeunit 134370 "ERM No. Series Tests"
         LibraryAssert.AreEqual(ToBigInt(0), NoSeriesLine."Starting Sequence No.", 'Starting Sequence No. is wrong');
 
         // test - enable Allow gaps
-        LibraryAssert.AreEqual(StartingNumberTxt, NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'With gaps diff');
+        LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'With gaps diff');
         NoSeriesLine.Find();
         NoSeriesLine.VALIDATE("Allow Gaps in Nos.", true);
         NoSeriesLine.Modify();
         LibraryAssert.AreEqual(ToBigInt(10), NoSeriesLine."Starting Sequence No.", 'Starting Sequence No. is wrong after conversion');
         LibraryAssert.AreEqual('', NoSeriesLine."Last No. Used", 'last no. used field');
         LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetLastNoUsed(NoSeriesLine), 'lastUsedNo function after conversion');
-        LibraryAssert.AreEqual(SecondNumberTxt, NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'GetNextNo after conversion');
+        LibraryAssert.AreEqual(SecondNumberTxt, NoSeries.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'GetNextNo after conversion');
         LibraryAssert.AreEqual(SecondNumberTxt, NoSeries.GetLastNoUsed(NoSeriesLine), 'lastUsedNo after taking new no. after conversion');
         // Change back to not allow gaps
         NoSeriesLine.Find();
@@ -230,7 +227,6 @@ codeunit 134370 "ERM No. Series Tests"
     procedure TestInsertFromExternalWithGaps()
     var
         NoSeriesLine: Record "No. Series Line";
-        NoSeriesManagement: Codeunit NoSeriesManagement;
         NoSeries: Codeunit "No. Series";
     begin
         Initialize();
@@ -244,8 +240,8 @@ codeunit 134370 "ERM No. Series Tests"
         LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesLine), 'lastUsedNo function before taking a number');
 
         // test
-        LibraryAssert.AreEqual(StartingNumberTxt, NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'Gaps diff');
-        LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'Gaps diff');
+        LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'Gaps diff');
+        LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeries.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'Gaps diff');
 
         // clean up
         DeleteNumberSeries('TEST');
@@ -270,14 +266,14 @@ codeunit 134370 "ERM No. Series Tests"
     local procedure ModifyNoGetNext(AllowGaps: Boolean)
     var
         NoSeriesLine: Record "No. Series Line";
-        NoSeriesManagement: Codeunit NoSeriesManagement;
+        NoSeries: Codeunit "No. Series";
     begin
         Initialize();
         CreateNewNumberSeries('TEST', 1, AllowGaps, NoSeriesLine);
 
         // test
-        LibraryAssert.AreEqual(StartingNumberTxt, NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, false), 'Gaps diff - first');
-        LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, false), 'Gaps diff - second');
+        LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetNextNo(NoSeriesLine."Series Code", TODAY, false), 'Gaps diff - first');
+        LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeries.GetNextNo(NoSeriesLine."Series Code", TODAY, false), 'Gaps diff - second');
 
         // clean up
         DeleteNumberSeries('TEST');
@@ -303,20 +299,19 @@ codeunit 134370 "ERM No. Series Tests"
     local procedure SaveNoSeries(AllowGaps: Boolean)
     var
         NoSeriesLine: Record "No. Series Line";
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-        NoSeries: Codeunit "No. Series";
+        NoSeriesBatch: Codeunit "No. Series - Batch";
     begin
         Initialize();
         CreateNewNumberSeries('TEST', 1, AllowGaps, NoSeriesLine);
 
         // test
-        LibraryAssert.AreEqual(StartingNumberTxt, NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, false), 'Gaps diff');
-        LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, false), 'Gaps diff');
-        NoSeriesManagement.SaveNoSeries();
-        Clear(NoSeriesManagement);
-        NoSeriesLine.Find();
-        LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeries.GetLastNoUsed(NoSeriesLine), 'No. series not updated correctly');
-        LibraryAssert.AreEqual(INCSTR(INCSTR(StartingNumberTxt)), NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'GetNext after Save');
+        LibraryAssert.AreEqual(StartingNumberTxt, NoSeriesBatch.GetNextNo(NoSeriesLine."Series Code", TODAY), 'Gaps diff');
+        LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeriesBatch.GetNextNo(NoSeriesLine."Series Code", TODAY), 'Gaps diff');
+        NoSeriesBatch.SaveState();
+        Clear(NoSeriesBatch);
+        NoSeriesLine.Get(NoSeriesLine."Series Code", NoSeriesLine."Line No.");
+        LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeriesLine."Last No. Used", 'No. series not updated correctly');
+        LibraryAssert.AreEqual(INCSTR(INCSTR(StartingNumberTxt)), NoSeriesBatch.GetNextNo(NoSeriesLine."Series Code", TODAY), 'GetNext after Save');
         // clean up
         DeleteNumberSeries('TEST');
     end;
@@ -340,7 +335,6 @@ codeunit 134370 "ERM No. Series Tests"
     local procedure CurrentAndNextDiffer(AllowGaps: Boolean)
     var
         NoSeriesLine: Record "No. Series Line";
-        NoSeriesManagement: Codeunit NoSeriesManagement;
         NoSeries: Codeunit "No. Series";
     begin
         Initialize();
@@ -348,7 +342,7 @@ codeunit 134370 "ERM No. Series Tests"
 
         // test
         LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesLine), 'Wrong last no.');
-        LibraryAssert.AreEqual(StartingNumberTxt, NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, false), 'Wrong first no.');
+        LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetNextNo(NoSeriesLine."Series Code", TODAY, false), 'Wrong first no.');
 
         // clean up
         DeleteNumberSeries('TEST');
@@ -432,7 +426,7 @@ codeunit 134370 "ERM No. Series Tests"
     procedure NoSeriesValidationDoesNotChangeTheNextNoGenerated()
     var
         NoSeriesLine: Record "No. Series Line";
-        NoSeriesManagement: Codeunit NoSeriesManagement;
+        NoSeries: Codeunit "No. Series";
         NoSeriesPage: TestPage "No. Series";
     begin
         // Create no. series without no. series line
@@ -445,13 +439,13 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeriesPage.TestNoSeriesSingle.Invoke();
 
         // Ensure invoking TestNoSeries action does not modify the series
-        LibraryAssert.AreEqual(StartingNumberTxt, NoSeriesManagement.DoGetNextNo('TEST', WorkDate(), true, true), 'DoGetNextNo does not get the first no in the no series');
+        LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetNextNo('TEST', WorkDate(), true), 'DoGetNextNo does not get the first no in the no series');
 
         // Invoke TestNoSeries action again
         NoSeriesPage.TestNoSeriesSingle.Invoke();
 
         // Ensure invoking TestNoSeries action does not modify the series
-        LibraryAssert.AreEqual(IncStr(StartingNumberTxt), NoSeriesManagement.DoGetNextNo('TEST', WorkDate(), true, true), 'DoGetNextNo does the get the second no in the no series');
+        LibraryAssert.AreEqual(IncStr(StartingNumberTxt), NoSeries.GetNextNo('TEST', WorkDate(), true), 'DoGetNextNo does the get the second no in the no series');
 
         // clean up
         DeleteNumberSeries('TEST');
@@ -593,20 +587,19 @@ codeunit 134370 "ERM No. Series Tests"
     procedure ChangeIncrementWithGaps()
     var
         NoSeriesLine: Record "No. Series Line";
-        NoSeriesManagement: Codeunit NoSeriesManagement;
         NoSeries: Codeunit "No. Series";
     begin
         Initialize();
         CreateNewNumberSeries('TEST', 1, true, NoSeriesLine);
 
         // test
-        LibraryAssert.AreEqual(StartingNumberTxt, NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'With gaps diff');
+        LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'With gaps diff');
         LibraryAssert.AreEqual(ToBigInt(10), NumberSequence.Current(NoSeriesLine."Sequence Name"), 'Current value wrong');
         NoSeriesLine.Get(NoSeriesLine."Series Code", NoSeriesLine."Line No.");
         NoSeriesLine.Validate("Increment-by No.", 2);
         NoSeriesLine.Modify();
         LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetLastNoUsed(NoSeriesLine), 'Last Used No. changed after changing increment');
-        LibraryAssert.AreEqual(INCSTR(INCSTR(StartingNumberTxt)), NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'With gaps diff after change of increment');
+        LibraryAssert.AreEqual(INCSTR(INCSTR(StartingNumberTxt)), NoSeries.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'With gaps diff after change of increment');
         NoSeriesLine.Get(NoSeriesLine."Series Code", NoSeriesLine."Line No.");
         LibraryAssert.AreEqual(ToBigInt(12), NumberSequence.Current(NoSeriesLine."Sequence Name"), 'Current value wrong after first use after change of increment');
 
