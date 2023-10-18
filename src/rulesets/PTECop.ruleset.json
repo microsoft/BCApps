@@ -7,7 +7,8 @@
                   },
                   {
                       "id":  "PTE0002",
-                      "action":  "Error"
+                      "action":  "None",
+                      "justification": "PTE ID ranges do not apply to 1st party apps"
                   },
                   {
                       "id":  "PTE0003",
