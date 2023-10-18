@@ -6,8 +6,5 @@
     "testFolders":  [
         "..\\..\\..\\src\\Tools\\Performance Toolkit\\Test"
     ],
-    "enableAppSourceCop": true,
-    "enablePerTenantExtensionCop": true,
-    "enableUICop": true,
     "installOnlyReferencedApps": false
 }
