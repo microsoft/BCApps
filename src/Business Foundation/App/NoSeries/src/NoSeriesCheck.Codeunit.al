@@ -11,8 +11,9 @@ codeunit 4143 "No. Series Check"
 
     trigger OnRun()
     var
-        NoSeriesManagement: Codeunit NoSeriesManagement;
+        NoSeriesBatch: Codeunit "No. Series - Batch";
     begin
-        NoSeriesManagement.DoGetNextNo(Rec.Code, WorkDate(), false, false);
+        NoSeriesBatch.SetSimulationMode();
+        NoSeriesBatch.GetNextNo(Rec, WorkDate());
     end;
 }

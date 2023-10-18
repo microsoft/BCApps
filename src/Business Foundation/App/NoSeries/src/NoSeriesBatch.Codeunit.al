@@ -17,6 +17,20 @@ codeunit 308 "No. Series - Batch"
         NoSeriesBatchImpl.SetImplementation(NoSeriesBatch);
     end;
 
+    procedure TestManual(NoSeriesCode: Code[20])
+    var
+        NoSeries: Codeunit "No. Series";
+    begin
+        NoSeries.TestManual(NoSeriesCode);
+    end;
+
+    procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])
+    var
+        NoSeries: Codeunit "No. Series";
+    begin
+        NoSeries.TestManual(NoSeriesCode, DocumentNo);
+    end;
+
     procedure PeekNextNo(NoSeriesCode: Code[20]): Code[20]
     begin
         exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesCode))

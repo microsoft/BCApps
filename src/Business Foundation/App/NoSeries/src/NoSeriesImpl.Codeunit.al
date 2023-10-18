@@ -18,16 +18,28 @@ codeunit 304 "No. Series - Impl."
         CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1=No. Series Code';
         CannotAssignNewBeforeDateErr: Label 'You cannot assign new numbers from the number series %1 on a date before %2.', Comment = '%1=No. Series Code,%2=Date';
         CannotAssignAutomaticallyErr: Label 'It is not possible to assign numbers automatically. If you want the program to assign numbers automatically, please activate %1 in %2 %3.', Comment = '%1=Default Nos. setting,%2=No. Series table caption,%3=No. Series Code';
+        PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
 
     procedure TestManual(NoSeriesCode: Code[20])
     var
         NoSeries: Record "No. Series";
     begin
-        if NoSeriesCode <> '' then begin
-            NoSeries.Get(NoSeriesCode);
-            if not NoSeries."Manual Nos." then
-                Error(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeries.Code);
-        end;
+        if NoSeriesCode = '' then
+            exit;
+        NoSeries.Get(NoSeriesCode);
+        if not NoSeries."Manual Nos." then
+            Error(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeries.Code);
+    end;
+
+    procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])
+    var
+        NoSeries: Record "No. Series";
+    begin
+        if NoSeriesCode = '' then
+            exit;
+        NoSeries.Get(NoSeriesCode);
+        if not NoSeries."Manual Nos." then
+            Error(Posterr, DocumentNo);
     end;
 
     procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20]

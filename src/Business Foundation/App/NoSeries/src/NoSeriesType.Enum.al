@@ -9,6 +9,7 @@ enum 396 "No. Series Type"
 {
     Access = Public;
     Extensible = true;
+    
     value(0; Normal)
     {
         Caption = 'Normal';

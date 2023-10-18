@@ -78,10 +78,8 @@ codeunit 281 NoSeriesMgt
 
     // FindNoSeriesLineToShow is used from baseapp test
     procedure FindNoSeriesLineToShow(var NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line")
-    var
-        NoSeriesManagement: Codeunit NoSeriesManagement;
     begin
-        NoSeriesManagement.SetNoSeriesLineFilter(NoSeriesLine, NoSeries.Code, 0D);
+        SetNoSeriesLineFilter(NoSeriesLine, NoSeries.Code, 0D);
 
         if NoSeriesLine.FindLast() then
             exit;
@@ -89,6 +87,33 @@ codeunit 281 NoSeriesMgt
         NoSeriesLine.Reset();
         NoSeriesLine.SetRange("Series Code", NoSeries.Code);
     end;
+
+    procedure SetNoSeriesLineFilter(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; StartDate: Date)
+#if not CLEAN24
+#pragma warning disable AL0432
+    var
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+#pragma warning restore AL0432
+#endif
+    begin
+        if StartDate = 0D then
+            StartDate := WorkDate();
+
+        NoSeriesLine.Reset();
+        NoSeriesLine.SetCurrentKey("Series Code", "Starting Date");
+        NoSeriesLine.SetRange("Series Code", NoSeriesCode);
+        NoSeriesLine.SetRange("Starting Date", 0D, StartDate);
+#if not CLEAN24
+#pragma warning disable AL0432
+        NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
+#pragma warning restore AL0432
+#endif
+        if NoSeriesLine.FindLast() then begin
+            NoSeriesLine.SetRange("Starting Date", NoSeriesLine."Starting Date");
+            NoSeriesLine.SetRange(Open, true);
+        end;
+    end;
+
 
     internal procedure UpdateLine(var NoSeries: Record "No. Series"; var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var AllowGaps: Boolean)
     var

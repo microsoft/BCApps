@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN24
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -7,6 +8,10 @@ namespace Microsoft.Foundation.NoSeries;
 
 codeunit 396 NoSeriesManagement
 {
+    ObsoleteReason = 'Please use the "No. Series" and "No. Series - Batch" codeunits instead';
+    ObsoleteState = Pending;
+    ObsoleteTag = '24.0';
+
     Permissions = tabledata "No. Series Line" = rimd,
 #if not CLEAN24
 #pragma warning disable AL0432
@@ -431,11 +436,16 @@ codeunit 396 NoSeriesManagement
         NoSeriesLine.SetCurrentKey("Series Code", "Starting Date");
         NoSeriesLine.SetRange("Series Code", NoSeriesCode);
         NoSeriesLine.SetRange("Starting Date", 0D, StartDate);
-        OnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
+        RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
         if NoSeriesLine.FindLast() then begin
             NoSeriesLine.SetRange("Starting Date", NoSeriesLine."Starting Date");
             NoSeriesLine.SetRange(Open, true);
         end;
+    end;
+
+    internal procedure RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(var NoSeriesLine: Record "No. Series Line")
+    begin
+        OnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
     end;
 
     procedure IncrementNoText(var No: Code[20]; IncrementByNo: Decimal)
@@ -961,3 +971,4 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 }
+#endif

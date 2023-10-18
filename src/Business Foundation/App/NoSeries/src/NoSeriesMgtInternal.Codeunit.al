@@ -58,14 +58,14 @@ codeunit 282 NoSeriesMgtInternal
     procedure FindNoSeriesLine(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean; NoErrorsOrWarnings: Boolean; var NoSeriesLine: Record "No. Series Line"): Boolean
     var
         NoSeries: Record "No. Series";
-        NoSeriesManagement: Codeunit NoSeriesManagement;
+        NoSeriesMgt: Codeunit NoSeriesMgt;
         UpdateLastUsedDate: Boolean;
     begin
         if SeriesDate = 0D then
             SeriesDate := WorkDate();
 
         NoSeries.Get(NoSeriesCode);
-        NoSeriesManagement.SetNoSeriesLineFilter(NoSeriesLine, NoSeriesCode, SeriesDate);
+        NoSeriesMgt.SetNoSeriesLineFilter(NoSeriesLine, NoSeriesCode, SeriesDate);
         if not NoSeriesLine.FindFirst() then begin
             if NoErrorsOrWarnings then
                 exit(false);
