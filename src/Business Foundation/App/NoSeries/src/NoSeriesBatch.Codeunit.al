@@ -81,6 +81,13 @@ codeunit 308 "No. Series - Batch"
         exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, LastDateUsed))
     end;
 
+    procedure SimulateGetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; PrevDocumentNo: Code[20]): Code[20]
+    var
+        NoSeriesBatchImplSim: Codeunit "No. Series - Batch Impl.";
+    begin
+        exit(NoSeriesBatchImplSim.SimulateGetNextNo(NoSeriesCode, UsageDate, PrevDocumentNo))
+    end;
+
     /// <summary>
     /// Puts the codeunit in simulation mode which disables the ability to save state.
     /// </summary>

@@ -1,5 +1,4 @@
-﻿#if not CLEAN24
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -362,6 +361,8 @@ codeunit 396 NoSeriesManagement
         NoSeriesLine."Last No. Used" := LastNoUsed;
     end;
 
+#if not CLEAN24
+    [Obsolete('Use PeekNextNo from codeunit "No. Series" instead.', '24.0')]
     procedure TryGetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date): Code[20]
     var
         NoSeriesManagement: Codeunit NoSeriesManagement;
@@ -370,6 +371,7 @@ codeunit 396 NoSeriesManagement
         if NoSeriesManagement.Run() then
             exit(NoSeriesManagement.GetNextNoAfterRun());
     end;
+#endif
 
 #if not CLEAN21
     [Obsolete('Use SetParametersBeforeRun() instead', '21.0')]
@@ -971,4 +973,3 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 }
-#endif

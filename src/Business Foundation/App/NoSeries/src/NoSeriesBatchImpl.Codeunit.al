@@ -102,6 +102,23 @@ codeunit 309 "No. Series - Batch Impl."
         exit(NoSeriesBatch.GetNextNo(TempNoSeriesLine, LastDateUsed));
     end;
 
+    procedure SimulateGetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; PrevDocumentNo: Code[20]): Code[20]
+    var
+        NoSeries: Record "No. Series";
+        TempNoSeriesLine: Record "No. Series Line" temporary;
+    begin
+        if NoSeriesCode = '' then
+            exit(IncStr(PrevDocumentNo));
+
+        SetSimulationMode();
+
+        NoSeries.Get(NoSeriesCode);
+        GetNoSeriesLine(TempNoSeriesLine, NoSeries, UsageDate);
+        TempNoSeriesLine."Last No. Used" := PrevDocumentNo;
+        exit(GetNextNo(TempNoSeriesLine, UsageDate))
+    end;
+
+
     procedure SetSimulationMode()
     begin
         SimulationMode := true;
