@@ -21,7 +21,7 @@ codeunit 776 "Plan User Details"
         UsersInPlans: Query "Users in Plans";
         UserPlansTextBuilder: TextBuilder;
     begin
-        UsersInPlans.SetRange(User_Security_ID, UserDetails."User Security ID");
+        UsersInPlans.SetRange(User_Security_ID, UserSecId);
         if UsersInPlans.Open() then
             while UsersInPlans.Read() do begin
                 UserPlansTextBuilder.Append(UsersInPlans.Plan_Name);
@@ -30,7 +30,7 @@ codeunit 776 "Plan User Details"
 
         UserDetails."User Plans" := CopyStr(UserPlansTextBuilder.ToText().TrimEnd(' ; '), 1, MaxStrLen(UserDetails."User Plans"));
         UserDetails."Is Delegated" := AzureADPlan.IsPlanAssignedToUser(PlanIds.GetDelegatedAdminPlanId(), UserSecID) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetHelpDeskPlanId(), UserSecID) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPartnerPlanId(), UserSecID);
-        UserDetails."Has M365 Plan" := AzureADPlan.IsPlanAssignedToUser(PlanIds.GetMicrosoft365PlanId(), UserDetails."User Security ID");
+        UserDetails."Has M365 Plan" := AzureADPlan.IsPlanAssignedToUser(PlanIds.GetMicrosoft365PlanId(), UserSecId);
 
         UsersInPlans.SetFilter(Plan_Name, '*Essential*');
         UserDetails."Has Essential Plan" := UsersInPlans.Open() and UsersInPlans.Read();
