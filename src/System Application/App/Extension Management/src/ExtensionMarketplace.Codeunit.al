@@ -216,17 +216,17 @@ codeunit 2501 "Extension Marketplace"
         if IsNullGuid(ApplicationId) then
             Error(TelemetryExtensionNotFoundErr, ApplicationId);
 
+        if PreviewKey <> '' then begin
+            // Preview keys are not saved on the data plane and we must then trigger the full deploy operation.
+            ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true, PreviewKey);
+        end;
+
         PublishedApplication.SetRange("Package ID", ExtensionOperationImpl.GetLatestVersionPackageIdByAppId(ApplicationId));
         PublishedApplication.SetRange("Tenant Visible", true);
         if not PublishedApplication.FindFirst() then begin
             // If the extension is not found, send the request to the regional service.
             ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true, '');
             exit;
-        end;
-
-        if PreviewKey <> '' then begin
-            // Preview keys are not saved on the data plane and we must then trigger the deploy operation again.
-            ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true, PreviewKey);
         end;
 
         // Check if the extension is already installed
