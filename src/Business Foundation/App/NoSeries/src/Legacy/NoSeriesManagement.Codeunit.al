@@ -77,7 +77,6 @@ codeunit 396 NoSeriesManagement
 
     procedure InitSeries(DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20])
     var
-        NoSeriesCodeunit: Codeunit "No. Series";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -98,7 +97,7 @@ codeunit 396 NoSeriesManagement
                 if not GlobalNoSeries.Find() then
                     GlobalNoSeries.Get(DefaultNoSeriesCode);
             end;
-            NewNo := NoSeriesCodeunit.GetNextNo(GlobalNoSeries.Code, NewDate, true); // TODO: Revert
+            NewNo := GetNextNo(GlobalNoSeries.Code, NewDate, true);
             NewNoSeriesCode := GlobalNoSeries.Code;
         end else
             TestManual(DefaultNoSeriesCode);

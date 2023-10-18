@@ -8,8 +8,10 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 304 "No. Series - Impl."
 {
     Access = Internal;
-    Permissions = tabledata "No. Series Line" = rimd,
+    permissions = tabledata "No. Series Line" = rimd,
                   tabledata "No. Series" = r;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     var
         CannotAssignManuallyErr: Label 'You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.', comment = '%1=Manual Nos. setting,%2=No. Series table caption,%3=No. Series Code';
@@ -27,6 +29,11 @@ codeunit 304 "No. Series - Impl."
             if not NoSeries."Manual Nos." then
                 Error(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeries.Code);
         end;
+    end;
+
+    procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20]
+    begin
+        exit(GetImplementation(NoSeriesLine).GetLastNoUsed(NoSeriesLine));
     end;
 
     procedure GetLastNoUsed(NoSeriesCode: Code[20]): Code[20]
@@ -133,9 +140,9 @@ codeunit 304 "No. Series - Impl."
         exit(NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate));
     end;
 
-    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; SeriesDate: Date): Boolean
+    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; SeriesDate: Date; HideWarningsAndErrors: Boolean): Boolean
     begin
-        exit(GetNoSeriesLine(NoSeriesLine, NoSeries.Code, SeriesDate, true));
+        exit(GetNoSeriesLine(NoSeriesLine, NoSeries.Code, SeriesDate, HideWarningsAndErrors));
     end;
 
     procedure AreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean

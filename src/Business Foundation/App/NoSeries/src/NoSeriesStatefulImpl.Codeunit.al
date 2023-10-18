@@ -8,9 +8,13 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 310 "No. Series - Stateful Impl." implements "No. Series - Batch"
 {
     Access = Internal;
+    permissions = tabledata "No. Series Line" = rm;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     var
         TempGlobalNoSeriesLine: Record "No. Series Line" temporary;
+        LockedNoSeriesLine: Record "No. Series Line";
 
     procedure SetInitialState(TempNoSeriesLine: Record "No. Series Line" temporary);
     begin
@@ -20,7 +24,7 @@ codeunit 310 "No. Series - Stateful Impl." implements "No. Series - Batch"
         if TempGlobalNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.") then
             exit;
 
-        TempGlobalNoSeriesLine := TempNoSeriesLine; // TODO: Handle series date?
+        TempGlobalNoSeriesLine := TempNoSeriesLine;
         TempglobalNoSeriesLine.Insert();
     end;
 
@@ -32,43 +36,64 @@ codeunit 310 "No. Series - Stateful Impl." implements "No. Series - Batch"
         exit(NoSeriesImpl.PeekNextNo(TempGlobalNoSeriesLine, UsageDate));
     end;
 
-    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date): Code[20];
+    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; LastDateUsed: Date): Code[20];
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         SetInitialState(TempNoSeriesLine);
-        exit(NoSeriesImpl.GetNextNo(TempGlobalNoSeriesLine."Series Code", UsageDate, true));
+        LockedNoSeriesLine.LockTable();
+        exit(NoSeriesImpl.GetNextNo(TempGlobalNoSeriesLine, LastDateUsed, false));
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm', InherentPermissionsScope::Both)]
     procedure SaveState(TempNoSeriesLine: Record "No. Series Line" temporary);
-    var
-        NoSeriesLine: Record "No. Series Line";
     begin
         if not TempGlobalNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.") then
             exit;
-
-        NoSeriesLine := TempGlobalNoSeriesLine;
-#pragma warning disable AA0214
-        NoSeriesLine.Modify(true);
-#pragma warning restore AA0214
+        UpdateNoSeriesLine(TempGlobalNoSeriesLine);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm', InherentPermissionsScope::Both)]
     procedure SaveState();
-    var
-        NoSeriesLine: Record "No. Series Line";
     begin
         if TempGlobalNoSeriesLine.FindSet() then
             repeat
-                NoSeriesLine := TempGlobalNoSeriesLine;
-#pragma warning disable AA0214
-                NoSeriesLine.Modify(true);
-#pragma warning restore AA0214
+                UpdateNoSeriesLine(TempGlobalNoSeriesLine);
             until TempGlobalNoSeriesLine.Next() = 0;
+    end;
+
+    local procedure UpdateNoSeriesLine(var TempNoSeriesLine: Record "No. Series Line" temporary)
+    var
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        NoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
+        NoSeriesLine."Last No. Used" := TempNoSeriesLine."Last No. Used";
+        NoSeriesLine."Last Date Used" := TempNoSeriesLine."Last Date Used";
+#pragma warning disable AA0214
+        NoSeriesLine.Modify(true);
+#pragma warning restore AA0214
     end;
 
     local procedure IsSameNoSeriesLine(TempNoSeriesLine: Record "No. Series Line" temporary): Boolean;
     begin
         exit((TempGlobalNoSeriesLine."Series Code" = TempNoSeriesLine."Series Code") and
              (TempGlobalNoSeriesLine."Line No." = TempNoSeriesLine."Line No."));
+    end;
+
+    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line" temporary; NoSeries: Record "No. Series"; UsageDate: Date)
+    var
+        NoSeriesLine2: Record "No. Series Line";
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        if NoSeriesImpl.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeries, UsageDate, true) then begin
+            NoSeriesLine := TempGlobalNoSeriesLine;
+            exit;
+        end;
+
+        if not NoSeriesImpl.GetNoSeriesLine(NoSeriesLine2, NoSeries, UsageDate, false) then
+            exit;
+
+        SetInitialState(NoSeriesLine2);
+        NoSeriesLine := TempGlobalNoSeriesLine;
     end;
 }

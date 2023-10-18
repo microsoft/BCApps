@@ -12,6 +12,11 @@ codeunit 308 "No. Series - Batch"
     var
         NoSeriesBatchImpl: Codeunit "No. Series - Batch Impl."; // needs to keep state
 
+    procedure SetImplementation(NoSeriesBatch: Interface "No. Series - Batch")
+    begin
+        NoSeriesBatchImpl.SetImplementation(NoSeriesBatch);
+    end;
+
     procedure PeekNextNo(NoSeriesCode: Code[20]): Code[20]
     begin
         exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesCode))
@@ -57,8 +62,26 @@ codeunit 308 "No. Series - Batch"
         exit(NoSeriesBatchImpl.GetNextNo(NoSeries, UsageDate))
     end;
 
-    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
+    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; LastDateUsed: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, UsageDate))
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, LastDateUsed))
+    end;
+
+    /// <summary>
+    /// Puts the codeunit in simulation mode which disables the ability to save state.
+    /// </summary>
+    procedure SetSimulationMode()
+    begin
+        NoSeriesBatchImpl.SetSimulationMode();
+    end;
+
+    procedure SaveState(TempNoSeriesLine: Record "No. Series Line" temporary);
+    begin
+        NoSeriesBatchImpl.SaveState(TempNoSeriesLine);
+    end;
+
+    procedure SaveState();
+    begin
+        NoSeriesBatchImpl.SaveState();
     end;
 }

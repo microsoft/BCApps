@@ -16,7 +16,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         exit(GetNextNoInternal(NoSeriesLine, false, UsageDate, false));
     end;
 
-    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
+    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     begin
         exit(GetNextNoInternal(NoSeriesLine, true, UsageDate, HideErrorsAndWarnings));
     end;
@@ -41,7 +41,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         LastSeqNoUsed := NumberSequence.Current(NoSeriesLine."Sequence Name");
     end;
 
-    local procedure GetNextNoInternal(NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
+    local procedure GetNextNoInternal(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     var
         NoSeriesMgtInternal: Codeunit NoSeriesMgtInternal;
         NewNo: BigInteger;

@@ -5,23 +5,19 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-using System.Environment.Configuration;
-
-permissionset 2 "No. Series - Admin"
+permissionset 304 "No. Series - Admin"
 {
     Access = Internal;
     Assignable = false;
-    IncludedPermissionSets = "No. Series - Object";
+    IncludedPermissionSets = "No. Series - View";
 
-    Permissions = tabledata "No. Series" = RIMD,
-        tabledata "No. Series Line" = RIMD,
+    Permissions = tabledata "No. Series" = IMD,
+        tabledata "No. Series Line" = IMD,
 #if not CLEAN24
 #pragma warning disable AL0432
-        tabledata "No. Series Line Sales" = RIMD,
-        tabledata "No. Series Line Purchase" = RIMD,
+        tabledata "No. Series Line Sales" = IMD,
+        tabledata "No. Series Line Purchase" = IMD,
 #pragma warning restore AL0432
 #endif
-        tabledata "No. Series Relationship" = RIMD,
-        tabledata "Page Data Personalization" = R,
-        tabledata "No. Series Tenant" = rimd;
+        tabledata "No. Series Relationship" = IMD;
 }
