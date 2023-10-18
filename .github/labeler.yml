@@ -1,0 +1,10 @@
+"Area: Build":
+- build/**
+- .github/**
+- .azuredevops/**
+
+"Area: System Application":
+- src/System Application/**
+
+"Area: Tools":
+- src/Tools/**
