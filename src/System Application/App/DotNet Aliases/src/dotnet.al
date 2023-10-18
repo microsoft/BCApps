@@ -2220,5 +2220,11 @@ dotnet
         {
         }
     }
+    assembly("Microsoft.Dynamics.Nav.Crypto.PGP")
+    {
+        type("Microsoft.Dynamics.Nav.Crypto.PGP.PGPProvider"; PGPProvider)
+        {
+        }
+    }
 }
 
