@@ -1233,4 +1233,69 @@ codeunit 1991 "Guided Experience Impl."
             GuidedExperienceItem.DeleteAll(false);
         end;
     end;
+
+    procedure DeleteDuplicatedGuidedExperienceItems(ItemCode: Code[300])
+    var
+        GuidedExperienceItem: Record "Guided Experience Item";
+        Batch, MaxVersion, i : Integer;
+    begin
+        Batch := 10000; // 10k records per batch
+        i := Batch;
+        MaxVersion := FindMaxVersionForGuidedExperienceItem(ItemCode);
+
+        GuidedExperienceItem.SetLoadFields(Code, Version);
+        GuidedExperienceItem.SetRange(Code, ItemCode);
+
+        while i < MaxVersion do begin
+            GuidedExperienceItem.SetRange(Version, 0, i);
+            GuidedExperienceItem.DeleteAll(false);
+            i += Batch;
+
+            if i > MaxVersion then
+                i := MaxVersion - 1;
+
+            Commit();
+        end;
+    end;
+
+    local procedure FindMaxVersionForGuidedExperienceItem(ItemCode: Code[300]): Integer
+    var
+        GuidedExperienceItem: Record "Guided Experience Item";
+    begin
+        GuidedExperienceItem.SetLoadFields(Code, Version);
+        GuidedExperienceItem.SetRange(Code, ItemCode);
+        GuidedExperienceItem.SetCurrentKey(Version);
+
+        GuidedExperienceItem.FindLast();
+
+        exit(GuidedExperienceItem.Version);
+    end;
+
+    procedure GetDuplicatedGuidedExperienceItems(var TempGuidedExperienceItem: Record "Guided Experience Item"; Threshold: Integer)
+    var
+        GuidedExperienceItem: Record "Guided Experience Item";
+        ItemsToCleanUp: List of [Code[300]];
+        ItemCode: Code[300];
+    begin
+        GuidedExperienceItem.SetLoadFields(Code, Version);
+        GuidedExperienceItem.SetFilter(Version, '>=%1', Threshold);
+
+        if GuidedExperienceItem.FindSet() then
+            repeat
+                if not ItemsToCleanUp.Contains(GuidedExperienceItem.Code) then
+                    ItemsToCleanUp.Add(GuidedExperienceItem.Code);
+            until GuidedExperienceItem.Next() = 0;
+
+        GuidedExperienceItem.Reset();
+        GuidedExperienceItem.SetLoadFields(Code, Version);
+
+        foreach ItemCode in ItemsToCleanUp do begin
+            GuidedExperienceItem.SetRange(Code, ItemCode);
+            if GuidedExperienceItem.Count() > Threshold then begin
+                TempGuidedExperienceItem.Init();
+                TempGuidedExperienceItem.Validate(Code, ItemCode);
+                TempGuidedExperienceItem.Insert();
+            end;
+        end;
+    end;
 }
