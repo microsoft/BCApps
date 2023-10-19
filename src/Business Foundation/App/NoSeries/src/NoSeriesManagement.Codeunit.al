@@ -669,9 +669,8 @@ codeunit 396 NoSeriesManagement
                   NewFieldName, NoSeriesLinePurchase.FieldCaption("Last No. Used"));
         end;
     end;
-#pragma warning restore AL0432
-#endif
 
+    [Obsolete('Call TestField on the "No. Series" record, "Date Order" field directly.', '24.0')]
     [Scope('OnPrem')]
     procedure TestDateOrder(NoSeriesCode: Code[20])
     begin
@@ -679,8 +678,6 @@ codeunit 396 NoSeriesManagement
         GlobalNoSeries.TestField("Date Order");
     end;
 
-#if not CLEAN24
-#pragma warning disable AL0432
     [Obsolete('The No. Series module cannot have dependencies to Sales. Please use the method in codeunit "IT - Report Management" instead', '24.0')]
     procedure CheckSalesDocNoGaps(MaxDate: Date)
     var
