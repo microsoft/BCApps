@@ -46,7 +46,7 @@ codeunit 2012 "Entity Text Impl."
         UserPrompt: Text;
         Suggestion: Text;
     begin
-        if not IsEnabled(false) then
+        if not IsEnabled(true) then
             Error(CapabilityDisabledErr);
         if not CanSuggest() then
             Error(CannotGenerateErr);
