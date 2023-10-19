@@ -62,9 +62,16 @@ codeunit 303 "No. Series"
         exit(NoSeriesImpl.AreNoSeriesRelated(DefaultNoSeriesCode, RelatedNoSeriesCode));
     end;
 
-    procedure SelectRelatedNoSeries(OriginalNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
+    /// <summary>
+    /// Selects a number series related to the OriginalNoSeriesCode (includes the OriginalNoSeriesCode).
+    /// </summary>
+    /// <param name="OriginalNoSeriesCode">The number series code to find related number series for.</param>
+    /// <param name="DefaultHighlightedNoSeriesCode">The number series code to highlight by default. If empty, the OriginalNoSeriesCode will be used.</param>
+    /// <param name="NewNoSeriesCode">The selected number series code.</param>
+    /// <returns>True if a number series was selected, false otherwise.</returns>
+    procedure SelectRelatedNoSeries(OriginalNoSeriesCode: Code[20]; DefaultHighlightedNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
     begin
-        exit(NoSeriesImpl.SelectRelatedNoSeries(OriginalNoSeriesCode, NewNoSeriesCode));
+        exit(NoSeriesImpl.SelectRelatedNoSeries(OriginalNoSeriesCode, DefaultHighlightedNoSeriesCode, NewNoSeriesCode));
     end;
 
     // Implement?: FindNoSeriesLine, IsCurrentNoSeriesLine, ReverseGetNextNo(apac), 

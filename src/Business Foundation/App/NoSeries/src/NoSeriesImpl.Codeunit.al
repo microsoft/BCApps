@@ -160,23 +160,28 @@ codeunit 304 "No. Series - Impl."
         exit(NoSeriesRelationship.Get(DefaultNoSeriesCode, RelatedNoSeriesCode));
     end;
 
-    procedure SelectRelatedNoSeries(OriginalNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
+    procedure SelectRelatedNoSeries(OriginalNoSeriesCode: Code[20]; DefaultHighlightedNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";
         NoSeriesRelationship: Record "No. Series Relationship";
     begin
-        // Select all related series
+        // Mark all related series
         NoSeriesRelationship.SetRange(Code, OriginalNoSeriesCode);
-
         if NoSeriesRelationship.FindSet() then
             repeat
                 NoSeries.Code := NoSeriesRelationship."Series Code";
                 NoSeries.Mark := true;
             until NoSeriesRelationship.Next() = 0;
+
+        // Mark the original series
         NoSeries.Code := OriginalNoSeriesCode;
         NoSeries.Mark := true;
 
-        if PAGE.RunModal(0, NoSeries) = ACTION::LookupOK then begin
+        // If DefaultHighlightedNoSeriesCode is set, make sure we select it by default on the page
+        if DefaultHighlightedNoSeriesCode <> '' then
+            NoSeries.Code := DefaultHighlightedNoSeriesCode;
+
+        if Page.RunModal(0, NoSeries) = Action::LookupOK then begin
             NewNoSeriesCode := NoSeries.Code;
             exit(true);
         end;
