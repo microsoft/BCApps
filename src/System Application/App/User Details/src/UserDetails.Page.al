@@ -7,6 +7,9 @@ namespace System.Security.User;
 
 using System.Environment;
 
+/// <summary>
+/// Shows detailed user information, such as unique identifiers, information about permission sets etc.
+/// </summary>
 page 774 "User Details"
 {
     ApplicationArea = Basic, Suite;
@@ -16,7 +19,7 @@ page 774 "User Details"
     SourceTableTemporary = true;
     Editable = false;
     AboutTitle = 'About the users detailed view';
-    AboutText = 'View the additional information about users, such as assigned licenses and unique identifiers. The information is provided in a list view, which allows for easy searching and filtering.';
+    AboutText = 'View the additional information about users in a list view, which allows for easy searching and filtering.';
 
     layout
     {

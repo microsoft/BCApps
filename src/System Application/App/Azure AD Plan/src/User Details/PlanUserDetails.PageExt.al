@@ -7,6 +7,9 @@ namespace System.Azure.Identity;
 
 using System.Security.User;
 
+/// <summary>
+/// A page extension that adds details about plans to the User Details page
+/// </summary>
 pageextension 774 "Plan User Details" extends "User Details"
 {
     Editable = false;
