@@ -41,7 +41,7 @@ codeunit 304 "No. Series - Impl."
         NoSeriesLine: Record "No. Series Line";
         NoSeriesSingle: Interface "No. Series - Single";
     begin
-        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", WorkDate(), true) then
+        if not GetNoSeriesLine(NoSeriesLine, NoSeriesCode, WorkDate(), true) then
             exit('');
 
         NoSeriesSingle := GetImplementation(NoSeriesLine);
