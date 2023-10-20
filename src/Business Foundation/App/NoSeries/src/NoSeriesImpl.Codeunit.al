@@ -145,7 +145,7 @@ codeunit 304 "No. Series - Impl."
     begin
         if UsageDate = 0D then
             UsageDate := WorkDate();
-        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", UsageDate, false) then
+        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", UsageDate, true) then
             exit('');
 
         if NoSeriesLine."Allow Gaps in Nos." then
