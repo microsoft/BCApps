@@ -79,6 +79,11 @@ codeunit 304 "No. Series - Impl."
         exit(Enum::"No. Series Implementation"::Normal);
     end;
 
+    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; SeriesDate: Date; HideWarningsAndErrors: Boolean): Boolean
+    begin
+        exit(GetNoSeriesLine(NoSeriesLine, NoSeries.Code, SeriesDate, HideWarningsAndErrors));
+    end;
+
     local procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
     var
         NoSeries: Record "No. Series";
@@ -145,7 +150,7 @@ codeunit 304 "No. Series - Impl."
     begin
         if UsageDate = 0D then
             UsageDate := WorkDate();
-        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", UsageDate, true) then
+        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", UsageDate, false) then
             exit('');
 
         if NoSeriesLine."Allow Gaps in Nos." then
@@ -154,11 +159,6 @@ codeunit 304 "No. Series - Impl."
             NoSeriesSingle := Enum::"No. Series Implementation"::Normal;
 
         exit(NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate));
-    end;
-
-    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; SeriesDate: Date; HideWarningsAndErrors: Boolean): Boolean
-    begin
-        exit(GetNoSeriesLine(NoSeriesLine, NoSeries.Code, SeriesDate, HideWarningsAndErrors));
     end;
 
     procedure AreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean
