@@ -37,9 +37,8 @@ codeunit 134370 "ERM No. Series Tests"
         // test
         LibraryAssert.AreEqual(StartingNumberTxt, NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'No gaps diff');
         LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'No gaps diff');
-#pragma warning disable AA0181
-        NoSeriesLine.Find();
-#pragma warning restore AA0181
+
+        NoSeriesLine.Get(NoSeriesLine."Series Code", NoSeriesLine."Line No.");
         LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeriesLine."Last No. Used", 'last no. used field');
         LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeries.GetLastNoUsed(NoSeriesLine."Series Code"), 'lastUsedNo function');
         LibraryAssert.AreEqual(Today(), NoSeriesLine."Last Date Used", 'Last Date used should be workdate');
@@ -69,9 +68,8 @@ codeunit 134370 "ERM No. Series Tests"
         LibraryAssert.AreEqual(ToBigInt(10), NumberSequence.Current(NoSeriesLine."Sequence Name"), 'Current value wrong');
         LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'With gaps diff');
         LibraryAssert.AreEqual(ToBigInt(11), NumberSequence.Current(NoSeriesLine."Sequence Name"), 'Current value wrong');
-#pragma warning disable AA0181
-        NoSeriesLine.Find();
-#pragma warning restore AA0181
+
+        NoSeriesLine.Get(NoSeriesLine."Series Code", NoSeriesLine."Line No.");
         LibraryAssert.AreEqual('', NoSeriesLine."Last No. Used", 'last no. used field');
         LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeries.GetLastNoUsed(NoSeriesLine."Series Code"), 'lastUsedNo function');
         LibraryAssert.AreEqual(Today(), NoSeriesLine."Last Date Used", 'Last Date used should be workdate');
@@ -318,9 +316,8 @@ codeunit 134370 "ERM No. Series Tests"
         LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, false), 'Gaps diff');
         NoSeriesManagement.SaveNoSeries();
         Clear(NoSeriesManagement);
-#pragma warning disable AA0181
-        NoSeriesLine.Find();
-#pragma warning restore AA0181
+
+        NoSeriesLine.Get(NoSeriesLine."Series Code", NoSeriesLine."Line No.");
         LibraryAssert.AreEqual(INCSTR(StartingNumberTxt), NoSeries.GetLastNoUsed(NoSeriesLine."Series Code"), 'No. series not updated correctly');
         LibraryAssert.AreEqual(INCSTR(INCSTR(StartingNumberTxt)), NoSeriesManagement.GetNextNo(NoSeriesLine."Series Code", TODAY, true), 'GetNext after Save');
         // clean up
