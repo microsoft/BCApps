@@ -87,10 +87,10 @@ codeunit 309 "No. Series - Batch Impl."
 
     procedure GetNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
     var
-        NoSeriesLine: Record "No. Series Line";
+        TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
-        GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate);
-        exit(GetNextNo(NoSeriesLine, UsageDate))
+        GetNoSeriesLine(TempNoSeriesLine, NoSeries, UsageDate);
+        exit(GetNextNo(TempNoSeriesLine, UsageDate))
     end;
 
     procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; LastDateUsed: Date): Code[20]
