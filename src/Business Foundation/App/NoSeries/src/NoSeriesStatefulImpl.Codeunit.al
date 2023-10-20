@@ -102,6 +102,6 @@ codeunit 310 "No. Series - Stateful Impl." implements "No. Series - Batch"
             exit;
 
         SetInitialState(NoSeriesLine2);
-        NoSeriesLine := TempGlobalNoSeriesLine;
+        NoSeriesLine.Copy(TempGlobalNoSeriesLine, true);
     end;
 }

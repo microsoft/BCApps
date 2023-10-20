@@ -52,10 +52,10 @@ codeunit 309 "No. Series - Batch Impl."
 
     procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
     var
-        NoSeriesLine: Record "No. Series Line";
+        TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
-        GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate);
-        exit(PeekNextNo(NoSeriesLine, UsageDate))
+        GetNoSeriesLine(TempNoSeriesLine, NoSeries, UsageDate);
+        exit(PeekNextNo(TempNoSeriesLine, UsageDate))
     end;
 
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
@@ -115,6 +115,7 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeries.Get(NoSeriesCode);
         GetNoSeriesLine(TempNoSeriesLine, NoSeries, UsageDate);
         TempNoSeriesLine."Last No. Used" := PrevDocumentNo;
+        TempNoSeriesLine.Modify(false);
         exit(GetNextNo(TempNoSeriesLine, UsageDate))
     end;
 
