@@ -106,6 +106,7 @@ codeunit 309 "No. Series - Batch Impl."
     var
         NoSeries: Record "No. Series";
         TempNoSeriesLine: Record "No. Series Line" temporary;
+        NoSeriesMgtInternal: Codeunit NoSeriesMgtInternal;
     begin
         if NoSeriesCode = '' then
             exit(IncStr(PrevDocumentNo));
@@ -115,6 +116,9 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeries.Get(NoSeriesCode);
         GetNoSeriesLine(TempNoSeriesLine, NoSeries, UsageDate);
         TempNoSeriesLine."Last No. Used" := PrevDocumentNo;
+        if not NoSeriesMgtInternal.EnsureLastNoUsedIsWithinValidRange(TempNoSeriesLine, true) then
+            exit(IncStr(PrevDocumentNo));
+
         TempNoSeriesLine.Modify(false);
         exit(GetNextNo(TempNoSeriesLine, UsageDate))
     end;

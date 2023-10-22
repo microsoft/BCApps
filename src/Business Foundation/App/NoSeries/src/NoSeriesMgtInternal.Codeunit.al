@@ -29,6 +29,12 @@ codeunit 282 NoSeriesMgtInternal
 
     procedure EnsureLastNoUsedIsWithinValidRange(NoSeriesLine: Record "No. Series Line"; NoErrorsOrWarnings: Boolean): Boolean
     begin
+        //
+        // Todo. this check is not good enough. it uses Str > Str but B0001 is greater than A9999 and that makes it fail. The issue happens when a No. is given that doesn't match the lines pattern and happens to be > than the ending number.
+        // If you give it something with a < than the ending number it does not fail.
+        //ex: Given ending No. INV12345 -> A99999 does not fail but X00001 would.
+        // This function should check the pattern as well.
+        //
         if (NoSeriesLine."Ending No." <> '') and (NoSeriesLine."Last No. Used" > NoSeriesLine."Ending No.") then begin
             if NoErrorsOrWarnings then
                 exit(false);
