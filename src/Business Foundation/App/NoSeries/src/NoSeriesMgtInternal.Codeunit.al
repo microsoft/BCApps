@@ -35,7 +35,13 @@ codeunit 282 NoSeriesMgtInternal
         //ex: Given ending No. INV12345 -> A99999 does not fail but X00001 would.
         // This function should check the pattern as well.
         //
-        if (NoSeriesLine."Ending No." <> '') and (NoSeriesLine."Last No. Used" > NoSeriesLine."Ending No.") then begin
+
+        // number is > than start
+        // number is < than end
+        // length is => start
+        // length is <= end
+
+        if not NoIsWithinValidRange(NoSeriesLine."Last No. Used", NoSeriesLine."Starting No.", NoSeriesLine."Ending No.") then begin
             if NoErrorsOrWarnings then
                 exit(false);
             Error(
@@ -57,6 +63,23 @@ codeunit 282 NoSeriesMgtInternal
               NoSeriesLine."Ending No.", NoSeriesLine."Series Code");
         end;
         exit(true);
+    end;
+
+    local procedure NoIsWithinValidRange(CurrentNo: Code[20]; StartingNo: Code[20]; EndingNo: Code[20]): Boolean
+    begin
+        if CurrentNo = '' then
+            exit(false);
+        if (StartingNo <> '') and (CurrentNo < StartingNo) then
+            exit(false);
+        if (EndingNo <> '') and (CurrentNo > EndingNo) then
+            exit(false);
+
+        if StrLen(CurrentNo) < StrLen(StartingNo) then
+            exit(false);
+        if StrLen(CurrentNo) > StrLen(EndingNo) then
+            exit(false);
+
+        exit(true)
     end;
 
     procedure FindNoSeriesLine(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean; NoErrorsOrWarnings: Boolean; var NoSeriesLine: Record "No. Series Line"): Boolean
