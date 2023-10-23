@@ -1,4 +1,5 @@
 Import-Module $PSScriptRoot\..\GitHubHelpers.psm1
+Import-Module $PSScriptRoot\..\EnlistmentHelperFunctions.psm1
 
 function Get-WorkItemForPullRequest() {
     param(
@@ -55,6 +56,16 @@ function Test-IssuesForPullRequest($Repository, $PullRequestNumber, $GitHubIssue
             Write-Warning "Issue $IssueNumber not found"
         }
     }
+}
+
+function Set-MilestoneForPullRequest($Repository, $PullRequestNumber) {
+    $pullRequest = Get-PullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber
+    if ($pullRequest.milestone) {
+        Write-Host "Pull request already has a milestone: $($pullRequest.milestone.title)"
+        return
+    }
+    $currentMilestone = Get-ConfigValue -Key "Milestone" -ConfigType BuildConfig
+    Set-Milestone -Repository $Repository -IssueNumber $PullRequestNumber -Milestone $currentMilestone
 }
 
 function Test-WorkitemsAreLinked($Repository, $PullRequestNumber, $GitHubIssues, $ADOWorkItems) {

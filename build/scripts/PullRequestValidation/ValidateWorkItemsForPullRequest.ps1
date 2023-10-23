@@ -18,3 +18,6 @@ Test-WorkitemsAreLinked -Repository $Repository -PullRequestNumber $PullRequestN
 
 # Validate that all linked GitHub issues are approved or acknowledged
 Test-IssuesForPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber -GitHubIssues $linkedGitHubIssues
+
+# Ensure that the issue is linked to a milestone
+Set-MilestoneForPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber

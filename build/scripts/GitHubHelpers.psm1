@@ -30,6 +30,16 @@ function AddCommentOnPullRequest($Repository, $PullRequestNumber, $Message) {
     return $comment
 }
 
+function Set-Milestone($Repository, $IssueNumber, $MilestoneName) {
+    $allMilestones = gh api "/repos/$Repository/milestones" --method GET -H $AcceptJsonHeader -H $GitHubAPIHeader | ConvertFrom-Json
+    $milestone = $allMilestones | Where-Object { $_.title -eq $MilestoneName }
+    if (-not $milestone) {
+        throw "::Error:: Milestone $MilestoneName not found"
+    }
+    $milestoneNumber = $milestone.number
+    gh api "/repos/$Repository/issues/$IssueNumber" -H $AcceptJsonHeader -H $GitHubAPIHeader -F milestone=$milestoneNumber | ConvertFrom-Json
+}
+
 function Get-PullRequest($Repository, $PullRequestNumber) {
     $pullRequest = gh api "/repos/$Repository/pulls/$PullRequestNumber" -H $AcceptJsonHeader -H $GitHubAPIHeader | ConvertFrom-Json
     if (-not $pullRequest) {

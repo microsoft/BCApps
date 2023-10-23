@@ -1,3 +1,4 @@
 {
-    "MaxAllowedObsoleteVersion":  "24"
+    "MaxAllowedObsoleteVersion":  "24",
+    "Milestone": "Wave 1 2024"
 }
