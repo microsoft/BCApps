@@ -161,25 +161,22 @@ codeunit 3915 "Reten. Pol. Filtering Impl." implements "Reten. Pol. Filtering"
         RetentionPolicySetupLine.SetCurrentKey("Date Field No.");
         RetentionPolicySetupLine.SetRange("Table ID", RetentionPolicySetup."Table ID");
         RetentionPolicySetupLine.SetRange(Enabled, true);
+        OldestDate := DT2Date(CurrentDateTime());
         if RetentionPolicySetupLine.FindSet(false) then
             repeat
                 if RetentionPolicySetupLine."Date Field No." <> PrevDateFieldNo then begin
                     RecordRef.SetView(StrSubstNo(ViewStringTxt, RetentionPolicySetupLine."Date Field No."));
-                    RecordReferenceIndirectPermission.FindFirst(RecordRef);
+                    if RecordReferenceIndirectPermission.FindFirst(RecordRef, true) then begin
+                        FieldRef := RecordRef.Field(RetentionPolicySetupLine."Date Field No.");
 
-                    FieldRef := RecordRef.Field(RetentionPolicySetupLine."Date Field No.");
+                        if FieldRef.Type = FieldType::DateTime then
+                            CurrDate := DT2Date(FieldRef.Value())
+                        else
+                            CurrDate := FieldRef.Value();
 
-                    if FieldRef.Type = FieldType::DateTime then
-                        CurrDate := DT2Date(FieldRef.Value())
-                    else
-                        CurrDate := FieldRef.Value();
-
-#pragma warning disable AA0205
-                    if OldestDate = 0D then
-#pragma warning restore AA0205
-                        OldestDate := CurrDate;
-                    if CurrDate < OldestDate then
-                        OldestDate := CurrDate;
+                        if CurrDate < OldestDate then
+                            OldestDate := CurrDate;
+                    end;
                 end;
                 PrevDateFieldNo := RetentionPolicySetupLine."Date Field No.";
             until RetentionPolicySetupLine.Next() = 0;
