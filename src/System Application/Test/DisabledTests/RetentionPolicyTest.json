@@ -1,26 +1,6 @@
-[
-    {
-        "bug":  "Not Provided",
-        "codeunitId":  138702,
-        "CodeunitName": "Retention Policy Test",
-        "Method": "TestApplyRetentionPolicyDeleteMaxLinesOneTable"
-    },
-    {
-        "bug":  "Not Provided",
-        "codeunitId":  138702,
-        "CodeunitName": "Retention Policy Test",
-        "Method": "TestApplyRetentionPolicyDeleteMaxLinesBufferOneTable"
-    },
-    {
-        "bug":  "Not Provided",
-        "codeunitId":  138702,
-        "CodeunitName": "Retention Policy Test",
-        "Method": "TestApplyRetentionPolicyDeleteMaxLinesTwoTables"
-    },
-    {
-        "bug":  "Not Provided",
-        "codeunitId":  138702,
-        "CodeunitName": "Retention Policy Test",
-        "Method": "TestApplyRetentionPolicyDeleteMaxLinesBufferTwoTables"
-    }
-]
+{
+    "bug":  "Not Provided",
+    "codeunitId":  138702,
+    "CodeunitName": "Retention Policy Test",
+    "Method": "*"
+}
