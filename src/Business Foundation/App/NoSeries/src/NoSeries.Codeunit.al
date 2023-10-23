@@ -52,7 +52,14 @@ codeunit 303 "No. Series"
         exit(NoSeriesImpl.PeekNextNo(NoSeries, UsageDate));
     end;
 
-    procedure GetLastNoUsed(NoSeriesCode: Code[20]): Code[20] // TODO: Change to NoSeriesCode?
+    procedure GetLastNoUsed(NoSeriesLine: Record "No. Series Line"): Code[20]
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.GetLastNoUsed(NoSeriesLine));
+    end;
+
+    procedure GetLastNoUsed(NoSeriesCode: Code[20]): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
