@@ -57,6 +57,11 @@ codeunit 303 "No. Series"
         NoSeriesImpl.TestManual(NoSeriesCode);
     end;
 
+    procedure IsAutomaticNoSeries(NoSeriesCode: Code[20]): Boolean
+    begin
+        exit(NoSeriesImpl.IsAutomaticNoSeries(NoSeriesCode));
+    end;
+
     procedure TestAreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
     begin
         NoSeriesImpl.TestAreNoSeriesRelated(DefaultNoSeriesCode, RelatedNoSeriesCode);
