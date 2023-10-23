@@ -146,9 +146,6 @@ codeunit 3915 "Reten. Pol. Filtering Impl." implements "Reten. Pol. Filtering"
                 if ExpirationDate >= YoungestExpirationDate then
                     YoungestExpirationDate := ExpirationDate;
             until RetentionPolicySetupLine.Next() = 0;
-
-        if YoungestExpirationDate = 0D then
-            exit(Today());
     end;
 
     local procedure GetOldestRecordDate(RetentionPolicySetup: Record "Retention Policy Setup"): Date
@@ -159,6 +156,7 @@ codeunit 3915 "Reten. Pol. Filtering Impl." implements "Reten. Pol. Filtering"
         CurrDate, OldestDate : Date;
         ViewStringTxt: Label 'sorting (field%1) where(field%1=1(<>''''))', Locked = true;
         PrevDateFieldNo: Integer;
+        IsOldestDateDefined: Boolean;
     begin
         RecordRef.Open(RetentionPolicySetup."Table Id");
         RetentionPolicySetupLine.SetCurrentKey("Date Field No.");
@@ -177,13 +175,19 @@ codeunit 3915 "Reten. Pol. Filtering Impl." implements "Reten. Pol. Filtering"
                         else
                             CurrDate := FieldRef.Value();
 
-                        if CurrDate < OldestDate then
+                        if CurrDate < OldestDate then begin
                             OldestDate := CurrDate;
+                            IsOldestDateDefined := true;
+                        end;
                     end;
                 end;
                 PrevDateFieldNo := RetentionPolicySetupLine."Date Field No.";
             until RetentionPolicySetupLine.Next() = 0;
-        exit(OldestDate);
+
+        if IsOldestDateDefined then
+            exit(OldestDate)
+        else
+            exit(0D);
     end;
 
     local procedure CalculateExpirationDate(RetentionPeriod: Record "Retention Period"): Date
