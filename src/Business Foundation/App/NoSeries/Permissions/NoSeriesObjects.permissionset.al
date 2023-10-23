@@ -23,7 +23,11 @@ permissionset 300 "No. Series - Objects"
         report "No. Series" = X,
         report "No. Series Check" = X,
         codeunit "No. Series Check" = X,
+#if not CLEAN24
+#pragma warning disable AL0432
         codeunit NoSeriesManagement = X,
+#pragma warning restore AL0432
+#endif
         page "No. Series" = X,
         page "No. Series Lines" = X,
 #if not CLEAN21

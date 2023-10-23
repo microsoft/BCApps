@@ -43,7 +43,7 @@ page 7775 "Copilot AI Capabilities"
 
                     trigger OnDrillDown()
                     begin
-                        Hyperlink('');
+                        Hyperlink('https://go.microsoft.com/fwlink/?linkid=2249575');
                     end;
                 }
 

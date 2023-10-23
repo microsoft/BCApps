@@ -26,9 +26,7 @@ codeunit 282 NoSeriesMgtInternal
 
     procedure EnsureLastNoUsedIsWithinValidRange(NoSeriesLine: Record "No. Series Line"; NoErrorsOrWarnings: Boolean): Boolean
     begin
-        if (NoSeriesLine."Ending No." <> '') and
-                       (NoSeriesLine."Last No. Used" > NoSeriesLine."Ending No.")
-                    then begin
+        if not NoIsWithinValidRange(NoSeriesLine."Last No. Used", NoSeriesLine."Starting No.", NoSeriesLine."Ending No.") then begin
             if NoErrorsOrWarnings then
                 exit(false);
             Error(
@@ -51,4 +49,27 @@ codeunit 282 NoSeriesMgtInternal
         end;
         exit(true);
     end;
+    
+#pragma warning disable AA0137 // StartingNo is unused in temp patch
+    local procedure NoIsWithinValidRange(CurrentNo: Code[20]; StartingNo: Code[20]; EndingNo: Code[20]): Boolean
+    begin
+        if (EndingNo = '') then
+            exit(true);
+        exit(CurrentNo < EndingNo);
+
+        // if CurrentNo = '' then
+        //     exit(false);
+        // if (StartingNo <> '') and (CurrentNo < StartingNo) then
+        //     exit(false);
+        // if (EndingNo <> '') and (CurrentNo > EndingNo) then
+        //     exit(false);
+
+        // if StrLen(CurrentNo) < StrLen(StartingNo) then
+        //     exit(false);
+        // if StrLen(CurrentNo) > StrLen(EndingNo) then
+        //     exit(false);
+
+        // exit(true)
+    end;
+#pragma warning restore AA0137 // StartingNo is unused in temp patch
 }

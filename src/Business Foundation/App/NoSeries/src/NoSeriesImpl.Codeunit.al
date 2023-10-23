@@ -20,16 +20,28 @@ codeunit 304 "No. Series - Impl."
         CannotAssignNewBeforeDateErr: Label 'You cannot assign new numbers from the number series %1 on a date before %2.', Comment = '%1=No. Series Code,%2=Date';
         CannotAssignAutomaticallyErr: Label 'It is not possible to assign numbers automatically. If you want the program to assign numbers automatically, please activate %1 in %2 %3.', Comment = '%1=Default Nos. setting,%2=No. Series table caption,%3=No. Series Code';
         SeriesNotRelatedErr: Label 'The number series %1 is not related to %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
+        PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
 
     procedure TestManual(NoSeriesCode: Code[20])
     var
         NoSeries: Record "No. Series";
     begin
-        if NoSeriesCode <> '' then begin
-            NoSeries.Get(NoSeriesCode);
-            if not NoSeries."Manual Nos." then
-                Error(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeries.Code);
-        end;
+        if NoSeriesCode = '' then
+            exit;
+        NoSeries.Get(NoSeriesCode);
+        if not NoSeries."Manual Nos." then
+            Error(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeries.Code);
+    end;
+
+    procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])
+    var
+        NoSeries: Record "No. Series";
+    begin
+        if NoSeriesCode = '' then
+            exit;
+        NoSeries.Get(NoSeriesCode);
+        if not NoSeries."Manual Nos." then
+            Error(Posterr, DocumentNo);
     end;
 
     procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20]
@@ -75,6 +87,11 @@ codeunit 304 "No. Series - Impl."
         if NoSeriesLine."Allow Gaps in Nos." then // TODO: Enum needs to be specified on the table and retrieved from there
             exit(Enum::"No. Series Implementation"::Sequence);
         exit(Enum::"No. Series Implementation"::Normal);
+    end;
+
+    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; SeriesDate: Date; HideWarningsAndErrors: Boolean): Boolean
+    begin
+        exit(GetNoSeriesLine(NoSeriesLine, NoSeries.Code, SeriesDate, HideWarningsAndErrors));
     end;
 
     local procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
@@ -129,21 +146,26 @@ codeunit 304 "No. Series - Impl."
         exit(PeekNextNo(NoSeriesLine, UsageDate));
     end;
 
+    procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
+    var
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        NoSeriesLine."Series Code" := NoSeries.Code;
+        exit(PeekNextNo(NoSeriesLine, UsageDate));
+    end;
+
     procedure PeekNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date) NextNo: Code[20]
     var
         NoSeriesSingle: Interface "No. Series - Single";
     begin
-        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", UsageDate, true) then
+        if UsageDate = 0D then
+            UsageDate := WorkDate();
+        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", UsageDate, false) then
             exit('');
 
         NoSeriesSingle := GetImplementation(NoSeriesLine);
 
         exit(NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate));
-    end;
-
-    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; SeriesDate: Date; HideWarningsAndErrors: Boolean): Boolean
-    begin
-        exit(GetNoSeriesLine(NoSeriesLine, NoSeries.Code, SeriesDate, HideWarningsAndErrors));
     end;
 
     procedure TestAreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])

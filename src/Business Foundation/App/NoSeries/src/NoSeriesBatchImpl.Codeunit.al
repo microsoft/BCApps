@@ -52,10 +52,10 @@ codeunit 309 "No. Series - Batch Impl."
 
     procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
     var
-        NoSeriesLine: Record "No. Series Line";
+        TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
-        GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate);
-        exit(PeekNextNo(NoSeriesLine, UsageDate))
+        GetNoSeriesLine(TempNoSeriesLine, NoSeries, UsageDate);
+        exit(PeekNextNo(TempNoSeriesLine, UsageDate))
     end;
 
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
@@ -87,10 +87,10 @@ codeunit 309 "No. Series - Batch Impl."
 
     procedure GetNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
     var
-        NoSeriesLine: Record "No. Series Line";
+        TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
-        GetNoSeriesLine(NoSeriesLine, NoSeries, UsageDate);
-        exit(GetNextNo(NoSeriesLine, UsageDate))
+        GetNoSeriesLine(TempNoSeriesLine, NoSeries, UsageDate);
+        exit(GetNextNo(TempNoSeriesLine, UsageDate))
     end;
 
     procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; LastDateUsed: Date): Code[20]
@@ -100,6 +100,36 @@ codeunit 309 "No. Series - Batch Impl."
         TempNoSeriesLine := NoSeriesLine;
         SetDefaultImplementation();
         exit(NoSeriesBatch.GetNextNo(TempNoSeriesLine, LastDateUsed));
+    end;
+
+    procedure SimulateGetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; PrevDocumentNo: Code[20]): Code[20]
+    var
+        NoSeries: Record "No. Series";
+        TempNoSeriesLine: Record "No. Series Line" temporary;
+        NoSeriesMgtInternal: Codeunit NoSeriesMgtInternal;
+    begin
+        if NoSeriesCode = '' then
+            exit(IncStr(PrevDocumentNo));
+
+        SetSimulationMode();
+
+        NoSeries.Get(NoSeriesCode);
+        GetNoSeriesLine(TempNoSeriesLine, NoSeries, UsageDate);
+        TempNoSeriesLine."Last No. Used" := PrevDocumentNo;
+        if not NoSeriesMgtInternal.EnsureLastNoUsedIsWithinValidRange(TempNoSeriesLine, true) then
+            exit(IncStr(PrevDocumentNo));
+
+        TempNoSeriesLine.Modify(false);
+        exit(GetNextNo(TempNoSeriesLine, UsageDate))
+    end;
+
+    procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20]
+    var
+        TempNoSeriesLine: Record "No. Series Line" temporary;
+    begin
+        TempNoSeriesLine := NoSeriesLine;
+        SetDefaultImplementation();
+        exit(NoSeriesBatch.GetLastNoUsed(TempNoSeriesLine));
     end;
 
     procedure SetSimulationMode()
