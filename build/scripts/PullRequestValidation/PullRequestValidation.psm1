@@ -47,6 +47,7 @@ function Test-IssuesForPullRequest($Repository, $PullRequestNumber, $GitHubIssue
             if ((-not ($issue.labels.name -contains "approved")) -and (-not ($issue.labels.name -contains "acknowledged"))) {
                 # Add comment to pull request if it doesn't already exist
                 Add-CommentOnPullRequestIfNeeded -Repository $Repository -PullRequestNumber $PullRequestNumber -Message $Comment
+                Write-Warning "::Warning:: $Comment"
             }
             else {
                 Remove-CommentOnPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber -Message $Comment
@@ -73,6 +74,7 @@ function Test-WorkitemsAreLinked($Repository, $PullRequestNumber, $GitHubIssues,
     if ((-not $ADOWorkItems) -and (-not $GitHubIssues)) {
         # Add comment to pull request if it doesn't already exist
         Add-CommentOnPullRequestIfNeeded -Repository $Repository -PullRequestNumber $PullRequestNumber -Message $Comment
+        throw "::Error:: $Comment"
     }
     else {
         Remove-CommentOnPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber -Message $Comment
