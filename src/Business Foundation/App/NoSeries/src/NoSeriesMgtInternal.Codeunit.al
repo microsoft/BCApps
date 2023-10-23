@@ -29,13 +29,7 @@ codeunit 282 NoSeriesMgtInternal
 
     procedure EnsureLastNoUsedIsWithinValidRange(NoSeriesLine: Record "No. Series Line"; NoErrorsOrWarnings: Boolean): Boolean
     begin
-        //
-        // Todo. this check is not good enough. it uses Str > Str but B0001 is greater than A9999 and that makes it fail. The issue happens when a No. is given that doesn't match the lines pattern and happens to be > than the ending number.
-        // If you give it something with a < than the ending number it does not fail.
-        //ex: Given ending No. INV12345 -> A99999 does not fail but X00001 would.
-        // This function should check the pattern as well.
-        //
-        if (NoSeriesLine."Ending No." <> '') and (NoSeriesLine."Last No. Used" > NoSeriesLine."Ending No.") then begin
+        if not NoIsWithinValidRange(NoSeriesLine."Last No. Used", NoSeriesLine."Starting No.", NoSeriesLine."Ending No.") then begin
             if NoErrorsOrWarnings then
                 exit(false);
             Error(
@@ -58,6 +52,28 @@ codeunit 282 NoSeriesMgtInternal
         end;
         exit(true);
     end;
+#pragma warning disable AA0137 // StartingNo is unused in temp patch
+    local procedure NoIsWithinValidRange(CurrentNo: Code[20]; StartingNo: Code[20]; EndingNo: Code[20]): Boolean
+    begin
+        if (EndingNo = '') then
+            exit(true);
+        exit(CurrentNo < EndingNo);
+
+        // if CurrentNo = '' then
+        //     exit(false);
+        // if (StartingNo <> '') and (CurrentNo < StartingNo) then
+        //     exit(false);
+        // if (EndingNo <> '') and (CurrentNo > EndingNo) then
+        //     exit(false);
+
+        // if StrLen(CurrentNo) < StrLen(StartingNo) then
+        //     exit(false);
+        // if StrLen(CurrentNo) > StrLen(EndingNo) then
+        //     exit(false);
+
+        // exit(true)
+    end;
+#pragma warning restore AA0137 // StartingNo is unused in temp patch
 
     procedure FindNoSeriesLine(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean; NoErrorsOrWarnings: Boolean; var NoSeriesLine: Record "No. Series Line"): Boolean
     var
