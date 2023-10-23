@@ -1,4 +1,50 @@
-{
-    "CodeunitName":  "Extension Management Test",
-    "Method":  "*"
-}
+[
+    {
+        "bug":  "Not Provided",
+        "codeunitId":  133100,
+        "CodeunitName": "Extension Management Test",
+        "Method": "InstallUninstallExtension"
+    },
+    {
+        "bug":  "Not Provided",
+        "codeunitId":  133100,
+        "CodeunitName": "Extension Management Test",
+        "Method": "InstallExtensionDependencies"
+    },
+    {
+        "bug":  "Not Provided",
+        "codeunitId":  133100,
+        "CodeunitName": "Extension Management Test",
+        "Method": "IsExtensionInstalledByPackageId"
+    },
+    {
+        "bug":  "Not Provided",
+        "codeunitId":  133100,
+        "CodeunitName": "Extension Management Test",
+        "Method": "IsExtensionInstalledByAppId"
+    },
+    {
+        "bug":  "Not Provided",
+        "codeunitId":  133100,
+        "CodeunitName": "Extension Management Test",
+        "Method": "GetLatestVersionPackageIdByAppId"
+    },
+    {
+        "bug":  "Not Provided",
+        "codeunitId":  133100,
+        "CodeunitName": "Extension Management Test",
+        "Method": "GetCurrentlyInstalledVersionPackageIdByAppId"
+    },
+    {
+        "bug":  "Not Provided",
+        "codeunitId":  133100,
+        "CodeunitName": "Extension Management Test",
+        "Method": "GetSpecificVersionPackageIdByAppId"
+    },
+    {
+        "bug":  "Not Provided",
+        "codeunitId":  133100,
+        "CodeunitName": "Extension Management Test",
+        "Method": "MessageShownOnInvokingSetupThisAppWhenNoSetupDefinedForExtension"
+    }
+]

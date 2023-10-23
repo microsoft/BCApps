@@ -1,4 +1,6 @@
 {
-    "CodeunitName":  "Checklist Banner Test",
-    "Method":  "*"
+    "bug":  "Not Provided",
+    "codeunitId":  132605,
+    "CodeunitName": "Checklist Banner Test",
+    "Method": "TestChecklistBannerVisibilityAfterDelete"
 }
