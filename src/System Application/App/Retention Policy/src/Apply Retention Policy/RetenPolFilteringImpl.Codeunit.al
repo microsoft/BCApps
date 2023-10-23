@@ -97,7 +97,10 @@ codeunit 3915 "Reten. Pol. Filtering Impl." implements "Reten. Pol. Filtering"
         if YoungestExpirationDate >= Yesterday() then
             YoungestExpirationDate := Yesterday();
         OldestRecordDate := GetOldestRecordDate(RetentionPolicySetup);
-        NumberOfDays := YoungestExpirationDate - OldestRecordDate;
+        if OldestRecordDate = 0D then
+            NumberOfDays := 0
+        else
+            NumberOfDays := YoungestExpirationDate - OldestRecordDate;
 
         if NumberOfDays <= 0 then begin
             RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(OldestRecordYoungerThanExpirationLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
