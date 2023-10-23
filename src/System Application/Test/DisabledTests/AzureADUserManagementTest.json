@@ -1,9 +1,7 @@
 [
     {
-        "CodeunitName": "Azure AD User Management Test",
-        "Method": "TestOfficeSyncWizard"
-    },
-    {
+        "bug":  "Not Provided",
+        "codeunitId":  132909,
         "CodeunitName": "Azure AD User Management Test",
         "Method": "TestCodeunitRunPlansAreRefreshed"
     }

@@ -1,4 +1,26 @@
-{
-    "CodeunitName":  "ABS Container Client Test",
-    "Method":  "*"
-}
+[
+    {
+        "bug":  "Not Provided",
+        "codeunitId":  132919,
+        "codeunitName":  "ABS Container Client Test",
+        "method":  "CreateContainerSharedKeyTest"
+    },
+    {
+        "bug":  "Not Provided",
+        "codeunitId":  132919,
+        "codeunitName":  "ABS Container Client Test",
+        "method":  "CreateContainerFailedTest"
+    },
+    {
+        "bug":  "Not Provided",
+        "codeunitId":  132919,
+        "codeunitName":  "ABS Container Client Test",
+        "method":  "ListContainersTest"
+    },
+    {
+        "bug":  "Not Provided",
+        "codeunitId":  132919,
+        "codeunitName":  "ABS Container Client Test",
+        "method":  "LeaseContainerTest"
+    }
+]
