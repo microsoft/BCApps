@@ -1255,11 +1255,11 @@ codeunit 1991 "Guided Experience Impl."
             GuidedExperienceItem.DeleteAll(false);
             i += Batch;
 
-            if i > MaxVersion then
-                i := MaxVersion - 1;
-
             Commit();
         end;
+
+        GuidedExperienceItem.SetRange(Version, 0, MaxVersion - 1);
+        GuidedExperienceItem.DeleteAll(false);
     end;
 
     local procedure FindMaxVersionForGuidedExperienceItem(ItemCode: Code[300]): Integer
