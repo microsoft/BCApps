@@ -1,18 +1,18 @@
 [
     {
-        "bug":  "Not Provided",
+        "bug":  "488827",
         "codeunitId":  135003,
         "CodeunitName": "Feature Key Test",
         "Method": "T004_CannotEnableOneWayFeatureAsNotImplemented"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488827",
         "codeunitId":  135003,
         "CodeunitName": "Feature Key Test",
         "Method": "T005_EnableOneWayFeatureReviewData"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488827",
         "codeunitId":  135003,
         "CodeunitName": "Feature Key Test",
         "Method": "T006_EnableOneWayFeatureRunUpdateData"

@@ -1,66 +1,66 @@
 [
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132604,
         "CodeunitName": "Checklist Facade Test",
         "Method": "TestUpdateManualSetupChecklistItemWithUsers"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132604,
         "CodeunitName": "Checklist Facade Test",
         "Method": "TestUpdateUsersForManualSetupChecklistItem"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132604,
         "CodeunitName": "Checklist Facade Test",
         "Method": "TestInsertLearnChecklistItemWithUsers"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132604,
         "CodeunitName": "Checklist Facade Test",
         "Method": "TestInsertDuplicateLearnChecklistItemWithUsers"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132604,
         "CodeunitName": "Checklist Facade Test",
         "Method": "TestUpdateLearnChecklistItemWithUsers"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132604,
         "CodeunitName": "Checklist Facade Test",
         "Method": "TestUpdateUsersForLearnChecklistItem"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132604,
         "CodeunitName": "Checklist Facade Test",
         "Method": "TestInsertVideoChecklistItemWithUsers"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132604,
         "CodeunitName": "Checklist Facade Test",
         "Method": "TestInsertSpotlightTourChecklistItemWithUsers"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132604,
         "CodeunitName": "Checklist Facade Test",
         "Method": "TestDeleteAssistedSetupChecklistItemWithUsers"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132604,
         "CodeunitName": "Checklist Facade Test",
         "Method": "TestDeleteManualSetupChecklistItemWithUsers"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132604,
         "CodeunitName": "Checklist Facade Test",
         "Method": "TestDeleteLearnChecklistItemWithUsers"

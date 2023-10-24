@@ -1,54 +1,54 @@
 [
     {
-        "bug":  "Not Provided",
+        "bug":  "488815",
         "codeunitId":  132684,
         "CodeunitName": "Azure OpenAI Test",
         "Method": "TestIsEnabledRejectPrivacyNotice"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488815",
         "codeunitId":  132684,
         "CodeunitName": "Azure OpenAI Test",
         "Method": "TestIsEnabledPrivacyNoticeAccepted"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488815",
         "codeunitId":  132684,
         "CodeunitName": "Azure OpenAI Test",
         "Method": "TestIsEnabledPrivacyNoticeDisagreed"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488815",
         "codeunitId":  132684,
         "CodeunitName": "Azure OpenAI Test",
         "Method": "GenerateTextCompletionsAuthorizationNotSet"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488815",
         "codeunitId":  132684,
         "CodeunitName": "Azure OpenAI Test",
         "Method": "GenerateTextCompletionsFails"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488815",
         "codeunitId":  132684,
         "CodeunitName": "Azure OpenAI Test",
         "Method": "GenerateEmbeddingsAuthorizationNotSet"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488815",
         "codeunitId":  132684,
         "CodeunitName": "Azure OpenAI Test",
         "Method": "GenerateEmbeddingsFails"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488815",
         "codeunitId":  132684,
         "CodeunitName": "Azure OpenAI Test",
         "Method": "GenerateChatCompletionAuthorizationNotSet"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488815",
         "codeunitId":  132684,
         "CodeunitName": "Azure OpenAI Test",
         "Method": "GenerateChatCompletionFails"

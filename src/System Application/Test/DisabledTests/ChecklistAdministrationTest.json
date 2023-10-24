@@ -1,30 +1,30 @@
 [
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132602,
         "CodeunitName": "Checklist Administration Test",
         "Method": "TestCreateVideoChecklistItem"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132602,
         "CodeunitName": "Checklist Administration Test",
         "Method": "TestCreateSpotlightTourChecklistItem"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132602,
         "CodeunitName": "Checklist Administration Test",
         "Method": "TestChangeCompletionRequirementTypeFromSpecificUsersToSpecificUsers"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132602,
         "CodeunitName": "Checklist Administration Test",
         "Method": "TestChangeCompletionRequirementTypeFromSpecificUsersToAnyone"
     },
     {
-        "bug":  "Not Provided",
+        "bug":  "488818",
         "codeunitId":  132602,
         "CodeunitName": "Checklist Administration Test",
         "Method": "TestChangeCompletionRequirementTypeFromSpecificUsersToEveryone"
