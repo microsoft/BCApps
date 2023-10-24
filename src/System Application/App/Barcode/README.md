@@ -237,7 +237,7 @@ The settings to use for the validation.
 ### UPC-A (value: 202)
 
 
- UPC-A - The Universal Product Code (UPC; redundantly: UPC code) is a barcode symbology that is widely used in the United States, Canada, Europe, Australia, New Zealand, and other countries for tracking trade items in stores.
+ UPC-A - The Universal Product Code (UPC; redundantly: UPC code) is a barcode symbology that is widely used in the United States, Canada, Europe, Australia, New Zealand, and other countries/regions for tracking trade items in stores.
  
 
 ### UPC-E (value: 203)
