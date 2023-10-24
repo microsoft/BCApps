@@ -5,6 +5,8 @@
 
 namespace System.Apps;
 
+using System;
+
 /// <summary>
 /// Installs the selected extension.
 /// </summary>
