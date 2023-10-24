@@ -8,8 +8,8 @@ namespace System.Apps;
 /// The table containing information about an extension install.
 /// </summary>
 /// <remarks>
-/// The casing of the fields is expected to match the casing in the URL filter: 'ID' IS '[AppID]' AND 'PREVIEWKEY' IS '[PreviewKey]'
-/// https://businesscentral.dynamics.com/[TenantID]/?noSignUpCheck=1&filter=%27ID%27%20IS%20%27[AppID]%27%20AND%20%27PREVIEWKEY%27%20IS%20%[PreviewKey]%27&page=2503
+/// The casing of the fields is expected to match the casing in the URL filter used when calling the installation page 2503: 
+/// 'ID' IS '[AppID]' AND 'PREVIEWKEY' IS '[PreviewKey]'
 /// </remarks>
 table 2503 "Extension Installation"
 {
