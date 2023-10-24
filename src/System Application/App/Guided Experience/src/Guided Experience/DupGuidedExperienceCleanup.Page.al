@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Environment.Configuration;
+
 using System.Visualization;
 
 page 1998 "Dup. Guided Experience Cleanup"
@@ -15,6 +16,9 @@ page 1998 "Dup. Guided Experience Cleanup"
     SourceTable = "Guided Experience Item";
     Extensible = false;
     Editable = false;
+    InsertAllowed = false;
+    DeleteAllowed = false;
+    ModifyAllowed = false;
 
     layout
     {
@@ -62,7 +66,7 @@ page 1998 "Dup. Guided Experience Cleanup"
                 trigger OnAction()
                 var
                     TempGuidedExperienceItem: Record "Guided Experience Item" temporary;
-                    GuidedExperienceImpl: Codeunit "Guided Experience Impl.";
+                    GuidedExperienceItemCleanup: Codeunit "Guided Experience Item Cleanup";
                     SelectedGuidedExperienceItemCode: Code[300];
                 begin
                     CurrPage.SetSelectionFilter(TempGuidedExperienceItem);
@@ -72,7 +76,7 @@ page 1998 "Dup. Guided Experience Cleanup"
                         Error(MoreThanOneSelectionErr);
 
                     if Dialog.Confirm(LongRunningOperationQst, false) then
-                        GuidedExperienceImpl.DeleteDuplicatedGuidedExperienceItems(SelectedGuidedExperienceItemCode);
+                        GuidedExperienceItemCleanup.DeleteDuplicatedGuidedExperienceItems(SelectedGuidedExperienceItemCode);
                 end;
             }
             action(LoadDuplicatedItems)
@@ -156,7 +160,7 @@ page 1998 "Dup. Guided Experience Cleanup"
 
     local procedure LoadDuplicatedGuidedExperienceItems()
     var
-        GuidedExperienceImpl: Codeunit "Guided Experience Impl.";
+        GuidedExperienceImpl: Codeunit "Guided Experience Item Cleanup";
     begin
         Rec.Reset();
         Rec.DeleteAll();
