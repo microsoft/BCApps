@@ -164,6 +164,10 @@ codeunit 304 "No. Series - Impl."
             Error(
               CannotAssignAutomaticallyErr,
               NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
+
+        if DefaultNoSeriesCode = RelatedNoSeriesCode then
+            exit(true);
+
         exit(NoSeriesRelationship.Get(DefaultNoSeriesCode, RelatedNoSeriesCode));
     end;
 
