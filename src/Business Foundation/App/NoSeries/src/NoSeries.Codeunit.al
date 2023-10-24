@@ -79,6 +79,8 @@ codeunit 303 "No. Series"
     end;
 
     procedure IsAutomaticNoSeries(NoSeriesCode: Code[20]): Boolean
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.IsAutomaticNoSeries(NoSeriesCode));
     end;
