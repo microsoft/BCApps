@@ -30,7 +30,7 @@ page 1998 "Dup. Guided Experience Cleanup"
                 {
                     ToolTip = 'Specifies the code of the Guided Experience Item.';
                 }
-                field(Count; NumberOfRecords)
+                field(Count; GetNumberOfDuplicatedItems(Rec.Code))
                 {
                     Caption = 'Number of Records';
                     ToolTip = 'Specifies the number of Guided Experience Items with the same code.';
@@ -69,7 +69,7 @@ page 1998 "Dup. Guided Experience Cleanup"
 
                     SelectedGuidedExperienceItemCode := CopyStr(TempGuidedExperienceItem.GetFilter(Code), 1, 300);
                     if SelectedGuidedExperienceItemCode = '' then
-                        Error('Guided Experience Item can only by select once at a time.');
+                        Error(MoreThanOneSelectionErr);
 
                     if Dialog.Confirm(LongRunningOperationQst, false) then
                         GuidedExperienceImpl.DeleteDuplicatedGuidedExperienceItems(SelectedGuidedExperienceItemCode);
@@ -142,15 +142,16 @@ page 1998 "Dup. Guided Experience Cleanup"
     }
 
     var
-        NumberOfRecords: Integer;
         LongRunningOperationQst: Label 'This operation may take a long time to execute, are you sure you want to proceed?';
+        MoreThanOneSelectionErr: Label 'Only one Guided Experience Item can be selected at a time.';
 
-    trigger OnAfterGetRecord()
+    local procedure GetNumberOfDuplicatedItems(ItemCode: Code[300]): Integer
     var
         GuidedExperienceItem: Record "Guided Experience Item";
     begin
-        GuidedExperienceItem.SetRange(Code, Rec.Code);
-        NumberOfRecords := GuidedExperienceItem.Count();
+        GuidedExperienceItem.SetLoadFields(Code, Version);
+        GuidedExperienceItem.SetRange(Code, ItemCode);
+        exit(GuidedExperienceItem.Count());
     end;
 
     local procedure LoadDuplicatedGuidedExperienceItems()
