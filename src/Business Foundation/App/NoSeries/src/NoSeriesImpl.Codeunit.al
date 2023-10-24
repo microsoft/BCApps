@@ -179,6 +179,7 @@ codeunit 304 "No. Series - Impl."
         NoSeries: Record "No. Series";
         NoSeriesRelationship: Record "No. Series Relationship";
     begin
+        // TODO: call TestIsAutomaticNoSeries instead
         if not NoSeries.Get(DefaultNoSeriesCode) then
             exit(false);
 
@@ -201,6 +202,14 @@ codeunit 304 "No. Series - Impl."
         if not NoSeries.Get(NoSeriesCode) then
             exit(false);
         exit(NoSeries."Default Nos.");
+    end;
+
+    procedure TestIsAutomaticNoSeries(NoSeriesCode: Code[20])
+    var
+        NoSeries: Record "No. Series";
+    begin
+        if not IsAutomaticNoSeries(NoSeriesCode) then
+            Error(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
     end;
 
     procedure SelectRelatedNoSeries(OriginalNoSeriesCode: Code[20]; DefaultHighlightedNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
