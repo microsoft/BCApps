@@ -219,6 +219,7 @@ codeunit 2501 "Extension Marketplace"
         if PreviewKey <> '' then begin
             // Preview keys are not saved on the data plane and we must then trigger the full deploy operation.
             ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true, PreviewKey);
+            exit;
         end;
 
         PublishedApplication.SetRange("Package ID", ExtensionOperationImpl.GetLatestVersionPackageIdByAppId(ApplicationId));
