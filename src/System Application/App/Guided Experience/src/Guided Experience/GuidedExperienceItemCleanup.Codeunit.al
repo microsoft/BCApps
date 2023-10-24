@@ -97,7 +97,7 @@ codeunit 1994 "Guided Experience Item Cleanup"
         exit(GuidedExperienceItem.Version);
     end;
 
-    procedure GetDuplicatedGuidedExperienceItems(var TempGuidedExperienceItem: Record "Guided Experience Item"; Threshold: Integer)
+    procedure GetDuplicatedGuidedExperienceItems(var TempGuidedExperienceItem: Record "Guided Experience Item" temporary; Threshold: Integer)
     var
         GuidedExperienceItem: Record "Guided Experience Item";
         ItemsToCleanUp: List of [Code[300]];
