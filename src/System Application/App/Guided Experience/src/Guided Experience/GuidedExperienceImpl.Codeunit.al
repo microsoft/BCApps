@@ -1240,8 +1240,12 @@ codeunit 1991 "Guided Experience Impl."
         Batch, MaxVersion, i : Integer;
     begin
         Batch := 10000; // 10k records per batch
-        i := Batch;
         MaxVersion := FindMaxVersionForGuidedExperienceItem(ItemCode);
+
+        if Batch > MaxVersion then
+            i := MaxVersion - 1
+        else
+            i := Batch;
 
         GuidedExperienceItem.SetLoadFields(Code, Version);
         GuidedExperienceItem.SetRange(Code, ItemCode);
