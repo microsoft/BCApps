@@ -77,6 +77,7 @@ page 2510 "Marketplace Extn Deployment"
                     Editable = false;
                     Style = Strong;
                     ToolTip = 'You are about to install a preview version of the extension.';
+                    Visible = InstallPreview;
                 }
 
             }
