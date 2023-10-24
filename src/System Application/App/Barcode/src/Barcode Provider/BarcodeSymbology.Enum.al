@@ -86,7 +86,7 @@ enum 9204 "Barcode Symbology"
     }
 
     /// <summary>
-    /// UPC-A - The Universal Product Code (UPC; redundantly: UPC code) is a barcode symbology that is widely used in the United States, Canada, Europe, Australia, New Zealand, and other countries for tracking trade items in stores.
+    /// UPC-A - The Universal Product Code (UPC; redundantly: UPC code) is a barcode symbology that is widely used in the United States, Canada, Europe, Australia, New Zealand, and other countries/regions for tracking trade items in stores.
     /// </summary>
     value(202; "UPC-A")
     {
