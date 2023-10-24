@@ -10,9 +10,6 @@
         "..\\..\\src\\Business Foundation\\Test\\*",
         "..\\..\\src\\Business Foundation\\Test Library\\*"
     ],
-    "enableAppSourceCop": false,
-    "enablePerTenantExtensionCop": false,
-    "enableUICop": false,
     "useCompilerFolder": true,
     "doNotPublishApps": true,
     "rulesetFile": "..\\..\\..\\src\\rulesets\\internal.module.ruleset.json"

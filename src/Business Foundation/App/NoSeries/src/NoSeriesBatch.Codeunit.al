@@ -17,6 +17,20 @@ codeunit 308 "No. Series - Batch"
         NoSeriesBatchImpl.SetImplementation(NoSeriesBatch);
     end;
 
+    procedure TestManual(NoSeriesCode: Code[20])
+    var
+        NoSeries: Codeunit "No. Series";
+    begin
+        NoSeries.TestManual(NoSeriesCode);
+    end;
+
+    procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])
+    var
+        NoSeries: Codeunit "No. Series";
+    begin
+        NoSeries.TestManual(NoSeriesCode, DocumentNo);
+    end;
+
     procedure PeekNextNo(NoSeriesCode: Code[20]): Code[20]
     begin
         exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesCode))
@@ -66,6 +80,19 @@ codeunit 308 "No. Series - Batch"
     begin
         exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, LastDateUsed))
     end;
+
+    procedure SimulateGetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; PrevDocumentNo: Code[20]): Code[20]
+    var
+        NoSeriesBatchImplSim: Codeunit "No. Series - Batch Impl.";
+    begin
+        exit(NoSeriesBatchImplSim.SimulateGetNextNo(NoSeriesCode, UsageDate, PrevDocumentNo))
+    end;
+
+    procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20]
+    begin
+        exit(NoSeriesBatchImpl.GetLastNoUsed(NoSeriesLine));
+    end;
+
 
     /// <summary>
     /// Puts the codeunit in simulation mode which disables the ability to save state.

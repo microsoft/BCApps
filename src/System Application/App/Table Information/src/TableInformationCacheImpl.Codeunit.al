@@ -113,8 +113,6 @@ codeunit 8700 "Table Information Cache Impl."
         TableInformationCache.SetCurrentKey("Data Size (KB)");
         TableInformationCache.SetAscending("Data Size (KB)", false);
         TableInformationCache.FilterGroup := 2;
-        // exclude tenant media tables
-        TableInformationCache.SetFilter("Table No.", '<>%1&<>%2&<>%3', Database::"Tenant Media", Database::"Tenant Media Set", Database::"Tenant Media Thumbnails");
         // get top 25 biggest tables
         if TableInformationCache.FindSet() then begin
             TableInformationCache.Next(24);

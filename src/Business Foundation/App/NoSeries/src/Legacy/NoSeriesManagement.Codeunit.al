@@ -7,6 +7,10 @@ namespace Microsoft.Foundation.NoSeries;
 
 codeunit 396 NoSeriesManagement
 {
+    ObsoleteReason = 'Please use the "No. Series" and "No. Series - Batch" codeunits instead';
+    ObsoleteState = Pending;
+    ObsoleteTag = '24.0';
+
     Permissions = tabledata "No. Series Line" = rimd,
 #if not CLEAN24
 #pragma warning disable AL0432
@@ -361,6 +365,8 @@ codeunit 396 NoSeriesManagement
         NoSeriesLine."Last No. Used" := LastNoUsed;
     end;
 
+#if not CLEAN24
+    [Obsolete('Use PeekNextNo from codeunit "No. Series" instead.', '24.0')]
     procedure TryGetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date): Code[20]
     var
         NoSeriesManagement: Codeunit NoSeriesManagement;
@@ -369,6 +375,7 @@ codeunit 396 NoSeriesManagement
         if NoSeriesManagement.Run() then
             exit(NoSeriesManagement.GetNextNoAfterRun());
     end;
+#endif
 
 #if not CLEAN21
     [Obsolete('Use SetParametersBeforeRun() instead', '21.0')]
@@ -435,11 +442,16 @@ codeunit 396 NoSeriesManagement
         NoSeriesLine.SetCurrentKey("Series Code", "Starting Date");
         NoSeriesLine.SetRange("Series Code", NoSeriesCode);
         NoSeriesLine.SetRange("Starting Date", 0D, StartDate);
-        OnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
+        RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
         if NoSeriesLine.FindLast() then begin
             NoSeriesLine.SetRange("Starting Date", NoSeriesLine."Starting Date");
             NoSeriesLine.SetRange(Open, true);
         end;
+    end;
+
+    internal procedure RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(var NoSeriesLine: Record "No. Series Line")
+    begin
+        OnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
     end;
 
     procedure IncrementNoText(var No: Code[20]; IncrementByNo: Decimal)
@@ -661,9 +673,8 @@ codeunit 396 NoSeriesManagement
                   NewFieldName, NoSeriesLinePurchase.FieldCaption("Last No. Used"));
         end;
     end;
-#pragma warning restore AL0432
-#endif
 
+    [Obsolete('Call TestField on the "No. Series" record, "Date Order" field directly.', '24.0')]
     [Scope('OnPrem')]
     procedure TestDateOrder(NoSeriesCode: Code[20])
     begin
@@ -671,8 +682,6 @@ codeunit 396 NoSeriesManagement
         GlobalNoSeries.TestField("Date Order");
     end;
 
-#if not CLEAN24
-#pragma warning disable AL0432
     [Obsolete('The No. Series module cannot have dependencies to Sales. Please use the method in codeunit "IT - Report Management" instead', '24.0')]
     procedure CheckSalesDocNoGaps(MaxDate: Date)
     var
