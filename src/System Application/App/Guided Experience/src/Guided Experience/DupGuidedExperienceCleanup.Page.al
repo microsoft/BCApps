@@ -63,15 +63,16 @@ page 1998 "Dup. Guided Experience Cleanup"
                 var
                     TempGuidedExperienceItem: Record "Guided Experience Item" temporary;
                     GuidedExperienceImpl: Codeunit "Guided Experience Impl.";
-                    ItemCode: Code[300];
+                    SelectedGuidedExperienceItemCode: Code[300];
                 begin
                     CurrPage.SetSelectionFilter(TempGuidedExperienceItem);
 
-                    if Dialog.Confirm(LongRunningOperationQst, false) then begin
-                        ItemCode := TempGuidedExperienceItem.Code;
-                        GuidedExperienceImpl.DeleteDuplicatedGuidedExperienceItems(ItemCode);
-                    end;
+                    SelectedGuidedExperienceItemCode := CopyStr(TempGuidedExperienceItem.GetFilter(Code), 1, 300);
+                    if SelectedGuidedExperienceItemCode = '' then
+                        Error('Guided Experience Item can only by select once at a time.');
 
+                    if Dialog.Confirm(LongRunningOperationQst, false) then
+                        GuidedExperienceImpl.DeleteDuplicatedGuidedExperienceItems(SelectedGuidedExperienceItemCode);
                 end;
             }
             action(LoadDuplicatedItems)
@@ -118,6 +119,23 @@ page 1998 "Dup. Guided Experience Cleanup"
                     Limit := 1000;
                     for Counter := 1 to Limit do
                         GuidedExperience.InsertManualSetup('Title', Format(Counter), '', 0, ObjectType::Page, Page::"Cue Setup Administrator", Enum::"Manual Setup Category"::Uncategorized, '');
+                end;
+            }
+            action(TestInsert3)
+            {
+                ApplicationArea = All;
+                Caption = 'Test Insert 3';
+                ToolTip = 'Test insert lots of Guided Experience Items.';
+                Image = Insert;
+
+                trigger OnAction()
+                var
+                    GuidedExperience: Codeunit "Guided Experience";
+                    Limit, Counter : Integer;
+                begin
+                    Limit := 1000;
+                    for Counter := 1 to Limit do
+                        GuidedExperience.InsertManualSetup('Title', Format(Counter), '', 0, ObjectType::Page, Page::"App Setup List", Enum::"Manual Setup Category"::Uncategorized, '');
                 end;
             }
         }
