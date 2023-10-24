@@ -13,6 +13,7 @@ namespace System.Apps;
 /// </remarks>
 table 2503 "Extension Installation"
 {
+    Access = Internal;
     Caption = 'Extension Installation';
     TableType = Temporary;
 
