@@ -15,6 +15,7 @@ codeunit 1994 "Guided Experience Item Cleanup"
 
     trigger OnRun()
     begin
+        CleanupOldGuidedExperienceItems(false, 100);
     end;
 
     internal procedure CleanupOldGuidedExperienceItems(OnlyFirstParty: Boolean; Threshold: Integer)
@@ -26,6 +27,9 @@ codeunit 1994 "Guided Experience Item Cleanup"
         ItemsToCleanUp: List of [Code[300]];
         ItemCode: Code[300];
     begin
+        GuidedExperienceItem.SetLoadFields(Code, Version, "Extension ID");
+        GuidedExperienceItem2.SetLoadFields(Code, Version);
+
         if OnlyFirstParty then begin
             PublishedApplication.SetRange(Publisher, 'Microsoft');
             FirstPartyPublisherFilterString := '';
