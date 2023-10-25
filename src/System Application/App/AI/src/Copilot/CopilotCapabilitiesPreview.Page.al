@@ -159,7 +159,7 @@ page 7773 "Copilot Capabilities Preview"
     begin
         DataMovementEnabled := Value;
         SetActionsEnabled();
-        CurrPage.Update();
+        CurrPage.Update(false);
     end;
 
     local procedure SetStatusStyle()
