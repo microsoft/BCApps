@@ -165,7 +165,7 @@ page 7774 "Copilot Capabilities GA"
     begin
         DataMovementEnabled := Value;
         SetActionsEnabled();
-        CurrPage.Update();
+        CurrPage.Update(false);
     end;
 
     local procedure SetStatusStyle()
