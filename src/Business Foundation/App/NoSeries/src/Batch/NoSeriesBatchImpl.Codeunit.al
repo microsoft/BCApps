@@ -8,6 +8,7 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 309 "No. Series - Batch Impl."
 {
     Access = Internal;
+    Permissions = tabledata "No. Series Line" = rm;
     InherentPermissions = X;
     InherentEntitlements = X;
 
@@ -166,9 +167,7 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
         NoSeriesLine."Last No. Used" := TempNoSeriesLine."Last No. Used";
         NoSeriesLine."Last Date Used" := TempNoSeriesLine."Last Date Used";
-#pragma warning disable AA0214
         NoSeriesLine.Modify(true);
-#pragma warning restore AA0214
     end;
 
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line" temporary; NoSeries: Record "No. Series"; UsageDate: Date)
