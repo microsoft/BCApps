@@ -30,10 +30,11 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     procedure CanSuggest(): Boolean
+    var
+        EntityTextAOAISettings: Codeunit "Entity Text AOAI Settings";
     begin
-        if (not IsEnabled(true)) then
+        if not EntityTextAOAISettings.IsEnabled(true) then
             exit(false);
-
 
         exit(HasPromptInfo());
     end;
@@ -45,6 +46,11 @@ codeunit 2012 "Entity Text Impl."
         UserPrompt: Text;
         Suggestion: Text;
     begin
+        if not IsEnabled(true) then
+            Error(CapabilityDisabledErr);
+        if not CanSuggest() then
+            Error(CannotGenerateErr);
+
         BuildPrompts(Facts, Tone, TextFormat, TextEmphasis, SystemPrompt, UserPrompt);
 
         Suggestion := GenerateAndReviewCompletion(SystemPrompt, UserPrompt, TextFormat, Facts, CallerModuleInfo);
@@ -446,6 +452,8 @@ codeunit 2012 "Entity Text Impl."
         NoteParagraphTxt: Label '%1Note:%1', Locked = true, Comment = 'This constant is used to limit the cases when the model goes out of format and must stay in English only.';
         TranslationParagraphTxt: Label 'Translation:%1', Locked = true, Comment = 'This constant is used to limit the cases when the model goes out of format and must stay in English only.';
         NoFactsErr: Label 'There''s no information available to draft a text from.';
+        CannotGenerateErr: Label 'Text cannot be generated. Please check your configuration and contact your partner.';
+        CapabilityDisabledErr: Label 'Sorry, your Copilot isn''t activated for Entity Text. Contact the system administrator.';
         MinFactsErr: Label 'There''s not enough information available to draft a text. Please provide more.';
         NotEnoughFactsForFormatErr: Label 'There''s not enough information available to draft a text for the chosen format. Please provide more, or choose another format.';
         PromptNotFoundErr: Label 'The prompt definition could not be found.';
