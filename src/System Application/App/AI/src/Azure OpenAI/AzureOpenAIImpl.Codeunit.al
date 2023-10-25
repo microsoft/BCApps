@@ -126,10 +126,11 @@ codeunit 7772 "Azure OpenAI Impl"
                 end;
             else begin
                 // Privacy notice not set, we will not cross geo-boundries
-                if not Silent then begin
-                    CopilotNotAvailable.SetCopilotCapability(Capability);
-                    CopilotNotAvailable.Run();
-                end;
+                if not Silent then
+                    if not ALCopilotFunctions.IsWithinGeo() then begin
+                        CopilotNotAvailable.SetCopilotCapability(Capability);
+                        CopilotNotAvailable.Run();
+                    end;
 
                 exit(ALCopilotFunctions.IsWithinGeo());
             end;
