@@ -19,7 +19,7 @@ codeunit 2014 "Entity Text AI Install"
         EnvironmentInformation: Codeunit "Environment Information";
         LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2226375', Locked = true;
     begin
-        if EnvironmentInformation.IsSaaS() then
+        if EnvironmentInformation.IsSaaSInfrastructure() then
             if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Entity Text") then
                 CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Entity Text", Enum::"Copilot Availability"::"Generally Available", LearnMoreUrlTxt);
     end;
