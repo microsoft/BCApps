@@ -9,7 +9,6 @@ using System.Apps;
 
 codeunit 1994 "Guided Experience Item Cleanup"
 {
-    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata "Primary Guided Experience Item" = rd;
@@ -18,7 +17,7 @@ codeunit 1994 "Guided Experience Item Cleanup"
     begin
     end;
 
-    procedure CleanupOldGuidedExperienceItems(OnlyFirstParty: Boolean; Threshold: Integer)
+    internal procedure CleanupOldGuidedExperienceItems(OnlyFirstParty: Boolean; Threshold: Integer)
     var
         GuidedExperienceItem: Record "Guided Experience Item";
         GuidedExperienceItem2: Record "Guided Experience Item";
@@ -55,7 +54,7 @@ codeunit 1994 "Guided Experience Item Cleanup"
             DeleteDuplicatedGuidedExperienceItems(ItemCode);
     end;
 
-    procedure DeleteDuplicatedGuidedExperienceItems(ItemCode: Code[300])
+    internal procedure DeleteDuplicatedGuidedExperienceItems(ItemCode: Code[300])
     var
         GuidedExperienceItem: Record "Guided Experience Item";
         Batch, MaxVersion, i : Integer;
@@ -97,7 +96,7 @@ codeunit 1994 "Guided Experience Item Cleanup"
         exit(GuidedExperienceItem.Version);
     end;
 
-    procedure GetDuplicatedGuidedExperienceItems(var TempGuidedExperienceItem: Record "Guided Experience Item" temporary; Threshold: Integer)
+    internal procedure GetDuplicatedGuidedExperienceItems(var TempGuidedExperienceItem: Record "Guided Experience Item" temporary; Threshold: Integer)
     var
         GuidedExperienceItem: Record "Guided Experience Item";
         ItemsToCleanUp: List of [Code[300]];
