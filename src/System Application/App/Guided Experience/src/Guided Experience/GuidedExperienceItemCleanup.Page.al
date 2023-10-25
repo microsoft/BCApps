@@ -13,7 +13,6 @@ page 1998 "Guided Experience Item Cleanup"
     Caption = 'Duplicated Guided Experience Item Cleanup';
     SourceTableTemporary = true;
     SourceTable = "Guided Experience Item";
-    Extensible = false;
     Editable = false;
     InsertAllowed = false;
     DeleteAllowed = false;
