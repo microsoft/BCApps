@@ -25,6 +25,7 @@ codeunit 7774 "Copilot Capability Impl"
         NotRegisteredErr: Label 'Copilot capability has not been registered by the module.';
         ReviewPrivacyNoticeLbl: Label 'Review the privacy notice';
         PrivacyNoticeDisagreedNotificationMessageLbl: Label 'To enable Copilot, please review and accept the privacy notice.';
+        CapabilitiesNotAvailableOnPremNotificationMessageLbl: Label 'Note that copilot and AI capabilities published by Microsoft are not available on-premises.';
         TelemetryRegisteredNewCopilotCapabilityLbl: Label 'New copilot capability has been registered.', Locked = true;
         TelemetryModifiedCopilotCapabilityLbl: Label 'Copilot capability has been modified.', Locked = true;
         TelemetryUnregisteredCopilotCapabilityLbl: Label 'Copilot capability has been unregistered.', Locked = true;
@@ -163,6 +164,15 @@ codeunit 7774 "Copilot Capability Impl"
         Notification.Id(CreateGuid());
         Notification.Message(PrivacyNoticeDisagreedNotificationMessageLbl);
         Notification.AddAction(ReviewPrivacyNoticeLbl, Codeunit::"Copilot Capability Impl", 'OpenPrivacyNotice');
+        Notification.Send();
+    end;
+
+    procedure ShowCapabilitiesNotAvailableOnPremNotification()
+    var
+        Notification: Notification;
+    begin
+        Notification.Id(CreateGuid());
+        Notification.Message(CapabilitiesNotAvailableOnPremNotificationMessageLbl);
         Notification.Send();
     end;
 

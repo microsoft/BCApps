@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
+using System.Environment;
 using System.Privacy;
 using System;
 
@@ -133,6 +134,7 @@ page 7775 "Copilot AI Capabilities"
 
     trigger OnOpenPage()
     var
+        EnvironmentInformation: Codeunit "Environment Information";
         ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin
         InGeo := ALCopilotFunctions.IsWithinGeo();
@@ -148,6 +150,9 @@ page 7775 "Copilot AI Capabilities"
 
         CurrPage.GenerallyAvailableCapabilities.Page.SetDataMovement(AllowDataMovement);
         CurrPage.PreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
+
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            CopilotCapabilityImpl.ShowCapabilitiesNotAvailableOnPremNotification();
 
         if InGeo and (not AllowDataMovement) then
             CopilotCapabilityImpl.ShowPrivacyNoticeDisagreedNotification();
