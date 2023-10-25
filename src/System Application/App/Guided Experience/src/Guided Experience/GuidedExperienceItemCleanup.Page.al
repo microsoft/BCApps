@@ -7,11 +7,10 @@ namespace System.Environment.Configuration;
 
 using System.Visualization;
 
-page 1998 "Dup. Guided Experience Cleanup"
+page 1998 "Guided Experience Item Cleanup"
 {
     ApplicationArea = All;
     Caption = 'Duplicated Guided Experience Item Cleanup';
-    UsageCategory = Administration;
     SourceTableTemporary = true;
     SourceTable = "Guided Experience Item";
     Extensible = false;
