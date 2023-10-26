@@ -49,13 +49,13 @@ codeunit 282 NoSeriesMgtInternal
         end;
         exit(true);
     end;
-    
+
 #pragma warning disable AA0137 // StartingNo is unused in temp patch
     local procedure NoIsWithinValidRange(CurrentNo: Code[20]; StartingNo: Code[20]; EndingNo: Code[20]): Boolean
     begin
         if (EndingNo = '') then
             exit(true);
-        exit(CurrentNo < EndingNo);
+        exit(CurrentNo <= EndingNo);
 
         // if CurrentNo = '' then
         //     exit(false);
