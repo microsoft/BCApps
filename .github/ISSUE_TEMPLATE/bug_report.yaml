@@ -9,7 +9,7 @@ body:
         Thanks for taking the time to fill out this bug report! 
 
         ⚠️⚠️ BEFORE WE GET STARTED ⚠️⚠️
-        This is not the right place to report product defects with customer impact to Microsoft! Issues reported in this repository do not fall under SLAs (Service Level Agreements) and hence have no guaranteed time to mitigation. If your customers are experiencing product defects or you have discovered a severe issue in the product, please follow the steps outlined in https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/technical-support to get your issue routed to the right team at Microsoft and to get it treated with the right priority.
+        This is not the right place to report product defects with customer impact to Microsoft! Issues reported in this repository do not fall under SLAs (Service Level Agreements) and hence have no guaranteed time to mitigation. If your customers are experiencing product defects or you have discovered a severe issue in the product, please follow the steps outlined in https://learn.microsoft.com/dynamics365/business-central/dev-itpro/technical-support to get your issue routed to the right team at Microsoft and to get it treated with the right priority.
 
         Before you create a new issue, please check the following:
         🔎 Search existing issues to avoid creating duplicates.
