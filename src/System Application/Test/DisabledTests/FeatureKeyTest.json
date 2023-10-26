@@ -3,6 +3,12 @@
         "bug":  "488827",
         "codeunitId":  135003,
         "CodeunitName": "Feature Key Test",
+        "Method": "T003_CannotDisableOneWayFeatureOnPage"
+    },
+    {
+        "bug":  "488827",
+        "codeunitId":  135003,
+        "CodeunitName": "Feature Key Test",
         "Method": "T004_CannotEnableOneWayFeatureAsNotImplemented"
     },
     {
