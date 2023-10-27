@@ -1,4 +1,4 @@
-name: Create issue for BC Idea I want to implement
+name: Suggest a feature for contribution
 description: Suggest a feature you would like to implement, which is based on a BC idea.
 title: "[BC Idea]: "
 labels: ["bcidea"]
