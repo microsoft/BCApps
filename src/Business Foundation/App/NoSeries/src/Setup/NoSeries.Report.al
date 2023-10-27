@@ -10,7 +10,7 @@ using System.Utilities;
 report 21 "No. Series"
 {
     DefaultLayout = RDLC;
-    RDLCLayout = './NoSeries/src/NoSeries.rdlc';
+    RDLCLayout = './NoSeries/src/Setup/NoSeries.rdlc';
     Caption = 'No. Series';
 
     dataset
