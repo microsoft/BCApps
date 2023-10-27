@@ -33,30 +33,3 @@ body:
       placeholder: Description of BC Idea
     validations:
       required: true
-  - type: dropdown
-    id: category
-    attributes:
-      label: BC Idea Category
-      description: What category is the BC Idea created under?
-      options:
-        - No Category
-        - Data Migrations
-        - Development
-        - Documentation
-        - Financial Management
-        - General 
-        - Geographies and Localization
-        - Inventory
-        - Manufacturing
-        - Office Integration
-        - Opportunity Management
-        - Project Management
-        - Purchasing
-        - Reports and Business Intelligence
-        - Sales
-        - Service Order Managemen
-        - Tenant Administration
-        - Warehousing
-      default: 0
-    validations:
-      required: true
