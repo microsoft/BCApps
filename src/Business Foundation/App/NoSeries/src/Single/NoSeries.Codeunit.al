@@ -78,6 +78,13 @@ codeunit 303 "No. Series"
         NoSeriesImpl.TestManual(NoSeriesCode);
     end;
 
+    procedure IsAutomaticNoSeries(NoSeriesCode: Code[20]): Boolean
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.IsAutomaticNoSeries(NoSeriesCode));
+    end;
+
     procedure TestAreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";

@@ -58,9 +58,9 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if not NoSeriesMgtInternal.EnsureLastNoUsedIsWithinValidRange(NoSeriesLine, HideErrorsAndWarnings) then
             exit('');
 
-        if ModifySeries then begin
+        if ModifySeries and (NoSeriesLine."Last Date Used" < UsageDate) then begin
             NoSeriesLine."Last Date Used" := UsageDate;
-            NoSeriesLine.Modify(true); // TODO: Call modify line?
+            NoSeriesLine.Modify(true);
         end;
 
         exit(GetFormattedNo(NoSeriesLine, NewNo));
