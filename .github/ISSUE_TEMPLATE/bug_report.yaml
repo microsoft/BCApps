@@ -1,5 +1,5 @@
-name: Bug Report
-description: Create a bug report to help us improve
+name: Report and address a bug
+description: Create a bug report for a product defect you would like to address yourself
 title: "[Bug]: "
 labels: ["bug"]
 body:

@@ -1,5 +1,5 @@
 name: Create issue for BC Idea I want to implement
-description: Create issue for BC Idea you want to implement
+description: Suggest a feature you would like to implement, which is based on a BC idea.
 title: "[BC Idea]: "
 labels: ["bcidea"]
 body:
