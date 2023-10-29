@@ -11,9 +11,8 @@ body:
         ⚠️⚠️ BEFORE WE GET STARTED ⚠️⚠️
         Please do not create an issue for a BC Idea unless you intend to implement it yourself. If you are not planning to implement the BC Idea yourself, please go to aka.ms/bcideas and upvote the feature on BC Ideas instead. 
 
-        Before you create a new issue, please check the following:
+        Before you create a new issue please:
         🔎 Search existing issues to avoid creating duplicates.
-        🧪 Test using the latest bcinsider builds to see if your issue has already been fixed
 
         Read more about what and how to contribute in the CONTRIBUTIONS document of this repository: https://github.com/microsoft/BCApps/blob/main/CONTRIBUTING.md.
 
