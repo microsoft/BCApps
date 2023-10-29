@@ -10,7 +10,7 @@ $ErrorActionPreference = "Stop"
 
 Import-Module $PSScriptRoot\PullRequestValidation.psm1
 
-$linkedGitHubIssues = @(Get-WorkItemForPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber)
+$linkedGitHubIssues = @(Get-WorkItemsForPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber)
 
 # Validate that there is at least one linked workitem
 Test-WorkitemsAreLinked -Repository $Repository -PullRequestNumber $PullRequestNumber -GitHubIssues $linkedGitHubIssues
