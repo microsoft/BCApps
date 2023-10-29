@@ -42,7 +42,7 @@ Let's take a look at what it takes to contribute with **A)**:
 
 4. **Get a succesful build and code review approval**
 
-    Before your Pull Request is merged, it must have a succesful Pull Request Build and pass a code review. This code review is done by both Microsoft as well as members of the community. This ensures that quality of the code is on par with Microsoft's and the community's standards.
+    Before your Pull Request can be merged, it must have successful required status checks, all conversations resolved and an approval from a code owner. This code review can be done by both Microsoft and members of the community. This ensures that quality of the code is on par with Microsoft's and the community's standards.
 
 5. **Final validation**
 
