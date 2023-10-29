@@ -10,13 +10,12 @@ $ErrorActionPreference = "Stop"
 
 Import-Module $PSScriptRoot\PullRequestValidation.psm1
 
-$linkedGitHubIssues = @(Get-WorkItemForPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber -GitHub)
-$linkedAdoWorkItem = @(Get-WorkItemForPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber -ADO)
+$linkedGitHubIssues = @(Get-WorkItemForPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber)
 
-# Validate that there are linked work items
-Test-WorkitemsAreLinked -Repository $Repository -PullRequestNumber $PullRequestNumber -GitHubIssues $linkedGitHubIssues -ADOWorkItems $linkedAdoWorkItem
+# Validate that there is at least one linked workitem  
+Test-WorkitemsAreLinked -Repository $Repository -PullRequestNumber $PullRequestNumber -GitHubIssues $linkedGitHubIssues
 
-# Validate that all linked GitHub issues are approved or acknowledged
+# Validate that all linked GitHub issues are approved
 Test-IssuesForPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber -GitHubIssues $linkedGitHubIssues
 
 # Ensure that the issue is linked to a milestone
