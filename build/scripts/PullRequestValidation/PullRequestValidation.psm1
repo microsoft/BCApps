@@ -48,7 +48,7 @@ function Test-IssuesForPullRequest($Repository, $PullRequestNumber, $GitHubIssue
     foreach ($issueNumber in $GitHubIssues) {
         $issue = Get-Issue -Repository $Repository -IssueNumber $IssueNumber
         if ($issue) {
-            $Comment = "Issue $($issue.html_url) is not approved or acknowledged. Please make sure the issue is approved before continuing with the pull request"
+            $Comment = "Issue $($issue.html_url) is not approved. Please make sure the issue is approved before continuing with the pull request"
             if ((-not ($issue.labels.name -contains "approved"))) {
                 # Add comment to pull request if it doesn't already exist
                 Add-CommentOnPullRequestIfNeeded -Repository $Repository -PullRequestNumber $PullRequestNumber -Message $Comment
