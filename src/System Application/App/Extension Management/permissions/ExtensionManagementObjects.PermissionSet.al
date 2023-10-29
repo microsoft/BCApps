@@ -31,5 +31,6 @@ permissionset 2504 "Extension Management - Objects"
                   Page "Extn Deployment Status Detail" = X,
                   Page "Marketplace Extn Deployment" = X,
                   Page "Upload And Deploy Extension" = X,
-                  Page "Extension Setup Launcher" = X;
+                  Page "Extension Setup Launcher" = X,
+                  Table "Extension Installation" = X;
 }

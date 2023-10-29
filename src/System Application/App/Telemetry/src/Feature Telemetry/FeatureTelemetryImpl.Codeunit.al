@@ -15,6 +15,7 @@ codeunit 8704 "Feature Telemetry Impl."
     InherentPermissions = X;
 
     var
+        FeatureUptakeStatusImpl: Codeunit "Feature Uptake Status Impl.";
         UptakeLbl: Label 'Feature %1 is %2', Locked = true, Comment = '%1 - feature name; %2 - uptake status, for example, Discovered';
 
     procedure LogUsage(EventId: Text; FeatureName: Text; EventName: Text; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
@@ -45,7 +46,6 @@ codeunit 8704 "Feature Telemetry Impl."
 
     procedure LogUptake(EventId: Text; FeatureName: Text; FeatureUptakeStatus: Enum "Feature Uptake Status"; IsPerUser: Boolean; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     var
-        FeatureUptakeStatusImpl: Codeunit "Feature Uptake Status Impl.";
         EnvironmentInformation: Codeunit "Environment Information";
         Language: Codeunit Language;
         UptakeCustomDimensions: Dictionary of [Text, Text];

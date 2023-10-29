@@ -17,6 +17,9 @@ dotnet.al @microsoft/d365-bc-app-security
 # Developer Tools
 **/Extension\ Management @microsoft/dynamics-smb-developertools
 
+# App Foundation
+/src/System\ Application/App/AI @microsoft/d365-bc-app-foundation
+
 # AL-Go files and build scripts are owned by Engineering Systems
 .AL-Go/ @microsoft/d365-bc-engineering-systems
 *.ps1 @microsoft/d365-bc-engineering-systems
