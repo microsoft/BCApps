@@ -10,7 +10,6 @@ function Remove-CommentOnPullRequest($Repository, $PullRequestNumber, $Message) 
     }
 }
 
-
 function Add-CommentOnPullRequestIfNeeded($Repository, $PullRequestNumber, $Message) {
     $existingComments = gh api "/repos/$Repository/issues/$PullRequestNumber/comments" -H $AcceptJsonHeader -H $GitHubAPIHeader  | ConvertFrom-Json
     $commentExists = $existingComments | Where-Object { $_.body -eq $Message }
@@ -20,14 +19,6 @@ function Add-CommentOnPullRequestIfNeeded($Repository, $PullRequestNumber, $Mess
     }
 
     return (AddCommentOnPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber -Message $Message)
-}
-
-function AddCommentOnPullRequest($Repository, $PullRequestNumber, $Message) {
-    $comment = gh api "/repos/$Repository/issues/$PullRequestNumber/comments" -H $AcceptJsonHeader -H $GitHubAPIHeader -f body="$Message" | ConvertFrom-Json
-    if (-not $comment) {
-        throw "::Error:: Comment not created on pull request $PullRequestNumber"
-    }
-    return $comment
 }
 
 function Set-Milestone($Repository, $IssueNumber, $MilestoneName) {
@@ -55,3 +46,13 @@ function Get-Issue($Repository, $IssueNumber) {
     }
     return $issue
 }
+
+function AddCommentOnPullRequest($Repository, $PullRequestNumber, $Message) {
+    $comment = gh api "/repos/$Repository/issues/$PullRequestNumber/comments" -H $AcceptJsonHeader -H $GitHubAPIHeader -f body="$Message" | ConvertFrom-Json
+    if (-not $comment) {
+        throw "::Error:: Comment not created on pull request $PullRequestNumber"
+    }
+    return $comment
+}
+
+Export-ModuleMember *-*

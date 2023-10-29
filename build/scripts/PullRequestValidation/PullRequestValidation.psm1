@@ -1,7 +1,12 @@
 Import-Module $PSScriptRoot\..\GitHubHelpers.psm1
 Import-Module $PSScriptRoot\..\EnlistmentHelperFunctions.psm1
 
-function Get-WorkItemForPullRequest() {
+
+<#
+.Synopsis
+    Gets all work items linked to a pull request from the pull request description
+#>
+function Get-WorkItemsForPullRequest() {
     param(
         [Parameter(Mandatory = $true)]
         [string] $PullRequestNumber,
@@ -23,7 +28,21 @@ function Get-WorkItemForPullRequest() {
 
 <#
 .Synopsis
-    Validates that the GitHub issue has the tag "Approved"
+    Sets the milestone for a pull request if it doesn't already have one
+#>
+function Set-MilestoneForPullRequest($Repository, $PullRequestNumber) {
+    $pullRequest = Get-PullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber
+    if ($pullRequest.milestone) {
+        Write-Host "Pull request already has a milestone: $($pullRequest.milestone.title)"
+        return
+    }
+    $currentMilestone = Get-ConfigValue -Key "Milestone" -ConfigType BuildConfig
+    Set-Milestone -Repository $Repository -IssueNumber $PullRequestNumber -Milestone $currentMilestone
+}
+
+<#
+.Synopsis
+    Validates that all GitHub issues are labeled as "approved"
 #>
 function Test-IssuesForPullRequest($Repository, $PullRequestNumber, $GitHubIssues) {
     foreach ($issueNumber in $GitHubIssues) {
@@ -40,21 +59,15 @@ function Test-IssuesForPullRequest($Repository, $PullRequestNumber, $GitHubIssue
             }
         }
         else {
-            Write-Warning "Issue $IssueNumber not found"
+            Write-Warning "::Warning:: Issue $IssueNumber not found"
         }
     }
 }
 
-function Set-MilestoneForPullRequest($Repository, $PullRequestNumber) {
-    $pullRequest = Get-PullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber
-    if ($pullRequest.milestone) {
-        Write-Host "Pull request already has a milestone: $($pullRequest.milestone.title)"
-        return
-    }
-    $currentMilestone = Get-ConfigValue -Key "Milestone" -ConfigType BuildConfig
-    Set-Milestone -Repository $Repository -IssueNumber $PullRequestNumber -Milestone $currentMilestone
-}
-
+<#
+.Synopsis
+    Validates that there is at least one linked workitem
+#>
 function Test-WorkitemsAreLinked($Repository, $PullRequestNumber, $GitHubIssues) {
     $Comment = "No work item found for pull request. Please link a work item to the pull request."
     if (-not $GitHubIssues) {
