@@ -5,7 +5,7 @@
 This project primarily welcomes contributions of two types:
 
 - Pull Requests for pre-approved issues, which are based on BC Ideas (http://aka.ms/bcideas) that have been picked as candidates for code contribution projects.
-- Pull Requests based on approved issues, which address smaller non-customer reported improvements and fixes.
+- Pull Requests with fixes and improvements addressing pre-approved issues, which are non-customer reported.
 
 In either case, an approved issue in state "approved", must exist, before a Pull Request can be created. **Pull Requests without link to approved issues will instantly get rejected.**
 
