@@ -7,7 +7,7 @@ This project primarily welcomes contributions of two types:
 - Pull Requests for pre-approved issues, which are based on BC Ideas (http://aka.ms/bcideas) that have been picked as candidates for code contribution projects.
 - Pull Requests with fixes and improvements addressing pre-approved issues, which are non-customer reported.
 
-In either case, an approved issue in state "approved", must exist, before a Pull Request can be created. **Pull Requests without link to approved issues will instantly get rejected.**
+In either case, **an approved GitHub issue in state "approved", must exist, before a Pull Request can be created**. Once the Pull Request is created it **must** be linked to a GitHub issue. 
 
 **⚠IMPORTANT⚠:** This is not the right place to report product defects with customer impact to Microsoft! Issues created in this repository won't get picked up by the Microsoft engineering team and issues reported in this repository do not fall under SLAs (Service Level Agreements) and hence have no guaranteed time to mitigation, just as provided fixes won't get backported to all supported versions of the product.
 
