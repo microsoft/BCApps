@@ -144,7 +144,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
             exit;
 
         Initialize();
-        CheckandAddMetaprompt();
+        CheckandAddPrimarySystemMessage();
 
         if SystemMessage.Unwrap() <> '' then begin
             MessageJsonObject.Add('role', Format(Enum::"AOAI Chat Roles"::System));
@@ -190,7 +190,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
     end;
 
     [NonDebuggable]
-    local procedure CheckandAddMetaprompt()
+    local procedure CheckandAddPrimarySystemMessage()
     var
         AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
         Telemetry: Codeunit Telemetry;
