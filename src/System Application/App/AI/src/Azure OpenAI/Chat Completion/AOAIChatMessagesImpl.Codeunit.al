@@ -25,8 +25,8 @@ codeunit 7764 "AOAI Chat Messages Impl"
         IsSystemMessageSet: Boolean;
         MessageIdDoesNotExistErr: Label 'Message id does not exist.';
         HistoryLengthErr: Label 'History length must be greater than 0.';
-        TelemetryMetapromptSetbutEmptyTxt: Label 'Metaprompt was set but is empty.', Locked = true;
-        TelemetryMetapromptEmptyTxt: Label 'Metaprompt was not set.', Locked = true;
+        TelemetryPrimarySystemMessageSetbutEmptyTxt: Label 'Metaprompt was set but is empty.', Locked = true;
+        TelemetryPrimarySystemMessageEmptyTxt: Label 'Metaprompt was not set.', Locked = true;
 
     [NonDebuggable]
     procedure SetPrimarySystemMessage(NewPrimaryMessage: SecretText)
@@ -197,9 +197,9 @@ codeunit 7764 "AOAI Chat Messages Impl"
     begin
         if SystemMessage.Unwrap().Trim() = '' then begin
             if IsSystemMessageSet then
-                Telemetry.LogMessage('0000LO9', TelemetryMetapromptSetbutEmptyTxt, Verbosity::Normal, DataClassification::SystemMetadata)
+                Telemetry.LogMessage('0000LO9', TelemetryPrimarySystemMessageSetbutEmptyTxt, Verbosity::Normal, DataClassification::SystemMetadata)
             else
-                Telemetry.LogMessage('0000LOA', TelemetryMetapromptEmptyTxt, Verbosity::Normal, DataClassification::SystemMetadata);
+                Telemetry.LogMessage('0000LOA', TelemetryPrimarySystemMessageEmptyTxt, Verbosity::Normal, DataClassification::SystemMetadata);
             SetPrimarySystemMessage(AzureOpenAIImpl.GetMetaprompt());
         end;
     end;
