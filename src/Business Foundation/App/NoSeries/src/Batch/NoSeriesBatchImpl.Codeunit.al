@@ -63,10 +63,10 @@ codeunit 309 "No. Series - Batch Impl."
 
     procedure PeekNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date): Code[20];
     var
-        NoSeriesImpl: Codeunit "No. Series - Impl.";
+        NoSeries: Codeunit "No. Series";
     begin
         SetInitialState(TempNoSeriesLine);
-        exit(NoSeriesImpl.PeekNextNo(TempGlobalNoSeriesLine, UsageDate));
+        exit(NoSeries.PeekNextNo(TempGlobalNoSeriesLine, UsageDate));
     end;
 
     procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]
@@ -97,11 +97,11 @@ codeunit 309 "No. Series - Batch Impl."
 
     procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; LastDateUsed: Date): Code[20];
     var
-        NoSeriesImpl: Codeunit "No. Series - Impl.";
+        NoSeries: Codeunit "No. Series";
     begin
         SetInitialState(TempNoSeriesLine);
         LockedNoSeriesLine.LockTable();
-        exit(NoSeriesImpl.GetNextNo(TempGlobalNoSeriesLine, LastDateUsed, false));
+        exit(NoSeries.GetNextNo(TempGlobalNoSeriesLine, LastDateUsed, false));
     end;
 
     procedure SimulateGetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; PrevDocumentNo: Code[20]): Code[20]
@@ -127,10 +127,10 @@ codeunit 309 "No. Series - Batch Impl."
 
     procedure GetLastNoUsed(TempNoSeriesLine: Record "No. Series Line" temporary): Code[20]
     var
-        NoSeriesImpl: Codeunit "No. Series - Impl.";
+        NoSeries: Codeunit "No. Series";
     begin
         SetInitialState(TempNoSeriesLine);
-        exit(NoSeriesImpl.GetLastNoUsed(TempGlobalNoSeriesLine));
+        exit(NoSeries.GetLastNoUsed(TempGlobalNoSeriesLine));
     end;
 
 
@@ -173,14 +173,14 @@ codeunit 309 "No. Series - Batch Impl."
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line" temporary; NoSeries: Record "No. Series"; UsageDate: Date)
     var
         NoSeriesLine2: Record "No. Series Line";
-        NoSeriesImpl: Codeunit "No. Series - Impl.";
+        NoSeriesCodeunit: Codeunit "No. Series";
     begin
-        if NoSeriesImpl.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeries, UsageDate, true) then begin
+        if NoSeriesCodeunit.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeries.Code, UsageDate, true) then begin
             NoSeriesLine := TempGlobalNoSeriesLine;
             exit;
         end;
 
-        if not NoSeriesImpl.GetNoSeriesLine(NoSeriesLine2, NoSeries, UsageDate, false) then
+        if not NoSeriesCodeunit.GetNoSeriesLine(NoSeriesLine2, NoSeries.Code, UsageDate, false) then
             exit;
 
         SetInitialState(NoSeriesLine2);

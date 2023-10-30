@@ -9,6 +9,7 @@ codeunit 303 "No. Series"
 {
     Access = Public;
 
+    #region GetNextNo
     /// <summary>
     /// Get the next number in the number series.
     /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
@@ -21,6 +22,13 @@ codeunit 303 "No. Series"
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.GetNextNo(NoSeriesCode, UsageDate, false));
+    end;
+
+    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.GetNextNo(NoSeriesLine, UsageDate, false));
     end;
 
     /// <summary>
@@ -38,6 +46,15 @@ codeunit 303 "No. Series"
         exit(NoSeriesImpl.GetNextNo(NoSeriesCode, UsageDate, HideErrorsAndWarnings));
     end;
 
+    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20] // TODO: This should return true/false of whether we could get the next no., not a blank code.
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.GetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings));
+    end;
+    #endregion
+
+    #region PeekNextNo
     procedure PeekNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20] // TODO: Return boolean whether a number could actually be retrieved or not? Don't rely on whether the code is blank or not
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
@@ -46,12 +63,21 @@ codeunit 303 "No. Series"
     end;
 
     procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20] // TODO: Return boolean whether a number could actually be retrieved or not? Don't rely on whether the code is blank or not
+    var // TODO: Needed?
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.PeekNextNo(NoSeries.Code, UsageDate));
+    end;
+
+    procedure PeekNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
-        exit(NoSeriesImpl.PeekNextNo(NoSeries, UsageDate));
+        exit(NoSeriesImpl.PeekNextNo(NoSeriesLine, UsageDate));
     end;
+    #endregion
 
+    #region GetLastNoUsed
     procedure GetLastNoUsed(NoSeriesLine: Record "No. Series Line"): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
@@ -65,7 +91,9 @@ codeunit 303 "No. Series"
     begin
         exit(NoSeriesImpl.GetLastNoUsed(NoSeriesCode));
     end;
+    #endregion
 
+    #region NoSeriesUsage
     /// <summary>
     /// Verifies that the number series is set to manual.
     /// This function allows manual numbers for blank No. Series Codes.
@@ -76,6 +104,13 @@ codeunit 303 "No. Series"
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         NoSeriesImpl.TestManual(NoSeriesCode);
+    end;
+
+    procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20]) // TODO: Make this a try function, such that partners can handle cases where the no. series is not set to manual
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        NoSeriesImpl.TestManual(NoSeriesCode, DocumentNo);
     end;
 
     procedure IsAutomaticNoSeries(NoSeriesCode: Code[20]): Boolean
@@ -91,7 +126,9 @@ codeunit 303 "No. Series"
     begin
         NoSeriesImpl.TestIsAutomaticNoSeries(NoSeriesCode);
     end;
+    #endregion
 
+    #region NoSeriesRelations
     procedure TestAreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
@@ -99,12 +136,6 @@ codeunit 303 "No. Series"
         NoSeriesImpl.TestAreNoSeriesRelated(DefaultNoSeriesCode, RelatedNoSeriesCode);
     end;
 
-    procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20]) // TODO: Make this a try function, such that partners can handle cases where the no. series is not set to manual
-    var
-        NoSeriesImpl: Codeunit "No. Series - Impl.";
-    begin
-        NoSeriesImpl.TestManual(NoSeriesCode, DocumentNo);
-    end;
 
     procedure AreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean // This is basically what InitSeries does, it then uses the other series if they are and gets a number
     var
@@ -125,6 +156,14 @@ codeunit 303 "No. Series"
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.SelectRelatedNoSeries(OriginalNoSeriesCode, DefaultHighlightedNoSeriesCode, NewNoSeriesCode));
+    end;
+    #endregion
+
+    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.GetNoSeriesLine(NoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings));
     end;
 
     // Implement?: FindNoSeriesLine, IsCurrentNoSeriesLine, ReverseGetNextNo(apac), 
