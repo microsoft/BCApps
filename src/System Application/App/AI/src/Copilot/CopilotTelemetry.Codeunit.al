@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-using System.Globalization;
 using System.Telemetry;
 
 codeunit 7775 "Copilot Telemetry"
@@ -30,33 +29,17 @@ codeunit 7775 "Copilot Telemetry"
     var
         CopilotCapabilitiesImpl: Codeunit "Copilot Capability Impl";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        Language: Codeunit Language;
-        SavedGlobalLanguageId: Integer;
     begin
         CopilotCapabilitiesImpl.AddTelemetryDimensions(CopilotCapability, AppId, CustomDimensions);
-
-        SavedGlobalLanguageId := GlobalLanguage();
-        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
-
         FeatureTelemetry.LogUsage('0000LFO', CopilotCapabilitiesImpl.GetCopilotCategory(), TelemetryFeedbackOnCopilotCapabilityLbl, CustomDimensions);
-
-        GlobalLanguage(SavedGlobalLanguageId);
     end;
 
     procedure SendCopilotActionInvokedTelemetry(CustomDimensions: Dictionary of [Text, Text])
     var
         CopilotCapabilitiesImpl: Codeunit "Copilot Capability Impl";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        Language: Codeunit Language;
-        SavedGlobalLanguageId: Integer;
     begin
         CopilotCapabilitiesImpl.AddTelemetryDimensions(CopilotCapability, AppId, CustomDimensions);
-
-        SavedGlobalLanguageId := GlobalLanguage();
-        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
-
         FeatureTelemetry.LogUsage('0000LLW', CopilotCapabilitiesImpl.GetCopilotCategory(), TelemetryActionInvokedOnCopilotCapabilityLbl, CustomDimensions);
-
-        GlobalLanguage(SavedGlobalLanguageId);
     end;
 }
