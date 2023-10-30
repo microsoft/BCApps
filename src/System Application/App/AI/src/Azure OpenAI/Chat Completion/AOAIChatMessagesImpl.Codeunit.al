@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.AI;
+using System.Telemetry;
 
 codeunit 7764 "AOAI Chat Messages Impl"
 {
@@ -21,13 +22,17 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryRoles: List of [Enum "AOAI Chat Roles"];
         [NonDebuggable]
         HistoryNames: List of [Text[2048]];
+        IsSystemMessageSet: Boolean;
         MessageIdDoesNotExistErr: Label 'Message id does not exist.';
         HistoryLengthErr: Label 'History length must be greater than 0.';
+        TelemetryMetapromptSetbutEmptyTxt: Label 'Metaprompt was set but is empty.', Locked = true;
+        TelemetryMetapromptEmptyTxt: Label 'Metaprompt was not set.', Locked = true;
 
     [NonDebuggable]
     procedure SetPrimarySystemMessage(NewPrimaryMessage: SecretText)
     begin
         SystemMessage := NewPrimaryMessage;
+        IsSystemMessageSet := true;
     end;
 
     [NonDebuggable]
@@ -139,16 +144,17 @@ codeunit 7764 "AOAI Chat Messages Impl"
             exit;
 
         Initialize();
+        CheckandAddMetaprompt();
+
+        if SystemMessage.Unwrap() <> '' then begin
+            MessageJsonObject.Add('role', Format(Enum::"AOAI Chat Roles"::System));
+            MessageJsonObject.Add('content', SystemMessage.Unwrap());
+            HistoryResult.Add(MessageJsonObject);
+        end;
 
         Counter := History.Count - HistoryLength + 1;
         if Counter < 1 then
             Counter := 1;
-        if SystemMessage.Unwrap() <> '' then begin
-            MessageJsonObject.Add('role', Format(Enum::"AOAI Chat Roles"::System));
-            MessageJsonObject.Add('content', SystemMessage.Unwrap());
-            Counter += 1;
-            HistoryResult.Add(MessageJsonObject);
-        end;
 
         repeat
             Clear(MessageJsonObject);
@@ -181,5 +187,20 @@ codeunit 7764 "AOAI Chat Messages Impl"
         History.Add(NewMessage);
         HistoryRoles.Add(NewRole);
         HistoryNames.Add(NewName);
+    end;
+
+    [NonDebuggable]
+    local procedure CheckandAddMetaprompt()
+    var
+        AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
+        Telemetry: Codeunit Telemetry;
+    begin
+        if SystemMessage.Unwrap().Trim() = '' then begin
+            if IsSystemMessageSet then
+                Telemetry.LogMessage('0000LO9', TelemetryMetapromptSetbutEmptyTxt, Verbosity::Normal, DataClassification::SystemMetadata)
+            else
+                Telemetry.LogMessage('0000LOA', TelemetryMetapromptEmptyTxt, Verbosity::Normal, DataClassification::SystemMetadata);
+            SetPrimarySystemMessage(AzureOpenAIImpl.GetMetaprompt());
+        end;
     end;
 }

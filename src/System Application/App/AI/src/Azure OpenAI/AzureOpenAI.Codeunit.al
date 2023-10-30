@@ -134,6 +134,44 @@ codeunit 7771 "Azure OpenAI"
     end;
 
     /// <summary>
+    /// Generates a text completion given a prompt.
+    /// </summary>
+    /// <param name="Metaprompt">The metaprompt to be appended with the prompt.</param>
+    /// <param name="Prompt">The prompt to generate completion for.</param>
+    /// <param name="AOAIOperationResponse">The response of the operation upon successful or failure execution.</param>
+    /// <returns>The generated completion.</returns>
+    /// <error>The completion authentication was not configured.</error>
+    /// <error>The completion generation failed with status code %1.</error>
+    [NonDebuggable]
+    procedure GenerateTextCompletion(Metaprompt: SecretText; Prompt: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AzureOpenAIImpl.GenerateTextCompletion(Metaprompt, Prompt, AOAIOperationResponse, CallerModuleInfo));
+    end;
+
+    /// <summary>
+    /// Generates a completion given a prompt and completion parameters.
+    /// </summary>
+    /// <param name="Metaprompt">The metaprompt to be appended with the prompt.</param>
+    /// <param name="Prompt">The prompt to generate completion for.</param>
+    /// <param name="AOAICompletionParams">The optional completion parameters to use.</param>
+    /// <param name="AOAIOperationResponse">The response of the operation upon successful or failure execution.</param>
+    /// <returns>The generated completion.</returns>
+    /// <error>The completion authentication was not configured.</error>
+    /// <error>The completion generation failed with status code %1.</error>
+    [NonDebuggable]
+    procedure GenerateTextCompletion(Metaprompt: SecretText; Prompt: SecretText; AOAICompletionParams: Codeunit "AOAI Text Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AzureOpenAIImpl.GenerateTextCompletion(Metaprompt, Prompt, AOAICompletionParams, AOAIOperationResponse, CallerModuleInfo));
+    end;
+
+
+    /// <summary>
     /// Generates embeddings given an input.
     /// </summary>
     /// <param name="Input">The input to generate embedding for.</param>
