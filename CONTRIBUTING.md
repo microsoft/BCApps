@@ -71,4 +71,4 @@ or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any addi
 
 * If you are a beginner at contributing, start by following the [GitHub guidelines](https://docs.github.com/en/get-started/quickstart/fork-a-repo).
 
-* If you are new to developing for Business Central, visit [Developers Learning Catalog](https://docs.microsoft.com/en-us/dynamics365/business-central/readiness/readiness-learning-developers).
+* If you are new to developing for Business Central, visit [Developers Learning Catalog](https://docs.microsoft.com/dynamics365/business-central/readiness/readiness-learning-developers).
