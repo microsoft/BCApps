@@ -11,7 +11,7 @@ In either case, **an approved GitHub issue in state "approved", must exist, befo
 
 **⚠IMPORTANT⚠:** This is not the right place to report product defects with customer impact to Microsoft! Issues created in this repository won't get picked up by the Microsoft engineering team and issues reported in this repository do not fall under SLAs (Service Level Agreements) and hence have no guaranteed time to mitigation, just as provided fixes won't get backported to all supported versions of the product.
 
-If your customers are experiencing product defects or you have discovered a severe issue in the product, please follow the steps outlined in ["Technical Support for Dynamics 365 Business Central"](https://docs.microsoft.com/en-us/dynamics365/business-central/dev-itpro/technical-support) to get your issue routed to the right team at Microsoft and to get it treated with the right priority.
+If your customers are experiencing product defects or you have discovered a severe issue in the product, please follow the steps outlined in ["Technical Support for Dynamics 365 Business Central"](https://docs.microsoft.com/dynamics365/business-central/dev-itpro/technical-support) to get your issue routed to the right team at Microsoft and to get it treated with the right priority.
 
 ## How to contribute
 
