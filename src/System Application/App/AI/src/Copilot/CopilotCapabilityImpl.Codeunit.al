@@ -31,8 +31,8 @@ codeunit 7774 "Copilot Capability Impl"
         TelemetryUnregisteredCopilotCapabilityLbl: Label 'Copilot capability has been unregistered.', Locked = true;
         TelemetryActivatedCopilotCapabilityLbl: Label 'Copilot capability activated.', Locked = true;
         TelemetryDeactivatedCopilotCapabilityLbl: Label 'Copilot capability deactivated.', Locked = true;
-        NotificationPrivacyNoticeDisagreedLbl: 'bd91b436-29ba-4823-824c-fc926c9842c2', Locked = true;
-        NotificationCapabilitiesNotAvailableOnPremLbl: 'ada1592d-9728-485c-897e-8d18e8dd7dee', Locked = true;
+        NotificationPrivacyNoticeDisagreedLbl: Label 'bd91b436-29ba-4823-824c-fc926c9842c2', Locked = true;
+        NotificationCapabilitiesNotAvailableOnPremLbl: Label 'ada1592d-9728-485c-897e-8d18e8dd7dee', Locked = true;
 
 
     procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
