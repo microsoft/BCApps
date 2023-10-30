@@ -31,6 +31,9 @@ codeunit 7774 "Copilot Capability Impl"
         TelemetryUnregisteredCopilotCapabilityLbl: Label 'Copilot capability has been unregistered.', Locked = true;
         TelemetryActivatedCopilotCapabilityLbl: Label 'Copilot capability activated.', Locked = true;
         TelemetryDeactivatedCopilotCapabilityLbl: Label 'Copilot capability deactivated.', Locked = true;
+        NotificationPrivacyNoticeDisagreedLbl: 'bd91b436-29ba-4823-824c-fc926c9842c2', Locked = true;
+        NotificationCapabilitiesNotAvailableOnPremLbl: 'ada1592d-9728-485c-897e-8d18e8dd7dee', Locked = true;
+
 
     procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     begin
@@ -160,8 +163,10 @@ codeunit 7774 "Copilot Capability Impl"
     procedure ShowPrivacyNoticeDisagreedNotification()
     var
         Notification: Notification;
+        NotificationGuid: Guid;
     begin
-        Notification.Id(CreateGuid());
+        NotificationGuid := NotificationPrivacyNoticeDisagreedLbl;
+        Notification.Id(NotificationGuid);
         Notification.Message(PrivacyNoticeDisagreedNotificationMessageLbl);
         Notification.AddAction(ReviewPrivacyNoticeLbl, Codeunit::"Copilot Capability Impl", 'OpenPrivacyNotice');
         Notification.Send();
@@ -170,8 +175,10 @@ codeunit 7774 "Copilot Capability Impl"
     procedure ShowCapabilitiesNotAvailableOnPremNotification()
     var
         Notification: Notification;
+        NotificationGuid: Guid;
     begin
-        Notification.Id(CreateGuid());
+        NotificationGuid := NotificationCapabilitiesNotAvailableOnPremLbl;
+        Notification.Id(NotificationGuid);
         Notification.Message(CapabilitiesNotAvailableOnPremNotificationMessageLbl);
         Notification.Send();
     end;
