@@ -33,10 +33,4 @@ codeunit 2014 "Entity Text AI Install"
             UpgradeTag.SetDatabaseUpgradeTag(GetRegisterMarketingTextCapabilityTag());
         end;
     end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
-    local procedure RegisterPerDatabaseTags(var PerDatabaseUpgradeTags: List of [Code[250]])
-    begin
-        PerDatabaseUpgradeTags.Add(GetRegisterMarketingTextCapabilityTag());
-    end;
 }
