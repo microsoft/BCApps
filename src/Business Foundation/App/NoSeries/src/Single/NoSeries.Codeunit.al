@@ -78,18 +78,18 @@ codeunit 303 "No. Series"
     #endregion
 
     #region GetLastNoUsed
-    procedure GetLastNoUsed(NoSeriesLine: Record "No. Series Line"): Code[20]
-    var
-        NoSeriesImpl: Codeunit "No. Series - Impl.";
-    begin
-        exit(NoSeriesImpl.GetLastNoUsed(NoSeriesLine));
-    end;
-
     procedure GetLastNoUsed(NoSeriesCode: Code[20]): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.GetLastNoUsed(NoSeriesCode));
+    end;
+
+    procedure GetLastNoUsed(NoSeriesLine: Record "No. Series Line"): Code[20]
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.GetLastNoUsed(NoSeriesLine));
     end;
     #endregion
 
@@ -145,17 +145,32 @@ codeunit 303 "No. Series"
     end;
 
     /// <summary>
-    /// Selects a number series related to the OriginalNoSeriesCode (includes the OriginalNoSeriesCode).
+    /// Opens a page to select a number series related to the OriginalNoSeriesCode (including the OriginalNoSeriesCode).
     /// </summary>
     /// <param name="OriginalNoSeriesCode">The number series code to find related number series for.</param>
     /// <param name="DefaultHighlightedNoSeriesCode">The number series code to highlight by default. If empty, the OriginalNoSeriesCode will be used.</param>
     /// <param name="NewNoSeriesCode">The selected number series code.</param>
     /// <returns>True if a number series was selected, false otherwise.</returns>
-    procedure SelectRelatedNoSeries(OriginalNoSeriesCode: Code[20]; DefaultHighlightedNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
+    procedure LookupRelatedNoSeries(OriginalNoSeriesCode: Code[20]; DefaultHighlightedNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.SelectRelatedNoSeries(OriginalNoSeriesCode, DefaultHighlightedNoSeriesCode, NewNoSeriesCode));
+    end;
+
+    /// <summary>
+    /// Used to select a number series for the OriginalNoSeriesCode.
+    /// </summary>
+    /// <param name="OriginalNoSeriesCode">The original NoSeries code.</param>
+    /// <param name="RelatedNoSeriesCode">The related NoSeries code.</param>
+    /// <returns>
+    /// Returns the RelatedNoSeriesCode if it is related to the OriginalNoSeriesCode. Otherwise, it returns the OriginalNoSeriesCode.
+    /// </returns>
+    procedure SelectNoSeries(OriginalNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Code[20]
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.SelectNoSeries(OriginalNoSeriesCode, RelatedNoSeriesCode));
     end;
     #endregion
 

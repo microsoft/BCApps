@@ -226,4 +226,11 @@ codeunit 304 "No. Series - Impl."
         end;
         exit(false);
     end;
+
+    procedure SelectNoSeries(OriginalNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Code[20]
+    begin
+        if AreNoSeriesRelated(OriginalNoSeriesCode, RelatedNoSeriesCode) then
+            exit(RelatedNoSeriesCode);
+        exit(OriginalNoSeriesCode);
+    end;
 }
