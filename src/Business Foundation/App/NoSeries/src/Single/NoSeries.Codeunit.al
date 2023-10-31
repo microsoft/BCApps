@@ -10,6 +10,12 @@ codeunit 303 "No. Series"
     Access = Public;
 
     #region GetNextNo
+    procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.GetNextNo(NoSeriesCode, WorkDate(), false));
+    end;
     /// <summary>
     /// Get the next number in the number series.
     /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
@@ -55,14 +61,21 @@ codeunit 303 "No. Series"
     #endregion
 
     #region PeekNextNo
-    procedure PeekNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20] // TODO: Return boolean whether a number could actually be retrieved or not? Don't rely on whether the code is blank or not
+    procedure PeekNextNo(NoSeriesCode: Code[20]): Code[20]
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.PeekNextNo(NoSeriesCode, WorkDate()));
+    end;
+
+    procedure PeekNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.PeekNextNo(NoSeriesCode, UsageDate));
     end;
 
-    procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20] // TODO: Return boolean whether a number could actually be retrieved or not? Don't rely on whether the code is blank or not
+    procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
     var // TODO: Needed?
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
