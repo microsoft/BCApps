@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
+using System.Environment;
 using System.Privacy;
 using System;
 
@@ -15,11 +16,11 @@ page 7775 "Copilot AI Capabilities"
     PageType = Document;
     ApplicationArea = All;
     UsageCategory = Administration;
-    Caption = 'Copilot & AI Capabilities';
+    Caption = 'Copilot & AI capabilities';
     DataCaptionExpression = '';
     AboutTitle = 'About Copilot';
     AboutText = 'Copilot is the AI-powered assistant that helps people across your organization unlock their creativity and automate tedious tasks.';
-    AdditionalSearchTerms = 'OpenAI,AI,Copilot,Co-pilot,Artificial Intelligence,GPT,GTP,Dynamics 365 Copilot,ChatGPT';
+    AdditionalSearchTerms = 'OpenAI,AI,Copilot,Co-pilot,Artificial Intelligence,GPT,GTP,Dynamics 365 Copilot,ChatGPT,Copilot settings,Copilot setup,enable Copilot,Copilot admin';
     InsertAllowed = false;
     DeleteAllowed = false;
     Extensible = false;
@@ -34,7 +35,7 @@ page 7775 "Copilot AI Capabilities"
             group(AlwaysConnected)
             {
                 ShowCaption = false;
-                InstructionalText = 'Your environment is connected to Azure Open AI service for your region.';
+                InstructionalText = 'Copilot and other generative AI capabilities use Azure OpenAI Service. Your environment connects to Azure OpenAI Service in your region.';
                 Visible = InGeo;
 
                 field(GovernData; CopilotGovernDataLbl)
@@ -52,7 +53,7 @@ page 7775 "Copilot AI Capabilities"
             group(NotAlwaysConnected)
             {
                 ShowCaption = false;
-                InstructionalText = 'To enable Copilot, you must first allow data movement across regions because this is not available in your region.';
+                InstructionalText = 'Generative AI capabilities are deactivated because Azure OpenAI Service is not available in your region. By allowing data movement, you agree to data being stored and processed by the Azure OpenAI Service outside of your environment''s geographic region or compliance boundary.';
                 Visible = not InGeo;
 
                 field(DataMovement; AllowDataMovement)
@@ -74,17 +75,27 @@ page 7775 "Copilot AI Capabilities"
                         CurrPage.PreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
                     end;
                 }
+
+                field(AOAIServiceLocated; AOAIServiceLocatedLbl)
+                {
+                    ShowCaption = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        Hyperlink('https://go.microsoft.com/fwlink/?linkid=2250267');
+                    end;
+                }
             }
 
             part(PreviewCapabilities; "Copilot Capabilities Preview")
             {
-                Caption = 'Production Ready Previews';
+                Caption = 'Production ready previews';
                 ApplicationArea = All;
                 Editable = false;
             }
             part(GenerallyAvailableCapabilities; "Copilot Capabilities GA")
             {
-                Caption = 'Generally Available';
+                Caption = 'Generally available';
                 ApplicationArea = All;
                 Editable = false;
             }
@@ -99,7 +110,7 @@ page 7775 "Copilot AI Capabilities"
             {
                 ApplicationArea = All;
                 Image = ValidateEmailLoggingSetup;
-                ToolTip = 'Check the health of the Azure Open AI service for your region.';
+                ToolTip = 'Check the health of the Azure OpenAI service for your region.';
                 Visible = false;
 
                 trigger OnAction()
@@ -133,6 +144,7 @@ page 7775 "Copilot AI Capabilities"
 
     trigger OnOpenPage()
     var
+        EnvironmentInformation: Codeunit "Environment Information";
         ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin
         InGeo := ALCopilotFunctions.IsWithinGeo();
@@ -149,6 +161,9 @@ page 7775 "Copilot AI Capabilities"
         CurrPage.GenerallyAvailableCapabilities.Page.SetDataMovement(AllowDataMovement);
         CurrPage.PreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
 
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            CopilotCapabilityImpl.ShowCapabilitiesNotAvailableOnPremNotification();
+
         if InGeo and (not AllowDataMovement) then
             CopilotCapabilityImpl.ShowPrivacyNoticeDisagreedNotification();
     end;
@@ -159,4 +174,5 @@ page 7775 "Copilot AI Capabilities"
         InGeo: Boolean;
         AllowDataMovement: Boolean;
         CopilotGovernDataLbl: Label 'How do I govern my Copilot data?';
+        AOAIServiceLocatedLbl: Label 'Where is Azure OpenAI Service Located?';
 }
