@@ -6,6 +6,7 @@ namespace System.Text;
 
 using System.AI;
 using System.Environment;
+using System.Upgrade;
 
 codeunit 2014 "Entity Text AI Install"
 {
@@ -24,8 +25,18 @@ codeunit 2014 "Entity Text AI Install"
         EnvironmentInformation: Codeunit "Environment Information";
         LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2226375', Locked = true;
     begin
-        if EnvironmentInformation.IsSaaSInfrastructure() then
-            if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Entity Text") then
-                CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Entity Text", Enum::"Copilot Availability"::"Generally Available", LearnMoreUrlTxt);
+        if not UpgradeTag.HasUpgradeTag(GetRegisterMarketingTextCapabilityTag(), '') then begin
+            if EnvironmentInformation.IsSaaSInfrastructure() then
+                if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Entity Text") then
+                    CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Entity Text", Enum::"Copilot Availability"::"Generally Available", LearnMoreUrlTxt);
+
+            UpgradeTag.SetDatabaseUpgradeTag(GetRegisterMarketingTextCapabilityTag());
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
+    local procedure RegisterPerDatabaseTags(var PerDatabaseUpgradeTags: List of [Code[250]])
+    begin
+        PerDatabaseUpgradeTags.Add(GetRegisterMarketingTextCapabilityTag());
     end;
 }

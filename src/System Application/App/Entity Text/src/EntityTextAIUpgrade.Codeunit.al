@@ -35,7 +35,7 @@ codeunit 2015 "Entity Text AI Upgrade"
         end;
     end;
 
-    local procedure GetRegisterMarketingTextCapabilityTag(): Code[250]
+    internal procedure GetRegisterMarketingTextCapabilityTag(): Code[250]
     begin
         exit('MS-490070-RegisterMarketingTextCapability-20231031');
     end;
