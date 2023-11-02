@@ -1,22 +1,18 @@
+using module .\PRValidator.class.psm1
+
 param(
     [Parameter(Mandatory = $true)]
     [string] $PullRequestNumber,
     [Parameter(Mandatory = $true)]
     [string] $Repository
-)
+    )
 
 # Set error action
 $ErrorActionPreference = "Stop"
 
-Import-Module $PSScriptRoot\PullRequestValidation.psm1
+Write-Host "Validating PR $PullRequestNumber"
 
-$linkedGitHubIssues = @(Get-WorkItemsForPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber)
+$prValidator = [PRValidator]::new($PullRequestNumber, $Repository)
+$prValidator.ValidateIssues()
 
-# Validate that there is at least one linked workitem
-Test-WorkitemsAreLinked -Repository $Repository -PullRequestNumber $PullRequestNumber -GitHubIssues $linkedGitHubIssues
-
-# Validate that all linked GitHub issues are approved
-Test-IssuesForPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber -GitHubIssues $linkedGitHubIssues
-
-# Ensure that the issue is linked to a milestone
-Set-MilestoneForPullRequest -Repository $Repository -PullRequestNumber $PullRequestNumber
+Write-Host "PR $PullRequestNumber validated successfully"
