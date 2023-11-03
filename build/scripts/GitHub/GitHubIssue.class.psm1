@@ -24,6 +24,10 @@ class GitHubIssue {
     }
 
     [bool] IsApproved() {
+        if(-not $this.Issue.labels) {
+            return $false
+        }
+
         return $this.Issue.labels.name -contains "approved"
     }       
 
@@ -38,7 +42,7 @@ class GitHubIssue {
         
         # check result?
 
-        return true
+        return $true
     }
 }
 

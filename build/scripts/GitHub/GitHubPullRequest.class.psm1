@@ -1,5 +1,3 @@
-
-
 using module .\GitHubAPI.class.psm1
 using module .\GitHubIssue.class.psm1
 
@@ -23,6 +21,10 @@ class GitHubPullRequest {
         $this.PullRequest = $pr
     }
 
+    [string] GetBody() {
+        return $this.PullRequest.body
+    }
+
     RemoveComment($Message) {
         $existingComments = gh api "/repos/$($this.Repository)/issues/$($this.PRNumber)/comments" -H $this.AcceptJsonHeader -H $this.GitHubAPIHeader  | ConvertFrom-Json
         $comment = $existingComments | Where-Object { $_.body -eq $Message }
@@ -43,10 +45,8 @@ class GitHubPullRequest {
         }
     
         $comment = gh api "/repos/$($this.Repository)/issues/$($this.PRNumber)/comments" -H $this.AcceptJsonHeader -H $this.GitHubAPIHeader -f body="$Message" | ConvertFrom-Json
-        if (-not $comment) {
-            throw "::Error:: Comment not created on pull request $($this.PRNumber) in repository $($this.Repository)"
-        }
-
         return $comment
     }
 }
+
+Export-ModuleMember -Function GitHubPullRequest
