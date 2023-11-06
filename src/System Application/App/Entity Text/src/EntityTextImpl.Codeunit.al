@@ -427,7 +427,7 @@ codeunit 2012 "Entity Text Impl."
 
         AOAICompletionParams.SetMaxTokens(2500);
         AOAICompletionParams.SetTemperature(0.7);
-        AOAIChatMessages.AddSystemMessage(SystemPrompt);
+        AOAIChatMessages.SetPrimarySystemMessage(SystemPrompt);
         AOAIChatMessages.AddUserMessage(UserPrompt);
 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAICompletionParams, AOAIOperationResponse);
