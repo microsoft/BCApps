@@ -26,24 +26,18 @@ codeunit 2015 "Entity Text AI Upgrade"
         UpgradeTag: Codeunit "Upgrade Tag";
         LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2226375', Locked = true;
     begin
-        if not UpgradeTag.HasUpgradeTag(GetRegisterMarketingTextCapabilityTag(), '') then begin
+        if not UpgradeTag.HasUpgradeTag(GetRegisterMarketingTextCapabilityTag()) then begin
             if EnvironmentInformation.IsSaaSInfrastructure() then
                 if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Entity Text") then
                     CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Entity Text", Enum::"Copilot Availability"::"Generally Available", LearnMoreUrlTxt);
 
-            UpgradeTag.SetDatabaseUpgradeTag(GetRegisterMarketingTextCapabilityTag());
+            UpgradeTag.SetUpgradeTag(GetRegisterMarketingTextCapabilityTag());
         end;
     end;
 
     internal procedure GetRegisterMarketingTextCapabilityTag(): Code[250]
     begin
         exit('MS-490070-RegisterMarketingTextCapability-20231031');
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
-    local procedure RegisterPerDatabaseTags(var PerDatabaseUpgradeTags: List of [Code[250]])
-    begin
-        PerDatabaseUpgradeTags.Add(GetRegisterMarketingTextCapabilityTag());
     end;
 
 }
