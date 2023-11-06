@@ -63,5 +63,8 @@ codeunit 7770 "AOAI Operation Response"
         StatusCode := ALCopilotOperationResponse.StatusCode;
         Result := ALCopilotOperationResponse.Result();
         Error := ALCopilotOperationResponse.ErrorText();
+
+        if Error = '' then
+            Error := GetLastErrorText();
     end;
 }
