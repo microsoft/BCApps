@@ -50,8 +50,9 @@ codeunit 2012 "Entity Text Impl."
             Error(CapabilityDisabledErr);
         if not CanSuggest() then
             Error(CannotGenerateErr);
-
         BuildPrompts(Facts, Tone, TextFormat, TextEmphasis, SystemPrompt, UserPrompt);
+
+        Session.LogMessage('0000JVG', TelemetryGenerationRequestedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
 
         Suggestion := GenerateAndReviewCompletion(SystemPrompt, UserPrompt, TextFormat, Facts, CallerModuleInfo);
 
@@ -158,8 +159,6 @@ codeunit 2012 "Entity Text Impl."
 
         SystemPrompt := BuildSinglePrompt(SystemPromptJson.AsObject(), LanguageName, FactsList, Category, Tone, TextFormat, TextEmphasis);
         UserPrompt := BuildSinglePrompt(UserPromptJson.AsObject(), LanguageName, FactsList, Category, Tone, TextFormat, TextEmphasis);
-
-        Session.LogMessage('0000JVG', StrSubstNo(TelemetryPromptSummaryTxt, Format(Facts.Count()), Format(Tone), Format(TextFormat), Format(TextEmphasis), LanguageName), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
     end;
 
     [NonDebuggable]
@@ -462,7 +461,7 @@ codeunit 2012 "Entity Text Impl."
         PromptFormatMissingPropsErr: Label 'Required properties are missing from the prompt definition.';
         NoAuthorizationHandlerErr: Label 'There was no handler to provide authorization information for the suggestion. Contact your partner.';
         TelemetryCategoryLbl: Label 'Entity Text', Locked = true;
-        TelemetryPromptSummaryTxt: Label 'Prompt has %1 facts, tone: %2, format: %3, emphasis: %4, language: %5.', Locked = true;
+        TelemetryGenerationRequestedTxt: Label 'New suggestion requested.', Locked = true;
         TelemetrySuggestionCreatedTxt: Label 'A new suggestion was generated for table %1, scenario %2', Locked = true;
         TelemetryCompletionEmptyTxt: Label 'The returned completion was empty.', Locked = true;
         TelemetryLowQualityCompletionTxt: Label 'Failed to generate a good quality completion, returning a low quality one.', Locked = true;
