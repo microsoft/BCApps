@@ -11,7 +11,9 @@ codeunit 1994 "Guided Experience Item Cleanup"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Primary Guided Experience Item" = rd;
+    Permissions =
+        tabledata "Primary Guided Experience Item" = rd,
+        tabledata "Guided Experience Item" = rd;
 
     trigger OnRun()
     begin
