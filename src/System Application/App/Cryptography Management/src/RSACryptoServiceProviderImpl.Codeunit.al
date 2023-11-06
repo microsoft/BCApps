@@ -16,6 +16,11 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
     var
         DotNetRSACryptoServiceProvider: DotNet RSACryptoServiceProvider;
 
+    procedure InitializeRSA(KeySize: Integer)
+    begin
+        DotNetRSACryptoServiceProvider := DotNetRSACryptoServiceProvider.RSACryptoServiceProvider(KeySize);
+    end;
+
     procedure GetInstance(var DotNetAsymmetricAlgorithm: DotNet AsymmetricAlgorithm)
     begin
         DotNetAsymmetricAlgorithm := DotNetRSACryptoServiceProvider;
