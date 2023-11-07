@@ -5,7 +5,7 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-codeunit 303 "No. Series"
+codeunit 310 "No. Series"
 {
     Access = Public;
 
