@@ -94,7 +94,7 @@ function New-TopicBranchIfNeeded
         git fetch origin $BranchName
         git checkout $BranchName | Out-Null
     } else {
-        $BranchName = New-TopicBranch -Category "UpdateBCArtifactVersion/$TargetBranch"
+        $BranchName = New-TopicBranch -Category $Category
     }
 
     return $BranchName
