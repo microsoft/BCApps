@@ -76,10 +76,18 @@ function New-TopicBranchIfNeeded
         [Parameter(Mandatory=$true, ParameterSetName = 'BranchName')]
         [string] $BranchName,
         [Parameter(Mandatory=$true, ParameterSetName = 'Category')]
-        [string] $Category
+        [string] $Category,
+        [Parameter(Mandatory=$false)]
+        [string] $PullRequestTitle
     )
     $openPullRequests = gh api "/repos/microsoft/BCApps/pulls" --method GET -f state=open | ConvertFrom-Json
-    $existingPullRequest = $openPullRequests | Where-Object { $_.head.ref -match $Category } | Select-Object -First 1
+    
+    $openPullRequests = $openPullRequests | Where-Object { $_.head.ref -match $Category }
+    if ($PullRequestTitle) {
+        $openPullRequests = $openPullRequests | Where-Object { $_.title -eq $PullRequestTitle }
+    }
+
+    $existingPullRequest = $openPullRequests | Select-Object -First 1
     
     if ($existingPullRequest) {
         $BranchName = $existingPullRequest.head.ref
