@@ -29,6 +29,8 @@ codeunit 1994 "Guided Experience Item Cleanup"
         ItemsToCleanUp: List of [Code[300]];
         ItemCode: Code[300];
     begin
+        GuidedExperienceItem.ReadIsolation := IsolationLevel::ReadUncommitted;
+        GuidedExperienceItem2.ReadIsolation := IsolationLevel::ReadUncommitted;
         GuidedExperienceItem.SetLoadFields(Code, Version, "Extension ID");
         GuidedExperienceItem2.SetLoadFields(Code, Version);
 
@@ -73,7 +75,6 @@ codeunit 1994 "Guided Experience Item Cleanup"
         else
             i := Batch;
 
-        GuidedExperienceItem.SetLoadFields(Code, Version);
         GuidedExperienceItem.SetRange(Code, ItemCode);
 
         while i < MaxVersion do begin
