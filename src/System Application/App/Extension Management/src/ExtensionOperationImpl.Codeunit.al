@@ -46,7 +46,7 @@ codeunit 2503 "Extension Operation Impl"
         end;
     end;
 
-    procedure DeployExtension(AppId: Guid; lcid: Integer; IsUIEnabled: Boolean)
+    procedure DeployExtension(AppId: Guid; lcid: Integer; IsUIEnabled: Boolean; PreviewKey: Text)
     var
         NAVAppTenantOperation: Record "NAV App Tenant Operation";
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
@@ -57,7 +57,7 @@ codeunit 2503 "Extension Operation Impl"
         CheckPermissions();
         InitializeOperationInvoker();
 
-        OperationId := DotNetALNavAppOperationInvoker.DeployTarget(AppId, Format(lcid));
+        OperationId := DotNetALNavAppOperationInvoker.DeployTarget(AppId, Format(lcid), PreviewKey);
 
         if IsUIEnabled then begin
             ExtnInstallationProgress.SetOperationIdToMonitor(OperationId);
