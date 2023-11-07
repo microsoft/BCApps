@@ -89,12 +89,7 @@ codeunit 304 "No. Series - Impl."
         exit(Enum::"No. Series Implementation"::Normal);
     end;
 
-    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeries: Record "No. Series"; SeriesDate: Date; HideWarningsAndErrors: Boolean): Boolean
-    begin
-        exit(GetNoSeriesLine(NoSeriesLine, NoSeries.Code, SeriesDate, HideWarningsAndErrors));
-    end;
-
-    local procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
+    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
     var
         NoSeries: Record "No. Series";
     begin
@@ -146,15 +141,7 @@ codeunit 304 "No. Series - Impl."
         exit(PeekNextNo(NoSeriesLine, UsageDate));
     end;
 
-    procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
-    var
-        NoSeriesLine: Record "No. Series Line";
-    begin
-        NoSeriesLine."Series Code" := NoSeries.Code;
-        exit(PeekNextNo(NoSeriesLine, UsageDate));
-    end;
-
-    procedure PeekNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date) NextNo: Code[20]
+    procedure PeekNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     var
         NoSeriesSingle: Interface "No. Series - Single";
     begin
@@ -238,5 +225,12 @@ codeunit 304 "No. Series - Impl."
             exit(true);
         end;
         exit(false);
+    end;
+
+    procedure SelectNoSeries(OriginalNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Code[20]
+    begin
+        if AreNoSeriesRelated(OriginalNoSeriesCode, RelatedNoSeriesCode) then
+            exit(RelatedNoSeriesCode);
+        exit(OriginalNoSeriesCode);
     end;
 }
