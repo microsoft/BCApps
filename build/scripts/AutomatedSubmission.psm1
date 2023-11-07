@@ -69,6 +69,29 @@ function New-TopicBranch
     return $BranchName
 }
 
+function New-TopicBranchIfNeeded
+{
+    param
+    (
+        [Parameter(Mandatory=$true, ParameterSetName = 'BranchName')]
+        [string] $BranchName,
+        [Parameter(Mandatory=$true, ParameterSetName = 'Category')]
+        [string] $Category
+    )
+    $openPullRequests = gh api "/repos/microsoft/BCApps/pulls" --method GET -f state=open | ConvertFrom-Json
+    $existingPullRequest = $openPullRequests | Where-Object { $_.head.ref -match $Category } | Select-Object -First 1
+    
+    if ($existingPullRequest) {
+        $BranchName = $existingPullRequest.head.ref
+        git fetch origin $BranchName
+        git checkout $BranchName | Out-Null
+    } else {
+        $BranchName = New-TopicBranch -Category "UpdateBCArtifactVersion/$TargetBranch"
+    }
+
+    return $BranchName
+}
+
 function New-GitHubPullRequest
 {
     param
@@ -80,6 +103,14 @@ function New-GitHubPullRequest
         [Parameter(Mandatory=$false)]
         [string] $label = "automation"
     )
+
+    $openPullRequests = gh api "/repos/microsoft/BCApps/pulls" --method GET -f state=open | ConvertFrom-Json
+    $existingPullRequest = $openPullRequests | Where-Object {$_.head.ref -eq $BranchName} | Select-Object -First 1
+
+    if ($existingPullRequest) {
+        Write-Host "Pull request already exists for branch ($BranchName): $($existingPullRequest.html_url)"
+        return
+    }
 
     $availableLabels = gh label list --json name | ConvertFrom-Json
     if ($label -in $availableLabels.name) {
