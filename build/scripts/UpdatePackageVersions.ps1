@@ -11,6 +11,8 @@
 #>
 Param(
     [Parameter(Mandatory = $true)]
+    [string]$Repository,
+    [Parameter(Mandatory = $true)]
     [string]$TargetBranch,
     [Parameter(Mandatory = $true)]
     [string]$Actor
@@ -60,7 +62,7 @@ if ($updatesAvailable) {
     $title = "[$TargetBranch] Update package versions"
     Push-GitBranch -BranchName $BranchName -Files @("build/Packages.json") -CommitMessage $title
 
-    New-GitHubPullRequest -BranchName $BranchName -TargetBranch $TargetBranch -label "automation"
+    New-GitHubPullRequest -Repository $Repository -BranchName $BranchName -TargetBranch $TargetBranch -label "automation"
 } else {
     Write-Host "No updates available"
 }

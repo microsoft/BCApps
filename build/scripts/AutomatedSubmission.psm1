@@ -73,6 +73,8 @@ function New-TopicBranchIfNeeded
 {
     param
     (
+        [Parameter(Mandatory=$true)]
+        [string] $Repository,
         [Parameter(Mandatory=$true, ParameterSetName = 'BranchName')]
         [string] $BranchName,
         [Parameter(Mandatory=$true, ParameterSetName = 'Category')]
@@ -80,7 +82,7 @@ function New-TopicBranchIfNeeded
         [Parameter(Mandatory=$false)]
         [string] $PullRequestTitle
     )
-    $openPullRequests = gh api "/repos/microsoft/BCApps/pulls" --method GET -f state=open | ConvertFrom-Json
+    $openPullRequests = gh api "/repos/$Repository/pulls" --method GET -f state=open | ConvertFrom-Json
     
     $openPullRequests = $openPullRequests | Where-Object { $_.head.ref -match $Category }
     if ($PullRequestTitle) {
@@ -105,6 +107,8 @@ function New-GitHubPullRequest
     param
     (
         [Parameter(Mandatory=$true)]
+        [string] $Repository,
+        [Parameter(Mandatory=$true)]
         [string] $BranchName,
         [Parameter(Mandatory=$true)]
         [string] $TargetBranch,
@@ -112,7 +116,7 @@ function New-GitHubPullRequest
         [string] $label = "automation"
     )
 
-    $openPullRequests = gh api "/repos/microsoft/BCApps/pulls" --method GET -f state=open | ConvertFrom-Json
+    $openPullRequests = gh api "/repos/$Repository/pulls" --method GET -f state=open | ConvertFrom-Json
     $existingPullRequest = $openPullRequests | Where-Object {$_.head.ref -eq $BranchName} | Select-Object -First 1
 
     if ($existingPullRequest) {
