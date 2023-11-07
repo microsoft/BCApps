@@ -101,7 +101,7 @@ page 1998 "Guided Experience Item Cleanup"
                     GuidedExperience: Codeunit "Guided Experience";
                     Limit, Counter : Integer;
                 begin
-                    Limit := 1000;
+                    Limit := 8000;
                     for Counter := 1 to Limit do
                         GuidedExperience.InsertManualSetup('Title', Format(Counter), '', 0, ObjectType::Page, Page::"Advanced Settings", Enum::"Manual Setup Category"::Uncategorized, '');
                 end;
@@ -118,7 +118,7 @@ page 1998 "Guided Experience Item Cleanup"
                     GuidedExperience: Codeunit "Guided Experience";
                     Limit, Counter : Integer;
                 begin
-                    Limit := 1000;
+                    Limit := 9000;
                     for Counter := 1 to Limit do
                         GuidedExperience.InsertManualSetup('Title', Format(Counter), '', 0, ObjectType::Page, Page::"Cue Setup Administrator", Enum::"Manual Setup Category"::Uncategorized, '');
                 end;
@@ -135,7 +135,7 @@ page 1998 "Guided Experience Item Cleanup"
                     GuidedExperience: Codeunit "Guided Experience";
                     Limit, Counter : Integer;
                 begin
-                    Limit := 1000;
+                    Limit := 10000;
                     for Counter := 1 to Limit do
                         GuidedExperience.InsertManualSetup('Title', Format(Counter), '', 0, ObjectType::Page, Page::"App Setup List", Enum::"Manual Setup Category"::Uncategorized, '');
                 end;
