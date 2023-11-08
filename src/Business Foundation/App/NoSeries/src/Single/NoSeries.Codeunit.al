@@ -5,7 +5,7 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-codeunit 303 "No. Series"
+codeunit 310 "No. Series"
 {
     Access = Public;
 
@@ -126,6 +126,13 @@ codeunit 303 "No. Series"
         NoSeriesImpl.TestManual(NoSeriesCode, DocumentNo);
     end;
 
+    procedure IsManualNoSeries(NoSeriesCode: Code[20]): Boolean
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.IsManualNoSeries(NoSeriesCode));
+    end;
+
     procedure IsAutomaticNoSeries(NoSeriesCode: Code[20]): Boolean
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
@@ -169,21 +176,6 @@ codeunit 303 "No. Series"
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.SelectRelatedNoSeries(OriginalNoSeriesCode, DefaultHighlightedNoSeriesCode, NewNoSeriesCode));
-    end;
-
-    /// <summary>
-    /// Used to select a number series for the OriginalNoSeriesCode.
-    /// </summary>
-    /// <param name="OriginalNoSeriesCode">The original NoSeries code.</param>
-    /// <param name="RelatedNoSeriesCode">The related NoSeries code.</param>
-    /// <returns>
-    /// Returns the RelatedNoSeriesCode if it is related to the OriginalNoSeriesCode. Otherwise, it returns the OriginalNoSeriesCode.
-    /// </returns>
-    procedure SelectNoSeries(OriginalNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Code[20]
-    var
-        NoSeriesImpl: Codeunit "No. Series - Impl.";
-    begin
-        exit(NoSeriesImpl.SelectNoSeries(OriginalNoSeriesCode, RelatedNoSeriesCode));
     end;
     #endregion
 
