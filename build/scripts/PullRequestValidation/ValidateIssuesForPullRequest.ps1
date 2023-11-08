@@ -17,13 +17,14 @@ $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
 $prDescription = $pullRequest.GetBody()
 $issuesStartingPoint = "Fixes #"
 
-$issueStartingIndex = -1
-if($prDescription) {
-    $issueStartingIndex = $prDescription.IndexOf($issuesStartingPoint)
+if(-not $prDescription) {
+    throw "Could not find pull request description. Please make sure the pull request description contains a line that contains '$issuesStartingPoint' followed by the issue number being fixed."
 }
 
+$issueStartingIndex = $prDescription.IndexOf($issuesStartingPoint)
+
 if ($issueStartingIndex -eq -1) {
-    throw "Could not find issues section in the pull request description. Please make sure the pull request description contains a line that contains 'Fixes #' followed by the issue number being fixed"
+    throw "Could not find issues section in the pull request description. Please make sure the pull request description contains a line that contains '$issuesStartingPoint' followed by the issue number being fixed"
 }
 
 $issuesDescription = $prDescription.Substring($issueStartingIndex + $($issuesStartingPoint.Length) - 1)
