@@ -34,19 +34,25 @@ foreach($match in $issueMatches.Matches) {
     $issueIds += $match.Groups[1].Value
 }
 
+$unapprovedIssues = @()
+
 foreach ($issueId in $issueIds) {
     Write-Host "Validating issue $issueId"
     $issue = [GitHubIssue]::Get($issueId, $Repository)
 
     $Comment = "Issue $($issue.html_url) is not approved. Please make sure the issue is approved before continuing with the pull request."
+
     if (-not $issue.IsApproved()) {
         $pullRequest.AddComment($Comment)
-
-        throw "$Comment"
+        $unapprovedIssues += $issueId
     }
     else {
         $pullRequest.RemoveComment($Comment)
     }
+}
+
+if($unapprovedIssues) {
+    throw "The following issues are not approved: $($unapprovedIssues -join ', ')"
 }
 
 Write-Host "PR $PullRequestNumber validated successfully"
