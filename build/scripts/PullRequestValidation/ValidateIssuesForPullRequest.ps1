@@ -15,20 +15,24 @@ Write-Host "Validating PR $PullRequestNumber"
 
 $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
 $prDescription = $pullRequest.GetBody()
-$issuesStartingPoint = "Fixes #"
+$issueRegex = "Fixes #(\d+)"
 
 if(-not $prDescription) {
-    throw "Could not find pull request description. Please make sure the pull request description contains a line that contains '$issuesStartingPoint' followed by the issue number being fixed."
+    throw "Could not find pull request description. Please make sure the pull request description contains a line that contains 'Fixes #' followed by the issue number being fixed."
 }
 
-$issueStartingIndex = $prDescription.IndexOf($issuesStartingPoint)
+# Get all issue matches
+$issueMatches = Select-String $issueRegex -InputObject $prDescription -AllMatches
 
-if ($issueStartingIndex -eq -1) {
-    throw "Could not find issues section in the pull request description. Please make sure the pull request description contains a line that contains '$issuesStartingPoint' followed by the issue number being fixed"
+if(-not $matches) {
+    throw "Could not find issues section in the pull request description. Please make sure the pull request description contains a line that contains 'Fixes #' followed by the issue number being fixed."
 }
 
-$issuesDescription = $prDescription.Substring($issueStartingIndex + $($issuesStartingPoint.Length) - 1)
-$issueIds = $issuesDescription.Split(' ,') | Where-Object { $_ -match "#\d+" } | ForEach-Object { [int] $_.Trim("# ") }
+# Get all issue IDs
+$issueIds = @()
+foreach($match in $issueMatches.Matches) {
+    $issueIds += $match.Groups[1].Value
+}
 
 foreach ($issueId in $issueIds) {
     Write-Host "Validating issue $issueId"
