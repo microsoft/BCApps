@@ -1,0 +1,68 @@
+[
+    {
+        "bug":  "488818",
+        "codeunitId":  132604,
+        "CodeunitName": "Checklist Facade Test",
+        "Method": "TestUpdateManualSetupChecklistItemWithUsers"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132604,
+        "CodeunitName": "Checklist Facade Test",
+        "Method": "TestUpdateUsersForManualSetupChecklistItem"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132604,
+        "CodeunitName": "Checklist Facade Test",
+        "Method": "TestInsertLearnChecklistItemWithUsers"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132604,
+        "CodeunitName": "Checklist Facade Test",
+        "Method": "TestInsertDuplicateLearnChecklistItemWithUsers"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132604,
+        "CodeunitName": "Checklist Facade Test",
+        "Method": "TestUpdateLearnChecklistItemWithUsers"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132604,
+        "CodeunitName": "Checklist Facade Test",
+        "Method": "TestUpdateUsersForLearnChecklistItem"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132604,
+        "CodeunitName": "Checklist Facade Test",
+        "Method": "TestInsertVideoChecklistItemWithUsers"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132604,
+        "CodeunitName": "Checklist Facade Test",
+        "Method": "TestInsertSpotlightTourChecklistItemWithUsers"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132604,
+        "CodeunitName": "Checklist Facade Test",
+        "Method": "TestDeleteAssistedSetupChecklistItemWithUsers"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132604,
+        "CodeunitName": "Checklist Facade Test",
+        "Method": "TestDeleteManualSetupChecklistItemWithUsers"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132604,
+        "CodeunitName": "Checklist Facade Test",
+        "Method": "TestDeleteLearnChecklistItemWithUsers"
+    }
+]

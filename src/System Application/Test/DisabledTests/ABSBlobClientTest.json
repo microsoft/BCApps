@@ -1,0 +1,68 @@
+[
+    {
+        "bug":  "488813",
+        "codeunitId":  132920,
+        "codeunitName":  "ABS Blob Client Test",
+        "method":  "PutBlobBlockBlobStreamTest"
+    },
+    {
+        "bug":  "488813",
+        "codeunitId":  132920,
+        "codeunitName":  "ABS Blob Client Test",
+        "method":  "ListBlobsTest"
+    },
+    {
+        "bug":  "488813",
+        "codeunitId":  132920,
+        "codeunitName":  "ABS Blob Client Test",
+        "method":  "ListBlobsTestNextMarker"
+    },
+    {
+        "bug":  "488813",
+        "codeunitId":  132920,
+        "codeunitName":  "ABS Blob Client Test",
+        "method":  "ListBlobsTestIncludeTags"
+    },
+    {
+        "bug":  "488813",
+        "codeunitId":  132920,
+        "codeunitName":  "ABS Blob Client Test",
+        "method":  "ListBlobHierarchyTest"
+    },
+    {
+        "bug":  "488813",
+        "codeunitId":  132920,
+        "codeunitName":  "ABS Blob Client Test",
+        "method":  "GetBlockBlobTagsTest"
+    },
+    {
+        "bug":  "488813",
+        "codeunitId":  132920,
+        "codeunitName":  "ABS Blob Client Test",
+        "method":  "GetBlockBlobChangedTagsTest"
+    },
+    {
+        "bug":  "488813",
+        "codeunitId":  132920,
+        "codeunitName":  "ABS Blob Client Test",
+        "method":  "GetBlockBlobEmptyTagsTest"
+    },
+    {
+        "bug":  "488813",
+        "codeunitId":  132920,
+        "codeunitName":  "ABS Blob Client Test",
+        "method":  "LeaseBlobTest"
+    },
+    {
+        "bug":  "488813",
+        "codeunitId":  132920,
+        "codeunitName":  "ABS Blob Client Test",
+        "method":  "GetBlobPropertiesTest"
+    },
+    {
+        "bug":  "488813",
+        "codeunitId":  132920,
+        "codeunitName":  "ABS Blob Client Test",
+        "method":  "BlobExistsTest"
+    }
+]

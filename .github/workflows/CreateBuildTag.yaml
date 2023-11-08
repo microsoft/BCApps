@@ -3,16 +3,17 @@ name: 'Create Build Tag'
 on:
   workflow_run:
     workflows: [' CI/CD']
-    types: [requested]
-    branches: ['main', 'release/*']
+    types: [completed]
+    branches: ['main']
 
-run-name: Create build tag on branch ${{ github.ref_name }}.
+run-name: "[${{ github.ref_name }}] Create build tag"
 
-permissions: 
+permissions:
   contents: write
 
 jobs:
   CreateTag:
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: windows-latest
     steps:
       - name: Checkout
@@ -20,10 +21,10 @@ jobs:
 
       - name: Get Build Version
         id: GetBuildVersion
-        env: 
+        env:
           buildNumber: ${{ github.event.workflow_run.run_number }}
         run: |
-          Import-Module ".\Build\Scripts\EnlistmentHelperFunctions.psm1"
+          Import-Module ".\build\scripts\EnlistmentHelperFunctions.psm1"
           $majorMinor = Get-ConfigValue -ConfigType "AL-GO" -Key RepoVersion
           $buildVersion = "$($majorMinor).$($env:buildNumber)"
           Write-Host "Build Version: $buildVersion"
@@ -32,7 +33,7 @@ jobs:
       - name: Create version tag
         uses: actions/github-script@v6
         env:
-          BuildVersion: ${{ steps.GetBuildVersion.outputs.BuildVersion}}
+          BuildVersion: ${{ steps.GetBuildVersion.outputs.BuildVersion}}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

@@ -1,0 +1,32 @@
+[
+    {
+        "bug":  "488818",
+        "codeunitId":  132602,
+        "CodeunitName": "Checklist Administration Test",
+        "Method": "TestCreateVideoChecklistItem"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132602,
+        "CodeunitName": "Checklist Administration Test",
+        "Method": "TestCreateSpotlightTourChecklistItem"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132602,
+        "CodeunitName": "Checklist Administration Test",
+        "Method": "TestChangeCompletionRequirementTypeFromSpecificUsersToSpecificUsers"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132602,
+        "CodeunitName": "Checklist Administration Test",
+        "Method": "TestChangeCompletionRequirementTypeFromSpecificUsersToAnyone"
+    },
+    {
+        "bug":  "488818",
+        "codeunitId":  132602,
+        "CodeunitName": "Checklist Administration Test",
+        "Method": "TestChangeCompletionRequirementTypeFromSpecificUsersToEveryone"
+    }
+]

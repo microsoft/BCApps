@@ -1,0 +1,8 @@
+[
+    {
+        "bug":  "488817",
+        "codeunitId":  132909,
+        "CodeunitName": "Azure AD User Management Test",
+        "Method": "TestCodeunitRunPlansAreRefreshed"
+    }
+]

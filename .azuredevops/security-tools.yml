@@ -4,12 +4,11 @@ name: 1.0.$(Year:yy)$(DayOfYear).$(Rev:r) # This is the build number
 trigger: none
 pr: none
 schedules:
-- cron: "0 0 * * 1"
-  displayName: Monday at midnight
+- cron: "0 0 * * *"
+  displayName: Daily at midnight
   branches:
     include:
     - main
-    - releases/*
     
 pool:
   vmImage: 'windows-latest'
@@ -32,26 +31,16 @@ jobs:
   steps:
   - checkout: self
     fetchTags: 'true'
-  - powershell: |
-      Import-Module $(Build.SourcesDirectory)\Build\Scripts\EnlistmentHelperFunctions.psm1
-      $repoVersion = Get-ConfigValue -Key 'repoVersion' -ConfigType AL-Go
-      $latestVersion = (Find-Package "Microsoft-Dynamics-BusinessCentral-BCApps" -Source "nuget.org" -AllVersions -MinimumVersion $repoVersion | Select Version -First 1).Version
-      Write-Host "##vso[build.updatebuildnumber]$latestVersion"
-    displayName: Get Latest Version
-  - task: DownloadPackage@1
-    displayName: Download Package from NuGet
-    inputs:
-      feed: '/DynamicsSMBPackages'
-      definition: 'Microsoft-Dynamics-BusinessCentral-BCApps'
-      version: $(Build.BuildNumber)
-      downloadPath: $(OutputPath)
   - template: security-tools-full.yml@PipelineTemplates
     parameters:
       OutputPath: $(OutputPath)
       SourcePath: $(SourcePath)
-      BuildCommand: Powershell.exe -NonInteractive "cd $(Build.SourcesDirectory); .\build.ps1 -ALGoProject 'System Application' -InsiderSasToken '$(InsiderSasToken)' -AutoFill"
+      BuildCommand: Powershell.exe -NonInteractive "cd $(Build.SourcesDirectory); .\build.ps1 -ALGoProject 'System Application' -AutoFill"
       GdnSuppressFile: $(Build.SourcesDirectory)\.azuredevops\security-tools.gdnsuppress
       ExcludeSecurityTools:
       - CodeSignValidation # Not applicable yet (Code is not signed on Github) 
       IncludeOfficialBuildTools:
       - ComponentGovernance
+      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}:
+        TSA: true
+        TSAIncludeTools: 'PoliCheck'

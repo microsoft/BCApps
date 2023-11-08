@@ -1,0 +1,6 @@
+{
+    "bug":  "488820",
+    "codeunitId":  132605,
+    "CodeunitName": "Checklist Banner Test",
+    "Method": "TestChecklistBannerVisibilityAfterDelete"
+}

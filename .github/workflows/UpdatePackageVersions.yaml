@@ -11,6 +11,7 @@ defaults:
 
 jobs:
   GetBranches:
+    name: Get Branches
     runs-on: windows-latest
     outputs:
       UpdateBranches: ${{ steps.GetBranches.outputs.UpdateBranches }}
@@ -30,19 +31,23 @@ jobs:
           Add-Content -Path $env:GITHUB_OUTPUT -Value "UpdateBranches=$branchMatrix"
 
   UpdatePackageVersions:
+    name: "[${{ matrix.branch }}] Update Package Versions"
     runs-on: windows-latest
+    environment: Official-Build
     needs: GetBranches
     strategy:
       matrix:
         branch: ${{ fromJson(needs.GetBranches.outputs.UpdateBranches) }}
+      fail-fast: false
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: ${{ matrix.branch }}
-      
+
       - name: Update Package Versions
-        run: | 
-          Build/Scripts/UpdatePackageVersions.ps1 -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
         env:
-          GITHUB_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
+          GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
+          InsiderSASToken: ${{ secrets.INSIDERSASTOKEN }}
+        run: |
+          build/scripts/UpdatePackageVersions.ps1 -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR

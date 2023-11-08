@@ -1,0 +1,36 @@
+{
+	"folders": [
+		{
+			"name": "Any",
+			"path": "Tools\\Test Framework\\Test Libraries\\Any"
+		},
+		{
+			"name": "Assert",
+			"path": "Tools\\Test Framework\\Test Libraries\\Assert"
+		},
+		{
+			"name": "Permissions Mock",
+			"path": "Tools\\Test Framework\\Test Libraries\\Permissions Mock"
+		},
+		{
+			"name": "Variable Storage",
+			"path": "Tools\\Test Framework\\Test Libraries\\Variable Storage"
+		},
+		{
+			"name": "TestRunner",
+			"path": "Tools\\Test Framework\\Test Runner"
+		},
+		{
+			"name": "System Application",
+			"path": "System Application\\App"
+		},
+		{
+			"name": "System Application Test Libraries",
+			"path": "System Application\\Test Library"
+		},
+		{
+			"name": "System Application Tests",
+			"path": "System Application\\Test"
+		}
+	]
+}

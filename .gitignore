@@ -318,4 +318,4 @@ TestResults.xml
 *.al.bak
 
 # Exceptions
-!Apps/System Tests/Extension Management/testArtifacts/*.app
+!src/System Application/Test/Extension Management/testArtifacts/*.app

@@ -1,0 +1,10 @@
+{
+    "projectName": "Performance Toolkit",
+    "appFolders":  [
+        "..\\..\\..\\src\\Tools\\Performance Toolkit\\App"
+    ],
+    "testFolders":  [
+        "..\\..\\..\\src\\Tools\\Performance Toolkit\\Test"
+    ],
+    "installOnlyReferencedApps": false
+}

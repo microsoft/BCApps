@@ -1,15 +1,13 @@
-name: 1.0.$(Year:yy)$(DayOfYear).$(Rev:r) # This is the build number 
+name: 1.0.$(Year:yy)$(DayOfYear).$(Rev:r) # This is the build number
 
 pr: none
-trigger:
-  batch: true
+trigger: none
+schedules:
+- cron: '0 8 * * *'
+  displayName: Daily Sync
   branches:
     include:
     - main
-    - release/*
-  tags:
-    include:
-    - builds/*
 
 pool:
   name: 'd365bc-agentpool-nonprod-bcapps-sync'
@@ -28,10 +26,5 @@ jobs:
   - task: powershell@2
     displayName: Sync mirror with upstream
     inputs:
-      filePath: Build\Scripts\SyncMirror.ps1
-      # If pipeline is triggered by a branch we sync the branch with latest changes from source repository
-      ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads') }}:
-        arguments: '-SourceRepository "https://$(GitHubPAT)@github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch) -ManagedIdentityAuth'
-      # If pipeline is triggered by a new tag we only sync the tags
-      ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags') }}:
-        arguments: '-SourceRepository "https://$(GitHubPAT)@github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -ManagedIdentityAuth'
+      filePath: build\scripts\SyncMirror.ps1
+      arguments: '-SourceRepository "https://github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch) -ManagedIdentityAuth'
