@@ -89,6 +89,9 @@ class GitHubPullRequest {
         return $comment
     }
 
+    <#
+        Adds a milestone to the pull request.
+    #>
     SetMilestone($Milestone) {
         $allMilestones = gh api "/repos/$($this.Repository)/milestones" --method GET -H ([GitHubAPI]::AcceptJsonHeader) -H ([GitHubAPI]::GitHubAPIHeader) | ConvertFrom-Json
         $githubMilestone = $allMilestones | Where-Object { $_.title -eq $Milestone }
