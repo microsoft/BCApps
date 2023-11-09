@@ -1,6 +1,5 @@
 using module .\GitHubAPI.class.psm1
 
-
 <#
     Class that represents a GitHub issue.
 #>
