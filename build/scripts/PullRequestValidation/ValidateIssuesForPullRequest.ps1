@@ -48,4 +48,4 @@ if($invalidIssues) {
     throw "The following issues are not open or approved: $($invalidIssues -join ', ')"
 }
 
-Write-Host "PR $PullRequestNumber validated successfully"
+Write-Host "PR $PullRequestNumber validated successfully" -ForegroundColor Green
