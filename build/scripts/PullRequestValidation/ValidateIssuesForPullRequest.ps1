@@ -45,7 +45,7 @@ foreach ($issueId in $issueIds) {
 }
 
 if($invalidIssues) {
-    throw "The following issues are not open or approved: $($invalidIssues -join ', ')"
+    throw "The following issues are not valid: $($invalidIssues -join ', '). Issues linked in a PR need to exist, be open and approved."
 }
 
 Write-Host "PR $PullRequestNumber validated successfully" -ForegroundColor Green
