@@ -727,7 +727,7 @@ codeunit 1991 "Guided Experience Impl."
         if ExpectedDuration > 30000 then
             Error(ExpectedDurationOverflowErr, ExpectedDuration);
 
-        if GuidedExperienceItem.Get(Code, PreviousVersion) then begin
+        if GuidedExperienceItem.Get(Code, PreviousVersion) and (PreviousVersion > 0) then begin
             Exist := true;
             GuidedExperienceItem.Rename(Code, Version);
         end else begin
