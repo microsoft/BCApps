@@ -14,30 +14,17 @@ $ErrorActionPreference = "Stop"
 Write-Host "Validating PR $PullRequestNumber"
 
 $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
-$prDescription = $pullRequest.GetBody()
-$issueRegex = "Fixes #(\d+)"
 
-if(-not $prDescription) {
-    throw "Could not find pull request description. Please make sure the pull request description contains a line that contains 'Fixes #' followed by the issue number being fixed."
-}
+$issueSection = "Fixes #"
+$issueIds = $pullRequest.GetLinkedIssueIDs($issueSection)
 
-# Get all issue matches
-$issueMatches = Select-String $issueRegex -InputObject $prDescription -AllMatches
-
-$Comment = "Could not find issues section in the pull request description. Please make sure the pull request description contains a line that contains 'Fixes #' followed by the issue number being fixed."
-
-if(-not $issueMatches) {
+$Comment = "Could not find linked issues in the pull request description. Please make sure the pull request description contains a line that contains '$issueSection' followed by the issue number being fixed. Use that pattern for every issue you want to link."
+if(-not $issueIds) {
     $pullRequest.AddComment($Comment)
     throw $Comment
 }
 
 $pullRequest.RemoveComment($Comment)
-
-# Get all issue IDs
-$issueIds = @()
-foreach($match in $issueMatches.Matches) {
-    $issueIds += $match.Groups[1].Value
-}
 
 $unapprovedIssues = @()
 

@@ -32,8 +32,31 @@ class GitHubPullRequest {
         return $pr
     }
 
-    [string] GetBody() {
-        return $this.PullRequest.body
+    <#
+        Gets the linked issues IDs from the pull request description.
+        .param $issueSection
+            The section of the pull request description that contains the issue ID.
+        .returns
+            An array of linked issue IDs.
+    #>
+    [int[]] GetLinkedIssueIDs($issueSection) {
+        if(-not $this.PullRequest.body) {
+            return @()
+        }
+
+        $issueRegex = "$issueSection(\d+)" # e.g. "Fixes #1234"
+        $issueMatches = Select-String $issueRegex -InputObject $this.PullRequest.body -AllMatches
+
+        if(-not $issueMatches) {
+            return @()
+        }
+
+        $issueIds = @()
+        foreach($match in $issueMatches.Matches) {
+            $issueIds += $match.Groups[1].Value
+        }
+
+        return $issueIds
     }
 
     <#
