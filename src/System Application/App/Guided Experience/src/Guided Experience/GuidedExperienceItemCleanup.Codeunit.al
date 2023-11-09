@@ -67,7 +67,8 @@ codeunit 1994 "Guided Experience Item Cleanup"
         GuidedExperienceItem: Record "Guided Experience Item";
         Batch, MaxVersion, i : Integer;
     begin
-        Batch := 10000; // 10k records per batch
+        // 1k records per batch
+        Batch := 1000;
         MaxVersion := FindMaxVersionForGuidedExperienceItem(ItemCode);
 
         if Batch > MaxVersion then

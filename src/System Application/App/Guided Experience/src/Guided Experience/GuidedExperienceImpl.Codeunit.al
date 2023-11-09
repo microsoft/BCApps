@@ -780,6 +780,7 @@ codeunit 1991 "Guided Experience Impl."
             SpotlightTourText."Guided Experience Item Version" := Version;
             SpotlightTourText."Spotlight Tour Step" := SpotlightTourKey;
             SpotlightTourText."Spotlight Tour Text" := CopyStr(SpotlightTourTextsDictionary.Get(SpotlightTourKey), 1, MaxStrLen(SpotlightTourText."Spotlight Tour Text"));
+
             if SpotlightTourText.Insert() then;
         end;
     end;

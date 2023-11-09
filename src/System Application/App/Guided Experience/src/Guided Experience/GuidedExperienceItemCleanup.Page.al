@@ -5,8 +5,6 @@
 
 namespace System.Environment.Configuration;
 
-using System.Visualization;
-
 page 1998 "Guided Experience Item Cleanup"
 {
     ApplicationArea = All;
@@ -57,7 +55,7 @@ page 1998 "Guided Experience Item Cleanup"
             action(Delete)
             {
                 ApplicationArea = All;
-                Caption = 'Delete';
+                Caption = 'Delete Duplicates';
                 ToolTip = 'Delete duplicated records for the selected Guided Experience Item.';
                 Image = Delete;
 
@@ -87,57 +85,6 @@ page 1998 "Guided Experience Item Cleanup"
                 trigger OnAction()
                 begin
                     LoadDuplicatedGuidedExperienceItems();
-                end;
-            }
-            action(TestInsert1)
-            {
-                ApplicationArea = All;
-                Caption = 'Test Insert 1';
-                ToolTip = 'Test insert lots of Guided Experience Items.';
-                Image = Insert;
-
-                trigger OnAction()
-                var
-                    GuidedExperience: Codeunit "Guided Experience";
-                    Limit, Counter : Integer;
-                begin
-                    Limit := 8000;
-                    for Counter := 1 to Limit do
-                        GuidedExperience.InsertManualSetup('Title', Format(Counter), '', 0, ObjectType::Page, Page::"Advanced Settings", Enum::"Manual Setup Category"::Uncategorized, '');
-                end;
-            }
-            action(TestInsert2)
-            {
-                ApplicationArea = All;
-                Caption = 'Test Insert 2';
-                ToolTip = 'Test insert lots of Guided Experience Items.';
-                Image = Insert;
-
-                trigger OnAction()
-                var
-                    GuidedExperience: Codeunit "Guided Experience";
-                    Limit, Counter : Integer;
-                begin
-                    Limit := 9000;
-                    for Counter := 1 to Limit do
-                        GuidedExperience.InsertManualSetup('Title', Format(Counter), '', 0, ObjectType::Page, Page::"Cue Setup Administrator", Enum::"Manual Setup Category"::Uncategorized, '');
-                end;
-            }
-            action(TestInsert3)
-            {
-                ApplicationArea = All;
-                Caption = 'Test Insert 3';
-                ToolTip = 'Test insert lots of Guided Experience Items.';
-                Image = Insert;
-
-                trigger OnAction()
-                var
-                    GuidedExperience: Codeunit "Guided Experience";
-                    Limit, Counter : Integer;
-                begin
-                    Limit := 10000;
-                    for Counter := 1 to Limit do
-                        GuidedExperience.InsertManualSetup('Title', Format(Counter), '', 0, ObjectType::Page, Page::"App Setup List", Enum::"Manual Setup Category"::Uncategorized, '');
                 end;
             }
         }
