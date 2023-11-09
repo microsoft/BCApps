@@ -63,12 +63,12 @@ class GitHubPullRequest {
         Removes a comment from the pull request if it exists.
     #>
     RemoveComment($Message) {
-        $existingComments = gh api "/repos/$($this.Repository)/issues/$($this.PRNumber)/comments" -H $this.AcceptJsonHeader -H $this.GitHubAPIHeader  | ConvertFrom-Json
+        $existingComments = gh api "/repos/$($this.Repository)/issues/$($this.PRNumber)/comments" -H ([GitHubAPI]::AcceptJsonHeader) -H ([GitHubAPI]::GitHubAPIHeader) | ConvertFrom-Json
         $comment = $existingComments | Where-Object { $_.body -eq $Message }
 
         if ($comment) {
             $CommentId = $comment.id
-            gh api "/repos/$this.Repository/issues/comments/$CommentId" -H ([GitHubAPI]::AcceptJsonHeader) -H ([GitHubAPI]::GitHubAPIHeader) -X DELETE
+            gh api "/repos/$($this.Repository)/issues/comments/$CommentId" -H ([GitHubAPI]::AcceptJsonHeader) -H ([GitHubAPI]::GitHubAPIHeader) -X DELETE
         }
     }
 
