@@ -1,7 +1,6 @@
 using module .\GitHubAPI.class.psm1
 using module .\GitHubIssue.class.psm1
 
-
 <#
     Class that represents a GitHub pull request.
 #>
