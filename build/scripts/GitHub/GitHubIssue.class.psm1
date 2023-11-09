@@ -58,4 +58,8 @@ class GitHubIssue {
 
         return $this.Issue.state -eq "open"
     }
+
+    [bool] IsPullRequest() {
+        return $this.Issue.PSobject.Properties.name -eq "pull_request"
+    }
 }

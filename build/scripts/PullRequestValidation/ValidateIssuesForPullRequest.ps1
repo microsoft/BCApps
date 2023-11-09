@@ -33,8 +33,8 @@ foreach ($issueId in $issueIds) {
     $issue = [GitHubIssue]::Get($issueId, $Repository)
 
     # If the issue is not approved, add a comment to the pull request and throw an error
-    $isValid = $issue -and $issue.IsApproved() -and $issue.IsOpen()
-    $Comment = "Issue #$($issueId) is not valid. Please make sure it exists, is open and is approved."
+    $isValid = $issue -and $issue.IsApproved() -and $issue.IsOpen() -and (-not $issue.IsPullRequest())
+    $Comment = "Issue #$($issueId) is not valid. Please make sure you link an **issue** that exists, is **open** and is **approved**."
     if (-not $isValid) {
         $pullRequest.AddComment($Comment)
         $invalidIssues += $issueId
