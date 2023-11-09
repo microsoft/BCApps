@@ -15,6 +15,10 @@ Write-Host "Validating PR $PullRequestNumber"
 
 $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
 
+if (-not $pullRequest) {
+    throw "Could not get PR $PullRequestNumber from repository $Repository"
+}
+
 $issueSection = "Fixes #"
 $issueIds = $pullRequest.GetLinkedIssueIDs($issueSection)
 

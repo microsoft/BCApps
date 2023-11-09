@@ -16,7 +16,9 @@ class GitHubPullRequest {
         $pr = gh api "/repos/$Repository/pulls/$PRNumber" -H ([GitHubAPI]::AcceptJsonHeader) -H ([GitHubAPI]::GitHubAPIHeader) | ConvertFrom-Json
         if ($pr.message) {
             # message property is populated when the PR is not found
-            throw "::Error:: Could not get PR $PRNumber from repository $Repository. Error: $($pr.message)"
+            Write-Host "::Warning:: Could not get PR $PRNumber from repository $Repository. Error: $($pr.message)"
+            $this.PullRequest = $null
+            return
         }
 
         $this.PullRequest = $pr

@@ -10,6 +10,10 @@ Import-Module $PSScriptRoot\..\EnlistmentHelperFunctions.psm1
 
 $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
 
+if (-not $pullRequest) {
+    throw "Could not get PR $PullRequestNumber from repository $Repository"
+}
+
 # Get milestone
 $repoVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-GO
 $milestone = "Version $repoVersion"
