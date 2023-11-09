@@ -88,4 +88,15 @@ class GitHubPullRequest {
         $comment = gh api "/repos/$($this.Repository)/issues/$($this.PRNumber)/comments" -H ([GitHubAPI]::AcceptJsonHeader) -H ([GitHubAPI]::GitHubAPIHeader) -f body="$Message" | ConvertFrom-Json
         return $comment
     }
+
+    SetMilestone($Milestone) {
+        $allMilestones = gh api "/repos/$($this.Repository)/milestones" --method GET -H ([GitHubAPI]::AcceptJsonHeader) -H ([GitHubAPI]::GitHubAPIHeader) | ConvertFrom-Json
+        $githubMilestone = $allMilestones | Where-Object { $_.title -eq $Milestone }
+        if (-not $githubMilestone) {
+            Write-Host "::Warning:: Milestone '$Milestone' not found"
+            return 
+        }
+        $milestoneNumber = $githubMilestone.number
+        gh api "/repos/$($this.Repository)/issues/$($this.PRNumber)" -H ([GitHubAPI]::AcceptJsonHeader) -H ([GitHubAPI]::GitHubAPIHeader) -F milestone=$milestoneNumber | ConvertFrom-Json
+    }
 }

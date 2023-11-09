@@ -21,8 +21,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Find workitems for Pull Request
+      - name: Validate work items for pull request
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          build/scripts/PullRequestValidation/ValidateWorkItemsForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
+          build/scripts/PullRequestValidation/ValidateIssuesForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
+
+      - name: Add milestone to PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          build/scripts/PullRequestValidation/AddMilestoneToPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
