@@ -24,7 +24,7 @@ if(-not $prDescription) {
 # Get all issue matches
 $issueMatches = Select-String $issueRegex -InputObject $prDescription -AllMatches
 
-if(-not $matches) {
+if(-not $issueMatches) {
     throw "Could not find issues section in the pull request description. Please make sure the pull request description contains a line that contains 'Fixes #' followed by the issue number being fixed."
 }
 
