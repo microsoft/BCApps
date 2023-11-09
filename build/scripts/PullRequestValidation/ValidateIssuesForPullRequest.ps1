@@ -26,25 +26,26 @@ if(-not $issueIds) {
 
 $pullRequest.RemoveComment($Comment)
 
-$unapprovedIssues = @()
+$invalidIssues = @()
 
 foreach ($issueId in $issueIds) {
     Write-Host "Validating issue $issueId"
     $issue = [GitHubIssue]::Get($issueId, $Repository)
 
-    $Comment = "Issue $($issue.html_url) is not approved. Please make sure the issue is approved before continuing with the pull request."
-
-    if (-not $issue.IsApproved()) {
+    # If the issue is not approved, add a comment to the pull request and throw an error
+    $isValid = $issue -and $issue.IsApproved() -and $issue.IsOpen()
+    $Comment = "Issue #$($issueId) is not valid. Please make sure it exists, is open and is approved."
+    if (-not $isValid) {
         $pullRequest.AddComment($Comment)
-        $unapprovedIssues += $issueId
+        $invalidIssues += $issueId
     }
     else {
         $pullRequest.RemoveComment($Comment)
     }
 }
 
-if($unapprovedIssues) {
-    throw "The following issues are not approved: $($unapprovedIssues -join ', ')"
+if($invalidIssues) {
+    throw "The following issues are not open or approved: $($invalidIssues -join ', ')"
 }
 
 Write-Host "PR $PullRequestNumber validated successfully"
