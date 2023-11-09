@@ -1,38 +1,26 @@
 [
     {
-        "CodeunitName": "Feature Key Test",
-        "Method": "T001_EnableFeatureOnPage"
-    },
-    {
-        "CodeunitName": "Feature Key Test",
-        "Method": "T002_DisableFeatureOnPage"
-    },
-    {
+        "bug":  "488827",
+        "codeunitId":  135003,
         "CodeunitName": "Feature Key Test",
         "Method": "T003_CannotDisableOneWayFeatureOnPage"
     },
     {
+        "bug":  "488827",
+        "codeunitId":  135003,
         "CodeunitName": "Feature Key Test",
         "Method": "T004_CannotEnableOneWayFeatureAsNotImplemented"
     },
     {
+        "bug":  "488827",
+        "codeunitId":  135003,
         "CodeunitName": "Feature Key Test",
         "Method": "T005_EnableOneWayFeatureReviewData"
     },
     {
+        "bug":  "488827",
+        "codeunitId":  135003,
         "CodeunitName": "Feature Key Test",
         "Method": "T006_EnableOneWayFeatureRunUpdateData"
-    },
-    {
-        "CodeunitName": "Feature Key Test",
-        "Method": "T007_EnableOneWayFeatureRunCancelUpdate"
-    },
-    {
-        "CodeunitName": "Feature Key Test",
-        "Method": "T008_EnableOneWayFeatureRunIncompleteUpdate"
-    },
-    {
-        "CodeunitName": "Feature Key Test",
-        "Method": "T009_EnableOneWayFeatureThatDoesNotRequireDataUpdate"
     }
 ]

@@ -1,7 +1,14 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
 using System.Environment;
 
+/// <summary>
+/// Page for when copilot is unavailable due to various reasons. Fx capability disabled, cross region data movement is disabled.
+/// </summary>
 page 7771 "Copilot Not Available"
 {
     PageType = NavigatePage;
