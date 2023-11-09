@@ -1,6 +1,8 @@
 name: Work Item Validation
 on:
   pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+    branches: [main]
 
 permissions:
   contents: read
