@@ -36,7 +36,7 @@ foreach ($issueId in $issueIds) {
     Write-Host "Validating issue $issueId"
     $issue = [GitHubIssue]::Get($issueId, $Repository)
 
-    # If the issue is not approved, add a comment to the pull request and throw an error
+    # Add a comment to the PR for each invalid issue.
     $isValid = $issue -and $issue.IsApproved() -and $issue.IsOpen() -and (-not $issue.IsPullRequest())
     $Comment = "Issue #$($issueId) is not valid. Please make sure you link an **issue** that exists, is **open** and is **approved**."
     if (-not $isValid) {
