@@ -85,13 +85,13 @@ page 2507 "Upload And Deploy Extension"
             field(Accepted; IsAccepted)
             {
                 ApplicationArea = All;
-                Caption = 'By deploying this extension you acknowledge that your data may be sent outside the compliance boundary of Business Central. Each per tenant extension is subject to its own third party terms and conditions and privacy policies.';
+                Caption = 'By deploying this extension you acknowledge that your data may be sent outside the compliance boundary of Business Central. Each per-tenant extension is subject to its own third party terms and conditions and privacy policies.';
                 ToolTip = 'Specifies that you accept the privacy policy and the disclaimer.';
             }
             field(Disclaimer; DisclaimerLbl)
             {
                 ApplicationArea = All;
-                Caption = 'Per Tenant Extension (PTE) Disclaimer';
+                Caption = 'Per-Tenant Extension (PTE) Disclaimer';
                 ToolTip = 'View the disclaimer.';
                 Editable = false;
                 ShowCaption = false;
@@ -180,7 +180,7 @@ page 2507 "Upload And Deploy Extension"
         DialogTitleTxt: Label 'Select .APP';
         AppFileFilterTxt: Label 'Extension Files|*.app', Locked = true;
         ExtensionNotUploadedMsg: Label 'Please upload an extension file before clicking "Deploy" button.';
-        DisclaimerLbl: Label 'Per Tenant Extension (PTE) Disclaimer';
+        DisclaimerLbl: Label 'Per-Tenant Extension (PTE) Disclaimer';
         IsAccepted: Boolean;
 }
 
