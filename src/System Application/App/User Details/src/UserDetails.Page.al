@@ -17,6 +17,9 @@ page 774 "User Details"
     PageType = List;
     SourceTable = "User Details";
     SourceTableTemporary = true;
+    InsertAllowed = false;
+    ModifyAllowed = false;
+    DeleteAllowed = false;
     Editable = false;
     AboutTitle = 'About the users detailed view';
     AboutText = 'View the additional information about users in a list view, which allows for easy searching and filtering.';
