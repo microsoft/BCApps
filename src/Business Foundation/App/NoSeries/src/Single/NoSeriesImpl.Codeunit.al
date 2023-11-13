@@ -41,7 +41,7 @@ codeunit 304 "No. Series - Impl."
             exit;
         NoSeries.Get(NoSeriesCode);
         if not NoSeries."Manual Nos." then
-            Error(Posterr, DocumentNo);
+            Error(PostErr, DocumentNo);
     end;
 
     procedure IsManualNoSeries(NoSeriesCode: Code[20]): Boolean

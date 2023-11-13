@@ -165,7 +165,7 @@ page 456 "No. Series"
                 }
             }
         }
-        area(factboxes)
+        area(FactBoxes)
         {
             systempart(Control1900383207; Links)
             {

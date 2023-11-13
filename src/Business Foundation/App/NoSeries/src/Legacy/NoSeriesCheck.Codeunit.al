@@ -7,6 +7,7 @@ namespace Microsoft.Foundation.NoSeries;
 
 codeunit 4143 "No. Series Check"
 {
+    Access = Public;
     TableNo = "No. Series";
 
     trigger OnRun()

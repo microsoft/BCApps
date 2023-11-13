@@ -45,7 +45,7 @@ codeunit 310 "No. Series"
     /// <param name="NoSeriesCode">Code for the number series.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
     /// <param name="HideErrorsAndWarnings"></param>
-    /// <returns>The next number in the series, if HideErrorsAndWarnings is true and errors occured, a blank code is returned.</returns>
+    /// <returns>The next number in the series, if HideErrorsAndWarnings is true and errors occur, a blank code is returned.</returns>
     procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20] // TODO: This should return true/false of whether we could get the next no., not a blank code.
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
@@ -185,6 +185,4 @@ codeunit 310 "No. Series"
     begin
         exit(NoSeriesImpl.GetNoSeriesLine(NoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings));
     end;
-
-    // Implement?: FindNoSeriesLine, IsCurrentNoSeriesLine, ReverseGetNextNo(apac), 
 }
