@@ -79,6 +79,23 @@ codeunit 396 NoSeriesManagement
         end;
     end;
 
+#if not CLEAN24
+    [Obsolete('This function is used for compatibility with extension usages of the old OnBeforeInitSeries event. Now the new No. Series is used. InitSeries no longer exist, instead a No. Series is selected and the next number is retrieved.', '24.0')]
+    procedure RaiseObsoleteOnBeforeInitSeries(var DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20]; var IsHandled: Boolean)
+    begin
+        OnBeforeInitSeries(DefaultNoSeriesCode, OldNoSeriesCode, NewDate, NewNo, NewNoSeriesCode, GlobalNoSeries, IsHandled, GlobalNoSeriesCode);
+    end;
+
+    [Obsolete('This function is used for compatibility with extension usages of the old OnAfterInitSeries event. Now the new No. Series is used. InitSeries no longer exist, instead a No. Series is selected and the next number is retrieved.', '24.0')]
+    procedure RaiseObsoleteOnAfterInitSeries(NoSeriesCode: Code[20]; DefaultNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20])
+    var
+        NoSeries: Record "No. Series";
+    begin
+        if NoSeries.Get(NoSeriesCode) then;
+        OnAfterInitSeries(NoSeries, DefaultNoSeriesCode, NewDate, NewNo);
+    end;
+#endif
+
     procedure InitSeries(DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20])
     var
         IsHandled: Boolean;

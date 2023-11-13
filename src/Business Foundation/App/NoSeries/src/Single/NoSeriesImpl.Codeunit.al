@@ -44,6 +44,17 @@ codeunit 304 "No. Series - Impl."
             Error(Posterr, DocumentNo);
     end;
 
+    procedure IsManualNoSeries(NoSeriesCode: Code[20]): Boolean
+    var
+        NoSeries: Record "No. Series";
+    begin
+        if NoSeriesCode = '' then
+            exit(false);
+        if not NoSeries.Get(NoSeriesCode) then
+            exit(false);
+        exit(NoSeries."Manual Nos.");
+    end;
+
     procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20]
     begin
         exit(GetImplementation(NoSeriesLine).GetLastNoUsed(NoSeriesLine));
