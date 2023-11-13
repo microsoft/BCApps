@@ -63,9 +63,5 @@ table 310 "No. Series Relationship"
         {
         }
     }
-
-    fieldgroups
-    {
-    }
 }
 

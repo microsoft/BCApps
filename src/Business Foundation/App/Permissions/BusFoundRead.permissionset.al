@@ -1,6 +1,7 @@
 namespace Microsoft.Foundation;
 
 using Microsoft.Foundation.NoSeries;
+
 permissionset 2 "Bus. Found. - Read"
 {
     Access = Public;

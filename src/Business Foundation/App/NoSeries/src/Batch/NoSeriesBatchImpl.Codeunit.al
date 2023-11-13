@@ -17,7 +17,7 @@ codeunit 309 "No. Series - Batch Impl."
         LockedNoSeriesLine: Record "No. Series Line";
         SimulationMode: Boolean;
 
-    procedure SetInitialState(TempNoSeriesLine: Record "No. Series Line" temporary);
+    procedure SetInitialState(TempNoSeriesLine: Record "No. Series Line" temporary)
     begin
         if IsSameNoSeriesLine(TempNoSeriesLine) then
             exit;
@@ -26,7 +26,7 @@ codeunit 309 "No. Series - Batch Impl."
             exit;
 
         TempGlobalNoSeriesLine := TempNoSeriesLine;
-        TempglobalNoSeriesLine.Insert();
+        TempGlobalNoSeriesLine.Insert();
     end;
 
     local procedure IsSameNoSeriesLine(TempNoSeriesLine: Record "No. Series Line" temporary): Boolean;
@@ -37,7 +37,7 @@ codeunit 309 "No. Series - Batch Impl."
 
     procedure PeekNextNo(NoSeriesCode: Code[20]): Code[20]
     begin
-        exit(PeekNextNo(NoSeriesCode, WorkDate()))
+        exit(PeekNextNo(NoSeriesCode, WorkDate()));
     end;
 
     procedure PeekNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
@@ -45,12 +45,12 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeries: Record "No. Series";
     begin
         NoSeries.Get(NoSeriesCode);
-        exit(PeekNextNo(NoSeries, UsageDate))
+        exit(PeekNextNo(NoSeries, UsageDate));
     end;
 
     procedure PeekNextNo(NoSeries: Record "No. Series"): Code[20]
     begin
-        exit(PeekNextNo(NoSeries, WorkDate()))
+        exit(PeekNextNo(NoSeries, WorkDate()));
     end;
 
     procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
@@ -58,7 +58,7 @@ codeunit 309 "No. Series - Batch Impl."
         TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
         GetNoSeriesLine(TempNoSeriesLine, NoSeries, UsageDate);
-        exit(PeekNextNo(TempNoSeriesLine, UsageDate))
+        exit(PeekNextNo(TempNoSeriesLine, UsageDate));
     end;
 
     procedure PeekNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date): Code[20];
@@ -71,7 +71,7 @@ codeunit 309 "No. Series - Batch Impl."
 
     procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]
     begin
-        exit(GetNextNo(NoSeriesCode, WorkDate()))
+        exit(GetNextNo(NoSeriesCode, WorkDate()));
     end;
 
     procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
@@ -79,12 +79,12 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeries: Record "No. Series";
     begin
         NoSeries.Get(NoSeriesCode);
-        exit(GetNextNo(NoSeries, UsageDate))
+        exit(GetNextNo(NoSeries, UsageDate));
     end;
 
     procedure GetNextNo(NoSeries: Record "No. Series"): Code[20]
     begin
-        exit(GetNextNo(NoSeries, WorkDate()))
+        exit(GetNextNo(NoSeries, WorkDate()));
     end;
 
     procedure GetNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
@@ -92,7 +92,7 @@ codeunit 309 "No. Series - Batch Impl."
         TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
         GetNoSeriesLine(TempNoSeriesLine, NoSeries, UsageDate);
-        exit(GetNextNo(TempNoSeriesLine, UsageDate))
+        exit(GetNextNo(TempNoSeriesLine, UsageDate));
     end;
 
     procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; LastDateUsed: Date): Code[20];
@@ -122,7 +122,7 @@ codeunit 309 "No. Series - Batch Impl."
             exit(IncStr(PrevDocumentNo));
 
         TempNoSeriesLine.Modify(false);
-        exit(GetNextNo(TempNoSeriesLine, UsageDate))
+        exit(GetNextNo(TempNoSeriesLine, UsageDate));
     end;
 
     procedure GetLastNoUsed(TempNoSeriesLine: Record "No. Series Line" temporary): Code[20]
@@ -132,7 +132,6 @@ codeunit 309 "No. Series - Batch Impl."
         SetInitialState(TempNoSeriesLine);
         exit(NoSeries.GetLastNoUsed(TempGlobalNoSeriesLine));
     end;
-
 
     procedure SetSimulationMode()
     begin

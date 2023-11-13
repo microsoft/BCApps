@@ -16,6 +16,7 @@ codeunit 310 "No. Series"
     begin
         exit(NoSeriesImpl.GetNextNo(NoSeriesCode, WorkDate(), false));
     end;
+
     /// <summary>
     /// Get the next number in the number series.
     /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
@@ -155,7 +156,6 @@ codeunit 310 "No. Series"
     begin
         NoSeriesImpl.TestAreNoSeriesRelated(DefaultNoSeriesCode, RelatedNoSeriesCode);
     end;
-
 
     procedure AreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean // This is basically what InitSeries does, it then uses the other series if they are and gets a number
     var

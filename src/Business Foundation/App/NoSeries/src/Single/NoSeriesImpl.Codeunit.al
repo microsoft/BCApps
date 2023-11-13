@@ -192,7 +192,6 @@ codeunit 304 "No. Series - Impl."
         exit(NoSeriesRelationship.Get(DefaultNoSeriesCode, RelatedNoSeriesCode));
     end;
 
-
     procedure IsAutomaticNoSeries(NoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";

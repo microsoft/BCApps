@@ -10,7 +10,8 @@ permissionset 300 "No. Series - Objects"
     Access = Internal;
     Assignable = false;
 
-    Permissions = table "No. Series" = X,
+    Permissions =
+        table "No. Series" = X,
         table "No. Series Line" = X,
 #if not CLEAN24
 #pragma warning disable AL0432

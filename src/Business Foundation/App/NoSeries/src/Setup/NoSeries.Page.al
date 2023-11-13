@@ -24,22 +24,18 @@ page 456 "No. Series"
                 ShowCaption = false;
                 field("Code"; Rec.Code)
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies a number series code.';
                 }
                 field("No. Series Type"; Rec."No. Series Type")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number series type that is associated with the number series code.';
                 }
                 field(Description; Rec.Description)
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies a description of the number series.';
                 }
                 field(StartDate; StartDate)
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Starting Date';
                     Editable = false;
                     ToolTip = 'Specifies the date from which you want this number series to apply. You use this field if you want to start a new series at the beginning of a new period. You set up a number series line for each period. The program will automatically switch to the new series on the starting date.';
@@ -55,7 +51,6 @@ page 456 "No. Series"
                 }
                 field(StartNo; StartNo)
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Starting No.';
                     DrillDown = true;
                     Editable = false;
@@ -71,7 +66,6 @@ page 456 "No. Series"
                 }
                 field(EndNo; EndNo)
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Ending No.';
                     DrillDown = true;
                     Editable = false;
@@ -87,7 +81,6 @@ page 456 "No. Series"
                 }
                 field(LastDateUsed; LastDateUsed)
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Last Date Used';
                     Editable = false;
                     ToolTip = 'Specifies the date when a number was most recently assigned from the number series.';
@@ -102,7 +95,6 @@ page 456 "No. Series"
                 }
                 field(LastNoUsed; LastNoUsed)
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Last No. Used';
                     DrillDown = true;
                     Editable = false;
@@ -118,7 +110,6 @@ page 456 "No. Series"
                 }
                 field(WarningNo; WarningNo)
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Warning No.';
                     Editable = false;
                     ToolTip = 'Specifies when you want to receive a warning that the number series is running out. You enter a number from the series. The program will provide a warning when this number is reached. You can enter a maximum of 20 characters, both numbers and letters.';
@@ -134,7 +125,6 @@ page 456 "No. Series"
                 }
                 field(IncrementByNo; IncrementByNo)
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Increment-by No.';
                     Editable = false;
                     ToolTip = 'Specifies the value for incrementing the numeric part of the series.';
@@ -150,22 +140,18 @@ page 456 "No. Series"
                 }
                 field("Default Nos."; Rec."Default Nos.")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies whether this number series will be used to assign numbers automatically.';
                 }
                 field("Manual Nos."; Rec."Manual Nos.")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies that you can enter numbers manually instead of using this number series.';
                 }
                 field("Date Order"; Rec."Date Order")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies to check that numbers are assigned chronologically.';
                 }
                 field(AllowGapsCtrl; AllowGaps)
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Allow Gaps in Nos.';
                     ToolTip = 'Specifies that a number assigned from the number series can later be deleted. This is practical for records, such as item cards and warehouse documents that, unlike financial transactions, can be deleted and cause gaps in the number sequence. This setting also means that new numbers will be generated and assigned in a faster, non-blocking way. NOTE: If an error occurs on a new record that will be assigned a number from such a number series when it is completed, the number in question will be lost, causing a gap in the sequence.';
 
@@ -201,11 +187,10 @@ page 456 "No. Series"
         {
             group("&Series")
             {
-                Caption = '&Series';
+                Caption = 'Series';
                 Image = SerialNo;
                 action(Lines)
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Lines';
                     Image = AllLines;
                     ToolTip = 'View or edit additional information about the number series lines.';
@@ -219,7 +204,6 @@ page 456 "No. Series"
                 }
                 action(Relationships)
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Relationships';
                     Image = Relationship;
                     RunObject = Page "No. Series Relationships";

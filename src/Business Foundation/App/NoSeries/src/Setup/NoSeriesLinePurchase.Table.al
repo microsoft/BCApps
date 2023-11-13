@@ -146,9 +146,5 @@ table 12146 "No. Series Line Purchase"
         {
         }
     }
-
-    fieldgroups
-    {
-    }
 }
 

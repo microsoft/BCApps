@@ -10,7 +10,7 @@ table 1263 "No. Series Tenant"
     Caption = 'No. Series Tenant';
     DataPerCompany = false;
     ReplicateData = false;
-    DataClassification = SystemMetadata;
+    DataClassification = CustomerContent;
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
 
     fields
@@ -42,7 +42,7 @@ table 1263 "No. Series Tenant"
     }
 
 #if not CLEAN24
-    [Obsolete('Moved to NoSeriesManagement codeunit', '24.0')]
+    [Obsolete('This procedure has been moved to codeunit NoSeriesTenantMgt', '24.0')]
     [Scope('OnPrem')]
     procedure InitNoSeries(NoSeriesCode: Code[10]; NoSeriesDescription: Text[50]; LastUsedNo: Code[10])
     var
@@ -51,7 +51,7 @@ table 1263 "No. Series Tenant"
         NoSeriesTenantMgt.InitNoSeries(NoSeriesCode, NoSeriesDescription, LastUsedNo);
     end;
 
-    [Obsolete('Moved to NoSeriesManagement codeunit', '24.0')]
+    [Obsolete('This procedure has been moved to codeunit NoSeriesTenantMgt', '24.0')]
     [Scope('OnPrem')]
     procedure GetNextAvailableCode() NextAvailableCode: Code[20]
     var

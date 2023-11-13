@@ -8,6 +8,7 @@ namespace Microsoft.Foundation.NoSeries;
 page 458 "No. Series Relationships"
 {
     Caption = 'No. Series Relationships';
+    ApplicationArea = Basic, Suite;
     DataCaptionFields = "Code";
     PageType = List;
     SourceTable = "No. Series Relationship";
@@ -21,25 +22,21 @@ page 458 "No. Series Relationships"
                 ShowCaption = false;
                 field("Code"; Rec.Code)
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number series code that represents the related number series.';
                     Visible = false;
                 }
                 field(Description; Rec.Description)
                 {
-                    ApplicationArea = Basic, Suite;
                     DrillDown = false;
                     ToolTip = 'Specifies the description of the number series represented by the code in the Code field.';
                     Visible = false;
                 }
                 field("Series Code"; Rec."Series Code")
                 {
-                    ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the code for a number series that you want to include in the group of related number series.';
                 }
                 field("Series Description"; Rec."Series Description")
                 {
-                    ApplicationArea = Basic, Suite;
                     DrillDown = false;
                     ToolTip = 'Specifies the description of the number series represented by the code in the Series Code field.';
                 }

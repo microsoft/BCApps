@@ -14,7 +14,7 @@ codeunit 281 NoSeriesMgt
                   tabledata "No. Series" = r;
 
     var
-        CantChangeNoSeriesLineTypeErr: Label 'No. Series Lines must be deleted before changing the %1', Comment = '%1 = No. Series Type';
+        CantChangeNoSeriesLineTypeErr: Label 'No. Series Lines must be deleted before changing the %1.', Comment = '%1 = No. Series Type';
         NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', comment = '%1=No.';
         NumberFormatErr: Label 'The number format in %1 must be the same as the number format in %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
         UnincrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
@@ -114,7 +114,6 @@ codeunit 281 NoSeriesMgt
         end;
     end;
 
-
     internal procedure UpdateLine(var NoSeries: Record "No. Series"; var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var AllowGaps: Boolean)
     var
         NoSeriesLine: Record "No. Series Line";
@@ -139,7 +138,7 @@ codeunit 281 NoSeriesMgt
         end;
     end;
 
-    internal procedure GetLastNoUsed(NoSeriesLine: Record "No. Series Line"): Code[20] // TODO: Forward to "No. Series".GetLastNoUsed
+    internal procedure GetLastNoUsed(NoSeriesLine: Record "No. Series Line"): Code[20]
     var
         NoSeries: Codeunit "No. Series";
     begin
@@ -234,10 +233,10 @@ codeunit 281 NoSeriesMgt
     internal procedure UpdateStartingSequenceNo(var NoSeriesLine: Record "No. Series Line")
     begin
         if not NoSeriesLine."Allow Gaps in Nos." then
-            exit; // TODO: remove with interface
+            exit;
 
         if NoSeriesLine."Last No. Used" = '' then
-            NoSeriesLine."Starting Sequence No." := ExtractNoFromCode(NoSeriesLine."Starting No.") // TODO: Initialize from old no. series? Should this happen here, owned by this interface?
+            NoSeriesLine."Starting Sequence No." := ExtractNoFromCode(NoSeriesLine."Starting No.")
         else
             NoSeriesLine."Starting Sequence No." := ExtractNoFromCode(NoSeriesLine."Last No. Used");
     end;
@@ -269,7 +268,7 @@ codeunit 281 NoSeriesMgt
         if Number < NoSeriesLine."Starting Sequence No." then
             exit('');
         NumberCode := Format(Number);
-        if NoSeriesLine."Starting No." = '' then // TODO: Should starting no. maybe use 'Cust%1Test' instead?
+        if NoSeriesLine."Starting No." = '' then
             exit(NumberCode);
         i := StrLen(NoSeriesLine."Starting No.");
         while (i > 1) and not (NoSeriesLine."Starting No."[i] in ['0' .. '9']) do
@@ -372,19 +371,6 @@ codeunit 281 NoSeriesMgt
         NoSeriesRelationship.DeleteAll();
         NoSeriesRelationship.SetRange("Series Code");
     end;
-
-    /*procedure FindNoSeriesLineToShow(var NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line")
-    var
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-    begin
-        NoSeriesManagement.SetNoSeriesLineFilter(NoSeriesLine, NoSeries.Code, 0D);
-
-        if NoSeriesLine.FindLast() then
-            exit;
-
-        NoSeriesLine.Reset();
-        NoSeriesLine.SetRange("Series Code", NoSeries.Code);
-    end;*/
 
     local procedure GetNoText(No: Code[20]): Code[20]
     var

@@ -221,15 +221,10 @@ table 309 "No. Series Line"
         }
     }
 
-    fieldgroups
-    {
-    }
-
     trigger OnDelete()
     begin
         // A delete trigger (subscriber) is placed in codeunit 396 to clean up NumberSequence
     end;
-
 
 #if not CLEAN24
     var

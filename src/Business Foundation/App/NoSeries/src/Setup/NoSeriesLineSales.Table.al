@@ -146,10 +146,5 @@ table 12145 "No. Series Line Sales"
         {
         }
     }
-
-    fieldgroups
-    {
-    }
-
 }
 

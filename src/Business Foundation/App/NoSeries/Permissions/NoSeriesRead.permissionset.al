@@ -11,7 +11,8 @@ permissionset 301 "No. Series - Read"
     Assignable = false;
     IncludedPermissionSets = "No. Series - Objects";
 
-    Permissions = tabledata "No. Series" = R,
+    Permissions =
+        tabledata "No. Series" = R,
         tabledata "No. Series Line" = R,
 #if not CLEAN24
 #pragma warning disable AL0432
