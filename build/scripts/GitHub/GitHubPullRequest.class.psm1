@@ -35,17 +35,15 @@ class GitHubPullRequest {
 
     <#
         Gets the linked issues IDs from the pull request description.
-        .param $issueSection
-            The section of the pull request description that contains the issue ID.
         .returns
             An array of linked issue IDs.
     #>
-    [int[]] GetLinkedIssueIDs($issueSection) {
+    [int[]] GetLinkedIssueIDs() {
         if(-not $this.PullRequest.body) {
             return @()
         }
 
-        $issueRegex = "$issueSection(\d+)" # e.g. "Fixes #1234"
+        $issueRegex = "(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) #(\d+)" # e.g. "Fixes #1234"
         $issueMatches = Select-String $issueRegex -InputObject $this.PullRequest.body -AllMatches
 
         if(-not $issueMatches) {
@@ -54,10 +52,29 @@ class GitHubPullRequest {
 
         $issueIds = @()
         foreach($match in $issueMatches.Matches) {
-            $issueIds += $match.Groups[1].Value
+            $issueIds += $match.Groups[2].Value
         }
 
         return $issueIds
+    }
+
+    [int[]] GetLinkedADOWorkitems() {
+        if(-not $this.PullRequest.body) {
+            return @()
+        }
+
+        $workitemRegex = "(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) AB#(\d+)" # e.g. "AB#1234"
+        $workitemMatches = Select-String $workitemRegex -InputObject $this.PullRequest.body -AllMatches
+
+        if(-not $workitemMatches) {
+            return @()
+        }
+
+        $workitemIds = @()
+        foreach($match in $workitemMatches.Matches) {
+            $workitemIds += $match.Groups[2].Value
+        }
+        return $workitemIds
     }
 
     <#
