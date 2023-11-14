@@ -17,7 +17,7 @@ codeunit 281 NoSeriesMgt
         CantChangeNoSeriesLineTypeErr: Label 'No. Series Lines must be deleted before changing the %1.', Comment = '%1 = No. Series Type';
         NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', comment = '%1=No.';
         NumberFormatErr: Label 'The number format in %1 must be the same as the number format in %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
-        UnincrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
+        UnIncrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
         NoOverFlowErr: Label 'Number series can only use up to 18 digit numbers. %1 has %2 digits.', Comment = '%1 is a string that also contains digits. %2 is a number.';
 
     internal procedure UpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldName: Text[100])
@@ -33,7 +33,7 @@ codeunit 281 NoSeriesMgt
 
         if NewNo <> '' then begin
             if IncStr(NewNo) = '' then
-                Error(UnincrementableStringErr, NewFieldName);
+                Error(UnIncrementableStringErr, NewFieldName);
             NoSeriesLine2 := NoSeriesLine;
             if NewNo = GetNoText(NewNo) then
                 Length := 0
@@ -466,8 +466,8 @@ codeunit 281 NoSeriesMgt
             exit;
 
         if Rec."Sequence Name" <> '' then
-            if NUMBERSEQUENCE.Exists(Rec."Sequence Name") then
-                NUMBERSEQUENCE.Delete(Rec."Sequence Name");
+            if NumberSequence.Exists(Rec."Sequence Name") then
+                NumberSequence.Delete(Rec."Sequence Name");
     end;
 
     [IntegrationEvent(false, false)]

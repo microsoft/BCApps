@@ -37,10 +37,6 @@ table 1263 "No. Series Tenant"
         }
     }
 
-    fieldgroups
-    {
-    }
-
 #if not CLEAN24
     [Obsolete('This procedure has been moved to codeunit NoSeriesTenantMgt', '24.0')]
     [Scope('OnPrem')]

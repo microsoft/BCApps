@@ -29,7 +29,7 @@ codeunit 309 "No. Series - Batch Impl."
         TempGlobalNoSeriesLine.Insert();
     end;
 
-    local procedure IsSameNoSeriesLine(TempNoSeriesLine: Record "No. Series Line" temporary): Boolean;
+    local procedure IsSameNoSeriesLine(TempNoSeriesLine: Record "No. Series Line" temporary): Boolean
     begin
         exit((TempGlobalNoSeriesLine."Series Code" = TempNoSeriesLine."Series Code") and
              (TempGlobalNoSeriesLine."Line No." = TempNoSeriesLine."Line No."));
@@ -61,7 +61,7 @@ codeunit 309 "No. Series - Batch Impl."
         exit(PeekNextNo(TempNoSeriesLine, UsageDate));
     end;
 
-    procedure PeekNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date): Code[20];
+    procedure PeekNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date): Code[20]
     var
         NoSeries: Codeunit "No. Series";
     begin
@@ -95,7 +95,7 @@ codeunit 309 "No. Series - Batch Impl."
         exit(GetNextNo(TempNoSeriesLine, UsageDate));
     end;
 
-    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; LastDateUsed: Date): Code[20];
+    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; LastDateUsed: Date): Code[20]
     var
         NoSeries: Codeunit "No. Series";
     begin
@@ -139,7 +139,7 @@ codeunit 309 "No. Series - Batch Impl."
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm', InherentPermissionsScope::Both)]
-    procedure SaveState(TempNoSeriesLine: Record "No. Series Line" temporary);
+    procedure SaveState(TempNoSeriesLine: Record "No. Series Line" temporary)
     begin
         if SimulationMode then
             exit;
