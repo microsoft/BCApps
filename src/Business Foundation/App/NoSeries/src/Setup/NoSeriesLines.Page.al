@@ -103,7 +103,6 @@ page 457 "No. Series Lines"
         }
     }
 
-
     trigger OnAfterGetCurrRecord()
     var
         NoSeriesMgt: Codeunit NoSeriesMgt;

@@ -77,7 +77,6 @@ page 12146 "No. Series Lines Purchase"
         }
     }
 
-
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     var
         NoSeriesLinePurchase: Record "No. Series Line Purchase";

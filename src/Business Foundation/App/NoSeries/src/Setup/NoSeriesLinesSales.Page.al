@@ -85,7 +85,6 @@ page 12145 "No. Series Lines Sales"
         }
     }
 
-
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     var
         NoSeriesLineSales: Record "No. Series Line Sales";
