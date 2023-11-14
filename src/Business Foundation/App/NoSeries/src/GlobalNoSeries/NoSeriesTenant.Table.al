@@ -8,10 +8,10 @@ namespace Microsoft.Foundation.NoSeries;
 table 1263 "No. Series Tenant"
 {
     Caption = 'No. Series Tenant';
-    DataPerCompany = false;
-    ReplicateData = false;
     DataClassification = CustomerContent;
+    DataPerCompany = false;
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+    ReplicateData = false;
 
     fields
     {
@@ -57,4 +57,3 @@ table 1263 "No. Series Tenant"
     end;
 #endif
 }
-

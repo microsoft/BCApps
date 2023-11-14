@@ -8,9 +8,9 @@ namespace Microsoft.Foundation.NoSeries;
 table 309 "No. Series Line"
 {
     Caption = 'No. Series Line';
-    DrillDownPageID = "No. Series Lines";
-    LookupPageID = "No. Series Lines";
     DataClassification = CustomerContent;
+    DrillDownPageId = "No. Series Lines";
+    LookupPageId = "No. Series Lines";
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
 
     fields
@@ -197,10 +197,10 @@ table 309 "No. Series Line"
         }
         field(12100; "No. Series Type"; Enum "No. Series Type")
         {
-            Caption = 'No. Series Type';
-            FieldClass = FlowField;
             CalcFormula = lookup("No. Series"."No. Series Type" where(Code = field("Series Code")));
+            Caption = 'No. Series Type';
             Editable = false;
+            FieldClass = FlowField;
         }
     }
 

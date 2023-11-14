@@ -20,5 +20,4 @@ enum 397 "No. Series Implementation" implements "No. Series - Single"
         Caption = 'Sequence';
         Implementation = "No. Series - Single" = "No. Series - Sequence Impl.";
     }
-
 }

@@ -1,4 +1,4 @@
-﻿// remove
+// remove
 
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -10,12 +10,13 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 281 NoSeriesMgt
 {
     Access = Public; // public due to events
-    Permissions = tabledata "No. Series Line" = rimd,
-                  tabledata "No. Series" = r;
+    Permissions =
+        tabledata "No. Series" = r,
+        tabledata "No. Series Line" = rimd;
 
     var
         CantChangeNoSeriesLineTypeErr: Label 'No. Series Lines must be deleted before changing the %1.', Comment = '%1 = No. Series Type';
-        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', comment = '%1=No.';
+        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
         NumberFormatErr: Label 'The number format in %1 must be the same as the number format in %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
         UnIncrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
         NoOverFlowErr: Label 'Number series can only use up to 18 digit numbers. %1 has %2 digits.', Comment = '%1 is a string that also contains digits. %2 is a number.';
@@ -69,7 +70,7 @@ codeunit 281 NoSeriesMgt
                     if NoSeriesLine.Find('-') then;
                     NoSeriesLine.SetRange("Starting Date");
                     NoSeriesLine.SetRange(Open);
-                    PAGE.RunModal(0, NoSeriesLine);
+                    Page.RunModal(0, NoSeriesLine);
                 end;
             else
                 OnAfterNoSeriesDrillDown(NoSeries);
@@ -154,7 +155,7 @@ codeunit 281 NoSeriesMgt
                 begin
                     NoSeriesLine.Reset();
                     NoSeriesLine.SetRange("Series Code", NoSeries.Code);
-                    PAGE.RunModal(PAGE::"No. Series Lines", NoSeriesLine);
+                    Page.RunModal(Page::"No. Series Lines", NoSeriesLine);
                 end;
             else
                 OnShowNoSeriesLines(NoSeries)
@@ -184,7 +185,7 @@ codeunit 281 NoSeriesMgt
         IsHandled: Boolean;
     begin
         IsHandled := false;
-#if not CLEAN24        
+#if not CLEAN24
 #pragma warning disable AL0432
         NoSeries.OnBeforeValidateDefaultNos(NoSeries, IsHandled);
 #pragma warning restore AL0432
@@ -226,7 +227,7 @@ codeunit 281 NoSeriesMgt
         if NoSeriesLine."Last No. Used" <> '' then
             // Simulate that a number was used
 #pragma warning disable AA0206
-            DummySeq := NumberSequence.next(NoSeriesLine."Sequence Name"); // TODO: Why?
+            DummySeq := NumberSequence.Next(NoSeriesLine."Sequence Name"); // TODO: Why?
 #pragma warning restore AA0206
     end;
 
@@ -347,7 +348,7 @@ codeunit 281 NoSeriesMgt
 #pragma warning disable AL0432
         NoSeriesLineSales: Record "No. Series Line Sales";
         NoSeriesLinePurchase: Record "No. Series Line Purchase";
-#pragma warning restore AL0432  
+#pragma warning restore AL0432
 #endif
     begin
         NoSeriesLine.SetRange("Series Code", NoSeries.Code);

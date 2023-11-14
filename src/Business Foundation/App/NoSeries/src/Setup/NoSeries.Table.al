@@ -12,9 +12,9 @@ table 308 "No. Series"
 {
     Caption = 'No. Series';
     DataCaptionFields = "Code", Description;
-    DrillDownPageID = "No. Series";
-    LookupPageID = "No. Series";
     DataClassification = CustomerContent;
+    DrillDownPageId = "No. Series";
+    LookupPageId = "No. Series";
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
 
     fields
@@ -104,8 +104,8 @@ table 308 "No. Series"
         field(11790; Mask; Text[20]) // CZ Functionality
         {
             Caption = 'Mask';
-            ObsoleteState = Removed;
             ObsoleteReason = 'The functionality of No. Series Enhancements will be removed and this field should not be used. (Obsolete::Removed in release 01.2021)';
+            ObsoleteState = Removed;
             ObsoleteTag = '18.0';
         }
     }
@@ -180,4 +180,3 @@ table 308 "No. Series"
 #pragma warning restore AL0432
 #endif
 }
-

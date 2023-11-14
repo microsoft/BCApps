@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -10,7 +10,6 @@ codeunit 396 NoSeriesManagement
     ObsoleteReason = 'Please use the "No. Series" and "No. Series - Batch" codeunits instead';
     ObsoleteState = Pending;
     ObsoleteTag = '24.0';
-
     Permissions = tabledata "No. Series Line" = rimd,
 #if not CLEAN24
 #pragma warning disable AL0432
@@ -38,14 +37,14 @@ codeunit 396 NoSeriesManagement
         TextAssignErr: Label 'You can not assign Nos. from No. series %1.', Comment = '%1 = No. Series';
         TextAssignDateErr: Label 'No. %1 from No. series %2 you can not assign on date %3.', Comment = '%1 = Document No.; %2 = No. Series Code; %3 = Series Date';
 #endif
-        CannotAssignManuallyErr: Label 'You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.', comment = '%1=Manual Nos. setting,%2=No. Series table caption,%3=No. Series Code';
+        CannotAssignManuallyErr: Label 'You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.', Comment = '%1=Manual Nos. setting,%2=No. Series table caption,%3=No. Series Code';
         CannotAssignAutomaticallyErr: Label 'It is not possible to assign numbers automatically. If you want the program to assign numbers automatically, please activate %1 in %2 %3.', Comment = '%1=Default Nos. setting,%2=No. Series table caption,%3=No. Series Code';
         CannotAssignNewOnDateErr: Label 'You cannot assign new numbers from the number series %1 on %2.', Comment = '%1=No. Series Code,%2=Date';
         CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1=No. Series Code';
         CannotAssignNewBeforeDateErr: Label 'You cannot assign new numbers from the number series %1 on a date before %2.', Comment = '%1=No. Series Code,%2=Date';
         CannotAssignGreaterErr: Label 'You cannot assign numbers greater than %1 from the number series %2.', Comment = '%1=Last No.,%2=No. Series Code';
         NumberFormatErr: Label 'The number format in %1 must be the same as the number format in %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
-        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', comment = '%1=No.';
+        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
         PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
         UnincrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
 
@@ -164,7 +163,7 @@ codeunit 396 NoSeriesManagement
         end else
             GlobalNoSeries.Code := NewNoSeriesCode;
         OnSelectSeriesOnBeforePageRunModal(DefaultNoSeriesCode, GlobalNoSeries);
-        if PAGE.RunModal(0, GlobalNoSeries) = ACTION::LookupOK then begin
+        if Page.RunModal(0, GlobalNoSeries) = Action::LookupOK then begin
             NewNoSeriesCode := GlobalNoSeries.Code;
             exit(true);
         end;
@@ -730,14 +729,12 @@ codeunit 396 NoSeriesManagement
     [IntegrationEvent(false, false)]
     local procedure OnObsoleteCheckSalesDocNoGaps(MaxDate: Date)
     begin
-
     end;
 
     [Obsolete('The No. Series module cannot have dependencies to Purchases. Please use the method in codeunit "IT - Report Management" instead', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnObsoleteCheckPurchDocNoGaps(MaxDate: Date)
     begin
-
     end;
 
     [Obsolete('The No. Series module cannot have dependencies to Sales. Please use the event in codeunit "IT - Report Management" instead', '24.0')]
@@ -942,8 +939,8 @@ codeunit 396 NoSeriesManagement
             exit;
 
         if Rec."Sequence Name" <> '' then
-            if NUMBERSEQUENCE.Exists(Rec."Sequence Name") then
-                NUMBERSEQUENCE.Delete(Rec."Sequence Name");
+            if NumberSequence.Exists(Rec."Sequence Name") then
+                NumberSequence.Delete(Rec."Sequence Name");
     end;
 
     [IntegrationEvent(false, false)]

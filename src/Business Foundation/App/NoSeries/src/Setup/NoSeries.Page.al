@@ -17,21 +17,24 @@ page 456 "No. Series"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control1)
             {
                 ShowCaption = false;
                 field("Code"; Rec.Code)
                 {
+                    Caption = 'Code';
                     ToolTip = 'Specifies a number series code.';
                 }
                 field("No. Series Type"; Rec."No. Series Type")
                 {
+                    Caption = 'No. Series Type';
                     ToolTip = 'Specifies the number series type that is associated with the number series code.';
                 }
                 field(Description; Rec.Description)
                 {
+                    Caption = 'Description';
                     ToolTip = 'Specifies a description of the number series.';
                 }
                 field(StartDate; StartDate)
@@ -140,14 +143,17 @@ page 456 "No. Series"
                 }
                 field("Default Nos."; Rec."Default Nos.")
                 {
+                    Caption = 'Default Nos.';
                     ToolTip = 'Specifies whether this number series will be used to assign numbers automatically.';
                 }
                 field("Manual Nos."; Rec."Manual Nos.")
                 {
+                    Caption = 'Manual Nos.';
                     ToolTip = 'Specifies that you can enter numbers manually instead of using this number series.';
                 }
                 field("Date Order"; Rec."Date Order")
                 {
+                    Caption = 'Date Order';
                     ToolTip = 'Specifies to check that numbers are assigned chronologically.';
                 }
                 field(AllowGapsCtrl; AllowGaps)
@@ -183,7 +189,7 @@ page 456 "No. Series"
 #pragma warning disable AA0219 // The Tooltip property for PageAction must start with 'Specifies'.
     actions
     {
-        area(navigation)
+        area(Navigation)
         {
             group("&Series")
             {
@@ -206,7 +212,7 @@ page 456 "No. Series"
                 {
                     Caption = 'Relationships';
                     Image = Relationship;
-                    RunObject = Page "No. Series Relationships";
+                    RunObject = page "No. Series Relationships";
                     RunPageLink = Code = field(Code);
                     ToolTip = 'View or edit relationships between number series.';
                 }
@@ -217,8 +223,8 @@ page 456 "No. Series"
             action(TestNoSeriesSingle)
             {
                 ApplicationArea = Basic, Suite;
-                Image = TestFile;
                 Caption = 'Test No. Series';
+                Image = TestFile;
                 ToolTip = 'Test whether the number series can generate new numbers.';
 
                 trigger OnAction()
@@ -227,7 +233,6 @@ page 456 "No. Series"
                 end;
             }
         }
-
         area(Promoted)
         {
             group(Category_Report)
@@ -283,4 +288,3 @@ page 456 "No. Series"
     end;
 #endif
 }
-

@@ -8,13 +8,14 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 304 "No. Series - Impl."
 {
     Access = Internal;
-    permissions = tabledata "No. Series Line" = rimd,
-                  tabledata "No. Series" = r;
-    InherentPermissions = X;
     InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions =
+        tabledata "No. Series" = r,
+        tabledata "No. Series Line" = rimd;
 
     var
-        CannotAssignManuallyErr: Label 'You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.', comment = '%1=Manual Nos. setting,%2=No. Series table caption,%3=No. Series Code';
+        CannotAssignManuallyErr: Label 'You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.', Comment = '%1=Manual Nos. setting,%2=No. Series table caption,%3=No. Series Code';
         CannotAssignNewOnDateErr: Label 'You cannot assign new numbers from the number series %1 on %2.', Comment = '%1=No. Series Code,%2=Date';
         CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1=No. Series Code';
         CannotAssignNewBeforeDateErr: Label 'You cannot assign new numbers from the number series %1 on a date before %2.', Comment = '%1=No. Series Code,%2=Date';

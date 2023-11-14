@@ -8,9 +8,9 @@ namespace Microsoft.Foundation.NoSeries;
 table 310 "No. Series Relationship"
 {
     Caption = 'No. Series Relationship';
-    DrillDownPageID = "No. Series Relationships";
-    LookupPageID = "No. Series Relationships";
     DataClassification = CustomerContent;
+    DrillDownPageId = "No. Series Relationships";
+    LookupPageId = "No. Series Relationships";
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
 
     fields
@@ -64,4 +64,3 @@ table 310 "No. Series Relationship"
         }
     }
 }
-

@@ -8,9 +8,9 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 309 "No. Series - Batch Impl."
 {
     Access = Internal;
-    Permissions = tabledata "No. Series Line" = rm;
-    InherentPermissions = X;
     InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata "No. Series Line" = rm;
 
     var
         TempGlobalNoSeriesLine: Record "No. Series Line" temporary;

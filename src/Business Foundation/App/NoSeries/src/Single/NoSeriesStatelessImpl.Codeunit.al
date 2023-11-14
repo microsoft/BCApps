@@ -8,11 +8,12 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
 {
     Access = Internal;
-    Permissions = tabledata "No. Series Line" = rimd,
-                  tabledata "No. Series" = r;
+    Permissions =
+        tabledata "No. Series" = r,
+        tabledata "No. Series Line" = rimd;
 
     var
-        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', comment = '%1=No.';
+        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
 
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin

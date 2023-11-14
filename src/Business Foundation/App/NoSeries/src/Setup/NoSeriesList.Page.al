@@ -1,4 +1,4 @@
-﻿#if not CLEAN21
+#if not CLEAN21
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -11,26 +11,28 @@ page 571 "No. Series List"
     AdditionalSearchTerms = 'numbering,number series';
     ApplicationArea = Basic, Suite;
     Caption = 'No. Series';
+    ObsoleteReason = 'This page is deprecated. Please use the page 456 "No. Series"';
+    ObsoleteState = Pending;
+    ObsoleteTag = '21.0';
     PageType = List;
     RefreshOnActivate = true;
     SourceTable = "No. Series";
-    ObsoleteReason = 'This page is deprecated. Please use the page 456 "No. Series"';
-    ObsoleteTag = '21.0';
-    ObsoleteState = Pending;
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control1)
             {
                 ShowCaption = false;
                 field("Code"; Rec.Code)
                 {
+                    Caption = 'Code';
                     ToolTip = 'Specifies a number series code.';
                 }
                 field(Description; Rec.Description)
                 {
+                    Caption = 'Description';
                     ToolTip = 'Specifies a description of the number series.';
                 }
                 field(StartDate; StartDate)
@@ -139,14 +141,17 @@ page 571 "No. Series List"
                 }
                 field("Default Nos."; Rec."Default Nos.")
                 {
+                    Caption = 'Default Nos.';
                     ToolTip = 'Specifies whether this number series will be used to assign numbers automatically.';
                 }
                 field("Manual Nos."; Rec."Manual Nos.")
                 {
+                    Caption = 'Manual Nos.';
                     ToolTip = 'Specifies that you can enter numbers manually instead of using this number series.';
                 }
                 field("Date Order"; Rec."Date Order")
                 {
+                    Caption = 'Date Order';
                     ToolTip = 'Specifies to check that numbers are assigned chronologically.';
                 }
                 field(AllowGapsCtrl; AllowGaps)
@@ -164,7 +169,7 @@ page 571 "No. Series List"
                 }
             }
         }
-        area(factboxes)
+        area(FactBoxes)
         {
             systempart(Control1900383207; Links)
             {
@@ -182,7 +187,7 @@ page 571 "No. Series List"
 #pragma warning disable AA0219 // The Tooltip property for PageAction must start with 'Specifies'.
     actions
     {
-        area(navigation)
+        area(Navigation)
         {
             group("&Series")
             {
@@ -192,7 +197,7 @@ page 571 "No. Series List"
                 {
                     Caption = 'Lines';
                     Image = AllLines;
-                    RunObject = Page "No. Series Lines";
+                    RunObject = page "No. Series Lines";
                     RunPageLink = "Series Code" = field(Code);
                     ToolTip = 'View or edit additional information about the number series lines.';
                 }
@@ -200,7 +205,7 @@ page 571 "No. Series List"
                 {
                     Caption = 'Relationships';
                     Image = Relationship;
-                    RunObject = Page "No. Series Relationships";
+                    RunObject = page "No. Series Relationships";
                     RunPageLink = Code = field(Code);
                     ToolTip = 'View or edit relationships between number series.';
                 }
