@@ -45,7 +45,7 @@ codeunit 304 "No. Series - Impl."
             Error(PostErr, DocumentNo);
     end;
 
-    procedure IsManualNoSeries(NoSeriesCode: Code[20]): Boolean
+    procedure IsManual(NoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";
     begin
@@ -167,13 +167,13 @@ codeunit 304 "No. Series - Impl."
         exit(NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate));
     end;
 
-    procedure TestAreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
+    procedure TestAreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
     begin
-        if not AreNoSeriesRelated(DefaultNoSeriesCode, RelatedNoSeriesCode) then
+        if not AreRelated(DefaultNoSeriesCode, RelatedNoSeriesCode) then
             Error(SeriesNotRelatedErr, DefaultNoSeriesCode, RelatedNoSeriesCode);
     end;
 
-    procedure AreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean
+    procedure AreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";
         NoSeriesRelationship: Record "No. Series Relationship";
@@ -202,7 +202,7 @@ codeunit 304 "No. Series - Impl."
         exit(NoSeries."Default Nos.");
     end;
 
-    procedure TestIsAutomaticNoSeries(NoSeriesCode: Code[20])
+    procedure TestIsAutomatic(NoSeriesCode: Code[20])
     var
         NoSeries: Record "No. Series";
     begin
@@ -210,7 +210,7 @@ codeunit 304 "No. Series - Impl."
             Error(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
     end;
 
-    procedure SelectRelatedNoSeries(OriginalNoSeriesCode: Code[20]; DefaultHighlightedNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
+    procedure SelectRelated(OriginalNoSeriesCode: Code[20]; DefaultHighlightedNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";
         NoSeriesRelationship: Record "No. Series Relationship";
@@ -240,7 +240,7 @@ codeunit 304 "No. Series - Impl."
 
     procedure SelectNoSeries(OriginalNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Code[20]
     begin
-        if AreNoSeriesRelated(OriginalNoSeriesCode, RelatedNoSeriesCode) then
+        if AreRelated(OriginalNoSeriesCode, RelatedNoSeriesCode) then
             exit(RelatedNoSeriesCode);
         exit(OriginalNoSeriesCode);
     end;

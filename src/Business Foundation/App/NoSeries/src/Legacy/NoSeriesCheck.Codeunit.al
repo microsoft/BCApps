@@ -14,6 +14,6 @@ codeunit 4143 "No. Series Check"
     var
         NoSeries: Codeunit "No. Series";
     begin
-        NoSeries.PeekNextNo(Rec, WorkDate());
+        NoSeries.PeekNextNo(Rec.Code, WorkDate());
     end;
 }

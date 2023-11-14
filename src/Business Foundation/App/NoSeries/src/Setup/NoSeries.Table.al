@@ -6,7 +6,7 @@
 namespace Microsoft.Foundation.NoSeries;
 
 /// <summary>
-/// TODO
+/// Table that contains the available No. Series and their properties.
 /// </summary>
 table 308 "No. Series"
 {
