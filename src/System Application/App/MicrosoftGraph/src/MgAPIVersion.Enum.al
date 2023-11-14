@@ -17,7 +17,7 @@ enum 9350 "Mg API Version"
     {
         Caption = 'v1.0', Locked = true;
     }
-    value(999999; "beta")
+    value(9999; "beta")
     {
         Caption = 'beta', Locked = true;
     }
