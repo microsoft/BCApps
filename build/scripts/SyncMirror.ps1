@@ -40,8 +40,7 @@ if ($Branch) {
     if (RunAndCheck git ls-remote origin $Branch) {
         # If branch exists in target, checkout branch and pull changes from target repository
         Write-Host "Checking out $Branch from $TargetRepository"
-        $currentBranch = RunAndCheck git branch --show-current
-        if ($currentBranch -ne $Branch) {
+        if ($Branch -ne "main") {
             RunAndCheck git checkout origin/$Branch --track
         }
         RunAndCheck git pull origin $Branch
