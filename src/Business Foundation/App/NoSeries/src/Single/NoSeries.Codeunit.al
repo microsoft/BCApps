@@ -193,11 +193,11 @@ codeunit 310 "No. Series"
     /// Verifies that the No. Series is set up to automatically generate numbers.
     /// </summary>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
-    procedure TestIsAutomatic(NoSeriesCode: Code[20])
+    procedure TestAutomatic(NoSeriesCode: Code[20])
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
-        NoSeriesImpl.TestIsAutomatic(NoSeriesCode);
+        NoSeriesImpl.TestAutomatic(NoSeriesCode);
     end;
 
     /// <summary>

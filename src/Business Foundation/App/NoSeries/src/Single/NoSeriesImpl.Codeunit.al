@@ -202,7 +202,7 @@ codeunit 304 "No. Series - Impl."
         exit(NoSeries."Default Nos.");
     end;
 
-    procedure TestIsAutomatic(NoSeriesCode: Code[20])
+    procedure TestAutomatic(NoSeriesCode: Code[20])
     var
         NoSeries: Record "No. Series";
     begin
