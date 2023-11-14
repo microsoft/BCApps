@@ -5,23 +5,66 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $PullRequestNumber,
     [Parameter(Mandatory = $true)]
-    [string] $Repository
+    [string] $Repository,
+    [Parameter(Mandatory = $true)]
+    [bool] $FromFork
     )
 
 # Set error action
 $ErrorActionPreference = "Stop"
 
-function Test-WorkitemIsLinked($IssueIds, $ADOWorkItems, [object] $PullRequest) {
-    $Comment = "Could not find linked issues in the pull request description. Please make sure the pull request description contains a line that contains 'Fixes #' followed by the issue number being fixed. Use that pattern for every issue you want to link."
-    if ((-not $IssueIds) -and (-not $ADOWorkItems)) {
-        $PullRequest.AddComment($Comment)
-        throw $Comment
-    }
+<#
+    .SYNOPSIS
+    Validates that the pull request description contains a line that links the pull request to an issue or workitem.
+    .Description
+    Validates that the pull request description contains a line that links the pull request to an issue or workitem.
+    If the pull request is from a fork it must link to an issue. 
+    If the pull request is not from a fork it must link to an issue or an ADO workitem.
+#>
+function Test-WorkitemIsLinked() {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]] $IssueIds,
+        [Parameter(Mandatory = $true)]
+        [string[]] $ADOWorkItems,
+        [Parameter(Mandatory = $true)]
+        [object] $PullRequest,
+        [Parameter(Mandatory = $false)]
+        [bool] $FromFork
+    )
 
+    $Comment = "Could not find linked issues in the pull request description. Please make sure the pull request description contains a line that contains 'Fixes #' followed by the issue number being fixed. Use that pattern for every issue you want to link."
+
+    if (-not $FromFork) {
+        $Comment += " You can also link ADO workitems by using the pattern 'Fixes AB#' followed by the workitem number being fixed."
+    }
+    
+    if (-not $IssueIds) {
+        # If the pull request is from a fork, add a comment to the pull request and throw an error
+        # If the pull request is not from a fork only throw an error if there are no linked ADO workitems
+        if ($FromFork -or (-not $ADOWorkItems)) {
+            $PullRequest.AddComment($Comment)
+            throw $Comment
+        }
+    }
     $PullRequest.RemoveComment($Comment)
 }
 
-function Test-GitHubIssue($Repository, $IssueIds, $PullRequest) {
+<#
+    .SYNOPSIS
+    Validates all issues linked to a pull request.
+    .Description
+    Validates all issues linked to a pull request. All linked issues must be open and approved.
+#>
+function Test-GitHubIssue() {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Repository,
+        [Parameter(Mandatory = $true)]
+        [string[]] $IssueIds,
+        [Parameter(Mandatory = $true)]
+        [object] $PullRequest
+    )
     $invalidIssues = @()
 
     foreach ($issueId in $IssueIds) {
@@ -52,6 +95,10 @@ $issueIds = $pullRequest.GetLinkedIssueIDs()
 $adoWorkitems = $pullRequest.GetLinkedADOWorkitems()
 
 Test-WorkitemIsLinked -IssueIds $issueIds -ADOWorkItems $adoWorkitems -PullRequest $PullRequest
-Test-GitHubIssue -Repository $Repository -IssueIds $issueIds -PullRequest $PullRequest
+
+# If the pull request is from a fork, validate the linked issues
+if ($FromFork) {
+    Test-GitHubIssue -Repository $Repository -IssueIds $issueIds -PullRequest $PullRequest
+}
 
 Write-Host "PR $PullRequestNumber validated successfully" -ForegroundColor Green
