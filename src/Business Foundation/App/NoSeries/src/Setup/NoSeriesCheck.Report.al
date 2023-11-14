@@ -8,8 +8,7 @@ namespace Microsoft.Foundation.NoSeries;
 report 22 "No. Series Check"
 {
     Caption = 'No. Series Check';
-    DefaultLayout = RDLC;
-    RDLCLayout = './NoSeries/src/Setup/NoSeriesCheck.rdlc';
+    DefaultRenderingLayout = LayoutRdlc;
 
     dataset
     {
@@ -111,6 +110,14 @@ report 22 "No. Series Check"
             begin
                 SetRange("Series Code");
             end;
+        }
+    }
+    rendering
+    {
+        layout(LayoutRdlc)
+        {
+            Type = RDLC;
+            LayoutFile = './NoSeries/src/Setup/NoSeriesCheck.rdlc';
         }
     }
 

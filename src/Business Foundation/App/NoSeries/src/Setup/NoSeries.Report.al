@@ -10,8 +10,7 @@ using System.Utilities;
 report 21 "No. Series"
 {
     Caption = 'No. Series';
-    DefaultLayout = RDLC;
-    RDLCLayout = './NoSeries/src/Setup/NoSeries.rdlc';
+    DefaultRenderingLayout = LayoutRdlc;
 
     dataset
     {
@@ -158,6 +157,14 @@ report 21 "No. Series"
             {
                 DataItemTableView = sorting(Number) where(Number = const(1));
             }
+        }
+    }
+    rendering
+    {
+        layout(LayoutRdlc)
+        {
+            Type = RDLC;
+            LayoutFile = './NoSeries/src/Setup/NoSeries.rdlc';
         }
     }
 
