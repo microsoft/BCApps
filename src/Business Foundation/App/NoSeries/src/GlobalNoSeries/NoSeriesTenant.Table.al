@@ -5,6 +5,10 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// Table that contains the available Tenant No. Series and their properties.
+/// These No. Series are used for functionality cross-company, for numbers per company, see No. Series.
+/// </summary>
 table 1263 "No. Series Tenant"
 {
     Caption = 'No. Series Tenant';

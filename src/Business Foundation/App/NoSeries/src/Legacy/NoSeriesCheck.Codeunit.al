@@ -5,6 +5,9 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// This codeunit verifies that a number can be retrieved for the given No. Series.
+/// </summary>
 codeunit 4143 "No. Series Check"
 {
     Access = Public;

@@ -9,7 +9,7 @@ namespace Microsoft.Foundation.NoSeries;
 
 codeunit 281 NoSeriesMgt
 {
-    Access = Public; // public due to events
+    Access = Public; // public due to events, will be removed before release
     Permissions =
         tabledata "No. Series" = r,
         tabledata "No. Series Line" = rimd;

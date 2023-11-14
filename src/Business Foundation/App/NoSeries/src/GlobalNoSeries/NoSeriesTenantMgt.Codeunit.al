@@ -7,6 +7,10 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// Provides an interface for interacting with Tenant No. Series.
+/// These No. Series are used for functionality cross-company, for numbers per company, see No. Series.
+/// </summary>
 codeunit 283 NoSeriesTenantMgt
 {
     Permissions = tabledata "No. Series Tenant" = rimd;
