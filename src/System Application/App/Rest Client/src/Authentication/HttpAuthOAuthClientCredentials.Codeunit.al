@@ -14,7 +14,6 @@ codeunit 2361 "HttpAuthOAuthClientCredentials" implements "Http Authentication"
         BearerTxt: Label 'Bearer %1', Comment = '%1 - Token', Locked = true;
         ScopesGlobal: List of [Text];
         ClientSecretGlobal: SecretText;
-        AuthCodeErrGlobal: Text;
         ClientIdGlobal: Text;
         OAuthAuthorityUrlGlobal: Text;
 
@@ -70,13 +69,12 @@ codeunit 2361 "HttpAuthOAuthClientCredentials" implements "Http Authentication"
 
         IsSuccess := AccessToken <> '';
 
-        if AuthCodeErrGlobal <> '' then
-            ErrorText := AuthCodeErrGlobal
-        else
+        if not IsSuccess then begin
             ErrorText := GetLastErrorText();
 
-        if not IsSuccess and (ErrorText = '') then
-            ErrorText := AquireTokenFailedErr;
+            if ErrorText = '' then
+                ErrorText := AquireTokenFailedErr;
+        end;
 
         exit(IsSuccess);
     end;
