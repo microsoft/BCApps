@@ -16,19 +16,32 @@ codeunit 308 "No. Series - Batch"
     var
         NoSeriesBatchImpl: Codeunit "No. Series - Batch Impl."; // Required to keep state
 
-    procedure TestManual(NoSeriesCode: Code[20])
-    var
-        NoSeries: Codeunit "No. Series";
+    #region GetNextNo
+    procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]
     begin
-        NoSeries.TestManual(NoSeriesCode);
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode));
     end;
 
-    procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])
-    var
-        NoSeries: Codeunit "No. Series";
+    procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
     begin
-        NoSeries.TestManual(NoSeriesCode, DocumentNo);
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode, UsageDate));
     end;
+
+    procedure GetNextNo(NoSeries: Record "No. Series"): Code[20]
+    begin
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeries));
+    end;
+
+    procedure GetNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
+    begin
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeries, UsageDate));
+    end;
+
+    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; LastDateUsed: Date): Code[20]
+    begin
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, LastDateUsed));
+    end;
+    #endregion
 
     procedure PeekNextNo(NoSeriesCode: Code[20]): Code[20]
     begin
@@ -55,29 +68,23 @@ codeunit 308 "No. Series - Batch"
         exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesLine, UsageDate));
     end;
 
-    procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]
+    procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode));
+        exit(NoSeriesBatchImpl.GetLastNoUsed(NoSeriesLine));
     end;
 
-    procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
+    procedure TestManual(NoSeriesCode: Code[20])
+    var
+        NoSeries: Codeunit "No. Series";
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode, UsageDate));
+        NoSeries.TestManual(NoSeriesCode);
     end;
 
-    procedure GetNextNo(NoSeries: Record "No. Series"): Code[20]
+    procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])
+    var
+        NoSeries: Codeunit "No. Series";
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeries));
-    end;
-
-    procedure GetNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
-    begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeries, UsageDate));
-    end;
-
-    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; LastDateUsed: Date): Code[20]
-    begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, LastDateUsed));
+        NoSeries.TestManual(NoSeriesCode, DocumentNo);
     end;
 
     procedure SimulateGetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; PrevDocumentNo: Code[20]): Code[20]
@@ -85,11 +92,6 @@ codeunit 308 "No. Series - Batch"
         NoSeriesBatchImplSim: Codeunit "No. Series - Batch Impl.";
     begin
         exit(NoSeriesBatchImplSim.SimulateGetNextNo(NoSeriesCode, UsageDate, PrevDocumentNo));
-    end;
-
-    procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20]
-    begin
-        exit(NoSeriesBatchImpl.GetLastNoUsed(NoSeriesLine));
     end;
 
     /// <summary>
