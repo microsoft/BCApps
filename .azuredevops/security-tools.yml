@@ -11,7 +11,7 @@ schedules:
     - main
     
 pool:
-  vmImage: 'windows-latest'
+  name: d365bc-agentpool-nonprod-build
 
 resources:
   repositories:
