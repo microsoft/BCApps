@@ -1,7 +1,9 @@
 "Build: Automation":
-- build/**
 - .github/**
 - .azuredevops/**
+
+"Build: scripts & configs":
+- build/**
 
 "AL: System Application":
 - src/System Application/**
