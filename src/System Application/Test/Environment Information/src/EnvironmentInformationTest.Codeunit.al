@@ -84,5 +84,85 @@ codeunit 135091 "Environment Information Test"
         // [Then] Should return false
         Assert.IsFalse(EnvironmentInformation.IsSaaS(), 'Testability should have dictacted a non- SaaS environment');
     end;
+
+
+    [Test]
+    procedure TestIsSaaSInfrastructureIsTrueWhenTestabilitySaaSInfrastructureIsSetTrue()
+    begin
+        // [SCENARIO] Set the testability to true. IsSaaSInfrastructure returns correct values.
+
+        // [Given] Set the testability SaaS to true
+        EnvironmentInfoTestLibrary.SetIsSaaSInfrastructure(true);
+
+        // [When] Poll for IsSaaSInfrastructure
+        // [Then] Should return true
+        Assert.IsTrue(EnvironmentInformation.IsSaaSInfrastructure(), 'Testability should have dictacted a SaaS environment');
+    end;
+
+
+    [Test]
+    procedure TestVersionInstalledIsTrueWhenTestabilityVersionInstalledIsSet()
+    begin
+        // [SCENARIO] Set the testability to true. VersionInstalled returns correct values.
+
+        // [Given] Set the testability VersionInstalled to 23
+        EnvironmentInfoTestLibrary.SetVersionInstalled(23.0);
+
+        // [When] Poll for VersionInstalled
+        // [Then] Should return true
+        Assert.IsTrue(EnvironmentInformation.VersionInstalled('123') = 23.0, 'Testability should have dictacted a SaaS environment');
+    end;
+
+    [Test]
+    procedure TestIsSaaSIsTrueWhenTestabilityIsSaaSIsSet()
+    begin
+        // [SCENARIO] Set the testability to true. IsSaaS returns correct values.
+
+        // [Given] Set the testability SaaS to true
+        EnvironmentInfoTestLibrary.SetIsSaaS(true);
+
+        // [When] Poll for IsSaaS
+        // [Then] Should return true
+        Assert.IsTrue(EnvironmentInformation.IsSaaS(), 'Testability should have dictacted a SaaS environment');
+    end;
+
+    [Test]
+    procedure TestEnvironmentNameIsTrueWhenTestabilityEnvironmentNameIsSet()
+    begin
+        // [SCENARIO] Set the testability to true. EnvironmentName returns correct values.
+
+        // [Given] Set the testability EnvironmentName to '123'
+        EnvironmentInfoTestLibrary.SetEnvironmentName('123');
+
+        // [When] Poll for EnvironmentName
+        // [Then] Should return true
+        Assert.IsTrue(EnvironmentInformation.EnvironmentName() = '123', 'Testability should have dictacted a SaaS environment');
+    end;
+
+    [Test]
+    procedure TestIsProductionIsTrueWhenTestabilityIsProductionIsSet()
+    begin
+        // [SCENARIO] Set the testability to true. IsProduction returns correct values.
+
+        // [Given] Set the testability IsProduction to true
+        EnvironmentInfoTestLibrary.SetIsProduction(true);
+
+        // [When] Poll for IsProduction
+        // [Then] Should return true
+        Assert.IsTrue(EnvironmentInformation.IsProduction(), 'Testability should have dictacted a SaaS environment');
+    end;
+
+    [Test]
+    procedure TestApplicationFamilyIsTrueWhenTestabilityApplicationFamilyIsSet()
+    begin
+        // [SCENARIO] Set the testability to true. ApplicationFamily returns correct values.
+
+        // [Given] Set the testability ApplicationFamily to 1234
+        EnvironmentInfoTestLibrary.SetApplicationFamily('1234');
+
+        // [When] Poll for ApplicationFamily
+        // [Then] Should return true
+        Assert.IsTrue(EnvironmentInformation.ApplicationFamily() = '1234', 'Testability should have dictacted a SaaS environment');
+    end;
 }
 
