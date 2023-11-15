@@ -43,28 +43,26 @@ class GitHubPullRequest {
             return @()
         }
 
-        $issueRegex = "(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) #(\d+)" # e.g. "Fixes #1234"
-        $issueMatches = Select-String $issueRegex -InputObject $this.PullRequest.body -AllMatches
-
-        if(-not $issueMatches) {
-            return @()
-        }
-
-        $issueIds = @()
-        foreach($match in $issueMatches.Matches) {
-            $issueIds += $match.Groups[2].Value
-        }
-
-        return $issueIds
+        $workitemPattern = "(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) #(\d+)" # e.g. "Fixes #1234"
+        return $this.GetLinkedWorkItemIDs($workitemPattern)
     }
 
+    <#
+        Gets the linked ADO workitem IDs from the pull request description.
+        .returns
+            An array of linked issue IDs.
+    #>
     [int[]] GetLinkedADOWorkitems() {
+        $workitemPattern = "(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) AB#(\d+)" # e.g. "AB#1234"
+        return $this.GetLinkedWorkItemIDs($workitemPattern)
+    }
+
+    [int[]] GetLinkedWorkItemIDs($Patten) {
         if(-not $this.PullRequest.body) {
             return @()
         }
 
-        $workitemRegex = "(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) AB#(\d+)" # e.g. "AB#1234"
-        $workitemMatches = Select-String $workitemRegex -InputObject $this.PullRequest.body -AllMatches
+        $workitemMatches = Select-String $Patten -InputObject $this.PullRequest.body -AllMatches
 
         if(-not $workitemMatches) {
             return @()
@@ -76,7 +74,6 @@ class GitHubPullRequest {
         }
         return $workitemIds
     }
-
     <#
         Removes a comment from the pull request if it exists.
     #>

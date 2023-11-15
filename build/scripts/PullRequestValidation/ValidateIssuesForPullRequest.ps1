@@ -8,7 +8,7 @@ param(
     [string] $Repository,
     [Parameter(Mandatory = $true)]
     [bool] $FromFork
-    )
+)
 
 # Set error action
 $ErrorActionPreference = "Stop"
@@ -23,11 +23,11 @@ $ErrorActionPreference = "Stop"
 #>
 function Test-WorkitemIsLinked() {
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string[]] $IssueIds,
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string[]] $ADOWorkItems,
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [object] $PullRequest,
         [Parameter(Mandatory = $false)]
         [bool] $FromFork
@@ -58,11 +58,11 @@ function Test-WorkitemIsLinked() {
 #>
 function Test-GitHubIssue() {
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string] $Repository,
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string[]] $IssueIds,
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [object] $PullRequest
     )
     $invalidIssues = @()
@@ -94,7 +94,7 @@ $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
 $issueIds = $pullRequest.GetLinkedIssueIDs()
 $adoWorkitems = $pullRequest.GetLinkedADOWorkitems()
 
-Test-WorkitemIsLinked -IssueIds $issueIds -ADOWorkItems $adoWorkitems -PullRequest $PullRequest
+Test-WorkitemIsLinked -IssueIds $issueIds -ADOWorkItems $adoWorkitems -PullRequest $PullRequest -FromFork $FromFork
 
 # If the pull request is from a fork, validate the linked issues
 if ($FromFork) {
