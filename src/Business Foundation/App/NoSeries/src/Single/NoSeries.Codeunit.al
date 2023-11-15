@@ -14,7 +14,6 @@ codeunit 310 "No. Series"
     Access = Public;
 
     #region GetNextNo
-
     /// <summary>
     /// Get the next number in the No. Series.
     /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
