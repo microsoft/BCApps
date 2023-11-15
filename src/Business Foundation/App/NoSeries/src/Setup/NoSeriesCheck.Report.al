@@ -1,3 +1,4 @@
+#if not CLEAN24
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,13 +10,8 @@ report 22 "No. Series Check"
 {
     Caption = 'No. Series Check';
     DefaultRenderingLayout = LayoutRdlc;
-#if CLEAN24
-    ObsoleteState = Removed;
-    ObsoleteTag = '25.0';
-#else
     ObsoleteState = Pending;
     ObsoleteTag = '24.0';
-#endif
     ObsoleteReason = 'Report data is available on page 457 "No. Series Lines" and page 571 "No. Series List". It can be analyzed with either the Data Analysis feature or Open in Excel.';
 
     dataset
@@ -146,3 +142,4 @@ report 22 "No. Series Check"
         NoSeries2_DescriptionCaptionLbl: Label 'Description';
         No__Series_Line__Series_Code_CaptionLbl: Label 'Code';
 }
+#endif
