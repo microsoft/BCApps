@@ -11,6 +11,14 @@ report 21 "No. Series"
 {
     Caption = 'No. Series';
     DefaultRenderingLayout = LayoutRdlc;
+#if CLEAN24
+    ObsoleteState = Removed;
+    ObsoleteTag = '25.0';
+#else
+    ObsoleteState = Pending;
+    ObsoleteTag = '24.0';
+#endif
+    ObsoleteReason = 'Report data is available on page 457 "No. Series Lines" and page 571 "No. Series List". It can be analyzed with either the Data Analysis feature or Open in Excel.';
 
     dataset
     {
