@@ -27,4 +27,4 @@ jobs:
     displayName: Sync mirror with upstream
     inputs:
       filePath: build\scripts\SyncMirror.ps1
-      arguments: '-SourceRepository "https://$(GitHubPAT)@github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch) -ManagedIdentityAuth'
+      arguments: '-SourceRepository "https://github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch) -ManagedIdentityAuth'

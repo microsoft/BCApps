@@ -31,14 +31,15 @@ page 7773 "Copilot Capabilities Preview"
                 {
                     ApplicationArea = All;
                     Caption = 'Capability';
-                    ToolTip = 'Specifies the Copilot Capability.';
+                    ToolTip = 'Specifies the Copilot capability''s name.';
                     Editable = false;
+                    Width = 30;
                 }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = All;
                     Caption = 'Status';
-                    ToolTip = 'Specifies if the Copilot is active.';
+                    ToolTip = 'Specifies if the Copilot is active and can be used in this environment.';
                     StyleExpr = StatusStyleExpr;
 
                     trigger OnValidate()
@@ -50,7 +51,7 @@ page 7773 "Copilot Capabilities Preview"
                 {
                     ApplicationArea = All;
                     Caption = 'Publisher';
-                    ToolTip = 'Specifies the Copilot Publisher.';
+                    ToolTip = 'Specifies the publisher of this Copilot.';
                     Editable = false;
                 }
                 field("Learn More"; LearnMore)
@@ -58,7 +59,7 @@ page 7773 "Copilot Capabilities Preview"
                     ApplicationArea = All;
                     Caption = ' ';
 #pragma warning disable AA0219
-                    ToolTip = 'Opens the Copilot Learn More Url.';
+                    ToolTip = 'Opens the Copilot''s url to learn more about the capability.';
 #pragma warning restore AA0219
                     Editable = false;
 
@@ -118,7 +119,7 @@ page 7773 "Copilot Capabilities Preview"
             action(SupplementalTerms)
             {
                 Caption = 'Supplemental Terms of Use';
-                ToolTip = 'Opens the supplemental terms of use for Production Ready Preview capabilities.';
+                ToolTip = 'Opens the supplemental terms of use for production ready preview capabilities.';
                 Image = Info;
 
                 trigger OnAction()
@@ -159,7 +160,7 @@ page 7773 "Copilot Capabilities Preview"
     begin
         DataMovementEnabled := Value;
         SetActionsEnabled();
-        CurrPage.Update();
+        CurrPage.Update(false);
     end;
 
     local procedure SetStatusStyle()

@@ -1,0 +1,15 @@
+"Build: Automation":
+- .github/**
+- .azuredevops/**
+
+"Build: scripts & configs":
+- build/**
+
+"AL: System Application":
+- src/System Application/**
+
+"AL: Tools":
+- src/Tools/**
+
+"AL: Rulesets":
+- src/Rulesets/**

@@ -73,7 +73,7 @@ codeunit 2504 "Extension Management"
     /// <param name="IsUIEnabled">Indicates whether the install operation is invoked through the UI.</param>
     procedure DeployExtension(AppId: Guid; lcid: Integer; IsUIEnabled: Boolean)
     begin
-        ExtensionOperationImpl.DeployExtension(AppId, lcid, IsUIEnabled);
+        ExtensionOperationImpl.DeployExtension(AppId, lcid, IsUIEnabled, '');
     end;
 
     /// <summary>
