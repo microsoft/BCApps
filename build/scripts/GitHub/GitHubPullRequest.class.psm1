@@ -53,7 +53,7 @@ class GitHubPullRequest {
             An array of linked issue IDs.
     #>
     [int[]] GetLinkedADOWorkitems() {
-        $workitemPattern = "(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) AB#(\d+)" # e.g. "AB#1234"
+        $workitemPattern = "(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) AB#(\d+)" # e.g. "Fixes AB#1234"
         return $this.GetLinkedWorkItemIDs($workitemPattern)
     }
 
