@@ -9,72 +9,62 @@ codeunit 8723 "Date and Time Helper Impl."
     InherentPermissions = X;
     Access = Internal;
 
-    procedure CompareDateTimes(firstDateTime: DateTime; secondDateTime: DateTime): Integer
+    procedure Compare(FirstDateTime: DateTime; SecondDateTime: DateTime): Integer
     begin
-        if firstDateTime = secondDateTime then
+        if FirstDateTime = SecondDateTime then
             exit(0);
 
-        if firstDateTime = 0DT then
+        if FirstDateTime = 0DT then
             exit(-1);
 
-        if secondDateTime = 0DT then
+        if SecondDateTime = 0DT then
             exit(1);
 
         // Round the Time values to the nearest 0, 3, or 7 milliseconds.
-        firstDateTime := RoundToSQLAccuracy(firstDateTime);
-        secondDateTime := RoundToSQLAccuracy(secondDateTime);
+        FirstDateTime := RoundToSQLAccuracy(FirstDateTime);
+        SecondDateTime := RoundToSQLAccuracy(SecondDateTime);
 
-        if firstDateTime = secondDateTime then
+        if FirstDateTime = SecondDateTime then
             exit(0);
 
-        if firstDateTime > secondDateTime then
+        if FirstDateTime > SecondDateTime then
             exit(1);
 
         exit(-1);
     end;
 
     procedure RoundToSQLAccuracy(DateTimeToRound: DateTime): DateTime
+    var
+        TimeToRound: Time;
+        RoundedTime: Time;
     begin
-        // Rounds the specified DateTime value to the nearest 0, 3, or 7 milliseconds.
-        case (DateTimeToRound - 0DT) mod 10 of
-            1:
-                exit(DateTimeToRound - 1); // round to 0
-            2:
-                exit(DateTimeToRound + 1); // round to 3
-            4:
-                exit(DateTimeToRound - 1); // round to 3
-            5:
-                exit(DateTimeToRound + 2); // round to 7
-            6:
-                exit(DateTimeToRound + 1); // round to 7
-            8:
-                exit(DateTimeToRound - 1); // round to 7
-            9:
-                exit(DateTimeToRound + 1); // round to 0
-            else
-                exit(DateTimeToRound);
-        end;
+        TimeToRound := DT2Time(DateTimeToRound);
+        RoundedTime := RoundToSQLAccuracy(TimeToRound);
+        if RoundedTime <> TimeToRound then
+            exit(CreateDateTime(DT2Date(DateTimeToRound), RoundedTime))
+        else
+            exit(DateTimeToRound);
     end;
 
-    procedure CompareTimes(firstTime: Time; secondTime: Time): Integer
+    procedure Compare(FirstTime: Time; SecondTime: Time): Integer
     begin
-        if firstTime = secondTime then
+        if FirstTime = SecondTime then
             exit(0);
 
-        if firstTime = 0T then
+        if FirstTime = 0T then
             exit(-1);
 
-        if secondTime = 0T then
+        if SecondTime = 0T then
             exit(1);
 
         // Round the Time values to the nearest 0, 3, or 7 milliseconds.
-        firstTime := RoundToSQLAccuracy(firstTime);
-        secondTime := RoundToSQLAccuracy(secondTime);
+        FirstTime := RoundToSQLAccuracy(FirstTime);
+        SecondTime := RoundToSQLAccuracy(SecondTime);
 
-        if firstTime = secondTime then
+        if FirstTime = SecondTime then
             exit(0);
 
-        if firstTime > secondTime then
+        if FirstTime > SecondTime then
             exit(1);
 
         exit(-1);
