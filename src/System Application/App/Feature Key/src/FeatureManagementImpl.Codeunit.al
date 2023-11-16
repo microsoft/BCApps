@@ -330,6 +330,8 @@ codeunit 2610 "Feature Management Impl."
         FeatureDataUpdateStatus: Record "Feature Data Update Status";
     begin
         if FeatureKey.Get(FeatureId) then begin
+            if FeatureKey.Enabled::None then
+                exit(false);
             InitializeFeatureDataUpdateStatus(FeatureKey, FeatureDataUpdateStatus);
             exit(FeatureDataUpdateStatus."Feature Status" in ["Feature Status"::Complete, "Feature Status"::Enabled])
         end;
