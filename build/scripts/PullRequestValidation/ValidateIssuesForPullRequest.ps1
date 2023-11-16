@@ -30,19 +30,19 @@ function Test-WorkitemIsLinked() {
         [Parameter(Mandatory = $false)]
         [object] $PullRequest,
         [Parameter(Mandatory = $false)]
-        [bool] $FromFork
+        [bool] $PRFromFork
     )
 
     $Comment = "Could not find linked issues in the pull request description. Please make sure the pull request description contains a line that contains 'Fixes #' followed by the issue number being fixed. Use that pattern for every issue you want to link."
 
-    if (-not $FromFork) {
+    if (-not $PRFromFork) {
         $Comment += " You can also link ADO workitems by using the pattern 'Fixes AB#' followed by the workitem number being fixed."
     }
     
     if (-not $IssueIds) {
         # If the pull request is from a fork, add a comment to the pull request and throw an error
         # If the pull request is not from a fork only throw an error if there are no linked ADO workitems
-        if ($FromFork -or (-not $ADOWorkItems)) {
+        if ($PRFromFork -or (-not $ADOWorkItems)) {
             $PullRequest.AddComment($Comment)
             throw $Comment
         }
@@ -63,7 +63,9 @@ function Test-GitHubIssue() {
         [Parameter(Mandatory = $false)]
         [string[]] $IssueIds,
         [Parameter(Mandatory = $false)]
-        [object] $PullRequest
+        [object] $PullRequest,
+        [Parameter(Mandatory = $false)]
+        [bool] $PRFromFork
     )
     $invalidIssues = @()
 
@@ -72,7 +74,7 @@ function Test-GitHubIssue() {
         $issue = [GitHubIssue]::Get($issueId, $Repository)
     
         # If the issue is not approved, add a comment to the pull request and throw an error
-        $isValid = $issue -and $issue.IsApproved() -and $issue.IsOpen() -and (-not $issue.IsPullRequest())
+        $isValid = $issue -and ((-not $PRFromFork) -or $issue.IsApproved()) -and $issue.IsOpen() -and (-not $issue.IsPullRequest())
         $Comment = "Issue #$($issueId) is not valid. Please make sure you link an **issue** that exists, is **open** and is **approved**."
         if (-not $isValid) {
             $PullRequest.AddComment($Comment)
@@ -94,11 +96,9 @@ $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
 $issueIds = $pullRequest.GetLinkedIssueIDs()
 $adoWorkitems = $pullRequest.GetLinkedADOWorkitems()
 
-Test-WorkitemIsLinked -IssueIds $issueIds -ADOWorkItems $adoWorkitems -PullRequest $PullRequest -FromFork $FromFork
+Test-WorkitemIsLinked -IssueIds $issueIds -ADOWorkItems $adoWorkitems -PullRequest $PullRequest -PRFromFork $FromFork
 
 # If the pull request is from a fork, validate the linked issues
-if ($FromFork) {
-    Test-GitHubIssue -Repository $Repository -IssueIds $issueIds -PullRequest $PullRequest
-}
+Test-GitHubIssue -Repository $Repository -IssueIds $issueIds -PullRequest $PullRequest -PRFromFork $FromFork
 
 Write-Host "PR $PullRequestNumber validated successfully" -ForegroundColor Green
