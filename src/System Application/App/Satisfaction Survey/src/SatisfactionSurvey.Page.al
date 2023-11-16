@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Feedback;
+using System.Integration;
 
 /// <summary>
 /// Displays the satisfaction survey dialog box.
@@ -21,7 +22,7 @@ page 1433 "Satisfaction Survey"
     {
         area(content)
         {
-            usercontrol(SatisfactionSurvey; "Microsoft.Dynamics.Nav.Client.SatisfactionSurvey")
+            usercontrol(SatisfactionSurvey; SatisfactionSurvey)
             {
                 ApplicationArea = All;
 

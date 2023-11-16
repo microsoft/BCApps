@@ -345,24 +345,6 @@ dotnet
         }
     }
 
-    assembly("Microsoft.Dynamics.Nav.Client.PageReady")
-    {
-
-        type("Microsoft.Dynamics.Nav.Client.PageReady.IPageReady"; "Microsoft.Dynamics.Nav.Client.PageReady")
-        {
-            IsControlAddin = true;
-        }
-    }
-
-    assembly("Microsoft.Dynamics.Nav.Client.VideoPlayer")
-    {
-
-        type("Microsoft.Dynamics.Nav.Client.VideoPlayer.IVideoPlayer"; "Microsoft.Dynamics.Nav.Client.VideoPlayer")
-        {
-            IsControlAddin = true;
-        }
-    }
-
     assembly("Microsoft.Dynamics.Nav.ClientExtensions")
     {
         Culture = 'neutral';
