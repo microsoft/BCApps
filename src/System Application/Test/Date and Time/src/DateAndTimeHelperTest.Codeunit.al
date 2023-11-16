@@ -9,81 +9,317 @@ codeunit 132980 "Date and Time Helper Test"
 
     var
         LibraryAssert: Codeunit "Library Assert";
-        Any: Codeunit Any;
-        IsInitialized: Boolean;
-        DSTTimeZoneData: Dictionary of [Text, Decimal];
-        NonDSTTimeZoneData: Dictionary of [Text, Decimal];
 
     [Test]
-    [Scope('OnPrem')]
-    procedure TestDateTimeComparison()
+    procedure TestRoundTimeToSQLAccuracy()
     var
         DateAndTimeHelper: Codeunit "Date and Time Helper";
-        DateTimeA: DateTime;
-        DateTimeB: DateTime;
-        Threshold: Integer;
+        TimeToRound: Time;
+        ExpectedTime: Time;
     begin
-        // Threshold for equality when comparing DateTime values. If the difference
-        // is less than this value, then we treat them as equal values.
-        Threshold := 10;
+        // Test case for no rounding 0 to 0
+        TimeToRound := 000000.000T;
+        ExpectedTime := 000000.000T;
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(TimeToRound) = ExpectedTime, 'Time should remain ending with 0');
 
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareDateTimes(DateTimeA, DateTimeB) = 0, 'Return value should be 0 for two null values.');
+        // Test case for rounding 1 to 0
+        TimeToRound := 000000.001T;
+        ExpectedTime := 000000.000T;
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(TimeToRound) = ExpectedTime, 'Time should be rounded to 0');
 
-        DateTimeA := CurrentDateTime();
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareDateTimes(DateTimeA, DateTimeB) > 0, 'Return value should be > 0 if second value is null.');
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareDateTimes(DateTimeB, DateTimeA) < 0, 'Return value should be < 0 if first value is null.');
+        // Test case for rounding 2 to 3
+        TimeToRound := 000000.002T;
+        ExpectedTime := 000000.003T;
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(TimeToRound) = ExpectedTime, 'Time should be rounded to 3');
 
-        DateTimeB := DateTimeA;
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareDateTimes(DateTimeA, DateTimeB) = 0, 'Return value should be 0 for equal values.');
+        // Test case for no rounding 3 to 3
+        TimeToRound := 000000.003T;
+        ExpectedTime := 000000.003T;
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(TimeToRound) = ExpectedTime, 'Time should remain ending with 3');
 
-        DateTimeB := DateTimeA + Any.IntegerInRange(0, Threshold - 1);
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareDateTimes(DateTimeA, DateTimeB) = 0, 'Return value should be 0 for values within threshold.');
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareDateTimes(DateTimeB, DateTimeA) = 0, 'Return value should be 0 for values within threshold.');
+        // Test case for rounding 4 to 3
+        TimeToRound := 000000.004T;
+        ExpectedTime := 000000.003T;
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(TimeToRound) = ExpectedTime, 'Time should be rounded to 3');
 
-        DateTimeB := DateTimeA + Threshold;
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareDateTimes(DateTimeA, DateTimeB) < 0, 'Return value should be < 0.');
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareDateTimes(DateTimeB, DateTimeA) > 0, 'Return value should be > 0.');
+        // Test case for rounding 5 to 7
+        TimeToRound := 000000.005T;
+        ExpectedTime := 000000.007T;
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(TimeToRound) = ExpectedTime, 'Time should be rounded to 7');
 
-        DateTimeB := DateTimeA + Any.IntegerInRange(Threshold + 1, 500);
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareDateTimes(DateTimeA, DateTimeB) < 0, 'Return value should be < 0.');
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareDateTimes(DateTimeB, DateTimeA) > 0, 'Return value should be > 0.');
+        // Test case for no rounding 6 to 7
+        TimeToRound := 000000.006T;
+        ExpectedTime := 000000.007T;
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(TimeToRound) = ExpectedTime, 'Time should remain ending with 7');
+
+        // Test case for no rounding 7 to 7
+        TimeToRound := 000000.007T;
+        ExpectedTime := 000000.007T;
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(TimeToRound) = ExpectedTime, 'Time should remain ending with 7');
+
+        // Test case for rounding 8 to 7
+        TimeToRound := 000000.008T;
+        ExpectedTime := 000000.007T;
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(TimeToRound) = ExpectedTime, 'Time should be rounded to 7');
+
+        // Test case for rounding 9 to 0
+        TimeToRound := 235959.999T;
+        ExpectedTime := 000000.000T;
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(TimeToRound) = ExpectedTime, 'Time should be rounded to 0');
     end;
 
     [Test]
-    procedure TestTimeComparison()
+    procedure TestCompareTime()
     var
         DateAndTimeHelper: Codeunit "Date and Time Helper";
-        TimeA: Time;
-        TimeB: Time;
-        Threshold: Integer;
+        FirstTime: Time;
+        SecondTime: Time;
     begin
-        // Threshold for equality when comparing Time values. If the difference
-        // is less than this value, then we treat them as equal values.
-        Threshold := 10;
+        // Test case equal values
+        FirstTime := DT2Time(CurrentDateTime());
+        SecondTime := FirstTime;
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstTime, SecondTime) = 0, 'Return value should be 0 for equal values.');
 
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareTimes(TimeA, TimeB) = 0, 'Return value should be 0 for two null values.');
+        // Test case for first value null
+        FirstTime := 0T;
+        SecondTime := DT2Time(CurrentDateTime());
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstTime, SecondTime) = -1, 'Return value should be -1 if first value is null.');
 
-        TimeA := DT2Time(CurrentDateTime());
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareTimes(TimeA, TimeB) > 0, 'Return value should be > 0 if second value is null.');
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareTimes(TimeB, TimeA) < 0, 'Return value should be < 0 if first value is null.');
+        // Test case for second value null
+        FirstTime := DT2Time(CurrentDateTime());
+        SecondTime := 0T;
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstTime, SecondTime) = 1, 'Return value should be 1 if second value is null.');
 
-        TimeB := TimeA;
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareTimes(TimeA, TimeB) = 0, 'Return value should be 0 for equal values.');
+        // Test case for first value less than second value
+        FirstTime := DT2Time(CurrentDateTime());
+        SecondTime := GetNextPossibleTimeWithSQLAccuracy(FirstTime);
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstTime, SecondTime) = -1, 'Return value should be -1 if first value is less than second value.');
 
-        TimeB := TimeA + Any.IntegerInRange(0, Threshold - 1);
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareTimes(TimeA, TimeB) = 0, 'Return value should be 0 for values within threshold.');
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareTimes(TimeB, TimeA) = 0, 'Return value should be 0 for values within threshold.');
+        // Test case for first value greater than second value
+        SecondTime := DT2Time(CurrentDateTime());
+        FirstTime := GetNextPossibleTimeWithSQLAccuracy(SecondTime);
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstTime, SecondTime) = 1, 'Return value should be 1 if first value is greater than second value.');
 
-        TimeB := TimeA + Threshold;
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareTimes(TimeA, TimeB) < 0, 'Return value should be < 0.');
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareTimes(TimeB, TimeA) > 0, 'Return value should be > 0.');
+        // Test case for first value less than second value but equal with sql rounding
+        FirstTime := DT2Time(CurrentDateTime());
+        SecondTime := GetNextPossibleTimeWithSQLAccuracy(FirstTime) - 1;
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstTime, SecondTime) = 0, 'Return value should be 0 if first value is less than second value but equal with sql rounding.');
 
-        TimeB := TimeA + Any.IntegerInRange(Threshold + 1, 500);
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareTimes(TimeA, TimeB) < 0, 'Return value should be < 0.');
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareTimes(TimeB, TimeA) > 0, 'Return value should be > 0.');
+        // Test case for first value greater than second value but equal with sql rounding
+        SecondTime := DT2Time(CurrentDateTime());
+        FirstTime := GetNextPossibleTimeWithSQLAccuracy(SecondTime) - 1;
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstTime, SecondTime) = 0, 'Return value should be 0 if first value is greater than second value but equal with sql rounding.');
+    end;
 
-        TimeA := 235959.999T;
-        TimeB := 000000.000T;
-        LibraryAssert.IsTrue(DateAndTimeHelper.CompareTimes(TimeA, TimeB) = 0, 'Return value should be 0 for values that would be equal after sql server rounding.');
+    [Test]
+    procedure TestTimeIsEqual()
+    var
+        DateAndTimeHelper: Codeunit "Date and Time Helper";
+        FirstTime: Time;
+        SecondTime: Time;
+    begin
+        // Test case equal values
+        FirstTime := DT2Time(CurrentDateTime());
+        SecondTime := FirstTime;
+        LibraryAssert.IsTrue(DateAndTimeHelper.IsEqual(FirstTime, SecondTime), 'Return value should be true for equal values.');
+
+        // Test case for different values
+        FirstTime := DT2Time(CurrentDateTime());
+        SecondTime := GetNextPossibleTimeWithSQLAccuracy(FirstTime);
+        LibraryAssert.IsFalse(DateAndTimeHelper.IsEqual(FirstTime, SecondTime), 'Return value should be false for different values.');
+
+        // Test case for first value null
+        FirstTime := 0T;
+        SecondTime := DT2Time(CurrentDateTime());
+        LibraryAssert.IsFalse(DateAndTimeHelper.IsEqual(FirstTime, SecondTime), 'Return value should be false if first value is null.');
+
+        // Test case for second value null
+        FirstTime := DT2Time(CurrentDateTime());
+        SecondTime := 0T;
+        LibraryAssert.IsFalse(DateAndTimeHelper.IsEqual(FirstTime, SecondTime), 'Return value should be false if second value is null.');
+    end;
+
+    [Test]
+    procedure TestTimeIsGreater()
+    var
+        DateAndTimeHelper: Codeunit "Date and Time Helper";
+        FirstTime: Time;
+        SecondTime: Time;
+    begin
+        // Test case for equal values
+        FirstTime := DT2Time(CurrentDateTime());
+        SecondTime := FirstTime;
+        LibraryAssert.IsFalse(DateAndTimeHelper.IsGreater(FirstTime, SecondTime), 'Return value should be false for equal values.');
+
+        // Test case for first value greater than second value
+        FirstTime := DT2Time(CurrentDateTime());
+        SecondTime := GetNextPossibleTimeWithSQLAccuracy(FirstTime);
+        LibraryAssert.IsTrue(DateAndTimeHelper.IsGreater(FirstTime, SecondTime), 'Return value should be true if first value is greater than second value.');
+
+        // Test case for first value less than second value
+        SecondTime := DT2Time(CurrentDateTime());
+        FirstTime := GetNextPossibleTimeWithSQLAccuracy(SecondTime);
+        LibraryAssert.IsFalse(DateAndTimeHelper.IsGreater(FirstTime, SecondTime), 'Return value should be false if first value is less than second value.');
+
+        // Test case for first value null
+        FirstTime := 0T;
+        SecondTime := DT2Time(CurrentDateTime());
+        LibraryAssert.IsFalse(DateAndTimeHelper.IsGreater(FirstTime, SecondTime), 'Return value should be false if first value is null.');
+
+        // Test case for second value null
+        FirstTime := DT2Time(CurrentDateTime());
+        SecondTime := 0T;
+        LibraryAssert.IsTrue(DateAndTimeHelper.IsGreater(FirstTime, SecondTime), 'Return value should be true if second value is null.');
+    end;
+
+    [Test]
+    procedure TestTimeIsLess()
+    var
+        DateAndTimeHelper: Codeunit "Date and Time Helper";
+        FirstTime: Time;
+        SecondTime: Time;
+    begin
+        // Test case for equal values
+        FirstTime := DT2Time(CurrentDateTime());
+        SecondTime := FirstTime;
+        LibraryAssert.IsFalse(DateAndTimeHelper.IsLess(FirstTime, SecondTime), 'Return value should be false for equal values.');
+
+        // Test case for first value greater than second value
+        FirstTime := DT2Time(CurrentDateTime());
+        SecondTime := GetNextPossibleTimeWithSQLAccuracy(FirstTime);
+        LibraryAssert.IsFalse(DateAndTimeHelper.IsLess(FirstTime, SecondTime), 'Return value should be false if first value is greater than second value.');
+
+        // Test case for first value less than second value
+        SecondTime := DT2Time(CurrentDateTime());
+        FirstTime := GetNextPossibleTimeWithSQLAccuracy(SecondTime);
+        LibraryAssert.IsTrue(DateAndTimeHelper.IsLess(FirstTime, SecondTime), 'Return value should be true if first value is less than second value.');
+
+        // Test case for first value null
+        FirstTime := 0T;
+        SecondTime := DT2Time(CurrentDateTime());
+        LibraryAssert.IsTrue(DateAndTimeHelper.IsLess(FirstTime, SecondTime), 'Return value should be true if first value is null.');
+
+        // Test case for second value null
+        FirstTime := DT2Time(CurrentDateTime());
+        SecondTime := 0T;
+        LibraryAssert.IsFalse(DateAndTimeHelper.IsLess(FirstTime, SecondTime), 'Return value should be false if second value is null.');
+    end;
+
+    [Test]
+    procedure TestRoundDateTimeToSQLAccuracy()
+    var
+        DateAndTimeHelper: Codeunit "Date and Time Helper";
+        DateTimeToRound: DateTime;
+        ExpectedDateTime: DateTime;
+    begin
+        // Test case for no rounding 0 to 0
+        DateTimeToRound := CreateDateTime(WorkDate(), 000000.000T);
+        ExpectedDateTime := CreateDateTime(WorkDate(), 000000.000T);
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(DateTimeToRound) = ExpectedDateTime, 'DateTime should remain ending with 0');
+
+        // Test case for rounding 1 to 0
+        DateTimeToRound := CreateDateTime(WorkDate(), 000000.001T);
+        ExpectedDateTime := CreateDateTime(WorkDate(), 000000.000T);
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(DateTimeToRound) = ExpectedDateTime, 'DateTime should be rounded to 0');
+
+        // Test case for rounding 2 to 3
+        DateTimeToRound := CreateDateTime(WorkDate(), 000000.002T);
+        ExpectedDateTime := CreateDateTime(WorkDate(), 000000.003T);
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(DateTimeToRound) = ExpectedDateTime, 'DateTime should be rounded to 3');
+
+        // Test case for no rounding 3 to 3
+        DateTimeToRound := CreateDateTime(WorkDate(), 000000.003T);
+        ExpectedDateTime := CreateDateTime(WorkDate(), 000000.003T);
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(DateTimeToRound) = ExpectedDateTime, 'DateTime should remain ending with 3');
+
+        // Test case for rounding 4 to 3
+        DateTimeToRound := CreateDateTime(WorkDate(), 000000.004T);
+        ExpectedDateTime := CreateDateTime(WorkDate(), 000000.003T);
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(DateTimeToRound) = ExpectedDateTime, 'DateTime should be rounded to 3');
+
+        // Test case for rounding 5 to 7
+        DateTimeToRound := CreateDateTime(WorkDate(), 000000.005T);
+        ExpectedDateTime := CreateDateTime(WorkDate(), 000000.007T);
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(DateTimeToRound) = ExpectedDateTime, 'DateTime should be rounded to 7');
+
+        // Test case for no rounding 6 to 7
+        DateTimeToRound := CreateDateTime(WorkDate(), 000000.006T);
+        ExpectedDateTime := CreateDateTime(WorkDate(), 000000.007T);
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(DateTimeToRound) = ExpectedDateTime, 'DateTime should remain ending with 7');
+
+        // Test case for no rounding 7 to 7
+        DateTimeToRound := CreateDateTime(WorkDate(), 000000.007T);
+        ExpectedDateTime := CreateDateTime(WorkDate(), 000000.007T);
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(DateTimeToRound) = ExpectedDateTime, 'DateTime should remain ending with 7');
+
+        // Test case for rounding 8 to 7
+        DateTimeToRound := CreateDateTime(WorkDate(), 000000.008T);
+        ExpectedDateTime := CreateDateTime(WorkDate(), 000000.007T);
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(DateTimeToRound) = ExpectedDateTime, 'DateTime should be rounded to 7');
+
+        // Test case for rounding 9 to 0
+        DateTimeToRound := CreateDateTime(WorkDate(), 235959.999T);
+        ExpectedDateTime := CreateDateTime(WorkDate(), 000000.000T);
+        LibraryAssert.IsTrue(DateAndTimeHelper.RoundToSQLAccuracy(DateTimeToRound) = ExpectedDateTime, 'DateTime should be rounded to 0');
+    end;
+
+    [Test]
+    procedure TestCompareDateTime()
+    var
+        DateAndTimeHelper: Codeunit "Date and Time Helper";
+        FirstDateTime: DateTime;
+        SecondDateTime: DateTime;
+    begin
+        // Test case equal values
+        FirstDateTime := CurrentDateTime();
+        SecondDateTime := FirstDateTime;
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstDateTime, SecondDateTime) = 0, 'Return value should be 0 for equal values.');
+
+        // Test case for first value null
+        FirstDateTime := 0DT;
+        SecondDateTime := CurrentDateTime();
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstDateTime, SecondDateTime) = -1, 'Return value should be -1 if first value is null.');
+
+        // Test case for second value null
+        FirstDateTime := CurrentDateTime();
+        SecondDateTime := 0DT;
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstDateTime, SecondDateTime) = 1, 'Return value should be 1 if second value is null.');
+
+        // Test case for first value less than second value
+        FirstDateTime := CurrentDateTime();
+        SecondDateTime := GetNextPossibleDateTimeWithSQLAccuracy(FirstDateTime);
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstDateTime, SecondDateTime) = -1, 'Return value should be -1 if first value is less than second value.');
+
+        // Test case for first value greater than second value
+        SecondDateTime := CurrentDateTime();
+        FirstDateTime := GetNextPossibleDateTimeWithSQLAccuracy(SecondDateTime);
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstDateTime, SecondDateTime) = 1, 'Return value should be 1 if first value is greater than second value.');
+
+        // Test case for first value less than second value but equal with sql rounding
+        FirstDateTime := CurrentDateTime();
+        SecondDateTime := GetNextPossibleDateTimeWithSQLAccuracy(FirstDateTime) - 1;
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstDateTime, SecondDateTime) = 0, 'Return value should be 0 if first value is less than second value but equal with sql rounding.');
+
+        // Test case for first value greater than second value but equal with sql rounding
+        SecondDateTime := CurrentDateTime();
+        FirstDateTime := GetNextPossibleDateTimeWithSQLAccuracy(SecondDateTime) - 1;
+        LibraryAssert.IsTrue(DateAndTimeHelper.Compare(FirstDateTime, SecondDateTime) = 0, 'Return value should be 0 if first value is greater than second value but equal with sql rounding.');
+    end;
+
+
+    local procedure GetNextPossibleTimeWithSQLAccuracy(CurrTime: Time): Time;
+    var
+        DateAndTimeHelper: Codeunit "Date and Time Helper";
+        NewTime: Time;
+    begin
+        NewTime := CurrTime + 1;
+        while DateAndTimeHelper.RoundToSQLAccuracy(CurrTime) = DateAndTimeHelper.RoundToSQLAccuracy(NewTime) do
+            NewTime := NewTime + 1;
+        exit(NewTime);
+    end;
+
+    local procedure GetNextPossibleDateTimeWithSQLAccuracy(FirstDateTime: DateTime): DateTime
+    begin
+        exit(CreateDateTime(DT2Date(FirstDateTime), GetNextPossibleTimeWithSQLAccuracy(DT2Time(FirstDateTime))));
     end;
 }
