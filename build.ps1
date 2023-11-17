@@ -29,7 +29,7 @@ if ($AutoFill) {
     Add-Type -AssemblyName System.Web
 
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', Justification = 'local build')]
-    $credential = New-Object pscredential admin, (ConvertTo-SecureString -String ([System.Web.Security.Membership]::GeneratePassword(20, 5)) -AsPlainText -Force)
+    $credential = New-Object -TypeName pscredential -ArgumentList admin, (ConvertTo-SecureString -String ([System.Web.Security.Membership]::GeneratePassword(20, 5)) -AsPlainText -Force)
     $licenseFileUrl = 'none'
     $containerName = "bcserver"
     $auth = "UserPassword"
