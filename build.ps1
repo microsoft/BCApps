@@ -28,7 +28,7 @@ if (-not (Get-Module -ListAvailable -Name "BCContainerHelper")) {
 if ($AutoFill) {
     Add-Type -AssemblyName System.Web
 
-    $credential = New-Object pscredential admin, (ConvertTo-SecureString -String ([System.Web.Security.Membership]::GeneratePassword(20, 5)) -AsPlainText -Force)
+    $credential = New-Object pscredential admin, [System.Web.Security.Membership]::GeneratePassword(20, 5)
     $licenseFileUrl = 'none'
     $containerName = "bcserver"
     $auth = "UserPassword"
