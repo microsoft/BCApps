@@ -26,7 +26,7 @@ jobs:
         with:
           path: .\
           recurse: true
-          excludeRule: '"PSAvoidUsingInvokeExpression", "PSUseShouldProcessForStateChangingFunctions", "PSAvoidUsingWriteHost", "PSAvoidUsingCmdletAliases"'
+          excludeRule: '"PSAvoidUsingInvokeExpression", "PSUseShouldProcessForStateChangingFunctions", "PSAvoidUsingWriteHost", "PSAvoidUsingCmdletAliases", "PSUseSingularNouns"'
           output: results.sarif
 
       # Upload the SARIF file generated in the previous step

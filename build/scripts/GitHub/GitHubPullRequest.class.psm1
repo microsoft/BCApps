@@ -98,7 +98,7 @@ class GitHubPullRequest {
         $githubMilestone = $allMilestones | Where-Object { $_.title -eq $Milestone }
         if (-not $githubMilestone) {
             Write-Host "::Warning:: Milestone '$Milestone' not found"
-            return 
+            return
         }
         $milestoneNumber = $githubMilestone.number
         gh api "/repos/$($this.Repository)/issues/$($this.PRNumber)" -H ([GitHubAPI]::AcceptJsonHeader) -H ([GitHubAPI]::GitHubAPIHeader) -F milestone=$milestoneNumber | ConvertFrom-Json
