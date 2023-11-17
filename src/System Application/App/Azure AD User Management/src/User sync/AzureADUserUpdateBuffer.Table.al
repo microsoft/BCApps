@@ -5,7 +5,9 @@
 
 namespace System.Azure.Identity;
 
+#if not CLEAN22
 using System.Security.User;
+#endif
 using System.Security.AccessControl;
 
 /// <summary>

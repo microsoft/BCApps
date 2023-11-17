@@ -220,17 +220,6 @@ page 130451 "AL Test Tool"
                     ToolTip = 'Specifies the number of Tests Not Executed';
                 }
             }
-
-#if not CLEAN21
-            group(Control13)
-            {
-                ShowCaption = false;
-                Visible = false;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Group will be deleted, control was moved to the top of the page.';
-                ObsoleteTag = '21.0';
-            }
-#endif
         }
     }
 

@@ -291,7 +291,6 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
     end;
 
     procedure ParseTableFilter(JsonObject: JsonObject; var TableId: Integer; var RetentionPeriodEnum: enum "Retention Period Enum"; var RetPeriodCalc: DateFormula; var DateFieldNo: Integer; var Enabled: Boolean; var Locked: Boolean; var TableFilter: Text)
-    var
     begin
         TableId := GetTableId(JsonObject);
         RetentionPeriodEnum := GetRetentionPeriodEnum(JsonObject);

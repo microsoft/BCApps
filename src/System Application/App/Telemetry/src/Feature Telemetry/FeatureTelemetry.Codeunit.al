@@ -210,53 +210,5 @@ codeunit 8703 "Feature Telemetry"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         FeatureTelemetryImpl.LogUptake(EventId, FeatureName, FeatureUptakeStatus, IsPerUser, CustomDimensions, CallerModuleInfo);
     end;
-
-#if not CLEAN21
-    /// <summary>
-    /// Sends telemetry about feature uptake.
-    /// </summary>
-    /// <param name="EventId">A unique ID of the event.</param>
-    /// <param name="FeatureName">The name of the feature.</param>
-    /// <param name="FeatureUptakeStatus">The new status of the feature uptake.</param>
-    /// <param name="IsPerUser">Specifies if the feature is targeted to be uptaken once for the tenant or uptaken individually by different users.</param>
-    /// <param name="PerformWriteTransactionsInASeparateSession">Not used.</param>
-    /// <remarks>
-    /// Expected feature uptake transitions:
-    /// "Discovered" -> "Set up" -> "Used" (and only in this order; for example, if for a given feature the first status was logged as "Set up", no telemetry will be emitted)
-    /// *Any state* -> "Undiscovered" (to reset the feature uptake status)
-    /// </remarks>
-    [Obsolete('Other overloads should be used instead.', '21.0')]
-    procedure LogUptake(EventId: Text; FeatureName: Text; FeatureUptakeStatus: Enum "Feature Uptake Status"; IsPerUser: Boolean; PerformWriteTransactionsInASeparateSession: Boolean)
-    var
-        CallerModuleInfo: ModuleInfo;
-        DummyCustomDimensions: Dictionary of [Text, Text];
-    begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        FeatureTelemetryImpl.LogUptake(EventId, FeatureName, FeatureUptakeStatus, IsPerUser, DummyCustomDimensions, CallerModuleInfo);
-    end;
-
-    /// <summary>
-    /// Sends telemetry about feature uptake.
-    /// </summary>
-    /// <param name="EventId">A unique ID of the event.</param>
-    /// <param name="FeatureName">The name of the feature.</param>
-    /// <param name="FeatureUptakeStatus">The new status of the feature uptake.</param>
-    /// <param name="IsPerUser">Specifies if the feature is targeted to be uptaken once for the tenant or uptaken individually by different users.</param>
-    /// <param name="PerformWriteTransactionsInASeparateSession">Not used.</param>
-    /// <param name="CustomDimensions">A dictionary containing additional information about the event.</param>
-    /// <remarks>
-    /// Expected feature uptake transitions:
-    /// "Discovered" -> "Set up" -> "Used" (and only in this order; for example, if for a given feature the first status was logged as "Set up", no telemetry will be emitted)
-    /// *Any state* -> "Undiscovered" (to reset the feature uptake status)
-    /// </remarks>
-    [Obsolete('Other overloads should be used instead.', '21.0')]
-    procedure LogUptake(EventId: Text; FeatureName: Text; FeatureUptakeStatus: Enum "Feature Uptake Status"; IsPerUser: Boolean; PerformWriteTransactionsInASeparateSession: Boolean; CustomDimensions: Dictionary of [Text, Text])
-    var
-        CallerModuleInfo: ModuleInfo;
-    begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        FeatureTelemetryImpl.LogUptake(EventId, FeatureName, FeatureUptakeStatus, IsPerUser, CustomDimensions, CallerModuleInfo);
-    end;
-#endif
 }
 

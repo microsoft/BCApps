@@ -1,21 +1,31 @@
 [
     {
+        "bug":  "488823",
+        "codeunitId":  135039,
         "CodeunitName": "Cues And KPIs Test",
         "Method": "CueUserPageShowsRecordsInsertedForCurrentUser"
     },
     {
+        "bug":  "488823",
+        "codeunitId":  135039,
         "CodeunitName": "Cues And KPIs Test",
         "Method": "CueSetupAdminPageCanInsertAndEdit"
     },
     {
+        "bug":  "488823",
+        "codeunitId":  135039,
         "CodeunitName": "Cues And KPIs Test",
         "Method": "CueSetupAdminPageCanInsertForDifferentUsers"
     },
     {
+        "bug":  "488823",
+        "codeunitId":  135039,
         "CodeunitName": "Cues And KPIs Test",
         "Method": "ChangeUsersForSetupEntries"
     },
     {
+        "bug":  "488823",
+        "codeunitId":  135039,
         "CodeunitName": "Cues And KPIs Test",
         "Method": "TestPersonalizedCueSetupExistsForCurrentUser"
     }

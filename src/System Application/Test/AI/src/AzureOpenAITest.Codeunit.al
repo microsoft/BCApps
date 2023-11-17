@@ -235,7 +235,7 @@ codeunit 132684 "Azure OpenAI Test"
     end;
 
     [Test]
-    procedure GenerateTextCompletionsFails()
+    procedure GenerateTextCompletionsMetapromptNotSetFails()
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
@@ -253,7 +253,34 @@ codeunit 132684 "Azure OpenAI Test"
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Text Capability");
 
         // [WHEN] GenerateTextCompletion is called
-        AzureOpenAI.GenerateTextCompletion(Any.AlphanumericText(10), AOAIOperationResponse);
+        asserterror AzureOpenAI.GenerateTextCompletion(Any.AlphanumericText(10), AOAIOperationResponse);
+
+        // [THEN] GenerateTextCompletion returns an error
+        LibraryAssert.ExpectedError('The metaprompt has not been set, please provide a metaprompt.');
+    end;
+
+    [Test]
+    procedure GenerateTextCompletionsFails()
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        Metaprompt: Text;
+    begin
+        // [SCENARIO] GenerateTextCompletion returns an error when generate complete is called
+
+        // [GIVEN] The privacy notice is agreed to
+        // [GIVEN] The authorization key is set
+        PrivacyNotice.SetApprovalState(AzureOpenAITxt, "Privacy Notice Approval State"::Agreed);
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Text Completions", EndpointTxt, DeploymentTxt, Any.AlphanumericText(10));
+
+        // [GIVEN] Capability is set
+        RegisterCapability(Enum::"Copilot Capability"::"Text Capability");
+        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Text Capability");
+        Metaprompt := 'metaprompt';
+
+        // [WHEN] GenerateTextCompletion is called
+        AzureOpenAI.GenerateTextCompletion(Metaprompt, Any.AlphanumericText(10), AOAIOperationResponse);
 
         // [THEN] GenerateTextCompletion should not be successful
         LibraryAssert.IsFalse(AOAIOperationResponse.IsSuccess(), 'The text completions generation succeeded when it should fail.');
@@ -470,6 +497,28 @@ codeunit 132684 "Azure OpenAI Test"
         JsonObject := HistoryMessage.AsObject();
         JsonObject.Get('content', HistoryMessage);
         LibraryAssert.AreEqual('Last message', HistoryMessage.AsValue().AsText(), 'The last message should be "Last message"');
+    end;
+
+    [Test]
+    procedure TestChatCompletionPrepareHistoryWithPrimaryandOneMessage()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        HistoryJsonArray: JsonArray;
+        Metaprompt: Text;
+    begin
+        // [SCENARIO] Prepare history gets the proper length of history to send to the model and the last message is the actual last message
+
+        // [GIVEN] A history length of 1 primary system message and 1 message
+        Metaprompt := 'Primary system message';
+        AOAIChatMessages.SetPrimarySystemMessage(Metaprompt);
+        AOAIChatMessages.AddUserMessage('Last message');
+
+        // [WHEN] Calling PrepareHistory
+        HistoryJsonArray := AzureOpenAITestLibrary.GetAOAIHistory(5, AOAIChatMessages);
+
+        // [THEN] The history length is 2
+        LibraryAssert.AreEqual(2, HistoryJsonArray.Count, 'The history length should be 2');
     end;
 
     [Test]

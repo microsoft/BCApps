@@ -30,10 +30,11 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     procedure CanSuggest(): Boolean
+    var
+        EntityTextAOAISettings: Codeunit "Entity Text AOAI Settings";
     begin
-        if (not IsEnabled(true)) then
+        if not EntityTextAOAISettings.IsEnabled(true) then
             exit(false);
-
 
         exit(HasPromptInfo());
     end;
@@ -45,7 +46,13 @@ codeunit 2012 "Entity Text Impl."
         UserPrompt: Text;
         Suggestion: Text;
     begin
+        if not IsEnabled(true) then
+            Error(CapabilityDisabledErr);
+        if not CanSuggest() then
+            Error(CannotGenerateErr);
         BuildPrompts(Facts, Tone, TextFormat, TextEmphasis, SystemPrompt, UserPrompt);
+
+        Session.LogMessage('0000JVG', TelemetryGenerationRequestedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
 
         Suggestion := GenerateAndReviewCompletion(SystemPrompt, UserPrompt, TextFormat, Facts, CallerModuleInfo);
 
@@ -152,8 +159,6 @@ codeunit 2012 "Entity Text Impl."
 
         SystemPrompt := BuildSinglePrompt(SystemPromptJson.AsObject(), LanguageName, FactsList, Category, Tone, TextFormat, TextEmphasis);
         UserPrompt := BuildSinglePrompt(UserPromptJson.AsObject(), LanguageName, FactsList, Category, Tone, TextFormat, TextEmphasis);
-
-        Session.LogMessage('0000JVG', StrSubstNo(TelemetryPromptSummaryTxt, Format(Facts.Count()), Format(Tone), Format(TextFormat), Format(TextEmphasis), LanguageName), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
     end;
 
     [NonDebuggable]
@@ -421,7 +426,7 @@ codeunit 2012 "Entity Text Impl."
 
         AOAICompletionParams.SetMaxTokens(2500);
         AOAICompletionParams.SetTemperature(0.7);
-        AOAIChatMessages.AddSystemMessage(SystemPrompt);
+        AOAIChatMessages.SetPrimarySystemMessage(SystemPrompt);
         AOAIChatMessages.AddUserMessage(UserPrompt);
 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAICompletionParams, AOAIOperationResponse);
@@ -446,6 +451,8 @@ codeunit 2012 "Entity Text Impl."
         NoteParagraphTxt: Label '%1Note:%1', Locked = true, Comment = 'This constant is used to limit the cases when the model goes out of format and must stay in English only.';
         TranslationParagraphTxt: Label 'Translation:%1', Locked = true, Comment = 'This constant is used to limit the cases when the model goes out of format and must stay in English only.';
         NoFactsErr: Label 'There''s no information available to draft a text from.';
+        CannotGenerateErr: Label 'Text cannot be generated. Please check your configuration and contact your partner.';
+        CapabilityDisabledErr: Label 'Sorry, your Copilot isn''t activated for Entity Text. Contact the system administrator.';
         MinFactsErr: Label 'There''s not enough information available to draft a text. Please provide more.';
         NotEnoughFactsForFormatErr: Label 'There''s not enough information available to draft a text for the chosen format. Please provide more, or choose another format.';
         PromptNotFoundErr: Label 'The prompt definition could not be found.';
@@ -454,7 +461,7 @@ codeunit 2012 "Entity Text Impl."
         PromptFormatMissingPropsErr: Label 'Required properties are missing from the prompt definition.';
         NoAuthorizationHandlerErr: Label 'There was no handler to provide authorization information for the suggestion. Contact your partner.';
         TelemetryCategoryLbl: Label 'Entity Text', Locked = true;
-        TelemetryPromptSummaryTxt: Label 'Prompt has %1 facts, tone: %2, format: %3, emphasis: %4, language: %5.', Locked = true;
+        TelemetryGenerationRequestedTxt: Label 'New suggestion requested.', Locked = true;
         TelemetrySuggestionCreatedTxt: Label 'A new suggestion was generated for table %1, scenario %2', Locked = true;
         TelemetryCompletionEmptyTxt: Label 'The returned completion was empty.', Locked = true;
         TelemetryLowQualityCompletionTxt: Label 'Failed to generate a good quality completion, returning a low quality one.', Locked = true;
