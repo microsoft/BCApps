@@ -12,17 +12,17 @@ using System.Environment;
 /// </summary>
 page 774 "User Details"
 {
+    AboutText = 'View the additional information about users in a list view, which allows for easy searching and filtering.';
+    AboutTitle = 'About the users detailed view';
     ApplicationArea = Basic, Suite;
     Caption = 'Users';
+    DeleteAllowed = false;
+    Editable = false;
+    InsertAllowed = false;
+    ModifyAllowed = false;
     PageType = List;
     SourceTable = "User Details";
     SourceTableTemporary = true;
-    InsertAllowed = false;
-    ModifyAllowed = false;
-    DeleteAllowed = false;
-    Editable = false;
-    AboutTitle = 'About the users detailed view';
-    AboutText = 'View the additional information about users in a list view, which allows for easy searching and filtering.';
 
     layout
     {
@@ -59,19 +59,19 @@ page 774 "User Details"
                 field("Authentication Email"; Rec."Authentication Email")
                 {
                     ExtendedDatatype = EMail;
-                    Visible = IsSaaS;
                     ToolTip = 'Specifies the Microsoft account that this user signs into Microsoft 365 or SharePoint Online with.';
+                    Visible = IsSaaS;
                 }
                 field("Authentication Object ID"; Rec."Authentication Object ID")
                 {
-                    Visible = IsSaaS;
                     ToolTip = 'Specifies ID assigned to the user in Microsoft Entra.';
+                    Visible = IsSaaS;
                 }
                 // Can be added with "Personalize"
                 field("Has SUPER permission set"; Rec."Has SUPER permission set")
                 {
-                    Visible = false;
                     ToolTip = 'Specifies if the SUPER permission set is assigned to the user.';
+                    Visible = false;
                 }
             }
         }
