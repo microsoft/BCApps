@@ -340,39 +340,6 @@ codeunit 281 NoSeriesMgt
         Error(CantChangeNoSeriesLineTypeErr, NoSeries.FieldCaption("No. Series Type"));
     end;
 
-    internal procedure DeleteNoSeries(var NoSeries: Record "No. Series")
-    var
-        NoSeriesLine: Record "No. Series Line";
-        NoSeriesRelationship: Record "No. Series Relationship";
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesLineSales: Record "No. Series Line Sales";
-        NoSeriesLinePurchase: Record "No. Series Line Purchase";
-#pragma warning restore AL0432
-#endif
-    begin
-        NoSeriesLine.SetRange("Series Code", NoSeries.Code);
-        NoSeriesLine.DeleteAll();
-
-#if not CLEAN24
-#pragma warning disable AL0432
-        NoSeriesLineSales.SetRange("Series Code", NoSeries.Code);
-        NoSeriesLineSales.DeleteAll();
-
-        NoSeriesLinePurchase.SetRange("Series Code", NoSeries.Code);
-        NoSeriesLinePurchase.DeleteAll();
-#pragma warning restore AL0432
-#endif
-
-        NoSeriesRelationship.SetRange(Code, NoSeries.Code);
-        NoSeriesRelationship.DeleteAll();
-        NoSeriesRelationship.SetRange(Code);
-
-        NoSeriesRelationship.SetRange("Series Code", NoSeries.Code);
-        NoSeriesRelationship.DeleteAll();
-        NoSeriesRelationship.SetRange("Series Code");
-    end;
-
     local procedure GetNoText(No: Code[20]): Code[20]
     var
         StartPos: Integer;

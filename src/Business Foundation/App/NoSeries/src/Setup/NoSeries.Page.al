@@ -186,7 +186,6 @@ page 456 "No. Series"
         }
     }
 
-#pragma warning disable AA0219 // The Tooltip property for PageAction must start with 'Specifies'.
     actions
     {
         area(Navigation)
@@ -252,7 +251,6 @@ page 456 "No. Series"
             }
         }
     }
-#pragma warning restore AA0219
 
     trigger OnAfterGetRecord()
     var
@@ -278,13 +276,10 @@ page 456 "No. Series"
         LastDateUsed: Date;
         AllowGaps: Boolean;
 
-#if not CLEAN24
-    [Obsolete('Use UpdateLine on codeunit NoSeriesManagement instead.', '24.0')]
     protected procedure UpdateLineActionOnPage()
     var
         NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
         NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
     end;
-#endif
 }

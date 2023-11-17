@@ -125,13 +125,6 @@ table 308 "No. Series"
         }
     }
 
-    trigger OnDelete()
-    var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
-    begin
-        NoSeriesMgt.DeleteNoSeries(Rec);
-    end;
-
 #if not CLEAN24
 #pragma warning disable AL0432
     [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
