@@ -43,7 +43,7 @@ class GitHubPullRequest {
             return @()
         }
 
-        $workitemPattern = "(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) #(\d+)" # e.g. "Fixes #1234"
+        $workitemPattern = "(^|\s)(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) #(\d+)" # e.g. "Fixes #1234"
         return $this.GetLinkedWorkItemIDs($workitemPattern)
     }
 
@@ -53,7 +53,7 @@ class GitHubPullRequest {
             An array of linked issue IDs.
     #>
     [int[]] GetLinkedADOWorkitems() {
-        $workitemPattern = "(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) AB#(\d+)" # e.g. "Fixes AB#1234"
+        $workitemPattern = "(^|\s)(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) AB#(\d+)" # e.g. "Fixes AB#1234"
         return $this.GetLinkedWorkItemIDs($workitemPattern)
     }
 
@@ -77,7 +77,7 @@ class GitHubPullRequest {
 
         $workitemIds = @()
         foreach($match in $workitemMatches.Matches) {
-            $workitemIds += $match.Groups[2].Value
+            $workitemIds += $match.Groups[3].Value
         }
         return $workitemIds
     }
