@@ -35,31 +35,52 @@ class GitHubPullRequest {
 
     <#
         Gets the linked issues IDs from the pull request description.
-        .param $issueSection
-            The section of the pull request description that contains the issue ID.
         .returns
             An array of linked issue IDs.
     #>
-    [int[]] GetLinkedIssueIDs($issueSection) {
+    [int[]] GetLinkedIssueIDs() {
         if(-not $this.PullRequest.body) {
             return @()
         }
 
-        $issueRegex = "$issueSection(\d+)" # e.g. "Fixes #1234"
-        $issueMatches = Select-String $issueRegex -InputObject $this.PullRequest.body -AllMatches
+        $workitemPattern = "(^|\s)(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) #(\d+)" # e.g. "Fixes #1234"
+        return $this.GetLinkedWorkItemIDs($workitemPattern)
+    }
 
-        if(-not $issueMatches) {
+    <#
+        Gets the linked ADO workitem IDs from the pull request description.
+        .returns
+            An array of linked issue IDs.
+    #>
+    [int[]] GetLinkedADOWorkitems() {
+        $workitemPattern = "(^|\s)(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) AB#(\d+)" # e.g. "Fixes AB#1234"
+        return $this.GetLinkedWorkItemIDs($workitemPattern)
+    }
+
+    <#
+        Returns true if the pull request is from a fork.
+    #>
+    [bool] IsFromFork() {
+        return $this.PullRequest.head.repo.fork
+    }
+
+    hidden [int[]] GetLinkedWorkItemIDs($Patten) {
+        if(-not $this.PullRequest.body) {
             return @()
         }
 
-        $issueIds = @()
-        foreach($match in $issueMatches.Matches) {
-            $issueIds += $match.Groups[1].Value
+        $workitemMatches = Select-String $Patten -InputObject $this.PullRequest.body -AllMatches
+
+        if(-not $workitemMatches) {
+            return @()
         }
 
-        return $issueIds
+        $workitemIds = @()
+        foreach($match in $workitemMatches.Matches) {
+            $workitemIds += $match.Groups[3].Value
+        }
+        return $workitemIds
     }
-
     <#
         Removes a comment from the pull request if it exists.
     #>
