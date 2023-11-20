@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.Storage.Files;
+
 /// <summary>
 /// Describes possible values for file attributes.
 /// For the list of possible values see: https://learn.microsoft.com/en-us/rest/api/storageservices/create-file#file-system-attributes

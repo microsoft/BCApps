@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.Storage.Files;
+
 /// <summary>
 /// Defines possible actions for opearations relating to leases.
 /// See more: https://learn.microsoft.com/en-us/rest/api/storageservices/lease-file

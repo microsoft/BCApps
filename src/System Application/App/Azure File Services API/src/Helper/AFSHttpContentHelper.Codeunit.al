@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.Storage.Files;
+
 codeunit 8953 "AFS HttpContent Helper"
 {
     Access = Internal;

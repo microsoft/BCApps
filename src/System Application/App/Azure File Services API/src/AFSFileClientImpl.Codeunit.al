@@ -3,6 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.Storage.Files;
+
+using System.Azure.Storage;
+using System.Utilities;
+
 codeunit 8951 "AFS File Client Impl."
 {
     Access = Internal;

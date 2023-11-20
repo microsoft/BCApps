@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.Storage.Files;
+
 /// <summary>
 /// Stores the response of an AFS client operation.
 /// </summary>

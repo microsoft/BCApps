@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.Storage.Files;
+
+using System.Azure.Storage;
+
 codeunit 8952 "AFS Operation Payload"
 {
     Access = Internal;

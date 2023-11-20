@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.Storage.Files;
+
+using System.Utilities;
+
 codeunit 8955 "AFS Format Helper"
 {
     Access = Internal;
@@ -68,7 +72,7 @@ codeunit 8955 "AFS Format Helper"
     local procedure FormatDateTime(MyDateTime: DateTime; FormatSpecifier: Text): Text
     var
         DateTimeAsXmlString: Text;
-        DateTimeDotNet: DotNet DateTime;
+        DateTimeDotNet: DotNet System.DateTime;
     begin
         DateTimeAsXmlString := Format(MyDateTime, 0, 9); // Format as XML, e.g.: 2020-11-11T08:50:07.553Z
         exit(DateTimeDotNet.Parse(DateTimeAsXmlString).ToUniversalTime().ToString(FormatSpecifier));

@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Azure.Storage.Files;
+
 /// <summary>
 /// Defines possible operations to the azure file share API.
 /// Operations are divided into operations on:
