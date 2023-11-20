@@ -12,9 +12,6 @@ page 9878 "Permission Set Lookup List"
 {
     Caption = 'Permission Set Lookup';
     Editable = false;
-    DeleteAllowed = false;
-    InsertAllowed = false;
-    ModifyAllowed = false;
     PageType = List;
     SourceTable = "PermissionSet Buffer";
     SourceTableView = sorting(Scope, "Role ID", "App ID")
@@ -74,6 +71,7 @@ page 9878 "Permission Set Lookup List"
 
     internal procedure GetSelectedRecords(var CurrSelectedRecords: Record "PermissionSet Buffer")
     begin
+        Clear(CurrSelectedRecords);
         CurrPage.SetSelectionFilter(Rec);
 
         if not Rec.FindSet() then
