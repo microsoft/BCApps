@@ -97,7 +97,7 @@ page 774 "User Details"
         UserDetails: Codeunit "User Details";
     begin
         IsSaaS := EnvironmentInformation.IsSaaS();
-        UserDetails.GetUserDetails(Rec);
+        UserDetails.Get(Rec);
     end;
 
     protected var

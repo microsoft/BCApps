@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Security.User;
+
 using System.Security.AccessControl;
 
 codeunit 775 "User Details Impl."
@@ -12,7 +13,7 @@ codeunit 775 "User Details Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    procedure GetUserDetails(var UserDetails: Record "User Details")
+    procedure Get(var UserDetails: Record "User Details")
     var
         User: Record User;
         LocalUserDetails: Record "User Details";

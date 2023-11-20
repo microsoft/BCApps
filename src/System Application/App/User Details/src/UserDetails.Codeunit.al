@@ -16,11 +16,11 @@ codeunit 774 "User Details"
     /// Retrieves the details of a user.
     /// </summary>
     /// <param name="UserDetails">The user details record to be populated.</param>
-    procedure GetUserDetails(var UserDetails: Record "User Details")
+    procedure Get(var UserDetails: Record "User Details")
     var
         UserDetailsImpl: Codeunit "User Details Impl.";
     begin
-        UserDetailsImpl.GetUserDetails(UserDetails);
+        UserDetailsImpl.Get(UserDetails);
     end;
 
     /// <summary>

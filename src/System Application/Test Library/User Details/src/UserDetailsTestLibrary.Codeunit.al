@@ -19,18 +19,18 @@ codeunit 132001 "User Details Test Library"
     /// <summary>
     /// Saves the user details inside this instance, so that they can be access later.
     /// </summary>
-    procedure FetchUserDetails()
+    procedure GetUserDetails()
     var
         UserDetails: Codeunit "User Details";
     begin
-        UserDetails.GetUserDetails(UserDetailsRec);
+        UserDetails.Get(UserDetailsRec);
     end;
 
     /// <summary>
     /// Gets the value of "Has SUPER permission set" for the user.
     /// </summary>
     /// <param name="UserSID">The user security ID</param>
-    procedure GetHasSuperPermissionSet(UserSID: Guid): Boolean
+    procedure HasSuperPermissionSet(UserSID: Guid): Boolean
     begin
         if not UserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);
@@ -43,7 +43,7 @@ codeunit 132001 "User Details Test Library"
     /// Gets the value of "User Plans" for the user.
     /// </summary>
     /// <param name="UserSID">The user security ID</param>
-    procedure GetUserPlans(UserSID: Guid): Text
+    procedure UserPlans(UserSID: Guid): Text
     begin
         if not UserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);
@@ -55,7 +55,7 @@ codeunit 132001 "User Details Test Library"
     /// Gets the value of "Is Delegated" for the user.
     /// </summary>
     /// <param name="UserSID">The user security ID</param>
-    procedure GetIsDelegated(UserSID: Guid): Boolean
+    procedure IsDelegated(UserSID: Guid): Boolean
     begin
         if not UserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);
@@ -67,7 +67,7 @@ codeunit 132001 "User Details Test Library"
     /// Gets the value of "Has M365 Plan" for the user.
     /// </summary>
     /// <param name="UserSID">The user security ID</param>
-    procedure GetHasM365Plan(UserSID: Guid): Boolean
+    procedure HasM365Plan(UserSID: Guid): Boolean
     begin
         if not UserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);
@@ -79,7 +79,7 @@ codeunit 132001 "User Details Test Library"
     /// Gets the value of "Has Essential Plan" for the user.
     /// </summary>
     /// <param name="UserSID">The user security ID</param>
-    procedure GetHasEssentialPlan(UserSID: Guid): Boolean
+    procedure HasEssentialPlan(UserSID: Guid): Boolean
     begin
         if not UserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);
@@ -91,7 +91,7 @@ codeunit 132001 "User Details Test Library"
     /// Gets the value of "Has Premium Plan" for the user.
     /// </summary>
     /// <param name="UserSID">The user security ID</param>
-    procedure GetHasPremiumPlan(UserSID: Guid): Boolean
+    procedure HasPremiumPlan(UserSID: Guid): Boolean
     begin
         if not UserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);
@@ -103,7 +103,7 @@ codeunit 132001 "User Details Test Library"
     /// Gets the value of "Has Essential Or Premium Plan" for the user.
     /// </summary>
     /// <param name="UserSID">The user security ID</param>
-    procedure GetHasEssentialOrPremiumPlan(UserSID: Guid): Boolean
+    procedure HasEssentialOrPremiumPlan(UserSID: Guid): Boolean
     begin
         if not UserDetailsRec.Get(UserSID) then
             Error(UserDoesNotExistErr, UserSID);

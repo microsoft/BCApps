@@ -51,25 +51,25 @@ codeunit 132908 "User Details Test"
         AccessControl.Scope := AccessControl.Scope::System;
         AccessControl.Insert();
 
-        // [WHEN] User details are retrieved with GetUserDetails (inside the test library)
-        UserDetailsTestLibrary.FetchUserDetails();
+        // [WHEN] User details are retrieved with UserDetails.Get (inside the test library)
+        UserDetailsTestLibrary.GetUserDetails();
 
         // [THEN] The details are as expected
-        Assert.IsTrue(UserDetailsTestLibrary.GetHasSuperPermissionSet(User1."User Security ID"), 'Expected the user to have SUPER');
-        Assert.IsTrue(UserDetailsTestLibrary.GetHasEssentialPlan(User1."User Security ID"), 'Expected the user to have an Essential plan');
-        Assert.IsTrue(UserDetailsTestLibrary.GetHasEssentialOrPremiumPlan(User1."User Security ID"), 'Expected the user to have an Essential plan');
-        Assert.IsFalse(UserDetailsTestLibrary.GetHasM365Plan((User1."User Security ID")), 'Expected the user to not have an M365 plan');
+        Assert.IsTrue(UserDetailsTestLibrary.HasSuperPermissionSet(User1."User Security ID"), 'Expected the user to have SUPER');
+        Assert.IsTrue(UserDetailsTestLibrary.HasEssentialPlan(User1."User Security ID"), 'Expected the user to have an Essential plan');
+        Assert.IsTrue(UserDetailsTestLibrary.HasEssentialOrPremiumPlan(User1."User Security ID"), 'Expected the user to have an Essential plan');
+        Assert.IsFalse(UserDetailsTestLibrary.HasM365Plan((User1."User Security ID")), 'Expected the user to not have an M365 plan');
 
         AzureADPlan.GetPlanNames(User1."User Security ID", PlanNames);
-        Assert.AreEqual(PlanNames.Get(1) + ' ; ' + PlanNames.Get(2), UserDetailsTestLibrary.GetUserPlans((User1."User Security ID")), 'Unexpected user plans were returned.');
+        Assert.AreEqual(PlanNames.Get(1) + ' ; ' + PlanNames.Get(2), UserDetailsTestLibrary.UserPlans((User1."User Security ID")), 'Unexpected user plans were returned.');
 
-        Assert.IsFalse(UserDetailsTestLibrary.GetHasSuperPermissionSet(User2."User Security ID"), 'Expected the user to have SUPER');
-        Assert.IsFalse(UserDetailsTestLibrary.GetHasEssentialPlan(User2."User Security ID"), 'Expected the user to have an Essential plan');
-        Assert.IsFalse(UserDetailsTestLibrary.GetHasEssentialOrPremiumPlan(User2."User Security ID"), 'Expected the user to have an Essential plan');
-        Assert.IsTrue(UserDetailsTestLibrary.GetHasM365Plan((User2."User Security ID")), 'Expected the user to not have an M365 plan');
+        Assert.IsFalse(UserDetailsTestLibrary.HasSuperPermissionSet(User2."User Security ID"), 'Expected the user to have SUPER');
+        Assert.IsFalse(UserDetailsTestLibrary.HasEssentialPlan(User2."User Security ID"), 'Expected the user to have an Essential plan');
+        Assert.IsFalse(UserDetailsTestLibrary.HasEssentialOrPremiumPlan(User2."User Security ID"), 'Expected the user to have an Essential plan');
+        Assert.IsTrue(UserDetailsTestLibrary.HasM365Plan((User2."User Security ID")), 'Expected the user to not have an M365 plan');
 
         AzureADPlan.GetPlanNames(User2."User Security ID", PlanNames);
-        Assert.AreEqual(PlanNames.Get(1), UserDetailsTestLibrary.GetUserPlans((User2."User Security ID")), 'Unexpected user plans were returned.');
+        Assert.AreEqual(PlanNames.Get(1), UserDetailsTestLibrary.UserPlans((User2."User Security ID")), 'Unexpected user plans were returned.');
     end;
 }
 

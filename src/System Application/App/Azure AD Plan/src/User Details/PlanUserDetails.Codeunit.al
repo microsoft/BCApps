@@ -29,7 +29,10 @@ codeunit 776 "Plan User Details"
             end;
 
         UserDetails."User Plans" := CopyStr(UserPlansTextBuilder.ToText().TrimEnd(' ; '), 1, MaxStrLen(UserDetails."User Plans"));
-        UserDetails."Is Delegated" := AzureADPlan.IsPlanAssignedToUser(PlanIds.GetDelegatedAdminPlanId(), UserSecID) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetHelpDeskPlanId(), UserSecID) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPartnerPlanId(), UserSecID);
+        UserDetails."Is Delegated" := AzureADPlan.IsPlanAssignedToUser(PlanIds.GetDelegatedAdminPlanId(), UserSecID) or
+                                      AzureADPlan.IsPlanAssignedToUser(PlanIds.GetHelpDeskPlanId(), UserSecID) or
+                                      AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPartnerPlanId(), UserSecID);
+
         UserDetails."Has M365 Plan" := AzureADPlan.IsPlanAssignedToUser(PlanIds.GetMicrosoft365PlanId(), UserSecId);
 
         UsersInPlans.SetFilter(Plan_Name, '*Essential*');
