@@ -28,7 +28,9 @@ if (-not (Get-Module -ListAvailable -Name "BCContainerHelper")) {
 if ($AutoFill) {
     Add-Type -AssemblyName System.Web
 
-    $credential = New-Object pscredential admin, (ConvertTo-SecureString -String ([System.Web.Security.Membership]::GeneratePassword(20, 5)) -AsPlainText -Force)
+    $password = [System.Web.Security.Membership]::GeneratePassword(20, 5)
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', Justification = 'local build')]
+    $credential = New-Object -TypeName pscredential -ArgumentList admin, ConvertTo-SecureString -String $password -AsPlainText -Force
     $licenseFileUrl = 'none'
     $containerName = "bcserver"
     $auth = "UserPassword"

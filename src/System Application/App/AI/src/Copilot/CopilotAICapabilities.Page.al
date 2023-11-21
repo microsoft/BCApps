@@ -147,6 +147,8 @@ page 7775 "Copilot AI Capabilities"
         EnvironmentInformation: Codeunit "Environment Information";
         ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin
+        OnRegisterCopilotCapability();
+
         InGeo := ALCopilotFunctions.IsWithinGeo();
 
         case PrivacyNotice.GetPrivacyNoticeApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), false) of
@@ -166,6 +168,12 @@ page 7775 "Copilot AI Capabilities"
 
         if InGeo and (not AllowDataMovement) then
             CopilotCapabilityImpl.ShowPrivacyNoticeDisagreedNotification();
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnRegisterCopilotCapability()
+    begin
+
     end;
 
     var

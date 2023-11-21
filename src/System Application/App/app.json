@@ -38,7 +38,8 @@
                  ],
     "features":  [
                      "TranslationFile",
-                     "GenerateCaptions"
+                     "GenerateCaptions",
+                     "AllowExtensionAndTargetInSameModule"
                  ],
     "resourceExposurePolicy":  {
                                    "allowDebugging":  false,
