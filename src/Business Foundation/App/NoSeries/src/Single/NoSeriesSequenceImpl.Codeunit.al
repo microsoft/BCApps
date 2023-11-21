@@ -8,8 +8,9 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 {
     Access = Internal;
-    Permissions = tabledata "No. Series Line" = rimd,
-                  tabledata "No. Series" = r;
+    Permissions =
+        tabledata "No. Series" = r,
+        tabledata "No. Series Line" = rimd;
 
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin
@@ -94,7 +95,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if NoSeriesLine."Last No. Used" <> '' then
             // Simulate that a number was used
 #pragma warning disable AA0206
-            DummySeq := NumberSequence.next(NoSeriesLine."Sequence Name"); // TODO: Why?
+            DummySeq := NumberSequence.Next(NoSeriesLine."Sequence Name"); // TODO: Why?
 #pragma warning restore AA0206
     end;
 

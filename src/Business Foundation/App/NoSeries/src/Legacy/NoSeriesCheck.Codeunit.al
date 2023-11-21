@@ -5,14 +5,18 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// This codeunit verifies that a number can be retrieved for the given No. Series.
+/// </summary>
 codeunit 4143 "No. Series Check"
 {
+    Access = Public;
     TableNo = "No. Series";
 
     trigger OnRun()
     var
         NoSeries: Codeunit "No. Series";
     begin
-        NoSeries.PeekNextNo(Rec, WorkDate());
+        NoSeries.PeekNextNo(Rec.Code, WorkDate());
     end;
 }

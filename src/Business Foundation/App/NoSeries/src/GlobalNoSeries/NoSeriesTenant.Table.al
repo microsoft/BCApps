@@ -5,13 +5,17 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// Table that contains the available Tenant No. Series and their properties.
+/// These No. Series are used for functionality cross-company, for numbers per company, see No. Series.
+/// </summary>
 table 1263 "No. Series Tenant"
 {
     Caption = 'No. Series Tenant';
+    DataClassification = CustomerContent;
     DataPerCompany = false;
-    ReplicateData = false;
-    DataClassification = SystemMetadata;
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+    ReplicateData = false;
 
     fields
     {
@@ -37,12 +41,8 @@ table 1263 "No. Series Tenant"
         }
     }
 
-    fieldgroups
-    {
-    }
-
 #if not CLEAN24
-    [Obsolete('Moved to NoSeriesManagement codeunit', '24.0')]
+    [Obsolete('This procedure has been moved to codeunit NoSeriesTenantMgt', '24.0')]
     [Scope('OnPrem')]
     procedure InitNoSeries(NoSeriesCode: Code[10]; NoSeriesDescription: Text[50]; LastUsedNo: Code[10])
     var
@@ -51,7 +51,7 @@ table 1263 "No. Series Tenant"
         NoSeriesTenantMgt.InitNoSeries(NoSeriesCode, NoSeriesDescription, LastUsedNo);
     end;
 
-    [Obsolete('Moved to NoSeriesManagement codeunit', '24.0')]
+    [Obsolete('This procedure has been moved to codeunit NoSeriesTenantMgt', '24.0')]
     [Scope('OnPrem')]
     procedure GetNextAvailableCode() NextAvailableCode: Code[20]
     var
@@ -61,4 +61,3 @@ table 1263 "No. Series Tenant"
     end;
 #endif
 }
-

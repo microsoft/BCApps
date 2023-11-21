@@ -1,4 +1,4 @@
-﻿// remove
+// remove
 
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -9,15 +9,16 @@ namespace Microsoft.Foundation.NoSeries;
 
 codeunit 281 NoSeriesMgt
 {
-    Access = Public; // public due to events
-    Permissions = tabledata "No. Series Line" = rimd,
-                  tabledata "No. Series" = r;
+    Access = Public; // public due to events, will be removed before release
+    Permissions =
+        tabledata "No. Series" = r,
+        tabledata "No. Series Line" = rimd;
 
     var
-        CantChangeNoSeriesLineTypeErr: Label 'No. Series Lines must be deleted before changing the %1', Comment = '%1 = No. Series Type';
-        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', comment = '%1=No.';
+        CantChangeNoSeriesLineTypeErr: Label 'No. Series Lines must be deleted before changing the %1.', Comment = '%1 = No. Series Type';
+        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
         NumberFormatErr: Label 'The number format in %1 must be the same as the number format in %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
-        UnincrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
+        UnIncrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
         NoOverFlowErr: Label 'Number series can only use up to 18 digit numbers. %1 has %2 digits.', Comment = '%1 is a string that also contains digits. %2 is a number.';
 
     internal procedure UpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldName: Text[100])
@@ -33,7 +34,7 @@ codeunit 281 NoSeriesMgt
 
         if NewNo <> '' then begin
             if IncStr(NewNo) = '' then
-                Error(UnincrementableStringErr, NewFieldName);
+                Error(UnIncrementableStringErr, NewFieldName);
             NoSeriesLine2 := NoSeriesLine;
             if NewNo = GetNoText(NewNo) then
                 Length := 0
@@ -69,7 +70,7 @@ codeunit 281 NoSeriesMgt
                     if NoSeriesLine.Find('-') then;
                     NoSeriesLine.SetRange("Starting Date");
                     NoSeriesLine.SetRange(Open);
-                    PAGE.RunModal(0, NoSeriesLine);
+                    Page.RunModal(0, NoSeriesLine);
                 end;
             else
                 OnAfterNoSeriesDrillDown(NoSeries);
@@ -114,7 +115,6 @@ codeunit 281 NoSeriesMgt
         end;
     end;
 
-
     internal procedure UpdateLine(var NoSeries: Record "No. Series"; var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var AllowGaps: Boolean)
     var
         NoSeriesLine: Record "No. Series Line";
@@ -139,7 +139,7 @@ codeunit 281 NoSeriesMgt
         end;
     end;
 
-    internal procedure GetLastNoUsed(NoSeriesLine: Record "No. Series Line"): Code[20] // TODO: Forward to "No. Series".GetLastNoUsed
+    internal procedure GetLastNoUsed(NoSeriesLine: Record "No. Series Line"): Code[20]
     var
         NoSeries: Codeunit "No. Series";
     begin
@@ -155,7 +155,7 @@ codeunit 281 NoSeriesMgt
                 begin
                     NoSeriesLine.Reset();
                     NoSeriesLine.SetRange("Series Code", NoSeries.Code);
-                    PAGE.RunModal(PAGE::"No. Series Lines", NoSeriesLine);
+                    Page.RunModal(Page::"No. Series Lines", NoSeriesLine);
                 end;
             else
                 OnShowNoSeriesLines(NoSeries)
@@ -185,7 +185,7 @@ codeunit 281 NoSeriesMgt
         IsHandled: Boolean;
     begin
         IsHandled := false;
-#if not CLEAN24        
+#if not CLEAN24
 #pragma warning disable AL0432
         NoSeries.OnBeforeValidateDefaultNos(NoSeries, IsHandled);
 #pragma warning restore AL0432
@@ -227,17 +227,17 @@ codeunit 281 NoSeriesMgt
         if NoSeriesLine."Last No. Used" <> '' then
             // Simulate that a number was used
 #pragma warning disable AA0206
-            DummySeq := NumberSequence.next(NoSeriesLine."Sequence Name"); // TODO: Why?
+            DummySeq := NumberSequence.Next(NoSeriesLine."Sequence Name"); // TODO: Why?
 #pragma warning restore AA0206
     end;
 
     internal procedure UpdateStartingSequenceNo(var NoSeriesLine: Record "No. Series Line")
     begin
         if not NoSeriesLine."Allow Gaps in Nos." then
-            exit; // TODO: remove with interface
+            exit;
 
         if NoSeriesLine."Last No. Used" = '' then
-            NoSeriesLine."Starting Sequence No." := ExtractNoFromCode(NoSeriesLine."Starting No.") // TODO: Initialize from old no. series? Should this happen here, owned by this interface?
+            NoSeriesLine."Starting Sequence No." := ExtractNoFromCode(NoSeriesLine."Starting No.")
         else
             NoSeriesLine."Starting Sequence No." := ExtractNoFromCode(NoSeriesLine."Last No. Used");
     end;
@@ -269,7 +269,7 @@ codeunit 281 NoSeriesMgt
         if Number < NoSeriesLine."Starting Sequence No." then
             exit('');
         NumberCode := Format(Number);
-        if NoSeriesLine."Starting No." = '' then // TODO: Should starting no. maybe use 'Cust%1Test' instead?
+        if NoSeriesLine."Starting No." = '' then
             exit(NumberCode);
         i := StrLen(NoSeriesLine."Starting No.");
         while (i > 1) and not (NoSeriesLine."Starting No."[i] in ['0' .. '9']) do
@@ -348,7 +348,7 @@ codeunit 281 NoSeriesMgt
 #pragma warning disable AL0432
         NoSeriesLineSales: Record "No. Series Line Sales";
         NoSeriesLinePurchase: Record "No. Series Line Purchase";
-#pragma warning restore AL0432  
+#pragma warning restore AL0432
 #endif
     begin
         NoSeriesLine.SetRange("Series Code", NoSeries.Code);
@@ -372,19 +372,6 @@ codeunit 281 NoSeriesMgt
         NoSeriesRelationship.DeleteAll();
         NoSeriesRelationship.SetRange("Series Code");
     end;
-
-    /*procedure FindNoSeriesLineToShow(var NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line")
-    var
-        NoSeriesManagement: Codeunit NoSeriesManagement;
-    begin
-        NoSeriesManagement.SetNoSeriesLineFilter(NoSeriesLine, NoSeries.Code, 0D);
-
-        if NoSeriesLine.FindLast() then
-            exit;
-
-        NoSeriesLine.Reset();
-        NoSeriesLine.SetRange("Series Code", NoSeries.Code);
-    end;*/
 
     local procedure GetNoText(No: Code[20]): Code[20]
     var
@@ -480,8 +467,8 @@ codeunit 281 NoSeriesMgt
             exit;
 
         if Rec."Sequence Name" <> '' then
-            if NUMBERSEQUENCE.Exists(Rec."Sequence Name") then
-                NUMBERSEQUENCE.Delete(Rec."Sequence Name");
+            if NumberSequence.Exists(Rec."Sequence Name") then
+                NumberSequence.Delete(Rec."Sequence Name");
     end;
 
     [IntegrationEvent(false, false)]

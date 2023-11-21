@@ -5,6 +5,9 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// Specifies the interface for No. Series implementations.
+/// </summary>
 interface "No. Series - Single"
 {
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]

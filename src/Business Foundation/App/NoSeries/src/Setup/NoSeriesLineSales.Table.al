@@ -9,8 +9,8 @@ table 12145 "No. Series Line Sales"
 {
     Caption = 'No. Series Line Sales';
 #if not CLEAN24
-    DrillDownPageID = "No. Series Lines Sales";
-    LookupPageID = "No. Series Lines Sales";
+    DrillDownPageId = "No. Series Lines Sales";
+    LookupPageId = "No. Series Lines Sales";
 #endif
     DataClassification = CustomerContent;
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
@@ -146,10 +146,4 @@ table 12145 "No. Series Line Sales"
         {
         }
     }
-
-    fieldgroups
-    {
-    }
-
 }
-

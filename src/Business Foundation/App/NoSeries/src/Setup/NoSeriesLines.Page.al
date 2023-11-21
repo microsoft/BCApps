@@ -7,6 +7,7 @@ namespace Microsoft.Foundation.NoSeries;
 
 page 457 "No. Series Lines"
 {
+    ApplicationArea = Basic, Suite;
     AutoSplitKey = true;
     Caption = 'No. Series Lines';
     DataCaptionFields = "Series Code";
@@ -17,42 +18,41 @@ page 457 "No. Series Lines"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control1)
             {
                 ShowCaption = false;
                 field("Series Code"; Rec."Series Code")
                 {
-                    ApplicationArea = Basic, Suite;
+                    Caption = 'Series Code';
                     ToolTip = 'Specifies the code for the number series to which this line applies.';
                     Visible = false;
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
-                    ApplicationArea = Basic, Suite;
+                    Caption = 'Starting Date';
                     ToolTip = 'Specifies the date from which you would like this line to apply.';
                 }
                 field("Starting No."; Rec."Starting No.")
                 {
-                    ApplicationArea = Basic, Suite;
+                    Caption = 'Starting No.';
                     ToolTip = 'Specifies the first number in the series.';
                 }
                 field("Ending No."; Rec."Ending No.")
                 {
-                    ApplicationArea = Basic, Suite;
+                    Caption = 'Ending No.';
                     ToolTip = 'Specifies the last number in the series.';
                 }
                 field("Last Date Used"; Rec."Last Date Used")
                 {
-                    ApplicationArea = Basic, Suite;
+                    Caption = 'Last Date Used';
                     ToolTip = 'Specifies the date when a number was most recently assigned from the number series.';
                 }
                 field("Last No. Used"; Rec."Last No. Used")
                 {
-                    ApplicationArea = Basic, Suite;
+                    Caption = 'Last No. Used';
                     ToolTip = 'Specifies the last number that was used from the number series.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -60,14 +60,13 @@ page 457 "No. Series Lines"
                 }
                 field("Warning No."; Rec."Warning No.")
                 {
-                    ApplicationArea = Basic, Suite;
+                    Caption = 'Warning No.';
                     ToolTip = 'Specifies when you want to receive a warning that the number series is running out.';
                 }
                 field("Increment-by No."; Rec."Increment-by No.")
                 {
-                    ApplicationArea = Basic, Suite;
+                    Caption = 'Increment-by No.';
                     ToolTip = 'Specifies the size of the interval by which you would like to space the numbers in the number series.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -75,9 +74,8 @@ page 457 "No. Series Lines"
                 }
                 field("Allow Gaps in Nos."; Rec."Allow Gaps in Nos.")
                 {
-                    ApplicationArea = Basic, Suite;
+                    Caption = 'Allow Gaps in Nos.';
                     ToolTip = 'Specifies that a number assigned from the number series can later be deleted. This is practical for records, such as item cards and warehouse documents that, unlike financial transactions, can be deleted and cause gaps in the number sequence. This setting also means that new numbers will be generated and assigned in a faster, non-blocking way. NOTE: If an error occurs on a new record that will be assigned a number from such a number series when it is completed, the number in question will be lost, causing a gap in the sequence.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -85,12 +83,12 @@ page 457 "No. Series Lines"
                 }
                 field(Open; Rec.Open)
                 {
-                    ApplicationArea = Basic, Suite;
+                    Caption = 'Open';
                     ToolTip = 'Specifies whether the number series line is open. It is open until the last number in the series has been used.';
                 }
             }
         }
-        area(factboxes)
+        area(FactBoxes)
         {
             systempart(Control1900383207; Links)
             {
@@ -103,10 +101,6 @@ page 457 "No. Series Lines"
                 Visible = false;
             }
         }
-    }
-
-    actions
-    {
     }
 
     trigger OnAfterGetCurrRecord()

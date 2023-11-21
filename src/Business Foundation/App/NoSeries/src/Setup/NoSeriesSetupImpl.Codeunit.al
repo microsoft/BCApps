@@ -8,5 +8,4 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 305 "No. Series - Setup Impl."
 {
     Access = Internal;
-
 }

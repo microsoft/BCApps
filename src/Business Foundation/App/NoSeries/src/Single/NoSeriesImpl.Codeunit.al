@@ -8,13 +8,14 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 304 "No. Series - Impl."
 {
     Access = Internal;
-    permissions = tabledata "No. Series Line" = rimd,
-                  tabledata "No. Series" = r;
-    InherentPermissions = X;
     InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions =
+        tabledata "No. Series" = r,
+        tabledata "No. Series Line" = rimd;
 
     var
-        CannotAssignManuallyErr: Label 'You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.', comment = '%1=Manual Nos. setting,%2=No. Series table caption,%3=No. Series Code';
+        CannotAssignManuallyErr: Label 'You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.', Comment = '%1=Manual Nos. setting,%2=No. Series table caption,%3=No. Series Code';
         CannotAssignNewOnDateErr: Label 'You cannot assign new numbers from the number series %1 on %2.', Comment = '%1=No. Series Code,%2=Date';
         CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1=No. Series Code';
         CannotAssignNewBeforeDateErr: Label 'You cannot assign new numbers from the number series %1 on a date before %2.', Comment = '%1=No. Series Code,%2=Date';
@@ -59,7 +60,7 @@ codeunit 304 "No. Series - Impl."
             Error(ErrorText);
     end;
 
-    procedure IsManualNoSeries(NoSeriesCode: Code[20]): Boolean
+    procedure IsManual(NoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";
     begin
@@ -181,13 +182,13 @@ codeunit 304 "No. Series - Impl."
         exit(NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate));
     end;
 
-    procedure TestAreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
+    procedure TestAreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
     begin
-        if not AreNoSeriesRelated(DefaultNoSeriesCode, RelatedNoSeriesCode) then
+        if not AreRelated(DefaultNoSeriesCode, RelatedNoSeriesCode) then
             Error(SeriesNotRelatedErr, DefaultNoSeriesCode, RelatedNoSeriesCode);
     end;
 
-    procedure AreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean
+    procedure AreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";
         NoSeriesRelationship: Record "No. Series Relationship";
@@ -207,7 +208,6 @@ codeunit 304 "No. Series - Impl."
         exit(NoSeriesRelationship.Get(DefaultNoSeriesCode, RelatedNoSeriesCode));
     end;
 
-
     procedure IsAutomaticNoSeries(NoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";
@@ -217,7 +217,7 @@ codeunit 304 "No. Series - Impl."
         exit(NoSeries."Default Nos.");
     end;
 
-    procedure TestIsAutomaticNoSeries(NoSeriesCode: Code[20])
+    procedure TestAutomatic(NoSeriesCode: Code[20])
     var
         NoSeries: Record "No. Series";
     begin
@@ -255,7 +255,7 @@ codeunit 304 "No. Series - Impl."
 
     procedure SelectNoSeries(OriginalNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Code[20]
     begin
-        if AreNoSeriesRelated(OriginalNoSeriesCode, RelatedNoSeriesCode) then
+        if AreRelated(OriginalNoSeriesCode, RelatedNoSeriesCode) then
             exit(RelatedNoSeriesCode);
         exit(OriginalNoSeriesCode);
     end;

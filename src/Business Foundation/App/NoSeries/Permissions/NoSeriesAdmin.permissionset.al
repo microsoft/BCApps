@@ -11,7 +11,8 @@ permissionset 304 "No. Series - Admin"
     Assignable = false;
     IncludedPermissionSets = "No. Series - View";
 
-    Permissions = tabledata "No. Series" = IMD,
+    Permissions =
+        tabledata "No. Series" = IMD,
         tabledata "No. Series Line" = IMD,
 #if not CLEAN24
 #pragma warning disable AL0432

@@ -9,16 +9,16 @@ using System.Utilities;
 
 report 21 "No. Series"
 {
+    Caption = 'No. Series';
     DefaultLayout = RDLC;
     RDLCLayout = './NoSeries/src/Setup/NoSeries.rdlc';
-    Caption = 'No. Series';
 
     dataset
     {
         dataitem("No. Series"; "No. Series")
         {
             RequestFilterFields = "Code";
-            column(COMPANYNAME; COMPANYPROPERTY.DisplayName())
+            column(COMPANYNAME; CompanyProperty.DisplayName())
             {
             }
             column(No__Series__TABLECAPTION__________NoSeriesFilter; TableCaption + ': ' + NoSeriesFilter)
@@ -159,22 +159,6 @@ report 21 "No. Series"
                 DataItemTableView = sorting(Number) where(Number = const(1));
             }
         }
-    }
-
-    requestpage
-    {
-
-        layout
-        {
-        }
-
-        actions
-        {
-        }
-    }
-
-    labels
-    {
     }
 
     trigger OnPreReport()

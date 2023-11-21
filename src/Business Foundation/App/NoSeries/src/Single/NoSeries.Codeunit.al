@@ -5,22 +5,34 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// Provides an interface for interacting with No. Series.
+/// This codeunit actively uses the database to perform the operations (it does not batch requests). For further performance and batching, look at codeunit "No. Series Batch".
+/// </summary>
 codeunit 310 "No. Series"
 {
     Access = Public;
 
     #region GetNextNo
+
+    /// <summary>
+    /// Get the next number in the No. Series.
+    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// </summary>
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
+    /// <returns>The next number in the series.</returns>
     procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.GetNextNo(NoSeriesCode, WorkDate(), false));
     end;
+
     /// <summary>
-    /// Get the next number in the number series.
+    /// Get the next number in the No. Series.
     /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
     /// </summary>
-    /// <param name="NoSeriesCode">Code for the number series.</param>
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
     /// <returns>The next number in the series.</returns>
     procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
@@ -30,6 +42,13 @@ codeunit 310 "No. Series"
         exit(NoSeriesImpl.GetNextNo(NoSeriesCode, UsageDate, false));
     end;
 
+    /// <summary>
+    /// Get the next number in the No. Series.
+    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// </summary>
+    /// <param name="NoSeriesLine">The No. Series line to use.</param>
+    /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
+    /// <returns>The next number in the series.</returns>
     procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
@@ -38,21 +57,29 @@ codeunit 310 "No. Series"
     end;
 
     /// <summary>
-    /// Get the next number in the number series.
+    /// Get the next number in the No. Series.
     /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
     /// </summary>
-    /// <param name="NoSeriesCode">Code for the number series.</param>
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
-    /// <param name="HideErrorsAndWarnings"></param>
-    /// <returns>The next number in the series, if HideErrorsAndWarnings is true and errors occured, a blank code is returned.</returns>
-    procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20] // TODO: This should return true/false of whether we could get the next no., not a blank code.
+    /// <param name="HideErrorsAndWarnings">Whether errors should be ignored.</param>
+    /// <returns>The next number in the series, if HideErrorsAndWarnings is true and errors occur, a blank code is returned.</returns>
+    procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.GetNextNo(NoSeriesCode, UsageDate, HideErrorsAndWarnings));
     end;
 
-    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20] // TODO: This should return true/false of whether we could get the next no., not a blank code.
+    /// <summary>
+    /// Get the next number in the No. Series.
+    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// </summary>
+    /// <param name="NoSeriesLine">The No. Series line to use.</param>
+    /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
+    /// <param name="HideErrorsAndWarnings">Whether errors should be ignored.</param>
+    /// <returns>The next number in the series, if HideErrorsAndWarnings is true and errors occur, a blank code is returned.</returns>
+    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
@@ -61,6 +88,12 @@ codeunit 310 "No. Series"
     #endregion
 
     #region PeekNextNo
+    /// <summary>
+    /// Get the next number in the No. Series, without incrementing the number.
+    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// </summary>
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
+    /// <returns>The next number in the series.</returns>
     procedure PeekNextNo(NoSeriesCode: Code[20]): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
@@ -68,6 +101,13 @@ codeunit 310 "No. Series"
         exit(NoSeriesImpl.PeekNextNo(NoSeriesCode, WorkDate()));
     end;
 
+    /// <summary>
+    /// Get the next number in the No. Series, without incrementing the number.
+    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// </summary>
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
+    /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
+    /// <returns>The next number in the series.</returns>
     procedure PeekNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
@@ -75,13 +115,13 @@ codeunit 310 "No. Series"
         exit(NoSeriesImpl.PeekNextNo(NoSeriesCode, UsageDate));
     end;
 
-    procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
-    var // TODO: Needed?
-        NoSeriesImpl: Codeunit "No. Series - Impl.";
-    begin
-        exit(NoSeriesImpl.PeekNextNo(NoSeries.Code, UsageDate));
-    end;
-
+    /// <summary>
+    /// Get the next number in the No. Series, without incrementing the number.
+    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// </summary>
+    /// <param name="NoSeriesLine">The No. Series line to use.</param>
+    /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
+    /// <returns>The next number in the series.</returns>
     procedure PeekNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
@@ -91,6 +131,11 @@ codeunit 310 "No. Series"
     #endregion
 
     #region GetLastNoUsed
+    /// <summary>
+    /// Get the last number used in the No. Series.
+    /// </summary>
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
+    /// <returns>The last number used in the series.</returns>
     procedure GetLastNoUsed(NoSeriesCode: Code[20]): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
@@ -98,6 +143,11 @@ codeunit 310 "No. Series"
         exit(NoSeriesImpl.GetLastNoUsed(NoSeriesCode));
     end;
 
+    /// <summary>
+    /// Get the last number used in the No. Series.
+    /// </summary>
+    /// <param name="NoSeriesLine">The No. Series line to use.</param>
+    /// <returns>The last number used in the series.</returns>
     procedure GetLastNoUsed(NoSeriesLine: Record "No. Series Line"): Code[20]
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
@@ -108,69 +158,94 @@ codeunit 310 "No. Series"
 
     #region NoSeriesUsage
     /// <summary>
-    /// Verifies that the number series is set to manual.
-    /// This function allows manual numbers for blank No. Series Codes.
+    /// Verifies that the No. Series allows using manual numbers.
+    /// Note: This function allows manual numbers for blank No. Series Codes.
     /// </summary>
-    /// <param name="NoSeriesCode"></param>
-    procedure TestManual(NoSeriesCode: Code[20]) // TODO: Make this a try function, such that partners can handle cases where the no. series is not set to manual
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
+    procedure TestManual(NoSeriesCode: Code[20])
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         NoSeriesImpl.TestManual(NoSeriesCode);
     end;
 
-    procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20]) // TODO: Make this a try function, such that partners can handle cases where the no. series is not set to manual
+    procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         NoSeriesImpl.TestManual(NoSeriesCode, DocumentNo);
     end;
 
-    procedure IsManualNoSeries(NoSeriesCode: Code[20]): Boolean
+    /// <summary>
+    /// Determines whether the No. Series allows using manual numbers.
+    /// Note: This function allows manual numbers for blank No. Series Codes.
+    /// </summary>
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
+    /// <returns>True if the No. Series allows manual numbers, false otherwise.</returns>
+    procedure IsManual(NoSeriesCode: Code[20]): Boolean
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
-        exit(NoSeriesImpl.IsManualNoSeries(NoSeriesCode));
+        exit(NoSeriesImpl.IsManual(NoSeriesCode));
     end;
 
-    procedure IsAutomaticNoSeries(NoSeriesCode: Code[20]): Boolean
+    /// <summary>
+    /// Verifies that the No. Series is set up to automatically generate numbers.
+    /// </summary>
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
+    procedure TestAutomatic(NoSeriesCode: Code[20])
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        NoSeriesImpl.TestAutomatic(NoSeriesCode);
+    end;
+
+    /// <summary>
+    /// Determines whether numbers should automatically be generated from the No. Series.
+    /// </summary>
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
+    /// <returns>True if the No. Series is automatic, false otherwise.</returns>
+    procedure IsAutomatic(NoSeriesCode: Code[20]): Boolean
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.IsAutomaticNoSeries(NoSeriesCode));
     end;
-
-    procedure TestIsAutomaticNoSeries(NoSeriesCode: Code[20])
-    var
-        NoSeriesImpl: Codeunit "No. Series - Impl.";
-    begin
-        NoSeriesImpl.TestIsAutomaticNoSeries(NoSeriesCode);
-    end;
     #endregion
 
     #region NoSeriesRelations
-    procedure TestAreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
+    /// <summary>
+    /// Verifies that the two No. Series are related.
+    /// </summary>
+    /// <param name="DefaultNoSeriesCode">The primary No. Series code.</param>
+    /// <param name="RelatedNoSeriesCode">The No. Series code that is related to the primary No. Series code.</param>
+    procedure TestAreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
-        NoSeriesImpl.TestAreNoSeriesRelated(DefaultNoSeriesCode, RelatedNoSeriesCode);
-    end;
-
-
-    procedure AreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean // This is basically what InitSeries does, it then uses the other series if they are and gets a number
-    var
-        NoSeriesImpl: Codeunit "No. Series - Impl.";
-    begin
-        exit(NoSeriesImpl.AreNoSeriesRelated(DefaultNoSeriesCode, RelatedNoSeriesCode));
+        NoSeriesImpl.TestAreRelated(DefaultNoSeriesCode, RelatedNoSeriesCode);
     end;
 
     /// <summary>
-    /// Opens a page to select a number series related to the OriginalNoSeriesCode (including the OriginalNoSeriesCode).
+    /// Determines whether the two No. Series are related.
     /// </summary>
-    /// <param name="OriginalNoSeriesCode">The number series code to find related number series for.</param>
-    /// <param name="DefaultHighlightedNoSeriesCode">The number series code to highlight by default. If empty, the OriginalNoSeriesCode will be used.</param>
-    /// <param name="NewNoSeriesCode">The selected number series code.</param>
-    /// <returns>True if a number series was selected, false otherwise.</returns>
+    /// <param name="DefaultNoSeriesCode">The primary No. Series code.</param>
+    /// <param name="RelatedNoSeriesCode">The No. Series code that is related to the primary No. Series code.</param>
+    /// <returns>True if the two No. Series are related, false otherwise.</returns>
+    procedure AreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.AreRelated(DefaultNoSeriesCode, RelatedNoSeriesCode));
+    end;
+
+    /// <summary>
+    /// Opens a page to select a No. Series related to the OriginalNoSeriesCode (including the OriginalNoSeriesCode).
+    /// </summary>
+    /// <param name="OriginalNoSeriesCode">The No. Series code to find related No. Series for.</param>
+    /// <param name="DefaultHighlightedNoSeriesCode">The No. Series code to highlight by default. If empty, the OriginalNoSeriesCode will be used.</param>
+    /// <param name="NewNoSeriesCode">The selected No. Series code.</param>
+    /// <returns>True if a No. Series was selected, false otherwise.</returns>
     procedure LookupRelatedNoSeries(OriginalNoSeriesCode: Code[20]; DefaultHighlightedNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
@@ -179,12 +254,18 @@ codeunit 310 "No. Series"
     end;
     #endregion
 
+    /// <summary>
+    /// Get the No. Series line for the given No. Series code and usage date.
+    /// </summary>
+    /// <param name="NoSeriesLine">The No. Series line to use and return.</param>
+    /// <param name="NoSeriesCode">The No. Series code to lookup.</param>
+    /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
+    /// <param name="HideErrorsAndWarnings">Whether errors should be ignored.</param>
+    /// <returns>True if the No. Series line was found, false otherwise.</returns>
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.GetNoSeriesLine(NoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings));
     end;
-
-    // Implement?: FindNoSeriesLine, IsCurrentNoSeriesLine, ReverseGetNextNo(apac), 
 }

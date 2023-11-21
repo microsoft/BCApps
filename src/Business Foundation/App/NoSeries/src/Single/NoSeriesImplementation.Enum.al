@@ -5,6 +5,9 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// Specifies the possible No. Series implementations.
+/// </summary>
 enum 397 "No. Series Implementation" implements "No. Series - Single"
 {
     Access = Public;
@@ -20,5 +23,4 @@ enum 397 "No. Series Implementation" implements "No. Series - Single"
         Caption = 'Sequence';
         Implementation = "No. Series - Single" = "No. Series - Sequence Impl.";
     }
-
 }

@@ -5,12 +5,16 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// Provides an interface for interacting with number series.
+/// This codeunit batches requests until SaveState() is called (The database is not updated in the meantime but locked instead). For more direct database interactions, see codeunit "No. Series".
+/// </summary>
 codeunit 308 "No. Series - Batch"
 {
     Access = Public;
 
     var
-        NoSeriesBatchImpl: Codeunit "No. Series - Batch Impl."; // needs to keep state
+        NoSeriesBatchImpl: Codeunit "No. Series - Batch Impl."; // Required to keep state
 
     procedure TestManual(NoSeriesCode: Code[20])
     var
@@ -28,66 +32,65 @@ codeunit 308 "No. Series - Batch"
 
     procedure PeekNextNo(NoSeriesCode: Code[20]): Code[20]
     begin
-        exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesCode))
+        exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesCode));
     end;
 
     procedure PeekNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesCode, UsageDate))
+        exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesCode, UsageDate));
     end;
 
     procedure PeekNextNo(NoSeries: Record "No. Series"): Code[20]
     begin
-        exit(NoSeriesBatchImpl.PeekNextNo(NoSeries))
+        exit(NoSeriesBatchImpl.PeekNextNo(NoSeries));
     end;
 
     procedure PeekNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.PeekNextNo(NoSeries, UsageDate))
+        exit(NoSeriesBatchImpl.PeekNextNo(NoSeries, UsageDate));
     end;
 
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesLine, UsageDate))
+        exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesLine, UsageDate));
     end;
 
     procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode))
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode));
     end;
 
     procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode, UsageDate))
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode, UsageDate));
     end;
 
     procedure GetNextNo(NoSeries: Record "No. Series"): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeries))
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeries));
     end;
 
     procedure GetNextNo(NoSeries: Record "No. Series"; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeries, UsageDate))
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeries, UsageDate));
     end;
 
     procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; LastDateUsed: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, LastDateUsed))
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, LastDateUsed));
     end;
 
     procedure SimulateGetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; PrevDocumentNo: Code[20]): Code[20]
     var
         NoSeriesBatchImplSim: Codeunit "No. Series - Batch Impl.";
     begin
-        exit(NoSeriesBatchImplSim.SimulateGetNextNo(NoSeriesCode, UsageDate, PrevDocumentNo))
+        exit(NoSeriesBatchImplSim.SimulateGetNextNo(NoSeriesCode, UsageDate, PrevDocumentNo));
     end;
 
     procedure GetLastNoUsed(var NoSeriesLine: Record "No. Series Line"): Code[20]
     begin
         exit(NoSeriesBatchImpl.GetLastNoUsed(NoSeriesLine));
     end;
-
 
     /// <summary>
     /// Puts the codeunit in simulation mode which disables the ability to save state.

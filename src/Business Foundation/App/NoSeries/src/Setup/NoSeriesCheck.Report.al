@@ -7,9 +7,9 @@ namespace Microsoft.Foundation.NoSeries;
 
 report 22 "No. Series Check"
 {
+    Caption = 'No. Series Check';
     DefaultLayout = RDLC;
     RDLCLayout = './NoSeries/src/Setup/NoSeriesCheck.rdlc';
-    Caption = 'No. Series Check';
 
     dataset
     {
@@ -27,7 +27,7 @@ report 22 "No. Series Check"
         {
             DataItemTableView = sorting("Starting No.");
             RequestFilterFields = "Starting Date";
-            column(COMPANYNAME; COMPANYPROPERTY.DisplayName())
+            column(COMPANYNAME; CompanyProperty.DisplayName())
             {
             }
             column(No__Series__TABLECAPTION__________NoSeriesFilter; "No. Series".TableCaption + ': ' + NoSeriesFilter)
@@ -112,22 +112,6 @@ report 22 "No. Series Check"
                 SetRange("Series Code");
             end;
         }
-    }
-
-    requestpage
-    {
-
-        layout
-        {
-        }
-
-        actions
-        {
-        }
-    }
-
-    labels
-    {
     }
 
     trigger OnPreReport()
