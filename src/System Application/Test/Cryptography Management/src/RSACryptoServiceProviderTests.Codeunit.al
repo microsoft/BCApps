@@ -47,7 +47,7 @@ codeunit 132613 RSACryptoServiceProviderTests
         LibraryAssert.IsTrue(KeyXml.GetRoot(Root), 'Could not get Root element of key.');
 
         LibraryAssert.IsTrue(Root.SelectSingleNode('Modulus', Node), 'Could not find <Modulus> in key.');
-        Assert.IsTrue(Root.SelectSingleNode('DQ', Node), 'Could not find <DQ> in key.');
+        LibraryAssert.IsTrue(Root.SelectSingleNode('DQ', Node), 'Could not find <DQ> in key.');
     end;
 
     [Test]
