@@ -772,9 +772,9 @@ codeunit 132438 "Permission Relation Tests"
         // [WHEN] Stop is pressed
         PermissionSetPage.Stop.Invoke();
 
-        // [THEN] Insert permission is added (and read due the lookup of the permission set name on the permission set buffer)
+        // [THEN] Insert permission is added
         VerifyContainsExpandedPermission(NewRoleIdLbl, NullGuid, TempExpandedPermission."Object Type"::"Table Data", Database::"Tenant Permission Set",
-            TempExpandedPermission."Read Permission"::Yes, TempExpandedPermission."Insert Permission"::Yes,
+            TempExpandedPermission."Read Permission"::" ", TempExpandedPermission."Insert Permission"::Yes,
             TempExpandedPermission."Modify Permission"::" ", TempExpandedPermission."Delete Permission"::" ",
             TempExpandedPermission."Execute Permission"::" ");
 
@@ -802,11 +802,11 @@ codeunit 132438 "Permission Relation Tests"
     begin
         Commit(); // Needs to commit to ensure expanded permission is updated and avoid instabilities
         LibraryAssert.IsTrue(ExpandedPermission.Get(AppId, RoleId, ObjType, ObjId), 'Expanded permission set does not contain the expected permission.');
-        LibraryAssert.AreEqual(ExpandedPermission."Read Permission", Read, 'Read permission is not set as expected.');
-        LibraryAssert.AreEqual(ExpandedPermission."Insert Permission", Insert, 'Insert permission is not set as expected.');
-        LibraryAssert.AreEqual(ExpandedPermission."Modify Permission", Modify, 'Modify permission is not set as expected.');
-        LibraryAssert.AreEqual(ExpandedPermission."Delete Permission", Delete, 'Delete permission is not set as expected.');
-        LibraryAssert.AreEqual(ExpandedPermission."Execute Permission", Execute, 'Execute permission is not set as expected.');
+        LibraryAssert.AreEqual(Read, ExpandedPermission."Read Permission", 'Read permission is not set as expected.');
+        LibraryAssert.AreEqual(Insert, ExpandedPermission."Insert Permission", 'Insert permission is not set as expected.');
+        LibraryAssert.AreEqual(Modify, ExpandedPermission."Modify Permission", 'Modify permission is not set as expected.');
+        LibraryAssert.AreEqual(Delete, ExpandedPermission."Delete Permission", 'Delete permission is not set as expected.');
+        LibraryAssert.AreEqual(Execute, ExpandedPermission."Execute Permission", 'Execute permission is not set as expected.');
     end;
 
     local procedure VerifyNotContainsExpandedPermission(RoleId: Code[30]; AppId: Guid; ObjType: Option; ObjId: Integer)
