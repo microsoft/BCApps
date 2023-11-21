@@ -44,7 +44,7 @@ codeunit 132613 RSACryptoServiceProviderTests
         KeyXmlText := RSACryptoServiceProvider.ToXmlString(true);
 
         LibraryAssert.IsTrue(XmlDocument.ReadFrom(KeyXmlText, KeyXml), 'RSA key is not valid xml data.');
-        Assert.IsTrue(KeyXml.GetRoot(Root), 'Could not get Root element of key.');
+        LibraryAssert.IsTrue(KeyXml.GetRoot(Root), 'Could not get Root element of key.');
 
         Assert.IsTrue(Root.SelectSingleNode('Modulus', Node), 'Could not find <Modulus> in key.');
         Assert.IsTrue(Root.SelectSingleNode('DQ', Node), 'Could not find <DQ> in key.');
