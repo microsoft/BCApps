@@ -1,4 +1,6 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN24
+#pragma warning disable AL0432
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -12,12 +14,8 @@ codeunit 396 NoSeriesManagement
     ObsoleteTag = '24.0';
 
     Permissions = tabledata "No. Series Line" = rimd,
-#if not CLEAN24
-#pragma warning disable AL0432
                   tabledata "No. Series Line Sales" = r,
                   tabledata "No. Series Line Purchase" = r,
-#pragma warning restore AL0432
-#endif
                   tabledata "No. Series" = r;
 
     trigger OnRun()
@@ -79,7 +77,6 @@ codeunit 396 NoSeriesManagement
         end;
     end;
 
-#if not CLEAN24
     [Obsolete('This function is used for compatibility with extension usages of the old OnBeforeInitSeries event. Now the new No. Series is used. InitSeries no longer exist, instead a No. Series is selected and the next number is retrieved.', '24.0')]
     procedure RaiseObsoleteOnBeforeInitSeries(var DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20]; var IsHandled: Boolean)
     begin
@@ -94,7 +91,6 @@ codeunit 396 NoSeriesManagement
         if NoSeries.Get(NoSeriesCode) then;
         OnAfterInitSeries(NoSeries, DefaultNoSeriesCode, NewDate, NewNo);
     end;
-#endif
 
     procedure InitSeries(DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20])
     var
@@ -108,9 +104,7 @@ codeunit 396 NoSeriesManagement
         if NewNo = '' then begin
             GlobalNoSeries.Get(DefaultNoSeriesCode);
             if not GlobalNoSeries."Default Nos." then
-                Error(
-                  CannotAssignAutomaticallyErr,
-                  GlobalNoSeries.FieldCaption("Default Nos."), GlobalNoSeries.TableCaption(), GlobalNoSeries.Code);
+                Error(CannotAssignAutomaticallyErr, GlobalNoSeries.FieldCaption("Default Nos."), GlobalNoSeries.TableCaption(), GlobalNoSeries.Code);
             if OldNoSeriesCode <> '' then begin
                 GlobalNoSeriesCode := DefaultNoSeriesCode;
                 FilterSeries();
@@ -231,13 +225,11 @@ codeunit 396 NoSeriesManagement
     end;
 
 #if not CLEAN21
-#pragma warning disable AL0432
     [Obsolete('Use DoGetNextNo() instead', '21.0')]
     procedure GetNextNo3(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean; NoErrorsOrWarnings: Boolean): Code[20]
     begin
         exit(DoGetNextNo(NoSeriesCode, SeriesDate, ModifySeries, NoErrorsOrWarnings));
     end;
-#pragma warning restore AL0432
 #endif
 
     /// <summary>
@@ -257,17 +249,14 @@ codeunit 396 NoSeriesManagement
     var
         NoSeriesLine: Record "No. Series Line";
         CurrNoSeriesLine: Record "No. Series Line";
-        NoSeriesInterface: Interface "No. Series - Single";
     begin
         OnBeforeDoGetNextNo(NoSeriesCode, SeriesDate, ModifySeries, NoErrorsOrWarnings);
 
         if SeriesDate = 0D then
             SeriesDate := WorkDate();
-        GlobalNoSeries.Get(NoSeriesCode);
-        // Find the latest No. Series Line that is still valid
+
         SetNoSeriesLineFilter(CurrNoSeriesLine, NoSeriesCode, SeriesDate);
-        if ModifySeries or (LastNoSeriesLine."Series Code" = '') or (LastNoSeriesLine."Series Code" <> NoSeriesCode) or
-        ((LastNoSeriesLine."Line No." <> CurrNoSeriesLine."Line No.") and (LastNoSeriesLine."Series Code" = NoSeriesCode)) then begin
+        if ModifySeries or (LastNoSeriesLine."Series Code" = '') or ((LastNoSeriesLine."Line No." <> CurrNoSeriesLine."Line No.") and (LastNoSeriesLine."Series Code" = NoSeriesCode)) then begin
             GlobalNoSeries.Get(NoSeriesCode);
             SetNoSeriesLineFilter(NoSeriesLine, NoSeriesCode, SeriesDate);
             if not NoSeriesLine.FindFirst() then begin
@@ -275,12 +264,8 @@ codeunit 396 NoSeriesManagement
                     exit('');
                 NoSeriesLine.SetRange("Starting Date");
                 if not NoSeriesLine.IsEmpty() then
-                    Error(
-                      CannotAssignNewOnDateErr,
-                      NoSeriesCode, SeriesDate);
-                Error(
-                  CannotAssignNewErr,
-                  NoSeriesCode);
+                    Error(CannotAssignNewOnDateErr, NoSeriesCode, SeriesDate);
+                Error(CannotAssignNewErr, NoSeriesCode);
             end;
             UpdateLastUsedDate := NoSeriesLine."Last Date Used" <> SeriesDate;
             if ModifySeries and (not NoSeriesLine."Allow Gaps in Nos." or UpdateLastUsedDate) then begin
@@ -293,20 +278,13 @@ codeunit 396 NoSeriesManagement
         if GlobalNoSeries."Date Order" and (SeriesDate < NoSeriesLine."Last Date Used") then begin
             if NoErrorsOrWarnings then
                 exit('');
-            Error(
-              CannotAssignNewBeforeDateErr,
-              GlobalNoSeries.Code, NoSeriesLine."Last Date Used");
+            Error(CannotAssignNewBeforeDateErr, GlobalNoSeries.Code, NoSeriesLine."Last Date Used");
         end;
 
         NoSeriesLine."Last Date Used" := SeriesDate;
-        if NoSeriesLine."Allow Gaps in Nos." and (LastNoSeriesLine."Series Code" = '') then begin
-            NoSeriesInterface := Enum::"No. Series Implementation"::Sequence;
-            if ModifySeries then
-                NoSeriesLine."Last No. Used" := NoSeriesInterface.GetNextNo(NoSeriesLine, SeriesDate, NoErrorsOrWarnings)
-            else
-                NoSeriesLine."Last No. Used" := NoSeriesInterface.PeekNextNo(NoSeriesLine, WorkDate());
-            // exit(NoSeriesLine."Last No. Used");
-        end else
+        if NoSeriesLine."Allow Gaps in Nos." and (LastNoSeriesLine."Series Code" = '') then
+            NoSeriesLine."Last No. Used" := NoSeriesLine.GetNextSequenceNo(ModifySeries)
+        else
             if NoSeriesLine."Last No. Used" = '' then begin
                 if NoErrorsOrWarnings and (NoSeriesLine."Starting No." = '') then
                     exit('');
@@ -324,9 +302,7 @@ codeunit 396 NoSeriesManagement
         then begin
             if NoErrorsOrWarnings then
                 exit('');
-            Error(
-              CannotAssignGreaterErr,
-              NoSeriesLine."Ending No.", NoSeriesCode);
+            Error(CannotAssignGreaterErr, NoSeriesLine."Ending No.", NoSeriesCode);
         end;
 
         if (NoSeriesLine."Ending No." <> '') and
@@ -338,12 +314,9 @@ codeunit 396 NoSeriesManagement
             if NoErrorsOrWarnings then
                 exit('');
             WarningNoSeriesCode := NoSeriesCode;
-            Message(
-              CannotAssignGreaterErr,
-              NoSeriesLine."Ending No.", NoSeriesCode);
+            Message(CannotAssignGreaterErr, NoSeriesLine."Ending No.", NoSeriesCode);
         end;
 
-        // TODO: Make sure certain fields are up to date
         if ModifySeries and NoSeriesLine.Open and (not NoSeriesLine."Allow Gaps in Nos." or UpdateLastUsedDate) then
             ModifyNoSeriesLine(NoSeriesLine);
         if not ModifySeries then
@@ -382,7 +355,6 @@ codeunit 396 NoSeriesManagement
         NoSeriesLine."Last No. Used" := LastNoUsed;
     end;
 
-#if not CLEAN24
     [Obsolete('Use PeekNextNo from codeunit "No. Series" instead.', '24.0')]
     procedure TryGetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date): Code[20]
     var
@@ -392,7 +364,6 @@ codeunit 396 NoSeriesManagement
         if NoSeriesManagement.Run() then
             exit(NoSeriesManagement.GetNextNoAfterRun());
     end;
-#endif
 
 #if not CLEAN21
     [Obsolete('Use SetParametersBeforeRun() instead', '21.0')]
@@ -517,9 +488,7 @@ codeunit 396 NoSeriesManagement
             if (NewFieldName <> NoSeriesLine.FieldCaption("Last No. Used")) and
                (NoSeriesLine."Last No. Used" <> NoSeriesLine2."Last No. Used")
             then
-                Error(
-                  NumberFormatErr,
-                  NewFieldName, NoSeriesLine.FieldCaption("Last No. Used"));
+                Error(NumberFormatErr, NewFieldName, NoSeriesLine.FieldCaption("Last No. Used"));
         end;
     end;
 
@@ -605,8 +574,6 @@ codeunit 396 NoSeriesManagement
         end;
     end;
 
-#if not CLEAN24
-#pragma warning disable AL0432
     [Obsolete('The No. Series module cannot have a dependency on Sales. Please use XXX instead', '24.0')]
     [Scope('OnPrem')]
     procedure SetNoSeriesLineSalesFilter(var NoSeriesLineSales: Record "No. Series Line Sales"; NoSeriesCode: Code[20]; StartDate: Date)
@@ -724,7 +691,6 @@ codeunit 396 NoSeriesManagement
 
         OnObsoleteCheckPurchDocNoGaps(MaxDate);
     end;
-#pragma warning restore AL0432
 
     [Obsolete('The No. Series module cannot have dependencies to Sales. Please use the method in codeunit "IT - Report Management" instead', '24.0')]
     [IntegrationEvent(false, false)]
@@ -752,7 +718,6 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 
-#endif
     procedure GetNoSeriesWithCheck(NewNoSeriesCode: Code[20]; SelectNoSeriesAllowed: Boolean; CurrentNoSeriesCode: Code[20]): Code[20]
     begin
         if not SelectNoSeriesAllowed then
@@ -876,33 +841,25 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 
-#if not CLEAN24
-#pragma warning disable AL0432
     [Obsolete('The No. Series module cannot have dependencies to Sales. Please use XXX instead', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveNoSeriesSales(var NoSeriesLineSales: Record "No. Series Line Sales")
     begin
     end;
-#pragma warning restore AL0432
-#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetParametersBeforeRun(var TryNoSeriesCode: Code[20]; var TrySeriesDate: Date; var WarningNoSeriesCode: Code[20])
     begin
     end;
 
-#if not CLEAN24
-#pragma warning disable AL0432
     [Obsolete('The No. Series module cannot have dependencies to Purchases. Please use XXX instead', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveNoSeriesPurchase(var NoSeriesLinePurchase: Record "No. Series Line Purchase")
     begin
     end;
-#pragma warning restore AL0432
-#endif
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterTestManual(DefaultNoSeriesCode: Code[20])
+    internal procedure OnAfterTestManual(DefaultNoSeriesCode: Code[20])
     begin
     end;
 
@@ -982,7 +939,7 @@ codeunit 396 NoSeriesManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeTestManual(var DefaultNoSeriesCode: Code[20]; var IsHandled: Boolean);
+    internal procedure OnBeforeTestManual(var DefaultNoSeriesCode: Code[20]; var IsHandled: Boolean);
     begin
     end;
 
@@ -991,3 +948,5 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 }
+#pragma warning restore AL0432
+#endif
