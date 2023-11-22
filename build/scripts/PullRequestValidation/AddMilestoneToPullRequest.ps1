@@ -14,6 +14,10 @@ if (-not $pullRequest) {
     throw "Could not get PR $PullRequestNumber from repository $Repository"
 }
 
+if ($pullRequest.PullRequest.labels -contains "automation") {
+    return # Don't set milestone on automation PRs
+}
+
 # Get milestone
 $repoVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-GO
 $milestone = "Version $repoVersion"
