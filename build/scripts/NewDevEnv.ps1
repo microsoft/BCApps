@@ -4,15 +4,41 @@
 param(
     [Parameter(Mandatory = $false)]
     [string] $containerName = "BC-$(Get-Date -Format 'yyyyMMdd-HHmm')",
+
     [Parameter(Mandatory = $false)]
-    [pscredential] $credential = $null,
-    [switch] $accept_insiderEula
+    [string] $userName = 'admin',
+
+    [Parameter(Mandatory = $false)]
+    [securestring] $password = 'P@ssword1',
+
+    [Parameter(Mandatory = $true)]
+    [string[]] $projects
 )
 
 $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
-
 Import-Module "$PSScriptRoot/EnlistmentHelperFunctions.psm1"
-$bcArtifact = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
 
+if (-not (Get-Module -ListAvailable -Name "BCContainerHelper")) {
+    Write-Host "BCContainerHelper module not found. Installing..."
+    Install-Module -Name "BCContainerHelper" -Scope CurrentUser -AllowPrerelease -Force
+}
 
+$bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', Justification = 'local build')]
+$credential = New-Object -TypeName pscredential -ArgumentList $userName, $password
+
+New-BcContainer `
+    -accept_eula `
+    -containerName 'test' `
+    -artifactUrl $bcArtifactUrl `
+    -accept_insiderEula `
+    -auth UserPassword `
+    -Credential $credential
+
+$projects | ForEach-Object {
+    $currentProject = $_
+
+    if(Test-Pa)
+}
 Write-Host
