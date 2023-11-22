@@ -219,11 +219,11 @@ codeunit 310 "No. Series"
     /// </summary>
     /// <param name="DefaultNoSeriesCode">The primary No. Series code.</param>
     /// <param name="RelatedNoSeriesCode">The No. Series code that is related to the primary No. Series code.</param>
-    procedure TestAreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
+    procedure TestAreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
-        NoSeriesImpl.TestAreNoSeriesRelated(DefaultNoSeriesCode, RelatedNoSeriesCode);
+        NoSeriesImpl.TestAreRelated(DefaultNoSeriesCode, RelatedNoSeriesCode);
     end;
 
     /// <summary>
@@ -232,11 +232,11 @@ codeunit 310 "No. Series"
     /// <param name="DefaultNoSeriesCode">The primary No. Series code.</param>
     /// <param name="RelatedNoSeriesCode">The No. Series code that is related to the primary No. Series code.</param>
     /// <returns>True if the two No. Series are related, false otherwise.</returns>
-    procedure AreNoSeriesRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean
+    procedure AreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
-        exit(NoSeriesImpl.AreNoSeriesRelated(DefaultNoSeriesCode, RelatedNoSeriesCode));
+        exit(NoSeriesImpl.AreRelated(DefaultNoSeriesCode, RelatedNoSeriesCode));
     end;
 
     /// <summary>
