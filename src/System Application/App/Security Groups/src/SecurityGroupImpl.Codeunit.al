@@ -362,7 +362,7 @@ codeunit 9871 "Security Group Impl."
         end;
     end;
 
-    procedure GetCode(GroupId: Code[250]): Code[20]
+    procedure GetCode(GroupId: Code[250]; var GroupCode: Code[20]): Boolean
     var
         User: Record User;
         UserProperty: Record "User Property";
@@ -370,16 +370,21 @@ codeunit 9871 "Security Group Impl."
     begin
         if IsWindowsAuthentication() then begin
             User.SetRange("Windows Security ID", GroupId);
-            User.FindFirst();
+            if not User.FindFirst() then
+                exit(false);
             SecurityGroup.SetRange("Group User SID", User."User Security ID");
         end else begin
             UserProperty.SetRange("Authentication Object ID", GroupId);
-            UserProperty.FindFirst();
+            if not UserProperty.FindFirst() then
+                exit(false);
             SecurityGroup.SetRange("Group User SID", UserProperty."User Security ID");
         end;
 
-        SecurityGroup.FindFirst();
-        exit(SecurityGroup.Code);
+        if not SecurityGroup.FindFirst() then
+            exit(false);
+
+        GroupCode := SecurityGroup.Code;
+        exit(true);
     end;
 
     procedure GetIdByName(GroupName: Text): Text
