@@ -33,6 +33,20 @@ class GitHubPullRequest {
         return $pr
     }
 
+    Update() {
+        $TempFile = New-TemporaryFile
+        Set-Content -Path $TempFile -Value $this.PullRequest.body
+
+        $params = @(
+            "--body-file '$($TempFile)'" # body is the description
+        )
+
+        $parameters = ($params -join " ")
+        Invoke-Expression "gh pr edit $($this.PRNumber) $parameters"
+
+        Remove-Item $TempFile
+    }
+
     <#
         Gets the linked issues IDs from the pull request description.
         .returns

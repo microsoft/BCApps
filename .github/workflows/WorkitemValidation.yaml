@@ -20,6 +20,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Link work items to pull request if possible
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          build/scripts/PullRequestValidation/LinkPullRequestToWorkItem.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
+
       - name: Validate work items for pull request
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
