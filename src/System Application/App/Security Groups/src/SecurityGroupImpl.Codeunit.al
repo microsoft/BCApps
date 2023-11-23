@@ -362,6 +362,21 @@ codeunit 9871 "Security Group Impl."
         end;
     end;
 
+    procedure GetCode(GroupId: Code[250]): Code[20]
+    var
+        SecurityGroup: Record "Security Group";
+    begin
+        if IsWindowsAuthentication() then
+            SecurityGroup.SetRange("Windows Group ID", GroupId)
+        else
+            SecurityGroup.SetRange("AAD Group ID", GroupId);
+
+        if SecurityGroup.FindFirst() then
+            exit(SecurityGroup.Code);
+
+        exit('');
+    end;
+
     procedure GetIdByName(GroupName: Text): Text
     var
         GroupId: Text;
