@@ -29,12 +29,11 @@ function Test-ADOWorkitemIsLinked() {
 
     $Comment = "Could not find a linked ADO workitem. Please link one by using the pattern 'Fixes AB#' followed by the workitem number being fixed."
     if (-not $ADOWorkItems) {
-        
         # If the pull request is not from a fork, add a comment to the pull request
         if (-not $PullRequest.IsFromFork()) {
             $PullRequest.AddComment($Comment)
         }
-        
+
         # Throw an error if there is no linked ADO workitem
         throw $Comment
     }

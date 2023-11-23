@@ -96,7 +96,7 @@ class GitHubPullRequest {
         }
         return $workitemIds
     }
-    
+
     <#
         Removes a comment from the pull request if it exists.
     #>

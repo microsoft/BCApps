@@ -46,7 +46,7 @@ class GitHubIssue {
 
         return $this.Issue.labels.name -contains "approved"
     }
-    
+
     <#
         Gets the linked ADO workitem IDs from the pull request description.
         .returns
