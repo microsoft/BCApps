@@ -134,6 +134,7 @@ codeunit 304 "No. Series - Impl."
         end;
 
         // If Date Order is required for this No. Series, make sure the usage date is not before the last date used
+        NoSeries.SetLoadFields(Code, "Date Order");
         NoSeries.Get(NoSeriesCode);
         if NoSeries."Date Order" and (UsageDate < NoSeriesLine."Last Date Used") then begin
             if HideErrorsAndWarnings then
