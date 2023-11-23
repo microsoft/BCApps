@@ -1,4 +1,4 @@
-#if not CLEAN24
+//#if not CLEAN24
 #pragma warning disable AL0432
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -946,4 +946,4 @@ codeunit 396 NoSeriesManagement
     end;
 }
 #pragma warning restore AL0432
-#endif
+//#endif
