@@ -241,12 +241,6 @@ codeunit 7772 "Azure OpenAI Impl"
     end;
 
     [NonDebuggable]
-    local procedure SendTokenCountTelemetry(Metaprompt: Integer; Prompt: Integer; CustomDimensions: Dictionary of [Text, Text])
-    begin
-        Telemetry.LogMessage('', StrSubstNo(TelemetryTokenCountLbl, Metaprompt, Prompt, Metaprompt + Prompt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
-    end;
-
-    [NonDebuggable]
     procedure GenerateEmbeddings(Input: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo): List of [Decimal]
     var
         CustomDimensions: Dictionary of [Text, Text];
@@ -304,6 +298,8 @@ codeunit 7772 "Azure OpenAI Impl"
         CustomDimensions: Dictionary of [Text, Text];
         Payload: JsonObject;
         PayloadText: Text;
+        MetapromptTokenCount: Integer;
+        PromptTokenCount: Integer;
     begin
         GuiCheck(CallerModuleInfo);
 
@@ -313,10 +309,11 @@ codeunit 7772 "Azure OpenAI Impl"
         CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
 
         AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
-        Payload.Add('messages', ChatMessages.AssembleHistory());
+        Payload.Add('messages', ChatMessages.AssembleHistory(MetapromptTokenCount, PromptTokenCount));
         Payload.WriteTo(PayloadText);
 
         AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+        SendTokenCountTelemetry(MetapromptTokenCount, PromptTokenCount, CustomDimensions);
         if not SendRequest(Enum::"AOAI Model Type"::"Chat Completions", ChatCompletionsAOAIAuthorization, PayloadText, AOAIOperationResponse) then begin
             FeatureTelemetry.LogError('0000KVF', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, ChatCompletionsFailedWithCodeErr, '', CustomDimensions);
             exit;
@@ -366,6 +363,12 @@ codeunit 7772 "Azure OpenAI Impl"
 
         if not ALCopilotOperationResponse.IsSuccess() then
             Error(GenerateRequestFailedErr);
+    end;
+
+    [NonDebuggable]
+    local procedure SendTokenCountTelemetry(Metaprompt: Integer; Prompt: Integer; CustomDimensions: Dictionary of [Text, Text])
+    begin
+        Telemetry.LogMessage('0000LT4', StrSubstNo(TelemetryTokenCountLbl, Metaprompt, Prompt, Metaprompt + Prompt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
     end;
 
     local procedure GuiCheck(CallerModuleInfo: ModuleInfo)
