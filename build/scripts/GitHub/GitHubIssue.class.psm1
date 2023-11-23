@@ -53,27 +53,25 @@ class GitHubIssue {
             An array of linked issue IDs.
     #>
     [int[]] GetLinkedADOWorkitems() {
-        $workitemPattern = "AB#(\d+)" # e.g. "Fixes AB#1234"
+        $workitemPattern = "AB#(?<ID>\d+)" # e.g. "Fixes AB#1234"
         return $this.GetLinkedWorkItemIDs($workitemPattern)
     }
 
-    hidden [int[]] GetLinkedWorkItemIDs($Patten) {
+    hidden [int[]] GetLinkedWorkItemIDs($Pattern) {
         if(-not $this.Issue.body) {
             return @()
         }
 
-        $workitemMatches = Select-String $Patten -InputObject $this.Issue.body -AllMatches
-
-        Write-Host "Found $($workitemMatches.Matches.Count) workitems in issue $($this.IssueId)"
+        $workitemMatches = Select-String $Pattern -InputObject $this.Issue.body -AllMatches
 
         if(-not $workitemMatches) {
             return @()
         }
 
         $workitemIds = @()
-        foreach($match in $workitemMatches.Matches) {
-            Write-Host "Found workitem $($match.Groups[0].Value)"
-            $workitemIds += $match.Groups[1].Value
+        $groups = $workitemMatches.Matches.Groups | Where-Object { $_.Name -eq "ID" }
+        foreach($group in $groups) {
+            $workitemIds += $group.Value
         }
         return $workitemIds
     }

@@ -57,7 +57,7 @@ class GitHubPullRequest {
             return @()
         }
 
-        $workitemPattern = "(^|\s)(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) #(\d+)" # e.g. "Fixes #1234"
+        $workitemPattern = "(^|\s)(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) #(?<ID>\d+)" # e.g. "Fixes #1234"
         return $this.GetLinkedWorkItemIDs($workitemPattern)
     }
 
@@ -67,7 +67,7 @@ class GitHubPullRequest {
             An array of linked issue IDs.
     #>
     [int[]] GetLinkedADOWorkitems() {
-        $workitemPattern = "(^|\s)(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) AB#(\d+)" # e.g. "Fixes AB#1234"
+        $workitemPattern = "(^|\s)(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) AB#(?<ID>\d+)" # e.g. "Fixes AB#1234"
         return $this.GetLinkedWorkItemIDs($workitemPattern)
     }
 
@@ -78,23 +78,25 @@ class GitHubPullRequest {
         return $this.PullRequest.head.repo.fork
     }
 
-    hidden [int[]] GetLinkedWorkItemIDs($Patten) {
+    hidden [int[]] GetLinkedWorkItemIDs($Pattern) {
         if(-not $this.PullRequest.body) {
             return @()
         }
 
-        $workitemMatches = Select-String $Patten -InputObject $this.PullRequest.body -AllMatches
+        $workitemMatches = Select-String $Pattern -InputObject $this.PullRequest.body -AllMatches
 
         if(-not $workitemMatches) {
             return @()
         }
 
         $workitemIds = @()
-        foreach($match in $workitemMatches.Matches) {
-            $workitemIds += $match.Groups[3].Value
+        $groups = $workitemMatches.Matches.Groups | Where-Object { $_.Name -eq "ID" }
+        foreach($group in $groups) {
+            $workitemIds += $group.Value
         }
         return $workitemIds
     }
+    
     <#
         Removes a comment from the pull request if it exists.
     #>
