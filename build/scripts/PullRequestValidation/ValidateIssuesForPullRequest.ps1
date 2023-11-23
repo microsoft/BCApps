@@ -84,43 +84,10 @@ function Test-GitHubIssue() {
     }
 }
 
-<#
-    .Synopsis
-    Validates that the pull request description contains a line that links the pull request to an ADO workitem.
-    .Parameter ADOWorkItems
-    The IDs of the ADO workitems linked to the pull request.
-    .Parameter PullRequest
-    The pull request to validate.
-#>
-function Test-ADOWorkitemIsLinked() {
-    param(
-        [Parameter(Mandatory = $false)]
-        [string[]] $ADOWorkItems,
-        [Parameter(Mandatory = $false)]
-        [object] $PullRequest
-    )
-
-    if ($PullRequest.IsFromFork()) {
-        $Comment = "Thank you for your contribution! This comment is a reminder to the Microsoft team that this pull request needs to be assigned an internal workitem before it can be merged. A member of the Microsoft team will be in touch once the pull request is ready to be merged. No further action is needed from the contributor."
-    } else {
-        $Comment += "Could not find a linked ADO workitem. Please link one by using the pattern 'Fixes AB#' followed by the workitem number being fixed."
-
-    }
-
-    if (-not $ADOWorkItems) {
-        # If the pull request is not from a fork, add a comment to the pull request and throw an error
-        $PullRequest.AddComment($Comment)
-        throw $Comment
-    }
-
-    $PullRequest.RemoveComment($Comment)
-}
-
 Write-Host "Validating PR $PullRequestNumber"
 
 $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
 $issueIds = $pullRequest.GetLinkedIssueIDs()
-$adoWorkitems = $pullRequest.GetLinkedADOWorkitems()
 
 # If the pull request is from a fork, validate that it links to an issue
 if ($pullRequest.IsFromFork()) {
@@ -129,8 +96,5 @@ if ($pullRequest.IsFromFork()) {
 
 # Validate that all issues linked to the pull request are open and approved
 Test-GitHubIssue -Repository $Repository -IssueIds $issueIds -PullRequest $PullRequest
-
-# Validate that all pull requests links to an ADO workitem
-Test-ADOWorkitemIsLinked -ADOWorkItems $adoWorkitems -PullRequest $PullRequest
 
 Write-Host "PR $PullRequestNumber validated successfully" -ForegroundColor Green
