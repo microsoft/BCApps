@@ -127,4 +127,15 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
                 exit(CopyStr(NoSeriesLine."Starting No.", 1, i) + NumberCode);
         exit(NumberCode); // should ideally not be possible, as bigints can produce max 18 digits
     end;
+
+    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure OnDeleteNoSeriesLine(var Rec: Record "No. Series Line"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if Rec."Sequence Name" <> '' then
+            if NumberSequence.Exists(Rec."Sequence Name") then
+                NumberSequence.Delete(Rec."Sequence Name");
+    end;
 }

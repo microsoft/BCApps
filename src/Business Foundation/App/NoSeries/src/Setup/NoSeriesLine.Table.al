@@ -221,11 +221,6 @@ table 309 "No. Series Line"
         }
     }
 
-    trigger OnDelete()
-    begin
-        // A delete trigger (subscriber) is placed in codeunit 396 to clean up NumberSequence
-    end;
-
 #if not CLEAN24
     var
         ShouldBeValidYearErr: Label 'Should be a valid year.';
@@ -236,15 +231,15 @@ table 309 "No. Series Line"
         exit("Last Date Used");
     end;
 
-    [Obsolete('Moved to SequenceNoSeriesManagement.', '24.0')]
+    [Obsolete('Moved to No. Series codeunit.', '24.0')]
     procedure GetLastNoUsed(): Code[20]
     var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
+        NoSeries: Codeunit "No. Series";
     begin
-        exit(NoSeriesMgt.GetLastNoUsed(Rec));
+        exit(NoSeries.GetLastNoUsed(Rec));
     end;
 
-    [Obsolete('Moved to SequenceNoSeriesManagement.', '24.0')]
+    [Obsolete('Use GetNextNo in No. Series codeunit instead.', '24.0')]
     procedure GetNextSequenceNo(ModifySeries: Boolean): Code[20]
     var
         NoSeries: Interface "No. Series - Single";
@@ -255,7 +250,7 @@ table 309 "No. Series Line"
         exit(NoSeries.PeekNextNo(Rec, WorkDate()));
     end;
 
-    [Obsolete('Moved to SequenceNoSeriesManagement.', '24.0')]
+    [Obsolete('This functionality has been removed and getting the number from a string is no longer part of No. Series.', '24.0')]
     procedure ExtractNoFromCode(NumberCode: Code[20]): BigInteger
     var
         NoSeriesMgt: Codeunit NoSeriesMgt;
@@ -263,7 +258,7 @@ table 309 "No. Series Line"
         exit(NoSeriesMgt.ExtractNoFromCode(NumberCode));
     end;
 
-    [Obsolete('Moved to SequenceNoSeriesManagement.', '24.0')]
+    [Obsolete('This functionality has been removed.', '24.0')]
     procedure GetFormattedNo(Number: BigInteger): Code[20]
     var
         NoSeriesMgt: Codeunit NoSeriesMgt;

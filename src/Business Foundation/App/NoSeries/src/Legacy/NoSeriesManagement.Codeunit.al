@@ -932,17 +932,6 @@ codeunit 396 NoSeriesManagement
         exit(GetNextNo(NoSeriesCode, WorkDate(), false));
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnAfterDeleteEvent', '', false, false)]
-    local procedure OnDeleteNoSeriesLine(var Rec: Record "No. Series Line"; RunTrigger: Boolean)
-    begin
-        if Rec.IsTemporary() then
-            exit;
-
-        if Rec."Sequence Name" <> '' then
-            if NumberSequence.Exists(Rec."Sequence Name") then
-                NumberSequence.Delete(Rec."Sequence Name");
-    end;
-
     [IntegrationEvent(false, false)]
     local procedure OnNoSeriesLineFilterOnBeforeFindLast(var NoSeriesLine: Record "No. Series Line")
     begin
