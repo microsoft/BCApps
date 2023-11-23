@@ -5,6 +5,8 @@
 
 namespace System.Security.AccessControl;
 
+using System.Apps;
+
 /// <summary>
 /// Buffer table for a permission set.
 /// </summary>
@@ -38,13 +40,13 @@ table 9862 "PermissionSet Buffer"
         field(4; Name; Text[30])
         {
             Caption = 'Name';
-            CalcFormula = lookup("Aggregate Permission Set".Name where("Role ID" = field("Role ID")));
-            FieldClass = FlowField;
+            DataClassification = SystemMetadata;
         }
         field(5; "App Name"; Text[250])
         {
             Caption = 'App Name';
-            DataClassification = SystemMetadata;
+            CalcFormula = lookup("Published Application".Name where(ID = field("App ID"), "Tenant Visible" = const(true)));
+            FieldClass = FlowField;
         }
         field(6; Type; Option)
         {
