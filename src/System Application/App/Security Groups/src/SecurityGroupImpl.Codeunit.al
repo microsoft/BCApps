@@ -362,12 +362,13 @@ codeunit 9871 "Security Group Impl."
         end;
     end;
 
-    procedure GetCode(GroupId: Code[250]; var GroupCode: Code[20]): Boolean
+    procedure GetCode(GroupId: Text[250]; var GroupCode: Code[20]): Boolean
     var
         User: Record User;
         UserProperty: Record "User Property";
         SecurityGroup: Record "Security Group";
     begin
+        Session.LogMessage('0000AAA', GroupId, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'category', 'test');
         if IsWindowsAuthentication() then begin
             User.SetRange("Windows Security ID", GroupId);
             if not User.FindFirst() then

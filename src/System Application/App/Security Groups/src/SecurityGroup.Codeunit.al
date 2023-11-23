@@ -148,7 +148,7 @@ codeunit 9031 "Security Group"
     /// <param name="GroupId">The SID of a Windows group or an object ID of a Microsoft Entra security group.</param>
     /// <param name="GroupCode">The code of the security group.</param>
     /// <returns>True, if the code was found successfully, false otherwise.</returns>
-    procedure GetCode(GroupId: Code[250]; var GroupCode: Code[20]): Boolean
+    procedure GetCode(GroupId: Text[250]; var GroupCode: Code[20]): Boolean
     begin
         exit(SecurityGroupImpl.GetCode(GroupId, GroupCode));
     end;
