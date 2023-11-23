@@ -480,4 +480,17 @@ codeunit 7772 "Azure OpenAI Impl"
         end;
     end;
 
+    [NonDebuggable]
+    procedure ApproximateTokenCount(Input: Text): Decimal
+    var
+        AverageWordsPerToken: Decimal;
+        TokenCount: Integer;
+        WordsInInput: Integer;
+    begin
+        AverageWordsPerToken := 0.6; // Based on OpenAI estimate
+        WordsInInput := Input.Split(' ', ',', '.', '!', '?', ';', ':', '/n').Count;
+        TokenCount := Round(WordsInInput / AverageWordsPerToken, 1);
+        exit(TokenCount);
+    end;
+
 }
