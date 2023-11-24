@@ -98,6 +98,9 @@ codeunit 396 NoSeriesManagement
 #endif
     procedure InitSeries(DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20])
     var
+#if CLEAN24
+        NoSeries: Codeunit "No. Series";
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -119,8 +122,11 @@ codeunit 396 NoSeriesManagement
             NewNo := GetNextNo(GlobalNoSeries.Code, NewDate, true);
             NewNoSeriesCode := GlobalNoSeries.Code;
         end else
+#if not CLEAN24
             TestManual(DefaultNoSeriesCode);
-
+#else
+            NoSeries.TestManual(DefaultNoSeriesCode);
+#endif
         OnAfterInitSeries(GlobalNoSeries, DefaultNoSeriesCode, NewDate, NewNo);
     end;
 
@@ -251,6 +257,9 @@ codeunit 396 NoSeriesManagement
     /// <returns>The next number in the number series.</returns>
     procedure DoGetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean; NoErrorsOrWarnings: Boolean): Code[20]
     var
+#if CLEAN24
+        NoSeriesSequenceImpl: Codeunit "No. Series - Sequence Impl.";
+#endif
         NoSeriesLine: Record "No. Series Line";
         CurrNoSeriesLine: Record "No. Series Line";
     begin
@@ -287,7 +296,14 @@ codeunit 396 NoSeriesManagement
 
         NoSeriesLine."Last Date Used" := SeriesDate;
         if NoSeriesLine."Allow Gaps in Nos." and (LastNoSeriesLine."Series Code" = '') then
+#if not CLEAN24
             NoSeriesLine."Last No. Used" := NoSeriesLine.GetNextSequenceNo(ModifySeries)
+#else
+            if ModifySeries then
+                NoSeriesLine."Last No. Used" := NoSeriesSequenceImpl.GetNextNo(NoSeriesLine)
+            else
+                NoSeriesLine."Last No. Used" := NoSeriesSequenceImpl.PeekNextNo(NoSeriesLine);
+#endif
         else
             if NoSeriesLine."Last No. Used" = '' then begin
                 if NoErrorsOrWarnings and (NoSeriesLine."Starting No." = '') then
