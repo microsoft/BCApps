@@ -11,8 +11,6 @@ param(
 function Update-GitHubPullRequest() {
     param(
         [Parameter(Mandatory = $false)]
-        [string] $Repository,
-        [Parameter(Mandatory = $false)]
         [object] $PullRequest,
         [Parameter(Mandatory = $false)]
         [string[]] $IssueIds
@@ -24,7 +22,12 @@ function Update-GitHubPullRequest() {
     foreach ($issueId in $IssueIds) {
         Write-Host "Trying to link work items from $issueId to pull request $($PullRequest.PRNumber)"
 
-        $issue = [GitHubIssue]::Get($issueId, $Repository)
+        $issue = [GitHubIssue]::Get($issueId, $PullRequest.Repository)
+        if (-not $issue) {
+            Write-Host "Issue $issueId not found in repository $($PullRequest.Repository)"
+            continue
+        }
+
         $adoWorkItems = $issue.GetLinkedADOWorkitems()
         if (-not $adoWorkItems) {
             Write-Host "No ADO workitems found in issue $issueId"
@@ -51,4 +54,4 @@ $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
 $issueIds = $pullRequest.GetLinkedIssueIDs()
 
 Write-Host "Updating pull request $PullRequestNumber with linked issues $issueIds"
-Update-GitHubPullRequest -Repository $Repository -PullRequest $PullRequest -IssueIds $issueIds
+Update-GitHubPullRequest -PullRequest $PullRequest -IssueIds $issueIds
