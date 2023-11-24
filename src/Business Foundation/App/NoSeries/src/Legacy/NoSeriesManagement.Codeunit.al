@@ -12,8 +12,10 @@ codeunit 396 NoSeriesManagement
     ObsoleteState = Pending;
     ObsoleteTag = '24.0';
     Permissions = tabledata "No. Series Line" = rimd,
+#if not CLEAN24
                   tabledata "No. Series Line Sales" = r,
                   tabledata "No. Series Line Purchase" = r,
+#endif
                   tabledata "No. Series" = r;
 
     trigger OnRun()
@@ -46,7 +48,7 @@ codeunit 396 NoSeriesManagement
         UnincrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
 
 #if not CLEAN24
-    [Obsolete('Please use the "No. Series" and "No. Series - Batch" codeunits instead','24.0')]
+    [Obsolete('Please use the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
     procedure TestManual(DefaultNoSeriesCode: Code[20])
     var
         IsHandled: Boolean;
@@ -69,7 +71,7 @@ codeunit 396 NoSeriesManagement
     end;
 
 #if not CLEAN24
-    [Obsolete('Please use the "No. Series" and "No. Series - Batch" codeunits instead','24.0')]
+    [Obsolete('Please use the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
     procedure TestManualWithDocumentNo(DefaultNoSeriesCode: Code[20]; DocumentNo: Code[20])
     begin
         if DefaultNoSeriesCode <> '' then begin
@@ -357,6 +359,7 @@ codeunit 396 NoSeriesManagement
         NoSeriesLine."Last No. Used" := LastNoUsed;
     end;
 
+#if not CLEAN24
     [Obsolete('Use PeekNextNo from codeunit "No. Series" instead.', '24.0')]
     procedure TryGetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date): Code[20]
     var
@@ -366,7 +369,7 @@ codeunit 396 NoSeriesManagement
         if NoSeriesManagement.Run() then
             exit(NoSeriesManagement.GetNextNoAfterRun());
     end;
-
+#endif
 #if not CLEAN21
     [Obsolete('Use SetParametersBeforeRun() instead', '21.0')]
     procedure GetNextNo1(NoSeriesCode: Code[20]; SeriesDate: Date)
@@ -576,6 +579,7 @@ codeunit 396 NoSeriesManagement
         end;
     end;
 
+#if not CLEAN24
     [Obsolete('The No. Series module cannot have a dependency on Sales. Please use XXX instead', '24.0')]
     [Scope('OnPrem')]
     procedure SetNoSeriesLineSalesFilter(var NoSeriesLineSales: Record "No. Series Line Sales"; NoSeriesCode: Code[20]; StartDate: Date)
@@ -717,7 +721,7 @@ codeunit 396 NoSeriesManagement
     local procedure OnBeforeCheckSalesDocNoGaps(MaxDate: Date; var IsHandled: Boolean)
     begin
     end;
-
+#endif
     procedure GetNoSeriesWithCheck(NewNoSeriesCode: Code[20]; SelectNoSeriesAllowed: Boolean; CurrentNoSeriesCode: Code[20]): Code[20]
     begin
         if not SelectNoSeriesAllowed then
@@ -840,24 +844,25 @@ codeunit 396 NoSeriesManagement
     local procedure OnAfterSaveNoSeries(var NoSeriesLine: Record "No. Series Line")
     begin
     end;
-
+#if not CLEAN24
     [Obsolete('The No. Series module cannot have dependencies to Sales. Please use XXX instead', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveNoSeriesSales(var NoSeriesLineSales: Record "No. Series Line Sales")
     begin
     end;
-
+#endif
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetParametersBeforeRun(var TryNoSeriesCode: Code[20]; var TrySeriesDate: Date; var WarningNoSeriesCode: Code[20])
     begin
     end;
 
+#if not CLEAN24
     [Obsolete('The No. Series module cannot have dependencies to Purchases. Please use XXX instead', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveNoSeriesPurchase(var NoSeriesLinePurchase: Record "No. Series Line Purchase")
     begin
     end;
-
+#endif
     [IntegrationEvent(false, false)]
     internal procedure OnAfterTestManual(DefaultNoSeriesCode: Code[20])
     begin
