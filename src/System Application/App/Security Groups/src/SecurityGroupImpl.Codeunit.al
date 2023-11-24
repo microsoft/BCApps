@@ -368,7 +368,6 @@ codeunit 9871 "Security Group Impl."
         UserProperty: Record "User Property";
         SecurityGroup: Record "Security Group";
     begin
-        Session.LogMessage('0000AAA', GroupId, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'category', 'test');
         if IsWindowsAuthentication() then begin
             User.SetRange("Windows Security ID", GroupId);
             if not User.FindFirst() then
