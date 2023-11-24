@@ -69,8 +69,8 @@ class GitHubPullRequest {
         return [GitHubWorkitemLink]::GetLinkedADOWorkitems($this.PullRequest.body)
     }
 
-    LinkToWorkItem($WorkItem) {
-        $this.PullRequest.body = [GitHubWorkitemLink]::LinkToWorkItem($this.PullRequest.body, $WorkItem)
+    LinkToADOWorkItem($WorkItem) {
+        $this.PullRequest.body = [GitHubWorkitemLink]::LinkToADOWorkItem($this.PullRequest.body, $WorkItem)
     }
 
     <#

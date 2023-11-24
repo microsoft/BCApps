@@ -1,25 +1,41 @@
 
 class GitHubWorkitemLink {
-    static [int[]] GetLinkedIssueIDs($Body) {
-        if(-not $Body) {
+
+    <#
+        Gets the linked issue IDs from the description.
+        .returns
+            An array of linked issue IDs.
+    #>
+    static [int[]] GetLinkedIssueIDs($Description) {
+        if(-not $Description) {
             return @()
         }
 
         $workitemPattern = "(^|\s)(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) #(?<ID>\d+)" # e.g. "Fixes #1234"
-        return [GitHubWorkitemLink]::GetLinkedWorkItemIDs($workitemPattern, $Body)
+        return [GitHubWorkitemLink]::GetLinkedWorkItemIDs($workitemPattern, $Description)
     }
 
-    static [int[]] GetLinkedADOWorkitems($Body) {
-        if(-not $Body) {
+    <#
+        Gets the linked ADO workitem IDs from the description.
+        .returns
+            An array of linked ADO workitem IDs.
+    #>
+    static [int[]] GetLinkedADOWorkitems($Description) {
+        if(-not $Description) {
             return @()
         }
 
         $workitemPattern = "AB#(?<ID>\d+)" # e.g. "AB#1234" or "Fixes AB#1234"
-        return [GitHubWorkitemLink]::GetLinkedWorkItemIDs($workitemPattern, $Body)
+        return [GitHubWorkitemLink]::GetLinkedWorkItemIDs($workitemPattern, $Description)
     }
 
-    static [string] LinkToWorkItem($Description, $WorkItem) {
-        if ([GitHubWorkitemLink]::IsLinkedToWorkItem($Description, $WorkItem)) {
+    <#
+        Links the pull request to the ADO workitem.
+        .returns
+            The updated description.
+    #>
+    static [string] LinkToADOWorkItem($Description, $WorkItem) {
+        if ($Description -match "AB#$($WorkItem)") {
             Write-Host "Pull request already linked to ADO workitem AB#$($WorkItem)"
             return $Description
         }
@@ -28,16 +44,17 @@ class GitHubWorkitemLink {
         return $Description
     }
 
-    static [bool] IsLinkedToWorkItem($Description, $WorkItem) {
-        return $Description -match "AB#$($WorkItem)"
-    }
-
-    static [int[]] GetLinkedWorkItemIDs($Pattern, $Body) {
-        if(-not $Body) {
+    <#
+        Gets the linked workitem IDs from the description.
+        .returns
+            An array of linked workitem IDs.
+    #>
+    static [int[]] GetLinkedWorkItemIDs($Pattern, $Description) {
+        if(-not $Description) {
             return @()
         }
 
-        $workitemMatches = Select-String $Pattern -InputObject $Body -AllMatches
+        $workitemMatches = Select-String $Pattern -InputObject $Description -AllMatches
 
         if(-not $workitemMatches) {
             return @()

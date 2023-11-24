@@ -33,7 +33,7 @@ function Update-GitHubPullRequest() {
         }
 
         foreach ($adoWorkItem in $adoWorkItems) {
-            $PullRequest.LinkToWorkItem($adoWorkItem)
+            $PullRequest.LinkToADOWorkItem($adoWorkItem)
         }
     }
 
