@@ -31,6 +31,10 @@ class GitHubPullRequest {
     static [GitHubPullRequest] Get([int] $PRNumber, [string] $Repository) {
         $pr = [GitHubPullRequest]::new($PRNumber, $Repository)
 
+        if (-not $pr.PullRequest) {
+            return $null
+        }
+
         return $pr
     }
 

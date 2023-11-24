@@ -87,6 +87,10 @@ function Test-GitHubIssue() {
 Write-Host "Validating PR $PullRequestNumber"
 
 $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
+if (-not $pullRequest) {
+    throw "Could not get PR $PullRequestNumber from repository $Repository"
+}
+
 $issueIds = $pullRequest.GetLinkedIssueIDs()
 
 # If the pull request is from a fork, validate that it links to an issue

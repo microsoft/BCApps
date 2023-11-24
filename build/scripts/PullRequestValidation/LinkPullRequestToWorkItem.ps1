@@ -42,6 +42,10 @@ function Update-GitHubPullRequest() {
 }
 
 $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
+if (-not $pullRequest) {
+    throw "Could not get PR $PullRequestNumber from repository $Repository"
+}
+
 $issueIds = $pullRequest.GetLinkedIssueIDs()
 
 Write-Host "Updating pull request $PullRequestNumber with linked issues $issueIds"

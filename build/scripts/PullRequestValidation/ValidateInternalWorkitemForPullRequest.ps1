@@ -44,6 +44,10 @@ function Test-ADOWorkitemIsLinked() {
 Write-Host "Validating PR $PullRequestNumber"
 
 $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
+if (-not $pullRequest) {
+    throw "Could not get PR $PullRequestNumber from repository $Repository"
+}
+
 $adoWorkitems = $pullRequest.GetLinkedADOWorkitems()
 
 # Validate that all pull requests links to an ADO workitem
