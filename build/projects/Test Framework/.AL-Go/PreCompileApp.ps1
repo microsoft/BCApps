@@ -4,6 +4,4 @@ Param(
 )
 
 $scriptPath = Join-Path $PSScriptRoot "../../../scripts/PreCompileApp.ps1" -Resolve
-$projectFolder = Join-Path $PSScriptRoot "../../Test Framework"
-
-. $scriptPath -parameters $compilationParams -currentProjectFolder $projectFolder -appType $appType
+. $scriptPath -parameters $compilationParams -appType $appType
