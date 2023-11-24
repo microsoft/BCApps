@@ -52,7 +52,8 @@ class GitHubIssue {
         .returns
             An array of linked issue IDs.
     #>
-    [int[]] GetLinkedADOWorkitems() {
+    [int[]] GetLinkedADOWorkItems() {
+
         $workitemPattern = "AB#(?<ID>\d+)" # e.g. "Fixes AB#1234"
         return $this.GetLinkedWorkItemIDs($workitemPattern)
     }

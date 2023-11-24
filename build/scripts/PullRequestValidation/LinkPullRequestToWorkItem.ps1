@@ -20,9 +20,10 @@ function Update-GitHubPullRequest() {
 
     $pullRequestBody = $PullRequest.PullRequest.body
 
-    # Find all ADO workitems linked to the pull request
+    # Find all ADO work items linked to the provided issues and link them to the PR
     foreach ($issueId in $IssueIds) {
-        Write-Host "Trying to link workitems from $issueId to pull request $PullRequestNumber"
+        Write-Host "Trying to link work items from $issueId to pull request $($PullRequest.PRNumber)"
+
         $issue = [GitHubIssue]::Get($issueId, $Repository)
         $adoWorkItems = $issue.GetLinkedADOWorkitems()
         if (-not $adoWorkItems) {
@@ -35,7 +36,8 @@ function Update-GitHubPullRequest() {
                 Write-Host "Linking ADO workitem AB#$($adoWorkItem) to pull request $PullRequestNumber"
                 $pullRequestBody += "`r`nFixes AB#$($adoWorkItem)"
             } else {
-                Write-Host "Pull request already linked to ADO workitem AB#$($adoWorkItem.id)"
+                Write-Host "Pull request already linked to ADO workitem AB#$($adoWorkItem)"
+
             }
         }
     }
