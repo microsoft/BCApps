@@ -14,6 +14,7 @@ using System.Utilities;
 page 2502 "Extension Marketplace"
 {
     Caption = 'Extension Marketplace';
+    AdditionalSearchTerms = 'app,add-in,customize,plug-in,appsource';
     PageType = Card;
     ApplicationArea = All;
     UsageCategory = Administration;
