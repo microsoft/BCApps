@@ -36,7 +36,9 @@ codeunit 396 NoSeriesManagement
         TextAssignErr: Label 'You can not assign Nos. from No. series %1.', Comment = '%1 = No. Series';
         TextAssignDateErr: Label 'No. %1 from No. series %2 you can not assign on date %3.', Comment = '%1 = Document No.; %2 = No. Series Code; %3 = Series Date';
 #endif
+#if not CLEAN24
         CannotAssignManuallyErr: Label 'You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.', Comment = '%1=Manual Nos. setting,%2=No. Series table caption,%3=No. Series Code';
+#endif
         CannotAssignAutomaticallyErr: Label 'It is not possible to assign numbers automatically. If you want the program to assign numbers automatically, please activate %1 in %2 %3.', Comment = '%1=Default Nos. setting,%2=No. Series table caption,%3=No. Series Code';
         CannotAssignNewOnDateErr: Label 'You cannot assign new numbers from the number series %1 on %2.', Comment = '%1=No. Series Code,%2=Date';
         CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1=No. Series Code';
@@ -44,7 +46,9 @@ codeunit 396 NoSeriesManagement
         CannotAssignGreaterErr: Label 'You cannot assign numbers greater than %1 from the number series %2.', Comment = '%1=Last No.,%2=No. Series Code';
         NumberFormatErr: Label 'The number format in %1 must be the same as the number format in %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
         NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
+#if not CLEAN24
         PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
+#endif
         UnincrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
 
 #if not CLEAN24
@@ -257,11 +261,11 @@ codeunit 396 NoSeriesManagement
     /// <returns>The next number in the number series.</returns>
     procedure DoGetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean; NoErrorsOrWarnings: Boolean): Code[20]
     var
+        NoSeriesLine: Record "No. Series Line";
+        CurrNoSeriesLine: Record "No. Series Line";
 #if CLEAN24
         NoSeriesSequenceImpl: Codeunit "No. Series - Sequence Impl.";
 #endif
-        NoSeriesLine: Record "No. Series Line";
-        CurrNoSeriesLine: Record "No. Series Line";
     begin
         OnBeforeDoGetNextNo(NoSeriesCode, SeriesDate, ModifySeries, NoErrorsOrWarnings);
 
@@ -295,18 +299,18 @@ codeunit 396 NoSeriesManagement
         end;
 
         NoSeriesLine."Last Date Used" := SeriesDate;
-        if NoSeriesLine."Allow Gaps in Nos." and (LastNoSeriesLine."Series Code" = '') then
 #if not CLEAN24
+        if NoSeriesLine."Allow Gaps in Nos." and (LastNoSeriesLine."Series Code" = '') then
             NoSeriesLine."Last No. Used" := NoSeriesLine.GetNextSequenceNo(ModifySeries)
+        else
 #else
-        begin
+        if NoSeriesLine."Allow Gaps in Nos." and (LastNoSeriesLine."Series Code" = '') then begin
             if ModifySeries then
                 NoSeriesLine."Last No. Used" := NoSeriesSequenceImpl.GetNextNo(NoSeriesLine, WorkDate(), false)
             else
                 NoSeriesLine."Last No. Used" := NoSeriesSequenceImpl.PeekNextNo(NoSeriesLine, WorkDate());
-        end
+        end else
 #endif
-        else
             if NoSeriesLine."Last No. Used" = '' then begin
                 if NoErrorsOrWarnings and (NoSeriesLine."Starting No." = '') then
                     exit('');
