@@ -82,7 +82,7 @@ class GitHubPullRequest {
 
         $this.PullRequest.body += "`r`nFixes AB#$($WorkItem)"
     }
-    
+
     hidden [bool] IsLinkedToWorkItem($WorkItem) {
         return $this.PullRequest.body -match "AB#$($WorkItem)"
     }
