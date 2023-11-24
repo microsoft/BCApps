@@ -33,12 +33,12 @@ function Update-GitHubPullRequest() {
         }
 
         foreach ($adoWorkItem in $adoWorkItems) {
-            LinkToWorkItem($adoWorkItem)
+            $PullRequest.LinkToWorkItem($adoWorkItem)
         }
     }
 
     # Update the pull request description
-    $pullRequest.UpdateDescription()
+    $PullRequest.UpdateDescription()
 }
 
 $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
