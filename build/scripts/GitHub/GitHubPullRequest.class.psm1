@@ -69,6 +69,9 @@ class GitHubPullRequest {
         return [GitHubWorkitemLink]::GetLinkedADOWorkitems($this.PullRequest.body)
     }
 
+    <#
+        Links the pull request to the ADO workitem.
+    #>
     LinkToADOWorkItem($WorkItem) {
         $this.PullRequest.body = [GitHubWorkitemLink]::LinkToADOWorkItem($this.PullRequest.body, $WorkItem)
     }
