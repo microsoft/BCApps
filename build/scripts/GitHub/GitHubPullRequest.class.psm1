@@ -33,7 +33,10 @@ class GitHubPullRequest {
         return $pr
     }
 
-    Update() {
+    <#
+        Updates the pull request description.
+    #>
+    UpdateDescription() {
         $TempFile = New-TemporaryFile
         Set-Content -Path $TempFile -Value $this.PullRequest.body
 

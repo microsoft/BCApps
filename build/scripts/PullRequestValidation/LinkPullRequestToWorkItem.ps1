@@ -47,7 +47,7 @@ function Update-GitHubPullRequest() {
 
     # Update the pull request description
     $PullRequest.PullRequest.body = $pullRequestBody
-    $pullRequest.Update()
+    $pullRequest.UpdateDescription()
 }
 
 $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
