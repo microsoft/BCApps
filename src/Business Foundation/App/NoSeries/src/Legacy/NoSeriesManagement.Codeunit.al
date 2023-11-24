@@ -1,4 +1,3 @@
-//#if not CLEAN24
 #pragma warning disable AL0432
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -46,6 +45,8 @@ codeunit 396 NoSeriesManagement
         PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
         UnincrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
 
+#if not CLEAN24
+    [Obsolete('Please use the "No. Series" and "No. Series - Batch" codeunits instead','24.0')]
     procedure TestManual(DefaultNoSeriesCode: Code[20])
     var
         IsHandled: Boolean;
@@ -60,13 +61,15 @@ codeunit 396 NoSeriesManagement
             end;
         OnAfterTestManual(DefaultNoSeriesCode);
     end;
-
+#endif
     procedure ManualNoAllowed(DefaultNoSeriesCode: Code[20]): Boolean
     begin
         GlobalNoSeries.Get(DefaultNoSeriesCode);
         exit(GlobalNoSeries."Manual Nos.");
     end;
 
+#if not CLEAN24
+    [Obsolete('Please use the "No. Series" and "No. Series - Batch" codeunits instead','24.0')]
     procedure TestManualWithDocumentNo(DefaultNoSeriesCode: Code[20]; DocumentNo: Code[20])
     begin
         if DefaultNoSeriesCode <> '' then begin
@@ -90,7 +93,7 @@ codeunit 396 NoSeriesManagement
         if NoSeries.Get(NoSeriesCode) then;
         OnAfterInitSeries(NoSeries, DefaultNoSeriesCode, NewDate, NewNo);
     end;
-
+#endif
     procedure InitSeries(DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20])
     var
         IsHandled: Boolean;
@@ -946,4 +949,3 @@ codeunit 396 NoSeriesManagement
     end;
 }
 #pragma warning restore AL0432
-//#endif
