@@ -16,8 +16,6 @@ function Update-GitHubPullRequest() {
         [string[]] $IssueIds
     )
 
-    $pullRequestBody = $PullRequest.PullRequest.body
-
     # Find all ADO work items linked to the provided issues and link them to the PR
     foreach ($issueId in $IssueIds) {
         Write-Host "Trying to link work items from $issueId to pull request $($PullRequest.PRNumber)"
@@ -35,18 +33,11 @@ function Update-GitHubPullRequest() {
         }
 
         foreach ($adoWorkItem in $adoWorkItems) {
-            if ($pullRequestBody -notmatch "AB#$($adoWorkItem)") {
-                Write-Host "Linking ADO workitem AB#$($adoWorkItem) to pull request $PullRequestNumber"
-                $pullRequestBody += "`r`nFixes AB#$($adoWorkItem)"
-            } else {
-                Write-Host "Pull request already linked to ADO workitem AB#$($adoWorkItem)"
-
-            }
+            LinkToWorkItem($adoWorkItem)
         }
     }
 
     # Update the pull request description
-    $PullRequest.PullRequest.body = $pullRequestBody
     $pullRequest.UpdateDescription()
 }
 

@@ -74,6 +74,19 @@ class GitHubPullRequest {
         return $this.GetLinkedWorkItemIDs($workitemPattern)
     }
 
+    LinkToWorkItem($WorkItem) {
+        if ($this.IsLinkedToWorkItem($WorkItem)) {
+            Write-Host "Pull request already linked to ADO workitem AB#$($WorkItem)"
+            return
+        }
+
+        $this.PullRequest.body += "`r`nFixes AB#$($WorkItem)"
+    }
+    
+    hidden [bool] IsLinkedToWorkItem($WorkItem) {
+        return $this.PullRequest.body -match "AB#$($WorkItem)"
+    }
+
     <#
         Returns true if the pull request is from a fork.
     #>
