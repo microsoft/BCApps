@@ -299,10 +299,12 @@ codeunit 396 NoSeriesManagement
 #if not CLEAN24
             NoSeriesLine."Last No. Used" := NoSeriesLine.GetNextSequenceNo(ModifySeries)
 #else
+        begin
             if ModifySeries then
-                NoSeriesLine."Last No. Used" := NoSeriesSequenceImpl.GetNextNo(NoSeriesLine)
+                NoSeriesLine."Last No. Used" := NoSeriesSequenceImpl.GetNextNo(NoSeriesLine, WorkDate(), false)
             else
-                NoSeriesLine."Last No. Used" := NoSeriesSequenceImpl.PeekNextNo(NoSeriesLine);
+                NoSeriesLine."Last No. Used" := NoSeriesSequenceImpl.PeekNextNo(NoSeriesLine, WorkDate());
+        end
 #endif
         else
             if NoSeriesLine."Last No. Used" = '' then begin
