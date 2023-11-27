@@ -32,10 +32,9 @@ codeunit 304 "No. Series - Impl."
         IsHandled: Boolean;
     begin
         NoSeriesManagement.OnBeforeTestManual(NoSeriesCode, IsHandled);
-        if not IsHandled then begin
+        if not IsHandled then
             if NoSeriesCode <> '' then
                 TestManualInternal(NoSeriesCode, StrSubstNo(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeries.Code));
-        end;
         NoSeriesManagement.OnAfterTestManual(NoSeriesCode);
     end;
 #pragma warning restore AL0432
