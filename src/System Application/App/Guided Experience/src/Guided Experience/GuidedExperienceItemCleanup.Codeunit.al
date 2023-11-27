@@ -11,6 +11,7 @@ codeunit 1994 "Guided Experience Item Cleanup"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
+    Description = 'The Codeunit is only public because we need the OnRun trigger for Job Queue (BaseApp), all procedures are internal or local';
     Permissions =
         tabledata "Primary Guided Experience Item" = rd,
         tabledata "Guided Experience Item" = rd;

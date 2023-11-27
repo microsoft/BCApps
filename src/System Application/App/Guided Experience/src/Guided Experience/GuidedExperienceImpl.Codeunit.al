@@ -728,6 +728,7 @@ codeunit 1991 "Guided Experience Impl."
             Error(ExpectedDurationOverflowErr, ExpectedDuration);
 
         if GuidedExperienceItem.Get(Code, PreviousVersion) and (PreviousVersion > 0) then begin
+            // PreviousVersion cannot be 0 otherwise Rename will fail
             Exist := true;
             GuidedExperienceItem.Rename(Code, Version);
         end else begin
