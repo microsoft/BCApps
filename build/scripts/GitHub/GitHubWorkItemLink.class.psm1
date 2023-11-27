@@ -36,7 +36,7 @@ class GitHubWorkItemLink {
     #>
     static [string] LinkToADOWorkItem($Description, $WorkItem) {
         if ($Description -match "AB#$($WorkItem)") {
-            Write-Host "Pull request already linked to ADO workitem AB#$($WorkItem)"
+            Write-Host "Description already links to a ADO workitem $($WorkItem)"
             return $Description
         }
 
