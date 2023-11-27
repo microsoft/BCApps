@@ -26,7 +26,7 @@ function Update-GitHubPullRequest() {
             continue
         }
 
-        $adoWorkItems = $issue.GetLinkedADOWorkItems()
+        $adoWorkItems = $issue.GetLinkedADOWorkItemIDs()
         if (-not $adoWorkItems) {
             Write-Host "No ADO workitems found in issue $issueId"
             continue

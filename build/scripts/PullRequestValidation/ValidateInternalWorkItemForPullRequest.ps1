@@ -48,7 +48,7 @@ if (-not $pullRequest) {
     throw "Could not get PR $PullRequestNumber from repository $Repository"
 }
 
-$adoWorkItems = $pullRequest.GetLinkedADOWorkItems()
+$adoWorkItems = $pullRequest.GetLinkedADOWorkItemIDs()
 
 # Validate that all pull requests links to an ADO workitem
 Test-ADOWorkItemIsLinked -ADOWorkItems $adoWorkItems -PullRequest $PullRequest
