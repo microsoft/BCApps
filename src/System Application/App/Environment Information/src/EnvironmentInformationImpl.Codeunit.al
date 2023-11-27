@@ -28,24 +28,24 @@ codeunit 3702 "Environment Information Impl."
 
     procedure IsProduction(): Boolean
     var
-        IsProduction: Boolean;
+        Production: Boolean;
         TestMode: Boolean;
     begin
-        OnBeforeIsProduction(TestMode, IsProduction);
+        OnBeforeIsProduction(TestMode, Production);
         if TestMode then
-            exit(IsProduction);
+            exit(Production);
 
         exit(NavTenantSettingsHelper.IsProduction())
     end;
 
     procedure IsSandbox(): Boolean
     var
-        IsSandbox: Boolean;
+        Sandbox: Boolean;
         TestMode: Boolean;
     begin
-        OnBeforeIsSandbox(TestMode, IsSandbox);
+        OnBeforeIsSandbox(TestMode, Sandbox);
         if TestMode then
-            exit(IsSandbox);
+            exit(Sandbox);
 
         if TestabilitySandbox then
             exit(true);
@@ -90,11 +90,11 @@ codeunit 3702 "Environment Information Impl."
     var
         ServerSettings: Codeunit "Server Setting";
         TestMode: Boolean;
-        IsSaaS: Boolean;
+        SaaS: Boolean;
     begin
-        OnBeforeIsSaaS(TestMode, IsSaaS);
+        OnBeforeIsSaaS(TestMode, SaaS);
         if TestMode then
-            exit(IsSaaS);
+            exit(SaaS);
 
         if TestabilitySoftwareAsAService then
             exit(true);
@@ -110,12 +110,12 @@ codeunit 3702 "Environment Information Impl."
     procedure IsSaaSInfrastructure(): Boolean
     var
         UserAccountHelper: DotNet NavUserAccountHelper;
-        IsSaaSInfrastructure: Boolean;
+        SaaSInfrastructure: Boolean;
         TestMode: Boolean;
     begin
-        OnBeforeIsSaaSInfrastructure(TestMode, IsSaaSInfrastructure);
+        OnBeforeIsSaaSInfrastructure(TestMode, SaaSInfrastructure);
         if TestMode then
-            exit(IsSaaSInfrastructure);
+            exit(SaaSInfrastructure);
 
         if TestabilitySoftwareAsAService then
             exit(true);
@@ -148,12 +148,12 @@ codeunit 3702 "Environment Information Impl."
     procedure VersionInstalled(AppID: Guid): Integer
     var
         AppInfo: ModuleInfo;
-        VersionInstalled: Integer;
+        WhichVersionInstalled: Integer;
         TestMode: Boolean;
     begin
-        OnBeforeVersionInstalled(TestMode, VersionInstalled);
+        OnBeforeVersionInstalled(TestMode, WhichVersionInstalled);
         if TestMode then
-            exit(VersionInstalled);
+            exit(WhichVersionInstalled);
 
         NavApp.GetModuleInfo(AppId, AppInfo);
         exit(AppInfo.DataVersion.Major());
@@ -195,21 +195,21 @@ codeunit 3702 "Environment Information Impl."
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeIsSaaSInfrastructure(var TestMode: Boolean; var IsSaaSInfrastructure: Boolean)
+    procedure OnBeforeIsSaaSInfrastructure(var TestMode: Boolean; var SaaSInfrastructure: Boolean)
     begin
         // An event which asks for the AppId to be filled in by the subscriber.
         // Do not use this event in a production environment. This should be subscribed to only in tests.
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeVersionInstalled(var TestMode: Boolean; var VersionInstalled: Integer)
+    procedure OnBeforeVersionInstalled(var TestMode: Boolean; var WhichVersionInstalled: Integer)
     begin
         // An event which asks for the AppId to be filled in by the subscriber.
         // Do not use this event in a production environment. This should be subscribed to only in tests.
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeIsSaaS(var TestMode: Boolean; var IsSaaS: Boolean)
+    procedure OnBeforeIsSaaS(var TestMode: Boolean; var SaaS: Boolean)
     begin
         // An event which asks for the AppId to be filled in by the subscriber.
         // Do not use this event in a production environment. This should be subscribed to only in tests.
@@ -223,14 +223,14 @@ codeunit 3702 "Environment Information Impl."
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeIsSandbox(var TestMode: Boolean; var IsSandbox: Boolean)
+    procedure OnBeforeIsSandbox(var TestMode: Boolean; var Sandbox: Boolean)
     begin
         // An event which asks for the AppId to be filled in by the subscriber.
         // Do not use this event in a production environment. This should be subscribed to only in tests.
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeIsProduction(var TestMode: Boolean; var IsProduction: Boolean)
+    procedure OnBeforeIsProduction(var TestMode: Boolean; var Production: Boolean)
     begin
         // An event which asks for the AppId to be filled in by the subscriber.
         // Do not use this event in a production environment. This should be subscribed to only in tests.
