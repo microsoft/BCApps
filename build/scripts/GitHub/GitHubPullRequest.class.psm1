@@ -69,8 +69,8 @@ class GitHubPullRequest {
         .returns
             An array of linked issue IDs.
     #>
-    [int[]] GetLinkedADOWorkitems() {
-        return [GitHubWorkItemLink]::GetLinkedADOWorkitems($this.PullRequest.body)
+    [int[]] GetLinkedADOWorkItems() {
+        return [GitHubWorkItemLink]::GetLinkedADOWorkItems($this.PullRequest.body)
     }
 
     <#

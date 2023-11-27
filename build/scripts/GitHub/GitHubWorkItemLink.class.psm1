@@ -20,7 +20,7 @@ class GitHubWorkItemLink {
         .returns
             An array of linked ADO workitem IDs.
     #>
-    static [int[]] GetLinkedADOWorkitems($Description) {
+    static [int[]] GetLinkedADOWorkItemIDs($Description) {
         if(-not $Description) {
             return @()
         }

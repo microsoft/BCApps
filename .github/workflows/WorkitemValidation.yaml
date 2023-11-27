@@ -45,7 +45,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          build/scripts/PullRequestValidation/ValidateInternalWorkitemForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
+          build/scripts/PullRequestValidation/ValidateInternalWorkItemForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
 
       - name: Add milestone to PR
         env:

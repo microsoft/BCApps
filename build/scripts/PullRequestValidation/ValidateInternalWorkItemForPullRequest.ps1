@@ -19,7 +19,7 @@ $ErrorActionPreference = "Stop"
     .Parameter PullRequest
     The pull request to validate.
 #>
-function Test-ADOWorkitemIsLinked() {
+function Test-ADOWorkItemIsLinked() {
     param(
         [Parameter(Mandatory = $false)]
         [string[]] $ADOWorkItems,
@@ -48,9 +48,9 @@ if (-not $pullRequest) {
     throw "Could not get PR $PullRequestNumber from repository $Repository"
 }
 
-$adoWorkitems = $pullRequest.GetLinkedADOWorkitems()
+$adoWorkItems = $pullRequest.GetLinkedADOWorkItems()
 
 # Validate that all pull requests links to an ADO workitem
-Test-ADOWorkitemIsLinked -ADOWorkItems $adoWorkitems -PullRequest $PullRequest
+Test-ADOWorkItemIsLinked -ADOWorkItems $adoWorkItems -PullRequest $PullRequest
 
 Write-Host "PR $PullRequestNumber validated successfully" -ForegroundColor Green

@@ -53,8 +53,8 @@ class GitHubIssue {
         .returns
             An array of linked issue IDs.
     #>
-    [int[]] GetLinkedADOWorkitems() {
-        return [GitHubWorkItemLink]::GetLinkedADOWorkitems($this.Issue.body)
+    [int[]] GetLinkedADOWorkItems() {
+        return [GitHubWorkItemLink]::GetLinkedADOWorkItems($this.Issue.body)
     }
 
     <#
