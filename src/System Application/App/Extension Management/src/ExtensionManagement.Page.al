@@ -148,7 +148,7 @@ page 2500 "Extension Management"
                     trigger OnAction()
                     begin
                         if ExtensionInstallationImpl.RunExtensionInstallation(Rec) then
-                            CurrPage.Update();
+                            CurrPage.Update(false);
                     end;
                 }
                 action(Unpublish)
