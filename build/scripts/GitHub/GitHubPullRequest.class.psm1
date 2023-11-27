@@ -1,6 +1,6 @@
 using module .\GitHubAPI.class.psm1
 using module .\GitHubIssue.class.psm1
-using module .\GitHubWorkitemLink.class.psm1
+using module .\GitHubWorkItemLink.class.psm1
 
 <#
     Class that represents a GitHub pull request.
@@ -61,7 +61,7 @@ class GitHubPullRequest {
             An array of linked issue IDs.
     #>
     [int[]] GetLinkedIssueIDs() {
-        return [GitHubWorkitemLink]::GetLinkedIssueIDs($this.PullRequest.body)
+        return [GitHubWorkItemLink]::GetLinkedIssueIDs($this.PullRequest.body)
     }
 
     <#
@@ -70,14 +70,14 @@ class GitHubPullRequest {
             An array of linked issue IDs.
     #>
     [int[]] GetLinkedADOWorkitems() {
-        return [GitHubWorkitemLink]::GetLinkedADOWorkitems($this.PullRequest.body)
+        return [GitHubWorkItemLink]::GetLinkedADOWorkitems($this.PullRequest.body)
     }
 
     <#
         Links the pull request to the ADO workitem.
     #>
     LinkToADOWorkItem($WorkItem) {
-        $this.PullRequest.body = [GitHubWorkitemLink]::LinkToADOWorkItem($this.PullRequest.body, $WorkItem)
+        $this.PullRequest.body = [GitHubWorkItemLink]::LinkToADOWorkItem($this.PullRequest.body, $WorkItem)
     }
 
     <#

@@ -1,5 +1,5 @@
 
-class GitHubWorkitemLink {
+class GitHubWorkItemLink {
 
     <#
         Gets the linked issue IDs from the description.
@@ -12,7 +12,7 @@ class GitHubWorkitemLink {
         }
 
         $workitemPattern = "(^|\s)(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved) #(?<ID>\d+)" # e.g. "Fixes #1234"
-        return [GitHubWorkitemLink]::GetLinkedWorkItemIDs($workitemPattern, $Description)
+        return [GitHubWorkItemLink]::GetLinkedWorkItemIDs($workitemPattern, $Description)
     }
 
     <#
@@ -26,7 +26,7 @@ class GitHubWorkitemLink {
         }
 
         $workitemPattern = "AB#(?<ID>\d+)" # e.g. "AB#1234" or "Fixes AB#1234"
-        return [GitHubWorkitemLink]::GetLinkedWorkItemIDs($workitemPattern, $Description)
+        return [GitHubWorkItemLink]::GetLinkedWorkItemIDs($workitemPattern, $Description)
     }
 
     <#

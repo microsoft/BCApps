@@ -1,5 +1,5 @@
 using module .\GitHubAPI.class.psm1
-using module .\GitHubWorkitemLink.class.psm1
+using module .\GitHubWorkItemLink.class.psm1
 
 <#
     Class that represents a GitHub issue.
@@ -54,7 +54,7 @@ class GitHubIssue {
             An array of linked issue IDs.
     #>
     [int[]] GetLinkedADOWorkitems() {
-        return [GitHubWorkitemLink]::GetLinkedADOWorkitems($this.Issue.body)
+        return [GitHubWorkItemLink]::GetLinkedADOWorkitems($this.Issue.body)
     }
 
     <#
