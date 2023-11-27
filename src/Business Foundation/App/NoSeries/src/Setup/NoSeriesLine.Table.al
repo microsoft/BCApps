@@ -234,9 +234,9 @@ table 309 "No. Series Line"
     [Obsolete('Moved to No. Series codeunit.', '24.0')]
     procedure GetLastNoUsed(): Code[20]
     var
-        NoSeries: Codeunit "No. Series";
+        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        exit(NoSeries.GetLastNoUsed(Rec));
+        exit(NoSeriesMgt.GetLastNoUsed(Rec));
     end;
 
     [Obsolete('Use GetNextNo in No. Series codeunit instead.', '24.0')]
