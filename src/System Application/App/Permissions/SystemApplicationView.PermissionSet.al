@@ -40,6 +40,7 @@ permissionset 75 "System Application - View"
                              "Priv. Notice - View",
                              "Record Link Management - View",
                              "Table Information - View",
+                             "User Details - View",
                              "User Permissions - View",
                              "User Settings - View",
                              "Web Service Management - View";

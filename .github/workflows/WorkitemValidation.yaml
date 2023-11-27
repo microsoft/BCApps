@@ -1,0 +1,33 @@
+name: Work Item Validation
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  WorkItemValidation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Validate work items for pull request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          build/scripts/PullRequestValidation/ValidateIssuesForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
+
+      - name: Add milestone to PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          build/scripts/PullRequestValidation/AddMilestoneToPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
