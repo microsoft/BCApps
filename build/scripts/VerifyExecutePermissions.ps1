@@ -1,5 +1,5 @@
 param(
-    [Parameter(Mandatory = $true)]    
+    [Parameter(Mandatory = $true)]
     [string] $ModulesDirectory
 )
 
@@ -86,6 +86,6 @@ foreach ($folder in (Get-ChildItem -path $ModulesDirectory -Directory)) {
     }
 }
 
-if ($AlObjects -and $AlObjects.Count -ne 0) {   
+if ($AlObjects -and $AlObjects.Count -ne 0) {
     Write-Error "Error: missing execute permissions for: `n$($AlObjects.GetEnumerator() | foreach-Object {foreach($v in $_.Value) {"$($_.Key) $($v)`n"}})"
 }
