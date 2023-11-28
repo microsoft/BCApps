@@ -33,6 +33,24 @@ codeunit 132613 RSACryptoServiceProviderTests
     end;
 
     [Test]
+    procedure InitializeKeys()
+    var
+        KeyXml: XmlDocument;
+        Root: XmlElement;
+        Node: XmlNode;
+        KeyXmlText: Text;
+    begin
+        RSACryptoServiceProvider.InitializeRSA(2048);
+        KeyXmlText := RSACryptoServiceProvider.ToXmlString(true);
+
+        LibraryAssert.IsTrue(XmlDocument.ReadFrom(KeyXmlText, KeyXml), 'RSA key is not valid xml data.');
+        LibraryAssert.IsTrue(KeyXml.GetRoot(Root), 'Could not get Root element of key.');
+
+        LibraryAssert.IsTrue(Root.SelectSingleNode('Modulus', Node), 'Could not find <Modulus> in key.');
+        LibraryAssert.IsTrue(Root.SelectSingleNode('DQ', Node), 'Could not find <DQ> in key.');
+    end;
+
+    [Test]
     procedure TestSignDataWithCert()
     var
         TempBlob: Codeunit "Temp Blob";
