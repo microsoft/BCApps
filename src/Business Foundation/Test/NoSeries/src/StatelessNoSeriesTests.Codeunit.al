@@ -11,8 +11,7 @@ codeunit 134371 "Stateless No. Series Tests"
         LibraryAssert: Codeunit "Library Assert";
         Any: Codeunit Any;
         NoSeries: Codeunit "No. Series";
-        CannotAssignNewOnDateErr: Label 'You cannot assign new numbers from the number series %1 on %2.', Comment = '%1=No. Series Code,%2=Date';
-        CannotAssignNumbersGreaterThanErr: Label 'You cannot assign numbers greater than %1 from the number series %2.', Comment = '%1=Last No.,%2=No. Series Code';
+        CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1=No. Series Code';
 
     [Test]
     procedure TestGetNextNoDefaultRunOut()
@@ -25,7 +24,7 @@ codeunit 134371 "Stateless No. Series Tests"
         for i := 1 to 10 do
             LibraryAssert.AreEqual(Format(i), NoSeries.GetNextNo(NoSeriesCode), 'Number was not as expected');
         asserterror NoSeries.GetNextNo(NoSeriesCode);
-        LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewOnDateErr, NoSeriesCode, WorkDate())); // TODO: This error be CannotAssignNewErr
+        LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
     end;
 
     [Test]
@@ -38,7 +37,40 @@ codeunit 134371 "Stateless No. Series Tests"
         LibraryAssert.AreEqual('1', NoSeries.GetNextNo(NoSeriesCode), 'Number was not as expected');
         LibraryAssert.AreEqual('8', NoSeries.GetNextNo(NoSeriesCode), 'Number was not as expected');
         asserterror NoSeries.GetNextNo(NoSeriesCode);
-        LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNumbersGreaterThanErr, '10', NoSeriesCode));
+        LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
+    end;
+
+    [Test]
+    procedure TestGetNextNoDefaultOverFlow()
+    var
+        NoSeriesCode: Code[20];
+        i: Integer;
+    begin
+        CreateNoSeries(NoSeriesCode);
+        CreateNoSeriesLine(NoSeriesCode, 1, 'A1', 'A5');
+        CreateNoSeriesLine(NoSeriesCode, 1, 'B1', 'B5');
+        for i := 1 to 5 do
+            LibraryAssert.AreEqual('A' + Format(i), NoSeries.GetNextNo(NoSeriesCode), 'Number was not as expected');
+        for i := 1 to 5 do
+            LibraryAssert.AreEqual('B' + Format(i), NoSeries.GetNextNo(NoSeriesCode), 'Number was not as expected');
+        asserterror NoSeries.GetNextNo(NoSeriesCode);
+        LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
+    end;
+
+    [Test]
+    procedure TestGetNextNoAdvancedOverFlow()
+    var
+        NoSeriesCode: Code[20];
+    begin
+        CreateNoSeries(NoSeriesCode);
+        CreateNoSeriesLine(NoSeriesCode, 7, 'A1', 'A10');
+        CreateNoSeriesLine(NoSeriesCode, 7, 'B1', 'B10');
+        LibraryAssert.AreEqual('A01', NoSeries.GetNextNo(NoSeriesCode), 'Number was not as expected');
+        LibraryAssert.AreEqual('A08', NoSeries.GetNextNo(NoSeriesCode), 'Number was not as expected');
+        LibraryAssert.AreEqual('B01', NoSeries.GetNextNo(NoSeriesCode), 'Number was not as expected');
+        LibraryAssert.AreEqual('B08', NoSeries.GetNextNo(NoSeriesCode), 'Number was not as expected');
+        asserterror NoSeries.GetNextNo(NoSeriesCode);
+        LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
     end;
 
     local procedure CreateNoSeries(var NoSeriesCode: Code[20])

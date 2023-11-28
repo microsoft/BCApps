@@ -123,7 +123,6 @@ codeunit 304 "No. Series - Impl."
             if HideErrorsAndWarnings then
                 exit(false);
             NoSeriesLine.SetRange("Starting Date");
-            NoSeriesLine.SetRange(Open);
             if not NoSeriesLine.IsEmpty() then
                 Error(
                   CannotAssignNewOnDateErr,
