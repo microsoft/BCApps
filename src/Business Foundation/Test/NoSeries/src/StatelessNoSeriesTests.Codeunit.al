@@ -9,7 +9,6 @@ codeunit 134373 "Stateless No. Series Tests"
 
     var
         LibraryAssert: Codeunit "Library Assert";
-        Any: Codeunit Any;
         NoSeries: Codeunit "No. Series";
         CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1=No. Series Code';
 
@@ -20,6 +19,7 @@ codeunit 134373 "Stateless No. Series Tests"
         i: Integer;
     begin
         // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode := 'GetNextNoRunOut';
         CreateNoSeries(NoSeriesCode);
         CreateNoSeriesLine(NoSeriesCode, 1, '1', '10');
 
@@ -40,6 +40,7 @@ codeunit 134373 "Stateless No. Series Tests"
         NoSeriesCode: Code[20];
     begin
         // [GIVEN] A No. Series with a line going from 1-10, jumping 7 numbers at a time
+        NoSeriesCode := 'TestGetNextNo';
         CreateNoSeries(NoSeriesCode);
         CreateNoSeriesLine(NoSeriesCode, 7, '1', '10');
 
@@ -61,6 +62,7 @@ codeunit 134373 "Stateless No. Series Tests"
         i: Integer;
     begin
         // [GIVEN] A No. Series with two lines going from 1-5
+        NoSeriesCode := 'GetNextNoOverFlow';
         CreateNoSeries(NoSeriesCode);
         CreateNoSeriesLine(NoSeriesCode, 1, 'A1', 'A5');
         CreateNoSeriesLine(NoSeriesCode, 1, 'B1', 'B5');
@@ -84,6 +86,7 @@ codeunit 134373 "Stateless No. Series Tests"
         NoSeriesCode: Code[20];
     begin
         // [GIVEN] A No. Series with two lines going from 1-10, jumping 7 numbers at a time
+        NoSeriesCode := 'GetNextNoAdvOverflow';
         CreateNoSeries(NoSeriesCode);
         CreateNoSeriesLine(NoSeriesCode, 7, 'A1', 'A10');
         CreateNoSeriesLine(NoSeriesCode, 7, 'B1', 'B10');
@@ -109,6 +112,7 @@ codeunit 134373 "Stateless No. Series Tests"
         i: Integer;
     begin
         // [GIVEN] A No. Series with two lines, one only valid from WorkDate + 1
+        NoSeriesCode := 'GetNextNoOverDate';
         CreateNoSeries(NoSeriesCode);
         CreateNoSeriesLine(NoSeriesCode, 1, 'A1', 'A5');
         TomorrowsWorkDate := CalcDate('<+1D>', WorkDate());
@@ -143,6 +147,7 @@ codeunit 134373 "Stateless No. Series Tests"
         i: Integer;
     begin
         // [GIVEN] A No. Series with two lines going from 1-5
+        NoSeriesCode := 'GetNextNoWithLine';
         CreateNoSeries(NoSeriesCode);
         CreateNoSeriesLine(NoSeriesCode, 1, 'A1', 'A5');
         CreateNoSeriesLine(NoSeriesCode, 1, 'B1', 'B5');
@@ -172,6 +177,7 @@ codeunit 134373 "Stateless No. Series Tests"
         i: Integer;
     begin
         // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode := 'PeekNextNoRunOut';
         CreateNoSeries(NoSeriesCode);
         CreateNoSeriesLine(NoSeriesCode, 1, 'A1Test', 'A10Test');
 
@@ -191,11 +197,10 @@ codeunit 134373 "Stateless No. Series Tests"
         LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
     end;
 
-    local procedure CreateNoSeries(var NoSeriesCode: Code[20])
+    local procedure CreateNoSeries(NoSeriesCode: Code[20])
     var
         NoSeriesRecord: Record "No. Series";
     begin
-        NoSeriesCode := CopyStr(Any.AlphabeticText(20), 1, 20);
         NoSeriesRecord.Code := NoSeriesCode;
         NoSeriesRecord.Description := NoSeriesCode;
         NoSeriesRecord."Default Nos." := true;
