@@ -286,6 +286,7 @@ codeunit 2012 "Entity Text Impl."
                 exit(Completion);
 
             Sleep(500);
+            Session.LogMessage('0000LVP', StrSubstNo(TelemetryGenerationRetryTxt, Attempt + 1), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
         end;
 
         // this completion is of low quality
@@ -472,4 +473,5 @@ codeunit 2012 "Entity Text Impl."
         TelemetryCompletionExtraTextTxt: Label 'The completion contains a Translation or Note section.', Locked = true;
         TelemetryPromptManyFactsTxt: Label 'There are %1 facts defined, they will be limited to %2.', Locked = true;
         TelemetryNoAuthorizationHandlerTxt: Label 'Entity Text authorization was not set.', Locked = true;
+        TelemetryGenerationRetryTxt: Label 'Retrying text generation, attempt: %1', Locked = true;
 }
