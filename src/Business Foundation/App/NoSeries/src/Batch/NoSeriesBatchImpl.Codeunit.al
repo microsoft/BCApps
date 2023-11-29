@@ -19,8 +19,10 @@ codeunit 309 "No. Series - Batch Impl."
 
     procedure SetInitialState(TempNoSeriesLine: Record "No. Series Line" temporary)
     begin
-        if IsSameNoSeriesLine(TempNoSeriesLine) then
+        if IsSameNoSeriesLine(TempNoSeriesLine) then begin
+            TempGlobalNoSeriesLine := TempNoSeriesLine;
             exit;
+        end;
 
         if TempGlobalNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.") then
             exit;
@@ -174,7 +176,11 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeriesLine2: Record "No. Series Line";
         NoSeriesCodeunit: Codeunit "No. Series";
     begin
-        // Find the correct line to use
+        if NoSeriesCodeunit.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeries.Code, UsageDate, true) then begin
+            NoSeriesLine := TempGlobalNoSeriesLine;
+            exit;
+        end;
+
         if not NoSeriesCodeunit.GetNoSeriesLine(NoSeriesLine2, NoSeries.Code, UsageDate, false) then
             exit;
 
