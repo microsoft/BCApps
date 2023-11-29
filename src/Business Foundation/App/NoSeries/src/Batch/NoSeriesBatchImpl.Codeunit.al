@@ -174,11 +174,7 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeriesLine2: Record "No. Series Line";
         NoSeriesCodeunit: Codeunit "No. Series";
     begin
-        if NoSeriesCodeunit.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeries.Code, UsageDate, true) then begin
-            NoSeriesLine := TempGlobalNoSeriesLine;
-            exit;
-        end;
-
+        // Find the correct line to use
         if not NoSeriesCodeunit.GetNoSeriesLine(NoSeriesLine2, NoSeries.Code, UsageDate, false) then
             exit;
 

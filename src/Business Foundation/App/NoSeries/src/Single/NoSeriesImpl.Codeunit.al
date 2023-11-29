@@ -148,7 +148,9 @@ codeunit 304 "No. Series - Impl."
     var
         NoSeriesLine: Record "No. Series Line";
     begin
-        NoSeriesLine."Series Code" := NoSeriesCode;
+        if not GetNoSeriesLine(NoSeriesLine, NoSeriesCode, UsageDate, false) then
+            exit('');
+
         exit(PeekNextNo(NoSeriesLine, UsageDate));
     end;
 
@@ -158,8 +160,6 @@ codeunit 304 "No. Series - Impl."
     begin
         if UsageDate = 0D then
             UsageDate := WorkDate();
-        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", UsageDate, false) then
-            exit('');
 
         NoSeriesSingle := GetImplementation(NoSeriesLine);
 
