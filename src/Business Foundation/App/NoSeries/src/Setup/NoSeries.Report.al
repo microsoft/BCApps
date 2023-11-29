@@ -1,3 +1,4 @@
+#if not CLEAN24
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -10,8 +11,10 @@ using System.Utilities;
 report 21 "No. Series"
 {
     Caption = 'No. Series';
-    DefaultLayout = RDLC;
-    RDLCLayout = './NoSeries/src/Setup/NoSeries.rdlc';
+    DefaultRenderingLayout = LayoutRdlc;
+    ObsoleteState = Pending;
+    ObsoleteTag = '24.0';
+    ObsoleteReason = 'Report data is available on page 457 "No. Series Lines" and page 571 "No. Series List". It can be analyzed with either the Data Analysis feature or Open in Excel.';
 
     dataset
     {
@@ -160,6 +163,14 @@ report 21 "No. Series"
             }
         }
     }
+    rendering
+    {
+        layout(LayoutRdlc)
+        {
+            Type = RDLC;
+            LayoutFile = './NoSeries/src/Setup/NoSeries.rdlc';
+        }
+    }
 
     trigger OnPreReport()
     begin
@@ -179,3 +190,4 @@ report 21 "No. Series"
         No__Series__Date_Order_CaptionLbl: Label 'Date Order';
         Related_No__SeriesCaptionLbl: Label 'Related No. Series';
 }
+#endif

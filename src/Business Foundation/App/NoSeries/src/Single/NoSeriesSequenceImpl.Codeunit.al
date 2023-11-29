@@ -26,10 +26,10 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
     var
         LastSeqNoUsed: BigInteger;
     begin
-        if not TryGetCurrentSequenceNo(NoSeriesLine, LastSeqNoUsed) then begin
+        if not TryGetCurrentSequenceNo(NoSeriesLine."Sequence Name", LastSeqNoUsed) then begin
             if not NumberSequence.Exists(NoSeriesLine."Sequence Name") then
                 CreateNewSequence(NoSeriesLine);
-            TryGetCurrentSequenceNo(NoSeriesLine, LastSeqNoUsed);
+            TryGetCurrentSequenceNo(NoSeriesLine."Sequence Name", LastSeqNoUsed);
         end;
         if LastSeqNoUsed >= NoSeriesLine."Starting Sequence No." then
             exit(GetFormattedNo(NoSeriesLine, LastSeqNoUsed));
@@ -37,9 +37,9 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
     end;
 
     [TryFunction]
-    local procedure TryGetCurrentSequenceNo(var NoSeriesLine: Record "No. Series Line"; var LastSeqNoUsed: BigInteger)
+    local procedure TryGetCurrentSequenceNo(SequenceName: Code[40]; var LastSeqNoUsed: BigInteger)
     begin
-        LastSeqNoUsed := NumberSequence.Current(NoSeriesLine."Sequence Name");
+        LastSeqNoUsed := NumberSequence.Current(SequenceName);
     end;
 
     local procedure GetNextNoInternal(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
@@ -126,5 +126,16 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
             else
                 exit(CopyStr(NoSeriesLine."Starting No.", 1, i) + NumberCode);
         exit(NumberCode); // should ideally not be possible, as bigints can produce max 18 digits
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure OnDeleteNoSeriesLine(var Rec: Record "No. Series Line"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if Rec."Sequence Name" <> '' then
+            if NumberSequence.Exists(Rec."Sequence Name") then
+                NumberSequence.Delete(Rec."Sequence Name");
     end;
 }

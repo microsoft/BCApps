@@ -95,13 +95,13 @@ codeunit 309 "No. Series - Batch Impl."
         exit(GetNextNo(TempNoSeriesLine, UsageDate));
     end;
 
-    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; LastDateUsed: Date): Code[20]
+    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date): Code[20]
     var
         NoSeries: Codeunit "No. Series";
     begin
         SetInitialState(TempNoSeriesLine);
         LockedNoSeriesLine.LockTable();
-        exit(NoSeries.GetNextNo(TempGlobalNoSeriesLine, LastDateUsed, false));
+        exit(NoSeries.GetNextNo(TempGlobalNoSeriesLine, UsageDate, false));
     end;
 
     procedure SimulateGetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; PrevDocumentNo: Code[20]): Code[20]

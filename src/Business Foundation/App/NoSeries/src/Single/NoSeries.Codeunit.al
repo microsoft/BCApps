@@ -14,7 +14,6 @@ codeunit 310 "No. Series"
     Access = Public;
 
     #region GetNextNo
-
     /// <summary>
     /// Get the next number in the No. Series.
     /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
@@ -73,7 +72,7 @@ codeunit 310 "No. Series"
 
     /// <summary>
     /// Get the next number in the No. Series.
-    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// This function will use the specified No. Series line and use the appropriate implementation to get the next number.
     /// </summary>
     /// <param name="NoSeriesLine">The No. Series line to use.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
@@ -117,7 +116,7 @@ codeunit 310 "No. Series"
 
     /// <summary>
     /// Get the next number in the No. Series, without incrementing the number.
-    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// This function will use the specified No. Series line and use the appropriate implementation to get the next number.
     /// </summary>
     /// <param name="NoSeriesLine">The No. Series line to use.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
