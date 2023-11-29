@@ -104,7 +104,6 @@ codeunit 134373 "Stateless No. Series Tests"
     [Test]
     procedure TestGetNextNoOverflowOutsideDate()
     var
-        NoSeriesLine: Record "No. Series Line";
         NoSeriesCode: Code[20];
         TomorrowsWorkDate: Date;
         i: Integer;
@@ -114,10 +113,6 @@ codeunit 134373 "Stateless No. Series Tests"
         CreateNoSeriesLine(NoSeriesCode, 1, 'A1', 'A5');
         TomorrowsWorkDate := CalcDate('<+1D>', WorkDate());
         CreateNoSeriesLine(NoSeriesCode, 1, 'B1', 'B5', TomorrowsWorkDate);
-
-        NoSeriesLine.SetRange("Series Code", NoSeriesCode);
-        NoSeriesLine.FindSet();
-        NoSeriesLine.Next();
 
         // [WHEN] We get the next number 5 times for WorkDate
         // [THEN] We get the numbers from the first line
@@ -137,6 +132,37 @@ codeunit 134373 "Stateless No. Series Tests"
         // [THEN] No other numbers are available
         asserterror NoSeries.GetNextNo(NoSeriesCode);
         LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
+    end;
+
+    [Test]
+    procedure TestGetNextNoWithLine()
+    var
+        NoSeriesLineA: Record "No. Series Line";
+        NoSeriesLineB: Record "No. Series Line";
+        NoSeriesCode: Code[20];
+        i: Integer;
+    begin
+        // [GIVEN] A No. Series with two lines going from 1-5
+        CreateNoSeries(NoSeriesCode);
+        CreateNoSeriesLine(NoSeriesCode, 1, 'A1', 'A5');
+        CreateNoSeriesLine(NoSeriesCode, 1, 'B1', 'B5');
+
+        NoSeriesLineA.SetRange("Series Code", NoSeriesCode);
+        NoSeriesLineA.FindFirst();
+        NoSeriesLineB.SetRange("Series Code", NoSeriesCode);
+        NoSeriesLineB.FindLast();
+
+        // [WHEN] We request numbers from each line
+        // [THEN] We get the numbers for the specific line
+        for i := 1 to 5 do begin
+            LibraryAssert.AreEqual('B' + Format(i), NoSeries.GetNextNo(NoSeriesLineB, WorkDate()), 'Number was not as expected');
+            LibraryAssert.AreEqual('A' + Format(i), NoSeries.GetNextNo(NoSeriesLineA, WorkDate()), 'Number was not as expected');
+        end;
+
+        // [WHEN] We get the next number for either line without throwing errors
+        // [THEN] No number is returned
+        LibraryAssert.AreEqual('', NoSeries.GetNextNo(NoSeriesLineA, WorkDate(), true), 'A number was returned when it should not have been');
+        LibraryAssert.AreEqual('', NoSeries.GetNextNo(NoSeriesLineB, WorkDate(), true), 'A number was returned when it should not have been');
     end;
 
     [Test]

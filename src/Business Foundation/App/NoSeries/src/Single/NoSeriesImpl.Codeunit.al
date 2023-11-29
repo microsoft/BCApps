@@ -78,7 +78,9 @@ codeunit 304 "No. Series - Impl."
     var
         NoSeriesLine: Record "No. Series Line";
     begin
-        NoSeriesLine."Series Code" := NoSeriesCode;
+        if not GetNoSeriesLine(NoSeriesLine, NoSeriesCode, SeriesDate, HideErrorsAndWarnings) then
+            exit('');
+
         exit(GetNextNo(NoSeriesLine, SeriesDate, HideErrorsAndWarnings));
     end;
 
@@ -86,9 +88,6 @@ codeunit 304 "No. Series - Impl."
     var
         NoSeriesSingle: Interface "No. Series - Single";
     begin
-        if not GetNoSeriesLine(NoSeriesLine, NoSeriesLine."Series Code", SeriesDate, HideErrorsAndWarnings) then
-            exit('');
-
         NoSeriesSingle := GetImplementation(NoSeriesLine);
 
         exit(NoSeriesSingle.GetNextNo(NoSeriesLine, SeriesDate, HideErrorsAndWarnings));
