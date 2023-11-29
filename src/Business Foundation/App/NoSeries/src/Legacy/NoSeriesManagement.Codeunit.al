@@ -273,7 +273,7 @@ codeunit 396 NoSeriesManagement
             SeriesDate := WorkDate();
 
         SetNoSeriesLineFilter(CurrNoSeriesLine, NoSeriesCode, SeriesDate);
-        if ModifySeries or (LastNoSeriesLine."Series Code" = '') or ((LastNoSeriesLine."Line No." <> CurrNoSeriesLine."Line No.") and (LastNoSeriesLine."Series Code" = NoSeriesCode)) then begin
+        if ModifySeries or (LastNoSeriesLine."Series Code" = '') or (LastNoSeriesLine."Series Code" <> NoSeriesCode) or ((LastNoSeriesLine."Line No." <> CurrNoSeriesLine."Line No.") and (LastNoSeriesLine."Series Code" = NoSeriesCode)) then begin
             GlobalNoSeries.Get(NoSeriesCode);
             SetNoSeriesLineFilter(NoSeriesLine, NoSeriesCode, SeriesDate);
             if not NoSeriesLine.FindFirst() then begin
