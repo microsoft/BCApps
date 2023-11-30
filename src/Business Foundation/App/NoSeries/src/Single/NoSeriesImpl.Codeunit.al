@@ -23,26 +23,42 @@ codeunit 304 "No. Series - Impl."
         SeriesNotRelatedErr: Label 'The number series %1 is not related to %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
         PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
 
+#if not CLEAN24
+#pragma warning disable AL0432
+    procedure TestManual(NoSeriesCode: Code[20])
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+        IsHandled: Boolean;
+    begin
+        NoSeriesManagement.OnBeforeTestManual(NoSeriesCode, IsHandled);
+        if not IsHandled then
+            if NoSeriesCode <> '' then
+                TestManualInternal(NoSeriesCode, StrSubstNo(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeries.Code));
+        NoSeriesManagement.OnAfterTestManual(NoSeriesCode);
+    end;
+#pragma warning restore AL0432
+#else
     procedure TestManual(NoSeriesCode: Code[20])
     var
         NoSeries: Record "No. Series";
     begin
-        if NoSeriesCode = '' then
-            exit;
-        NoSeries.Get(NoSeriesCode);
-        if not NoSeries."Manual Nos." then
-            Error(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeries.Code);
+        TestManualInternal(NoSeriesCode, StrSubstNo(CannotAssignManuallyErr, NoSeries.FieldCaption("Manual Nos."), NoSeries.TableCaption(), NoSeries.Code));
     end;
+#endif
 
     procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])
+    begin
+        TestManualInternal(NoSeriesCode, StrSubstNo(PostErr, DocumentNo));
+    end;
+
+    local procedure TestManualInternal(NoSeriesCode: Code[20]; ErrorText: Text);
     var
         NoSeries: Record "No. Series";
     begin
-        if NoSeriesCode = '' then
-            exit;
         NoSeries.Get(NoSeriesCode);
         if not NoSeries."Manual Nos." then
-            Error(PostErr, DocumentNo);
+            Error(ErrorText);
     end;
 
     procedure IsManual(NoSeriesCode: Code[20]): Boolean
