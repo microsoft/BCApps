@@ -87,7 +87,7 @@ jobs:
             lfs: true
 
         - name: Read settings
-          uses: microsoft/AL-Go-Actions/ReadSettings@v4.0
+          uses: microsoft/AL-Go/Actions/ReadSettings@aholstrup/bccontainerhelper_dll
           with:
             shell: ${{ inputs.shell }}
             project: ${{ inputs.project }}
@@ -96,14 +96,14 @@ jobs:
         - name: Read secrets
           id: ReadSecrets
           if: github.event_name != 'pull_request'
-          uses: microsoft/AL-Go-Actions/ReadSecrets@v4.0
+          uses: microsoft/AL-Go/Actions/ReadSecrets@aholstrup/bccontainerhelper_dll
           with:
             shell: ${{ inputs.shell }}
             gitHubSecrets: ${{ toJson(secrets) }}
             getSecrets: '${{ inputs.secrets }},appDependencyProbingPathsSecrets'
 
         - name: Determine ArtifactUrl
-          uses: microsoft/AL-Go-Actions/DetermineArtifactUrl@v4.0
+          uses: microsoft/AL-Go/Actions/DetermineArtifactUrl@aholstrup/bccontainerhelper_dll
           id: determineArtifactUrl
           with:
             shell: ${{ inputs.shell }}
