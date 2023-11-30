@@ -32,6 +32,8 @@ jobs:
 
   UpdatePackageVersions:
     name: "[${{ matrix.branch }}] Update Package Versions"
+    permissions:
+      contents: write
     runs-on: windows-latest
     environment: Official-Build
     needs: GetBranches
