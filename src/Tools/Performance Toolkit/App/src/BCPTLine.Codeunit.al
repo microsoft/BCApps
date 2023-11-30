@@ -214,6 +214,8 @@ codeunit 149005 "BCPT Line"
         Dimensions.Add('Operation', BCPTLogEntry.Operation);
         Dimensions.Add('Tag', BCPTLogEntry.Tag);
         Dimensions.Add('Status', Format(BCPTLogEntry.Status));
+        if BCPTLogEntry.Status = BCPTLogEntry.Status::Error then
+            Dimensions.Add('StackTrace', BCPTLogEntry."Error Call Stack");
         Dimensions.Add('NoOfSqlStatements', Format(BCPTLogEntry."No. of SQL Statements"));
         Dimensions.Add('StartTime', Format(BCPTLogEntry."Start Time"));
         Dimensions.Add('EndTime', Format(BCPTLogEntry."End Time"));
