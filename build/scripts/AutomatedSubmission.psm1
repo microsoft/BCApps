@@ -124,7 +124,7 @@ function New-GitHubPullRequest
         Write-Host "Pull request already exists for branch $BranchName"
         return
     }
-    
+
     $params = @(
         "--head '$($BranchName)'",
         "--base '$($TargetBranch)'",
