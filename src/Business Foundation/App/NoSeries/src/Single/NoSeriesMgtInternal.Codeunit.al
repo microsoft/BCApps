@@ -22,7 +22,7 @@ codeunit 282 NoSeriesMgtInternal
 
     var
         LastWarningNoSeriesCode: Code[20];
-        Text007Err: Label 'You cannot assign numbers greater than %1 from the number series %2.', Comment = '%1=Last No.,%2=No. Series Code';
+        CannotAssignNumbersGreaterThanErr: Label 'You cannot assign numbers greater than %1 from the number series %2.', Comment = '%1=Last No.,%2=No. Series Code';
 
     procedure EnsureLastNoUsedIsWithinValidRange(NoSeriesLine: Record "No. Series Line"; NoErrorsOrWarnings: Boolean): Boolean
     begin
@@ -30,7 +30,7 @@ codeunit 282 NoSeriesMgtInternal
             if NoErrorsOrWarnings then
                 exit(false);
             Error(
-              Text007Err,
+              CannotAssignNumbersGreaterThanErr,
               NoSeriesLine."Ending No.", NoSeriesLine."Series Code");
         end;
 
@@ -44,7 +44,7 @@ codeunit 282 NoSeriesMgtInternal
                 exit(false);
             LastWarningNoSeriesCode := NoSeriesLine."Series Code";
             Message(
-              Text007Err,
+              CannotAssignNumbersGreaterThanErr,
               NoSeriesLine."Ending No.", NoSeriesLine."Series Code");
         end;
         exit(true);
