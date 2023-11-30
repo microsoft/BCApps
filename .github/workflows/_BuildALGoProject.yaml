@@ -130,7 +130,7 @@ jobs:
 
         - name: Run pipeline
           id: RunPipeline
-          uses: microsoft/AL-Go-Actions/RunPipeline@v4.0
+          uses: microsoft/AL-Go/Actions/RunPipeline@aholstrup/bccontainerhelper_dll
           env:
             Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
             BuildMode: ${{ inputs.buildMode }}
