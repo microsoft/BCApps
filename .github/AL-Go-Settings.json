@@ -3,6 +3,7 @@
     "templateUrl":  "https://github.com/microsoft/AL-Go-PTE@preview",
     "bcContainerHelperVersion":  "preview",
     "runs-on":  "windows-latest",
+    "shell": "pwsh",
     "cacheImageName":  "",
     "UsePsSession":  false,
     "artifact":  "bcinsider//24.0.14293.0/base",
