@@ -1,15 +1,15 @@
 param(
     [Parameter(Mandatory = $true)]
-    [string] $ModulesDirectory
+    [string] $AppFolder
 )
 
 Set-StrictMode -Version Latest
-Write-Host "Verifying execute permissions on all objects in $ModulesDirectory"
+Write-Host "Verifying execute permissions on all objects in $AppFolder"
 
 $includefilter = @('*.Table.al', '*.Report.al', '*.Codeunit.al', '*.Page.al', '*.XMlPort.al', '*.Query.al')
 $AlObjects = @{}
 
-foreach ($file in (Get-ChildItem -Path $ModulesDirectory -Recurse -File -Filter *.al -Include $includefilter)) {
+foreach ($file in (Get-ChildItem -Path $AppFolder -Recurse -File -Filter *.al -Include $includefilter)) {
     $type = $file.BaseName.Split('.', 2)[1]
     $content = (Get-Content -Path $file.FullName) | Where-Object -FilterScript { $_ -notmatch '^\s*//' } # filter out comment lines
     $ObjectName = ($content -match "^$($type)\s\d*\s").Split(" ", 3)[2]
@@ -37,7 +37,7 @@ foreach ($file in (Get-ChildItem -Path $ModulesDirectory -Recurse -File -Filter 
     # check if inherent execute entitlements exist on object level
     $InherentDefined = ($content -match '(\s)InherentEntitlements.+X')
 
-    if (!($ObsoleteRemoved) -AND !($InherentDefined)) {
+    if (!($ObsoleteRemoved) -and !($InherentDefined)) {
 
         if ($AlObjects.ContainsKey($type)) {
             [System.Collections.ArrayList] $AlObjects.$type += , $ObjectName
@@ -50,7 +50,7 @@ foreach ($file in (Get-ChildItem -Path $ModulesDirectory -Recurse -File -Filter 
 
 # find all permissions (= X)
 $includePermissionsets = @('*.permissionset.al')
-foreach ($file in (Get-ChildItem -Path $ModulesDirectory -Recurse -File -Filter *.al -Include $includePermissionsets)) {
+foreach ($file in (Get-ChildItem -Path $AppFolder -Recurse -File -Filter *.al -Include $includePermissionsets)) {
     $content = Get-Content -Path $file.FullName
     $permissions = $content -match " = X"
 
