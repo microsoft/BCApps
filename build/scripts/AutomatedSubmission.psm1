@@ -1,3 +1,5 @@
+using module .\GitHub\GitHubPullRequest.class.psm1
+
 <#
 .Synopsis
     Set the git config for the current actor
@@ -118,11 +120,8 @@ function New-GitHubPullRequest
         [string] $PullRequestDescription
     )
 
-    $openPullRequests = gh api "/repos/$Repository/pulls" --method GET -f state=open | ConvertFrom-Json
-    $existingPullRequest = $openPullRequests | Where-Object {$_.head.ref -eq $BranchName} | Select-Object -First 1
-
-    if ($existingPullRequest) {
-        Write-Host "Pull request already exists for branch ($BranchName): $($existingPullRequest.html_url)"
+    if ([GitHubPullRequest]::GetFromBranch($BranchName, $Repository)) {
+        Write-Host "Pull request already exists for branch $BranchName"
         return
     }
     
