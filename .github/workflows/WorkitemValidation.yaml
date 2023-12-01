@@ -14,7 +14,8 @@ defaults:
     shell: pwsh
 
 jobs:
-  WorkItemValidation:
+  GitHubIssueValidation:
+    name: 'Validate link to issues'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,6 +26,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           build/scripts/PullRequestValidation/ValidateIssuesForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
+  
+  WorkItemValidationForMicrosoft:
+    name: 'For Microsoft: Validate link to internal work items' 
+    runs-on: ubuntu-latest
+    needs: GitHubIssueValidation
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Link work items to pull request if possible
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          build/scripts/PullRequestValidation/LinkPullRequestToWorkItem.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
+
+      - name: Validate internal work items for pull request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          build/scripts/PullRequestValidation/ValidateInternalWorkItemForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
 
       - name: Add milestone to PR
         env:
