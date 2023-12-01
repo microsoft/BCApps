@@ -22,7 +22,7 @@ page 1992 "Checklist Administration"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             field(Type; Rec."Guided Experience Type")
             {

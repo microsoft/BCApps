@@ -29,12 +29,12 @@ table 3903 "Retention Policy Allowed Table"
             MaxValue = 365000; // ~1000 years
         }
 #pragma warning disable AL0771 // The name has a trainling space.
-        field(20; "Reten. Pol. Filtering "; enum "Reten. Pol. Filtering")
+        field(20; "Reten. Pol. Filtering "; Enum "Reten. Pol. Filtering")
 #pragma warning restore AL0771
         {
             DataClassification = SystemMetadata;
         }
-        field(30; "Reten. Pol. Deleting"; enum "Reten. Pol. Deleting")
+        field(30; "Reten. Pol. Deleting"; Enum "Reten. Pol. Deleting")
         {
             DataClassification = SystemMetadata;
         }

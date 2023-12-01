@@ -18,7 +18,7 @@ page 9865 "Permission Lookup List"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -32,9 +32,6 @@ page 9865 "Permission Lookup List"
         }
     }
 
-    actions
-    {
-    }
 
     trigger OnOpenPage()
     var

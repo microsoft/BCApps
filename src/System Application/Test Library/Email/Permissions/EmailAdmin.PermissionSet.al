@@ -14,6 +14,6 @@ permissionset 134687 "Email Admin"
 
     // Include Test Tables
     Permissions =
-        tabledata "Test Email Connector Setup" = RIMD,
-        tabledata "Test Email Account" = RIMD;
+        tabledata "Test Email Account" = RIMD,
+        tabledata "Test Email Connector Setup" = RIMD;
 }

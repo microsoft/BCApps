@@ -46,7 +46,7 @@ query 8890 "Email Related Record"
 
     procedure GetEmailMessageIdFilters(MaxIdsPerFilter: Integer): List of [Text]
     var
-        // using a dictionary here as there is no "Set" AL type 
+        // using a dictionary here as there is no "Set" AL type
         EmailMessageIds: Dictionary of [Guid, Boolean];
         EmailMessageIdsFilters: List of [Text];
         FilterTextBuilder: TextBuilder;

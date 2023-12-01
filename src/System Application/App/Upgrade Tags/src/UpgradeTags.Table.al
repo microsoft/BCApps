@@ -47,8 +47,5 @@ table 9999 "Upgrade Tags"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

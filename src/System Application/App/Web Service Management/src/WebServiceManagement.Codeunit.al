@@ -60,7 +60,7 @@ codeunit 9750 "Web Service Management"
     /// <param name="TenantWebServiceColumns">Record that the columns from temporary records are inserted to.</param>
     /// <param name="TempTenantWebServiceColumns">Temporary record that the columns are inserted from.</param>
     /// <param name="TenantWebServiceRecordId">The ID of the Tenant Web Service corresponding to columns.</param>
-    procedure CreateTenantWebServiceColumnsFromTemp(var TenantWebServiceColumns: Record "Tenant Web Service Columns"; var TempTenantWebServiceColumns: Record "Tenant Web Service Columns" temporary; TenantWebServiceRecordId: RecordID)
+    procedure CreateTenantWebServiceColumnsFromTemp(var TenantWebServiceColumns: Record "Tenant Web Service Columns"; var TempTenantWebServiceColumns: Record "Tenant Web Service Columns" temporary; TenantWebServiceRecordId: RecordId)
     begin
         WebServiceManagementImpl.CreateTenantWebServiceColumnsFromTemp(TenantWebServiceColumns, TempTenantWebServiceColumns, TenantWebServiceRecordId);
     end;
@@ -71,7 +71,7 @@ codeunit 9750 "Web Service Management"
     /// <param name="TenantWebServiceFilter">Record that the filter from record reference is inserted to.</param>
     /// <param name="RecordRef">Record reference that the filter is inserted from.</param>
     /// <param name="TenantWebServiceRecordId">The ID of the Tenant Web Service corresponding to the filter.</param>
-    procedure CreateTenantWebServiceFilterFromRecordRef(var TenantWebServiceFilter: Record "Tenant Web Service Filter"; var RecordRef: RecordRef; TenantWebServiceRecordId: RecordID)
+    procedure CreateTenantWebServiceFilterFromRecordRef(var TenantWebServiceFilter: Record "Tenant Web Service Filter"; var RecordRef: RecordRef; TenantWebServiceRecordId: RecordId)
     begin
         WebServiceManagementImpl.CreateTenantWebServiceFilterFromRecordRef(TenantWebServiceFilter, RecordRef, TenantWebServiceRecordId);
     end;
@@ -201,7 +201,7 @@ codeunit 9750 "Web Service Management"
     /// <param name="FieldNumber">The field number of the tenant web service column.</param>
     /// <param name="DataItem">The data item of the tenant web service column.</param>
     [Scope('OnPrem')]
-    procedure CreateTenantWebServiceColumnForPage(TenantWebServiceRecordId: RecordID; FieldNumber: Integer; DataItem: Integer)
+    procedure CreateTenantWebServiceColumnForPage(TenantWebServiceRecordId: RecordId; FieldNumber: Integer; DataItem: Integer)
     begin
         WebServiceManagementImpl.CreateTenantWebServiceColumnForPage(TenantWebServiceRecordId, FieldNumber, DataItem);
     end;
@@ -214,7 +214,7 @@ codeunit 9750 "Web Service Management"
     /// <param name="DataItem">The data item of the tenant web service column.</param>
     /// <param name="MetaData">Metadata used to convert field name.</param>
     [Scope('OnPrem')]
-    procedure CreateTenantWebServiceColumnForQuery(TenantWebServiceRecordId: RecordID; FieldNumber: Integer; DataItem: Integer; MetaData: DotNet QueryMetadataReader)
+    procedure CreateTenantWebServiceColumnForQuery(TenantWebServiceRecordId: RecordId; FieldNumber: Integer; DataItem: Integer; MetaData: DotNet QueryMetadataReader)
     begin
         WebServiceManagementImpl.CreateTenantWebServiceColumnForQuery(TenantWebServiceRecordId, FieldNumber, DataItem, MetaData);
     end;
@@ -231,7 +231,7 @@ codeunit 9750 "Web Service Management"
         WebServiceManagementImpl.InsertSelectedColumns(TenantWebService, ColumnDictionary, TargetTenantWebServiceColumns, DataItem);
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Removes filters that are not in the selected columns for the given service.
     /// </summary>
     /// <param name="TenantWebService">The tenant web service corresponding to columns.</param>
@@ -243,7 +243,7 @@ codeunit 9750 "Web Service Management"
         exit(WebServiceManagementImpl.RemoveUnselectedColumnsFromFilter(TenantWebService, DataItem, DataItemView));
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Checks if given service name is valid.
     /// </summary>
     /// <param name="Value">The service name to be checked.</param>
@@ -253,7 +253,7 @@ codeunit 9750 "Web Service Management"
         exit(WebServiceManagementImpl.IsServiceNameValid(Value));
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Deletes a webservice.
     /// </summary>
     /// <param name="WebServiceAggregate">The record to be deleted.</param>

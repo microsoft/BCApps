@@ -14,13 +14,13 @@ page 9065 "Plan Configurations Part"
     Editable = false;
     PageType = ListPart;
     SourceTable = "Plan Configuration";
-    CardPageID = "Plan Configuration Card";
+    CardPageId = "Plan Configuration Card";
     Permissions = tabledata "Plan Configuration" = r;
     Extensible = false;
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {

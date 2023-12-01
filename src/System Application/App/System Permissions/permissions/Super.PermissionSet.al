@@ -5,13 +5,13 @@
 
 namespace System.Security.AccessControl;
 
-permissionset 31 "SUPER"
+permissionset 31 SUPER
 {
     Access = Public;
     Assignable = true;
     Caption = 'This role has all permissions.';
 
     IncludedPermissionSets = "Application Objects - Exec",
-                             "Super (Data)",
+                             "SUPER (DATA)",
                              "System Objects - Exec";
 }

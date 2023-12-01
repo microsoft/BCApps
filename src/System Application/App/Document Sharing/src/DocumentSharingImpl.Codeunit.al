@@ -167,7 +167,7 @@ codeunit 9561 "Document Sharing Impl."
         exit(CanHandle);
     end;
 
-    procedure Share(FileName: Text; FileExtension: Text; InStream: Instream; DocumentSharingIntent: Enum "Document Sharing Intent"; DocumentSharingSource: Enum "Document Sharing Source")
+    procedure Share(FileName: Text; FileExtension: Text; InStream: InStream; DocumentSharingIntent: Enum "Document Sharing Intent"; DocumentSharingSource: Enum "Document Sharing Source")
     var
         TempDocumentSharing: Record "Document Sharing" temporary;
         OutStream: OutStream;

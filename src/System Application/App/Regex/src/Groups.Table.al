@@ -62,7 +62,7 @@ table 3964 Groups
     }
 
     /// <summary>
-    /// Reads the value of the group 
+    /// Reads the value of the group
     /// </summary>
     /// <returns>The value of the group.</returns>
     procedure ReadValue() TextValue: Text

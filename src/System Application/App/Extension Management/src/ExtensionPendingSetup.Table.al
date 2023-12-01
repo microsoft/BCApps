@@ -41,7 +41,4 @@ table 2509 "Extension Pending Setup"
         }
     }
 
-    fieldgroups
-    {
-    }
 }

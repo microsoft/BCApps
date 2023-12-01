@@ -63,9 +63,6 @@ table 3712 Translation
         }
     }
 
-    fieldgroups
-    {
-    }
 
     trigger OnInsert()
     begin

@@ -45,7 +45,7 @@ page 3900 "Retention Periods"
                 field("Ret. Period Calculation"; Rec."Ret. Period Calculation")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the date formula used to calculate the expiration date for the retention period.';
+                    ToolTip = 'Specifies the date formula used to calculate the expiration date for the retention period.';
                     Editable = Rec."Retention Period" = Rec."Retention Period"::Custom;
                     ShowMandatory = Rec."Retention Period" = Rec."Retention Period"::Custom;
 
@@ -59,7 +59,7 @@ page 3900 "Retention Periods"
                 {
                     ApplicationArea = All;
                     Caption = 'Expiration Date';
-                    Tooltip = 'Specifies the expiration date. Records created on or before this date will be deleted.';
+                    ToolTip = 'Specifies the expiration date. Records created on or before this date will be deleted.';
                     Editable = false;
                 }
             }

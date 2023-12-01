@@ -41,7 +41,7 @@ table 6711 "Tenant Web Service Columns"
             DataClassification = SystemMetadata;
             Caption = 'Report Caption';
         }
-        field(5; TenantWebServiceID; RecordID)
+        field(5; TenantWebServiceID; RecordId)
         {
             Caption = 'Tenant Web Service ID';
             DataClassification = CustomerContent;
@@ -75,8 +75,5 @@ table 6711 "Tenant Web Service Columns"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

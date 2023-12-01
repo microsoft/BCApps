@@ -52,7 +52,7 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings.Capability := CopilotCapability;
         CopilotSettings."App Id" := CallerModuleInfo.Id();
         CopilotSettings.Publisher := CopyStr(CallerModuleInfo.Publisher, 1, MaxStrLen(CopilotSettings.Publisher));
-        CopilotSettings."Availability" := CopilotAvailability;
+        CopilotSettings.Availability := CopilotAvailability;
         CopilotSettings."Learn More Url" := LearnMoreUrl;
         CopilotSettings.Status := Enum::"Copilot Status"::Active;
         CopilotSettings.Insert();
@@ -73,10 +73,10 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
         CopilotSettings.Get(CopilotCapability, CallerModuleInfo.Id());
 
-        if CopilotSettings."Availability" <> CopilotAvailability then
+        if CopilotSettings.Availability <> CopilotAvailability then
             CopilotSettings.Status := Enum::"Copilot Status"::Active;
 
-        CopilotSettings."Availability" := CopilotAvailability;
+        CopilotSettings.Availability := CopilotAvailability;
         CopilotSettings."Learn More Url" := LearnMoreUrl;
         CopilotSettings.Modify(true);
         Commit();
@@ -128,7 +128,7 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings: Record "Copilot Settings";
     begin
         CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
-        CopilotSettings.SetLoadFields("Status");
+        CopilotSettings.SetLoadFields(Status);
         if not CopilotSettings.Get(CopilotCapability, AppId) then
             exit(false);
 

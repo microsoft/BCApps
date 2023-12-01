@@ -12,8 +12,8 @@ codeunit 9992 "Upgrade Tag - Tags"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = TableData Company = r,
-                  TableData "Upgrade Tags" = rimd;
+    Permissions = tabledata Company = r,
+                  tabledata "Upgrade Tags" = rimd;
 
     procedure SetInitializedTagIfNotRegistered(): Text
     var

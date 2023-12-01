@@ -30,7 +30,7 @@ page 3903 "Retention Policy Setup List"
             repeater(GroupName)
             {
 
-                field("Table ID"; Rec."Table ID")
+                field("Table ID"; Rec."Table Id")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the ID of the table to which the retention policy applies.';
@@ -63,10 +63,7 @@ page 3903 "Retention Policy Setup List"
                 }
             }
         }
-        area(Factboxes)
-        {
 
-        }
     }
 
     actions
@@ -82,8 +79,8 @@ page 3903 "Retention Policy Setup List"
                 PromotedCategory = Category4;
 
                 Image = CalendarMachine;
-                Tooltip = 'Set up retention periods.';
-                RunObject = Page "Retention Periods";
+                ToolTip = 'Set up retention periods.';
+                RunObject = page "Retention Periods";
             }
             action(RetentionPolicyLog)
             {
@@ -94,8 +91,8 @@ page 3903 "Retention Policy Setup List"
                 PromotedCategory = Category4;
 
                 Image = Log;
-                Tooltip = 'View activity related to retention policies.';
-                RunObject = Page "Retention Policy Log Entries";
+                ToolTip = 'View activity related to retention policies.';
+                RunObject = page "Retention Policy Log Entries";
             }
         }
         area(Processing)

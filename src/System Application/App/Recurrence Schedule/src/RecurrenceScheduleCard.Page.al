@@ -15,7 +15,7 @@ page 4690 "Recurrence Schedule Card"
     InherentEntitlements = X;
     InherentPermissions = X;
     Extensible = false;
-    DataCaptionExpression = FORMAT(Rec.Pattern);
+    DataCaptionExpression = Format(Rec.Pattern);
     InsertAllowed = false;
     LinksAllowed = false;
     PageType = Card;
@@ -25,7 +25,7 @@ page 4690 "Recurrence Schedule Card"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(General)
             {
@@ -70,7 +70,7 @@ page 4690 "Recurrence Schedule Card"
             group(Daily)
             {
                 Caption = 'Daily';
-                Visible = Rec."Pattern" = RecurrencePatterns::Daily;
+                Visible = Rec.Pattern = RecurrencePatterns::Daily;
                 field(DailyFrequency; Rec."Recurs Every")
                 {
                     ApplicationArea = All;
@@ -82,7 +82,7 @@ page 4690 "Recurrence Schedule Card"
             group(Weekly)
             {
                 Caption = 'Weekly';
-                Visible = Rec."Pattern" = Rec."Pattern"::Weekly;
+                Visible = Rec.Pattern = Rec.Pattern::Weekly;
                 field(WeeklyFrequency; Rec."Recurs Every")
                 {
                     ApplicationArea = All;
@@ -136,7 +136,7 @@ page 4690 "Recurrence Schedule Card"
             group(Monthly)
             {
                 Caption = 'Monthly';
-                Visible = Rec."Pattern" = RecurrencePatterns::Monthly;
+                Visible = Rec.Pattern = RecurrencePatterns::Monthly;
                 field(MonthlyFrequency; Rec."Recurs Every")
                 {
                     ApplicationArea = All;
@@ -184,7 +184,7 @@ page 4690 "Recurrence Schedule Card"
             group(Yearly)
             {
                 Caption = 'Yearly';
-                Visible = Rec."Pattern" = RecurrencePatterns::Yearly;
+                Visible = Rec.Pattern = RecurrencePatterns::Yearly;
                 field(YearlyFrequency; Rec."Recurs Every")
                 {
                     ApplicationArea = All;
@@ -240,13 +240,13 @@ page 4690 "Recurrence Schedule Card"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action("Daily Recurrence")
             {
                 ApplicationArea = All;
                 Caption = 'Daily';
-                Enabled = Rec."Pattern" <> RecurrencePatterns::Daily;
+                Enabled = Rec.Pattern <> RecurrencePatterns::Daily;
                 Image = DueDate;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -263,7 +263,7 @@ page 4690 "Recurrence Schedule Card"
             {
                 ApplicationArea = All;
                 Caption = 'Weekly';
-                Enabled = Rec."Pattern" <> RecurrencePatterns::Weekly;
+                Enabled = Rec.Pattern <> RecurrencePatterns::Weekly;
                 Image = Workdays;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -280,7 +280,7 @@ page 4690 "Recurrence Schedule Card"
             {
                 ApplicationArea = All;
                 Caption = 'Monthly';
-                Enabled = Rec."Pattern" <> RecurrencePatterns::Monthly;
+                Enabled = Rec.Pattern <> RecurrencePatterns::Monthly;
                 Image = Workdays;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -297,7 +297,7 @@ page 4690 "Recurrence Schedule Card"
             {
                 ApplicationArea = All;
                 Caption = 'Yearly';
-                Enabled = Rec."Pattern" <> RecurrencePatterns::Yearly;
+                Enabled = Rec.Pattern <> RecurrencePatterns::Yearly;
                 Image = Period;
                 Promoted = true;
                 PromotedCategory = Process;

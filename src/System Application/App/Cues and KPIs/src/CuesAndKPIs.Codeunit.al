@@ -51,7 +51,7 @@ codeunit 9701 "Cues And KPIs"
     /// <param name="FieldID">The ID of the field for which the style is wanted.</param>
     /// <param name="Amount">The amount for which the style will be calculated based on the threshold values of the setup.</param>
     /// <param name="FinalStyle">The amount for which the style will be calculated based on the threshold values of the setup</param>
-    procedure SetCueStyle(TableID: Integer; FieldID: Integer; Amount: Decimal; var FinalStyle: enum "Cues And KPIs Style")
+    procedure SetCueStyle(TableID: Integer; FieldID: Integer; Amount: Decimal; var FinalStyle: Enum "Cues And KPIs Style")
     begin
         CuesAndKPIsImpl.SetCueStyle(TableID, FieldID, Amount, FinalStyle);
     end;
@@ -74,7 +74,7 @@ codeunit 9701 "Cues And KPIs"
     /// <seealso cref="OnConvertStyleToStyleText"/>
     /// <param name="CueStyle">A Cues And KPIs Style enum from which the style text will be converted.</param>
     /// <returns>The converted style</returns>
-    procedure ConvertStyleToStyleText(CueStyle: enum "Cues And KPIs Style"): Text
+    procedure ConvertStyleToStyleText(CueStyle: Enum "Cues And KPIs Style"): Text
     begin
         exit(CuesAndKPIsImpl.ConvertStyleToStyleText(CueStyle));
     end;

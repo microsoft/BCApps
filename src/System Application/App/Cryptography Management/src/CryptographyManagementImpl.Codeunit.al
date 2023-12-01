@@ -36,7 +36,7 @@ codeunit 1279 "Cryptography Management Impl."
         AssertEncryptionPossible();
         if InputString = '' then
             exit('');
-        exit(SYSTEM.Encrypt(InputString));
+        exit(System.Encrypt(InputString));
     end;
 
     procedure Decrypt(EncryptedString: Text): Text
@@ -44,7 +44,7 @@ codeunit 1279 "Cryptography Management Impl."
         AssertEncryptionPossible();
         if EncryptedString = '' then
             exit('');
-        exit(SYSTEM.Decrypt(EncryptedString))
+        exit(System.Decrypt(EncryptedString))
     end;
 
     procedure ExportKey()
@@ -85,7 +85,7 @@ codeunit 1279 "Cryptography Management Impl."
         CopyStream(TempOutStream, FileInStream);
 
         FileObj.Close();
-        FILE.Erase(ServerFilename);
+        File.Erase(ServerFilename);
     end;
 
     local procedure DownloadEncryptionFileFromStream(TempBlob: Codeunit "Temp Blob")
@@ -117,7 +117,7 @@ codeunit 1279 "Cryptography Management Impl."
         if Password <> '' then
             ImportKeyAndConfirm(TempKeyFilePath, Password);
 
-        FILE.Erase(TempKeyFilePath);
+        File.Erase(TempKeyFilePath);
     end;
 
     procedure ChangeKey()
@@ -143,7 +143,7 @@ codeunit 1279 "Cryptography Management Impl."
             ImportKeyAndConfirm(TempKeyFilePath, Password);
         end;
 
-        FILE.Erase(TempKeyFilePath);
+        File.Erase(TempKeyFilePath);
     end;
 
     procedure EnableEncryption(Silent: Boolean)

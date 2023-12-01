@@ -9,7 +9,7 @@ using System.Environment;
 using System.Reflection;
 
 /// <summary>
-/// Provides basic functionality for user settings. 
+/// Provides basic functionality for user settings.
 /// </summary>
 codeunit 9176 "User Settings"
 {

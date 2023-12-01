@@ -70,7 +70,7 @@ codeunit 1492 "Edit in Excel Fld Filter Impl." implements "Edit in Excel Field F
         ExcelFilterNodeType := "Excel Filter Node Type".FromInteger(EditInExcelFilterType.AsInteger()); // Convert from readable "Less Than" to OData "lt"
         FilterBinaryNode := FilterBinaryNode.FilterBinaryNode();
         FilterBinaryNode.Left := FilterLeftOperand;
-        FilterBinaryNode.Operator := format(ExcelFilterNodeType);
+        FilterBinaryNode.Operator := Format(ExcelFilterNodeType);
         FilterBinaryNode.Right := FilterValue;
 
         FilterCollectionNode.Collection.Add(FilterBinaryNode);
