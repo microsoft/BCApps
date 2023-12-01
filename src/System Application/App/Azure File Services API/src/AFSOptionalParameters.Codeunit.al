@@ -11,6 +11,8 @@ namespace System.Azure.Storage.Files;
 codeunit 8956 "AFS Optional Parameters"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         AFSFormatHelper: Codeunit "AFS Format Helper";

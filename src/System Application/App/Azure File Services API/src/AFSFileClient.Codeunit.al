@@ -13,6 +13,8 @@ using System.Azure.Storage;
 codeunit 8950 "AFS File Client"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         AFSFileClientImpl: Codeunit "AFS File Client Impl.";

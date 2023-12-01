@@ -11,6 +11,8 @@ namespace System.Azure.Storage.Files;
 codeunit 8959 "AFS Operation Response"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>
     /// Checks whether the operation was successful.
