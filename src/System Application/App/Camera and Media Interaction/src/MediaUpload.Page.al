@@ -128,7 +128,7 @@ page 1909 "Media Upload"
         MediaUploadPageImpl.GetMedia(InStream);
     end;
 
-    trigger CameraProvider::PictureAvailable"(FileName: Text; FilePath: Text)
+    trigger CameraProvider::PictureAvailable(FileName: Text; FilePath: Text)
     begin
         MediaUploadPageImpl.MediaInteractionOnPictureAvailable(FilePath);
         CurrPage.Close();

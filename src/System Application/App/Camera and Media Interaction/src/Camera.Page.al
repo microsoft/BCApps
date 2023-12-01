@@ -141,7 +141,7 @@ page 1908 Camera
         CameraPageImpl.GetPicture(InStream);
     end;
 
-    trigger CameraProvider::PictureAvailable"(PictureName: Text; PictureFilePath: Text)
+    trigger CameraProvider::PictureAvailable(PictureName: Text; PictureFilePath: Text)
     begin
         CameraPageImpl.CameraInteractionOnPictureAvailable(PictureFilePath);
         CurrPage.Close();

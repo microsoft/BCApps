@@ -378,7 +378,7 @@ page 1990 "Checklist Banner"
             ChecklistImplementation.SetChecklistVisibility(UserId(), false);
     end;
 
-    trigger Tour::TourEnded"(PageId: Integer; Completed: Boolean; Data: Text)
+    trigger Tour::TourEnded(PageId: Integer; Completed: Boolean; Data: Text)
     var
         ChecklistItemCode: Code[300];
     begin
@@ -387,7 +387,7 @@ page 1990 "Checklist Banner"
         ChecklistItemCode := 'dummy value'; // this line is here because of bug 409754
     end;
 
-    trigger Tour::SpotlightTourEnded"(PageId: Integer; SpotlightTour: DotNet SpotlightTour; Completed: Boolean; Data: Text)
+    trigger Tour::SpotlightTourEnded(PageId: Integer; SpotlightTour: DotNet SpotlightTour; Completed: Boolean; Data: Text)
     var
         ChecklistItemCode: Code[300];
     begin
