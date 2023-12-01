@@ -7,8 +7,6 @@ namespace System.IO;
 
 dotnet
 {
-
-
     assembly("netstandard")
     {
         type("System.IO.Compression.ZipArchive"; "ZipArchive")
