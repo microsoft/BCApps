@@ -142,7 +142,7 @@ codeunit 9802 "Log Activity Permissions"
     begin
     end;
 
-    trigger EventReceiver::"EventReceiver::OnPermissionCheckEvent"(sender: Variant; e: DotNet PermissionCheckEventArgs)
+    trigger EventReceiver::OnPermissionCheckEvent"(sender: Variant; e: DotNet PermissionCheckEventArgs)
     begin
         case e.EventId of
             801:

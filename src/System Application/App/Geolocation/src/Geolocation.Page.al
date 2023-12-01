@@ -60,7 +60,7 @@ page 7568 Geolocation
         GeolocationImpl.LocationInteractionOnOpenPage(LocationProvider, LocationAvailable);
     end;
 
-    trigger LocationProvider::"LocationProvider::LocationChanged"(NewLocation: DotNet Location)
+    trigger LocationProvider::LocationChanged"(NewLocation: DotNet Location)
     begin
         GeolocationImpl.LocationInteractionOnLocationAvailable(NewLocation);
         CurrPage.Close();
