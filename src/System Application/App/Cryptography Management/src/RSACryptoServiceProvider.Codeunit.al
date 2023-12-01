@@ -19,6 +19,15 @@ codeunit 1445 "RSACryptoServiceProvider"
         RSACryptoServiceProviderImpl: Codeunit "RSACryptoServiceProvider Impl.";
 
     /// <summary>
+    /// Initializes a new instance of RSACryptoServiceProvider with the specified key size and returns the key as an XML string. 
+    /// </summary>
+    /// <param name="KeySize">The size of the key in bits.</param>
+    procedure InitializeRSA(KeySize: Integer)
+    begin
+        RSACryptoServiceProviderImpl.InitializeRSA(KeySize);
+    end;
+
+    /// <summary>
     /// Creates and returns an XML string containing the key of the current RSA object.
     /// </summary>
     /// <param name="IncludePrivateParameters">true to include a public and private RSA key; false to include only the public key.</param>

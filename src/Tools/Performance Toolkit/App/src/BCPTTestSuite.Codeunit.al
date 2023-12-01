@@ -102,7 +102,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         BCPTHeader."Duration (minutes)" := DurationInMinutes;
@@ -113,7 +113,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         exit(BCPTHeader."Duration (minutes)");
@@ -123,7 +123,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         BCPTHeader."Default Min. User Delay (ms)" := DelayInMs;
@@ -134,7 +134,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         exit(BCPTHeader."Default Min. User Delay (ms)");
@@ -144,7 +144,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         BCPTHeader."Default Max. User Delay (ms)" := DelayInMs;
@@ -155,7 +155,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         exit(BCPTHeader."Default Max. User Delay (ms)");
@@ -165,7 +165,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         BCPTHeader."1 Day Corresponds to (minutes)" := DurationInMinutes;
@@ -176,7 +176,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         exit(BCPTHeader."1 Day Corresponds to (minutes)");
@@ -186,7 +186,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         BCPTHeader.Tag := Tag;
@@ -197,7 +197,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         exit(BCPTHeader.Tag);
