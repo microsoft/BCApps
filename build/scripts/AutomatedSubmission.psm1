@@ -83,14 +83,14 @@ function New-TopicBranchIfNeeded
         [string] $PullRequestTitle
     )
     $openPullRequests = gh api "/repos/$Repository/pulls" --method GET -f state=open | ConvertFrom-Json
-    
+
     $openPullRequests = $openPullRequests | Where-Object { $_.head.ref -match $Category }
     if ($PullRequestTitle) {
         $openPullRequests = $openPullRequests | Where-Object { $_.title -eq $PullRequestTitle }
     }
 
     $existingPullRequest = $openPullRequests | Select-Object -First 1
-    
+
     if ($existingPullRequest) {
         $BranchName = $existingPullRequest.head.ref
         git fetch origin $BranchName

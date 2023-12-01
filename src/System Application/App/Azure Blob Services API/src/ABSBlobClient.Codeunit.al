@@ -570,6 +570,18 @@ codeunit 9053 "ABS Blob Client"
     end;
 
     /// <summary>
+    /// The Find Blobs By Tags operation retrieves blobs based on user-defined tags for the specified blob, represented as one or more key-value pairs.
+    /// see: https://learn.microsoft.com/nl-nl/rest/api/storageservices/find-blobs-by-tags?tabs=azure-ad
+    /// </summary> 
+    /// <param name="SearchTags">A Dictionary of [Text, Text] with tags to search on.</param>   
+    /// <param name="FoundBlobs">An XmlDocument containing the results of the identified blobs.</param>    
+    /// <returns>An operation response object</returns>
+    procedure FindBlobsByTags(SearchTags: Dictionary of [Text, Text]; var FoundBlobs: XmlDocument): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.FindBlobsByTags(SearchTags, FoundBlobs));
+    end;
+
+    /// <summary>
     /// The Get Blob Tags operation gets user-defined tags for the specified blob as XmlDocument.
     /// see: https://go.microsoft.com/fwlink/?linkid=2211502
     /// </summary>

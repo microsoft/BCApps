@@ -135,7 +135,10 @@ page 9214 "User Personalization"
         UserSettingsImpl.HideUsersDependingOnPermissions(Rec);
         UserSettingsImpl.HideExternalUsers(Rec);
         CurrPage.Caption := UserSettingsTok;
+    end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
         TeachingTipsEnabled := UserSettingsImpl.TeachingTipsEnabled(Rec."User SID");
     end;
 
