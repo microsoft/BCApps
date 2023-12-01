@@ -21,5 +21,6 @@ permissionset 1994 "Guided Experience - Objects"
                   Page "Guided Experience Item List" = X,
                   Page "Manual Setup" = X,
                   Page Checklist = X,
-                  Page "App Setup List" = X;
+                  Page "App Setup List" = X,
+                  page "Guided Experience Item Cleanup" = X;
 }
