@@ -11,7 +11,7 @@ using System.Environment;
 codeunit 9702 "Cues And KPIs Impl."
 {
     Permissions = tabledata "Cue Setup" = rimd,
-tabledata Field = r;
+                  tabledata Field = r;
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;

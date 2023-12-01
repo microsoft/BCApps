@@ -19,7 +19,7 @@ permissionset 8906 "Email - Objects"
                   table "Email Scenario Attachments" = X,
                   table "Sent Email" = X,
                   codeunit Email = X,
-codeunit "Email Account" = X,
+                  codeunit "Email Account" = X,
                   codeunit "Email Address Lookup" = X,
                   codeunit "Email Dispatcher" = X,
                   codeunit "Email Message" = X,

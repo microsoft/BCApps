@@ -12,5 +12,5 @@ permissionset 9806 "Field Selection - Read"
     Assignable = false;
 
     Permissions = tabledata Field = r,
-tabledata "Page Data Personalization" = R;
+                  tabledata "Page Data Personalization" = R;
 }

@@ -13,7 +13,7 @@ codeunit 1598 "Email Logs Delete"
     InherentPermissions = X;
     InherentEntitlements = X;
     Permissions = tabledata "Email Outbox" = rd,
-tabledata "Sent Email" = rd;
+                  tabledata "Sent Email" = rd;
 
     var
         NoFiltersErr: Label 'No filters were set on table %1, %2. Please contact your Microsoft Partner for assistance.', Comment = '%1 = a id of a table (integer), %2 = the caption of the table.';

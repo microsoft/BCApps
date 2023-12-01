@@ -15,7 +15,7 @@ permissionset 2504 "Extension Management - Objects"
     IncludedPermissionSets = "Guided Experience - Objects";
 
     Permissions = table "Extension Installation" = X,
-codeunit "Data Out Of Geo. App" = X,
+                  codeunit "Data Out Of Geo. App" = X,
                   codeunit "Extension Management" = X,
                   codeunit "Extension Marketplace" = X,
                   page "Delete Orphaned Extension Data" = X,

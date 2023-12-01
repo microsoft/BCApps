@@ -11,5 +11,5 @@ permissionset 9010 "AAD User Management - Objects"
     Assignable = false;
 
     Permissions = page "Azure AD User Updates Part" = X,
-page "Azure AD User Update Wizard" = X;
+                  page "Azure AD User Update Wizard" = X;
 }

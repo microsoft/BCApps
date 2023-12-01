@@ -19,7 +19,7 @@ permissionset 8900 "Email - Read"
                              "Retention Policy - View";
 
     Permissions = tabledata "Email Attachments" = r,
-tabledata "Email Connector Logo" = r,
+                  tabledata "Email Connector Logo" = r,
                   tabledata "Email Error" = r,
                   tabledata "Email Message" = r,
                   tabledata "Email Message Attachment" = r,
@@ -31,7 +31,7 @@ tabledata "Email Connector Logo" = r,
                   tabledata "Email Scenario Attachments" = r,
                   tabledata "Email View Policy" = r,
                   tabledata Field = r,
-                  tabledata Media = r,
+                  tabledata Media = r, // Email Account Wizard requires this
                   tabledata "Media Resources" = r,
                   tabledata "Sent Email" = r,
                   tabledata "Tenant Media" = r,

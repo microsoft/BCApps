@@ -29,7 +29,7 @@ codeunit 2501 "Extension Marketplace"
 {
     Access = Internal;
     Permissions = tabledata "Extension Pending Setup" = rimd,
-tabledata "Published Application" = r;
+                  tabledata "Published Application" = r;
 
     var
         HttpWebRequest: DotNet HttpWebRequest;

@@ -19,7 +19,7 @@ codeunit 2916 "Page Action Provider Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata "All Profile" = r,
-tabledata "Page Action" = r,
+                  tabledata "Page Action" = r,
                   tabledata "User Personalization" = r;
 
     procedure GetCurrentRoleCenterHomeItems(IncludeViews: Boolean): Text

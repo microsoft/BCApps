@@ -13,7 +13,7 @@ permissionset 3906 "Retention Policy - Objects"
     Permissions = table "Retention Period" = X,
                   table "Retention Policy Setup" = X,
                   table "Retention Policy Setup Line" = X,
-codeunit "Apply Retention Policy" = X,
+                  codeunit "Apply Retention Policy" = X,
                   codeunit "Reten. Pol. Allowed Tables" = X,
                   codeunit "Retention Policy Log" = X,
                   codeunit "Retention Policy Setup" = X,

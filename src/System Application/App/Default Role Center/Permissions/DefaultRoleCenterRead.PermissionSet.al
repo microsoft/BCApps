@@ -13,5 +13,5 @@ permissionset 9171 "Default Role Center - Read"
     Assignable = false;
 
     Permissions = tabledata AllObjWithCaption = r,
-tabledata "All Profile" = r;
+                  tabledata "All Profile" = r;
 }

@@ -21,9 +21,9 @@ permissionset 1991 "Guided Experience - Read"
 
     Permissions = tabledata AllObj = r,
                   tabledata AllObjWithCaption = r,
-tabledata "All Profile" = r,
+                  tabledata "All Profile" = r,
                   tabledata "Checklist Item" = R,
-                  tabledata "Checklist Item Buffer" = r,
+                  tabledata "Checklist Item Buffer" = r, // needed for Checklist page to be searchable
                   tabledata "Checklist Item Role" = R,
                   tabledata "Checklist Item User" = R,
                   tabledata "Checklist Setup" = R,

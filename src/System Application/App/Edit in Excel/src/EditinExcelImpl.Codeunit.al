@@ -23,7 +23,7 @@ codeunit 1482 "Edit in Excel Impl."
     Permissions = tabledata "Tenant Web Service" = r,
                   tabledata "Tenant Web Service Columns" = rimd,
                   tabledata "Tenant Web Service Filter" = rimd,
-tabledata "Tenant Web Service OData" = rimd;
+                  tabledata "Tenant Web Service OData" = rimd;
 #endif
 
     var

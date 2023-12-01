@@ -13,6 +13,6 @@ permissionset 9022 "Security Groups - Admin"
     IncludedPermissionSets = "Security Groups - Read";
 
     Permissions = tabledata "Access Control" = imd,
-tabledata "Security Group" = imd,
+                  tabledata "Security Group" = imd,
                   tabledata User = md;
 }

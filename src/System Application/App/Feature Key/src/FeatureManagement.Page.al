@@ -24,7 +24,7 @@ page 2610 "Feature Management"
     LinksAllowed = false;
     Extensible = false;
     Permissions = tabledata "Feature Data Update Status" = r,
-tabledata "Feature Key" = rm;
+                  tabledata "Feature Key" = rm;
 
     layout
     {

@@ -14,7 +14,7 @@ codeunit 9171 "Default Role Center Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata AllObjWithCaption = r,
-tabledata "All Profile" = rm;
+                  tabledata "All Profile" = rm;
 
     // <summary>
     // Gets the default Role Center ID for the current user.

@@ -11,7 +11,7 @@ permissionset 1563 "Privacy Notice - Objects"
     Assignable = false;
 
     Permissions = table "Privacy Notice" = X,
-codeunit "Privacy Notice" = X,
+                  codeunit "Privacy Notice" = X,
                   page "Power Automate Privacy Notice" = X,
                   page "Privacy Notice" = X,
                   page "Privacy Notice Approvals" = X,

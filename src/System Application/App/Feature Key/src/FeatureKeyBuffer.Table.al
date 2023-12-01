@@ -17,7 +17,7 @@ table 2609 "Feature Key Buffer"
     InherentPermissions = X;
     Permissions = tabledata "Feature Data Update Status" = r,
                   tabledata "Feature Dependency" = r,
-tabledata "Feature Key" = rm;
+                  tabledata "Feature Key" = rm;
 
     fields
     {

@@ -15,7 +15,7 @@ codeunit 9871 "Security Group Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata "Security Group" = rimd,
-tabledata User = rimd,
+                  tabledata User = rimd,
                   tabledata "User Property" = rimd;
 
     var

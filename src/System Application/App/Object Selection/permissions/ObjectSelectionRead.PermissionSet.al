@@ -13,6 +13,6 @@ permissionset 358 "Object Selection - Read"
     Assignable = false;
 
     Permissions = tabledata AllObjWithCaption = r,
-tabledata "Page Data Personalization" = R,
+                  tabledata "Page Data Personalization" = R,
                   tabledata "Published Application" = r;
 }

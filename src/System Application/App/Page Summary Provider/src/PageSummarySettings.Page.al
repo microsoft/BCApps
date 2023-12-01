@@ -20,7 +20,7 @@ page 2718 "Page Summary Settings"
     Extensible = false;
     AccessByPermission = tabledata "Page Summary Settings" = M;
     Permissions = tabledata Media = r,
-tabledata "Media Resources" = r;
+                  tabledata "Media Resources" = r;
     UsageCategory = Administration;
 
     layout

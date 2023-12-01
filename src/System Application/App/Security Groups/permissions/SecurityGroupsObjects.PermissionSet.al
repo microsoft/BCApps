@@ -11,7 +11,7 @@ permissionset 9031 "Security Groups - Objects"
     Assignable = false;
 
     Permissions = table "Security Group" = X,
-codeunit "Security Group" = X,
+                  codeunit "Security Group" = X,
                   page "Copy Security Group" = X,
                   page "New Security Group" = X,
                   page "Sec. Group Permissions Part" = X,

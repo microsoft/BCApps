@@ -13,7 +13,7 @@ codeunit 1565 "Privacy Notice Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata Company = r,
-tabledata "Privacy Notice" = im;
+                  tabledata "Privacy Notice" = im;
 
     var
         EmptyGuid: Guid;

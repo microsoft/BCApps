@@ -17,7 +17,7 @@ permissionset 2502 "Exten. Mgt. - Admin"
                              "Guided Experience - View";
 
     Permissions = tabledata "Application Dependency" = Rimd,
-tabledata "Application Object Metadata" = Rimd,
+                  tabledata "Application Object Metadata" = Rimd, // r needed for check CanManageExtensions
                   tabledata "Application Resource" = Rimd,
                   tabledata "Extension Pending Setup" = rimd,
                   tabledata "Inplace Installed Application" = Rimd,
