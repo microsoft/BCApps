@@ -17,7 +17,8 @@ codeunit 132599 "Duplicated Guided Exp. Item"
     var
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
-        DummyGuidedExperienceCodeLbl: Label 'Dummy Guided Experience Code', Locked = true;
+        DummyGuidedExperienceCode1Lbl: Label 'Dummy Guided Experience Code 1', Locked = true;
+        DummyGuidedExperienceCode2Lbl: Label 'Dummy Guided Experience Code 2', Locked = true;
 
     [Test]
     procedure TestInsertDuplicatedGuidedExperienceItems()
@@ -60,16 +61,19 @@ codeunit 132599 "Duplicated Guided Exp. Item"
         // [GIVEN] Mock the situation where multiple version of the same Guided Experience Item exist
         Limit := 1000;
         for Counter := 1 to Limit do
-            InsertDuplicatedGuidedExperienceItems(DummyGuidedExperienceCodeLbl, Counter, 'Title');
+            InsertDuplicatedGuidedExperienceItems(DummyGuidedExperienceCode1Lbl, Counter, 'Title');
 
-        // [Then] 1000 Guided Experience Items should be inserted
-        Assert.AreEqual(Limit, GuidedExperienceItem.Count(), 'Dummy Guided Experience Items should be populated.');
+        for Counter := 1 to Limit do
+            InsertDuplicatedGuidedExperienceItems(DummyGuidedExperienceCode2Lbl, Counter, 'Title');
+
+        // [Then] 2000 Guided Experience Items should be inserted
+        Assert.AreEqual(Limit * 2, GuidedExperienceItem.Count(), 'Dummy Guided Experience Items should be populated.');
 
         // [WHEN] Clean up old Guided Experience Items
         GuidedExperience.CleanupOldGuidedExperienceItems(false, 100);
 
-        // [Then] Only 1 Guided Experience Items should be left
-        Assert.AreEqual(1, GuidedExperienceItem.Count(), 'The Guided Experience Item table should contain exactly 1 record after cleanup.');
+        // [Then] Only 2 Guided Experience Items should be left
+        Assert.AreEqual(2, GuidedExperienceItem.Count(), 'The Guided Experience Item table should contain exactly 1 record for each Code after cleanup.');
     end;
 
     [Test]
