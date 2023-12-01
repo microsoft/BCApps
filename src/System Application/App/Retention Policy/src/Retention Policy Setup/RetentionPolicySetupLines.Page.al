@@ -94,9 +94,6 @@ page 3902 "Retention Policy Setup Lines"
         }
     }
 
-    actions
-    {
-    }
 
     trigger OnNewRecord(BelowxRec: Boolean)
     var

@@ -154,7 +154,7 @@ codeunit 8889 "Email Account Impl."
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         ConnectorLogoDescriptionTxt: Label '%1 Logo', Locked = true;
-        OutStream: Outstream;
+        OutStream: OutStream;
         ConnectorLogoBase64: Text;
     begin
         ConnectorLogoBase64 := Connector.GetLogoAsBase64();
@@ -208,7 +208,7 @@ codeunit 8889 "Email Account Impl."
         Base64Convert: Codeunit "Base64 Convert";
         Connector: Enum "Email Connector";
         ConnectorInterface: Interface "Email Connector";
-        OutStream: Outstream;
+        OutStream: OutStream;
         ConnectorLogoBase64: Text;
     begin
         foreach Connector in Enum::"Email Connector".Ordinals() do begin
@@ -255,7 +255,7 @@ codeunit 8889 "Email Account Impl."
     local procedure ImportLogoBlob(var EmailAccount: Record "Email Account"; Connector: Interface "Email Connector")
     var
         Base64Convert: Codeunit "Base64 Convert";
-        OutStream: Outstream;
+        OutStream: OutStream;
         ConnectorLogoBase64: Text;
     begin
         ConnectorLogoBase64 := Connector.GetLogoAsBase64();

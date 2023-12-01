@@ -20,7 +20,7 @@ codeunit 4030 "Client Type Management"
 
     /// <summary>Gets the current type of the client being used by the caller, e.g. Phone, Web, Tablet etc.</summary>
     /// <remarks> Use the GetCurrentClientType wrapper method when you want to test a flow on a different type of client.</remarks>
-    /// <example>Example 
+    /// <example>Example
     /// <code>
     /// IF ClientTypeManagement.GetCurrentClientType IN [CLIENTTYPE::xxx, CLIENTTYPE::yyy] THEN
     /// </code>

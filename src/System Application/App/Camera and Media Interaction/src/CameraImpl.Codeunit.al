@@ -13,7 +13,7 @@ codeunit 1922 "Camera Impl."
 
     var
         Camera: Page Camera;
-        PictureFileNameTok: Label 'Picture_%1.jpeg', Comment = '%1 = String generated from current datetime to make sure file names are unique '; 
+        PictureFileNameTok: Label 'Picture_%1.jpeg', Comment = '%1 = String generated from current datetime to make sure file names are unique ';
 
     procedure GetPicture(Quality: Integer; PictureInStream: InStream; var PictureName: Text): Boolean
     var

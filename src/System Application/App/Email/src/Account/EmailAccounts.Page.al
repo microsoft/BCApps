@@ -114,7 +114,7 @@ page 8887 "Email Accounts"
             }
         }
 
-        area(factboxes)
+        area(FactBoxes)
         {
             part(Scenarios; "Email Scenarios FactBox")
             {
@@ -179,7 +179,7 @@ page 8887 "Email Accounts"
 
                 trigger OnAction()
                 var
-                    Email: Codeunit "Email";
+                    Email: Codeunit Email;
                     EmailMessage: Codeunit "Email Message";
                 begin
                     EmailMessage.Create('', '', '', true);

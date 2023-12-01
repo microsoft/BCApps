@@ -26,7 +26,7 @@ page 1480 "Excel Centralized Depl. Wizard"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(Done)
             {
@@ -50,7 +50,7 @@ page 1480 "Excel Centralized Depl. Wizard"
                 {
                     Caption = 'Business Central Excel add-in setup';
 
-                    group("IntroductionSubgroup")
+                    group(IntroductionSubgroup)
                     {
                         Caption = '';
 
@@ -170,7 +170,7 @@ page 1480 "Excel Centralized Depl. Wizard"
                     field(DeploymentType; Rec."Use Centralized deployments")
                     {
                         Caption = 'Use Centralized Deployment';
-                        Tooltip = 'Specifies the use of Centralized Deployment on this environment.';
+                        ToolTip = 'Specifies the use of Centralized Deployment on this environment.';
                         ApplicationArea = All;
                     }
                     field(LearnAboutConfiguringBcForCentralizedDeployment; LearnAboutConfiguringBcForCentralizedDeploymentLinkTxt)
@@ -190,7 +190,7 @@ page 1480 "Excel Centralized Depl. Wizard"
     }
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action(ActionBack)
             {

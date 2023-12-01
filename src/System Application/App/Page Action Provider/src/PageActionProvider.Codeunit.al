@@ -47,7 +47,7 @@ codeunit 2915 "Page Action Provider"
     ///       "url": "https://businesscentral.dynamics.com/?company=CRONUS%20International%20Ltd.&amp;page=103"
     ///     }
     ///  ]
-    /// 
+    ///
     /// In case of an error:
     /// {
     ///   "version":"1.0",

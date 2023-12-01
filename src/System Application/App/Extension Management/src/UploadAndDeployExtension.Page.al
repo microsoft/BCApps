@@ -20,7 +20,7 @@ page 2507 "Upload And Deploy Extension"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             label("Upload Extension")
             {
@@ -119,7 +119,7 @@ page 2507 "Upload And Deploy Extension"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action(Deploy)
             {

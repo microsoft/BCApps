@@ -15,7 +15,7 @@ page 8885 "Email Activities"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             cuegroup(OutboxCueContainer)
             {

@@ -29,7 +29,7 @@ page 9827 "Default Permission Set In Plan"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(PermissionSet)
             {

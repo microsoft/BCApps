@@ -24,7 +24,7 @@ page 3901 "Retention Policy Setup Card"
         {
             group(General)
             {
-                field(TableID; Rec."Table ID")
+                field(TableID; Rec."Table Id")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the ID of the table to which the retention policy applies.';
@@ -121,7 +121,7 @@ page 3901 "Retention Policy Setup Card"
             {
                 ApplicationArea = All;
                 Caption = 'Record Retention Policy', Comment = 'Record as in ''a record in a table''.';
-                SubPageLink = "Table ID" = field("Table ID");
+                SubPageLink = "Table ID" = field("Table Id");
                 Visible = not Rec."Apply to all records";
             }
         }
@@ -141,8 +141,8 @@ page 3901 "Retention Policy Setup Card"
                 PromotedCategory = Category4;
 
                 Image = CalendarMachine;
-                Tooltip = 'Set up retention periods.';
-                RunObject = Page "Retention Periods";
+                ToolTip = 'Set up retention periods.';
+                RunObject = page "Retention Periods";
             }
             action(RetentionPolicyLog)
             {
@@ -153,8 +153,8 @@ page 3901 "Retention Policy Setup Card"
                 PromotedCategory = Category4;
 
                 Image = Log;
-                Tooltip = 'View activity related to retention policies.';
-                RunObject = Page "Retention Policy Log Entries";
+                ToolTip = 'View activity related to retention policies.';
+                RunObject = page "Retention Policy Log Entries";
             }
         }
         area(Processing)

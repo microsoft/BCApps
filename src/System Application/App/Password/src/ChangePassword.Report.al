@@ -20,18 +20,6 @@ report 9810 "Change Password"
     {
     }
 
-    requestpage
-    {
-
-        layout
-        {
-        }
-
-        actions
-        {
-        }
-    }
-
     labels
     {
     }
@@ -49,7 +37,7 @@ report 9810 "Change Password"
 
         User.SetFilter("User Security ID", UserSecurityId());
         if User.IsEmpty() then
-            error(UserDoesNotExistErr, user.FieldCaption("User Security ID"), User."User Security ID");
+            error(UserDoesNotExistErr, User.FieldCaption("User Security ID"), User."User Security ID");
 
         if ChangeUserPassword(OldPassword, Password) then
             Message(PasswordUpdatedMsg);

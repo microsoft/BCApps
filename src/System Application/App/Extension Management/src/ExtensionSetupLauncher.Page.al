@@ -16,12 +16,6 @@ page 2512 "Extension Setup Launcher"
     ApplicationArea = All;
     Caption = 'Almost there...';
 
-    layout
-    {
-        area(content)
-        {
-        }
-    }
 
     trigger OnOpenPage()
     var

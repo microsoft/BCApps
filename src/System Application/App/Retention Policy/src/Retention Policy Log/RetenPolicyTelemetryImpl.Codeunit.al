@@ -143,7 +143,7 @@ codeunit 3912 "Reten. Policy Telemetry Impl."
 
         RetentionPolicySetup.SetRange(Enabled, true);
         Count := RetentionPolicySetup.Count();
-        if (Count = 1) and Rec.Enabled and (not xrec.Enabled) then begin
+        if (Count = 1) and Rec.Enabled and (not xRec.Enabled) then begin
             SendTelemetryOnFirstRetentionPolicyEnabled(Rec."Table Id", Rec."Table Name");
             exit;
         end;
@@ -176,7 +176,7 @@ codeunit 3912 "Reten. Policy Telemetry Impl."
             MessageType::Error:
                 exit(Verbosity::Error);
             MessageType::Info:
-                exit(verbosity::Normal);
+                exit(Verbosity::Normal);
             MessageType::Warning:
                 exit(Verbosity::Warning);
             else
@@ -248,7 +248,7 @@ codeunit 3912 "Reten. Policy Telemetry Impl."
         FilterTxt := RetentionPolicySetupImpl.GetTableFilterText(Rec);
         if (Rec.Enabled <> xRec.Enabled) or (Rec."Retention Period" <> xRec."Retention Period") or (FilterTxt <> RetentionPolicySetupImpl.GetTableFilterText(xRec)) then
             Session.LogSecurityAudit(RetentionPolicySetupLbl, SecurityOperationResult::Success,
-                StrSubstNo(RetentionPolicySetupLineValuesLbl, Rec.Enabled, Rec."Table Id", Rec."Retention Period", FilterTxt), AuditCategory::PolicyManagement);
+                StrSubstNo(RetentionPolicySetupLineValuesLbl, Rec.Enabled, Rec."Table ID", Rec."Retention Period", FilterTxt), AuditCategory::PolicyManagement);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Retention Policy Setup Line", OnAfterInsertEvent, '', false, false)]
@@ -257,7 +257,7 @@ codeunit 3912 "Reten. Policy Telemetry Impl."
         if Rec.IsTemporary then
             exit;
         Session.LogSecurityAudit(RetentionPolicySetupLbl, SecurityOperationResult::Success,
-            StrSubstNo(RetentionPolicySetupLineValuesLbl, Rec.Enabled, Rec."Table Id", Rec."Retention Period", Rec."Table Filter Text"),
+            StrSubstNo(RetentionPolicySetupLineValuesLbl, Rec.Enabled, Rec."Table ID", Rec."Retention Period", Rec."Table Filter Text"),
             AuditCategory::PolicyManagement);
     end;
 
@@ -267,7 +267,7 @@ codeunit 3912 "Reten. Policy Telemetry Impl."
         if Rec.IsTemporary then
             exit;
         Session.LogSecurityAudit(RetentionPolicySetupLbl, SecurityOperationResult::Success,
-            StrSubstNo(RetentionPolicySetupLineValuesLbl, EntryDeletedLbl, Rec."Table Id", Rec."Retention Period", Rec."Table Filter Text"),
+            StrSubstNo(RetentionPolicySetupLineValuesLbl, EntryDeletedLbl, Rec."Table ID", Rec."Retention Period", Rec."Table Filter Text"),
             AuditCategory::PolicyManagement);
     end;
 }

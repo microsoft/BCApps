@@ -52,7 +52,7 @@ page 9989 "Word Templates"
                         WordTemplateImpl: Codeunit "Word Template Impl.";
                         TableId: Integer;
                     begin
-                        TableID := WordTemplateImpl.SelectTable();
+                        TableId := WordTemplateImpl.SelectTable();
 
                         if TableId <> 0 then begin
                             Rec."Table ID" := TableId;
@@ -78,7 +78,7 @@ page 9989 "Word Templates"
             }
         }
 
-        area(Factboxes)
+        area(FactBoxes)
         {
             part("Word Template Related"; "Word Templates Related FactBox")
             {

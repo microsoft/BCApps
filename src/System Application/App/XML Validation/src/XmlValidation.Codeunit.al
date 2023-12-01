@@ -93,7 +93,7 @@ codeunit 6240 "Xml Validation"
     [TryFunction]
     procedure TryAddValidationSchema(Xml: Text; Namespace: Text)
     begin
-        XmlValidationImpl.AddValidationSchema(Xml, NameSpace);
+        XmlValidationImpl.AddValidationSchema(Xml, Namespace);
     end;
 
     /// <summary>
@@ -104,7 +104,7 @@ codeunit 6240 "Xml Validation"
     [TryFunction]
     procedure TryAddValidationSchema(XmlSchemaDoc: XmlDocument; Namespace: Text)
     begin
-        XmlValidationImpl.AddValidationSchema(XmlSchemaDoc, NameSpace);
+        XmlValidationImpl.AddValidationSchema(XmlSchemaDoc, Namespace);
     end;
 
     /// <summary>
@@ -115,7 +115,7 @@ codeunit 6240 "Xml Validation"
     [TryFunction]
     procedure TryAddValidationSchema(XmlSchemaInStream: InStream; Namespace: Text)
     begin
-        XmlValidationImpl.AddValidationSchema(XmlSchemaInStream, NameSpace);
+        XmlValidationImpl.AddValidationSchema(XmlSchemaInStream, Namespace);
     end;
 
     /// <summary>

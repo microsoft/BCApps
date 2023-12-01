@@ -8,7 +8,7 @@ namespace System.DataAdministration;
 /// <summary>
 /// The Retention Periods table is used to define retention periods.
 /// You define a retention period by selecting one of the default values in the Retention Period field, or by selecting the Custom value and providing a date formula.
-/// The date formula must result in a date that is at least two days before the current date. 
+/// The date formula must result in a date that is at least two days before the current date.
 /// </summary>
 table 3900 "Retention Period"
 {

@@ -70,7 +70,7 @@ table 3902 "Retention Policy Setup Line"
             var
                 RetentionPolicy: Codeunit "Retention Policy Setup";
             begin
-                Rec.Validate("Date Field No.", RetentionPolicy.DateFieldNoLookup(Rec."Table Id", Rec."Date Field No."));
+                Rec.Validate("Date Field No.", RetentionPolicy.DateFieldNoLookup(Rec."Table ID", Rec."Date Field No."));
             end;
         }
         field(8; "Date Field Name"; Text[30])
@@ -105,7 +105,7 @@ table 3902 "Retention Policy Setup Line"
             trigger OnValidate()
             begin
                 if Locked then
-                    validate(Enabled, true);
+                    Validate(Enabled, true);
             end;
         }
     }

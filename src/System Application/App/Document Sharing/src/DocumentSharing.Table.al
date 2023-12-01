@@ -100,7 +100,7 @@ table 9560 "Document Sharing"
         /// <summary>
         /// Specifies the sharing source of the document.
         /// </summary>
-        field(10; "Source"; Enum "Document Sharing Source")
+        field(10; Source; Enum "Document Sharing Source")
         {
             DataClassification = SystemMetadata;
         }

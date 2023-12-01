@@ -15,7 +15,7 @@ enum 1921 "Profiling Aggregation Type"
     /// <summary>
     /// No aggregation.
     /// </summary>
-    value(0; "None")
+    value(0; None)
     {
     }
 

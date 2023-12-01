@@ -19,7 +19,7 @@ page 9216 "Time Zones Lookup"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -37,8 +37,5 @@ page 9216 "Time Zones Lookup"
         }
     }
 
-    actions
-    {
-    }
 }
 

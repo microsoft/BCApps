@@ -6,7 +6,7 @@
 namespace System.Email;
 
 /// <summary>
-/// Available policies that can be assigned to a user.  
+/// Available policies that can be assigned to a user.
 /// </summary>
 enum 8930 "Email View Policy" implements "Email View Policy"
 {

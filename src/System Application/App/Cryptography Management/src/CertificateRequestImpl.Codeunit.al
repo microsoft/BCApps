@@ -82,7 +82,7 @@ codeunit 1464 "CertificateRequest Impl."
     procedure AddX509KeyUsageToCertificateRequest(X509KeyUsageFlags: Integer; Critical: Boolean)
     var
         DotNetX509KeyUsageExtension: DotNet X509KeyUsageExtension;
-        DotNetX509KeyUsageFlags: Dotnet X509KeyUsageFlags;
+        DotNetX509KeyUsageFlags: DotNet X509KeyUsageFlags;
     begin
         DotNetX509KeyUsageFlags := X509KeyUsageFlags;
         DotNetCertificateRequest.CertificateExtensions.Add(

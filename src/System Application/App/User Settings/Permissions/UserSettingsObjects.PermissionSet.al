@@ -10,11 +10,11 @@ permissionset 9175 "User Settings - Objects"
     Access = Internal;
     Assignable = false;
 
-    Permissions = Codeunit "User Settings" = X,
-                  Page "Accessible Companies" = X,
-                  Page "User Personalization" = X,
-                  Page "User Settings FactBox" = X,
-                  Page "User Settings List" = X,
-                  Page "User Settings" = X,
-                  Page Roles = X;
+    Permissions = codeunit "User Settings" = X,
+                  page "Accessible Companies" = X,
+                  page "User Personalization" = X,
+                  page "User Settings FactBox" = X,
+                  page "User Settings List" = X,
+                  page "User Settings" = X,
+                  page Roles = X;
 }

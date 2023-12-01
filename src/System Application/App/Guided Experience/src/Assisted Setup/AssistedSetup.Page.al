@@ -26,11 +26,11 @@ page 1801 "Assisted Setup"
     UsageCategory = Administration;
     Extensible = true;
     ContextSensitiveHelpPage = 'ui-get-ready-business';
-    Permissions = TableData "Guided Experience Item" = r;
+    Permissions = tabledata "Guided Experience Item" = r;
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -126,7 +126,7 @@ page 1801 "Assisted Setup"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action("Start Setup")
             {
@@ -134,7 +134,7 @@ page 1801 "Assisted Setup"
                 Caption = 'Start Setup';
                 Image = Setup;
                 Scope = Repeater;
-                ShortCutKey = 'Return';
+                ShortcutKey = 'Return';
                 ToolTip = 'Start the assisted setup guide.';
 
                 trigger OnAction()

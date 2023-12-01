@@ -26,7 +26,7 @@ page 774 "User Details"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(UserDetailsRepeater)
             {

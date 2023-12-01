@@ -8,7 +8,7 @@ namespace System.Text;
 using System;
 using System.Utilities;
 
-/// <summary> 
+/// <summary>
 /// Code-93 barcode font implementation from IDAutomation
 /// from: https://www.idautomation.com/barcode-fonts/code-93/
 /// Similar to Code 39, but requires two checksum characters.

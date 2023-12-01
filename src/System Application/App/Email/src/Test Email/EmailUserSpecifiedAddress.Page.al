@@ -15,7 +15,7 @@ page 8884 "Email User-Specified Address"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(EmailAddressGroup)
             {

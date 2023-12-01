@@ -15,7 +15,7 @@ page 9905 "Data Encryption Management"
 {
     Caption = 'Data Encryption Management';
     Extensible = false;
-    AccessByPermission = System "Tools, Restore" = X;
+    AccessByPermission = system "Tools, Restore" = X;
     AdditionalSearchTerms = 'data security management';
     ApplicationArea = All;
     Editable = false;
@@ -25,7 +25,7 @@ page 9905 "Data Encryption Management"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             field(EncryptionEnabledState; IsEncryptionEnabled)
             {
@@ -45,7 +45,7 @@ page 9905 "Data Encryption Management"
 
     actions
     {
-        area(creation)
+        area(Creation)
         {
             action("Enable Encryption")
             {
@@ -67,7 +67,7 @@ page 9905 "Data Encryption Management"
             }
             action("Import Encryption Key")
             {
-                AccessByPermission = System "Tools, Restore" = X;
+                AccessByPermission = system "Tools, Restore" = X;
                 ApplicationArea = All;
                 Caption = 'Import Encryption Key';
                 Image = Import;
@@ -85,7 +85,7 @@ page 9905 "Data Encryption Management"
             }
             action("Change Encryption Key")
             {
-                AccessByPermission = System "Tools, Restore" = X;
+                AccessByPermission = system "Tools, Restore" = X;
                 ApplicationArea = All;
                 Caption = 'Change Encryption Key';
                 Enabled = ChangeKeyActionEnabled;
@@ -104,7 +104,7 @@ page 9905 "Data Encryption Management"
             }
             action("Export Encryption Key")
             {
-                AccessByPermission = System "Tools, Backup" = X;
+                AccessByPermission = system "Tools, Backup" = X;
                 ApplicationArea = All;
                 Caption = 'Export Encryption Key';
                 Enabled = ExportKeyActionEnabled;
@@ -122,7 +122,7 @@ page 9905 "Data Encryption Management"
             }
             action("Disable Encryption")
             {
-                AccessByPermission = System "Tools, Restore" = X;
+                AccessByPermission = system "Tools, Restore" = X;
                 ApplicationArea = All;
                 Caption = 'Disable Encryption';
                 Enabled = DisableEncryptionActionEnabled;

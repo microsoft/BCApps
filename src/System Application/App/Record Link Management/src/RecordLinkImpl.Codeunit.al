@@ -28,13 +28,13 @@ codeunit 4470 "Record Link Impl."
         RecordRefTo: RecordRef;
 #if not CLEAN23
         SkipReset: Boolean;
-#endif        
+#endif
     begin
 #if not CLEAN23
 #pragma warning disable AL0432
         RecordLinkManagement.OnBeforeCopyLinks(FromRecordVariant, ToRecordVariant, SkipReset);
 #pragma warning restore AL0432
-#endif        
+#endif
         RecordRefTo.GetTable(ToRecordVariant);
         RecordRefTo.CopyLinks(FromRecordVariant);
         RecordLinkManagement.OnAfterCopyLinks(FromRecordVariant, ToRecordVariant);
@@ -45,7 +45,7 @@ codeunit 4470 "Record Link Impl."
         BinWriter: DotNet BinaryWriter;
         Output: OutStream;
     begin
-        RecordLink.Note.CreateOutStream(Output, TEXTENCODING::UTF8);
+        RecordLink.Note.CreateOutStream(Output, TextEncoding::UTF8);
         BinWriter := BinWriter.BinaryWriter(Output);
         BinWriter.Write(Note);
     end;
@@ -55,7 +55,7 @@ codeunit 4470 "Record Link Impl."
         BinReader: DotNet BinaryReader;
         Data: InStream;
     begin
-        RecordLink.Note.CreateInStream(Data, TEXTENCODING::UTF8);
+        RecordLink.Note.CreateInStream(Data, TextEncoding::UTF8);
         BinReader := BinReader.BinaryReader(Data);
         // Peek if stream is empty
         if BinReader.BaseStream().Position() = BinReader.BaseStream().Length() then
@@ -95,7 +95,7 @@ codeunit 4470 "Record Link Impl."
     var
         RecordLink: Record "Record Link";
         RecordRef: RecordRef;
-        PrevRecID: RecordID;
+        PrevRecID: RecordId;
         WindowDialog: Dialog;
         i: Integer;
         Total: Integer;

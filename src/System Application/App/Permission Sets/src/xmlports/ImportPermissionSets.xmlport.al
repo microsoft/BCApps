@@ -221,9 +221,7 @@ xmlport 9864 "Import Permission Sets"
 
     requestpage
     {
-        layout
-        {
-        }
+
     }
 
     var
