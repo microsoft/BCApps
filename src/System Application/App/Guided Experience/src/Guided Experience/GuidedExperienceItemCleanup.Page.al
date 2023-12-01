@@ -22,7 +22,7 @@ page 1998 "Guided Experience Item Cleanup"
         {
             label(PageInformation)
             {
-                Caption = 'This page provides an overview of duplicated guided experience items.';
+                Caption = 'This page provides an overview of duplicated guided experience items. You can either delete individual items or schedule a daily job queue to clean up all duplicated items.';
             }
             repeater(DuplicatedGuidedExperienceItem)
             {
