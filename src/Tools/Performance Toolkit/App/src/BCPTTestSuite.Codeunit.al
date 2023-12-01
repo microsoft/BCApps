@@ -98,6 +98,23 @@ codeunit 149006 "BCPT Test Suite"
         exit(BCPTHeader.Get(SuiteCode));
     end;
 
+    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer): Boolean
+    var
+        BCPTLine: Record "BCPT Line";
+    begin
+        SetBCPTLineCodeunitFilter(SuiteCode, CodeunitID, BCPTLine);
+        exit(not BCPTLine.IsEmpty());
+    end;
+
+    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer; ParameterFilterStr: Text): Boolean
+    var
+        BCPTLine: Record "BCPT Line";
+    begin
+        SetBCPTLineCodeunitFilter(SuiteCode, CodeunitID, BCPTLine);
+        BCPTLine.SetFilter(Parameters, ParameterFilterStr);
+        exit(not BCPTLine.IsEmpty());
+    end;
+
     procedure SetTestSuiteDuration(SuiteCode: Code[10]; DurationInMinutes: Integer)
     var
         BCPTHeader: Record "BCPT Header";
@@ -373,5 +390,11 @@ codeunit 149006 "BCPT Test Suite"
         BCPTHeader2.SetRange(Code, SuiteCode);
         BCPTHeader2.SetRange(Status, BCPTHeader2.Status::Running);
         exit(not BCPTHeader2.IsEmpty());
+    end;
+
+    local procedure SetBCPTLineCodeunitFilter(var SuiteCode: Code[10]; var CodeunitID: Integer; var BCPTLine: Record "BCPT Line")
+    begin
+        BCPTLine.SetRange("BCPT Code", SuiteCode);
+        BCPTLine.SetRange("Codeunit ID", CodeunitID);
     end;
 }
