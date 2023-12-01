@@ -12,8 +12,5 @@ page 134934 "My Manual Setup"
     ApplicationArea = All;
     UsageCategory = Administration;
 
-    actions
-    {
-    }
 
 }

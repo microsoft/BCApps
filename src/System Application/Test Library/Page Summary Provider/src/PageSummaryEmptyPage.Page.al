@@ -9,9 +9,6 @@ page 132549 "Page Summary Empty Page"
 {
     PageType = Card;
 
-    actions
-    {
-    }
 
 }
 

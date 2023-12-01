@@ -9,9 +9,6 @@ page 132616 "Empty Card Page Action Test"
 {
     PageType = Card;
 
-    actions
-    {
-    }
 
 }
 
