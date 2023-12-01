@@ -25,11 +25,15 @@ codeunit 7774 "Copilot Capability Impl"
         NotRegisteredErr: Label 'Copilot capability has not been registered by the module.';
         ReviewPrivacyNoticeLbl: Label 'Review the privacy notice';
         PrivacyNoticeDisagreedNotificationMessageLbl: Label 'To enable Copilot, please review and accept the privacy notice.';
+        CapabilitiesNotAvailableOnPremNotificationMessageLbl: Label 'Note that copilot and AI capabilities published by Microsoft are not available on-premises.';
         TelemetryRegisteredNewCopilotCapabilityLbl: Label 'New copilot capability has been registered.', Locked = true;
         TelemetryModifiedCopilotCapabilityLbl: Label 'Copilot capability has been modified.', Locked = true;
         TelemetryUnregisteredCopilotCapabilityLbl: Label 'Copilot capability has been unregistered.', Locked = true;
         TelemetryActivatedCopilotCapabilityLbl: Label 'Copilot capability activated.', Locked = true;
         TelemetryDeactivatedCopilotCapabilityLbl: Label 'Copilot capability deactivated.', Locked = true;
+        NotificationPrivacyNoticeDisagreedLbl: Label 'bd91b436-29ba-4823-824c-fc926c9842c2', Locked = true;
+        NotificationCapabilitiesNotAvailableOnPremLbl: Label 'ada1592d-9728-485c-897e-8d18e8dd7dee', Locked = true;
+
 
     procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     begin
@@ -159,10 +163,23 @@ codeunit 7774 "Copilot Capability Impl"
     procedure ShowPrivacyNoticeDisagreedNotification()
     var
         Notification: Notification;
+        NotificationGuid: Guid;
     begin
-        Notification.Id(CreateGuid());
+        NotificationGuid := NotificationPrivacyNoticeDisagreedLbl;
+        Notification.Id(NotificationGuid);
         Notification.Message(PrivacyNoticeDisagreedNotificationMessageLbl);
         Notification.AddAction(ReviewPrivacyNoticeLbl, Codeunit::"Copilot Capability Impl", 'OpenPrivacyNotice');
+        Notification.Send();
+    end;
+
+    procedure ShowCapabilitiesNotAvailableOnPremNotification()
+    var
+        Notification: Notification;
+        NotificationGuid: Guid;
+    begin
+        NotificationGuid := NotificationCapabilitiesNotAvailableOnPremLbl;
+        Notification.Id(NotificationGuid);
+        Notification.Message(CapabilitiesNotAvailableOnPremNotificationMessageLbl);
         Notification.Send();
     end;
 

@@ -5,7 +5,9 @@
 
 namespace System.TestLibraries.Integration.Excel;
 
+#if not CLEAN22
 using System.Integration;
+#endif
 using System;
 using System.Integration.Excel;
 

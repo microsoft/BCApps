@@ -70,6 +70,15 @@ page 2510 "Marketplace Extn Deployment"
                     Editable = false;
                     ToolTip = 'After installation, your session will refresh, and you can set up your extension.';
                 }
+                field(PreviewInfo; PreviewInfoLbl)
+                {
+                    ApplicationArea = All;
+                    ShowCaption = false;
+                    Editable = false;
+                    Style = Strong;
+                    ToolTip = 'You are about to install a preview version of the extension.';
+                    Visible = InstallPreview;
+                }
 
             }
         }
@@ -113,6 +122,12 @@ page 2510 "Marketplace Extn Deployment"
         AppID := ID;
     end;
 
+    internal procedure SetPreviewKey(PreviewKey: Text[2048])
+    begin
+        if (PreviewKey <> '') then
+            InstallPreview := true;
+    end;
+
     trigger OnInit()
     var
         LanguageManagement: Codeunit Language;
@@ -133,8 +148,10 @@ page 2510 "Marketplace Extn Deployment"
         LanguageName: Text;
         LanguageID: Integer;
         InstallSelected: Boolean;
+        InstallPreview: Boolean;
         AppID: Guid;
         ActiveUsersLbl: Label 'Note: There might be other users working in the system.';
         WarningLbl: Label 'Installing extensions during business hours will disrupt other users.';
         RefreshInfoLbl: Label 'After installation, your session will refresh, and you can set up your extension.';
+        PreviewInfoLbl: Label 'Note: You are about to install a preview version of the extension.';
 }

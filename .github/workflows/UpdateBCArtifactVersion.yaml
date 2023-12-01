@@ -3,7 +3,7 @@ name: Update BC Artifact Version
 on:
   workflow_dispatch:
   schedule:
-    - cron: "55 05 * * *" # Run at 05:55 UTC every day
+    - cron: "55 05 * * 0,2,4" # Run at 05:55 UTC on Sunday, Tuesday, and Thursday
 
 defaults:
   run:
@@ -25,13 +25,13 @@ jobs:
           git fetch
           $branches = @(git for-each-ref --format="'%(refname:short)'" refs/remotes/origin/release/ | % { $_ -replace 'origin/', '' })
           $branches += "'main'"
-
           $branchMatrix = "[$($branches -join ',')]"
           Write-Host "Updating branches: $branchMatrix"
           Add-Content -Path $env:GITHUB_OUTPUT -Value "UpdateBranches=$branchMatrix"
-
   UpdateBCArtifactVersion:
     name: "[${{ matrix.branch }}] Update BC Artifact Version"
+    permissions:
+      contents: write
     environment: Official-Build
     runs-on: windows-latest
     needs: GetBranches
@@ -49,4 +49,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
         run: |
-          build/scripts/UpdateBCArtifactVersion.ps1 -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
+          build/scripts/UpdateBCArtifactVersion.ps1 -Repository $ENV:GITHUB_REPOSITORY -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR

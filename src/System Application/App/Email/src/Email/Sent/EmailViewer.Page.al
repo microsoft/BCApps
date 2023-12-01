@@ -218,10 +218,10 @@ page 12 "Email Viewer"
 
     local procedure UpdateFromField(EmailAccountRec: Record "Email Account" temporary)
     begin
-        if EmailAccountRec."Email Address" = '' then
+        if Rec."Sent From" = '' then
             FromDisplayName := ''
         else
-            FromDisplayName := StrSubstNo(FromDisplayNameLbl, EmailAccountRec.Name, EmailAccountRec."Email Address");
+            FromDisplayName := StrSubstNo(FromDisplayNameLbl, EmailAccountRec.Name, Rec."Sent From");
     end;
 
     var
