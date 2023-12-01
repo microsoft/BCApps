@@ -18,7 +18,7 @@ codeunit 132914 "Azure AD User Mgt Test Library"
         InvalidObjectIDErr: Label 'Invalid user object is provided';
 
     /// <summary>
-    /// Calls the Run function of the Azure AD User Mgmt. Impl. codeunit. This function exists purely 
+    /// Calls the Run function of the Azure AD User Mgmt. Impl. codeunit. This function exists purely
     /// for test purposes.
     /// </summary>
     /// <param name="ForUserSecurityId">The user security ID that the function is run for.</param>

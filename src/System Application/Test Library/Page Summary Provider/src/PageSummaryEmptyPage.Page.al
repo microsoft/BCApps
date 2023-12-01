@@ -9,15 +9,9 @@ page 132549 "Page Summary Empty Page"
 {
     PageType = Card;
 
-    layout
-    {
-        area(content)
-        {
-        }
-    }
-
     actions
     {
     }
+
 }
 
