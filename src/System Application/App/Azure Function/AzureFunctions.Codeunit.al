@@ -39,7 +39,7 @@ codeunit 7804 "Azure Functions"
     /// <param name="ContentTypeHeader">Content type of the body to add to the request header.</param>
     /// <returns>Instance of Azure function response object.</returns>
     [NonDebuggable]
-    procedure SendPostRequest(AzureFunctionsAuthentication: Interface "Azure Functions Authentication"; Body: Text; ContentTypeHeader: text): Codeunit "Azure Functions Response"
+    procedure SendPostRequest(AzureFunctionsAuthentication: Interface "Azure Functions Authentication"; Body: Text; ContentTypeHeader: Text): Codeunit "Azure Functions Response"
     begin
         exit(AzureFunctionsImpl.SendPostRequest(AzureFunctionsAuthentication, Body, ContentTypeHeader));
     end;
@@ -54,7 +54,7 @@ codeunit 7804 "Azure Functions"
     /// <param name="ContentTypeHeader">Content type of the body to add to the request header.</param>
     /// <returns>Instance of Azure function response object.</returns>
     [NonDebuggable]
-    procedure Send(AzureFunctionsAuthentication: Interface "Azure Functions Authentication"; RequestType: enum "Http Request Type"; QueryDict: Dictionary of [Text, Text]; Body: Text; ContentTypeHeader: text): Codeunit "Azure Functions Response"
+    procedure Send(AzureFunctionsAuthentication: Interface "Azure Functions Authentication"; RequestType: Enum "Http Request Type"; QueryDict: Dictionary of [Text, Text]; Body: Text; ContentTypeHeader: Text): Codeunit "Azure Functions Response"
     begin
         exit(AzureFunctionsImpl.Send(AzureFunctionsAuthentication, RequestType, QueryDict, Body, ContentTypeHeader));
     end;

@@ -8,7 +8,7 @@ namespace System.Text;
 using System;
 using System.Utilities;
 
-/// <summary> 
+/// <summary>
 /// Ean-8 barcode font implementation from IDAutomation
 /// from: https://www.barcodefaq.com/barcode-properties/symbologies/ean-8/
 /// An EAN-8 is an EAN/UPC symbology barcode and is derived from the longer International Article Number (EAN-13) code
@@ -29,7 +29,7 @@ codeunit 9207 "IDA 1D EAN8 Encoder" implements "Barcode Font Encoder"
 
     procedure IsValidInput(InputText: Text; var BarcodeEncodeSettings: Record "Barcode Encode Settings"): Boolean;
     var
-        RegexPattern: codeunit Regex;
+        RegexPattern: Codeunit Regex;
     begin
         if InputText = '' then
             exit(false);

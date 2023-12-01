@@ -24,7 +24,7 @@ table 9203 "Barcode Encode Settings"
         /// </summary>
         field(1; "Code Set"; Option)
         {
-            OptionMembers = "None","A","B","C";
+            OptionMembers = None,A,B,C;
             DataClassification = SystemMetadata;
         }
 

@@ -240,7 +240,7 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
         OAuth2: Codeunit OAuth2;
         RedirectURL: Text;
     begin
-        OAuth2.GetDefaultRedirectUrl(RedirectUrl);
+        OAuth2.GetDefaultRedirectURL(RedirectURL);
         exit(RedirectURL)
     end;
 

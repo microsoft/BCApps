@@ -22,14 +22,14 @@ page 1990 "Checklist Banner"
     // ---------------------IMPORTANT---------------------------
     // ---------------------------------------------------------
     // DO NOT CHANGE THE NAMES OF ANY OF THE FIELDS ON THIS PAGE.
-    // THE CLIENT WILL NOT BE ABLE TO RENDER THE PAGE PROPERLY 
+    // THE CLIENT WILL NOT BE ABLE TO RENDER THE PAGE PROPERLY
     // OTHERWISE.
     // ---------------------------------------------------------
     // ---------------------IMPORTANT---------------------------
 
     layout
     {
-        area(content)
+        area(Content)
         {
             field(Title; TitleTxt)
             {
@@ -121,7 +121,7 @@ page 1990 "Checklist Banner"
                 {
                     ApplicationArea = All;
                     Caption = 'Mark as completed';
-                    Tooltip = 'Specifies the task as completed.';
+                    ToolTip = 'Specifies the task as completed.';
                     Visible = IsChecklistItemStarted;
 
                     trigger OnValidate()
@@ -378,7 +378,7 @@ page 1990 "Checklist Banner"
             ChecklistImplementation.SetChecklistVisibility(UserId(), false);
     end;
 
-    trigger Tour::TourEnded(PageId: Integer; Completed: Boolean; Data: Text)
+    trigger Tour::"Tour::TourEnded"(PageId: Integer; Completed: Boolean; Data: Text)
     var
         ChecklistItemCode: Code[300];
     begin
@@ -387,7 +387,7 @@ page 1990 "Checklist Banner"
         ChecklistItemCode := 'dummy value'; // this line is here because of bug 409754
     end;
 
-    trigger Tour::SpotlightTourEnded(PageId: Integer; SpotlightTour: DotNet SpotlightTour; Completed: Boolean; Data: Text)
+    trigger Tour::"Tour::SpotlightTourEnded"(PageId: Integer; SpotlightTour: DotNet SpotlightTour; Completed: Boolean; Data: Text)
     var
         ChecklistItemCode: Code[300];
     begin

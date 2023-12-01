@@ -24,7 +24,7 @@ codeunit 9213 "IDA 1D UPCE Encoder" implements "Barcode Font Encoder"
 
     procedure IsValidInput(InputText: Text; var BarcodeEncodeSettings: Record "Barcode Encode Settings"): Boolean;
     var
-        RegexPattern: codeunit Regex;
+        RegexPattern: Codeunit Regex;
     begin
         if InputText = '' then
             exit(false);

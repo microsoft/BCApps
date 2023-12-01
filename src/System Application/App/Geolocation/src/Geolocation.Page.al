@@ -22,7 +22,7 @@ page 7568 Geolocation
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(Location)
             {
@@ -60,7 +60,7 @@ page 7568 Geolocation
         GeolocationImpl.LocationInteractionOnOpenPage(LocationProvider, LocationAvailable);
     end;
 
-    trigger LocationProvider::LocationChanged(NewLocation: DotNet Location)
+    trigger LocationProvider::"LocationProvider::LocationChanged"(NewLocation: DotNet Location)
     begin
         GeolocationImpl.LocationInteractionOnLocationAvailable(NewLocation);
         CurrPage.Close();

@@ -25,7 +25,7 @@ page 2501 "Extension Details"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group("Install NAV Extension")
             {
@@ -336,7 +336,7 @@ page 2501 "Extension Details"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action(Back)
             {
@@ -456,7 +456,7 @@ page 2501 "Extension Details"
         VersionDisplay :=
           ExtensionInstallationImpl.GetVersionDisplayString(PublishedApplication);
         PublishedApplication.CalcFields(Description);
-        PublishedApplication.Description.CreateInStream(DescriptionStream, TEXTENCODING::UTF8);
+        PublishedApplication.Description.CreateInStream(DescriptionStream, TextEncoding::UTF8);
         AppDescription.Read(DescriptionStream);
 
         Rec.Insert();

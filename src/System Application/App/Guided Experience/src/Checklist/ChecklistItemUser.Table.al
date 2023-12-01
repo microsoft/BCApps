@@ -66,7 +66,4 @@ table 1993 "Checklist Item User"
         }
     }
 
-    fieldgroups
-    {
-    }
 }

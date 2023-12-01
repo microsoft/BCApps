@@ -31,7 +31,7 @@ page 1927 "Detached Media Cleanup"
             {
                 ApplicationArea = All;
                 Caption = 'Load Limit';
-                Tooltip = 'Specifies the maximum number of records to load. Depending on the limit, this may take a long time to complete.';
+                ToolTip = 'Specifies the maximum number of records to load. Depending on the limit, this may take a long time to complete.';
                 MinValue = 1;
             }
             field(CompanyFilterField; CompanyFilter)

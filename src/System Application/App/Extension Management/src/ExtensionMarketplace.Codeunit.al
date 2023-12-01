@@ -28,8 +28,8 @@ using System.Environment.Configuration;
 codeunit 2501 "Extension Marketplace"
 {
     Access = Internal;
-    Permissions = tabledata "Published Application" = r,
-                  tabledata "Extension Pending Setup" = rimd;
+    Permissions = tabledata "Extension Pending Setup" = rimd,
+tabledata "Published Application" = r;
 
     var
         HttpWebRequest: DotNet HttpWebRequest;
@@ -117,7 +117,7 @@ codeunit 2501 "Extension Marketplace"
         HttpWebResponse: DotNet HttpWebResponse;
         ResponseInStream: InStream;
     begin
-        InitializeHTTPRequest(ResponseUrl);
+        InitializeHTTPRequest(ResponseURL);
         HttpWebRequest.Accept := '*/*';
         HttpWebRequest.ContentType := 'application/json';
         HttpWebRequest.Method := 'POST';
@@ -249,8 +249,8 @@ codeunit 2501 "Extension Marketplace"
     var
         PublishedApplication: Record "Published Application";
         ExtensionInstallation: Page "Extension Installation";
-        AppId: GUID;
-        PackageID: GUID;
+        AppId: Guid;
+        PackageID: Guid;
     begin
         AppId := MapMarketplaceIdToAppId(ApplicationID);
         if not IsNullGuid(AppId) then begin
@@ -260,19 +260,19 @@ codeunit 2501 "Extension Marketplace"
             PackageID := MapMarketplaceIdToPackageId(ApplicationID);
             if IsNullGuid(PackageID) then begin
                 Session.LogMessage('0088AQQ', StrSubstNo(TelemetryExtensionNotFoundErr, ApplicationID), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryTok);
-                ERROR(ExtensionNotFoundErr);
+                Error(ExtensionNotFoundErr);
             end;
 
             PublishedApplication.SETFILTER("Package ID", '%1', PackageID);
             if PublishedApplication.IsEmpty then begin
                 Session.LogMessage('0088BQQ', StrSubstNo(MissingAppIdErr, ApplicationID), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryTok);
-                ERROR(ExtensionNotFoundErr);
+                Error(ExtensionNotFoundErr);
             end;
 
             PublishedApplication."Package ID" := PackageID;
         end;
 
-        PublishedApplication.responseUrl := CopyStr(TelemetryUrl, 1, MaxStrLen(PublishedApplication.responseUrl));
+        PublishedApplication.responseUrl := CopyStr(TelemetryURL, 1, MaxStrLen(PublishedApplication.responseUrl));
         ExtensionInstallation.SetRecord(PublishedApplication);
         ExtensionInstallation.RunModal();
     end;
@@ -289,7 +289,7 @@ codeunit 2501 "Extension Marketplace"
         end;
         PublishedApplication.SetRange(ID, AppId);
         PublishedApplication.ID := AppId;
-        PublishedApplication.responseUrl := CopyStr(TelemetryUrl, 1, MaxStrLen(PublishedApplication.responseUrl));
+        PublishedApplication.responseUrl := CopyStr(TelemetryURL, 1, MaxStrLen(PublishedApplication.responseUrl));
         ExtensionInstallation.SetRecord(PublishedApplication);
         ExtensionInstallation.RunModal();
     end;
@@ -525,6 +525,6 @@ codeunit 2501 "Extension Marketplace"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OpenAppSourceMarket, '', false, false)]
     local procedure OpenAppSourceMarket()
     begin
-        page.Run(Page::"Extension Marketplace");
+        Page.Run(Page::"Extension Marketplace");
     end;
 }

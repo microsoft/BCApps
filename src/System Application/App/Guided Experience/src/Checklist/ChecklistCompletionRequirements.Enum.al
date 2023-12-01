@@ -12,7 +12,7 @@ enum 1993 "Checklist Completion Requirements"
     Access = Internal;
 
     /// <summary>
-    /// Anyone who can view the checklist item can perform the action and the item will be registered 
+    /// Anyone who can view the checklist item can perform the action and the item will be registered
     /// as completed.
     /// </summary>
     value(0; Anyone)
@@ -30,7 +30,7 @@ enum 1993 "Checklist Completion Requirements"
     }
 
     /// <summary>
-    /// One or more specific users need to perform the checklist action in order for it to 
+    /// One or more specific users need to perform the checklist action in order for it to
     /// be registered as completed.
     /// </summary>
     value(2; "Specific users")

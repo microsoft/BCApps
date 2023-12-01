@@ -27,7 +27,7 @@ page 8898 "Email Rate Limit Wizard"
                 ApplicationArea = All;
                 Editable = false;
                 Caption = 'Email Account Name';
-                Tooltip = 'Specifies the email account name for the current account.';
+                ToolTip = 'Specifies the email account name for the current account.';
             }
 
             field(EmailAddress; Rec."Email Address")
@@ -35,7 +35,7 @@ page 8898 "Email Rate Limit Wizard"
                 ApplicationArea = All;
                 Editable = false;
                 Caption = 'Email Address';
-                Tooltip = 'Specifies the email address for the current email account.';
+                ToolTip = 'Specifies the email address for the current email account.';
             }
 
             field(EmailRateLimitDisplay; EmailRateLimitDisplay)
@@ -94,5 +94,5 @@ page 8898 "Email Rate Limit Wizard"
     var
         EmailRateLimitDisplay: Text[250];
         EmailName: Text[250];
-        NoLimitTxt: label 'No limit';
+        NoLimitTxt: Label 'No limit';
 }

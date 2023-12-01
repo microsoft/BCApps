@@ -31,8 +31,5 @@ table 1750 "Fields Sync Status"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

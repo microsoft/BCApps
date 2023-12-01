@@ -28,7 +28,7 @@ page 2504 "Extension Details Part"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(Control8)
             {
@@ -77,9 +77,6 @@ page 2504 "Extension Details Part"
         }
     }
 
-    actions
-    {
-    }
 
     trigger OnAfterGetRecord()
     begin

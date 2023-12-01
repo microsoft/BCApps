@@ -32,7 +32,7 @@ page 1909 "Media Upload"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(UploadingMedia)
             {
@@ -123,12 +123,12 @@ page 1909 "Media Upload"
     /// </summary>
     /// <param name="InStream">The InStream to read the picture from.</param>
     /// <error>The picture is not available.</error>
-    procedure GetMedia(InStream: Instream)
+    procedure GetMedia(InStream: InStream)
     begin
         MediaUploadPageImpl.GetMedia(InStream);
     end;
 
-    trigger CameraProvider::PictureAvailable(FileName: Text; FilePath: Text)
+    trigger CameraProvider::"CameraProvider::PictureAvailable"(FileName: Text; FilePath: Text)
     begin
         MediaUploadPageImpl.MediaInteractionOnPictureAvailable(FilePath);
         CurrPage.Close();

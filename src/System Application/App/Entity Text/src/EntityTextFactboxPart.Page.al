@@ -24,7 +24,7 @@ page 2011 "Entity Text Factbox Part"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(EntityTextGroup)
             {
@@ -54,7 +54,7 @@ page 2011 "Entity Text Factbox Part"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action(Edit)
             {

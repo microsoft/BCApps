@@ -186,9 +186,6 @@ table 1803 "Assisted Setup"
         }
     }
 
-    fieldgroups
-    {
-    }
 
     trigger OnDelete()
     var

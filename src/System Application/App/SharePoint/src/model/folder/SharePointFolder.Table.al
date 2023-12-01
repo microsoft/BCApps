@@ -40,7 +40,7 @@ table 9106 "SharePoint Folder"
             Caption = 'Item Count';
         }
 
-        field(5; "Exists"; Boolean)
+        field(5; Exists; Boolean)
         {
             Caption = 'Exists';
         }

@@ -545,7 +545,7 @@ codeunit 1991 "Guided Experience Impl."
             if (GuidedExperienceItem."Guided Experience Type" = Enum::"Guided Experience Type"::Video) and
                 (GuidedExperienceItem."Guided Experience Type" = PrevGuidedExperienceItem."Guided Experience Type")
             then
-                if (GuidedExperienceItem."Title" <> PrevGuidedExperienceItem."Title")
+                if (GuidedExperienceItem.Title <> PrevGuidedExperienceItem.Title)
                     or (GuidedExperienceItem.Description <> PrevGuidedExperienceItem.Description)
                     or (GuidedExperienceItem."Video Url" <> PrevGuidedExperienceItem."Video Url")
                     or (GuidedExperienceItem."Video Category" <> PrevGuidedExperienceItem."Video Category")
@@ -835,7 +835,7 @@ codeunit 1991 "Guided Experience Impl."
         InsertTranslations(GuidedExperienceItem, GuidedExperienceItem.Title, GuidedExperienceItem."Short Title",
             GuidedExperienceItem.Description, GuidedExperienceItem.Keywords);
 
-        // if this isn't the first version of the record, copy all the existing translations for the 
+        // if this isn't the first version of the record, copy all the existing translations for the
         // record if the fields haven't changed and if the translations don't already exist
         if GuidedExperienceItem.Version > 0 then begin
             if PrevVersionGuidedExperienceItem.Title = GuidedExperienceItem.Title then
@@ -1086,8 +1086,8 @@ codeunit 1991 "Guided Experience Impl."
     var
         PublishedApplication: Record "Published Application";
         Media: Record Media;
-        LogoInStream: Instream;
-        LogoOutStream: Outstream;
+        LogoInStream: InStream;
+        LogoOutStream: OutStream;
     begin
         PublishedApplication.SetRange(ID, AppId);
         PublishedApplication.SetRange("Tenant Visible", true);
@@ -1101,7 +1101,7 @@ codeunit 1991 "Guided Experience Impl."
             Media.CalcFields(Content);
             Media.Content.CreateInStream(LogoInStream);
 
-            LogoTempBlob.CreateOutstream(LogoOutStream);
+            LogoTempBlob.CreateOutStream(LogoOutStream);
             CopyStream(LogoOutStream, LogoInStream);
         end;
     end;

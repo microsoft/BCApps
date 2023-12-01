@@ -21,7 +21,7 @@ table 4150 "Temp Blob"
         {
             DataClassification = SystemMetadata;
         }
-        field(2; Blob; BLOB)
+        field(2; Blob; Blob)
         {
             DataClassification = SystemMetadata;
         }
@@ -35,8 +35,5 @@ table 4150 "Temp Blob"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

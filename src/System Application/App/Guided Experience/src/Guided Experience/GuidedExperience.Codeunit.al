@@ -277,7 +277,7 @@ codeunit 1990 "Guided Experience"
     end;
 
     /// <summary>Adds the translation for the description of the setup object.</summary>
-    /// <param name="GuidedExperienceType">The type of setup object.</param>/// 
+    /// <param name="GuidedExperienceType">The type of setup object.</param>///
     /// <param name="ObjectType">The object type that identifies the guided experience item.</param>
     /// <param name="ObjectID">The object ID that identifies the guided experience item.</param>
     /// <param name="LanguageID">The language ID for which the translation is made.</param>
@@ -290,7 +290,7 @@ codeunit 1990 "Guided Experience"
     end;
 
     /// <summary>Adds the translation for the short title of the setup object.</summary>
-    /// <param name="GuidedExperienceType">The type of setup object.</param> 
+    /// <param name="GuidedExperienceType">The type of setup object.</param>
     /// <param name="ObjectType">The object type that identifies the guided experience item.</param>
     /// <param name="ObjectID">The object ID that identifies the guided experience item.</param>
     /// <param name="LanguageID">The language ID for which the translation is made.</param>
@@ -305,14 +305,14 @@ codeunit 1990 "Guided Experience"
     /// <summary>Checks whether a user has completed the setup corresponding to the object type and ID.</summary>
     /// <param name="ObjectType">The object type that identifies the guided experience item.</param>
     /// <param name="ObjectID">The object ID that identifies the guided experience item.</param>
-    /// <returns>Returns true if the given setup guide has been completed by a user, otherwise false.</returns> 
+    /// <returns>Returns true if the given setup guide has been completed by a user, otherwise false.</returns>
     procedure IsAssistedSetupComplete(ObjectType: ObjectType; ObjectID: Integer): Boolean
     begin
         exit(GuidedExperienceImpl.IsAssistedSetupComplete(ObjectType, ObjectID));
     end;
 
     /// <summary>Checks whether a guided experience item exists for the given object type and ID.</summary>
-    /// <param name="GuidedExperienceType">The type of setup object.</param>/// /// 
+    /// <param name="GuidedExperienceType">The type of setup object.</param>/// ///
     /// <param name="ObjectType">The object type that identifies the guided experience item.</param>
     /// <param name="ObjectID">The object ID that identifies the guided experience item.</param>
     /// <returns>True if a guided experience item exists for the provided object type and ID; false otherwise.</returns>
@@ -322,7 +322,7 @@ codeunit 1990 "Guided Experience"
     end;
 
     /// <summary>Checks whether a guided experience item exists for the link.</summary>
-    /// <param name="GuidedExperienceType">The type of setup object.</param>/// /// 
+    /// <param name="GuidedExperienceType">The type of setup object.</param>/// ///
     /// <param name="Link">The link that identifies the guided experience item.</param>
     /// <returns>True if a guided experience item exists for the provided link; false otherwise.</returns>
     procedure Exists(GuidedExperienceType: Enum "Guided Experience Type"; Link: Text[250]): Boolean
@@ -357,7 +357,7 @@ codeunit 1990 "Guided Experience"
     end;
 
     /// <summary>Issues the call to start the guided experience item.</summary>
-    /// <param name="GuidedExperienceType">The type of setup object.</param>/// /// 
+    /// <param name="GuidedExperienceType">The type of setup object.</param>/// ///
     /// <param name="ObjectType">The object type that identifies the guided experience item.</param>
     /// <param name="ObjectID">The object ID that identifies the guided experience item.</param>
     procedure Run(GuidedExperienceType: Enum "Guided Experience Type"; ObjectType: ObjectType; ObjectID: Integer)
@@ -468,7 +468,7 @@ codeunit 1990 "Guided Experience"
 
     /// <summary>Notifies that the Open Role Based Setup Experience has been invoked.</summary>
     /// <param name="PageID">The ID of the page being invoked.</param>
-    /// <param name="Handled">The flag which if set, would stop executing the OpenRoleBasedSetupExperience of the assisted setup guide.</param>  
+    /// <param name="Handled">The flag which if set, would stop executing the OpenRoleBasedSetupExperience of the assisted setup guide.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeOpenRoleBasedAssistedSetupExperience(var PageID: Integer; var Handled: Boolean)
     begin

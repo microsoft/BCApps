@@ -25,7 +25,7 @@ page 9214 "User Personalization"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(General)
             {
@@ -63,7 +63,7 @@ page 9214 "User Personalization"
                         UserSettingsImpl.EditProfileID(Rec);
                     end;
                 }
-                field("Language"; Language.GetWindowsLanguageName(Rec."Language ID"))
+                field(Language; Language.GetWindowsLanguageName(Rec."Language ID"))
                 {
                     ApplicationArea = All;
                     Caption = 'Language';

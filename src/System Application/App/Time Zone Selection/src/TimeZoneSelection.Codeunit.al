@@ -6,7 +6,7 @@
 namespace System.DateTime;
 
 /// <summary>
-/// Provides basic functionality to lookup page for Time zones. 
+/// Provides basic functionality to lookup page for Time zones.
 /// </summary>
 codeunit 9198 "Time Zone Selection"
 {

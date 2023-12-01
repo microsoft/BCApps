@@ -106,7 +106,7 @@ codeunit 1928 "Media Cleanup Impl."
                 FileName += '.png';
         end;
 
-        DownloadFromStream(MediaInStream, '', '', '', Filename);
+        DownloadFromStream(MediaInStream, '', '', '', FileName);
         exit(true);
     end;
 

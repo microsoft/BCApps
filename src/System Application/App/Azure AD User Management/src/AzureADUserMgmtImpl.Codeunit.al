@@ -19,13 +19,13 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    Permissions = TableData User = rm,
-                  TableData "User Property" = r,
-                  tabledata "User Personalization" = r;
+    Permissions = tabledata User = rm,
+                  tabledata "User Personalization" = r,
+                  tabledata "User Property" = r;
 
     trigger OnRun()
     begin
-        if ClientTypeManagement.GetCurrentClientType() = CLIENTTYPE::Background then
+        if ClientTypeManagement.GetCurrentClientType() = ClientType::Background then
             exit;
 
         Run(UserSecurityId());
@@ -87,7 +87,7 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
     var
         User: Record User;
         GraphUserInfo: DotNet UserInfo;
-        GraphUserInfoPage: Dotnet UserInfoPage;
+        GraphUserInfoPage: DotNet UserInfoPage;
         WindowDialog: Dialog;
         i: Integer;
         UsersPerPage: Integer;

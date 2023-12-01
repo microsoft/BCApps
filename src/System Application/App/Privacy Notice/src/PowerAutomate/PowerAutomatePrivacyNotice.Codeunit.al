@@ -23,7 +23,7 @@ codeunit 1568 "Power Automate Privacy Notice"
     begin
         SignInAgainNotification.Id := SignInAgainNotificationGuidTok;
         SignInAgainNotification.Message := SignInAgainMsg;
-        SignInAgainNotification.Scope := NOTIFICATIONSCOPE::LocalScope;
+        SignInAgainNotification.Scope := NotificationScope::LocalScope;
         SignInAgainNotification.Send();
     end;
 

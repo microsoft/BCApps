@@ -24,7 +24,7 @@ codeunit 45 "Auto Format"
     /// </summary>
     /// <param name="AutoFormatType">
     /// A value that determines how data is formatted.
-    /// The values that are available are "0" and "11". 
+    /// The values that are available are "0" and "11".
     /// Use "0" to ignore the value that AutoFormatExpr passes and use the standard format for decimals instead.
     /// Use "11" to apply a specific format in AutoFormatExpr without additional transformation.
     /// </param>
@@ -58,14 +58,14 @@ codeunit 45 "Auto Format"
     end;
 
     /// <summary>
-    /// Event that is called to resolve cases for AutoFormatTypes other that "0" and "11". 
+    /// Event that is called to resolve cases for AutoFormatTypes other that "0" and "11".
     /// Subscribe to this event if you want to introduce new AutoFormatTypes.
     /// </summary>
     /// <param name="AutoFormatType">A value that determines how data is formatted.</param>
     /// <param name="AutoFormatExpr">An expression that specifies how to format data.</param>
     /// <param name="Result">
     /// The resolved expression that defines data formatting.
-    /// For example '&lt;Precision,4:4&gt;&lt;Standard Format,2&gt; suffix' that depending on your regional settings 
+    /// For example '&lt;Precision,4:4&gt;&lt;Standard Format,2&gt; suffix' that depending on your regional settings
     /// will format decimal into "-12345.6789 suffix" or "-12345,6789 suffix".
     /// </param>
     /// <param name="Resolved">A value that describes whether the data formatting expression is correct.</param>

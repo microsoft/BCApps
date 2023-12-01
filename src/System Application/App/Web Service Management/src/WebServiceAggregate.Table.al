@@ -78,9 +78,6 @@ table 9900 "Web Service Aggregate"
         }
     }
 
-    fieldgroups
-    {
-    }
 
     trigger OnDelete()
     var

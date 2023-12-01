@@ -77,7 +77,7 @@ codeunit 7771 "Azure OpenAI"
     /// <param name="Endpoint">The endpoint to use for the model type.</param>
     /// <param name="Deployment">The deployment to use for the endpoint.</param>
     /// <param name="ApiKey">The API key to use for the endpoint.</param>
-    /// <remarks>Endpoint would look like: https://resource-name.openai.azure.com/ 
+    /// <remarks>Endpoint would look like: https://resource-name.openai.azure.com/
     /// Deployment would look like: gpt-35-turbo-16k
     /// </remarks>
     [NonDebuggable]
