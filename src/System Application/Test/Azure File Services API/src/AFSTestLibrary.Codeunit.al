@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Azure.Storage.Files;
+
+using System.Azure.Storage;
+
 codeunit 132515 "AFS Test Library"
 {
     Access = Internal;

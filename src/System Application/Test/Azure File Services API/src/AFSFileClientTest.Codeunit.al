@@ -3,6 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Azure.Storage.Files;
+
+using System.Azure.Storage;
+using System.Azure.Storage.Files;
+using System.TestLibraries.Utilities;
+using System.Utilities;
+
 codeunit 132517 "AFS File Client Test"
 {
     Subtype = Test;

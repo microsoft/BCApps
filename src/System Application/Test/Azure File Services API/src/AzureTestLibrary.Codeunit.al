@@ -3,6 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.Test.Azure.Storage.Files;
+
+using System.Azure.Storage.Files;
+
 /// <summary>
 /// Provides common authorization functionality for using Azure storage accounts in tests for Azure Storage Services.
 /// </summary>
