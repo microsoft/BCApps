@@ -106,13 +106,27 @@ codeunit 149006 "BCPT Test Suite"
         exit(not BCPTLine.IsEmpty());
     end;
 
-    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer; ParameterFilterStr: Text): Boolean
+    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer; var LineNo: Integer): Boolean
+    var
+        BCPTLine: Record "BCPT Line";
+    begin
+        SetBCPTLineCodeunitFilter(SuiteCode, CodeunitID, BCPTLine);
+        if not BCPTLine.FindFirst() then
+            exit(false);
+        LineNo := BCPTLine."Line No.";
+        exit(true);
+    end;
+
+    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer; ParameterFilterStr: Text; var LineNo: Integer): Boolean
     var
         BCPTLine: Record "BCPT Line";
     begin
         SetBCPTLineCodeunitFilter(SuiteCode, CodeunitID, BCPTLine);
         BCPTLine.SetFilter(Parameters, ParameterFilterStr);
-        exit(not BCPTLine.IsEmpty());
+        if not BCPTLine.FindFirst() then
+            exit(false);
+        LineNo := BCPTLine."Line No.";
+        exit(true);
     end;
 
     procedure SetTestSuiteDuration(SuiteCode: Code[10]; DurationInMinutes: Integer)
