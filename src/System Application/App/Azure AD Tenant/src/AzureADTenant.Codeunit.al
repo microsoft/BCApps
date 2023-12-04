@@ -39,11 +39,11 @@ codeunit 433 "Azure AD Tenant"
     end;
 
     /// <summary>
-    /// Gets the current Microsoft Entra tenant registered country letter code
+    /// Gets the current Microsoft Entra tenant registered country letter code.
+    /// Visit Microsoft Admin Cententer to view or edit Organizational Information.
     /// If the Microsoft Graph API cannot be reached, the error is displayed.
     /// <summary>
     /// <returns>Country letter code</returns>
-    /// <see cref="Microsoft Admin Cententer to view or edit Organizational Information"/>
     /// <error>Cannot retrieve the Microsoft Entra tenant country letter code.</error>
     procedure GetCountryLetterCode(): Text;
     begin
@@ -51,10 +51,10 @@ codeunit 433 "Azure AD Tenant"
     end;
 
     /// <summary>
-    /// Gets the current Microsoft Entra tenant registered preferred language
+    /// Gets the current Microsoft Entra tenant registered preferred language.
+    /// Visit Microsoft Admin Cententer to view or edit Organizational Information.
     /// If the Microsoft Graph API cannot be reached, the error is displayed.
     /// <summary>
-    /// <see cref="Microsoft Admin Cententer to view or edit Organizational Information"/>
     /// <returns>Preferred Language</returns>
     /// <error>Cannot retrieve the Microsoft Entra tenant preferred language.</error>
     procedure GetPreferredLanguage(): Text;
