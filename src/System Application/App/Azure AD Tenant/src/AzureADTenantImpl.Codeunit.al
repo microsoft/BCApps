@@ -15,6 +15,8 @@ codeunit 3705 "Azure AD Tenant Impl."
     InherentPermissions = X;
 
     var
+        AzureADGraph: Codeunit "Azure AD Graph";
+        TenantInfo: DotNet TenantInfo;
         NavTenantSettingsHelper: DotNet NavTenantSettingsHelper;
         TenantDomainNameErr: Label 'Failed to retrieve the Microsoft Entra tenant domain name.';
         CountryLetterCodeErr: Label 'Failed to retrieve the Microsoft Entra tenant domain name.';
@@ -26,11 +28,8 @@ codeunit 3705 "Azure AD Tenant Impl."
     end;
 
     procedure GetAadTenantDomainName(): Text;
-    var
-        AzureADGraph: Codeunit "Azure AD Graph";
-        TenantInfo: DotNet TenantInfo;
     begin
-        AzureADGraph.GetTenantDetail(TenantInfo);
+        Initialize();
         if not IsNull(TenantInfo) then
             exit(TenantInfo.InitialDomain());
 
@@ -38,11 +37,8 @@ codeunit 3705 "Azure AD Tenant Impl."
     end;
 
     procedure GetCountryLetterCode(): Text;
-    var
-        AzureADGraph: Codeunit "Azure AD Graph";
-        TenantInfo: DotNet TenantInfo;
     begin
-        AzureADGraph.GetTenantDetail(TenantInfo);
+        Initialize();
         if not IsNull(TenantInfo) then
             exit(TenantInfo.CountryLetterCode());
 
@@ -50,15 +46,18 @@ codeunit 3705 "Azure AD Tenant Impl."
     end;
 
     procedure GetPreferredLanguage(): Text;
-    var
-        AzureADGraph: Codeunit "Azure AD Graph";
-        TenantInfo: DotNet TenantInfo;
     begin
-        AzureADGraph.GetTenantDetail(TenantInfo);
+        Initialize();
         if not IsNull(TenantInfo) then
             exit(TenantInfo.PreferredLanguage());
 
         Error(PreferedLanguageErr);
+    end;
+
+    local procedure Initialize()
+    begin
+        if IsNull(TenantInfo) then
+            AzureADGraph.GetTenantDetail(TenantInfo);
     end;
 }
 
