@@ -17,6 +17,8 @@ codeunit 3705 "Azure AD Tenant Impl."
     var
         NavTenantSettingsHelper: DotNet NavTenantSettingsHelper;
         TenantDomainNameErr: Label 'Failed to retrieve the Microsoft Entra tenant domain name.';
+        CountryLetterCodeErr: Label 'Failed to retrieve the Microsoft Entra tenant domain name.';
+        PreferedLanguageErr: Label 'Failed to retrieve the Microsoft Entra tenant domain name.';
 
     procedure GetAadTenantId() TenantIdValue: Text
     begin
@@ -44,7 +46,7 @@ codeunit 3705 "Azure AD Tenant Impl."
         if not IsNull(TenantInfo) then
             exit(TenantInfo.CountryLetterCode());
 
-        Error(TenantDomainNameErr);
+        Error(CountryLetterCodeErr);
     end;
 
     procedure GetPreferredLanguage(): Text;
@@ -56,7 +58,7 @@ codeunit 3705 "Azure AD Tenant Impl."
         if not IsNull(TenantInfo) then
             exit(TenantInfo.PreferredLanguage());
 
-        Error(TenantDomainNameErr);
+        Error(PreferedLanguageErr);
     end;
 }
 
