@@ -34,5 +34,29 @@ codeunit 3705 "Azure AD Tenant Impl."
 
         Error(TenantDomainNameErr);
     end;
+
+    procedure GetCountryLetterCode(): Text;
+    var
+        AzureADGraph: Codeunit "Azure AD Graph";
+        TenantInfo: DotNet TenantInfo;
+    begin
+        AzureADGraph.GetTenantDetail(TenantInfo);
+        if not IsNull(TenantInfo) then
+            exit(TenantInfo.CountryLetterCode());
+
+        Error(TenantDomainNameErr);
+    end;
+
+    procedure GetPreferredLanguage(): Text;
+    var
+        AzureADGraph: Codeunit "Azure AD Graph";
+        TenantInfo: DotNet TenantInfo;
+    begin
+        AzureADGraph.GetTenantDetail(TenantInfo);
+        if not IsNull(TenantInfo) then
+            exit(TenantInfo.PreferredLanguage());
+
+        Error(TenantDomainNameErr);
+    end;
 }
 
