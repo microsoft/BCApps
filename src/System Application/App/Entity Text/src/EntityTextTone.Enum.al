@@ -51,4 +51,13 @@ enum 2011 "Entity Text Tone"
     {
         Caption = 'Creative';
     }
+
+    /// <summary>
+    /// The tone of voice should be empathetic.
+    /// </summary>
+    value(5; Empathetic)
+    {
+        Caption = 'Empathetic';
+    }
+
 }
