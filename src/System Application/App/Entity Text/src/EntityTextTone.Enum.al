@@ -60,4 +60,12 @@ enum 2011 "Entity Text Tone"
         Caption = 'Empathetic';
     }
 
+    /// <summary>
+    /// The tone of voice should be severe.
+    /// </summary>
+    value(6; Severe)
+    {
+        Caption = 'Severe';
+    }
+
 }

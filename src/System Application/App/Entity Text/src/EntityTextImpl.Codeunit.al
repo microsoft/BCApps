@@ -41,6 +41,12 @@ codeunit 2012 "Entity Text Impl."
 
     [NonDebuggable]
     procedure GenerateSuggestion(Facts: Dictionary of [Text, Text]; Tone: Enum "Entity Text Tone"; TextFormat: Enum "Entity Text Format"; TextEmphasis: Enum "Entity Text Emphasis"; CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GenerateSuggestion(Facts, Tone, TextFormat, TextEmphasis, CallerModuleInfo, 0));
+    end;
+
+    [NonDebuggable]
+    procedure GenerateSuggestion(var Facts: Dictionary of [Text, Text]; var Tone: Enum "Entity Text Tone"; var TextFormat: Enum "Entity Text Format"; var TextEmphasis: Enum "Entity Text Emphasis"; var CallerModuleInfo: ModuleInfo; var SourceScenario: Enum "Entity Text Scenario"): Text
     var
         SystemPrompt: Text;
         UserPrompt: Text;
@@ -50,11 +56,11 @@ codeunit 2012 "Entity Text Impl."
             Error(CapabilityDisabledErr);
         if not CanSuggest() then
             Error(CannotGenerateErr);
-        BuildPrompts(Facts, Tone, TextFormat, TextEmphasis, SystemPrompt, UserPrompt);
+        BuildPrompts(Facts, Tone, TextFormat, TextEmphasis, SystemPrompt, UserPrompt, SourceScenario);
 
         Session.LogMessage('0000JVG', TelemetryGenerationRequestedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
 
-        Suggestion := GenerateAndReviewCompletion(SystemPrompt, UserPrompt, TextFormat, Facts, CallerModuleInfo);
+        Suggestion := GenerateAndReviewCompletion(SystemPrompt, UserPrompt, TextFormat, Facts, CallerModuleInfo, SourceScenario);
 
         exit(Suggestion);
     end;
@@ -62,7 +68,12 @@ codeunit 2012 "Entity Text Impl."
     procedure InsertSuggestion(SourceTableId: Integer; SourceSystemId: Guid; SourceScenario: Enum "Entity Text Scenario"; SuggestedText: Text)
     var
         EntityText: Record "Entity Text";
+        Handled: Boolean;
     begin
+        OnInsertSuggestion(SourceTableId, SourceSystemId, SourceScenario, SuggestedText, Handled);
+        if Handled then
+            exit;
+
         InsertSuggestion(SourceTableId, SourceSystemId, SourceScenario, SuggestedText, EntityText);
     end;
 
@@ -140,7 +151,7 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure BuildPrompts(var Facts: Dictionary of [Text, Text]; Tone: Enum "Entity Text Tone"; TextFormat: Enum "Entity Text Format"; TextEmphasis: Enum "Entity Text Emphasis"; var SystemPrompt: Text; var UserPrompt: Text)
+    local procedure BuildPrompts(var Facts: Dictionary of [Text, Text]; Tone: Enum "Entity Text Tone"; TextFormat: Enum "Entity Text Format"; TextEmphasis: Enum "Entity Text Emphasis"; var SystemPrompt: Text; var UserPrompt: Text; var SourceScenario: Enum "Entity Text Scenario")
     var
         EntityTextAOAISettings: Codeunit "Entity Text AOAI Settings";
         PromptInfo: JsonObject;
@@ -153,7 +164,7 @@ codeunit 2012 "Entity Text Impl."
         FactsList := BuildFacts(Facts, Category, TextFormat);
         LanguageName := EntityTextAOAISettings.GetLanguageName();
 
-        PromptInfo := GetPromptInfo();
+        PromptInfo := GetPromptInfo(SourceScenario);
         PromptInfo.Get('system', SystemPromptJson);
         PromptInfo.Get('user', UserPromptJson);
 
@@ -201,14 +212,19 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure GetPromptInfo(): JsonObject
+    local procedure GetPromptInfo(var SourceScenario: Enum "Entity Text Scenario"): JsonObject
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         PromptObject: JsonObject;
         PromptObjectText: Text;
+        PromptSecretName: Text;
+        Handled: Boolean;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(PromptObjectKeyTxt, PromptObjectText) then
-            Error(PromptNotFoundErr);
+        OnGetPromptSecretName(PromptSecretName, SourceScenario, Handled);
+
+        if not Handled then
+            if not AzureKeyVault.GetAzureKeyVaultSecret(PromptObjectKeyTxt, PromptObjectText) then
+                Error(PromptNotFoundErr);
 
         if not PromptObject.ReadFrom(PromptObjectText) then
             Error(PromptFormatInvalidErr);
@@ -272,7 +288,7 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure GenerateAndReviewCompletion(SystemPrompt: Text; UserPrompt: Text; TextFormat: Enum "Entity Text Format"; Facts: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo): Text
+    local procedure GenerateAndReviewCompletion(SystemPrompt: Text; UserPrompt: Text; TextFormat: Enum "Entity Text Format"; Facts: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo; var SourceScenario: Enum "Entity Text Scenario"): Text
     var
         Completion: Text;
         MaxAttempts: Integer;
@@ -280,7 +296,7 @@ codeunit 2012 "Entity Text Impl."
     begin
         MaxAttempts := 5;
         for Attempt := 0 to MaxAttempts do begin
-            Completion := GenerateCompletion(SystemPrompt, UserPrompt, CallerModuleInfo);
+            Completion := GenerateCompletion(SystemPrompt, UserPrompt, CallerModuleInfo, SourceScenario);
 
             if (not CompletionContainsPrompt(Completion, SystemPrompt)) and IsGoodCompletion(Completion, TextFormat, Facts) then
                 exit(Completion);
@@ -397,7 +413,7 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure GenerateCompletion(SystemPrompt: Text; UserPrompt: Text; CallerModuleInfo: ModuleInfo): Text
+    local procedure GenerateCompletion(SystemPrompt: Text; UserPrompt: Text; CallerModuleInfo: ModuleInfo; var SourceScenario: Enum "Entity Text Scenario"): Text
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
         EntityTextAOAISettings: Codeunit "Entity Text AOAI Settings";
@@ -409,6 +425,8 @@ codeunit 2012 "Entity Text Impl."
         Result: Text;
         NewLineChar: Char;
         EntityTextModuleInfo: ModuleInfo;
+        Handled: Boolean;
+        CopilotCapability: Enum "Copilot Availability";
     begin
         NewLineChar := 10;
 
@@ -423,7 +441,11 @@ codeunit 2012 "Entity Text Impl."
             AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", Endpoint, Deployment, ApiKey);
         end;
 
-        AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Entity Text");
+        OnGetCopilotCapabiity(CopilotCapability, SourceScenario, Handled);
+        if Handled then
+            AzureOpenAI.SetCopilotCapability(CopilotCapability)
+        else
+            AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Entity Text");
 
         AOAICompletionParams.SetMaxTokens(2500);
         AOAICompletionParams.SetTemperature(0.7);
@@ -440,6 +462,21 @@ codeunit 2012 "Entity Text Impl."
         end;
 
         exit(Result);
+    end;
+
+    [IntegrationEvent(false, false)]
+    internal procedure OnInsertSuggestion(var SourceTableId: Integer; var SourceSystemId: Guid; var SourceScenario: Enum "Entity Text Scenario"; var SuggestedText: Text; var Handled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    internal procedure OnGetPromptSecretName(var PromptSecretName: Text; var SourceScenario: Enum "Entity Text Scenario"; var Handled Boolean);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    internal procedure OnGetCopilotCapability(var CopilotCapability: Enum "Copilot Capability"; var SourceScenario: Enum "Entity Text Scenario"; var Handled Boolean);
+    begin
     end;
 
     var

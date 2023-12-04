@@ -81,6 +81,23 @@ codeunit 2010 "Entity Text"
         exit(EntityTextImpl.GenerateSuggestion(Facts, Tone, TextFormat, TextEmphasis, CurrentModuleInfo));
     end;
 
+    /// <summary>
+    /// Generate Entity Text using AI capabilities.
+    /// </summary>
+    /// <param name="SourceTableId">The number of the table for which you are generating text.</param>
+    /// <param name="Facts">The Facts of the Entity used for generation.</param>
+    /// <param name="Tone">The tone of the generated text.</param>
+    /// <param name="TextFormat">The length and format of the generated text.</param>
+    /// <param name="TextEmphasis">Feature to emphasize.</param>
+    /// <returns>Generated entity text.</returns>
+    procedure GenerateText(SourceTableId: Integer; Facts: Dictionary of [Text, Text]; Tone: Enum "Entity Text Tone"; TextFormat: Enum "Entity Text Format"; TextEmphasis: Enum "Entity Text Emphasis"): Text
+    var
+        CurrentModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CurrentModuleInfo);
+        exit(EntityTextImpl.GenerateSuggestion(SourceTableId, Facts, Tone, TextFormat, TextEmphasis, CurrentModuleInfo));
+    end;
+
 
     /// <summary>
     /// Updates the Entity Text record with the current text.

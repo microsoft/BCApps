@@ -67,4 +67,13 @@ enum 2012 "Entity Text Emphasis"
     {
         Caption = 'Speed';
     }
+
+    /// <summary>
+    /// Emphasizes consequences.
+    /// </summary>
+    value(7; Consequences)
+    {
+        Caption = 'Consequences';
+    }
+
 }
