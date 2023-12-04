@@ -46,15 +46,8 @@ codeunit 433 "Azure AD Tenant"
     /// <see cref="Microsoft Admin Cententer to view or edit Organizational Information"/>
     /// <error>Cannot retrieve the Microsoft Entra tenant country letter code.</error>
     procedure GetCountryLetterCode(): Text;
-    var
-        AzureADGraph: Codeunit "Azure AD Graph";
-        TenantInfo: DotNet TenantInfo;
     begin
-        AzureADGraph.GetTenantDetail(TenantInfo);
-        if not IsNull(TenantInfo) then
-            exit(TenantInfo.CountryLetterCode());
-
-        Error(TenantDomainNameErr);
+        exit(AzureADTenantImpl.GetCountryLetterCode());
     end;
 
     /// <summary>
@@ -65,15 +58,8 @@ codeunit 433 "Azure AD Tenant"
     /// <returns>Preferred Language</returns>
     /// <error>Cannot retrieve the Microsoft Entra tenant preferred language.</error>
     procedure GetPreferredLanguage(): Text;
-    var
-        AzureADGraph: Codeunit "Azure AD Graph";
-        TenantInfo: DotNet TenantInfo;
     begin
-        AzureADGraph.GetTenantDetail(TenantInfo);
-        if not IsNull(TenantInfo) then
-            exit(TenantInfo.PreferredLanguage());
-
-        Error(TenantDomainNameErr);
+        exit(AzureADTenantImpl.GetPreferredLanguage());
     end;
 }
 
