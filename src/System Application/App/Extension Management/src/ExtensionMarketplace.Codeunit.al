@@ -303,7 +303,7 @@ codeunit 2501 "Extension Marketplace"
     begin
         ExtensionInstallationImpl.CheckPermissions();
 
-        if not InstallAppsourceExtension(ApplicationID, TelemetryURL) then begin // successful installation returns false
+        if InstallAppsourceExtension(ApplicationID, TelemetryURL) then begin
             AppId := MapMarketplaceIdToAppId(ApplicationID);
             if ExtensionInstallationImpl.IsInstalledByAppId(AppId) then begin
                 SaveExtensionPendingSetup(AppId);
