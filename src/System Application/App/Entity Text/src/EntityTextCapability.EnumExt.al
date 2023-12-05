@@ -7,5 +7,9 @@ enumextension 2015 "Entity Text Capability" extends "Copilot Capability"
     {
         Caption = 'Marketing text suggestions';
     }
+    value(2016; "Reminder Text")
+    {
+        Caption = 'Reminder text suggestions';
+    }
 
 }

@@ -29,14 +29,19 @@ codeunit 2012 "Entity Text Impl."
         exit(AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Entity Text", Silent));
     end;
 
-    procedure CanSuggest(): Boolean
+    procedure CanSuggest(SourceScenario: Enum "Entity Text Scenario"): Boolean
     var
         EntityTextAOAISettings: Codeunit "Entity Text AOAI Settings";
     begin
         if not EntityTextAOAISettings.IsEnabled(true) then
             exit(false);
 
-        exit(HasPromptInfo());
+        exit(HasPromptInfo(SourceScenario));
+    end;
+
+    procedure CanSuggest(): Boolean
+    begin
+        exit(CanSuggest(0));
     end;
 
     [NonDebuggable]
@@ -68,10 +73,8 @@ codeunit 2012 "Entity Text Impl."
     procedure InsertSuggestion(SourceTableId: Integer; SourceSystemId: Guid; SourceScenario: Enum "Entity Text Scenario"; SuggestedText: Text)
     var
         EntityText: Record "Entity Text";
-        Handled: Boolean;
     begin
-        OnInsertSuggestion(SourceTableId, SourceSystemId, SourceScenario, SuggestedText, Handled);
-        if Handled then
+        if SourceScenario = Enum::"Entity Text Scenario"::"Reminder Text" then
             exit;
 
         InsertSuggestion(SourceTableId, SourceSystemId, SourceScenario, SuggestedText, EntityText);
@@ -212,6 +215,12 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
+    local procedure GetPromptInfo(): JsonObject
+    begin
+        GetPromptInfo(0);
+    end;
+
+    [NonDebuggable]
     local procedure GetPromptInfo(var SourceScenario: Enum "Entity Text Scenario"): JsonObject
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
@@ -220,11 +229,13 @@ codeunit 2012 "Entity Text Impl."
         PromptSecretName: Text;
         Handled: Boolean;
     begin
-        OnGetPromptSecretName(PromptSecretName, SourceScenario, Handled);
+        if SourceScenario = Enum::"Entity Text Scenario"::"Reminder Text" then
+            PromptSecretName := ReminderTextPromptObjectKeyTxt
+        else
+            PromptSecretName := PromptObjectKeyTxt;
 
-        if not Handled then
-            if not AzureKeyVault.GetAzureKeyVaultSecret(PromptObjectKeyTxt, PromptObjectText) then
-                Error(PromptNotFoundErr);
+        if not AzureKeyVault.GetAzureKeyVaultSecret(PromptSecretName, PromptObjectText) then
+            Error(PromptNotFoundErr);
 
         if not PromptObject.ReadFrom(PromptObjectText) then
             Error(PromptFormatInvalidErr);
@@ -240,6 +251,13 @@ codeunit 2012 "Entity Text Impl."
     procedure HasPromptInfo()
     begin
         GetPromptInfo();
+    end;
+
+    [TryFunction]
+    [NonDebuggable]
+    procedure HasPromptInfo(SourceScenario: Enum "Entity Text Scenario")
+    begin
+        GetPromptInfo(SourceScenario);
     end;
 
     [NonDebuggable]
@@ -441,11 +459,12 @@ codeunit 2012 "Entity Text Impl."
             AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", Endpoint, Deployment, ApiKey);
         end;
 
-        OnGetCopilotCapabiity(CopilotCapability, SourceScenario, Handled);
-        if Handled then
-            AzureOpenAI.SetCopilotCapability(CopilotCapability)
+        if SourceScneario = Enum::"Entity Text Scenario"::"Reminder Text" then
+            CopilotCapability := Enum::"Copilot Capability"::"Reminder Text"
         else
-            AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Entity Text");
+            CopilotCapability := Enum::"Copilot Capability"::"Entity Text";
+
+        AzureOpenAI.SetCopilotCapability(CopilotCapability);
 
         AOAICompletionParams.SetMaxTokens(2500);
         AOAICompletionParams.SetTemperature(0.7);
@@ -464,25 +483,11 @@ codeunit 2012 "Entity Text Impl."
         exit(Result);
     end;
 
-    [IntegrationEvent(false, false)]
-    internal procedure OnInsertSuggestion(var SourceTableId: Integer; var SourceSystemId: Guid; var SourceScenario: Enum "Entity Text Scenario"; var SuggestedText: Text; var Handled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    internal procedure OnGetPromptSecretName(var PromptSecretName: Text; var SourceScenario: Enum "Entity Text Scenario"; var Handled Boolean);
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    internal procedure OnGetCopilotCapability(var CopilotCapability: Enum "Copilot Capability"; var SourceScenario: Enum "Entity Text Scenario"; var Handled Boolean);
-    begin
-    end;
-
     var
         Endpoint: Text;
         Deployment: Text;
         ApiKey: SecretText;
+        ReminderTextPromptObjectKeyTxt: Label 'AOAI-Prompt-GenerateReminderText', Locked = true;
         PromptObjectKeyTxt: Label 'AOAI-Prompt-23', Locked = true;
         FactTemplateTxt: Label '- %1: %2%3', Locked = true;
         EncodedNewlineTok: Label '<br />', Locked = true;
