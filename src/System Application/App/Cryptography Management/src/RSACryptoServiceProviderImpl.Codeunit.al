@@ -144,7 +144,7 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
 
     #region Pkcs8
     [NonDebuggable]
-    procedure ImportEncryptedPkcs8PrivateKey(EncryptedKeyInStream: InStream; Password: SecretText)
+    procedure ImportEncryptedPkcs8PrivateKey(EncryptedKeyInStream: InStream; Password: Text)
     var
         EncryptedKeyBytes: DotNet Array;
         PasswordChars: DotNet Array;

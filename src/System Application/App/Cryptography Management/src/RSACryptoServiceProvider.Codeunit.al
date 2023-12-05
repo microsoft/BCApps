@@ -88,7 +88,7 @@ codeunit 1445 "RSACryptoServiceProvider"
     /// <param name="EncryptedKeyInStream">The input stream containig ecrypted PKCS#8 private key.</param>
     /// <param name="Password">Password to decrypt the private key.</param>
     [NonDebuggable]
-    procedure ImportEncryptedPkcs8PrivateKey(EncryptedKeyInStream: InStream; Password: SecretText)
+    procedure ImportEncryptedPkcs8PrivateKey(EncryptedKeyInStream: InStream; Password: Text)
     begin
         RSACryptoServiceProviderImpl.ImportEncryptedPkcs8PrivateKey(EncryptedKeyInStream, Password);
     end;
