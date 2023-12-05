@@ -36,20 +36,20 @@ codeunit 3705 "Azure AD Tenant Impl."
         Error(TenantDomainNameErr);
     end;
 
-    procedure GetCountryLetterCode(): Text;
+    procedure GetCountryLetterCode(): Code[2];
     begin
         Initialize();
         if not IsNull(TenantInfo) then
-            exit(TenantInfo.CountryLetterCode());
+            exit(CopyStr(TenantInfo.CountryLetterCode(), 1, 2));
 
         Error(CountryLetterCodeErr);
     end;
 
-    procedure GetPreferredLanguage(): Text;
+    procedure GetPreferredLanguage(): Code[2];
     begin
         Initialize();
         if not IsNull(TenantInfo) then
-            exit(TenantInfo.PreferredLanguage());
+            exit(CopyStr(TenantInfo.PreferredLanguage(), 1, 2));
 
         Error(PreferredLanguageErr);
     end;

@@ -45,7 +45,7 @@ codeunit 433 "Azure AD Tenant"
     /// </summary>
     /// <returns>Country or region abbreviation for the organization in ISO 3166-2 format.</returns>
     /// <error>Cannot retrieve the Microsoft Entra tenant country letter code.</error>
-    procedure GetCountryLetterCode(): Text;
+    procedure GetCountryLetterCode(): Code[2];
     begin
         exit(AzureADTenantImpl.GetCountryLetterCode());
     end;
@@ -57,7 +57,7 @@ codeunit 433 "Azure AD Tenant"
     /// </summary>
     /// <returns>The preferred language for the organization. Should follow ISO 639-1 Code; for example, en.</returns>
     /// <error>Cannot retrieve the Microsoft Entra tenant preferred language.</error>
-    procedure GetPreferredLanguage(): Text;
+    procedure GetPreferredLanguage(): Code[2];
     begin
         exit(AzureADTenantImpl.GetPreferredLanguage());
     end;
