@@ -243,7 +243,7 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure GetPromptObject(var PromptSecretName: Text): JsonObject
+    local procedure GetPromptObject(PromptSecretName: Text): JsonObject
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         PromptObject: JsonObject;
