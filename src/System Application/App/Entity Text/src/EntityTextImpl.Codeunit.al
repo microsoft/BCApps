@@ -40,8 +40,13 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     procedure CanSuggest(): Boolean
+    var
+        EntityTextAOAISettings: Codeunit "Entity Text AOAI Settings";
     begin
-        exit(CanSuggest(0));
+        if not EntityTextAOAISettings.IsEnabled(true) then
+            exit(false);
+
+        exit(HasPromptInfo());
     end;
 
     [NonDebuggable]
@@ -59,7 +64,7 @@ codeunit 2012 "Entity Text Impl."
     begin
         if not IsEnabled(true) then
             Error(CapabilityDisabledErr);
-        if not CanSuggest() then
+        if not CanSuggest(SourceScenario) then
             Error(CannotGenerateErr);
         BuildPrompts(Facts, Tone, TextFormat, TextEmphasis, SystemPrompt, UserPrompt, SourceScenario);
 
@@ -217,23 +222,29 @@ codeunit 2012 "Entity Text Impl."
     [NonDebuggable]
     local procedure GetPromptInfo(): JsonObject
     begin
-        GetPromptInfo(0);
+        exit(GetPromptObject(PromptObjectKeyTxt))
     end;
 
     [NonDebuggable]
     local procedure GetPromptInfo(var SourceScenario: Enum "Entity Text Scenario"): JsonObject
     var
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        PromptObject: JsonObject;
-        PromptObjectText: Text;
         PromptSecretName: Text;
-        Handled: Boolean;
     begin
         if SourceScenario = Enum::"Entity Text Scenario"::"Reminder Text" then
             PromptSecretName := ReminderTextPromptObjectKeyTxt
         else
             PromptSecretName := PromptObjectKeyTxt;
 
+        exit(GetPromptObject(PromptSecretName))
+    end;
+
+    [NonDebuggable]
+    local procedure GetPromptObject(var PromptSecretName: Text): JsonObject
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        PromptObject: JsonObject;
+        PromptObjectText: Text;
+    begin
         if not AzureKeyVault.GetAzureKeyVaultSecret(PromptSecretName, PromptObjectText) then
             Error(PromptNotFoundErr);
 
@@ -444,7 +455,7 @@ codeunit 2012 "Entity Text Impl."
         NewLineChar: Char;
         EntityTextModuleInfo: ModuleInfo;
         Handled: Boolean;
-        CopilotCapability: Enum "Copilot Availability";
+        CopilotCapability: Enum "Copilot Capability";
     begin
         NewLineChar := 10;
 
@@ -459,7 +470,7 @@ codeunit 2012 "Entity Text Impl."
             AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", Endpoint, Deployment, ApiKey);
         end;
 
-        if SourceScneario = Enum::"Entity Text Scenario"::"Reminder Text" then
+        if SourceScenario = Enum::"Entity Text Scenario"::"Reminder Text" then
             CopilotCapability := Enum::"Copilot Capability"::"Reminder Text"
         else
             CopilotCapability := Enum::"Copilot Capability"::"Entity Text";
