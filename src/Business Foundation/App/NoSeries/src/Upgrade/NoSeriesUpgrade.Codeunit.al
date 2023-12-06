@@ -7,7 +7,7 @@ namespace Microsoft.Foundation.NoSeries;
 
 using System.Upgrade;
 
-codeunit 311 "No. Series Upgrade"
+codeunit 331 "No. Series Upgrade"
 {
     Subtype = Upgrade;
 

@@ -5,7 +5,7 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-codeunit 312 "No. Series Upgrade Tags"
+codeunit 332 "No. Series Upgrade Tags"
 {
     Access = Internal;
 
