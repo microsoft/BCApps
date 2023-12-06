@@ -19,6 +19,9 @@ page 2502 "Extension Marketplace"
     ApplicationArea = All;
     UsageCategory = Administration;
     Editable = false;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This page will be obsoleted. Microsoft AppSource apps feature will replace the Extension Marketplace.';
+    ObsoleteTag = '24.0';
 
     layout
     {
