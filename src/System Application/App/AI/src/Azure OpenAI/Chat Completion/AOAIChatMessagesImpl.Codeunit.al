@@ -131,12 +131,13 @@ codeunit 7764 "AOAI Chat Messages Impl"
     end;
 
     [NonDebuggable]
-    procedure PrepareHistory() HistoryResult: JsonArray
+    procedure PrepareHistory(var SystemMessageTokenCount: Integer; var MessagesTokenCount: Integer) HistoryResult: JsonArray
     var
         AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
         Counter: Integer;
         MessageJsonObject: JsonObject;
         Message: Text;
+        TotalMessages: Text;
         Name: Text[2048];
         Role: Enum "AOAI Chat Roles";
     begin
@@ -150,6 +151,8 @@ codeunit 7764 "AOAI Chat Messages Impl"
             MessageJsonObject.Add('role', Format(Enum::"AOAI Chat Roles"::System));
             MessageJsonObject.Add('content', SystemMessage.Unwrap());
             HistoryResult.Add(MessageJsonObject);
+
+            SystemMessageTokenCount := AzureOpenAIImpl.ApproximateTokenCount(SystemMessage.Unwrap());
         end;
 
         Counter := History.Count - HistoryLength + 1;
@@ -168,7 +171,12 @@ codeunit 7764 "AOAI Chat Messages Impl"
                 MessageJsonObject.Add('name', Name);
             HistoryResult.Add(MessageJsonObject);
             Counter += 1;
+            TotalMessages += Format(Role);
+            TotalMessages += Message;
+            TotalMessages += Name;
         until Counter > History.Count;
+
+        MessagesTokenCount := AzureOpenAIImpl.ApproximateTokenCount(TotalMessages);
     end;
 
     local procedure Initialize()
