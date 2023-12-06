@@ -77,8 +77,7 @@ codeunit 281 NoSeriesMgt
         end;
     end;
 
-    // FindNoSeriesLineToShow is used from baseapp test
-    procedure FindNoSeriesLineToShow(var NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line")
+    internal procedure FindNoSeriesLineToShow(var NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line")
     begin
         SetNoSeriesLineFilter(NoSeriesLine, NoSeries.Code, 0D);
 
