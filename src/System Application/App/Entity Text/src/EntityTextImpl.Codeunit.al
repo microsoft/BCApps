@@ -159,7 +159,7 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure BuildPrompts(var Facts: Dictionary of [Text, Text]; Tone: Enum "Entity Text Tone"; TextFormat: Enum "Entity Text Format"; TextEmphasis: Enum "Entity Text Emphasis"; var SystemPrompt: Text; var UserPrompt: Text; var SourceScenarioName: Text)
+    local procedure BuildPrompts(var Facts: Dictionary of [Text, Text]; Tone: Enum "Entity Text Tone"; TextFormat: Enum "Entity Text Format"; TextEmphasis: Enum "Entity Text Emphasis"; var SystemPrompt: Text; var UserPrompt: Text; SourceScenarioName: Text)
     var
         EntityTextAOAISettings: Codeunit "Entity Text AOAI Settings";
         PromptInfo: JsonObject;
@@ -230,7 +230,7 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure GetPromptInfo(var SourceScenarioName: Text): JsonObject
+    local procedure GetPromptInfo(SourceScenarioName: Text): JsonObject
     var
         PromptSecretName: Text;
     begin
@@ -270,7 +270,7 @@ codeunit 2012 "Entity Text Impl."
 
     [TryFunction]
     [NonDebuggable]
-    procedure HasPromptInfo(var SourceScenarioName: Text)
+    procedure HasPromptInfo(SourceScenarioName: Text)
     begin
         GetPromptInfo(SourceScenarioName);
     end;
@@ -321,7 +321,7 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure GenerateAndReviewCompletion(SystemPrompt: Text; UserPrompt: Text; TextFormat: Enum "Entity Text Format"; Facts: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo; var SourceScenarioName: Text): Text
+    local procedure GenerateAndReviewCompletion(SystemPrompt: Text; UserPrompt: Text; TextFormat: Enum "Entity Text Format"; Facts: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo; SourceScenarioName: Text): Text
     var
         Completion: Text;
         MaxAttempts: Integer;
@@ -446,7 +446,7 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure GenerateCompletion(SystemPrompt: Text; UserPrompt: Text; CallerModuleInfo: ModuleInfo; var SourceScenarioName: Text): Text
+    local procedure GenerateCompletion(SystemPrompt: Text; UserPrompt: Text; CallerModuleInfo: ModuleInfo; SourceScenarioName: Text): Text
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
         EntityTextAOAISettings: Codeunit "Entity Text AOAI Settings";
@@ -458,7 +458,6 @@ codeunit 2012 "Entity Text Impl."
         Result: Text;
         NewLineChar: Char;
         EntityTextModuleInfo: ModuleInfo;
-        Handled: Boolean;
         CopilotCapability: Enum "Copilot Capability";
     begin
         NewLineChar := 10;
