@@ -448,6 +448,8 @@ codeunit 396 NoSeriesManagement
         Clear(LastNoSeriesLine);
     end;
 
+#if not CLEAN24
+    [Obsolete('Please use the procedure GetNoSeriesLine on the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
     procedure SetNoSeriesLineFilter(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; StartDate: Date)
     begin
         if StartDate = 0D then
@@ -463,6 +465,7 @@ codeunit 396 NoSeriesManagement
             NoSeriesLine.SetRange(Open, true);
         end;
     end;
+#endif
 
     internal procedure RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(var NoSeriesLine: Record "No. Series Line")
     begin
