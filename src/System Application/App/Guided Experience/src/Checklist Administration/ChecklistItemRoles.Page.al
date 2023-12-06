@@ -18,7 +18,7 @@ page 1994 "Checklist Item Roles"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control1)
             {

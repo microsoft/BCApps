@@ -19,6 +19,6 @@ permissionset 2610 "Feature Key - Read"
                   tabledata Company = r,
                   tabledata "Feature Data Update Status" = R,
                   tabledata "Feature Key" = r,
-                  tabledata "Session Event" = r,
-                  tabledata "Scheduled Task" = r;
+                  tabledata "Scheduled Task" = r,
+                  tabledata "Session Event" = r;
 }

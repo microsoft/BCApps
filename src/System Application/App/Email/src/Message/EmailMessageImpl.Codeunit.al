@@ -35,7 +35,7 @@ codeunit 8905 "Email Message Impl."
         Create(EmailMessageImpl.GetRecipientsAsText(Enum::"Email Recipient Type"::"To"),
                 EmailMessageImpl.GetSubject(), EmailMessageImpl.GetBody(), EmailMessageImpl.IsBodyHTMLFormatted());
 
-        SetRecipients(Enum::"Email Recipient Type"::CC, EmailMessageImpl.GetRecipientsAsText(Enum::"Email Recipient Type"::CC));
+        SetRecipients(Enum::"Email Recipient Type"::Cc, EmailMessageImpl.GetRecipientsAsText(Enum::"Email Recipient Type"::Cc));
         SetRecipients(Enum::"Email Recipient Type"::Bcc, EmailMessageImpl.GetRecipientsAsText(Enum::"Email Recipient Type"::Bcc));
 
         if EmailMessageImpl.Attachments_First() then
@@ -452,7 +452,7 @@ codeunit 8905 "Email Message Impl."
         CustomDimensions: Dictionary of [Text, Text];
     begin
         MediaId := GlobalEmailMessageAttachment.Data.MediaId();
-        TenantMedia.Get(MediaID);
+        TenantMedia.Get(MediaId);
         Clear(TenantMedia.Content);
         TenantMedia.Modify();
 
@@ -568,7 +568,7 @@ codeunit 8905 "Email Message Impl."
     var
         EmailRelatedAttachment: Record "Email Related Attachment";
         EmailRelatedRecord: Record "Email Related Record";
-        Email: Codeunit "Email";
+        Email: Codeunit Email;
         EmailImpl: Codeunit "Email Impl";
     begin
         EmailRelatedRecord.SetRange("Email Message Id", EmailMessageId);
@@ -592,7 +592,7 @@ codeunit 8905 "Email Message Impl."
         exit(GlobalEmailMessage.Id);
     end;
 
-    procedure Get(MessageId: guid): Boolean
+    procedure Get(MessageId: Guid): Boolean
     begin
         Clear(GlobalEmailMessageAttachment);
 

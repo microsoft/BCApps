@@ -10,6 +10,6 @@ permissionset 1921 "Performance Profiler - Objects"
     Access = Internal;
     Assignable = false;
 
-    Permissions = Codeunit "Sampling Performance Profiler" = X,
-                  Page "Performance Profiler" = X;
+    Permissions = codeunit "Sampling Performance Profiler" = X,
+                  page "Performance Profiler" = X;
 }

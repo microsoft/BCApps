@@ -18,7 +18,7 @@ permissionset 2500 "Extension Management - Read"
     Permissions = tabledata "Application Object Metadata" = r,
                   tabledata Media = r,
                   tabledata "NAV App Installed App" = r,
+                  tabledata "NAV App Setting" = r,
                   tabledata "NAV App Tenant Operation" = r,
-                  tabledata "Published Application" = r,
-                  tabledata "NAV App Setting" = r;
+                  tabledata "Published Application" = r;
 }

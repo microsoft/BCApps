@@ -406,7 +406,7 @@ codeunit 1996 "Checklist Banner Impl."
     var
         AllProfile: Record "All Profile";
     begin
-        // if the tour is running on the same page as the checklist we don't want to refresh the page, 
+        // if the tour is running on the same page as the checklist we don't want to refresh the page,
         // as the checklist will appear in a wrong state afterwards, so we need to run the tour for object ID 0
 
         AllProfile.SetRange("Role Center ID", ObjectIDToRun);

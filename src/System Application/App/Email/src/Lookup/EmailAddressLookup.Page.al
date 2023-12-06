@@ -102,7 +102,7 @@ page 8944 "Email Address Lookup"
         exit(FullAddressLookup);
     end;
 
-    internal procedure SetEntityType(EmailAddressEntity: enum "Email Address Entity")
+    internal procedure SetEntityType(EmailAddressEntity: Enum "Email Address Entity")
     begin
         EntityType := EmailAddressEntity;
     end;
@@ -164,7 +164,7 @@ page 8944 "Email Address Lookup"
     end;
 
     protected var
-        EntityType: enum "Email Address Entity";
+        EntityType: Enum "Email Address Entity";
 
     var
         FullAddressLookup: Boolean;

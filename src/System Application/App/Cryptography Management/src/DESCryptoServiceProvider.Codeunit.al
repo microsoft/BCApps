@@ -54,7 +54,7 @@ codeunit 1379 DESCryptoServiceProvider
     /// <param name="InputInstream">Represents the input instream data to encrypt</param>
     /// <param name="OutputOutstream">Represents the output instream encrypted data</param>
     [NonDebuggable]
-    procedure EncryptStream(Password: Text; Salt: Text; InputInstream: InStream; var OutputOutstream: Outstream)
+    procedure EncryptStream(Password: Text; Salt: Text; InputInstream: InStream; var OutputOutstream: OutStream)
     begin
         DESCryptoServiceProviderImpl.EncryptStream(Password, Salt, InputInstream, OutputOutstream);
     end;
@@ -67,7 +67,7 @@ codeunit 1379 DESCryptoServiceProvider
     /// <param name="InputInstream">Represents the input instream data to decrypt</param>
     /// <param name="OutputOutstream">Represents the output instream decrypted data</param>
     [NonDebuggable]
-    procedure DecryptStream(Password: Text; Salt: Text; InputInstream: InStream; var OutputOutstream: Outstream)
+    procedure DecryptStream(Password: Text; Salt: Text; InputInstream: InStream; var OutputOutstream: OutStream)
     begin
         DESCryptoServiceProviderImpl.DecryptStream(Password, Salt, InputInstream, OutputOutstream);
     end;

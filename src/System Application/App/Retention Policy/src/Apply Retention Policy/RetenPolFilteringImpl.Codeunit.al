@@ -47,19 +47,19 @@ codeunit 3915 "Reten. Pol. Filtering Impl." implements "Reten. Pol. Filtering"
         ExpirationDate: Date;
     begin
         if not RetentionPeriod.Get(RetentionPolicySetup."Retention Period") then begin
-            RetentionPolicyLog.LogWarning(LogCategory(), StrSubstno(RetentionPolicySetupNotFoundLbl, RetentionPolicySetup."Table Id"));
+            RetentionPolicyLog.LogWarning(LogCategory(), StrSubstNo(RetentionPolicySetupNotFoundLbl, RetentionPolicySetup."Table Id"));
             exit(false);
         end;
 
         ExpirationDate := CalculateExpirationDate(RetentionPeriod);
         if ExpirationDate >= Yesterday() then begin
-            RetentionPolicyLog.LogWarning(LogCategory(), StrSubstno(FutureExpirationDateWarningLbl, Format(ExpirationDate, 0, 9), RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
+            RetentionPolicyLog.LogWarning(LogCategory(), StrSubstNo(FutureExpirationDateWarningLbl, Format(ExpirationDate, 0, 9), RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
             exit(false);
         end;
-        ValidateExpirationDate(ExpirationDate, RetentionPolicySetup."Table ID", RetentionPolicySetup."Table Caption");
+        ValidateExpirationDate(ExpirationDate, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption");
         RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(AllRecordsFilterInfoLbl, RetentionPolicySetup."Table Id", Format(ExpirationDate, 0, 9)));
 
-        RecordRef.Open(RetentionPolicySetup."Table ID");
+        RecordRef.Open(RetentionPolicySetup."Table Id");
         RecordReference.Initialize(RecordRef, RecordReferenceIndirectPermission);
         ApplyRetentionPolicy.SetWhereOlderExpirationDateFilter(RetentionPolicySetup."Date Field No.", ExpirationDate, RecordRef, 11, RetenPolFilteringParam."Null Date Replacement value");
         if not RecordReferenceIndirectPermission.IsEmpty(RecordRef) then
@@ -80,7 +80,7 @@ codeunit 3915 "Reten. Pol. Filtering Impl." implements "Reten. Pol. Filtering"
         SelectedSystemIds: Dictionary of [Guid, Boolean]; // using a dictionary here, as there is no native hash set type
         RetentionPolicySetupLineTableFilters: Dictionary of [Guid, Text];
     begin
-        RecordRef.Open(RetentionPolicySetup."Table ID");
+        RecordRef.Open(RetentionPolicySetup."Table Id");
         RecordReference.Initialize(RecordRef, RecordReferenceIndirectPermission);
 
         RetentionPolicySetupLine.SetRange("Table ID", RetentionPolicySetup."Table Id");
@@ -163,7 +163,7 @@ codeunit 3915 "Reten. Pol. Filtering Impl." implements "Reten. Pol. Filtering"
     begin
         RecordRef.Open(RetentionPolicySetup."Table Id");
         RetentionPolicySetupLine.SetCurrentKey("Date Field No.");
-        RetentionPolicySetupLine.SetRange("Table ID", RetentionPolicySetup."Table ID");
+        RetentionPolicySetupLine.SetRange("Table ID", RetentionPolicySetup."Table Id");
         RetentionPolicySetupLine.SetRange(Enabled, true);
         OldestDate := Today();
         if RetentionPolicySetupLine.FindSet(false) then
@@ -231,7 +231,7 @@ codeunit 3915 "Reten. Pol. Filtering Impl." implements "Reten. Pol. Filtering"
         ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
         ExpirationDate: Date;
     begin
-        RetentionPolicySetupLine.SetRange("Table ID", RetentionPolicySetup."Table ID");
+        RetentionPolicySetupLine.SetRange("Table ID", RetentionPolicySetup."Table Id");
         RetentionPolicySetupLine.SetRange(Enabled, true);
         if RetentionPolicySetupLine.FindSet(false) then
             repeat
@@ -251,7 +251,7 @@ codeunit 3915 "Reten. Pol. Filtering Impl." implements "Reten. Pol. Filtering"
                     ApplyRetentionPolicy.SetSingleDateExpirationDateFilter(RetentionPolicySetupLine."Date Field No.", ExpirationDate, RecordRef, 11, RetenPolFilteringParam."Null Date Replacement value");
                     SetMarks(RecordRef, true, SelectedSystemIds);
                 end else
-                    if (ExpirationDate <= CurrDate) or (ExpirationDate >= yesterday()) then begin
+                    if (ExpirationDate <= CurrDate) or (ExpirationDate >= Yesterday()) then begin
                         // if ExpirationDate is >= today - 1, don't set filter and remove all records from temp
                         if ExpirationDate < Yesterday() then
                             // set filter for date in filtergroup 11

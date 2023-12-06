@@ -350,7 +350,7 @@ dotnet
 
         type("Microsoft.Dynamics.Nav.Client.PageReady.IPageReady"; "Microsoft.Dynamics.Nav.Client.PageReady")
         {
-            IsControlAddin = true;
+            IsControlAddIn = true;
         }
     }
 
@@ -359,7 +359,7 @@ dotnet
 
         type("Microsoft.Dynamics.Nav.Client.VideoPlayer.IVideoPlayer"; "Microsoft.Dynamics.Nav.Client.VideoPlayer")
         {
-            IsControlAddin = true;
+            IsControlAddIn = true;
         }
     }
 

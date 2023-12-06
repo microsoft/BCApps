@@ -17,7 +17,7 @@ page 9867 "Sec. Group Permissions Part"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {

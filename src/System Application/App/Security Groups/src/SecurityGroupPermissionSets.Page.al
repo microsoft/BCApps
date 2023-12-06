@@ -16,7 +16,7 @@ page 9868 "Security Group Permission Sets"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -68,7 +68,7 @@ page 9868 "Security Group Permission Sets"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action(SelectPermissionSets)
             {

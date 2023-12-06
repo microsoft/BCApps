@@ -10,5 +10,5 @@ permissionset 9100 "SharePoint API - Objects"
     Access = Internal;
     Assignable = false;
 
-    Permissions = Codeunit "SharePoint Client" = X;
+    Permissions = codeunit "SharePoint Client" = X;
 }

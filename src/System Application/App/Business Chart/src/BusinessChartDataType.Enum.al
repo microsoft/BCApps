@@ -15,7 +15,7 @@ enum 479 "Business Chart Data Type"
     /// <summary>
     /// String type, corresponds to 'System.String'
     /// </summary>
-    value(0; "String")
+    value(0; String)
     {
         Caption = 'String';
     }

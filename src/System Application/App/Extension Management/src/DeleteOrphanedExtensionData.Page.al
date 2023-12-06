@@ -31,7 +31,7 @@ page 2514 "Delete Orphaned Extension Data"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -52,7 +52,7 @@ page 2514 "Delete Orphaned Extension Data"
                     Caption = 'Version';
                     ToolTip = 'Specifies the version of the extension.';
                 }
-                field("Stale"; Rec.Status)
+                field(Stale; Rec.Status)
                 {
                     ApplicationArea = All;
                     Caption = 'Status';
@@ -90,7 +90,7 @@ page 2514 "Delete Orphaned Extension Data"
             }
         }
 
-        area(processing)
+        area(Processing)
         {
             group(ActionGroup13)
             {

@@ -33,25 +33,25 @@ page 1923 "Profiling Duration By Object"
                 {
                     ApplicationArea = All;
                     Caption = 'Object Type';
-                    Tooltip = 'Specifies the type of the application object.';
+                    ToolTip = 'Specifies the type of the application object.';
                 }
                 field("Object Name"; Rec."Object Name")
                 {
                     ApplicationArea = All;
                     Caption = 'Object Name';
-                    Tooltip = 'Specifies the name of the application object.';
+                    ToolTip = 'Specifies the name of the application object.';
                 }
                 field("Time Spent"; Rec."Self Time")
                 {
                     ApplicationArea = All;
                     Caption = 'Time Spent';
-                    Tooltip = 'Specifies the amount of time spent in this application object.';
+                    ToolTip = 'Specifies the amount of time spent in this application object.';
 
                     trigger OnDrillDown()
                     var
                         ProfilingDurationByMethod: Page "Profiling Duration By Method";
                     begin
-                        ProfilingDurationByMethod.Initialize(Rec."Object Type", Rec."Object Id");
+                        ProfilingDurationByMethod.Initialize(Rec."Object Type", Rec."Object ID");
                         ProfilingDurationByMethod.RunModal();
                     end;
                 }
@@ -59,7 +59,7 @@ page 1923 "Profiling Duration By Object"
                 {
                     ApplicationArea = All;
                     Caption = 'App Name';
-                    Tooltip = 'Specifies the name of the app that the application object belongs to.';
+                    ToolTip = 'Specifies the name of the app that the application object belongs to.';
                 }
             }
         }

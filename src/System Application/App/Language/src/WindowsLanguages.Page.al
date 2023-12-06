@@ -23,7 +23,7 @@ page 535 "Windows Languages"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control2)
             {
@@ -45,9 +45,6 @@ page 535 "Windows Languages"
         }
     }
 
-    actions
-    {
-    }
 }
 
 

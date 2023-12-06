@@ -20,10 +20,10 @@ codeunit 1482 "Edit in Excel Impl."
     InherentPermissions = X;
 
 #if not CLEAN22
-    Permissions = TableData "Tenant Web Service OData" = rimd,
-                  TableData "Tenant Web Service Columns" = rimd,
-                  TableData "Tenant Web Service Filter" = rimd,
-                  TableData "Tenant Web Service" = r;
+    Permissions = tabledata "Tenant Web Service" = r,
+                  tabledata "Tenant Web Service Columns" = rimd,
+                  tabledata "Tenant Web Service Filter" = rimd,
+                  tabledata "Tenant Web Service OData" = rimd;
 #endif
 
     var
@@ -95,7 +95,7 @@ codeunit 1482 "Edit in Excel Impl."
         EditinExcelWorkbook: Codeunit "Edit in Excel Workbook";
     begin
         if (not TenantWebService.Get(TenantWebService."Object Type"::Page, ServiceName)) then
-            error(EditInExcelOnlySupportPageWebServicesTxt);
+            Error(EditInExcelOnlySupportPageWebServicesTxt);
 
         Session.LogMessage('0000DB6', StrSubstNo(CreateEndpointForObjectTxt, TenantWebService."Object Type", TenantWebService."Object ID"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
 
@@ -110,7 +110,7 @@ codeunit 1482 "Edit in Excel Impl."
     var
         FieldsTable: Record "Field";
         PageControlField: Record "Page Control Field";
-        PageMetadata: record "Page Metadata";
+        PageMetadata: Record "Page Metadata";
         DocumentSharing: Codeunit "Document Sharing";
         RecordRef: RecordRef;
         VarFieldRef: FieldRef;
@@ -301,9 +301,9 @@ codeunit 1482 "Edit in Excel Impl."
         DataEntityExportInfo.EnableDesign := true;
         DataEntityExportInfo.RefreshOnOpen := true;
         DataEntityExportInfo.DateCreated := CurrentDateTime();
-        DataEntityExportInfo.GenerationActivityId := format(SessionId());
+        DataEntityExportInfo.GenerationActivityId := Format(SessionId());
 
-        DocumentId := format(CreateGuid(), 0, 4);
+        DocumentId := Format(CreateGuid(), 0, 4);
         DataEntityExportInfo.DocumentId := DocumentId;
         Session.LogMessage('0000GYB', StrSubstNo(CreatingExcelDocumentWithIdTxt, DocumentId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
 
@@ -349,7 +349,7 @@ codeunit 1482 "Edit in Excel Impl."
         exit(ServiceName);
     end;
 
-    local procedure NameBeginsWithADigit(Name: text[240]): Boolean
+    local procedure NameBeginsWithADigit(Name: Text[240]): Boolean
     begin
         if Name[1] in ['0' .. '9'] then
             exit(true);
@@ -436,7 +436,7 @@ codeunit 1482 "Edit in Excel Impl."
 
     local procedure CreateOfficeAppInfo(var OfficeAppInfo: DotNet OfficeAppInfo)  // Note: Keep this in sync with BaseApp - ODataUtility
     var
-        EditinExcelSettings: record "Edit in Excel Settings";
+        EditinExcelSettings: Record "Edit in Excel Settings";
     begin
         OfficeAppInfo := OfficeAppInfo.OfficeAppInfo();
         if EditinExcelSettings.Get() and EditinExcelSettings."Use Centralized deployments" then begin

@@ -18,7 +18,7 @@ page 1821 "Video Link"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(Control5)
             {

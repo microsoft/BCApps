@@ -52,7 +52,7 @@ table 3963 Captures
     }
 
     /// <summary>
-    /// Reads the value of the capture 
+    /// Reads the value of the capture
     /// </summary>
     /// <returns>The value of the capture.</returns>
     procedure ReadValue() TextValue: Text

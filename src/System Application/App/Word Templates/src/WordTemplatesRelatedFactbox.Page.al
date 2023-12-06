@@ -26,7 +26,7 @@ page 9982 "Word Templates Related FactBox"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Tables)
             {

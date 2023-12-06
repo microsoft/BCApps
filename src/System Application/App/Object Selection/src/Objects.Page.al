@@ -26,7 +26,7 @@ page 358 Objects
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control1)
             {
@@ -77,9 +77,6 @@ page 358 Objects
         }
     }
 
-    actions
-    {
-    }
 
     // Used to set the Extension Name field
     // in case the object comes from an installed extension.

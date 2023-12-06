@@ -8,7 +8,7 @@ namespace System.DataAdministration;
 /// <summary>
 /// The table is used as a parameter table for the DeleteRecords method on the Reten. Pol Deleting interface.
 ///
-/// if "Indirect Permission Required" is true and the implementation does not have the required indirect permissions, 
+/// if "Indirect Permission Required" is true and the implementation does not have the required indirect permissions,
 /// then "Skip Event Indirect Perm. Req." should be set to false. This will allow a subscriber to handle the deletion.
 ///
 /// if there are more records to be deleted than as indicated by "Max. Number of Rec. to Delete",

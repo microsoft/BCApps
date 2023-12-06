@@ -17,7 +17,7 @@ codeunit 9029 "Azure AD User Sync Impl."
 
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = TableData User = rm,
+    Permissions = tabledata User = rm,
                   tabledata "User Personalization" = r;
 
     var
@@ -67,7 +67,7 @@ codeunit 9029 "Azure AD User Sync Impl."
     var
         PlanIds: Codeunit "Plan Ids";
         GraphUserInfo: DotNet UserInfo;
-        GraphUserInfoPage: Dotnet UserInfoPage;
+        GraphUserInfoPage: DotNet UserInfoPage;
         AssignedPlansList: DotNet StringArray;
         AllPlanIds: List of [Guid];
         UsersPerPage: Integer;
@@ -109,7 +109,7 @@ codeunit 9029 "Azure AD User Sync Impl."
     [NonDebuggable]
     local procedure FetchUpdatesFromEnvironmentDirectoryGroup(var AzureADUserUpdate: Record "Azure AD User Update Buffer"; OfficeUsersInBC: List of [Guid])
     var
-        GraphUserInfoPage: Dotnet UserInfoPage;
+        GraphUserInfoPage: DotNet UserInfoPage;
         GraphUserInfo: DotNet UserInfo;
         CurrUserPlanIDs: List of [Guid];
     begin

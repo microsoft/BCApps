@@ -23,7 +23,7 @@ page 9997 "Word Templates Tables Part"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Tables)
             {

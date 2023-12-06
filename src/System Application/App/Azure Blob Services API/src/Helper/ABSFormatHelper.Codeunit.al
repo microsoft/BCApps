@@ -161,7 +161,7 @@ codeunit 9044 "ABS Format Helper"
     [NonDebuggable]
     procedure TagsDictionaryToSearchExpression(Tags: Dictionary of [Text, Text]): Text
     var
-        UriHelper: Codeunit "Uri";
+        UriHelper: Codeunit Uri;
         Keys: List of [Text];
         "Key": Text;
         SingleQuoteChar: Char;

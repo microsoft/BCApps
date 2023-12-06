@@ -19,7 +19,7 @@ page 9878 "Permission Set Lookup List"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {

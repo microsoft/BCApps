@@ -26,7 +26,7 @@ page 2616 "Printer Management"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Printers)
             {
@@ -68,7 +68,7 @@ page 2616 "Printer Management"
     }
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action(OpenPrinterSelections)
             {
@@ -94,7 +94,7 @@ page 2616 "Printer Management"
                 Caption = 'Edit printer settings';
                 Image = Edit;
                 Scope = Repeater;
-                ShortCutKey = 'Return';
+                ShortcutKey = 'Return';
                 ToolTip = 'View or edit the settings of the selected printer.';
                 Promoted = true;
                 PromotedIsBig = true;

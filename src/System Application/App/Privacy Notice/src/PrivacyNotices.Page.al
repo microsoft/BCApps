@@ -92,7 +92,7 @@ page 1565 "Privacy Notices"
                         SetRecordApprovalState();
                     end;
                 }
-#pragma warning disable AA0218                
+#pragma warning disable AA0218
                 field(Accepted2; Rec.Enabled)
                 {
                     ApplicationArea = All;
@@ -103,7 +103,7 @@ page 1565 "Privacy Notices"
                     ApplicationArea = All;
                     Visible = false; // This field ensures Disabled field is auto-calculated
                 }
-#pragma warning restore AA0218                
+#pragma warning restore AA0218
             }
         }
     }

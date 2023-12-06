@@ -272,7 +272,7 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure GenerateAndReviewCompletion(SystemPrompt: Text; UserPrompt: Text; TextFormat: enum "Entity Text Format"; Facts: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo): Text
+    local procedure GenerateAndReviewCompletion(SystemPrompt: Text; UserPrompt: Text; TextFormat: Enum "Entity Text Format"; Facts: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo): Text
     var
         Completion: Text;
         MaxAttempts: Integer;
@@ -318,7 +318,7 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure IsGoodCompletion(var Completion: Text; TextFormat: enum "Entity Text Format"; Facts: Dictionary of [Text, Text]): Boolean
+    local procedure IsGoodCompletion(var Completion: Text; TextFormat: Enum "Entity Text Format"; Facts: Dictionary of [Text, Text]): Boolean
     var
         TempMatches: Record Matches temporary;
         Regex: Codeunit Regex;

@@ -332,7 +332,7 @@ codeunit 1460 SignedXml
     end;
 
     /// <summary>
-    /// Represents the Uniform Resource Identifier (URI) for the standard SHA512 digest method for XML digital signatures. 
+    /// Represents the Uniform Resource Identifier (URI) for the standard SHA512 digest method for XML digital signatures.
     /// </summary>
     /// <returns>The value http://www.w3.org/2001/04/xmlenc#sha512.</returns>
     /// <see cref="https://www.w3.org/2001/04/xmlenc#sha512"/>

@@ -171,7 +171,7 @@ page 9995 "Word Template Creation Wizard"
                         ApplicationArea = All;
                         Editable = false;
                         Caption = 'Uploaded file';
-                        Tooltip = 'Specifies the name of the file that was uploaded.';
+                        ToolTip = 'Specifies the name of the file that was uploaded.';
                     }
 
                     field(TemplateEntity; WordTemplate."Table Caption")
@@ -186,7 +186,7 @@ page 9995 "Word Template Creation Wizard"
                             WordTemplateImpl: Codeunit "Word Template Impl.";
                             TableId: Integer;
                         begin
-                            TableID := WordTemplateImpl.SelectTable();
+                            TableId := WordTemplateImpl.SelectTable();
 
                             if TableId <> 0 then begin
                                 WordTemplate."Table ID" := TableId;
@@ -395,7 +395,7 @@ page 9995 "Word Template Creation Wizard"
 
                     // Add related tables
                     CurrPage.RelatedTables.Page.GetRelatedTables(TempRelatedTables);
-                    if TempRelatedTables.Findset() then
+                    if TempRelatedTables.FindSet() then
                         repeat
                             RelatedTables.TransferFields(TempRelatedTables);
                             RelatedTables.Code := WordTemplate.Code;
@@ -501,7 +501,7 @@ page 9995 "Word Template Creation Wizard"
                 FilterBuilder.Append('|');
         end;
         OnSetTableNo(SelectedTable);
-        // As this method populates the page, before it is run, 
+        // As this method populates the page, before it is run,
         // we commit to make sure that database transactions are done.
         Commit();
 

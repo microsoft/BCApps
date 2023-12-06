@@ -23,7 +23,7 @@ page 1993 Checklist
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control1)
             {

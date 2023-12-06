@@ -11,7 +11,7 @@ namespace System.Device;
 /// <code>
 /// Geolocation.SetHighAccuracy(true);
 /// if Geolocation.RequestGeolocation() then
-///    Geolocation.GetGeolocation(Latitude, Longitude);        
+///    Geolocation.GetGeolocation(Latitude, Longitude);
 /// </code>
 /// </example>
 /// </summary>

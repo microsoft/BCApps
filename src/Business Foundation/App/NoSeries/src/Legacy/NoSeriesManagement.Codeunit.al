@@ -67,14 +67,14 @@ codeunit 396 NoSeriesManagement
             end;
         OnAfterTestManual(DefaultNoSeriesCode);
     end;
-#endif
+
+    [Obsolete('Please use the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
     procedure ManualNoAllowed(DefaultNoSeriesCode: Code[20]): Boolean
     begin
         GlobalNoSeries.Get(DefaultNoSeriesCode);
         exit(GlobalNoSeries."Manual Nos.");
     end;
 
-#if not CLEAN24
     [Obsolete('Please use the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
     procedure TestManualWithDocumentNo(DefaultNoSeriesCode: Code[20]; DocumentNo: Code[20])
     begin

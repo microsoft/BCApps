@@ -40,7 +40,7 @@ table 8700 "Table Information Cache"
         {
             Caption = 'Size (KB)';
         }
-        field(7; "Compression"; Option)
+        field(7; Compression; Option)
         {
             Caption = 'Compression';
             OptionMembers = None,Row,Page,Columnstore,"Columnstore Archive";
@@ -63,7 +63,7 @@ table 8700 "Table Information Cache"
         }
         field(8701; "Last Period No. of Records"; Integer)
         {
-            caption = 'Last Period No. of Records (30D)';
+            Caption = 'Last Period No. of Records (30D)';
         }
 
     }

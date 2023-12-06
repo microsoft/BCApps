@@ -34,13 +34,13 @@ page 1924 "Profiling Duration By Method"
                 {
                     ApplicationArea = All;
                     Caption = 'Method Name';
-                    Tooltip = 'Specifies the name of the method in which the time was spent.';
+                    ToolTip = 'Specifies the name of the method in which the time was spent.';
                 }
                 field("Time Spent"; Rec."Self Time")
                 {
                     ApplicationArea = All;
                     Caption = 'Time Spent';
-                    Tooltip = 'Specifies the total time spent inside the method during the performance profiler recording.';
+                    ToolTip = 'Specifies the total time spent inside the method during the performance profiler recording.';
                 }
             }
         }
