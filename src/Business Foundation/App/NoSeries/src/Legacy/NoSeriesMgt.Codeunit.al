@@ -233,7 +233,7 @@ codeunit 281 NoSeriesMgt
 
     internal procedure UpdateStartingSequenceNo(var NoSeriesLine: Record "No. Series Line")
     begin
-        if not NoSeriesLine."Allow Gaps in Nos." then
+        if not (NoSeriesLine.Implementation = "No. Series Implementation"::Sequence) then
             exit;
 
         if NoSeriesLine."Last No. Used" = '' then

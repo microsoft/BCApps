@@ -38,7 +38,6 @@ table 309 "No. Series Line"
                 NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
                 NoSeriesMgt.UpdateNoSeriesLine(Rec, "Starting No.", CopyStr(FieldCaption("Starting No."), 1, 100));
-                NoSeriesMgt.UpdateStartingSequenceNo(Rec);
             end;
         }
         field(5; "Ending No."; Code[20])
@@ -74,15 +73,8 @@ table 309 "No. Series Line"
             MinValue = 1;
 
             trigger OnValidate()
-            var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
                 Validate(Open);
-                if "Allow Gaps in Nos." then begin
-                    NoSeriesMgt.RecreateSequence(Rec);
-                    if "Line No." <> 0 then
-                        if Modify() then;
-                end;
             end;
         }
         field(8; "Last No. Used"; Code[20])
@@ -95,11 +87,6 @@ table 309 "No. Series Line"
             begin
                 NoSeriesMgt.UpdateNoSeriesLine(Rec, "Last No. Used", CopyStr(FieldCaption("Last No. Used"), 1, 100));
                 Validate(Open);
-                if "Allow Gaps in Nos." then begin
-                    NoSeriesMgt.RecreateSequence(Rec);
-                    if "Line No." <> 0 then
-                        if Modify() then;
-                end;
             end;
         }
         field(9; Open; Boolean)
@@ -122,23 +109,8 @@ table 309 "No. Series Line"
             Caption = 'Allow Gaps in Nos.';
 
             trigger OnValidate()
-            var
-                NoSeries: Record "No. Series";
-                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
-                NoSeries.Get("Series Code");
-                if "Allow Gaps in Nos." = xRec."Allow Gaps in Nos." then
-                    exit;
-                if "Allow Gaps in Nos." then
-                    NoSeriesMgt.RecreateSequence(Rec)
-                else begin
-                    "Last No. Used" := NoSeriesMgt.GetLastNoUsed(xRec);
-                    NoSeriesMgt.DeleteSequence(Rec);
-                    "Starting Sequence No." := 0;
-                    "Sequence Name" := '';
-                end;
-                if "Line No." <> 0 then
-                    Modify();
+                ValidateSelectedImplementation();
             end;
         }
         field(12; "Sequence Name"; Code[40])
@@ -152,6 +124,16 @@ table 309 "No. Series Line"
             Caption = 'Starting Sequence No.';
             DataClassification = CustomerContent;
             Editable = false;
+        }
+        field(14; Implementation; Enum "No. Series Implementation")
+        {
+            Caption = 'Implementation';
+            DataClassification = SystemMetadata;
+
+            trigger OnValidate()
+            begin
+                ValidateSelectedImplementation();
+            end;
         }
         field(10000; Series; Code[10]) // NA (MX) Functionality
         {
@@ -220,9 +202,6 @@ table 309 "No. Series Line"
         {
         }
     }
-
-    var
-        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
 
     local procedure CalculateOpen(): Boolean
     begin
@@ -302,8 +281,16 @@ table 309 "No. Series Line"
         No := CopyStr(StartNo + ZeroNo + NewNo + EndNo, 1, MaxStrLen(No));
     end;
 
-#if not CLEAN24
+    local procedure ValidateSelectedImplementation()
     var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        NoSeriesImpl.ValidateImplementation(Rec, Implementation);
+    end;
+
+    var
+        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
+#if not CLEAN24
         ShouldBeValidYearErr: Label 'Should be a valid year.';
 
     [Obsolete('Use the field Last Date Used instead.', '24.0')]

@@ -22,6 +22,7 @@ codeunit 304 "No. Series - Impl."
         CannotAssignAutomaticallyErr: Label 'It is not possible to assign numbers automatically. If you want the program to assign numbers automatically, please activate %1 in %2 %3.', Comment = '%1=Default Nos. setting,%2=No. Series table caption,%3=No. Series Code';
         SeriesNotRelatedErr: Label 'The number series %1 is not related to %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
         PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
+        MayProduceGapsErr: Label 'The selected implementation may produce gaps in your number series. Please allow gaps in number series before selecting this implementation.';
 
 #if not CLEAN24
 #pragma warning disable AL0432
@@ -106,14 +107,20 @@ codeunit 304 "No. Series - Impl."
     begin
         NoSeriesSingle := GetImplementation(NoSeriesLine);
 
+        ValidateImplementation(NoSeriesLine, NoSeriesSingle);
+
         exit(NoSeriesSingle.GetNextNo(NoSeriesLine, SeriesDate, HideErrorsAndWarnings));
+    end;
+
+    procedure ValidateImplementation(NoSeriesLine: Record "No. Series Line"; NoSeriesSingle: Interface "No. Series - Single")
+    begin
+        if (not NoSeriesLine."Allow Gaps in Nos.") and NoSeriesSingle.MayProduceGaps() then
+            Error(MayProduceGapsErr);
     end;
 
     local procedure GetImplementation(var NoSeriesLine: Record "No. Series Line"): Interface "No. Series - Single"
     begin
-        if NoSeriesLine."Allow Gaps in Nos." then // TODO: Enum needs to be specified on the table and retrieved from there
-            exit(Enum::"No. Series Implementation"::Sequence);
-        exit(Enum::"No. Series Implementation"::Normal);
+        exit(NoSeriesLine.Implementation);
     end;
 
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean

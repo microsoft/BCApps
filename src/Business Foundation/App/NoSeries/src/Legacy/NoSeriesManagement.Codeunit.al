@@ -285,7 +285,7 @@ codeunit 396 NoSeriesManagement
                 Error(CannotAssignNewErr, NoSeriesCode);
             end;
             UpdateLastUsedDate := NoSeriesLine."Last Date Used" <> SeriesDate;
-            if ModifySeries and (not NoSeriesLine."Allow Gaps in Nos." or UpdateLastUsedDate) then begin
+            if ModifySeries and (not (NoSeriesLine.Implementation = "No. Series Implementation"::Sequence) or UpdateLastUsedDate) then begin
                 NoSeriesLine.LockTable();
                 NoSeriesLine.Find();
             end;
@@ -300,11 +300,11 @@ codeunit 396 NoSeriesManagement
 
         NoSeriesLine."Last Date Used" := SeriesDate;
 #if not CLEAN24
-        if NoSeriesLine."Allow Gaps in Nos." and (LastNoSeriesLine."Series Code" = '') then
+        if (NoSeriesLine.Implementation = "No. Series Implementation"::Sequence) and (LastNoSeriesLine."Series Code" = '') then
             NoSeriesLine."Last No. Used" := NoSeriesLine.GetNextSequenceNo(ModifySeries)
         else
 #else
-        if NoSeriesLine."Allow Gaps in Nos." and (LastNoSeriesLine."Series Code" = '') then begin
+        if (NoSeriesLine.Implementation = "No. Series Implementation"::Sequence) and (LastNoSeriesLine."Series Code" = '') then begin
             if ModifySeries then
                 NoSeriesLine."Last No. Used" := NoSeriesSequenceImpl.GetNextNo(NoSeriesLine, WorkDate(), false)
             else
@@ -343,7 +343,7 @@ codeunit 396 NoSeriesManagement
             Message(CannotAssignGreaterErr, NoSeriesLine."Ending No.", NoSeriesCode);
         end;
 
-        if ModifySeries and NoSeriesLine.Open and (not NoSeriesLine."Allow Gaps in Nos." or UpdateLastUsedDate) then
+        if ModifySeries and NoSeriesLine.Open and (not (NoSeriesLine.Implementation = "No. Series Implementation"::Sequence) or UpdateLastUsedDate) then
             ModifyNoSeriesLine(NoSeriesLine);
         if not ModifySeries then
             LastNoSeriesLine := NoSeriesLine;
@@ -375,7 +375,7 @@ codeunit 396 NoSeriesManagement
             exit;
         NoSeriesLine.Validate(Open);
         LastNoUsed := NoSeriesLine."Last No. Used";
-        if NoSeriesLine."Allow Gaps in Nos." then
+        if NoSeriesLine.Implementation = "No. Series Implementation"::Sequence then
             NoSeriesLine."Last No. Used" := '';
         NoSeriesLine.Modify();
         NoSeriesLine."Last No. Used" := LastNoUsed;
@@ -429,7 +429,7 @@ codeunit 396 NoSeriesManagement
         OnBeforeSaveNoSeries(LastNoSeriesLine, IsHandled);
         if not IsHandled then
             if LastNoSeriesLine."Series Code" <> '' then begin
-                if LastNoSeriesLine."Allow Gaps in Nos." then
+                if (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) then
                     if (LastNoSeriesLine."Last No. Used" <> '') and (LastNoSeriesLine."Last No. Used" > NoSeriesMgt.GetLastNoUsed(LastNoSeriesLine)) then begin
                         LastNoSeriesLine.TestField("Sequence Name");
                         if NumberSequence.Exists(LastNoSeriesLine."Sequence Name") then
@@ -437,7 +437,7 @@ codeunit 396 NoSeriesManagement
                         LastNoSeriesLine."Starting Sequence No." := NoSeriesMgt.ExtractNoFromCode(LastNoSeriesLine."Last No. Used");
                         NoSeriesMgt.CreateNewSequence(LastNoSeriesLine);
                     end;
-                if not LastNoSeriesLine."Allow Gaps in Nos." or UpdateLastUsedDate then
+                if not (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) or UpdateLastUsedDate then
                     ModifyNoSeriesLine(LastNoSeriesLine);
             end;
         OnAfterSaveNoSeries(LastNoSeriesLine);
@@ -819,7 +819,7 @@ codeunit 396 NoSeriesManagement
             end;
         end else
             NoSeriesLine := LastNoSeriesLine;
-        NoSeriesLine.TestField("Allow Gaps in Nos.", false);
+        NoSeriesLine.TestField(Implementation, "No. Series Implementation"::Normal);
 
         if GlobalNoSeries."Date Order" and (SeriesDate < NoSeriesLine."Last Date Used") then
             Error(

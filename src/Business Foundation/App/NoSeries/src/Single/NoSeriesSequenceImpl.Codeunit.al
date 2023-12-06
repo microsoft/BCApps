@@ -12,6 +12,9 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         tabledata "No. Series" = r,
         tabledata "No. Series Line" = rimd;
 
+    var
+        NoOverFlowErr: Label 'Number series can only use up to 18 digit numbers. %1 has %2 digits.', Comment = '%1 is a string that also contains digits. %2 is a number.';
+
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin
         exit(GetNextNoInternal(NoSeriesLine, false, UsageDate, false));
@@ -34,6 +37,11 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if LastSeqNoUsed >= NoSeriesLine."Starting Sequence No." then
             exit(GetFormattedNo(NoSeriesLine, LastSeqNoUsed));
         exit(''); // TODO: Recreate the sequence? This means the sequence produced a number less than the starting number.
+    end;
+
+    procedure MayProduceGaps(): Boolean
+    begin
+        exit(false);
     end;
 
     [TryFunction]
@@ -81,22 +89,16 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
     end;
 
     local procedure CreateNewSequence(var NoSeriesLine: Record "No. Series Line")
-    var
-        DummySeq: BigInteger;
+    begin
+        CreateNewSequence(NoSeriesLine, NoSeriesLine."Starting Sequence No.");
+    end;
+
+    local procedure CreateNewSequence(var NoSeriesLine: Record "No. Series Line"; StartingSequenceNo: BigInteger)
     begin
         if NoSeriesLine."Sequence Name" = '' then
             NoSeriesLine."Sequence Name" := Format(CreateGuid(), 0, 4);
 
-        if NoSeriesLine."Last No. Used" = '' then // TODO: Why do we subtract increment-by no. first but not in second.. second should calculate how far ahead to go?
-            NumberSequence.Insert(NoSeriesLine."Sequence Name", NoSeriesLine."Starting Sequence No." - NoSeriesLine."Increment-by No.", NoSeriesLine."Increment-by No.")
-        else
-            NumberSequence.Insert(NoSeriesLine."Sequence Name", NoSeriesLine."Starting Sequence No.", NoSeriesLine."Increment-by No.");
-
-        if NoSeriesLine."Last No. Used" <> '' then
-            // Simulate that a number was used
-#pragma warning disable AA0206
-            DummySeq := NumberSequence.Next(NoSeriesLine."Sequence Name"); // TODO: Why?
-#pragma warning restore AA0206
+        NumberSequence.Insert(NoSeriesLine."Sequence Name", StartingSequenceNo, NoSeriesLine."Increment-by No.");
     end;
 
     local procedure GetFormattedNo(NoSeriesLine: Record "No. Series Line"; Number: BigInteger): Code[20]
@@ -126,6 +128,107 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
             else
                 exit(CopyStr(NoSeriesLine."Starting No.", 1, i) + NumberCode);
         exit(NumberCode); // should ideally not be possible, as bigints can produce max 18 digits
+    end;
+
+    internal procedure ExtractNoFromCode(NumberCode: Code[20]): BigInteger
+    var
+        i: Integer;
+        j: Integer;
+        Number: BigInteger;
+        NoCodeSnip: Code[20];
+    begin
+        if NumberCode = '' then
+            exit(0);
+        i := StrLen(NumberCode);
+        while (i > 1) and not (NumberCode[i] in ['0' .. '9']) do
+            i -= 1;
+        if i = 1 then begin
+            if Evaluate(Number, Format(NumberCode[1])) then
+                exit(Number);
+            exit(0);
+        end;
+        j := i;
+        while (i > 1) and (NumberCode[i] in ['0' .. '9']) do
+            i -= 1;
+        if (i = 1) and (NumberCode[i] in ['0' .. '9']) then
+            i -= 1;
+        NoCodeSnip := CopyStr(CopyStr(NumberCode, i + 1, j - i), 1, MaxStrLen(NoCodeSnip));
+        if StrLen(NoCodeSnip) > 18 then
+            Error(NoOverFlowErr, NumberCode, StrLen(NoCodeSnip));
+        Evaluate(Number, NoCodeSnip);
+        exit(Number);
+    end;
+
+    local procedure DeleteSequence(SequenceName: Code[40])
+    begin
+        if SequenceName = '' then
+            exit;
+
+        if NumberSequence.Exists(SequenceName) then
+            NumberSequence.Delete(SequenceName);
+    end;
+
+    local procedure RecreateNoSeries(var NoSeriesLine: Record "No. Series Line")
+    var
+        SequenceNumber: BigInteger;
+    begin
+        if NumberSequence.Exists(NoSeriesLine."Sequence Name") then
+            SequenceNumber := NumberSequence.Current(NoSeriesLine."Sequence Name")
+        else
+            SequenceNumber := NoSeriesLine."Starting Sequence No.";
+
+        RecreateNoSeries(NoSeriesLine, SequenceNumber);
+    end;
+
+    local procedure RecreateNoSeries(var NoSeriesLine: Record "No. Series Line"; SequenceNumber: BigInteger)
+    begin
+        DeleteSequence(NoSeriesLine."Sequence Name");
+        CreateNewSequence(NoSeriesLine, SequenceNumber);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Starting No.', false, false)]
+    local procedure OnValidateNoSeriesLine(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; CurrFieldNo: Integer)
+    begin
+        if Rec.Implementation <> "No. Series Implementation"::Sequence then
+            exit;
+
+        Rec."Starting Sequence No." := ExtractNoFromCode(Rec."Starting No.");
+        RecreateNoSeries(Rec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Increment-by No.', false, false)]
+    local procedure OnValidateIncrementByNo(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; CurrFieldNo: Integer)
+    begin
+        if Rec.Implementation <> "No. Series Implementation"::Sequence then
+            exit;
+
+        RecreateNoSeries(Rec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeModifyEvent', '', false, false)]
+    local procedure OnModifyNoSeriesLine(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; RunTrigger: Boolean)
+    begin
+
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Implementation', false, false)]
+    local procedure OnValidateImplementation(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; CurrFieldNo: Integer)
+    var
+        NoSeries: Codeunit "No. Series";
+        LastNoUsed: Code[20];
+    begin
+        if Rec.Implementation = xRec.Implementation then
+            exit; // No change
+
+        if Rec.Implementation = "No. Series Implementation"::Sequence then begin
+            LastNoUsed := NoSeries.GetLastNoUsed(xRec);
+            RecreateNoSeries(Rec, ExtractNoFromCode(LastNoUsed));
+        end else
+            if xRec.Implementation = "No. Series Implementation"::Sequence then begin
+                DeleteSequence(Rec."Sequence Name");
+                Rec."Starting Sequence No." := 0;
+                Rec."Sequence Name" := '';
+            end;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnAfterDeleteEvent', '', false, false)]

@@ -59,6 +59,11 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         exit(NoSeriesLine."Last No. Used");
     end;
 
+    procedure MayProduceGaps(): Boolean
+    begin
+        exit(false);
+    end;
+
     local procedure IncrementNoText(var No: Code[20]; IncrementByNo: Decimal)
     var
         BigIntNo: BigInteger;
@@ -116,5 +121,19 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         if StrLen(StartNo) + StrLen(ZeroNo) + StrLen(NewNo) + StrLen(EndNo) > 20 then
             Error(NumberLengthErr, No);
         No := CopyStr(StartNo + ZeroNo + NewNo + EndNo, 1, MaxStrLen(No));
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Implementation', false, false)]
+    local procedure OnValidateImplementation(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; CurrFieldNo: Integer)
+    var
+        NoSeries: Codeunit "No. Series";
+    begin
+        if Rec.Implementation = xRec.Implementation then
+            exit; // No change
+
+        if Rec.Implementation <> "No. Series Implementation"::Normal then
+            exit;
+
+        Rec."Last No. Used" := NoSeries.GetLastNoUsed(xRec);
     end;
 }

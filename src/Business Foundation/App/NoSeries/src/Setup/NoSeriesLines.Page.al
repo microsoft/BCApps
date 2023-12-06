@@ -126,6 +126,7 @@ page 457 "No. Series Lines"
             if NoSeriesLine.FindLast() then begin
                 Rec."Increment-by No." := NoSeriesLine."Increment-by No.";
                 Rec."Allow Gaps in Nos." := NoSeriesLine."Allow Gaps in Nos.";
+                Rec.Implementation := NoSeriesLine.Implementation;
             end;
     end;
 
@@ -138,9 +139,9 @@ page 457 "No. Series Lines"
             if NoSeriesLine.FindLast() then;
             Rec."Line No." := NoSeriesLine."Line No." + 10000;
         end;
-        if Rec."Allow Gaps in Nos." and (Rec."Sequence Name" = '') then begin // delayed creation of sequence.
-            Rec."Allow Gaps in Nos." := false;
-            Rec.Validate("Allow Gaps in Nos.", true);
+        if (Rec.Implementation = "No. Series Implementation"::Sequence) and (Rec."Sequence Name" = '') then begin // delayed creation of sequence.
+            Rec.Implementation := "No. Series Implementation"::Normal;
+            Rec.Validate(Implementation, "No. Series Implementation"::Sequence);
         end;
         exit(true);
     end;
