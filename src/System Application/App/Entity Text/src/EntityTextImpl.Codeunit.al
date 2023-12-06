@@ -226,7 +226,7 @@ codeunit 2012 "Entity Text Impl."
     begin
         PromptSecretName := PromptObjectKeyTxt;
 
-        exit(GetPromptObject(PromptObjectKeyTxt))
+        exit(GetPromptObject(PromptSecretName))
     end;
 
     [NonDebuggable]
