@@ -47,7 +47,7 @@ codeunit 2012 "Entity Text Impl."
     [NonDebuggable]
     procedure GenerateSuggestion(Facts: Dictionary of [Text, Text]; Tone: Enum "Entity Text Tone"; TextFormat: Enum "Entity Text Format"; TextEmphasis: Enum "Entity Text Emphasis"; CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GenerateSuggestion(Facts, Tone, TextFormat, TextEmphasis, CallerModuleInfo, Enum::"Entity Text Scenario"::0));
+        exit(GenerateSuggestion(Facts, Tone, TextFormat, TextEmphasis, CallerModuleInfo, 0));
     end;
 
     [NonDebuggable]
