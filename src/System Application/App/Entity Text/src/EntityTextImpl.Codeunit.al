@@ -221,7 +221,11 @@ codeunit 2012 "Entity Text Impl."
 
     [NonDebuggable]
     local procedure GetPromptInfo(): JsonObject
+    var
+        PromptSecretName: Text;
     begin
+        PromptSecretName := PromptObjectKeyTxt;
+
         exit(GetPromptObject(PromptObjectKeyTxt))
     end;
 
