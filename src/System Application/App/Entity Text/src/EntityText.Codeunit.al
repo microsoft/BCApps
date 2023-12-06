@@ -95,7 +95,7 @@ codeunit 2010 "Entity Text"
         CurrentModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CurrentModuleInfo);
-        exit(EntityTextImpl.GenerateSuggestion(Facts, Tone, TextFormat, TextEmphasis, CurrentModuleInfo, Scenario));
+        exit(EntityTextImpl.GenerateSuggestion(Facts, Tone, TextFormat, TextEmphasis, CurrentModuleInfo, Format(Scenario)));
     end;
 
 
