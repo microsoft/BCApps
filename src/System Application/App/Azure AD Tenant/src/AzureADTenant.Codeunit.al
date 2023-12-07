@@ -37,5 +37,29 @@ codeunit 433 "Azure AD Tenant"
     begin
         exit(AzureADTenantImpl.GetAadTenantDomainName());
     end;
+
+    /// <summary>
+    /// Gets the current Microsoft Entra tenant registered country letter code.
+    /// Visit Microsoft Admin Cententer to view or edit Organizational Information.
+    /// If the Microsoft Graph API cannot be reached, the error is displayed.
+    /// </summary>
+    /// <returns>Country or region abbreviation for the organization in ISO 3166-2 format.</returns>
+    /// <error>Cannot retrieve the Microsoft Entra tenant country letter code.</error>
+    procedure GetCountryLetterCode(): Code[2];
+    begin
+        exit(AzureADTenantImpl.GetCountryLetterCode());
+    end;
+
+    /// <summary>
+    /// Gets the current Microsoft Entra tenant registered preferred language.
+    /// Visit Microsoft Admin Cententer to view or edit Organizational Information.
+    /// If the Microsoft Graph API cannot be reached, the error is displayed.
+    /// </summary>
+    /// <returns>The preferred language for the organization. Should follow ISO 639-1 Code; for example, en.</returns>
+    /// <error>Cannot retrieve the Microsoft Entra tenant preferred language.</error>
+    procedure GetPreferredLanguage(): Code[2];
+    begin
+        exit(AzureADTenantImpl.GetPreferredLanguage());
+    end;
 }
 

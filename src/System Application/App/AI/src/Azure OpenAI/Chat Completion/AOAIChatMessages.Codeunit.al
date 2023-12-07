@@ -167,11 +167,13 @@ codeunit 7763 "AOAI Chat Messages"
     /// <summary>
     /// Prepares the history of messages to be sent to the deployment model.
     /// </summary>
+    /// <param name="SystemMessageTokenCount">The number tokens used by the primary system messages.</param>
+    /// <param name="MessagesTokenCount">The number tokens used by all other messages.</param>
     /// <returns>History of messages in a JsonArray.</returns>
     /// <remarks>Use this after adding messages, to construct a json array of all messages.</remarks>
     [NonDebuggable]
-    internal procedure AssembleHistory(): JsonArray
+    internal procedure AssembleHistory(var SystemMessageTokenCount: Integer; var MessagesTokenCount: Integer): JsonArray
     begin
-        exit(AOAIChatMessagesImpl.PrepareHistory());
+        exit(AOAIChatMessagesImpl.PrepareHistory(SystemMessageTokenCount, MessagesTokenCount));
     end;
 }
