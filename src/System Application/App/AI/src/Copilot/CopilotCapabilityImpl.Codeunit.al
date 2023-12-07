@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Telemetry;
 using System.Security.User;
 using System.Azure.Identity;
+using System.Environment;
 using System.Privacy;
 
 codeunit 7774 "Copilot Capability Impl"
@@ -243,5 +244,15 @@ codeunit 7774 "Copilot Capability Impl"
         TempPrivacyNotice.ID := AzureOpenAiTxt;
         TempPrivacyNotice."Integration Service Name" := AzureOpenAiTxt;
         if not TempPrivacyNotice.Insert() then;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetCopilotCapabilityStatus', '', false, false)]
+    local procedure GetCopilotCapabilityStatus(Capability: Integer; var IsEnabled: Boolean)
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        CopilotCapability: Enum "Copilot Capability";
+    begin
+        CopilotCapability := Enum::"Copilot Capability".FromInteger(Capability);
+        Isenabled := AzureOpenAI.IsEnabled(CopilotCapability, true);
     end;
 }
