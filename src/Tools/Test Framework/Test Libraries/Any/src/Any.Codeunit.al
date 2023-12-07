@@ -252,14 +252,9 @@ codeunit 130500 "Any"
     /// Setting this value will change the numbers returned.
     /// </summary>
     procedure SetDefaultSeed()
-    var
-        DateTime1, DateTime2 : DateTime;
     begin
-        DateTime1 := CreateDateTime(Today(), 000000T);
-        DateTime2 := CurrentDateTime();
-
         SeedSet := true;
-        SetSeed(DateTime2 - DateTime1);
+        SetSeed(Time() - 0T);
     end;
 
     /// <summary>.
