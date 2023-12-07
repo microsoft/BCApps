@@ -87,6 +87,7 @@ codeunit 134370 "ERM No. Series Tests"
         LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetNextNo(NoSeriesLine."Series Code", Today, true), 'With gaps diff');
         NoSeriesLine.Find();
         NoSeriesLine.Validate("Allow Gaps in Nos.", true);
+        NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Sequence);
         NoSeriesLine.Modify();
         LibraryAssert.AreEqual(ToBigInt(10), NoSeriesLine."Starting Sequence No.", 'Starting Sequence No. is wrong after conversion');
         LibraryAssert.AreEqual('', NoSeriesLine."Last No. Used", 'last no. used field');
@@ -95,6 +96,7 @@ codeunit 134370 "ERM No. Series Tests"
         LibraryAssert.AreEqual(SecondNumberTxt, NoSeries.GetLastNoUsed(NoSeriesLine), 'lastUsedNo after taking new no. after conversion');
         // Change back to not allow gaps
         NoSeriesLine.Find();
+        NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Normal);
         NoSeriesLine.Validate("Allow Gaps in Nos.", false);
         NoSeriesLine.Modify();
         LibraryAssert.AreEqual(SecondNumberTxt, NoSeriesLine."Last No. Used", 'last no. used field after reset');
@@ -117,6 +119,7 @@ codeunit 134370 "ERM No. Series Tests"
 
         // test - enable Allow gaps should be allowed
         NoSeriesLine.Validate("Allow Gaps in Nos.", true);
+        NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Sequence);
     end;
 
     [Test]
@@ -133,6 +136,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeriesLine."Starting No." := 'A000001';
         NoSeriesLine."Last No. Used" := 'A900001';
         NoSeriesLine.Validate("Allow Gaps in Nos.", true);
+        NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Sequence);
         NoSeriesLine.Modify();
 
         // test - getting formatted number still works
@@ -158,6 +162,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeriesLine."Starting No." := 'ABC00000000000000001';
         NoSeriesLine."Last No. Used" := 'ABC10000000000000001';
         NoSeriesLine.Validate("Allow Gaps in Nos.", true);
+        NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Sequence);
         NoSeriesLine.Modify();
 
         // test - getting formatted number still works
@@ -187,12 +192,15 @@ codeunit 134370 "ERM No. Series Tests"
         LastNoUsed := '1000023';
         NoSeriesLine."Last No. Used" := LastNoUsed;
         NoSeriesLine.Validate("Allow Gaps in Nos.", true);
+        NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Sequence);
 
         // [GIVEN] Change "Allow Gaps in Nos." to false
+        NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Normal);
         NoSeriesLine.Validate("Allow Gaps in Nos.", false);
 
         // [GIVEN] Change "Allow Gaps in Nos." to true
         NoSeriesLine.Validate("Allow Gaps in Nos.", true);
+        NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Sequence);
         NoSeriesLine.Modify();
 
         // [WHEN] Open page 457 "No. Series Lines"
@@ -217,6 +225,7 @@ codeunit 134370 "ERM No. Series Tests"
         CreateNewNumberSeries('TEST', 1, false, NoSeriesLine);
         // Simulate that NoSeriesLine was inserted programmatically without triggering creation of Sequence
         NoSeriesLine."Allow Gaps in Nos." := true;
+        NoSeriesLine.Implementation := Enum::"No. Series Implementation"::Sequence;
         NoSeriesLine."Sequence Name" := Format(CreateGuid());
         NoSeriesLine."Sequence Name" := CopyStr(CopyStr(NoSeriesLine."Sequence Name", 2, StrLen(NoSeriesLine."Sequence Name") - 2), 1, MaxStrLen(NoSeriesLine."Sequence Name"));
         NoSeriesLine.Modify();
@@ -438,6 +447,7 @@ codeunit 134370 "ERM No. Series Tests"
         LastNoUsed := '1000023';
         NoSeriesLine."Last No. Used" := LastNoUsed;
         NoSeriesLine.Validate("Allow Gaps in Nos.", true);
+        NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Sequence);
 
         // [GIVEN] Open page 457 "No. Series Lines"
         NoSeriesLines.OpenEdit();
@@ -486,6 +496,10 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeriesLine."Increment-by No." := IncrementBy;
         NoSeriesLine.Insert(true);
         NoSeriesLine.Validate("Allow Gaps in Nos.", AllowGaps);
+        if AllowGaps then
+            NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Sequence)
+        else
+            NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Normal);
         NoSeriesLine.Modify(true);
     end;
 
