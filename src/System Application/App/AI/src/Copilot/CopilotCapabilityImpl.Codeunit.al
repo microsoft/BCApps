@@ -82,6 +82,7 @@ codeunit 7774 "Copilot Capability Impl"
         Commit();
 
         AddTelemetryDimensions(CopilotCapability, CallerModuleInfo.Id(), CustomDimensions);
+        AddStatusTelemetryDimension(CopilotSettings.Status, CustomDimensions);
         FeatureTelemetry.LogUsage('0000LDW', CopilotCategoryLbl, TelemetryModifiedCopilotCapabilityLbl, CustomDimensions);
     end;
 
@@ -196,6 +197,19 @@ codeunit 7774 "Copilot Capability Impl"
     procedure GetCopilotCategory(): Code[50]
     begin
         exit(CopilotCategoryLbl);
+    end;
+
+    procedure AddStatusTelemetryDimension(CopilotStatus: Enum "Copilot Status"; var CustomDimensions: Dictionary of [Text, Text])
+    var
+        Language: Codeunit Language;
+        SavedGlobalLanguageId: Integer;
+    begin
+        SavedGlobalLanguageId := GlobalLanguage();
+        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
+
+        CustomDimensions.Add('Status', Format(CopilotStatus));
+
+        GlobalLanguage(SavedGlobalLanguageId);
     end;
 
     procedure AddTelemetryDimensions(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; var CustomDimensions: Dictionary of [Text, Text])
