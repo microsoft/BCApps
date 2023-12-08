@@ -331,6 +331,97 @@ codeunit 134370 "ERM No. Series Tests"
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
+    procedure NoSeriesWithoutNoSeriesLineFailsValidation()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        NoSeriesPage: TestPage "No. Series";
+    begin
+        // Create no. series without no. series line
+        Initialize();
+        CreateNewNumberSeries('TEST', 1, true, NoSeriesLine);
+        NoSeriesLine.Delete();
+
+        // Invoke TestNoSeries action
+        NoSeriesPage.OpenEdit();
+        NoSeriesPage.GoToKey('TEST');
+        asserterror NoSeriesPage.TestNoSeriesSingle.Invoke();
+
+        // Error is thrown
+        LibraryAssert.ExpectedError('You cannot assign new numbers from the number series TEST');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure NoSeriesWithNoSeriesLineOnLaterStartingDateFailsValidation()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        NoSeriesPage: TestPage "No. Series";
+    begin
+        // Create no. series without no. series line
+        Initialize();
+        CreateNewNumberSeries('TEST', 1, true, NoSeriesLine);
+        NoSeriesLine.Validate("Starting Date", CalcDate('<+1M>', WorkDate()));
+        NoSeriesLine.Modify(true);
+
+        // Invoke TestNoSeries action
+        NoSeriesPage.OpenEdit();
+        NoSeriesPage.GoToKey('TEST');
+        asserterror NoSeriesPage.TestNoSeriesSingle.Invoke();
+
+        // Error is thrown
+        LibraryAssert.ExpectedError('You cannot assign new numbers from the number series TEST on ');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure NoSeriesThatCanGenerateNextNoSucceedsValidation()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        NoSeriesPage: TestPage "No. Series";
+    begin
+        // Create no. series without no. series line
+        Initialize();
+        CreateNewNumberSeries('TEST', 1, true, NoSeriesLine);
+
+        // Invoke TestNoSeries action succeeds
+        NoSeriesPage.OpenEdit();
+        NoSeriesPage.GoToKey('TEST');
+        NoSeriesPage.TestNoSeriesSingle.Invoke();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure NoSeriesValidationDoesNotChangeTheNextNoGenerated()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        NoSeries: Codeunit "No. Series";
+        NoSeriesPage: TestPage "No. Series";
+    begin
+        // Create no. series without no. series line
+        Initialize();
+        CreateNewNumberSeries('TEST', 1, true, NoSeriesLine); // todo: test fails when using sequence. Not sure how it passed before
+
+        // Invoke TestNoSeries action succeeds
+        NoSeriesPage.OpenEdit();
+        NoSeriesPage.GoToKey('TEST');
+        NoSeriesPage.TestNoSeriesSingle.Invoke();
+
+        // Ensure invoking TestNoSeries action does not modify the series
+        LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetNextNo('TEST', WorkDate(), true), 'DoGetNextNo does not get the first no in the no series');
+
+        // Invoke TestNoSeries action again
+        NoSeriesPage.TestNoSeriesSingle.Invoke();
+
+        // Ensure invoking TestNoSeries action does not modify the series
+        LibraryAssert.AreEqual(IncStr(StartingNumberTxt), NoSeries.GetNextNo('TEST', WorkDate(), true), 'DoGetNextNo does the get the second no in the no series');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
     procedure TheLastNoUsedCanBeUpdatedWhenAllowGapsInNosYes()
     var
         NoSeriesLine: Record "No. Series Line";

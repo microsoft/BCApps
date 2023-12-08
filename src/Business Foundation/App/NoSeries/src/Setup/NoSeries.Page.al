@@ -217,6 +217,23 @@ page 456 "No. Series"
                 }
             }
         }
+        area(Processing)
+        {
+            action(TestNoSeriesSingle)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Test No. Series';
+                Image = TestFile;
+                ToolTip = 'Test whether the number series can generate new numbers.';
+
+                trigger OnAction()
+                var
+                    NoSeries: Codeunit "No. Series";
+                begin
+                    NoSeries.PeekNextNo(Rec.Code, WorkDate());
+                end;
+            }
+        }
         area(Promoted)
         {
             group(Category_Report)
