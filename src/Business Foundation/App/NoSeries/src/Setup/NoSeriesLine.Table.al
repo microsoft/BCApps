@@ -107,6 +107,13 @@ table 309 "No. Series Line"
         field(11; "Allow Gaps in Nos."; Boolean)
         {
             Caption = 'Allow Gaps in Nos.';
+            ObsoleteTag = '24.0';
+            ObsoleteReason = 'The specific implementation is defined by the Implementation field and whether the implementation may produce gaps can be determined through the implementation interface or the procedure MayProduceGaps.';
+#if not CLEAN24
+            ObsoleteState = Pending;
+#else
+            ObsoleteState = Removed;
+#endif
 
             trigger OnValidate()
             begin
@@ -202,6 +209,14 @@ table 309 "No. Series Line"
         {
         }
     }
+
+    procedure MayProduceGaps(): Boolean
+    var
+        NoSeriesSingle: Interface "No. Series - Single";
+    begin
+        NoSeriesSingle := Implementation;
+        exit(NoSeriesSingle.MayProduceGaps());
+    end;
 
     local procedure CalculateOpen(): Boolean
     begin
