@@ -141,7 +141,7 @@ function BuildApp {
     foreach($dependency in $appInfo.AppJson.dependencies) {
         $dependencyAppInfo = $allAppInfos | Where-Object { $_.Id -eq $dependency.id }
         $dependencyAppFile = BuildApp -appProjectFolder $dependencyAppInfo.AppProjectFolder -packageCacheFolder $packageCacheFolder
-        PublishApp -appFile $dependencyAppFile -containerName $script:containerName
+        PublishApp -appFile $dependencyAppFile
     }
 
     $compilerFolder = CreateCompilerFolder -packageCacheFolder $packageCacheFolder
@@ -178,12 +178,12 @@ Write-Host "Loading BCContainerHelper module" -ForegroundColor Yellow
 InstallBCContainerHelper
 
 Write-Host "Creating container $script:containerName" -ForegroundColor Yellow
-CreateBCContainer -containerName $script:containerName
+CreateBCContainer
 
 foreach($currentProjectPath in $projectPaths) {
     Write-Host "Building app in $currentProjectPath" -ForegroundColor Yellow
     $appFile = BuildApp -appProjectFolder $currentProjectPath -packageCacheFolder $script:packageCacheFolder
 
     Write-Host "Publishing app $appFile to $script:containerName" -ForegroundColor Yellow
-    PublishApp -appFile $appFile -containerName $script:containerName
+    PublishApp -appFile $appFile
 }
