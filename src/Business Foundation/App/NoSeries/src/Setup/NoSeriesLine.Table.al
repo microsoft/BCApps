@@ -115,10 +115,15 @@ table 309 "No. Series Line"
             ObsoleteState = Removed;
 #endif
 
+#if not CLEAN24
             trigger OnValidate()
             begin
-                ValidateSelectedImplementation();
+                if "Allow Gaps in Nos." then // Keep the implementation in sync with the Allow Gaps field
+                    Implementation := Enum::"No. Series Implementation"::Sequence
+                else
+                    Implementation := Enum::"No. Series Implementation"::Normal;
             end;
+#endif
         }
         field(12; "Sequence Name"; Code[40])
         {
@@ -137,10 +142,17 @@ table 309 "No. Series Line"
             Caption = 'Implementation';
             DataClassification = SystemMetadata;
 
+#if not CLEAN24
+#pragma warning disable AL0432
             trigger OnValidate()
+            var
+                NoSeriesSingle: Interface "No. Series - Single";
             begin
-                ValidateSelectedImplementation();
+                NoSeriesSingle := Implementation;
+                "Allow Gaps in Nos." := NoSeriesSingle.MayProduceGaps(); // Keep the Allow Gaps field in sync with the implementation
             end;
+#pragma warning restore AL0432
+#endif
         }
         field(10000; Series; Code[10]) // NA (MX) Functionality
         {
@@ -294,13 +306,6 @@ table 309 "No. Series Line"
         if StrLen(StartNo) + StrLen(ZeroNo) + StrLen(NewNo) + StrLen(EndNo) > 20 then
             Error(NumberLengthErr, No);
         No := CopyStr(StartNo + ZeroNo + NewNo + EndNo, 1, MaxStrLen(No));
-    end;
-
-    local procedure ValidateSelectedImplementation()
-    var
-        NoSeriesImpl: Codeunit "No. Series - Impl.";
-    begin
-        NoSeriesImpl.ValidateImplementation(Rec, Implementation);
     end;
 
     var

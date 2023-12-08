@@ -162,6 +162,8 @@ codeunit 281 NoSeriesMgt
         end;
     end;
 
+#if not CLEAN24
+#pragma warning disable AL0432
     internal procedure SetAllowGaps(var NoSeries: Record "No. Series"; AllowGaps: Boolean)
     var
         NoSeriesLine: Record "No. Series Line";
@@ -178,6 +180,8 @@ codeunit 281 NoSeriesMgt
                 NoSeriesLine.Modify();
             until NoSeriesLine.Next() = 0;
     end;
+#pragma warning restore AL0432
+#endif
 
     internal procedure SetImplementation(var NoSeries: Record "No. Series"; Implementation: Enum "No. Series Implementation")
     var

@@ -158,6 +158,9 @@ page 571 "No. Series List"
                 {
                     Caption = 'Allow Gaps in Nos.';
                     ToolTip = 'Specifies that a number assigned from the number series can later be deleted. This is practical for records, such as item cards and warehouse documents that, unlike financial transactions, can be deleted and cause gaps in the number sequence. This setting also means that new numbers will be generated and assigned in a faster, non-blocking way. NOTE: If an error occurs on a new record that will be assigned a number from such a number series when it is completed, the number in question will be lost, causing a gap in the sequence.';
+#if CLEAN24
+                    Editable = false;
+#else
 
                     trigger OnValidate()
                     var
@@ -165,6 +168,20 @@ page 571 "No. Series List"
                     begin
                         Rec.TestField(Code);
                         NoSeriesMgt.SetAllowGaps(Rec, AllowGaps);
+                    end;
+#endif
+                }
+                field(Implementation; Implementation)
+                {
+                    Caption = 'Implementation';
+                    ToolTip = 'Specifies the implementation to use for getting numbers.';
+
+                    trigger OnValidate()
+                    var
+                        NoSeriesMgt: Codeunit NoSeriesMgt;
+                    begin
+                        Rec.TestField(Code);
+                        NoSeriesMgt.SetImplementation(Rec, Implementation);
                     end;
                 }
             }
@@ -232,17 +249,23 @@ page 571 "No. Series List"
     }
 #pragma warning restore AA0219
     trigger OnAfterGetRecord()
-    var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
+        UpdateLineActionOnPage();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        UpdateLineActionOnPage();
+    end;
+
+    local procedure UpdateLineActionOnPage()
     var
         NoSeriesMgt: Codeunit NoSeriesMgt;
+        NoSeriesSingle: Interface "No. Series - Single";
     begin
-        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
+        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, Implementation);
+        NoSeriesSingle := Implementation;
+        AllowGaps := NoSeriesSingle.MayProduceGaps();
     end;
 
     var
@@ -254,5 +277,6 @@ page 571 "No. Series List"
         IncrementByNo: Integer;
         LastDateUsed: Date;
         AllowGaps: Boolean;
+        Implementation: Enum "No. Series Implementation";
 }
 #endif

@@ -72,10 +72,22 @@ page 457 "No. Series Lines"
                         CurrPage.Update(true);
                     end;
                 }
-                field("Allow Gaps in Nos."; Rec."Allow Gaps in Nos.")
+                field("Allow Gaps in Nos."; Rec.MayProduceGaps())
                 {
                     Caption = 'Allow Gaps in Nos.';
-                    ToolTip = 'Specifies that a number assigned from the number series can later be deleted. This is practical for records, such as item cards and warehouse documents that, unlike financial transactions, can be deleted and cause gaps in the number sequence. This setting also means that new numbers will be generated and assigned in a faster, non-blocking way. NOTE: If an error occurs on a new record that will be assigned a number from such a number series when it is completed, the number in question will be lost, causing a gap in the sequence.';
+                    ToolTip = 'Specifies that a number assigned from the number series can later be deleted. This is practical for records, such as item cards and warehouse documents that, unlike financial transactions, can be deleted and cause gaps in the number sequence. NOTE: If an error occurs on a new record that will be assigned a number from such a number series when it is completed, the number in question may be lost, causing a gap in the sequence.';
+                    Editable = false;
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update(true);
+                    end;
+                }
+                field(Implementation; Rec.Implementation)
+                {
+                    Caption = 'Implementation';
+                    ToolTip = 'Specifies the implementation to use for getting numbers. Some may produce gaps in the number series. This is practical for records, such as item cards and warehouse documents that, unlike financial transactions, can be deleted and cause gaps in the number sequence.';
+
                     trigger OnValidate()
                     begin
                         CurrPage.Update(true);
@@ -124,9 +136,8 @@ page 457 "No. Series Lines"
         NoSeriesLine.Copy(Rec);
         if BelowxRec then
             if NoSeriesLine.FindLast() then begin
-                Rec."Increment-by No." := NoSeriesLine."Increment-by No.";
-                Rec."Allow Gaps in Nos." := NoSeriesLine."Allow Gaps in Nos.";
-                Rec.Implementation := NoSeriesLine.Implementation;
+                Rec.Validate("Increment-by No.", NoSeriesLine."Increment-by No.");
+                Rec.Validate(Implementation, NoSeriesLine.Implementation);
             end;
     end;
 
@@ -138,10 +149,6 @@ page 457 "No. Series Lines"
             NoSeriesLine.SetRange("Series Code", Rec."Series Code");
             if NoSeriesLine.FindLast() then;
             Rec."Line No." := NoSeriesLine."Line No." + 10000;
-        end;
-        if (Rec.Implementation = "No. Series Implementation"::Sequence) and (Rec."Sequence Name" = '') then begin // delayed creation of sequence.
-            Rec.Implementation := "No. Series Implementation"::Normal;
-            Rec.Validate(Implementation, "No. Series Implementation"::Sequence);
         end;
         exit(true);
     end;
