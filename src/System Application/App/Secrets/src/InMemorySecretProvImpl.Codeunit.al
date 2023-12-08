@@ -37,4 +37,16 @@ codeunit 3803 "In Memory Secret Prov Impl."
 
         exit(false);
     end;
+
+    [NonDebuggable]
+    procedure GetSecret(SecretName: Text; var SecretValue: SecretText): Boolean
+    var
+        SecretValueText: Text;
+    begin
+        if not GetSecret(SecretName, secretValueText) then
+            exit(false);
+        SecretValue := SecretValueText;
+        exit(true);
+    end;
+
 }

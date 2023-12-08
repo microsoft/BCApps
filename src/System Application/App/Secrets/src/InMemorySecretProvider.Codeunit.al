@@ -40,4 +40,17 @@ codeunit 3802 "In Memory Secret Provider" implements "Secret Provider"
     begin
         exit(InMemorySecretProviderImpl.GetSecret(SecretName, SecretValue));
     end;
+
+    /// <summary>
+    /// Retrieves a secret value from the secret provider.
+    /// </summary>
+    /// <param name="SecretName">The name of the secret to retrieve.</param>
+    /// <param name="SecretValue">SecretText containing the value of the secret, or the empty string if the value could not be retrieved.</param>
+    /// <returns>True if the secret value could be retrieved; false otherwise.</returns>
+    [NonDebuggable]
+    procedure GetSecret(SecretName: Text; var SecretValue: SecretText): Boolean
+    begin
+        exit(InMemorySecretProviderImpl.GetSecret(SecretName, SecretValue));
+    end;
+
 }
