@@ -29,30 +29,25 @@ function InstallBCContainerHelper {
         Install-Module -Name "BCContainerHelper" -Scope CurrentUser -AllowPrerelease -Force
     }
 
-    Import-Module "BCContainerHelper"
+    Import-Module "BCContainerHelper" -DisableNameChecking
 }
 
 function CreateBCContainer {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $containerName
-    )
-
-    $containerExist = $null -ne $(docker ps -q -f name="$containerName")
+    $containerExist = $null -ne $(docker ps -q -f name="$script:containerName")
 
     if ($containerExist) {
-        Write-Host "Container $containerName already exists."
+        Write-Host "Container $script:containerName already exists."
         return
     }
 
-    Write-Host "Creating container $containerName"
+    Write-Host "Creating container $script:containerName"
 
     $bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
 
     $newContainerParams = @{
         "accept_eula" = $true
         "accept_insiderEula" = $true
-        "containerName" = "BC-$(Get-Date -Format 'yyyyMMdd')"
+        "containerName" = "$script:containerName"
         "artifactUrl" = $bcArtifactUrl
         "Credential" = $script:credential
         "auth" = "UserPassword"
@@ -137,7 +132,7 @@ function BuildApp {
 
     if(Test-Path (Join-Path $packageCacheFolder $appFile)) {
         Write-Host "App $appFile already exists in $packageCacheFolder. Skipping..."
-        return
+        return (Join-Path $packageCacheFolder $appFile -Resolve)
     }
 
     $allAppInfos = GetAllApps
@@ -145,7 +140,8 @@ function BuildApp {
     # Build dependencies
     foreach($dependency in $appInfo.AppJson.dependencies) {
         $dependencyAppInfo = $allAppInfos | Where-Object { $_.Id -eq $dependency.id }
-        BuildApp -appProjectFolder $dependencyAppInfo.AppProjectFolder -packageCacheFolder $packageCacheFolder | Out-Null
+        $dependencyAppFile = BuildApp -appProjectFolder $dependencyAppInfo.AppProjectFolder -packageCacheFolder $packageCacheFolder
+        PublishApp -appFile $dependencyAppFile -containerName $script:containerName
     }
 
     $compilerFolder = CreateCompilerFolder -packageCacheFolder $packageCacheFolder
@@ -163,13 +159,10 @@ function BuildApp {
 function PublishApp {
     param(
         [Parameter(Mandatory = $true)]
-        [string] $appFile,
-
-        [Parameter(Mandatory = $true)]
-        [string] $containerName
+        [string] $appFile
     )
 
-    Publish-BcContainerApp -containerName $containerName -appFile $appFile -syncMode ForceSync -credential $script:credential -skipVerification -install
+    Publish-BcContainerApp -containerName $script:containerName -appFile $appFile -syncMode ForceSync -sync -credential $script:credential -skipVerification -install -ignoreIfAppExists
 }
 
 $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
@@ -179,17 +172,18 @@ $script:apps = @()
 [pscredential] $script:credential = New-Object System.Management.Automation.PSCredential ($userName, $(ConvertTo-SecureString $password -AsPlainText -Force))
 $script:baseFolder = Get-BaseFolder
 $script:packageCacheFolder = ResolveFolder -folder $packageCacheFolder
+$script:containerName = $containerName
 
-Write-Host "Loading BCContainerHelper module"
+Write-Host "Loading BCContainerHelper module" -ForegroundColor Yellow
 InstallBCContainerHelper
 
-Write-Host "Creating container $containerName"
-CreateBCContainer -containerName $containerName
+Write-Host "Creating container $script:containerName" -ForegroundColor Yellow
+CreateBCContainer -containerName $script:containerName
 
 foreach($currentProjectPath in $projectPaths) {
-    Write-Host "Building app in $currentProjectPath"
+    Write-Host "Building app in $currentProjectPath" -ForegroundColor Yellow
     $appFile = BuildApp -appProjectFolder $currentProjectPath -packageCacheFolder $script:packageCacheFolder
 
-    Write-Host "Publishing app $appFile to $containerName"
-    PublishApp -appFile $appFile -containerName $containerName
+    Write-Host "Publishing app $appFile to $script:containerName" -ForegroundColor Yellow
+    PublishApp -appFile $appFile -containerName $script:containerName
 }
