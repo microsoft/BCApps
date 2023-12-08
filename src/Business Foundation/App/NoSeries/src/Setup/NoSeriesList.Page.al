@@ -178,10 +178,10 @@ page 571 "No. Series List"
 
                     trigger OnValidate()
                     var
-                        NoSeriesMgt: Codeunit NoSeriesMgt;
+                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
                     begin
                         Rec.TestField(Code);
-                        NoSeriesMgt.SetImplementation(Rec, Implementation);
+                        NoSeriesSetupImpl.SetImplementation(Rec, Implementation);
                     end;
                 }
             }

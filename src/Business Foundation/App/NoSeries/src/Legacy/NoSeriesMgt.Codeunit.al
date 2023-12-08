@@ -183,17 +183,6 @@ codeunit 281 NoSeriesMgt
 #pragma warning restore AL0432
 #endif
 
-    internal procedure SetImplementation(var NoSeries: Record "No. Series"; Implementation: Enum "No. Series Implementation")
-    var
-        NoSeriesLine: Record "No. Series Line";
-        StartDate: Date;
-    begin
-        FindNoSeriesLineToShow(NoSeries, NoSeriesLine);
-        StartDate := NoSeriesLine."Starting Date";
-        NoSeriesLine.SetFilter("Starting Date", '>=%1', StartDate);
-        NoSeriesLine.ModifyAll(Implementation, Implementation, true);
-    end;
-
     // TODO get rid of handled events
     internal procedure ValidateDefaultNos(var NoSeries: Record "No. Series"; xRecNoSeries: Record "No. Series")
     var
