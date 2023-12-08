@@ -406,7 +406,7 @@ codeunit 149006 "BCPT Test Suite"
         exit(not BCPTHeader2.IsEmpty());
     end;
 
-    local procedure SetBCPTLineCodeunitFilter(var SuiteCode: Code[10]; var CodeunitID: Integer; var BCPTLine: Record "BCPT Line")
+    local procedure SetBCPTLineCodeunitFilter(SuiteCode: Code[10]; CodeunitID: Integer; var BCPTLine: Record "BCPT Line")
     begin
         BCPTLine.SetRange("BCPT Code", SuiteCode);
         BCPTLine.SetRange("Codeunit ID", CodeunitID);
