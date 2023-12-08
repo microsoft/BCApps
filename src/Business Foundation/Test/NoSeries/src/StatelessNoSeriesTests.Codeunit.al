@@ -224,7 +224,6 @@ codeunit 134373 "Stateless No. Series Tests"
         NoSeriesLine.Validate("Ending No.", EndingNo);
         NoSeriesLine.Validate("Starting Date", StartingDate);
         NoSeriesLine."Increment-by No." := IncrementBy;
-        NoSeriesLine.Validate("Allow Gaps in Nos.", false);
         NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Normal);
         NoSeriesLine.Insert(true);
     end;
