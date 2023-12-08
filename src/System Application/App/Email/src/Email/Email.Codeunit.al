@@ -8,7 +8,7 @@ namespace System.Email;
 /// <summary>
 /// Provides functionality to create and send emails.
 /// </summary>
-codeunit 8901 "Email"
+codeunit 8901 Email
 {
     Access = Public;
 
@@ -452,7 +452,7 @@ codeunit 8901 "Email"
     end;
 
     /// <summary>
-    /// Integration event to get the names and IDs of attachments related to a source record. 
+    /// Integration event to get the names and IDs of attachments related to a source record.
     /// </summary>
     /// <param name="SourceTableId">The table number of the source record.</param>
     /// <param name="SourceSystemID">The system ID of the source record.</param>

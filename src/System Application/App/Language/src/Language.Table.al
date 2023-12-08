@@ -11,7 +11,7 @@ namespace System.Globalization;
 table 8 Language
 {
     Access = Public;
-    LookupPageID = Languages;
+    LookupPageId = Languages;
     InherentEntitlements = RX;
     InherentPermissions = RX;
 

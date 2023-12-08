@@ -24,7 +24,7 @@ page 1753 "Field Content Buffer"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -37,9 +37,6 @@ page 1753 "Field Content Buffer"
         }
     }
 
-    actions
-    {
-    }
 }
 
 

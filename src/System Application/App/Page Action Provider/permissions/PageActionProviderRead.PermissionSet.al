@@ -13,8 +13,8 @@ permissionset 2916 "Page Action Provider - Read"
     Access = Internal;
     Assignable = false;
 
-    Permissions = tabledata "Page Action" = r,
-                  tabledata "All Profile" = r,
-                  tabledata "User Personalization" = r,
-                  tabledata "Page Data Personalization" = R; // DotNet NavPageActionALFunctions requires this
+    Permissions = tabledata "All Profile" = r,
+                  tabledata "Page Action" = r,
+                  tabledata "Page Data Personalization" = R,
+                  tabledata "User Personalization" = r; // DotNet NavPageActionALFunctions requires this
 }

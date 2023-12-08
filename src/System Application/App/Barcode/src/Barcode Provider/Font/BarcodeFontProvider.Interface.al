@@ -5,7 +5,7 @@
 
 namespace System.Text;
 
-/// <summary> 
+/// <summary>
 /// Interface for barcode font providers.
 /// </summary>
 interface "Barcode Font Provider"
@@ -17,7 +17,7 @@ interface "Barcode Font Provider"
     procedure GetSupportedBarcodeSymbologies(var Result: List of [Enum "Barcode Symbology"])
 
     /// <summary>
-    /// Encodes an input text into a barcode. 
+    /// Encodes an input text into a barcode.
     /// </summary>
     /// <param name="InputText">The text to encode.</param>
     /// <param name="BarcodeSymbology">The symbology to use for the encoding.</param>
@@ -25,7 +25,7 @@ interface "Barcode Font Provider"
     procedure EncodeFont(InputText: Text; BarcodeSymbology: Enum "Barcode Symbology"): Text;
 
     /// <summary>
-    /// Encodes an input text into a barcode. 
+    /// Encodes an input text into a barcode.
     /// </summary>
     /// <param name="InputText">The text to encode.</param>
     /// <param name="BarcodeSymbology">The symbology to use for the encoding.</param>

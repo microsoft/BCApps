@@ -16,7 +16,7 @@ enum 1996 "Spotlight Tour Type"
     /// <summary>
     /// Default value - none.
     /// </summary>
-    value(0; "None")
+    value(0; None)
     {
         Caption = 'None';
     }
@@ -40,7 +40,7 @@ enum 1996 "Spotlight Tour Type"
     /// <summary>
     /// Specifies that the tour spotlights the Copilot functionality on the page.
     /// </summary>
-    value(3; "Copilot")
+    value(3; Copilot)
     {
         Caption = 'Copilot';
     }

@@ -88,7 +88,7 @@ table 3901 "Retention Policy Setup"
                     else begin
                         RetentionPolicySetupLine.SetRange(Enabled, true);
                         if RetentionPolicySetupLine.IsEmpty() then
-                            error(NoLinesEnabledErr)
+                            Error(NoLinesEnabledErr)
                     end;
             end;
         }
@@ -159,7 +159,7 @@ table 3901 "Retention Policy Setup"
 
     keys
     {
-        key(PrimaryKey; "Table ID")
+        key(PrimaryKey; "Table Id")
         {
             Clustered = true;
         }

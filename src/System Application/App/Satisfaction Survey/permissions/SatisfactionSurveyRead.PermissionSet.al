@@ -15,8 +15,8 @@ permissionset 1432 "Satisfaction Survey - Read"
     Assignable = false;
 
     Permissions = tabledata "Add-in" = r,
-                  tabledata "User Personalization" = r,
                   tabledata "Net Promoter Score" = r,
                   tabledata "Net Promoter Score Setup" = r,
+                  tabledata "User Personalization" = r,
                   tabledata "User Property" = r;
 }

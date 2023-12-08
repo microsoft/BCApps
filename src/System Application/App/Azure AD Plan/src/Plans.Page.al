@@ -24,7 +24,7 @@ page 9824 Plans
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -35,7 +35,7 @@ page 9824 Plans
                 }
             }
         }
-        area(factboxes)
+        area(FactBoxes)
         {
             part("Users in the Plan"; "User Plan Members FactBox")
             {

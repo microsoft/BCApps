@@ -7,12 +7,12 @@ namespace System.Text;
 
 using System.Utilities;
 
-/// <summary> 
+/// <summary>
 /// Exposes common interface for 2D barcode image encoder.
 /// </summary>
 interface "Barcode Image Encoder 2D"
 {
-    /// <summary> 
+    /// <summary>
     /// Encodes a input text to a barcode image.
     /// </summary>
     /// <param name="InputText">The text to encode.</param>

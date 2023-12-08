@@ -6,7 +6,7 @@
 namespace System.Security.Encryption;
 
 /// <summary>
-/// Enum that specifies all of the available padding modes. For more details check .NET RSASignaturePadding Class 
+/// Enum that specifies all of the available padding modes. For more details check .NET RSASignaturePadding Class
 /// </summary>
 enum 1285 "RSA Signature Padding"
 {

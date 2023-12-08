@@ -16,9 +16,9 @@ codeunit 54 "Language Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata Language = rimd,
+                  tabledata "Language Selection" = r,
                   tabledata "User Personalization" = rm,
-                  tabledata "Windows Language" = r,
-                  tabledata "Language Selection" = r;
+                  tabledata "Windows Language" = r;
 
     var
         LanguageNotFoundErr: Label 'The language %1 could not be found.', Comment = '%1 = Language ID';
@@ -219,7 +219,7 @@ codeunit 54 "Language Impl."
     begin
         WindowsLanguage.SetCurrentKey(Name);
 
-        if PAGE.RunModal(PAGE::"Windows Languages", WindowsLanguage) = ACTION::LookupOK then
+        if Page.RunModal(Page::"Windows Languages", WindowsLanguage) = Action::LookupOK then
             LanguageId := WindowsLanguage."Language ID";
     end;
 
@@ -250,13 +250,13 @@ codeunit 54 "Language Impl."
             exit;
 
         // Only lock the table if there is a change
-        if UserPersonalization."Language ID" = NewLanguageId then
+        if UserPersonalization."Language ID" = NewLanguageID then
             exit; // No changes required
 
         UserPersonalization.LockTable();
         UserPersonalization.Get(UserSecID);
-        UserPersonalization.Validate("Language ID", NewLanguageId);
-        UserPersonalization.Validate("Locale ID", NewLanguageId);
+        UserPersonalization.Validate("Language ID", NewLanguageID);
+        UserPersonalization.Validate("Locale ID", NewLanguageID);
         UserPersonalization.Modify(true);
     end;
 

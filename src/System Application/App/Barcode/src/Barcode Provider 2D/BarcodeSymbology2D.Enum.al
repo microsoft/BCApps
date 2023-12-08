@@ -5,7 +5,7 @@
 
 namespace System.Text;
 
-/// <summary> 
+/// <summary>
 /// The available 2D barcode symbologies.
 /// </summary>
 enum 9205 "Barcode Symbology 2D"

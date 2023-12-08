@@ -129,7 +129,7 @@ codeunit 9856 "Permission Set Relation Impl."
     begin
         VerifyUserCanEditPermissionSet(CurrAppId);
 
-        if TenantPermissionSetRel.Get(CurrAppId, CurrRoleID, RelatedAppId, RelatedRoleId) then
+        if TenantPermissionSetRel.Get(CurrAppId, CurrRoleID, RelatedAppId, RelatedRoleID) then
             exit(ModifyPermissionSetType(CurrAppId, CurrRoleID, CurrScope, RelatedAppId, RelatedRoleID, PermissionType))
         else
             exit(AddNewPermissionSet(CurrAppId, CurrRoleID, CurrScope, RelatedAppId, RelatedRoleID, RelatedScope, PermissionType));
@@ -141,7 +141,7 @@ codeunit 9856 "Permission Set Relation Impl."
     begin
         VerifyUserCanEditPermissionSet(CurrAppId);
 
-        if TenantPermissionSetRel.Get(CurrAppId, CurrRoleId, RelatedAppId, RelatedRoleID) then
+        if TenantPermissionSetRel.Get(CurrAppId, CurrRoleID, RelatedAppId, RelatedRoleID) then
             TenantPermissionSetRel.Delete();
     end;
 
@@ -163,8 +163,8 @@ codeunit 9856 "Permission Set Relation Impl."
 
         TenantPermissionSetRel.SetRange("Role ID", RoleId);
         TenantPermissionSetRel.SetRange("App ID", AppId);
-        MetaDataPermissionSetRel.SetRange("Role ID", RoleId);
-        MetaDataPermissionSetRel.SetRange("App ID", AppId);
+        MetadataPermissionSetRel.SetRange("Role ID", RoleId);
+        MetadataPermissionSetRel.SetRange("App ID", AppId);
 
         if TenantPermissionSetRel.FindSet() then
             repeat
@@ -179,18 +179,18 @@ codeunit 9856 "Permission Set Relation Impl."
                 PermissionSetRelationBuffer.Insert();
             until TenantPermissionSetRel.Next() = 0;
 
-        if MetaDataPermissionSetRel.FindSet() then
+        if MetadataPermissionSetRel.FindSet() then
             repeat
                 PermissionSetRelationBuffer.Init();
-                PermissionSetRelationBuffer."App ID" := MetaDataPermissionSetRel."App ID";
-                PermissionSetRelationBuffer."Role ID" := MetaDataPermissionSetRel."Role ID";
-                PermissionSetRelationBuffer."Related App ID" := MetaDataPermissionSetRel."Related App ID";
-                PermissionSetRelationBuffer."Related Role ID" := MetaDataPermissionSetRel."Related Role ID";
+                PermissionSetRelationBuffer."App ID" := MetadataPermissionSetRel."App ID";
+                PermissionSetRelationBuffer."Role ID" := MetadataPermissionSetRel."Role ID";
+                PermissionSetRelationBuffer."Related App ID" := MetadataPermissionSetRel."Related App ID";
+                PermissionSetRelationBuffer."Related Role ID" := MetadataPermissionSetRel."Related Role ID";
                 PermissionSetRelationBuffer."Related Scope" := TenantPermissionSetRel."Related Scope"::System;
                 PermissionSetRelationBuffer."Related Name" := GetPermissionSetName(PermissionSetRelationBuffer."Related App ID", PermissionSetRelationBuffer."Related Role ID", PermissionSetRelationBuffer."Related Scope");
-                PermissionSetRelationBuffer.Type := MetaDataPermissionSetRel.Type;
+                PermissionSetRelationBuffer.Type := MetadataPermissionSetRel.Type;
                 PermissionSetRelationBuffer.Insert();
-            until MetaDataPermissionSetRel.Next() = 0;
+            until MetadataPermissionSetRel.Next() = 0;
     end;
 
     procedure RefreshPermissionSetTree(RoleId: Code[30]; AppId: Guid; Scope: Option; var PermissionSetRelationBuffer: Record "Permission Set Relation Buffer" temporary)
@@ -305,7 +305,7 @@ codeunit 9856 "Permission Set Relation Impl."
             else
                 Error(CannotExcludeItselfErr);
 
-        if TenantPermissionSetRel.Get(CurrAppId, CurrRoleId, RelatedAppId, RelatedRoleId) then
+        if TenantPermissionSetRel.Get(CurrAppId, CurrRoleID, RelatedAppId, RelatedRoleId) then
             if TenantPermissionSetRel.Type = PermissionType then
                 if PermissionType = PermissionType::Include then
                     Error(PermissionSetAlreadyIncludedErr, TenantPermissionSetRel."Related Role ID")
@@ -315,7 +315,7 @@ codeunit 9856 "Permission Set Relation Impl."
                 TenantPermissionSetRel.Delete();
 
         TenantPermissionSetRel."App ID" := CurrAppId;
-        TenantPermissionSetRel."Role ID" := CurrRoleId;
+        TenantPermissionSetRel."Role ID" := CurrRoleID;
         TenantPermissionSetRel."Related App ID" := RelatedAppId;
         TenantPermissionSetRel."Related Role ID" := RelatedRoleId;
         TenantPermissionSetRel."Related Scope" := RelatedScope;

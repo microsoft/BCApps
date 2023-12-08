@@ -19,10 +19,10 @@ permissionset 1750 "Data Classification - Read"
 
     Permissions = tabledata Company = r,
                   tabledata "Data Privacy Entities" = R,
-                  tabledata "Fields Sync Status" = r,
                   tabledata "Data Sensitivity" = R,
                   tabledata Field = r,
-                  tabledata "Page Data Personalization" = R, // Page.Run requires this
+                  tabledata "Fields Sync Status" = r,
+                  tabledata "Page Data Personalization" = R,
                   tabledata "Table Relations Metadata" = r,
                   tabledata User = r;
 }

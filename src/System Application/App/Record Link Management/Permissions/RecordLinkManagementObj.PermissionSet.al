@@ -10,6 +10,6 @@ permissionset 4470 "Record Link Management - Obj."
     Access = Internal;
     Assignable = false;
 
-    Permissions = Codeunit "Record Link Management" = X,
-                  Codeunit "Remove Orphaned Record Links" = X;
+    Permissions = codeunit "Record Link Management" = X,
+                  codeunit "Remove Orphaned Record Links" = X;
 }

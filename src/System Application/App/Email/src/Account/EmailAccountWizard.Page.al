@@ -440,7 +440,7 @@ page 8886 "Email Account Wizard"
                 ShowChooseConnectorStep();
             Step::"Register Account":
                 ShowRegisterAccountStep();
-            Step::"Done":
+            Step::Done:
                 ShowDoneStep();
         end;
     end;

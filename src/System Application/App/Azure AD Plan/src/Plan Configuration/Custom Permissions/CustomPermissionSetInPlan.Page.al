@@ -23,7 +23,7 @@ page 9058 "Custom Permission Set In Plan"
 
     layout
     {
-        area(content)
+        area(Content)
         {
 #if not CLEAN22
             group("Assigned Permission Sets")
@@ -37,7 +37,7 @@ page 9058 "Custom Permission Set In Plan"
 
             repeater(Group)
             {
-                field("Plan Id"; Rec."Plan Id")
+                field("Plan Id"; Rec."Plan ID")
                 {
                     ApplicationArea = All;
                     Visible = false;

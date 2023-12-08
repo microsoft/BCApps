@@ -12,8 +12,8 @@ namespace System.Security.Encryption;
 interface SymmetricAlgorithm
 {
     /// <summary>
-    /// Initializes a new instance of the SymmetricAlgorithm. 
-    /// </summary>    
+    /// Initializes a new instance of the SymmetricAlgorithm.
+    /// </summary>
     procedure GetInstance(var DotNetSymmetricAlgorithm: DotNet "Cryptography.SymmetricAlgorithm");
 
     /// <summary>

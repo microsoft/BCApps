@@ -19,7 +19,7 @@ page 9555 "Record Lookup"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control2)
             {
@@ -28,7 +28,7 @@ page 9555 "Record Lookup"
                 field(Field1; Rec."Field 1")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the 1st value in the key of the record.';
+                    ToolTip = 'Specifies the 1st value in the key of the record.';
                     Visible = FieldsVisible > 0;
                     CaptionClass = FieldCaptions[1];
                 }
@@ -36,7 +36,7 @@ page 9555 "Record Lookup"
                 field(Field2; Rec."Field 2")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the 2nd value in the key of the record.';
+                    ToolTip = 'Specifies the 2nd value in the key of the record.';
                     Visible = FieldsVisible > 1;
                     CaptionClass = FieldCaptions[2];
                 }
@@ -44,7 +44,7 @@ page 9555 "Record Lookup"
                 field(Field3; Rec."Field 3")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the 3rd value in the key of the record.';
+                    ToolTip = 'Specifies the 3rd value in the key of the record.';
                     Visible = FieldsVisible > 2;
                     CaptionClass = FieldCaptions[3];
                 }
@@ -52,7 +52,7 @@ page 9555 "Record Lookup"
                 field(Field4; Rec."Field 4")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the 4th value in the key of the record.';
+                    ToolTip = 'Specifies the 4th value in the key of the record.';
                     Visible = FieldsVisible > 3;
                     CaptionClass = FieldCaptions[4];
                 }
@@ -60,7 +60,7 @@ page 9555 "Record Lookup"
                 field(Field5; Rec."Field 5")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the 5th value in the key of the record.';
+                    ToolTip = 'Specifies the 5th value in the key of the record.';
                     Visible = FieldsVisible > 4;
                     CaptionClass = FieldCaptions[5];
                 }
@@ -68,7 +68,7 @@ page 9555 "Record Lookup"
                 field(Field6; Rec."Field 6")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the 6th value in the key of the record.';
+                    ToolTip = 'Specifies the 6th value in the key of the record.';
                     Visible = FieldsVisible > 5;
                     CaptionClass = FieldCaptions[6];
                 }
@@ -76,7 +76,7 @@ page 9555 "Record Lookup"
                 field(Field7; Rec."Field 7")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the 7th value in the key of the record.';
+                    ToolTip = 'Specifies the 7th value in the key of the record.';
                     Visible = FieldsVisible > 6;
                     CaptionClass = FieldCaptions[7];
                 }
@@ -84,7 +84,7 @@ page 9555 "Record Lookup"
                 field(Field8; Rec."Field 8")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the 8th value in the key of the record.';
+                    ToolTip = 'Specifies the 8th value in the key of the record.';
                     Visible = FieldsVisible > 7;
                     CaptionClass = FieldCaptions[8];
                 }
@@ -92,7 +92,7 @@ page 9555 "Record Lookup"
                 field(Field9; Rec."Field 9")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the 9th value in the key of the record.';
+                    ToolTip = 'Specifies the 9th value in the key of the record.';
                     Visible = FieldsVisible > 8;
                     CaptionClass = FieldCaptions[9];
                 }
@@ -100,7 +100,7 @@ page 9555 "Record Lookup"
                 field(Field10; Rec."Field 10")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the 10th value in the key of the record.';
+                    ToolTip = 'Specifies the 10th value in the key of the record.';
                     Visible = FieldsVisible > 9;
                     CaptionClass = FieldCaptions[10];
                 }

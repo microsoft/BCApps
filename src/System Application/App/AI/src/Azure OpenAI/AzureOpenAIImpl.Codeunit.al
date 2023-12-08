@@ -27,6 +27,7 @@ codeunit 7772 "Azure OpenAI Impl"
         TextCompletionsAOAIAuthorization: Codeunit "AOAI Authorization";
         EmbeddingsAOAIAuthorization: Codeunit "AOAI Authorization";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        Telemetry: Codeunit Telemetry;
         InvalidModelTypeErr: Label 'Selected model type is not supported.';
         GenerateRequestFailedErr: Label 'The request did not return a success status code.';
         CompletionsFailedWithCodeErr: Label 'The text completions generation failed.';
@@ -51,6 +52,7 @@ codeunit 7772 "Azure OpenAI Impl"
         TelemetryUnableToCheckEnvironmentKVTxt: Label 'Unable to check if environment is allowed to run AOAI.', Locked = true;
         TelemetryEnvironmentNotAllowedtoRunCopilotTxt: Label 'Copilot is not allowed on this environment.', Locked = true;
         TelemetryProhibitedCharactersTxt: Label 'Prohibited characters were removed from the prompt.', Locked = true;
+        TelemetryTokenCountLbl: Label 'Metaprompt token count: %1, Prompt token count: %2, Total token count: %3', Comment = '%1 is the number of tokens in the metaprompt, %2 is the number of tokens in the prompt, %3 is the total number of tokens', Locked = true;
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
@@ -125,7 +127,7 @@ codeunit 7772 "Azure OpenAI Impl"
                 end;
             else begin
                 WithinGeo := ALCopilotFunctions.IsWithinGeo();
-                // Privacy notice not set, we will not cross geo-boundries                
+                // Privacy notice not set, we will not cross geo-boundries
                 if not Silent then
                     if not WithinGeo then begin
                         CopilotNotAvailable.SetCopilotCapability(Capability);
@@ -227,6 +229,8 @@ codeunit 7772 "Azure OpenAI Impl"
         Payload.Add('prompt', UnwrappedPrompt);
         Payload.WriteTo(PayloadText);
 
+        SendTokenCountTelemetry(ApproximateTokenCount(Metaprompt.Unwrap()), ApproximateTokenCount(Prompt.Unwrap()), CustomDimensions);
+
         if not SendRequest(Enum::"AOAI Model Type"::"Text Completions", TextCompletionsAOAIAuthorization, PayloadText, AOAIOperationResponse) then begin
             FeatureTelemetry.LogError('0000KVD', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, CompletionsFailedWithCodeErr, '', CustomDimensions);
             exit;
@@ -254,6 +258,7 @@ codeunit 7772 "Azure OpenAI Impl"
         Payload.WriteTo(PayloadText);
 
         AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+        SendTokenCountTelemetry(0, ApproximateTokenCount(Input.Unwrap()), CustomDimensions);
         if not SendRequest(Enum::"AOAI Model Type"::Embeddings, EmbeddingsAOAIAuthorization, PayloadText, AOAIOperationResponse) then begin
             FeatureTelemetry.LogError('0000KVE', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateEmbeddingLbl, EmbeddingsFailedWithCodeErr, '', CustomDimensions);
             exit;
@@ -293,6 +298,8 @@ codeunit 7772 "Azure OpenAI Impl"
         CustomDimensions: Dictionary of [Text, Text];
         Payload: JsonObject;
         PayloadText: Text;
+        MetapromptTokenCount: Integer;
+        PromptTokenCount: Integer;
     begin
         GuiCheck(CallerModuleInfo);
 
@@ -302,10 +309,11 @@ codeunit 7772 "Azure OpenAI Impl"
         CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
 
         AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
-        Payload.Add('messages', ChatMessages.AssembleHistory());
+        Payload.Add('messages', ChatMessages.AssembleHistory(MetapromptTokenCount, PromptTokenCount));
         Payload.WriteTo(PayloadText);
 
         AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+        SendTokenCountTelemetry(MetapromptTokenCount, PromptTokenCount, CustomDimensions);
         if not SendRequest(Enum::"AOAI Model Type"::"Chat Completions", ChatCompletionsAOAIAuthorization, PayloadText, AOAIOperationResponse) then begin
             FeatureTelemetry.LogError('0000KVF', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, ChatCompletionsFailedWithCodeErr, '', CustomDimensions);
             exit;
@@ -355,6 +363,12 @@ codeunit 7772 "Azure OpenAI Impl"
 
         if not ALCopilotOperationResponse.IsSuccess() then
             Error(GenerateRequestFailedErr);
+    end;
+
+    [NonDebuggable]
+    local procedure SendTokenCountTelemetry(Metaprompt: Integer; Prompt: Integer; CustomDimensions: Dictionary of [Text, Text])
+    begin
+        Telemetry.LogMessage('0000LT4', StrSubstNo(TelemetryTokenCountLbl, Metaprompt, Prompt, Metaprompt + Prompt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
     end;
 
     local procedure GuiCheck(CallerModuleInfo: ModuleInfo)
@@ -447,8 +461,6 @@ codeunit 7772 "Azure OpenAI Impl"
 
     [NonDebuggable]
     procedure RemoveProhibitedCharacters(Prompt: Text) Result: Text
-    var
-        Telemetry: Codeunit Telemetry;
     begin
         Result := Prompt.Replace('<|end>', '');
         Result := Result.Replace('<|start>', '');
@@ -478,6 +490,19 @@ codeunit 7772 "Azure OpenAI Impl"
             FeatureTelemetry.LogError('0000LO8', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, EmptyMetapromptErr, '', CustomDimensions);
             Error(EmptyMetapromptErr);
         end;
+    end;
+
+    [NonDebuggable]
+    procedure ApproximateTokenCount(Input: Text): Decimal
+    var
+        AverageWordsPerToken: Decimal;
+        TokenCount: Integer;
+        WordsInInput: Integer;
+    begin
+        AverageWordsPerToken := 0.6; // Based on OpenAI estimate
+        WordsInInput := Input.Split(' ', ',', '.', '!', '?', ';', ':', '/n').Count;
+        TokenCount := Round(WordsInInput / AverageWordsPerToken, 1);
+        exit(TokenCount);
     end;
 
 }

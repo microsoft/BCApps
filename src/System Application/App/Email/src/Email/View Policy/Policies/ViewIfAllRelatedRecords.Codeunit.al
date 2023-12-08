@@ -8,7 +8,7 @@ namespace System.Email;
 using System.Security.AccessControl;
 
 /// <summary>
-/// Email policy that show emails to a given user, 
+/// Email policy that show emails to a given user,
 /// if that user has access to all of the related records on the email.
 /// </summary>
 codeunit 8933 "View If All Related Records" implements "Email View Policy"

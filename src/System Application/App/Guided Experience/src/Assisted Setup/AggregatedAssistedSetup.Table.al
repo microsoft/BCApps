@@ -66,7 +66,7 @@ table 1808 "Aggregated Assisted Setup"
             DataClassification = SystemMetadata;
             Caption = 'External Assisted Setup';
         }
-        field(18; "Record ID"; RecordID)
+        field(18; "Record ID"; RecordId)
         {
             Caption = 'Record ID';
             DataClassification = CustomerContent;

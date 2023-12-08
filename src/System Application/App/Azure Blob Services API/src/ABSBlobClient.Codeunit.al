@@ -43,7 +43,7 @@ codeunit 9053 "ABS Blob Client"
 
     /// <summary>
     /// The base URL to use when constructing the final URI.
-    /// If not set, the base URL is https://%1.blob.core.windows.net where %1 is the storage account name. 
+    /// If not set, the base URL is https://%1.blob.core.windows.net where %1 is the storage account name.
     /// </summary>
     /// <remarks>Use %1 as a placeholder for the storage account name.</remarks>
     /// <param name="BaseUrl">A valid URL string</param>
@@ -55,7 +55,7 @@ codeunit 9053 "ABS Blob Client"
     /// <summary>
     /// Lists the blobs in a specific container.
     /// see: https://go.microsoft.com/fwlink/?linkid=2210588
-    /// </summary>    
+    /// </summary>
     /// <param name="ABSContainerContent">Collection of the result (temporary record).</param>
     /// <returns>An operation response object</returns>
     procedure ListBlobs(var ABSContainerContent: Record "ABS Container Content"): Codeunit "ABS Operation Response"
@@ -68,7 +68,7 @@ codeunit 9053 "ABS Blob Client"
     /// <summary>
     /// Lists the blobs in a specific container.
     /// see: https://go.microsoft.com/fwlink/?linkid=2210588
-    /// </summary>    
+    /// </summary>
     /// <param name="ABSContainerContent">Collection of the result (temporary record).</param>
     /// <param name="ABSOptionalParameters">Optional parameters to pass.</param>
     /// <returns>An operation response object</returns>
@@ -80,7 +80,7 @@ codeunit 9053 "ABS Blob Client"
     /// <summary>
     /// Lists the blobs in a specific container.
     /// see: https://go.microsoft.com/fwlink/?linkid=2210588
-    /// </summary>    
+    /// </summary>
     /// <param name="BlobList">Collection of the result (BlobList of [Text, XmlNode]).
     /// The key in the dictionary is the full blob path and the value is the complete blob xmlnode from the response</param>
     /// <returns>An operation response object</returns>
@@ -94,7 +94,7 @@ codeunit 9053 "ABS Blob Client"
     /// <summary>
     /// Lists the blobs in a specific container.
     /// see: https://go.microsoft.com/fwlink/?linkid=2210588
-    /// </summary>    
+    /// </summary>
     /// <param name="BlobList">Collection of the result (BlobList of [Text, XmlNode]).
     /// The key in the dictionary is the full blob path and the value is the complete blob xmlnode from the response</param>
     /// <param name="ABSOptionalParameters">Optional parameters to pass.</param>
@@ -512,7 +512,7 @@ codeunit 9053 "ABS Blob Client"
     /// The Set Blob Expiry operation sets an expiry time on an existing blob. This operation is only allowed on Hierarchical Namespace enabled accounts
     /// Sets the expiry time relative to the file creation time, x-ms-expiry-time must be specified as the number of milliseconds to elapse from creation time.
     /// see: https://go.microsoft.com/fwlink/?linkid=2210389
-    /// </summary>    
+    /// </summary>
     /// <param name="BlobName">The name of the blob.</param>
     /// <param name="ExpiryTime">Number if miliseconds (Integer) until the expiration.</param>
     /// <returns>An operation response object</returns>
@@ -526,7 +526,7 @@ codeunit 9053 "ABS Blob Client"
     /// Sets the expiry relative to the current time, x-ms-expiry-time must be specified as the number of milliseconds to elapse from now.
     /// see: https://go.microsoft.com/fwlink/?linkid=2210389
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>    
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="ExpiryTime">Number if miliseconds (Integer) until the expiration.</param>
     /// <returns>An operation response object</returns>
     procedure SetBlobExpiryRelativeToNow(BlobName: Text; ExpiryTime: Integer): Codeunit "ABS Operation Response"
@@ -539,7 +539,7 @@ codeunit 9053 "ABS Blob Client"
     /// Sets the expiry to an absolute DateTime
     /// see: https://go.microsoft.com/fwlink/?linkid=2210389
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>    
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="ExpiryTime">Absolute DateTime for the expiration.</param>
     /// <returns>An operation response object</returns>
     procedure SetBlobExpiryAbsolute(BlobName: Text; ExpiryTime: DateTime): Codeunit "ABS Operation Response"
@@ -551,7 +551,7 @@ codeunit 9053 "ABS Blob Client"
     /// The Set Blob Expiry operation sets an expiry time on an existing blob. This operation is only allowed on Hierarchical Namespace enabled accounts
     /// Sets the file to never expire or removes the current expiry time, x-ms-expiry-time must not to be specified.
     /// see: https://go.microsoft.com/fwlink/?linkid=2210389
-    /// </summary>    
+    /// </summary>
     procedure SetBlobExpiryNever(BlobName: Text): Codeunit "ABS Operation Response"
     begin
         exit(ABSClientImpl.SetBlobExpiryNever(BlobName));
@@ -560,9 +560,9 @@ codeunit 9053 "ABS Blob Client"
     /// <summary>
     /// The Set Blob Tags operation sets user-defined tags for the specified blob as one or more key-value pairs.
     /// see: https://go.microsoft.com/fwlink/?linkid=2211407
-    /// </summary> 
-    /// <param name="BlobName">The name of the blob.</param>   
-    /// <param name="Tags">A Dictionary of [Text, Text] which contains the Tags you want to set.</param>    
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="Tags">A Dictionary of [Text, Text] which contains the Tags you want to set.</param>
     /// <returns>An operation response object</returns>
     procedure SetBlobTags(BlobName: Text; Tags: Dictionary of [Text, Text]): Codeunit "ABS Operation Response"
     begin
@@ -572,9 +572,9 @@ codeunit 9053 "ABS Blob Client"
     /// <summary>
     /// The Find Blobs By Tags operation retrieves blobs based on user-defined tags for the specified blob, represented as one or more key-value pairs.
     /// see: https://learn.microsoft.com/nl-nl/rest/api/storageservices/find-blobs-by-tags?tabs=azure-ad
-    /// </summary> 
-    /// <param name="SearchTags">A Dictionary of [Text, Text] with tags to search on.</param>   
-    /// <param name="FoundBlobs">An XmlDocument containing the results of the identified blobs.</param>    
+    /// </summary>
+    /// <param name="SearchTags">A Dictionary of [Text, Text] with tags to search on.</param>
+    /// <param name="FoundBlobs">An XmlDocument containing the results of the identified blobs.</param>
     /// <returns>An operation response object</returns>
     procedure FindBlobsByTags(SearchTags: Dictionary of [Text, Text]; var FoundBlobs: XmlDocument): Codeunit "ABS Operation Response"
     begin
@@ -585,8 +585,8 @@ codeunit 9053 "ABS Blob Client"
     /// The Get Blob Tags operation gets user-defined tags for the specified blob as XmlDocument.
     /// see: https://go.microsoft.com/fwlink/?linkid=2211502
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>   
-    /// <param name="Tags">The result XmlDocument with blob tags.</param>    
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="Tags">The result XmlDocument with blob tags.</param>
     /// <returns>An operation response object</returns>
     procedure GetBlobTags(BlobName: Text; var Tags: XmlDocument): Codeunit "ABS Operation Response"
     var
@@ -599,9 +599,9 @@ codeunit 9053 "ABS Blob Client"
     /// The Get Blob Tags operation gets user-defined tags for the specified blob as XmlDocument.
     /// see: https://go.microsoft.com/fwlink/?linkid=2211502
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>   
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="Tags">The result XmlDocument with blob tags.</param>
-    /// <param name="OptionalParameters">Optional parameters to pass.</param> 
+    /// <param name="OptionalParameters">Optional parameters to pass.</param>
     /// <returns>An operation response object</returns>
     procedure GetBlobTags(BlobName: Text; var Tags: XmlDocument; OptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
     begin
@@ -612,8 +612,8 @@ codeunit 9053 "ABS Blob Client"
     /// The Get Blob Tags operation gets user-defined tags for the specified blob as one or more key-value pairs.
     /// see: https://go.microsoft.com/fwlink/?linkid=2211502
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>   
-    /// <param name="Tags">The result Dictionary of [Text, Text] with blob tags.</param>    
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="Tags">The result Dictionary of [Text, Text] with blob tags.</param>
     /// <returns>An operation response object</returns>
     procedure GetBlobTags(BlobName: Text; var Tags: Dictionary of [Text, Text]): Codeunit "ABS Operation Response"
     var
@@ -626,9 +626,9 @@ codeunit 9053 "ABS Blob Client"
     /// The Get Blob Tags operation gets user-defined tags for the specified blob as one or more key-value pairs.
     /// see: https://go.microsoft.com/fwlink/?linkid=2211502
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>   
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="Tags">The result Dictionary of [Text, Text] with blob tags.</param>
-    /// <param name="OptionalParameters">Optional parameters to pass.</param> 
+    /// <param name="OptionalParameters">Optional parameters to pass.</param>
     /// <returns>An operation response object</returns>
     procedure GetBlobTags(BlobName: Text; var Tags: Dictionary of [Text, Text]; OptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
     begin
@@ -836,7 +836,7 @@ codeunit 9053 "ABS Blob Client"
     /// <summary>
     /// Requests a new lease. If the blob does not have an active lease, the Blob service creates a lease on the blob. The lease duration can be 15 to 60 seconds or can be infinite
     /// see: https://go.microsoft.com/fwlink/?linkid=2210391
-    /// </summary>    
+    /// </summary>
     /// <param name="BlobName">The name of the blob.</param>
     /// <param name="DurationSeconds">Specifies the duration of the lease, in seconds, or negative one (-1) for a lease that never expires</param>
     /// <param name="LeaseId">Guid containing the response value from x-ms-lease-id HttpHeader</param>
@@ -852,7 +852,7 @@ codeunit 9053 "ABS Blob Client"
     /// <summary>
     /// Requests a new lease. If the blob does not have an active lease, the Blob service creates a lease on the blob. The lease duration can be 15 to 60 seconds or can be infinite
     /// see: https://go.microsoft.com/fwlink/?linkid=2210391
-    /// </summary>    
+    /// </summary>
     /// <param name="BlobName">The name of the blob.</param>
     /// <param name="DurationSeconds">Specifies the duration of the lease, in seconds, or negative one (-1) for a lease that never expires</param>
     /// <param name="ABSOptionalParameters">Optional parameters to pass.</param>
@@ -897,8 +897,8 @@ codeunit 9053 "ABS Blob Client"
     /// <summary>
     /// Requests a new lease. If the blob does not have an active lease, the Blob service creates a lease on the blob. The lease duration can be 15 to 60 seconds or can be infinite
     /// see: https://go.microsoft.com/fwlink/?linkid=2210391
-    /// </summary>  
-    /// <param name="BlobName">The name of the blob.</param>  
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="DurationSeconds">Specifies the duration of the lease, in seconds, or negative one (-1) for a lease that never expires</param>
     /// <param name="ProposedLeaseId">Proposed lease ID, in a GUID string format</param>
     /// <param name="ABSOptionalParameters">Optional parameters to pass.</param>
@@ -913,7 +913,7 @@ codeunit 9053 "ABS Blob Client"
     /// Releases a lease on a Blob if it is no longer needed so that another client may immediately acquire a lease against the blob
     /// see: https://go.microsoft.com/fwlink/?linkid=2210391
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>  
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="LeaseId">The Guid for the lease that should be released</param>
     /// <returns>An operation response object</returns>
     procedure ReleaseLease(BlobName: Text; LeaseId: Guid): Codeunit "ABS Operation Response"
@@ -927,7 +927,7 @@ codeunit 9053 "ABS Blob Client"
     /// Releases a lease on a Blob if it is no longer needed so that another client may immediately acquire a lease against the blob
     /// see: https://go.microsoft.com/fwlink/?linkid=2210391
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>  
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="LeaseId">The Guid for the lease that should be released</param>
     /// <param name="ABSOptionalParameters">Optional parameters to pass.</param>
     /// <returns>An operation response object</returns>
@@ -940,7 +940,7 @@ codeunit 9053 "ABS Blob Client"
     /// Renews a lease on a Blob to keep it locked again for the same amount of time as before
     /// see: https://go.microsoft.com/fwlink/?linkid=2210391
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>  
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="LeaseId">The Guid for the lease that should be renewed</param>
     /// <returns>An operation response object</returns>
     procedure RenewLease(BlobName: Text; LeaseId: Guid): Codeunit "ABS Operation Response"
@@ -954,7 +954,7 @@ codeunit 9053 "ABS Blob Client"
     /// Renews a lease on a Blob to keep it locked again for the same amount of time as before
     /// see: https://go.microsoft.com/fwlink/?linkid=2210391
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>  
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="LeaseId">The Guid for the lease that should be renewed</param>
     /// <param name="ABSOptionalParameters">Optional parameters to pass.</param>
     /// <returns>An operation response object</returns>
@@ -968,7 +968,7 @@ codeunit 9053 "ABS Blob Client"
     /// Breaks a lease on a blob but ensures that another client cannot acquire a new lease until the current lease period has expired
     /// see: https://go.microsoft.com/fwlink/?linkid=2210391
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>  
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="LeaseId">The Guid for the lease that should be broken</param>
     /// <returns>An operation response object</returns>
     procedure BreakLease(BlobName: Text; LeaseId: Guid): Codeunit "ABS Operation Response"
@@ -982,7 +982,7 @@ codeunit 9053 "ABS Blob Client"
     /// Breaks a lease on a blob but ensures that another client cannot acquire a new lease until the current lease period has expired
     /// see: https://go.microsoft.com/fwlink/?linkid=2210391
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>  
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="LeaseId">The Guid for the lease that should be broken</param>
     /// <param name="LeaseBreakPeriod">The proposed duration the lease should continue before it is broken, in seconds, between 0 and 60.</param>
     /// <returns>An operation response object</returns>
@@ -997,7 +997,7 @@ codeunit 9053 "ABS Blob Client"
     /// Breaks a lease on a blob but ensures that another client cannot acquire a new lease until the current lease period has expired
     /// see: https://go.microsoft.com/fwlink/?linkid=2210391
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>  
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="LeaseId">The Guid for the lease that should be broken</param>
     /// <param name="ABSOptionalParameters">Optional parameters to pass.</param>
     /// <returns>An operation response object</returns>
@@ -1010,7 +1010,7 @@ codeunit 9053 "ABS Blob Client"
     /// Breaks a lease on a blob but ensures that another client cannot acquire a new lease until the current lease period has expired
     /// see: https://go.microsoft.com/fwlink/?linkid=2210391
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>  
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="LeaseId">The Guid for the lease that should be broken</param>
     /// <param name="ABSOptionalParameters">Optional parameters to pass.</param>
     /// <param name="LeaseBreakPeriod">The proposed duration the lease should continue before it is broken, in seconds, between 0 and 60.</param>
@@ -1024,7 +1024,7 @@ codeunit 9053 "ABS Blob Client"
     /// Changes the lease ID of an active lease
     /// see: https://go.microsoft.com/fwlink/?linkid=2210391
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>  
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="LeaseId">The Guid for the lease that should be changed. Will contain the updated Guid after successful operation.</param>
     /// <param name="ProposedLeaseId">The Guid that should be used in future</param>
     /// <returns>An operation response object</returns>
@@ -1039,7 +1039,7 @@ codeunit 9053 "ABS Blob Client"
     /// Changes the lease ID of an active lease
     /// see: https://go.microsoft.com/fwlink/?linkid=2210391
     /// </summary>
-    /// <param name="BlobName">The name of the blob.</param>  
+    /// <param name="BlobName">The name of the blob.</param>
     /// <param name="LeaseId">The Guid for the lease that should be changed</param>
     /// <param name="ProposedLeaseId">The Guid that should be used in future</param>
     /// <param name="ABSOptionalParameters">Optional parameters to pass.</param>

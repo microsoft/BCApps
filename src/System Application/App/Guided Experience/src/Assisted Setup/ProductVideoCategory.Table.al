@@ -51,8 +51,5 @@ table 1471 "Product Video Category"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

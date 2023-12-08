@@ -16,12 +16,12 @@ permissionset 2502 "Exten. Mgt. - Admin"
     IncludedPermissionSets = "Extension Management - View",
                              "Guided Experience - View";
 
-    Permissions = tabledata "Application Object Metadata" = Rimd, // r needed for check CanManageExtensions
-                  tabledata "Application Dependency" = Rimd,
+    Permissions = tabledata "Application Dependency" = Rimd,
+                  tabledata "Application Object Metadata" = Rimd, // r needed for check CanManageExtensions
                   tabledata "Application Resource" = Rimd,
                   tabledata "Extension Pending Setup" = rimd,
-                  tabledata "Installed Application" = Rimd,
                   tabledata "Inplace Installed Application" = Rimd,
+                  tabledata "Installed Application" = Rimd,
                   tabledata "NAV App Capabilities" = Rimd,
                   tabledata "NAV App Data Archive" = Rimd,
                   tabledata "NAV App Installed App" = Rimd,

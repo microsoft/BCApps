@@ -1631,7 +1631,7 @@ codeunit 9988 "Word Template Impl."
         UploadDialogTitleLbl: Label 'Upload template.';
         DownloadDialogTitleLbl: Label 'Download template and data source as zip.';
         DownloadResultFileDialogTitleLbl: Label 'Download document.';
-        FilterPageBuilderCaptionLbl: Label '%1 Filters', comment = '%1 = Table Caption';
+        FilterPageBuilderCaptionLbl: Label '%1 Filters', Comment = '%1 = Table Caption';
         SpecifyFiltersQst: Label 'Do you want to specify any filters on the template entity?';
         DataSourceFileTxt: Label 'DataSource.xlsx', Locked = true;
         DataSourceSheetNameTxt: Label 'DataSource', Locked = true;
@@ -1667,6 +1667,6 @@ codeunit 9988 "Word Template Impl."
         TempDocLbl: Label 'Temp doc.docx', Locked = true;
         CannotRemoveTableWithRelationsErr: Label 'You cannot remove a table while there are still tables related to it.';
         SettingsXmlFileContentDoesNotExistTxt: Label 'Settings.xml file content does not exist in the Word Document.', Locked = true;
-        SettingsXmlRelsFilePathTxt: label 'word/_rels/settings.xml.rels', Locked = true;
+        SettingsXmlRelsFilePathTxt: Label 'word/_rels/settings.xml.rels', Locked = true;
         DataSourceNotSetTxt: Label 'Data source not set.', Locked = true;
 }
