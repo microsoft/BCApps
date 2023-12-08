@@ -227,7 +227,7 @@ codeunit 149006 "BCPT Test Suite"
         Clear(BCPTLine);
         BCPTLine."BCPT Code" := SuiteCode;
         BCPTLine."Line No." := LastBCPTLine."Line No." + 1000;
-        BCPTLine."Codeunit ID" := CodeunitId;
+        BCPTLine.validate("Codeunit ID", CodeunitId);
         BCPTLine.Insert(true);
 
         exit(BCPTLine."Line No.");
