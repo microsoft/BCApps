@@ -98,6 +98,37 @@ codeunit 149006 "BCPT Test Suite"
         exit(BCPTHeader.Get(SuiteCode));
     end;
 
+    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer): Boolean
+    var
+        BCPTLine: Record "BCPT Line";
+    begin
+        SetBCPTLineCodeunitFilter(SuiteCode, CodeunitID, BCPTLine);
+        exit(not BCPTLine.IsEmpty());
+    end;
+
+    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer; var LineNo: Integer): Boolean
+    var
+        BCPTLine: Record "BCPT Line";
+    begin
+        SetBCPTLineCodeunitFilter(SuiteCode, CodeunitID, BCPTLine);
+        if not BCPTLine.FindFirst() then
+            exit(false);
+        LineNo := BCPTLine."Line No.";
+        exit(true);
+    end;
+
+    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer; ParameterFilterStr: Text; var LineNo: Integer): Boolean
+    var
+        BCPTLine: Record "BCPT Line";
+    begin
+        SetBCPTLineCodeunitFilter(SuiteCode, CodeunitID, BCPTLine);
+        BCPTLine.SetFilter(Parameters, ParameterFilterStr);
+        if not BCPTLine.FindFirst() then
+            exit(false);
+        LineNo := BCPTLine."Line No.";
+        exit(true);
+    end;
+
     procedure SetTestSuiteDuration(SuiteCode: Code[10]; DurationInMinutes: Integer)
     var
         BCPTHeader: Record "BCPT Header";
@@ -227,7 +258,7 @@ codeunit 149006 "BCPT Test Suite"
         Clear(BCPTLine);
         BCPTLine."BCPT Code" := SuiteCode;
         BCPTLine."Line No." := LastBCPTLine."Line No." + 1000;
-        BCPTLine."Codeunit ID" := CodeunitId;
+        BCPTLine.validate("Codeunit ID", CodeunitId);
         BCPTLine.Insert(true);
 
         exit(BCPTLine."Line No.");
@@ -373,5 +404,11 @@ codeunit 149006 "BCPT Test Suite"
         BCPTHeader2.SetRange(Code, SuiteCode);
         BCPTHeader2.SetRange(Status, BCPTHeader2.Status::Running);
         exit(not BCPTHeader2.IsEmpty());
+    end;
+
+    local procedure SetBCPTLineCodeunitFilter(SuiteCode: Code[10]; CodeunitID: Integer; var BCPTLine: Record "BCPT Line")
+    begin
+        BCPTLine.SetRange("BCPT Code", SuiteCode);
+        BCPTLine.SetRange("Codeunit ID", CodeunitID);
     end;
 }
