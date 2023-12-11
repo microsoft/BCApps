@@ -24,7 +24,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 [Oo]ut/
-.artifactscache
+.artifactsCache
 
 # Visual Studio 2015 cache/options directory
 .vs/
