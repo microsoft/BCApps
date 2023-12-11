@@ -525,6 +525,10 @@ codeunit 2501 "Extension Marketplace"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OpenAppSourceMarket, '', false, false)]
     local procedure OpenAppSourceMarket()
     begin
+#if not CLEAN24        
         Page.Run(Page::"Extension Marketplace");
+#else        
+        Hyperlink('https://appsource.microsoft.com/en-us/marketplace/apps?product=dynamics-365%3Bdynamics-365-business-central&page=1');
+#endif        
     end;
 }

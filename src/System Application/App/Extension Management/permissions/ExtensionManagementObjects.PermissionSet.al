@@ -25,7 +25,9 @@ permissionset 2504 "Extension Management - Objects"
                   page "Extension Installation" = X,
                   page "Extension Logo Part" = X,
                   page "Extension Management" = X,
+#if not CLEAN24
                   page "Extension Marketplace" = X,
+#endif                  
                   page "Extension Settings" = X,
                   page "Extension Setup Launcher" = X,
                   page "Extn. Installation Progress" = X,

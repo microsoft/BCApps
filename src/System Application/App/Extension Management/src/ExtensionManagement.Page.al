@@ -259,7 +259,14 @@ page 2500 "Extension Management"
                     PromotedIsBig = true;
                     ToolTip = 'Browse the extension marketplace for new extensions to install.';
                     Visible = not IsOnPremDisplay;
+#if not CLEAN24                    
                     RunObject = page "Extension Marketplace";
+#else                    
+                    trigger OnAction()
+                    begin
+                        Hyperlink('https://appsource.microsoft.com/en-us/marketplace/apps?product=dynamics-365%3Bdynamics-365-business-central&page=1');
+                    end;
+#endif
                 }
                 action("Upload Extension")
                 {
@@ -390,5 +397,3 @@ page 2500 "Extension Management"
         InfoStyle := IsInstalled and IsInstallAllowed;
     end;
 }
-
-
