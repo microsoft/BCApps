@@ -6,6 +6,7 @@ Creates a new dev env.
 #>
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '', Justification = 'local build')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'local build')]
+[CmdletBinding(DefaultParameterSetName = 'ProjectPaths')]
 param(
     [Parameter(Mandatory = $false)]
     [string] $containerName = "BC-$(Get-Date -Format 'yyyyMMdd')",
@@ -16,8 +17,14 @@ param(
     [Parameter(Mandatory = $false)]
     [string] $password = 'P@ssword1',
 
-    [Parameter(Mandatory = $true)]
+    [Parameter(Mandatory = $true, ParameterSetName = 'ProjectPaths')]
     [string[]] $projectPaths,
+
+    [Parameter(Mandatory = $true, ParameterSetName = 'WorkspacePath')]
+    [string] $workspacePath,
+
+    [Parameter(Mandatory = $true, ParameterSetName = 'ALGoProject')]
+    [string] $alGoProject,
 
     [Parameter(Mandatory = $false)]
     [string] $packageCacheFolder = ".artifactsCache"
@@ -74,8 +81,8 @@ function CreateCompilerFolder {
 }
 
 function GetAllApps {
-    if($script:apps) {
-        return $script:apps
+    if($script:allApps) {
+        return $script:allApps
     }
 
     # Get all AL-Go projects
@@ -83,6 +90,7 @@ function GetAllApps {
 
     $appInfos = @()
 
+    # Collect all apps from AL-Go projects
     foreach($alGoProject in $alGoProjects) {
         $appFolders = $alGoProject.GetAppFolders($true)
 
@@ -99,8 +107,8 @@ function GetAllApps {
         }
     }
 
-    $script:apps = $appInfos
-    return $script:apps
+    $script:allApps = $appInfos
+    return $script:allApps
 }
 
 function ResolveFolder {
@@ -114,6 +122,41 @@ function ResolveFolder {
     }
 
     return Join-Path $script:baseFolder $folder
+}
+
+function ResolveProjectPaths {
+    param(
+        [Parameter(Mandatory = $false)]
+        [string[]] $projectPaths,
+
+        [Parameter(Mandatory = $false)]
+        [string] $workspacePath,
+
+        [Parameter(Mandatory = $false)]
+        [string] $alGoProject
+    )
+
+    if($projectPaths) {
+        return $projectPaths
+    }
+
+    if($workspacePath) {
+        $workspacePath = ResolveFolder -folder $workspacePath
+
+        $workspace = Get-Content -Path $workspacePath -Raw | ConvertFrom-Json
+        $projectPaths = $workspace.folders | ForEach-Object { Join-Path $workspacePath $($_.path) } | Where-Object { Test-Path -Path $_ -PathType Container } | Where-Object { Test-Path -Path (Join-Path $_ "app.json") -PathType Leaf }
+
+        return $projectPaths
+    }
+
+    if($alGoProject) {
+        $alGoProject = ResolveFolder -folder $alGoProject
+        $alGoProjectInfo = [ALGoProjectInfo]::Get($alGoProject)
+
+        return $alGoProjectInfo.GetAppFolders($true)
+    }
+
+    throw "Either projectPaths, workspacePath or alGoProject must be specified"
 }
 
 function BuildApp {
@@ -168,11 +211,13 @@ function PublishApp {
 $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
 Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1"
 
-$script:apps = @()
+$script:allApps = @()
 [pscredential] $script:credential = New-Object System.Management.Automation.PSCredential ($userName, $(ConvertTo-SecureString $password -AsPlainText -Force))
 $script:baseFolder = Get-BaseFolder
 $script:packageCacheFolder = ResolveFolder -folder $packageCacheFolder
 $script:containerName = $containerName
+
+$projectPaths = ResolveProjectPaths -projectPaths $projectPaths -workspacePath $workspacePath -alGoProject $alGoProject
 
 Write-Host "Loading BCContainerHelper module" -ForegroundColor Yellow
 InstallBCContainerHelper
