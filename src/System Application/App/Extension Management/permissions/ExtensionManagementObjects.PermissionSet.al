@@ -26,7 +26,9 @@ permissionset 2504 "Extension Management - Objects"
                   page "Extension Logo Part" = X,
                   page "Extension Management" = X,
 #if not CLEAN24
+#pragma warning disable AL0432
                   page "Extension Marketplace" = X,
+#pragma warning restore AL0432                  
 #endif                  
                   page "Extension Settings" = X,
                   page "Extension Setup Launcher" = X,

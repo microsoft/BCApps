@@ -526,7 +526,9 @@ codeunit 2501 "Extension Marketplace"
     local procedure OpenAppSourceMarket()
     begin
 #if not CLEAN24        
+#pragma warning disable AL0432
         Page.Run(Page::"Extension Marketplace");
+#pragma warning restore AL0432
 #else        
         Hyperlink('https://appsource.microsoft.com/en-us/marketplace/apps?product=dynamics-365%3Bdynamics-365-business-central&page=1');
 #endif        

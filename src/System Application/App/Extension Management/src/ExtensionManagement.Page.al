@@ -260,7 +260,9 @@ page 2500 "Extension Management"
                     ToolTip = 'Browse the extension marketplace for new extensions to install.';
                     Visible = not IsOnPremDisplay;
 #if not CLEAN24                    
+#pragma warning disable AL0432
                     RunObject = page "Extension Marketplace";
+#pragma warning restore AL0432
 #else                    
                     trigger OnAction()
                     begin
