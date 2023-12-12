@@ -70,5 +70,6 @@
     "excludeProjects": [
       "build_projects_System Application Modules"
     ]
-  }
+  },
+  "templateSha": "90335a8c76f3cd4d45b04b50e9e8c2a7409e1d98"
 }
