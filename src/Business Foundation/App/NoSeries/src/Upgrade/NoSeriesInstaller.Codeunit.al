@@ -5,14 +5,16 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-codeunit 332 "No. Series Upgrade Tags"
+codeunit 329 "No. Series Installer"
 {
-    Access = Internal;
+    Subtype = Install;
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    procedure GetImplementationUpgradeTag(): Code[250]
+    trigger OnInstallAppPerCompany()
+    var
+        NoSeriesUpgrade: Codeunit "No. Series Upgrade";
     begin
-        exit('MS-471519-AddImplementationExtensibility-20231206 ');
+        NoSeriesUpgrade.SetupNoSeriesImplementation();
     end;
 }
