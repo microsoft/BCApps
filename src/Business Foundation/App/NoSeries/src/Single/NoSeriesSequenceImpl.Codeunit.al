@@ -205,10 +205,16 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         RecreateNoSeries(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeModifyEvent', '', false, false)]
-    local procedure OnModifyNoSeriesLine(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; RunTrigger: Boolean)
+    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Last No. Used', false, false)]
+    local procedure OnValidateLastNoUsed(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; CurrFieldNo: Integer)
+    var
+        SequenceNumber: BigInteger;
     begin
+        if Rec.Implementation <> "No. Series Implementation"::Sequence then
+            exit;
 
+        SequenceNumber := ExtractNoFromCode(Rec."Last No. Used");
+        RecreateNoSeries(Rec, SequenceNumber);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Implementation', false, false)]

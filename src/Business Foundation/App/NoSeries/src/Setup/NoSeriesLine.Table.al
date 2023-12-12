@@ -118,10 +118,13 @@ table 309 "No. Series Line"
 #if not CLEAN24
             trigger OnValidate()
             begin
+                if Rec."Allow Gaps in Nos." = xRec."Allow Gaps in Nos." then
+                    exit;
+
                 if "Allow Gaps in Nos." then // Keep the implementation in sync with the Allow Gaps field
-                    Implementation := Enum::"No. Series Implementation"::Sequence
+                    Validate(Implementation, Enum::"No. Series Implementation"::Sequence)
                 else
-                    Implementation := Enum::"No. Series Implementation"::Normal;
+                    Validate(Implementation, Enum::"No. Series Implementation"::Normal);
             end;
 #endif
         }
