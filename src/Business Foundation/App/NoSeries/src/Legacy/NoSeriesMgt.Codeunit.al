@@ -77,8 +77,7 @@ codeunit 281 NoSeriesMgt
         end;
     end;
 
-    // FindNoSeriesLineToShow is used from baseapp test
-    procedure FindNoSeriesLineToShow(var NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line")
+    internal procedure FindNoSeriesLineToShow(var NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line")
     begin
         SetNoSeriesLineFilter(NoSeriesLine, NoSeries.Code, 0D);
 
@@ -89,7 +88,7 @@ codeunit 281 NoSeriesMgt
         NoSeriesLine.SetRange("Series Code", NoSeries.Code);
     end;
 
-    procedure SetNoSeriesLineFilter(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; StartDate: Date)
+    internal procedure SetNoSeriesLineFilter(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; StartDate: Date)
 #if not CLEAN24
 #pragma warning disable AL0432
     var

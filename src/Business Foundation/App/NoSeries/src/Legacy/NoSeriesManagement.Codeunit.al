@@ -272,11 +272,10 @@ codeunit 396 NoSeriesManagement
         if SeriesDate = 0D then
             SeriesDate := WorkDate();
 
-        SetNoSeriesLineFilter(CurrNoSeriesLine, NoSeriesCode, SeriesDate);
+        FindNoSeriesLine(CurrNoSeriesLine, NoSeriesCode, SeriesDate);
         if ModifySeries or (LastNoSeriesLine."Series Code" = '') or (LastNoSeriesLine."Series Code" <> NoSeriesCode) or ((LastNoSeriesLine."Line No." <> CurrNoSeriesLine."Line No.") and (LastNoSeriesLine."Series Code" = NoSeriesCode)) then begin
             GlobalNoSeries.Get(NoSeriesCode);
-            SetNoSeriesLineFilter(NoSeriesLine, NoSeriesCode, SeriesDate);
-            if not NoSeriesLine.FindFirst() then begin
+            if not FindNoSeriesLine(NoSeriesLine, NoSeriesCode, SeriesDate) then begin
                 if NoErrorsOrWarnings then
                     exit('');
                 NoSeriesLine.SetRange("Starting Date");
@@ -354,9 +353,17 @@ codeunit 396 NoSeriesManagement
     end;
 
     procedure FindNoSeriesLine(var NoSeriesLineResult: Record "No. Series Line"; NoSeriesCode: Code[20]; SeriesDate: Date): Boolean
+#if CLEAN24
+    var
+        NoSeries: Codeunit "No. Series";
+#endif
     begin
+#if not CLEAN24
         SetNoSeriesLineFilter(NoSeriesLineResult, NoSeriesCode, SeriesDate);
         exit(NoSeriesLineResult.FindFirst());
+#else
+        exit(NoSeries.GetNoSeriesLine(NoSeriesLineResult, NoSeriesCode, SeriesDate, true));
+#endif
     end;
 
     procedure IsCurrentNoSeriesLine(NoSeriesLineIn: Record "No. Series Line"): Boolean
@@ -448,6 +455,8 @@ codeunit 396 NoSeriesManagement
         Clear(LastNoSeriesLine);
     end;
 
+#if not CLEAN24
+    [Obsolete('Please use the procedure GetNoSeriesLine on the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
     procedure SetNoSeriesLineFilter(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; StartDate: Date)
     begin
         if StartDate = 0D then
@@ -463,6 +472,7 @@ codeunit 396 NoSeriesManagement
             NoSeriesLine.SetRange(Open, true);
         end;
     end;
+#endif
 
     internal procedure RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(var NoSeriesLine: Record "No. Series Line")
     begin
@@ -806,8 +816,7 @@ codeunit 396 NoSeriesManagement
             if ModifySeries then
                 NoSeriesLine.LockTable();
             GlobalNoSeries.Get(NoSeriesCode);
-            SetNoSeriesLineFilter(NoSeriesLine, NoSeriesCode, SeriesDate);
-            if not NoSeriesLine.Find('-') then begin
+            if not FindNoSeriesLine(NoSeriesLine, NoSeriesCode, SeriesDate) then begin
                 NoSeriesLine.SetRange("Starting Date");
                 if NoSeriesLine.Find('-') then
                     Error(
