@@ -99,12 +99,10 @@ codeunit 396 NoSeriesManagement
         if NoSeries.Get(NoSeriesCode) then;
         OnAfterInitSeries(NoSeries, DefaultNoSeriesCode, NewDate, NewNo);
     end;
-#endif
+
+    [Obsolete('Please use AreRelated in the "No. Series" codeunit instead', '24.0')]
     procedure InitSeries(DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20])
     var
-#if CLEAN24
-        NoSeries: Codeunit "No. Series";
-#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -126,13 +124,10 @@ codeunit 396 NoSeriesManagement
             NewNo := GetNextNo(GlobalNoSeries.Code, NewDate, true);
             NewNoSeriesCode := GlobalNoSeries.Code;
         end else
-#if not CLEAN24
             TestManual(DefaultNoSeriesCode);
-#else
-            NoSeries.TestManual(DefaultNoSeriesCode);
-#endif
         OnAfterInitSeries(GlobalNoSeries, DefaultNoSeriesCode, NewDate, NewNo);
     end;
+#endif
 
     procedure SetDefaultSeries(var NewNoSeriesCode: Code[20]; NoSeriesCode: Code[20])
     var
