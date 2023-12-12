@@ -72,7 +72,7 @@ codeunit 3801 "App Key Vault Secret Pr. Impl."
     var
         SecretValueText: Text;
     begin
-        if not GetSecret(SecretName, secretValueText) then
+        if not GetSecret(SecretName, SecretValueText) then
             exit(false);
         SecretValue := SecretValueText;
         exit(true);
