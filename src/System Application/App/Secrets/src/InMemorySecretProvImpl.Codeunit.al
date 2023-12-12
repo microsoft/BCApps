@@ -43,7 +43,7 @@ codeunit 3803 "In Memory Secret Prov Impl."
     var
         SecretValueText: Text;
     begin
-        if not GetSecret(SecretName, secretValueText) then
+        if not GetSecret(SecretName, SecretValueText) then
             exit(false);
         SecretValue := SecretValueText;
         exit(true);
