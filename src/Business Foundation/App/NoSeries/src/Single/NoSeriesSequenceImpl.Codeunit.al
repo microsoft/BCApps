@@ -243,6 +243,9 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if Rec.IsTemporary() then
             exit;
 
+        if not RunTrigger then
+            exit;
+
         if Rec."Sequence Name" <> '' then
             if NumberSequence.Exists(Rec."Sequence Name") then
                 NumberSequence.Delete(Rec."Sequence Name");
