@@ -21,14 +21,11 @@ codeunit 7777 "Copilot Capability Install"
         ChatLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2255821', Locked = true;
 
     internal procedure RegisterCapabilities()
-    var
-        CopilotCapability: Codeunit "Copilot Capability";
-        EnvironmentInformation: Codeunit "Environment Information";
     begin
         RegisterSaaSCapability(Enum::"Copilot Capability"::Chat, Enum::"Copilot Availability"::Preview, ChatLearnMoreLbl);
     end;
 
-    local procedure RegisterSaaSCapability(Capability: Enum "Copilot Capability"; Availability: Enum "Copilot Availability"; LearnMoreUrl: Text)
+    local procedure RegisterSaaSCapability(Capability: Enum "Copilot Capability"; Availability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048])
     var
         CopilotCapability: Codeunit "Copilot Capability";
         EnvironmentInformation: Codeunit "Environment Information";
