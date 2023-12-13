@@ -145,13 +145,14 @@ table 309 "No. Series Line"
                     "Starting Sequence No." := 0;
                     "Sequence Name" := '';
                 end;
-                if "Line No." <> 0 then
-                    Modify();
 
                 if "Allow Gaps in Nos." then // Keep the implementation in sync with the Allow Gaps field
                     Validate(Implementation, Enum::"No. Series Implementation"::Sequence)
                 else
                     Validate(Implementation, Enum::"No. Series Implementation"::Normal);
+
+                if "Line No." <> 0 then
+                    Modify();
             end;
 #endif
         }
@@ -178,8 +179,11 @@ table 309 "No. Series Line"
             var
                 NoSeriesSingle: Interface "No. Series - Single";
             begin
+                if Rec.Implementation = xRec.Implementation then
+                    exit;
+
                 NoSeriesSingle := Implementation;
-                "Allow Gaps in Nos." := NoSeriesSingle.MayProduceGaps(); // Keep the Allow Gaps field in sync with the implementation
+                Validate("Allow Gaps in Nos.", NoSeriesSingle.MayProduceGaps()); // Keep the Allow Gaps field in sync with the implementation
             end;
 #pragma warning restore AL0432
 #endif
