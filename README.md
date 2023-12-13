@@ -11,11 +11,11 @@ The source code in this repository is available to everyone under the standard [
 
 In this repository, we welcome contributions to the **System Application** and the **Developer Tools**. 
 
-* If you are looking to contribute to **Microsoft's 1st party apps** you can do so in the [AlAppExtensions](https://github.com/microsoft/ALAppExtensions) repository. 
-* If you are looking to the **Base Application** you can do so in the [BusinessCentralApps](https://github.com/microsoft/BusinessCentralApps/) repository. Please note, that this repository is private but you can request access by filling out [this form](https://forms.office.com/pages/responsepage.aspx?id=v4j5cvGGr0GRqy180BHbR_Qj5hjzNeNOhBcvBoRIOltUOVBVTklZN1hBOTZJUU40OE5CUzNWNk1FQy4u) 
+* If you are looking to contribute to **Microsoft's 1st party apps** you can do so in the [ALAppExtensions](https://github.com/microsoft/ALAppExtensions) repository. 
+* If you are looking to the **Base Application** you can do so in the [BusinessCentralApps](https://github.com/microsoft/BusinessCentralApps/) repository. Please note, that this repository is private but you can request access by filling out [this form](https://forms.office.com/pages/responsepage.aspx?id=v4j5cvGGr0GRqy180BHbR_Qj5hjzNeNOhBcvBoRIOltUOVBVTklZN1hBOTZJUU40OE5CUzNWNk1FQy4u). 
 
 
-Want to learn more about how to contribute to this repository? Please refer to our [Contribution Guidelines](CONTRIBUTING.md)
+Want to learn more about how to contribute to this repository? Please refer to our [Contribution Guidelines](CONTRIBUTING.md).
 
 
 **⚠IMPORTANT⚠:**  This is not the right place to report product defects with customer impact to Microsoft! Issues created in this repository might not get picked up by the Microsoft engineering team and issues reported in this repository do not fall under SLAs (Service Level Agreements) and hence have no guaranteed time to mitigation, just as provided fixes won't get backported to all supported versions of the product.
