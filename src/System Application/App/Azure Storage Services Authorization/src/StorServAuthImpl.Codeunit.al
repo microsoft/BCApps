@@ -62,6 +62,15 @@ codeunit 9063 "Stor. Serv. Auth. Impl."
         exit(StorServAuthReadySAS);
     end;
 
+    [NonDebuggable]
+    procedure EntraID(AccessToken: Text): Interface "Storage Service Authorization"
+    var
+        StorServAuthEntraID: Codeunit "Stor. Serv. Auth. Entra ID";
+    begin
+        StorServAuthEntraID.SetAccessToken(AccessToken);
+        exit(StorServAuthEntraID);
+    end;
+
     procedure GetDefaultAPIVersion(): Enum "Storage Service API Version"
     begin
         exit(Enum::"Storage Service API Version"::"2020-10-02");

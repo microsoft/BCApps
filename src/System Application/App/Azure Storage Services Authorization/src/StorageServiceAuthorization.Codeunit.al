@@ -99,6 +99,20 @@ codeunit 9062 "Storage Service Authorization"
     end;
 
     /// <summary>
+    /// Creates a Microsoft Entra ID authorization mechanism for HTTP requests to Azure Storage Services.
+    /// See: https://learn.microsoft.com/en-us/rest/api/storageservices/authorize-with-azure-active-directory
+    /// </summary>
+    /// <param name="Token">OAuth 2.0 access token from Microsoft Entra tenant.</param>
+    /// <returns>A Microsoft Entra ID authorization.</returns>
+    [NonDebuggable]
+    procedure CreateEntraID(AccessToken: Text): Interface "Storage Service Authorization"
+    var
+        StorServAuthImpl: Codeunit "Stor. Serv. Auth. Impl.";
+    begin
+        exit(StorServAuthImpl.EntraID(AccessToken));
+    end;
+
+    /// <summary>
     /// Get the default Storage Service API Version.
     /// </summary>
     /// <returns>The default Storage Service API Version</returns>
