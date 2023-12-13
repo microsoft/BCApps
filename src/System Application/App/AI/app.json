@@ -85,8 +85,8 @@
     "platform":  "24.0.0.0",
     "idRanges":  [
                      {
-                         "from":  7761,
-                         "to":  7777
+                         "from":  7760,
+                         "to":  7776
                      }
                  ],
     "target":  "OnPrem",
