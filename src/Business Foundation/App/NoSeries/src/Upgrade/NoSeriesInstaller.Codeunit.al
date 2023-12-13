@@ -5,6 +5,8 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+using System.Upgrade;
+
 codeunit 329 "No. Series Installer"
 {
     Subtype = Install;
@@ -12,9 +14,24 @@ codeunit 329 "No. Series Installer"
     InherentPermissions = X;
 
     trigger OnInstallAppPerCompany()
-    var
-        NoSeriesUpgrade: Codeunit "No. Series Upgrade";
     begin
-        NoSeriesUpgrade.SetupNoSeriesImplementation();
+        SetupNoSeriesImplementation();
+    end;
+
+    local procedure SetupNoSeriesImplementation()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        NoSeriesUpgradeTags: Codeunit "No. Series Upgrade Tags";
+    begin
+        if UpgradeTag.HasUpgradeTag(NoSeriesUpgradeTags.GetImplementationUpgradeTag()) then
+            exit;
+
+        NoSeriesLine.SetRange("Allow Gaps in Nos.", true);
+        NoSeriesLine.ModifyAll(Implementation, "No. Series Implementation"::Sequence, false);
+        NoSeriesLine.SetRange("Allow Gaps in Nos.", false);
+        NoSeriesLine.ModifyAll(Implementation, "No. Series Implementation"::Normal, false);
+
+        UpgradeTag.SetUpgradeTag(NoSeriesUpgradeTags.GetImplementationUpgradeTag());
     end;
 }
