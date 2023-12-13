@@ -237,17 +237,14 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
             end;
     end;
 
-    /*[EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnAfterDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnAfterDeleteEvent', '', false, false)]
     local procedure OnDeleteNoSeriesLine(var Rec: Record "No. Series Line"; RunTrigger: Boolean)
     begin
         if Rec.IsTemporary() then
             exit;
 
-        if not RunTrigger then
-            exit;
-
         if Rec."Sequence Name" <> '' then
             if NumberSequence.Exists(Rec."Sequence Name") then
                 NumberSequence.Delete(Rec."Sequence Name");
-    end;*/
+    end;
 }
