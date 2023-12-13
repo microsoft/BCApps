@@ -6,7 +6,7 @@ namespace System.AI;
 
 using System.Environment;
 
-codeunit 7777 "Copilot Capability Install"
+codeunit 7760 "Copilot Capability Install"
 {
     Subtype = Install;
     InherentEntitlements = X;
