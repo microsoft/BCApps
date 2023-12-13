@@ -168,7 +168,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
             NumberSequence.Delete(SequenceName);
     end;
 
-    local procedure RecreateNoSeries(var NoSeriesLine: Record "No. Series Line")
+    /*local procedure RecreateNoSeries(var NoSeriesLine: Record "No. Series Line")
     var
         SequenceNumber: BigInteger;
     begin
@@ -178,7 +178,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
             SequenceNumber := NoSeriesLine."Starting Sequence No.";
 
         RecreateNoSeries(NoSeriesLine, SequenceNumber);
-    end;
+    end;*/
 
     local procedure RecreateNoSeries(var NoSeriesLine: Record "No. Series Line"; SequenceNumber: BigInteger)
     begin
@@ -186,7 +186,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         CreateNewSequence(NoSeriesLine, SequenceNumber);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Starting No.', false, false)]
+    /*[EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Starting No.', false, false)]
     local procedure OnValidateNoSeriesLine(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; CurrFieldNo: Integer)
     begin
         if Rec.Implementation <> "No. Series Implementation"::Sequence then
@@ -215,7 +215,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 
         SequenceNumber := ExtractNoFromCode(Rec."Last No. Used");
         RecreateNoSeries(Rec, SequenceNumber);
-    end;
+    end;*/
 
     [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Implementation', false, false)]
     local procedure OnValidateImplementation(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; CurrFieldNo: Integer)
@@ -237,7 +237,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
             end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnAfterDeleteEvent', '', false, false)]
+    /*[EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnAfterDeleteEvent', '', false, false)]
     local procedure OnDeleteNoSeriesLine(var Rec: Record "No. Series Line"; RunTrigger: Boolean)
     begin
         if Rec.IsTemporary() then
@@ -249,5 +249,5 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if Rec."Sequence Name" <> '' then
             if NumberSequence.Exists(Rec."Sequence Name") then
                 NumberSequence.Delete(Rec."Sequence Name");
-    end;
+    end;*/
 }
