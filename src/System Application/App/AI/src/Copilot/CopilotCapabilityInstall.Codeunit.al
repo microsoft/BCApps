@@ -2,12 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace System.Text;
+namespace System.AI;
 
-using System.AI;
 using System.Environment;
 
-codeunit 2014 "Entity Text AI Install"
+codeunit 7777 "Copilot Capability Install"
 {
     Subtype = Install;
     InherentEntitlements = X;
@@ -15,23 +14,30 @@ codeunit 2014 "Entity Text AI Install"
 
     trigger OnInstallAppPerDatabase()
     begin
-        RegisterCapability();
+        RegisterCapabilities();
     end;
 
-    local procedure RegisterCapability()
+    var
+        ChatLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2255821', Locked = true;
+
+    internal procedure RegisterCapabilities()
+    begin
+        RegisterSaaSCapability(Enum::"Copilot Capability"::Chat, Enum::"Copilot Availability"::Preview, ChatLearnMoreLbl);
+    end;
+
+    local procedure RegisterSaaSCapability(Capability: Enum "Copilot Capability"; Availability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048])
     var
         CopilotCapability: Codeunit "Copilot Capability";
         EnvironmentInformation: Codeunit "Environment Information";
-        LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2226375', Locked = true;
     begin
         if EnvironmentInformation.IsSaaSInfrastructure() then
-            if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Entity Text") then
-                CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Entity Text", Enum::"Copilot Availability"::"Generally Available", LearnMoreUrlTxt);
+            if not CopilotCapability.IsCapabilityRegistered(Capability) then
+                CopilotCapability.RegisterCapability(Capability, Availability, LearnMoreUrl);
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", 'OnRegisterCopilotCapability', '', false, false)]
     local procedure OnRegisterCopilotCapability()
     begin
-        RegisterCapability();
+        RegisterCapabilities();
     end;
 }
