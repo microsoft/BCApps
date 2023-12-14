@@ -96,7 +96,6 @@ Write-Host "Apps files: $($appFiles -join [Environment]::NewLine)" -ForegroundCo
 Write-Host "Publishing apps..." -ForegroundColor Yellow
 $publishingAppsStats = Measure-Command {
     foreach($currentAppFile in $appFiles) {
-        Write-Host "Publishing $currentAppFile"
         Publish-BcContainerApp -containerName $containerName -appFile $currentAppFile -syncMode ForceSync -sync -credential $credential -skipVerification -install -useDevEndpoint
     }
 }
