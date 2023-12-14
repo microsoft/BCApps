@@ -5,7 +5,7 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "https://bcinsider.azureedge.net/sandbox/24.0.14591.0/base",
+  "artifact": "https://bcinsider.azureedge.net/sandbox/24.0.14632.0/base",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "24.0",
@@ -70,5 +70,6 @@
     "excludeProjects": [
       "build_projects_System Application Modules"
     ]
-  }
+  },
+  "templateSha": "90335a8c76f3cd4d45b04b50e9e8c2a7409e1d98"
 }
