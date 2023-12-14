@@ -201,7 +201,7 @@ function BuildApp {
         if(-not $compilerFolder.Value) {
             Write-Host "Creating compiler folder..." -ForegroundColor Yellow
             $compilerFolder.Value = CreateCompilerFolder -packageCacheFolder $packageCacheFolder
-            Write-Host "Compiler folder: $compilerFolder" -ForegroundColor Yellow
+            Write-Host "Compiler folder: $($compilerFolder.Value)" -ForegroundColor Yellow
         }
 
         $appFile = Compile-AppWithBcCompilerFolder -compilerFolder $($compilerFolder.Value) -appProjectFolder "$($appInfo.AppProjectFolder)" -appOutputFolder "$packageCacheFolder" -appSymbolsFolder $packageCacheFolder -CopyAppToSymbolsFolder

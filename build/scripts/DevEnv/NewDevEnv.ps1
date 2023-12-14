@@ -21,6 +21,7 @@ using module .\ALGoProjectInfo.class.psm1
 #>
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', '', Justification = 'local build')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'local build')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', 'packageCacheFolder', Justification = 'false-postiive, used in Measure-Command')]
 [CmdletBinding(DefaultParameterSetName = 'ProjectPaths')]
 param(
     [Parameter(Mandatory = $false)]
@@ -89,14 +90,14 @@ if($createContainerJob) {
     }
 }
 
-Write-Host "Container $containerName created" -ForegroundColor Green
+Write-Host "Container $containerName is available" -ForegroundColor Green
 Write-Host "Apps files: $($appFiles -join [Environment]::NewLine)" -ForegroundColor Green
 
 # Publish apps
 Write-Host "Publishing apps..." -ForegroundColor Yellow
 $publishingAppsStats = Measure-Command {
     foreach($currentAppFile in $appFiles) {
-        Publish-BcContainerApp -containerName $containerName -appFile $currentAppFile -syncMode ForceSync -sync -credential $credential -skipVerification -install -useDevEndpoint
+        Publish-BcContainerApp -containerName $containerName -appFile $currentAppFile -syncMode ForceSync -sync -credential $credential -skipVerification -install -useDevEndpoint -ignoreIfAppExists
     }
 }
 
