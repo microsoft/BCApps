@@ -11,12 +11,12 @@ class AppProjectInfo {
 
 
     hidden AppProjectInfo([string] $appProjectFolder, $type = 'app') {
-        $appJsonFile = Join-Path $appProjectFolder 'app.json'
 
-        if (-not (Test-Path -Path $appJsonFile -PathType Leaf)) {
-            throw "Could not find app.json in $appProjectFolder"
+        if(-not [AppProjectInfo]::IsAppProjectFolder($appProjectFolder)) {
+            throw "$appProjectFolder is not an app project folder"
         }
 
+        $appJsonFile = Join-Path $appProjectFolder 'app.json' -Resolve
         $_appJson = Get-Content -Path $appJsonFile -Raw | ConvertFrom-Json
 
         $this.AppProjectFolder = $appProjectFolder
@@ -35,6 +35,10 @@ class AppProjectInfo {
         $appInfo = [AppProjectInfo]::new($appProjectFolder, $type)
 
         return $appInfo
+    }
+
+    static [boolean] IsAppProjectFolder([string] $folder) {
+        return (Test-Path -Path (Join-Path $folder 'app.json') -PathType Leaf)
     }
 
     <#

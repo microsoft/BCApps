@@ -57,7 +57,7 @@ class ALGoProjectInfo {
         $appFolders = $this.Settings.appFolders
 
         if ($Resolve) {
-            $appFolders = $appFolders | ForEach-Object { Join-Path $this.ProjectFolder $_ -Resolve } | Where-Object { Test-Path -Path (Join-Path $_ 'app.json') -PathType Leaf -ErrorAction SilentlyContinue } | Select-Object -Unique
+            $appFolders = $appFolders | ForEach-Object { Join-Path $this.ProjectFolder $_ -Resolve -ErrorAction SilentlyContinue } | Where-Object { [AppProjectInfo]::IsAppProjectFolder($_) }| Select-Object -Unique
         }
 
         return $appFolders
@@ -70,7 +70,7 @@ class ALGoProjectInfo {
         $testFolders = $this.Settings.testFolders
 
         if ($Resolve) {
-            $testFolders = $testFolders | ForEach-Object { Join-Path $this.ProjectFolder $_ -Resolve } | Where-Object { Test-Path -Path (Join-Path $_ 'app.json') -PathType Leaf -ErrorAction SilentlyContinue } | Select-Object -Unique
+            $testFolders = $testFolders | ForEach-Object { Join-Path $this.ProjectFolder $_ -Resolve -ErrorAction SilentlyContinue } | Where-Object { [AppProjectInfo]::IsAppProjectFolder($_) }| Select-Object -Unique
         }
 
         return $testFolders
