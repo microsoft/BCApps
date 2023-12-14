@@ -236,13 +236,15 @@ codeunit 7764 "AOAI Chat Messages Impl"
         EnvironmentInformation: Codeunit "Environment Information";
         KVSecret: Text;
     begin
-        if EnvironmentInformation.IsSaaSInfrastructure() then
-            if AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Metaprompt-Chat', KVSecret) then
-                UsingMicrosoftMetaprompt := true
-            else begin
-                Telemetry.LogMessage('0000LX6', TelemetryMetapromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
-                Error(MetapromptLoadingErr);
-            end;
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit;
+
+        if AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Metaprompt-Chat', KVSecret) then
+            UsingMicrosoftMetaprompt := true
+        else begin
+            Telemetry.LogMessage('0000LX6', TelemetryMetapromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+            Error(MetapromptLoadingErr);
+        end;
         Metaprompt := KVSecret;
     end;
 

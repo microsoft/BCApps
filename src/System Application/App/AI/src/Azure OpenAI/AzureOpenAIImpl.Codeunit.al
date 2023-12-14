@@ -464,11 +464,13 @@ codeunit 7772 "Azure OpenAI Impl"
         EnvironmentInformation: Codeunit "Environment Information";
         KVSecret: Text;
     begin
-        if EnvironmentInformation.IsSaaSInfrastructure() then
-            if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Metaprompt-Text', KVSecret) then begin
-                Telemetry.LogMessage('0000LX3', TelemetryMetapromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
-                Error(MetapromptLoadingErr);
-            end;
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit;
+
+        if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Metaprompt-Text', KVSecret) then begin
+            Telemetry.LogMessage('0000LX3', TelemetryMetapromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+            Error(MetapromptLoadingErr);
+        end;
         Metaprompt := KVSecret;
     end;
 
