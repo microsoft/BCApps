@@ -30,8 +30,8 @@ param(
     [Parameter(Mandatory = $false)]
     [string] $userName = 'admin',
 
-    [Parameter(Mandatory = $false)]
-    [string] $password = 'P@ssword1',
+    [Parameter(Mandatory = $true)]
+    [string] $password,
 
     [Parameter(Mandatory = $true, ParameterSetName = 'ProjectPaths')]
     [string[]] $projectPaths,
