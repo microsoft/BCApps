@@ -30,205 +30,119 @@ param(
     [string] $packageCacheFolder = ".artifactsCache"
 )
 
-function InstallBCContainerHelper {
-    if (-not (Get-Module -ListAvailable -Name "BCContainerHelper")) {
-        Write-Host "BCContainerHelper module not found. Installing..."
-        Install-Module -Name "BCContainerHelper" -Scope CurrentUser -AllowPrerelease -Force
-    }
+$errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
 
-    Import-Module "BCContainerHelper" -DisableNameChecking
+if (-not (Get-Module -ListAvailable -Name "BCContainerHelper")) {
+    Write-Host "BCContainerHelper module not found. Installing..."
+    Install-Module -Name "BCContainerHelper" -Scope CurrentUser -AllowPrerelease -Force
 }
 
-function CreateBCContainer {
-    $containerExist = $null -ne $(docker ps -q -f name="$script:containerName")
+Import-Module "BCContainerHelper" -DisableNameChecking
+Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot\NewDevEnv.psm1" -DisableNameChecking -Force
 
-    if ($containerExist) {
-        Write-Host "Container $script:containerName already exists."
-        return
-    }
+function jobInit {
+    param(
+        $baseFolder
+    )
 
-    Write-Host "Creating container $script:containerName"
+    return [ScriptBlock]::Create("Set-Location $baseFolder")
+}
+
+[Scriptblock] $createContainerScriptblock = {
+    param(
+
+        [string] $containerName,
+        [pscredential] $credential,
+        [string] $baseFolder
+    )
+    Import-Module "BCContainerHelper" -DisableNameChecking
 
     $bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
 
     $newContainerParams = @{
         "accept_eula" = $true
         "accept_insiderEula" = $true
-        "containerName" = "$script:containerName"
+        "containerName" = "$containerName"
         "artifactUrl" = $bcArtifactUrl
-        "Credential" = $script:credential
+        "Credential" = $credential
         "auth" = "UserPassword"
-        "additionalParameters" = @("--volume ""$($script:baseFolder):c:\sources""")
+        "additionalParameters" = @("--volume ""$($baseFolder):c:\sources""")
     }
 
-    $newBCContainerScript = Join-Path $script:baseFolder "build\scripts\NewBcContainer.ps1" -Resolve
+    $newBCContainerScript = Join-Path $baseFolder "build\scripts\NewBcContainer.ps1" -Resolve
     . $newBCContainerScript -parameters $newContainerParams
 }
 
-function CreateCompilerFolder {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $packageCacheFolder
-    )
-    $bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+$baseFolder = Get-BaseFolder
+$credential = New-Object System.Management.Automation.PSCredential ($userName, $(ConvertTo-SecureString $password -AsPlainText -Force))
 
-    if(-not (Test-Path -Path $packageCacheFolder)) {
-        Write-Host "Creating package cache folder $packageCacheFolder"
-        New-Item -Path $packageCacheFolder -ItemType Directory | Out-Null
-    }
-
-    return New-BcCompilerFolder -artifactUrl $bcArtifactUrl -cacheFolder $packageCacheFolder
+$createContainerJob = $null
+if(-not (CheckContainerExists -containerName $containerName)) {
+    $createContainerJob = Start-Job -InitializationScript $(jobInit -workinDirectory $baseFolder) -ScriptBlock $createContainerScriptblock -ArgumentList $containerName, $credential, $baseFolder | Get-Job
+    Write-Host "Creating container in the background. Job ID: $($createContainerJob.Id)" -ForegroundColor Yellow
 }
 
-function GetAllApps {
-    if($script:allApps) {
-        return $script:allApps
-    }
+$projectPaths = ResolveProjectPaths -projectPaths $projectPaths -workspacePath $workspacePath -alGoProject $alGoProject -baseFolder $baseFolder
+Write-Host "Resolved project paths: $($projectPaths -join [Environment]::NewLine)"
 
-    # Get all AL-Go projects
-    $alGoProjects = [ALGoProjectInfo]::FindAll($script:baseFolder)
+Write-Host "Building apps..." -ForegroundColor Yellow
+$appFiles = @()
+$packageCacheFolder = GetRootedFolder -folder $packageCacheFolder -baseFolder $baseFolder
+$buildingAppsStats = Measure-Command {
+    $appFiles = @()
 
-    $appInfos = @()
-
-    # Collect all apps from AL-Go projects
-    foreach($alGoProject in $alGoProjects) {
-        $appFolders = $alGoProject.GetAppFolders($true)
-
-        foreach($appFolder in $appFolders) {
-            $appInfo = [AppProjectInfo]::Get($appFolder, 'app')
-            $appInfos += $appInfo
-        }
-
-        $testAppFolders = $alGoProject.GetAppFolders($true)
-
-        foreach($testAppFolder in $testAppFolders) {
-            $testAppInfo = [AppProjectInfo]::Get($testAppFolder, 'test')
-            $appInfos += $testAppInfo
-        }
-    }
-
-    $script:allApps = $appInfos
-    return $script:allApps
-}
-
-function ResolveFolder {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $folder
-    )
-
-    if([System.IO.Path]::IsPathRooted($folder)) {
-        return $folder
-    }
-
-    return Join-Path $script:baseFolder $folder
-}
-
-function ResolveProjectPaths {
-    param(
-        [Parameter(Mandatory = $false)]
-        [string[]] $projectPaths,
-
-        [Parameter(Mandatory = $false)]
-        [string] $workspacePath,
-
-        [Parameter(Mandatory = $false)]
-        [string] $alGoProject
-    )
-
-    if($projectPaths) {
-        return $projectPaths
-    }
-
-    if($workspacePath) {
-        $workspacePath = ResolveFolder -folder $workspacePath
-
-        $workspace = Get-Content -Path $workspacePath -Raw | ConvertFrom-Json
-        $projectPaths = $workspace.folders | ForEach-Object { Join-Path $workspacePath $($_.path) } | Where-Object { Test-Path -Path $_ -PathType Container } | Where-Object { Test-Path -Path (Join-Path $_ "app.json") -PathType Leaf }
-
-        return $projectPaths
-    }
-
-    if($alGoProject) {
-        $alGoProject = ResolveFolder -folder $alGoProject
-        $alGoProjectInfo = [ALGoProjectInfo]::Get($alGoProject)
-
-        return $alGoProjectInfo.GetAppFolders($true)
-    }
-
-    throw "Either projectPaths, workspacePath or alGoProject must be specified"
-}
-
-function BuildApp {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $appProjectFolder,
-
-        [Parameter(Mandatory = $true)]
-        [string] $packageCacheFolder
-    )
-
-    $appProjectFolder = ResolveFolder -folder $appProjectFolder
-
-    $appInfo = [AppProjectInfo]::Get($appProjectFolder)
-    $appFile = $appInfo.GetAppFileName()
-
-    if(Test-Path (Join-Path $packageCacheFolder $appFile)) {
-        Write-Host "App $appFile already exists in $packageCacheFolder. Skipping..."
-        return (Join-Path $packageCacheFolder $appFile -Resolve)
-    }
-
-    $allAppInfos = GetAllApps
-
-    # Build dependencies
-    foreach($dependency in $appInfo.AppJson.dependencies) {
-        $dependencyAppInfo = $allAppInfos | Where-Object { $_.Id -eq $dependency.id }
-        $dependencyAppFile = BuildApp -appProjectFolder $dependencyAppInfo.AppProjectFolder -packageCacheFolder $packageCacheFolder
-        PublishApp -appFile $dependencyAppFile
-    }
-
+    Write-Host "Creating compiler folder..." -ForegroundColor Yellow
     $compilerFolder = CreateCompilerFolder -packageCacheFolder $packageCacheFolder
+    Write-Host "Compiler folder: $compilerFolder"
 
     try {
-        $appFile = Compile-AppWithBcCompilerFolder -compilerFolder $compilerFolder -appProjectFolder "$($appInfo.AppProjectFolder)" -appOutputFolder $packageCacheFolder -CopyAppToSymbolsFolder -appSymbolsFolder $packageCacheFolder
+        foreach($currentProjectPath in $projectPaths) {
+            Write-Host "Building app in $currentProjectPath" -ForegroundColor Yellow
+            $currentAppFiles = BuildApp -appProjectFolder $currentProjectPath -compilerFolder $compilerFolder -packageCacheFolder $packageCacheFolder -baseFolder $baseFolder
+            $appFiles += @($currentAppFiles)
+        }
+    }
+    catch {
+        Write-Host "Error building apps: $_" -ForegroundColor Red
+        throw $_
     }
     finally {
+        Write-Host "Removing compiler folder $compilerFolder" -ForegroundColor Yellow
         Remove-Item -Path $compilerFolder -Recurse -Force | Out-Null
     }
 
-    return $appFile
+    $appFiles = $appFiles | Select-Object -Unique
 }
 
-function PublishApp {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $appFile
-    )
+Write-Host "Apps: $appFiles"
+Write-Host "Building apps took $($buildingAppsStats.TotalSeconds) seconds"
 
-    Publish-BcContainerApp -containerName $script:containerName -appFile $appFile -syncMode ForceSync -sync -credential $script:credential -skipVerification -install -ignoreIfAppExists
+try {
+    if($createContainerJob) {
+        'Waiting for container creation to finish...'
+        Wait-Job -Job $createContainerJob -Timeout 1 -ErrorAction SilentlyContinue
+        Receive-Job -Job $createContainerJob -Wait
+    }
+
+    Write-Host "Container $containerName created"
+    Write-Host "Credential: $credential"
+    Write-Host "Apps: $appFiles"
+}
+finally {
+    if($createContainerJob) {
+        Write-Host "Removing container creation job $($createContainerJob.Id)"
+        Remove-Job -Job $createContainerJob -Force -ErrorAction SilentlyContinue
+    }
 }
 
-$errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
-Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1"
-
-$script:allApps = @()
-[pscredential] $script:credential = New-Object System.Management.Automation.PSCredential ($userName, $(ConvertTo-SecureString $password -AsPlainText -Force))
-$script:baseFolder = Get-BaseFolder
-$script:packageCacheFolder = ResolveFolder -folder $packageCacheFolder
-$script:containerName = $containerName
-
-$projectPaths = ResolveProjectPaths -projectPaths $projectPaths -workspacePath $workspacePath -alGoProject $alGoProject
-
-Write-Host "Loading BCContainerHelper module" -ForegroundColor Yellow
-InstallBCContainerHelper
-
-Write-Host "Creating container $script:containerName" -ForegroundColor Yellow
-CreateBCContainer
-
-foreach($currentProjectPath in $projectPaths) {
-    Write-Host "Building app in $currentProjectPath" -ForegroundColor Yellow
-    $appFile = BuildApp -appProjectFolder $currentProjectPath -packageCacheFolder $script:packageCacheFolder
-
-    Write-Host "Publishing app $appFile to $script:containerName" -ForegroundColor Yellow
-    PublishApp -appFile $appFile
+Write-Host "Publishing apps..." -ForegroundColor Yellow
+$publishingAppsStats = Measure-Command {
+    foreach($currentAppFile in $appFiles) {
+        Write-Host "Publishing $currentAppFile"
+        Publish-BcContainerApp -containerName $containerName -appFile $currentAppFile -syncMode ForceSync -sync -credential $credential -skipVerification -install -useDevEndpoint
+    }
 }
+
+Write-Host "Publishing apps took $($publishingAppsStats.TotalSeconds) seconds"
+
