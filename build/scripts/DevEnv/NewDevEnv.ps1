@@ -77,6 +77,7 @@ $buildingAppsStats = Measure-Command {
 }
 
 Write-Host "Building apps took $($buildingAppsStats.TotalSeconds) seconds"
+Write-Host "Apps files: $($appFiles -join [Environment]::NewLine)" -ForegroundColor Green
 
 # Wait for container creation to finish
 if($createContainerJob) {
@@ -90,14 +91,18 @@ if($createContainerJob) {
     }
 }
 
-Write-Host "Container $containerName is available" -ForegroundColor Green
-Write-Host "Apps files: $($appFiles -join [Environment]::NewLine)" -ForegroundColor Green
+if(CheckContainerExists -containerName $containerName) {
+    Write-Host "Container $containerName is available" -ForegroundColor Green
+} else {
+    throw "Container $containerName not available. Check if the container was created successfully and is running."
+}
+
 
 # Publish apps
 Write-Host "Publishing apps..." -ForegroundColor Yellow
 $publishingAppsStats = Measure-Command {
     foreach($currentAppFile in $appFiles) {
-        Publish-BcContainerApp -containerName $containerName -appFile $currentAppFile -syncMode ForceSync -sync -credential $credential -skipVerification -install -useDevEndpoint -ignoreIfAppExists
+        Publish-BcContainerApp -containerName $containerName -appFile $currentAppFile -syncMode ForceSync -sync -credential $credential -skipVerification -install -useDevEndpoint -replacePackageId
     }
 }
 

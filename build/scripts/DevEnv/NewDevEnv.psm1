@@ -151,7 +151,7 @@ function CheckContainerExists {
     The folder of the app project.
 
     .Parameter compilerFolder
-    The folder where the compiler is located.
+    The folder where the compiler is located. If not specified, the compiler folder will be created on demand.
 
     .Parameter packageCacheFolder
     The folder for the packagecache.
@@ -163,25 +163,17 @@ function BuildApp {
     param(
         [Parameter(Mandatory = $true)]
         [string] $appProjectFolder,
-
         [Parameter(Mandatory = $true)]
         [ref] $compilerFolder,
-
         [Parameter(Mandatory = $true)]
         [string] $packageCacheFolder,
-
         [Parameter(Mandatory = $true)]
         [string] $baseFolder
     )
 
     $appFiles = @()
-
-    $appProjectFolder = GetRootedFolder -folder $appProjectFolder -baseFolder $baseFolder
-
-    $appInfo = [AppProjectInfo]::Get($appProjectFolder)
-    $appFile = $appInfo.GetAppFileName()
-
     $allAppInfos = GetAllApps -baseFolder $baseFolder
+    $appOutputFolder = $packageCacheFolder
 
     # Build dependencies
     foreach($dependency in $appInfo.AppJson.dependencies) {
@@ -189,13 +181,17 @@ function BuildApp {
         $dependencyAppInfo = $allAppInfos | Where-Object { $_.Id -eq $dependency.id }
         $dependencyAppFile = BuildApp -appProjectFolder $($dependencyAppInfo.AppProjectFolder) -compilerFolder $compilerFolder -packageCacheFolder $packageCacheFolder -baseFolder $baseFolder
 
-        Write-Host "Adding dependency $dependencyAppFile to app files"
         $appFiles += @($dependencyAppFile)
     }
 
-    if(Test-Path (Join-Path $packageCacheFolder $appFile)) {
-        Write-Host "App $appFile already exists in $packageCacheFolder. Skipping..."
-        $appFile = (Join-Path $packageCacheFolder $appFile -Resolve)
+    $appProjectFolder = GetRootedFolder -folder $appProjectFolder -baseFolder $baseFolder
+
+    $appInfo = [AppProjectInfo]::Get($appProjectFolder)
+    $appFile = $appInfo.GetAppFileName()
+
+    if((Test-Path (Join-Path $appOutputFolder $appFile)) -and (-not $rebuild)) {
+        Write-Host "App $appFile already exists in $appOutputFolder. Skipping..."
+        $appFile = (Join-Path $appOutputFolder $appFile -Resolve)
     } else {
         # Create compiler folder on demand
         if(-not $compilerFolder.Value) {
@@ -204,10 +200,9 @@ function BuildApp {
             Write-Host "Compiler folder: $($compilerFolder.Value)" -ForegroundColor Yellow
         }
 
-        $appFile = Compile-AppWithBcCompilerFolder -compilerFolder $($compilerFolder.Value) -appProjectFolder "$($appInfo.AppProjectFolder)" -appOutputFolder "$packageCacheFolder" -appSymbolsFolder $packageCacheFolder -CopyAppToSymbolsFolder
+        $appFile = Compile-AppWithBcCompilerFolder -compilerFolder $($compilerFolder.Value) -appProjectFolder "$($appInfo.AppProjectFolder)" -appOutputFolder $appOutputFolder -appSymbolsFolder $packageCacheFolder
     }
 
-    Write-Host "Adding app $appFile to app files"
     $appFiles += $appFile
 
     return $appFiles
