@@ -20,6 +20,74 @@ function GetRootedFolder {
     return $folder
 }
 
+function CreateBCContainer {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string] $containerName,
+        [Parameter(Mandatory = $true)]
+        [pscredential] $credential,
+        [switch] $backgroundJob
+    )
+
+    if(CheckContainerExists -containerName $containerName) {
+        Write-Host "Container $containerName already exists" -ForegroundColor Yellow
+        return
+    }
+
+    $baseFolder = Get-BaseFolder
+
+    $bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+    if($backgroundJob) {
+        [Scriptblock] $createContainerScriptblock = {
+            param(
+                [Parameter(Mandatory = $true)]
+                [string] $containerName,
+                [Parameter(Mandatory = $true)]
+                [pscredential] $credential,
+                [Parameter(Mandatory = $true)]
+                [string] $bcArtifactUrl,
+                [Parameter(Mandatory = $true)]
+                [string] $baseFolder
+            )
+            Import-Module "BCContainerHelper" -DisableNameChecking
+
+            $newContainerParams = @{
+                "accept_eula" = $true
+                "accept_insiderEula" = $true
+                "containerName" = $containerName
+                "artifactUrl" = $bcArtifactUrl
+                "Credential" = $credential
+                "auth" = "UserPassword"
+                "additionalParameters" = @("--volume ""$($baseFolder):c:\sources""")
+            }
+
+            $creatingContainerStats = Measure-Command {
+                $newBCContainerScript = Join-Path $baseFolder "build\scripts\NewBcContainer.ps1" -Resolve
+                . $newBCContainerScript -parameters $newContainerParams
+            }
+
+            Write-Host "Creating container $containerName took $($creatingContainerStats.TotalSeconds) seconds"
+        }
+
+        # Set the current location to the base folder
+        function jobInit {
+            param(
+                $baseFolder
+            )
+
+            return [ScriptBlock]::Create("Set-Location $baseFolder")
+        }
+
+        $createContainerJob = $null
+        $createContainerJob = Start-Job -InitializationScript $(jobInit -baseFolder $baseFolder) -ScriptBlock $createContainerScriptblock -ArgumentList $containerName, $credential, $bcArtifactUrl, $baseFolder | Get-Job
+        Write-Host "Creating container $containerName from artifact URL $bcArtifactUrl in the background. Job ID: $($createContainerJob.Id)" -ForegroundColor Yellow
+
+        return $createContainerJob
+    } else {
+        $createContainerScriptblock.Invoke($containerName, $credential, $bcArtifactUrl, $baseFolder)
+    }
+}
+
 function ResolveProjectPaths {
     param(
         [Parameter(Mandatory = $false)]
@@ -97,7 +165,7 @@ function BuildApp {
         [string] $appProjectFolder,
 
         [Parameter(Mandatory = $true)]
-        [string] $compilerFolder,
+        [ref] $compilerFolder,
 
         [Parameter(Mandatory = $true)]
         [string] $packageCacheFolder,
@@ -129,11 +197,53 @@ function BuildApp {
         Write-Host "App $appFile already exists in $packageCacheFolder. Skipping..."
         $appFile = (Join-Path $packageCacheFolder $appFile -Resolve)
     } else {
-        $appFile = Compile-AppWithBcCompilerFolder -compilerFolder $compilerFolder -appProjectFolder "$($appInfo.AppProjectFolder)" -appOutputFolder "$packageCacheFolder" -appSymbolsFolder $packageCacheFolder -CopyAppToSymbolsFolder
+        # Create compiler folder on demand
+        if(-not $compilerFolder.Value) {
+            Write-Host "Creating compiler folder..." -ForegroundColor Yellow
+            $compilerFolder.Value = CreateCompilerFolder -packageCacheFolder $packageCacheFolder
+            Write-Host "Compiler folder: $compilerFolder" -ForegroundColor Yellow
+        }
+
+        $appFile = Compile-AppWithBcCompilerFolder -compilerFolder $($compilerFolder.Value) -appProjectFolder "$($appInfo.AppProjectFolder)" -appOutputFolder "$packageCacheFolder" -appSymbolsFolder $packageCacheFolder -CopyAppToSymbolsFolder
     }
 
     Write-Host "Adding app $appFile to app files"
     $appFiles += $appFile
+
+    return $appFiles
+}
+
+function BuildApps {
+    param (
+        $projectPaths,
+        $packageCacheFolder
+    )
+    $appFiles = @()
+    $baseFolder = Get-BaseFolder
+    $packageCacheFolder = GetRootedFolder -folder $packageCacheFolder -baseFolder $baseFolder
+
+    # Compiler folder will be created on demand
+    $compilerFolder = ''
+
+    try {
+        foreach($currentProjectPath in $projectPaths) {
+            Write-Host "Building app in $currentProjectPath" -ForegroundColor Yellow
+            $currentAppFiles = BuildApp -appProjectFolder $currentProjectPath -compilerFolder ([ref]$compilerFolder) -packageCacheFolder $packageCacheFolder -baseFolder $baseFolder
+            $appFiles += @($currentAppFiles)
+        }
+    }
+    catch {
+        Write-Host "Error building apps: $_" -ForegroundColor Red
+        throw $_
+    }
+    finally {
+        if ($compilerFolder) {
+            Write-Host "Removing compiler folder $compilerFolder" -ForegroundColor Yellow
+            Remove-Item -Path $compilerFolder -Recurse -Force | Out-Null
+        }
+    }
+
+    $appFiles = $appFiles | Select-Object -Unique
 
     return $appFiles
 }
