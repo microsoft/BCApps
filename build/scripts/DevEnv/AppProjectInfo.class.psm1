@@ -31,7 +31,7 @@ class AppProjectInfo {
         return $appInfo
     }
 
-    static [AppProjectInfo] Get([string] $appProjectFolder, $type) {
+    static [AppProjectInfo] Get([string] $appProjectFolder, [string] $type) {
         $appInfo = [AppProjectInfo]::new($appProjectFolder, $type)
 
         return $appInfo
