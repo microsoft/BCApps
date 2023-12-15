@@ -133,27 +133,20 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         exit(true);
     end;
 
-#pragma warning disable AA0137 // StartingNo is unused in temp patch
     local procedure NoIsWithinValidRange(CurrentNo: Code[20]; StartingNo: Code[20]; EndingNo: Code[20]): Boolean
     begin
-        if (EndingNo = '') then
-            exit(true);
-        exit(CurrentNo <= EndingNo);
+        if CurrentNo = '' then
+            exit(false);
+        if (StartingNo <> '') and (CurrentNo < StartingNo) then
+            exit(false);
+        if (EndingNo <> '') and (CurrentNo > EndingNo) then
+            exit(false);
 
-        // if CurrentNo = '' then
-        //     exit(false);
-        // if (StartingNo <> '') and (CurrentNo < StartingNo) then
-        //     exit(false);
-        // if (EndingNo <> '') and (CurrentNo > EndingNo) then
-        //     exit(false);
+        if StrLen(CurrentNo) < StrLen(StartingNo) then
+            exit(false);
+        if StrLen(CurrentNo) > StrLen(EndingNo) then
+            exit(false);
 
-        // if StrLen(CurrentNo) < StrLen(StartingNo) then
-        //     exit(false);
-        // if StrLen(CurrentNo) > StrLen(EndingNo) then
-        //     exit(false);
-
-        // exit(true)
+        exit(true)
     end;
-#pragma warning restore AA0137 // StartingNo is unused in temp patch
-
 }
