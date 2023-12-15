@@ -77,7 +77,7 @@ $buildingAppsStats = Measure-Command {
 }
 
 Write-Host "Building apps took $($buildingAppsStats.TotalSeconds) seconds"
-Write-Host "Apps files: $($appFiles -join [Environment]::NewLine)" -ForegroundColor Green
+Write-Host "App files: $($appFiles -join [Environment]::NewLine)" -ForegroundColor Green
 
 # Wait for container creation to finish
 if($createContainerJob) {
