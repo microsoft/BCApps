@@ -40,8 +40,8 @@ codeunit 7772 "Azure OpenAI Impl"
         CopilotDisabledForTenantErr: Label 'Copilot is not enabled for the tenant. Please contact your system administrator.';
         CapabilityNotRegisteredErr: Label 'Copilot capability ''%1'' has not been registered by the module.', Comment = '%1 is the name of the Copilot Capability';
         CapabilityNotEnabledErr: Label 'Copilot capability ''%1'' has not been enabled. Please contact your system administrator.', Comment = '%1 is the name of the Copilot Capability';
-        ThirdPartyCapabilitySaaSErr: Label 'Available now to Insider Builds. Partners will be able to deploy and run to Business Central Online once we light this up in a minor update.';
         EmptyMetapromptErr: Label 'The metaprompt has not been set, please provide a metaprompt.';
+        MetapromptLoadingErr: Label 'Metaprompt not found.';
         EnabledKeyTok: Label 'AOAI-Enabled', Locked = true;
         TelemetryGenerateTextCompletionLbl: Label 'Generate Text Completion', Locked = true;
         TelemetryGenerateEmbeddingLbl: Label 'Generate Embedding', Locked = true;
@@ -53,6 +53,7 @@ codeunit 7772 "Azure OpenAI Impl"
         TelemetryEnvironmentNotAllowedtoRunCopilotTxt: Label 'Copilot is not allowed on this environment.', Locked = true;
         TelemetryProhibitedCharactersTxt: Label 'Prohibited characters were removed from the prompt.', Locked = true;
         TelemetryTokenCountLbl: Label 'Metaprompt token count: %1, Prompt token count: %2, Total token count: %3', Comment = '%1 is the number of tokens in the metaprompt, %2 is the number of tokens in the prompt, %3 is the total number of tokens', Locked = true;
+        TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
@@ -187,13 +188,13 @@ codeunit 7772 "Azure OpenAI Impl"
     var
         AOAICompletionParameters: Codeunit "AOAI Text Completion Params";
     begin
-        exit(GenerateTextCompletion(GetMetaprompt(), Prompt, AOAICompletionParameters, AOAIOperationResponse, CallerModuleInfo));
+        exit(GenerateTextCompletion(GetTextMetaprompt(), Prompt, AOAICompletionParameters, AOAIOperationResponse, CallerModuleInfo));
     end;
 
     [NonDebuggable]
     procedure GenerateTextCompletion(Prompt: SecretText; AOAICompletionParameters: Codeunit "AOAI Text Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo) Result: Text
     begin
-        exit(GenerateTextCompletion(GetMetaprompt(), Prompt, AOAICompletionParameters, AOAIOperationResponse, CallerModuleInfo));
+        exit(GenerateTextCompletion(GetTextMetaprompt(), Prompt, AOAICompletionParameters, AOAIOperationResponse, CallerModuleInfo));
     end;
 
     [NonDebuggable]
@@ -214,7 +215,6 @@ codeunit 7772 "Azure OpenAI Impl"
     begin
         GuiCheck(CallerModuleInfo);
 
-        CheckIfThirdParty(CallerModuleInfo);
         CheckCapabilitySet();
         CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(TextCompletionsAOAIAuthorization, CallerModuleInfo);
@@ -249,7 +249,6 @@ codeunit 7772 "Azure OpenAI Impl"
     begin
         GuiCheck(CallerModuleInfo);
 
-        CheckIfThirdParty(CallerModuleInfo);
         CheckCapabilitySet();
         CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(EmbeddingsAOAIAuthorization, CallerModuleInfo);
@@ -303,7 +302,6 @@ codeunit 7772 "Azure OpenAI Impl"
     begin
         GuiCheck(CallerModuleInfo);
 
-        CheckIfThirdParty(CallerModuleInfo);
         CheckCapabilitySet();
         CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
@@ -379,20 +377,6 @@ codeunit 7772 "Azure OpenAI Impl"
 
         if (not GuiAllowed()) and (CallerModuleInfo.Publisher = CurrentModuleInfo.Publisher) then
             Error(CapabilityBackgroundErr);
-    end;
-
-    local procedure CheckIfThirdParty(CallerModuleInfo: ModuleInfo)
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
-        CurrentModuleInfo: ModuleInfo;
-    begin
-        NavApp.GetCallerModuleInfo(CurrentModuleInfo);
-
-        if EnvironmentInformation.IsSaaSInfrastructure() <> true then
-            exit;
-
-        if CallerModuleInfo.Publisher <> CurrentModuleInfo.Publisher then
-            Error(ThirdPartyCapabilitySaaSErr);
     end;
 
     local procedure AddTelemetryCustomDimensions(var CustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
@@ -474,12 +458,19 @@ codeunit 7772 "Azure OpenAI Impl"
     end;
 
     [NonDebuggable]
-    internal procedure GetMetaprompt() Metaprompt: SecretText;
+    internal procedure GetTextMetaprompt() Metaprompt: SecretText;
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
+        EnvironmentInformation: Codeunit "Environment Information";
         KVSecret: Text;
     begin
-        if AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Metaprompt', KVSecret) then;
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit;
+
+        if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Metaprompt-Text', KVSecret) then begin
+            Telemetry.LogMessage('0000LX3', TelemetryMetapromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+            Error(MetapromptLoadingErr);
+        end;
         Metaprompt := KVSecret;
     end;
 
