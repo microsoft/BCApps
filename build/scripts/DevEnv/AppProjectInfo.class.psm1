@@ -10,7 +10,7 @@ class AppProjectInfo {
     [PSCustomObject] $AppJson
 
 
-    hidden AppProjectInfo([string] $appProjectFolder, $type = 'app') {
+    hidden AppProjectInfo([string] $appProjectFolder, [string] $type = 'app') {
 
         if(-not [AppProjectInfo]::IsAppProjectFolder($appProjectFolder)) {
             throw "$appProjectFolder is not an app project folder"
