@@ -4,7 +4,7 @@ using module .\ALGoProjectInfo.class.psm1
 Import-Module "BCContainerHelper" -DisableNameChecking
 Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
 
-$script:allApp = @()
+$script:allApps = @()
 function GetRootedFolder {
     param(
         [Parameter(Mandatory = $true)]
