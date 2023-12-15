@@ -205,6 +205,7 @@ function BuildApp {
     $appFiles = @()
     $allAppInfos = GetAllApps -baseFolder $baseFolder
     $appOutputFolder = $packageCacheFolder
+    $appInfo = [AppProjectInfo]::Get($appProjectFolder)
 
     # Build dependencies
     foreach($dependency in $appInfo.AppJson.dependencies) {
@@ -217,7 +218,6 @@ function BuildApp {
 
     $appProjectFolder = GetRootedFolder -folder $appProjectFolder -baseFolder $baseFolder
 
-    $appInfo = [AppProjectInfo]::Get($appProjectFolder)
     $appFile = $appInfo.GetAppFileName()
 
     if((Test-Path (Join-Path $appOutputFolder $appFile)) -and (-not $rebuild)) {
