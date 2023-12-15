@@ -129,12 +129,19 @@ codeunit 396 NoSeriesManagement
     end;
 #endif
 
+    [Obsolete('This function is used for compatibility with extension usages of the old OnBeforeSetDefaultSeries event.', '24.0')]
+    procedure RaiseObsoleteOnBeforeSetDefaultSeries(var NewNoSeriesCode: Code[20]; NoSeriesCode: Code[20]; var IsHandled: Boolean)
+    begin
+        OnBeforeSetDefaultSeries(NewNoSeriesCode, NoSeriesCode, IsHandled);
+    end;
+
+    [Obsolete('Please use the "No. Series" codeunit instead', '24.0')]
     procedure SetDefaultSeries(var NewNoSeriesCode: Code[20]; NoSeriesCode: Code[20])
     var
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeSetDefaultSeries(NewNoSeriesCode, NoSeriesCode, IsHandled);
+        RaiseObsoleteOnBeforeSetDefaultSeries(NewNoSeriesCode, NoSeriesCode, IsHandled);
         if IsHandled then
             exit;
 
@@ -967,6 +974,7 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 
+    [Obsolete('Please use the No. Series module instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetDefaultSeries(var NewNoSeriesCode: Code[20]; var NoSeriesCode: Code[20]; var IsHandled: Boolean);
     begin

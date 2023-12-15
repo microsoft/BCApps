@@ -14,6 +14,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
 
     var
         NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
+        CannotAssignNumbersGreaterThanErr: Label 'You cannot assign numbers greater than %1 from the number series %2.', Comment = '%1=Last No.,%2=No. Series Code';
 
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin
@@ -26,8 +27,6 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
     end;
 
     local procedure GetNextNoInternal(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
-    var
-        NoSeriesMgtInternal: Codeunit NoSeriesMgtInternal;
     begin
         if UsageDate = 0D then
             UsageDate := WorkDate();
@@ -42,7 +41,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
             else
                 IncrementNoText(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.");
 
-        if not NoSeriesMgtInternal.EnsureLastNoUsedIsWithinValidRange(NoSeriesLine, HideErrorsAndWarnings) then
+        if not EnsureLastNoUsedIsWithinValidRange(NoSeriesLine, HideErrorsAndWarnings) then
             exit('');
 
         if ModifySeries then begin
@@ -117,4 +116,44 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
             Error(NumberLengthErr, No);
         No := CopyStr(StartNo + ZeroNo + NewNo + EndNo, 1, MaxStrLen(No));
     end;
+
+    procedure EnsureLastNoUsedIsWithinValidRange(NoSeriesLine: Record "No. Series Line"; NoErrorsOrWarnings: Boolean): Boolean
+    begin
+        if not NoIsWithinValidRange(NoSeriesLine."Last No. Used", NoSeriesLine."Starting No.", NoSeriesLine."Ending No.") then begin
+            if NoErrorsOrWarnings then
+                exit(false);
+            Error(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code");
+        end;
+
+        if (NoSeriesLine."Ending No." <> '') and (NoSeriesLine."Warning No." <> '') and (NoSeriesLine."Last No. Used" >= NoSeriesLine."Warning No.") then begin
+            if NoErrorsOrWarnings then
+                exit(false);
+            Message(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code");
+        end;
+        exit(true);
+    end;
+
+#pragma warning disable AA0137 // StartingNo is unused in temp patch
+    local procedure NoIsWithinValidRange(CurrentNo: Code[20]; StartingNo: Code[20]; EndingNo: Code[20]): Boolean
+    begin
+        if (EndingNo = '') then
+            exit(true);
+        exit(CurrentNo <= EndingNo);
+
+        // if CurrentNo = '' then
+        //     exit(false);
+        // if (StartingNo <> '') and (CurrentNo < StartingNo) then
+        //     exit(false);
+        // if (EndingNo <> '') and (CurrentNo > EndingNo) then
+        //     exit(false);
+
+        // if StrLen(CurrentNo) < StrLen(StartingNo) then
+        //     exit(false);
+        // if StrLen(CurrentNo) > StrLen(EndingNo) then
+        //     exit(false);
+
+        // exit(true)
+    end;
+#pragma warning restore AA0137 // StartingNo is unused in temp patch
+
 }

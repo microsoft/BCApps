@@ -44,7 +44,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 
     local procedure GetNextNoInternal(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     var
-        NoSeriesMgtInternal: Codeunit NoSeriesMgtInternal;
+        NoSeriesStatelessImpl: Codeunit "No. Series - Stateless Impl.";
         NewNo: BigInteger;
     begin
         if UsageDate = 0D then
@@ -56,7 +56,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
             TryGetNextSequenceNo(NoSeriesLine, ModifySeries, NewNo);
         end;
 
-        if not NoSeriesMgtInternal.EnsureLastNoUsedIsWithinValidRange(NoSeriesLine, HideErrorsAndWarnings) then
+        if not NoSeriesStatelessImpl.EnsureLastNoUsedIsWithinValidRange(NoSeriesLine, HideErrorsAndWarnings) then
             exit('');
 
         if ModifySeries and (NoSeriesLine."Last Date Used" < UsageDate) then begin

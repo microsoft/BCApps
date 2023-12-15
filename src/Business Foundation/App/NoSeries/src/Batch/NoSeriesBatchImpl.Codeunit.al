@@ -109,7 +109,7 @@ codeunit 309 "No. Series - Batch Impl."
     procedure SimulateGetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; PrevDocumentNo: Code[20]): Code[20]
     var
         TempNoSeriesLine: Record "No. Series Line" temporary;
-        NoSeriesMgtInternal: Codeunit NoSeriesMgtInternal;
+        NoSeriesStatelessImpl: Codeunit "No. Series - Stateless Impl.";
     begin
         if NoSeriesCode = '' then
             exit(IncStr(PrevDocumentNo));
@@ -118,7 +118,7 @@ codeunit 309 "No. Series - Batch Impl."
 
         GetNoSeriesLine(TempNoSeriesLine, NoSeriesCode, UsageDate);
         TempNoSeriesLine."Last No. Used" := PrevDocumentNo;
-        if not NoSeriesMgtInternal.EnsureLastNoUsedIsWithinValidRange(TempNoSeriesLine, true) then
+        if not NoSeriesStatelessImpl.EnsureLastNoUsedIsWithinValidRange(TempNoSeriesLine, true) then
             exit(IncStr(PrevDocumentNo));
 
         TempNoSeriesLine.Modify(false);
