@@ -56,7 +56,7 @@ if (-not (Get-Module -ListAvailable -Name "BCContainerHelper")) {
 
 Import-Module "BCContainerHelper" -DisableNameChecking
 Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
-Import-Module "$PSScriptRoot\NewDevEnv.psm1" -DisableNameChecking -Force
+Import-Module "$PSScriptRoot\NewDevEnv.psm1" -DisableNameChecking
 
 $baseFolder = Get-BaseFolder
 
