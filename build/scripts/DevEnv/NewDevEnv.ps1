@@ -62,10 +62,10 @@ $baseFolder = Get-BaseFolder
 
 # Create BC container
 $credential = New-Object System.Management.Automation.PSCredential ($userName, $(ConvertTo-SecureString $password -AsPlainText -Force))
-$createContainerJob = CreateBCContainer -containerName $containerName -credential $credential -backgroundJob
+$createContainerJob = Create-BCContainer -containerName $containerName -credential $credential -backgroundJob
 
 # Resolve AL project paths
-$projectPaths = ResolveProjectPaths -projectPaths $projectPaths -workspacePath $workspacePath -alGoProject $alGoProject -baseFolder $baseFolder
+$projectPaths = Resolve-ProjectPaths -projectPaths $projectPaths -workspacePath $workspacePath -alGoProject $alGoProject -baseFolder $baseFolder
 Write-Host "Resolved project paths: $($projectPaths -join [Environment]::NewLine)"
 
 # Build apps
@@ -73,7 +73,7 @@ $appFiles = @()
 $buildingAppsStats = Measure-Command {
     Write-Host "Building apps..." -ForegroundColor Yellow
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'false-postiive')]
-    $appFiles = BuildApps -projectPaths $projectPaths -packageCacheFolder $packageCacheFolder
+    $appFiles = Build-Apps -projectPaths $projectPaths -packageCacheFolder $packageCacheFolder
 }
 
 Write-Host "Building apps took $($buildingAppsStats.TotalSeconds) seconds"
@@ -91,7 +91,7 @@ if($createContainerJob) {
     }
 }
 
-if(CheckContainerExists -containerName $containerName) {
+if(Test-ContainerExists -containerName $containerName) {
     Write-Host "Container $containerName is available" -ForegroundColor Green
 } else {
     throw "Container $containerName not available. Check if the container was created successfully and is running."

@@ -20,7 +20,20 @@ function GetRootedFolder {
     return $folder
 }
 
-function CreateBCContainer {
+<#
+    .Synopsis
+    Creates a BC container from based on the specified artifact URL in the AL-Go settings.
+    If the container already exists, it will be reused.
+    .Parameter containerName
+    The name of the container.
+    .Parameter credential
+    The credential to use for the container.
+    .Parameter backgroundJob
+    If specified, the container will be created in the background.
+    .Returns
+    The job that creates the container if the backgroundJob switch is specified.
+#>
+function Create-BCContainer {
     param (
         [Parameter(Mandatory = $true)]
         [string] $containerName,
@@ -29,7 +42,7 @@ function CreateBCContainer {
         [switch] $backgroundJob
     )
 
-    if(CheckContainerExists -containerName $containerName) {
+    if(Test-ContainerExists -containerName $containerName) {
         Write-Host "Container $containerName already exists" -ForegroundColor Yellow
         return
     }
@@ -88,7 +101,21 @@ function CreateBCContainer {
     }
 }
 
-function ResolveProjectPaths {
+<#
+    .Synopsis
+    Resolves the project paths to AL app project folders.
+    .Parameter projectPaths
+    The project paths to resolve. May contain wildcards.
+    .Parameter workspacePath
+    The path to the workspace file. The workspace file contains a list of folders that contain AL projects.
+    .Parameter alGoProject
+    The path to the AL-Go project.
+    .Parameter baseFolder
+    The base folder where the AL projects are located.
+    .Returns
+    The resolved project paths as an array of strings. The paths are absolute and unique.
+#>
+function Resolve-ProjectPaths {
     param(
         [Parameter(Mandatory = $false)]
         [string[]] $projectPaths,
@@ -136,7 +163,11 @@ function ResolveProjectPaths {
     return $result | Select-Object -Unique
 }
 
-function CheckContainerExists {
+<#
+    .Synopsis
+    Checks if a container with the specified name exists.
+#>
+function Test-ContainerExists {
     param (
         $containerName
     )
@@ -208,7 +239,17 @@ function BuildApp {
     return $appFiles
 }
 
-function BuildApps {
+<#
+    .Synopsis
+    Builds all apps in the specified project paths.
+    .Parameter projectPaths
+    The project paths to use for the build.
+    .Parameter packageCacheFolder
+    The folder for the packagecache.
+    .Returns
+    The app files that were built. The paths are absolute and unique.
+#>
+function Build-Apps {
     param (
         $projectPaths,
         $packageCacheFolder
@@ -309,3 +350,8 @@ function GetAllApps {
 
     return $script:allApps
 }
+
+Export-ModuleMember -Function Create-BCContainer
+Export-ModuleMember -Function Resolve-ProjectPaths
+Export-ModuleMember -Function Test-ContainerExists
+Export-ModuleMember -Function Build-Apps
