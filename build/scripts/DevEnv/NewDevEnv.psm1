@@ -30,7 +30,7 @@ function GetRootedFolder {
     The credential to use for the container.
     .Parameter backgroundJob
     If specified, the container will be created in the background.
-    .Returns
+    .Outputs
     The job that creates the container if the backgroundJob switch is specified.
 #>
 function Create-BCContainer {
@@ -112,7 +112,7 @@ function Create-BCContainer {
     The path to the AL-Go project.
     .Parameter baseFolder
     The base folder where the AL projects are located.
-    .Returns
+    .Outputs
     The resolved project paths as an array of strings. The paths are absolute and unique.
 #>
 function Resolve-ProjectPaths {
@@ -246,7 +246,7 @@ function BuildApp {
     The project paths to use for the build.
     .Parameter packageCacheFolder
     The folder for the packagecache.
-    .Returns
+    .Outputs
     The app files that were built. The paths are absolute and unique.
 #>
 function Build-Apps {
