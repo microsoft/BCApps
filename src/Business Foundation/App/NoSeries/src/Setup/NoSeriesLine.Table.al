@@ -120,12 +120,13 @@ table 309 "No. Series Line"
         field(11; "Allow Gaps in Nos."; Boolean)
         {
             Caption = 'Allow Gaps in Nos.';
-            ObsoleteTag = '24.0';
             ObsoleteReason = 'The specific implementation is defined by the Implementation field and whether the implementation may produce gaps can be determined through the implementation interface or the procedure MayProduceGaps.';
 #if not CLEAN24
             ObsoleteState = Pending;
+            ObsoleteTag = '24.0';
 #else
             ObsoleteState = Removed;
+            ObsoleteTag = '27.0';
 #endif
 
 #if not CLEAN24
