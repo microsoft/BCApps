@@ -40,6 +40,12 @@
                             "name":  "AI Test Library",
                             "publisher":  "Microsoft",
                             "version":  "24.0.0.0"
+                          },
+                          {
+                            "id":  "cc441290-a967-4601-9a7d-b4209339415b",
+                            "name":  "Environment Information Test Library",
+                            "publisher":  "Microsoft",
+                            "version":  "24.0.0.0"
                           }
                      ],
     "screenshots":  [
