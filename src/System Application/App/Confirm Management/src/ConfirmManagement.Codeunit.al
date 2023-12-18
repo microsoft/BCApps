@@ -26,7 +26,7 @@ codeunit 27 "Confirm Management"
     /// <returns>The response of the user or the default response passed if no UI is allowed.</returns>
     procedure GetResponseOrDefault(ConfirmQuestion: Text): Boolean
     begin
-        exit(ConfirmManagementImpl.GetResponseOrDefault(ConfirmQuestion, false));
+        exit(ConfirmManagementImpl.GetResponseOrDefault(ConfirmQuestion, true));
     end;
 
     /// <summary>
@@ -49,7 +49,7 @@ codeunit 27 "Confirm Management"
     /// <returns>The response of the user or FALSE if no UI is allowed.</returns>
     procedure GetResponse(ConfirmQuestion: Text): Boolean
     begin
-        exit(ConfirmManagementImpl.GetResponse(ConfirmQuestion, false));
+        exit(ConfirmManagementImpl.GetResponse(ConfirmQuestion, true));
     end;
 
     /// <summary>
