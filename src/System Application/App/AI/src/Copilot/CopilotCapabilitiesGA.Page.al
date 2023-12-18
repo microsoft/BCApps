@@ -41,6 +41,7 @@ page 7774 "Copilot Capabilities GA"
                     Caption = 'Status';
                     ToolTip = 'Specifies if the Copilot is active and can be used in this environment.';
                     StyleExpr = StatusStyleExpr;
+                    Visible = DataMovementEnabled;
 
                     trigger OnValidate()
                     begin
@@ -164,6 +165,7 @@ page 7774 "Copilot Capabilities GA"
 
     internal procedure SetDataMovement(Value: Boolean)
     begin
+        LogMessage('12345', 'SetDataMovement', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Data', Format(Value));
         DataMovementEnabled := Value;
         SetActionsEnabled();
         CurrPage.Update(false);
