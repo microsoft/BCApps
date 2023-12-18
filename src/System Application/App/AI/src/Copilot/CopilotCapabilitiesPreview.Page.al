@@ -159,7 +159,6 @@ page 7773 "Copilot Capabilities Preview"
 
     internal procedure SetDataMovement(Value: Boolean)
     begin
-        LogMessage('12346', 'SetDataMovement', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Data', Format(Value));
         DataMovementEnabled := Value;
         SetActionsEnabled();
         CurrPage.Update(false);

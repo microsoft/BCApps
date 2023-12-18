@@ -165,7 +165,6 @@ page 7774 "Copilot Capabilities GA"
 
     internal procedure SetDataMovement(Value: Boolean)
     begin
-        LogMessage('12345', 'SetDataMovement', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Data', Format(Value));
         DataMovementEnabled := Value;
         SetActionsEnabled();
         CurrPage.Update(false);
