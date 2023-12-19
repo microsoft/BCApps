@@ -9,5 +9,5 @@ permissionset 1258 "Cryptography Mgt. - Objects"
 {
     Assignable = false;
 
-    Permissions = Page "Data Encryption Management" = X;
+    Permissions = page "Data Encryption Management" = X;
 }

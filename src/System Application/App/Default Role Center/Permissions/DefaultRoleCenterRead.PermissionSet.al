@@ -9,9 +9,9 @@ using System.Reflection;
 
 permissionset 9171 "Default Role Center - Read"
 {
-    Access = internal;
+    Access = Internal;
     Assignable = false;
 
-    Permissions = tabledata "All Profile" = r,
-                  tabledata AllObjWithCaption = r;
+    Permissions = tabledata AllObjWithCaption = r,
+                  tabledata "All Profile" = r;
 }

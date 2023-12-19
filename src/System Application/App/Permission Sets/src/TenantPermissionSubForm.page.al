@@ -110,7 +110,7 @@ page 9859 "Tenant Permission Subform"
                     Editable = CurrPageIsEditable and IsTableData;
                     Style = Strong;
                     StyleExpr = ZeroObjStyleExpr;
-                    LookupPageID = "Permission Lookup List";
+                    LookupPageId = "Permission Lookup List";
                     TableRelation = "Permission Lookup Buffer"."Option Caption" where("Lookup Type" = field(Type));
                     Caption = 'Read Permission';
                     ToolTip = 'Specifies if the permission set has read permission to this object.';
@@ -127,7 +127,7 @@ page 9859 "Tenant Permission Subform"
                     Editable = CurrPageIsEditable and IsTableData;
                     Style = Strong;
                     StyleExpr = ZeroObjStyleExpr;
-                    LookupPageID = "Permission Lookup List";
+                    LookupPageId = "Permission Lookup List";
                     TableRelation = "Permission Lookup Buffer"."Option Caption" where("Lookup Type" = field(Type));
                     Caption = 'Insert Permission';
                     ToolTip = 'Specifies if the permission set has insert permission to this object.';
@@ -144,7 +144,7 @@ page 9859 "Tenant Permission Subform"
                     Editable = CurrPageIsEditable and IsTableData;
                     Style = Strong;
                     StyleExpr = ZeroObjStyleExpr;
-                    LookupPageID = "Permission Lookup List";
+                    LookupPageId = "Permission Lookup List";
                     TableRelation = "Permission Lookup Buffer"."Option Caption" where("Lookup Type" = field(Type));
                     Caption = 'Modify Permission';
                     ToolTip = 'Specifies if the permission set has modify permission to this object.';
@@ -161,7 +161,7 @@ page 9859 "Tenant Permission Subform"
                     Editable = CurrPageIsEditable and IsTableData;
                     Style = Strong;
                     StyleExpr = ZeroObjStyleExpr;
-                    LookupPageID = "Permission Lookup List";
+                    LookupPageId = "Permission Lookup List";
                     TableRelation = "Permission Lookup Buffer"."Option Caption" where("Lookup Type" = field(Type));
                     Caption = 'Delete Permission';
                     ToolTip = 'Specifies if the permission set has delete permission to this object.';
@@ -178,7 +178,7 @@ page 9859 "Tenant Permission Subform"
                     Editable = CurrPageIsEditable and not IsTableData;
                     Style = Strong;
                     StyleExpr = ZeroObjStyleExpr;
-                    LookupPageID = "Permission Lookup List";
+                    LookupPageId = "Permission Lookup List";
                     TableRelation = "Permission Lookup Buffer"."Option Caption" where("Lookup Type" = field(Type));
                     Caption = 'Execute Permission';
                     ToolTip = 'Specifies if the permission set has execute permission to this object.';
@@ -238,14 +238,14 @@ page 9859 "Tenant Permission Subform"
                 begin
                     PermissionSetRelation.VerifyUserCanEditPermissionSet(CurrentAppID);
 
-                    if PermissionImpl.SelectPermissions(CurrentAppId, CopyStr(CurrentRoleId, 1, 20)) then
+                    if PermissionImpl.SelectPermissions(CurrentAppID, CopyStr(CurrentRoleID, 1, 20)) then
                         RefreshTreeView();
                 end;
             }
 
             action(AddRelatedTablesAction)
             {
-                AccessByPermission = TableData "Tenant Permission" = I;
+                AccessByPermission = tabledata "Tenant Permission" = I;
                 ApplicationArea = All;
                 Image = Relationship;
                 Enabled = CurrPageIsEditable and IsTableData;
@@ -276,7 +276,7 @@ page 9859 "Tenant Permission Subform"
                 Image = Confirm;
                 action(AllowReadYes)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Yes';
                     Image = Approve;
@@ -289,7 +289,7 @@ page 9859 "Tenant Permission Subform"
                 }
                 action(AllowReadNo)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'No';
                     Image = Reject;
@@ -302,7 +302,7 @@ page 9859 "Tenant Permission Subform"
                 }
                 action(AllowReadIndirect)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Indirect';
                     Image = Indent;
@@ -321,7 +321,7 @@ page 9859 "Tenant Permission Subform"
                 Image = Confirm;
                 action(AllowInsertYes)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Yes';
                     Image = Approve;
@@ -334,7 +334,7 @@ page 9859 "Tenant Permission Subform"
                 }
                 action(AllowInsertNo)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'No';
                     Image = Reject;
@@ -347,7 +347,7 @@ page 9859 "Tenant Permission Subform"
                 }
                 action(AllowInsertIndirect)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Indirect';
                     Image = Indent;
@@ -366,7 +366,7 @@ page 9859 "Tenant Permission Subform"
                 Image = Confirm;
                 action(AllowModifyYes)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Yes';
                     Image = Approve;
@@ -379,7 +379,7 @@ page 9859 "Tenant Permission Subform"
                 }
                 action(AllowModifyNo)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'No';
                     Image = Reject;
@@ -392,7 +392,7 @@ page 9859 "Tenant Permission Subform"
                 }
                 action(AllowModifyIndirect)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Indirect';
                     Image = Indent;
@@ -411,7 +411,7 @@ page 9859 "Tenant Permission Subform"
                 Image = Confirm;
                 action(AllowDeleteYes)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Yes';
                     Image = Approve;
@@ -424,7 +424,7 @@ page 9859 "Tenant Permission Subform"
                 }
                 action(AllowDeleteNo)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'No';
                     Image = Reject;
@@ -437,7 +437,7 @@ page 9859 "Tenant Permission Subform"
                 }
                 action(AllowDeleteIndirect)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Indirect';
                     Image = Indent;
@@ -456,7 +456,7 @@ page 9859 "Tenant Permission Subform"
                 Image = Confirm;
                 action(AllowExecuteYes)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Yes';
                     Image = Approve;
@@ -469,7 +469,7 @@ page 9859 "Tenant Permission Subform"
                 }
                 action(AllowExecuteNo)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'No';
                     Image = Reject;
@@ -482,7 +482,7 @@ page 9859 "Tenant Permission Subform"
                 }
                 action(AllowExecuteIndirect)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Indirect';
                     Image = Indent;
@@ -500,7 +500,7 @@ page 9859 "Tenant Permission Subform"
                 Image = Confirm;
                 action(AllowAllYes)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Yes';
                     Image = Approve;
@@ -513,7 +513,7 @@ page 9859 "Tenant Permission Subform"
                 }
                 action(AllowAllNo)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'No';
                     Image = Reject;
@@ -526,7 +526,7 @@ page 9859 "Tenant Permission Subform"
                 }
                 action(AllowAllIndirect)
                 {
-                    AccessByPermission = TableData "Tenant Permission" = M;
+                    AccessByPermission = tabledata "Tenant Permission" = M;
                     ApplicationArea = Basic, Suite;
                     Caption = 'Indirect';
                     Image = Indent;

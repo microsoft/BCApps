@@ -10,6 +10,6 @@ permissionset 2617 "Printer Management - Objects"
     Access = Internal;
     Assignable = false;
 
-    Permissions = Codeunit "Printer Setup" = X,
-                  Page "Printer Management" = X;
+    Permissions = codeunit "Printer Setup" = X,
+                  page "Printer Management" = X;
 }

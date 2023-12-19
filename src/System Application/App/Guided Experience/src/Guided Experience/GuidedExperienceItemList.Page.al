@@ -21,7 +21,7 @@ page 1996 "Guided Experience Item List"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control1)
             {

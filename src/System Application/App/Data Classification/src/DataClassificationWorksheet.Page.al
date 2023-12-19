@@ -16,7 +16,7 @@ page 1751 "Data Classification Worksheet"
 {
     Caption = 'Data Classification Worksheet';
     Extensible = false;
-    AccessByPermission = TableData "Data Sensitivity" = R;
+    AccessByPermission = tabledata "Data Sensitivity" = R;
     ApplicationArea = All;
     DeleteAllowed = false;
     InsertAllowed = false;
@@ -36,7 +36,7 @@ page 1751 "Data Classification Worksheet"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -124,7 +124,7 @@ page 1751 "Data Classification Worksheet"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             group(Edit)
             {
@@ -142,7 +142,7 @@ page 1751 "Data Classification Worksheet"
 
                     trigger OnAction()
                     begin
-                        PAGE.Run(PAGE::"Data Classification Wizard");
+                        Page.Run(Page::"Data Classification Wizard");
                     end;
                 }
                 action("Find New Fields")
@@ -494,7 +494,7 @@ page 1751 "Data Classification Worksheet"
                 FieldRef := RecordRef.Field(Rec."Field No");
                 DataClassificationMgtImpl.PopulateFieldValue(FieldRef, TempFieldContentBuffer);
             until RecordRef.Next() = 0;
-        PAGE.RunModal(PAGE::"Field Content Buffer", TempFieldContentBuffer);
+        Page.RunModal(Page::"Field Content Buffer", TempFieldContentBuffer);
     end;
 }
 

@@ -14,7 +14,7 @@ page 9877 "Security Group Lookup"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {

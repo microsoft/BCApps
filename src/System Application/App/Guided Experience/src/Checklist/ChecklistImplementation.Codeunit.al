@@ -127,7 +127,7 @@ codeunit 1993 "Checklist Implementation"
         GuidedExperienceImpl: Codeunit "Guided Experience Impl.";
         VideoUrl: Text[250];
     begin
-        GetLinkAndVideoUrl(link, VideoUrl, GuidedExperienceType);
+        GetLinkAndVideoUrl(Link, VideoUrl, GuidedExperienceType);
 
         GuidedExperienceImpl.FilterGuidedExperienceItem(GuidedExperienceItem, GuidedExperienceType, ObjectTypeToRun, ObjectIDToRun, Link, VideoUrl, SpotlightTourType);
 
@@ -370,7 +370,7 @@ codeunit 1993 "Checklist Implementation"
     var
         UserLoginTimeTracker: Codeunit "User Login Time Tracker";
     begin
-        // We want to know whether this is the first time the user is logging in, but because our event is fired after system initialization, 
+        // We want to know whether this is the first time the user is logging in, but because our event is fired after system initialization,
         // the user will already have a record in the User Login Times table, but no penultimate login date time.
         exit((not UserLoginTimeTracker.IsFirstLogin(UserSecurityId())) and (UserLoginTimeTracker.GetPenultimateLoginDateTime() = 0DT));
     end;

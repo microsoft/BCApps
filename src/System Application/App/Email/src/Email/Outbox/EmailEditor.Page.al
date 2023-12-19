@@ -159,7 +159,7 @@ page 13 "Email Editor"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the content of the email.';
                     MultiLine = true;
-                    ExtendedDataType = RichContent;
+                    ExtendedDatatype = RichContent;
                     Editable = not EmailScheduled;
 
                     trigger OnValidate()

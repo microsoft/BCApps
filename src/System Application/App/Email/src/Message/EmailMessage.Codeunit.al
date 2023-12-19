@@ -148,7 +148,7 @@ codeunit 8904 "Email Message"
     /// </summary>
     /// <param name="RecipientType">Specifies the type of the recipients.</param>
     /// <param name="Recipients">Out parameter filled with the recipients' email addresses.</param>
-    procedure GetRecipients(RecipientType: Enum "Email Recipient Type"; var Recipients: list of [Text])
+    procedure GetRecipients(RecipientType: Enum "Email Recipient Type"; var Recipients: List of [Text])
     begin
         Recipients := EmailMessageImpl.GetRecipients(RecipientType);
     end;
@@ -168,7 +168,7 @@ codeunit 8904 "Email Message"
     /// </summary>
     /// <param name="RecipientType">Specifies the type of the recipients.</param>
     /// <param name="Recipients">Specifies the list of the recipients' email addresses.</param>
-    procedure SetRecipients(RecipientType: Enum "Email Recipient Type"; Recipients: list of [Text])
+    procedure SetRecipients(RecipientType: Enum "Email Recipient Type"; Recipients: List of [Text])
     begin
         EmailMessageImpl.SetRecipients(RecipientType, Recipients);
     end;
@@ -370,14 +370,14 @@ codeunit 8904 "Email Message"
     end;
 
     /// <summary>
-    /// Integration event to provide the stream of data for a given MediaID. If attachment content has been deleted, this event makes it possible to provide 
+    /// Integration event to provide the stream of data for a given MediaID. If attachment content has been deleted, this event makes it possible to provide
     /// the data from elsewhere.
     /// </summary>
     /// <param name="MediaID">Id of the underlying media field that contains the attachment data.</param>
     /// <param name="InStream">Stream to that should pointed to the attachment data.</param>
     /// <param name="Handled">Was the attachment content added to the stream.</param>
     [IntegrationEvent(false, false)]
-    internal procedure OnGetAttachmentContent(MediaID: Guid; var InStream: Instream; var Handled: Boolean)
+    internal procedure OnGetAttachmentContent(MediaID: Guid; var InStream: InStream; var Handled: Boolean)
     begin
     end;
 

@@ -32,8 +32,5 @@ table 1754 "Field Content Buffer"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

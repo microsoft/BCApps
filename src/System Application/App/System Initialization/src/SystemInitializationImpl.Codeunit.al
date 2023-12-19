@@ -31,14 +31,14 @@ codeunit 151 "System Initialization Impl."
 #pragma warning restore AL0432
     local procedure Init()
     var
-        SystemInitialization: Codeunit "System Initialization";        
+        SystemInitialization: Codeunit "System Initialization";
         UserLoginTimeTracker: Codeunit "User Login Time Tracker";
     begin
         InitializationInProgress := true;
         // Initialization logic goes here
 
         // This needs to be the very first thing to run before company open
-        CODEUNIT.Run(CODEUNIT::"Azure AD User Management");
+        Codeunit.Run(Codeunit::"Azure AD User Management");
 
         if Session.CurrentClientType() in [ClientType::Web, ClientType::Windows, ClientType::Desktop, ClientType::Tablet, ClientType::Phone] then begin
             // Check to set signup context and commits if it updates
@@ -56,7 +56,7 @@ codeunit 151 "System Initialization Impl."
     var
         SignupContext: Record "Signup Context"; // system table
         SignupContextValues: Record "Signup Context Values";
-        Telemetry: Codeunit "Telemetry";
+        Telemetry: Codeunit Telemetry;
     begin
         if IsSystemUser() then
             exit;
@@ -86,7 +86,7 @@ codeunit 151 "System Initialization Impl."
     internal procedure SetSignupContext(SignupContext: Record "Signup Context"; var SignupContextValues: Record "Signup Context Values")
     var
         SystemInitialization: Codeunit "System Initialization";
-        Telemetry: Codeunit "Telemetry";
+        Telemetry: Codeunit Telemetry;
         CustomDimensions: Dictionary of [Text, Text];
     begin
         case LowerCase(SignupContext.Value) of

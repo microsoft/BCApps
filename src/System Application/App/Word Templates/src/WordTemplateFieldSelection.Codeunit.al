@@ -36,7 +36,7 @@ codeunit 9989 "Word Template Field Selection"
 
             Field.SetRange(TableNo, TableId);
             Field.SetRange(FieldName, ExcludeFieldName);
-            if field.FindFirst() then
+            if Field.FindFirst() then
                 WordTemplateField."Field No." := Field."No.";
 
             WordTemplateField.Insert();
@@ -61,7 +61,7 @@ codeunit 9989 "Word Template Field Selection"
 
                 Field.SetRange(TableNo, TableId);
                 Field.SetRange(FieldName, IncludeFieldName);
-                if field.FindFirst() then
+                if Field.FindFirst() then
                     WordTemplateField."Field No." := Field."No.";
                 WordTemplateField.Insert();
             end;

@@ -83,7 +83,7 @@ table 9044 "ABS Container"
 
     keys
     {
-        key(PK; "Name")
+        key(PK; Name)
         {
             Clustered = true;
         }

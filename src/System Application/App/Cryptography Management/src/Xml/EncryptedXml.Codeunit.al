@@ -18,7 +18,7 @@ codeunit 1465 EncryptedXml
         EncryptedXmlImpl: Codeunit "EncryptedXml Impl.";
 
     /// <summary>
-    /// Creates a symmetric session key to encrypt the outer XML of an element using the specified X.509 certificate.     
+    /// Creates a symmetric session key to encrypt the outer XML of an element using the specified X.509 certificate.
     /// </summary>
     /// <param name="XmlDocument">The XmlDocument to encrypt.</param>
     /// <param name="ElementToEncrypt">The name of the element to encrypt.</param>
@@ -31,7 +31,7 @@ codeunit 1465 EncryptedXml
     end;
 
     /// <summary>
-    /// Creates a symmetric session key using the specified SymmetricAlgorithm 
+    /// Creates a symmetric session key using the specified SymmetricAlgorithm
     /// to encrypt the outer XML of an element using the specified X.509 certificate.
     /// </summary>
     /// <param name="XmlDocument">The XmlDocument to encrypt.</param>
@@ -51,7 +51,7 @@ codeunit 1465 EncryptedXml
     /// <param name="EncryptedDocument">The XML document to decrypt.</param>
     /// <param name="EncryptionKey">The asymmetric key to use to decrypt the symmetric keys in the document.</param>
     /// <param name="SignatureAlgorithm">The asymmetric algorithm used to decrypt the symmetric key.</param>
-    /// <returns>Returns true if decryption was successful, otherwise false.</returns>     
+    /// <returns>Returns true if decryption was successful, otherwise false.</returns>
     [NonDebuggable]
     procedure DecryptDocument(var EncryptedDocument: XmlDocument; EncryptionKey: Text; SignatureAlgorithm: Enum SignatureAlgorithm): Boolean
     begin

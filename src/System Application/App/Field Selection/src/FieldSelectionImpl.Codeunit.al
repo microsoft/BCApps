@@ -19,7 +19,7 @@ codeunit 9807 "Field Selection Impl."
         HideInvalidFields(Field);
         FieldsLookup.SetTableView(Field);
         FieldsLookup.LookupMode(true);
-        if FieldsLookup.RunModal() = ACTION::LookupOK then begin
+        if FieldsLookup.RunModal() = Action::LookupOK then begin
             FieldsLookup.GetSelectedFields(Field);
             exit(true);
         end;

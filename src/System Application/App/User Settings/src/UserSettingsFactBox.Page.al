@@ -20,7 +20,7 @@ page 9208 "User Settings FactBox"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             field(UserRoleCenter; UserSettingsImpl.GetProfileName(Rec.Scope, Rec."App ID", Rec."Profile ID"))
             {
@@ -34,7 +34,7 @@ page 9208 "User Settings FactBox"
                 Caption = 'Company';
                 ToolTip = 'Specifies the company that is associated with the user.';
             }
-            field("Language"; Language.GetWindowsLanguageName(Rec."Language ID"))
+            field(Language; Language.GetWindowsLanguageName(Rec."Language ID"))
             {
                 ApplicationArea = All;
                 Caption = 'Language';

@@ -32,7 +32,7 @@ page 1908 Camera
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(TakingPicture)
             {
@@ -136,7 +136,7 @@ page 1908 Camera
     /// </summary>
     /// <param name="InStream">The InStream to read the picture from.</param>
     /// <error>The picture is not available.</error>
-    procedure GetPicture(InStream: Instream)
+    procedure GetPicture(InStream: InStream)
     begin
         CameraPageImpl.GetPicture(InStream);
     end;

@@ -18,7 +18,7 @@ table 4151 "Persistent Blob"
             AutoIncrement = true;
             DataClassification = SystemMetadata;
         }
-        field(2; Blob; BLOB)
+        field(2; Blob; Blob)
         {
             DataClassification = CustomerContent;
         }
@@ -32,8 +32,5 @@ table 4151 "Persistent Blob"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

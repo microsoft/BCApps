@@ -17,7 +17,7 @@ permissionset 1564 "Privacy Notice - Read"
     IncludedPermissionSets = "Privacy Notice - Objects";
 
     Permissions = tabledata Company = r,
+                  tabledata "Page Data Personalization" = R,
                   tabledata "Privacy Notice" = R,
-                  tabledata "Privacy Notice Approval" = R,
-                  tabledata "Page Data Personalization" = R; // Page.RunModal requires this
+                  tabledata "Privacy Notice Approval" = R; // Page.RunModal requires this
 }

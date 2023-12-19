@@ -22,7 +22,7 @@ page 7568 Geolocation
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(Location)
             {

@@ -18,7 +18,7 @@ page 3712 Translation
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {

@@ -7,18 +7,17 @@ namespace System.IO;
 
 dotnet
 {
-    
     assembly("netstandard")
     {
-        type("System.IO.Compression.ZipArchive";"ZipArchive")
+        type("System.IO.Compression.ZipArchive"; "ZipArchive")
         {
         }
 
-        type("System.IO.Compression.ZipArchiveMode";"ZipArchiveMode")
+        type("System.IO.Compression.ZipArchiveMode"; "ZipArchiveMode")
         {
         }
 
-        type("System.IO.Compression.ZipArchiveEntry";"ZipArchiveEntry")
+        type("System.IO.Compression.ZipArchiveEntry"; "ZipArchiveEntry")
         {
         }
     }

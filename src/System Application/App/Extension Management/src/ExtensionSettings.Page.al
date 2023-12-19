@@ -22,7 +22,7 @@ page 2511 "Extension Settings"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(Group)
             {
@@ -60,9 +60,6 @@ page 2511 "Extension Settings"
         }
     }
 
-    actions
-    {
-    }
 
     trigger OnAfterGetCurrRecord()
     var

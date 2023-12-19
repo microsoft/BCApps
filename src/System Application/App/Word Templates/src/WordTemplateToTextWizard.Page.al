@@ -110,7 +110,7 @@ page 9999 "Word Template To Text Wizard"
                     if TableId <> 0 then
                         WordTemplatesCreationWizard.SetMultipleTableNo(DictOfRecords.Keys(), TableId);
 
-                    // As this method populates the page, before it is run, 
+                    // As this method populates the page, before it is run,
                     // we commit to make sure that database transactions are done.
                     Commit();
                     WordTemplatesCreationWizard.RunModal();

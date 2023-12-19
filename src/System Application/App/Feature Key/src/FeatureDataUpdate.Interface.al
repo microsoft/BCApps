@@ -11,7 +11,7 @@ namespace System.Environment.Configuration;
 interface "Feature Data Update"
 {
     /// <summary>
-    /// Searches the database for data that must be updated before the feature can be enabled. 
+    /// Searches the database for data that must be updated before the feature can be enabled.
     /// </summary>
     /// <returns>true if there is data to update</returns>
     procedure IsDataUpdateRequired(): Boolean;

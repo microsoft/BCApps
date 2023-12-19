@@ -38,6 +38,18 @@ class GitHubPullRequest {
         return $pr
     }
 
+    static [GitHubPullRequest] GetFromBranch([string] $BranchName, [string] $Repository) {
+        $openPullRequests = gh api "/repos/$Repository/pulls" --method GET -f state=open | ConvertFrom-Json
+        $existingPullRequest = $openPullRequests | Where-Object { $_.head.ref -eq $BranchName } | Select-Object -First 1
+
+        if ($existingPullRequest) {
+            $pr = [GitHubPullRequest]::Get($existingPullRequest.number, $Repository)
+            return $pr
+        }
+
+        return $null
+    }
+
     <#
         Updates the pull request description.
     #>

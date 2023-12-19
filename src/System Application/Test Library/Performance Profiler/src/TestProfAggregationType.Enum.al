@@ -15,7 +15,7 @@ enum 135104 "Test Prof. Aggregation Type"
     /// <summary>
     /// No aggregation.
     /// </summary>
-    value(0; "None")
+    value(0; None)
     {
     }
 

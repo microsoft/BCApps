@@ -11,7 +11,7 @@ namespace System.Environment.Configuration;
 page 9206 "User Settings List"
 {
     Caption = 'User Settings';
-    CardPageID = "User Personalization";
+    CardPageId = "User Personalization";
     AdditionalSearchTerms = 'User Personalization,User Preferences';
     UsageCategory = Administration;
     ApplicationArea = All;
@@ -25,7 +25,7 @@ page 9206 "User Settings List"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control1)
             {
@@ -51,7 +51,7 @@ page 9206 "User Settings List"
                     Caption = 'Role';
                     ToolTip = 'Specifies the user role that defines the user’s default Role Center and role-specific customizations. Unless restricted by permissions, users can change their role on the My Settings page.';
                 }
-                field("Language"; Rec."Language Name")
+                field(Language; Rec."Language Name")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Language';

@@ -73,7 +73,7 @@ codeunit 457 "Environment Information"
     end;
 
     /// <summary>
-    /// Checks if the deployment infrastucture is SaaS (Software as a Service). 
+    /// Checks if the deployment infrastucture is SaaS (Software as a Service).
     /// Note: This function will return false in a Docker container.
     /// </summary>
     /// <returns>True if the deployment infrastructure type is a SaaS, false otherwise.</returns>

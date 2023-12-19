@@ -57,7 +57,7 @@ table 3965 Matches
     }
 
     /// <summary>
-    /// Reads the value of the match 
+    /// Reads the value of the match
     /// </summary>
     /// <returns>The value of the match.</returns>
     procedure ReadValue() TextValue: Text

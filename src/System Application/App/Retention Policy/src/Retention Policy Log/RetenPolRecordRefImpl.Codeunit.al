@@ -55,7 +55,7 @@ codeunit 3920 "Reten. Pol. Record Ref. Impl." implements "Record Reference"
     local procedure VerifyCallerModuleId(CallerModuleId: Guid)
     begin
         if not (CallerModuleId = InitializedCallerModuleId) then
-            error(IncorrectCallerAppIdErr, InitializedCallerModuleId, CallerModuleId);
+            Error(IncorrectCallerAppIdErr, InitializedCallerModuleId, CallerModuleId);
     end;
 
     procedure ReadPermission(RecordRef: RecordRef): Boolean

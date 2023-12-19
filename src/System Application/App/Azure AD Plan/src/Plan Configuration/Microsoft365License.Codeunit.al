@@ -13,10 +13,10 @@ codeunit 9085 "Microsoft 365 License"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    /// <summary>   
+    /// <summary>
     /// Assign D365 Read Permission.
     /// </summary>
-    /// <param name="ShowNotification">Show notification about license information regarding users in BC.</param>   
+    /// <param name="ShowNotification">Show notification about license information regarding users in BC.</param>
     procedure AssignMicrosoft365ReadPermission(ShowNotification: Boolean)
     begin
         Microsoft365LicenseImpl.AssignMicrosoft365ReadPermission(ShowNotification);

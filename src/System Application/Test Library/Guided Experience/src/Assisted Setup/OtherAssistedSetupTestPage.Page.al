@@ -7,10 +7,5 @@ namespace System.TestLibraries.Environment.Configuration;
 
 page 132587 "Other Assisted Setup Test Page"
 {
-    layout
-    {
-        area(content)
-        {
-        }
-    }
+
 }

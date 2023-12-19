@@ -12,7 +12,7 @@ table 9020 "Security Group"
     InherentPermissions = rX;
     Caption = 'Security Group';
     DataPerCompany = false;
-    LookupPageID = "Security Groups";
+    LookupPageId = "Security Groups";
     ReplicateData = false;
 
     fields
@@ -22,7 +22,7 @@ table 9020 "Security Group"
             DataClassification = SystemMetadata;
             NotBlank = true;
         }
-        // User security ID of a user record that represents a Microsoft Entra group or a Windows group 
+        // User security ID of a user record that represents a Microsoft Entra group or a Windows group
         field(2; "Group User SID"; Guid)
         {
             TableRelation = User;

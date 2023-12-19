@@ -18,7 +18,7 @@ table 135040 "Cues And KPIs Test 2 Cue"
         field(10; NormalText; Text[100])
         {
         }
-        field(15; NormalCode; code[100])
+        field(15; NormalCode; Code[100])
         {
         }
     }

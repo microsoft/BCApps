@@ -58,7 +58,7 @@ codeunit 9864 "Permission Impl."
 
         SetupObjectsPage(SelectObjectLbl, Objects, TempAllObjWithCaption);
 
-        if Objects.RunModal() <> ACTION::LookupOK then
+        if Objects.RunModal() <> Action::LookupOK then
             exit(false);
 
         Clear(TempAllObjWithCaption);
@@ -248,10 +248,10 @@ codeunit 9864 "Permission Impl."
     procedure GetPermission(PermissionType: Option Include,Exclude; PermissionAsTxt: Text): Option " ",Yes,Indirect
     begin
         case PermissionAsTxt of
-            Format(IncludeOption::"Yes"), Format(ExcludeOption::Exclude):
-                exit(IncludeOption::"Yes");
-            Format(IncludeOption::"Indirect"), Format(ExcludeOption::"Reduce to indirect"):
-                exit(IncludeOption::"Indirect");
+            Format(IncludeOption::Yes), Format(ExcludeOption::Exclude):
+                exit(IncludeOption::Yes);
+            Format(IncludeOption::Indirect), Format(ExcludeOption::"Reduce to indirect"):
+                exit(IncludeOption::Indirect);
             else
                 exit(IncludeOption::" ")
         end;

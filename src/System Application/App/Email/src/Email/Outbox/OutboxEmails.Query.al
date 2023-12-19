@@ -10,7 +10,7 @@ using System.Security.AccessControl;
 /// <summary>
 /// Query to get all emails in the email outbox and their related records.
 /// The query has an one to many relationship between email and the related records.
-/// This file contains logic that is identical to the SendEmails.Query.al. 
+/// This file contains logic that is identical to the SendEmails.Query.al.
 /// If changes are made to this file, make sure to update SendEmails to.
 /// </summary>
 query 8888 "Outbox Emails"
@@ -183,8 +183,8 @@ query 8888 "Outbox Emails"
             KeepReading := Read();
         end;
 
-        // Post fence record. 
-        // If Read returned false, then CurrentMessageId changed, but while ended 
+        // Post fence record.
+        // If Read returned false, then CurrentMessageId changed, but while ended
         // and we therefore did not get the change to insert the record
         if HadRelatedRecord then
             if EmailOutbox.Insert() then;
@@ -219,7 +219,7 @@ query 8888 "Outbox Emails"
         while KeepReading do begin
 
             // If user is the owner of email we simply insert this sent email
-            // And read until next message id 
+            // And read until next message id
             while User_Security_Id = UserSecId do begin
                 InsertRecordInto(EmailOutbox);
                 KeepReading := ReadUntilNextMessageId(Message_Id);
@@ -261,7 +261,7 @@ query 8888 "Outbox Emails"
         while KeepReading do begin
 
             // If user is the owner of email we simply insert this sent email
-            // And read until next message id 
+            // And read until next message id
             while User_Security_Id = UserSecId do begin
                 InsertRecordInto(EmailOutbox);
                 KeepReading := ReadUntilNextMessageId(Message_Id);

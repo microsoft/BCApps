@@ -24,7 +24,7 @@ table 9204 "Barcode Encode Settings 2D"
         /// </summary>
         field(1; "Error Correction Level"; Option)
         {
-            OptionMembers = "High","Medium","Low","Quartile";
+            OptionMembers = High,Medium,Low,Quartile;
             InitValue = "Medium";
             DataClassification = SystemMetadata;
         }

@@ -37,7 +37,7 @@ codeunit 9057 "Plan Upgrade"
     [NonDebuggable]
     local procedure UpdateSubscriptionPlan()
     var
-        Plan: Record "Plan";
+        Plan: Record Plan;
         UpgradeTag: Codeunit "Upgrade Tag";
         PlanUpgradeTag: Codeunit "Plan Upgrade Tag";
         PlanIds: Codeunit "Plan Ids";
@@ -52,7 +52,7 @@ codeunit 9057 "Plan Upgrade"
         PlanName := 'Dynamics 365 Business Central Device - Embedded';
         RoleCenterId := 9022; // PAGE::"Business Manager Role Center"
 
-        if Plan.get(PlanId) then
+        if Plan.Get(PlanId) then
             exit;
 
         CreatePlan(PlanId, PlanName, RoleCenterId);
@@ -132,7 +132,7 @@ codeunit 9057 "Plan Upgrade"
     [NonDebuggable]
     local procedure AddPremiumPartnerSandbox()
     var
-        Plan: Record "Plan";
+        Plan: Record Plan;
         UpgradeTag: Codeunit "Upgrade Tag";
         PlanUpgradeTag: Codeunit "Plan Upgrade Tag";
         PlanIds: Codeunit "Plan Ids";
@@ -158,7 +158,7 @@ codeunit 9057 "Plan Upgrade"
     [NonDebuggable]
     local procedure AddEssentialAttach()
     var
-        Plan: Record "Plan";
+        Plan: Record Plan;
         UpgradeTag: Codeunit "Upgrade Tag";
         PlanUpgradeTag: Codeunit "Plan Upgrade Tag";
         PlanIds: Codeunit "Plan Ids";
@@ -184,7 +184,7 @@ codeunit 9057 "Plan Upgrade"
     [NonDebuggable]
     local procedure AddMicrosoft365()
     var
-        Plan: Record "Plan";
+        Plan: Record Plan;
         UpgradeTag: Codeunit "Upgrade Tag";
         PlanUpgradeTag: Codeunit "Plan Upgrade Tag";
         PlanIds: Codeunit "Plan Ids";
@@ -210,7 +210,7 @@ codeunit 9057 "Plan Upgrade"
     [NonDebuggable]
     local procedure AddD365Admin()
     var
-        Plan: Record "Plan";
+        Plan: Record Plan;
         UpgradeTag: Codeunit "Upgrade Tag";
         PlanUpgradeTag: Codeunit "Plan Upgrade Tag";
         PlanIds: Codeunit "Plan Ids";
@@ -248,18 +248,18 @@ codeunit 9057 "Plan Upgrade"
     end;
 
     [NonDebuggable]
-    local procedure DeletePlan(PlanId: guid)
+    local procedure DeletePlan(PlanId: Guid)
     var
-        Plan: Record "Plan";
+        Plan: Record Plan;
     begin
         if Plan.Get(PlanId) then
             Plan.Delete();
     end;
 
     [NonDebuggable]
-    local procedure RenameOrCreatePlan(PlanId: guid; NewName: Text)
+    local procedure RenameOrCreatePlan(PlanId: Guid; NewName: Text)
     var
-        Plan: Record "Plan";
+        Plan: Record Plan;
     begin
         if Plan.Get(PlanId) then begin
             Plan.Name := CopyStr(NewName, 1, 50);

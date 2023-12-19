@@ -19,7 +19,7 @@ page 1922 "Profiling Self Time Chart"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             usercontrol(BusinessChart; BusinessChartUserControl)
             {

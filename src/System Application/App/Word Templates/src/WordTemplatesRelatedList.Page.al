@@ -25,7 +25,7 @@ page 9985 "Word Templates Related List"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Tables)
             {

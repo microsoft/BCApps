@@ -77,7 +77,7 @@ codeunit 2504 "Extension Management"
     end;
 
     /// <summary>
-    /// Unpublishes an extension, based on its PackageId. 
+    /// Unpublishes an extension, based on its PackageId.
     /// An extension can only be unpublished, if it is a per-tenant one and it has been uninstalled first.
     /// </summary>
     /// <param name="PackageId">The PackageId of the extension.</param>
@@ -213,7 +213,7 @@ codeunit 2504 "Extension Management"
     /// Gets the logo of an extension.
     /// </summary>
     /// <param name="AppId">The App ID of the extension.</param>
-    /// <param name="LogoTempBlob">Out parameter holding the logo of the extension.</param> 
+    /// <param name="LogoTempBlob">Out parameter holding the logo of the extension.</param>
     procedure GetExtensionLogo(AppId: Guid; var LogoTempBlob: Codeunit "Temp Blob")
     begin
         ExtensionOperationImpl.GetExtensionLogo(AppId, LogoTempBlob);

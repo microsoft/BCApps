@@ -19,7 +19,7 @@ page 2510 "Marketplace Extn Deployment"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(General)
             {
@@ -86,7 +86,7 @@ page 2510 "Marketplace Extn Deployment"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action(Install)
             {
@@ -134,7 +134,7 @@ page 2510 "Marketplace Extn Deployment"
     begin
         LanguageID := GlobalLanguage();
         LanguageName := LanguageManagement.GetWindowsLanguageName(LanguageID);
-        clear(InstallSelected);
+        Clear(InstallSelected);
     end;
 
     trigger OnOpenPage()
