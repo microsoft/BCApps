@@ -41,6 +41,7 @@ page 7773 "Copilot Capabilities Preview"
                     Caption = 'Status';
                     ToolTip = 'Specifies if the Copilot is active and can be used in this environment.';
                     StyleExpr = StatusStyleExpr;
+                    Visible = DataMovementEnabled;
 
                     trigger OnValidate()
                     begin
