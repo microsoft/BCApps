@@ -10,6 +10,8 @@ namespace System.Integration.Graph.Authorization;
 codeunit 9355 "Graph Authorization"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>
     /// Creates an authorization mechanism with authentication code.
