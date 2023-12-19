@@ -2,12 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace System.Integration.Microsoft.Graph.Authorization;
+namespace System.Integration.Graph.Authorization;
 
 /// <summary>
 /// Provides functionality for creating means for authorizing HTTP requests made to Microsoft Graph API.
 /// </summary>
-codeunit 9355 "Mg Authorization"
+codeunit 9355 "Graph Authorization"
 {
     Access = Public;
 
@@ -19,7 +19,7 @@ codeunit 9355 "Mg Authorization"
     /// <param name="ClientSecret">The Application (client) secret configured in the "Azure Portal - Certificates &amp; Secrets".</param>    
     /// <param name="Scope">A scope that you want the user to consent to.</param>
     /// <returns>Codeunit instance implementing authorization interface</returns>
-    procedure CreateAuthorizationWithClientCredentials(AadTenantId: Text; ClientId: Text; ClientSecret: SecretText; Scope: Text): Interface "Mg Authorization";
+    procedure CreateAuthorizationWithClientCredentials(AadTenantId: Text; ClientId: Text; ClientSecret: SecretText; Scope: Text): Interface "Graph Authorization";
     var
         Scopes: List of [Text];
     begin
@@ -35,10 +35,10 @@ codeunit 9355 "Mg Authorization"
     /// <param name="ClientSecret">The Application (client) secret configured in the "Azure Portal - Certificates &amp; Secrets".</param>    
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <returns>Codeunit instance implementing authorization interface</returns>
-    procedure CreateAuthorizationWithClientCredentials(AadTenantId: Text; ClientId: Text; ClientSecret: SecretText; Scopes: List of [Text]): Interface "Mg Authorization";
+    procedure CreateAuthorizationWithClientCredentials(AadTenantId: Text; ClientId: Text; ClientSecret: SecretText; Scopes: List of [Text]): Interface "Graph Authorization";
     var
-        MgAuthorizationImpl: Codeunit "Mg Authorization - Impl.";
+        GraphAuthorizationImpl: Codeunit "Graph Authorization - Impl.";
     begin
-        exit(MgAuthorizationImpl.CreateAuthorizationWithClientCredentials(AadTenantId, ClientId, ClientSecret, Scopes));
+        exit(GraphAuthorizationImpl.CreateAuthorizationWithClientCredentials(AadTenantId, ClientId, ClientSecret, Scopes));
     end;
 }

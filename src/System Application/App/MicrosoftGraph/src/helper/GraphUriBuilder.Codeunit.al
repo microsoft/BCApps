@@ -2,10 +2,11 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace System.Integration.Microsoft.Graph;
+namespace System.Integration.Graph;
+
 using System.Utilities;
 
-codeunit 9352 "Mg Uri Builder"
+codeunit 9352 "Graph Uri Builder"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -13,18 +14,18 @@ codeunit 9352 "Mg Uri Builder"
 
     var
         Uri: Codeunit Uri;
-        MicrosoftGraphAPIVersion: Enum "Mg API Version";
+        GraphAPIVersion: Enum "Graph API Version";
         MicrosoftGraphDefaultBaseUrlTxt: Label 'https://graph.microsoft.com', Locked = true;
 
 
-    procedure Initialize(MicrosoftGraphBaseUrl: Text; NewMgAPIVersion: Enum "Mg API Version"; RelativeUriToResource: Text)
+    procedure Initialize(MicrosoftGraphBaseUrl: Text; NewGraphAPIVersion: Enum "Graph API Version"; RelativeUriToResource: Text)
     var
         QueryParameters: Dictionary of [Text, Text];
     begin
-        Initialize(MicrosoftGraphBaseUrl, NewMgAPIVersion, RelativeUriToResource, QueryParameters);
+        Initialize(MicrosoftGraphBaseUrl, NewGraphAPIVersion, RelativeUriToResource, QueryParameters);
     end;
 
-    procedure Initialize(MicrosoftGraphBaseUrl: Text; NewMicrosoftGraphAPIVersion: Enum "Mg API Version"; RelativeUriToResource: Text; QueryParameters: Dictionary of [Text, Text])
+    procedure Initialize(MicrosoftGraphBaseUrl: Text; NewGraphAPIVersion: Enum "Graph API Version"; RelativeUriToResource: Text; QueryParameters: Dictionary of [Text, Text])
     var
         UriBuilder: Codeunit "Uri Builder";
         BaseUri: Text;
@@ -33,9 +34,9 @@ codeunit 9352 "Mg Uri Builder"
     begin
         if MicrosoftGraphBaseUrl = '' then
             MicrosoftGraphBaseUrl := MicrosoftGraphDefaultBaseUrlTxt;
-        MicrosoftGraphAPIVersion := NewMicrosoftGraphAPIVersion;
+        GraphAPIVersion := NewGraphAPIVersion;
 
-        BaseUri := CombineUri(MicrosoftGraphBaseUrl, Format(MicrosoftGraphAPIVersion));
+        BaseUri := CombineUri(MicrosoftGraphBaseUrl, Format(GraphAPIVersion));
         CombinedUri := CombineUri(BaseUri, RelativeUriToResource);
         Uri.Init(CombinedUri);
         UriBuilder.Init(Uri.GetAbsoluteUri());

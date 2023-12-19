@@ -2,13 +2,13 @@
 // Copyright (c) Microsoft Corporation. All rights reserved. 
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace System.Integration.Microsoft.Graph;
+namespace System.Integration.Graph;
 
 /// <summary>
 /// Defines the available API versions for Microsoft Graph API.
 /// See: https://learn.microsoft.com/en-us/graph/versioning-and-support#versions
 /// </summary>
-enum 9350 "Mg API Version"
+enum 9350 "Graph API Version"
 {
     Access = Public;
     Extensible = false;

@@ -2,12 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace System.Integration.Microsoft.Graph;
+namespace System.Integration.Graph;
 
 /// <summary>
 /// Holder for the optional Microsoft Graph HTTP headers and URL parameters.
 /// </summary>
-codeunit 9353 "Mg Optional Parameters"
+codeunit 9353 "Graph Optional Parameters"
 {
     Access = Public;
     InherentEntitlements = X;
@@ -42,10 +42,10 @@ codeunit 9353 "Mg Optional Parameters"
     /// <summary>
     /// Sets the value for '@microsoft.graph.conflictBehavior' HttpHeader for a request.
     /// </summary>
-    /// <param name="MgConflictBehavior">Enum "Mg ConflictBehavior" value specifying the HttpHeader value</param>
-    procedure SetMicrosftGraphConflictBehavior(MgConflictBehavior: Enum "Mg ConflictBehavior")
+    /// <param name="GraphConflictBehavior">Enum "Graph ConflictBehavior" value specifying the HttpHeader value</param>
+    procedure SetMicrosftGraphConflictBehavior(GraphConflictBehavior: Enum "Graph ConflictBehavior")
     begin
-        SetQueryParameter('@microsoft.graph.conflictBehavior', Format(MgConflictBehavior));
+        SetQueryParameter('@microsoft.graph.conflictBehavior', Format(GraphConflictBehavior));
     end;
 
 

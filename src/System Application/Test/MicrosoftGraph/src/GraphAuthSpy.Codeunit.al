@@ -2,12 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace System.Test.Integration.Microsoft.Graph;
+namespace System.Test.Integration.Graph;
 
-using System.Integration.Microsoft.Graph.Authorization;
+using System.Integration.Graph.Authorization;
 using System.RestClient;
 
-codeunit 135141 "Mg Auth. Spy" implements "Mg Authorization"
+codeunit 135141 "Graph Auth. Spy" implements "Graph Authorization"
 {
     Access = Internal;
     InherentEntitlements = X;

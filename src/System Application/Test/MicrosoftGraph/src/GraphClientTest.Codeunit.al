@@ -2,14 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace System.Test.Integration.Microsoft.Graph;
+namespace System.Test.Integration.Graph;
 
-using System.Integration.Microsoft.Graph;
+using System.Integration.Graph;
 using System.RestClient;
 using System.Utilities;
 using System.TestLibraries.Utilities;
 
-codeunit 135140 "Mg Client Test"
+codeunit 135140 "Graph Client Test"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -25,20 +25,20 @@ codeunit 135140 "Mg Client Test"
     procedure AuthTriggeredTest()
     var
         HttpResponseMessage: Codeunit "Http Response Message";
-        MgAuthSpy: Codeunit "Mg Auth. Spy";
-        MgClient: Codeunit "Mg Client";
+        GraphAuthSpy: Codeunit "Graph Auth. Spy";
+        GraphClient: Codeunit "Graph Client";
         MockHttpClientHandler: Codeunit "Mock Http Client Handler";
         TempBlob: Codeunit "Temp Blob";
         ResponseInStream: InStream;
     begin
-        MgClient.Initialize(Enum::"Mg API Version"::"v1.0", MgAuthSpy, MockHttpClientHandler);
+        GraphClient.Initialize(Enum::"Graph API Version"::"v1.0", GraphAuthSpy, MockHttpClientHandler);
         ResponseInStream := TempBlob.CreateInStream();
 
         // [WHEN] When Get Method is called  
-        MgClient.Get('groups', HttpResponseMessage);
+        GraphClient.Get('groups', HttpResponseMessage);
 
         // [THEN] Verify authorization of request is triggered
-        LibraryAssert.AreEqual(true, MgAuthSpy.IsInvoked(), 'Authorization should be invoked.');
+        LibraryAssert.AreEqual(true, GraphAuthSpy.IsInvoked(), 'Authorization should be invoked.');
     end;
 
     [Test]
@@ -46,17 +46,17 @@ codeunit 135140 "Mg Client Test"
     var
         HttpRequestMessage: Codeunit "Http Request Message";
         HttpResponseMessage: Codeunit "Http Response Message";
-        MgAuthSpy: Codeunit "Mg Auth. Spy";
-        MgClient: Codeunit "Mg Client";
+        GraphAuthSpy: Codeunit "Graph Auth. Spy";
+        GraphClient: Codeunit "Graph Client";
         MockHttpClientHandler: Codeunit "Mock Http Client Handler";
         TempBlob: Codeunit "Temp Blob";
         ResponseInStream: InStream;
     begin
-        MgClient.Initialize(Enum::"Mg API Version"::"v1.0", MgAuthSpy, MockHttpClientHandler);
+        GraphClient.Initialize(Enum::"Graph API Version"::"v1.0", GraphAuthSpy, MockHttpClientHandler);
         ResponseInStream := TempBlob.CreateInStream();
 
         // [WHEN] When Get Method is called  
-        MgClient.Get('groups', HttpResponseMessage);
+        GraphClient.Get('groups', HttpResponseMessage);
 
         // [THEN] Verify request uri is build correct
         MockHttpClientHandler.GetHttpRequestMessage(HttpRequestMessage);
@@ -70,8 +70,8 @@ codeunit 135140 "Mg Client Test"
         MockHttpContent: Codeunit "Http Content";
         HttpResponseMessage: Codeunit "Http Response Message";
         MockHttpResponseMessage: Codeunit "Http Response Message";
-        MgAuthSpy: Codeunit "Mg Auth. Spy";
-        MgClient: Codeunit "Mg Client";
+        GraphAuthSpy: Codeunit "Graph Auth. Spy";
+        GraphClient: Codeunit "Graph Client";
         MockHttpClientHandler: Codeunit "Mock Http Client Handler";
         TempBlob: Codeunit "Temp Blob";
         ResponseInStream: InStream;
@@ -83,11 +83,11 @@ codeunit 135140 "Mg Client Test"
         MockHttpContent := HttpContent.Create(GetGroupsResponse());
         MockHttpResponseMessage.SetContent(MockHttpContent);
         MockHttpClientHandler.SetResponse(MockHttpResponseMessage);
-        MgClient.Initialize(Enum::"Mg API Version"::"v1.0", MgAuthSpy, MockHttpClientHandler);
+        GraphClient.Initialize(Enum::"Graph API Version"::"v1.0", GraphAuthSpy, MockHttpClientHandler);
         ResponseInStream := TempBlob.CreateInStream();
 
         // [WHEN] When Get Method is called  
-        MgClient.Get('groups', HttpResponseMessage);
+        GraphClient.Get('groups', HttpResponseMessage);
 
         // [THEN] Verify response is correct
         LibraryAssert.AreEqual(true, HttpResponseMessage.GetIsSuccessStatusCode(), 'Should be success status code.');
