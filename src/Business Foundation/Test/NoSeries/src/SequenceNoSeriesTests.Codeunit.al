@@ -3,7 +3,7 @@ namespace Microsoft.Test.Foundation.NoSeries;
 using System.TestLibraries.Utilities;
 using Microsoft.Foundation.NoSeries;
 
-codeunit 134373 "Stateless No. Series Tests"
+codeunit 134374 "Sequence No. Series Tests"
 {
     Subtype = Test;
 
@@ -22,7 +22,7 @@ codeunit 134373 "Stateless No. Series Tests"
         // [GIVEN] A No. Series with 10 numbers
         NoSeriesCode := 'GetNextNoRunOut';
         LibraryNoSeries.CreateNoSeries(NoSeriesCode);
-        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, '1', '10');
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, '1', '10');
 
         // [WHEN] We get the first 10 numbers from the No. Series
         // [THEN] The numbers match with 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
@@ -44,7 +44,7 @@ codeunit 134373 "Stateless No. Series Tests"
         // [GIVEN] A No. Series with a line going from 1-10, jumping 7 numbers at a time
         NoSeriesCode := 'TestGetNextNo';
         LibraryNoSeries.CreateNoSeries(NoSeriesCode);
-        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 7, '1', '10');
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 7, '1', '10');
 
         // [WHEN] We get the first two numbers from the No. Series
         // [THEN] The numbers match with 1, 8
@@ -67,8 +67,8 @@ codeunit 134373 "Stateless No. Series Tests"
         // [GIVEN] A No. Series with two lines going from 1-5
         NoSeriesCode := 'GetNextNoOverFlow';
         LibraryNoSeries.CreateNoSeries(NoSeriesCode);
-        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'A1', 'A5');
-        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'B1', 'B5');
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'A1', 'A5');
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'B1', 'B5');
 
         // [WHEN] We get the first 10 numbers from the No. Series
         // [THEN] The numbers match with A1, A2, A3, A4, A5, B1, B2, B3, B4, B5 (automatically switches from the first to the second series)
@@ -92,8 +92,8 @@ codeunit 134373 "Stateless No. Series Tests"
         // [GIVEN] A No. Series with two lines going from 1-10, jumping 7 numbers at a time
         NoSeriesCode := 'GetNextNoAdvOverflow';
         LibraryNoSeries.CreateNoSeries(NoSeriesCode);
-        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 7, 'A1', 'A10');
-        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 7, 'B1', 'B10');
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 7, 'A1', 'A10');
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 7, 'B1', 'B10');
 
         // [WHEN] We get the first 4 numbers from the No. Series
         // [THEN] The numbers match with A1, A8, B1, B8
@@ -119,9 +119,9 @@ codeunit 134373 "Stateless No. Series Tests"
         // [GIVEN] A No. Series with two lines, one only valid from WorkDate + 1
         NoSeriesCode := 'GetNextNoOverDate';
         LibraryNoSeries.CreateNoSeries(NoSeriesCode);
-        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'A1', 'A5');
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'A1', 'A5');
         TomorrowsWorkDate := CalcDate('<+1D>', WorkDate());
-        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'B1', 'B5', TomorrowsWorkDate);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'B1', 'B5', TomorrowsWorkDate);
 
         // [WHEN] We get the next number 5 times for WorkDate
         // [THEN] We get the numbers from the first line
@@ -155,8 +155,8 @@ codeunit 134373 "Stateless No. Series Tests"
         // [GIVEN] A No. Series with two lines going from 1-5
         NoSeriesCode := 'GetNextNoWithLine';
         LibraryNoSeries.CreateNoSeries(NoSeriesCode);
-        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'A1', 'A5');
-        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'B1', 'B5');
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'A1', 'A5');
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'B1', 'B5');
 
         NoSeriesLineA.SetRange("Series Code", NoSeriesCode);
         NoSeriesLineA.FindFirst();
@@ -186,7 +186,7 @@ codeunit 134373 "Stateless No. Series Tests"
         // [GIVEN] A No. Series with 10 numbers
         NoSeriesCode := 'PeekNextNoRunOut';
         LibraryNoSeries.CreateNoSeries(NoSeriesCode);
-        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'A1Test', 'A10Test');
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'A1Test', 'A10Test');
 
         // [WHEN] We peek the next number
         // [THEN] We get the first number

@@ -52,6 +52,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 
     local procedure GetNextNoInternal(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     var
+        NoSeriesLine2: Record "No. Series Line";
         NoSeriesMgtInternal: Codeunit NoSeriesMgtInternal;
         NewNo: BigInteger;
     begin
@@ -64,15 +65,20 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
             TryGetNextSequenceNo(NoSeriesLine, ModifySeries, NewNo);
         end;
 
-        if not NoSeriesMgtInternal.EnsureLastNoUsedIsWithinValidRange(NoSeriesLine, HideErrorsAndWarnings) then
+        NoSeriesLine2 := NoSeriesLine;
+        NoSeriesLine2."Last No. Used" := GetFormattedNo(NoSeriesLine, NewNo);
+
+        if not NoSeriesMgtInternal.EnsureLastNoUsedIsWithinValidRange(NoSeriesLine2, HideErrorsAndWarnings) then
             exit('');
 
-        if ModifySeries and (NoSeriesLine."Last Date Used" < UsageDate) then begin
+        if ModifySeries then begin
+            NoSeriesLine."Last No. Used" := NoSeriesLine2."Last No. Used";
             NoSeriesLine."Last Date Used" := UsageDate;
+            NoSeriesLine.Validate(Open);
             NoSeriesLine.Modify(true);
         end;
 
-        exit(GetFormattedNo(NoSeriesLine, NewNo));
+        exit(NoSeriesLine2."Last No. Used");
     end;
 
     [TryFunction]
@@ -84,7 +90,8 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
                 NewNo := NumberSequence.Next(NoSeriesLine."Sequence Name");
         end else begin
             NewNo := NumberSequence.Current(NoSeriesLine."Sequence Name"); // TODO: Shouldn't this be PeekNextSequenceNo?
-            NewNo += NoSeriesLine."Increment-by No.";
+            if NoSeriesLine."Last No. Used" <> '' then
+                NewNo += NoSeriesLine."Increment-by No.";
         end;
     end;
 
@@ -228,6 +235,8 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 
         if Rec.Implementation = "No. Series Implementation"::Sequence then begin
             LastNoUsed := NoSeries.GetLastNoUsed(xRec);
+            if LastNoUsed = '' then
+                LastNoUsed := Rec."Starting No.";
             RecreateNoSeries(Rec, ExtractNoFromCode(LastNoUsed));
         end else
             if xRec.Implementation = "No. Series Implementation"::Sequence then begin
