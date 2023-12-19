@@ -3,7 +3,7 @@ namespace Microsoft.Test.Foundation.NoSeries;
 using System.TestLibraries.Utilities;
 using Microsoft.Foundation.NoSeries;
 
-codeunit 134373 "Stateless No. Series Tests"
+codeunit 134531 "Stateless No. Series Tests"
 {
     Subtype = Test;
 

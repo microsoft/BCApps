@@ -32,10 +32,10 @@
     "platform":  "24.0.0.0",
     "target":  "OnPrem",
     "idRanges":  [
-                     {
-                        "from": 130000,
-                        "to": 139999
-                     }
+                    {
+                        "from": 134510,
+                        "to": 134510
+                    }
                  ],
     "features":  [
                      "TranslationFile",

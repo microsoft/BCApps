@@ -1,6 +1,6 @@
 namespace Microsoft.Foundation.NoSeries;
 
-codeunit 134375 "Library - No. Series"
+codeunit 134510 "Library - No. Series"
 {
     procedure CreateNoSeries(NoSeriesCode: Code[20])
     var
