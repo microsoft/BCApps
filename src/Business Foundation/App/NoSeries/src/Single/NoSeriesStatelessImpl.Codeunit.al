@@ -14,7 +14,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
 
     var
         NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
-        CannotAssignNumbersGreaterThanErr: Label 'You cannot assign numbers greater than %1 from the number series %2.', Comment = '%1=Last No.,%2=No. Series Code';
+        CannotAssignNumbersGreaterThanErr: Label 'You cannot assign numbers greater than %1 from the number series %2. No. assigned: %3', Comment = '%1=Last No.,%2=No. Series Code, %3=the new no.';
 
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin
@@ -122,13 +122,13 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         if not NoIsWithinValidRange(NoSeriesLine."Last No. Used", NoSeriesLine."Starting No.", NoSeriesLine."Ending No.") then begin
             if NoErrorsOrWarnings then
                 exit(false);
-            Error(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code");
+            Error(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code", NoSeriesLine."Last No. Used");
         end;
 
         if (NoSeriesLine."Ending No." <> '') and (NoSeriesLine."Warning No." <> '') and (NoSeriesLine."Last No. Used" >= NoSeriesLine."Warning No.") then begin
             if NoErrorsOrWarnings then
                 exit(false);
-            Message(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code");
+            Message(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code", NoSeriesLine."Last No. Used");
         end;
         exit(true);
     end;
