@@ -254,7 +254,7 @@ codeunit 130500 "Any"
     procedure SetDefaultSeed()
     begin
         SeedSet := true;
-        SetSeed(Time() - 0T);
+        SetSeed(Time() - 000000T);
     end;
 
     /// <summary>.
