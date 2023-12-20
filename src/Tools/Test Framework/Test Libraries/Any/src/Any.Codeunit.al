@@ -218,7 +218,7 @@ codeunit 130500 "Any"
 
     /// <summary>
     /// Provides a Guid
-    /// Guid is not pseduo-random, it is random value
+    /// Guid is not pseudo-random, it is random value
     /// </summary>
     /// <returns>Random Guid</returns>
     procedure GuidValue(): Guid
@@ -238,6 +238,15 @@ codeunit 130500 "Any"
         Randomize(Seed);
     end;
 
+    /// <summary>
+    /// Provides the Seed currently used for Pseudo-random number generation.
+    /// </summary>
+    /// <returns>Current seed used for pseudo-random numbers</returns>
+    procedure GetSeed(): Integer
+    begin
+        exit(Seed);
+    end;
+
     /// <summary>.
     /// Sets the default Seed for Pseudo-random number generation (no. of milliseconds since midnight of today).
     /// Setting this value will change the numbers returned.
@@ -245,7 +254,7 @@ codeunit 130500 "Any"
     procedure SetDefaultSeed()
     begin
         SeedSet := true;
-        Randomize();
+        SetSeed(Time() - 000000T);
     end;
 
     /// <summary>.

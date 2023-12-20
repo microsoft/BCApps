@@ -319,7 +319,7 @@ codeunit 7772 "Azure OpenAI Impl"
 
         ProcessChatCompletionResponse(AOAIOperationResponse.GetResult(), ChatMessages);
 
-        FeatureTelemetry.LogUsage('0000KVN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl);
+        FeatureTelemetry.LogUsage('0000KVN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, CustomDimensions);
     end;
 
     [NonDebuggable]
