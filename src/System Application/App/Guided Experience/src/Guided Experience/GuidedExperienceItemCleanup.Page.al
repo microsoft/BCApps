@@ -15,6 +15,7 @@ page 1998 "Guided Experience Item Cleanup"
     InsertAllowed = false;
     DeleteAllowed = false;
     ModifyAllowed = false;
+    DataCaptionExpression = '';
 
     layout
     {
@@ -105,12 +106,12 @@ page 1998 "Guided Experience Item Cleanup"
 
     local procedure LoadDuplicatedGuidedExperienceItems()
     var
+        TempGuidedExperienceItem: Record "Guided Experience Item" temporary;
         GuidedExperienceImpl: Codeunit "Guided Experience Item Cleanup";
     begin
-        Rec.Reset();
-        Rec.DeleteAll();
-
-        GuidedExperienceImpl.GetDuplicatedGuidedExperienceItems(Rec, 100);
+        GuidedExperienceImpl.GetDuplicatedGuidedExperienceItems(TempGuidedExperienceItem, 100);
+        Rec.Copy(TempGuidedExperienceItem);
         if Rec.FindFirst() then; // set focus on the first row
+        CurrPage.Update();
     end;
 }
