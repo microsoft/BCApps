@@ -58,6 +58,29 @@ codeunit 134530 "Sequence No. Series Tests"
     end;
 
     [Test]
+    procedure TestGetNextNoWithLastNoUsed()
+    var
+        NoSeries: Codeunit "No. Series";
+        NoSeriesCode: Code[20];
+    begin
+        // [GIVEN] A No. Series with a line going from 1-10, jumping 2 numbers at a time, with last used number 3
+        NoSeriesCode := 'TestGetNextNo';
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 2, '1', '10', '3', 0D);
+
+        // [WHEN] We get the first three new numbers from the No. Series
+        // [THEN] The numbers match with 5, 7, 9
+        LibraryAssert.AreEqual('5', NoSeries.GetNextNo(NoSeriesCode), 'Number was not as expected');
+        LibraryAssert.AreEqual('7', NoSeries.GetNextNo(NoSeriesCode), 'Number was not as expected');
+        LibraryAssert.AreEqual('9', NoSeries.GetNextNo(NoSeriesCode), 'Number was not as expected');
+
+        // [WHEN] We get the next number from the No. Series
+        // [THEN] An error is thrown
+        asserterror NoSeries.GetNextNo(NoSeriesCode);
+        LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
+    end;
+
+    [Test]
     procedure TestGetNextNoDefaultOverFlow()
     var
         NoSeries: Codeunit "No. Series";

@@ -24,7 +24,12 @@ codeunit 134510 "Library - No. Series"
 
     procedure CreateNormalNoSeriesLine(NoSeriesCode: Code[20]; IncrementBy: Integer; StartingNo: Text[20]; EndingNo: Text[20]; StartingDate: Date)
     begin
-        CreateNoSeriesLine(NoSeriesCode, IncrementBy, StartingNo, EndingNo, StartingDate, Enum::"No. Series Implementation"::Normal);
+        CreateNormalNoSeriesLine(NoSeriesCode, IncrementBy, StartingNo, EndingNo, '', StartingDate);
+    end;
+
+    procedure CreateNormalNoSeriesLine(NoSeriesCode: Code[20]; IncrementBy: Integer; StartingNo: Text[20]; EndingNo: Text[20]; LastNoUsed: Text[20]; StartingDate: Date)
+    begin
+        CreateNoSeriesLine(NoSeriesCode, IncrementBy, StartingNo, EndingNo, LastNoUsed, StartingDate, Enum::"No. Series Implementation"::Normal);
     end;
 
     procedure CreateSequenceNoSeriesLine(NoSeriesCode: Code[20]; IncrementBy: Integer; StartingNo: Text[20]; EndingNo: Text[20])
@@ -34,10 +39,15 @@ codeunit 134510 "Library - No. Series"
 
     procedure CreateSequenceNoSeriesLine(NoSeriesCode: Code[20]; IncrementBy: Integer; StartingNo: Text[20]; EndingNo: Text[20]; StartingDate: Date)
     begin
-        CreateNoSeriesLine(NoSeriesCode, IncrementBy, StartingNo, EndingNo, StartingDate, Enum::"No. Series Implementation"::Sequence);
+        CreateSequenceNoSeriesLine(NoSeriesCode, IncrementBy, StartingNo, EndingNo, '', StartingDate);
     end;
 
-    procedure CreateNoSeriesLine(NoSeriesCode: Code[20]; IncrementBy: Integer; StartingNo: Text[20]; EndingNo: Text[20]; StartingDate: Date; Implementation: Enum "No. Series Implementation")
+    procedure CreateSequenceNoSeriesLine(NoSeriesCode: Code[20]; IncrementBy: Integer; StartingNo: Text[20]; EndingNo: Text[20]; LastNoUsed: Text[20]; StartingDate: Date)
+    begin
+        CreateNoSeriesLine(NoSeriesCode, IncrementBy, StartingNo, EndingNo, LastNoUsed, StartingDate, Enum::"No. Series Implementation"::Sequence);
+    end;
+
+    procedure CreateNoSeriesLine(NoSeriesCode: Code[20]; IncrementBy: Integer; StartingNo: Text[20]; EndingNo: Text[20]; LastNoUsed: Text[20]; StartingDate: Date; Implementation: Enum "No. Series Implementation")
     var
         NoSeriesLine: Record "No. Series Line";
     begin
@@ -46,10 +56,12 @@ codeunit 134510 "Library - No. Series"
         NoSeriesLine."Series Code" := NoSeriesCode;
         NoSeriesLine."Line No." += 10000;
         NoSeriesLine.Init();
+        NoSeriesLine.Validate("Increment-by No.", IncrementBy);
         NoSeriesLine.Validate("Starting No.", StartingNo);
         NoSeriesLine.Validate("Ending No.", EndingNo);
+        if LastNoUsed <> '' then
+            NoSeriesLine.Validate("Last No. Used", LastNoUsed);
         NoSeriesLine.Validate("Starting Date", StartingDate);
-        NoSeriesLine."Increment-by No." := IncrementBy;
         NoSeriesLine.Validate(Implementation, Implementation);
         NoSeriesLine.Insert(true);
     end;

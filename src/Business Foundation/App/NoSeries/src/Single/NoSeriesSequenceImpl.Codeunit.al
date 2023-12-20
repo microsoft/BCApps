@@ -229,15 +229,20 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
     var
         NoSeries: Codeunit "No. Series";
         LastNoUsed: Code[20];
+        Dummy: Integer;
     begin
         if Rec.Implementation = xRec.Implementation then
             exit; // No change
 
         if Rec.Implementation = "No. Series Implementation"::Sequence then begin
             LastNoUsed := NoSeries.GetLastNoUsed(xRec);
-            if LastNoUsed = '' then
-                LastNoUsed := Rec."Starting No.";
-            RecreateNoSeries(Rec, ExtractNoFromCode(LastNoUsed));
+            if LastNoUsed <> '' then begin
+                RecreateNoSeries(Rec, ExtractNoFromCode(LastNoUsed));
+#pragma warning disable AA0206
+                Dummy := NumberSequence.Next(Rec."Sequence Name");
+#pragma warning restore AA0206
+            end else
+                RecreateNoSeries(Rec, ExtractNoFromCode(Rec."Starting No."));
         end else
             if xRec.Implementation = "No. Series Implementation"::Sequence then begin
                 DeleteSequence(Rec."Sequence Name");
