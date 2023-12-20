@@ -7,12 +7,12 @@ namespace System.Test.Azure.Storage.Files;
 
 using System.Azure.Storage;
 
-codeunit 132515 "AFS Test Library"
+codeunit 132515 "AFS Test Helper"
 {
     Access = Internal;
 
     var
-        AzureTestLibrary: Codeunit "Azure Test Library";
+        AzureTestLibrary: Codeunit "Azure Test Helper";
 
     procedure GetDefaultAccountSAS(): Interface "Storage Service Authorization"
     begin

@@ -10,12 +10,12 @@ using System.Azure.Storage.Files;
 /// <summary>
 /// Provides common authorization functionality for using Azure storage accounts in tests for Azure Storage Services.
 /// </summary>
-codeunit 132516 "Azure Test Library"
+codeunit 132516 "Azure Test Helper"
 {
     Access = Internal;
 
     var
-        AFSTestLibrary: Codeunit "AFS Test Library";
+        AFSTestLibrary: Codeunit "AFS Test Helper";
         FileShareNameTxt: Label 'filesharename', Locked = true;
         StorageAccountNameTxt: Label 'storageaccountname', Locked = true;
         AccessKeyTxt: Label 'base64accountkey', Locked = true;
