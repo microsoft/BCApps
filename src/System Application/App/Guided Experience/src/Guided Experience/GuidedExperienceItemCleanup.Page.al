@@ -109,8 +109,9 @@ page 1998 "Guided Experience Item Cleanup"
         TempGuidedExperienceItem: Record "Guided Experience Item" temporary;
         GuidedExperienceImpl: Codeunit "Guided Experience Item Cleanup";
     begin
+        Rec.DeleteAll();
         GuidedExperienceImpl.GetDuplicatedGuidedExperienceItems(TempGuidedExperienceItem, 100);
-        Rec.Copy(TempGuidedExperienceItem);
+        Rec.Copy(TempGuidedExperienceItem, true);
         if Rec.FindFirst() then; // set focus on the first row
         CurrPage.Update();
     end;
