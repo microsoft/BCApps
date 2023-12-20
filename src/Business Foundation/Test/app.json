@@ -56,10 +56,14 @@
     "platform":  "24.0.0.0",
     "target":  "OnPrem",
     "idRanges":  [
-                     {
-                        "from": 130000,
-                        "to": 139999
-                     }
+                    {
+                        "from": 134370,
+                        "to": 134370
+                    },
+                    {
+                        "from": 134530,
+                        "to": 134549
+                    }
                  ],
     "features":  [
                      "NoImplicitWith",

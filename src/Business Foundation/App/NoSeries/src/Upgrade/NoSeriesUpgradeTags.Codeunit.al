@@ -5,18 +5,14 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-codeunit 305 "No. Series - Setup Impl."
+codeunit 332 "No. Series Upgrade Tags"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    internal procedure SetImplementation(var NoSeries: Record "No. Series"; Implementation: Enum "No. Series Implementation")
-    var
-        NoSeriesLine: Record "No. Series Line";
+    procedure GetImplementationUpgradeTag(): Code[250]
     begin
-        NoSeriesLine.SetRange("Series Code", NoSeries.Code);
-        NoSeriesLine.SetRange(Open, true);
-        NoSeriesLine.ModifyAll(Implementation, Implementation, true);
+        exit('MS-471519-AddImplementationExtensibility-20231206 ');
     end;
 }

@@ -111,9 +111,7 @@ codeunit 304 "No. Series - Impl."
 
     local procedure GetImplementation(var NoSeriesLine: Record "No. Series Line"): Interface "No. Series - Single"
     begin
-        if NoSeriesLine."Allow Gaps in Nos." then // TODO: Enum needs to be specified on the table and retrieved from there
-            exit(Enum::"No. Series Implementation"::Sequence);
-        exit(Enum::"No. Series Implementation"::Normal);
+        exit(NoSeriesLine.Implementation);
     end;
 
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean

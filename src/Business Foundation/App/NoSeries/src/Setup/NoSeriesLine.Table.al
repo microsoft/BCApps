@@ -78,7 +78,7 @@ table 309 "No. Series Line"
                 NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
                 Validate(Open);
-                if "Allow Gaps in Nos." then begin
+                if Implementation = Enum::"No. Series Implementation"::Sequence then begin
                     NoSeriesMgt.RecreateSequence(Rec);
                     if "Line No." <> 0 then
                         if Modify() then;
@@ -95,7 +95,7 @@ table 309 "No. Series Line"
             begin
                 NoSeriesMgt.UpdateNoSeriesLine(Rec, "Last No. Used", CopyStr(FieldCaption("Last No. Used"), 1, 100));
                 Validate(Open);
-                if "Allow Gaps in Nos." then begin
+                if Implementation = Enum::"No. Series Implementation"::Sequence then begin
                     NoSeriesMgt.RecreateSequence(Rec);
                     if "Line No." <> 0 then
                         if Modify() then;
@@ -120,14 +120,23 @@ table 309 "No. Series Line"
         field(11; "Allow Gaps in Nos."; Boolean)
         {
             Caption = 'Allow Gaps in Nos.';
+            ObsoleteReason = 'The specific implementation is defined by the Implementation field and whether the implementation may produce gaps can be determined through the implementation interface or the procedure MayProduceGaps.';
+#if not CLEAN24
+            ObsoleteState = Pending;
+            ObsoleteTag = '24.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '27.0';
+#endif
 
+#if not CLEAN24
             trigger OnValidate()
             var
                 NoSeries: Record "No. Series";
                 NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
                 NoSeries.Get("Series Code");
-                if "Allow Gaps in Nos." = xRec."Allow Gaps in Nos." then
+                if Rec."Allow Gaps in Nos." = xRec."Allow Gaps in Nos." then
                     exit;
                 if "Allow Gaps in Nos." then
                     NoSeriesMgt.RecreateSequence(Rec)
@@ -137,9 +146,16 @@ table 309 "No. Series Line"
                     "Starting Sequence No." := 0;
                     "Sequence Name" := '';
                 end;
+
+                if "Allow Gaps in Nos." then // Keep the implementation in sync with the Allow Gaps field
+                    Validate(Implementation, Enum::"No. Series Implementation"::Sequence)
+                else
+                    Validate(Implementation, Enum::"No. Series Implementation"::Normal);
+
                 if "Line No." <> 0 then
                     Modify();
             end;
+#endif
         }
         field(12; "Sequence Name"; Code[40])
         {
@@ -152,6 +168,26 @@ table 309 "No. Series Line"
             Caption = 'Starting Sequence No.';
             DataClassification = CustomerContent;
             Editable = false;
+        }
+        field(14; Implementation; Enum "No. Series Implementation")
+        {
+            Caption = 'Implementation';
+            DataClassification = SystemMetadata;
+
+#if not CLEAN24
+#pragma warning disable AL0432
+            trigger OnValidate()
+            var
+                NoSeriesSingle: Interface "No. Series - Single";
+            begin
+                if Rec.Implementation = xRec.Implementation then
+                    exit;
+
+                NoSeriesSingle := Implementation;
+                Validate("Allow Gaps in Nos.", NoSeriesSingle.MayProduceGaps()); // Keep the Allow Gaps field in sync with the implementation
+            end;
+#pragma warning restore AL0432
+#endif
         }
         field(10000; Series; Code[10]) // NA (MX) Functionality
         {
@@ -221,8 +257,13 @@ table 309 "No. Series Line"
         }
     }
 
+    procedure MayProduceGaps(): Boolean
     var
-        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
+        NoSeriesSingle: Interface "No. Series - Single";
+    begin
+        NoSeriesSingle := Implementation;
+        exit(NoSeriesSingle.MayProduceGaps());
+    end;
 
     local procedure CalculateOpen(): Boolean
     begin
@@ -302,8 +343,9 @@ table 309 "No. Series Line"
         No := CopyStr(StartNo + ZeroNo + NewNo + EndNo, 1, MaxStrLen(No));
     end;
 
-#if not CLEAN24
     var
+        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
+#if not CLEAN24
         ShouldBeValidYearErr: Label 'Should be a valid year.';
 
     [Obsolete('Use the field Last Date Used instead.', '24.0')]

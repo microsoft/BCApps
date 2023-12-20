@@ -114,7 +114,7 @@ codeunit 281 NoSeriesMgt
         end;
     end;
 
-    internal procedure UpdateLine(var NoSeries: Record "No. Series"; var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var AllowGaps: Boolean)
+    internal procedure UpdateLine(var NoSeries: Record "No. Series"; var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var Implementation: Enum "No. Series Implementation")
     var
         NoSeriesLine: Record "No. Series Line";
     begin
@@ -131,10 +131,10 @@ codeunit 281 NoSeriesMgt
                     WarningNo := NoSeriesLine."Warning No.";
                     IncrementByNo := NoSeriesLine."Increment-by No.";
                     LastDateUsed := NoSeriesLine."Last Date Used";
-                    AllowGaps := NoSeriesLine."Allow Gaps in Nos.";
+                    Implementation := NoSeriesLine.Implementation;
                 end;
             else
-                OnNoSeriesUpdateLine(NoSeries, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps)
+                OnNoSeriesUpdateLine(NoSeries, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, Implementation)
         end;
     end;
 
@@ -161,6 +161,8 @@ codeunit 281 NoSeriesMgt
         end;
     end;
 
+#if not CLEAN24
+#pragma warning disable AL0432
     internal procedure SetAllowGaps(var NoSeries: Record "No. Series"; AllowGaps: Boolean)
     var
         NoSeriesLine: Record "No. Series Line";
@@ -177,6 +179,8 @@ codeunit 281 NoSeriesMgt
                 NoSeriesLine.Modify();
             until NoSeriesLine.Next() = 0;
     end;
+#pragma warning restore AL0432
+#endif
 
     // TODO get rid of handled events
     internal procedure ValidateDefaultNos(var NoSeries: Record "No. Series"; xRecNoSeries: Record "No. Series")
@@ -232,7 +236,7 @@ codeunit 281 NoSeriesMgt
 
     internal procedure UpdateStartingSequenceNo(var NoSeriesLine: Record "No. Series Line")
     begin
-        if not NoSeriesLine."Allow Gaps in Nos." then
+        if not (NoSeriesLine.Implementation = "No. Series Implementation"::Sequence) then
             exit;
 
         if NoSeriesLine."Last No. Used" = '' then
@@ -486,7 +490,7 @@ codeunit 281 NoSeriesMgt
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnNoSeriesUpdateLine(var NoSeries: Record "No. Series"; var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var AllowGaps: Boolean)
+    local procedure OnNoSeriesUpdateLine(var NoSeries: Record "No. Series"; var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var Implementation: Enum "No. Series Implementation")
     begin
     end;
 

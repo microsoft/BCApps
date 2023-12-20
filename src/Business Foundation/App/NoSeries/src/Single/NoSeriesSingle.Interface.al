@@ -33,4 +33,11 @@ interface "No. Series - Single"
     /// <param name="NoSeriesLine">The No. Series line to use.</param>
     /// <returns>The last number used in the series.</returns>
     procedure GetLastNoUsed(NoSeriesLine: Record "No. Series Line"): Code[20]
+
+    /// <summary>
+    /// Specifies whether the implementation may produce gaps in the No. Series.
+    /// For some business scenarios it is important that the No. Series does not produce gaps. This procedure is used to verify that does not happen.
+    /// </summary>
+    /// <returns>Whether it is possible that the implementation will produce gaps.</returns>
+    procedure MayProduceGaps(): Boolean
 }

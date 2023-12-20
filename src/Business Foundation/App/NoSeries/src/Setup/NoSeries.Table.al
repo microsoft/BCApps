@@ -154,8 +154,12 @@ table 308 "No. Series"
     procedure UpdateLine(var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var AllowGaps: Boolean)
     var
         NoSeriesMgt: Codeunit NoSeriesMgt;
+        NoSeriesSingle: Interface "No. Series - Single";
+        NoSeriesImplementation: Enum "No. Series Implementation";
     begin
-        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
+        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, NoSeriesImplementation);
+        NoSeriesSingle := NoSeriesImplementation;
+        AllowGaps := NoSeriesSingle.MayProduceGaps();
     end;
 
     [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
