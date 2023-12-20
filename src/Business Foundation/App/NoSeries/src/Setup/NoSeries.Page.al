@@ -244,8 +244,10 @@ page 456 "No. Series"
                 ToolTip = 'Test whether the number series can generate new numbers.';
 
                 trigger OnAction()
+                var
+                    NoSeries: Codeunit "No. Series";
                 begin
-                    Codeunit.Run(Codeunit::"No. Series Check", Rec);
+                    NoSeries.PeekNextNo(Rec.Code, WorkDate());
                 end;
             }
         }

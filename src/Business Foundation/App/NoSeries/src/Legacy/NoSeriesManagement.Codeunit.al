@@ -38,8 +38,8 @@ codeunit 396 NoSeriesManagement
 #endif
 #if not CLEAN24
         CannotAssignManuallyErr: Label 'You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.', Comment = '%1=Manual Nos. setting,%2=No. Series table caption,%3=No. Series Code';
-#endif
         CannotAssignAutomaticallyErr: Label 'It is not possible to assign numbers automatically. If you want the program to assign numbers automatically, please activate %1 in %2 %3.', Comment = '%1=Default Nos. setting,%2=No. Series table caption,%3=No. Series Code';
+#endif
         CannotAssignNewOnDateErr: Label 'You cannot assign new numbers from the number series %1 on %2.', Comment = '%1=No. Series Code,%2=Date';
         CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1=No. Series Code';
         CannotAssignNewBeforeDateErr: Label 'You cannot assign new numbers from the number series %1 on a date before %2.', Comment = '%1=No. Series Code,%2=Date';
@@ -99,12 +99,10 @@ codeunit 396 NoSeriesManagement
         if NoSeries.Get(NoSeriesCode) then;
         OnAfterInitSeries(NoSeries, DefaultNoSeriesCode, NewDate, NewNo);
     end;
-#endif
+
+    [Obsolete('Please use AreRelated in the "No. Series" codeunit instead', '24.0')]
     procedure InitSeries(DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20])
     var
-#if CLEAN24
-        NoSeries: Codeunit "No. Series";
-#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -126,13 +124,10 @@ codeunit 396 NoSeriesManagement
             NewNo := GetNextNo(GlobalNoSeries.Code, NewDate, true);
             NewNoSeriesCode := GlobalNoSeries.Code;
         end else
-#if not CLEAN24
             TestManual(DefaultNoSeriesCode);
-#else
-            NoSeries.TestManual(DefaultNoSeriesCode);
-#endif
         OnAfterInitSeries(GlobalNoSeries, DefaultNoSeriesCode, NewDate, NewNo);
     end;
+#endif
 
     procedure SetDefaultSeries(var NewNoSeriesCode: Code[20]; NoSeriesCode: Code[20])
     var
@@ -272,11 +267,10 @@ codeunit 396 NoSeriesManagement
         if SeriesDate = 0D then
             SeriesDate := WorkDate();
 
-        SetNoSeriesLineFilter(CurrNoSeriesLine, NoSeriesCode, SeriesDate);
+        FindNoSeriesLine(CurrNoSeriesLine, NoSeriesCode, SeriesDate);
         if ModifySeries or (LastNoSeriesLine."Series Code" = '') or (LastNoSeriesLine."Series Code" <> NoSeriesCode) or ((LastNoSeriesLine."Line No." <> CurrNoSeriesLine."Line No.") and (LastNoSeriesLine."Series Code" = NoSeriesCode)) then begin
             GlobalNoSeries.Get(NoSeriesCode);
-            SetNoSeriesLineFilter(NoSeriesLine, NoSeriesCode, SeriesDate);
-            if not NoSeriesLine.FindFirst() then begin
+            if not FindNoSeriesLine(NoSeriesLine, NoSeriesCode, SeriesDate) then begin
                 if NoErrorsOrWarnings then
                     exit('');
                 NoSeriesLine.SetRange("Starting Date");
@@ -354,9 +348,17 @@ codeunit 396 NoSeriesManagement
     end;
 
     procedure FindNoSeriesLine(var NoSeriesLineResult: Record "No. Series Line"; NoSeriesCode: Code[20]; SeriesDate: Date): Boolean
+#if CLEAN24
+    var
+        NoSeries: Codeunit "No. Series";
+#endif
     begin
+#if not CLEAN24
         SetNoSeriesLineFilter(NoSeriesLineResult, NoSeriesCode, SeriesDate);
         exit(NoSeriesLineResult.FindFirst());
+#else
+        exit(NoSeries.GetNoSeriesLine(NoSeriesLineResult, NoSeriesCode, SeriesDate, true));
+#endif
     end;
 
     procedure IsCurrentNoSeriesLine(NoSeriesLineIn: Record "No. Series Line"): Boolean
@@ -448,6 +450,8 @@ codeunit 396 NoSeriesManagement
         Clear(LastNoSeriesLine);
     end;
 
+#if not CLEAN24
+    [Obsolete('Please use the procedure GetNoSeriesLine on the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
     procedure SetNoSeriesLineFilter(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; StartDate: Date)
     begin
         if StartDate = 0D then
@@ -463,6 +467,7 @@ codeunit 396 NoSeriesManagement
             NoSeriesLine.SetRange(Open, true);
         end;
     end;
+#endif
 
     internal procedure RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(var NoSeriesLine: Record "No. Series Line")
     begin
@@ -806,8 +811,7 @@ codeunit 396 NoSeriesManagement
             if ModifySeries then
                 NoSeriesLine.LockTable();
             GlobalNoSeries.Get(NoSeriesCode);
-            SetNoSeriesLineFilter(NoSeriesLine, NoSeriesCode, SeriesDate);
-            if not NoSeriesLine.Find('-') then begin
+            if not FindNoSeriesLine(NoSeriesLine, NoSeriesCode, SeriesDate) then begin
                 NoSeriesLine.SetRange("Starting Date");
                 if NoSeriesLine.Find('-') then
                     Error(
@@ -924,21 +928,25 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 
+#if not CLEAN24
+    [Obsolete('Please use the No. Series module instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitSeries(var NoSeries: Record "No. Series"; DefaultNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20])
     begin
     end;
-
+#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFilterSeries(var NoSeries: Record "No. Series"; NoSeriesCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
+#if not CLEAN24
+    [Obsolete('Please use the No. Series module instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitSeries(var DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20]; var NoSeries: Record "No. Series"; var IsHandled: Boolean; var NoSeriesCode: Code[20])
     begin
     end;
-
+#endif
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSelectSeries(var DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]; var Result: Boolean; var IsHandled: Boolean)
     begin
