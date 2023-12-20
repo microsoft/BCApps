@@ -18,6 +18,7 @@ permissionset 9862 "Permission Sets - Objects"
         page "Metadata Permission Subform" = X,
         page "Permission Lookup List" = X,
         page "Permission Set" = X,
+        page "Permission Set Lookup List" = X,
         page "Permission Set Subform" = X,
         page "Permission Set Tree" = X,
         page "Tenant Permission Subform" = X,

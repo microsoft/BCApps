@@ -10,7 +10,7 @@ using System.Globalization;
 table 137121 "Translation Test Table"
 {
     DataClassification = SystemMetadata;
-    LookupPageID = "Translation Test Page";
+    LookupPageId = "Translation Test Page";
     ReplicateData = false;
 
     fields

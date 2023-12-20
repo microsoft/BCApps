@@ -20,7 +20,7 @@ page 9 Languages
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control2)
             {
@@ -38,7 +38,7 @@ page 9 Languages
                 field("Windows Language ID"; Rec."Windows Language ID")
                 {
                     ApplicationArea = All;
-                    LookupPageID = "Windows Languages";
+                    LookupPageId = "Windows Languages";
                     ToolTip = 'Specifies the ID of the Windows language associated with the language code you have set up in this line.';
                 }
                 field("Windows Language Name"; Rec."Windows Language Name")
@@ -51,9 +51,6 @@ page 9 Languages
         }
     }
 
-    actions
-    {
-    }
 }
 
 

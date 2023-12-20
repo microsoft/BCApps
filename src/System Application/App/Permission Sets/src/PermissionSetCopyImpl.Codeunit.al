@@ -60,8 +60,8 @@ codeunit 9863 "Permission Set Copy Impl."
                 end;
         end;
 
-        // Copying by flatten is for legacy support, so no uptake logging for composable permission sets. 
-        FeatureTelemetry.LogUsage('0000HZO', ComposablePermissionSetsTok, 'Permission set copied by flatten.', GetCustomDimensions(NewRoleID, NewName, SourceRoleId, SourceAppId, SourceScope));
+        // Copying by flatten is for legacy support, so no uptake logging for composable permission sets.
+        FeatureTelemetry.LogUsage('0000HZO', ComposablePermissionSetsTok, 'Permission set copied by flatten.', GetCustomDimensions(NewRoleId, NewName, SourceRoleId, SourceAppId, SourceScope));
     end;
 
     local procedure CopyPermissionSetByClone(NewRoleId: Code[30]; NewName: Text; SourceRoleId: Code[30]; SourceAppId: Guid; SourceScope: Option System,Tenant)
@@ -110,7 +110,7 @@ codeunit 9863 "Permission Set Copy Impl."
                 end;
         end;
 
-        FeatureTelemetry.LogUsage('0000HZP', ComposablePermissionSetsTok, 'Permission set copied by clone.', GetCustomDimensions(NewRoleID, NewName, SourceRoleId, SourceAppId, SourceScope));
+        FeatureTelemetry.LogUsage('0000HZP', ComposablePermissionSetsTok, 'Permission set copied by clone.', GetCustomDimensions(NewRoleId, NewName, SourceRoleId, SourceAppId, SourceScope));
     end;
 
     local procedure CopyPermissionSetByReference(NewRoleId: Code[30]; NewName: Text; SourceRoleId: Code[30]; SourceAppId: Guid; SourceScope: Option System,Tenant)
@@ -124,7 +124,7 @@ codeunit 9863 "Permission Set Copy Impl."
 
         CreateTenantPermissionSetRelation(NewRoleId, SourceRoleId, SourceAppId, SourceScope, TenantPermissionSetRel.Type::Include);
 
-        FeatureTelemetry.LogUsage('0000HZQ', ComposablePermissionSetsTok, 'Permission set copied by reference.', GetCustomDimensions(NewRoleID, NewName, SourceRoleId, SourceAppId, SourceScope));
+        FeatureTelemetry.LogUsage('0000HZQ', ComposablePermissionSetsTok, 'Permission set copied by reference.', GetCustomDimensions(NewRoleId, NewName, SourceRoleId, SourceAppId, SourceScope));
     end;
 
     local procedure CreateNewTenantPermissionSet(NewRoleID: Code[30]; NewName: Text)

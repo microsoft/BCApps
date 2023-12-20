@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Telemetry;
 using System.Security.User;
 using System.Azure.Identity;
+using System.Environment;
 using System.Privacy;
 
 codeunit 7774 "Copilot Capability Impl"
@@ -52,7 +53,7 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings.Capability := CopilotCapability;
         CopilotSettings."App Id" := CallerModuleInfo.Id();
         CopilotSettings.Publisher := CopyStr(CallerModuleInfo.Publisher, 1, MaxStrLen(CopilotSettings.Publisher));
-        CopilotSettings."Availability" := CopilotAvailability;
+        CopilotSettings.Availability := CopilotAvailability;
         CopilotSettings."Learn More Url" := LearnMoreUrl;
         CopilotSettings.Status := Enum::"Copilot Status"::Active;
         CopilotSettings.Insert();
@@ -73,15 +74,16 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
         CopilotSettings.Get(CopilotCapability, CallerModuleInfo.Id());
 
-        if CopilotSettings."Availability" <> CopilotAvailability then
+        if CopilotSettings.Availability <> CopilotAvailability then
             CopilotSettings.Status := Enum::"Copilot Status"::Active;
 
-        CopilotSettings."Availability" := CopilotAvailability;
+        CopilotSettings.Availability := CopilotAvailability;
         CopilotSettings."Learn More Url" := LearnMoreUrl;
         CopilotSettings.Modify(true);
         Commit();
 
         AddTelemetryDimensions(CopilotCapability, CallerModuleInfo.Id(), CustomDimensions);
+        AddStatusTelemetryDimension(CopilotSettings.Status, CustomDimensions);
         FeatureTelemetry.LogUsage('0000LDW', CopilotCategoryLbl, TelemetryModifiedCopilotCapabilityLbl, CustomDimensions);
     end;
 
@@ -128,7 +130,7 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings: Record "Copilot Settings";
     begin
         CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
-        CopilotSettings.SetLoadFields("Status");
+        CopilotSettings.SetLoadFields(Status);
         if not CopilotSettings.Get(CopilotCapability, AppId) then
             exit(false);
 
@@ -198,6 +200,19 @@ codeunit 7774 "Copilot Capability Impl"
         exit(CopilotCategoryLbl);
     end;
 
+    procedure AddStatusTelemetryDimension(CopilotStatus: Enum "Copilot Status"; var CustomDimensions: Dictionary of [Text, Text])
+    var
+        Language: Codeunit Language;
+        SavedGlobalLanguageId: Integer;
+    begin
+        SavedGlobalLanguageId := GlobalLanguage();
+        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
+
+        CustomDimensions.Add('Status', Format(CopilotStatus));
+
+        GlobalLanguage(SavedGlobalLanguageId);
+    end;
+
     procedure AddTelemetryDimensions(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; var CustomDimensions: Dictionary of [Text, Text])
     var
         Language: Codeunit Language;
@@ -229,5 +244,15 @@ codeunit 7774 "Copilot Capability Impl"
         TempPrivacyNotice.ID := AzureOpenAiTxt;
         TempPrivacyNotice."Integration Service Name" := AzureOpenAiTxt;
         if not TempPrivacyNotice.Insert() then;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetCopilotCapabilityStatus', '', false, false)]
+    local procedure GetCopilotCapabilityStatus(Capability: Integer; var IsEnabled: Boolean)
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        CopilotCapability: Enum "Copilot Capability";
+    begin
+        CopilotCapability := Enum::"Copilot Capability".FromInteger(Capability);
+        Isenabled := AzureOpenAI.IsEnabled(CopilotCapability, true);
     end;
 }

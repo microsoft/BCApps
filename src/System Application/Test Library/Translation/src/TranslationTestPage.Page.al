@@ -14,7 +14,7 @@ page 137121 "Translation Test Page"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(General)
             {

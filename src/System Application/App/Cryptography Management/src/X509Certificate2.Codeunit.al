@@ -8,7 +8,7 @@ namespace System.Security.Encryption;
 /// <summary>
 /// Provides helper functions to work with the X509Certificate2 class.
 /// </summary>
-codeunit 1286 "X509Certificate2"
+codeunit 1286 X509Certificate2
 {
     Access = Public;
     InherentEntitlements = X;
@@ -37,7 +37,7 @@ codeunit 1286 "X509Certificate2"
     /// </summary>
     /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
     /// <param name="Password">Certificate Password</param>
-    /// <param name="FriendlyName">Represents certificate Friendly Name</param> 
+    /// <param name="FriendlyName">Represents certificate Friendly Name</param>
     [NonDebuggable]
     procedure GetCertificateFriendlyName(CertBase64Value: Text; Password: Text; var FriendlyName: Text)
     begin
@@ -60,8 +60,8 @@ codeunit 1286 "X509Certificate2"
     /// Specifies the thumbprint of the certificate based on it's Base64 value.
     /// </summary>
     /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
-    /// <param name="Password">Certificate Password</param>    
-    /// <param name="Thumbprint">Certificate Thumbprint</param> 
+    /// <param name="Password">Certificate Password</param>
+    /// <param name="Thumbprint">Certificate Thumbprint</param>
     [NonDebuggable]
     procedure GetCertificateThumbprint(CertBase64Value: Text; Password: Text; var Thumbprint: Text)
     begin
@@ -72,8 +72,8 @@ codeunit 1286 "X509Certificate2"
     /// Specifies the issuer of the certificate based on it's Base64 value.
     /// </summary>
     /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
-    /// <param name="Password">Certificate Password</param>    
-    /// <param name="Issuer">Certificate Issuer</param> 
+    /// <param name="Password">Certificate Password</param>
+    /// <param name="Issuer">Certificate Issuer</param>
     [NonDebuggable]
     procedure GetCertificateIssuer(CertBase64Value: Text; Password: Text; var Issuer: Text)
     begin
@@ -83,9 +83,9 @@ codeunit 1286 "X509Certificate2"
     /// <summary>
     /// Specifies the expiration date of the certificate based on it's Base64 value.
     /// </summary>
-    /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>   
-    /// <param name="Password">Certificate Password</param> 
-    /// <param name="Expiration">Certificate Expiration Date</param> 
+    /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
+    /// <param name="Password">Certificate Password</param>
+    /// <param name="Expiration">Certificate Expiration Date</param>
     [NonDebuggable]
     procedure GetCertificateExpiration(CertBase64Value: Text; Password: Text; var Expiration: DateTime)
     begin
@@ -95,9 +95,9 @@ codeunit 1286 "X509Certificate2"
     /// <summary>
     /// Specifies the NotBefore date of the certificate based on it's Base64 value.
     /// </summary>
-    /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param> 
-    /// <param name="Password">Certificate Password</param>   
-    /// <param name="NotBefore">Certificate NotBefore Date</param>  
+    /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
+    /// <param name="Password">Certificate Password</param>
+    /// <param name="NotBefore">Certificate NotBefore Date</param>
     [NonDebuggable]
     procedure GetCertificateNotBefore(CertBase64Value: Text; Password: Text; var NotBefore: DateTime)
     begin
@@ -107,9 +107,9 @@ codeunit 1286 "X509Certificate2"
     /// <summary>
     /// Checks whether the certificate has a private key based on it's Base64 value.
     /// </summary>
-    /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>  
+    /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
     /// <param name="Password">Certificate Password</param>
-    /// <returns>True if the certificate has private key</returns>  
+    /// <returns>True if the certificate has private key</returns>
     [NonDebuggable]
     procedure HasPrivateKey(CertBase64Value: Text; Password: Text): Boolean
     begin
@@ -155,7 +155,7 @@ codeunit 1286 "X509Certificate2"
     /// </summary>
     /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
     /// <param name="Password">Certificate Password</param>
-    /// <param name="SerialNumber">Certificate serial number</param>  
+    /// <param name="SerialNumber">Certificate serial number</param>
     [NonDebuggable]
     procedure GetCertificateSerialNumber(CertBase64Value: Text; Password: Text; var SerialNumber: Text)
     begin
@@ -167,7 +167,7 @@ codeunit 1286 "X509Certificate2"
     /// </summary>
     /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
     /// <param name="Password">Certificate Password</param>
-    /// <param name="SerialNumberASCII">Certificate serial number as ascii</param>  
+    /// <param name="SerialNumberASCII">Certificate serial number as ascii</param>
     [NonDebuggable]
     procedure GetCertificateSerialNumberAsASCII(CertBase64Value: Text; Password: Text; var SerialNumberASCII: Text)
     begin

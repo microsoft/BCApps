@@ -5,7 +5,7 @@
 
 namespace System.Text;
 
-/// <summary> 
+/// <summary>
 /// The available 2D barcode font providers.
 /// </summary>
 enum 9207 "Barcode Image Provider 2D" implements "Barcode Image Provider 2D"

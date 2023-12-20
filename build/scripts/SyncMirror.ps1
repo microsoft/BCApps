@@ -50,10 +50,10 @@ if ($Branch) {
         Write-Host "Checking out $Branch from $SourceRepository"
         RunAndCheck git checkout upstream/$Branch --track
     }
-    
+
     # Merge changes from upstream
     RunAndCheck git pull upstream $Branch
-    
+
     # Push to origin
     Write-Host "Pushing $Branch to $TargetRepository"
     RunAndCheck git push origin $Branch

@@ -1,5 +1,6 @@
 using module .\GitHubAPI.class.psm1
 using module .\GitHubIssue.class.psm1
+using module .\GitHubWorkItemLink.class.psm1
 
 <#
     Class that represents a GitHub pull request.
@@ -30,34 +31,72 @@ class GitHubPullRequest {
     static [GitHubPullRequest] Get([int] $PRNumber, [string] $Repository) {
         $pr = [GitHubPullRequest]::new($PRNumber, $Repository)
 
+        if (-not $pr.PullRequest) {
+            return $null
+        }
+
         return $pr
+    }
+
+    static [GitHubPullRequest] GetFromBranch([string] $BranchName, [string] $Repository) {
+        $openPullRequests = gh api "/repos/$Repository/pulls" --method GET -f state=open | ConvertFrom-Json
+        $existingPullRequest = $openPullRequests | Where-Object { $_.head.ref -eq $BranchName } | Select-Object -First 1
+
+        if ($existingPullRequest) {
+            $pr = [GitHubPullRequest]::Get($existingPullRequest.number, $Repository)
+            return $pr
+        }
+
+        return $null
+    }
+
+    <#
+        Updates the pull request description.
+    #>
+    UpdateDescription() {
+        $TempFile = New-TemporaryFile
+        Set-Content -Path $TempFile -Value $this.PullRequest.body
+
+        $params = @(
+            "--body-file '$($TempFile)'" # body is the description
+        )
+
+        $parameters = ($params -join " ")
+        Invoke-Expression "gh pr edit $($this.PRNumber) $parameters"
+
+        Remove-Item $TempFile
     }
 
     <#
         Gets the linked issues IDs from the pull request description.
-        .param $issueSection
-            The section of the pull request description that contains the issue ID.
         .returns
             An array of linked issue IDs.
     #>
-    [int[]] GetLinkedIssueIDs($issueSection) {
-        if(-not $this.PullRequest.body) {
-            return @()
-        }
+    [int[]] GetLinkedIssueIDs() {
+        return [GitHubWorkItemLink]::GetLinkedIssueIDs($this.PullRequest.body)
+    }
 
-        $issueRegex = "$issueSection(\d+)" # e.g. "Fixes #1234"
-        $issueMatches = Select-String $issueRegex -InputObject $this.PullRequest.body -AllMatches
+    <#
+        Gets the linked ADO workitem IDs from the pull request description.
+        .returns
+            An array of linked issue IDs.
+    #>
+    [int[]] GetLinkedADOWorkItemIDs() {
+        return [GitHubWorkItemLink]::GetLinkedADOWorkItemIDs($this.PullRequest.body)
+    }
 
-        if(-not $issueMatches) {
-            return @()
-        }
+    <#
+        Links the pull request to the ADO workitem.
+    #>
+    LinkToADOWorkItem($WorkItem) {
+        $this.PullRequest.body = [GitHubWorkItemLink]::LinkToADOWorkItem($this.PullRequest.body, $WorkItem)
+    }
 
-        $issueIds = @()
-        foreach($match in $issueMatches.Matches) {
-            $issueIds += $match.Groups[1].Value
-        }
-
-        return $issueIds
+    <#
+        Returns true if the pull request is from a fork.
+    #>
+    [bool] IsFromFork() {
+        return $this.PullRequest.head.repo.fork
     }
 
     <#
@@ -98,7 +137,7 @@ class GitHubPullRequest {
         $githubMilestone = $allMilestones | Where-Object { $_.title -eq $Milestone }
         if (-not $githubMilestone) {
             Write-Host "::Warning:: Milestone '$Milestone' not found"
-            return 
+            return
         }
         $milestoneNumber = $githubMilestone.number
         gh api "/repos/$($this.Repository)/issues/$($this.PRNumber)" -H ([GitHubAPI]::AcceptJsonHeader) -H ([GitHubAPI]::GitHubAPIHeader) -F milestone=$milestoneNumber | ConvertFrom-Json

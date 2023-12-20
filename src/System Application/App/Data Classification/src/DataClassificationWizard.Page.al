@@ -24,7 +24,7 @@ page 1752 "Data Classification Wizard"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(WelcomePage)
             {
@@ -79,7 +79,7 @@ page 1752 "Data Classification Wizard"
 
                     trigger OnDrillDown()
                     begin
-                        HyperLink(HelpUrlTxt);
+                        Hyperlink(HelpUrlTxt);
                     end;
                 }
             }
@@ -108,7 +108,7 @@ page 1752 "Data Classification Wizard"
                         ApplicationArea = All;
                         Caption = '- Importing the classifications from another company.';
                     }
-                    field("ExportModeSelected"; IsExportModeSelectedValue)
+                    field(ExportModeSelected; IsExportModeSelectedValue)
                     {
                         ApplicationArea = All;
                         Caption = 'Export Classification Data to Excel';
@@ -202,7 +202,7 @@ page 1752 "Data Classification Wizard"
                         {
                             ApplicationArea = All;
                             Caption = 'Data on templates is:';
-                            TooltIp = 'Specifies the default sensitivity classifications to apply to templates that are used to create new records, such as customers or items. You can view the fields to classify them individually.';
+                            ToolTip = 'Specifies the default sensitivity classifications to apply to templates that are used to create new records, such as customers or items. You can view the fields to classify them individually.';
                             OptionCaption = 'Unclassified,Sensitive,Personal,Company Confidential,Normal';
                         }
                         field(Control38; ViewFieldsTok)
@@ -226,7 +226,7 @@ page 1752 "Data Classification Wizard"
                         {
                             ApplicationArea = All;
                             Caption = 'Data on setup tables is:';
-                            Tooltip = 'Specifies the default sensitivity classifications to apply to data on setup tables that control how you will use features, such as the tables used by the general ledger. You can view the fields to classify them individually.';
+                            ToolTip = 'Specifies the default sensitivity classifications to apply to data on setup tables that control how you will use features, such as the tables used by the general ledger. You can view the fields to classify them individually.';
                             OptionCaption = 'Unclassified,Sensitive,Personal,Company Confidential,Normal';
                         }
                         field(Control56; ViewFieldsTok)
@@ -438,7 +438,7 @@ page 1752 "Data Classification Wizard"
                 trigger OnAction()
                 begin
                     if ShowWorksheet then
-                        PAGE.Run(PAGE::"Data Classification Worksheet");
+                        Page.Run(Page::"Data Classification Worksheet");
                     CurrPage.Close();
                 end;
             }
@@ -491,7 +491,7 @@ page 1752 "Data Classification Wizard"
 
     /// <summary>
     /// Resets the buttons on the page, enabling and disabling them according to the current step.
-    /// </summary>	
+    /// </summary>
     procedure ResetControls()
     var
         DataClassificationMgt: Codeunit "Data Classification Mgt.";
@@ -544,7 +544,7 @@ page 1752 "Data Classification Wizard"
 
     /// <summary>
     /// Queries on whether or not the Next button should be enabled.
-    /// </summary>	
+    /// </summary>
     /// <returns>True if the Next button should be enabled and false otherwise.</returns>
     procedure ShouldEnableNext(): Boolean
     begin
@@ -580,8 +580,8 @@ page 1752 "Data Classification Wizard"
 
     /// <summary>
     /// Selects the next step.
-    /// </summary>	
-    /// <param name="Backward">A boolean value that specifies if the next step should be to go back.</param>	
+    /// </summary>
+    /// <param name="Backward">A boolean value that specifies if the next step should be to go back.</param>
     procedure NextStep(Backward: Boolean)
     begin
         if Backward then begin
@@ -599,7 +599,7 @@ page 1752 "Data Classification Wizard"
 
     /// <summary>
     /// Displays errors if the preconditions for an action are not met.
-    /// </summary>		
+    /// </summary>
     procedure CheckMandatoryActions()
     begin
         if Step = Step::"Verify Related Fields" then begin
@@ -616,7 +616,7 @@ page 1752 "Data Classification Wizard"
 
     /// <summary>
     /// Queries on whether the Next button is enabled.
-    /// </summary>			
+    /// </summary>
     /// <returns>True if the Next button is enabled and false otherwise.</returns>
     procedure IsNextEnabled(): Boolean
     begin
@@ -625,8 +625,8 @@ page 1752 "Data Classification Wizard"
 
     /// <summary>
     /// Gets the current step.
-    /// </summary>			
-    /// <returns>The current step.</returns>	
+    /// </summary>
+    /// <returns>The current step.</returns>
     procedure GetStep(): Option
     begin
         exit(Step);
@@ -634,8 +634,8 @@ page 1752 "Data Classification Wizard"
 
     /// <summary>
     /// Sets the current step.
-    /// </summary>	
-    /// <param name="StepValue">The new value of the current step.</param>	
+    /// </summary>
+    /// <param name="StepValue">The new value of the current step.</param>
     procedure SetStep(StepValue: Option)
     begin
         Step := StepValue;
@@ -643,8 +643,8 @@ page 1752 "Data Classification Wizard"
 
     /// <summary>
     /// Queries on whether import mode is selected.
-    /// </summary>			
-    /// <returns>True if import mode is selected and false otherwise.</returns>		
+    /// </summary>
+    /// <returns>True if import mode is selected and false otherwise.</returns>
     procedure IsImportModeSelected(): Boolean
     begin
         exit(IsImportModeSelectedValue);
@@ -652,8 +652,8 @@ page 1752 "Data Classification Wizard"
 
     /// <summary>
     /// Queries on whether export mode is selected.
-    /// </summary>			
-    /// <returns>True if export mode is selected and false otherwise.</returns>		
+    /// </summary>
+    /// <returns>True if export mode is selected and false otherwise.</returns>
     procedure IsExportModeSelected(): Boolean
     begin
         exit(IsExportModeSelectedValue);
@@ -661,8 +661,8 @@ page 1752 "Data Classification Wizard"
 
     /// <summary>
     /// Queries on whether expert mode is selected.
-    /// </summary>			
-    /// <returns>True if expert mode is selected and false otherwise.</returns>		
+    /// </summary>
+    /// <returns>True if expert mode is selected and false otherwise.</returns>
     procedure IsExpertModeSelected(): Boolean
     begin
         exit(IsExpertModeSelectedValue);
@@ -670,8 +670,8 @@ page 1752 "Data Classification Wizard"
 
     /// <summary>
     /// Gets the default classification for ledger entries.
-    /// </summary>			
-    /// <returns>The default classification for ledger entries.</returns>		
+    /// </summary>
+    /// <returns>The default classification for ledger entries.</returns>
     procedure GetLedgerEntriesDefaultClassification(): Option
     begin
         exit(LedgerEntriesDefaultClassifications);
@@ -679,8 +679,8 @@ page 1752 "Data Classification Wizard"
 
     /// <summary>
     /// Gets the default classification for templates.
-    /// </summary>			
-    /// <returns>The default classification for templates.</returns>	
+    /// </summary>
+    /// <returns>The default classification for templates.</returns>
     procedure GetTemplatesDefaultClassification(): Option
     begin
         exit(TemplatesDefaultClassifications);
@@ -688,8 +688,8 @@ page 1752 "Data Classification Wizard"
 
     /// <summary>
     /// Gets the default classification for setup tables.
-    /// </summary>			
-    /// <returns>The default classification for setup tables.</returns>	
+    /// </summary>
+    /// <returns>The default classification for setup tables.</returns>
     procedure GetSetupTablesDefaultClassification(): Option
     begin
         exit(SetupTablesDefaultClassifications);

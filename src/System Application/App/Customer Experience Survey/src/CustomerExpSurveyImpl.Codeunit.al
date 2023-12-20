@@ -292,7 +292,7 @@ codeunit 9261 "Customer Exp. Survey Impl."
                 exit;
             end;
         Session.LogMessage('0000J9O', TenantInfoNotFoundLbl, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CustomerExperienceSurveyTok);
-        error('');
+        Error('');
     end;
 
     internal procedure RemoveUserIdFromMessage(Message: Text): Text

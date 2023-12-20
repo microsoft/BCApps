@@ -64,7 +64,7 @@ table 8944 "Email Address Lookup"
 
     keys
     {
-        key(PK; "E-Mail Address", "Name", "Entity type")
+        key(PK; "E-Mail Address", Name, "Entity type")
         {
             Clustered = true;
         }

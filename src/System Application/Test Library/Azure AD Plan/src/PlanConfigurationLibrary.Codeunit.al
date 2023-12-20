@@ -13,9 +13,9 @@ using System.Azure.Identity;
 codeunit 132924 "Plan Configuration Library"
 {
     Access = Public;
-    Permissions = tabledata "Plan Configuration" = rid,
+    Permissions = tabledata "Custom Permission Set In Plan" = rimd,
                   tabledata "Default Permission Set In Plan" = rimd,
-                  tabledata "Custom Permission Set In Plan" = rimd;
+                  tabledata "Plan Configuration" = rid;
 
     /// <summary>
     /// Clears all plan configurations.

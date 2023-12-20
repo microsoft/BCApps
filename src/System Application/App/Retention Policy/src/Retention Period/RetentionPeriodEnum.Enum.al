@@ -22,7 +22,7 @@ enum 3900 "Retention Period Enum" implements "Retention Period"
     /// <Summary>
     /// The Custom value can be used to create user defined retention periods.
     /// </Summary>
-    value(1; "Custom")
+    value(1; Custom)
     {
         Implementation = "Retention Period" = "Retention Period Custom Impl.";
     }

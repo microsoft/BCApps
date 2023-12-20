@@ -24,7 +24,7 @@ page 9843 "User Lookup"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -61,9 +61,6 @@ page 9843 "User Lookup"
         }
     }
 
-    actions
-    {
-    }
 
     trigger OnOpenPage()
     var

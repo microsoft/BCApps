@@ -33,7 +33,7 @@ codeunit 9855 "Permission Set Relation"
     /// <summary>
     /// Opens the permission set page for the specified role ID.
     /// </summary>
-    /// <param name="Name">The name of the permission set to open.</param> 
+    /// <param name="Name">The name of the permission set to open.</param>
     /// <param name="RoleId">The role ID of the permission set to open.</param>
     /// <param name="AppId">The app ID of the permission set to open.</param>
     /// <param name="Scope">The scope of the permission set to open.</param>
@@ -45,11 +45,11 @@ codeunit 9855 "Permission Set Relation"
     end;
 
     /// <summary>
-    /// Verify that the user can edit permission sets, with the specified app ID. 
+    /// Verify that the user can edit permission sets, with the specified app ID.
     /// Throws an error if not.
     /// </summary>
     /// <error>When the app ID is not null</error>
-    /// <error>When the user doesn''t have neither SUPER, nor SECURITY</error>///  
+    /// <error>When the user doesn''t have neither SUPER, nor SECURITY</error>///
     /// <param name="AppId">The app ID of the permission set to verify.</param>
     procedure VerifyUserCanEditPermissionSet(AppId: Text)
     var
@@ -59,10 +59,10 @@ codeunit 9855 "Permission Set Relation"
     end;
 
     /// <summary>
-    /// CopyPermissionSet will copy the source permission set using the specified copy type. 
+    /// CopyPermissionSet will copy the source permission set using the specified copy type.
     /// </summary>
     /// <param name="NewRoleId">The role ID of the new permission set that permissions are copied to.</param>
-    /// <param name="NewName">The name of the new permission set that permissions are copied to.</param> 
+    /// <param name="NewName">The name of the new permission set that permissions are copied to.</param>
     /// <param name="SourceRoleId">The role ID of the source permission set that permissions are copied from.</param>
     /// <param name="SourceAppId">The app ID of the source permission set that permissions are copied from.</param>
     /// <param name="SourceScope">The scope of the source permission set that permissions are copied from.</param>
@@ -89,7 +89,7 @@ codeunit 9855 "Permission Set Relation"
     var
         PermissionSetRelationImpl: Codeunit "Permission Set Relation Impl.";
     begin
-        exit(PermissionSetRelationImpl.LookupPermissionSet(AllowMultiselect, AggregatePermissionSet));
+        exit(PermissionSetRelationImpl.LookupAssignablePermissionSets(AllowMultiselect, AggregatePermissionSet));
     end;
 
     /// <summary>

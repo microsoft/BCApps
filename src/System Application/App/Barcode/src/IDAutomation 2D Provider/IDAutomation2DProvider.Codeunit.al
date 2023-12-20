@@ -12,7 +12,7 @@ codeunit 9221 "IDAutomation 2D Provider" implements "Barcode Font Provider 2D"
     InherentPermissions = X;
 
     var
-        CannotFindBarcodeEncoderErr: Label 'Provider %1: 2D Barcode symbol encoder %2 is not implemented by this provider!', comment = '%1 Provider Caption, %2 = Symbology Caption';
+        CannotFindBarcodeEncoderErr: Label 'Provider %1: 2D Barcode symbol encoder %2 is not implemented by this provider!', Comment = '%1 Provider Caption, %2 = Symbology Caption';
 
     procedure GetSupportedBarcodeSymbologies(var Result: List of [Enum "Barcode Symbology 2D"])
     var

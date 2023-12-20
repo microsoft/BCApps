@@ -10,11 +10,11 @@ using System.Azure.Identity;
 codeunit 132916 "Azure AD Plan Test Library"
 {
     EventSubscriberInstance = Manual;
-    Permissions = TableData Plan = rimd,
-                  TableData "User Plan" = rimd;
+    Permissions = tabledata Plan = rimd,
+                  tabledata "User Plan" = rimd;
 
     /// <summary>
-    /// Assigns a plan to a user. 
+    /// Assigns a plan to a user.
     /// </summary>
     /// <param name="UserID">The user ID.</param>
     /// <param name="PlanID">The plan to assign to the user.</param>
@@ -45,7 +45,7 @@ codeunit 132916 "Azure AD Plan Test Library"
     end;
 
     /// <summary>
-    /// Reassign a plan to a user. 
+    /// Reassign a plan to a user.
     /// </summary>
     /// <param name="UserID">The user ID.</param>
     /// <param name="PlanID">The plan to reassign to the user.</param>

@@ -5,7 +5,7 @@
 namespace System.AI;
 
 /// <summary>
-/// Represents the Chat Completion parameters used by the API. 
+/// Represents the Chat Completion parameters used by the API.
 /// See more details at https://aka.ms/AAlrz36.
 /// </summary>
 codeunit 7761 "AOAI Chat Completion Params"

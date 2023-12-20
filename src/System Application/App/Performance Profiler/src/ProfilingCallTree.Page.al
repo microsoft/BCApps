@@ -48,25 +48,25 @@ page 1921 "Profiling Call Tree"
                 {
                     ApplicationArea = All;
                     Caption = 'Object Name';
-                    Tooltip = 'Specifies the name of the application object.';
+                    ToolTip = 'Specifies the name of the application object.';
                 }
                 field("Self Time"; Rec."Self Time")
                 {
                     ApplicationArea = All;
                     Caption = 'Self Time';
-                    Tooltip = 'Specifies the amount of time spent only in this method.';
+                    ToolTip = 'Specifies the amount of time spent only in this method.';
                 }
                 field("Full Time"; Rec."Full Time")
                 {
                     ApplicationArea = All;
                     Caption = 'Total Time';
-                    Tooltip = 'Specifies the amount of time spent in this method and the methods it calls.';
+                    ToolTip = 'Specifies the amount of time spent in this method and the methods it calls.';
                 }
                 field("App Name"; Rec."App Name")
                 {
                     ApplicationArea = All;
                     Caption = 'App Name';
-                    Tooltip = 'Specifies the name of the app that the application object belongs to.';
+                    ToolTip = 'Specifies the name of the app that the application object belongs to.';
                 }
             }
         }
@@ -82,7 +82,7 @@ page 1921 "Profiling Call Tree"
         ProfilingDataProcessor: Codeunit "Profiling Data Processor";
     begin
         Rec.DeleteAll();
-        ProfilingDataProcessor.GetFullTimeAggregate(Rec, Enum::"Profiling Aggregation Type"::"None");
+        ProfilingDataProcessor.GetFullTimeAggregate(Rec, Enum::"Profiling Aggregation Type"::None);
         Rec.FindFirst();
     end;
 }

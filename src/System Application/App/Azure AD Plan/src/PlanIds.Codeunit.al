@@ -14,10 +14,6 @@ codeunit 9027 "Plan Ids"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    trigger OnRun()
-    begin
-    end;
-
     var
         Microsoft365PlanGUIDTxt: Label '{57ff2da0-773e-42df-b2af-ffb7a2317929}', Locked = true;
         TeamMemberPlanGUIDTxt: Label '{d9a6391b-8970-4976-bd94-5f205007c8d8}', Locked = true;

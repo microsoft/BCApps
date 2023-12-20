@@ -163,7 +163,7 @@ codeunit 2503 "Extension Operation Impl"
     begin
         CheckPermissions();
 
-        PublishedApplication.SetRange("Package ID", PackageID);
+        PublishedApplication.SetRange("Package ID", PackageId);
         PublishedApplication.SetRange("Tenant Visible", true);
         PublishedApplication.SetFilter("Published As", '<>%1', PublishedApplication."Published As"::Global);
 
@@ -229,7 +229,7 @@ codeunit 2503 "Extension Operation Impl"
 
         Evaluate(PackageIDGuid, PackageId);
 
-        PublishedApplication.SetRange("Package ID", PackageIdGuid);
+        PublishedApplication.SetRange("Package ID", PackageIDGuid);
         PublishedApplication.SetRange("Tenant Visible", true);
 
         if not PublishedApplication.FindFirst() then
@@ -399,8 +399,8 @@ codeunit 2503 "Extension Operation Impl"
     var
         PublishedApplication: Record "Published Application";
         Media: Record Media;
-        LogoInStream: Instream;
-        LogoOutStream: Outstream;
+        LogoInStream: InStream;
+        LogoOutStream: OutStream;
     begin
         PublishedApplication.SetRange(ID, AppId);
         PublishedApplication.SetRange("Tenant Visible", true);
@@ -414,7 +414,7 @@ codeunit 2503 "Extension Operation Impl"
             Media.CalcFields(Content);
             Media.Content.CreateInStream(LogoInStream);
 
-            Logo.CreateOutstream(LogoOutStream);
+            Logo.CreateOutStream(LogoOutStream);
             CopyStream(LogoOutStream, LogoInStream);
         end;
     end;

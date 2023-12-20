@@ -25,7 +25,7 @@ page 1750 "Field Data Classification"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -83,9 +83,6 @@ page 1750 "Field Data Classification"
         }
     }
 
-    actions
-    {
-    }
 }
 
 

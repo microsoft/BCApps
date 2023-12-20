@@ -276,7 +276,7 @@ codeunit 9016 "Azure AD Plan"
     end;
 
     /// <summary>
-    /// Returns true if there are incompatible plans in the system. 
+    /// Returns true if there are incompatible plans in the system.
     /// </summary>
     /// <returns>Returns true if there are incompatible plans in the system. </returns>
     [Scope('OnPrem')]

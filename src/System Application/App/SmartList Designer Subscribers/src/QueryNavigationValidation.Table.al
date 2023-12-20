@@ -21,7 +21,7 @@ table 2889 "Query Navigation Validation"
     fields
     {
         /// <summary>
-        /// Simple primary key of the temporary table. 
+        /// Simple primary key of the temporary table.
         /// </summary>
         field(1; PK; Integer)
         {

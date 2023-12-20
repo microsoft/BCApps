@@ -20,7 +20,7 @@ page 7775 "Copilot AI Capabilities"
     DataCaptionExpression = '';
     AboutTitle = 'About Copilot';
     AboutText = 'Copilot is the AI-powered assistant that helps people across your organization unlock their creativity and automate tedious tasks.';
-    AdditionalSearchTerms = 'OpenAI,AI,Copilot,Co-pilot,Artificial Intelligence,GPT,GTP,Dynamics 365 Copilot,ChatGPT,Copilot settings,Copilot setup,enable Copilot,Copilot admin';
+    AdditionalSearchTerms = 'OpenAI,AI,Copilot,Co-pilot,Artificial Intelligence,GPT,GTP,Dynamics 365 Copilot,ChatGPT,Copilot settings,Copilot setup,enable Copilot,Copilot admin,Copilot and';
     InsertAllowed = false;
     DeleteAllowed = false;
     Extensible = false;
@@ -61,6 +61,7 @@ page 7775 "Copilot AI Capabilities"
                     ApplicationArea = All;
                     Caption = 'Allow data movement';
                     ToolTip = 'Specifies whether data movement across regions is allowed. This is required to enable Copilot in your environment.';
+                    Editable = AllowDataMovementEditable;
 
                     trigger OnValidate()
                     var
@@ -147,6 +148,8 @@ page 7775 "Copilot AI Capabilities"
         EnvironmentInformation: Codeunit "Environment Information";
         ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin
+        OnRegisterCopilotCapability();
+
         InGeo := ALCopilotFunctions.IsWithinGeo();
 
         case PrivacyNotice.GetPrivacyNoticeApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), false) of
@@ -158,6 +161,8 @@ page 7775 "Copilot AI Capabilities"
                 AllowDataMovement := InGeo;
         end;
 
+        AllowDataMovementEditable := CopilotCapabilityImpl.IsAdmin();
+
         CurrPage.GenerallyAvailableCapabilities.Page.SetDataMovement(AllowDataMovement);
         CurrPage.PreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
 
@@ -168,11 +173,18 @@ page 7775 "Copilot AI Capabilities"
             CopilotCapabilityImpl.ShowPrivacyNoticeDisagreedNotification();
     end;
 
+    [IntegrationEvent(false, false)]
+    local procedure OnRegisterCopilotCapability()
+    begin
+
+    end;
+
     var
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         PrivacyNotice: Codeunit "Privacy Notice";
         InGeo: Boolean;
         AllowDataMovement: Boolean;
+        AllowDataMovementEditable: Boolean;
         CopilotGovernDataLbl: Label 'How do I govern my Copilot data?';
         AOAIServiceLocatedLbl: Label 'Where is Azure OpenAI Service Located?';
 }

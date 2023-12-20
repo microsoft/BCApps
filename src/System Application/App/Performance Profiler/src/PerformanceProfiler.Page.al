@@ -191,7 +191,7 @@ page 24 "Performance Profiler"
                 var
                     DocumentSharing: Codeunit "Document Sharing";
                 begin
-                    DocumentSharing.Share(StrSubstNo(ProfileFileNameTxt, SessionID()), ProfileFileExtensionTxt, SamplingPerformanceProfiler.GetData(), Enum::"Document Sharing Intent"::Share);
+                    DocumentSharing.Share(StrSubstNo(ProfileFileNameTxt, SessionId()), ProfileFileExtensionTxt, SamplingPerformanceProfiler.GetData(), Enum::"Document Sharing Intent"::Share);
                 end;
             }
             action(Upload)

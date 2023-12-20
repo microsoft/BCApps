@@ -8,7 +8,7 @@ namespace System.DataAdministration;
 using System.Reflection;
 
 /// <summary>
-/// This codeunit is used to manage the list of allowed tables for which retention policies can be set up. 
+/// This codeunit is used to manage the list of allowed tables for which retention policies can be set up.
 /// Extensions can only approve the tables they create. Extensions cannot approve tables from other extensions.
 /// </summary>
 codeunit 3905 "Reten. Pol. Allowed Tables"
@@ -122,7 +122,7 @@ codeunit 3905 "Reten. Pol. Allowed Tables"
 
     /// <summary>
     /// This helper method is used to build an array of table filters which will be inserted automatically when creating a retention policy for the allowed table.
-    /// You must first build up the array by calling this helper function and adding all relevant table filter information before passing the JsonArray to the AddAllowedTable method. 
+    /// You must first build up the array by calling this helper function and adding all relevant table filter information before passing the JsonArray to the AddAllowedTable method.
     /// </summary>
     /// <param name="TableFilters">The JsonArray to which the table filter information will be added.</param>
     /// <param name="RetentionPeriodEnum">Identifies the retention period for the retention policy table filter.</param>
@@ -139,7 +139,7 @@ codeunit 3905 "Reten. Pol. Allowed Tables"
 
     /// <summary>
     /// This helper method is used to build an array of table filters which will be inserted automatically when creating a retention policy for the allowed table.
-    /// You must first build up the array by calling this helper function and adding all relevant table filter information before passing the JsonArray to the AddAllowedTable method. 
+    /// You must first build up the array by calling this helper function and adding all relevant table filter information before passing the JsonArray to the AddAllowedTable method.
     /// </summary>
     /// <param name="TableFilters">The JsonArray to which the table filter information will be added.</param>
     /// <param name="RetPeriodCalc">Identifies the retention period dateformula for the retention policy table filter.</param>
@@ -205,7 +205,7 @@ codeunit 3905 "Reten. Pol. Allowed Tables"
     /// </summary>
     /// <param name="TableId">The table ID of the allowed table.</param>
     /// <returns>The retention policy filtering enum value.</returns>
-    procedure GetRetenPolFiltering(TableId: Integer): enum "Reten. Pol. Filtering"
+    procedure GetRetenPolFiltering(TableId: Integer): Enum "Reten. Pol. Filtering"
     var
         RetenPolAllowedTblImpl: Codeunit "Reten. Pol. Allowed Tbl. Impl.";
     begin
@@ -217,7 +217,7 @@ codeunit 3905 "Reten. Pol. Allowed Tables"
     /// </summary>
     /// <param name="TableId">The table ID of the allowed table.</param>
     /// <returns>The retention policy deleting enum value.</returns>
-    procedure GetRetenPolDeleting(TableId: Integer): enum "Reten. Pol. Deleting"
+    procedure GetRetenPolDeleting(TableId: Integer): Enum "Reten. Pol. Deleting"
     var
         RetenPolAllowedTblImpl: Codeunit "Reten. Pol. Allowed Tbl. Impl.";
     begin

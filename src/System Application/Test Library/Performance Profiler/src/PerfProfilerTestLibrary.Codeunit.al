@@ -95,7 +95,7 @@ codeunit 135104 "Perf. Profiler Test Library"
     /// <param name="AggregatedProfilingNode">The resulting aggregation.</param>
     /// <param name="TestProfilingAggregationType">The value of what to aggregate self time by.</param>
     /// <param name="FilterText">The table view to indicate which profiling nodes should be included in aggregation.</param>
-    procedure GetSelfTimeAggregate(var AggregatedProfilingNode: Record "Profiling Node"; TestProfilingAggregationType: Enum "Test Prof. Aggregation Type"; FilterText: text)
+    procedure GetSelfTimeAggregate(var AggregatedProfilingNode: Record "Profiling Node"; TestProfilingAggregationType: Enum "Test Prof. Aggregation Type"; FilterText: Text)
     begin
         ProfilingDataProcessor.GetSelfTimeAggregate(AggregatedProfilingNode, GetAggregationType(TestProfilingAggregationType), FilterText);
     end;

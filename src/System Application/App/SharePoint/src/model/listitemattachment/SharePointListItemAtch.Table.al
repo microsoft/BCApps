@@ -59,7 +59,7 @@ table 9104 "SharePoint List Item Atch"
 
     keys
     {
-        key(PK; "OdataId")
+        key(PK; OdataId)
         {
             Clustered = true;
         }

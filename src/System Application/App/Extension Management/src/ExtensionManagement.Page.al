@@ -35,7 +35,7 @@ page 2500 "Extension Management"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -95,7 +95,7 @@ page 2500 "Extension Management"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             group(ActionGroup13)
             {
@@ -109,9 +109,9 @@ page 2500 "Extension Management"
                     Promoted = true;
                     PromotedOnly = true;
                     PromotedCategory = Category5;
-                    ShortCutKey = 'Return';
+                    ShortcutKey = 'Return';
                     ToolTip = 'View extension details.';
-                    RunObject = Page "Extension Settings";
+                    RunObject = page "Extension Settings";
                     RunPageLink = "App ID" = field(ID);
                     Scope = Repeater;
                 }
@@ -130,7 +130,7 @@ page 2500 "Extension Management"
                     trigger OnAction()
                     begin
                         if ExtensionInstallationImpl.RunExtensionInstallation(Rec) then
-                            CurrPage.Update();
+                            CurrPage.Update(false);
                     end;
                 }
                 action(Uninstall)
@@ -148,7 +148,7 @@ page 2500 "Extension Management"
                     trigger OnAction()
                     begin
                         if ExtensionInstallationImpl.RunExtensionInstallation(Rec) then
-                            CurrPage.Update();
+                            CurrPage.Update(false);
                     end;
                 }
                 action(Unpublish)
@@ -270,7 +270,7 @@ page 2500 "Extension Management"
                     PromotedOnly = true;
                     PromotedCategory = Category5;
                     PromotedIsBig = true;
-                    RunObject = Page "Upload And Deploy Extension";
+                    RunObject = page "Upload And Deploy Extension";
                     ToolTip = 'Upload an extension to your application.';
                     Ellipsis = true;
                     Visible = IsSaaS;
@@ -284,7 +284,7 @@ page 2500 "Extension Management"
                     PromotedOnly = true;
                     PromotedCategory = Category5;
                     PromotedIsBig = true;
-                    RunObject = Page "Extension Deployment Status";
+                    RunObject = page "Extension Deployment Status";
                     ToolTip = 'Check status for upload process for extensions.';
                     Visible = IsSaaS;
                 }
@@ -293,7 +293,7 @@ page 2500 "Extension Management"
                     ApplicationArea = All;
                     Caption = 'Delete Orphaned Extension Data';
                     Image = Delete;
-                    RunObject = Page "Delete Orphaned Extension Data";
+                    RunObject = page "Delete Orphaned Extension Data";
                     ToolTip = 'Delete the data of orphaned extensions.';
                 }
             }

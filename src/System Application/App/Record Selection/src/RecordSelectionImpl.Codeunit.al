@@ -29,7 +29,7 @@ codeunit 9556 "Record Selection Impl."
         RecordLookup.SetTableId(TableId);
         RecordLookup.LookupMode(true);
 
-        if RecordLookup.RunModal() = ACTION::LookupOK then begin
+        if RecordLookup.RunModal() = Action::LookupOK then begin
             RecordLookup.GetSelectedRecords(SelectedRecord);
             exit(true);
         end;

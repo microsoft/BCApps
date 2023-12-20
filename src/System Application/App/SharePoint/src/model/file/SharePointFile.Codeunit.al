@@ -79,7 +79,7 @@ codeunit 9106 "SharePoint File"
             SharePointFile.Exists := JToken.AsValue().AsBoolean();
 
         if Payload.Get('Length', JToken) then
-            SharePointFile."Length" := JToken.AsValue().AsInteger();
+            SharePointFile.Length := JToken.AsValue().AsInteger();
 
         if Payload.Get('ServerRelativeUrl', JToken) then
             SharePointFile."Server Relative Url" := CopyStr(JToken.AsValue().AsText(), 1, MaxStrLen(SharePointFile."Server Relative Url"));

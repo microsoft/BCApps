@@ -24,7 +24,7 @@ page 1470 "Product Videos"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater("Available Videos")
             {

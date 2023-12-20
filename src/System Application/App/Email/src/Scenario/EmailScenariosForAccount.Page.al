@@ -29,7 +29,7 @@ page 8894 "Email Scenarios for Account"
                 field(Name; Rec."Display Name")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the email scenario.';
+                    ToolTip = 'Specifies the email scenario.';
                     Caption = 'Email scenario';
                     Editable = false;
                 }

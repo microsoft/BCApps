@@ -17,7 +17,7 @@ codeunit 9999 "Upgrade Tag"
     Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = TableData "Upgrade Tags" = rimd;
+    Permissions = tabledata "Upgrade Tags" = rimd;
 
     var
         UpgradeTagImpl: Codeunit "Upgrade Tag Impl.";
@@ -93,7 +93,7 @@ codeunit 9999 "Upgrade Tag"
     end;
 
     /// <summary>
-    /// This method should be used to set all upgrade tags in a new company. 
+    /// This method should be used to set all upgrade tags in a new company.
     /// The method is called from codeunit 2 - Company Initialize.
     /// </summary>
     procedure SetAllUpgradeTags()
@@ -121,7 +121,7 @@ codeunit 9999 "Upgrade Tag"
     end;
 
     /// <summary>
-    /// With this method you get all the upgrade tags by company in a list. 
+    /// With this method you get all the upgrade tags by company in a list.
     /// </summary>
     /// <param name="PerCompanyUpgradeTags">
     /// List of upgrade tags that should be inserted if they do not exist.
@@ -132,7 +132,7 @@ codeunit 9999 "Upgrade Tag"
     end;
 
     /// <summary>
-    /// With this method you get all the upgrade tags by database in a list. 
+    /// With this method you get all the upgrade tags by database in a list.
     /// </summary>
     /// <param name="PerCompanyUpgradeTags">
     /// List of upgrade tags that should be inserted if they do not exist.

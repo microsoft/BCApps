@@ -93,9 +93,6 @@ table 2010 "Azure OpenAi Settings"
         }
     }
 
-    fieldgroups
-    {
-    }
 
     trigger OnDelete()
     begin

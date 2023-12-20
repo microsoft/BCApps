@@ -137,6 +137,9 @@ table 130450 "Test Method Line"
         key(Key2; "Test Suite", Result, "Line Type", Run)
         {
         }
+        key(Key3; "Test Suite", "Test Codeunit")
+        {
+        }
     }
 
     fieldgroups

@@ -30,7 +30,7 @@ page 8895 "Email Scenarios FactBox"
                 field(Name; Format(Rec.Scenario))
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the email scenario.';
+                    ToolTip = 'Specifies the email scenario.';
                     Caption = 'Email scenario';
                     Editable = false;
                 }

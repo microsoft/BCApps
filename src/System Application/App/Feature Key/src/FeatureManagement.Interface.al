@@ -7,13 +7,13 @@ namespace System.Environment.Configuration;
 
 /// <summary>
 /// Interface that defines methods for linking tables "Feature Key Buffer" and "Feature Key".
-/// The default implementation uses the system table "Feature Key" as a source, 
+/// The default implementation uses the system table "Feature Key" as a source,
 /// but another implementation uses a temporary table "Feature Key" to delink Feature Management UX from the read-only virtual table.
 /// </summary>
 interface "Feature Management"
 {
     /// <summary>
-    /// Returns number of collected records. Feature interface read the system table "Feature Key" or 
+    /// Returns number of collected records. Feature interface read the system table "Feature Key" or
     /// another source of data depends on the interface implementation. In tests it can be a temporary table "Feature Key".
     /// Parameters IncludeFeatureKeys or ExcludeFeatureKeys can be used to get a subset of all existing records.
     /// </summary>
@@ -24,7 +24,7 @@ interface "Feature Management"
     procedure GetData(IncludeFeatureKeys: List of [Text[50]]; ExcludeFeatureKeys: List of [Text[50]]; var FeatureKeyBuffer: Record "Feature Key Buffer"): Integer
 
     /// <summary>
-    /// Returns number of collected records. Feature interface read the system table "Feature Key" or 
+    /// Returns number of collected records. Feature interface read the system table "Feature Key" or
     /// another source of data depends on the interface implementation. In tests it can be a temporary table "Feature Key".
     /// </summary>
     /// <param name="FeatureId">the feature id in the system table "Feature Key"</param>
@@ -42,7 +42,7 @@ interface "Feature Management"
 
     /// <summary>
     /// Fills the temporary table "Feature Dependency" stored in the single instance codeunit "Feature Dependency Management".
-    /// Add new feature dependencies by passing DependentFeatureId and ParentFeatureID, 
+    /// Add new feature dependencies by passing DependentFeatureId and ParentFeatureID,
     /// FeatureKeyBuffer is passed to control data consistency:
     ///   FeatureDependency.New(FeatureKeyBuffer, DependentFeatureId, ParentFeatureID);
     /// </summary>

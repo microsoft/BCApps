@@ -15,7 +15,7 @@ permissionset 134683 "Email Word Template"
 
     // Include Test Tables
     Permissions =
-        tabledata "Test Email Connector Setup" = RIMD,
         tabledata "Test Email Account" = RIMD, // Needed for the Record to get passed in Library Assert
+        tabledata "Test Email Connector Setup" = RIMD,
         tabledata "Word Template" = RIMD;
 }
