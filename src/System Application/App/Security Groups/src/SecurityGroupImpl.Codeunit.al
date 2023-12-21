@@ -241,7 +241,7 @@ codeunit 9871 "Security Group Impl."
         if SecurityGroupBuffer.FindFirst() then; // reset to the first record
     end;
 
-    procedure GetGroups(var SecurityGroupBuffer: Record "Security Group Buffer")
+    procedure GetGroups(var SecurityGroupBuffer: Record "Security Group Buffer"; FetchGroupNames: Boolean)
     var
         SecurityGroup: Record "Security Group";
         LocalSecurityGroupBuffer: Record "Security Group Buffer";
@@ -264,8 +264,10 @@ codeunit 9871 "Security Group Impl."
                     SecurityGroupBuffer."Group ID" := SecurityGroup."Windows Group ID"
                 else
                     SecurityGroupBuffer."Group ID" := SecurityGroup."AAD Group ID";
-                if GetName(SecurityGroup.Code, SecurityGroupBuffer."Group Name") then
-                    SecurityGroupBuffer."Retrieved Successfully" := true;
+
+                if FetchGroupNames then
+                    if GetName(SecurityGroup.Code, SecurityGroupBuffer."Group Name") then
+                        SecurityGroupBuffer."Retrieved Successfully" := true;
                 SecurityGroupBuffer.Insert();
             until SecurityGroup.Next() = 0;
 

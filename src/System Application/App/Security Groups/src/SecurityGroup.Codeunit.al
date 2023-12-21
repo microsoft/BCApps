@@ -89,7 +89,17 @@ codeunit 9031 "Security Group"
     /// <param name="SecurityGroupBuffer">The resulting list of security groups.</param>
     procedure GetGroups(var SecurityGroupBuffer: Record "Security Group Buffer")
     begin
-        SecurityGroupImpl.GetGroups(SecurityGroupBuffer);
+        SecurityGroupImpl.GetGroups(SecurityGroupBuffer, true);
+    end;
+
+    /// <summary>
+    /// Gets all the defined security groups.
+    /// </summary>
+    /// <param name="SecurityGroupBuffer">The resulting list of security groups.</param>
+    /// <param name="FetchGroupNames">Specifies if group names should be fetched, as loading them can take some time.</param>
+    procedure GetGroups(var SecurityGroupBuffer: Record "Security Group Buffer"; FetchGroupNames: Boolean)
+    begin
+        SecurityGroupImpl.GetGroups(SecurityGroupBuffer, FetchGroupNames);
     end;
 
     /// <summary>
