@@ -15,7 +15,7 @@ codeunit 132516 "Azure Test Helper"
     Access = Internal;
 
     var
-        AFSTestLibrary: Codeunit "AFS Test Helper";
+        AFSTestHelper: Codeunit "AFS Test Helper";
         FileShareNameTxt: Label 'filesharename', Locked = true;
         StorageAccountNameTxt: Label 'storageaccountname', Locked = true;
         AccessKeyTxt: Label 'base64accountkey', Locked = true;
@@ -26,7 +26,7 @@ codeunit 132516 "Azure Test Helper"
         AFSFileClient: Codeunit "AFS File Client";
         Visited: List of [Text];
     begin
-        AFSFileClient.Initialize(GetStorageAccountName(), GetFileShareName(), AFSTestLibrary.GetDefaultAccountSAS());
+        AFSFileClient.Initialize(GetStorageAccountName(), GetFileShareName(), AFSTestHelper.GetDefaultAccountSAS());
         AFSFileClient.ListDirectory('', AFSDirectoryContent);
         if not AFSDirectoryContent.FindSet() then
             exit;

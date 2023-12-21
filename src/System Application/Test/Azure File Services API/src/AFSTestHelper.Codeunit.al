@@ -12,11 +12,11 @@ codeunit 132515 "AFS Test Helper"
     Access = Internal;
 
     var
-        AzureTestLibrary: Codeunit "Azure Test Helper";
+        AzureTestHelper: Codeunit "Azure Test Helper";
 
     procedure GetDefaultAccountSAS(): Interface "Storage Service Authorization"
     begin
-        exit(GetDefaultAccountSAS(AzureTestLibrary.GetAccessKey()));
+        exit(GetDefaultAccountSAS(AzureTestHelper.GetAccessKey()));
     end;
 
     procedure GetDefaultAccountSAS(AccountKey: Text): Interface "Storage Service Authorization"
