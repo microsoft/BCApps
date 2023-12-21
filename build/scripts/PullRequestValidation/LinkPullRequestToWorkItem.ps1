@@ -17,6 +17,7 @@ function Update-GitHubPullRequest() {
     )
 
     # Find all ADO work items linked to the provided issues and link them to the PR
+    $pullRequestLinked = $false
     foreach ($issueId in $IssueIds) {
         Write-Host "Trying to link work items from $issueId to pull request $($PullRequest.PRNumber)"
 
@@ -34,11 +35,14 @@ function Update-GitHubPullRequest() {
 
         foreach ($adoWorkItem in $adoWorkItems) {
             $PullRequest.LinkToADOWorkItem($adoWorkItem)
+            $pullRequestLinked = $true
         }
     }
 
-    # Update the pull request description
-    $PullRequest.UpdateDescription()
+    if ($pullRequestLinked) {
+        # Update the pull request description
+        $PullRequest.UpdateDescription()
+    }
 }
 
 $pullRequest = [GitHubPullRequest]::Get($PullRequestNumber, $Repository)
