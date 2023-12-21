@@ -1,4 +1,6 @@
-namespace Microsoft.Foundation.NoSeries;
+namespace Microsoft.TestLibraries.Foundation.NoSeries;
+
+using Microsoft.Foundation.NoSeries;
 
 codeunit 134510 "Library - No. Series"
 {
