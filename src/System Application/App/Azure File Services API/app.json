@@ -40,6 +40,12 @@
       "name":  "OAuth",
       "publisher":  "Microsoft",
       "version":  "24.0.0.0"
+    },
+    {
+      "id":  "de35f591-7216-4e60-8be1-1911d71a7fc2",
+      "name":  "Telemetry",
+      "publisher":  "Microsoft",
+      "version":  "24.0.0.0"
     }
   ],
   "screenshots": [],
