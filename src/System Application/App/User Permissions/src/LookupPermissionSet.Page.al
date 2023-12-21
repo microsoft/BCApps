@@ -22,7 +22,7 @@ page 9854 "Lookup Permission Set"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {

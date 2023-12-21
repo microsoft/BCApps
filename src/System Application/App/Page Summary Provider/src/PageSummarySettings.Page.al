@@ -19,12 +19,13 @@ page 2718 "Page Summary Settings"
     PageType = NavigatePage;
     Extensible = false;
     AccessByPermission = tabledata "Page Summary Settings" = M;
-    Permissions = tabledata Media = r, tabledata "Media Resources" = r;
+    Permissions = tabledata Media = r,
+                  tabledata "Media Resources" = r;
     UsageCategory = Administration;
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(NotCompletedTopBanner)
             {
@@ -57,7 +58,7 @@ page 2718 "Page Summary Settings"
                 Visible = IntroSaasStepVisible;
                 ShowCaption = false;
 
-                group("IntroductionSaasGroup")
+                group(IntroductionSaasGroup)
                 {
                     ShowCaption = false;
 
@@ -81,7 +82,7 @@ page 2718 "Page Summary Settings"
 
                         trigger OnDrillDown()
                         begin
-                            Hyperlink(LearnMoreSaaSUrlLbl);
+                            Hyperlink(LearnMoreSaasUrlLbl);
                         end;
                     }
                 }
@@ -111,7 +112,7 @@ page 2718 "Page Summary Settings"
                 Visible = IntroOnPremStepVisible;
                 ShowCaption = false;
 
-                group("IntroductionOnPremGroup")
+                group(IntroductionOnPremGroup)
                 {
                     Caption = 'Card settings are not available';
 
@@ -229,7 +230,7 @@ page 2718 "Page Summary Settings"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action(ActionBack)
             {

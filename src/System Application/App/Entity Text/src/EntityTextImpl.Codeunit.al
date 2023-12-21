@@ -272,7 +272,7 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure GenerateAndReviewCompletion(SystemPrompt: Text; UserPrompt: Text; TextFormat: enum "Entity Text Format"; Facts: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo): Text
+    local procedure GenerateAndReviewCompletion(SystemPrompt: Text; UserPrompt: Text; TextFormat: Enum "Entity Text Format"; Facts: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo): Text
     var
         Completion: Text;
         MaxAttempts: Integer;
@@ -286,6 +286,7 @@ codeunit 2012 "Entity Text Impl."
                 exit(Completion);
 
             Sleep(500);
+            Session.LogMessage('0000LVP', StrSubstNo(TelemetryGenerationRetryTxt, Attempt + 1), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
         end;
 
         // this completion is of low quality
@@ -317,7 +318,7 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure IsGoodCompletion(var Completion: Text; TextFormat: enum "Entity Text Format"; Facts: Dictionary of [Text, Text]): Boolean
+    local procedure IsGoodCompletion(var Completion: Text; TextFormat: Enum "Entity Text Format"; Facts: Dictionary of [Text, Text]): Boolean
     var
         TempMatches: Record Matches temporary;
         Regex: Codeunit Regex;
@@ -430,6 +431,11 @@ codeunit 2012 "Entity Text Impl."
         AOAIChatMessages.AddUserMessage(UserPrompt);
 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAICompletionParams, AOAIOperationResponse);
+        if not AOAIOperationResponse.IsSuccess() then begin
+            Clear(Result);
+            Error(CompletionDeniedPhraseErr);
+        end;
+
         Result := HttpUtility.HtmlEncode(AOAIChatMessages.GetLastMessage());
         Result := Result.Replace(NewLineChar, EncodedNewlineTok);
 
@@ -472,4 +478,5 @@ codeunit 2012 "Entity Text Impl."
         TelemetryCompletionExtraTextTxt: Label 'The completion contains a Translation or Note section.', Locked = true;
         TelemetryPromptManyFactsTxt: Label 'There are %1 facts defined, they will be limited to %2.', Locked = true;
         TelemetryNoAuthorizationHandlerTxt: Label 'Entity Text authorization was not set.', Locked = true;
+        TelemetryGenerationRetryTxt: Label 'Retrying text generation, attempt: %1', Locked = true;
 }

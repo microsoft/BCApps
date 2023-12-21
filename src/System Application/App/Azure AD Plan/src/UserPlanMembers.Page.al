@@ -17,11 +17,11 @@ page 9822 "User Plan Members"
     PageType = List;
     SourceTable = "User Plan";
     ContextSensitiveHelpPage = 'ui-how-users-permissions';
-    permissions = tabledata "User Plan" = r;
+    Permissions = tabledata "User Plan" = r;
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -44,8 +44,5 @@ page 9822 "User Plan Members"
         }
     }
 
-    actions
-    {
-    }
 }
 

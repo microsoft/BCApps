@@ -18,7 +18,7 @@ page 1995 "Checklist Item Users"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control1)
             {

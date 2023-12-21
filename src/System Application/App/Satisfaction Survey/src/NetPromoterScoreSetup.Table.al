@@ -19,7 +19,7 @@ table 1432 "Net Promoter Score Setup"
         {
             DataClassification = SystemMetadata;
         }
-        field(2; "API URL"; BLOB)
+        field(2; "API URL"; Blob)
         {
             DataClassification = SystemMetadata;
         }
@@ -48,8 +48,5 @@ table 1432 "Net Promoter Score Setup"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

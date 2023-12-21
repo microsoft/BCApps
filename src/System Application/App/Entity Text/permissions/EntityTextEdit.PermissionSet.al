@@ -17,5 +17,5 @@ permissionset 2012 "Entity Text - Edit"
                   tabledata "Azure OpenAi Settings" = IMD,
 #pragma warning restore AL0432
 #endif
-tabledata "Entity Text" = IMD;
+                  tabledata "Entity Text" = IMD;
 }

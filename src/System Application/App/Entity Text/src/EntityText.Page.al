@@ -29,7 +29,7 @@ page 2013 "Entity Text"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             field(TextFormat; TextFormat)
             {
@@ -68,9 +68,6 @@ page 2013 "Entity Text"
         }
     }
 
-    actions
-    {
-    }
 
     trigger OnInit()
     var

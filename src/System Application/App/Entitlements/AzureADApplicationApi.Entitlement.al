@@ -20,5 +20,5 @@ entitlement "Azure AD Application Api"
                          "Exten. Mgt. - Admin",
                          "Email - Admin",
                          "Feature Key - Admin";
-#pragma warning restore                    
+#pragma warning restore
 }

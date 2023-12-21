@@ -8,7 +8,7 @@ namespace System.Apps;
 /// The table containing information about an extension install.
 /// </summary>
 /// <remarks>
-/// The casing of the fields is expected to match the casing in the URL filter used when calling the installation page 2503: 
+/// The casing of the fields is expected to match the casing in the URL filter used when calling the installation page 2503:
 /// 'ID' IS '[AppID]' AND 'PREVIEWKEY' IS '[PreviewKey]'
 /// </remarks>
 table 2503 "Extension Installation"
@@ -22,7 +22,7 @@ table 2503 "Extension Installation"
         /// <summary>
         /// The app identifier. Should uniquely identify the application and remains static across versions.
         /// </summary>
-        field(1; "ID"; Guid)
+        field(1; ID; Guid)
         {
             Caption = 'ID';
         }

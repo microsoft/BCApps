@@ -13,7 +13,7 @@ permissionset 135536 "Rec. Selection Read"
 
     // Include Test Objects
     Permissions = tabledata "Page Data Personalization" = R,
-                  tabledata "Record Selection Test Table" = RIMD,
                   table "Record Selection Test Table" = X,
+                  tabledata "Record Selection Test Table" = RIMD,
                   page "Record Selection Test Page" = X;
 }

@@ -22,7 +22,7 @@ page 9516 "Azure AD User Updates Part"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Updates)
             {
@@ -42,7 +42,7 @@ page 9516 "Azure AD User Updates Part"
                     ToolTip = 'Specifies the type of update.';
                     ApplicationArea = All;
                 }
-                field("Information"; Rec."Update Entity")
+                field(Information; Rec."Update Entity")
                 {
                     ToolTip = 'Specifies the user information that will be updated. Updates related to Contact Email, Full Name and Language ID are optional and may be removed.';
                     ApplicationArea = All;
@@ -65,7 +65,7 @@ page 9516 "Azure AD User Updates Part"
     {
         area(Processing)
         {
-            action("Remove")
+            action(Remove)
             {
                 ApplicationArea = All;
                 Caption = 'Remove';

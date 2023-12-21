@@ -98,11 +98,42 @@ codeunit 149006 "BCPT Test Suite"
         exit(BCPTHeader.Get(SuiteCode));
     end;
 
+    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer): Boolean
+    var
+        BCPTLine: Record "BCPT Line";
+    begin
+        SetBCPTLineCodeunitFilter(SuiteCode, CodeunitID, BCPTLine);
+        exit(not BCPTLine.IsEmpty());
+    end;
+
+    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer; var LineNo: Integer): Boolean
+    var
+        BCPTLine: Record "BCPT Line";
+    begin
+        SetBCPTLineCodeunitFilter(SuiteCode, CodeunitID, BCPTLine);
+        if not BCPTLine.FindFirst() then
+            exit(false);
+        LineNo := BCPTLine."Line No.";
+        exit(true);
+    end;
+
+    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer; ParameterFilterStr: Text; var LineNo: Integer): Boolean
+    var
+        BCPTLine: Record "BCPT Line";
+    begin
+        SetBCPTLineCodeunitFilter(SuiteCode, CodeunitID, BCPTLine);
+        BCPTLine.SetFilter(Parameters, ParameterFilterStr);
+        if not BCPTLine.FindFirst() then
+            exit(false);
+        LineNo := BCPTLine."Line No.";
+        exit(true);
+    end;
+
     procedure SetTestSuiteDuration(SuiteCode: Code[10]; DurationInMinutes: Integer)
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         BCPTHeader."Duration (minutes)" := DurationInMinutes;
@@ -113,7 +144,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         exit(BCPTHeader."Duration (minutes)");
@@ -123,7 +154,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         BCPTHeader."Default Min. User Delay (ms)" := DelayInMs;
@@ -134,7 +165,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         exit(BCPTHeader."Default Min. User Delay (ms)");
@@ -144,7 +175,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         BCPTHeader."Default Max. User Delay (ms)" := DelayInMs;
@@ -155,7 +186,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         exit(BCPTHeader."Default Max. User Delay (ms)");
@@ -165,7 +196,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         BCPTHeader."1 Day Corresponds to (minutes)" := DurationInMinutes;
@@ -176,7 +207,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         exit(BCPTHeader."1 Day Corresponds to (minutes)");
@@ -186,7 +217,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         BCPTHeader.Tag := Tag;
@@ -197,7 +228,7 @@ codeunit 149006 "BCPT Test Suite"
     var
         BCPTHeader: Record "BCPT Header";
     begin
-        if BCPTHeader.Get(SuiteCode) then
+        if not BCPTHeader.Get(SuiteCode) then
             Error(TestSuiteNotFoundErr, BCPTHeader.FieldCaption(Code), SuiteCode);
 
         exit(BCPTHeader.Tag);
@@ -227,7 +258,7 @@ codeunit 149006 "BCPT Test Suite"
         Clear(BCPTLine);
         BCPTLine."BCPT Code" := SuiteCode;
         BCPTLine."Line No." := LastBCPTLine."Line No." + 1000;
-        BCPTLine."Codeunit ID" := CodeunitId;
+        BCPTLine.validate("Codeunit ID", CodeunitId);
         BCPTLine.Insert(true);
 
         exit(BCPTLine."Line No.");
@@ -373,5 +404,11 @@ codeunit 149006 "BCPT Test Suite"
         BCPTHeader2.SetRange(Code, SuiteCode);
         BCPTHeader2.SetRange(Status, BCPTHeader2.Status::Running);
         exit(not BCPTHeader2.IsEmpty());
+    end;
+
+    local procedure SetBCPTLineCodeunitFilter(SuiteCode: Code[10]; CodeunitID: Integer; var BCPTLine: Record "BCPT Line")
+    begin
+        BCPTLine.SetRange("BCPT Code", SuiteCode);
+        BCPTLine.SetRange("Codeunit ID", CodeunitID);
     end;
 }

@@ -16,7 +16,7 @@ enum 3062 "Uri Query Duplicate Behaviour"
     /// Skips adding the value if the same flag or parameter already exists.
     /// </summary>
     /// <example>Adding "foo=bar" to "https://microsoft.com?foo=goofy" and using this option results in "https://microsoft.com?foo=goofy".</example>
-    value(1; "Skip")
+    value(1; Skip)
     {
         Caption = 'Skip';
     }

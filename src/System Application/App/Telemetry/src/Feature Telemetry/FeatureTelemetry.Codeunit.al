@@ -9,7 +9,7 @@ namespace System.Telemetry;
 /// Provides functionality for emitting telemetry in a universal format. Only system metadata is to be emitted through this codeunit.
 /// </summary>
 /// <remarks>
-/// Every publisher needs to have an implementation of the "Telemetry Logger" interface and a subscriber 
+/// Every publisher needs to have an implementation of the "Telemetry Logger" interface and a subscriber
 /// to "Telemetry Loggers".OnRegisterTelemetryLogger event in one of their apps in order for this codeunit
 /// to work as expected (see "System Telemetry Logger" codeunit).
 /// </remarks>

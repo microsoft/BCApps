@@ -23,7 +23,7 @@ codeunit 3902 "Retention Policy Setup"
     /// </summary>
     /// <param name="RetentionPolicySetupLine">The record where the filter is stored.</param>
     /// <returns>The filter in Text format.</returns>
-    procedure SetTableFilterView(var RetentionPolicySetupLine: record "Retention Policy Setup Line"): Text[2048]
+    procedure SetTableFilterView(var RetentionPolicySetupLine: Record "Retention Policy Setup Line"): Text[2048]
     var
         RetentionPolicySetupImpl: Codeunit "Retention Policy Setup Impl.";
     begin
@@ -35,7 +35,7 @@ codeunit 3902 "Retention Policy Setup"
     /// </summary>
     /// <param name="RetentionPolicySetupLine">The record where the filter is stored.</param>
     /// <returns>The filter in View format.</returns>
-    procedure GetTableFilterView(RetentionPolicySetupLine: record "Retention Policy Setup Line"): Text
+    procedure GetTableFilterView(RetentionPolicySetupLine: Record "Retention Policy Setup Line"): Text
     var
         RetentionPolicySetupImpl: Codeunit "Retention Policy Setup Impl.";
     begin
@@ -107,7 +107,7 @@ codeunit 3902 "Retention Policy Setup"
     /// </summary>
     /// <param name="RetentionPeriodEnum">Specifies the retention period enum value for which the retention period record should be found or created.</param>
     /// <returns>The retention period code for the retention period record.</returns>
-    procedure FindOrCreateRetentionPeriod(RetentionPeriodEnum: enum "Retention Period Enum"): Code[20]
+    procedure FindOrCreateRetentionPeriod(RetentionPeriodEnum: Enum "Retention Period Enum"): Code[20]
     var
         RetentionPolicySetupImpl: Codeunit "Retention Policy Setup Impl.";
     begin
@@ -120,7 +120,7 @@ codeunit 3902 "Retention Policy Setup"
     /// <param name="RetentionPeriodEnum">Specifies the retention period length enum value for which the retention period record should be found or created.</param>
     /// <param name="RetPeriodCalc">Specifies the retention period length date formula for which the retention period record should be found or created.</param>
     /// <returns>The retention period code for the retention period record.</returns>
-    procedure FindOrCreateRetentionPeriod(RetentionPeriodEnum: enum "Retention Period Enum"; RetPeriodCalc: DateFormula): Code[20]
+    procedure FindOrCreateRetentionPeriod(RetentionPeriodEnum: Enum "Retention Period Enum"; RetPeriodCalc: DateFormula): Code[20]
     var
         RetentionPolicySetupImpl: Codeunit "Retention Policy Setup Impl.";
     begin
@@ -134,7 +134,7 @@ codeunit 3902 "Retention Policy Setup"
     var
         RetentionPolicySetupImpl: Codeunit "Retention Policy Setup Impl.";
     begin
-        RetentionPolicySetupImpl.AddRetentionPolicyOnRegisterManualSetup(Sender)
+        RetentionPolicySetupImpl.AddRetentionPolicyOnRegisterManualSetup(sender)
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Retention Period", OnBeforeDeleteEvent, '', true, true)]
@@ -142,7 +142,7 @@ codeunit 3902 "Retention Policy Setup"
     var
         RetentionPolicySetupImpl: Codeunit "Retention Policy Setup Impl.";
     begin
-        RetentionPolicySetupImpl.VerifyRetentionPolicySetupOnBeforeDeleteRetentionPeriod(Rec);
+        RetentionPolicySetupImpl.VerifyRetentionPolicySetupOnbeforeDeleteRetentionPeriod(Rec);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Retention Period", OnBeforeModifyEvent, '', true, true)]
@@ -190,7 +190,7 @@ codeunit 3902 "Retention Policy Setup"
         if Rec.IsTemporary() then
             exit;
 
-        RetentionPolicyLog.LogError(RetentionPolicySetupImpl.LogCategory(), StrSubstNo(RetenPolSetupLineRenameErr, xRec."Table Id", Rec."Table Id"));
+        RetentionPolicyLog.LogError(RetentionPolicySetupImpl.LogCategory(), StrSubstNo(RetenPolSetupLineRenameErr, xRec."Table ID", Rec."Table ID"));
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Retention Policy Setup Line", OnBeforeModifyEvent, '', false, false)]

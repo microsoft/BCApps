@@ -51,9 +51,9 @@ codeunit 9560 "Document Sharing"
     /// <param name="FileExtension">Specifies the file extension (e.g. '.pdf').</param>
     /// <param name="InStream">Specifies the data to be shared (e.g. a report pdf).</param>
     /// <param name="DocumentSharingIntent">Specifies the sharing intent of the document.</param>
-    procedure Share(FileName: Text; FileExtension: Text; InStream: Instream; DocumentSharingIntent: Enum "Document Sharing Intent")
+    procedure Share(FileName: Text; FileExtension: Text; InStream: InStream; DocumentSharingIntent: Enum "Document Sharing Intent")
     begin
-        Share(FileName, FileExtension, Instream, DocumentSharingIntent, "Document Sharing Source"::App);
+        Share(FileName, FileExtension, InStream, DocumentSharingIntent, "Document Sharing Source"::App);
     end;
 
     /// <summary>
@@ -64,11 +64,11 @@ codeunit 9560 "Document Sharing"
     /// <param name="InStream">Specifies the data to be shared (e.g. a report pdf).</param>
     /// <param name="DocumentSharingIntent">Specifies the sharing intent of the document.</param>
     /// <param name="DocumentSharingSource">Specifies the sharing source of the document.</param>
-    procedure Share(FileName: Text; FileExtension: Text; InStream: Instream; DocumentSharingIntent: Enum "Document Sharing Intent"; DocumentSharingSource: Enum "Document Sharing Source")
+    procedure Share(FileName: Text; FileExtension: Text; InStream: InStream; DocumentSharingIntent: Enum "Document Sharing Intent"; DocumentSharingSource: Enum "Document Sharing Source")
     var
         DocumentSharingImpl: Codeunit "Document Sharing Impl.";
     begin
-        DocumentSharingImpl.Share(FileName, FileExtension, Instream, DocumentSharingIntent, DocumentSharingSource);
+        DocumentSharingImpl.Share(FileName, FileExtension, InStream, DocumentSharingIntent, DocumentSharingSource);
     end;
 
     /// <summary>

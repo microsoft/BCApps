@@ -25,7 +25,7 @@ page 2012 "Entity Text Part"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(EntityTextGroup)
             {

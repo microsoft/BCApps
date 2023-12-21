@@ -25,7 +25,7 @@ codeunit 2717 "Page Summary Provider Impl."
 
     procedure GetPageSummary(PageId: Integer; Bookmark: Text): Text
     var
-        RecId: RecordID;
+        RecId: RecordId;
         ResultJsonObject: JsonObject;
     begin
         // Add header
@@ -49,7 +49,7 @@ codeunit 2717 "Page Summary Provider Impl."
     procedure GetPageSummary(PageId: Integer; SystemId: Guid): Text
     var
         PageMetadata: Record "Page Metadata";
-        RecId: RecordID;
+        RecId: RecordId;
         SourceRecordRef: RecordRef;
         ResultJsonObject: JsonObject;
         Bookmark: Text;

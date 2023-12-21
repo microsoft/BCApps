@@ -14,9 +14,9 @@ codeunit 9871 "Security Group Impl."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata User = rimd,
-                  tabledata "User Property" = rimd,
-                  tabledata "Security Group" = rimd;
+    Permissions = tabledata "Security Group" = rimd,
+                  tabledata User = rimd,
+                  tabledata "User Property" = rimd;
 
     var
         AzureAdGraph: Codeunit "Azure AD Graph";
@@ -171,7 +171,7 @@ codeunit 9871 "Security Group Impl."
     procedure Export(SecurityGroupCodes: List of [Code[20]]; Destination: OutStream)
     var
         SecurityGroup: Record "Security Group";
-        ExportImportSecurityGroups: XMLport "Export/Import Security Groups";
+        ExportImportSecurityGroups: XmlPort "Export/Import Security Groups";
         SecurityGroupFilterTextBuilder: TextBuilder;
         GroupCode: Code[20];
     begin
@@ -188,7 +188,7 @@ codeunit 9871 "Security Group Impl."
 
     procedure Import(Source: InStream)
     var
-        ExportImportSecurityGroups: XMLport "Export/Import Security Groups";
+        ExportImportSecurityGroups: XmlPort "Export/Import Security Groups";
     begin
         ExportImportSecurityGroups.SetSource(Source);
         ExportImportSecurityGroups.Import();
@@ -413,10 +413,10 @@ codeunit 9871 "Security Group Impl."
     local procedure TryGetEntraGroupMembers(SecurityGroupCode: Code[20]; EntraGroupId: Text; var SecurityGroupMemberBuffer: Record "Security Group Member Buffer")
     var
         UserProperty: Record "User Property";
-        UserIdsPage: Dotnet UserIdsPage;
+        UserIdsPage: DotNet UserIdsPage;
         UserEntraObjectId: Text;
     begin
-        AzureADGraph.GetMemberIdsPageForGroupId(EntraGroupId, 500, UserIdsPage);
+        AzureAdGraph.GetMemberIdsPageForGroupId(EntraGroupId, 500, UserIdsPage);
 
         if IsNull(UserIdsPage) then
             exit;
@@ -488,7 +488,7 @@ codeunit 9871 "Security Group Impl."
         if AreAllEntraGroupsFetched then
             exit;
 
-        EntraGroups := AzureADGraph.GetGroups();
+        EntraGroups := AzureAdGraph.GetGroups();
         AreAllEntraGroupsFetched := true;
     end;
 

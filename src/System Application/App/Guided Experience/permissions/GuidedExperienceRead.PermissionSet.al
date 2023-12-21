@@ -19,9 +19,9 @@ permissionset 1991 "Guided Experience - Read"
     IncludedPermissionSets = "Guided Experience - Objects",
                              "Translation - Read";
 
-    Permissions = tabledata "All Profile" = r,
-                  tabledata AllObj = r,
+    Permissions = tabledata AllObj = r,
                   tabledata AllObjWithCaption = r,
+                  tabledata "All Profile" = r,
                   tabledata "Checklist Item" = R,
                   tabledata "Checklist Item Buffer" = r, // needed for Checklist page to be searchable
                   tabledata "Checklist Item Role" = R,
@@ -29,11 +29,11 @@ permissionset 1991 "Guided Experience - Read"
                   tabledata "Checklist Setup" = R,
                   tabledata Company = r,
                   tabledata "Guided Experience Item" = R,
+                  tabledata "Media" = R,
                   tabledata "Primary Guided Experience Item" = r,
+                  tabledata "Published Application" = R,
+                  tabledata "Spotlight Tour Text" = r,
                   tabledata User = r,
                   tabledata "User Checklist Status" = R,
-                  tabledata "User Personalization" = r,
-                  tabledata "Media" = R,
-                  tabledata "Published Application" = R,
-                  tabledata "Spotlight Tour Text" = r;
+                  tabledata "User Personalization" = r;
 }

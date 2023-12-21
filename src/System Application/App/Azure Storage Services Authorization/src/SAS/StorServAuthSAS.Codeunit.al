@@ -94,7 +94,7 @@ codeunit 9061 "Stor. Serv. Auth. SAS" implements "Storage Service Authorization"
         Permissions := SignedPermissions;
     end;
 
-    procedure SetProtocol(SignedProtocol: Option "https&http","https")
+    procedure SetProtocol(SignedProtocol: Option "https&http",https)
     begin
         Clear(Protocols);
         Protocols.Add('https');

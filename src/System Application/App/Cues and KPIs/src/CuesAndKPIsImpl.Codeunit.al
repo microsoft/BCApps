@@ -10,8 +10,8 @@ using System.Environment;
 
 codeunit 9702 "Cues And KPIs Impl."
 {
-    Permissions = tabledata Field = r,
-                  tabledata "Cue Setup" = rimd;
+    Permissions = tabledata "Cue Setup" = rimd,
+                  tabledata Field = r;
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -30,7 +30,7 @@ codeunit 9702 "Cues And KPIs Impl."
         TempCueSetupRecord.FilterGroup(2);
         TempCueSetupRecord.SetRange("Table ID", TableId);
         TempCueSetupRecord.FilterGroup(0);
-        PAGE.RunModal(PAGE::"Cue Setup End User", TempCueSetupRecord);
+        Page.RunModal(Page::"Cue Setup End User", TempCueSetupRecord);
     end;
 
     procedure PopulateTempCueSetupRecords(var TempCueSetupPageSourceRec: Record "Cue Setup" temporary)
@@ -132,7 +132,7 @@ codeunit 9702 "Cues And KPIs Impl."
         CueStyle: Enum "Cues And KPIs Style";
         Resolved: Boolean;
     begin
-        CuesAndKPIs.OnBeforeGetCustomizedCueStyleOption(TableID, FieldNo, CueValue, CueStyle, Resolved);
+        CuesAndKPIs.OnBeforeGetCustomizedCueStyleOption(TableId, FieldNo, CueValue, CueStyle, Resolved);
 
         if Resolved then
             exit(CueStyle.AsInteger());

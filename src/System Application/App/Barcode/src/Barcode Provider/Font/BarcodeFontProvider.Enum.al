@@ -5,7 +5,7 @@
 
 namespace System.Text;
 
-/// <summary> 
+/// <summary>
 /// The available barcode font providers.
 /// </summary>
 enum 9203 "Barcode Font Provider" implements "Barcode Font Provider"

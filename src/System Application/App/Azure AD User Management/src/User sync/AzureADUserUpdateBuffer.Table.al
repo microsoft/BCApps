@@ -106,7 +106,7 @@ table 9010 "Azure AD User Update Buffer"
             Editable = false;
             DataClassification = SystemMetadata;
         }
-        field(8; "Permission Change Action"; enum "Azure AD Permission Change Action")
+        field(8; "Permission Change Action"; Enum "Azure AD Permission Change Action")
         {
             Caption = 'Handle permission change';
             DataClassification = SystemMetadata;

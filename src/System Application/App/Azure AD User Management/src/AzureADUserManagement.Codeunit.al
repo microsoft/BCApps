@@ -36,7 +36,7 @@ codeunit 9010 "Azure AD User Management"
         AzureADUserMgmtImpl.CreateNewUsersFromAzureAD();
     end;
 
-    /// <summary>    
+    /// <summary>
     /// Creates a new user from a Microsoft Entra user.
     /// </summary>
     /// <param name="GraphUserInfo">The Microsoft Entra user.</param>
@@ -47,8 +47,8 @@ codeunit 9010 "Azure AD User Management"
         AzureADUserMgmtImpl.CreateNewUserFromGraphUser(GraphUserInfo);
     end;
 
-    /// <summary>    
-    /// Synchronizes a user with the Microsoft Entra user corresponding to the authentication 
+    /// <summary>
+    /// Synchronizes a user with the Microsoft Entra user corresponding to the authentication
     /// email that is passed as a parameter. If the user record does not exist, it gets created.
     /// </summary>
     /// <param name="AuthenticationEmail">The user's authentication email.</param>
@@ -59,7 +59,7 @@ codeunit 9010 "Azure AD User Management"
         AzureADUserMgmtImpl.SynchronizeLicensedUserFromDirectory(AuthenticationEmail);
     end;
 
-    /// <summary>    
+    /// <summary>
     /// Synchronizes all the users from the database with the ones from Microsoft Entra.
     /// Microsoft Entra users that do not exist in the database are created.
     /// </summary>
@@ -69,7 +69,7 @@ codeunit 9010 "Azure AD User Management"
         AzureADUserMgmtImpl.SynchronizeAllLicensedUsersFromDirectory();
     end;
 
-    /// <summary>    
+    /// <summary>
     /// Checks if the user is a tenant admin.
     /// </summary>
     /// <returns>True if the user is a tenant admin; otherwise false.</returns>
@@ -90,7 +90,7 @@ codeunit 9010 "Azure AD User Management"
         exit(AzureADUserMgmtImpl.ArePermissionsCustomized(UserSecurityId));
     end;
 
-    /// <summary>    
+    /// <summary>
     /// Checks if the user is a delegated user.
     /// </summary>
     /// <returns>True if the user is a delegated user; otherwise false.</returns>

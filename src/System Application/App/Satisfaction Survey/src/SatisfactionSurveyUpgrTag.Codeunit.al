@@ -13,9 +13,6 @@ codeunit 1442 "Satisfaction Survey Upgr. Tag"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    trigger OnRun()
-    begin
-    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
     local procedure RegisterPerDatabaseTags(var PerDatabaseUpgradeTags: List of [Code[250]])

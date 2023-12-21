@@ -27,7 +27,7 @@ page 2509 "Extn Deployment Status Detail"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(General)
             {
@@ -131,7 +131,7 @@ page 2509 "Extn Deployment Status Detail"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action(Refresh)
             {
@@ -220,7 +220,7 @@ page 2509 "Extn Deployment Status Detail"
         Rec.TransferFields(NavAppTenantOperationRec, true);
 
         NavAppTenantOperationRec.CalcFields(Details);
-        NavAppTenantOperationRec.Details.CreateInStream(DetailsStream, TEXTENCODING::UTF8);
+        NavAppTenantOperationRec.Details.CreateInStream(DetailsStream, TextEncoding::UTF8);
         DeploymentDetails.Read(DetailsStream);
 
         if not Rec.Insert() then
@@ -236,7 +236,7 @@ page 2509 "Extn Deployment Status Detail"
         Rec.Status := NavAppTenantOperationTable.Status;
 
         NavAppTenantOperationTable.CalcFields(Details);
-        NavAppTenantOperationTable.Details.CreateInStream(DetailsStream, TEXTENCODING::UTF8);
+        NavAppTenantOperationTable.Details.CreateInStream(DetailsStream, TextEncoding::UTF8);
         DeploymentDetails.Read(DetailsStream);
 
         CurrPage.Update();

@@ -22,7 +22,7 @@ page 2612 "Schedule Feature Data Update"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(Step1)
             {
@@ -140,7 +140,7 @@ page 2612 "Schedule Feature Data Update"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action(Back)
             {

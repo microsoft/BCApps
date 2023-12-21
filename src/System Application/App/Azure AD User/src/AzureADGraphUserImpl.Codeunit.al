@@ -17,9 +17,6 @@ codeunit 9011 "Azure AD Graph User Impl."
     Permissions = tabledata User = rm,
                   tabledata "User Property" = r;
 
-    trigger OnRun()
-    begin
-    end;
 
     var
         AzureADGraph: Codeunit "Azure AD Graph";
@@ -74,7 +71,7 @@ codeunit 9011 "Azure AD Graph User Impl."
     var
         UserProperty: Record "User Property";
     begin
-        UserProperty.SetRange("Authentication Object ID", AuthenticationObjectId);
+        UserProperty.SetRange("Authentication Object ID", AuthenticationObjectID);
         if UserProperty.FindFirst() then
             exit(User.Get(UserProperty."User Security ID"));
     end;
