@@ -1,6 +1,7 @@
 namespace Microsoft.Test.Foundation.NoSeries;
 
 using System.TestLibraries.Utilities;
+using Microsoft.TestLibraries.Foundation.NoSeries;
 using Microsoft.Foundation.NoSeries;
 
 codeunit 134531 "Stateless No. Series Tests"
