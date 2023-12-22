@@ -24,7 +24,7 @@ $ErrorActionPreference = "Stop"
 if (-not (Get-Module -ListAvailable -Name "BCContainerHelper")) {
     Write-Host "BCContainerHelper module not found. Installing..."
     Install-Module -Name "BCContainerHelper" -Scope CurrentUser -AllowPrerelease -Force
-}
+} 
 
 if ($AutoFill) {
     Add-Type -AssemblyName System.Web
