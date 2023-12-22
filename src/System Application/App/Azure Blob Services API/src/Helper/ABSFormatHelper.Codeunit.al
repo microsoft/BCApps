@@ -175,7 +175,6 @@ codeunit 9044 "ABS Format Helper"
                 Expression += ' AND ';
             Expression += StrSubstNo(ExpressionPartLbl, "Key".Trim(), GetOperatorFromValue(Tags.Get("Key")).Trim(), SingleQuoteChar, GetValueWithoutOperator(Tags.Get("Key")).Trim(), SingleQuoteChar);
         end;
-        Expression := UriHelper.EscapeDataString(Expression);
         exit(Expression);
     end;
 
