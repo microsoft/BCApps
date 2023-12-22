@@ -26,11 +26,11 @@ codeunit 132517 "AFS File Client Test"
         // [SCENARIO] User wants to send a text file to azure file share.
 
         // [GIVEN] A storage account
-        AzureTestHelper.ClearFileShare();
-        SharedKeyAuthorization := AFSTestHelper.GetDefaultAccountSAS(AzureTestHelper.GetAccessKey());
+        AFSInitTestStorage.ClearFileShare();
+        SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
 
         // [WHEN] The programmer creates a text file in the file share and puts the content in it
-        AFSFileClient.Initialize(AzureTestHelper.GetStorageAccountName(), AzureTestHelper.GetFileShareName(), SharedKeyAuthorization);
+        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
 
         AFSOperationResponse := AFSFileClient.CreateFile(FilePathLbl, StrLen(FileContentLbl));
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
@@ -55,16 +55,16 @@ codeunit 132517 "AFS File Client Test"
         // [SCENARIO] User wants to send a text file to azure file share into the folder that doesn't exist.
 
         // [GIVEN] A storage account
-        AzureTestHelper.ClearFileShare();
-        SharedKeyAuthorization := AFSTestHelper.GetDefaultAccountSAS(AzureTestHelper.GetAccessKey());
+        AFSInitTestStorage.ClearFileShare();
+        SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
 
         // [WHEN] The programmer creates a text file in the file share in the path that doesn't exist
-        AFSFileClient.Initialize(AzureTestHelper.GetStorageAccountName(), AzureTestHelper.GetFileShareName(), SharedKeyAuthorization);
+        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.CreateFile(FilePathLbl, StrLen(FileContentLbl));
         LibraryAssert.AreEqual(false, AFSOperationResponse.IsSuccessful(), 'The CreateFile operation should return an error.');
 
         // [THEN] An error is returned
-        LibraryAssert.AreEqual(StrSubstNo(ExpectedErrorLbl, FilePathLbl, AzureTestHelper.GetFileShareName()), AFSOperationResponse.GetError(), 'Error message mismatch.');
+        LibraryAssert.AreEqual(StrSubstNo(ExpectedErrorLbl, FilePathLbl, AFSInitTestStorage.GetFileShareName()), AFSOperationResponse.GetError(), 'Error message mismatch.');
     end;
 
     [Test]
@@ -88,12 +88,12 @@ codeunit 132517 "AFS File Client Test"
         //    -- document.pdf
         //    -- spreadsheet.xlsx
         //    -- emptydir
-        AzureTestHelper.ClearFileShare();
-        SharedKeyAuthorization := AFSTestHelper.GetDefaultAccountSAS(AzureTestHelper.GetAccessKey());
+        AFSInitTestStorage.ClearFileShare();
+        SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
         InitializeFileShareStructure();
 
         // [WHEN] The programmer runs a list operation on the parent directory
-        AFSFileClient.Initialize(AzureTestHelper.GetStorageAccountName(), AzureTestHelper.GetFileShareName(), SharedKeyAuthorization);
+        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.ListDirectory('', AFSDirectoryContent);
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
@@ -120,13 +120,13 @@ codeunit 132517 "AFS File Client Test"
         // [SCENARIO] User wants to create a file in a new directory and then download it as stream.
 
         // [GIVEN] A storage account
-        AzureTestHelper.ClearFileShare();
-        SharedKeyAuthorization := AFSTestHelper.GetDefaultAccountSAS(AzureTestHelper.GetAccessKey());
+        AFSInitTestStorage.ClearFileShare();
+        SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
 
-        AFSFileClient.Initialize(AzureTestHelper.GetStorageAccountName(), AzureTestHelper.GetFileShareName(), SharedKeyAuthorization);
+        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
 
         // [WHEN] The programmer creates a directory and a file in it
-        AFSFileClient.Initialize(AzureTestHelper.GetStorageAccountName(), AzureTestHelper.GetFileShareName(), SharedKeyAuthorization);
+        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.CreateDirectory('parentdir');
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
         AFSOperationResponse := AFSFileClient.CreateFile('parentdir/test.txt', StrLen(FileContentLbl));
@@ -167,12 +167,12 @@ codeunit 132517 "AFS File Client Test"
         //    -- document.pdf
         //    -- spreadsheet.xlsx
         //    -- emptydir
-        AzureTestHelper.ClearFileShare();
-        SharedKeyAuthorization := AFSTestHelper.GetDefaultAccountSAS(AzureTestHelper.GetAccessKey());
+        AFSInitTestStorage.ClearFileShare();
+        SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
         InitializeFileShareStructure();
 
         // [WHEN] The programmer deletes a file
-        AFSFileClient.Initialize(AzureTestHelper.GetStorageAccountName(), AzureTestHelper.GetFileShareName(), SharedKeyAuthorization);
+        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.DeleteFile('parentdir/test.txt');
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
@@ -202,12 +202,12 @@ codeunit 132517 "AFS File Client Test"
         //    -- document.pdf
         //    -- spreadsheet.xlsx
         //    -- emptydir
-        AzureTestHelper.ClearFileShare();
-        SharedKeyAuthorization := AFSTestHelper.GetDefaultAccountSAS(AzureTestHelper.GetAccessKey());
+        AFSInitTestStorage.ClearFileShare();
+        SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
         InitializeFileShareStructure();
 
         // [WHEN] The programmer deletes a directory
-        AFSFileClient.Initialize(AzureTestHelper.GetStorageAccountName(), AzureTestHelper.GetFileShareName(), SharedKeyAuthorization);
+        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.DeleteDirectory('anotherdir/emptydir');
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
@@ -229,18 +229,18 @@ codeunit 132517 "AFS File Client Test"
         // [SCENARIO] User wants to copy an existing file.
 
         // [GIVEN] A storage account with a file share and an existing file
-        AzureTestHelper.ClearFileShare();
-        SharedKeyAuthorization := AFSTestHelper.GetDefaultAccountSAS(AzureTestHelper.GetAccessKey());
+        AFSInitTestStorage.ClearFileShare();
+        SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
 
-        AFSFileClient.Initialize(AzureTestHelper.GetStorageAccountName(), AzureTestHelper.GetFileShareName(), SharedKeyAuthorization);
+        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
         AFSFileClient.CreateFile('sourcefile.txt', StrLen(FileContentLbl));
         AFSFileClient.PutFileText('sourcefile.txt', FileContentLbl);
 
         // [WHEN] The programmer copies a file
         // NOTE: When copying a file using shared access signature you need to authorize the source file with the same shared access signature
-        SourceFileURI := 'https://' + AzureTestHelper.GetStorageAccountName() + '.file.core.windows.net/' + AzureTestHelper.GetFileShareName() + '/sourcefile.txt';
+        SourceFileURI := 'https://' + AFSInitTestStorage.GetStorageAccountName() + '.file.core.windows.net/' + AFSInitTestStorage.GetFileShareName() + '/sourcefile.txt';
         HttpRequestMessage.SetRequestUri(SourceFileURI);
-        SharedKeyAuthorization.Authorize(HttpRequestMessage, AzureTestHelper.GetStorageAccountName());
+        SharedKeyAuthorization.Authorize(HttpRequestMessage, AFSInitTestStorage.GetStorageAccountName());
         SourceFileURI := HttpRequestMessage.GetRequestUri();
         AFSOperationResponse := AFSFileClient.CopyFile(SourceFileURI, 'targetfile.txt');
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
@@ -263,10 +263,10 @@ codeunit 132517 "AFS File Client Test"
         // [SCENARIO] User wants to set metadata for an existing file.
 
         // [GIVEN] A storage account with a file share and an existing file
-        AzureTestHelper.ClearFileShare();
-        SharedKeyAuthorization := AFSTestHelper.GetDefaultAccountSAS(AzureTestHelper.GetAccessKey());
+        AFSInitTestStorage.ClearFileShare();
+        SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
 
-        AFSFileClient.Initialize(AzureTestHelper.GetStorageAccountName(), AzureTestHelper.GetFileShareName(), SharedKeyAuthorization);
+        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
         AFSFileClient.CreateFile('sourcefile.txt', 0);
 
         // [WHEN] The programmer sets some metadata for a file
@@ -288,7 +288,7 @@ codeunit 132517 "AFS File Client Test"
     var
         AFSFileClient: Codeunit "AFS File Client";
     begin
-        AFSFileClient.Initialize(AzureTestHelper.GetStorageAccountName(), AzureTestHelper.GetFileShareName(), SharedKeyAuthorization);
+        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
         AFSFileClient.CreateDirectory('parentdir');
         AFSFileClient.CreateFile('parentdir/test.txt', 0);
         AFSFileClient.CreateFile('parentdir/test2.txt', 0);
@@ -304,7 +304,7 @@ codeunit 132517 "AFS File Client Test"
 
     var
         LibraryAssert: Codeunit "Library Assert";
-        AFSTestHelper: Codeunit "AFS Test Helper";
-        AzureTestHelper: Codeunit "Azure Test Helper";
+        AFSGetTestStorageAuth: Codeunit "AFS Get Test Storage Auth.";
+        AFSInitTestStorage: Codeunit "AFS Init. Test Storage";
         SharedKeyAuthorization: Interface "Storage Service Authorization";
 }

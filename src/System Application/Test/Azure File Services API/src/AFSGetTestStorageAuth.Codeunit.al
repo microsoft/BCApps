@@ -7,16 +7,19 @@ namespace System.Test.Azure.Storage.Files;
 
 using System.Azure.Storage;
 
-codeunit 132515 "AFS Test Helper"
+/// <summary>
+/// Provides common authorization functionality for using Azure storage accounts in tests for Azure Storage Services.
+/// </summary>
+codeunit 132515 "AFS Get Test Storage Auth."
 {
     Access = Internal;
 
     var
-        AzureTestHelper: Codeunit "Azure Test Helper";
+        AFSInitTestStorage: Codeunit "AFS Init. Test Storage";
 
     procedure GetDefaultAccountSAS(): Interface "Storage Service Authorization"
     begin
-        exit(GetDefaultAccountSAS(AzureTestHelper.GetAccessKey()));
+        exit(GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey()));
     end;
 
     procedure GetDefaultAccountSAS(AccountKey: Text): Interface "Storage Service Authorization"

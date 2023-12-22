@@ -8,14 +8,14 @@ namespace System.Test.Azure.Storage.Files;
 using System.Azure.Storage.Files;
 
 /// <summary>
-/// Provides common authorization functionality for using Azure storage accounts in tests for Azure Storage Services.
+/// Provides functionality for initializing or resetting azure storage accounts file shares.
 /// </summary>
-codeunit 132516 "Azure Test Helper"
+codeunit 132516 "AFS Init. Test Storage"
 {
     Access = Internal;
 
     var
-        AFSTestHelper: Codeunit "AFS Test Helper";
+        AFSGetTestStorageAuth: Codeunit "AFS Get Test Storage Auth.";
         FileShareNameTxt: Label 'filesharename', Locked = true;
         StorageAccountNameTxt: Label 'storageaccountname', Locked = true;
         AccessKeyTxt: Label 'base64accountkey', Locked = true;
@@ -26,7 +26,7 @@ codeunit 132516 "Azure Test Helper"
         AFSFileClient: Codeunit "AFS File Client";
         Visited: List of [Text];
     begin
-        AFSFileClient.Initialize(GetStorageAccountName(), GetFileShareName(), AFSTestHelper.GetDefaultAccountSAS());
+        AFSFileClient.Initialize(GetStorageAccountName(), GetFileShareName(), AFSGetTestStorageAuth.GetDefaultAccountSAS());
         AFSFileClient.ListDirectory('', AFSDirectoryContent);
         if not AFSDirectoryContent.FindSet() then
             exit;
