@@ -92,7 +92,7 @@ page 3901 "Retention Policy Setup Card"
                 {
                     ApplicationArea = All;
                     Caption = 'Records to delete';
-                    ToolTip = 'Specifies the number of expired records that will be deleted during the next retention policy run.';
+                    ToolTip = 'Specifies the number of expired records the retention policy will delete the next time it runs.';
                     Editable = false;
                     StyleExpr = ExpiredRecordCountStyleTxt;
                     Visible = not Rec."Apply to all records";
