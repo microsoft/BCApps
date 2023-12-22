@@ -54,7 +54,7 @@ codeunit 134510 "Library - No. Series"
         NoSeriesLine: Record "No. Series Line";
     begin
         NoSeriesLine.SetRange("Series Code", NoSeriesCode);
-        if NoSeriesLine.FindFirst() then;
+        if NoSeriesLine.FindLast() then;
         NoSeriesLine."Series Code" := NoSeriesCode;
         NoSeriesLine."Line No." += 10000;
         NoSeriesLine.Init();

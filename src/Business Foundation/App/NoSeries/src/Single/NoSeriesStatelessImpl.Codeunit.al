@@ -164,9 +164,9 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         if DelChr(StartingNo, '=', '0123456789') <> (DelChr(CurrentNo, '=', '0123456789')) then
             exit(false);
 
-        if StrLen(CurrentNo) < StrLen(StartingNo) then
+        if (StartingNo <> '') and (StrLen(CurrentNo) < StrLen(StartingNo)) then
             exit(false);
-        if StrLen(CurrentNo) > StrLen(EndingNo) then
+        if (EndingNo <> '') and (StrLen(CurrentNo) > StrLen(EndingNo)) then
             exit(false);
 
         exit(true)
