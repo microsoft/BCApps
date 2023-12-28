@@ -1,5 +1,5 @@
 <#
-    .Synopsis
+    .Synopsis 
         Build script for AL-Go projects
     .Description
         This script will run localDevEnv.ps1 in the specified AL-Go project
