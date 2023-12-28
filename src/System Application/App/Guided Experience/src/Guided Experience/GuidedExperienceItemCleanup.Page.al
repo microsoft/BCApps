@@ -112,7 +112,7 @@ page 1998 "Guided Experience Item Cleanup"
         Rec.DeleteAll();
         GuidedExperienceImpl.GetDuplicatedGuidedExperienceItems(TempGuidedExperienceItem, 100);
 
-        if TempGuidedExperienceItem.Count() = 0 then
+        if TempGuidedExperienceItem.IsEmpty() then
             exit;
 
         Rec.Copy(TempGuidedExperienceItem, true);
