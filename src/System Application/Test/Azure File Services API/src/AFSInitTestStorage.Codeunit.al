@@ -10,7 +10,7 @@ using System.Azure.Storage.Files;
 /// <summary>
 /// Provides functionality for initializing or resetting azure storage accounts file shares.
 /// </summary>
-codeunit 132516 "AFS Init. Test Storage"
+codeunit 132519 "AFS Init. Test Storage"
 {
     Access = Internal;
 

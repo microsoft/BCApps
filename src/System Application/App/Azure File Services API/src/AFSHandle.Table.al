@@ -14,7 +14,6 @@ table 8951 "AFS Handle"
     InherentEntitlements = X;
     InherentPermissions = X;
     Extensible = false;
-    DataClassification = SystemMetadata;
     TableType = Temporary;
 
     fields

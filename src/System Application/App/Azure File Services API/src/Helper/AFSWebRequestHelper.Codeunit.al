@@ -19,7 +19,7 @@ codeunit 8954 "AFS Web Request Helper"
         HttpResponseInfoErr: Label '%1.\\Response Code: %2 %3', Comment = '%1 = Default Error Message ; %2 = Status Code; %3 = Reason Phrase';
 
     [NonDebuggable]
-    procedure GetOperationAsText(var AFSOperationPayload: Codeunit "AFS Operation Payload"; var ResponseText: Text; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
+    procedure GetOperationAsText(var AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; var ResponseText: Text; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
     var
         AFSOperationResponse: Codeunit "AFS Operation Response";
     begin
@@ -33,7 +33,7 @@ codeunit 8954 "AFS Web Request Helper"
     end;
 
     [NonDebuggable]
-    procedure GetOperationAsStream(var AFSOperationPayload: Codeunit "AFS Operation Payload"; var InStream: InStream; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
+    procedure GetOperationAsStream(var AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; var InStream: InStream; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
     var
         AFSOperationResponse: Codeunit "AFS Operation Response";
     begin
@@ -46,7 +46,7 @@ codeunit 8954 "AFS Web Request Helper"
     end;
 
     [NonDebuggable]
-    local procedure GetOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload"; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
+    local procedure GetOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
     var
         AFSOperationResponse: Codeunit "AFS Operation Response";
         HttpClient: HttpClient;
@@ -59,7 +59,7 @@ codeunit 8954 "AFS Web Request Helper"
     end;
 
     [NonDebuggable]
-    procedure HeadOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload"; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
+    procedure HeadOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
     var
         AFSOperationResponse: Codeunit "AFS Operation Response";
         HttpClient: HttpClient;
@@ -72,7 +72,7 @@ codeunit 8954 "AFS Web Request Helper"
     end;
 
     [NonDebuggable]
-    procedure PutOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload"; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
+    procedure PutOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
     var
         AFSOperationResponse: Codeunit "AFS Operation Response";
         HttpContent: HttpContent;
@@ -82,7 +82,7 @@ codeunit 8954 "AFS Web Request Helper"
     end;
 
     [NonDebuggable]
-    procedure PutOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload"; HttpContent: HttpContent; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
+    procedure PutOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; HttpContent: HttpContent; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
     var
         AFSOperationResponse: Codeunit "AFS Operation Response";
         HttpClient: HttpClient;
@@ -95,7 +95,7 @@ codeunit 8954 "AFS Web Request Helper"
     end;
 
     [NonDebuggable]
-    procedure DeleteOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload"; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
+    procedure DeleteOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
     var
         AFSOperationResponse: Codeunit "AFS Operation Response";
         HttpClient: HttpClient;
@@ -108,7 +108,7 @@ codeunit 8954 "AFS Web Request Helper"
     end;
 
     [NonDebuggable]
-    procedure PostOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload"; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
+    procedure PostOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
     var
         AFSOperationResponse: Codeunit "AFS Operation Response";
         HttpContent: HttpContent;
@@ -118,7 +118,7 @@ codeunit 8954 "AFS Web Request Helper"
     end;
 
     [NonDebuggable]
-    procedure PostOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload"; HttpContent: HttpContent; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
+    procedure PostOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; HttpContent: HttpContent; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
     var
         AFSOperationResponse: Codeunit "AFS Operation Response";
         HttpClient: HttpClient;
@@ -131,7 +131,7 @@ codeunit 8954 "AFS Web Request Helper"
     end;
 
     [NonDebuggable]
-    procedure OptionsOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload"; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
+    procedure OptionsOperation(var AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; OperationNotSuccessfulErr: Text): Codeunit "AFS Operation Response"
     var
         AFSOperationResponse: Codeunit "AFS Operation Response";
         HttpClient: HttpClient;
@@ -144,7 +144,7 @@ codeunit 8954 "AFS Web Request Helper"
     end;
 
     [NonDebuggable]
-    local procedure PrepareRequestMsg(var HttpRequestMessage: HttpRequestMessage; var AFSOperationPayload: Codeunit "AFS Operation Payload"; HttpRequestType: Enum "Http Request Type")
+    local procedure PrepareRequestMsg(var HttpRequestMessage: HttpRequestMessage; var AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; HttpRequestType: Enum "Http Request Type")
     var
         AFSHttpHeaderHelper: Codeunit "AFS HttpHeader Helper";
         Authorization: Interface "Storage Service Authorization";
@@ -158,7 +158,7 @@ codeunit 8954 "AFS Web Request Helper"
     end;
 
     [NonDebuggable]
-    local procedure PrepareRequestMsg(var HttpRequestMessage: HttpRequestMessage; var AFSOperationPayload: Codeunit "AFS Operation Payload"; HttpRequestType: Enum "Http Request Type"; HttpContent: HttpContent)
+    local procedure PrepareRequestMsg(var HttpRequestMessage: HttpRequestMessage; var AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; HttpRequestType: Enum "Http Request Type"; HttpContent: HttpContent)
     var
         AFSHttpContentHelper: Codeunit "AFS HttpContent Helper";
         AFSHttpHeaderHelper: Codeunit "AFS HttpHeader Helper";

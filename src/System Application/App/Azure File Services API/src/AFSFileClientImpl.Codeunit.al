@@ -16,7 +16,7 @@ codeunit 8951 "AFS File Client Impl."
     InherentPermissions = X;
 
     var
-        AFSOperationPayload: Codeunit "AFS Operation Payload";
+        AFSOperationPayload: Codeunit "AFS Operation Payload Impl.";
         AFSHttpContentHelper: Codeunit "AFS HttpContent Helper";
         AFSWebRequestHelper: Codeunit "AFS Web Request Helper";
         AFSFormatHelper: Codeunit "AFS Format Helper";
@@ -126,7 +126,7 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOperation: Enum "AFS Operation";
     begin
-        Telemetry.LogMessage('0000AFS', CreatingDirectoryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M1R', CreatingDirectoryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::CreateDirectory);
         AFSOperationPayload.SetPath(DirectoryPath);
         AFSOperationPayload.AddRequestHeader('x-ms-file-attributes', 'Directory');
@@ -137,9 +137,9 @@ codeunit 8951 "AFS File Client Impl."
 
         AFSOperationResponse := AFSWebRequestHelper.PutOperation(AFSOperationPayload, StrSubstNo(CreateDirectoryOperationNotSuccessfulErr, AFSOperationPayload.GetPath(), AFSOperationPayload.GetFileShareName()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', DirectoryCreatedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M1S', DirectoryCreatedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(DirectoryCreationFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M1T', StrSubstNo(DirectoryCreationFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -148,16 +148,16 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOperation: Enum "AFS Operation";
     begin
-        Telemetry.LogMessage('0000AFS', DeletingDirectoryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M1U', DeletingDirectoryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::DeleteDirectory);
         AFSOperationPayload.SetOptionalParameters(AFSOptionalParameters);
         AFSOperationPayload.SetPath(DirectoryPath);
 
         AFSOperationResponse := AFSWebRequestHelper.DeleteOperation(AFSOperationPayload, StrSubstNo(DeleteDirectoryOperationNotSuccessfulErr, AFSOperationPayload.GetPath(), AFSOperationPayload.GetFileShareName()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', DirectoryDeletedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M1V', DirectoryDeletedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(DirectoryDeletionFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M1W', StrSubstNo(DirectoryDeletionFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
 
         exit(AFSOperationResponse);
     end;
@@ -165,22 +165,22 @@ codeunit 8951 "AFS File Client Impl."
     procedure ListDirectory(DirectoryPath: Text[2048]; var AFSDirectoryContent: Record "AFS Directory Content"; PreserveDirectoryContent: Boolean; AFSOptionalParameters: Codeunit "AFS Optional Parameters"): Codeunit "AFS Operation Response"
     var
         AFSOperationResponse: Codeunit "AFS Operation Response";
-        AFSHelperLibrary: Codeunit "AFS Helper Library";
+        AFSHelperLibrary: Codeunit "XML Utility Impl.";
         AFSOperation: Enum "AFS Operation";
         ResponseText: Text;
         NodeList: XmlNodeList;
         DirectoryURI: Text;
     begin
-        Telemetry.LogMessage('0000AFS', ListingDirectoryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M1X', ListingDirectoryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::ListDirectory);
         AFSOperationPayload.SetOptionalParameters(AFSOptionalParameters);
         AFSOperationPayload.SetPath(DirectoryPath);
 
         AFSOperationResponse := AFSWebRequestHelper.GetOperationAsText(AFSOperationPayload, ResponseText, StrSubstNo(ListDirectoryOperationNotSuccessfulErr, AFSOperationPayload.GetPath(), AFSOperationPayload.GetFileShareName()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', DirectoryListedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M1Y', DirectoryListedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(DirectoryListingFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M1Z', StrSubstNo(DirectoryListingFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
 
         NodeList := AFSHelperLibrary.CreateDirectoryContentNodeListFromResponse(ResponseText);
         DirectoryURI := AFSHelperLibrary.GetDirectoryPathFromResponse(ResponseText);
@@ -193,21 +193,21 @@ codeunit 8951 "AFS File Client Impl."
     procedure ListFileHandles(Path: Text; var AFSHandle: Record "AFS Handle"; AFSOptionalParameters: Codeunit "AFS Optional Parameters"): Codeunit "AFS Operation Response"
     var
         AFSOperationResponse: Codeunit "AFS Operation Response";
-        AFSHelperLibrary: Codeunit "AFS Helper Library";
+        AFSHelperLibrary: Codeunit "XML Utility Impl.";
         AFSOperation: Enum "AFS Operation";
         ResponseText: Text;
         NodeList: XmlNodeList;
     begin
-        Telemetry.LogMessage('0000AFS', ListingFileHandlesTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M20', ListingFileHandlesTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::ListFileHandles);
         AFSOperationPayload.SetOptionalParameters(AFSOptionalParameters);
         AFSOperationPayload.SetPath(Path);
 
         AFSOperationResponse := AFSWebRequestHelper.GetOperationAsText(AFSOperationPayload, ResponseText, StrSubstNo(ListHandlesOperationNotSuccessfulErr, AFSOperationPayload.GetPath(), AFSOperationPayload.GetFileShareName()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', FileHandlesListedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M21', FileHandlesListedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(ListingFileHandlesFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M22', StrSubstNo(ListingFileHandlesFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
 
         NodeList := AFSHelperLibrary.CreateHandleNodeListFromResponse(ResponseText);
         AFSHelperLibrary.HandleNodeListToTempRecord(NodeList, AFSHandle);
@@ -222,7 +222,7 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOperation: Enum "AFS Operation";
     begin
-        Telemetry.LogMessage('0000AFS', RenamingFileTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M23', RenamingFileTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::RenameFile);
         AFSOperationPayload.AddRequestHeader('x-ms-file-rename-source', SourceFilePath);
         AFSOperationPayload.SetOptionalParameters(AFSOptionalParameters);
@@ -230,9 +230,9 @@ codeunit 8951 "AFS File Client Impl."
 
         AFSOperationResponse := AFSWebRequestHelper.PutOperation(AFSOperationPayload, StrSubstNo(RenameFileOperationNotSuccessfulErr, SourceFilePath, AFSOperationPayload.GetPath(), AFSOperationPayload.GetFileShareName()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', FileRenamedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M24', FileRenamedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(FileRenamingFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M25', StrSubstNo(FileRenamingFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -246,7 +246,7 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOperation: Enum "AFS Operation";
     begin
-        Telemetry.LogMessage('0000AFS', CreatingFileTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M26', CreatingFileTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::CreateFile);
         AFSOperationPayload.SetPath(FilePath);
         AFSOperationPayload.AddRequestHeader('x-ms-type', 'file');
@@ -260,9 +260,9 @@ codeunit 8951 "AFS File Client Impl."
 
         AFSOperationResponse := AFSWebRequestHelper.PutOperation(AFSOperationPayload, StrSubstNo(CreateFileOperationNotSuccessfulErr, AFSOperationPayload.GetPath(), AFSOperationPayload.GetFileShareName()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', FileCreatedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M27', FileCreatedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(FileCreationFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M28', StrSubstNo(FileCreationFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
 
         exit(AFSOperationResponse);
     end;
@@ -272,15 +272,15 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         TargetInStream: InStream;
     begin
-        Telemetry.LogMessage('0000AFS', GettingFileAsFileTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M29', GettingFileAsFileTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationResponse := GetFileAsStream(FilePath, TargetInStream, AFSOptionalParameters);
 
         if AFSOperationResponse.IsSuccessful() then begin
             FilePath := AFSOperationPayload.GetPath();
             DownloadFromStream(TargetInStream, '', '', '', FilePath);
-            Telemetry.LogMessage('0000AFS', FileRetrievedAsFileTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M2A', FileRetrievedAsFileTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         end else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(GettingFileAsFileFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M2B', StrSubstNo(GettingFileAsFileFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -289,7 +289,7 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOperation: Enum "AFS Operation";
     begin
-        Telemetry.LogMessage('0000AFS', GettingFileAsStreamTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M2C', GettingFileAsStreamTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
 
         AFSOperationPayload.SetOperation(AFSOperation::GetFile);
         AFSOperationPayload.SetPath(FilePath);
@@ -297,9 +297,9 @@ codeunit 8951 "AFS File Client Impl."
 
         AFSOperationResponse := AFSWebRequestHelper.GetOperationAsStream(AFSOperationPayload, TargetInStream, StrSubstNo(GetFileOperationNotSuccessfulErr, AFSOperationPayload.GetPath()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', FileRetrievedAsStreamTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M2D', FileRetrievedAsStreamTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(GettingFileAsStreamFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M2E', StrSubstNo(GettingFileAsStreamFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -308,7 +308,7 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOperation: Enum "AFS Operation";
     begin
-        Telemetry.LogMessage('0000AFS', GettingFileAsTextTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M2F', GettingFileAsTextTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
 
         AFSOperationPayload.SetOperation(AFSOperation::GetFile);
         AFSOperationPayload.SetOptionalParameters(AFSOptionalParameters);
@@ -316,9 +316,9 @@ codeunit 8951 "AFS File Client Impl."
 
         AFSOperationResponse := AFSWebRequestHelper.GetOperationAsText(AFSOperationPayload, TargetText, StrSubstNo(GetFileOperationNotSuccessfulErr, AFSOperationPayload.GetPath()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', FileRetrievedAsTextTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M2G', FileRetrievedAsTextTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(GettingFileAsTextFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M2H', StrSubstNo(GettingFileAsTextFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -329,16 +329,16 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperation: Enum "AFS Operation";
         TargetText: Text;
     begin
-        Telemetry.LogMessage('0000AFS', GettingFileMetadataTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M2I', GettingFileMetadataTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::GetFileMetadata);
         AFSOperationPayload.SetOptionalParameters(AFSOptionalParameters);
         AFSOperationPayload.SetPath(FilePath);
 
         AFSOperationResponse := AFSWebRequestHelper.GetOperationAsText(AFSOperationPayload, TargetText, StrSubstNo(GetFileMetadataOperationNotSuccessfulErr, AFSOperationPayload.GetPath()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', FileMetadataRetrievedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M2J', FileMetadataRetrievedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(GettingFileMetadataFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M2K', StrSubstNo(GettingFileMetadataFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         TargetMetadata := AFSHttpHeaderHelper.GetMetadataHeaders(AFSOperationResponse.GetHeaders());
         exit(AFSOperationResponse);
     end;
@@ -350,7 +350,7 @@ codeunit 8951 "AFS File Client Impl."
         MetadataKey: Text;
         MetadataValue: Text;
     begin
-        Telemetry.LogMessage('0000AFS', SettingFileMetadataTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M2L', SettingFileMetadataTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::SetFileMetadata);
         AFSOperationPayload.SetOptionalParameters(AFSOptionalParameters);
         AFSOperationPayload.SetPath(FilePath);
@@ -364,9 +364,9 @@ codeunit 8951 "AFS File Client Impl."
 
         AFSOperationResponse := AFSWebRequestHelper.PutOperation(AFSOperationPayload, StrSubstNo(SetFileMetadataOperationNotSuccessfulErr, AFSOperationPayload.GetPath()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', FileMetadataSetTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M2M', FileMetadataSetTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(SettingFileMetadataFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M2N', StrSubstNo(SettingFileMetadataFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -376,15 +376,15 @@ codeunit 8951 "AFS File Client Impl."
         Filename: Text;
         SourceInStream: InStream;
     begin
-        Telemetry.LogMessage('0000AFS', PuttingFileUITxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M2O', PuttingFileUITxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         if UploadIntoStream('', '', '', FileName, SourceInStream) then begin
             AFSOperationResponse := PutFileStream(Filename, SourceInStream, AFSOptionalParameters);
             if AFSOperationResponse.IsSuccessful() then
-                Telemetry.LogMessage('0000AFS', FileSentUITxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+                Telemetry.LogMessage('0000M2P', FileSentUITxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
             else
-                Telemetry.LogMessage('0000AFS', StrSubstNo(PuttingFileUIFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+                Telemetry.LogMessage('0000M2Q', StrSubstNo(PuttingFileUIFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         end else
-            Telemetry.LogMessage('0000AFS', PuttingFileUIAbortedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M2R', PuttingFileUIAbortedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -393,13 +393,13 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         SourceContentVariant: Variant;
     begin
-        Telemetry.LogMessage('0000AFS', PuttingFileStreamTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M2S', PuttingFileStreamTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         SourceContentVariant := SourceInStream;
         AFSOperationResponse := PutFile(FilePath, AFSOptionalParameters, SourceContentVariant);
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', FileSentStreamTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M2T', FileSentStreamTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(PuttingFileStreamFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M2U', StrSubstNo(PuttingFileStreamFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -408,13 +408,13 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         SourceContentVariant: Variant;
     begin
-        Telemetry.LogMessage('0000AFS', PuttingFileTextTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M2V', PuttingFileTextTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         SourceContentVariant := SourceText;
         AFSOperationResponse := PutFile(FilePath, AFSOptionalParameters, SourceContentVariant);
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', FileSentTextTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M2W', FileSentTextTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(PuttingFileTextFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M2X', StrSubstNo(PuttingFileTextFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -465,7 +465,7 @@ codeunit 8951 "AFS File Client Impl."
         SmallerOutStream: OutStream;
         ResponseIndex: Integer;
     begin
-        Telemetry.LogMessage('0000AFS', PuttingFileRangesTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M2Y', PuttingFileRangesTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         MaxAllowedRange := AFSHttpContentHelper.GetMaxRange();
         BytesLeftToWrite := AFSHttpContentHelper.GetContentLength(SourceInStream);
         CurrentPostion := 0;
@@ -485,9 +485,9 @@ codeunit 8951 "AFS File Client Impl."
             AFSHttpContentHelper.AddFilePutContentHeaders(HttpContent, AFSOperationPayload, SmallerStream, CurrentPostion, CurrentPostion + BytesToWrite - 1);
             AFSOperationResponse := AFSWebRequestHelper.PutOperation(AFSOperationPayload, HttpContent, StrSubstNo(PutFileOperationNotSuccessfulErr, AFSOperationPayload.GetPath(), AFSOperationPayload.GetFileShareName()));
             if AFSOperationResponse.IsSuccessful() then
-                Telemetry.LogMessage('0000AFS', StrSubstNo(FileRangeSentTxt, CurrentPostion, CurrentPostion + BytesToWrite - 1), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+                Telemetry.LogMessage('0000M2Z', StrSubstNo(FileRangeSentTxt, CurrentPostion, CurrentPostion + BytesToWrite - 1), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
             else
-                Telemetry.LogMessage('0000AFS', StrSubstNo(PuttingFileRangesFailedTxt, CurrentPostion, CurrentPostion + BytesToWrite - 1, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+                Telemetry.LogMessage('0000M30', StrSubstNo(PuttingFileRangesFailedTxt, CurrentPostion, CurrentPostion + BytesToWrite - 1, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
             CurrentPostion += BytesToWrite;
             BytesLeftToWrite -= BytesToWrite;
 
@@ -501,16 +501,16 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOperation: Enum "AFS Operation";
     begin
-        Telemetry.LogMessage('0000AFS', DeletingFileTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M31', DeletingFileTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::DeleteFile);
         AFSOperationPayload.SetOptionalParameters(AFSOptionalParameters);
         AFSOperationPayload.SetPath(FilePath);
 
         AFSOperationResponse := AFSWebRequestHelper.DeleteOperation(AFSOperationPayload, StrSubstNo(DeleteFileOperationNotSuccessfulErr, AFSOperationPayload.GetPath(), AFSOperationPayload.GetFileShareName(), 'Delete'));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', FileDeletedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M32', FileDeletedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(DeletingFileFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M33', StrSubstNo(DeletingFileFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
 
         exit(AFSOperationResponse);
     end;
@@ -520,7 +520,7 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOperation: Enum "AFS Operation";
     begin
-        Telemetry.LogMessage('0000AFS', FileCopyingTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M34', FileCopyingTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::CopyFile);
         AFSOperationPayload.AddRequestHeader('x-ms-copy-source', SourceFileURI);
         AFSOperationPayload.SetOptionalParameters(AFSOptionalParameters);
@@ -528,9 +528,9 @@ codeunit 8951 "AFS File Client Impl."
 
         AFSOperationResponse := AFSWebRequestHelper.PutOperation(AFSOperationPayload, StrSubstNo(CopyFileOperationNotSuccessfulErr, AFSOperationPayload.GetPath()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', FileCopiedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M35', FileCopiedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(FileCopyingFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M36', StrSubstNo(FileCopyingFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -539,7 +539,7 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOperation: Enum "AFS Operation";
     begin
-        Telemetry.LogMessage('0000AFS', StrSubstNo(AbortingCopyTxt, CopyID), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M37', StrSubstNo(AbortingCopyTxt, CopyID), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::AbortCopyFile);
         AFSOperationPayload.AddRequestHeader('x-ms-copy-action', 'abort');
         AFSOperationPayload.AddUriParameter('copyid', CopyID);
@@ -548,9 +548,9 @@ codeunit 8951 "AFS File Client Impl."
 
         AFSOperationResponse := AFSWebRequestHelper.PutOperation(AFSOperationPayload, StrSubstNo(AbortCopyFileOperationNotSuccessfulErr, AFSOperationPayload.GetPath()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', StrSubstNo(CopyingAbortedTxt, CopyID), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M38', StrSubstNo(CopyingAbortedTxt, CopyID), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(AbortingCopyFailedTxt, CopyID, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M39', StrSubstNo(AbortingCopyFailedTxt, CopyID, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -559,15 +559,15 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOperation: Enum "AFS Operation";
     begin
-        Telemetry.LogMessage('0000AFS', AcquiringLeaseTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M3A', AcquiringLeaseTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::LeaseFile);
         AFSOperationPayload.SetPath(FilePath);
 
         AFSOperationResponse := AcquireLease(AFSOptionalParameters, ProposedLeaseId, LeaseId, StrSubstNo(LeaseOperationNotSuccessfulErr, LeaseAcquireLbl, FileLbl, AFSOperationPayload.GetPath()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', StrSubstNo(LeaseAcquiredTxt, LeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M3B', StrSubstNo(LeaseAcquiredTxt, LeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(AcquiringLeaseFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M3C', StrSubstNo(AcquiringLeaseFailedTxt, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -576,15 +576,15 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOperation: Enum "AFS Operation";
     begin
-        Telemetry.LogMessage('0000AFS', StrSubstNo(ReleasingLeaseTxt, LeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M3D', StrSubstNo(ReleasingLeaseTxt, LeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::LeaseFile);
         AFSOperationPayload.SetPath(FilePath);
 
         AFSOperationResponse := ReleaseLease(AFSOptionalParameters, LeaseId, StrSubstNo(LeaseOperationNotSuccessfulErr, LeaseReleaseLbl, FileLbl, AFSOperationPayload.GetPath()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', StrSubstNo(LeaseReleasedTxt, LeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M3E', StrSubstNo(LeaseReleasedTxt, LeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(ReleasingLeaseFailedTxt, LeaseId, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M3F', StrSubstNo(ReleasingLeaseFailedTxt, LeaseId, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -593,15 +593,15 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOperation: Enum "AFS Operation";
     begin
-        Telemetry.LogMessage('0000AFS', StrSubstNo(BreakingLeaseTxt, LeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M3G', StrSubstNo(BreakingLeaseTxt, LeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::LeaseFile);
         AFSOperationPayload.SetPath(FilePath);
 
         AFSOperationResponse := BreakLease(AFSOptionalParameters, LeaseId, StrSubstNo(LeaseOperationNotSuccessfulErr, LeaseBreakLbl, FileLbl, AFSOperationPayload.GetPath()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', StrSubstNo(LeaseBrokenTxt, LeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M3H', StrSubstNo(LeaseBrokenTxt, LeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(BreakingLeaseFailedTxt, LeaseId, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M3I', StrSubstNo(BreakingLeaseFailedTxt, LeaseId, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 
@@ -610,15 +610,15 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperationResponse: Codeunit "AFS Operation Response";
         AFSOperation: Enum "AFS Operation";
     begin
-        Telemetry.LogMessage('0000AFS', StrSubstNo(ChangingLeaseTxt, LeaseId, ProposedLeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+        Telemetry.LogMessage('0000M3J', StrSubstNo(ChangingLeaseTxt, LeaseId, ProposedLeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::LeaseFile);
         AFSOperationPayload.SetPath(FilePath);
 
         AFSOperationResponse := ChangeLease(AFSOptionalParameters, LeaseId, ProposedLeaseId, StrSubstNo(LeaseOperationNotSuccessfulErr, LeaseChangeLbl, FileLbl, AFSOperationPayload.GetPath()));
         if AFSOperationResponse.IsSuccessful() then
-            Telemetry.LogMessage('0000AFS', StrSubstNo(LeaseChangedTxt, LeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher)
+            Telemetry.LogMessage('0000M3K', StrSubstNo(LeaseChangedTxt, LeaseId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All)
         else
-            Telemetry.LogMessage('0000AFS', StrSubstNo(ChangingLeaseFailedTxt, ProposedLeaseId, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Telemetry.LogMessage('0000M3L', StrSubstNo(ChangingLeaseFailedTxt, ProposedLeaseId, AFSOperationResponse.GetError()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All);
         exit(AFSOperationResponse);
     end;
 

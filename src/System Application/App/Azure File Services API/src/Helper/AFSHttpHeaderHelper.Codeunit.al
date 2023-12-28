@@ -65,7 +65,7 @@ codeunit 8958 "AFS HttpHeader Helper"
     end;
 
     [NonDebuggable]
-    procedure HandleRequestHeaders(HttpRequestType: Enum "Http Request Type"; var HttpRequestMessage: HttpRequestMessage; var AFSOperationPayload: Codeunit "AFS Operation Payload")
+    procedure HandleRequestHeaders(HttpRequestType: Enum "Http Request Type"; var HttpRequestMessage: HttpRequestMessage; var AFSOperationPayload: Codeunit "AFS Operation Payload Impl.")
     var
         AFSFormatHelper: Codeunit "AFS Format Helper";
         UsedDateTimeText: Text;
@@ -88,7 +88,7 @@ codeunit 8958 "AFS HttpHeader Helper"
     end;
 
     [NonDebuggable]
-    procedure HandleContentHeaders(var HttpContent: HttpContent; var AFSOperationPayload: Codeunit "AFS Operation Payload"): Boolean
+    procedure HandleContentHeaders(var HttpContent: HttpContent; var AFSOperationPayload: Codeunit "AFS Operation Payload Impl."): Boolean
     var
         Headers: HttpHeaders;
         ContentHeaders: Dictionary of [Text, Text];

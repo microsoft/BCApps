@@ -14,7 +14,7 @@ codeunit 8961 "AFS Directory Content Helper"
     [NonDebuggable]
     procedure AddNewEntryFromNode(DirectoryURI: Text; DirectoryPath: Text[2048]; var AFSDirectoryContent: Record "AFS Directory Content"; var Node: XmlNode; XPathName: Text)
     var
-        AFSHelperLibrary: Codeunit "AFS Helper Library";
+        AFSHelperLibrary: Codeunit "XML Utility Impl.";
         NameFromXml: Text;
         OuterXml: Text;
         ChildNodes: XmlNodeList;
@@ -120,7 +120,7 @@ codeunit 8961 "AFS Directory Content Helper"
     local procedure SetPropertyFields(var AFSDirectoryContent: Record "AFS Directory Content"; ChildNodes: XmlNodeList)
     var
         AFSFormatHelper: Codeunit "AFS Format Helper";
-        AFSHelperLibrary: Codeunit "AFS Helper Library";
+        AFSHelperLibrary: Codeunit "XML Utility Impl.";
         RecordRef: RecordRef;
         FieldRef: FieldRef;
         ChildNode: XmlNode;
@@ -156,7 +156,7 @@ codeunit 8961 "AFS Directory Content Helper"
 
     local procedure SetAttributesFields(var AFSDirectoryContent: Record "AFS Directory Content" temporary; AttributesNode: XmlNode)
     var
-        AFSHelperLibrary: Codeunit "AFS Helper Library";
+        AFSHelperLibrary: Codeunit "XML Utility Impl.";
         RecordRef: RecordRef;
         FieldRef: FieldRef;
         AttributesList: List of [Text];
