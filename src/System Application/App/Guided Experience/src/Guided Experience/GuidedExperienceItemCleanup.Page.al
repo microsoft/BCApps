@@ -111,6 +111,10 @@ page 1998 "Guided Experience Item Cleanup"
     begin
         Rec.DeleteAll();
         GuidedExperienceImpl.GetDuplicatedGuidedExperienceItems(TempGuidedExperienceItem, 100);
+
+        if TempGuidedExperienceItem.Count() = 0 then
+            exit;
+
         Rec.Copy(TempGuidedExperienceItem, true);
         if Rec.FindFirst() then; // set focus on the first row
         CurrPage.Update();
