@@ -10,7 +10,7 @@ using System.Azure.Storage;
 /// <summary>
 /// Provides common authorization functionality for using Azure storage accounts in tests for Azure Storage Services.
 /// </summary>
-codeunit 132515 "AFS Get Test Storage Auth."
+codeunit 132518 "AFS Get Test Storage Auth."
 {
     Access = Internal;
 

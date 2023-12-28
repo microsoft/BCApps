@@ -7,7 +7,7 @@ namespace System.Azure.Storage.Files;
 
 using System.Azure.Storage;
 
-codeunit 8952 "AFS Operation Payload"
+codeunit 8952 "AFS Operation Payload Impl."
 {
     Access = Internal;
     InherentEntitlements = X;

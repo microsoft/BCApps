@@ -10,7 +10,7 @@ using System.Azure.Storage.Files;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
-codeunit 132517 "AFS File Client Test"
+codeunit 132520 "AFS File Client Test"
 {
     Subtype = Test;
 

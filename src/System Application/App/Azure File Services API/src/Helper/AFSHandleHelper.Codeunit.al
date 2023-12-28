@@ -13,7 +13,7 @@ codeunit 8962 "AFS Handle Helper"
 
     internal procedure AddNewEntryFromNode(var AFSHandle: Record "AFS Handle" temporary; Node: XmlNode)
     var
-        AFSHelperLibrary: Codeunit "AFS Helper Library";
+        AFSHelperLibrary: Codeunit "XML Utility Impl.";
         AFSFormatHelper: Codeunit "AFS Format Helper";
         HandleRef: RecordRef;
         HandleFieldRef: FieldRef;

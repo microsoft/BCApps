@@ -14,7 +14,6 @@ table 8950 "AFS Directory Content"
     InherentEntitlements = X;
     InherentPermissions = X;
     Extensible = false;
-    DataClassification = SystemMetadata;
     TableType = Temporary;
 
     fields

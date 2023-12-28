@@ -15,9 +15,7 @@ codeunit 8956 "AFS Optional Parameters"
     InherentPermissions = X;
 
     var
-        AFSFormatHelper: Codeunit "AFS Format Helper";
-        RequestHeaders: Dictionary of [Text, Text];
-        Parameters: Dictionary of [Text, Text];
+        AFSOptionalParametersImpl: Codeunit "AFS Optional Parameters Impl.";
 
     /// <summary>
     /// Sets the value for 'x-ms-range' HttpHeader for a request.
@@ -25,10 +23,8 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="BytesStartValue">Integer value specifying the Bytes start range value</param>
     /// <param name="BytesEndValue">Integer value specifying the Bytes end range value</param>
     procedure Range(BytesStartValue: Integer; BytesEndValue: Integer)
-    var
-        RangeBytesLbl: Label 'bytes=%1-%2', Comment = '%1 = Start Range; %2 = End Range', Locked = true;
     begin
-        SetRequestHeader('x-ms-range', StrSubstNo(RangeBytesLbl, BytesStartValue, BytesEndValue));
+        AFSOptionalParametersImpl.Range(BytesStartValue, BytesEndValue);
     end;
 
     /// <summary>
@@ -37,7 +33,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Enum "AFS Write" value specifying the HttpHeader value</param>
     procedure Write("Value": Enum "AFS Write")
     begin
-        SetRequestHeader('x-ms-write', Format("Value"));
+        AFSOptionalParametersImpl.Write("Value");
     end;
 
     /// <summary>
@@ -46,7 +42,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Guid value specifying the LeaseID</param>
     procedure LeaseId("Value": Guid)
     begin
-        SetRequestHeader('x-ms-lease-id', AFSFormatHelper.RemoveCurlyBracketsFromString(Format("Value").ToLower()));
+        AFSOptionalParametersImpl.LeaseId("Value");
     end;
 
     /// <summary>
@@ -55,7 +51,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Enum "AFS Lease Action" value specifying the LeaseAction</param>
     internal procedure LeaseAction("Value": Enum "AFS Lease Action")
     begin
-        SetRequestHeader('x-ms-lease-action', Format("Value"));
+        AFSOptionalParametersImpl.LeaseAction("Value");
     end;
 
     /// <summary>
@@ -64,7 +60,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Integer value specifying the LeaseDuration in seconds</param>
     procedure LeaseDuration("Value": Integer)
     begin
-        SetRequestHeader('x-ms-lease-duration', Format("Value"));
+        AFSOptionalParametersImpl.LeaseDuration("Value");
     end;
 
     /// <summary>
@@ -73,7 +69,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Guid value specifying the ProposedLeaseId in seconds</param>
     procedure ProposedLeaseId("Value": Guid)
     begin
-        SetRequestHeader('x-ms-proposed-lease-id', AFSFormatHelper.RemoveCurlyBracketsFromString(Format("Value").ToLower()));
+        AFSOptionalParametersImpl.ProposedLeaseId("Value");
     end;
 
     /// <summary>
@@ -82,7 +78,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Text value specifying the HttpHeader value</param>
     procedure ClientRequestId("Value": Text)
     begin
-        SetRequestHeader('x-ms-client-request-id', "Value");
+        AFSOptionalParametersImpl.ClientRequestId("Value");
     end;
 
     /// <summary>
@@ -91,7 +87,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Enum "AFS File Last Write Time" value specifying the HttpHeader value</param>
     procedure FileLastWriteTime("Value": Enum "AFS File Last Write Time")
     begin
-        SetRequestHeader('x-ms-file-last-write-time', Format("Value"));
+        AFSOptionalParametersImpl.FileLastWriteTime("Value");
     end;
 
     /// <summary>
@@ -100,7 +96,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Text value specifying the HttpHeader value</param>
     procedure FileRequestIntent("Value": Text)
     begin
-        SetRequestHeader('x-ms-file-request-intent', "Value");
+        AFSOptionalParametersImpl.FileRequestIntent("Value");
     end;
 
     /// <summary>
@@ -109,7 +105,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Text value specifying the HttpHeader value</param>
     procedure FilePermission("Value": Text)
     begin
-        SetRequestHeader('x-ms-file-permission', "Value");
+        AFSOptionalParametersImpl.FilePermission("Value");
     end;
 
     /// <summary>
@@ -118,7 +114,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Text value specifying the HttpHeader value</param>
     procedure FilePermissionKey("Value": Text)
     begin
-        SetRequestHeader('x-ms-file-permission-key', "Value");
+        AFSOptionalParametersImpl.FilePermissionKey("Value");
     end;
 
     /// <summary>
@@ -126,15 +122,8 @@ codeunit 8956 "AFS Optional Parameters"
     /// </summary>
     /// <param name="Value">Text value specifying the HttpHeader value</param>
     procedure FileAttributes("Value": List of [Enum "AFS File Attribute"])
-    var
-        FileAttribute: Enum "AFS File Attribute";
-        ValueText: Text;
     begin
-        foreach FileAttribute in "Value" do
-            ValueText += Format(FileAttribute) + ',';
-        ValueText := ValueText.TrimEnd(',');
-
-        SetRequestHeader('x-ms-file-attributes', ValueText);
+        AFSOptionalParametersImpl.FileAttributes("Value");
     end;
 
     /// <summary>
@@ -143,7 +132,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Datetime of the file creation</param>
     procedure FileCreationTime("Value": DateTime)
     begin
-        SetParameter('x-ms-file-creation-time', AFSFormatHelper.GetRfc1123DateTime("Value"));
+        AFSOptionalParametersImpl.FileCreationTime("Value");
     end;
 
     /// <summary>
@@ -152,7 +141,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Datetime of the file last write time</param>
     procedure FileLastWriteTime("Value": DateTime)
     begin
-        SetParameter('x-ms-file-last-write-time', AFSFormatHelper.GetRfc1123DateTime("Value"));
+        AFSOptionalParametersImpl.FileLastWriteTime("Value");
     end;
 
     /// <summary>
@@ -161,7 +150,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Datetime of the file last change time</param>
     procedure FileChangeTime("Value": DateTime)
     begin
-        SetParameter('x-ms-file-change-time', AFSFormatHelper.GetRfc1123DateTime("Value"));
+        AFSOptionalParametersImpl.FileChangeTime("Value");
     end;
 
     /// <summary>
@@ -171,7 +160,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Text value specifying the HttpHeader value</param>
     procedure Meta("Key": Text; "Value": Text)
     begin
-        SetRequestHeader('x-ms-meta-' + "Key", "Value");
+        AFSOptionalParametersImpl.Meta("Key", "Value");
     end;
 
     /// <summary>
@@ -180,7 +169,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Enum "AFS File Permission Copy Mode" value specifying the HttpHeader value</param>
     procedure FilePermissionCopyMode("Value": Enum "AFS File Permission Copy Mode")
     begin
-        SetRequestHeader('x-ms-file-permission-copy-mode', Format("Value"));
+        AFSOptionalParametersImpl.FilePermissionCopyMode("Value");
     end;
 
     /// <summary>
@@ -189,7 +178,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Text value specifying the HttpHeader value</param>
     procedure CopySource("Value": Text)
     begin
-        SetRequestHeader('x-ms-copy-source', "Value");
+        AFSOptionalParametersImpl.CopySource("Value");
     end;
 
     /// <summary>
@@ -197,13 +186,8 @@ codeunit 8956 "AFS Optional Parameters"
     /// </summary>
     /// <param name="Value">Boolean value specifying the HttpHeader value</param>
     procedure AllowTrailingDot("Value": Boolean)
-    var
-        ValueText: Text;
     begin
-        // Set as text, because otherwise it might give different formatted values based on language locale
-        ValueText := ConvertBooleanToText("Value");
-
-        SetRequestHeader('x-ms-allow-trailing-dot', ValueText);
+        AFSOptionalParametersImpl.AllowTrailingDot("Value");
     end;
 
     /// <summary>
@@ -211,13 +195,8 @@ codeunit 8956 "AFS Optional Parameters"
     /// </summary>
     /// <param name="Value">Boolean value specifying the HttpHeader value</param>
     procedure FileRenameReplaceIfExists("Value": Boolean)
-    var
-        ValueText: Text;
     begin
-        // Set as text, because otherwise it might give different formatted values based on language locale
-        ValueText := ConvertBooleanToText("Value");
-
-        SetRequestHeader('x-ms-file-rename-replace-if-exists', ValueText);
+        AFSOptionalParametersImpl.FileRenameReplaceIfExists("Value");
     end;
 
     /// <summary>
@@ -225,13 +204,8 @@ codeunit 8956 "AFS Optional Parameters"
     /// </summary>
     /// <param name="Value">Boolean value specifying the HttpHeader value</param>
     procedure FileRenameIgnoreReadOnly("Value": Boolean)
-    var
-        ValueText: Text;
     begin
-        // Set as text, because otherwise it might give different formatted values based on language locale
-        ValueText := ConvertBooleanToText("Value");
-
-        SetRequestHeader('x-ms-file-rename-ignore-readonly', ValueText);
+        AFSOptionalParametersImpl.FileRenameIgnoreReadOnly("Value");
     end;
 
     /// <summary>
@@ -240,7 +214,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Guid value specifying the SourceLeaseID</param>
     procedure SourceLeaseId("Value": Guid)
     begin
-        SetRequestHeader('x-ms-source-lease-id', AFSFormatHelper.RemoveCurlyBracketsFromString(Format("Value").ToLower()));
+        AFSOptionalParametersImpl.SourceLeaseId("Value");
     end;
 
     /// <summary>
@@ -249,7 +223,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Guid value specifying the DestinationLeaseID</param>
     procedure DestinationLeaseId("Value": Guid)
     begin
-        SetRequestHeader('x-ms-destination-lease-id', AFSFormatHelper.RemoveCurlyBracketsFromString(Format("Value").ToLower()));
+        AFSOptionalParametersImpl.DestinationLeaseId("Value");
     end;
 
     /// <summary>
@@ -257,13 +231,8 @@ codeunit 8956 "AFS Optional Parameters"
     /// </summary>
     /// <param name="Value">Boolean value specifying the HttpHeader value</param>
     procedure FileCopyIgnoreReadOnly("Value": Boolean)
-    var
-        ValueText: Text;
     begin
-        // Set as text, because otherwise it might give different formatted values based on language locale
-        ValueText := ConvertBooleanToText("Value");
-
-        SetRequestHeader('x-ms-file-copy-ignore-readonly', ValueText);
+        AFSOptionalParametersImpl.FileCopyIgnoreReadOnly("Value");
     end;
 
     /// <summary>
@@ -271,13 +240,8 @@ codeunit 8956 "AFS Optional Parameters"
     /// </summary>
     /// <param name="Value">Boolean value specifying the HttpHeader value</param>
     procedure FileCopySetArchive("Value": Boolean)
-    var
-        ValueText: Text;
     begin
-        // Set as text, because otherwise it might give different formatted values based on language locale
-        ValueText := ConvertBooleanToText("Value");
-
-        SetRequestHeader('x-ms-file-copy-set-archive', ValueText);
+        AFSOptionalParametersImpl.FileCopySetArchive("Value");
     end;
 
     /// <summary>
@@ -285,13 +249,8 @@ codeunit 8956 "AFS Optional Parameters"
     /// </summary>
     /// <param name="Value">Boolean value specifying the HttpHeader value</param>
     procedure FileExtendedInfo("Value": Boolean)
-    var
-        ValueText: Text;
     begin
-        // Set as text, because otherwise it might give different formatted values based on language locale
-        ValueText := ConvertBooleanToText("Value");
-
-        SetRequestHeader('x-ms-file-extended-info', ValueText);
+        AFSOptionalParametersImpl.FileExtendedInfo("Value");
     end;
 
     /// <summary>
@@ -299,13 +258,8 @@ codeunit 8956 "AFS Optional Parameters"
     /// </summary>
     /// <param name="Value">Boolean value specifying the HttpHeader value</param>
     procedure RangeGetContentMD5("Value": Boolean)
-    var
-        ValueText: Text;
     begin
-        // Set as text, because otherwise it might give different formatted values based on language locale
-        ValueText := ConvertBooleanToText("Value");
-
-        SetRequestHeader('x-ms-range-get-content-md5', ValueText);
+        AFSOptionalParametersImpl.RangeGetContentMD5("Value");
     end;
 
     /// <summary>
@@ -313,13 +267,8 @@ codeunit 8956 "AFS Optional Parameters"
     /// </summary>
     /// <param name="Value">Boolean value specifying the HttpHeader value</param>
     procedure Recursive("Value": Boolean)
-    var
-        ValueText: Text;
     begin
-        // Set as text, because otherwise it might give different formatted values based on language locale
-        ValueText := ConvertBooleanToText("Value");
-
-        SetRequestHeader('x-ms-recursive', ValueText);
+        AFSOptionalParametersImpl.Recursive("Value");
     end;
 
     /// <summary>
@@ -328,7 +277,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Timeout in seconds. Most operations have a max. limit of 30 seconds. For more Information see: https://go.microsoft.com/fwlink/?linkid=2210591</param>
     procedure Timeout("Value": Integer)
     begin
-        SetParameter('timeout', Format("Value"));
+        AFSOptionalParametersImpl.Timeout("Value");
     end;
 
     /// <summary>
@@ -337,7 +286,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Prefix to search for</param>
     procedure Prefix("Value": Text)
     begin
-        SetParameter('prefix', "Value");
+        AFSOptionalParametersImpl.Prefix(Value);
     end;
 
     /// <summary>
@@ -346,7 +295,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Datetime of the snapshot to query</param>
     procedure ShareSnapshot("Value": DateTime)
     begin
-        SetParameter('sharesnapshot', AFSFormatHelper.GetRfc1123DateTime("Value"));
+        AFSOptionalParametersImpl.ShareSnapshot("Value");
     end;
 
     /// <summary>
@@ -355,7 +304,7 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Text marker that was returned in previous operation</param>
     procedure Marker("Value": Text)
     begin
-        SetParameter('marker', "Value");
+        AFSOptionalParametersImpl.Marker("Value");
     end;
 
     /// <summary>
@@ -364,52 +313,25 @@ codeunit 8956 "AFS Optional Parameters"
     /// <param name="Value">Max. number of results to return. Must be positive, must not be greater than 5000</param>
     procedure MaxResults("Value": Integer)
     begin
-        SetParameter('maxresults', Format("Value"));
+        AFSOptionalParametersImpl.MaxResults("Value");
     end;
 
     /// <summary>
     /// Specifies one or more properties to include in the response.
     /// </summary>
     /// <param name="Value">List of properties to include.</param>
-    procedure Include("Value": List of [Enum "AFS Properties"])
-    var
-        Property: Enum "AFS Properties";
-        ValueText: Text;
+    procedure Include("Value": List of [Enum "AFS Property"])
     begin
-        foreach Property in "Value" do
-            ValueText += Format(Property) + ',';
-        ValueText := ValueText.TrimEnd(',');
-
-        SetParameter('include', ValueText);
-    end;
-
-    local procedure SetRequestHeader(Header: Text; HeaderValue: Text)
-    begin
-        RequestHeaders.Remove(Header);
-        RequestHeaders.Add(Header, HeaderValue);
+        AFSOptionalParametersImpl.Include("Value");
     end;
 
     internal procedure GetRequestHeaders(): Dictionary of [Text, Text]
     begin
-        exit(RequestHeaders);
-    end;
-
-    local procedure SetParameter(Header: Text; HeaderValue: Text)
-    begin
-        Parameters.Remove(Header);
-        Parameters.Add(Header, HeaderValue);
-    end;
-
-    local procedure ConvertBooleanToText("Value": Boolean) ValueText: Text
-    begin
-        if "Value" then
-            ValueText := 'true'
-        else
-            ValueText := 'false';
+        exit(AFSOptionalParametersImpl.GetRequestHeaders());
     end;
 
     internal procedure GetParameters(): Dictionary of [Text, Text]
     begin
-        exit(Parameters);
+        AFSOptionalParametersImpl.GetParameters();
     end;
 }

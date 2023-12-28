@@ -61,7 +61,7 @@ codeunit 8953 "AFS HttpContent Helper"
     end;
 
     [NonDebuggable]
-    procedure AddFilePutContentHeaders(AFSOperationPayload: Codeunit "AFS Operation Payload"; ContentLength: Integer; ContentType: Text; RangeStart: Integer; RangeEnd: Integer)
+    procedure AddFilePutContentHeaders(AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; ContentLength: Integer; ContentType: Text; RangeStart: Integer; RangeEnd: Integer)
     var
         HttpContent: HttpContent;
     begin
@@ -69,7 +69,7 @@ codeunit 8953 "AFS HttpContent Helper"
     end;
 
     [NonDebuggable]
-    procedure AddFilePutContentHeaders(var HttpContent: HttpContent; AFSOperationPayload: Codeunit "AFS Operation Payload"; var SourceInStream: InStream; RangeStart: Integer; RangeEnd: Integer)
+    procedure AddFilePutContentHeaders(var HttpContent: HttpContent; AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; var SourceInStream: InStream; RangeStart: Integer; RangeEnd: Integer)
     var
         Length: Integer;
     begin
@@ -82,7 +82,7 @@ codeunit 8953 "AFS HttpContent Helper"
     end;
 
     [NonDebuggable]
-    local procedure AddFilePutContentHeaders(var HttpContent: HttpContent; AFSOperationPayload: Codeunit "AFS Operation Payload"; ContentLength: Integer; ContentType: Text; RangeStart: Integer; RangeEnd: Integer)
+    local procedure AddFilePutContentHeaders(var HttpContent: HttpContent; AFSOperationPayload: Codeunit "AFS Operation Payload Impl."; ContentLength: Integer; ContentType: Text; RangeStart: Integer; RangeEnd: Integer)
     var
         Headers: HttpHeaders;
         FileServiceAPIOperation: Enum "AFS Operation";
@@ -105,12 +105,13 @@ codeunit 8953 "AFS HttpContent Helper"
     end;
 
     /// <summary>
-    /// Retrieves the max range avaialble to update with PutRange request.
+    /// Retrieves the max range available to update with PutRange request.
     /// </summary>
     /// <returns>The max range available to update.</returns>
     [NonDebuggable]
     procedure GetMaxRange(): Integer
     begin
+        // 4MiB
         exit(4 * Power(2, 20));
     end;
 }

@@ -8,7 +8,7 @@ namespace System.Azure.Storage.Files;
 /// <summary>
 /// Describes possible values of the additional AFS properties.
 /// </summary>
-enum 8953 "AFS Properties"
+enum 8953 "AFS Property"
 {
     Access = Public;
     Extensible = false;
