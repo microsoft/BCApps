@@ -237,6 +237,15 @@ codeunit 7774 "Copilot Capability Impl"
         IsAdmin := AzureADGraphUser.IsUserDelegatedAdmin() or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId()) or AzureADGraphUser.IsUserDelegatedHelpdesk() or UserPermissions.IsSuper(UserSecurityId());
     end;
 
+    [Tryfunction]
+    procedure CheckGeo(var WithinGeo: Boolean; var WithinEuropeGeo: Boolean)
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+    begin
+        WithinGeo := ALCopilotFunctions.IsWithinGeo();
+        WithinEuropeGeo := ALCopilotFunctions.IsEuropeGeo();
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", 'OnRegisterPrivacyNotices', '', false, false)]
     local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
     begin

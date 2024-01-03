@@ -109,10 +109,11 @@ codeunit 7772 "Azure OpenAI Impl"
 
     local procedure CheckPrivacyNoticeState(Silent: Boolean; Capability: Enum "Copilot Capability"): Boolean
     var
+        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         PrivacyNotice: Codeunit "Privacy Notice";
         CopilotNotAvailable: Page "Copilot Not Available";
-        ALCopilotFunctions: DotNet ALCopilotFunctions;
         WithinGeo: Boolean;
+        WithinEuropeGeo: Boolean;
     begin
         case PrivacyNotice.GetPrivacyNoticeApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), false) of
             Enum::"Privacy Notice Approval State"::Agreed:
@@ -129,7 +130,8 @@ codeunit 7772 "Azure OpenAI Impl"
             else begin
                 // Privacy notice not set, we will not cross geo-boundries
                 if not Silent then begin
-                    WithinGeo := ALCopilotFunctions.IsWithinGeo() or ALCopilotFunctions.IsEuropeGeo();
+                    CopilotCapabilityImpl.CheckGeo(WithinGeo, WithinEuropeGeo);
+                    WithinGeo := WithinGeo or WithinEuropeGeo;
                     if not WithinGeo then begin
                         CopilotNotAvailable.SetCopilotCapability(Capability);
                         CopilotNotAvailable.Run();
