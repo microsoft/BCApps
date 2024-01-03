@@ -195,21 +195,21 @@ codeunit 3702 "Environment Information Impl."
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeIsSaaSInfrastructure(var TestMode: Boolean; var SaaSInfrastructure: Boolean)
+    procedure OnBeforeIsSaaSInfrastructure(var TestMode: Boolean; var IsSaaSInfrastructure: Boolean)
     begin
         // An event which asks for the AppId to be filled in by the subscriber.
         // Do not use this event in a production environment. This should be subscribed to only in tests.
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeVersionInstalled(var TestMode: Boolean; var WhichVersionInstalled: Integer)
+    procedure OnBeforeVersionInstalled(var TestMode: Boolean; var VersionInstalled: Integer)
     begin
         // An event which asks for the AppId to be filled in by the subscriber.
         // Do not use this event in a production environment. This should be subscribed to only in tests.
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeIsSaaS(var TestMode: Boolean; var SaaS: Boolean)
+    procedure OnBeforeIsSaaS(var TestMode: Boolean; var IsSaaS: Boolean)
     begin
         // An event which asks for the AppId to be filled in by the subscriber.
         // Do not use this event in a production environment. This should be subscribed to only in tests.
@@ -223,14 +223,14 @@ codeunit 3702 "Environment Information Impl."
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeIsSandbox(var TestMode: Boolean; var Sandbox: Boolean)
+    procedure OnBeforeIsSandbox(var TestMode: Boolean; var IsSandbox: Boolean)
     begin
         // An event which asks for the AppId to be filled in by the subscriber.
         // Do not use this event in a production environment. This should be subscribed to only in tests.
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeIsProduction(var TestMode: Boolean; var Production: Boolean)
+    procedure OnBeforeIsProduction(var TestMode: Boolean; var IsProduction: Boolean)
     begin
         // An event which asks for the AppId to be filled in by the subscriber.
         // Do not use this event in a production environment. This should be subscribed to only in tests.
