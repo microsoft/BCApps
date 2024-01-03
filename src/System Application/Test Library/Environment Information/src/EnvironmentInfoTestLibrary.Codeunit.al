@@ -22,9 +22,6 @@ codeunit 135094 "Environment Info Test Library"
         TestIsSaaS: Boolean;
         TestVersionInstalled: Integer;
         TestIsSaaSInfrastructure: Boolean;
-        TestApplicationIdentifier: Text;
-
-
 
     /// <summary>
     /// Sets the testability sandbox flag.
@@ -145,7 +142,7 @@ codeunit 135094 "Environment Info Test Library"
     /// </summary>
     /// <param name="ApplicationFamily">The current Application Family.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Information Impl.", 'OnBeforeApplicationFamily', '', false, false)]
-    local procedure SetApplicationFamilyOnBeforeApplicationFamily(var TestMode; var ApplicationFamily: Text)
+    local procedure SetApplicationFamilyOnBeforeApplicationFamily(var TestMode: Boolean; var ApplicationFamily: Text)
     begin
         TestMode := true;
         ApplicationFamily := TestApplicationFamily;
@@ -169,7 +166,7 @@ codeunit 135094 "Environment Info Test Library"
     /// <param name="TestMode">Sets Test Mode</param>
     /// <param name="VersionInstalled">The current Version Installed</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Information Impl.", 'OnBeforeVersionInstalled', '', false, false)]
-    local procedure SetVersionInstalledOnBeforeVersionInstalled(var TestMode: Boolean; var VersionInstalled: Boolean)
+    local procedure SetVersionInstalledOnBeforeVersionInstalled(var TestMode: Boolean; var VersionInstalled: Integer)
     begin
         TestMode := true;
         VersionInstalled := TestVersionInstalled;
@@ -193,7 +190,7 @@ codeunit 135094 "Environment Info Test Library"
     /// <param name="TestMode">Sets Test Mode</param>
     /// <param name="EnvironmentName">The current Environment Name.</param>
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Information Impl.", 'OnBeforeEnvironmentName', '', false, false)]
-    local procedure SetEnvironmentNameOnBeforeEnvironmentName(var TestMode: Boolean; var EnvironmentName: Boolean)
+    local procedure SetEnvironmentNameOnBeforeEnvironmentName(var TestMode: Boolean; var EnvironmentName: Text)
     begin
         TestMode := true;
         EnvironmentName := TestEnvironmentName;
