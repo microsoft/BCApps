@@ -147,7 +147,7 @@ codeunit 135094 "Environment Info Test Library"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Information Impl.", 'OnBeforeApplicationFamily', '', false, false)]
     local procedure SetApplicationFamilyOnBeforeApplicationFamily(var TestMode; var ApplicationFamily: Text)
     begin
-        TestMode := true
+        TestMode := true;
         ApplicationFamily := TestApplicationFamily;
     end;
 
@@ -159,8 +159,8 @@ codeunit 135094 "Environment Info Test Library"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Information Impl.", 'OnBeforeIsSaaSInfrastructure', '', false, false)]
     local procedure SetIsSaaSInfrastructureOnBeforeIsSaaSInfrastructure(var TestMode: Boolean; var IsSaaSInfrastructure: Boolean)
     begin
-        TestMode := true
-        IsSaaSInfrastructure := TestIsSaaSInfrastructure
+        TestMode := true;
+        IsSaaSInfrastructure := TestIsSaaSInfrastructure;
     end;
 
     /// <summary>
@@ -171,8 +171,8 @@ codeunit 135094 "Environment Info Test Library"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Information Impl.", 'OnBeforeVersionInstalled', '', false, false)]
     local procedure SetVersionInstalledOnBeforeVersionInstalled(var TestMode: Boolean; var VersionInstalled: Boolean)
     begin
-        TestMode := true
-        VersionInstalled := TestVersionInstalled
+        TestMode := true;
+        VersionInstalled := TestVersionInstalled;
     end;
 
     /// <summary>
@@ -183,8 +183,8 @@ codeunit 135094 "Environment Info Test Library"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Information Impl.", 'OnBeforeIsSaaS', '', false, false)]
     local procedure SetIsSaaSOnBeforeIsSaaS(var TestMode: Boolean; var IsSaaS: Boolean)
     begin
-        TestMode := true
-        IsSaaS := TestIsSaaS
+        TestMode := true;
+        IsSaaS := TestIsSaaS;
     end;
 
     /// <summary>
@@ -195,8 +195,8 @@ codeunit 135094 "Environment Info Test Library"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Information Impl.", 'OnBeforeEnvironmentName', '', false, false)]
     local procedure SetEnvironmentNameOnBeforeEnvironmentName(var TestMode: Boolean; var EnvironmentName: Boolean)
     begin
-        TestMode := true
-        EnvironmentName := TestEnvironmentName
+        TestMode := true;
+        EnvironmentName := TestEnvironmentName;
     end;
 
     /// <summary>
@@ -207,8 +207,8 @@ codeunit 135094 "Environment Info Test Library"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Information Impl.", 'OnBeforeIsSandbox', '', false, false)]
     local procedure SetIsSandboxOnBeforeIsSandbox(var TestMode: Boolean; var IsSandbox: Boolean)
     begin
-        TestMode := true
-        IsSandbox := TestIsSandbox
+        TestMode := true;
+        IsSandbox := TestIsSandbox;
     end;
 
     /// <summary>
@@ -219,8 +219,8 @@ codeunit 135094 "Environment Info Test Library"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Information Impl.", 'OnBeforeIsProduction', '', false, false)]
     local procedure SetIsProductionOnBeforeIsProduction(var TestMode: Boolean; var IsProduction: Boolean)
     begin
-        TestMode := true
-        IsProduction := TestIsProduction
+        TestMode := true;
+        IsProduction := TestIsProduction;
     end;
 }
 
