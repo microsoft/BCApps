@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
+using System;
 using System.Globalization;
 using System.Telemetry;
 using System.Security.User;
