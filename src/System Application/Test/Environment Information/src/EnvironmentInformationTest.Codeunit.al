@@ -85,7 +85,6 @@ codeunit 135091 "Environment Information Test"
         Assert.IsFalse(EnvironmentInformation.IsSaaS(), 'Testability should have dictacted a non- SaaS environment');
     end;
 
-
     [Test]
     procedure TestIsSaaSInfrastructureIsTrueWhenTestabilitySaaSInfrastructureIsSetTrue()
     begin
@@ -98,7 +97,6 @@ codeunit 135091 "Environment Information Test"
         // [Then] Should return true
         Assert.IsTrue(EnvironmentInformation.IsSaaSInfrastructure(), 'Testability should have dictacted a SaaS environment');
     end;
-
 
     [Test]
     procedure TestVersionInstalledIsTrueWhenTestabilityVersionInstalledIsSet()
@@ -136,7 +134,7 @@ codeunit 135091 "Environment Information Test"
 
         // [When] Poll for EnvironmentName
         // [Then] Should return true
-        Assert.IsTrue(EnvironmentInformation.EnvironmentName() = '123', 'Testability should have dictacted a SaaS environment');
+        Assert.IsTrue(EnvironmentInformation.GetEnvironmentName() = '123', 'Testability should have dictacted a SaaS environment');
     end;
 
     [Test]
@@ -162,7 +160,7 @@ codeunit 135091 "Environment Information Test"
 
         // [When] Poll for ApplicationFamily
         // [Then] Should return true
-        Assert.IsTrue(EnvironmentInformation.ApplicationFamily() = '1234', 'Testability should have dictacted a SaaS environment');
+        Assert.IsTrue(EnvironmentInformation.GetApplicationFamily() = '1234', 'Testability should have dictacted a SaaS environment');
     end;
 }
 
