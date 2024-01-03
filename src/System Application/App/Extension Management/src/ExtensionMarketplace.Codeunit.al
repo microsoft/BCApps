@@ -221,8 +221,6 @@ codeunit 2501 "Extension Marketplace"
     [TryFunction]
     procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text);
     var
-        ExtensionInstallationRecord: Record "Extension Installation";
-        ExtensionInstallationPage: Page "Extension Installation";
         AppId: Guid;
     begin
         AppId := MapMarketplaceIdToAppId(MarketplaceApplicationId);
