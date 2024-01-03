@@ -78,7 +78,7 @@ codeunit 135094 "Environment Info Test Library"
     end;
 
     /// <summary>
-    /// Sets the App ID that of the current application (for example, 'FIN' - Financials) when the subscription is bound.
+    /// Sets the IsSaas of the current environment when the subscription is bound.
     /// Uses <see cref="OnBeforeIsSaaS"/> event.
     /// </summary>
     /// <param name="NewIsSaaS">The desired new Is SaaS</param>
@@ -88,7 +88,7 @@ codeunit 135094 "Environment Info Test Library"
     end;
 
     /// <summary>
-    /// Sets the App ID that of the current environment when the subscription is bound.
+    /// Sets the Environment Name of the current environment when the subscription is bound.
     /// Uses <see cref="OnBeforeEnvironmentName"/> event.
     /// </summary>
     /// <param name="NewEnvironmentName">The desired new Environment Name.</param>
@@ -98,7 +98,7 @@ codeunit 135094 "Environment Info Test Library"
     end;
 
     /// <summary>
-    /// Sets the App ID that of the current environment when the subscription is bound.
+    /// Sets the IsSandbox that of the current environment when the subscription is bound.
     /// Uses <see cref="OnBeforeIsSandbox"/> event.
     /// </summary>
     /// <param name="NewIsSandbox">The desired ne App ID.</param>
@@ -108,7 +108,7 @@ codeunit 135094 "Environment Info Test Library"
     end;
 
     /// <summary>
-    /// Sets the App ID that of the current environment when the subscription is bound.
+    /// Sets the IsProduction that of the current environment when the subscription is bound.
     /// Uses <see cref="OnBeforeIsProduction"/> event.
     /// </summary>
     /// <param name="NewIsProduction">The desired new is production.</param>
