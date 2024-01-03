@@ -109,7 +109,6 @@ codeunit 7772 "Azure OpenAI Impl"
 
     local procedure CheckPrivacyNoticeState(Silent: Boolean; Capability: Enum "Copilot Capability"): Boolean
     var
-        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         PrivacyNotice: Codeunit "Privacy Notice";
         CopilotNotAvailable: Page "Copilot Not Available";
         WithinGeo: Boolean;

@@ -146,7 +146,6 @@ page 7775 "Copilot AI Capabilities"
     trigger OnOpenPage()
     var
         EnvironmentInformation: Codeunit "Environment Information";
-        ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin
         OnRegisterCopilotCapability();
 
