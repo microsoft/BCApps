@@ -151,6 +151,7 @@ page 7775 "Copilot AI Capabilities"
         OnRegisterCopilotCapability();
 
         InGeo := ALCopilotFunctions.IsWithinGeo();
+        InEuropeGeo := ALCopilotFunctions.IsEuropeGeo();
 
         case PrivacyNotice.GetPrivacyNoticeApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), false) of
             Enum::"Privacy Notice Approval State"::Agreed:
@@ -158,7 +159,7 @@ page 7775 "Copilot AI Capabilities"
             Enum::"Privacy Notice Approval State"::Disagreed:
                 AllowDataMovement := false;
             else
-                AllowDataMovement := InGeo;
+                AllowDataMovement := InGeo or InEuropeGeo;
         end;
 
         AllowDataMovementEditable := CopilotCapabilityImpl.IsAdmin();
@@ -183,6 +184,7 @@ page 7775 "Copilot AI Capabilities"
         CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         PrivacyNotice: Codeunit "Privacy Notice";
         InGeo: Boolean;
+        InEuropeGeo: Boolean;
         AllowDataMovement: Boolean;
         AllowDataMovementEditable: Boolean;
         CopilotGovernDataLbl: Label 'How do I govern my Copilot data?';
