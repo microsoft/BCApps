@@ -33,5 +33,12 @@ table 2503 "Extension Installation"
         {
             Caption = 'Preview Key';
         }
+        /// <summary>
+        /// The telemetry URL for the Partner Center ingestion call back to be used when installing a version of an AppSource app.
+        /// </summary>
+        field(3; RESPONSEURL; Text[2048])
+        {
+            Caption = 'Telemetry URL';
+        }
     }
 }

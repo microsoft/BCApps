@@ -153,5 +153,5 @@ page 2510 "Marketplace Extn Deployment"
         ActiveUsersLbl: Label 'Note: There might be other users working in the system.';
         WarningLbl: Label 'Installing extensions during business hours will disrupt other users.';
         RefreshInfoLbl: Label 'After installation, your session will refresh, and you can set up your extension.';
-        PreviewInfoLbl: Label 'Note: You are about to install a preview version of the extension.';
+        PreviewInfoLbl: Label 'Note: A preview key was provided for the installation. If there is no higher public version for your environment, a preview version of the extension matching the specified preview key will be installed.';
 }

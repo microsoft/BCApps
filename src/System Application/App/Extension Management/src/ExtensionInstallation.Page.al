@@ -37,7 +37,7 @@ page 2503 "Extension Installation"
             if not IsNullGuid(Rec.ID) then
                 ExtensionMarketplace.InstallMarketplaceExtension(
                     Rec.ID,
-                    '', // Unlike an installation triggered from the marketplace embedded view, there is no response URL in this context.
+                    Rec.ResponseUrl,
                     MarketplaceExtnDeployment.GetLanguageId(),
                     Rec.PREVIEWKEY);
             CurrPage.Close();
