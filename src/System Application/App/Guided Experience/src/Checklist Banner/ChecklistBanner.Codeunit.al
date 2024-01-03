@@ -41,15 +41,4 @@ codeunit 3728 "Checklist Banner"
     internal procedure OnOpenChecklistBannerPage(var SkipWelcomeState: Boolean; IsEvaluationCompany: Boolean)
     begin
     end;
-
-    /// <summary>
-    /// Integration Event to provide the ability to filter on the checklist items before it is loaded to the checklist banner.
-    /// Do NOT use complex logic in the subscriber as it will impact the performance of opening company.
-    /// </summary>
-    /// <param name="SkipChecklistItem">Whether to skip the checklist item or not </param>
-    /// <param name="SpotlightTourType">Specifies the checklist's Spotlight Tour type if any</param>
-    [IntegrationEvent(false, false)]
-    internal procedure OnBeforeAddChecklistItemToBuffer(var SkipChecklistItem: Boolean; SpotlightTourType: Enum "Spotlight Tour Type")
-    begin
-    end;
 }

@@ -355,15 +355,7 @@ codeunit 1996 "Checklist Banner Impl."
     end;
 
     local procedure InsertChecklistItemInBuffer(var ChecklistItemBuffer: Record "Checklist Item Buffer"; GuidedExperienceItem: Record "Guided Experience Item"; Status: Enum "Checklist Item Status"; ChecklistItem: Record "Checklist Item"; RoleID: Code[30])
-    var
-        ChecklistBanner: Codeunit "Checklist Banner";
-        SkipChecklistItem: Boolean;
     begin
-        ChecklistBanner.OnBeforeAddChecklistItemToBuffer(SkipChecklistItem, GuidedExperienceItem."Spotlight Tour Type");
-
-        if SkipChecklistItem then
-            exit;
-
         ChecklistItemBuffer.ID := CreateGuid();
         ChecklistItemBuffer.Code := GuidedExperienceItem.Code;
         ChecklistItemBuffer.Version := GuidedExperienceItem.Version;

@@ -443,14 +443,6 @@ codeunit 1990 "Guided Experience"
         GuidedExperienceItemCleanup.CleanupOldGuidedExperienceItems(OnlyFirstParty, Threshold);
     end;
 
-    /// <summary>
-    /// Checks whether there is any third party guided experience item.
-    /// </summary>
-    procedure IsThereThirdPartyGuidedExperienceItem(): Boolean
-    begin
-        exit(GuidedExperienceImpl.IsThereThirdPartyGuidedExperienceItem());
-    end;
-
     /// <summary>Notifies that the list of assisted setups is being gathered, and that new items might be added.</summary>
     [IntegrationEvent(false, false)]
     internal procedure OnRegisterAssistedSetup()

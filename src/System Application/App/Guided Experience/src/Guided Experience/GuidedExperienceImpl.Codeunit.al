@@ -1163,15 +1163,6 @@ codeunit 1991 "Guided Experience Impl."
         GlobalLanguage(CurrentLanguage);
     end;
 
-    procedure IsThereThirdPartyGuidedExperienceItem(): Boolean
-    var
-        GuidedExperienceItem: Record "Guided Experience Item";
-    begin
-        GuidedExperienceItem.ReadIsolation := IsolationLevel::ReadUncommitted;
-        GuidedExperienceItem.SetFilter("Extension Publisher", '<>%1', 'Microsoft');
-        exit(not GuidedExperienceItem.IsEmpty());
-    end;
-
 #if not CLEAN22
     [Obsolete('Use Telemetry.LogMessage to add common custom dimensions, like CompanyName.', '22.0')]
     procedure AddCompanyNameDimension(var Dimensions: Dictionary of [Text, Text])
