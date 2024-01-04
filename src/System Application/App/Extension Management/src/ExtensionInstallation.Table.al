@@ -38,7 +38,7 @@ table 2503 "Extension Installation"
         /// </summary>
         field(3; RESPONSEURL; Text[2048])
         {
-            Caption = 'Telemetry URL';
+            Caption = 'Response URL';
         }
     }
 }
