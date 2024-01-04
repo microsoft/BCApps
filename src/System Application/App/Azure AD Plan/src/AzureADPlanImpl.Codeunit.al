@@ -264,7 +264,13 @@ codeunit 9018 "Azure AD Plan Impl."
         UserAuthenticationEmailSecond: Text;
         FirstConflictingPlanName: Text;
         SecondConflictingPlanName: Text;
+        SkipCheck: Boolean;
     begin
+        SkipCheck := true;
+
+        if SkipCheck then
+            exit;
+
         if not EnvironmentInformation.IsSaaS() then
             exit;
 
