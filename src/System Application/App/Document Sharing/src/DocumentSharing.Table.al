@@ -121,6 +121,15 @@ table 9560 "Document Sharing"
             DataClassification = SystemMetadata;
             InitValue = Ask;
         }
+
+        /// <summary>
+        /// Specifies whether the action was cancelled.
+        /// </summary>
+        field(13; Cancelled; Boolean)
+        {
+            DataClassification = SystemMetadata;
+            InitValue = false;
+        }
     }
 
     keys
