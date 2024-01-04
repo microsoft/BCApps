@@ -161,7 +161,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
             MessageJsonObject.Add('content', SystemMessage.Unwrap());
             HistoryResult.Add(MessageJsonObject);
 
-            SystemMessageTokenCount := AzureOpenAIImpl.ApproximateTokenCount(SystemMessage.Unwrap());
+            SystemMessageTokenCount := AzureOpenAIImpl.GetTokenCount(SystemMessage, Enum::"AOAI Token Encoding"::cl100k_base);
         end;
 
         Counter := History.Count - HistoryLength + 1;
@@ -189,7 +189,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
             TotalMessages += Name;
         until Counter > History.Count;
 
-        MessagesTokenCount := AzureOpenAIImpl.ApproximateTokenCount(TotalMessages);
+        MessagesTokenCount := AzureOpenAIImpl.GetTokenCount(TotalMessages, Enum::"AOAI Token Encoding"::cl100k_base);
     end;
 
     local procedure Initialize()

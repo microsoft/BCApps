@@ -235,15 +235,44 @@ codeunit 7771 "Azure OpenAI"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         AzureOpenAIImpl.SetCopilotCapability(CopilotCapability, CallerModuleInfo);
     end;
-
+#if not CLEAN24
     /// <summary>
     /// Gets the approximate token count for the input.
     /// </summary>
     /// <param name="Input">The input to get the approximate token count for.</param>
     /// <returns>The approximate token count.</returns>
     [NonDebuggable]
+    [Obsolete('Use GetTokenCount instead.', '24.0')]
     procedure ApproximateTokenCount(Input: Text): Integer
     begin
+#pragma warning disable AL0432
         AzureOpenAIImpl.ApproximateTokenCount(Input);
+#pragma warning restore AL0432
+    end;
+#endif
+
+    /// <summary>
+    /// Gets the token count for the input.
+    /// </summary>
+    /// <param name="Input">The input to get the token count for.</param>
+    /// <returns>The token count.</returns>
+    [NonDebuggable]
+    procedure GetTokenCount(Input: SecretText): Integer
+    begin
+        AzureOpenAIImpl.GetTokenCount(Input, Enum::"AOAI Token Encoding"::cl100k_base);
+    end;
+
+    /// <summary>
+    /// Gets the token count for the input.
+    /// </summary>
+    /// <param name="Input">The input to get the token count for.</param>
+    /// <param name="Encoding">The encoding to use for the token count.</param>
+    /// <returns>The token count.</returns>
+    /// <remarks>cl100k_base: Used for the newer gpt-4/gpt-3.5-turbo/embeddings models.</remarks>
+    /// <remarks>p50k_base: Used for codex and older text-davinci-2 models.</remarks>
+    [NonDebuggable]
+    procedure GetTokenCount(Input: SecretText; Encoding: Enum "AOAI Token Encoding"): Integer
+    begin
+        AzureOpenAIImpl.GetTokenCount(Input, Encoding);
     end;
 }

@@ -229,7 +229,7 @@ codeunit 7772 "Azure OpenAI Impl"
         Payload.Add('prompt', UnwrappedPrompt);
         Payload.WriteTo(PayloadText);
 
-        SendTokenCountTelemetry(ApproximateTokenCount(Metaprompt.Unwrap()), ApproximateTokenCount(Prompt.Unwrap()), CustomDimensions);
+        SendTokenCountTelemetry(GetTokenCount(Metaprompt, Enum::"AOAI Token Encoding"::cl100k_base), GetTokenCount(Prompt, Enum::"AOAI Token Encoding"::cl100k_base), CustomDimensions);
 
         if not SendRequest(Enum::"AOAI Model Type"::"Text Completions", TextCompletionsAOAIAuthorization, PayloadText, AOAIOperationResponse) then begin
             FeatureTelemetry.LogError('0000KVD', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, CompletionsFailedWithCodeErr, '', CustomDimensions);
@@ -257,7 +257,7 @@ codeunit 7772 "Azure OpenAI Impl"
         Payload.WriteTo(PayloadText);
 
         AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
-        SendTokenCountTelemetry(0, ApproximateTokenCount(Input.Unwrap()), CustomDimensions);
+        SendTokenCountTelemetry(0, GetTokenCount(Input, Enum::"AOAI Token Encoding"::cl100k_base), CustomDimensions);
         if not SendRequest(Enum::"AOAI Model Type"::Embeddings, EmbeddingsAOAIAuthorization, PayloadText, AOAIOperationResponse) then begin
             FeatureTelemetry.LogError('0000KVE', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateEmbeddingLbl, EmbeddingsFailedWithCodeErr, '', CustomDimensions);
             exit;
@@ -482,8 +482,9 @@ codeunit 7772 "Azure OpenAI Impl"
             Error(EmptyMetapromptErr);
         end;
     end;
-
+#if not CLEAN24
     [NonDebuggable]
+    [Obsolete('Use the function GetTokenCount() instead.', '24.0')]
     procedure ApproximateTokenCount(Input: Text): Decimal
     var
         AverageWordsPerToken: Decimal;
@@ -494,6 +495,15 @@ codeunit 7772 "Azure OpenAI Impl"
         WordsInInput := Input.Split(' ', ',', '.', '!', '?', ';', ':', '/n').Count;
         TokenCount := Round(WordsInInput / AverageWordsPerToken, 1);
         exit(TokenCount);
+    end;
+#endif
+
+    [NonDebuggable]
+    procedure GetTokenCount(Input: SecretText; Encoding: Enum "AOAI Token Encoding") TokenCount: Integer
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+    begin
+        TokenCount := ALCopilotFunctions.GptTokenCount(Input.Unwrap(), Format(Encoding));
     end;
 
 }
