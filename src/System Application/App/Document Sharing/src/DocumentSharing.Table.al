@@ -128,7 +128,6 @@ table 9560 "Document Sharing"
         field(13; Cancelled; Boolean)
         {
             DataClassification = SystemMetadata;
-            InitValue = false;
         }
     }
 
