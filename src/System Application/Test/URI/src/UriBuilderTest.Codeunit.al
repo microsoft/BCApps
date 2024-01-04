@@ -108,6 +108,8 @@ codeunit 135071 "Uri Builder Test"
     procedure SetIncorrectPortTest()
     var
         ExpectedErr: Label 'A call to System.UriBuilder.Port failed with this message: Specified argument was out of the range of valid values. (Parameter ''value'')', Locked = true;
+        Expected1Err: Label 'A call to System.UriBuilder.Port failed with this message: value (''-2'') must be greater than or equal to ''-1''. (Parameter ''value'')\Actual value was -2.', Locked = true;
+        Expected2Err: Label 'A call to System.UriBuilder.Port failed with this message: value (''65536'') must be less than or equal to ''65535''. (Parameter ''value'')\Actual value was 65536.', Locked = true;
     begin
         // [Given] A Url
         UriBuilder.Init('http://microsoft.com');
@@ -116,13 +118,13 @@ codeunit 135071 "Uri Builder Test"
         asserterror UriBuilder.SetPort(-2);
 
         // [Then] An error occurs
-        Assert.ExpectedError(ExpectedErr);
+        Assert.IsFalse((StrPos(GetLastErrorText(), ExpectedErr) = 0) and (StrPos(GetLastErrorText(), Expected1Err) = 0), 'The error message does not match');
 
         // [When] Setting the port number too high
         asserterror UriBuilder.SetPort(65536);
 
         // [Then] An error occurs
-        Assert.ExpectedError(ExpectedErr);
+        Assert.IsFalse((StrPos(GetLastErrorText(), ExpectedErr) = 0) and (StrPos(GetLastErrorText(), Expected2Err) = 0), 'The error message does not match');
     end;
 
     [Test]
