@@ -7,7 +7,6 @@ namespace System.Environment.Configuration;
 
 using System;
 using System.Telemetry;
-using System.Text;
 using System.Media;
 using System.Globalization;
 using System.Security.AccessControl;
@@ -297,15 +296,11 @@ codeunit 1996 "Checklist Banner Impl."
     var
         GuidedExperienceItem: Record "Guided Experience Item";
         ChecklistItem: Record "Checklist Item";
-        EntityText: Codeunit "Entity Text";
     begin
         GuidedExperienceItem.SetCurrentKey(Code, Version);
         GuidedExperienceItem.SetRange(Code, Code);
         if Version <> 0 then
             GuidedExperienceItem.SetRange(Version, Version);
-
-        if (not EntityText.CanSuggest()) or IsThereThirdPartyGuidedExperienceItem(Version) then
-            GuidedExperienceItem.SetFilter("Spotlight Tour Type", '<>%1', GuidedExperienceItem."Spotlight Tour Type"::Copilot);
 
         if GuidedExperienceItem.FindLast() then begin
             if CheckForDuplicate then
@@ -321,16 +316,6 @@ codeunit 1996 "Checklist Banner Impl."
 
             InsertChecklistItemInBuffer(ChecklistItemBuffer, GuidedExperienceItem, Status, ChecklistItem, RoleID);
         end;
-    end;
-
-    local procedure IsThereThirdPartyGuidedExperienceItem(Version: Integer): Boolean
-    var
-        GuidedExperienceItem: Record "Guided Experience Item";
-    begin
-        GuidedExperienceItem.ReadIsolation := IsolationLevel::ReadUncommitted;
-        GuidedExperienceItem.SetRange(Version, Version);
-        GuidedExperienceItem.SetFilter("Extension Publisher", '<>%1', 'Microsoft');
-        exit(not GuidedExperienceItem.IsEmpty());
     end;
 
     local procedure HasTheItemBeenCompleted(GuidedExperienceItem: Record "Guided Experience Item"; ChecklistItem: Record "Checklist Item"): Boolean
@@ -406,7 +391,7 @@ codeunit 1996 "Checklist Banner Impl."
     var
         AllProfile: Record "All Profile";
     begin
-        // if the tour is running on the same page as the checklist we don't want to refresh the page, 
+        // if the tour is running on the same page as the checklist we don't want to refresh the page,
         // as the checklist will appear in a wrong state afterwards, so we need to run the tour for object ID 0
 
         AllProfile.SetRange("Role Center ID", ObjectIDToRun);

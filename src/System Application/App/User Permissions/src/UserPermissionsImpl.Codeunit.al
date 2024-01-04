@@ -17,8 +17,8 @@ codeunit 153 "User Permissions Impl."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = TableData "Access Control" = rimd,
-                  TableData User = r;
+    Permissions = tabledata "Access Control" = rimd,
+                  tabledata User = r;
 
     var
         SUPERTok: Label 'SUPER', Locked = true;
@@ -229,7 +229,7 @@ codeunit 153 "User Permissions Impl."
         AccessControl: Record "Access Control";
     begin
         AccessControl.SetRange("User Security ID", UserSecurityId);
-        AccessControl.SetRange("Role ID", RoleID);
+        AccessControl.SetRange("Role ID", RoleId);
         AccessControl.SetFilter("Company Name", '%1|%2', '', Company);
         AccessControl.SetRange(Scope, ItemScope);
         AccessControl.SetRange("App ID", AppId);
@@ -237,14 +237,14 @@ codeunit 153 "User Permissions Impl."
         exit(not AccessControl.IsEmpty());
     end;
 
-    internal procedure GetEffectivePermission(UserSecurityIdToCheck: Guid; CompanyNameToCheck: Text; PermissionObjectType: Option "Table Data","Table",,"Report",,"Codeunit","XMLport","MenuSuite","Page","Query","System",,,,,,,,,; ObjectId: Integer): Text
+    internal procedure GetEffectivePermission(UserSecurityIdToCheck: Guid; CompanyNameToCheck: Text; PermissionObjectType: Option "Table Data","Table",,"Report",,"Codeunit","XMLport",MenuSuite,"Page","Query","System",,,,,,,,,; ObjectId: Integer): Text
     var
         NavUserAccountHelper: DotNet NavUserAccountHelper;
     begin
         exit(NavUserAccountHelper.GetEffectivePermissionForObject(UserSecurityIdToCheck, CompanyNameToCheck, PermissionObjectType, ObjectId));
     end;
 
-    procedure GetEffectivePermission(PermissionObjectType: Option "Table Data","Table",,"Report",,"Codeunit","XMLport","MenuSuite","Page","Query","System",,,,,,,,,; ObjectId: Integer) TempExpandedPermission: Record "Expanded Permission" temporary
+    procedure GetEffectivePermission(PermissionObjectType: Option "Table Data","Table",,"Report",,"Codeunit","XMLport",MenuSuite,"Page","Query","System",,,,,,,,,; ObjectId: Integer) TempExpandedPermission: Record "Expanded Permission" temporary
     var
         PermissionMask: Text;
     begin

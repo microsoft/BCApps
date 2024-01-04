@@ -40,7 +40,7 @@ table 2508 "Extension Deployment Status"
             OptionMembers = Unknown,InProgress,Failed,Completed,NotFound;
             DataClassification = SystemMetadata;
         }
-        field(5; Details; BLOB)
+        field(5; Details; Blob)
         {
             Caption = 'Details';
             DataClassification = SystemMetadata;
@@ -60,7 +60,4 @@ table 2508 "Extension Deployment Status"
         }
     }
 
-    fieldgroups
-    {
-    }
 }

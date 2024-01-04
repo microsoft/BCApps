@@ -59,7 +59,7 @@ codeunit 130046 "Library - Signup Context"
     var
         SignupContext: Record "Signup Context";
     begin
-        SignupContext.KeyName := lowercase(SignupContextKey);
+        SignupContext.KeyName := LowerCase(SignupContextKey);
         SignupContext.Value := SignupContextValue;
         SignupContext.Insert();
     end;

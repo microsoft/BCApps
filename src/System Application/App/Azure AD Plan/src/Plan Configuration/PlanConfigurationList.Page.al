@@ -27,7 +27,7 @@ page 9061 "Plan Configuration List"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -104,7 +104,7 @@ page 9061 "Plan Configuration List"
                 ApplicationArea = All;
                 Caption = 'Configure';
                 Image = Setup;
-                RunObject = Page "Plan Configuration Card";
+                RunObject = page "Plan Configuration Card";
                 RunPageLink = "Plan ID" = field("Plan ID");
                 Scope = Repeater;
                 ToolTip = 'Customize license permissions.';

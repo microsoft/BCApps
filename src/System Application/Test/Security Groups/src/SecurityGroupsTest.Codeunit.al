@@ -113,6 +113,30 @@ codeunit 135016 "Security Groups Test"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestGetCode()
+    var
+        SecurityGroup: Codeunit "Security Group";
+        GroupCode: Code[20];
+    begin
+        Initialize();
+
+        // [GIVEN] An AAD security group exists
+        MockGraphQueryTestLibrary.AddGroup(TestSecurityGroupNameTxt, TestSecurityGroupIdTxt);
+
+        // [GIVEN] A BC security group is created
+        SecurityGroup.Create(TestSecurityGroupCodeTxt, TestSecurityGroupIdTxt);
+
+        // [WHEN] GetCode is called
+        // [THEN] The group code is found
+        Assert.IsTrue(SecurityGroup.GetCode(TestSecurityGroupIdTxt, GroupCode), 'Expected the group code to be found.');
+        // [THEN] The returned code is as expected
+        Assert.AreEqual(TestSecurityGroupCodeTxt, GroupCode, 'Expected the ID to be the same.');
+
+        TearDown();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestGetName()
     var
         SecurityGroup: Codeunit "Security Group";

@@ -13,21 +13,21 @@ codeunit 154 "Navigation Bar Subscribers"
     InherentPermissions = X;
 
     /// <summary>Notifies that the Default Open Company Settings has been invoked.</summary>
-    /// <param name="Handled">The flag which if set, would stop executing the event.</param> 
+    /// <param name="Handled">The flag which if set, would stop executing the event.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeDefaultOpenCompanySettings(var Handled: Boolean)
     begin
     end;
 
     /// <summary>Notifies that the Default Open Role Based Setup Experience has been invoked.</summary>
-    /// <param name="Handled">The flag which if set, would stop executing the event.</param> 
+    /// <param name="Handled">The flag which if set, would stop executing the event.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeDefaultOpenRoleBasedSetupExperience(var Handled: Boolean)
     begin
     end;
 
     /// <summary>Notifies that the Default Open General Setup Experience has been invoked.</summary>
-    /// <param name="Handled">The flag which if set, would stop executing the event.</param> 
+    /// <param name="Handled">The flag which if set, would stop executing the event.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeDefaultOpenGeneralSetupExperience(var Handled: Boolean)
     begin

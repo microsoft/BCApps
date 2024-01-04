@@ -19,7 +19,7 @@ page 1925 "Profiling Full Time Chart"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             usercontrol(BusinessChart; BusinessChartUserControl)
             {

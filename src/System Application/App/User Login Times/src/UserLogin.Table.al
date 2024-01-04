@@ -43,8 +43,5 @@ table 9008 "User Login"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

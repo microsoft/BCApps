@@ -26,7 +26,7 @@ page 3905 "Reten. Policy Setup ListPart"
             repeater(GroupName)
             {
 
-                field("Table ID"; Rec."Table ID")
+                field("Table ID"; Rec."Table Id")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the ID of the table to which the retention policy applies.';

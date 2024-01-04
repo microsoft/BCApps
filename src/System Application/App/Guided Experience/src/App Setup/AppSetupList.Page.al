@@ -21,12 +21,12 @@ page 1991 "App Setup List"
     SourceTableTemporary = true;
     Extensible = true;
     ContextSensitiveHelpPage = 'ui-get-ready-business';
-    Permissions = TableData "Guided Experience Item" = r,
-                  TableData "Primary Guided Experience Item" = r;
+    Permissions = tabledata "Guided Experience Item" = r,
+                  tabledata "Primary Guided Experience Item" = r;
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -68,7 +68,7 @@ page 1991 "App Setup List"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action("Start Setup")
             {
@@ -76,7 +76,7 @@ page 1991 "App Setup List"
                 Caption = 'Start Setup';
                 Image = Setup;
                 Scope = Repeater;
-                ShortCutKey = 'Return';
+                ShortcutKey = 'Return';
                 ToolTip = 'Start setup.';
 
                 trigger OnAction()

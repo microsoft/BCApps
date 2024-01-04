@@ -35,7 +35,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
 
     procedure AddField(ODataFieldName: Text; EditinExcelFilterCollectionType: Enum "Edit in Excel Filter Collection Type"; EditInExcelEdmType: Enum "Edit in Excel Edm Type"): Interface "Edit in Excel Field Filter"
     begin
-        TryAdd(ODataFieldName, EditinExcelFilterCollectionType, format(EditInExcelEdmType));
+        TryAdd(ODataFieldName, EditinExcelFilterCollectionType, Format(EditInExcelEdmType));
         exit(Get(ODataFieldName));
     end;
 
@@ -137,7 +137,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
                             Session.LogMessage('0000I3X', FilterContainsMultipleOperatorsTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
                             exit; // OData does not support filtering on a field with both 'and' and 'or' hence if we see both, ignore the second type
                         end;
-                    Get(ODataFieldName).AddFilterValue(EditInExcelFilterType, FilterValue);
+                    Get(ODataFieldName).AddFilterValue(EditinExcelFilterType, FilterValue);
                 end;
         end;
     end;
@@ -196,7 +196,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
             Error(FilterAlreadyExistErr, ODataFieldName);
 
         FilterCollectionNode := FilterCollectionNode.FilterCollectionNode();
-        FilterCollectionNode.Operator := format(EditInExcelFilterOperatorType);
+        FilterCollectionNode.Operator := Format(EditInExcelFilterOperatorType);
         FieldFilters.Add(ODataFieldName, FilterCollectionNode);
         FieldTypes.Add(ODataFieldName, EdmType);
     end;

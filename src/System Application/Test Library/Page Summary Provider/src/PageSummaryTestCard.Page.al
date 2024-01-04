@@ -14,7 +14,7 @@ page 132548 "Page Summary Test Card"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             field(TestBigInteger; Rec.TestBigInteger)
             {
@@ -116,8 +116,5 @@ page 132548 "Page Summary Test Card"
         }
     }
 
-    actions
-    {
-    }
 }
 

@@ -30,7 +30,7 @@ codeunit 7803 "Azure Functions Impl"
     end;
 
     [NonDebuggable]
-    procedure SendPostRequest(AzureFunctionAuthentication: Interface "Azure Functions Authentication"; Body: Text; ContentTypeHeader: text): Codeunit "Azure Functions Response"
+    procedure SendPostRequest(AzureFunctionAuthentication: Interface "Azure Functions Authentication"; Body: Text; ContentTypeHeader: Text): Codeunit "Azure Functions Response"
     var
         QueryDict: Dictionary of [Text, Text];
     begin
@@ -38,7 +38,7 @@ codeunit 7803 "Azure Functions Impl"
     end;
 
     [NonDebuggable]
-    procedure Send(AzureFunctionAuthentication: Interface "Azure Functions Authentication"; RequestType: enum "Http Request Type"; QueryDict: Dictionary of [Text, Text]; Body: Text; ContentTypeHeader: text): Codeunit "Azure Functions Response"
+    procedure Send(AzureFunctionAuthentication: Interface "Azure Functions Authentication"; RequestType: Enum "Http Request Type"; QueryDict: Dictionary of [Text, Text]; Body: Text; ContentTypeHeader: Text): Codeunit "Azure Functions Response"
     var
         Uri: Codeunit Uri;
         UriBuilder: Codeunit "Uri Builder";

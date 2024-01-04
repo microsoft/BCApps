@@ -91,7 +91,7 @@ page 8889 "Email Attachments"
 
                     EmailChooseScenarioAttachments.LookupMode(true);
                     if EmailChooseScenarioAttachments.RunModal() = Action::LookupOK then begin
-                        FeatureTelemetry.LogUptake('0000I8R', 'Email Default Attachments', Enum::"Feature Uptake Status"::"Used");
+                        FeatureTelemetry.LogUptake('0000I8R', 'Email Default Attachments', Enum::"Feature Uptake Status"::Used);
 
                         EmailChooseScenarioAttachments.GetSelectedAttachments(EmailAttachments);
                         EmailMessageImpl.Get(EmailMessageId);

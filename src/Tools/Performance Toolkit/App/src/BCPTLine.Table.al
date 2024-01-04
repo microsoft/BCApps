@@ -260,6 +260,9 @@ table 149001 "BCPT Line"
         {
             SumIndexFields = "No. of Sessions";
         }
+
+        key(Key3; "BCPT Code", "Codeunit ID", Parameters)
+        { }
     }
 
     var

@@ -23,7 +23,7 @@ page 9826 "User Plans FactBox"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -37,8 +37,5 @@ page 9826 "User Plans FactBox"
         }
     }
 
-    actions
-    {
-    }
 }
 

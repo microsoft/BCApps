@@ -8,7 +8,7 @@ namespace System.Security.Encryption;
 /// <summary>
 /// Performs asymmetric encryption and decryption using the implementation of the RSA algorithm provided by the cryptographic service provider (CSP).
 /// </summary>
-codeunit 1445 "RSACryptoServiceProvider"
+codeunit 1445 RSACryptoServiceProvider
 {
     Access = Public;
     InherentEntitlements = X;
@@ -19,7 +19,7 @@ codeunit 1445 "RSACryptoServiceProvider"
         RSACryptoServiceProviderImpl: Codeunit "RSACryptoServiceProvider Impl.";
 
     /// <summary>
-    /// Initializes a new instance of RSACryptoServiceProvider with the specified key size and returns the key as an XML string. 
+    /// Initializes a new instance of RSACryptoServiceProvider with the specified key size and returns the key as an XML string.
     /// </summary>
     /// <param name="KeySize">The size of the key in bits.</param>
     procedure InitializeRSA(KeySize: Integer)

@@ -106,8 +106,5 @@ table 9861 "Permission Set Relation Buffer"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

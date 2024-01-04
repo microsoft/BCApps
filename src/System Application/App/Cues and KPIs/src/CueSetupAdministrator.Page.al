@@ -16,21 +16,21 @@ page 9701 "Cue Setup Administrator"
     ApplicationArea = All;
     Caption = 'Cue Setup';
     PageType = List;
-    Permissions = TableData "Cue Setup" = rimd;
+    Permissions = tabledata "Cue Setup" = rimd;
     SourceTable = "Cue Setup";
     UsageCategory = Administration;
     ContextSensitiveHelpPage = 'admin-how-set-up-colored-indicator-on-cues';
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
                 field("User Name"; Rec."User Name")
                 {
                     ApplicationArea = All;
-                    LookupPageID = "User Lookup";
+                    LookupPageId = "User Lookup";
                     ToolTip = 'Specifies which Business Central user the indicator setup for the Cue pertains to. If you leave this field blank, then the indicator setup will pertain to all users.';
                 }
                 field("Table ID"; Rec."Table ID")
@@ -111,9 +111,6 @@ page 9701 "Cue Setup Administrator"
         }
     }
 
-    actions
-    {
-    }
 
     trigger OnAfterGetRecord()
     begin

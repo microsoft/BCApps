@@ -15,15 +15,6 @@ page 8999 "Blank Role Center"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    layout
-    {
-        area(rolecenter)
-        {
-        }
-    }
 
-    actions
-    {
-    }
 }
 

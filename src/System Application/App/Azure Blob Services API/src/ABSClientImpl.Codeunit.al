@@ -47,7 +47,7 @@ codeunit 9051 "ABS Client Impl."
         BlobLbl: Label 'Blob';
         ContainerLbl: Label 'Container';
 
-    #endregion 
+    #endregion
 
     [NonDebuggable]
     procedure Initialize(StorageAccountName: Text; ContainerName: Text; BlobName: Text; Authorization: Interface "Storage Service Authorization"; ApiVersion: Enum "Storage Service API Version")
@@ -206,7 +206,7 @@ codeunit 9051 "ABS Client Impl."
         Filename: Text;
         SourceInStream: InStream;
     begin
-        if UploadIntoStream('', '', '', FileName, SourceInStream) then
+        if UploadIntoStream('', '', '', Filename, SourceInStream) then
             ABSOperationResponse := PutBlobBlockBlobStream(Filename, SourceInStream, '', ABSOptionalParameters);
 
         exit(ABSOperationResponse);
@@ -693,7 +693,7 @@ codeunit 9051 "ABS Client Impl."
         ABSOperationResponse: Codeunit "ABS Operation Response";
         BlockListType: Enum "ABS Block List Type";
     begin
-        ABSOperationResponse := GetBlockList(BlockListType::committed, BlockList); // default API value is "committed"
+        ABSOperationResponse := GetBlockList(BlockListType::Committed, BlockList); // default API value is "committed"
         exit(ABSOperationResponse);
     end;
 

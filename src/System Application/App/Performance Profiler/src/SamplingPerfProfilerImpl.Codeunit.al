@@ -16,7 +16,7 @@ codeunit 1925 "Sampling Perf. Profiler Impl."
 
     var
         TempBlob: Codeunit "Temp Blob";
-        SamplingProfiler: Dotnet SamplingProfiler;
+        SamplingProfiler: DotNet SamplingProfiler;
         CpuProfile: DotNet CpuProfile;
         IsRecordingRunning: Boolean;
         IdleTimeTok: Label 'IdleTime', Locked = true;
@@ -155,7 +155,7 @@ codeunit 1925 "Sampling Perf. Profiler Impl."
         CpuProfileNodeArray: DotNet "Array";
         NodeIdToNodeMap: DotNet GenericDictionary2;
         NodeIdToSelfTimeMap: Dictionary of [Integer, BigInteger];
-        // using a dictionary here as there is no "Set" AL type 
+        // using a dictionary here as there is no "Set" AL type
         ChildNodes: Dictionary of [Integer, Boolean];
         ChildNodeId: Integer;
         NodeNumber: Integer;

@@ -20,7 +20,7 @@ page 1433 "Satisfaction Survey"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             usercontrol(SatisfactionSurvey; SatisfactionSurvey)
             {
@@ -45,9 +45,6 @@ page 1433 "Satisfaction Survey"
         }
     }
 
-    actions
-    {
-    }
 
     var
         SatisfactionSurveyImpl: Codeunit "Satisfaction Survey Impl.";

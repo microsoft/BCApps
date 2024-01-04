@@ -5,7 +5,7 @@
     "runs-on":  "windows-latest",
     "cacheImageName":  "",
     "UsePsSession":  false,
-    "artifact":  "bcinsider//24.0.14293.0/base",
+    "artifact":  "https://bcinsider.azureedge.net/sandbox/24.0.15062.0/base",
     "country":  "base",
     "useProjectDependencies":  true,
     "repoVersion":  "24.0",
@@ -62,5 +62,14 @@
                               ".github/workflows/PullRequestHandler.yaml",
                               ".github/workflows/_BuildALGoProject.yaml"
                           ],
-    "PullRequestTrigger":  "pull_request"
+    "PullRequestTrigger":  "pull_request",
+    "ALDoc":  {
+                  "maxReleases":  0,
+                  "continuousDeployment":  true,
+                  "groupByProject":  false,
+                  "excludeProjects":  [
+                                          "build_projects_System Application Modules"
+                                      ]
+              },
+    "templateSha":  "90335a8c76f3cd4d45b04b50e9e8c2a7409e1d98"
 }

@@ -20,7 +20,7 @@ codeunit 1817 "Advanced Settings Impl."
         GeneralSetupID := Page::"Advanced Settings";
         AdvancedSettings.OnBeforeOpenGeneralSetupExperience(GeneralSetupID, Handled);
         if not Handled then
-            PAGE.Run(GeneralSetupID);
+            Page.Run(GeneralSetupID);
         Handled := true;
     end;
 }

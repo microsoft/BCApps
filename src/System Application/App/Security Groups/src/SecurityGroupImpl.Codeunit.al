@@ -14,9 +14,9 @@ codeunit 9871 "Security Group Impl."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata User = rimd,
-                  tabledata "User Property" = rimd,
-                  tabledata "Security Group" = rimd;
+    Permissions = tabledata "Security Group" = rimd,
+                  tabledata User = rimd,
+                  tabledata "User Property" = rimd;
 
     var
         AzureAdGraph: Codeunit "Azure AD Graph";
@@ -171,7 +171,7 @@ codeunit 9871 "Security Group Impl."
     procedure Export(SecurityGroupCodes: List of [Code[20]]; Destination: OutStream)
     var
         SecurityGroup: Record "Security Group";
-        ExportImportSecurityGroups: XMLport "Export/Import Security Groups";
+        ExportImportSecurityGroups: XmlPort "Export/Import Security Groups";
         SecurityGroupFilterTextBuilder: TextBuilder;
         GroupCode: Code[20];
     begin
@@ -188,7 +188,7 @@ codeunit 9871 "Security Group Impl."
 
     procedure Import(Source: InStream)
     var
-        ExportImportSecurityGroups: XMLport "Export/Import Security Groups";
+        ExportImportSecurityGroups: XmlPort "Export/Import Security Groups";
     begin
         ExportImportSecurityGroups.SetSource(Source);
         ExportImportSecurityGroups.Import();
@@ -241,7 +241,7 @@ codeunit 9871 "Security Group Impl."
         if SecurityGroupBuffer.FindFirst() then; // reset to the first record
     end;
 
-    procedure GetGroups(var SecurityGroupBuffer: Record "Security Group Buffer")
+    procedure GetGroups(var SecurityGroupBuffer: Record "Security Group Buffer"; FetchGroupNames: Boolean)
     var
         SecurityGroup: Record "Security Group";
         LocalSecurityGroupBuffer: Record "Security Group Buffer";
@@ -264,8 +264,10 @@ codeunit 9871 "Security Group Impl."
                     SecurityGroupBuffer."Group ID" := SecurityGroup."Windows Group ID"
                 else
                     SecurityGroupBuffer."Group ID" := SecurityGroup."AAD Group ID";
-                if GetName(SecurityGroup.Code, SecurityGroupBuffer."Group Name") then
-                    SecurityGroupBuffer."Retrieved Successfully" := true;
+
+                if FetchGroupNames then
+                    if GetName(SecurityGroup.Code, SecurityGroupBuffer."Group Name") then
+                        SecurityGroupBuffer."Retrieved Successfully" := true;
                 SecurityGroupBuffer.Insert();
             until SecurityGroup.Next() = 0;
 
@@ -362,6 +364,31 @@ codeunit 9871 "Security Group Impl."
         end;
     end;
 
+    procedure GetCode(GroupId: Text[250]; var GroupCode: Code[20]): Boolean
+    var
+        User: Record User;
+        UserProperty: Record "User Property";
+        SecurityGroup: Record "Security Group";
+    begin
+        if IsWindowsAuthentication() then begin
+            User.SetRange("Windows Security ID", GroupId);
+            if not User.FindFirst() then
+                exit(false);
+            SecurityGroup.SetRange("Group User SID", User."User Security ID");
+        end else begin
+            UserProperty.SetRange("Authentication Object ID", GroupId);
+            if not UserProperty.FindFirst() then
+                exit(false);
+            SecurityGroup.SetRange("Group User SID", UserProperty."User Security ID");
+        end;
+
+        if not SecurityGroup.FindFirst() then
+            exit(false);
+
+        GroupCode := SecurityGroup.Code;
+        exit(true);
+    end;
+
     procedure GetIdByName(GroupName: Text): Text
     var
         GroupId: Text;
@@ -388,10 +415,10 @@ codeunit 9871 "Security Group Impl."
     local procedure TryGetEntraGroupMembers(SecurityGroupCode: Code[20]; EntraGroupId: Text; var SecurityGroupMemberBuffer: Record "Security Group Member Buffer")
     var
         UserProperty: Record "User Property";
-        UserIdsPage: Dotnet UserIdsPage;
+        UserIdsPage: DotNet UserIdsPage;
         UserEntraObjectId: Text;
     begin
-        AzureADGraph.GetMemberIdsPageForGroupId(EntraGroupId, 500, UserIdsPage);
+        AzureAdGraph.GetMemberIdsPageForGroupId(EntraGroupId, 500, UserIdsPage);
 
         if IsNull(UserIdsPage) then
             exit;
@@ -463,7 +490,7 @@ codeunit 9871 "Security Group Impl."
         if AreAllEntraGroupsFetched then
             exit;
 
-        EntraGroups := AzureADGraph.GetGroups();
+        EntraGroups := AzureAdGraph.GetGroups();
         AreAllEntraGroupsFetched := true;
     end;
 

@@ -30,7 +30,7 @@ codeunit 9100 "SharePoint Client"
     /// <summary>
     /// Initializes SharePoint client.
     /// </summary>
-    /// <param name="BaseUrl">SharePoint URL to use.</param>    
+    /// <param name="BaseUrl">SharePoint URL to use.</param>
     /// <param name="Namespace">Namespace to use.</param>
     /// <param name="Authorization">The authorization to use.</param>
     procedure Initialize(BaseUrl: Text; Namespace: Text; Authorization: Interface "SharePoint Authorization")
@@ -62,7 +62,7 @@ codeunit 9100 "SharePoint Client"
     /// <summary>
     /// Gets all list items for the given list.
     /// </summary>
-    /// <raises>ProcessSharePointListItemMetadata</raises>    
+    /// <raises>ProcessSharePointListItemMetadata</raises>
     /// <param name="ListTitle">The title of the list/</param>
     /// <param name="SharePointListItem">Collection of the result (temporary record).</param>
     /// <returns>True if the operation was successful; otherwise - false.</returns>
@@ -74,7 +74,7 @@ codeunit 9100 "SharePoint Client"
     /// <summary>
     /// Gets all list items for the given list.
     /// </summary>
-    /// <raises>ProcessSharePointListItemMetadata</raises>    
+    /// <raises>ProcessSharePointListItemMetadata</raises>
     /// <param name="ListId">The GUID of the list/</param>
     /// <param name="SharePointListItem">Collection of the result (temporary record).</param>
     /// <returns>True if the operation was successful; otherwise - false.</returns>
@@ -149,7 +149,7 @@ codeunit 9100 "SharePoint Client"
     /// <param name="ListTitle">The title of the list.</param>
     /// <param name="ListItemId">Unique id of the item within the list. </param>
     /// <param name="SharePointListItemAtch">Collection of the result (temporary record). Always one element.</param>
-    /// 
+    ///
     procedure CreateListItemAttachment(ListTitle: Text; ListItemId: Integer; var SharePointListItemAtch: Record "SharePoint List Item Atch"): Boolean
     begin
         exit(SharePointClientImpl.CreateListItemAttachment(ListTitle, ListItemId, SharePointListItemAtch));
@@ -173,7 +173,7 @@ codeunit 9100 "SharePoint Client"
     /// </summary>
     /// <remarks>Does not require UI interaction.</remarks>
     /// <param name="ListTitle">The title of the list.</param>
-    /// <param name="ListItemId">Unique id of the item within the list. </param>    
+    /// <param name="ListItemId">Unique id of the item within the list. </param>
     /// <param name="FileName">File name to use on SharePoint.</param>
     /// <param name="FileInStream">File stream to upload.</param>
     /// <param name="SharePointListItemAtch">Collection of the result (temporary record). Always one element.</param>
@@ -188,7 +188,7 @@ codeunit 9100 "SharePoint Client"
     /// </summary>
     /// <remarks>Does not require UI interaction.</remarks>
     /// <param name="ListID">The GUID of the list.</param>
-    /// <param name="ListItemId">Unique id of the item within the list. </param>    
+    /// <param name="ListItemId">Unique id of the item within the list. </param>
     /// <param name="FileName">File name to use on SharePoint.</param>
     /// <param name="FileInStream">File stream to upload.</param>
     /// <param name="SharePointListItemAtch">Collection of the result (temporary record). Always one element.</param>
@@ -213,7 +213,7 @@ codeunit 9100 "SharePoint Client"
     /// <summary>
     /// Creates a new list item in specific list.
     /// </summary>
-    /// <raises>ProcessSharePointListItemMetadata</raises>    
+    /// <raises>ProcessSharePointListItemMetadata</raises>
     /// <param name="ListTitle">The title of the list.</param>
     /// <param name="ListItemEntityTypeFullName">The Entity Type for the list. Parameter can be found on a list object (ListItemEntityType).</param>
     /// <param name="ListItemTitle">The title of the new list item.</param>
@@ -227,7 +227,7 @@ codeunit 9100 "SharePoint Client"
     /// <summary>
     /// Creates a new list item in specific list.
     /// </summary>
-    /// <raises>ProcessSharePointListItemMetadata</raises>    
+    /// <raises>ProcessSharePointListItemMetadata</raises>
     /// <param name="ListId">The GUID of the list.</param>
     /// <param name="ListItemEntityTypeFullName">The Entity Type for the list. Parameter can be found on a list object (ListItemEntityType).</param>
     /// <param name="ListItemTitle">The title of the new list item.</param>
@@ -367,7 +367,7 @@ codeunit 9100 "SharePoint Client"
 
     /// <summary>
     /// Gets root folder for the list entity (Document Library).
-    /// </summary>    
+    /// </summary>
     /// <remarks>See "Is Catalog" parameter of the list.</remarks>
     /// <param name="OdataId">The odata.id parameter of the list entity.</param>
     /// <param name="SharePointFolder">Collection of the result (temporary record). Always one element.</param>
@@ -408,7 +408,7 @@ codeunit 9100 "SharePoint Client"
     begin
         exit(SharePointClientImpl.DeleteFolderByServerRelativeUrl(ServerRelativeUrl));
     end;
-    
+
     /// <summary>
     /// Adds a file to specific folder.
     /// </summary>
@@ -473,7 +473,7 @@ codeunit 9100 "SharePoint Client"
     /// <param name="ListTitle">The title of the list.</param>
     /// <param name="ListItemEntityTypeFullName">The Entity Type for the list. Parameter can be found on a list object (ListItemEntityType).</param>
     /// <param name="FieldName">The name of the metadata field.</param>
-    /// <param name="FieldValue">Value.</param>    
+    /// <param name="FieldValue">Value.</param>
     /// <returns>True if the operation was successful; otherwise - false.</returns>
     procedure UpdateListItemMetaDataField(ListTitle: Text; ItemId: Integer; ListItemEntityTypeFullName: Text; FieldName: Text; FieldValue: Text): Boolean
     begin
@@ -492,10 +492,10 @@ codeunit 9100 "SharePoint Client"
     begin
         exit(SharePointClientImpl.UpdateListItemMetaDataField(ListId, ItemId, ListItemEntityTypeFullName, FieldName, FieldValue));
     end;
-    
+
     [IntegrationEvent(false, false)]
     /// <summary>
-    /// Process SharePointFile Metadata - Use to extract custom meta data into model record 
+    /// Process SharePointFile Metadata - Use to extract custom meta data into model record
     /// </summary>
     /// <remarks>Extend the "SharePoint File" table to store any custom data.</remarks>
     /// <param name="Metadata">__metadata node of SharePointFile Json Object</param>
@@ -506,7 +506,7 @@ codeunit 9100 "SharePoint Client"
 
     [IntegrationEvent(false, false)]
     /// <summary>
-    /// Process SharePointListItem Metadata - Use to extract custom mete data into model record 
+    /// Process SharePointListItem Metadata - Use to extract custom mete data into model record
     /// </summary>
     /// <remarks>Extend the "SharePoint List Item" table to store any custom data.</remarks>
     /// <param name="Metadata">__metadata node of SharePointListItem Json Object</param>

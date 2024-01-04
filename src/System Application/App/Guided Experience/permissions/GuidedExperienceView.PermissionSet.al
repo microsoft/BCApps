@@ -23,6 +23,6 @@ permissionset 1992 "Guided Experience - View"
                   tabledata "Checklist Setup" = im,
                   tabledata "Guided Experience Item" = imd,
                   tabledata "Primary Guided Experience Item" = imd,
-                  tabledata "User Checklist Status" = im,
-                  tabledata "Spotlight Tour Text" = imd;
+                  tabledata "Spotlight Tour Text" = imd,
+                  tabledata "User Checklist Status" = im;
 }

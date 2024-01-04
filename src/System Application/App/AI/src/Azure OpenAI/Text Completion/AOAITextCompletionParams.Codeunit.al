@@ -5,7 +5,7 @@
 namespace System.AI;
 
 /// <summary>
-/// Represents the Completion parameters used by the API. 
+/// Represents the Completion parameters used by the API.
 /// See more details at https://aka.ms/AAlsi39.
 /// </summary>
 codeunit 7765 "AOAI Text Completion Params"

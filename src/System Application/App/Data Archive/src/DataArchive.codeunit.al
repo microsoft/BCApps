@@ -17,7 +17,7 @@ codeunit 600 "Data Archive"
     var
         DataArchiveImplementation: Codeunit "Data Archive Implementation";
 
-    /// <summary> 
+    /// <summary>
     /// Creates a new archive entry.
     /// </summary>
     /// <param name="Description">The name or description for the archive entry. Will typically be the calling object name.</param>
@@ -28,7 +28,7 @@ codeunit 600 "Data Archive"
         exit(DataArchiveImplementation.Create(Description));
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Creates a new archive entry, resets the session and starts logging all new deletions.
     /// </summary>
     /// <param name="Description">The name or description for the archive entry. Will typically be the calling object name.</param>
@@ -39,7 +39,7 @@ codeunit 600 "Data Archive"
         exit(DataArchiveImplementation.CreateAndStartLoggingDeletions(Description));
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Opens an existing archive entry.
     /// </summary>
     /// <param name="ID">The ID of the archive entry.</param>
@@ -49,7 +49,7 @@ codeunit 600 "Data Archive"
         DataArchiveImplementation.Open(ID);
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Saves and closes the currently open archive entry.
     /// </summary>
     /// <error>The archive must be created or opened first.</error>
@@ -58,7 +58,7 @@ codeunit 600 "Data Archive"
         DataArchiveImplementation.Save();
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Discards any additions and closes the currently open archive entry.
     /// </summary>
     /// <error>The archive must be created or opened first.</error>
@@ -67,7 +67,7 @@ codeunit 600 "Data Archive"
         DataArchiveImplementation.DiscardChanges();
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Saves the supplied record to the currently open archive entry.
     /// </summary>
     /// <param name="RecordVariant">The record will be copied to the archive.</param>
@@ -77,7 +77,7 @@ codeunit 600 "Data Archive"
         DataArchiveImplementation.SaveRecord(RecordVariant);
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Saves the supplied record to the currently open archive entry.
     /// </summary>
     /// <param name="RecordRef">The record will be copied to the archive.</param>
@@ -87,7 +87,7 @@ codeunit 600 "Data Archive"
         DataArchiveImplementation.SaveRecord(RecordRef);
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Saves all records within the filters to the currently open archive entry.
     /// </summary>
     /// <error>The archive must be created or opened first.</error>
@@ -96,7 +96,7 @@ codeunit 600 "Data Archive"
         DataArchiveImplementation.SaveRecords(RecordRef);
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Starts subscription to the OnDatabaseDelete trigger and calls SaveRecord with any deleted record.
     /// </summary>
     procedure StartSubscriptionToDelete()
@@ -104,7 +104,7 @@ codeunit 600 "Data Archive"
         DataArchiveImplementation.StartSubscriptionToDelete();
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Starts subscription to the OnDatabaseDelete trigger and calls SaveRecord with any deleted record.
     /// </summary>
     procedure StartSubscriptionToDelete(ResetSession: Boolean)
@@ -112,7 +112,7 @@ codeunit 600 "Data Archive"
         DataArchiveImplementation.StartSubscriptionToDelete(ResetSession);
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Stops the subscription to the OnDatabaseDelete trigger.
     /// </summary>
     procedure StopSubscriptionToDelete()
@@ -120,7 +120,7 @@ codeunit 600 "Data Archive"
         DataArchiveImplementation.StopSubscriptionToDelete();
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Informs the consumer app whether there is a provider for this interface.
     /// </summary>
     /// <returns>Returns true if a provider for this interface is installed.</returns>
@@ -129,7 +129,7 @@ codeunit 600 "Data Archive"
         exit(DataArchiveImplementation.DataArchiveProviderExists());
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Checks if there is an implementation of an IDataArchiveProvider
     /// </summary>
     /// <param name="Exists">A subscriber should set the value to true if it is an implementation of IDataArchiveProvider.</param>
@@ -138,7 +138,7 @@ codeunit 600 "Data Archive"
         DataArchiveImplementation.SetDataArchiveProvider(NewDataArchiveProvider);
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Checks if there is an implementation of an IDataArchiveProvider
     /// </summary>
     /// <param name="Exists">A subscriber should set the value to true if it is an implementation of IDataArchiveProvider.</param>
@@ -147,7 +147,7 @@ codeunit 600 "Data Archive"
     begin
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Asks for an implementation of an IDataArchiveProvider
     /// </summary>
     /// <param name="ResetSession">If true, then the session will be reset. This can be necessary if a deletion has already been made on any table that should be archived.</param>

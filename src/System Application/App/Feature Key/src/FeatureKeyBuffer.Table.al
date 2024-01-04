@@ -6,7 +6,7 @@
 namespace System.Environment.Configuration;
 
 /// <summary>
-/// This temporary table extends the "Feature Key" virtual table. The fields must be in sync across both tables. 
+/// This temporary table extends the "Feature Key" virtual table. The fields must be in sync across both tables.
 /// New fields are added from id = 100 upwards.
 /// </summary>
 table 2609 "Feature Key Buffer"
@@ -15,9 +15,9 @@ table 2609 "Feature Key Buffer"
     TableType = Temporary;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Feature Key" = rm,
-                  tabledata "Feature Data Update Status" = r,
-                  tabledata "Feature Dependency" = r;
+    Permissions = tabledata "Feature Data Update Status" = r,
+                  tabledata "Feature Dependency" = r,
+                  tabledata "Feature Key" = rm;
 
     fields
     {
@@ -30,7 +30,7 @@ table 2609 "Feature Key Buffer"
         {
             Caption = 'Enabled';
             OptionCaption = 'None,All Users';
-            OptionMembers = "None","All Users";
+            OptionMembers = None,"All Users";
 
             trigger OnValidate()
             begin
@@ -124,7 +124,7 @@ table 2609 "Feature Key Buffer"
 
     internal procedure GetDataUpdateSessionId(): Integer
     begin
-        exit(FeatureDataUpdateStatus."Session ID");
+        exit(FeatureDataUpdateStatus."Session Id");
     end;
 
     internal procedure GetDataUpdateStartDateTime(): DateTime
@@ -139,12 +139,12 @@ table 2609 "Feature Key Buffer"
 
     internal procedure GetDataUpdateTaskId(): Guid
     begin
-        exit(FeatureDataUpdateStatus."Task ID");
+        exit(FeatureDataUpdateStatus."Task Id");
     end;
 
     internal procedure GetDataUpdateServerInstanceId(): Integer
     begin
-        exit(FeatureDataUpdateStatus."Server Instance ID");
+        exit(FeatureDataUpdateStatus."Server Instance Id");
     end;
 
     internal procedure GetTryItOutMessage(): Text

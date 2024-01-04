@@ -10,6 +10,6 @@ permissionset 773 "User Details - Objects"
     Access = Internal;
     Assignable = false;
 
-    Permissions = Codeunit "User Details" = X,
-                  Page "User Details" = X;
+    Permissions = codeunit "User Details" = X,
+                  page "User Details" = X;
 }

@@ -51,9 +51,6 @@ page 2502 "Extension Marketplace"
                     CurrPage.Marketplace.Navigate(MarketplaceUrl);
                 end;
 
-                trigger DocumentReady()
-                begin
-                end;
 
                 trigger Callback(data: Text);
                 begin
@@ -89,7 +86,7 @@ page 2502 "Extension Marketplace"
         applicationId: Text;
         ActionOption: Option acquireApp;
     begin
-        if EVALUATE(ActionOption, ActionName) then
+        if Evaluate(ActionOption, ActionName) then
             if ActionOption = ActionOption::acquireApp then begin
                 TelemetryUrl := ExtensionMarketplace.GetTelementryUrlFromData(JObject);
                 applicationId := ExtensionMarketplace.GetApplicationIdFromData(JObject);

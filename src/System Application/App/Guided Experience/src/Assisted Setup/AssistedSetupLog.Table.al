@@ -55,8 +55,5 @@ table 1807 "Assisted Setup Log"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

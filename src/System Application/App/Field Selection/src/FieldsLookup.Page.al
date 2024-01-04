@@ -20,7 +20,7 @@ page 9806 "Fields Lookup"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control2)
             {
@@ -61,9 +61,6 @@ page 9806 "Fields Lookup"
         }
     }
 
-    actions
-    {
-    }
 
     trigger OnOpenPage()
     var

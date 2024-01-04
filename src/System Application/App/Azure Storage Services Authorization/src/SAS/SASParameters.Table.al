@@ -51,7 +51,7 @@ table 9064 "SAS Parameters"
         field(4; SignedProtocol; Option)
         {
             DataClassification = SystemMetadata;
-            OptionMembers = "https&http","https";
+            OptionMembers = "https&http",https;
             OptionCaption = '"https and http",https', Locked = true;
         }
 

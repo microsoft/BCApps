@@ -37,8 +37,5 @@ table 1433 "Net Promoter Score"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

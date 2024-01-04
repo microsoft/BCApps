@@ -14,14 +14,14 @@ page 9702 "Cue Setup End User"
     DeleteAllowed = false;
     InsertAllowed = false;
     PageType = List;
-    Permissions = TableData "Cue Setup" = rimd;
+    Permissions = tabledata "Cue Setup" = rimd;
     SourceTable = "Cue Setup";
     SourceTableTemporary = true;
     ContextSensitiveHelpPage = 'admin-how-set-up-colored-indicator-on-cues';
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -108,9 +108,6 @@ page 9702 "Cue Setup End User"
         }
     }
 
-    actions
-    {
-    }
 
     trigger OnAfterGetRecord()
     begin
