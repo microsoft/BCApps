@@ -31,12 +31,12 @@
   "rules": [
     {
       "id": "AS0059",
-      "action": "Warning",
+      "action": "Error",
       "justification": "Will be fixed. Reserved database tables are read-only in a multi-tenant environment"
     },
     {
       "id": "AW0009",
-      "action": "Warning",
+      "action": "Error",
       "justification": "Using a Blob with subtype Bitmap on a page field is deprecated. Instead use the Media/MediaSet data types."
     },
     {
