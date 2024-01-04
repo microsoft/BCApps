@@ -309,14 +309,19 @@ codeunit 9751 "Web Service Management Impl."
         TenantWebService: Record "Tenant Web Service";
     begin
         WebServiceAggregate.Reset();
+#pragma warning disable AS0059
         WebServiceAggregate.DeleteAll();
+#pragma warning restore AS0059
 
         if WebService.FindSet() then
             repeat
                 WebServiceAggregate.Init();
                 WebServiceAggregate.TransferFields(WebService);
                 WebServiceAggregate."All Tenants" := true;
+
+#pragma warning disable AS0059
                 WebServiceAggregate.Insert();
+#pragma warning restore AS0059
             until WebService.Next() = 0;
 
         WebServiceAggregate."All Tenants" := false;
@@ -333,7 +338,9 @@ codeunit 9751 "Web Service Management Impl."
                     if WebService.IsEmpty() then begin
                         WebServiceAggregate.Init();
                         WebServiceAggregate.TransferFields(TenantWebService);
+#pragma warning disable AS0059
                         WebServiceAggregate.Insert();
+#pragma warning restore AS0059
                     end
                 end
             until TenantWebService.Next() = 0;
