@@ -224,13 +224,13 @@ codeunit 281 NoSeriesMgt
             NumberSequence.Insert(NoSeriesLine."Sequence Name", NoSeriesLine."Starting Sequence No." - NoSeriesLine."Increment-by No.", NoSeriesLine."Increment-by No.")
         else begin
             NumberSequence.Insert(NoSeriesLine."Sequence Name", NoSeriesLine."Starting Sequence No.", NoSeriesLine."Increment-by No.");
-            if NumberSequence.Next("Sequence Name") = 0 then;  // Simulate that a number was used
+            if NumberSequence.Next(NoSeriesLine."Sequence Name") = 0 then;  // Simulate that a number was used
         end;
     end;
 
     internal procedure RestartSequence(var NoSeriesLine: Record "No. Series Line"; NewStartingNo: BigInteger)
     begin
-        NoSeriesLine.TestField("Allow Gaps in Nos.");
+        NoSeriesLine.TestField(Implementation, NoSeriesLine.Implementation::Sequence);
         NoSeriesLine.TestField("Sequence Name");
         NoSeriesLine."Starting Sequence No." := NewStartingNo;
         if NoSeriesLine."Last No. Used" = '' then

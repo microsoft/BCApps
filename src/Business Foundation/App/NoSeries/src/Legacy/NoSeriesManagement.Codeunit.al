@@ -440,7 +440,7 @@ codeunit 396 NoSeriesManagement
             if LastNoSeriesLine."Series Code" <> '' then begin
                 if (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) then
                     if (LastNoSeriesLine."Last No. Used" <> '') and (LastNoSeriesLine."Last No. Used" > LastNoSeriesLine.GetLastNoUsed()) then
-                        LastNoSeriesLine.RestartSequence(LastNoSeriesLine.ExtractNoFromCode(LastNoSeriesLine."Last No. Used"));
+                        NoSeriesMgt.RestartSequence(LastNoSeriesLine, LastNoSeriesLine.ExtractNoFromCode(LastNoSeriesLine."Last No. Used"));
                 if not (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) or UpdateLastUsedDate then
                     ModifyNoSeriesLine(LastNoSeriesLine);
             end;
