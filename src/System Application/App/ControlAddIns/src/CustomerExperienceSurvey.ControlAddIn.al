@@ -9,9 +9,9 @@ controladdin CustomerExperienceSurvey
 {
     VerticalStretch = true;
     HorizontalStretch = true;
-    StartupScript = 'ControlAddInResources\CustomerExperienceSurvey\js\CustomerExperienceSurveyStartup.js';
+    StartupScript = 'ControlAddIns\src\Resources\CustomerExperienceSurvey\js\CustomerExperienceSurveyStartup.js';
     Scripts = 'https://mfpembedcdnmsit.azureedge.net/mfpembedcontmsit/Embed.js',
-              'ControlAddInResources\CustomerExperienceSurvey\js\CustomerExperienceSurvey.js';
+              'ControlAddIns\src\Resources\CustomerExperienceSurvey\js\CustomerExperienceSurvey.js';
     StyleSheets = 'https://mfpembedcdnmsit.azureedge.net/mfpembedcontmsit/Embed.css';
 
     event ControlReady();

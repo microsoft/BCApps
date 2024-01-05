@@ -15,9 +15,9 @@ controladdin VideoPlayer
     VerticalStretch = true;
     HorizontalStretch = true;
 
-    Scripts = 'ControlAddInResources\VideoPlayer\js\VideoPlayer.js';
-    StartupScript = 'ControlAddInResources\VideoPlayer\js\Startup.js';
-    StyleSheets = 'ControlAddInResources\VideoPlayer\stylesheets\VideoPlayer.css';
+    Scripts = 'ControlAddIns\src\Resources\VideoPlayer\js\VideoPlayer.js';
+    StartupScript = 'ControlAddIns\src\Resources\VideoPlayer\js\Startup.js';
+    StyleSheets = 'ControlAddIns\src\Resources\VideoPlayer\stylesheets\VideoPlayer.css';
 
     /// <summary>
     /// Raised when addin is ready

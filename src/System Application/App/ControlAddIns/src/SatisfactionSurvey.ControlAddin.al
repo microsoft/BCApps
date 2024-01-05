@@ -16,13 +16,13 @@ controladdin SatisfactionSurvey
     HorizontalStretch = true;
     HorizontalShrink = true;
 
-    Scripts = 'ControlAddInResources\WebPageViewer\js\WebPageViewerHelper.js',
-              'ControlAddInResources\WebPageViewer\js\WebPageViewer.js';
-    StartupScript = 'ControlAddInResources\WebPageViewer\js\Startup.js';
-    RecreateScript = 'ControlAddInResources\WebPageViewer\js\Recreate.js';
-    RefreshScript = 'ControlAddInResources\WebPageViewer\js\Refresh.js';
-    StyleSheets = 'ControlAddInResources\WebPageViewer\stylesheets\WebPageViewer.css';
-    Images = 'ControlAddInResources\WebPageViewer\images\Callback.html', 'ControlAddInResources\WebPageViewer\images\Loader.gif';
+    Scripts = 'ControlAddIns\src\Resources\WebPageViewer\js\WebPageViewerHelper.js',
+              'ControlAddIns\src\Resources\WebPageViewer\js\WebPageViewer.js';
+    StartupScript = 'ControlAddIns\src\Resources\WebPageViewer\js\Startup.js';
+    RecreateScript = 'ControlAddIns\src\Resources\WebPageViewer\js\Recreate.js';
+    RefreshScript = 'ControlAddIns\src\Resources\WebPageViewer\js\Refresh.js';
+    StyleSheets = 'ControlAddIns\src\Resources\WebPageViewer\stylesheets\WebPageViewer.css';
+    Images = 'ControlAddIns\src\Resources\WebPageViewer\images\Callback.html', 'ControlAddIns\src\Resources\WebPageViewer\images\Loader.gif';
 
     /// <summary>
     /// Event raised when addin is done loading

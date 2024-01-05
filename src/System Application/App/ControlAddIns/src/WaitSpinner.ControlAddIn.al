@@ -12,10 +12,10 @@ controladdin WaitSpinner
     HorizontalStretch = true;
     VerticalStretch = true;
     Scripts = 'https://cdnjs.cloudflare.com/ajax/libs/knockout/3.4.2/knockout-debug.js',
-              'ControlAddInResources\WaitSpinner\js\WaitSpinner.js';
-    StartupScript = 'ControlAddInResources\WaitSpinner\js\WaitSpinner.js';
-    StyleSheets = 'ControlAddInResources\WaitSpinner\stylesheets\spinner.css';
-    Images = 'ControlAddInResources\WaitSpinner\images\spinner.gif';
+              'ControlAddIns\src\Resources\WaitSpinner\js\WaitSpinner.js';
+    StartupScript = 'ControlAddIns\src\Resources\WaitSpinner\js\WaitSpinner.js';
+    StyleSheets = 'ControlAddIns\src\Resources\WaitSpinner\stylesheets\spinner.css';
+    Images = 'ControlAddIns\src\Resources\WaitSpinner\images\spinner.gif';
 
     procedure Wait(SecondsToWait: Integer);
     event Ready();

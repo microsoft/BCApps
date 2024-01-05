@@ -14,13 +14,13 @@ controladdin RoleCenterSelector
 
     Scripts = 'https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.5.1.min.js',
               'https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/js/fabric.min.js',
-              'ControlAddInResources\RoleCenterSelector\js\RoleCenterSelector.js';
-    StartupScript = 'ControlAddInResources\RoleCenterSelector\js\Startup.js';
-    RefreshScript = 'ControlAddInResources\RoleCenterSelector\js\Refresh.js';
-    RecreateScript = 'ControlAddInResources\RoleCenterSelector\js\Recreate.js';
+              'ControlAddIns\src\Resources\RoleCenterSelector\js\RoleCenterSelector.js';
+    StartupScript = 'ControlAddIns\src\Resources\RoleCenterSelector\js\Startup.js';
+    RefreshScript = 'ControlAddIns\src\Resources\RoleCenterSelector\js\Refresh.js';
+    RecreateScript = 'ControlAddIns\src\Resources\RoleCenterSelector\js\Recreate.js';
     StyleSheets = 'https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/css/fabric.min.css',
                   'https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/css/fabric.components.min.css',
-                  'ControlAddInResources\RoleCenterSelector\stylesheets\RoleCenterSelector.css';
+                  'ControlAddIns\src\Resources\RoleCenterSelector\stylesheets\RoleCenterSelector.css';
 
 
     event ControlAddInReady();

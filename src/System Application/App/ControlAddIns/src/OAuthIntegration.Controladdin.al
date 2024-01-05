@@ -16,9 +16,9 @@ controladdin OAuthIntegration
     HorizontalShrink = true;
     VerticalShrink = true;
 
-    Scripts = 'ControlAddInResources\OAuthIntegration\js\OAuthIntegration.js';
-    StyleSheets = 'ControlAddInResources\OAuthIntegration\stylesheets\OAuthIntegration.css';
-    StartupScript = 'ControlAddInResources\OAuthIntegration\js\Startup.js';
+    Scripts = 'ControlAddIns\src\Resources\OAuthIntegration\js\OAuthIntegration.js';
+    StyleSheets = 'ControlAddIns\src\Resources\OAuthIntegration\stylesheets\OAuthIntegration.css';
+    StartupScript = 'ControlAddIns\src\Resources\OAuthIntegration\js\Startup.js';
 
     /// <summary>
     /// Starts the authorization process.

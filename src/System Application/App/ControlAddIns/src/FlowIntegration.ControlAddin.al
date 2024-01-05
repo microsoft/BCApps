@@ -16,11 +16,11 @@ controladdin FlowIntegration
     HorizontalStretch = true;
     HorizontalShrink = true;
 
-    Scripts = 'ControlAddInResources\FlowIntegration\js\msflowsdk-1.1.1.144.min.js',
-              'ControlAddInResources\FlowIntegration\js\FlowIntegration.js';
-    StartupScript = 'ControlAddInResources\FlowIntegration\js\Startup.js';
-    RecreateScript = 'ControlAddInResources\FlowIntegration\js\Recreate.js';
-    RefreshScript = 'ControlAddInResources\FlowIntegration\js\Refresh.js';
+    Scripts = 'ControlAddIns\src\Resources\FlowIntegration\js\msflowsdk-1.1.1.144.min.js',
+              'ControlAddIns\src\Resources\FlowIntegration\js\FlowIntegration.js';
+    StartupScript = 'ControlAddIns\src\Resources\FlowIntegration\js\Startup.js';
+    RecreateScript = 'ControlAddIns\src\Resources\FlowIntegration\js\Recreate.js';
+    RefreshScript = 'ControlAddIns\src\Resources\FlowIntegration\js\Refresh.js';
 
     /// <summary>
     /// Event raised when addin is done loading
