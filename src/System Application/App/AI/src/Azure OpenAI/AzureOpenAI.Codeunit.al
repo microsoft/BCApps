@@ -242,7 +242,7 @@ codeunit 7771 "Azure OpenAI"
     /// <param name="Input">The input to get the approximate token count for.</param>
     /// <returns>The approximate token count.</returns>
     [NonDebuggable]
-    [Obsolete('Use GetTokenCount instead.', '24.0')]
+    [Obsolete('Use the AOAI Token codeunit.', '24.0')]
     procedure ApproximateTokenCount(Input: Text): Integer
     begin
 #pragma warning disable AL0432
