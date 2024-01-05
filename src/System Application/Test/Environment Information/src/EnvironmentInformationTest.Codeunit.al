@@ -19,6 +19,16 @@ codeunit 135091 "Environment Information Test"
         EnvironmentInformation: Codeunit "Environment Information";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
 
+    trigger OnBeforeTestRun(CodeunitId: Integer; CodeunitName: Text; FunctionName: Text; Permissions: TestPermissions): Ok
+    begin
+        BindSubscription(EnvironmentInfoTestLibrary);
+    end;
+
+    trigger OnAfterTestRun(CodeunitId: Integer; CodeunitName: Text; FunctionName: Text; Permissions: TestPermissions): Ok
+    begin
+        UnbindSubscription(EnvironmentInfoTestLibrary);
+    end;
+
     [Test]
     [Scope('OnPrem')]
     procedure TestCanStartSessionWithTestIsolationEnabled()
@@ -89,7 +99,6 @@ codeunit 135091 "Environment Information Test"
     procedure TestIsSaaSInfrastructureIsTrueWhenTestabilitySaaSInfrastructureIsSetTrue()
     begin
         // [SCENARIO] Set the testability to true. IsSaaSInfrastructure returns correct values.
-        BindSubscription(EnvironmentInfoTestLibrary);
 
         // [Given] Set the testability SaaS to true
         EnvironmentInfoTestLibrary.SetIsSaaSInfrastructure(true);
@@ -97,29 +106,25 @@ codeunit 135091 "Environment Information Test"
         // [When] Poll for IsSaaSInfrastructure
         // [Then] Should return true
         Assert.IsTrue(EnvironmentInformation.IsSaaSInfrastructure(), 'Environment Information should have returned the setup of a SaaS infrastructure');
-        UnbindSubscription(EnvironmentInfoTestLibrary);
     end;
 
     [Test]
     procedure TestVersionInstalledIsTrueWhenTestabilityVersionInstalledIsSet()
     begin
         // [SCENARIO] Set the testability to true. VersionInstalled returns correct values.
-        BindSubscription(EnvironmentInfoTestLibrary);
 
         // [Given] Set the testability VersionInstalled to 23
         EnvironmentInfoTestLibrary.SetVersionInstalled(23);
 
         // [When] Poll for VersionInstalled
         // [Then] Should return the correct version installed
-        Assert.AreEqual(23, EnvironmentInformation.VersionInstalled('123'), 'Environment Information should have returned the correct version installed');
-        UnbindSubscription(EnvironmentInfoTestLibrary);
+        Assert.AreEqual(23, EnvironmentInformation.VersionInstalled('35de2eee-c479-459e-b70b-2f244708415a'), 'Environment Information should have returned the correct version installed');
     end;
 
     [Test]
     procedure TestIsSaaSIsTrueWhenTestabilityIsSaaSIsSet()
     begin
         // [SCENARIO] Set the testability to true. IsSaaS returns correct values.
-        BindSubscription(EnvironmentInfoTestLibrary);
 
         // [Given] Set the testability SaaS to true
         EnvironmentInfoTestLibrary.SetIsSaaS(true);
@@ -127,14 +132,12 @@ codeunit 135091 "Environment Information Test"
         // [When] Poll for IsSaaS
         // [Then] Should return true
         Assert.IsTrue(EnvironmentInformation.IsSaaS(), 'Environment Information should have returned the setup of a SaaS environment');
-        UnbindSubscription(EnvironmentInfoTestLibrary);
     end;
 
     [Test]
     procedure TestEnvironmentNameIsTrueWhenTestabilityEnvironmentNameIsSet()
     begin
         // [SCENARIO] Set the testability to true. EnvironmentName returns correct values.
-        BindSubscription(EnvironmentInfoTestLibrary);
 
         // [Given] Set the testability EnvironmentName to '123'
         EnvironmentInfoTestLibrary.SetEnvironmentName('123');
@@ -142,14 +145,12 @@ codeunit 135091 "Environment Information Test"
         // [When] Poll for EnvironmentName
         // [Then] Should return the correct environment name
         Assert.AreEqual('123', EnvironmentInformation.GetEnvironmentName(), 'Environment Information should have returned the correct environment name');
-        UnbindSubscription(EnvironmentInfoTestLibrary);
     end;
 
     [Test]
     procedure TestIsProductionIsTrueWhenTestabilityIsProductionIsSet()
     begin
         // [SCENARIO] Set the testability to true. IsProduction returns correct values.
-        BindSubscription(EnvironmentInfoTestLibrary);
 
         // [Given] Set the testability IsProduction to true
         EnvironmentInfoTestLibrary.SetIsProduction(true);
@@ -157,14 +158,12 @@ codeunit 135091 "Environment Information Test"
         // [When] Poll for IsProduction
         // [Then] Should return true
         Assert.IsTrue(EnvironmentInformation.IsProduction(), 'Environment Information should have returned the setup of a production environment');
-        UnbindSubscription(EnvironmentInfoTestLibrary);
     end;
 
     [Test]
     procedure TestApplicationFamilyIsTrueWhenTestabilityApplicationFamilyIsSet()
     begin
         // [SCENARIO] Set the testability to true. ApplicationFamily returns correct values.
-        BindSubscription(EnvironmentInfoTestLibrary);
 
         // [Given] Set the testability ApplicationFamily to 1234
         EnvironmentInfoTestLibrary.SetApplicationFamily('1234');
@@ -172,7 +171,6 @@ codeunit 135091 "Environment Information Test"
         // [When] Poll for ApplicationFamily
         // [Then] Should return the correct application family
         Assert.AreEqual('1234', EnvironmentInformation.GetApplicationFamily(), 'Environment Information should have returned the correct application family');
-        UnbindSubscription(EnvironmentInfoTestLibrary);
     end;
 }
 
