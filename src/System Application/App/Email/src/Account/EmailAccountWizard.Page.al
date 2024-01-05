@@ -129,7 +129,9 @@ page 8886 "Email Account Wizard"
                     FreezeColumn = Name;
                     Editable = false;
 
+#pragma warning disable AW0009
                     field(Logo; Rec.Logo)
+#pragma warning restore AW0009
                     {
                         ApplicationArea = All;
                         Caption = ' ';

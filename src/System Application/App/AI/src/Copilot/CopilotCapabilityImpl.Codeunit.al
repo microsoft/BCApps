@@ -5,12 +5,13 @@
 namespace System.AI;
 
 using System;
-using System.Globalization;
-using System.Telemetry;
-using System.Security.User;
 using System.Azure.Identity;
 using System.Environment;
+using System.Environment.Configuration;
+using System.Globalization;
 using System.Privacy;
+using System.Security.User;
+using System.Telemetry;
 
 codeunit 7774 "Copilot Capability Impl"
 {
@@ -245,6 +246,16 @@ codeunit 7774 "Copilot Capability Impl"
     begin
         WithinGeo := ALCopilotFunctions.IsWithinGeo();
         WithinEuropeGeo := ALCopilotFunctions.IsEuropeGeo();
+    end;
+
+    procedure UpdateGuidedExperience(AllowDataMovement: Boolean)
+    var
+        GuidedExperience: Codeunit "Guided Experience";
+    begin
+        if AllowDataMovement then
+            GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Copilot AI Capabilities")
+        else
+            GuidedExperience.ResetAssistedSetup(ObjectType::Page, Page::"Copilot AI Capabilities");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", 'OnRegisterPrivacyNotices', '', false, false)]
