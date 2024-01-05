@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Feedback;
-using System.Integration;
 
 /// <summary>
 /// Displays the satisfaction survey dialog box.
