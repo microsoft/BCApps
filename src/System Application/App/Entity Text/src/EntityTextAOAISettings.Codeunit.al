@@ -43,6 +43,7 @@ codeunit 2011 "Entity Text AOAI Settings"
 
         if not CopilotCapability.IsCapabilityRegistered(enum::"Copilot Capability"::"Entity Text") then begin
             Session.LogMessage('0000M56', TelemetryCapabilityNotRegisteredTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+            exit(false);
         end;
 
         if (not Silent) and (not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Entity Text", Silent)) then begin
