@@ -18,17 +18,17 @@ controladdin WelcomeWizard
 
     Scripts = 'https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.5.1.min.js',
               'https://static2.sharepointonline.com/files/fabric/office-ui-fabric-js/1.4.0/js/fabric.min.js',
-              'ControlAddIns\src\Resources\WelcomeWizard\js\WelcomeWizard.js';
-    StartupScript = 'ControlAddIns\src\Resources\WelcomeWizard\js\Startup.js';
-    RefreshScript = 'ControlAddIns\src\Resources\WelcomeWizard\js\Refresh.js';
-    RecreateScript = 'ControlAddIns\src\Resources\WelcomeWizard\js\Recreate.js';
-    StyleSheets = 'ControlAddIns\src\Resources\WelcomeWizard\stylesheets\WelcomeWizard.css';
-    Images = 'ControlAddIns\src\Resources\WelcomeWizard\images\01_welcome.png',
-             'ControlAddIns\src\Resources\WelcomeWizard\images\02_introduction.png',
-             'ControlAddIns\src\Resources\WelcomeWizard\images\03_outlook.png',
-             'ControlAddIns\src\Resources\WelcomeWizard\images\04_extensions.png',
-             'ControlAddIns\src\Resources\WelcomeWizard\images\05_rolecenter.png',
-             'ControlAddIns\src\Resources\WelcomeWizard\images\GoChecked.png';
+              'Resources\WelcomeWizard\js\WelcomeWizard.js';
+    StartupScript = 'Resources\WelcomeWizard\js\Startup.js';
+    RefreshScript = 'Resources\WelcomeWizard\js\Refresh.js';
+    RecreateScript = 'Resources\WelcomeWizard\js\Recreate.js';
+    StyleSheets = 'Resources\WelcomeWizard\stylesheets\WelcomeWizard.css';
+    Images = 'Resources\WelcomeWizard\images\01_welcome.png',
+             'Resources\WelcomeWizard\images\02_introduction.png',
+             'Resources\WelcomeWizard\images\03_outlook.png',
+             'Resources\WelcomeWizard\images\04_extensions.png',
+             'Resources\WelcomeWizard\images\05_rolecenter.png',
+             'Resources\WelcomeWizard\images\GoChecked.png';
 
     /// <summary>
     /// Event raised when addin is done loading
