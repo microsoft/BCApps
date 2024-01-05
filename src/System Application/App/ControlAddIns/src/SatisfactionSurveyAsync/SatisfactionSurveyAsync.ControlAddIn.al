@@ -7,7 +7,7 @@ namespace System.Feedback;
 
 controladdin SatisfactionSurveyAsync
 {
-    Scripts = 'ControlAddIns\src\SatisfactionSurveyAsync\js\SATAsync.js';
+    Scripts = 'src\SatisfactionSurveyAsync\js\SATAsync.js';
     RequestedWidth = 0;
     RequestedHeight = 0;
     HorizontalStretch = false;

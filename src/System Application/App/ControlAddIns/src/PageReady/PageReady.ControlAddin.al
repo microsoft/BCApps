@@ -7,8 +7,8 @@ namespace System.Utilities;
 
 controladdin PageReady
 {
-    Scripts = 'ControlAddIns\src\PageReady\js\PageReady.js';
-    StyleSheets = 'ControlAddIns\src\PageReady\stylesheets\PageReady.css';
+    Scripts = 'src\PageReady\js\PageReady.js';
+    StyleSheets = 'src\PageReady\stylesheets\PageReady.css';
     RequestedWidth = 0;
     RequestedHeight = 0;
     HorizontalStretch = false;

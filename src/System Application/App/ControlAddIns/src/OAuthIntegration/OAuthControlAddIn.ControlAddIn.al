@@ -8,8 +8,8 @@ namespace System.Security.Authentication;
 
 controladdin OAuthControlAddIn
 {
-    Scripts = 'ControlAddIns\src\OAuthIntegration\js\OAuthIntegration.js';
-    StartupScript = 'ControlAddIns\src\OAuthIntegration\js\Startup.js';
+    Scripts = 'src\OAuthIntegration\js\OAuthIntegration.js';
+    StartupScript = 'src\OAuthIntegration\js\Startup.js';
     RequestedWidth = 0;
     RequestedHeight = 0;
     HorizontalStretch = false;
