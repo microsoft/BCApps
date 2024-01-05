@@ -439,13 +439,8 @@ codeunit 396 NoSeriesManagement
         if not IsHandled then
             if LastNoSeriesLine."Series Code" <> '' then begin
                 if (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) then
-                    if (LastNoSeriesLine."Last No. Used" <> '') and (LastNoSeriesLine."Last No. Used" > NoSeriesMgt.GetLastNoUsed(LastNoSeriesLine)) then begin
-                        LastNoSeriesLine.TestField("Sequence Name");
-                        if NumberSequence.Exists(LastNoSeriesLine."Sequence Name") then
-                            NumberSequence.Delete(LastNoSeriesLine."Sequence Name");
-                        LastNoSeriesLine."Starting Sequence No." := NoSeriesMgt.ExtractNoFromCode(LastNoSeriesLine."Last No. Used");
-                        NoSeriesMgt.CreateNewSequence(LastNoSeriesLine);
-                    end;
+                    if (LastNoSeriesLine."Last No. Used" <> '') and (LastNoSeriesLine."Last No. Used" > LastNoSeriesLine.GetLastNoUsed()) then
+                        LastNoSeriesLine.RestartSequence(LastNoSeriesLine.ExtractNoFromCode(LastNoSeriesLine."Last No. Used"));
                 if not (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) or UpdateLastUsedDate then
                     ModifyNoSeriesLine(LastNoSeriesLine);
             end;

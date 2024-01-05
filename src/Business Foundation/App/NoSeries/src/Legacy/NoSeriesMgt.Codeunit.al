@@ -216,22 +216,29 @@ codeunit 281 NoSeriesMgt
     end;
 
     internal procedure CreateNewSequence(var NoSeriesLine: Record "No. Series Line")
-    var
-        DummySeq: BigInteger;
     begin
         if NoSeriesLine."Sequence Name" = '' then
             NoSeriesLine."Sequence Name" := Format(CreateGuid(), 0, 4);
 
         if NoSeriesLine."Last No. Used" = '' then // TODO: Why do we subtract increment-by no. first but not in second.. second should calculate how far ahead to go?
             NumberSequence.Insert(NoSeriesLine."Sequence Name", NoSeriesLine."Starting Sequence No." - NoSeriesLine."Increment-by No.", NoSeriesLine."Increment-by No.")
-        else
+        else begin
             NumberSequence.Insert(NoSeriesLine."Sequence Name", NoSeriesLine."Starting Sequence No.", NoSeriesLine."Increment-by No.");
+            if NumberSequence.Next("Sequence Name") = 0 then;  // Simulate that a number was used
+        end;
+    end;
 
-        if NoSeriesLine."Last No. Used" <> '' then
-            // Simulate that a number was used
-#pragma warning disable AA0206
-            DummySeq := NumberSequence.Next(NoSeriesLine."Sequence Name"); // TODO: Why?
-#pragma warning restore AA0206
+    internal procedure RestartSequence(var NoSeriesLine: Record "No. Series Line"; NewStartingNo: BigInteger)
+    begin
+        NoSeriesLine.TestField("Allow Gaps in Nos.");
+        NoSeriesLine.TestField("Sequence Name");
+        NoSeriesLine."Starting Sequence No." := NewStartingNo;
+        if NoSeriesLine."Last No. Used" = '' then
+            NumberSequence.Restart(NoSeriesLine."Sequence Name", NoSeriesLine."Starting Sequence No." - NoSeriesLine."Increment-by No.")
+        else begin
+            NumberSequence.Restart(NoSeriesLine."Sequence Name", NoSeriesLine."Starting Sequence No.");
+            if NumberSequence.Next(NoSeriesLine."Sequence Name") = 0 then;  // Simulate that a number was used
+        end;
     end;
 
     internal procedure UpdateStartingSequenceNo(var NoSeriesLine: Record "No. Series Line")
