@@ -24,6 +24,7 @@ codeunit 2011 "Entity Text AOAI Settings"
     var
         EntityText: Record "Entity Text";
         AzureOpenAI: Codeunit "Azure OpenAI";
+        CopilotCapability: Codeunit "Copilot Capability";
     begin
         if not GuiAllowed() then begin
             Session.LogMessage('0000LJA', TelemetryGuiNotAllowedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
@@ -38,6 +39,10 @@ codeunit 2011 "Entity Text AOAI Settings"
         if not EntityText.WritePermission() then begin
             Session.LogMessage('0000JY0', TelemetryMissingPermissionTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
             exit(false);
+        end;
+
+        if not CopilotCapability.IsCapabilityRegistered(enum::"Copilot Capability"::"Entity Text") then begin
+            Session.LogMessage('0000M56', TelemetryCapabilityNotRegisteredTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
         end;
 
         if (not Silent) and (not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Entity Text", Silent)) then begin
@@ -109,6 +114,7 @@ codeunit 2011 "Entity Text AOAI Settings"
 
     var
         TelemetryCategoryLbl: Label 'AOAI', Locked = true;
+        TelemetryCapabilityNotRegisteredTxt: Label 'Copilot Capability for Entity Text is not registered.', Locked = true;
         TelemetryAOAIDisabledTxt: Label 'AOAI is disabled for Entity Text.', Locked = true;
         TelemetryPrivacyResultTxt: Label 'AOAI is enabled for Entity Text', Locked = true;
         TelemetryMissingPermissionTxt: Label 'Feature is disabled due to missing write permissions.', Locked = true;
