@@ -16,9 +16,9 @@ controladdin PowerBIManagement
     HorizontalStretch = true;
     HorizontalShrink = true;
 
-    Scripts = 'src\PowerBIManagement\js\PowerBIManagement.js';
-    StartupScript = 'src\PowerBIManagement\js\Startup.js';
-    StyleSheets = 'src\PowerBIManagement\stylesheets\PowerBIManagement.css';
+    Scripts = 'ControlAddInResources\PowerBIManagement\js\PowerBIManagement.js';
+    StartupScript = 'ControlAddInResources\PowerBIManagement\js\Startup.js';
+    StyleSheets = 'ControlAddInResources\PowerBIManagement\stylesheets\PowerBIManagement.css';
 
     /// <summary>
     /// Event that will be fired when the AddIn is ready for communication through its API

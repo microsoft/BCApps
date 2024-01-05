@@ -3,17 +3,16 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Feedback;
+namespace System.Utilities;
 
-controladdin SatisfactionSurveyAsync
+controladdin PageReady
 {
-    Scripts = 'src\SatisfactionSurveyAsync\js\SATAsync.js';
+    Scripts = 'ControlAddInResources\PageReady\js\PageReady.js';
+    StyleSheets = 'ControlAddInResources\PageReady\stylesheets\PageReady.css';
     RequestedWidth = 0;
     RequestedHeight = 0;
     HorizontalStretch = false;
     VerticalStretch = false;
 
-    procedure SendRequest(Url: Text; Timeout: Integer);
-    event ResponseReceived(Status: Integer; Response: Text);
-    event ControlAddInReady();
+    event AddInReady();
 }

@@ -16,14 +16,14 @@ controladdin WebPageViewer
     HorizontalStretch = true;
     HorizontalShrink = true;
 
-    Scripts = 'src\WebPageViewer\js\WebPageViewerHelper.js',
-              'src\WebPageViewer\js\WebPageViewer.js';
-    StartupScript = 'src\WebPageViewer\js\Startup.js';
-    RecreateScript = 'src\WebPageViewer\js\Recreate.js';
-    RefreshScript = 'src\WebPageViewer\js\Refresh.js';
-    StyleSheets = 'src\WebPageViewer\stylesheets\WebPageViewer.css';
-    Images = 'src\WebPageViewer\images\Callback.html',
-             'src\WebPageViewer\images\Loader.gif';
+    Scripts = 'ControlAddInResources\WebPageViewer\js\WebPageViewerHelper.js',
+              'ControlAddInResources\WebPageViewer\js\WebPageViewer.js';
+    StartupScript = 'ControlAddInResources\WebPageViewer\js\Startup.js';
+    RecreateScript = 'ControlAddInResources\WebPageViewer\js\Recreate.js';
+    RefreshScript = 'ControlAddInResources\WebPageViewer\js\Refresh.js';
+    StyleSheets = 'ControlAddInResources\WebPageViewer\stylesheets\WebPageViewer.css';
+    Images = 'ControlAddInResources\WebPageViewer\images\Callback.html',
+             'ControlAddInResources\WebPageViewer\images\Loader.gif';
 
     /// <summary>
     /// Event raised when addin is done loading
