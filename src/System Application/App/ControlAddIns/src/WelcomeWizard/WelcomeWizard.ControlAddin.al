@@ -69,8 +69,7 @@ controladdin WelcomeWizard
     /// <param name="RoleCentersDescription">Description about the role centers</param>
     /// <param name="RoleCenter">Role center</param>
     /// <param name="LegalDescription">Description explaining demo data is for demonstration purposes</param>
-    procedure Initialize(Title: Text; Subtitle: Text; Explanation: Text; Intro: Text; IntroDescription: Text; GetStarted: Text; GetStartedDescription: Text; GetHelp: Text;
-                         GetHelpDescription: Text; RoleCenters: Text; RoleCentersDescription: Text; RoleCenter: Text; LegalDescription: Text);
+    procedure Initialize(Title: Text; Subtitle: Text; Explanation: Text; Intro: Text; IntroDescription: Text; GetStarted: Text; GetStartedDescription: Text; GetHelp: Text; GetHelpDescription: Text; RoleCenters: Text; RoleCentersDescription: Text; RoleCenter: Text; LegalDescription: Text);
 
     /// <summary>
     /// Function that loads the embedded Welcome Wizard into a container on a webpage

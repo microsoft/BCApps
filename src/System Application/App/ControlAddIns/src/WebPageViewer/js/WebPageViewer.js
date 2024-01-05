@@ -5,7 +5,7 @@ var subscribeToSrcLoad = function () { };
 var maxSize = 300;
 var defaultSize = '100%';
 var iframeHeight = defaultSize, iframeWidth = defaultSize;
-var pageTabSize = 20; // is 20 height of page tabs?
+var pageTabSize = 20;
 
 function InitializeIFrame(ratio) {
   SetIFrameSize(ratio);
@@ -149,16 +149,16 @@ function SubscribeToEvent(eventName, origin) {
   WebPageViewerHelper.SubscribeToEvent(eventName, recieveMessage);
 }
 
+/// <summary>
+/// Posts a message (aka event) to the current iframe content window for the target domain.
+/// </summary>
+/// <param name="message">The JSON string that represents the message to be posted.</param>
+/// <param name="targetDomain">
+/// The domain to post the message to. This must match the domain of the iframe or the message will not be received. 
+/// Do not use the wildcard domain (*) as this is deemed unsecure, possibly allowing messages to be intercepted.
+/// </param>
+/// <param name="convertToJson">Flag indicating whether we want to convert message to Json object or not.</param>
 function PostMessage(message, targetDomain, convertToJson) {
-  /// <summary>
-  /// Posts a message (aka event) to the current iframe content window for the target domain.
-  /// </summary>
-  /// <param name="message">The JSON string that represents the message to be posted.</param>
-  /// <param name="targetDomain">
-  /// The domain to post the message to. This must match the domain of the iframe or the message will not be received. 
-  /// Do not use the wildcard domain (*) as this is deemed unsecure, possibly allowing messages to be intercepted.
-  /// </param>
-  /// <param name="convertToJson">Flag indicating whether we want to convert message to Json object or not.</param>
 
   if (typeof message !== 'string' || !message) return;
   if (typeof targetDomain !== 'string' || !targetDomain) return;

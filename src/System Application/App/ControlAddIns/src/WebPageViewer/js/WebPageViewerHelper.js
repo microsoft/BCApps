@@ -256,13 +256,14 @@ var WebPageViewerHelper = {
   
       return WebPageViewerHelper.Properties.UserAgentString;
     },
-  
+    
+    /// <summary>
+    /// Creates a subscription function for an iframe that notifies any subscribers after the load event occurs and the src attribute is set. 
+    /// </summary>
+    /// <param name="iframe">The iframe to trigger the load event from.</param>
+    /// <returns type="function">Subscription function that adds subscribers to the load event.</returns>
     BindSrcLoadEvent: function (iframe) {
-      /// <summary>
-      /// Creates a subscription function for an iframe that notifies any subscribers after the load event occurs and the src attribute is set. 
-      /// </summary>
-      /// <param name="iframe">The iframe to trigger the load event from.</param>
-      /// <returns type="function">Subscription function that adds subscribers to the load event.</returns>
+
   
       var loaded = false;
       var subscriptions = [];

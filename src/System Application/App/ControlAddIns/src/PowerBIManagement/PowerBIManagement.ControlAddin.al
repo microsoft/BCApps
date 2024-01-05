@@ -53,7 +53,7 @@ controladdin PowerBIManagement
     /// <summary>
     /// Initializes the Power BI Embed into the page
     /// </summary>
-    [Obsolete('This method is deprecated. Please use EmbedReport instead.', '23.0')]
+    [Obsolete('This method is deprecated. Please use EmbedReport instead.', '24.0')]
     procedure InitializeReport(ReportLink: Text; ReportId: Text; AuthToken: Text; PowerBIApi: Text);
 
     /// <summary>
