@@ -3,10 +3,11 @@ namespace System.AI;
 /// <summary>
 /// Provides functionality to get the token count for an input according to the model family they'd be used with.
 /// </summary>
-codeunit 7777 "AOAI Token"
+codeunit 7759 "AOAI Token"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
+    Access = Public;
 
     var
         AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
