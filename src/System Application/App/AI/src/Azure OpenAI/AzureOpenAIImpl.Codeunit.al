@@ -26,6 +26,7 @@ codeunit 7772 "Azure OpenAI Impl"
         ChatCompletionsAOAIAuthorization: Codeunit "AOAI Authorization";
         TextCompletionsAOAIAuthorization: Codeunit "AOAI Authorization";
         EmbeddingsAOAIAuthorization: Codeunit "AOAI Authorization";
+        AOAIToken: Codeunit "AOAI Token";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         Telemetry: Codeunit Telemetry;
         InvalidModelTypeErr: Label 'Selected model type is not supported.';
@@ -229,7 +230,7 @@ codeunit 7772 "Azure OpenAI Impl"
         Payload.Add('prompt', UnwrappedPrompt);
         Payload.WriteTo(PayloadText);
 
-        SendTokenCountTelemetry(GetTokenCount(Metaprompt, Enum::"AOAI Token Encoding"::cl100k_base), GetTokenCount(Prompt, Enum::"AOAI Token Encoding"::cl100k_base), CustomDimensions);
+        SendTokenCountTelemetry(AOAIToken.GetGPT4TokenCount(Metaprompt), AOAIToken.GetGPT4TokenCount(Prompt), CustomDimensions);
 
         if not SendRequest(Enum::"AOAI Model Type"::"Text Completions", TextCompletionsAOAIAuthorization, PayloadText, AOAIOperationResponse) then begin
             FeatureTelemetry.LogError('0000KVD', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, CompletionsFailedWithCodeErr, '', CustomDimensions);
@@ -257,7 +258,7 @@ codeunit 7772 "Azure OpenAI Impl"
         Payload.WriteTo(PayloadText);
 
         AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
-        SendTokenCountTelemetry(0, GetTokenCount(Input, Enum::"AOAI Token Encoding"::cl100k_base), CustomDimensions);
+        SendTokenCountTelemetry(0, AOAIToken.GetAdaTokenCount(Input), CustomDimensions);
         if not SendRequest(Enum::"AOAI Model Type"::Embeddings, EmbeddingsAOAIAuthorization, PayloadText, AOAIOperationResponse) then begin
             FeatureTelemetry.LogError('0000KVE', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateEmbeddingLbl, EmbeddingsFailedWithCodeErr, '', CustomDimensions);
             exit;
@@ -499,11 +500,11 @@ codeunit 7772 "Azure OpenAI Impl"
 #endif
 
     [NonDebuggable]
-    procedure GetTokenCount(Input: SecretText; Encoding: Enum "AOAI Token Encoding") TokenCount: Integer
+    procedure GetTokenCount(Input: SecretText; Encoding: Text) TokenCount: Integer
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin
-        TokenCount := ALCopilotFunctions.GptTokenCount(Input.Unwrap(), Format(Encoding));
+        TokenCount := ALCopilotFunctions.GptTokenCount(Input.Unwrap(), Encoding);
     end;
 
 }

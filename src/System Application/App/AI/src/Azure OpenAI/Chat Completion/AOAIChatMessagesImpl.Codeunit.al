@@ -16,6 +16,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
     InherentPermissions = X;
 
     var
+        AOAIToken: Codeunit "AOAI Token";
         Telemetry: Codeunit Telemetry;
         Initialized: Boolean;
         HistoryLength: Integer;
@@ -161,7 +162,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
             MessageJsonObject.Add('content', SystemMessage.Unwrap());
             HistoryResult.Add(MessageJsonObject);
 
-            SystemMessageTokenCount := AzureOpenAIImpl.GetTokenCount(SystemMessage, Enum::"AOAI Token Encoding"::cl100k_base);
+            SystemMessageTokenCount := AOAIToken.GetGPT4TokenCount(SystemMessage);
         end;
 
         Counter := History.Count - HistoryLength + 1;
@@ -189,7 +190,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
             TotalMessages += Name;
         until Counter > History.Count;
 
-        MessagesTokenCount := AzureOpenAIImpl.GetTokenCount(TotalMessages, Enum::"AOAI Token Encoding"::cl100k_base);
+        MessagesTokenCount := AOAIToken.GetGPT4TokenCount(TotalMessages);
     end;
 
     local procedure Initialize()
