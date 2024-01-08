@@ -16,7 +16,7 @@ codeunit 310 "No. Series"
     #region GetNextNo
     /// <summary>
     /// Get the next number in the No. Series.
-    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// This function finds the first valid No. Series line based on WorkDate and calls the No. Series Line implementation to get the next number.
     /// </summary>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
     /// <returns>The next number in the series.</returns>
@@ -29,7 +29,7 @@ codeunit 310 "No. Series"
 
     /// <summary>
     /// Get the next number in the No. Series.
-    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// This function finds the first valid No. Series line based on UsageDate and calls the No. Series Line implementation to get the next number.
     /// </summary>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
@@ -43,7 +43,7 @@ codeunit 310 "No. Series"
 
     /// <summary>
     /// Get the next number in the No. Series.
-    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// This function uses the specified No. Series line and calls the No. Series Line implementation to get the next number.
     /// </summary>
     /// <param name="NoSeriesLine">The No. Series line to use.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
@@ -57,7 +57,7 @@ codeunit 310 "No. Series"
 
     /// <summary>
     /// Get the next number in the No. Series.
-    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// This function finds the first valid No. Series line based on UsageDate and calls the No. Series Line implementation to get the next number.
     /// </summary>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
@@ -72,7 +72,7 @@ codeunit 310 "No. Series"
 
     /// <summary>
     /// Get the next number in the No. Series.
-    /// This function will use the specified No. Series line and use the appropriate implementation to get the next number.
+    /// This function uses the specified No. Series line and calls the No. Series Line implementation to get the next number.
     /// </summary>
     /// <param name="NoSeriesLine">The No. Series line to use.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
@@ -89,7 +89,7 @@ codeunit 310 "No. Series"
     #region PeekNextNo
     /// <summary>
     /// Get the next number in the No. Series, without incrementing the number.
-    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// This function finds the first valid No. Series line based on UsageDate and calls the No. Series Line implementation to peek the next number.
     /// </summary>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
     /// <returns>The next number in the series.</returns>
@@ -102,7 +102,7 @@ codeunit 310 "No. Series"
 
     /// <summary>
     /// Get the next number in the No. Series, without incrementing the number.
-    /// This function will select the proper No. Series line and use the appropriate implementation to get the next number.
+    /// This function finds the first valid No. Series line based on UsageDate and calls the No. Series Line implementation to peek the next number.
     /// </summary>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
@@ -116,7 +116,7 @@ codeunit 310 "No. Series"
 
     /// <summary>
     /// Get the next number in the No. Series, without incrementing the number.
-    /// This function will use the specified No. Series line and use the appropriate implementation to get the next number.
+    /// This function uses the specified No. Series line and calls the No. Series Line implementation to peek the next number.
     /// </summary>
     /// <param name="NoSeriesLine">The No. Series line to use.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
@@ -254,7 +254,7 @@ codeunit 310 "No. Series"
     #endregion
 
     /// <summary>
-    /// Get the No. Series line for the given No. Series code and usage date.
+    /// Get the No. Series line for the specified No. Series code and usage date.
     /// </summary>
     /// <param name="NoSeriesLine">The No. Series line to use and return.</param>
     /// <param name="NoSeriesCode">The No. Series code to lookup.</param>
