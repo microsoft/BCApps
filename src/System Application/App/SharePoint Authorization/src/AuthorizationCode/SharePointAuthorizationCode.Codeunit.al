@@ -42,15 +42,15 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
         Headers: HttpHeaders;
     begin
         HttpRequestMessage.GetHeaders(Headers);
-        Headers.Add('Authorization', StrSubstNo(BearerTxt, GetToken()));
+        Headers.Add('Authorization', SecretStrSubstNo(BearerTxt, GetToken()));
     end;
 
     [NonDebuggable]
-    local procedure GetToken(): Text
+    local procedure GetToken(): SecretText
     var
         ErrorText: Text;
         [NonDebuggable]
-        AccessToken: Text;
+        AccessToken: SecretText;
     begin
         if not AcquireToken(AccessToken, ErrorText) then
             Error(ErrorText);
@@ -58,30 +58,44 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
     end;
 
     [NonDebuggable]
-    local procedure AcquireToken(var AccessToken: Text; var ErrorText: Text): Boolean
+    local procedure AcquireToken(var AccessToken: SecretText; var ErrorText: Text): Boolean
     var
         OAuth2: Codeunit OAuth2;
         IsHandled, IsSuccess : Boolean;
+        EventAccessToken: Text;
     begin
-        OnBeforeGetToken(IsHandled, IsSuccess, ErrorText, AccessToken);
+#if not CLEAN24
+        OnBeforeGetToken(IsHandled, IsSuccess, ErrorText, EventAccessToken);
+#endif
+        OnBeforeGetSecretToken(IsHandled, IsSuccess, ErrorText, AccessToken);
 
         if not IsHandled then begin
-            if (not OAuth2.AcquireAuthorizationCodeTokenFromCache(ClientId, ClientSecret, '', StrSubstNo(AuthorityTxt, EntraTenantId), Scopes, AccessToken)) or (AccessToken = '') then
+            if (not OAuth2.AcquireAuthorizationCodeTokenFromCache(ClientId, ClientSecret, '', StrSubstNo(AuthorityTxt, EntraTenantId), Scopes, AccessToken)) or (AccessToken.IsEmpty()) then
                 OAuth2.AcquireTokenByAuthorizationCode(ClientId, ClientSecret, StrSubstNo(AuthorityTxt, EntraTenantId), '', Scopes, "Prompt Interaction"::None, AccessToken, AuthCodeErr);
 
-            IsSuccess := AccessToken <> '';
+            IsSuccess := not AccessToken.IsEmpty();
 
             if AuthCodeErr <> '' then
                 ErrorText := AuthCodeErr
             else
                 ErrorText := GetLastErrorText();
-        end;
+        end
+        else
+            AccessToken := EventAccessToken;
 
         exit(IsSuccess);
     end;
 
+#if not CLEAN24
     [InternalEvent(false, true)]
+    [Obsolete('Use OnBeforeGetSecretToken with SecretText data type for AccessToken instead.', '24.0')]
     local procedure OnBeforeGetToken(var IsHandled: Boolean; var IsSuccess: Boolean; var ErrorText: Text; var AccessToken: Text)
+    begin
+    end;
+#endif
+
+    [InternalEvent(false, true)]
+    local procedure OnBeforeGetSecretToken(var IsHandled: Boolean; var IsSuccess: Boolean; var ErrorText: Text; var AccessToken: SecretText)
     begin
     end;
 }
