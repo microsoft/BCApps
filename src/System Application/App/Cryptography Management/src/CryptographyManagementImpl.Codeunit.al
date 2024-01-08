@@ -288,12 +288,13 @@ codeunit 1279 "Cryptography Management Impl."
         exit(ConvertByteHashToBase64String(HashBytes));
     end;
 
-    procedure GenerateBase64KeyedHashAsBase64String(InputString: Text; "Key": Text; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    [NonDebuggable]
+    procedure GenerateBase64KeyedHashAsBase64String(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     var
         HashBytes: DotNet Array;
         Convert: DotNet Convert;
     begin
-        if not GenerateKeyedHashBytes(HashBytes, InputString, Convert.FromBase64String(Key), HashAlgorithmType) then
+        if not GenerateKeyedHashBytes(HashBytes, InputString, Convert.FromBase64String(Key.Unwrap()), HashAlgorithmType) then
             exit('');
         exit(ConvertByteHashToBase64String(HashBytes));
     end;
