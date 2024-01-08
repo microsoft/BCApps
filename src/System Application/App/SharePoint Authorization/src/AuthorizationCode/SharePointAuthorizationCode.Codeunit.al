@@ -28,7 +28,7 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
         BearerTxt: Label 'Bearer %1', Comment = '%1 - Token', Locked = true;
 
     [NonDebuggable]
-    procedure SetParameters(NewEntraTenantId: Text; NewClientId: Text; NewClientSecret: Text; NewScopes: List of [Text])
+    procedure SetParameters(NewEntraTenantId: Text; NewClientId: Text; NewClientSecret: SecretText; NewScopes: List of [Text])
     begin
         EntraTenantId := NewEntraTenantId;
         ClientId := NewClientId;
