@@ -4,11 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-using System.Globalization;
-using System.Telemetry;
-using System.Security.User;
 using System.Azure.Identity;
+using System.Environment;
+using System.Environment.Configuration;
+using System.Globalization;
 using System.Privacy;
+using System.Security.User;
+using System.Telemetry;
 
 codeunit 7774 "Copilot Capability Impl"
 {
@@ -82,6 +84,7 @@ codeunit 7774 "Copilot Capability Impl"
         Commit();
 
         AddTelemetryDimensions(CopilotCapability, CallerModuleInfo.Id(), CustomDimensions);
+        AddStatusTelemetryDimension(CopilotSettings.Status, CustomDimensions);
         FeatureTelemetry.LogUsage('0000LDW', CopilotCategoryLbl, TelemetryModifiedCopilotCapabilityLbl, CustomDimensions);
     end;
 
@@ -198,6 +201,19 @@ codeunit 7774 "Copilot Capability Impl"
         exit(CopilotCategoryLbl);
     end;
 
+    procedure AddStatusTelemetryDimension(CopilotStatus: Enum "Copilot Status"; var CustomDimensions: Dictionary of [Text, Text])
+    var
+        Language: Codeunit Language;
+        SavedGlobalLanguageId: Integer;
+    begin
+        SavedGlobalLanguageId := GlobalLanguage();
+        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
+
+        CustomDimensions.Add('Status', Format(CopilotStatus));
+
+        GlobalLanguage(SavedGlobalLanguageId);
+    end;
+
     procedure AddTelemetryDimensions(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; var CustomDimensions: Dictionary of [Text, Text])
     var
         Language: Codeunit Language;
@@ -222,6 +238,16 @@ codeunit 7774 "Copilot Capability Impl"
         IsAdmin := AzureADGraphUser.IsUserDelegatedAdmin() or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId()) or AzureADGraphUser.IsUserDelegatedHelpdesk() or UserPermissions.IsSuper(UserSecurityId());
     end;
 
+    procedure UpdateGuidedExperience(AllowDataMovement: Boolean)
+    var
+        GuidedExperience: Codeunit "Guided Experience";
+    begin
+        if AllowDataMovement then
+            GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Copilot AI Capabilities")
+        else
+            GuidedExperience.ResetAssistedSetup(ObjectType::Page, Page::"Copilot AI Capabilities");
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", 'OnRegisterPrivacyNotices', '', false, false)]
     local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
     begin
@@ -229,5 +255,15 @@ codeunit 7774 "Copilot Capability Impl"
         TempPrivacyNotice.ID := AzureOpenAiTxt;
         TempPrivacyNotice."Integration Service Name" := AzureOpenAiTxt;
         if not TempPrivacyNotice.Insert() then;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetCopilotCapabilityStatus', '', false, false)]
+    local procedure GetCopilotCapabilityStatus(Capability: Integer; var IsEnabled: Boolean)
+    var
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        CopilotCapability: Enum "Copilot Capability";
+    begin
+        CopilotCapability := Enum::"Copilot Capability".FromInteger(Capability);
+        Isenabled := AzureOpenAI.IsEnabled(CopilotCapability, true);
     end;
 }

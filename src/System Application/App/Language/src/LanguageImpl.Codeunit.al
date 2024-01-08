@@ -219,6 +219,8 @@ codeunit 54 "Language Impl."
     begin
         WindowsLanguage.SetCurrentKey(Name);
 
+        if WindowsLanguage.Get(LanguageId) then;
+
         if Page.RunModal(Page::"Windows Languages", WindowsLanguage) = Action::LookupOK then
             LanguageId := WindowsLanguage."Language ID";
     end;

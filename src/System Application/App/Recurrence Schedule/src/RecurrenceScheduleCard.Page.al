@@ -154,6 +154,7 @@ page 4690 "Recurrence Schedule Card"
                 group(MonthlySpecificDay)
                 {
                     Visible = Rec."Monthly Pattern" = RecurrenceMonthlyPattern::"Specific Day";
+                    Caption = 'Monthly Specific Day';
                     field(MRecurOnDay; Rec."Recurs on Day")
                     {
                         ApplicationArea = All;
@@ -165,6 +166,7 @@ page 4690 "Recurrence Schedule Card"
                 group(MonthlyByWeekday)
                 {
                     Visible = Rec."Monthly Pattern" = RecurrenceMonthlyPattern::"By Weekday";
+                    Caption = 'Monthly By Weekday';
                     field(MRecurInWeek; Rec."Ordinal Recurrence No.")
                     {
                         ApplicationArea = All;
@@ -208,6 +210,7 @@ page 4690 "Recurrence Schedule Card"
                 group(YearlySpecificDay)
                 {
                     Visible = Rec."Monthly Pattern" = RecurrenceMonthlyPattern::"Specific Day";
+                    Caption = 'Yearly Specific Day';
                     field(YRecurOnDay; Rec."Recurs on Day")
                     {
                         ApplicationArea = All;
@@ -219,6 +222,7 @@ page 4690 "Recurrence Schedule Card"
                 group(YearlyByWeekday)
                 {
                     Visible = Rec."Monthly Pattern" = RecurrenceMonthlyPattern::"By Weekday";
+                    Caption = 'Yearly By Weekday';
                     field(YRecurInWeek; Rec."Ordinal Recurrence No.")
                     {
                         ApplicationArea = All;

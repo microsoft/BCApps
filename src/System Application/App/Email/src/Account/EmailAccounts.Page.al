@@ -36,7 +36,9 @@ page 8887 "Email Accounts"
             {
                 Visible = ShowLogo;
                 FreezeColumn = NameField;
+#pragma warning disable AW0009
                 field(LogoField; Rec.LogoBlob)
+#pragma warning restore AW0009
                 {
                     ApplicationArea = All;
                     ShowCaption = false;

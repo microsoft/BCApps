@@ -17,6 +17,7 @@ enum 7775 "Copilot Status"
     /// </summary>
     value(0; Active)
     {
+        Caption = 'Active';
     }
 
     /// <summary>
@@ -24,5 +25,6 @@ enum 7775 "Copilot Status"
     /// </summary>
     value(1; Inactive)
     {
+        Caption = 'Inactive';
     }
 }

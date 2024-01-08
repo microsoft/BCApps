@@ -437,8 +437,10 @@ codeunit 1990 "Guided Experience"
     /// <param name="OnlyFirstParty">If true, only clean up first party items.</param>
     /// <param name="Limit">The threshold of old version.</param>
     procedure CleanupOldGuidedExperienceItems(OnlyFirstParty: Boolean; Threshold: Integer)
+    var
+        GuidedExperienceItemCleanup: Codeunit "Guided Experience Item Cleanup";
     begin
-        GuidedExperienceImpl.CleanupOldGuidedExperienceItems(OnlyFirstParty, Threshold);
+        GuidedExperienceItemCleanup.CleanupOldGuidedExperienceItems(OnlyFirstParty, Threshold);
     end;
 
     /// <summary>Notifies that the list of assisted setups is being gathered, and that new items might be added.</summary>
