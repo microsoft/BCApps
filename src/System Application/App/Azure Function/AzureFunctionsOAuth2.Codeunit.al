@@ -19,7 +19,8 @@ codeunit 7802 "Azure Functions OAuth2" implements "Azure Functions Authenticatio
         [NonDebuggable]
         AuthenticationCodeGlobal, EndpointGlobal : Text;
         [NonDebuggable]
-        ClientIdGlobal, ClientSecretGlobal, OAuthAuthorityUrlGlobal, RedirectURLGlobal, ResourceURLGlobal : Text;
+        ClientIdGlobal, OAuthAuthorityUrlGlobal, RedirectURLGlobal, ResourceURLGlobal : Text;
+        ClientSecretGlobal: SecretText;
         AccessToken: SecretText;
         BearerLbl: Label 'Bearer %1', Comment = '%1 is the access token', Locked = true;
         FailedToGetTokenErr: Label 'Authorization failed to Azure function: %1', Locked = true;
@@ -60,7 +61,7 @@ codeunit 7802 "Azure Functions OAuth2" implements "Azure Functions Authenticatio
     end;
 
     [NonDebuggable]
-    procedure SetAuthParameters(Endpoint: Text; AuthenticationCode: Text; ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text)
+    procedure SetAuthParameters(Endpoint: Text; AuthenticationCode: Text; ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text)
     begin
         EndpointGlobal := Endpoint;
         AuthenticationCodeGlobal := AuthenticationCode;
