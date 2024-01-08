@@ -689,7 +689,9 @@ codeunit 139043 "Web Service Management Test"
 
         WebService.DeleteAll();
         TenantWebService.DeleteAll();
+#pragma warning disable AS0059
         WebServiceAggregate.DeleteAll();
+#pragma warning restore AS0059
         Initialized := true;
     end;
 }
