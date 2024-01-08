@@ -33,15 +33,14 @@ page 2503 "Extension Installation"
         MarketplaceExtnDeployment.SetAppID(Rec.ID);
         MarketplaceExtnDeployment.SetPreviewKey(Rec.PREVIEWKEY);
         MarketplaceExtnDeployment.RunModal();
-        if MarketplaceExtnDeployment.GetInstalledSelected() then begin
+        if MarketplaceExtnDeployment.GetInstalledSelected() then
             if not IsNullGuid(Rec.ID) then
                 ExtensionMarketplace.InstallMarketplaceExtension(
                     Rec.ID,
                     Rec.ResponseUrl,
                     MarketplaceExtnDeployment.GetLanguageId(),
                     Rec.PREVIEWKEY);
-            CurrPage.Close();
-        end;
+        CurrPage.Close();
     end;
 
     local procedure GetDetailsFromFilters()
