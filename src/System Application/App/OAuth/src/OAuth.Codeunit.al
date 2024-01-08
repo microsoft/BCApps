@@ -33,7 +33,9 @@ codeunit 1288 OAuth
     [Obsolete('Use GetOAuthAccessToken with SecretText data type for AccessTokenKey and AccessTokenSecret.', '24.0')]
     procedure GetOAuthAccessToken(ConsumerKey: Text; ConsumerSecret: Text; RequestTokenUrl: Text; CallbackUrl: Text; var AccessTokenKey: Text; var AccessTokenSecret: Text)
     begin
+#pragma warning disable AL0432
         OAuthImpl.GetRequestToken(ConsumerKey, ConsumerSecret, RequestTokenUrl, CallbackUrl, AccessTokenKey, AccessTokenSecret);
+#pragma warning restore AL0432
     end;
 
     /// <summary>
@@ -52,7 +54,9 @@ codeunit 1288 OAuth
     [Obsolete('Use GetOAuthAccessToken with SecretText data type for AccessTokenKey and AccessTokenSecret.', '24.0')]
     procedure GetOAuthAccessToken(ConsumerKey: Text; ConsumerSecret: Text; RequestTokenUrl: Text; Verifier: Text; RequestTokenKey: Text; RequestTokenSecret: Text; var AccessTokenKey: Text; var AccessTokenSecret: Text)
     begin
+#pragma warning disable AL0432
         OAuthImpl.GetAccessToken(ConsumerKey, ConsumerSecret, RequestTokenUrl, Verifier, RequestTokenKey, RequestTokenSecret, AccessTokenKey, AccessTokenSecret);
+#pragma warning restore AL0432
     end;
 
     /// <summary>
@@ -70,7 +74,9 @@ codeunit 1288 OAuth
     [Obsolete('Use GetAuthorizationHeader with SecretText data type for AuthorizationHeader.', '24.0')]
     procedure GetAuthorizationHeader(ConsumerKey: Text; ConsumerSecret: Text; RequestTokenKey: Text; RequestTokenSecret: Text; RequestUrl: Text; RequestMethod: Enum "Http Request Type"; var AuthorizationHeader: Text)
     begin
+#pragma warning disable AL0432
         OAuthImpl.GetAuthorizationHeader(ConsumerKey, ConsumerSecret, RequestTokenKey, RequestTokenSecret, RequestUrl, RequestMethod, AuthorizationHeader);
+#pragma warning restore AL0432
     end;
 #endif
     /// <summary>
