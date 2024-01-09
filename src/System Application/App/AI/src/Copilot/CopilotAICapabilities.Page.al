@@ -74,6 +74,7 @@ page 7775 "Copilot AI Capabilities"
 
                         CurrPage.GenerallyAvailableCapabilities.Page.SetDataMovement(AllowDataMovement);
                         CurrPage.PreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
+                        CopilotCapabilityImpl.UpdateGuidedExperience(AllowDataMovement);
                     end;
                 }
 
@@ -171,6 +172,8 @@ page 7775 "Copilot AI Capabilities"
 
         if InGeo and (not AllowDataMovement) then
             CopilotCapabilityImpl.ShowPrivacyNoticeDisagreedNotification();
+
+        CopilotCapabilityImpl.UpdateGuidedExperience(AllowDataMovement);
     end;
 
     [IntegrationEvent(false, false)]
