@@ -36,12 +36,12 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         end;
         if LastSeqNoUsed >= NoSeriesLine."Starting Sequence No." then
             exit(GetFormattedNo(NoSeriesLine, LastSeqNoUsed));
-        exit(''); // TODO: Recreate the sequence? This means the sequence produced a number less than the starting number.
+        exit(''); // No. Series has not been used yet, so there is no last no. used
     end;
 
     procedure MayProduceGaps(): Boolean
     begin
-        exit(false);
+        exit(true);
     end;
 
     [TryFunction]
@@ -67,14 +67,14 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 
         NoSeriesLine2 := NoSeriesLine;
         NoSeriesLine2."Last No. Used" := GetFormattedNo(NoSeriesLine, NewNo);
+        NoSeriesLine2.Validate(Open);
 
         if not NoSeriesStatelessImpl.EnsureLastNoUsedIsWithinValidRange(NoSeriesLine2, HideErrorsAndWarnings) then
             exit('');
 
         if ModifySeries then begin
-            NoSeriesLine."Last No. Used" := NoSeriesLine2."Last No. Used";
             NoSeriesLine."Last Date Used" := UsageDate;
-            NoSeriesLine.Validate(Open);
+            NoSeriesLine.Open := NoSeriesLine2.Open;
             NoSeriesLine.Modify(true);
         end;
 
@@ -89,9 +89,8 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
             if NewNo < NoSeriesLine."Starting Sequence No." then  // first no. ? // TODO: Recreate the sequence? This means the sequence produced a number less than the starting number.
                 NewNo := NumberSequence.Next(NoSeriesLine."Sequence Name");
         end else begin
-            NewNo := NumberSequence.Current(NoSeriesLine."Sequence Name"); // TODO: Shouldn't this be PeekNextSequenceNo?
-            if NoSeriesLine."Last No. Used" <> '' then
-                NewNo += NoSeriesLine."Increment-by No.";
+            NewNo := NumberSequence.Current(NoSeriesLine."Sequence Name");
+            NewNo += NoSeriesLine."Increment-by No.";
         end;
     end;
 
@@ -105,7 +104,8 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if NoSeriesLine."Sequence Name" = '' then
             NoSeriesLine."Sequence Name" := Format(CreateGuid(), 0, 4);
 
-        NumberSequence.Insert(NoSeriesLine."Sequence Name", StartingSequenceNo, NoSeriesLine."Increment-by No.");
+        NumberSequence.Insert(NoSeriesLine."Sequence Name", StartingSequenceNo - NoSeriesLine."Increment-by No.", NoSeriesLine."Increment-by No.");
+        if NumberSequence.Next(NoSeriesLine."Sequence Name") = 0 then; // Get a number to make sure LastNoUsed is set correctly
     end;
 
     local procedure GetFormattedNo(NoSeriesLine: Record "No. Series Line"; Number: BigInteger): Code[20]
@@ -229,20 +229,19 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
     var
         NoSeries: Codeunit "No. Series";
         LastNoUsed: Code[20];
-        Dummy: Integer;
     begin
         if Rec.Implementation = xRec.Implementation then
             exit; // No change
 
         if Rec.Implementation = "No. Series Implementation"::Sequence then begin
+            Rec."Starting Sequence No." := ExtractNoFromCode(Rec."Starting No.");
             LastNoUsed := NoSeries.GetLastNoUsed(xRec);
             if LastNoUsed <> '' then begin
                 RecreateNoSeries(Rec, ExtractNoFromCode(LastNoUsed));
-#pragma warning disable AA0206
-                Dummy := NumberSequence.Next(Rec."Sequence Name");
-#pragma warning restore AA0206
+                if NumberSequence.Next(Rec."Sequence Name") = 0 then;
             end else
-                RecreateNoSeries(Rec, ExtractNoFromCode(Rec."Starting No."));
+                RecreateNoSeries(Rec, Rec."Starting Sequence No.");
+            Rec."Last No. Used" := '';
         end else
             if xRec.Implementation = "No. Series Implementation"::Sequence then begin
                 DeleteSequence(Rec."Sequence Name");

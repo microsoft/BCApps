@@ -133,18 +133,13 @@ table 309 "No. Series Line"
             trigger OnValidate()
             var
                 NoSeries: Record "No. Series";
-                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
                 NoSeries.Get("Series Code");
                 if Rec."Allow Gaps in Nos." = xRec."Allow Gaps in Nos." then
                     exit;
-                if "Allow Gaps in Nos." then
-                    NoSeriesMgt.RecreateSequence(Rec)
-                else begin
-                    "Last No. Used" := NoSeriesMgt.GetLastNoUsed(xRec);
-                    NoSeriesMgt.DeleteSequence(Rec);
-                    "Starting Sequence No." := 0;
-                    "Sequence Name" := '';
+                if SkipAllowGapsValidationTrigger then begin
+                    SkipAllowGapsValidationTrigger := false;
+                    exit;
                 end;
 
                 if "Allow Gaps in Nos." then // Keep the implementation in sync with the Allow Gaps field
@@ -182,6 +177,8 @@ table 309 "No. Series Line"
             begin
                 if Rec.Implementation = xRec.Implementation then
                     exit;
+
+                SkipAllowGapsValidationTrigger := true;
 
                 NoSeriesSingle := Implementation;
                 Validate("Allow Gaps in Nos.", NoSeriesSingle.MayProduceGaps()); // Keep the Allow Gaps field in sync with the implementation
@@ -256,6 +253,9 @@ table 309 "No. Series Line"
         {
         }
     }
+
+    var
+        SkipAllowGapsValidationTrigger: Boolean;
 
     procedure MayProduceGaps(): Boolean
     var
