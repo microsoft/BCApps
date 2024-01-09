@@ -46,18 +46,18 @@ table 1263 "No. Series Tenant"
     [Scope('OnPrem')]
     procedure InitNoSeries(NoSeriesCode: Code[10]; NoSeriesDescription: Text[50]; LastUsedNo: Code[10])
     var
-        NoSeriesTenantMgt: Codeunit NoSeriesTenantMgt;
+        CrossCompanyNoSeries: Codeunit "Cross-Company No. Series";
     begin
-        NoSeriesTenantMgt.InitNoSeries(NoSeriesCode, NoSeriesDescription, LastUsedNo);
+        CrossCompanyNoSeries.CreateNoSeries(NoSeriesCode, NoSeriesDescription, LastUsedNo);
     end;
 
     [Obsolete('This procedure has been moved to codeunit NoSeriesTenantMgt', '24.0')]
     [Scope('OnPrem')]
     procedure GetNextAvailableCode() NextAvailableCode: Code[20]
     var
-        NoSeriesTenantMgt: Codeunit NoSeriesTenantMgt;
+        CrossCompanyNoSeries: Codeunit "Cross-Company No. Series";
     begin
-        NextAvailableCode := NoSeriesTenantMgt.GetNextAvailableCode(Rec);
+        NextAvailableCode := CrossCompanyNoSeries.GetNextNo(Rec);
     end;
 #endif
 }
