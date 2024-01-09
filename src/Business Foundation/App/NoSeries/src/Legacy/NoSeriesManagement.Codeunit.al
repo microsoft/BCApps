@@ -32,10 +32,6 @@ codeunit 396 NoSeriesManagement
         TrySeriesDate: Date;
         TryNo: Code[20];
         UpdateLastUsedDate: Boolean;
-#if not CLEAN21
-        TextAssignErr: Label 'You can not assign Nos. from No. series %1.', Comment = '%1 = No. Series';
-        TextAssignDateErr: Label 'No. %1 from No. series %2 you can not assign on date %3.', Comment = '%1 = Document No.; %2 = No. Series Code; %3 = Series Date';
-#endif
 #if not CLEAN24
         CannotAssignManuallyErr: Label 'You may not enter numbers manually. If you want to enter numbers manually, please activate %1 in %2 %3.', Comment = '%1=Manual Nos. setting,%2=No. Series table caption,%3=No. Series Code';
         CannotAssignAutomaticallyErr: Label 'It is not possible to assign numbers automatically. If you want the program to assign numbers automatically, please activate %1 in %2 %3.', Comment = '%1=Default Nos. setting,%2=No. Series table caption,%3=No. Series Code';
@@ -240,7 +236,7 @@ codeunit 396 NoSeriesManagement
         exit(DoGetNextNo(NoSeriesCode, SeriesDate, ModifySeries, false));
     end;
 
-#if not CLEAN21
+#if not CLEAN24
     [Obsolete('Use DoGetNextNo() instead', '21.0')]
     procedure GetNextNo3(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean; NoErrorsOrWarnings: Boolean): Code[20]
     begin
@@ -400,8 +396,7 @@ codeunit 396 NoSeriesManagement
         if NoSeriesManagement.Run() then
             exit(NoSeriesManagement.GetNextNoAfterRun());
     end;
-#endif
-#if not CLEAN21
+
     [Obsolete('Use SetParametersBeforeRun() instead', '21.0')]
     procedure GetNextNo1(NoSeriesCode: Code[20]; SeriesDate: Date)
     begin
@@ -416,7 +411,7 @@ codeunit 396 NoSeriesManagement
         OnAfterSetParametersBeforeRun(TryNoSeriesCode, TrySeriesDate, WarningNoSeriesCode);
     end;
 
-#if not CLEAN21
+#if not CLEAN24
     [Obsolete('Use GetNextNoAfterRun() instead', '21.0')]
     procedure GetNextNo2(): Code[20]
     begin
@@ -615,7 +610,7 @@ codeunit 396 NoSeriesManagement
     var
         NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        NoSeriesMgt.SetNoSeriesLineSalesFilter(NoSeriesLineSales, NoSeriesCode, StartDate);
+        OnObsoleteSetNoSeriesLineSalesFilter(NoSeriesLineSales, NoSeriesCode, StartDate);
     end;
 
     [Obsolete('The No. Series module cannot have a dependency on Purchases. Please use XXX instead', '24.0')]
@@ -624,7 +619,7 @@ codeunit 396 NoSeriesManagement
     var
         NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
-        NoSeriesMgt.SetNoSeriesLinePurchaseFilter(NoSeriesLinePurchase, NoSeriesCode, StartDate);
+        OnObsoleteSetNoSeriesLinePurchaseFilter(NoSeriesLinePurchase, NoSeriesCode, StartDate);
     end;
 
     [Obsolete('The No. Series module cannot have a dependency on Sales. Please use XXX instead', '24.0')]
@@ -774,31 +769,6 @@ codeunit 396 NoSeriesManagement
         NoSeriesRelationship.SetRange(Code, DefaultNoSeriesCode);
         exit(not NoSeriesRelationship.IsEmpty);
     end;
-
-#if not CLEAN21
-    [Obsolete('Moved to Advanced Localization Pack for Czech.', '21.0')]
-    [Scope('OnPrem')]
-    procedure CheckAcceptabilityDocNo(DocumentNo: Code[20]; NoSeriesCode2: Code[20]; SeriesDate: Date)
-    var
-        NoSeriesLine: Record "No. Series Line";
-    begin
-        // NAVCZ
-        if NoSeriesCode2 = '' then
-            exit;
-
-        GlobalNoSeries.Get(NoSeriesCode2);
-        if GlobalNoSeries."Manual Nos." then
-            exit;
-
-        Clear(NoSeriesLine);
-        SetNoSeriesLineFilter(NoSeriesLine, GlobalNoSeries.Code, SeriesDate);
-        if not NoSeriesLine.FindFirst() then
-            Error(TextAssignErr, GlobalNoSeries.Code);
-
-        if (DocumentNo < NoSeriesLine."Starting No.") or (DocumentNo > NoSeriesLine."Last No. Used") then
-            Error(TextAssignDateErr, DocumentNo, GlobalNoSeries.Code, SeriesDate);
-    end;
-#endif
 
     // apac
     [Scope('OnPrem')]
@@ -974,5 +944,19 @@ codeunit 396 NoSeriesManagement
     local procedure OnBeforeSetDefaultSeries(var NewNoSeriesCode: Code[20]; var NoSeriesCode: Code[20]; var IsHandled: Boolean);
     begin
     end;
+
+#if not CLEAN24
+    [Obsolete('The No. Series module cannot have a dependency on Sales. Do not use this event.', '24.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnObsoleteSetNoSeriesLineSalesFilter(var NoSeriesLineSales: Record "No. Series Line Sales"; NoSeriesCode: Code[20]; StartDate: Date)
+    begin
+    end;
+
+    [Obsolete('The No. Series module cannot have a dependency on Purchase. Do not use this event.', '24.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnObsoleteSetNoSeriesLinePurchaseFilter(var NoSeriesLinePurchase: Record "No. Series Line Purchase"; NoSeriesCode: Code[20]; StartDate: Date)
+    begin
+    end;
+#endif
 }
 #pragma warning restore AL0432

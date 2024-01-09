@@ -30,10 +30,5 @@ permissionset 300 "No. Series - Objects"
 #endif
         page "No. Series" = X,
         page "No. Series Lines" = X,
-#if not CLEAN21
-#pragma warning disable AL0432
-        page "No. Series List" = X,
-#pragma warning restore AL0432
-#endif
         page "No. Series Relationships" = X;
 }

@@ -9,7 +9,7 @@ namespace Microsoft.Foundation.NoSeries;
 
 codeunit 281 NoSeriesMgt
 {
-    Access = Public; // public due to events, will be removed before release
+    Access = Internal; // public due to events, will be removed before release
     Permissions =
         tabledata "No. Series" = r,
         tabledata "No. Series Line" = rimd;
@@ -505,34 +505,4 @@ codeunit 281 NoSeriesMgt
     local procedure OnShowNoSeriesLines(var NoSeries: Record "No. Series")
     begin
     end;
-
-#if not CLEAN24
-#pragma warning disable AL0432
-    [Obsolete('The No. Series module cannot have a dependency on Sales. Please use XXX instead', '24.0')] // TODO: Fill out XXX
-    [Scope('OnPrem')]
-    internal procedure SetNoSeriesLineSalesFilter(var NoSeriesLineSales: Record "No. Series Line Sales"; NoSeriesCode: Code[20]; StartDate: Date)
-    begin
-        OnObsoleteSetNoSeriesLineSalesFilter(NoSeriesLineSales, NoSeriesCode, StartDate);
-    end;
-
-    [Obsolete('The No. Series module cannot have a dependency on Purchases. Please use XXX instead', '24.0')]
-    [Scope('OnPrem')]
-    internal procedure SetNoSeriesLinePurchaseFilter(var NoSeriesLinePurchase: Record "No. Series Line Purchase"; NoSeriesCode: Code[20]; StartDate: Date)
-    begin
-        OnObsoleteSetNoSeriesLinePurchaseFilter(NoSeriesLinePurchase, NoSeriesCode, StartDate);
-    end;
-
-    [Obsolete('The No. Series module cannot have a dependency on Sales. Do not use this event.', '24.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnObsoleteSetNoSeriesLineSalesFilter(var NoSeriesLineSales: Record "No. Series Line Sales"; NoSeriesCode: Code[20]; StartDate: Date)
-    begin
-    end;
-
-    [Obsolete('The No. Series module cannot have a dependency on Purchase. Do not use this event.', '24.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnObsoleteSetNoSeriesLinePurchaseFilter(var NoSeriesLinePurchase: Record "No. Series Line Purchase"; NoSeriesCode: Code[20]; StartDate: Date)
-    begin
-    end;
-#pragma warning restore AL0432
-#endif
 }
