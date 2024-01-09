@@ -219,9 +219,9 @@ codeunit 281 NoSeriesMgt
         IsHandled: Boolean;
 #endif
     begin
-        IsHandled := false;
 #if not CLEAN24
 #pragma warning disable AL0432
+        IsHandled := false;
         NoSeries.OnBeforeValidateDefaultNos(NoSeries, IsHandled);
         if not IsHandled then
             if (NoSeries."Default Nos." = false) and (xRecNoSeries."Default Nos." <> NoSeries."Default Nos.") and (NoSeries."Manual Nos." = false) then
@@ -239,9 +239,9 @@ codeunit 281 NoSeriesMgt
         IsHandled: Boolean;
 #endif
     begin
-        IsHandled := false;
 #if not CLEAN24
 #pragma warning disable AL0432
+        IsHandled := false;
         NoSeries.OnBeforeValidateManualNos(NoSeries, IsHandled);
         if not IsHandled then
             if (NoSeries."Manual Nos." = false) and (xRecNoSeries."Manual Nos." <> NoSeries."Manual Nos.") and (NoSeries."Default Nos." = false) then
