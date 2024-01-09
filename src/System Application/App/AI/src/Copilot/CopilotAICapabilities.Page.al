@@ -52,7 +52,7 @@ page 7775 "Copilot AI Capabilities"
             group(NotAlwaysConnected)
             {
                 ShowCaption = false;
-                InstructionalText = 'Generative AI capabilities are deactivated because Azure OpenAI Service is not available in your region. By allowing data movement, you agree to data being stored and processed by the Azure OpenAI Service outside of your environment''s geographic region or compliance boundary. For environments located in West Europe and North Europe Azure regions, Business Central automatically opts in to data movement, but administrators can choose to opt out at any time.';
+                InstructionalText = 'Generative AI capabilities are deactivated because Azure OpenAI Service is not available in your region. By allowing data movement, you agree to data being stored and processed by the Azure OpenAI Service outside of your environment''s geographic region or compliance boundary.';
                 Visible = (not WithinGeo) or WithinEuropeGeo;
 
                 field(DataMovement; AllowDataMovement)
