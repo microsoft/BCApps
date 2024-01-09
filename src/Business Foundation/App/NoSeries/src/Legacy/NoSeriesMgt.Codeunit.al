@@ -24,11 +24,14 @@ codeunit 281 NoSeriesMgt
     internal procedure UpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldName: Text[100])
     var
         NoSeriesLine2: Record "No. Series Line";
+#pragma warning disable AL0432
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+#pragma warning restore AL0432
         Length: Integer;
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeUpdateNoSeriesLine(NoSeriesLine, NewNo, NewFieldName, IsHandled);
+        NoSeriesManagement.OnBeforeUpdateNoSeriesLine(NoSeriesLine, NewNo, NewFieldName, IsHandled);
         if IsHandled then
             exit;
 
@@ -62,6 +65,11 @@ codeunit 281 NoSeriesMgt
     internal procedure DrillDown(var NoSeries: Record "No. Series")
     var
         NoSeriesLine: Record "No. Series Line";
+#if not CLEAN24
+#pragma warning disable AL0432
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+#pragma warning restore AL0432
+#endif
     begin
         case NoSeries."No. Series Type" of
             NoSeries."No. Series Type"::Normal:
@@ -72,8 +80,12 @@ codeunit 281 NoSeriesMgt
                     NoSeriesLine.SetRange(Open);
                     Page.RunModal(0, NoSeriesLine);
                 end;
+#if not CLEAN24
+#pragma warning disable AL0432
             else
-                OnAfterNoSeriesDrillDown(NoSeries);
+                NoSeriesManagement.OnNoSeriesDrillDown(NoSeries);
+#pragma warning restore AL0432
+#endif
         end;
     end;
 
@@ -117,6 +129,11 @@ codeunit 281 NoSeriesMgt
     internal procedure UpdateLine(var NoSeries: Record "No. Series"; var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var Implementation: Enum "No. Series Implementation")
     var
         NoSeriesLine: Record "No. Series Line";
+#if not CLEAN24
+#pragma warning disable AL0432
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+#pragma warning restore AL0432
+#endif
     begin
         case NoSeries."No. Series Type" of
             NoSeries."No. Series Type"::Normal:
@@ -133,8 +150,12 @@ codeunit 281 NoSeriesMgt
                     LastDateUsed := NoSeriesLine."Last Date Used";
                     Implementation := NoSeriesLine.Implementation;
                 end;
+#if not CLEAN24
+#pragma warning disable AL0432
             else
-                OnNoSeriesUpdateLine(NoSeries, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, Implementation)
+                NoSeriesManagement.OnNoSeriesUpdateLine(NoSeries, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, Implementation)
+#pragma warning restore AL0432
+#endif
         end;
     end;
 
@@ -148,6 +169,11 @@ codeunit 281 NoSeriesMgt
     internal procedure ShowNoSeriesLines(var NoSeries: Record "No. Series")
     var
         NoSeriesLine: Record "No. Series Line";
+#if not CLEAN24
+#pragma warning disable AL0432
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+#pragma warning restore AL0432
+#endif
     begin
         case NoSeries."No. Series Type" of
             NoSeries."No. Series Type"::Normal:
@@ -156,8 +182,12 @@ codeunit 281 NoSeriesMgt
                     NoSeriesLine.SetRange("Series Code", NoSeries.Code);
                     Page.RunModal(Page::"No. Series Lines", NoSeriesLine);
                 end;
+#if not CLEAN24
+#pragma warning disable AL0432
             else
-                OnShowNoSeriesLines(NoSeries)
+                NoSeriesManagement.OnShowNoSeriesLines(NoSeries)
+#pragma warning restore AL0432
+#endif
         end;
     end;
 
@@ -184,35 +214,43 @@ codeunit 281 NoSeriesMgt
 
     // TODO get rid of handled events
     internal procedure ValidateDefaultNos(var NoSeries: Record "No. Series"; xRecNoSeries: Record "No. Series")
+#if not CLEAN24
     var
         IsHandled: Boolean;
+#endif
     begin
         IsHandled := false;
 #if not CLEAN24
 #pragma warning disable AL0432
         NoSeries.OnBeforeValidateDefaultNos(NoSeries, IsHandled);
-#pragma warning restore AL0432
-#endif
-        OnBeforeValidateDefaultNos(NoSeries, IsHandled);
         if not IsHandled then
             if (NoSeries."Default Nos." = false) and (xRecNoSeries."Default Nos." <> NoSeries."Default Nos.") and (NoSeries."Manual Nos." = false) then
                 NoSeries.Validate("Manual Nos.", true);
+#pragma warning restore AL0432
+#else
+        if (NoSeries."Default Nos." = false) and (xRecNoSeries."Default Nos." <> NoSeries."Default Nos.") and (NoSeries."Manual Nos." = false) then
+            NoSeries.Validate("Manual Nos.", true);
+#endif
     end;
 
     internal procedure ValidateManualNos(var NoSeries: Record "No. Series"; xRecNoSeries: Record "No. Series")
+#if not CLEAN24
     var
         IsHandled: Boolean;
+#endif
     begin
         IsHandled := false;
 #if not CLEAN24
 #pragma warning disable AL0432
         NoSeries.OnBeforeValidateManualNos(NoSeries, IsHandled);
-#pragma warning restore AL0432
-#endif
-        OnBeforeValidateManualNos(NoSeries, IsHandled);
         if not IsHandled then
             if (NoSeries."Manual Nos." = false) and (xRecNoSeries."Manual Nos." <> NoSeries."Manual Nos.") and (NoSeries."Default Nos." = false) then
                 NoSeries.Validate("Default Nos.", true);
+#pragma warning restore AL0432
+#else
+        if (NoSeries."Manual Nos." = false) and (xRecNoSeries."Manual Nos." <> NoSeries."Manual Nos.") and (NoSeries."Default Nos." = false) then
+            NoSeries.Validate("Default Nos.", true);
+#endif
     end;
 
     internal procedure CreateNewSequence(var NoSeriesLine: Record "No. Series Line")
@@ -463,46 +501,5 @@ codeunit 281 NoSeriesMgt
         if StrLen(StartNo) + StrLen(ZeroNo) + StrLen(NewNo) + StrLen(EndNo) > 20 then
             Error(NumberLengthErr, No);
         No := CopyStr(StartNo + ZeroNo + NewNo + EndNo, 1, MaxStrLen(No));
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldName: Text[100]; var IsHandled: Boolean)
-    begin
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnAfterDeleteEvent', '', false, false)]
-    local procedure OnDeleteNoSeriesLine(var Rec: Record "No. Series Line"; RunTrigger: Boolean)
-    begin
-        if Rec.IsTemporary() then
-            exit;
-
-        if Rec."Sequence Name" <> '' then
-            if NumberSequence.Exists(Rec."Sequence Name") then
-                NumberSequence.Delete(Rec."Sequence Name");
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateManualNos(var NoSeries: Record "No. Series"; var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeValidateDefaultNos(var NoSeries: Record "No. Series"; var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterNoSeriesDrillDown(var NoSeries: Record "No. Series")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnNoSeriesUpdateLine(var NoSeries: Record "No. Series"; var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var Implementation: Enum "No. Series Implementation")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnShowNoSeriesLines(var NoSeries: Record "No. Series")
-    begin
     end;
 }

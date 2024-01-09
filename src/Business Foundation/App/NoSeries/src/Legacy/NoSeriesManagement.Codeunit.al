@@ -882,7 +882,7 @@ codeunit 396 NoSeriesManagement
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldName: Text[100]; var IsHandled: Boolean)
+    internal procedure OnBeforeUpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldName: Text[100]; var IsHandled: Boolean)
     begin
     end;
 
@@ -955,6 +955,24 @@ codeunit 396 NoSeriesManagement
     [Obsolete('The No. Series module cannot have a dependency on Purchase. Do not use this event.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnObsoleteSetNoSeriesLinePurchaseFilter(var NoSeriesLinePurchase: Record "No. Series Line Purchase"; NoSeriesCode: Code[20]; StartDate: Date)
+    begin
+    end;
+
+    [Obsolete('The No. Series module cannot have a dependency on Sales. Do not use this event.', '24.0')]
+    [IntegrationEvent(false, false)]
+    internal procedure OnNoSeriesDrillDown(var NoSeries: Record "No. Series")
+    begin
+    end;
+
+    [Obsolete('The No. Series module cannot have a dependency on Sales. Do not use this event.', '24.0')]
+    [IntegrationEvent(false, false)]
+    internal procedure OnNoSeriesUpdateLine(var NoSeries: Record "No. Series"; var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var Implementation: Enum "No. Series Implementation")
+    begin
+    end;
+
+    [Obsolete('The No. Series module cannot have a dependency on Sales. Do not use this event.', '24.0')]
+    [IntegrationEvent(false, false)]
+    internal procedure OnShowNoSeriesLines(var NoSeries: Record "No. Series")
     begin
     end;
 #endif
