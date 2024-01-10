@@ -176,18 +176,6 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
             NumberSequence.Delete(SequenceName);
     end;
 
-    /*local procedure RecreateNoSeries(var NoSeriesLine: Record "No. Series Line")
-    var
-        SequenceNumber: BigInteger;
-    begin
-        if NumberSequence.Exists(NoSeriesLine."Sequence Name") then
-            SequenceNumber := NumberSequence.Current(NoSeriesLine."Sequence Name")
-        else
-            SequenceNumber := NoSeriesLine."Starting Sequence No.";
-
-        RecreateNoSeries(NoSeriesLine, SequenceNumber);
-    end;*/
-
     local procedure RecreateNoSeries(var NoSeriesLine: Record "No. Series Line"; SequenceNumber: BigInteger)
     begin
         DeleteSequence(NoSeriesLine."Sequence Name");
