@@ -5,13 +5,11 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+/// <summary>
+/// Used in IT localization only. Base enum is kept here for backwards compatibility.
+/// </summary>
 enum 396 "No. Series Type"
 {
     Access = Public;
     Extensible = true;
-    
-    value(0; Normal)
-    {
-        Caption = 'Normal';
-    }
 }

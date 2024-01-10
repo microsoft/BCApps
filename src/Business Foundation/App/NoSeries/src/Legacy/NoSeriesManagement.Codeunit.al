@@ -426,6 +426,7 @@ codeunit 396 NoSeriesManagement
 
     procedure SaveNoSeries()
     var
+        NoSeries: Codeunit "No. Series";
         NoSeriesMgt: Codeunit NoSeriesMgt;
         IsHandled: Boolean;
     begin
@@ -434,7 +435,7 @@ codeunit 396 NoSeriesManagement
         if not IsHandled then
             if LastNoSeriesLine."Series Code" <> '' then begin
                 if (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) then
-                    if (LastNoSeriesLine."Last No. Used" <> '') and (LastNoSeriesLine."Last No. Used" > NoSeriesMgt.GetLastNoUsed(LastNoSeriesLine)) then
+                    if (LastNoSeriesLine."Last No. Used" <> '') and (LastNoSeriesLine."Last No. Used" > NoSeries.GetLastNoUsed(LastNoSeriesLine)) then
                         NoSeriesMgt.RestartSequence(LastNoSeriesLine, NoSeriesMgt.ExtractNoFromCode(LastNoSeriesLine."Last No. Used"));
                 if not (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) or UpdateLastUsedDate then
                     ModifyNoSeriesLine(LastNoSeriesLine);
@@ -958,21 +959,9 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 
-    [Obsolete('The No. Series module cannot have a dependency on Sales. Do not use this event.', '24.0')]
+    [Obsolete('Temporary event for backwards compatibility. Do not use this event.', '24.0')]
     [IntegrationEvent(false, false)]
-    internal procedure OnNoSeriesDrillDown(var NoSeries: Record "No. Series")
-    begin
-    end;
-
-    [Obsolete('The No. Series module cannot have a dependency on Sales. Do not use this event.', '24.0')]
-    [IntegrationEvent(false, false)]
-    internal procedure OnNoSeriesUpdateLine(var NoSeries: Record "No. Series"; var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var Implementation: Enum "No. Series Implementation")
-    begin
-    end;
-
-    [Obsolete('The No. Series module cannot have a dependency on Sales. Do not use this event.', '24.0')]
-    [IntegrationEvent(false, false)]
-    internal procedure OnShowNoSeriesLines(var NoSeries: Record "No. Series")
+    internal procedure OnBeforeUpdateLine(var NoSeries: Record "No. Series"; var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var Implementation: Enum "No. Series Implementation"; var IsHandled: Boolean);
     begin
     end;
 #endif

@@ -54,57 +54,44 @@ table 308 "No. Series"
         {
             Caption = 'Date Order';
         }
+#pragma warning disable AL0432
         field(12100; "No. Series Type"; Enum "No. Series Type")
+#pragma warning restore AL0432
         {
             Caption = 'No. Series Type';
-
-            trigger OnValidate()
-            var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
-            begin
-                NoSeriesMgt.ValidateNoSeriesType(Rec, xRec);
-            end;
+            ObsoleteReason = 'The field is used in IT localization only.';
+            ObsoleteTag = '24.0';
+            ObsoleteState = Moved;
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
         }
         field(12101; "VAT Register"; Code[10])
         {
             Caption = 'VAT Register';
-            ObsoleteReason = ' (IT Only) The No. Series module cannot have a dependency on VAT Register. Please use "VAT Register Code" instead.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
+            ObsoleteReason = 'The field is used in IT localization only.';
             ObsoleteTag = '24.0';
-#endif
+            ObsoleteState = Moved;
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
         }
         field(12102; "VAT Reg. Print Priority"; Integer)
         {
             Caption = 'VAT Reg. Print Priority';
-            ObsoleteReason = ' (IT Only) The No. Series module cannot have a dependency on VAT Register. Please use "VAT Register Print Priority" instead.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
+            ObsoleteReason = 'The field is used in IT localization only.';
             ObsoleteTag = '24.0';
-#endif
+            ObsoleteState = Moved;
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
         }
         field(12103; "Reverse Sales VAT No. Series"; Code[20])
         {
             Caption = 'Reverse Sales VAT No. Series';
-            ObsoleteReason = ' (IT Only) The No. Series module cannot have a dependency on VAT Register. Please use "VAT Register Print Priority" instead.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
+            ObsoleteReason = 'The field is used in IT localization only.';
             ObsoleteTag = '24.0';
-#endif
+            ObsoleteState = Moved;
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
         }
         field(11790; Mask; Text[20]) // CZ Functionality
         {
             Caption = 'Mask';
-            ObsoleteReason = 'The functionality of No. Series Enhancements will be removed and this field should not be used. (Obsolete::Removed in release 01.2021)';
+            ObsoleteReason = 'The field is used in CZ localization only. The functionality of No. Series Enhancements will be removed and this field should not be used. (Obsolete::Removed in release 01.2021)';
             ObsoleteState = Removed;
             ObsoleteTag = '18.0';
         }
@@ -137,9 +124,9 @@ table 308 "No. Series"
     [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
     procedure DrillDown()
     var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
+        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
     begin
-        NoSeriesMgt.DrillDown(Rec);
+        NoSeriesSetupImpl.DrillDown(Rec);
     end;
 
     [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
@@ -153,11 +140,11 @@ table 308 "No. Series"
     [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
     procedure UpdateLine(var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var AllowGaps: Boolean)
     var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
+        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
         NoSeriesSingle: Interface "No. Series - Single";
         NoSeriesImplementation: Enum "No. Series Implementation";
     begin
-        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, NoSeriesImplementation);
+        NoSeriesSetupImpl.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, NoSeriesImplementation);
         NoSeriesSingle := NoSeriesImplementation;
         AllowGaps := NoSeriesSingle.MayProduceGaps();
     end;

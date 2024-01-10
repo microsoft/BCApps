@@ -254,6 +254,17 @@ codeunit 310 "No. Series"
     #endregion
 
     /// <summary>
+    /// Drills down into the No Series Lines for the specified No. Series.
+    /// </summary>
+    /// <param name="NoSeries">The No. Series record to drill down on.</param>
+    procedure DrillDown(NoSeries: Record "No. Series")
+    var
+        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+    begin
+        NoSeriesSetupImpl.DrillDown(NoSeries);
+    end;
+
+    /// <summary>
     /// Get the No. Series line for the specified No. Series code and usage date.
     /// </summary>
     /// <param name="NoSeriesLine">The No. Series line to use and return.</param>
@@ -266,5 +277,15 @@ codeunit 310 "No. Series"
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.GetNoSeriesLine(NoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings));
+    end;
+
+    /// <summary>
+    /// Use this event to change the filters set on the No. Series Line record. These filters are used when viewing the No. Series page and when drilling down from a No. Series record.
+    /// </summary>
+    /// <param name="NoSeries">The No. Series record to drill down on.</param>
+    /// <param name="NoSeriesLine">The No. Series Line to set filters on.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnAfterSetNoSeriesCurrentLineFilters(NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line");
+    begin
     end;
 }

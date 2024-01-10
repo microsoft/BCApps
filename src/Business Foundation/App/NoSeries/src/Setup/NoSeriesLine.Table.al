@@ -228,13 +228,6 @@ table 309 "No. Series Line"
             end;
 #endif
         }
-        field(12100; "No. Series Type"; Enum "No. Series Type")
-        {
-            CalcFormula = lookup("No. Series"."No. Series Type" where(Code = field("Series Code")));
-            Caption = 'No. Series Type';
-            Editable = false;
-            FieldClass = FlowField;
-        }
     }
 
     keys
@@ -359,9 +352,9 @@ table 309 "No. Series Line"
     [Obsolete('Moved to No. Series codeunit.', '24.0')]
     procedure GetLastNoUsed(): Code[20]
     var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
+        NoSeries: Codeunit "No. Series";
     begin
-        exit(NoSeriesMgt.GetLastNoUsed(Rec));
+        exit(NoSeries.GetLastNoUsed(Rec));
     end;
 
     [Obsolete('Use GetNextNo in No. Series codeunit instead.', '24.0')]
