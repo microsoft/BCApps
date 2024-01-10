@@ -52,21 +52,30 @@ function RaiseDashboardTileLoaded(correlationId) {
     Microsoft.Dynamics.NAV.InvokeExtensibilityMethod('DashboardTileLoaded', [correlationId]);
 }
 
+function RaiseReportVisualLoaded(correlationId) {
+    Microsoft.Dynamics.NAV.InvokeExtensibilityMethod('ReportVisualLoaded', [correlationId]);
+}
+
 // Exposed Functions
 
 function InitializeReport(reportLink, reportId, authToken, powerBIEnv) {
     // OBSOLETE
-    EmbedReport(reportLink, reportId, authToken);
+    EmbedReport(reportLink, reportId, authToken, '');
 }
 
 function EmbedReport(reportLink, reportId, authToken, pageName) {
+     // OBSOLETE
+     EmbedReportWithOptions(reportLink, reportId, authToken, pageName, false)
+}
+
+function EmbedReportWithOptions(reportLink, reportId, authToken, pageName, showPanes) {
     ClearEmbedGlobals();
 
-    var embedConfiguration = InitializeEmbedConfig(authToken);
+    var embedConfiguration = InitializeEmbedConfig(authToken, showPanes);
     embedConfiguration.type = 'report';
     embedConfiguration.id = SanitizeId(reportId);
     embedConfiguration.embedUrl = reportLink;
-    if (pageName && (pageName != '')) {
+    if (pageName && (pageName != '')){
         embedConfiguration.pageName = pageName;
     }
     DisplayEmbed(embedConfiguration);
@@ -80,36 +89,36 @@ function EmbedReport(reportLink, reportId, authToken, pageName) {
         var pageFilters = null;
         var embedCorrelationId = null;
 
-        var promises =
-            [
-                embed.getCorrelationId().then(function (correlationId) {
-                    embedCorrelationId = correlationId;
-                }),
+        var promises = 
+        [
+            embed.getCorrelationId().then(function (correlationId) {
+                embedCorrelationId = correlationId;
+            }),
+            
+            embed.getPages().then(function (pages) {
+                var pagesArray = pages.reduce(ReduceByNameFunction, []);
+                reportPages = JSON.stringify(pagesArray);
+            }),
 
-                embed.getPages().then(function (pages) {
-                    var pagesArray = pages.reduce(ReduceByNameFunction, []);
-                    reportPages = JSON.stringify(pagesArray);
-                }),
+            embed.getFilters().then(function (filters) {
+                reportFilters = JSON.stringify(filters);
+            }),
 
-                embed.getFilters().then(function (filters) {
-                    reportFilters = JSON.stringify(filters);
-                }),
-
-                embed.getActivePage().then(function (page) {
-                    activePage = page;
-                    return page.getFilters().then(function (filters) {
-                        pageFilters = JSON.stringify(filters);
-                    });
-                })
-            ]
+            embed.getActivePage().then(function (page) {
+                activePage = page;
+                return page.getFilters().then(function (filters) {
+                    pageFilters = JSON.stringify(filters);
+                });
+            })
+        ]
 
         Promise.all(promises).then(
-            function (values) {
-                RaiseReportLoaded(reportFilters, reportPages, pageFilters, embedCorrelationId);
-            },
-            function (error) {
-                ProcessError('LoadReportDetails', error);
-            });
+        function (values) {
+            RaiseReportLoaded(reportFilters, reportPages, pageFilters, embedCorrelationId);
+        },
+        function (error) {
+            ProcessError('LoadReportDetails', error);
+        });
     });
 
     embed.off("pageChanged");
@@ -118,16 +127,16 @@ function EmbedReport(reportLink, reportId, authToken, pageName) {
         activePage.getFilters().then(function (filters) {
             RaiseReportPageChanged(activePage.name, JSON.stringify(filters));
         },
-            function (error) {
-                ProcessError('LoadPageFilters', error);
-            });
+        function (error) {
+            ProcessError('LoadPageFilters', error);
+        });
     });
 }
 
 function EmbedDashboard(dashboardLink, dashboardId, authToken) {
     ClearEmbedGlobals();
-
-    var embedConfiguration = InitializeEmbedConfig(authToken);
+    
+    var embedConfiguration = InitializeEmbedConfig(authToken, false);
     embedConfiguration.type = 'dashboard';
     embedConfiguration.id = SanitizeId(dashboardId);
     embedConfiguration.embedUrl = dashboardLink;
@@ -140,19 +149,19 @@ function EmbedDashboard(dashboardLink, dashboardId, authToken) {
         embed.getCorrelationId().then(function (correlationId) {
             RaiseDashboardLoaded(correlationId);
         },
-            function (error) {
-                ProcessError('LoadDashboardCorrelationId', error);
-            });
+        function (error) {
+            ProcessError('LoadDashboardCorrelationId', error);
+        });
     });
 }
 
 function EmbedDashboardTile(dashboardTileLink, dashboardId, tileId, authToken) {
     ClearEmbedGlobals();
-
-    var embedConfiguration = InitializeEmbedConfig(authToken);
+    
+    var embedConfiguration = InitializeEmbedConfig(authToken, false);
     embedConfiguration.type = 'tile';
     embedConfiguration.id = SanitizeId(tileId);
-    embedConfiguration.dashboardId = SanitizeId(dashboardId);
+    embedConfiguration.dashboardId = SanitizeId(dashboardId); 
     embedConfiguration.embedUrl = dashboardTileLink;
     DisplayEmbed(embedConfiguration);
 
@@ -163,9 +172,33 @@ function EmbedDashboardTile(dashboardTileLink, dashboardId, tileId, authToken) {
         embed.getCorrelationId().then(function (correlationId) {
             RaiseDashboardTileLoaded(correlationId);
         },
-            function (error) {
-                ProcessError('LoadDashboardTileCorrelationId', error);
-            });
+        function (error) {
+            ProcessError('LoadDashboardTileCorrelationId', error);
+        });
+    });
+}
+
+function EmbedReportVisual(reportVisualLink, reportId, pageName, visualName, authToken) {
+    ClearEmbedGlobals();
+
+    var embedConfiguration = InitializeEmbedConfig(authToken, false);
+    embedConfiguration.type = 'visual';
+    embedConfiguration.id = SanitizeId(reportId);
+    embedConfiguration.pageName = SanitizeId(pageName);
+    embedConfiguration.visualName = SanitizeId(visualName);
+    embedConfiguration.embedUrl = reportVisualLink;
+    DisplayEmbed(embedConfiguration);
+
+    RegisterCommonEmbedEvents();
+
+    embed.off("loaded");
+    embed.on('loaded', function (event) {
+        embed.getCorrelationId().then(function (correlationId) {
+            RaiseReportVisualLoaded(correlationId);
+        },
+        function (error) {
+            ProcessError('LoadReportVisualCorrelationId', error);
+        });
     });
 }
 
@@ -229,7 +262,7 @@ function SetPage(pageName) {
     });
 }
 
-function InitializeFrame(fullpage, ratio) {
+function InitializeFrame(fullpage, ratio){
     fullPageMode = fullpage;
     if (!ratio) ratio = '16:9'; // Default according to Power BI documentation
 
@@ -252,14 +285,14 @@ function InitializeFrame(fullpage, ratio) {
     var computedWidth = (maximumAllowedHeight / ratioHeight) * ratioWidth;
     var computedHeight = (maximumAllowedWidth / ratioWidth) * ratioHeight;
 
-    if (computedWidth <= manifestWidth) {
+    if (computedWidth <= maximumAllowedWidth) {
         // Fit to width
         embedWidth = computedWidth;
-        embedHeight = manifestHeight;
+        embedHeight = maximumAllowedHeight;
     }
     else {
         // Fit to height instead
-        embedWidth = manifestWidth;
+        embedWidth = maximumAllowedWidth;
         embedHeight = computedHeight;
     }
 
@@ -272,10 +305,9 @@ function InitializeFrame(fullpage, ratio) {
 function ClearEmbedGlobals() {
     embed = null;
     activePage = null;
-    fullPageMode = false;
 }
 
-function InitializeEmbedConfig(authToken) {
+function InitializeEmbedConfig(authToken, showPanes) {
     var embedConfiguration = {
         tokenType: models.TokenType.Aad,
         accessToken: authToken,
@@ -288,24 +320,24 @@ function InitializeEmbedConfig(authToken) {
                     visible: false
                 },
                 fields: {
-                    visible: fullPageMode,
+                    visible: fullPageMode && showPanes,
                     expanded: false
                 },
                 filters: {
-                    visible: fullPageMode,
-                    expanded: fullPageMode
+                    visible: fullPageMode && showPanes,
+                    expanded: fullPageMode && showPanes
                 },
                 pageNavigation: {
-                    visible: fullPageMode
+                    visible: showPanes
                 },
                 selection: {
-                    visible: fullPageMode
+                    visible: fullPageMode && showPanes
                 },
                 syncSlicers: {
-                    visible: fullPageMode
+                    visible: fullPageMode && showPanes
                 },
                 visualizations: {
-                    visible: fullPageMode,
+                    visible: fullPageMode && showPanes,
                     expanded: false
                 }
             },
@@ -335,7 +367,7 @@ function DisplayEmbed(embedConfiguration) {
     embed = powerbi.embed(reportContainer, embedConfiguration);
 }
 
-function RegisterCommonEmbedEvents() {
+function RegisterCommonEmbedEvents(){
     embed.off("error");
     embed.on("error", function (event) {
         ProcessError('OnError', event);
@@ -347,7 +379,7 @@ function ReduceByNameFunction(accumulator, current) {
     return accumulator;
 }
 
-function SanitizeId(id) {
+function SanitizeId(id){
     // From: {79a5e047-a665-4c83-900b-f5ccf19e01c7}
     // To:    79a5e047-a665-4c83-900b-f5ccf19e01c7
     return id.replace(/[{}]/g, "");
@@ -370,12 +402,12 @@ function LogErrorToConsole(operation, error) {
     console.error(error);
 }
 
-function GetErrorMessage(error) {
-    if (error && error.message) {
+function GetErrorMessage(error){
+    if (error && error.message){
         return error.message;
     }
 
-    if (error && error.detail && error.detail.message) {
+    if (error && error.detail && error.detail.message){
         return error.detail.message;
     }
 

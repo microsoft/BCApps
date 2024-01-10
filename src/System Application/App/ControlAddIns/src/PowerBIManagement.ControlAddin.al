@@ -33,7 +33,7 @@ controladdin PowerBIManagement
     /// <summary>
     /// Event that will be fired when the page of the embedded report changes
     /// </summary>
-    event ReportPageChanged();
+    event ReportPageChanged(NewPage: Text; NewPageFilters: Text);
 
     /// <summary>
     /// Event that will be fired when the embedded report finishes loading
@@ -51,6 +51,11 @@ controladdin PowerBIManagement
     event DashboardTileLoaded(CorrelationId: Text);
 
     /// <summary>
+    /// Event that will be fired when the embedded report visual finishes loading
+    /// </summary>
+    event ReportVisualLoaded(CorrelationId: Text);
+
+    /// <summary>
     /// Initializes the Power BI Embed into the page
     /// </summary>
     [Obsolete('This method is deprecated. Please use EmbedReport instead.', '24.0')]
@@ -62,6 +67,11 @@ controladdin PowerBIManagement
     procedure EmbedReport(ReportLink: Text; ReportId: Text; AuthToken: Text; PageName: Text);
 
     /// <summary>
+    /// Initializes the Power BI embed Report into the page, with additional options
+    /// </summary>
+    procedure EmbedReportWithOptions(ReportLink: Text; ReportId: Text; AuthToken: Text; PageName: Text; ShowPanes: Boolean);
+
+    /// <summary>
     /// Initializes the Power BI embed Dashboard into the page
     /// </summary>
     procedure EmbedDashboard(DashboardLink: Text; DashboardId: Text; AuthToken: Text);
@@ -70,6 +80,11 @@ controladdin PowerBIManagement
     /// Initializes the Power BI embed Dashboard Tile into the page
     /// </summary>
     procedure EmbedDashboardTile(DashboardTileLink: Text; DashboardId: Text; TileId: Text; AuthToken: Text);
+
+    /// <summary>
+    /// Initializes the Power BI embed Report Visual into the page
+    /// </summary>
+    procedure EmbedReportVisual(ReportVisualLink: Text; ReportId: Text; PageName: Text; VisualName: Text; AuthToken: Text);
 
     /// <summary>
     /// Changes the current mode into View
