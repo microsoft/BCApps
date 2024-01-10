@@ -623,6 +623,7 @@ codeunit 134370 "ERM No. Series Tests"
         LastNoUsed := '1000023';
         NoSeriesLine."Last No. Used" := LastNoUsed;
         NoSeriesLine.Validate("Allow Gaps in Nos.", true);
+        NoSeriesLine.Modify();
 
         // [GIVEN] Open page 457 "No. Series Lines"
         NoSeriesLines.OpenEdit();
@@ -647,7 +648,7 @@ codeunit 134370 "ERM No. Series Tests"
 #pragma warning restore AL0432
 #endif
 
-    /*[Test] // TODO: Re-enable, temporarily disabled to verify all other fixes
+    [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
     procedure TheLastNoUsedCanBeUpdatedWhenImplementationSequenceIsUsed()
@@ -666,6 +667,7 @@ codeunit 134370 "ERM No. Series Tests"
         LastNoUsed := '1000023';
         NoSeriesLine."Last No. Used" := LastNoUsed;
         NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Sequence);
+        NoSeriesLine.Modify();
 
         // [GIVEN] Open page 457 "No. Series Lines"
         NoSeriesLines.OpenEdit();
@@ -686,7 +688,7 @@ codeunit 134370 "ERM No. Series Tests"
         // [THEN] "Last No. Used" is empty in the table
         NoSeriesLine.Find();
         NoSeriesLine.TestField("Last No. Used", '');
-    end;*/
+    end;
 
     local procedure CreateNewNumberSeriesWithAllowGaps(NewName: Code[20]; IncrementBy: Integer; var NoSeriesLine: Record "No. Series Line")
     begin

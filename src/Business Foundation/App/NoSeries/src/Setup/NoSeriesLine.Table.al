@@ -95,11 +95,6 @@ table 309 "No. Series Line"
             begin
                 NoSeriesMgt.UpdateNoSeriesLine(Rec, "Last No. Used", CopyStr(FieldCaption("Last No. Used"), 1, 100));
                 Validate(Open);
-                if Implementation = Enum::"No. Series Implementation"::Sequence then begin
-                    NoSeriesMgt.RecreateSequence(Rec);
-                    if "Line No." <> 0 then
-                        if Modify() then;
-                end;
             end;
         }
         field(9; Open; Boolean)
