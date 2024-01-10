@@ -200,15 +200,14 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if NumberSequence.Next(NoSeriesLine."Sequence Name") = 0 then; // The number we set was already used, hence we need to use it here as well.
     end;
 
-    /*[EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Starting No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Starting No.', false, false)]
     local procedure OnValidateNoSeriesLine(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; CurrFieldNo: Integer)
     begin
         if Rec.Implementation <> "No. Series Implementation"::Sequence then
             exit;
 
         Rec."Starting Sequence No." := ExtractNoFromCode(Rec."Starting No.");
-        RecreateNoSeries(Rec);
-    end;*/
+    end;
 
     [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Increment-by No.', false, false)]
     local procedure OnValidateIncrementByNo(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; CurrFieldNo: Integer)

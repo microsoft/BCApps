@@ -38,7 +38,6 @@ table 309 "No. Series Line"
                 NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
                 NoSeriesMgt.UpdateNoSeriesLine(Rec, "Starting No.", CopyStr(FieldCaption("Starting No."), 1, 100));
-                NoSeriesMgt.UpdateStartingSequenceNo(Rec);
             end;
         }
         field(5; "Ending No."; Code[20])
