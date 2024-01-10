@@ -254,8 +254,10 @@ table 309 "No. Series Line"
         }
     }
 
+#if not CLEAN24
     var
         SkipAllowGapsValidationTrigger: Boolean;
+#endif
 
     procedure MayProduceGaps(): Boolean
     var
