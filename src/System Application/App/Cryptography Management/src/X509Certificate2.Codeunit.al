@@ -27,7 +27,7 @@ codeunit 1286 X509Certificate2
     /// <error>When certificate cannot be initialized</error>
     /// <error>When certificate cannot be exported</error>
     [NonDebuggable]
-    procedure VerifyCertificate(var CertBase64Value: Text; Password: Text; X509ContentType: Enum "X509 Content Type"): Boolean
+    procedure VerifyCertificate(var CertBase64Value: Text; Password: SecretText; X509ContentType: Enum "X509 Content Type"): Boolean
     begin
         exit(X509Certificate2Impl.VerifyCertificate(CertBase64Value, Password, X509ContentType));
     end;
@@ -39,7 +39,7 @@ codeunit 1286 X509Certificate2
     /// <param name="Password">Certificate Password</param>
     /// <param name="FriendlyName">Represents certificate Friendly Name</param>
     [NonDebuggable]
-    procedure GetCertificateFriendlyName(CertBase64Value: Text; Password: Text; var FriendlyName: Text)
+    procedure GetCertificateFriendlyName(CertBase64Value: Text; Password: SecretText; var FriendlyName: Text)
     begin
         X509Certificate2Impl.GetCertificateFriendlyName(CertBase64Value, Password, FriendlyName);
     end;
@@ -51,7 +51,7 @@ codeunit 1286 X509Certificate2
     /// <param name="Password">Certificate Password</param>
     /// <param name="Subject">Certificate subject distinguished name</param>
     [NonDebuggable]
-    procedure GetCertificateSubject(CertBase64Value: Text; Password: Text; var Subject: Text)
+    procedure GetCertificateSubject(CertBase64Value: Text; Password: SecretText; var Subject: Text)
     begin
         X509Certificate2Impl.GetCertificateSubject(CertBase64Value, Password, Subject);
     end;
@@ -63,7 +63,7 @@ codeunit 1286 X509Certificate2
     /// <param name="Password">Certificate Password</param>
     /// <param name="Thumbprint">Certificate Thumbprint</param>
     [NonDebuggable]
-    procedure GetCertificateThumbprint(CertBase64Value: Text; Password: Text; var Thumbprint: Text)
+    procedure GetCertificateThumbprint(CertBase64Value: Text; Password: SecretText; var Thumbprint: Text)
     begin
         X509Certificate2Impl.GetCertificateThumbprint(CertBase64Value, Password, Thumbprint);
     end;
@@ -75,7 +75,7 @@ codeunit 1286 X509Certificate2
     /// <param name="Password">Certificate Password</param>
     /// <param name="Issuer">Certificate Issuer</param>
     [NonDebuggable]
-    procedure GetCertificateIssuer(CertBase64Value: Text; Password: Text; var Issuer: Text)
+    procedure GetCertificateIssuer(CertBase64Value: Text; Password: SecretText; var Issuer: Text)
     begin
         X509Certificate2Impl.GetCertificateIssuer(CertBase64Value, Password, Issuer);
     end;
@@ -87,7 +87,7 @@ codeunit 1286 X509Certificate2
     /// <param name="Password">Certificate Password</param>
     /// <param name="Expiration">Certificate Expiration Date</param>
     [NonDebuggable]
-    procedure GetCertificateExpiration(CertBase64Value: Text; Password: Text; var Expiration: DateTime)
+    procedure GetCertificateExpiration(CertBase64Value: Text; Password: SecretText; var Expiration: DateTime)
     begin
         X509Certificate2Impl.GetCertificateExpiration(CertBase64Value, Password, Expiration);
     end;
@@ -99,7 +99,7 @@ codeunit 1286 X509Certificate2
     /// <param name="Password">Certificate Password</param>
     /// <param name="NotBefore">Certificate NotBefore Date</param>
     [NonDebuggable]
-    procedure GetCertificateNotBefore(CertBase64Value: Text; Password: Text; var NotBefore: DateTime)
+    procedure GetCertificateNotBefore(CertBase64Value: Text; Password: SecretText; var NotBefore: DateTime)
     begin
         X509Certificate2Impl.GetCertificateNotBefore(CertBase64Value, Password, NotBefore);
     end;
@@ -111,7 +111,7 @@ codeunit 1286 X509Certificate2
     /// <param name="Password">Certificate Password</param>
     /// <returns>True if the certificate has private key</returns>
     [NonDebuggable]
-    procedure HasPrivateKey(CertBase64Value: Text; Password: Text): Boolean
+    procedure HasPrivateKey(CertBase64Value: Text; Password: SecretText): Boolean
     begin
         exit(X509Certificate2Impl.HasPrivateKey(CertBase64Value, Password));
     end;
@@ -123,7 +123,7 @@ codeunit 1286 X509Certificate2
     /// <param name="Password">Certificate Password</param>
     /// <param name="CertPropertyJson">Certificate details in json</param>
     [NonDebuggable]
-    procedure GetCertificatePropertiesAsJson(CertBase64Value: Text; Password: Text; var CertPropertyJson: Text)
+    procedure GetCertificatePropertiesAsJson(CertBase64Value: Text; Password: SecretText; var CertPropertyJson: Text)
     begin
         X509Certificate2Impl.GetCertificatePropertiesAsJson(CertBase64Value, Password, CertPropertyJson);
     end;
@@ -134,7 +134,7 @@ codeunit 1286 X509Certificate2
     /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
     /// <param name="Password">Certificate Password</param>
     [NonDebuggable]
-    procedure GetCertificatePublicKey(CertBase64Value: Text; Password: Text): Text
+    procedure GetCertificatePublicKey(CertBase64Value: Text; Password: SecretText): Text
     begin
         exit(X509Certificate2Impl.GetCertificatePublicKey(CertBase64Value, Password));
     end;
@@ -145,7 +145,7 @@ codeunit 1286 X509Certificate2
     /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
     /// <param name="Password">Certificate Password</param>
     [NonDebuggable]
-    procedure GetCertificatePrivateKey(CertBase64Value: Text; Password: Text): Text
+    procedure GetCertificatePrivateKey(CertBase64Value: Text; Password: SecretText): Text
     begin
         exit(X509Certificate2Impl.GetCertificatePrivateKey(CertBase64Value, Password));
     end;
@@ -157,7 +157,7 @@ codeunit 1286 X509Certificate2
     /// <param name="Password">Certificate Password</param>
     /// <param name="SerialNumber">Certificate serial number</param>
     [NonDebuggable]
-    procedure GetCertificateSerialNumber(CertBase64Value: Text; Password: Text; var SerialNumber: Text)
+    procedure GetCertificateSerialNumber(CertBase64Value: Text; Password: SecretText; var SerialNumber: Text)
     begin
         X509Certificate2Impl.GetCertificateSerialNumber(CertBase64Value, Password, SerialNumber);
     end;
@@ -169,7 +169,7 @@ codeunit 1286 X509Certificate2
     /// <param name="Password">Certificate Password</param>
     /// <param name="SerialNumberASCII">Certificate serial number as ascii</param>
     [NonDebuggable]
-    procedure GetCertificateSerialNumberAsASCII(CertBase64Value: Text; Password: Text; var SerialNumberASCII: Text)
+    procedure GetCertificateSerialNumberAsASCII(CertBase64Value: Text; Password: SecretText; var SerialNumberASCII: Text)
     begin
         X509Certificate2Impl.GetCertificateSerialNumberAsASCII(CertBase64Value, Password, SerialNumberASCII);
     end;

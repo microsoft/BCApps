@@ -157,17 +157,18 @@ codeunit 1461 "SignedXml Impl."
         DotNetSignedXml.LoadXml(DotNetXmlElement);
     end;
 
-    procedure SetSigningKey(XmlString: Text)
+    procedure SetSigningKey(XmlString: SecretText)
     begin
         SetSigningKey(XmlString, Enum::SignatureAlgorithm::RSA);
     end;
 
-    procedure SetSigningKey(XmlString: Text; SignatureAlgorithm: Enum SignatureAlgorithm)
+    [NonDebuggable]
+    procedure SetSigningKey(XmlString: SecretText; SignatureAlgorithm: Enum SignatureAlgorithm)
     var
         ISignatureAlgorithm: Interface SignatureAlgorithm;
     begin
         ISignatureAlgorithm := SignatureAlgorithm;
-        ISignatureAlgorithm.FromXmlString(XmlString);
+        ISignatureAlgorithm.FromXmlString(XmlString.Unwrap());
         ISignatureAlgorithm.GetInstance(DotNetAsymmetricAlgorithm);
         DotNetSignedXml.SigningKey := DotNetAsymmetricAlgorithm;
     end;
