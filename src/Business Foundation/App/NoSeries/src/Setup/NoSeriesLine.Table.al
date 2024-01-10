@@ -74,15 +74,8 @@ table 309 "No. Series Line"
             MinValue = 1;
 
             trigger OnValidate()
-            var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
                 Validate(Open);
-                if Implementation = Enum::"No. Series Implementation"::Sequence then begin
-                    NoSeriesMgt.RecreateSequence(Rec);
-                    if "Line No." <> 0 then
-                        if Modify() then;
-                end;
             end;
         }
         field(8; "Last No. Used"; Code[20])

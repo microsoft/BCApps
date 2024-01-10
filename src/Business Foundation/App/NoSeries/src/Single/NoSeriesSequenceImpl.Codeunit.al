@@ -194,6 +194,12 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         CreateNewSequence(NoSeriesLine, SequenceNumber);
     end;
 
+    local procedure RecreateNoSeriesWithLastUsedNo(var NoSeriesLine: Record "No. Series Line"; SequenceNumber: BigInteger)
+    begin
+        RecreateNoSeries(NoSeriesLine, SequenceNumber);
+        if NumberSequence.Next(NoSeriesLine."Sequence Name") = 0 then; // The number we set was already used, hence we need to use it here as well.
+    end;
+
     /*[EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Starting No.', false, false)]
     local procedure OnValidateNoSeriesLine(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; CurrFieldNo: Integer)
     begin
@@ -202,16 +208,23 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 
         Rec."Starting Sequence No." := ExtractNoFromCode(Rec."Starting No.");
         RecreateNoSeries(Rec);
-    end;
+    end;*/
 
     [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Increment-by No.', false, false)]
     local procedure OnValidateIncrementByNo(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; CurrFieldNo: Integer)
+    var
+        LastNoUsed: Code[20];
     begin
         if Rec.Implementation <> "No. Series Implementation"::Sequence then
             exit;
 
-        RecreateNoSeries(Rec);
-    end;*/
+        // Make sure to keep the last used No. if the No. Series is already in use
+        LastNoUsed := GetLastNoUsed(Rec);
+        if LastNoUsed <> '' then
+            RecreateNoSeriesWithLastUsedNo(Rec, ExtractNoFromCode(LastNoUsed))
+        else
+            RecreateNoSeries(Rec, Rec."Starting Sequence No.");
+    end;
 
     [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Last No. Used', false, false)]
     local procedure OnValidateLastNoUsed(var Rec: Record "No. Series Line"; var xRec: Record "No. Series Line"; CurrFieldNo: Integer)
@@ -226,8 +239,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 
         SequenceNumber := ExtractNoFromCode(Rec."Last No. Used");
         Rec."Last No. Used" := '';
-        RecreateNoSeries(Rec, SequenceNumber);
-        if NumberSequence.Next(Rec."Sequence Name") = 0 then; // The number we set was already used, hence we need to take it here as well.
+        RecreateNoSeriesWithLastUsedNo(Rec, SequenceNumber);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Implementation', false, false)]
@@ -241,10 +253,9 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 
         if Rec.Implementation = "No. Series Implementation"::Sequence then begin
             LastNoUsed := NoSeries.GetLastNoUsed(xRec);
-            if LastNoUsed <> '' then begin
-                RecreateNoSeries(Rec, ExtractNoFromCode(LastNoUsed));
-                if NumberSequence.Next(Rec."Sequence Name") = 0 then; // The number we set was already used, hence we need to take it here as well.
-            end else
+            if LastNoUsed <> '' then
+                RecreateNoSeriesWithLastUsedNo(Rec, ExtractNoFromCode(LastNoUsed))
+            else
                 RecreateNoSeries(Rec, ExtractNoFromCode(Rec."Starting No."));
             Rec."Last No. Used" := '';
         end else
