@@ -208,7 +208,7 @@ table 2010 "Azure OpenAi Settings"
     end;
 
     [NonDebuggable]
-    internal procedure GetSecret(CallerModuleInfo: ModuleInfo): Text
+    internal procedure GetSecret(CallerModuleInfo: ModuleInfo): SecretText
     var
         EnvironmentInformation: Codeunit "Environment Information";
         AzureKeyVault: Codeunit "Azure Key Vault";
@@ -235,14 +235,14 @@ table 2010 "Azure OpenAi Settings"
     end;
 
     [NonDebuggable]
-    local procedure GetOauthSecret(Secret: Text): Text
+    local procedure GetOauthSecret(Secret: Text): SecretText
     var
         OAuth2: Codeunit OAuth2;
         Scopes: List of [Text];
         ClientId: Text;
         Authority: Text;
         Resource: Text;
-        Token: Text;
+        Token: SecretText;
         IdToken: Text;
     begin
         ClientId := GetConfigurationValue(ClientTok);
