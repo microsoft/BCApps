@@ -72,7 +72,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if not NoSeriesStatelessImpl.EnsureLastNoUsedIsWithinValidRange(NoSeriesLine2, HideErrorsAndWarnings) then
             exit('');
 
-        if ModifySeries then begin
+        if ModifySeries and ((NoSeriesLine."Last Date Used" <> UsageDate) or (NoSeriesLine.Open <> NoSeriesLine2.Open)) then begin // Only modify the series if either the date or the open status has changed. Otherwise avoid locking the record.
             NoSeriesLine."Last Date Used" := UsageDate;
             NoSeriesLine.Open := NoSeriesLine2.Open;
             NoSeriesLine.Modify(true);
@@ -86,7 +86,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
     begin
         if ModifySeries then begin
             NewNo := NumberSequence.Next(NoSeriesLine."Sequence Name");
-            if NewNo < NoSeriesLine."Starting Sequence No." then  // first no. ? // TODO: Recreate the sequence? This means the sequence produced a number less than the starting number.
+            if NewNo < NoSeriesLine."Starting Sequence No." then
                 NewNo := NumberSequence.Next(NoSeriesLine."Sequence Name");
         end else begin
             NewNo := NumberSequence.Current(NoSeriesLine."Sequence Name");
@@ -118,7 +118,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if Number < NoSeriesLine."Starting Sequence No." then
             exit('');
         NumberCode := Format(Number);
-        if NoSeriesLine."Starting No." = '' then // TODO: Should starting no. maybe use 'Cust%1Test' instead?
+        if NoSeriesLine."Starting No." = '' then
             exit(NumberCode);
         i := StrLen(NoSeriesLine."Starting No.");
         while (i > 1) and not (NoSeriesLine."Starting No."[i] in ['0' .. '9']) do

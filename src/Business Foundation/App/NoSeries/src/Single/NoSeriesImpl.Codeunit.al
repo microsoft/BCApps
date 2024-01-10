@@ -191,7 +191,6 @@ codeunit 304 "No. Series - Impl."
         NoSeries: Record "No. Series";
         NoSeriesRelationship: Record "No. Series Relationship";
     begin
-        // TODO: call TestIsAutomaticNoSeries instead
         if not NoSeries.Get(DefaultNoSeriesCode) then
             exit(false);
 
