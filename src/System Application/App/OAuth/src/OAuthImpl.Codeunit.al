@@ -65,8 +65,9 @@ codeunit 1289 "OAuth Impl."
         Consumer: DotNet Consumer;
         Token: DotNet Token;
         RequestToken: DotNet Token;
+        EmptySecretText: SecretText;
     begin
-        Token := Token.Token('', '');
+        Token := Token.Token(EmptySecretText, EmptySecretText);
         Consumer := Consumer.Consumer(ConsumerKey.Unwrap(), ConsumerSecret.Unwrap());
         OAuthAuthorization := OAuthAuthorization.OAuthAuthorization(Consumer, Token);
 
@@ -104,8 +105,8 @@ codeunit 1289 "OAuth Impl."
         Consumer: DotNet Consumer;
         RequestToken: DotNet Token;
     begin
-        RequestToken := RequestToken.Token(RequestTokenKey.Unwrap(), RequestTokenSecret.Unwrap());
-        Consumer := Consumer.Consumer(ConsumerKey.Unwrap(), ConsumerSecret.Unwrap());
+        RequestToken := RequestToken.Token(RequestTokenKey, RequestTokenSecret);
+        Consumer := Consumer.Consumer(ConsumerKey, ConsumerSecret);
         OAuthAuthorization := OAuthAuthorization.OAuthAuthorization(Consumer, RequestToken);
 
         case RequestMethod of

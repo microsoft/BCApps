@@ -61,13 +61,16 @@ codeunit 502 OAuth2Impl
         Scope: Text;
         ScopeText: Text;
         AuthRequestUrl: Text;
+        SecretClientId: SecretText;
+        EmptySecretText: SecretText;
     begin
         if (ClientId = '') or (RedirectUrl = '') then begin
             Session.LogMessage('0000D1J', MissingClientIdRedirectUrlErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', Oauth2CategoryLbl);
             exit('');
         end;
-        Token := Token.Token('', '');
-        Consumer := Consumer.Consumer(ClientId, ClientSecret.Unwrap());
+        Token := Token.Token(EmptySecretText, EmptySecretText);
+        SecretClientId := ClientId;
+        Consumer := Consumer.Consumer(SecretClientId, ClientSecret);
         OAuthAuthorization := OAuthAuthorization.OAuthAuthorization(Consumer, Token);
 
         foreach Scope in Scopes do
@@ -738,7 +741,7 @@ codeunit 502 OAuth2Impl
     procedure AcquireTokenFromCache(RedirectURL: Text; ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
     begin
         Initialize(OAuthAuthorityUrl, RedirectURL);
-        AccessToken := AuthFlow.ALAcquireTokenFromCacheWithCredentials(ClientId, ClientSecret.Unwrap(), ResourceURL);
+        AccessToken := AuthFlow.ALAcquireTokenFromCacheWithCredentials(ClientId, ClientSecret, ResourceURL);
     end;
 #if not CLEAN24
     [NonDebuggable]
@@ -781,7 +784,7 @@ codeunit 502 OAuth2Impl
     begin
         FillScopesArray(Scopes, ScopesArray);
         Initialize(OAuthAuthorityUrl, RedirectURL);
-        AccessToken := AuthFlow.ALAcquireTokenFromCacheWithCredentials(ClientId, ClientSecret.Unwrap(), ScopesArray);
+        AccessToken := AuthFlow.ALAcquireTokenFromCacheWithCredentials(ClientId, ClientSecret, ScopesArray);
     end;
 #if not CLEAN24
     [NonDebuggable]
@@ -905,7 +908,7 @@ codeunit 502 OAuth2Impl
     procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text; var AccessToken: SecretText)
     begin
         Initialize(OAuthAuthorityUrl, RedirectURL);
-        AccessToken := AuthFlow.ALAcquireApplicationToken(ClientId, ClientSecret.Unwrap(), OAuthAuthorityUrl, ResourceURL);
+        AccessToken := AuthFlow.ALAcquireApplicationToken(ClientId, ClientSecret, OAuthAuthorityUrl, ResourceURL);
         if AccessToken.IsEmpty() then
             Session.LogMessage('0000C23', EmptyAccessTokenClientCredsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', Oauth2CategoryLbl);
     end;
@@ -930,7 +933,7 @@ codeunit 502 OAuth2Impl
     begin
         FillScopesArray(Scopes, ScopesArray);
         Initialize(OAuthAuthorityUrl, RedirectURL);
-        AccessToken := AuthFlow.ALAcquireApplicationToken(ClientId, ClientSecret.Unwrap(), OAuthAuthorityUrl, ScopesArray);
+        AccessToken := AuthFlow.ALAcquireApplicationToken(ClientId, ClientSecret, OAuthAuthorityUrl, ScopesArray);
         if AccessToken.IsEmpty() then
             Session.LogMessage('0000D1L', EmptyAccessTokenClientCredsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', Oauth2CategoryLbl);
     end;
@@ -939,7 +942,7 @@ codeunit 502 OAuth2Impl
     [TryFunction]
     procedure AcquireTokenByAuthorizationCodeWithCredentials(AuthorizationCode: Text; ClientId: Text; ClientSecret: SecretText; RedirectUrl: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
     begin
-        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCredentials(AuthorizationCode, ClientId, ClientSecret.Unwrap(), ResourceURL);
+        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCredentials(AuthorizationCode, ClientId, ClientSecret, ResourceURL);
     end;
 
     [NonDebuggable]
@@ -956,7 +959,7 @@ codeunit 502 OAuth2Impl
         ScopesArray: DotNet StringArray;
     begin
         FillScopesArray(Scopes, ScopesArray);
-        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCredentials(AuthorizationCode, ClientId, ClientSecret.Unwrap(), ScopesArray);
+        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCredentials(AuthorizationCode, ClientId, ClientSecret, ScopesArray);
     end;
 
     [NonDebuggable]
@@ -977,7 +980,7 @@ codeunit 502 OAuth2Impl
         CompoundToken: DotNet CompoundTokenInfo;
     begin
         FillScopesArray(Scopes, ScopesArray);
-        CompoundToken := AuthFlow.ALAcquireTokensByAuthorizationCodeWithCredentials(AuthorizationCode, ClientId, ClientSecret.Unwrap(), ScopesArray);
+        CompoundToken := AuthFlow.ALAcquireTokensByAuthorizationCodeWithCredentials(AuthorizationCode, ClientId, ClientSecret, ScopesArray);
         AccessToken := CompoundToken.AccessToken;
         IdToken := CompoundToken.IdToken;
     end;
@@ -1002,7 +1005,7 @@ codeunit 502 OAuth2Impl
         ScopesArray: DotNet StringArray;
     begin
         FillScopesArray(Scopes, ScopesArray);
-        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCredentials(AuthorizationCode, ClientId, ClientSecret.Unwrap(), ScopesArray, TokenCache);
+        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCredentials(AuthorizationCode, ClientId, ClientSecret, ScopesArray, TokenCache);
     end;
 
     [NonDebuggable]
@@ -1023,7 +1026,7 @@ codeunit 502 OAuth2Impl
         CompoundToken: DotNet CompoundTokenInfo;
     begin
         FillScopesArray(Scopes, ScopesArray);
-        CompoundToken := AuthFlow.ALAcquireTokensByAuthorizationCodeWithCredentials(AuthorizationCode, ClientId, ClientSecret.Unwrap(), ScopesArray, TokenCache);
+        CompoundToken := AuthFlow.ALAcquireTokensByAuthorizationCodeWithCredentials(AuthorizationCode, ClientId, ClientSecret, ScopesArray, TokenCache);
         AccessToken := CompoundToken.AccessToken;
         IdToken := CompoundToken.IdToken;
     end;
@@ -1043,7 +1046,7 @@ codeunit 502 OAuth2Impl
 
     [NonDebuggable]
     [TryFunction]
-    procedure AcquireTokensWithUserCredentials(OAuthAuthorityUrl: Text; ClientId: Text; Scopes: List of [Text]; UserName: Text; Credential: Text; var AccessToken: SecretText; var IdToken: Text)
+    procedure AcquireTokensWithUserCredentials(OAuthAuthorityUrl: Text; ClientId: Text; Scopes: List of [Text]; UserName: Text; Credential: NavSecretText; var AccessToken: SecretText; var IdToken: Text)
     var
         ScopesArray: DotNet StringArray;
         CompoundToken: DotNet CompoundTokenInfo;
@@ -1058,7 +1061,7 @@ codeunit 502 OAuth2Impl
 
     [NonDebuggable]
     [TryFunction]
-    procedure AcquireTokensWithUserCredentials(OAuthAuthorityUrl: Text; Scopes: List of [Text]; UserName: Text; Credential: Text; var AccessToken: SecretText; var IdToken: Text)
+    procedure AcquireTokensWithUserCredentials(OAuthAuthorityUrl: Text; Scopes: List of [Text]; UserName: Text; Credential: NavSecretText; var AccessToken: SecretText; var IdToken: Text)
     var
         ScopesArray: DotNet StringArray;
         CompoundToken: DotNet CompoundTokenInfo;
