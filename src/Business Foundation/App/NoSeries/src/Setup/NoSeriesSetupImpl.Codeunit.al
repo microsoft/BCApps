@@ -24,7 +24,7 @@ codeunit 305 "No. Series - Setup Impl."
     var
         NoSeriesLine: Record "No. Series Line";
     begin
-        SetNoSeriesCurrentLineFilters(NoSeries, NoSeriesLine);
+        SetNoSeriesCurrentLineFilters(NoSeries, NoSeriesLine, true);
         Page.RunModal(0, NoSeriesLine);
     end;
 
@@ -46,9 +46,8 @@ codeunit 305 "No. Series - Setup Impl."
             exit;
 #pragma warning restore AL0432        
 #endif
-        SetNoSeriesCurrentLineFilters(NoSeriesRec, NoSeriesLine);
-        if not NoSeriesLine.Find('-') then
-            NoSeriesLine.Init();
+        SetNoSeriesCurrentLineFilters(NoSeriesRec, NoSeriesLine, false);
+
         StartDate := NoSeriesLine."Starting Date";
         StartNo := NoSeriesLine."Starting No.";
         EndNo := NoSeriesLine."Ending No.";
@@ -59,7 +58,7 @@ codeunit 305 "No. Series - Setup Impl."
         Implementation := NoSeriesLine.Implementation;
     end;
 
-    local procedure SetNoSeriesCurrentLineFilters(var NoSeriesRec: Record "No. Series"; var NoSeriesLine: Record "No. Series Line")
+    local procedure SetNoSeriesCurrentLineFilters(var NoSeriesRec: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; ResetForDrillDown: Boolean)
     var
         NoSeries: Codeunit "No. Series";
 #if not CLEAN24
@@ -80,14 +79,49 @@ codeunit 305 "No. Series - Setup Impl."
         if NoSeriesLine.FindLast() then begin
             NoSeriesLine.SetRange("Starting Date", NoSeriesLine."Starting Date");
             NoSeriesLine.SetRange(Open, true);
-        end else begin
+        end;
+
+        if not NoSeriesLine.FindLast() then begin
             NoSeriesLine.Reset();
             NoSeriesLine.SetRange("Series Code", NoSeriesRec.Code);
         end;
 
-        if NoSeriesLine.FindFirst() then;
-        NoSeriesLine.SetRange("Starting Date");
-        NoSeriesLine.SetRange(Open);
-        NoSeries.OnAfterSetNoSeriesCurrentLineFilters(NoSeriesRec, NoSeriesLine);
+        if not NoSeriesLine.FindFirst() then
+            NoSeriesLine.Init();
+
+        if ResetForDrillDown then begin
+            NoSeriesLine.SetRange("Starting Date");
+            NoSeriesLine.SetRange(Open);
+        end;
+
+        NoSeries.OnAfterSetNoSeriesCurrentLineFilters(NoSeriesRec, NoSeriesLine, ResetForDrillDown);
+    end;
+
+    procedure MayProduceGaps(NoSeriesLine: Record "No. Series Line"): Boolean
+    var
+        NoSeriesSingle: Interface "No. Series - Single";
+    begin
+        NoSeriesSingle := NoSeriesLine.Implementation;
+        exit(NoSeriesSingle.MayProduceGaps());
+    end;
+
+    procedure CalculateOpen(NoSeriesLine: Record "No. Series Line"): Boolean
+    var
+        NoSeriesStatelessImpl: Codeunit "No. Series - Stateless Impl.";
+    begin
+        if NoSeriesLine."Ending No." = '' then
+            exit(true);
+
+        if NoSeriesLine."Last No. Used" = '' then
+            exit(true);
+
+        if NoSeriesLine."Last No. Used" >= NoSeriesLine."Ending No." then
+            exit(false);
+
+        if NoSeriesLine."Increment-by No." <> 1 then
+            if NoSeriesStatelessImpl.IncrementNoText(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.") > NoSeriesLine."Ending No." then
+                exit(false);
+
+        exit(true);
     end;
 }

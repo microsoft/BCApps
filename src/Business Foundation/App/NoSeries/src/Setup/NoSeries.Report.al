@@ -14,7 +14,7 @@ report 21 "No. Series"
     DefaultRenderingLayout = LayoutRdlc;
     ObsoleteState = Pending;
     ObsoleteTag = '24.0';
-    ObsoleteReason = 'Report data is available on page 457 "No. Series Lines" and page 571 "No. Series List". It can be analyzed with either the Data Analysis feature or Open in Excel.';
+    ObsoleteReason = 'Report data is available on page 457 "No. Series Lines". It can be analyzed with either the Data Analysis feature or Open in Excel.';
 
     dataset
     {

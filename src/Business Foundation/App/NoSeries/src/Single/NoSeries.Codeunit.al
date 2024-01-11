@@ -290,8 +290,9 @@ codeunit 310 "No. Series"
     /// </summary>
     /// <param name="NoSeries">The No. Series record to drill down on.</param>
     /// <param name="NoSeriesLine">The No. Series Line to set filters on.</param>
+    /// <param name="IsDrillDown">Specifies whether the filters are being set for a drill down.</param>
     [IntegrationEvent(false, false)]
-    internal procedure OnAfterSetNoSeriesCurrentLineFilters(NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line");
+    internal procedure OnAfterSetNoSeriesCurrentLineFilters(NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; IsDrillDown: Boolean);
     begin
     end;
 }

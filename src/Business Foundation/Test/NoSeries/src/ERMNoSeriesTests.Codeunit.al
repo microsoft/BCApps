@@ -19,10 +19,10 @@ codeunit 134370 "ERM No. Series Tests"
         StartingNumberTxt: Label 'ABC00010D';
         SecondNumberTxt: Label 'ABC00020D';
         EndingNumberTxt: Label 'ABC00090D';
+        NoSeriesCodeForUseInModalPageHendler: Code[20];
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestStartingNoNoGaps()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -45,7 +45,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestStartingNoWithGaps()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -74,7 +73,6 @@ codeunit 134370 "ERM No. Series Tests"
 #pragma warning disable AL0432
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestChangingToAllowGaps()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -107,7 +105,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestChangingToSequence()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -140,7 +137,6 @@ codeunit 134370 "ERM No. Series Tests"
 #pragma warning disable AL0432
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestChangingToAllowGapsDateOrder()
     var
         NoSeries: Record "No. Series";
@@ -160,7 +156,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestChangingToSequenceDateOrder()
     var
         NoSeries: Record "No. Series";
@@ -180,7 +175,6 @@ codeunit 134370 "ERM No. Series Tests"
 #pragma warning disable AL0432
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestChangingStartNoAfterUsingNoSeries()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -207,7 +201,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestChangingStartNoAfterUsingSequenceNoSeries()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -234,7 +227,6 @@ codeunit 134370 "ERM No. Series Tests"
 #pragma warning disable AL0432
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestChangingStartNoAfterUsingNoSeriesTooLong()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -261,7 +253,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestChangingStartNoAfterUsingNoSeriesTooLongWithSequence()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -288,7 +279,6 @@ codeunit 134370 "ERM No. Series Tests"
 #pragma warning disable AL0432
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TheLastNoUsedDidNotChangeAfterEnabledAllowGapsInNos()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -326,7 +316,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TheLastNoUsedDidNotChangeAfterUsingSequenceImplementationInNos()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -364,7 +353,6 @@ codeunit 134370 "ERM No. Series Tests"
 #pragma warning disable AL0432
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestInsertFromExternalWithGaps()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -390,7 +378,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestInsertFromExternalWithSequence()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -413,7 +400,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestModifyNoGetNextWithoutGaps()
     begin
         ModifyNoGetNext(false);
@@ -421,7 +407,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestModifyNoGetNextWithGaps()
     begin
         ModifyNoGetNext(true);
@@ -442,7 +427,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestSaveNoSeriesWithOutGaps()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -463,7 +447,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestSaveNoSeriesWithGaps()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -484,7 +467,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestCurrentAndNextDifferWithOutGaps()
     begin
         CurrentAndNextDiffer(false);
@@ -492,7 +474,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TestCurrentAndNextDifferWithGaps()
     begin
         CurrentAndNextDiffer(true);
@@ -513,7 +494,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure NoSeriesWithoutNoSeriesLineFailsValidation()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -535,7 +515,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure NoSeriesWithNoSeriesLineOnLaterStartingDateFailsValidation()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -558,7 +537,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure NoSeriesThatCanGenerateNextNoSucceedsValidation()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -576,7 +554,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure NoSeriesValidationDoesNotChangeTheNextNoGenerated()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -606,7 +583,6 @@ codeunit 134370 "ERM No. Series Tests"
 #pragma warning disable AL0432
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TheLastNoUsedCanBeUpdatedWhenAllowGapsInNosYes()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -650,7 +626,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure TheLastNoUsedCanBeUpdatedWhenImplementationSequenceIsUsed()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -732,7 +707,6 @@ codeunit 134370 "ERM No. Series Tests"
 #if not CLEAN24
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure PageNoSeriesChangeAllowGapsTrueOne()
     begin
         PageNoSeriesChangeAllowGaps(true, 1);
@@ -740,7 +714,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure PageNoSeriesChangeAllowGapsFalseOne()
     begin
         PageNoSeriesChangeAllowGaps(false, 1);
@@ -748,7 +721,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure PageNoSeriesChangeAllowGapsTrueMultiple()
     begin
         PageNoSeriesChangeAllowGaps(true, 1);
@@ -756,7 +728,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure PageNoSeriesChangeAllowGapsFalseMultiple()
     begin
         PageNoSeriesChangeAllowGaps(false, 1);
@@ -765,7 +736,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure PageNoSeriesChangeImplementationTrueOne()
     begin
         PageNoSeriesChangeImplementation(Enum::"No. Series Implementation"::Sequence, 1);
@@ -773,7 +743,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure PageNoSeriesChangeImplementationFalseOne()
     begin
         PageNoSeriesChangeImplementation(Enum::"No. Series Implementation"::Normal, 1);
@@ -781,7 +750,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure PageNoSeriesChangeImplementationTrueMultiple()
     begin
         PageNoSeriesChangeImplementation(Enum::"No. Series Implementation"::Sequence, 1);
@@ -789,7 +757,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure PageNoSeriesChangeImplementationFalseMultiple()
     begin
         PageNoSeriesChangeImplementation(Enum::"No. Series Implementation"::Normal, 1);
@@ -871,7 +838,6 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
-    [Scope('OnPrem')]
     procedure ChangeIncrementWithGaps()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -892,6 +858,120 @@ codeunit 134370 "ERM No. Series Tests"
         LibraryAssert.AreEqual(ToBigInt(12), NumberSequence.Current(NoSeriesLine."Sequence Name"), 'Current value wrong after first use after change of increment');
     end;
 
+    [Test]
+    procedure SettingDefaultNosFalseWhenManualNosIsFalseForcesManualNosToTrue()
+    var
+        NoSeries: Record "No. Series";
+    begin
+        // [GIVEN] NoSeries where Default Nos is TRUE and Manual Nos is FALSE
+        Initialize();
+        NoSeries.Get(CreateNonVisibleNoSeries(false));
+        NoSeries.Validate("Default Nos.", true);
+        NoSeries.Validate("Manual Nos.", false);
+
+        // [WHEN] When Default Nos is et to FALSE
+        NoSeries.Validate("Default Nos.", false);
+
+        // [THEN] Manual Nos is forced to be true because both Manual Nos and Default Nos being FALSE is not a valid scenario
+        NoSeries.TestField("Manual Nos.", true);
+    end;
+
+    [Test]
+    procedure SettingManualNosFalseWhenDefaultNosIsFalseForcesDefaultNosToTrue()
+    var
+        NoSeries: Record "No. Series";
+    begin
+        // [GIVEN] NoSeries where Manual Nos is TRUE and Default Nos is FALSE
+        Initialize();
+        NoSeries.Get(CreateNonVisibleNoSeries(false));
+        NoSeries.Validate("Manual Nos.", true);
+        NoSeries.Validate("Default Nos.", false);
+
+        // [WHEN] When Manual Nos is et to FALSE
+        NoSeries.Validate("Manual Nos.", false);
+
+        // [THEN] Default Nos is forced to be true because both Manual Nos and Default Nos being FALSE is not a valid scenario
+        NoSeries.TestField("Default Nos.", true);
+    end;
+
+    [Test]
+    procedure NoSeriesPage_FieldsValues_WithGoodLines()
+    var
+        NoSeriesRec: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        NoSeries: Codeunit "No. Series";
+        NoSeriesCode: Code[20];
+    begin
+        Initialize();
+
+        NoSeriesCode := CreateNonVisibleNoSeries(false);
+        NoSeries.GetNoSeriesLine(NoSeriesLine, NoSeriesCode, 0D, true);
+        NoSeriesLine.FindFirst();
+        NoSeriesRec.Get(NoSeriesCode);
+
+        ValidateFieldsOnNoSeriesPage(NoSeriesRec, NoSeriesLine);
+    end;
+
+    [Test]
+    procedure NoSeriesPage_FieldsValues_WithoutGoodLines()
+    var
+        NoSeriesRec: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        NoSeries: Codeunit "No. Series";
+        NoSeriesCode: Code[20];
+    begin
+        Initialize();
+
+        NoSeriesCode := CreateNonVisibleNoSeries(false);
+        NoSeries.GetNoSeriesLine(NoSeriesLine, NoSeriesCode, 0D, true);
+        NoSeriesLine.DeleteAll();
+        NoSeriesLine.Reset();
+        NoSeriesLine.SetRange("Series Code", NoSeriesCode);
+        NoSeriesLine.FindFirst();
+
+        NoSeriesRec.Get(NoSeriesCode);
+
+        ValidateFieldsOnNoSeriesPage(NoSeriesRec, NoSeriesLine);
+    end;
+
+    [Test]
+    procedure NoSeriesPage_FieldsValues_WithoutLines()
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        NoSeriesCode: Code[20];
+    begin
+        Initialize();
+
+        NoSeriesCode := CreateNonVisibleNoSeries(false);
+
+        NoSeriesLine.SetRange("Series Code", NoSeriesCode);
+        NoSeriesLine.DeleteAll();
+        if NoSeriesLine.FindFirst() then;
+
+        NoSeries.Get(NoSeriesCode);
+
+        ValidateFieldsOnNoSeriesPage(NoSeries, NoSeriesLine);
+    end;
+
+    [Test]
+    [HandlerFunctions('NoSeriesLinesPageHandler')]
+    procedure NoSeriesPage_DrillDown()
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesPage: TestPage "No. Series";
+    begin
+        Initialize();
+
+        NoSeriesCodeForUseInModalPageHendler := CreateNonVisibleNoSeries(false);
+
+        NoSeries.Get(NoSeriesCodeForUseInModalPageHendler);
+        NoSeriesPage.OpenView();
+        NoSeriesPage.GoToRecord(NoSeries);
+        NoSeriesPage.StartNo.Drilldown();
+        NoSeriesPage.Close();
+    end;
+
     local procedure DeleteNumberSeries(NameToDelete: Code[20])
     var
         NoSeries: Record "No. Series";
@@ -907,6 +987,90 @@ codeunit 134370 "ERM No. Series Tests"
     begin
         exit(IntValue);
     end;
+
+    local procedure CreateNonVisibleNoSeries(SingleLine: Boolean): Code[20]
+    var
+        NoSeries: Record "No. Series";
+    begin
+        NoSeries.Init();
+        NoSeries.Code := CopyStr(CreateGuid(), 1, 10);    // todo: use the last instead of the first charackters
+        NoSeries."Default Nos." := true;
+        NoSeries."Manual Nos." := false;
+        if not NoSeries.Insert() then;
+
+        if SingleLine then
+            CreateNonVisibleNoSeriesLine(NoSeries.Code, 0)
+        else begin
+            CreateNonVisibleNoSeriesLine(NoSeries.Code, 0);
+            CreateNonVisibleNoSeriesLine(NoSeries.Code, 1);
+            CreateNonVisibleNoSeriesLine(NoSeries.Code, 2);
+        end;
+
+        exit(NoSeries.Code);
+    end;
+
+    local procedure CreateNonVisibleNoSeriesLine(NoSeriesCode: Code[20]; Type: Option Good,Future,Ended)
+    var
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        NoSeriesLine.SetRange("Series Code", NoSeriesCode);
+        if NoSeriesLine.FindLast() then
+            NoSeriesLine."Line No." += 1;
+
+        NoSeriesLine."Series Code" := NoSeriesCode;
+        NoSeriesLine."Increment-by No." := 1;
+        NoSeriesLine."Starting No." := CopyStr(NoSeriesCode, 1, 10) + '0000000001';
+
+        case Type of
+            Type::Good:
+                begin
+                    NoSeriesLine."Ending No." := CopyStr(NoSeriesCode, 1, 10) + '9999999999';
+                    NoSeriesLine."Starting Date" := WorkDate() - 1;
+                end;
+            Type::Future:
+                begin
+                    NoSeriesLine."Ending No." := CopyStr(NoSeriesCode, 1, 10) + '8888888888';
+                    NoSeriesLine."Starting Date" := WorkDate() + 1;
+                end;
+            Type::Ended:
+                begin
+                    NoSeriesLine."Ending No." := CopyStr(NoSeriesCode, 1, 10) + '7777777777';
+                    NoSeriesLine.Validate("Last No. Used", NoSeriesLine."Ending No.");
+                    NoSeriesLine."Starting Date" := WorkDate() - 1;
+                end;
+        end;
+
+        NoSeriesLine.Insert();
+    end;
+
+    [ModalPageHandler]
+    procedure NoSeriesLinesPageHandler(var NoSeriesLinesPage: TestPage "No. Series Lines")
+    var
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        NoSeriesLine.SetRange("Series Code", NoSeriesCodeForUseInModalPageHendler);
+        NoSeriesLine.Find('-');
+
+        repeat
+            LibraryAssert.IsTrue(NoSeriesLinesPage.GotoRecord(NoSeriesLine), 'Cannot find record in set.');
+        until NoSeriesLine.Next() = 0;
+
+        NoSeriesLinesPage.OK().Invoke();
+    end;
+
+    local procedure ValidateFieldsOnNoSeriesPage(var NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line")
+    var
+        NoSeriesPage: TestPage "No. Series";
+    begin
+        NoSeriesPage.OpenView();
+        NoSeriesPage.GotoRecord(NoSeries);
+
+        LibraryAssert.AreEqual(NoSeriesLine."Starting No.", NoSeriesPage.StartNo.Value, 'Wrong "Starting No."');
+        LibraryAssert.AreEqual(NoSeriesLine."Ending No.", NoSeriesPage.EndNo.Value, 'Wrong "Ending No."');
+
+        NoSeriesPage.OK().Invoke();
+    end;
+
 
     local procedure Initialize()
     begin
