@@ -35,9 +35,9 @@ codeunit 305 "No. Series - Setup Impl."
 #if not CLEAN24
 #pragma warning disable AL0432
         NoSeriesManagement: Codeunit NoSeriesManagement;
+        IsHandled: Boolean;
 #pragma warning restore AL0432        
 #endif
-        IsHandled: Boolean;
     begin
 #if not CLEAN24
 #pragma warning disable AL0432
