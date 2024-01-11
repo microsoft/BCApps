@@ -15,7 +15,7 @@ using System.Reflection;
 
 codeunit 1482 "Edit in Excel Impl."
 {
-    Access = Internal;
+    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -46,6 +46,7 @@ codeunit 1482 "Edit in Excel Impl."
         DialogTitleTxt: Label 'Export';
         ExcelFileNameTxt: Text;
         XmlByteEncodingTok: Label '_x00%1_%2', Locked = true;
+        XmlByteEncoding2Tok: Label '%1_x00%2_%3', Locked = true;
 
     procedure EditPageInExcel(PageCaption: Text[240]; PageId: Integer; EditinExcelFilters: Codeunit "Edit in Excel Filters"; FileName: Text)
     var
@@ -704,10 +705,13 @@ codeunit 1482 "Edit in Excel Impl."
     end;
 #endif
 
+
     procedure ExternalizeODataObjectName(Name: Text) ConvertedName: Text
     var
         CurrentPosition: Integer;
         Convert: DotNet Convert;
+        StartStr: Text;
+        EndStr: Text;
         ByteValue: DotNet Byte;
     begin
         ConvertedName := Name;
@@ -735,7 +739,14 @@ codeunit 1482 "Edit in Excel Impl."
                         ConvertedName := DelStr(ConvertedName, CurrentPosition, 1);
                         CurrentPosition -= 1;
                     end else
-                        ConvertedName[CurrentPosition] := '_';
+                        if ConvertedName[CurrentPosition] = '''' then begin
+                            ByteValue := Convert.ToByte(ConvertedName[CurrentPosition]);
+                            StartStr := CopyStr(ConvertedName, 1, CurrentPosition - 1);
+                            EndStr := CopyStr(ConvertedName, CurrentPosition + 1);
+                            ConvertedName := StrSubstNo(XmlByteEncoding2Tok, StartStr, Convert.ToString(ByteValue, 16), EndStr);
+                            CurrentPosition += 6;
+                        end else
+                            ConvertedName[CurrentPosition] := '_';
                 end else
                     ConvertedName[CurrentPosition] := '_';
 
