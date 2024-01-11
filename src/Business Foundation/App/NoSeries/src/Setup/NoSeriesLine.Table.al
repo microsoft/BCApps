@@ -175,6 +175,51 @@ table 309 "No. Series Line"
 #pragma warning restore AL0432
 #endif
         }
+        field(10000; Series; Code[10]) // NA (MX) Functionality
+        {
+            Caption = 'Series';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The No. Series module cannot reference tax features.';
+#if CLEAN24
+            ObsoleteState = Removed;
+            ObsoleteTag = '27.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '24.0';
+#endif
+        }
+        field(10001; "Authorization Code"; Integer) // NA (MX) Functionality
+        {
+            Caption = 'Authorization Code';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The No. Series module cannot reference tax features.';
+#if CLEAN24
+            ObsoleteState = Removed;
+            ObsoleteTag = '27.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '24.0';
+#endif
+        }
+        field(10002; "Authorization Year"; Integer) // NA (MX) Functionality
+        {
+            Caption = 'Authorization Year';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The No. Series module cannot reference tax features.';
+#if CLEAN24
+            ObsoleteState = Removed;
+            ObsoleteTag = '27.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '24.0';
+
+            trigger OnValidate()
+            begin
+                if StrLen(Format("Authorization Year")) <> 4 then
+                    Message(ShouldBeValidYearErr);
+            end;
+#endif
+        }
     }
 
     keys
@@ -196,6 +241,7 @@ table 309 "No. Series Line"
 
 #if not CLEAN24
     var
+        ShouldBeValidYearErr: Label 'Should be a valid year.';
         [Obsolete('Use the Implementation field instead.', '24.0')]
         SkipAllowGapsValidationTrigger: Boolean;
 #endif

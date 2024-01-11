@@ -13,10 +13,9 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
     fields
     {
 #pragma warning disable AL0432
-        field(12100; "No. Series Type"; Option)
+        field(12100; "No. Series Type"; Integer)
 #pragma warning restore AL0432
         {
-            OptionMembers = Normal,Sales,Purchase;
             DataClassification = CustomerContent;
             Caption = 'No. Series Type';
             ObsoleteReason = 'The field is used in IT localization only.';
@@ -50,14 +49,6 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
             ObsoleteTag = '24.0';
             ObsoleteState = Moved;
             MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
-        }
-        field(11790; Mask; Text[20]) // CZ Functionality
-        {
-            Caption = 'Mask';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'The field is used in CZ localization only. The functionality of No. Series Enhancements will be removed and this field should not be used. (Obsolete::Removed in release 01.2021)';
-            ObsoleteState = Removed;
-            ObsoleteTag = '18.0';
         }
     }
 
