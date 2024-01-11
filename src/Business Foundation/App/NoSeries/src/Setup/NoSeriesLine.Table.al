@@ -106,6 +106,40 @@ table 309 "No. Series Line"
         {
             Caption = 'Last Date Used';
         }
+        field(11; "Allow Gaps in Nos."; Boolean)
+        {
+            Caption = 'Allow Gaps in Nos.';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The specific implementation is defined by the Implementation field and whether the implementation may produce gaps can be determined through the implementation interface or the procedure MayProduceGaps.';
+#if CLEAN24
+            ObsoleteState = Removed;
+            ObsoleteTag = '27.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '24.0';
+
+            trigger OnValidate()
+            var
+                NoSeries: Record "No. Series";
+            begin
+                NoSeries.Get("Series Code");
+                if Rec."Allow Gaps in Nos." = xRec."Allow Gaps in Nos." then
+                    exit;
+                if SkipAllowGapsValidationTrigger then begin
+                    SkipAllowGapsValidationTrigger := false;
+                    exit;
+                end;
+
+                if "Allow Gaps in Nos." then // Keep the implementation in sync with the Allow Gaps field
+                    Validate(Implementation, Enum::"No. Series Implementation"::Sequence)
+                else
+                    Validate(Implementation, Enum::"No. Series Implementation"::Normal);
+
+                if "Line No." <> 0 then
+                    Modify();
+            end;
+#endif
+        }
         field(12; "Sequence Name"; Code[40])
         {
             Caption = 'Sequence Name';
@@ -161,7 +195,7 @@ table 309 "No. Series Line"
     }
 
 #if not CLEAN24
-    protected var
+    var
         [Obsolete('Use the Implementation field instead.', '24.0')]
         SkipAllowGapsValidationTrigger: Boolean;
 #endif

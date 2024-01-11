@@ -15,12 +15,12 @@ table 12145 "No. Series Line Sales"
     DataClassification = CustomerContent;
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
     ObsoleteReason = 'Merged into No. Series Line table.';
-#if not CLEAN24
-    ObsoleteState = Pending;
-    ObsoleteTag = '24.0';
-#else
+#if CLEAN24
     ObsoleteState = Removed;
     ObsoleteTag = '27.0';
+#else
+    ObsoleteState = Pending;
+    ObsoleteTag = '24.0';
 #endif
 
     fields
