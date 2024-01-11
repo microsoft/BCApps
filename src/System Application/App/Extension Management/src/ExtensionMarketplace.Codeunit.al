@@ -221,6 +221,8 @@ codeunit 2501 "Extension Marketplace"
     [TryFunction]
     procedure InstallAppsourceExtension(MarketplaceApplicationId: Text; TelemetryURL: Text);
     var
+        ExtensionInstallationRecord: Record "Extension Installation";
+        ExtensionInstallationPage: Page "Extension Installation";
         AppId: Guid;
     begin
         AppId := MapMarketplaceIdToAppId(MarketplaceApplicationId);
@@ -229,7 +231,11 @@ codeunit 2501 "Extension Marketplace"
             Error(ExtensionNotFoundErr);
         end;
 
-        InstallAppsourceExtension(AppId, TelemetryURL);
+        ExtensionInstallationRecord.SetRange(ID, AppId);
+        ExtensionInstallationRecord.ID := AppId;
+        ExtensionInstallationRecord.ResponseUrl := CopyStr(TelemetryURL, 1, MaxStrLen(ExtensionInstallationRecord.ResponseUrl));
+        ExtensionInstallationPage.SetRecord(ExtensionInstallationRecord);
+        ExtensionInstallationPage.RunModal();
     end;
 
     [TryFunction]
@@ -243,6 +249,7 @@ codeunit 2501 "Extension Marketplace"
             Error(ExtensionNotFoundErr);
         end;
 
+        ExtensionInstallationRecord.SetRange(ID, AppId);
         ExtensionInstallationRecord.ID := AppId;
         ExtensionInstallationRecord.ResponseUrl := CopyStr(TelemetryURL, 1, MaxStrLen(ExtensionInstallationRecord.ResponseUrl));
         ExtensionInstallationPage.SetRecord(ExtensionInstallationRecord);
