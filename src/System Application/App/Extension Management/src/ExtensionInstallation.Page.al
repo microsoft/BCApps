@@ -31,7 +31,7 @@ page 2503 "Extension Installation"
         GetDetailsFromFilters();
 
         MarketplaceExtnDeployment.SetAppID(Rec.ID);
-        MarketplaceExtnDeployment.SetPreviewKey(Rec.PREVIEWKEY);
+        MarketplaceExtnDeployment.SetPreviewKey(Rec.PreviewKey);
         MarketplaceExtnDeployment.RunModal();
         if MarketplaceExtnDeployment.GetInstalledSelected() then
             if not IsNullGuid(Rec.ID) then
@@ -39,7 +39,7 @@ page 2503 "Extension Installation"
                     Rec.ID,
                     Rec.ResponseUrl,
                     MarketplaceExtnDeployment.GetLanguageId(),
-                    Rec.PREVIEWKEY);
+                    Rec.PreviewKey);
         CurrPage.Close();
     end;
 
