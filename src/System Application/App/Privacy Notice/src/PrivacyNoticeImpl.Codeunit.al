@@ -128,10 +128,9 @@ codeunit 1565 "Privacy Notice Impl."
         PrivacyNotice.SetAutoCalcFields(Enabled, Disabled);
         PrivacyNotice.SetRange("User SID Filter", EmptyGuid);
 
-        // If the Privacy Notice does not exist then re-initialize all Privacy Notices
         if not PrivacyNotice.Get(PrivacyNoticeId) then begin
             Session.LogMessage('0000GN7', StrSubstNo(PrivacyNoticeDoesNotExistTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
-            if Company.Get(CompanyName()) and Company."Evaluation Company" then
+            if SkipCheckInEval and Company.Get(CompanyName()) and Company."Evaluation Company" then
                 exit("Privacy Notice Approval State"::Agreed); // Auto-agree for evaluation companies if admin has not explicitly disagreed
             exit("Privacy Notice Approval State"::"Not set"); // If there are no Privacy Notice then it is by default "Not set".
         end;
