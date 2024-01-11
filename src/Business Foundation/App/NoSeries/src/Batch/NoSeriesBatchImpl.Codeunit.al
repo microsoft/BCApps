@@ -58,26 +58,21 @@ codeunit 309 "No. Series - Batch Impl."
         exit(NoSeries.PeekNextNo(TempGlobalNoSeriesLine, UsageDate));
     end;
 
-    procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]
-    begin
-        exit(GetNextNo(NoSeriesCode, WorkDate()));
-    end;
-
-    procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
+    procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     var
         TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
         GetNoSeriesLine(TempNoSeriesLine, NoSeriesCode, UsageDate);
-        exit(GetNextNo(TempNoSeriesLine, UsageDate));
+        exit(GetNextNo(TempNoSeriesLine, UsageDate, HideErrorsAndWarnings));
     end;
 
-    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date): Code[20]
+    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     var
         NoSeries: Codeunit "No. Series";
     begin
         SetInitialState(TempNoSeriesLine);
         LockedNoSeriesLine.LockTable();
-        exit(NoSeries.GetNextNo(TempGlobalNoSeriesLine, UsageDate, false));
+        exit(NoSeries.GetNextNo(TempGlobalNoSeriesLine, UsageDate, HideErrorsAndWarnings));
     end;
 
     procedure SimulateGetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; PrevDocumentNo: Code[20]): Code[20]
@@ -96,7 +91,16 @@ codeunit 309 "No. Series - Batch Impl."
             exit(IncStr(PrevDocumentNo));
 
         TempNoSeriesLine.Modify(false);
-        exit(GetNextNo(TempNoSeriesLine, UsageDate));
+        exit(GetNextNo(TempNoSeriesLine, UsageDate, false));
+    end;
+
+    procedure GetLastNoUsed(NoSeriesCode: Code[20]): Code[20]
+    var
+        TempNoSeriesLine: Record "No. Series Line" temporary;
+        NoSeries: Codeunit "No. Series";
+    begin
+        GetNoSeriesLine(TempNoSeriesLine, NoSeriesCode, WorkDate());
+        exit(NoSeries.GetLastNoUsed(TempGlobalNoSeriesLine));
     end;
 
     procedure GetLastNoUsed(TempNoSeriesLine: Record "No. Series Line" temporary): Code[20]

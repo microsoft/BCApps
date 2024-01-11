@@ -26,7 +26,7 @@ codeunit 308 "No. Series - Batch"
     /// <returns>The next number in the series.</returns>
     procedure GetNextNo(NoSeriesCode: Code[20]): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode));
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode, WorkDate(), false));
     end;
 
     /// <summary>
@@ -38,7 +38,7 @@ codeunit 308 "No. Series - Batch"
     /// <returns>The next number in the series.</returns>
     procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode, UsageDate));
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode, UsageDate, false));
     end;
 
     /// <summary>
@@ -50,7 +50,33 @@ codeunit 308 "No. Series - Batch"
     /// <returns>The next number in the series.</returns>
     procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin
-        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, UsageDate));
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, UsageDate, false));
+    end;
+
+    /// <summary>
+    /// Get the next number in the No. Series.
+    /// This function finds the first valid No. Series line based on UsageDate and calls the No. Series Line implementation to get the next number.
+    /// </summary>
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
+    /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
+    /// <param name="HideErrorsAndWarnings">Whether errors should be ignored.</param>
+    /// <returns>The next number in the series, if HideErrorsAndWarnings is true and errors occur, a blank code is returned.</returns>
+    procedure GetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
+    begin
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesCode, UsageDate, HideErrorsAndWarnings));
+    end;
+
+    /// <summary>
+    /// Get the next number in the No. Series.
+    /// This function uses the specified No. Series line and calls the No. Series Line implementation to get the next number.
+    /// </summary>
+    /// <param name="NoSeriesLine">The No. Series line to use.</param>
+    /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
+    /// <param name="HideErrorsAndWarnings">Whether errors should be ignored.</param>
+    /// <returns>The next number in the series, if HideErrorsAndWarnings is true and errors occur, a blank code is returned.</returns>
+    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
+    begin
+        exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings));
     end;
     #endregion
 
@@ -91,6 +117,15 @@ codeunit 308 "No. Series - Batch"
         exit(NoSeriesBatchImpl.PeekNextNo(NoSeriesLine, UsageDate));
     end;
     #endregion
+    /// <summary>
+    /// Get the last number used in the No. Series.
+    /// </summary>
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
+    /// <returns>The last number used in the series.</returns>
+    procedure GetLastNoUsed(NoSeriesCode: Code[20]): Code[20]
+    begin
+        exit(NoSeriesBatchImpl.GetLastNoUsed(NoSeriesCode));
+    end;
 
     /// <summary>
     /// Get the last number used in the No. Series.
@@ -114,6 +149,12 @@ codeunit 308 "No. Series - Batch"
         NoSeries.TestManual(NoSeriesCode);
     end;
 
+    /// <summary>
+    /// Verifies that the No. Series allows using manual numbers and throws an error for the document no. if it does not.
+    /// Note: This function allows manual numbers for blank No. Series Codes.
+    /// </summary>
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
+    /// <param name="DocumentNo">Document No. to be shown in the error message.</param>
     procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])
     var
         NoSeries: Codeunit "No. Series";

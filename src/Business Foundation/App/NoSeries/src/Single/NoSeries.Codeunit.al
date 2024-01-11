@@ -168,6 +168,12 @@ codeunit 310 "No. Series"
         NoSeriesImpl.TestManual(NoSeriesCode);
     end;
 
+    /// <summary>
+    /// Verifies that the No. Series allows using manual numbers and throws an error for the document no. if it does not.
+    /// Note: This function allows manual numbers for blank No. Series Codes.
+    /// </summary>
+    /// <param name="NoSeriesCode">Code for the No. Series.</param>
+    /// <param name="DocumentNo">Document No. to be shown in the error message.</param>
     procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";

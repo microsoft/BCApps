@@ -1,5 +1,3 @@
-// remove
-
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,7 +7,7 @@ namespace Microsoft.Foundation.NoSeries;
 
 codeunit 281 NoSeriesMgt
 {
-    Access = Internal; // public due to events, will be removed before release
+    Access = Internal;
     Permissions =
         tabledata "No. Series" = r,
         tabledata "No. Series Line" = rimd;
@@ -119,7 +117,6 @@ codeunit 281 NoSeriesMgt
 #pragma warning restore AL0432
 #endif
 
-    // TODO get rid of handled events
     internal procedure ValidateDefaultNos(var NoSeries: Record "No. Series"; xRecNoSeries: Record "No. Series")
     var
         IsHandled: Boolean;
@@ -155,7 +152,7 @@ codeunit 281 NoSeriesMgt
         if NoSeriesLine."Sequence Name" = '' then
             NoSeriesLine."Sequence Name" := Format(CreateGuid(), 0, 4);
 
-        if NoSeriesLine."Last No. Used" = '' then // TODO: Why do we subtract increment-by no. first but not in second.. second should calculate how far ahead to go?
+        if NoSeriesLine."Last No. Used" = '' then
             NumberSequence.Insert(NoSeriesLine."Sequence Name", NoSeriesLine."Starting Sequence No." - NoSeriesLine."Increment-by No.", NoSeriesLine."Increment-by No.")
         else begin
             NumberSequence.Insert(NoSeriesLine."Sequence Name", NoSeriesLine."Starting Sequence No.", NoSeriesLine."Increment-by No.");

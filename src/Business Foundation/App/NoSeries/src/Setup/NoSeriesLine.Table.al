@@ -38,7 +38,6 @@ table 309 "No. Series Line"
                 NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
                 NoSeriesMgt.UpdateNoSeriesLine(Rec, "Starting No.", CopyStr(FieldCaption("Starting No."), 1, 100));
-                NoSeriesMgt.UpdateStartingSequenceNo(Rec);
             end;
         }
         field(5; "Ending No."; Code[20])
@@ -74,15 +73,8 @@ table 309 "No. Series Line"
             MinValue = 1;
 
             trigger OnValidate()
-            var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
             begin
                 Validate(Open);
-                if Implementation = Enum::"No. Series Implementation"::Sequence then begin
-                    NoSeriesMgt.RecreateSequence(Rec);
-                    if "Line No." <> 0 then
-                        if Modify() then;
-                end;
             end;
         }
         field(8; "Last No. Used"; Code[20])
@@ -95,11 +87,6 @@ table 309 "No. Series Line"
             begin
                 NoSeriesMgt.UpdateNoSeriesLine(Rec, "Last No. Used", CopyStr(FieldCaption("Last No. Used"), 1, 100));
                 Validate(Open);
-                if Implementation = Enum::"No. Series Implementation"::Sequence then begin
-                    NoSeriesMgt.RecreateSequence(Rec);
-                    if "Line No." <> 0 then
-                        if Modify() then;
-                end;
             end;
         }
         field(9; Open; Boolean)
