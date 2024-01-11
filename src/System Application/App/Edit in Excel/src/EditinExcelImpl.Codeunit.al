@@ -15,7 +15,7 @@ using System.Reflection;
 
 codeunit 1482 "Edit in Excel Impl."
 {
-    Access = Public;
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -733,22 +733,22 @@ codeunit 1482 "Edit in Excel Impl."
         CurrentPosition := 1;
 
         while CurrentPosition <= StrLen(ConvertedName) do begin
-            if ConvertedName[CurrentPosition] in [' ', '\', '/', '''', '"', '.', '(', ')', '-', ':'] then
-                if CurrentPosition > 1 then begin
-                    if ConvertedName[CurrentPosition - 1] = '_' then begin
-                        ConvertedName := DelStr(ConvertedName, CurrentPosition, 1);
-                        CurrentPosition -= 1;
-                    end else
-                        if ConvertedName[CurrentPosition] = '''' then begin
-                            ByteValue := Convert.ToByte(ConvertedName[CurrentPosition]);
-                            StartStr := CopyStr(ConvertedName, 1, CurrentPosition - 1);
-                            EndStr := CopyStr(ConvertedName, CurrentPosition + 1);
-                            ConvertedName := StrSubstNo(XmlByteEncoding2Tok, StartStr, Convert.ToString(ByteValue, 16), EndStr);
-                            CurrentPosition += 6;
+            if ConvertedName[CurrentPosition] = '''' then begin
+                ByteValue := Convert.ToByte(ConvertedName[CurrentPosition]);
+                StartStr := CopyStr(ConvertedName, 1, CurrentPosition - 1);
+                EndStr := CopyStr(ConvertedName, CurrentPosition + 1);
+                ConvertedName := StrSubstNo(XmlByteEncoding2Tok, StartStr, Convert.ToString(ByteValue, 16), EndStr);
+                CurrentPosition += 6;
+            end else
+                if ConvertedName[CurrentPosition] in [' ', '\', '/', '"', '.', '(', ')', '-', ':'] then
+                    if CurrentPosition > 1 then begin
+                        if ConvertedName[CurrentPosition - 1] = '_' then begin
+                            ConvertedName := DelStr(ConvertedName, CurrentPosition, 1);
+                            CurrentPosition -= 1;
                         end else
                             ConvertedName[CurrentPosition] := '_';
-                end else
-                    ConvertedName[CurrentPosition] := '_';
+                    end else
+                        ConvertedName[CurrentPosition] := '_';
 
             CurrentPosition += 1;
         end;
