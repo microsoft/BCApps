@@ -271,6 +271,18 @@ codeunit 310 "No. Series"
     end;
 
     /// <summary>
+    /// Use this method to determine whether the specified No. Series line may produce gaps.
+    /// </summary>
+    /// <param name="NoSeriesLine">The No. Series Line to check.</param>
+    /// <returns></returns>
+    procedure MayProduceGaps(NoSeriesLine: Record "No. Series Line"): Boolean
+    var
+        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+    begin
+        exit(NoSeriesSetupImpl.MayProduceGaps(NoSeriesLine));
+    end;
+
+    /// <summary>
     /// Get the No. Series line for the specified No. Series code and usage date.
     /// </summary>
     /// <param name="NoSeriesLine">The No. Series line to use and return.</param>
