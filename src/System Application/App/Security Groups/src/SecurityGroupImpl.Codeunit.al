@@ -36,6 +36,7 @@ codeunit 9871 "Security Group Impl."
         EntraTxt: Label 'Microsoft Entra', Locked = true;
         SecurityGroupAddedLbl: Label 'A security group with ID %1 has been added. Automatically created user with security ID: %2.', Locked = true;
         RemovingOrphanedGroupsTxt: Label 'Removing %1 orphaned security groups.', Locked = true;
+        CouldNotRemoveGroupErr: Label 'Could not delete an orphaned security group.', Locked = true;
         NotificationIdLbl: Label 'e78ecb57-f560-4788-b9c7-e5a477467d65', Locked = true;
 
     procedure ValidateGroupId(GroupId: Text)
@@ -587,9 +588,6 @@ codeunit 9871 "Security Group Impl."
         OrphanedGroupUserSecurityIds: List of [Guid];
         OrphanedGroupUserSecurityId: Guid;
     begin
-        if not GroupUser.WritePermission() then
-            exit;
-
         GroupUser.SetRange("License Type", GroupUser."License Type"::"AAD Group");
         if GroupUser.FindSet() then
             repeat
@@ -604,7 +602,8 @@ codeunit 9871 "Security Group Impl."
         Session.LogMessage('0000LI8', StrSubstNo(RemovingOrphanedGroupsTxt, OrphanedGroupUserSecurityIds.Count()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SecurityGroupsTok);
         foreach OrphanedGroupUserSecurityId in OrphanedGroupUserSecurityIds do
             if GroupUser.Get(OrphanedGroupUserSecurityId) then
-                GroupUser.Delete();
+                if not GroupUser.Delete(true) then
+                    Session.LogMessage('0000M5L', CouldNotRemoveGroupErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', SecurityGroupsTok);
     end;
 
     [InternalEvent(false)]
