@@ -39,7 +39,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
             if NoSeriesLine."Increment-by No." <= 1 then
                 NoSeriesLine."Last No. Used" := IncStr(NoSeriesLine."Last No. Used")
             else
-                IncrementNoText(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.");
+                NoSeriesLine."Last No. Used" := IncrementNoText(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.");
 
         if not EnsureLastNoUsedIsWithinValidRange(NoSeriesLine, HideErrorsAndWarnings) then
             exit('');
@@ -63,7 +63,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         exit(false);
     end;
 
-    local procedure IncrementNoText(var No: Code[20]; IncrementByNo: Decimal)
+    procedure IncrementNoText(No: Code[20]; IncrementByNo: Decimal): Code[20]
     var
         BigIntNo: BigInteger;
         BigIntIncByNo: BigInteger;
@@ -76,6 +76,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         BigIntIncByNo := IncrementByNo;
         NewNo := CopyStr(Format(BigIntNo + BigIntIncByNo, 0, 1), 1, MaxStrLen(NewNo));
         ReplaceNoText(No, NewNo, 0, StartPos, EndPos);
+        exit(No);
     end;
 
     local procedure GetIntegerPos(No: Code[20]; var StartPos: Integer; var EndPos: Integer)

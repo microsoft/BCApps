@@ -132,9 +132,10 @@ page 457 "No. Series Lines"
     trigger OnAfterGetRecord()
     var
         NoSeries: Codeunit "No. Series";
+        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
     begin
         Rec."Last No. Used" := NoSeries.GetLastNoUsed(Rec);
-        AllowGaps := Rec.MayProduceGaps();
+        AllowGaps := NoSeriesSetupImpl.MayProduceGaps(Rec);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)

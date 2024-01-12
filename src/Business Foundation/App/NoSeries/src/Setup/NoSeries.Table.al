@@ -54,57 +54,11 @@ table 308 "No. Series"
         {
             Caption = 'Date Order';
         }
-        field(12100; "No. Series Type"; Enum "No. Series Type")
-        {
-            Caption = 'No. Series Type';
-
-            trigger OnValidate()
-            var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
-            begin
-                NoSeriesMgt.ValidateNoSeriesType(Rec, xRec);
-            end;
-        }
-        field(12101; "VAT Register"; Code[10])
-        {
-            Caption = 'VAT Register';
-            ObsoleteReason = ' (IT Only) The No. Series module cannot have a dependency on VAT Register. Please use "VAT Register Code" instead.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '24.0';
-#endif
-        }
-        field(12102; "VAT Reg. Print Priority"; Integer)
-        {
-            Caption = 'VAT Reg. Print Priority';
-            ObsoleteReason = ' (IT Only) The No. Series module cannot have a dependency on VAT Register. Please use "VAT Register Print Priority" instead.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '24.0';
-#endif
-        }
-        field(12103; "Reverse Sales VAT No. Series"; Code[20])
-        {
-            Caption = 'Reverse Sales VAT No. Series';
-            ObsoleteReason = ' (IT Only) The No. Series module cannot have a dependency on VAT Register. Please use "VAT Register Print Priority" instead.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '24.0';
-#endif
-        }
         field(11790; Mask; Text[20]) // CZ Functionality
         {
             Caption = 'Mask';
-            ObsoleteReason = 'The functionality of No. Series Enhancements will be removed and this field should not be used. (Obsolete::Removed in release 01.2021)';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The field is used in CZ localization only. The functionality of No. Series Enhancements will be removed and this field should not be used. (Obsolete::Removed in release 01.2021)';
             ObsoleteState = Removed;
             ObsoleteTag = '18.0';
         }
@@ -130,57 +84,5 @@ table 308 "No. Series"
         NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
         NoSeriesMgt.DeleteNoSeries(Rec);
-    end;
-
-#if not CLEAN24
-#pragma warning disable AL0432
-    [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
-    procedure DrillDown()
-    var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
-    begin
-        NoSeriesMgt.DrillDown(Rec);
-    end;
-
-    [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
-    procedure UpdateLine(var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date)
-    var
-        AllowGaps: Boolean;
-    begin
-        UpdateLine(StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
-    end;
-
-    [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
-    procedure UpdateLine(var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var AllowGaps: Boolean)
-    var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
-        NoSeriesSingle: Interface "No. Series - Single";
-        NoSeriesImplementation: Enum "No. Series Implementation";
-    begin
-        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, NoSeriesImplementation);
-        NoSeriesSingle := NoSeriesImplementation;
-        AllowGaps := NoSeriesSingle.MayProduceGaps();
-    end;
-
-    [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
-    procedure FindNoSeriesLineToShow(var NoSeriesLine: Record "No. Series Line")
-    var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
-    begin
-        NoSeriesMgt.FindNoSeriesLineToShow(Rec, NoSeriesLine)
-    end;
-#pragma warning restore AL0432
-#endif
-
-    [Obsolete('The event has been moved to codeunit NoSeriesManagement', '24.0')]
-    [IntegrationEvent(false, false)]
-    internal procedure OnBeforeValidateDefaultNos(var NoSeries: Record "No. Series"; var IsHandled: Boolean)
-    begin
-    end;
-
-    [Obsolete('The event has been moved to codeunit NoSeriesManagement', '24.0')]
-    [IntegrationEvent(false, false)]
-    internal procedure OnBeforeValidateManualNos(var NoSeries: Record "No. Series"; var IsHandled: Boolean)
-    begin
     end;
 }

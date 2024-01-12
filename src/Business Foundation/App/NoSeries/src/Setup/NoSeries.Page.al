@@ -27,11 +27,6 @@ page 456 "No. Series"
                     Caption = 'Code';
                     ToolTip = 'Specifies a number series code.';
                 }
-                field("No. Series Type"; Rec."No. Series Type")
-                {
-                    Caption = 'No. Series Type';
-                    ToolTip = 'Specifies the number series type that is associated with the number series code.';
-                }
                 field(Description; Rec.Description)
                 {
                     Caption = 'Description';
@@ -46,9 +41,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesMgt: Codeunit NoSeriesMgt;
+                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
                     begin
-                        NoSeriesMgt.DrillDown(Rec);
+                        NoSeriesSetupImpl.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -61,9 +56,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesMgt: Codeunit NoSeriesMgt;
+                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
                     begin
-                        NoSeriesMgt.DrillDown(Rec);
+                        NoSeriesSetupImpl.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -76,9 +71,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesMgt: Codeunit NoSeriesMgt;
+                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
                     begin
-                        NoSeriesMgt.DrillDown(Rec);
+                        NoSeriesSetupImpl.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -90,9 +85,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesMgt: Codeunit NoSeriesMgt;
+                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
                     begin
-                        NoSeriesMgt.DrillDown(Rec);
+                        NoSeriesSetupImpl.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -105,9 +100,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesMgt: Codeunit NoSeriesMgt;
+                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
                     begin
-                        NoSeriesMgt.DrillDown(Rec);
+                        NoSeriesSetupImpl.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -120,9 +115,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesMgt: Codeunit NoSeriesMgt;
+                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
                     begin
-                        NoSeriesMgt.DrillDown(Rec);
+                        NoSeriesSetupImpl.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -135,9 +130,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesMgt: Codeunit NoSeriesMgt;
+                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
                     begin
-                        NoSeriesMgt.DrillDown(Rec);
+                        NoSeriesSetupImpl.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -216,13 +211,8 @@ page 456 "No. Series"
                     Caption = 'Lines';
                     Image = AllLines;
                     ToolTip = 'View or edit additional information about the number series lines.';
-
-                    trigger OnAction()
-                    var
-                        NoSeriesMgt: Codeunit NoSeriesMgt;
-                    begin
-                        NoSeriesMgt.ShowNoSeriesLines(Rec);
-                    end;
+                    RunObject = Page "No. Series Lines";
+                    RunPageLink = "Series Code" = field(Code);
                 }
                 action(Relationships)
                 {
@@ -294,10 +284,10 @@ page 456 "No. Series"
 
     protected procedure UpdateLineActionOnPage()
     var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
+        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
         NoSeriesSingle: Interface "No. Series - Single";
     begin
-        NoSeriesMgt.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, Implementation);
+        NoSeriesSetupImpl.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, Implementation);
         NoSeriesSingle := Implementation;
         AllowGaps := NoSeriesSingle.MayProduceGaps();
     end;

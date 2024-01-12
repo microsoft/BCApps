@@ -44,7 +44,8 @@
                      "TranslationFile",
                      "GenerateCaptions",
                      "NoImplicitWith",
-                     "NoPromotedActionProperties"
+                     "NoPromotedActionProperties",
+                     "AllowExtensionAndTargetInSameModule"
                  ],
     "resourceExposurePolicy":  {
                                    "allowDebugging":  true,

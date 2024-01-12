@@ -5,22 +5,22 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-table 12146 "No. Series Line Purchase"
+table 12145 "No. Series Line Sales"
 {
-    Caption = 'No. Series Line Purchase';
+    Caption = 'No. Series Line Sales';
 #if not CLEAN24
-    DrillDownPageId = "No. Series Lines Purchase";
-    LookupPageId = "No. Series Lines Purchase";
+    DrillDownPageId = "No. Series Lines Sales";
+    LookupPageId = "No. Series Lines Sales";
 #endif
     DataClassification = CustomerContent;
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
     ObsoleteReason = 'Merged into No. Series Line table.';
-#if not CLEAN24
-    ObsoleteState = Pending;
-    ObsoleteTag = '24.0';
-#else
+#if CLEAN24
     ObsoleteState = Removed;
     ObsoleteTag = '27.0';
+#else
+    ObsoleteState = Pending;
+    ObsoleteTag = '24.0';
 #endif
 
     fields
@@ -49,7 +49,7 @@ table 12146 "No. Series Line Purchase"
             var
                 NoSeriesManagement: Codeunit NoSeriesManagement;
             begin
-                NoSeriesManagement.UpdateNoSeriesLinePurchase(Rec, "Starting No.", CopyStr(FieldCaption("Starting No."), 1, 30));
+                NoSeriesManagement.UpdateNoSeriesLineSales(Rec, "Starting No.", CopyStr(FieldCaption("Starting No."), 1, 30));
             end;
 #pragma warning restore AL0432
 #endif
@@ -68,7 +68,7 @@ table 12146 "No. Series Line Purchase"
                     "Warning No." := '';
 #if not CLEAN24
 #pragma warning disable AL0432
-                NoSeriesManagement.UpdateNoSeriesLinePurchase(Rec, "Ending No.", CopyStr(FieldCaption("Ending No."), 1, 30));
+                NoSeriesManagement.UpdateNoSeriesLineSales(Rec, "Ending No.", CopyStr(FieldCaption("Ending No."), 1, 30));
 #pragma warning restore AL0432
 #endif
                 Validate(Open);
@@ -87,7 +87,7 @@ table 12146 "No. Series Line Purchase"
                 TestField("Ending No.");
 #if not CLEAN24
 #pragma warning disable AL0432
-                NoSeriesManagement.UpdateNoSeriesLinePurchase(Rec, "Warning No.", CopyStr(FieldCaption("Warning No."), 1, 30));
+                NoSeriesManagement.UpdateNoSeriesLineSales(Rec, "Warning No.", CopyStr(FieldCaption("Warning No."), 1, 30));
 #pragma warning restore AL0432
 #endif
             end;
@@ -110,7 +110,7 @@ table 12146 "No. Series Line Purchase"
             begin
 #if not CLEAN24
 #pragma warning disable AL0432
-                NoSeriesManagement.UpdateNoSeriesLinePurchase(Rec, "Last No. Used", CopyStr(FieldCaption("Last No. Used"), 1, 30));
+                NoSeriesManagement.UpdateNoSeriesLineSales(Rec, "Last No. Used", CopyStr(FieldCaption("Last No. Used"), 1, 30));
 #pragma warning restore AL0432
 #endif
                 Validate(Open);
