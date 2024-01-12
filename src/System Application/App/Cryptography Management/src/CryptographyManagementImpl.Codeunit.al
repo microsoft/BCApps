@@ -557,20 +557,15 @@ codeunit 1279 "Cryptography Management Impl."
         KeyAsBase64 := Convert.ToBase64String(RijndaelProvider."Key"());
         VectorAsBase64 := Convert.ToBase64String(RijndaelProvider.IV());
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [Obsolete('Use EncryptRijndael with SecretText data type return.', '24.0')]
-    procedure EncryptRijndael(PlainText: Text) EncryptedText: Text
-    var
-        SecretPlainText: SecretText;
-    begin
-        SecretPlainText := PlainText;
-        EncryptedText := EncryptRijndael(SecretPlainText).Unwrap();
-    end;
-#endif
 
     [NonDebuggable]
-    procedure EncryptRijndael(PlainText: SecretText) EncryptedText: SecretText
+    procedure EncryptRijndael(PlainText: Text) EncryptedText: Text
+    begin
+        EncryptedText := EncryptRijndaelSecret(PlainText).Unwrap();
+    end;
+
+    [NonDebuggable]
+    procedure EncryptRijndaelSecret(PlainText: SecretText) EncryptedText: SecretText
     var
         Encryptor: DotNet "Cryptography.ICryptoTransform";
         Convert: DotNet Convert;
@@ -591,7 +586,13 @@ codeunit 1279 "Cryptography Management Impl."
     end;
 
     [NonDebuggable]
-    procedure DecryptRijndael(EncryptedText: Text) PlainText: Text
+    procedure DecryptRijndael(EncryptedText: SecretText) PlainText: Text
+    begin
+        PlainText := DecryptRijndaelSecret(EncryptedText).Unwrap();
+    end;
+
+    [NonDebuggable]
+    procedure DecryptRijndaelSecret(EncryptedText: SecretText) PlainText: SecretText
     var
         Decryptor: DotNet "Cryptography.ICryptoTransform";
         Convert: DotNet Convert;
@@ -602,7 +603,7 @@ codeunit 1279 "Cryptography Management Impl."
     begin
         Construct();
         Decryptor := RijndaelProvider.CreateDecryptor();
-        DecMemoryStream := DecMemoryStream.MemoryStream(Convert.FromBase64String(EncryptedText));
+        DecMemoryStream := DecMemoryStream.MemoryStream(Convert.FromBase64String(EncryptedText.Unwrap()));
         DecCryptoStream := DecCryptoStream.CryptoStream(DecMemoryStream, Decryptor, CryptoStreamMode.Read);
         DecStreamReader := DecStreamReader.StreamReader(DecCryptoStream);
 #pragma warning disable AA0205
