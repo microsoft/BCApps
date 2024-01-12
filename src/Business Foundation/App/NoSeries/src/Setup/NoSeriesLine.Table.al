@@ -242,7 +242,6 @@ table 309 "No. Series Line"
 #if not CLEAN24
     var
         ShouldBeValidYearErr: Label 'Should be a valid year.';
-        [Obsolete('Use the Implementation field instead.', '24.0')]
         SkipAllowGapsValidationTrigger: Boolean;
 #endif
 }
