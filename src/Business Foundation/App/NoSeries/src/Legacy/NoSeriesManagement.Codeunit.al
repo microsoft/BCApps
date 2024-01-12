@@ -186,7 +186,7 @@ codeunit 396 NoSeriesManagement
         GlobalNoSeriesCode := DefaultNoSeriesCode;
         FilterSeries();
         GlobalNoSeries.Code := NewNoSeriesCode;
-#pragma warning disable AA0175 // This is meant to throw an error when the record is not found. Should change to explicit error
+#pragma warning disable AA0175
         GlobalNoSeries.Find();
 #pragma warning restore AA0175
     end;
@@ -771,9 +771,8 @@ codeunit 396 NoSeriesManagement
         exit(not NoSeriesRelationship.IsEmpty);
     end;
 
-    // apac
     [Scope('OnPrem')]
-    procedure ReverseGetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean): Code[20]
+    procedure ReverseGetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean): Code[20] // Backwards compatibility for apac
     var
         NoSeriesLine: Record "No. Series Line";
     begin

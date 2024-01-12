@@ -135,7 +135,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
                 exit(NumberCode)
             else
                 exit(CopyStr(NoSeriesLine."Starting No.", 1, i) + NumberCode);
-        exit(NumberCode); // should ideally not be possible, as bigints can produce max 18 digits
+        exit(NumberCode);
     end;
 
     internal procedure ExtractNoFromCode(NumberCode: Code[20]): BigInteger

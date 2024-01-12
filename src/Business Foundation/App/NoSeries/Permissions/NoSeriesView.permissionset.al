@@ -13,7 +13,7 @@ permissionset 303 "No. Series - View"
 
     Permissions =
 #if not CLEAN24
-        tabledata "No. Series Line" = m, // need to keep this for legacy code
+        tabledata "No. Series Line" = m,
 #pragma warning disable AL0432
         tabledata "No. Series Line Sales" = m,
         tabledata "No. Series Line Purchase" = m,

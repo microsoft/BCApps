@@ -1,5 +1,3 @@
-// remove
-
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -35,10 +33,13 @@ codeunit 283 "Cross-Company No. Series"
     /// <summary>
     /// Gets the next available number for the given cross-company No. Series
     /// </summary>
-    /// <param name="NoSeriesTenant">The No. Series to get the next number from.</param>
+    /// <param name="NoSeriesCode">Code for the No. Series Tenant to use.</param>
     /// <returns>The next number.</returns>
-    procedure GetNextNo(NoSeriesTenant: Record "No. Series Tenant") NextAvailableCode: Code[20]
+    procedure GetNextNo(NoSeriesCode: Code[10]) NextAvailableCode: Code[20]
+    var
+        NoSeriesTenant: Record "No. Series Tenant";
     begin
+        NoSeriesTenant.Get(NoSeriesCode);
         NextAvailableCode := CopyStr(IncStr(NoSeriesTenant.Code + NoSeriesTenant."Last Used number"), 1, MaxStrLen(NextAvailableCode));
         NoSeriesTenant.Validate("Last Used number", IncStr(NoSeriesTenant."Last Used number"));
         NoSeriesTenant.Modify();

@@ -58,7 +58,6 @@ codeunit 281 NoSeriesMgt
         end;
     end;
 
-    // moved from other objects
     internal procedure FindNoSeriesLineToShow(var NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line")
     begin
         SetNoSeriesLineFilter(NoSeriesLine, NoSeries.Code, 0D);
@@ -230,7 +229,7 @@ codeunit 281 NoSeriesMgt
                 exit(NumberCode)
             else
                 exit(CopyStr(NoSeriesLine."Starting No.", 1, i) + NumberCode);
-        exit(NumberCode); // should ideally not be possible, as bigints can produce max 18 digits
+        exit(NumberCode);
     end;
 
     internal procedure ExtractNoFromCode(NumberCode: Code[20]): BigInteger
