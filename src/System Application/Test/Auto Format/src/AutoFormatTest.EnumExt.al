@@ -6,16 +6,16 @@
 namespace System.Test.Text;
 
 using System.Text;
-#pragma warning disable AS0099, PTE0023
+#pragma warning disable AS0099
 enumextension 132584 AutoFormatTest extends "Auto Format"
 {
-    value(100; Whatever)
+    value(132584; Whatever)
     {
         caption = 'Whatever';
     }
-    value(1000; "1 decimal")
+    value(132585; "1 decimal")
     {
         Caption = '1 decimal';
     }
 }
-#pragma warning restore AS0099, PTE0023
+#pragma warning restore AS0099

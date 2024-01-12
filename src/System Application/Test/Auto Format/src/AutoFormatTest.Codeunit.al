@@ -75,20 +75,20 @@ codeunit 132584 "Auto Format Test"
         AutoFormat: Codeunit "Auto Format";
         AutoFormatTestPage: TestPage "AutoFormat Test Page";
     begin
-        // [GIVEN] A page with a field with AutoFormatType=1000
+        // [GIVEN] A page with a field with AutoFormatType=132585
         BindSubscription(AutoFormatTest);
         AutoFormatTestPage.OpenView();
 
         // [WHEN] The page field AutoFormatExpression is set to ''
-        // [WHEN] A value is inserted in the field "Case1000"
-        AutoFormatTestPage.Case1000.SetValue(3456.67843);
-        // [THEN] The inserted value is formatted using the formatting rule for AutoFormatType=1000 (1 decimal values in this case)
-        LibraryAssert.AreEqual('3,456.7', AutoFormatTestPage.Case1000.Value(), 'The return value should be "3,456.7"');
+        // [WHEN] A value is inserted in the field "Case132585"
+        AutoFormatTestPage.Case132585.SetValue(3456.67843);
+        // [THEN] The inserted value is formatted using the formatting rule for AutoFormatType=132585 (1 decimal values in this case)
+        LibraryAssert.AreEqual('3,456.7', AutoFormatTestPage.Case132585.Value(), 'The return value should be "3,456.7"');
 
         AutoFormatTestPage.Close();
 
         // [GIVEN] The function ResolveAutoFormat
-        // [WHEN] Calling the function with AutoFormatType=1000 and AutoFormatExpr=''
+        // [WHEN] Calling the function with AutoFormatType=132585 and AutoFormatExpr=''
         // [THEN] A data formatting expression is returned ('<Precision,1:1><Standard Format,0>' in this case)
         LibraryAssert.AreEqual('<Precision,1:1><Standard Format,0>', AutoFormat.ResolveAutoFormat("Auto Format"::"1 decimal", ''), 'The return value should be "<Precision,1:1><Standard Format,0>"');
 
