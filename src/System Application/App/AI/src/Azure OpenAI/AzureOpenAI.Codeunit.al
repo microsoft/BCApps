@@ -235,15 +235,20 @@ codeunit 7771 "Azure OpenAI"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         AzureOpenAIImpl.SetCopilotCapability(CopilotCapability, CallerModuleInfo);
     end;
-
+#if not CLEAN24
     /// <summary>
     /// Gets the approximate token count for the input.
     /// </summary>
     /// <param name="Input">The input to get the approximate token count for.</param>
     /// <returns>The approximate token count.</returns>
     [NonDebuggable]
+    [Obsolete('Use the AOAI Token codeunit.', '24.0')]
     procedure ApproximateTokenCount(Input: Text): Integer
     begin
+#pragma warning disable AL0432
         AzureOpenAIImpl.ApproximateTokenCount(Input);
+#pragma warning restore AL0432
     end;
+#endif
+
 }
