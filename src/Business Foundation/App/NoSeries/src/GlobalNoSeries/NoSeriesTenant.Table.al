@@ -54,11 +54,10 @@ table 1263 "No. Series Tenant"
     [Obsolete('This procedure has been moved to codeunit Cross-Company No. Series', '24.0')]
     [Scope('OnPrem')]
     procedure GetNextAvailableCode() NextAvailableCode: Code[20]
+    var
+        CrossCompanyNoSeries: Codeunit "Cross-Company No. Series";
     begin
-        NextAvailableCode := CopyStr(IncStr(Code + "Last Used number"), 1, MaxStrLen(NextAvailableCode));
-        Validate("Last Used number", IncStr("Last Used number"));
-        Modify();
-        exit(NextAvailableCode);
+        exit(CrossCompanyNoSeries.GetNextNo(Rec));
     end;
 #endif
 }

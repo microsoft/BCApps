@@ -12,8 +12,6 @@ namespace Microsoft.Foundation.NoSeries;
 /// </summary>
 codeunit 283 "Cross-Company No. Series"
 {
-    Permissions = tabledata "No. Series Tenant" = rimd;
-
     /// <summary>
     /// Creates a new cross-company No. Series
     /// </summary>
@@ -22,12 +20,21 @@ codeunit 283 "Cross-Company No. Series"
     /// <param name="LastUsedNo">The last used number from the No. Series. The first number retrieved will be this number increased by one.</param>
     procedure CreateNoSeries(NoSeriesCode: Code[10]; NoSeriesDescription: Text[50]; LastUsedNo: Code[10])
     var
-        NoSeriesTenant: Record "No. Series Tenant";
+        CrossCompanyNoSeriesImpl: Codeunit "Cross-Company No. Series Impl.";
     begin
-        NoSeriesTenant.Validate(Code, NoSeriesCode);
-        NoSeriesTenant.Validate(Description, NoSeriesDescription);
-        NoSeriesTenant.Validate("Last Used number", LastUsedNo);
-        NoSeriesTenant.Insert(true);
+        CrossCompanyNoSeriesImpl.CreateNoSeries(NoSeriesCode, NoSeriesDescription, LastUsedNo);
+    end;
+
+    /// <summary>
+    /// Gets the next available number for the given cross-company No. Series
+    /// </summary>
+    /// <param name="NoSeriesTenant">The No. Series to get the next number from.</param>
+    /// <returns>The next number.</returns>
+    procedure GetNextNo(NoSeriesTenant: Record "No. Series Tenant"): Code[20]
+    var
+        CrossCompanyNoSeriesImpl: Codeunit "Cross-Company No. Series Impl.";
+    begin
+        exit(CrossCompanyNoSeriesImpl.GetNextNo(NoSeriesTenant));
     end;
 
     /// <summary>
@@ -35,14 +42,22 @@ codeunit 283 "Cross-Company No. Series"
     /// </summary>
     /// <param name="NoSeriesCode">Code for the No. Series Tenant to use.</param>
     /// <returns>The next number.</returns>
-    procedure GetNextNo(NoSeriesCode: Code[10]) NextAvailableCode: Code[20]
+    procedure GetNextNo(NoSeriesCode: Code[10]): Code[20]
     var
-        NoSeriesTenant: Record "No. Series Tenant";
+        CrossCompanyNoSeriesImpl: Codeunit "Cross-Company No. Series Impl.";
     begin
-        NoSeriesTenant.Get(NoSeriesCode);
-        NextAvailableCode := CopyStr(IncStr(NoSeriesTenant.Code + NoSeriesTenant."Last Used number"), 1, MaxStrLen(NextAvailableCode));
-        NoSeriesTenant.Validate("Last Used number", IncStr(NoSeriesTenant."Last Used number"));
-        NoSeriesTenant.Modify();
-        exit(NextAvailableCode);
+        exit(CrossCompanyNoSeriesImpl.GetNextNo(NoSeriesCode));
+    end;
+
+    /// <summary>
+    /// Checks if the given cross-company No. Series exists
+    /// </summary>
+    /// <param name="NoSeriesCode">Code for the No. Series Tenant to use.</param>
+    /// <returns>Whether the No. Series exist.</returns>
+    procedure Exist(NoSeriesCode: Code[10]): Boolean
+    var
+        CrossCompanyNoSeriesImpl: Codeunit "Cross-Company No. Series Impl.";
+    begin
+        exit(CrossCompanyNoSeriesImpl.Exist(NoSeriesCode));
     end;
 }
