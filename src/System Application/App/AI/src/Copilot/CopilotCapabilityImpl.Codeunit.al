@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
+using System;
 using System.Azure.Identity;
 using System.Environment;
 using System.Environment.Configuration;
@@ -236,6 +237,15 @@ codeunit 7774 "Copilot Capability Impl"
         UserPermissions: Codeunit "User Permissions";
     begin
         IsAdmin := AzureADGraphUser.IsUserDelegatedAdmin() or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId()) or AzureADGraphUser.IsUserDelegatedHelpdesk() or UserPermissions.IsSuper(UserSecurityId());
+    end;
+
+    [Tryfunction]
+    procedure CheckGeo(var WithinGeo: Boolean; var WithinEuropeGeo: Boolean)
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+    begin
+        WithinGeo := ALCopilotFunctions.IsWithinGeo();
+        WithinEuropeGeo := ALCopilotFunctions.IsEuropeGeo();
     end;
 
     procedure UpdateGuidedExperience(AllowDataMovement: Boolean)
