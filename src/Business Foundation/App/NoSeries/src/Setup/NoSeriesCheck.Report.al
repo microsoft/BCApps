@@ -121,7 +121,7 @@ report 22 "No. Series Check"
         layout(LayoutRdlc)
         {
             Type = RDLC;
-            LayoutFile = './src/Legacy/NoSeriesCheck.rdlc';
+            LayoutFile = './NoSeries/src/Setup/NoSeriesCheck.rdlc';
         }
     }
 

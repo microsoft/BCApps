@@ -168,7 +168,7 @@ report 21 "No. Series"
         layout(LayoutRdlc)
         {
             Type = RDLC;
-            LayoutFile = './src/Legacy/NoSeries.rdlc';
+            LayoutFile = './NoSeries/src/Setup/NoSeries.rdlc';
         }
     }
 
