@@ -580,9 +580,6 @@ codeunit 132928 "Azure AD User Sync Test"
         TearDown();
     end;
 
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [CommitBehavior(CommitBehavior::Ignore)]
     procedure TestMixedPlansDetected()
     var
         TempAzureADUserUpdateBuffer: Record "Azure AD User Update Buffer" temporary;
@@ -614,9 +611,6 @@ codeunit 132928 "Azure AD User Sync Test"
         TearDown();
     end;
 
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [CommitBehavior(CommitBehavior::Ignore)]
     procedure TestLicensedDeviceUser()
     var
         User: Record User;
