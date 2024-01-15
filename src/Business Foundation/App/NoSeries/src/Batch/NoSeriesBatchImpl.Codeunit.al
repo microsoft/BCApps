@@ -62,17 +62,20 @@ codeunit 309 "No. Series - Batch Impl."
     var
         TempNoSeriesLine: Record "No. Series Line" temporary;
     begin
-        GetNoSeriesLine(TempNoSeriesLine, NoSeriesCode, UsageDate);
+        GetNoSeriesLine(TempNoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings);
         exit(GetNextNo(TempNoSeriesLine, UsageDate, HideErrorsAndWarnings));
     end;
 
-    procedure GetNextNo(TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
+    procedure GetNextNo(var TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     var
         NoSeries: Codeunit "No. Series";
+        NextNo: Code[20];
     begin
         SetInitialState(TempNoSeriesLine);
         LockedNoSeriesLine.LockTable();
-        exit(NoSeries.GetNextNo(TempGlobalNoSeriesLine, UsageDate, HideErrorsAndWarnings));
+        NextNo := NoSeries.GetNextNo(TempGlobalNoSeriesLine, UsageDate, HideErrorsAndWarnings);
+        TempNoSeriesLine := TempGlobalNoSeriesLine;
+        exit(NextNo);
     end;
 
     procedure SimulateGetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; PrevDocumentNo: Code[20]): Code[20]
@@ -148,6 +151,11 @@ codeunit 309 "No. Series - Batch Impl."
     end;
 
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line" temporary; NoSeriesCode: Code[20]; UsageDate: Date)
+    begin
+        GetNoSeriesLine(NoSeriesLine, NoSeriesCode, UsageDate, false);
+    end;
+
+    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line" temporary; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean)
     var
         NoSeriesCodeunit: Codeunit "No. Series";
     begin
@@ -158,7 +166,7 @@ codeunit 309 "No. Series - Batch Impl."
 
         GetNoSeriesLines(NoSeriesCode);
 
-        NoSeriesCodeunit.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeriesCode, UsageDate, false);
+        NoSeriesCodeunit.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings);
         NoSeriesLine.Copy(TempGlobalNoSeriesLine, true);
     end;
 
@@ -171,7 +179,7 @@ codeunit 309 "No. Series - Batch Impl."
         if NoSeriesLine.FindSet() then
             repeat
                 TempGlobalNoSeriesLine := NoSeriesLine;
-                TempGlobalNoSeriesLine.Insert();
+                if TempGlobalNoSeriesLine.Insert() then;
             until NoSeriesLine.Next() = 0;
     end;
 }

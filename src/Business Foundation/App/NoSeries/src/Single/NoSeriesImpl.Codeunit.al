@@ -100,13 +100,19 @@ codeunit 304 "No. Series - Impl."
         exit(GetNextNo(NoSeriesLine, SeriesDate, HideErrorsAndWarnings));
     end;
 
-    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; SeriesDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
+    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     var
         NoSeriesSingle: Interface "No. Series - Single";
     begin
+        if UsageDate = 0D then
+            UsageDate := WorkDate();
+
+        if not ValidateCanGetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings) then
+            exit('');
+
         NoSeriesSingle := GetImplementation(NoSeriesLine);
 
-        exit(NoSeriesSingle.GetNextNo(NoSeriesLine, SeriesDate, HideErrorsAndWarnings));
+        exit(NoSeriesSingle.GetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings));
     end;
 
     local procedure GetImplementation(var NoSeriesLine: Record "No. Series Line"): Interface "No. Series - Single"
@@ -137,12 +143,8 @@ codeunit 304 "No. Series - Impl."
                 exit(false);
             NoSeriesLine.SetRange("Starting Date");
             if not NoSeriesLine.IsEmpty() then
-                Error(
-                  CannotAssignNewOnDateErr,
-                  NoSeriesCode, UsageDate);
-            Error(
-                CannotAssignNewErr,
-                NoSeriesCode);
+                Error(CannotAssignNewOnDateErr, NoSeriesCode, UsageDate);
+            Error(CannotAssignNewErr, NoSeriesCode);
         end;
 
         // If Date Order is required for this No. Series, make sure the usage date is not before the last date used
@@ -151,9 +153,7 @@ codeunit 304 "No. Series - Impl."
         if NoSeries."Date Order" and (UsageDate < NoSeriesLine."Last Date Used") then begin
             if HideErrorsAndWarnings then
                 exit(false);
-            Error(
-              CannotAssignNewBeforeDateErr,
-              NoSeries.Code, NoSeriesLine."Last Date Used");
+            Error(CannotAssignNewBeforeDateErr, NoSeries.Code, NoSeriesLine."Last Date Used");
         end;
         exit(true);
     end;
@@ -175,6 +175,9 @@ codeunit 304 "No. Series - Impl."
         if UsageDate = 0D then
             UsageDate := WorkDate();
 
+        if not ValidateCanGetNextNo(NoSeriesLine, UsageDate, false) then
+            exit('');
+
         NoSeriesSingle := GetImplementation(NoSeriesLine);
 
         exit(NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate));
@@ -195,9 +198,7 @@ codeunit 304 "No. Series - Impl."
             exit(false);
 
         if not NoSeries."Default Nos." then
-            Error(
-              CannotAssignAutomaticallyErr,
-              NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
+            Error(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
 
         if DefaultNoSeriesCode = RelatedNoSeriesCode then
             exit(true);
@@ -255,5 +256,16 @@ codeunit 304 "No. Series - Impl."
         if AreRelated(OriginalNoSeriesCode, RelatedNoSeriesCode) then
             exit(RelatedNoSeriesCode);
         exit(OriginalNoSeriesCode);
+    end;
+
+    local procedure ValidateCanGetNextNo(var NoSeriesLine: Record "No. Series Line"; SeriesDate: Date; HideErrorsAndWarnings: Boolean): Boolean
+    begin
+        if SeriesDate < NoSeriesLine."Starting Date" then
+            if HideErrorsAndWarnings then
+                exit(false)
+            else
+                Error(CannotAssignNewBeforeDateErr, NoSeriesLine."Series Code", NoSeriesLine."Starting Date");
+
+        exit(true);
     end;
 }

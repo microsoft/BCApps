@@ -48,7 +48,7 @@ codeunit 308 "No. Series - Batch"
     /// <param name="NoSeriesLine">The No. Series line to use.</param>
     /// <param name="UsageDate">The last date used, this will influence which line is used.</param>
     /// <returns>The next number in the series.</returns>
-    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
+    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin
         exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, UsageDate, false));
     end;
