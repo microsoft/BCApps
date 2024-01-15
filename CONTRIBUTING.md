@@ -34,7 +34,7 @@ Let's take a look at what it takes to contribute with **A)**:
 
 3. **Create a Pull Request**
 
-    Now a Pull Request can be created. It is important that the Pull Request is linked to an approved issue. **Pull Requests which aren't linked to approved issues will get rejected.**
+    Now a Pull Request can be created. It is important that the Pull Request is linked to an approved issue. In order to link a issue to a PR, please add "Fixes #" followed by the issue ID. E.g. "Fixes #123". **Pull Requests which aren't linked to approved issues will get rejected.**
 
    If it is your first contribution, you are required to agree to a Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us the rights to use your contribution. For details, visit https://cla.microsoft.com. When you submit a pull request, a CLA-bot will automatically determine whether you need
     to provide a CLA and decorate the Pull Request appropriately (e.g., label, comment). Simply follow the instructions provided by the bot. You will only need to do this once across all repositories using our CLA.
