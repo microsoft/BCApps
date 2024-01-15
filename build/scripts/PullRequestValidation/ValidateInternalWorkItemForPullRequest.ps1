@@ -27,7 +27,7 @@ function Test-ADOWorkItemIsLinked() {
         [object] $PullRequest
     )
 
-    $Comment = "Could not find a linked ADO workitem. Please link one by using the pattern 'Fixes AB#' followed by the workitem number being fixed."
+    $Comment = "Could not find a linked ADO workitem. Please link one by using the pattern 'AB#' followed by the relevant workitem number. You may use the 'Fixes' keyword to automatically close the workitem when the pull request is merged. E.g. 'Fixes AB#1234'"
     if (-not $ADOWorkItems) {
         # If the pull request is not from a fork, add a comment to the pull request
         if (-not $PullRequest.IsFromFork()) {
