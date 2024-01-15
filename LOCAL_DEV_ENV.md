@@ -10,7 +10,7 @@
 ## Create a development environment
 
 The development environment is a docker container running Business Central locally.
-In order to create it, simply run `build\scripts\DevEnv\NewDevEnv.ps1` with the desired parameters.
+In order to create it, simply run `.\build\scripts\DevEnv\NewDevEnv.ps1` with the desired parameters.
 
 For instance, running the following will
 1. Build all AL apps that match `.\src\System Application\`.
