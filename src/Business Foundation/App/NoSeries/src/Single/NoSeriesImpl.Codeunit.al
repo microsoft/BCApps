@@ -123,6 +123,7 @@ codeunit 304 "No. Series - Impl."
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
     var
         NoSeries: Record "No. Series";
+        LineFound: Boolean;
     begin
         if UsageDate = 0D then
             UsageDate := WorkDate();
@@ -133,7 +134,16 @@ codeunit 304 "No. Series - Impl."
         NoSeriesLine.SetRange("Series Code", NoSeriesCode);
         NoSeriesLine.SetRange("Starting Date", 0D, UsageDate);
         NoSeriesLine.SetRange(Open, true);
-        if NoSeriesLine.FindLast() then begin
+        if (NoSeriesLine."Line No." <> 0) and (NoSeriesLine."Series Code" = NoSeriesCode) then begin
+            NoSeriesLine.SetRange("Line No.", NoSeriesLine."Line No.");
+            LineFound := NoSeriesLine.FindLast();
+            if not LineFound then
+                NoSeriesLine.SetRange("Line No.");
+        end;
+        if not LineFound then
+            LineFound := NoSeriesLine.FindLast();
+
+        if LineFound then begin
             // There may be multiple No. Series Lines for the same day, so find the first one.
             NoSeriesLine.SetRange("Starting Date", NoSeriesLine."Starting Date");
             NoSeriesLine.FindFirst();

@@ -44,6 +44,7 @@ codeunit 308 "No. Series - Batch"
     /// <summary>
     /// Get the next number in the No. Series.
     /// This function uses the specified No. Series line and calls the No. Series Line implementation to get the next number.
+    /// Note: The caller is responsible for providing an up to date Line.
     /// </summary>
     /// <param name="NoSeriesLine">The No. Series line to use.</param>
     /// <param name="UsageDate">The last date used, this will influence which line is used.</param>
@@ -69,6 +70,7 @@ codeunit 308 "No. Series - Batch"
     /// <summary>
     /// Get the next number in the No. Series.
     /// This function uses the specified No. Series line and calls the No. Series Line implementation to get the next number.
+    /// Note: The caller is responsible for providing an up to date Line.
     /// </summary>
     /// <param name="NoSeriesLine">The No. Series line to use.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>

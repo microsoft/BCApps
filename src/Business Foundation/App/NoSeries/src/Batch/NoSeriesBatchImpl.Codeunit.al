@@ -16,6 +16,8 @@ codeunit 309 "No. Series - Batch Impl."
         TempGlobalNoSeriesLine: Record "No. Series Line" temporary;
         LockedNoSeriesLine: Record "No. Series Line";
         SimulationMode: Boolean;
+        CannotSaveNonExistingNoSeriesErr: Label 'Cannot save No. Series Line that does not exist: %1, %2', Comment = '%1 = No. Series Code, %2 = Line No.';
+        CannotSaveWhileSimulatingNumbersErr: Label 'No. Series state cannot be saved while simulating numbers.';
 
     procedure SetInitialState(TempNoSeriesLine: Record "No. Series Line" temporary)
     begin
@@ -27,8 +29,11 @@ codeunit 309 "No. Series - Batch Impl."
         if TempGlobalNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.") then
             exit;
 
-        TempGlobalNoSeriesLine := TempNoSeriesLine;
-        TempGlobalNoSeriesLine.Insert();
+        CopyNoSeriesLinesToTemp(TempNoSeriesLine."Series Code");
+        if not TempGlobalNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.") then begin
+            TempGlobalNoSeriesLine := TempNoSeriesLine;
+            TempGlobalNoSeriesLine.Insert();
+        end;
     end;
 
     local procedure IsSameNoSeriesLine(TempNoSeriesLine: Record "No. Series Line" temporary): Boolean
@@ -71,7 +76,11 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeries: Codeunit "No. Series";
         NextNo: Code[20];
     begin
-        SetInitialState(TempNoSeriesLine);
+        TempGlobalNoSeriesLine := TempNoSeriesLine;
+        if not NoSeries.GetNoSeriesLine(TempGlobalNoSeriesLine, TempNoSeriesLine."Series Code", UsageDate, true) then begin
+            ClearGlobalLine();
+            SetInitialState(TempNoSeriesLine);
+        end;
         LockedNoSeriesLine.LockTable();
         NextNo := NoSeries.GetNextNo(TempGlobalNoSeriesLine, UsageDate, HideErrorsAndWarnings);
         TempNoSeriesLine := TempGlobalNoSeriesLine;
@@ -123,9 +132,9 @@ codeunit 309 "No. Series - Batch Impl."
     procedure SaveState(TempNoSeriesLine: Record "No. Series Line" temporary)
     begin
         if SimulationMode then
-            exit;
+            Error(CannotSaveWhileSimulatingNumbersErr);
         if not TempGlobalNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.") then
-            exit;
+            Error(CannotSaveNonExistingNoSeriesErr, TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
         UpdateNoSeriesLine(TempGlobalNoSeriesLine);
     end;
 
@@ -133,7 +142,8 @@ codeunit 309 "No. Series - Batch Impl."
     procedure SaveState();
     begin
         if SimulationMode then
-            exit;
+            Error(CannotSaveWhileSimulatingNumbersErr);
+        TempGlobalNoSeriesLine.Reset();
         if TempGlobalNoSeriesLine.FindSet() then
             repeat
                 UpdateNoSeriesLine(TempGlobalNoSeriesLine);
@@ -157,29 +167,45 @@ codeunit 309 "No. Series - Batch Impl."
 
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line" temporary; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean)
     var
-        NoSeriesCodeunit: Codeunit "No. Series";
+        NoSeries: Codeunit "No. Series";
     begin
-        if NoSeriesCodeunit.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeriesCode, UsageDate, true) then begin
-            NoSeriesLine.Copy(TempGlobalNoSeriesLine, true);
-            exit;
+        if not NoSeries.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeriesCode, UsageDate, true) then begin
+            CopyNoSeriesLinesToTemp(NoSeriesCode);
+
+            if not NoSeries.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings) then
+                ClearGlobalLine();
         end;
 
-        GetNoSeriesLines(NoSeriesCode);
-
-        NoSeriesCodeunit.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings);
         NoSeriesLine.Copy(TempGlobalNoSeriesLine, true);
     end;
 
-    local procedure GetNoSeriesLines(NoSeriesCode: Code[20])
+    local procedure CopyNoSeriesLinesToTemp(NoSeriesCode: Code[20])
     var
         NoSeriesLine: Record "No. Series Line";
     begin
-        NoSeriesLine.SetRange("Series Code", NoSeriesCode);
-        NoSeriesLine.SetRange(Open, true);
-        if NoSeriesLine.FindSet() then
-            repeat
-                TempGlobalNoSeriesLine := NoSeriesLine;
-                if TempGlobalNoSeriesLine.Insert() then;
-            until NoSeriesLine.Next() = 0;
+        if not IsNoSeriesCopied(NoSeriesCode) then begin
+            NoSeriesLine.SetRange("Series Code", NoSeriesCode);
+            NoSeriesLine.SetRange(Open, true);
+            if NoSeriesLine.FindSet() then
+                repeat
+                    TempGlobalNoSeriesLine := NoSeriesLine;
+                    TempGlobalNoSeriesLine.Insert();
+                until NoSeriesLine.Next() = 0;
+        end;
+        ClearGlobalLine();
+    end;
+
+    local procedure IsNoSeriesCopied(NoSeriesCode: Code[20]): Boolean
+    begin
+        TempGlobalNoSeriesLine.Reset();
+        TempGlobalNoSeriesLine.SetRange("Series Code", NoSeriesCode);
+        exit(not TempGlobalNoSeriesLine.IsEmpty());
+    end;
+
+    local procedure ClearGlobalLine()
+    var
+        TempBlankNoSeriesLine: Record "No. Series Line" temporary;
+    begin
+        TempGlobalNoSeriesLine := TempBlankNoSeriesLine; // Init + primary key
     end;
 }
