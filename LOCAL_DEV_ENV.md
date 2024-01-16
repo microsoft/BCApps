@@ -18,5 +18,5 @@ For instance, running the following will
 1. Publish the built apps and their dependencies to _BC-SystemApp_.
 
 ```
-.\build\scripts\DevEnv\NewDevEnv.ps1 -containerName 'BC-SystemApp' -userName admin -password 'MyP@ss' -projectPaths '.\src\System Application\*'
+.\build\scripts\DevEnv\NewDevEnv.ps1 -containerName 'BC-SystemApp' -userName admin -password '<some password>' -projectPaths '.\src\System Application\*'
 ```
