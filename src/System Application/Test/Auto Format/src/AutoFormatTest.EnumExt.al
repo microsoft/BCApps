@@ -20,4 +20,4 @@ enumextension 132584 AutoFormatTest extends "Auto Format"
     }
 #pragma warning restore PTE0023 // The ID is in the right range but unfortunately there's only one ID in that range
 }
-#pragma warning restore AS0099,
+#pragma warning restore AS0099
