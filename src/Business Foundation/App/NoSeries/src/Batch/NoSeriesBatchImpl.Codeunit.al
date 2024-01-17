@@ -159,10 +159,8 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeriesLine: Record "No. Series Line";
     begin
         NoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
-        NoSeriesLine := TempNoSeriesLine;
-#pragma warning disable AA0214
+        NoSeriesLine.TransferFields(TempNoSeriesLine);
         NoSeriesLine.Modify(true);
-#pragma warning restore AA0214
     end;
 
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line" temporary; NoSeriesCode: Code[20]; UsageDate: Date)

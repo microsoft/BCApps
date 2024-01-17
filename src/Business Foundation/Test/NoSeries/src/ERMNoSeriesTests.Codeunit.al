@@ -225,6 +225,7 @@ codeunit 134370 "ERM No. Series Tests"
 
 #if not CLEAN24
 #pragma warning disable AL0432
+    [Obsolete('"Allow Gaps in Nos." is obsolete. Use the Implementation field instead.', '24.0')]
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestChangingStartNoAfterUsingNoSeriesTooLong()
@@ -236,6 +237,7 @@ codeunit 134370 "ERM No. Series Tests"
         Initialize();
         CreateNewNumberSeries('TEST', 10, false, NoSeriesLine);
         NoSeriesLine."Starting No." := 'ABC00000000000000001';
+        NoSeriesLine."Ending No." := 'ABC10000000000000900';
         NoSeriesLine."Last No. Used" := 'ABC10000000000000001';
         NoSeriesLine.Validate("Allow Gaps in Nos.", true);
         NoSeriesLine.Modify();
@@ -262,6 +264,7 @@ codeunit 134370 "ERM No. Series Tests"
         Initialize();
         CreateNewNumberSeries('TEST', 10, false, NoSeriesLine);
         NoSeriesLine."Starting No." := 'ABC00000000000000001';
+        NoSeriesLine."Ending No." := 'ABC10000000000000900';
         NoSeriesLine."Last No. Used" := 'ABC10000000000000001';
         NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Sequence);
         NoSeriesLine.Modify();
