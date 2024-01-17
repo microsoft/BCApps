@@ -170,7 +170,7 @@ codeunit 2515 "AppSource Product Manager"
         UriBuilder.AddQueryParameter(CatalogMarketQueryParamNameLbl, Market);
         UriBuilder.AddQueryParameter(CatalogLanguageQueryParamNameLbl, Language);
 
-        // UriBuilder always encodes the $ in the $filter and $select parameters, so we need to add them manually
+        // UriBuilder always encodes the $ in the $filter and $select etc. parameters and MarketPlace API does not support that , so we need to add them manually
         QueryPart := UriBuilder.GetQuery();
         QueryPart := QueryPart + '&' + CatalogApiFilterQueryParamNameLbl + '=productType eq ''DynamicsBC''';
         QueryPart := QueryPart + '&' + CatalogApiSelectQueryParamNameLbl + '=uniqueProductID,displayName,publisherID,publisherDisplayName,publisherType,ratingAverage,ratingCount,productType,popularity,privacyPolicyUri,lastModifiedDateTime';
@@ -195,7 +195,6 @@ codeunit 2515 "AppSource Product Manager"
         UriBuilder.AddQueryParameter(CatalogMarketQueryParamNameLbl, Market);
         UriBuilder.AddQueryParameter(CatalogLanguageQueryParamNameLbl, Language);
         UriBuilder.GetUri(Uri);
-        Message(Uri.GetAbsoluteUri());
         exit(Uri.GetAbsoluteUri());
     end;
 
