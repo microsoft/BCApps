@@ -28,8 +28,6 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
 
     local procedure GetNextNoInternal(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     begin
-        if UsageDate = 0D then
-            UsageDate := WorkDate();
         if NoSeriesLine."Last No. Used" = '' then begin
             if HideErrorsAndWarnings and (NoSeriesLine."Starting No." = '') then
                 exit('');

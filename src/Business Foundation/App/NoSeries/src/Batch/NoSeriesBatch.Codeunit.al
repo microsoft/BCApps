@@ -44,11 +44,12 @@ codeunit 308 "No. Series - Batch"
     /// <summary>
     /// Get the next number in the No. Series.
     /// This function uses the specified No. Series line and calls the No. Series Line implementation to get the next number.
+    /// Note: The caller is responsible for providing an up to date Line.
     /// </summary>
     /// <param name="NoSeriesLine">The No. Series line to use.</param>
     /// <param name="UsageDate">The last date used, this will influence which line is used.</param>
     /// <returns>The next number in the series.</returns>
-    procedure GetNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
+    procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin
         exit(NoSeriesBatchImpl.GetNextNo(NoSeriesLine, UsageDate, false));
     end;
@@ -69,6 +70,7 @@ codeunit 308 "No. Series - Batch"
     /// <summary>
     /// Get the next number in the No. Series.
     /// This function uses the specified No. Series line and calls the No. Series Line implementation to get the next number.
+    /// Note: The caller is responsible for providing an up to date Line.
     /// </summary>
     /// <param name="NoSeriesLine">The No. Series line to use.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>

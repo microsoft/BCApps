@@ -56,9 +56,6 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         NoSeriesStatelessImpl: Codeunit "No. Series - Stateless Impl.";
         NewNo: BigInteger;
     begin
-        if UsageDate = 0D then
-            UsageDate := WorkDate();
-
         if not TryGetNextSequenceNo(NoSeriesLine, ModifySeries, NewNo) then begin
             if not NumberSequence.Exists(NoSeriesLine."Sequence Name") then
                 CreateNewSequence(NoSeriesLine);
