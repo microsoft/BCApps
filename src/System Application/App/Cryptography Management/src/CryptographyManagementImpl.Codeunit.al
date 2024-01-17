@@ -390,12 +390,12 @@ codeunit 1279 "Cryptography Management Impl."
     [NonDebuggable]
     procedure SignData(DataInStream: InStream; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
     var
-        ISignatureAlgorithm: Interface SignatureAlgorithm;
+        ISignatureAlgorithm: Interface "Signature Algorithm v2";
     begin
         if DataInStream.EOS() then
             exit;
         ISignatureAlgorithm := Enum::SignatureAlgorithm::RSA;
-        ISignatureAlgorithm.FromXmlString(XmlString.Unwrap());
+        ISignatureAlgorithm.FromSecretXmlString(XmlString);
         ISignatureAlgorithm.SignData(DataInStream, HashAlgorithm, SignatureOutStream);
     end;
 
@@ -426,12 +426,12 @@ codeunit 1279 "Cryptography Management Impl."
     [NonDebuggable]
     procedure VerifyData(DataInStream: InStream; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
     var
-        ISignatureAlgorithm: Interface SignatureAlgorithm;
+        ISignatureAlgorithm: Interface "Signature Algorithm v2";
     begin
         if DataInStream.EOS() then
             exit(false);
         ISignatureAlgorithm := Enum::SignatureAlgorithm::RSA;
-        ISignatureAlgorithm.FromXmlString(XmlString.Unwrap());
+        ISignatureAlgorithm.FromSecretXmlString(XmlString);
         exit(ISignatureAlgorithm.VerifyData(DataInStream, HashAlgorithm, SignatureInStream));
     end;
 

@@ -7,7 +7,13 @@ namespace System.Security.Encryption;
 
 using System;
 
-codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
+#if not CLEAN24
+#pragma warning disable AL0432
+codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm, "Signature Algorithm v2"
+#pragma warning restore AL0432
+#else
+codeunit 1446 "RSACryptoServiceProvider Impl." implements "Signature Algorithm v2"
+#endif
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -144,6 +150,19 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
     begin
         RSACryptoServiceProvider();
         DotNetRSACryptoServiceProvider.FromXmlString(XmlString);
+    end;
+
+    [NonDebuggable]
+    procedure ToSecretXmlString(IncludePrivateParameters: Boolean): SecretText
+    begin
+        exit(DotNetRSACryptoServiceProvider.ToXmlString(IncludePrivateParameters));
+    end;
+
+    [NonDebuggable]
+    procedure FromSecretXmlString(XmlString: SecretText)
+    begin
+        RSACryptoServiceProvider();
+        DotNetRSACryptoServiceProvider.FromXmlString(XmlString.Unwrap());
     end;
     #endregion
 

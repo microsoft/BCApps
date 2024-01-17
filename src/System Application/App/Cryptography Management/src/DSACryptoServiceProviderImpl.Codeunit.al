@@ -7,7 +7,13 @@ namespace System.Security.Encryption;
 
 using System;
 
-codeunit 1448 "DSACryptoServiceProvider Impl." implements SignatureAlgorithm
+#if not CLEAN24
+#pragma warning disable AL0432
+codeunit 1448 "DSACryptoServiceProvider Impl." implements SignatureAlgorithm, "Signature Algorithm v2"
+#pragma warning restore AL0432
+#else
+codeunit 1448 "DSACryptoServiceProvider Impl." implements "Signature Algorithm v2"
+#endif
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -119,6 +125,19 @@ codeunit 1448 "DSACryptoServiceProvider Impl." implements SignatureAlgorithm
 
     [NonDebuggable]
     procedure ToXmlString(IncludePrivateParameters: Boolean): Text
+    begin
+        exit(DotNetDSACryptoServiceProvider.ToXmlString(IncludePrivateParameters));
+    end;
+
+    [NonDebuggable]
+    procedure FromSecretXmlString(XmlString: SecretText)
+    begin
+        DSACryptoServiceProvider();
+        DotNetDSACryptoServiceProvider.FromXmlString(XmlString.Unwrap());
+    end;
+
+    [NonDebuggable]
+    procedure ToSecretXmlString(IncludePrivateParameters: Boolean): SecretText
     begin
         exit(DotNetDSACryptoServiceProvider.ToXmlString(IncludePrivateParameters));
     end;
