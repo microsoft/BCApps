@@ -76,11 +76,7 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeries: Codeunit "No. Series";
         NextNo: Code[20];
     begin
-        TempGlobalNoSeriesLine := TempNoSeriesLine;
-        if not NoSeries.GetNoSeriesLine(TempGlobalNoSeriesLine, TempNoSeriesLine."Series Code", UsageDate, true) then begin
-            ClearGlobalLine();
-            SetInitialState(TempNoSeriesLine);
-        end;
+        SyncGlobalLineWithProvidedLine(TempNoSeriesLine, UsageDate);
         LockedNoSeriesLine.LockTable();
         NextNo := NoSeries.GetNextNo(TempGlobalNoSeriesLine, UsageDate, HideErrorsAndWarnings);
         TempNoSeriesLine := TempGlobalNoSeriesLine;
@@ -111,7 +107,8 @@ codeunit 309 "No. Series - Batch Impl."
         TempNoSeriesLine: Record "No. Series Line" temporary;
         NoSeries: Codeunit "No. Series";
     begin
-        GetNoSeriesLine(TempNoSeriesLine, NoSeriesCode, WorkDate());
+        if not GetNoSeriesLine(TempNoSeriesLine, NoSeriesCode, WorkDate(), true) then
+            exit('');
         exit(NoSeries.GetLastNoUsed(TempGlobalNoSeriesLine));
     end;
 
@@ -119,7 +116,7 @@ codeunit 309 "No. Series - Batch Impl."
     var
         NoSeries: Codeunit "No. Series";
     begin
-        SetInitialState(TempNoSeriesLine);
+        SyncGlobalLineWithProvidedLine(TempNoSeriesLine, TempNoSeriesLine."Starting Date");
         exit(NoSeries.GetLastNoUsed(TempGlobalNoSeriesLine));
     end;
 
@@ -157,6 +154,7 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
         NoSeriesLine."Last No. Used" := TempNoSeriesLine."Last No. Used";
         NoSeriesLine."Last Date Used" := TempNoSeriesLine."Last Date Used";
+        NoSeriesLine.Open := TempNoSeriesLine.Open;
         NoSeriesLine.Modify(true);
     end;
 
@@ -165,18 +163,22 @@ codeunit 309 "No. Series - Batch Impl."
         GetNoSeriesLine(NoSeriesLine, NoSeriesCode, UsageDate, false);
     end;
 
-    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line" temporary; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean)
+    procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line" temporary; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean) LineFound: Boolean
     var
         NoSeries: Codeunit "No. Series";
     begin
+        LineFound := true; // Assume success
         if not NoSeries.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeriesCode, UsageDate, true) then begin
             CopyNoSeriesLinesToTemp(NoSeriesCode);
 
-            if not NoSeries.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings) then
+            if not NoSeries.GetNoSeriesLine(TempGlobalNoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings) then begin
+                LineFound := false;
                 ClearGlobalLine();
+            end;
         end;
 
         NoSeriesLine.Copy(TempGlobalNoSeriesLine, true);
+        exit(LineFound);
     end;
 
     local procedure CopyNoSeriesLinesToTemp(NoSeriesCode: Code[20])
@@ -207,5 +209,16 @@ codeunit 309 "No. Series - Batch Impl."
         TempBlankNoSeriesLine: Record "No. Series Line" temporary;
     begin
         TempGlobalNoSeriesLine := TempBlankNoSeriesLine; // Init + primary key
+    end;
+
+    local procedure SyncGlobalLineWithProvidedLine(var TempNoSeriesLine: Record "No. Series Line" temporary; UsageDate: Date)
+    var
+        NoSeries: Codeunit "No. Series";
+    begin
+        TempGlobalNoSeriesLine := TempNoSeriesLine;
+        if not NoSeries.GetNoSeriesLine(TempGlobalNoSeriesLine, TempNoSeriesLine."Series Code", UsageDate, true) then begin
+            ClearGlobalLine();
+            SetInitialState(TempNoSeriesLine);
+        end;
     end;
 }
