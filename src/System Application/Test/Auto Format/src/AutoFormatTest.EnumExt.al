@@ -13,9 +13,11 @@ enumextension 132584 AutoFormatTest extends "Auto Format"
     {
         caption = 'Whatever';
     }
+#pragma warning disable PTE0023 // The ID is in the right range but unfortunately there's only one ID in that range
     value(132585; "1 decimal")
     {
         Caption = '1 decimal';
     }
+#pragma warning restore PTE0023 // The ID is in the right range but unfortunately there's only one ID in that range
 }
 #pragma warning restore AS0099
