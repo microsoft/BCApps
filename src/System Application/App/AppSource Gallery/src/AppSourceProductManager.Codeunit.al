@@ -7,7 +7,7 @@ namespace System.Apps.AppSource;
 
 using System.Environment.Configuration;
 using System.Globalization;
-using System.Azure.IDentity;
+using System.Azure.Identity;
 using System.Utilities;
 using System.Environment;
 using System.Azure.KeyVault;
