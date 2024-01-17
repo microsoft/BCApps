@@ -245,6 +245,46 @@ codeunit 134531 "No. Series Batch Tests"
         asserterror NoSeriesBatch.PeekNextNo(NoSeriesCode);
         LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
     end;
+
+    [Test]
+    procedure TestSimulateGetNextNoSequenceDatabaseNotUpdated()
+    var
+        NoSeriesBatch: Codeunit "No. Series - Batch";
+        NoSeriesBatch2: Codeunit "No. Series - Batch";
+        NoSeriesCode: Code[20];
+        i: Integer;
+    begin
+        // Scenario: Make sure the database sequence is not updated when calling batch simulation
+        Initialize();
+
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'A1', 'A9');
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'B1', 'B9');
+
+        // [WHEN] We get the first 10 numbers from the No. Series
+        // [THEN] The numbers match with 1, 2, 3, 4, 5
+        for i := 0 to 4 do
+            LibraryAssert.AreEqual('A' + Format(i + 1), NoSeriesBatch.SimulateGetNextNo(NoSeriesCode, WorkDate(), 'A' + Format((i))), 'Number was not as expected');
+
+        // [WHEN] We get the next number using the same batch instance, the simulation does not continue
+        // [THEN] The numbers A7, A8, A9 are returned
+        for i := 1 to 9 do
+            LibraryAssert.AreEqual('A' + Format(i), NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate()), 'Getting Next No. should continue the simulation');
+
+        // [WHEN] Getting the next number and it overflows to the second line, simulation does not run
+        // [THEN] The number B1, B2, B3 are returned
+        LibraryAssert.AreEqual('B1', NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate()), 'Getting Next No. should continue the simulation');
+        LibraryAssert.AreEqual('B2', NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate()), 'Getting Next No. should continue the simulation');
+        LibraryAssert.AreEqual('B3', NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate()), 'Getting Next No. should continue the simulation');
+
+        // [WHEN] We get the next number from the No. Series using a different batch
+        // [THEN] The numbers from line 1 are exhausted so we continue from line 2
+        LibraryAssert.AreEqual('B4', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        LibraryAssert.AreEqual('B5', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        LibraryAssert.AreEqual('B6', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+    end;
     #endregion
 
     #region normal
@@ -508,6 +548,41 @@ codeunit 134531 "No. Series Batch Tests"
         // verify
         LibraryAssert.AreEqual(StartingNo, NoSeriesBatch.GetNextNo(NoSeriesCode), 'not the first number');
         LibraryAssert.AreEqual(IncStr(StartingNo), NoSeriesBatch.GetNextNo(NoSeriesCode), 'not the second number');
+    end;
+
+    [Test]
+    procedure TestSimulateGetNextNoNormalDatabaseNotUpdated()
+    var
+        NoSeriesBatch: Codeunit "No. Series - Batch";
+        NoSeriesBatch2: Codeunit "No. Series - Batch";
+        NoSeriesCode: Code[20];
+        i: Integer;
+    begin
+        // Scenario: Make sure the database sequence is not updated when calling batch simulation
+        Initialize();
+
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'A1', 'A9');
+        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'B1', 'B9');
+
+        // [WHEN] We get the first 10 numbers from the No. Series
+        // [THEN] The numbers match with 1, 2, 3, 4, 5
+        for i := 0 to 4 do
+            LibraryAssert.AreEqual('A' + Format(i + 1), NoSeriesBatch.SimulateGetNextNo(NoSeriesCode, WorkDate(), 'A' + Format((i))), 'Number was not as expected');
+
+        // [WHEN] We get the next number using the same batch, simulation does not continue
+        // [THEN] The numbers A1, A2, A3 are returned
+        LibraryAssert.AreEqual('A1', NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate()), 'Getting Next No. should not continue the simulation');
+        LibraryAssert.AreEqual('A2', NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate()), 'Getting Next No. should not continue the simulation');
+        LibraryAssert.AreEqual('A3', NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate()), 'Getting Next No. should not continue the simulation');
+
+        // [WHEN] We get the next number from the No. Series using a different batch
+        // [THEN] The numbers should start from A1 again since we were only simulating before (and could not save the state)
+        LibraryAssert.AreEqual('A1', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        LibraryAssert.AreEqual('A2', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        LibraryAssert.AreEqual('A3', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
     end;
     #endregion
 

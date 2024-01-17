@@ -107,21 +107,31 @@ codeunit 305 "No. Series - Setup Impl."
 
     procedure CalculateOpen(NoSeriesLine: Record "No. Series Line"): Boolean
     var
+        NoSeries: Codeunit "No. Series";
         NoSeriesStatelessImpl: Codeunit "No. Series - Stateless Impl.";
+        LastNoUsed, NextNo : Code[20];
     begin
         if NoSeriesLine."Ending No." = '' then
             exit(true);
 
-        if NoSeriesLine."Last No. Used" = '' then
+        LastNoUsed := NoSeries.GetLastNoUsed(NoSeriesLine);
+
+        if LastNoUsed = '' then
             exit(true);
 
-        if NoSeriesLine."Last No. Used" >= NoSeriesLine."Ending No." then
+        if LastNoUsed >= NoSeriesLine."Ending No." then
             exit(false);
 
-        if NoSeriesLine."Increment-by No." <> 1 then
-            if NoSeriesStatelessImpl.IncrementNoText(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.") > NoSeriesLine."Ending No." then
-                exit(false);
+        if StrLen(LastNoUsed) > StrLen(NoSeriesLine."Ending No.") then
+            exit(false);
 
+        if NoSeriesLine."Increment-by No." <> 1 then begin
+            NextNo := NoSeriesStatelessImpl.IncrementNoText(LastNoUsed, NoSeriesLine."Increment-by No.");
+            if NextNo > NoSeriesLine."Ending No." then
+                exit(false);
+            if StrLen(NextNo) > StrLen(NoSeriesLine."Ending No.")  then
+                exit(false);
+        end;
         exit(true);
     end;
 }

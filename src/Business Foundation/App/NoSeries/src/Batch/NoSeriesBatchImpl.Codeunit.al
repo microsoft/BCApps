@@ -90,6 +90,7 @@ codeunit 309 "No. Series - Batch Impl."
     procedure SimulateGetNextNo(NoSeriesCode: Code[20]; UsageDate: Date; PrevDocumentNo: Code[20]): Code[20]
     var
         TempNoSeriesLine: Record "No. Series Line" temporary;
+        NoSeries: Codeunit "No. Series";
         NoSeriesStatelessImpl: Codeunit "No. Series - Stateless Impl.";
     begin
         if NoSeriesCode = '' then
@@ -98,7 +99,10 @@ codeunit 309 "No. Series - Batch Impl."
         SetSimulationMode();
 
         GetNoSeriesLine(TempNoSeriesLine, NoSeriesCode, UsageDate);
+        if NoSeries.MayProduceGaps(TempNoSeriesLine) then
+            TempNoSeriesLine.Implementation := TempNoSeriesLine.Implementation::Normal;
         TempNoSeriesLine."Last No. Used" := PrevDocumentNo;
+
         if not NoSeriesStatelessImpl.EnsureLastNoUsedIsWithinValidRange(TempNoSeriesLine, true) then
             exit(IncStr(PrevDocumentNo));
 
@@ -155,9 +159,10 @@ codeunit 309 "No. Series - Batch Impl."
         NoSeriesLine: Record "No. Series Line";
     begin
         NoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
-        NoSeriesLine."Last No. Used" := TempNoSeriesLine."Last No. Used";
-        NoSeriesLine."Last Date Used" := TempNoSeriesLine."Last Date Used";
+        NoSeriesLine := TempNoSeriesLine;
+#pragma warning disable AA0214
         NoSeriesLine.Modify(true);
+#pragma warning restore AA0214
     end;
 
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line" temporary; NoSeriesCode: Code[20]; UsageDate: Date)

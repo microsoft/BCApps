@@ -122,7 +122,8 @@ codeunit 304 "No. Series - Impl."
 
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
     var
-        NoSeries: Record "No. Series";
+        NoSeriesRec: Record "No. Series";
+        NoSeries: Codeunit "No. Series";
         LineFound: Boolean;
     begin
         if UsageDate = 0D then
@@ -143,6 +144,14 @@ codeunit 304 "No. Series - Impl."
         if not LineFound then
             LineFound := NoSeriesLine.FindLast();
 
+        if LineFound and NoSeries.MayProduceGaps(NoSeriesLine) then begin
+            NoSeriesLine.Validate(Open);
+            if not NoSeriesLine.Open then begin
+                NoSeriesLine.Modify(true);
+                exit(GetNoSeriesLine(NoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings));
+            end;
+        end;
+
         if LineFound then begin
             // There may be multiple No. Series Lines for the same day, so find the first one.
             NoSeriesLine.SetRange("Starting Date", NoSeriesLine."Starting Date");
@@ -158,12 +167,12 @@ codeunit 304 "No. Series - Impl."
         end;
 
         // If Date Order is required for this No. Series, make sure the usage date is not before the last date used
-        NoSeries.SetLoadFields(Code, "Date Order");
-        NoSeries.Get(NoSeriesCode);
-        if NoSeries."Date Order" and (UsageDate < NoSeriesLine."Last Date Used") then begin
+        NoSeriesRec.SetLoadFields(Code, "Date Order");
+        NoSeriesRec.Get(NoSeriesCode);
+        if NoSeriesRec."Date Order" and (UsageDate < NoSeriesLine."Last Date Used") then begin
             if HideErrorsAndWarnings then
                 exit(false);
-            Error(CannotAssignNewBeforeDateErr, NoSeries.Code, NoSeriesLine."Last Date Used");
+            Error(CannotAssignNewBeforeDateErr, NoSeriesRec.Code, NoSeriesLine."Last Date Used");
         end;
         exit(true);
     end;
