@@ -511,6 +511,161 @@ codeunit 134530 "No. Series Tests"
     end;
     #endregion
 
+    #region GetLastNoUsed
+    [Test]
+    procedure TestGetLastNoUsedCodeRunOut_Sequence()
+    var
+        NoSeries: Codeunit "No. Series";
+        NoSeriesCode: Code[20];
+        i: Integer;
+    begin
+        Initialize();
+
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'A1', 'A9');
+
+        // [WHEN] GetLastNoUsed is called on a new series, an empty string is returned
+        LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesCode), 'GetLastNoUsed expected to return empty string for new No. Series');
+
+        // [WHEN] We get the first 10 numbers from the No. Series
+        // [THEN] The numbers match with 1, 2, 3, 4, 5, 6, 7, 8 and GetLastNoUsed reflects that
+        for i := 1 to 8 do begin
+            LibraryAssert.AreEqual('A' + Format(i), NoSeries.GetNextNo(NoSeriesCode), 'GetNextNo Number was not as expected');
+            LibraryAssert.AreEqual('A' + Format(i), NoSeries.GetLastNoUsed(NoSeriesCode), 'GetLastNoUsed Number was not as expected');
+        end;
+
+        // [WHEN] We get the last number in the series, GetLastNoUsed will be empty.
+        LibraryAssert.AreEqual('A9', NoSeries.GetNextNo(NoSeriesCode), 'GetNextNo Number was not as expected');
+        LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesCode), 'GetLastNoUsed Number was not as expected');
+
+        // [WHEN] We get the next number from the No. Series
+        // [THEN] No number is returned
+        LibraryAssert.AreEqual('', NoSeries.GetNextNo(NoSeriesCode, WorkDate(), true), 'A number was returned even though the sequence has run out');
+
+        // [THEN] GetLastNoUsed returns blank, however new batch references will return A9 until save since the Line is not yet closed but the sequence is updated in the database.
+        LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesCode), 'GetLastNoUsed Number was not as expected');
+    end;
+
+    [Test]
+    procedure TestGetLastNoUsedRecordRunOut_Sequence()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        NoSeries: Codeunit "No. Series";
+        NoSeriesCode: Code[20];
+        i: Integer;
+    begin
+        Initialize();
+
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'A1', 'A9');
+        NoSeriesLine.SetRange("Series Code", NoSeriesCode);
+        NoSeriesLine.FindFirst();
+
+        // [WHEN] GetLastNoUsed is called on a new series, an empty string is returned
+        LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed expected to return empty string for new No. Series');
+
+        // [WHEN] We get the first 10 numbers from the No. Series
+        // [THEN] The numbers match with 1, 2, 3, 4, 5, 6, 7, 8 and GetLastNoUsed reflects that
+        for i := 1 to 8 do begin
+            LibraryAssert.AreEqual('A' + Format(i), NoSeries.GetNextNo(NoSeriesCode), 'GetNextNo Number was not as expected');
+            LibraryAssert.AreEqual('A' + Format(i), NoSeries.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed Number was not as expected');
+        end;
+
+        // [WHEN] We get the last number in the series, GetLastNoUsed will be empty.
+        LibraryAssert.AreEqual('A9', NoSeries.GetNextNo(NoSeriesCode), 'GetNextNo Number was not as expected');
+        LibraryAssert.AreEqual('A9', NoSeries.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed Number was not as expected before getting invalid number');
+
+        // [WHEN] We get the next number from the No. Series
+        // [THEN] No number is returned
+        LibraryAssert.AreEqual('', NoSeries.GetNextNo(NoSeriesCode, WorkDate(), true), 'A number was returned even though the sequence has run out');
+
+        // [THEN] GetLastNoUsed returns blank, however new batch references will return A9 until save since the Line is not yet closed but the sequence is updated in the database.
+        LibraryAssert.AreEqual('A9', NoSeries.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed Number was not as expected after getting invalid number');
+    end;
+
+    [Test]
+    procedure TestGetLastNoUsedCodeRunOut()
+    var
+        NoSeries: Codeunit "No. Series";
+        NoSeriesCode: Code[20];
+        i: Integer;
+    begin
+        Initialize();
+
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'A1', 'A9');
+
+        // [WHEN] GetLastNoUsed is called on a new series, an empty string is returned
+        LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesCode), 'GetLastNoUsed expected to return empty string for new No. Series');
+
+        // [WHEN] We get the first 10 numbers from the No. Series
+        // [THEN] The numbers match with 1, 2, 3, 4, 5, 6, 7, 8 and GetLastNoUsed reflects that
+        for i := 1 to 8 do begin
+            LibraryAssert.AreEqual('A' + Format(i), NoSeries.GetNextNo(NoSeriesCode), 'GetNextNo Number was not as expected');
+            LibraryAssert.AreEqual('A' + Format(i), NoSeries.GetLastNoUsed(NoSeriesCode), 'GetLastNoUsed Number was not as expected');
+        end;
+
+        // [WHEN] We get the last number in the series, GetLastNoUsed will be empty.
+        LibraryAssert.AreEqual('A9', NoSeries.GetNextNo(NoSeriesCode), 'GetNextNo Number was not as expected');
+        LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesCode), 'GetLastNoUsed Number was not as expected');
+
+        // [WHEN] We get the next number from the No. Series
+        // [THEN] No number is returned
+        LibraryAssert.AreEqual('', NoSeries.GetNextNo(NoSeriesCode, WorkDate(), true), 'A number was returned even though the sequence has run out');
+
+        // [THEN] GetLastNoUsed returns blank
+        LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesCode), 'GetLastNoUsed Number was not as expected');
+    end;
+
+    [Test]
+    procedure TestGetLastNoUsedRecordRunOut()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        NoSeries: Codeunit "No. Series";
+        NoSeriesCode: Code[20];
+        i: Integer;
+    begin
+        Initialize();
+
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'A1', 'A9');
+        NoSeriesLine.SetRange("Series Code", NoSeriesCode);
+        NoSeriesLine.FindFirst();
+
+        // [WHEN] GetLastNoUsed is called on a new series, an empty string is returned
+        LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed expected to return empty string for new No. Series');
+
+        // [WHEN] We get the first 10 numbers from the No. Series
+        // [THEN] The numbers match with 1, 2, 3, 4, 5, 6, 7, 8 and GetLastNoUsed reflects that
+        for i := 1 to 8 do begin
+            LibraryAssert.AreEqual('A' + Format(i), NoSeries.GetNextNo(NoSeriesCode), 'GetNextNo Number was not as expected');
+            NoSeriesLine.Find();
+            LibraryAssert.AreEqual('A' + Format(i), NoSeries.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed Number was not as expected');
+        end;
+
+        // [WHEN] We get the last number in the series, GetLastNoUsed will be empty.
+        LibraryAssert.AreEqual('A9', NoSeries.GetNextNo(NoSeriesCode), 'GetNextNo Number was not as expected');
+        NoSeriesLine.Find();
+        LibraryAssert.AreEqual('A9', NoSeries.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed Number was not as expected before getting invalid number');
+
+        // [WHEN] We get the next number from the No. Series
+        // [THEN] No number is returned
+        LibraryAssert.AreEqual('', NoSeries.GetNextNo(NoSeriesCode, WorkDate(), true), 'A number was returned even though the sequence has run out');
+
+        // [THEN] GetLastNoUsed returns blank, however new batch references will return A9 until save since the Line is not yet closed but the sequence is updated in the database.
+        NoSeriesLine.Find();
+        LibraryAssert.AreEqual('A9', NoSeries.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed Number was not as expected after getting invalid number');
+    end;
+    #endregion
+
     local procedure Initialize()
     begin
         Any.SetDefaultSeed();
