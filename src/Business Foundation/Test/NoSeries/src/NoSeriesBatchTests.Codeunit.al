@@ -600,7 +600,7 @@ codeunit 134531 "No. Series Batch Tests"
     begin
         Initialize();
 
-        // [GIVEN] A No. Series with 10 numbers
+        // [GIVEN] A No. Series with 9 numbers
         NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
         LibraryNoSeries.CreateNoSeries(NoSeriesCode);
         LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'A1', 'A9');
@@ -608,7 +608,7 @@ codeunit 134531 "No. Series Batch Tests"
         // [WHEN] GetLastNoUsed is called on a new series, an empty string is returned
         LibraryAssert.AreEqual('', NoSeriesBatch.GetLastNoUsed(NoSeriesCode), 'GetLastNoUsed expected to return empty string for new No. Series');
 
-        // [WHEN] We get the first 10 numbers from the No. Series
+        // [WHEN] We get the first 8 numbers from the No. Series
         // [THEN] The numbers match with 1, 2, 3, 4, 5, 6, 7, 8 and GetLastNoUsed reflects that
         for i := 1 to 8 do begin
             LibraryAssert.AreEqual('A' + Format(i), NoSeriesBatch.GetNextNo(NoSeriesCode), 'GetNextNo Number was not as expected');
@@ -623,9 +623,9 @@ codeunit 134531 "No. Series Batch Tests"
         // [THEN] No number is returned
         LibraryAssert.AreEqual('', NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate(), true), 'A number was returned even though the sequence has run out');
 
-        // [THEN] GetLastNoUsed returns blank, however new batch references will return A9 until save since the Line is not yet closed but the sequence is updated in the database.
+        // [THEN] GetLastNoUsed returns blank, and new batch references will return '' as well, even though no save was done. This is due to the sequence being exhausted.
         LibraryAssert.AreEqual('', NoSeriesBatch.GetLastNoUsed(NoSeriesCode), 'GetLastNoUsed Number was not as expected');
-        LibraryAssert.AreEqual('A9', NoSeriesBatch2.GetLastNoUsed(NoSeriesCode), 'GetLastNoUsed Number was not as expected');
+        LibraryAssert.AreEqual('', NoSeriesBatch2.GetLastNoUsed(NoSeriesCode), 'GetLastNoUsed Number was not as expected');
 
         // [GIVEN] The No. Series is saved
         NoSeriesBatch.SaveState();
