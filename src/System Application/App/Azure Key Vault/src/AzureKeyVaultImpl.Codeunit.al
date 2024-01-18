@@ -53,6 +53,18 @@ codeunit 2202 "Azure Key Vault Impl."
     end;
 
     [NonDebuggable]
+    procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText)
+    begin
+        if not InitializeAllowedSecretNames() then
+            Error(InitializeAllowedSecretNamesErr);
+
+        if not IsSecretNameAllowed(SecretName) then
+            Error(SecretNotFoundErr, SecretName);
+
+        Secret := GetSecretFromClient(SecretName);
+    end;
+
+    [NonDebuggable]
     procedure GetAzureKeyVaultCertificate(CertificateName: Text; var Certificate: Text)
     begin
         // Gets the certificate as a base 64 encoded string from the key vault, given a CertificateName.

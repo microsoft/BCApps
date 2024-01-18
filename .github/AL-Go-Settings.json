@@ -5,7 +5,7 @@
     "runs-on":  "windows-latest",
     "cacheImageName":  "",
     "UsePsSession":  false,
-    "artifact":  "https://bcinsider.azureedge.net/sandbox/24.0.15135.0/base",
+    "artifact":  "https://bcinsider.azureedge.net/sandbox/24.0.15442.0/base",
     "country":  "base",
     "useProjectDependencies":  true,
     "repoVersion":  "24.0",
@@ -53,6 +53,7 @@
     "enableAppSourceCop":  true,
     "enablePerTenantExtensionCop":  true,
     "enableUICop":  true,
+    "enableCodeAnalyzersOnTestApps":  true,
     "rulesetFile":  "..\\..\\..\\src\\rulesets\\ruleset.json",
     "skipUpgrade":  true,
     "PartnerTelemetryConnectionString":  "InstrumentationKey=403ba4d3-ad2b-4ca1-8602-b7746de4c048;IngestionEndpoint=https://swedencentral-0.in.applicationinsights.azure.com/",
@@ -71,5 +72,5 @@
                                           "build_projects_System Application Modules"
                                       ]
               },
-    "templateSha":  "90335a8c76f3cd4d45b04b50e9e8c2a7409e1d98"
+    "templateSha":  "8fe39e623ddffef215ec03093203d29ee63fe6d4"
 }
