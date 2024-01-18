@@ -121,6 +121,7 @@ codeunit 308 "No. Series - Batch"
     #endregion
     /// <summary>
     /// Get the last number used in the No. Series.
+    /// Note: If a line was just closed, this function will return an empty string. Please use the NoSeriesLine overload to get the Last number for closed lines.
     /// </summary>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
     /// <returns>The last number used in the series.</returns>
