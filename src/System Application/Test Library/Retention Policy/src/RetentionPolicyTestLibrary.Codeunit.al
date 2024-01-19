@@ -12,16 +12,16 @@ codeunit 138709 "Retention Policy Test Library"
     EventSubscriberInstance = Manual;
 
     var
-        RecordExceedSubscriberCount: Integer;
+        RecordLimitExceededSubscriberCount: Integer;
 
-    procedure GetDeleteRecordExceededSubscriberCount(): Integer
+    procedure GetRecordLimitExceededSubscriberCount(): Integer
     begin
-        exit(RecordExceedSubscriberCount);
+        exit(RecordLimitExceededSubscriberCount);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Apply Retention Policy", 'OnApplyRetentionPolicyRecordLimitExceeded', '', false, false)]
     local procedure OnApplyRetentionPolicyRecordLimitExceeded(CurrTableId: Integer; NumberOfRecordsRemainingToBeDeleted: Integer)
     begin
-        RecordExceedSubscriberCount += 1;
+        RecordLimitExceededSubscriberCount += 1;
     end;
 }

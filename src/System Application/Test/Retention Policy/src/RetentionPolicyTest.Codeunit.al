@@ -1468,7 +1468,7 @@ codeunit 138702 "Retention Policy Test"
 
         // Verify
         Assert.RecordIsNotEmpty(RetentionPolicyTestData);
-        Assert.AreEqual(1, RetentionPolicyTestLibrary.GetDeleteRecordExceededSubscriberCount(), 'OnApplyRetentionPolicyRecordLimitExceeded event called more than once.');
+        Assert.AreEqual(1, RetentionPolicyTestLibrary.GetRecordLimitExceededSubscriberCount(), 'OnApplyRetentionPolicyRecordLimitExceeded event called more than once.');
     end;
 
     [HandlerFunctions('RetentionPolicyFilterPageHandler')]
