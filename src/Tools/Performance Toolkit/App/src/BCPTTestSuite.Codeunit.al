@@ -374,4 +374,35 @@ codeunit 149006 "BCPT Test Suite"
         BCPTHeader2.SetRange(Status, BCPTHeader2.Status::Running);
         exit(not BCPTHeader2.IsEmpty());
     end;
+    #region BCPTLineCodunitFacade
+    /// <summary>
+    /// Wrapper for OnBeforeBCPTLineAddLogEntry since it is not possible subscribe to an event in a object with scope internal
+    /// This one converts BCPTLine to variables instead of a record.
+    /// </summary>
+    /// <param name="BCPTLine"></param>
+    /// <param name="Operation"></param>
+    /// <param name="ExecutionSuccess"></param>
+    /// <param name="Message"></param>
+    /// <param name="Handled"></param>
+    internal procedure OnBeforeBCPTLineAddLogEntryWrapper(var BCPTLine: Record "BCPT Line"; var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text; var Handled: Boolean)
+    begin
+        OnBeforeBCPTLineAddLogEntry(BCPTLine."BCPT Code", BCPTLine."Codeunit ID", BCPTLine.Description, Operation, ExecutionSuccess, Message, Handled);
+    end;
+
+    /// <summary>
+    /// This event is raised before a log entry is added to the BCPT Line table.
+    /// It can be used to skip errors which are not relevant for the test suite. Like unused handler functions.
+    /// </summary>
+    /// <param name="SuiteCode"></param>
+    /// <param name="CodeunitId"></param>
+    /// <param name="Description"></param>
+    /// <param name="Operation"></param>
+    /// <param name="ExecutionSuccess"></param>
+    /// <param name="Message"></param>
+    /// <param name="Handled"></param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeBCPTLineAddLogEntry(SuiteCode: Code[10]; CodeunitId: Integer; Description: Text; var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text; var Handled: Boolean)
+    begin
+    end;
+    #endregion BCPTLineCodunitFacade
 }

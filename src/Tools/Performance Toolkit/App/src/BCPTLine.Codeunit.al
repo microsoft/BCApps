@@ -164,7 +164,12 @@ codeunit 149005 "BCPT Line"
     var
         BCPTLogEntry: Record "BCPT Log Entry";
         BCPTRoleWrapperImpl: Codeunit "BCPT Role Wrapper"; // single instance
+        Handled: Boolean;
     begin
+        OnBeforeAddLogEntry(BCPTLine, Operation, ExecutionSuccess, Message, handled);
+
+        if Handled then
+            exit;
         BCPTLine.Testfield("BCPT Code");
         BCPTRoleWrapperImpl.GetBCPTHeader(BCPTHeader);
         Clear(BCPTLogEntry);
@@ -342,5 +347,12 @@ codeunit 149005 "BCPT Line"
             exit(false);
         Parm := format(FldRef.Value, 0, 9);
         exit(true);
+    end;
+
+    local procedure OnBeforeAddLogEntry(var BCPTLine: Record "BCPT Line"; var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text; var Handled: Boolean)
+    var
+        BCPTTestSuite: Codeunit "BCPT Test Suite";
+    begin
+        BCPTTestSuite.OnBeforeBCPTLineAddLogEntryWrapper(BCPTLine, Operation, ExecutionSuccess, Message, Handled);
     end;
 }
