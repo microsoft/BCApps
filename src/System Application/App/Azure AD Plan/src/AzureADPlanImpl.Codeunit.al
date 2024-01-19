@@ -257,8 +257,8 @@ codeunit 9018 "Azure AD Plan Impl."
     procedure CheckMixedPlans(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]; ErrorOutForAdmin: Boolean)
     var
         Company: Record Company;
-        AccessControl: Record "Access Control";
         EnvironmentInformation: Codeunit "Environment Information";
+        UserPermissions: Codeunit "User Permissions";
         CanManageUsers: Boolean;
         UserAuthenticationEmailFirst: Text;
         UserAuthenticationEmailSecond: Text;
@@ -285,7 +285,7 @@ codeunit 9018 "Azure AD Plan Impl."
         if not MixedPlansExist(PlanNamesPerUserFromGraph, UserAuthenticationEmailFirst, UserAuthenticationEmailSecond, FirstConflictingPlanName, SecondConflictingPlanName) then
             exit;
 
-        CanManageUsers := AccessControl.WritePermission();
+        CanManageUsers := UserPermissions.CanManageUsersOnTenant(UserSecurityId());
         if not CanManageUsers then
             Error(MixedPlansNonAdminErr, UserAuthenticationEmailFirst, UserAuthenticationEmailSecond);
 
