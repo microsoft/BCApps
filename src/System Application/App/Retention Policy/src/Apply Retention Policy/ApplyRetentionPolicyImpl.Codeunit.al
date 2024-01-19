@@ -277,6 +277,7 @@ codeunit 3904 "Apply Retention Policy Impl."
         ApplyRetentionPolicyFacade: Codeunit "Apply Retention Policy";
         Handled: Boolean;
     begin
+        EndCurrentRun := true;
         RetentionPolicyLog.LogWarning(LogCategory(), EndCurrentRunLbl);
         ApplyRetentionPolicyFacade.OnApplyRetentionPolicyRecordLimitExceeded(RecordRefDuplicate.Number, Count(RecordRefDuplicate), ApplyAllRetentionPolicies, IsUserInvokedRun, Handled);
         if IsUserInvokedRun and (not Handled) and GuiAllowed() then begin
