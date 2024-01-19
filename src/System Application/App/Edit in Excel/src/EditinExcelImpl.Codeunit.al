@@ -738,6 +738,7 @@ codeunit 1482 "Edit in Excel Impl."
                 StartStr := CopyStr(ConvertedName, 1, CurrentPosition - 1);
                 EndStr := CopyStr(ConvertedName, CurrentPosition + 1);
                 ConvertedName := StrSubstNo(XmlByteEncoding2Tok, StartStr, Convert.ToString(ByteValue, 16), EndStr);
+                // length of _x00nn_ minus one that will be added later
                 CurrentPosition += 6;
             end else
                 if ConvertedName[CurrentPosition] in [' ', '\', '/', '"', '.', '(', ')', '-', ':'] then
