@@ -19,7 +19,6 @@ using System.Apps;
 /// </summary>
 codeunit 2515 "AppSource Product Manager"
 {
-    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -46,7 +45,7 @@ codeunit 2515 "AppSource Product Manager"
     /// Opens the AppSource product details page for the specified unique product ID.
     /// </summary>
     /// <param name="UniqueProductIDValue"></param>
-    procedure OpenProductDetailsPage(UniqueProductIDValue: Text)
+    internal procedure OpenProductDetailsPage(UniqueProductIDValue: Text)
     var
         ProductDetailsPage: Page "AppSource Product Details";
         ProductObject: JsonObject;
@@ -62,7 +61,7 @@ codeunit 2515 "AppSource Product Manager"
     /// <param name="UniqueProductIDValue">The Unique Product ID of the product as defined in MicrosoftAppSource</param>
     /// <returns>AppID found in the Product ID</returns>
     /// <remarks>The AppSource unique product ID is specific to AppSource and combines different features while always ending with PAPID. and extension app id. Example: PUBID.mdcc1667400477212|AID.bc_converttemp_sample|PAPPID.9d314b3e-ffd3-41fd-8755-7744a6a790df</remarks>
-    procedure ExtractAppIDFromUniqueProductID(UniqueProductIDValue: Text): Text[36]
+    internal procedure ExtractAppIDFromUniqueProductID(UniqueProductIDValue: Text): Text[36]
     var
         AppIDPos: Integer;
     begin
@@ -75,7 +74,7 @@ codeunit 2515 "AppSource Product Manager"
     /// <summary>
     /// Installs the product with the specified AppID.
     /// </summary>
-    procedure InstallProduct(AppIDToInstall: Guid)
+    internal procedure InstallProduct(AppIDToInstall: Guid)
     var
         ExtensionManagement: Codeunit "Extension Management";
     begin
@@ -86,7 +85,7 @@ codeunit 2515 "AppSource Product Manager"
     /// <summary>
     /// Get all products from a remote server and adds them to the AppSource Product table.
     /// </summary>
-    procedure GetProductsAndPopulateRecord(var AppSourceProductRec: record "AppSource Product"): Text
+    internal procedure GetProductsAndPopulateRecord(var AppSourceProductRec: record "AppSource Product"): Text
     var
         NextPageLink: text;
     begin
