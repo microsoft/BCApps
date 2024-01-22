@@ -28,23 +28,29 @@ report 9810 "Change Password"
     var
         User: Record User;
         PasswordDialogManagement: Codeunit "Password Dialog Management";
-        Password: Text;
-        OldPassword: Text;
+        Password: SecretText;
+        OldPassword: SecretText;
     begin
         PasswordDialogManagement.OpenChangePasswordDialog(OldPassword, Password);
-        if Password = '' then
+        if Password.IsEmpty() then
             exit;
 
         User.SetFilter("User Security ID", UserSecurityId());
         if User.IsEmpty() then
             error(UserDoesNotExistErr, User.FieldCaption("User Security ID"), User."User Security ID");
 
-        if ChangeUserPassword(OldPassword, Password) then
+        if ChangePassword(OldPassword, Password) then
             Message(PasswordUpdatedMsg);
     end;
 
     var
         PasswordUpdatedMsg: Label 'Your Password has been updated.';
         UserDoesNotExistErr: Label 'The user with %1 %2 does not exist.', Comment = '%1 = Label User Security Id, %2 = User Security ID';
+
+    [NonDebuggable]
+    local procedure ChangePassword(OldPassword: SecretText; Password: SecretText): Boolean
+    begin
+        exit(ChangeUserPassword(OldPassword.Unwrap(), Password.Unwrap()));
+    end;
 }
 
