@@ -367,7 +367,6 @@ codeunit 132912 "Azure AD Plan Tests"
         LibraryAssert.AreEqual(PlanIds.GetDelegatedAdminPlanId(), UserPlan."Plan ID", 'Wrong plan was assigned');
 
         // [Then] SUPER was not removed from the user
-        asserterror Commit(); // NavUserAccountHelper.IsPermissionSetAssigned needs a Commit to be called first
         LibraryAssert.IsTrue(UserPermissions.IsSuper(UserSID), 'User should be SUPER');
     end;
 
@@ -419,7 +418,6 @@ codeunit 132912 "Azure AD Plan Tests"
         LibraryAssert.AreEqual(0, UserPlan.Count(), 'There should not be any plan assignments');
 
         // [Then] SUPER was not removed from the user
-        asserterror Commit(); // NavUserAccountHelper.IsPermissionSetAssigned needs a Commit to be called first
         LibraryAssert.IsTrue(UserPermissions.IsSuper(UserSID), 'User should be SUPER');
     end;
 
@@ -475,7 +473,6 @@ codeunit 132912 "Azure AD Plan Tests"
         LibraryAssert.AreEqual(PlanIds.GetDelegatedAdminPlanId(), UserPlan."Plan ID", 'Wrong plan was assigned');
 
         // [Then] SUPER was not removed from the user
-        asserterror Commit(); // NavUserAccountHelper.IsPermissionSetAssigned needs a Commit to be called first
         LibraryAssert.IsTrue(UserPermissions.IsSuper(UserSID), 'User should be SUPER');
     end;
 
@@ -530,7 +527,6 @@ codeunit 132912 "Azure AD Plan Tests"
         LibraryAssert.AreEqual(PlanIds.GetHelpDeskPlanId(), UserPlan."Plan ID", 'Wrong plan was assigned');
 
         // [Then] SUPER was not removed from the user
-        asserterror Commit(); // NavUserAccountHelper.IsPermissionSetAssigned needs a Commit to be called first
         LibraryAssert.IsTrue(UserPermissions.IsSuper(UserSID), 'User should be SUPER');
     end;
 
@@ -582,7 +578,6 @@ codeunit 132912 "Azure AD Plan Tests"
         LibraryAssert.AreEqual(0, UserPlan.Count(), 'There should not be any plan assignments');
 
         // [Then] SUPER was not removed from the user
-        asserterror Commit(); // NavUserAccountHelper.IsPermissionSetAssigned needs a Commit to be called first
         LibraryAssert.IsTrue(UserPermissions.IsSuper(UserSID), 'User should be SUPER');
     end;
 
@@ -638,7 +633,6 @@ codeunit 132912 "Azure AD Plan Tests"
         LibraryAssert.AreEqual(PlanIds.GetHelpDeskPlanId(), UserPlan."Plan ID", 'Wrong plan was assigned');
 
         // [Then] SUPER was not removed from the user
-        asserterror Commit(); // NavUserAccountHelper.IsPermissionSetAssigned needs a Commit to be called first
         LibraryAssert.IsTrue(UserPermissions.IsSuper(UserSID), 'User should be SUPER');
     end;
 
