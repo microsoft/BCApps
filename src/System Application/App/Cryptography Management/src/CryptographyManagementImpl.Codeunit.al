@@ -51,12 +51,12 @@ codeunit 1279 "Cryptography Management Impl."
     var
         PasswordDialogManagement: Codeunit "Password Dialog Management";
         TempBlob: Codeunit "Temp Blob";
-        Password: Text;
+        Password: SecretText;
     begin
         AssertEncryptionPossible();
         if Confirm(ExportEncryptionKeyConfirmQst, true) then begin
-            Password := PasswordDialogManagement.OpenPasswordDialog();
-            if Password = '' then
+            Password := PasswordDialogManagement.OpenSecretPasswordDialog();
+            if Password.IsEmpty() then
                 exit;
         end;
 
@@ -64,20 +64,21 @@ codeunit 1279 "Cryptography Management Impl."
         DownloadEncryptionFileFromStream(TempBlob);
     end;
 
-    procedure ExportKeyAsStream(var TempBlob: Codeunit "Temp Blob"; Password: Text)
+    procedure ExportKeyAsStream(var TempBlob: Codeunit "Temp Blob"; Password: SecretText)
     begin
         AssertEncryptionPossible();
         GetEncryptionKeyAsStream(TempBlob, Password);
     end;
 
-    local procedure GetEncryptionKeyAsStream(var TempBlob: Codeunit "Temp Blob"; Password: Text)
+    [NonDebuggable]
+    local procedure GetEncryptionKeyAsStream(var TempBlob: Codeunit "Temp Blob"; Password: SecretText)
     var
         FileObj: File;
         FileInStream: InStream;
         TempOutStream: OutStream;
         ServerFilename: Text;
     begin
-        ServerFilename := ExportEncryptionKey(Password);
+        ServerFilename := ExportEncryptionKey(Password.Unwrap());
         FileObj.Open(ServerFilename);
 
         TempBlob.CreateOutStream(TempOutStream);
@@ -105,7 +106,7 @@ codeunit 1279 "Cryptography Management Impl."
     var
         PasswordDialogManagement: Codeunit "Password Dialog Management";
         TempKeyFilePath: Text;
-        Password: Text;
+        Password: SecretText;
     begin
         TempKeyFilePath := UploadFile();
 
@@ -113,8 +114,8 @@ codeunit 1279 "Cryptography Management Impl."
         if TempKeyFilePath = '' then
             exit;
 
-        Password := PasswordDialogManagement.OpenPasswordDialog(true, true);
-        if Password <> '' then
+        Password := PasswordDialogManagement.OpenSecretPasswordDialog(true, true);
+        if not Password.IsEmpty() then
             ImportKeyAndConfirm(TempKeyFilePath, Password);
 
         File.Erase(TempKeyFilePath);
@@ -124,7 +125,7 @@ codeunit 1279 "Cryptography Management Impl."
     var
         PasswordDialogManagement: Codeunit "Password Dialog Management";
         TempKeyFilePath: Text;
-        Password: Text;
+        Password: SecretText;
     begin
         TempKeyFilePath := UploadFile();
 
@@ -132,8 +133,8 @@ codeunit 1279 "Cryptography Management Impl."
         if TempKeyFilePath = '' then
             exit;
 
-        Password := PasswordDialogManagement.OpenPasswordDialog(true, true);
-        if Password <> '' then begin
+        Password := PasswordDialogManagement.OpenSecretPasswordDialog(true, true);
+        if not Password.IsEmpty() then begin
             if IsEncryptionEnabled() then begin
                 if not Confirm(ReencryptConfirmQst, true) then
                     exit;
@@ -151,7 +152,7 @@ codeunit 1279 "Cryptography Management Impl."
         PasswordDialogManagement: Codeunit "Password Dialog Management";
         TempBlob: Codeunit "Temp Blob";
         ShouldExportKey: Boolean;
-        Password: Text;
+        Password: SecretText;
     begin
         if Silent then begin
             CreateEncryptionKeys();
@@ -160,8 +161,8 @@ codeunit 1279 "Cryptography Management Impl."
 
         if Confirm(EnableEncryptionConfirmQst, true) then begin
             if Confirm(ExportEncryptionKeyConfirmQst, true) then begin
-                Password := PasswordDialogManagement.OpenPasswordDialog();
-                if Password <> '' then
+                Password := PasswordDialogManagement.OpenSecretPasswordDialog();
+                if not Password.IsEmpty() then
                     ShouldExportKey := true;
             end;
 
@@ -220,9 +221,10 @@ codeunit 1279 "Cryptography Management Impl."
         exit(ServerFileName);
     end;
 
-    local procedure ImportKeyAndConfirm(KeyFilePath: Text; Password: Text)
+    [NonDebuggable]
+    local procedure ImportKeyAndConfirm(KeyFilePath: Text; Password: SecretText)
     begin
-        ImportEncryptionKey(KeyFilePath, Password);
+        ImportEncryptionKey(KeyFilePath, Password.Unwrap());
         Message(EncryptionKeyImportedMsg);
     end;
 
