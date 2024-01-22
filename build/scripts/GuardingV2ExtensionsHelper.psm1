@@ -242,6 +242,7 @@ function Get-StrictModeBranchStatus()
         return $false
     }
     
+    git fetch origin tag "$($BranchName+$StrictModeString)"
     [string] $GitStrictModeTag = git tag -l "$($BranchName+$StrictModeString)"
 
     if ($GitStrictModeTag -eq ($BranchName + $StrictModeString))
