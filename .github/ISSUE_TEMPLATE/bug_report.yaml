@@ -47,4 +47,15 @@ body:
       description: If needed add any other context about the problem here or include screenshots
       placeholder: Additional context, screenshots, log output, etc.
     validations:
-      required: true
+      required: false
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: I intend on providing a fix for this issue myself
+      description: | 
+        If you plan to provide a fix for this issue, please check the box below. 
+        
+        Otherwise, please note that this repository is not the right place to report product defects. It is intended for the Business Central community to collaborate. If you are experiencing a bug with customer impact please see https://aka.ms/BCSupport. For any questions, please refer to https://aka.ms/BCFAQ#where-do-i-go-if-i-have-questions-"
+      options:
+        - label: I intend on providing a fix for this issue myself
+          required: true
