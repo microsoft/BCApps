@@ -42,11 +42,11 @@
                    ],
     "CICDPushBranches":  [
                              "main",
-                             "release/*"
+                             "releases/*"
                          ],
     "CICDPullRequestBranches":  [
                                     "main",
-                                    "release/*",
+                                    "releases/*",
                                     "features/*"
                                 ],
     "enableCodeCop":  true,
