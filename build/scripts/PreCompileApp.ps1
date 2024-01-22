@@ -55,6 +55,11 @@ if($appType -eq 'app')
                 }
             }
 
+            if($appBuildMode -eq 'Default' -and (Get-StrictModeBranchStatus)) {
+                # StrictMode tag is present on the branch so we build in StrictMode
+                $appBuildMode = "StrictMode"
+            }
+
             Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null
         }
     }

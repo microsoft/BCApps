@@ -43,6 +43,22 @@ function Enable-BreakingChangesCheck {
             }
             $baselineVersion = $appJson.version # Use the version of the current app as the baseline version
         }
+        'StrictMode' {
+            Write-Host "Getting baseline for StrictMode"
+            Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
+
+            $majorMinor = Get-ConfigValue -Key "repoVersion" -ConfigType "AL-GO"
+            $strictModeVersion = ((Get-BCArtifactUrl -type Sandbox -country W1 -version $majorMinor -select Latest) -split "/")[-2]
+            if (-not $strictModeVersion) {
+                $strictModeVersion = ((Get-BCArtifactUrl -type Sandbox -country W1 -version $majorMinor -select Latest -storageAccount bcinsider -accept_insiderEula) -split "/")[-2]
+            }
+
+            if (-not $strictModeVersion) {
+                throw "Unable to find baseline version for StrictMode"
+            }
+
+            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName -BaselineVersion $strictModeVersion
+        }
         Default {
             $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName
         }
@@ -72,35 +88,40 @@ function Restore-BaselinesFromArtifacts {
         [Parameter(Mandatory = $true)]
         [string] $AppName,
         [Parameter(Mandatory = $true)]
-        [string] $TargetFolder
+        [string] $TargetFolder,
+        [Parameter(Mandatory = $false)]
+        [string] $BaselineVersion
     )
     Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
-    $baselinePackage = Get-ConfigValue -Key "AppBaselines-BCArtifacts" -ConfigType Packages
-    if (-not $baselinePackage) {
-        throw "Unable to find baseline package in Packages.json"
+    if (-not $BaselineVersion) {
+        $baselinePackage = Get-ConfigValue -Key "AppBaselines-BCArtifacts" -ConfigType Packages
+        if (-not $baselinePackage) {
+            throw "Unable to find baseline package in Packages.json"
+        }
+    
+        $BaselineVersion = $baselinePackage.Version
     }
 
-    $baselineVersion = $baselinePackage.Version
-    $baselineFolder = Join-Path (Get-BaseFolder) "out/baselineartifacts/$baselineVersion"
+    $baselineFolder = Join-Path (Get-BaseFolder) "out/baselineartifacts/$BaselineVersion"
 
     if (-not (Test-Path $baselineFolder)) {
-        $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $baselineVersion
+        $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $BaselineVersion
 
         # TODO: temporary workaround for baselines not being available in bcartifacts
         if(-not $baselineURL) {
             #Fallback to bcinsider
-            $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $baselineVersion -storageAccount bcinsider -accept_insiderEula
+            $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $BaselineVersion -storageAccount bcinsider -accept_insiderEula
         }
 
         if (-not $baselineURL) {
-            throw "Unable to find URL for baseline version $baselineVersion"
+            throw "Unable to find URL for baseline version $BaselineVersion"
         }
         Write-Host "Downloading from $baselineURL to $baselineFolder"
         Download-Artifacts -artifactUrl $baselineURL -basePath $baselineFolder | Out-Null
     }
 
-    $baselineApp = Get-ChildItem -Path "$baselineFolder/sandbox/$baselineVersion/W1/Extensions" -Filter "*_$($AppName)_$($baselineVersion).app" -ErrorAction SilentlyContinue
+    $baselineApp = Get-ChildItem -Path "$baselineFolder/sandbox/$BaselineVersion/W1/Extensions" -Filter "*_$($AppName)_$($BaselineVersion).app" -ErrorAction SilentlyContinue
 
     if (-not $baselineApp) {
         Write-Host "Unable to find baseline app for $AppName in $baselineFolder"
@@ -115,7 +136,7 @@ function Restore-BaselinesFromArtifacts {
     Write-Host "Copying $($baselineApp.FullName) to $TargetFolder"
     Copy-Item -Path $baselineApp.FullName -Destination $TargetFolder | Out-Null
 
-    return $baselineVersion
+    return $BaselineVersion
 }
 
 <#
@@ -203,6 +224,32 @@ function Update-AppSourceCopVersion
     }
 
     return $appSourceCopJsonPath
+}
+
+function Get-StrictModeBranchStatus()
+{
+    Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+    $StrictModeString = "/StrictMode"
+    $BranchName = Get-PullRequestTargetBranch
+    if (!$BranchName)
+    {
+        $BranchName = Get-CurrentBranch
+    }
+    
+    
+    if ($BranchName -NotMatch "^releases\/\d+\.\d+$")
+    {
+        return $false
+    }
+    
+    [string] $GitStrictModeTag = git tag -l "$($BranchName+$StrictModeString)"
+
+    if ($GitStrictModeTag -eq ($BranchName + $StrictModeString))
+    {
+        return $true
+    }
+
+    return $false
 }
 
 Export-ModuleMember -Function *-*
