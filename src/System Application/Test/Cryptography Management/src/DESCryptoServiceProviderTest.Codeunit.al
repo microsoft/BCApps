@@ -28,7 +28,7 @@ codeunit 132588 "DESCryptoServiceProvider Test"
         ExpectedEncryptedTextLength := 8;
 
         // [WHEN] Encrypt Text 
-        EncryptedText := DESCryptoServiceProvider.EncryptText('Test', 'Test1234', 'ABitofSalt');
+        EncryptedText := DESCryptoServiceProvider.EncryptText('Test', GetPassword(), 'ABitofSalt');
 
         // [THEN] Verify Result 
         LibraryAssert.IsTrue(EncryptedText.EndsWith(ExpectedEncryptedTextEnding), 'Unexpected value when encrypting text using DESCryptoServiceProvider');
@@ -47,7 +47,7 @@ codeunit 132588 "DESCryptoServiceProvider Test"
         ExpectedDecryptedText := 'Test';
 
         // [WHEN] Encrypt Text 
-        DecryptedText := DESCryptoServiceProvider.DecryptText(EncryptedText, 'Test1234', 'ABitofSalt');
+        DecryptedText := DESCryptoServiceProvider.DecryptText(EncryptedText, GetPassword(), 'ABitofSalt');
 
         // [THEN] Verify Result 
         LibraryAssert.AreEqual(ExpectedDecryptedText, DecryptedText, 'Unexpected value when decrypting text using DESCryptoServiceProvider');
@@ -125,6 +125,14 @@ codeunit 132588 "DESCryptoServiceProvider Test"
         DecryptedStreamText := Base64Convert.ToBase64(OutputInstream);
 
         LibraryAssert.AreEqual(ExpectedDecryptedStreamText, DecryptedStreamText, 'Unexpected value when decrypting stream text using DESCryptoServiceProvider');
+    end;
+
+    local procedure GetPassword(): SecretText
+    var
+        Password: Text;
+    begin
+        Password := 'Test1234';
+        exit(Password);
     end;
 
 }

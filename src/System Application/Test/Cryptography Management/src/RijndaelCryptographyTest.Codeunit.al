@@ -95,7 +95,7 @@ codeunit 132575 "Rijndael Cryptography Test"
     var
         RijndaelCryptography1: Codeunit "Rijndael Cryptography";
         RijndaelCryptography2: Codeunit "Rijndael Cryptography";
-        KeyAsBase64: Text;
+        KeyAsBase64: SecretText;
         VectorAsBase64: Text;
         PlainText: Text;
         CryptedText: Text;

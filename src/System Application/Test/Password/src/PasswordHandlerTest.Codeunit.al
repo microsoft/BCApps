@@ -27,7 +27,7 @@ codeunit 132578 "Password Handler Test"
     procedure TestGenerateShortPassword()
     var
         PasswordHandler: Codeunit "Password Handler";
-        Password: Text;
+        Password: SecretText;
         Length: Integer;
     begin
         // [SCENARIO] An eight character long strong password can be generated.
@@ -37,10 +37,10 @@ codeunit 132578 "Password Handler Test"
         Length := 8;
 
         // [WHEN] The password is generated.
-        Password := PasswordHandler.GeneratePassword(Length);
+        Password := PasswordHandler.GenerateSecretPassword(Length);
 
         // [THEN] The length of the generated password is correct.
-        Assert.AreEqual(Length, StrLen(Password), 'The generated password has incorrect length.');
+        Assert.AreEqual(Length, GetPasswordLength(Password), 'The generated password has incorrect length.');
 
         // [THEN] The password is strong.
         Assert.IsTrue(PasswordHandler.IsPasswordStrong(Password), PasswordIsNotStrongErr);
@@ -51,7 +51,7 @@ codeunit 132578 "Password Handler Test"
     procedure TestGeneratingLongPassword()
     var
         PasswordHandler: Codeunit "Password Handler";
-        Password: Text;
+        Password: SecretText;
         Length: Integer;
     begin
         // [SCENARIO] A one hundred character long strong password can be generated.
@@ -61,10 +61,10 @@ codeunit 132578 "Password Handler Test"
         Length := 100;
 
         // [WHEN] The password is generated.
-        Password := PasswordHandler.GeneratePassword(Length);
+        Password := PasswordHandler.GenerateSecretPassword(Length);
 
         // [THEN] The length of the generated password is correct.
-        Assert.AreEqual(Length, StrLen(Password), 'The generated password has incorrect length.');
+        Assert.AreEqual(Length, GetPasswordLength(Password), 'The generated password has incorrect length.');
 
         // [THEN] The password is strong.
         Assert.IsTrue(PasswordHandler.IsPasswordStrong(Password), PasswordIsNotStrongErr);
@@ -84,7 +84,7 @@ codeunit 132578 "Password Handler Test"
         Length := 7;
 
         // [WHEN] The password is generated.
-        asserterror PasswordHandler.GeneratePassword(Length);
+        asserterror PasswordHandler.GenerateSecretPassword(Length);
         Assert.ExpectedError('The password must contain at least 8 characters.');
 
         // [THEN] The error: 'The password must contain at least 8 characters.' is thrown.
@@ -110,7 +110,7 @@ codeunit 132578 "Password Handler Test"
         Length := 15;
 
         // [WHEN] The password is generated.
-        asserterror PasswordHandler.GeneratePassword(Length);
+        asserterror PasswordHandler.GenerateSecretPassword(Length);
         Assert.ExpectedError('The password must contain at least 16 characters.');
 
         // [THEN] The error: 'The password must contain at least 16 characters.' is thrown.
@@ -140,14 +140,14 @@ codeunit 132578 "Password Handler Test"
     var
         PasswordHandlerTest: Codeunit "Password Handler Test";
         PasswordHandler: Codeunit "Password Handler";
-        Password: Text;
+        Password: SecretText;
     begin
         // [SCENARIO] If the minimum length of the password is set to sixteen in the event,
         // a password with less than sixteen characters is not considered to be strong.
         PermissionsMock.Set('All Objects');
 
         // [GIVEN] A fifteen character long strong password is generated.
-        Password := PasswordHandler.GeneratePassword(15);
+        Password := PasswordHandler.GenerateSecretPassword(15);
 
         // [WHEN] The subsciber is bound to the event.        
         BindSubscription(PasswordHandlerTest);
@@ -228,5 +228,11 @@ codeunit 132578 "Password Handler Test"
     begin
         // Increase the minimum length of the password.
         MinPasswordLength := 16;
+    end;
+
+    [NonDebuggable]
+    local procedure GetPasswordLength(Password: SecretText): Integer
+    begin
+        exit(StrLen(Password.Unwrap()));
     end;
 }
