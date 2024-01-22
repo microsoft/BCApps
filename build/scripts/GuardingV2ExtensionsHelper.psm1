@@ -99,7 +99,7 @@ function Restore-BaselinesFromArtifacts {
         if (-not $baselinePackage) {
             throw "Unable to find baseline package in Packages.json"
         }
-    
+
         $BaselineVersion = $baselinePackage.Version
     }
 
@@ -235,13 +235,13 @@ function Get-StrictModeBranchStatus()
     {
         $BranchName = Get-CurrentBranch
     }
-    
-    
+
+
     if ($BranchName -NotMatch "^releases\/\d+\.\d+$")
     {
         return $false
     }
-    
+
     git fetch origin tag "$($BranchName+$StrictModeString)"
     [string] $GitStrictModeTag = git tag -l "$($BranchName+$StrictModeString)"
 
