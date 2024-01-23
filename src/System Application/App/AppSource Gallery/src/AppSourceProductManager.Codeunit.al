@@ -344,7 +344,7 @@ codeunit 2515 "AppSource Product Manager"
         , 'ph', 'pl', 'pt', 'pr', 'qa', 'ro', 'ru', 'rw', 'kn', 'sa', 'sn', 'rs', 'sg', 'sk', 'si', 'za', 'es', 'lk', 'se', 'ch'
         , 'tw', 'tj', 'tz', 'th', 'tt', 'tn', 'tr', 'tm', 'ug', 'ua', 'ae', 'gb', 'us', 'vi', 'uy', 'uz', 'va', 've', 'vn', 'ye'
         , 'zm', 'zw':
-                exit(market);
+                exit(LowerCase(market));
             else
                 exit('us');
         end;
@@ -359,7 +359,7 @@ codeunit 2515 "AppSource Product Manager"
     begin
         case LowerCase(language) of
             'en', 'cs', 'de', 'es', 'fr', 'hu', 'it', 'ja', 'ko', 'nl', 'pl', 'pt-br', 'pt-pt', 'ru', 'sv', 'tr', 'zh-hans', 'zh-hant':
-                exit(language);
+                exit(LowerCase(language));
             else
                 exit('en');
         end;
@@ -632,8 +632,14 @@ codeunit 2515 "AppSource Product Manager"
         TextValue: text;
         ApiKey: SecretText;
     begin
-        if not EnvironmentInformation.IsSaaS() then
-            Error('Not Supported On Premises');
+        if not EnvironmentInformation.IsSaas() then begin
+            TextValue := '9c7772eb58a438cf4bf3b398496ae320aafd9ea16a777c2ed583ac965f8a9947';
+            ApiKey := TextValue;
+            exit(ApiKey)
+        end;
+
+        // if not EnvironmentInformation.IsSaaS() then
+        //     Error('Not Supported On Premises');
 
         keyVault.GetAzureKeyVaultSecret('MS-AppSource-ApiKey', TextValue);
         ApiKey := TextValue;
