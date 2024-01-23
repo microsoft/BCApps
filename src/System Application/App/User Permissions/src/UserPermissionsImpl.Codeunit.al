@@ -235,14 +235,14 @@ codeunit 153 "User Permissions Impl."
 #endif
 
     procedure HasUserPermissionSetAssigned(UserSecurityId: Guid; Company: Text; RoleId: Code[20]; ItemScope: Option; AppId: Guid): Boolean
-    var
-        NavUserAccountHelper: DotNet NavUserAccountHelper;
+    // var
+    //     NavUserAccountHelper: DotNet NavUserAccountHelper;
     begin
-        if NavUserAccountHelper.IsPermissionSetAssigned(UserSecurityId, '', RoleId, AppId, ItemScope) then
-            exit(true);
+        // if NavUserAccountHelper.IsPermissionSetAssigned(UserSecurityId, '', RoleId, AppId, ItemScope) then
+        //     exit(true);
 
-        if Company <> '' then
-            exit(NavUserAccountHelper.IsPermissionSetAssigned(UserSecurityId, Company, RoleId, AppId, ItemScope));
+        // if Company <> '' then
+        //     exit(NavUserAccountHelper.IsPermissionSetAssigned(UserSecurityId, Company, RoleId, AppId, ItemScope));
 
         exit(false);
     end;

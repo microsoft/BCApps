@@ -12,15 +12,92 @@ using System.Utilities;
 using System.Environment;
 using System.Azure.KeyVault;
 using System.RestClient;
-using System.Apps;
 
 /// <summary>
 /// Library for managing AppSource product retrival and usage.
 /// </summary>
-codeunit 2515 "AppSource Product Manager"
+codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager Dependencies"
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+
+    #region Dependency Interface implementation
+    procedure AzureADTenant_GetCountryLetterCode(): Text[2]
+    var
+        entraTenant: Codeunit "Azure AD Tenant";
+    begin
+        exit(entraTenant.GetCountryLetterCode());
+    end;
+
+    procedure AzureADTenant_GetPreferredLanguage(): Text[2]
+    var
+        entraTenant: Codeunit "Azure AD Tenant";
+    begin
+        exit(entraTenant.GetPreferredLanguage());
+    end;
+
+    procedure AzureADTenant_GetAadTenantID(): Text
+    var
+        entraTenant: Codeunit "Azure AD Tenant";
+    begin
+        exit(entraTenant.GetAadTenantID());
+    end;
+
+    procedure AzureKeyVault_GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText);
+    var
+        KeyVault: Codeunit "Azure Key Vault";
+    begin
+        KeyVault.GetAzureKeyVaultSecret(SecretName, Secret);
+    end;
+
+    procedure EnvironmentInformation_GetApplicationFamily(): Text
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        exit(EnvironmentInformation.GetApplicationFamily());
+    end;
+
+    procedure EnvironmentInformation_IsSaas(): boolean
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        exit(EnvironmentInformation.IsSaas());
+    end;
+
+    procedure Language_GetFormatRegionOrDefault(FormatRegion: Text[80]): Text
+    var
+        Language: Codeunit Language;
+    begin
+        exit(Language.GetFormatRegionOrDefault(FormatRegion));
+    end;
+
+    procedure Language_GetLanguageCode(LanguageID: Integer): Text
+    var
+        Language: Codeunit Language;
+    begin
+        exit(Language.GetLanguageCode(LanguageID));
+
+    end;
+
+    procedure RestClient_GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken
+    begin
+        exit(RestClient.GetAsJSon(RequestUri));
+    end;
+
+    procedure UserSettings_GetUserSettings(UserSecurityId: Guid; var TempUserSettingsRecord: record "User Settings" temporary)
+    var
+        UserSettings: Codeunit "User Settings";
+    begin
+        UserSettings.GetUserSettings(Database.UserSecurityID(), TempUserSettingsRecord);
+    end;
+
+    #endregion
+    procedure SetDependencies(SpecificDependencies: Interface "IAppSource Product Manager Dependencies")
+    begin
+        Dependencies := SpecificDependencies;
+        IsDependenciesSet := true;
+    end;
 
     #region Product helpers 
     /// <summary>
@@ -28,7 +105,8 @@ codeunit 2515 "AppSource Product Manager"
     /// </summary>
     procedure OpenAppSource()
     begin
-        Hyperlink(StrSubstNo(AppSourceUriLbl, GetCurrentUserFormatRegion()));
+        Init();
+        Hyperlink(StrSubstNo(AppSourceUriLbl, Dependencies.Language_GetFormatRegionOrDefault('')));
     end;
 
 
@@ -38,7 +116,7 @@ codeunit 2515 "AppSource Product Manager"
     /// <param name="UniqueProductIDValue">The Unique Product ID of the product to show in MicrosoftAppSource</param>
     procedure OpenInAppSource(UniqueProductIDValue: Text)
     begin
-        Hyperlink(StrSubstNo(AppSourceListingUriLbl, GetCurrentUserFormatRegion(), UniqueProductIDValue));
+        Hyperlink(StrSubstNo(AppSourceListingUriLbl, GetCurrentUserLanguageCode(), UniqueProductIDValue));
     end;
 
     /// <summary>
@@ -70,16 +148,6 @@ codeunit 2515 "AppSource Product Manager"
             exit(CopyStr(UniqueProductIDValue, AppIDPos + 7, 36));
         exit('');
     end;
-
-    /// <summary>
-    /// Installs the product with the specified AppID.
-    /// </summary>
-    internal procedure InstallProduct(AppIDToInstall: Guid)
-    var
-        ExtensionManagement: Codeunit "Extension Management";
-    begin
-        ExtensionManagement.InstallMarketplaceExtension(AppIDToInstall);
-    end;
     #endregion
 
     /// <summary>
@@ -87,13 +155,29 @@ codeunit 2515 "AppSource Product Manager"
     /// </summary>
     internal procedure GetProductsAndPopulateRecord(var AppSourceProductRec: record "AppSource Product"): Text
     var
+        RestClient: Codeunit "Rest Client";
         NextPageLink: text;
     begin
         NextPageLink := ConstructProductListUri();
 
+        RestClient.Initialize();
+        SetCommonHeaders(RestClient);
+
         repeat
-            NextPageLink := DownloadAndAddNextPageProducts(NextPageLink, AppSourceProductRec);
+            NextPageLink := DownloadAndAddNextPageProducts(NextPageLink, AppSourceProductRec, RestClient);
         until NextPageLink = '';
+    end;
+
+    local procedure GetCurrentUserLanguageCode(): Text
+    var
+        TempUserSettings: Record "User Settings" temporary;
+        FormatRegion: Text;
+    begin
+        Init();
+        Dependencies.UserSettings_GetUserSettings(Database.UserSecurityID(), TempUserSettings);
+        FormatRegion := Dependencies.Language_GetLanguageCode(TempUserSettings."Language ID");
+
+        exit(FormatRegion);
     end;
 
     /// <summary>
@@ -106,20 +190,20 @@ codeunit 2515 "AppSource Product Manager"
         ClientRequestID: Guid;
         TelemetryDictionary: Dictionary of [Text, Text];
     begin
+        Init();
         ClientRequestID := CreateGuid();
         PopulateTelemetryDictionary(ClientRequestID, UniqueProductIDValue, TelemetryDictionary);
         Session.LogMessage('AL:AppSource-GetProduct', 'Requesting product data for', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDictionary);
 
         RequestUri := ConstructProductUri(UniqueProductIDValue);
         RestClient.Initialize();
-        SetCommonHeaders(RestClient, ClientRequestID);
+        SetCommonHeaders(RestClient);
 
-        exit(restClient.GetAsJson(requestUri).AsObject());
+        exit(Dependencies.RestClient_GetAsJSon(restClient, RequestUri).AsObject());
     end;
 
-    local procedure DownloadAndAddNextPageProducts(NextPageLink: Text; var AppSourceProductRec: record "AppSource Product"): Text
+    local procedure DownloadAndAddNextPageProducts(NextPageLink: Text; var AppSourceProductRec: record "AppSource Product"; var RestClient: Codeunit "Rest Client"): Text
     var
-        RestClient: Codeunit "Rest Client";
         ResponseObject: JsonObject;
         ProductArray: JsonArray;
         ProductArrayToken: JsonToken;
@@ -131,10 +215,9 @@ codeunit 2515 "AppSource Product Manager"
         ClientRequestID := CreateGuid();
         PopulateTelemetryDictionary(ClientRequestID, '', TelemetryDictionary);
         Session.LogMessage('AL:AppSource-NextPageProducts', 'Requesting product data for', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDictionary);
+        RestClient.SetDefaultRequestHeader('x-ms-client-request-id', ClientRequestID);
 
-        RestClient.Initialize();
-        SetCommonHeaders(RestClient, ClientRequestID);
-        ResponseObject := RestClient.GetAsJson(NextPageLink).AsObject();
+        ResponseObject := Dependencies.RestClient_GetAsJSon(RestClient, NextPageLink).AsObject();
         if (ResponseObject.Get('items', ProductArrayToken)) then begin
             ProductArray := ProductArrayToken.AsArray();
             for i := 0 to ProductArray.Count() do
@@ -144,14 +227,11 @@ codeunit 2515 "AppSource Product Manager"
         exit(GetStringValue(ResponseObject, 'nextPageLink'));
     end;
 
-    local procedure SetCommonHeaders(var RestClient: Codeunit "Rest Client"; ClientRequestID: Guid)
-    var
-        AzureADTenant: codeunit "Azure AD Tenant";
+    local procedure SetCommonHeaders(var RestClient: Codeunit "Rest Client")
     begin
         RestClient.SetDefaultRequestHeader('X-API-Key', GetAPIKey());
-        RestClient.SetDefaultRequestHeader('x-ms-client-tenant-id', AzureADTenant.GetAadTenantID());
+        RestClient.SetDefaultRequestHeader('x-ms-client-tenant-id', Dependencies.AzureADTenant_GetAadTenantID());
         RestClient.SetDefaultRequestHeader('x-ms-app', 'Dynamics 365 Business Central');
-        RestClient.SetDefaultRequestHeader('x-ms-client-request-id', ClientRequestID);
     end;
 
     local procedure ConstructProductListUri(): Text
@@ -274,12 +354,14 @@ codeunit 2515 "AppSource Product Manager"
     #region Market and language helper functions
     local procedure ResolveMarketAndLanguage(var Market: Text[2]; var Language: Text[2])
     begin
+        Init();
+
         Language := GetCurrentUserIso369_1Language();
 
-        Market := CopyStr(EnvironmentInformation.GetApplicationFamily(), 1, 2);
+        Market := CopyStr(Dependencies.EnvironmentInformation_GetApplicationFamily(), 1, 2);
 
         if (Market = '') or (Market = 'W1') then
-            if not TryGetEnvirnmentCountryLetterCode(Market) then
+            if not TryGetEnvironmentCountryLetterCode(Market) then
                 Market := 'us';
 
         if Language = '' then
@@ -290,41 +372,24 @@ codeunit 2515 "AppSource Product Manager"
         Language := EnsureValidLanguage(Language);
     end;
 
-    local procedure GetCurrentUserFormatRegion(): Text
-    var
-        Language: Codeunit Language;
-        FormatRegion: text[80];
-    begin
-        FormatRegion := Language.GetFormatRegionOrDefault('');
-        exit(FormatRegion);
-    end;
-
     local procedure GetCurrentUserIso369_1Language(): Text[2]
-    var
-        TempUserSettingsRecord: record "User Settings" temporary;
-        UserSettings: Codeunit "User Settings";
-        Language: Codeunit Language;
-        LanguageName: Text;
     begin
-        UserSettings.GetUserSettings(Database.UserSecurityID(), TempUserSettingsRecord);
-        LanguageName := Language.GetLanguageCode(tempUserSettingsRecord."Language ID");
-        exit(ConvertIso369_3_ToIso369_1(LanguageName));
+        Init();
+        exit(ConvertIso369_3_ToIso369_1(GetCurrentUserLanguageCode()));
     end;
 
     [TryFunction]
-    local procedure TryGetEnvirnmentCountryLetterCode(var CountryLetterCode: Text[2])
-    var
-        entraTenant: Codeunit "Azure AD Tenant";
+    local procedure TryGetEnvironmentCountryLetterCode(var CountryLetterCode: Text[2])
     begin
-        CountryLetterCode := entraTenant.GetCountryLetterCode();
+        Init();
+        CountryLetterCode := Dependencies.AzureADTenant_GetCountryLetterCode();
     end;
 
     [TryFunction]
     local procedure TryGetEnvironmentPreferredLanguage(var PreferredLanguage: Text[2])
-    var
-        entraTenant: Codeunit "Azure AD Tenant";
     begin
-        PreferredLanguage := entraTenant.GetPreferredLanguage();
+        Init();
+        PreferredLanguage := Dependencies.AzureADTenant_GetPreferredLanguage();
     end;
 
     /// <summary>
@@ -628,26 +693,39 @@ codeunit 2515 "AppSource Product Manager"
     [NonDebuggable]
     local procedure GetAPIKey(): SecretText
     var
-        KeyVault: codeunit "Azure Key Vault";
-        TextValue: text;
         ApiKey: SecretText;
     begin
-        if not EnvironmentInformation.IsSaas() then begin
-            TextValue := '9c7772eb58a438cf4bf3b398496ae320aafd9ea16a777c2ed583ac965f8a9947';
-            ApiKey := TextValue;
-            exit(ApiKey)
-        end;
+        // if not Dependencies.EnvironmentInformation_IsSaas() then begin
+        //     TextValue := '9c7772eb58a438cf4bf3b398496ae320aafd9ea16a777c2ed583ac965f8a9947';
+        //     ApiKey := TextValue;
+        //     exit(ApiKey)
+        // end;
 
-        // if not EnvironmentInformation.IsSaaS() then
-        //     Error('Not Supported On Premises');
+        Init();
+        if not Dependencies.EnvironmentInformation_IsSaas() then
+            Error('Not Supported On Premises');
 
-        keyVault.GetAzureKeyVaultSecret('MS-AppSource-ApiKey', TextValue);
-        ApiKey := TextValue;
+        Dependencies.AzureKeyVault_GetAzureKeyVaultSecret('MS-AppSource-ApiKey', ApiKey);
         exit(ApiKey);
     end;
 
+    local procedure Init()
+    begin
+        if not IsDependenciesSet then
+            SetDefaultDependencyImplementation();
+    end;
+
+    local procedure SetDefaultDependencyImplementation()
     var
-        EnvironmentInformation: Codeunit "Environment Information";
+        dependencyInstance: Codeunit "AppSource Product Manager";
+    begin
+        dependencies := dependencyInstance;
+        IsDependenciesSet := true;
+    end;
+
+    var
+        Dependencies: Interface "IAppSource Product Manager Dependencies";
+        IsDependenciesSet: boolean;
         CatalogProductsUriLbl: label 'https://catalogapi.azure.com/products', Locked = true;
         CatalogApiVersionQueryParamNameLbl: label 'api-version', Locked = true;
         CatalogApiVersionQueryParamValueLbl: label '2023-05-01-preview', Locked = true;
