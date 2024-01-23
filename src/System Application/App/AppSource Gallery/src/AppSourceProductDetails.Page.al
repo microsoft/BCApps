@@ -178,6 +178,8 @@ page 2516 "AppSource Product Details"
                 Visible = false;
 
                 trigger OnAction()
+                var
+                    ExtensionManagement: Codeunit "Extension Management";
                 begin
                     if not (CurrentRecordCanBeInstalled) then
                         exit;
@@ -185,7 +187,7 @@ page 2516 "AppSource Product Details"
                     if (PlansAreVisible) then
                         if not Confirm(PurchaseLicensesElsewhereLbl) then
                             exit;
-                    AppSourceProductManager.InstallProduct(AppID);
+                    ExtensionManagement.InstallMarketplaceExtension(AppID);
                 end;
             }
 
