@@ -16,7 +16,7 @@ page 2515 "AppSource Product List"
     ApplicationArea = All;
     UsageCategory = Administration;
     Editable = false;
-    AdditionalSearchTerms = 'Extension,Marketplace,Management,Customization,Personalization,Install,Publish,Extend,App,Add-In,Customize,Plug-In,AppSource';
+    AdditionalSearchTerms = 'Extension,Extensions,Marketplace,Management,Customization,Personalization,Install,Publish,Extend,App,Add-In,Customize,Plug-In,AppSource', Locked = true;
 
     SourceTable = "AppSource Product";
     SourceTableView = sorting(DisplayName);
