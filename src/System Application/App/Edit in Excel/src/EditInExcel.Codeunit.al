@@ -150,7 +150,7 @@ codeunit 1481 "Edit in Excel"
     /// <param name="SearchFilter">The search filter of the user.</param>
     //  <param name="Handled">Specifies whether the event has been handled and no further execution should occur.</param>
     [IntegrationEvent(false, false)]
-    internal procedure OnEditInExcelWithFilters(ServiceName: Text[240]; var EditinExcelFilters: Codeunit "Edit in Excel Filters"; SearchFilter: Text; var Handled: Boolean)
+    procedure OnEditInExcelWithFilters(ServiceName: Text[240]; var EditinExcelFilters: Codeunit "Edit in Excel Filters"; SearchFilter: Text; var Handled: Boolean)
     begin
     end;
 }
