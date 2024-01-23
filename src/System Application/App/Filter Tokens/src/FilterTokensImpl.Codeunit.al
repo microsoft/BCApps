@@ -387,6 +387,7 @@ codeunit 58 "Filter Tokens Impl."
     local procedure ResolveTimeToken(var TimeFilter: Time; TimeToken: Text) Handled: Boolean
     begin
         TimeToken := DelChr(TimeToken); // Deletes all spaces in TimeToke
+        TimeToken := UpperCase(TimeToken); // Turn TimeToken into uppercase
         case TimeToken of
             NowTxt, 'NOW':
                 begin
