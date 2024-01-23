@@ -52,6 +52,7 @@ permissionset 219 "System Application - Objects"
                              "Security Groups - Objects",
                              "SharePoint API - Objects",
                              "Table Information - Objects",
+                             "Table Key - Objects",
                              "Translation - Objects",
                              "User Permissions - Objects",
                              "User Selection - Objects",
