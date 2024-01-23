@@ -51,6 +51,7 @@ codeunit 9558 "Table Key Impl."
         // Disable SystemId index
         KeyToDisable := RecordRef.KeyIndex(RecordRef.KeyCount());
         Database.AlterKey(KeyToDisable, Enable);
+        RecordRef.Close();
 
         exit(true);
     end;
