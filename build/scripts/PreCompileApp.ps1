@@ -55,9 +55,9 @@ if($appType -eq 'app')
                 }
             }
 
-            if($appBuildMode -eq 'Default' -and (Get-StrictModeBranchStatus)) {
-                # StrictMode tag is present on the branch so we build in StrictMode
-                $appBuildMode = "StrictMode"
+            if($appBuildMode -eq 'StrictMode' -and !(Get-StrictModeBranchStatus)) {
+                Write-Host "::Warning:: StrictMode is not enabled for this branch. Exiting without enabling the strict mode breaking changes check."
+                exit
             }
 
             Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null

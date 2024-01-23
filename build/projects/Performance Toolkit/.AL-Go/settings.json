@@ -6,5 +6,15 @@
     "testFolders":  [
         "..\\..\\..\\src\\Tools\\Performance Toolkit\\Test"
     ],
-    "installOnlyReferencedApps": false
+    "installOnlyReferencedApps": false,
+    "ConditionalSettings": [
+        {
+            "branches": [
+                "releases/*"
+            ],
+            "settings": {
+                "buildModes": [ "StrictMode" ]
+            }
+        }
+    ]
 }

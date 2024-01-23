@@ -4,10 +4,18 @@
         "..\\..\\..\\src\\Tools\\Test Framework\\Test Libraries\\*",
         "..\\..\\..\\src\\Tools\\Test Framework\\Test Runner"
     ],
-    "buildModes": [
-        "Translated"
-    ],
+    "buildModes": [ "Translated" ],
     "doNotRunTests": true,
     "useCompilerFolder": true,
-    "doNotPublishApps": true
+    "doNotPublishApps": true,
+    "ConditionalSettings": [
+        {
+            "branches": [
+                "releases/*"
+            ],
+            "settings": {
+                "buildModes": [ "Translated", "StrictMode"]
+            }
+        }
+    ]
 }

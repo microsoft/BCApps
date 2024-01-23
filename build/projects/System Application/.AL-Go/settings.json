@@ -3,10 +3,18 @@
     "appFolders":  [
         "..\\..\\..\\src\\System Application\\App"
     ],
-    "buildModes": [
-        "Translated"
-    ],
+    "buildModes": [ "Translated" ],
     "doNotRunTests": true,
     "useCompilerFolder": true,
-    "doNotPublishApps": true
+    "doNotPublishApps": true,
+    "ConditionalSettings": [
+        {
+            "branches": [
+                "releases/*"
+            ],
+            "settings": {
+                "buildModes": [ "Translated", "StrictMode"]
+            }
+        }
+    ]
 }
