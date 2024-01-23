@@ -131,7 +131,13 @@ codeunit 132578 "Password Handler Test"
         Password := 'Pass1@';
 
         // [THEN] The password is not considered to be strong.
+#if not CLEAN24
+#pragma warning disable AL0432
+#endif
         Assert.IsFalse(PasswordHandler.IsPasswordStrong(Password), PasswordIsStrongErr);
+#if not CLEAN24
+#pragma warning restore AL0432
+#endif
     end;
 
     [Test]
@@ -170,6 +176,9 @@ codeunit 132578 "Password Handler Test"
         // [GIVEN] A password without any uppercase characters.
         Password := 'password1@';
         // [THEN] The password is not considered to be strong.
+#if not CLEAN24
+#pragma warning disable AL0432
+#endif
         Assert.IsFalse(PasswordHandler.IsPasswordStrong(Password), 'Password must contain uppercase characters.');
 
         // [GIVEN] A password without any lowercase characters.
@@ -186,6 +195,9 @@ codeunit 132578 "Password Handler Test"
         Password := 'Password1';
         // [THEN] The password is not considered to be strong.
         Assert.IsFalse(PasswordHandler.IsPasswordStrong(Password), 'Password must contain special characters.');
+#if not CLEAN24
+#pragma warning restore AL0432
+#endif
     end;
 
     [Test]
@@ -205,6 +217,9 @@ codeunit 132578 "Password Handler Test"
         // [GIVEN] A password with a '123' sequence.
         Password := 'Password@123';
         // [THEN] The password is not considered to be strong.
+#if not CLEAN24
+#pragma warning disable AL0432
+#endif
         Assert.IsFalse(PasswordHandler.IsPasswordStrong(Password), NoSequencesMsg);
 
         // [GIVEN] A password with an 'ooo' sequence.
@@ -221,6 +236,9 @@ codeunit 132578 "Password Handler Test"
         Password := 'Password1@AB';
         // [THEN] The password is considered to be strong.
         Assert.IsTrue(PasswordHandler.IsPasswordStrong(Password), 'Character sets must not be mixed when determining a sequence.');
+#if not CLEAN24
+#pragma warning restore AL0432
+#endif
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Password Dialog Management", 'OnSetMinPasswordLength', '', false, false)]

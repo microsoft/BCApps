@@ -59,8 +59,13 @@ codeunit 132612 "Signed Xml Module Test"
         SignedXml.LoadXml(SignatureElement);
 
         GetSignatureKeyXmlString(XmlString);
-
+#if not CLEAN24
+#pragma warning disable AL0432
+#endif
         LibraryAssert.IsTrue(SignedXml.CheckSignature(XmlString), 'Failed to verify the xml signature.');
+#if not CLEAN24
+#pragma warning restore AL0432
+#endif
     end;
 
     [Test]
