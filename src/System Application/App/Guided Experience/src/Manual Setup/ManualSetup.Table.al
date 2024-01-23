@@ -14,9 +14,7 @@ table 3700 "Manual Setup"
     InherentEntitlements = X;
     InherentPermissions = X;
     Caption = 'Manual Setup';
-#pragma warning disable AS0034
     TableType = Temporary;
-#pragma warning restore AS0034
 
     ObsoleteState = Removed;
     ObsoleteTag = '23.0';

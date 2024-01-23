@@ -21,7 +21,7 @@ page 1433 "Satisfaction Survey"
     {
         area(Content)
         {
-            usercontrol(SatisfactionSurvey; "Microsoft.Dynamics.Nav.Client.SatisfactionSurvey")
+            usercontrol(SatisfactionSurvey; SatisfactionSurvey)
             {
                 ApplicationArea = All;
 

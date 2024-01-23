@@ -66,4 +66,15 @@ codeunit 3801 "App Key Vault Secret Pr. Impl."
         // It will return false in these cases, and set SecretValue=''.
         exit(NavAzureKeyVaultAppSecretProvider.TryGetAzureKeyVaultSecret(SecretName, SecretValue));
     end;
+
+    [NonDebuggable]
+    procedure GetSecret(SecretName: Text; var SecretValue: SecretText): Boolean
+    var
+        SecretValueText: Text;
+    begin
+        if not GetSecret(SecretName, SecretValueText) then
+            exit(false);
+        SecretValue := SecretValueText;
+        exit(true);
+    end;
 }
