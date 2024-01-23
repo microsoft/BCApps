@@ -1,0 +1,38 @@
+[
+    {
+        "bug":  "497548",
+        "codeunitId":  132912,
+        "codeunitName":  "Azure AD Plan Tests",
+        "method":  "AssignPlansToUserDelegatedAdmin"
+    },
+    {
+        "bug":  "497548",
+        "codeunitId":  132912,
+        "codeunitName":  "Azure AD Plan Tests",
+        "method":  "AssignPlansToUserDelegatedAdminKeepSuper"
+    },
+    {
+        "bug":  "497548",
+        "codeunitId":  132912,
+        "codeunitName":  "Azure AD Plan Tests",
+        "method":  "AssignPlansToUserDelegatedHelpdesk"
+    },
+    {
+        "bug":  "497548",
+        "codeunitId":  132912,
+        "codeunitName":  "Azure AD Plan Tests",
+        "method":  "AssignPlansToUserDelegatedHelpdeskKeepSuper"
+    },
+    {
+        "bug":  "497548",
+        "codeunitId":  132912,
+        "codeunitName":  "Azure AD Plan Tests",
+        "method":  "AssignPlansToUserNoDelegatedAdmin"
+    },
+    {
+        "bug":  "497548",
+        "codeunitId":  132912,
+        "codeunitName":  "Azure AD Plan Tests",
+        "method":  "AssignPlansToUserNoDelegatedHelpdesk"
+    }
+]
