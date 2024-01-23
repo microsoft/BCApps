@@ -6,6 +6,7 @@
 namespace System.Tooling;
 
 using System.Visualization;
+using System.Integration;
 
 codeunit 1926 "Profiling Chart Helper"
 {
@@ -54,11 +55,11 @@ codeunit 1926 "Profiling Chart Helper"
     /// <summary>
     /// Updates the contents of the business chart control add-in for performance profiler charts.
     /// </summary>
-    /// <param name="DotNetBusinessChartAddIn">The business chart control add-in</param>
+    /// <param name="BusinessChartControlAddIn">The business chart control add-in</param>
     /// <param name="ProfilingAggregationType">The desired aggregation type for the chart.</param>
     /// <param name="BusinessChartType">The business chart type</param>
     /// <param name="AggregateBySelfTime">Specifies if the aggregation should be made over self-time or full time.</param>
-    procedure UpdateData(DotNetBusinessChartAddIn: DotNet BusinessChartAddIn; ProfilingAggregationType: Enum "Profiling Aggregation Type"; BusinessChartType: Enum "Business Chart Type"; AggregateBySelfTime: Boolean)
+    procedure UpdateData(BusinessChartControlAddIn: ControlAddIn BusinessChart; ProfilingAggregationType: Enum "Profiling Aggregation Type"; BusinessChartType: Enum "Business Chart Type"; AggregateBySelfTime: Boolean)
     var
         Index: Integer;
         ChartLabels: List of [Text];
@@ -75,7 +76,7 @@ codeunit 1926 "Profiling Chart Helper"
             BusinessChart.SetValue(0, Index - 1, ChartValues.Get(Index));
         end;
 
-        BusinessChart.Update(DotNetBusinessChartAddIn);
+        BusinessChart.Update(BusinessChartControlAddIn);
     end;
 }
 

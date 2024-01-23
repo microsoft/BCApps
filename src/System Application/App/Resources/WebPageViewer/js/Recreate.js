@@ -1,0 +1,1 @@
+Microsoft.Dynamics.NAV.InvokeExtensibilityMethod('Refresh', [WebPageViewerHelper.GetCallbackURL()]);
