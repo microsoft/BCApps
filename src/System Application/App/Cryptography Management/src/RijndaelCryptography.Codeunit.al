@@ -142,6 +142,18 @@ codeunit 1258 "Rijndael Cryptography"
     begin
         CryptographyManagementImpl.SetPaddingMode(PaddingMode);
     end;
+#if not CLEAN24
+    /// <summary>
+    /// Sets the key and vector for the RijndaelManaged class.
+    /// </summary>
+    /// <param name="KeyAsBase64">Represents the secret key for the symmetric algorithm encoded as Base64 Text</param>
+    /// <param name="VectorAsBase64">Represents the initialization vector (IV) for the symmetric algorithm encoded as Base64 Text</param>
+    [Obsolete('Use SetEncryptionData with SecretText data type for KeyAsBase64.', '24.0')]
+    procedure SetEncryptionData(KeyAsBase64: Text; VectorAsBase64: Text)
+    begin
+        CryptographyManagementImpl.SetEncryptionData(KeyAsBase64, VectorAsBase64);
+    end;
+#endif
 
     /// <summary>
     /// Sets the key and vector for the RijndaelManaged class.
