@@ -10,7 +10,7 @@
     "ConditionalSettings": [
         {
             "branches": [
-                "releases/*"
+                "releases/*.[0-5]"
             ],
             "settings": {
                 "buildModes": [ "Strict" ]
