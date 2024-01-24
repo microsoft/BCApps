@@ -55,8 +55,8 @@ if($appType -eq 'app')
                 }
             }
 
-            if($appBuildMode -eq 'StrictMode' -and !(Get-StrictModeBranchStatus)) {
-                Write-Host "::Warning:: StrictMode is not enabled for this branch. Exiting without enabling the strict mode breaking changes check."
+            if($appBuildMode -eq 'Strict' -and !(Get-StrictModeBranchStatus)) {
+                Write-Host "::Warning:: Strict mode is not enabled for this branch. Exiting without enabling the strict mode breaking changes check."
                 exit
             }
 

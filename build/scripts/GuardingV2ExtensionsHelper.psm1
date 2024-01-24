@@ -43,8 +43,8 @@ function Enable-BreakingChangesCheck {
             }
             $baselineVersion = $appJson.version # Use the version of the current app as the baseline version
         }
-        'StrictMode' {
-            Write-Host "Getting baseline for StrictMode"
+        'Strict' {
+            Write-Host "Getting baseline for Strict Mode"
             Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
             $majorMinor = Get-ConfigValue -Key "repoVersion" -ConfigType "AL-GO"
@@ -54,7 +54,7 @@ function Enable-BreakingChangesCheck {
             }
 
             if (-not $strictModeVersion) {
-                throw "Unable to find baseline version for StrictMode"
+                throw "Unable to find baseline version for Strict Mode"
             }
 
             $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName -BaselineVersion $strictModeVersion
