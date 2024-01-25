@@ -114,12 +114,12 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements "Signature Algorithm v
 
     #region Encryption & Decryption
     [NonDebuggable]
-    procedure Encrypt(XmlString: SecretText; PlainTextInStream: InStream; OaepPadding: Boolean; EncryptedTextOutStream: OutStream)
+    procedure Encrypt(XmlString: Text; PlainTextInStream: InStream; OaepPadding: Boolean; EncryptedTextOutStream: OutStream)
     var
         PlainTextBytes: DotNet Array;
         EncryptedTextBytes: DotNet Array;
     begin
-        FromXmlString(XmlString.Unwrap());
+        FromXmlString(XmlString);
         InStreamToArray(PlainTextInStream, PlainTextBytes);
         EncryptedTextBytes := DotNetRSACryptoServiceProvider.Encrypt(PlainTextBytes, OaepPadding);
         ArrayToOutStream(EncryptedTextBytes, EncryptedTextOutStream);

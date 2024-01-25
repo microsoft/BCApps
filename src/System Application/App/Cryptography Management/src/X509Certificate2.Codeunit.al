@@ -156,7 +156,7 @@ codeunit 1286 X509Certificate2
     /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
     /// <param name="Password">Certificate Password</param>
     [NonDebuggable]
-    [Obsolete('Use GetCertificatePrivateKey with SecretText data type for Password.', '24.0')]
+    [Obsolete('Use GetCertificatePrivateKey with SecretText data type for Password and return value.', '24.0')]
     procedure GetCertificatePrivateKey(CertBase64Value: Text; Password: Text): Text
     begin
         exit(X509Certificate2Impl.GetCertificatePrivateKey(CertBase64Value, Password));
@@ -317,7 +317,7 @@ codeunit 1286 X509Certificate2
     /// <param name="CertBase64Value">Represents the certificate value encoded using the Base64 algorithm</param>
     /// <param name="Password">Certificate Password</param>
     [NonDebuggable]
-    procedure GetCertificatePrivateKey(CertBase64Value: Text; Password: SecretText): Text
+    procedure GetCertificatePrivateKey(CertBase64Value: Text; Password: SecretText): SecretText
     begin
         exit(X509Certificate2Impl.GetCertificatePrivateKey(CertBase64Value, Password));
     end;
