@@ -177,7 +177,9 @@ page 8883 "Sent Emails"
 
     trigger OnOpenPage()
     begin
-        NewerThanDate := CreateDateTime(CalcDate('<-30D>', Today()), Time());
+        if NewerThanDate = 0DT then
+            NewerThanDate := CreateDateTime(CalcDate('<-30D>', Today()), Time());
+
         EmailImpl.GetSentEmails(EmailAccountId, NewerThanDate, SourceTableID, SourceSystemID, Rec);
         Rec.SetCurrentKey("Date Time Sent");
         NoSentEmails := Rec.IsEmpty();
@@ -211,7 +213,7 @@ page 8883 "Sent Emails"
         EmailConnector.ShowAccountInformation(Rec."Account Id");
     end;
 
-    internal procedure SetNewerThan(NewDate: DateTime)
+    procedure SetNewerThan(NewDate: DateTime)
     begin
         NewerThanDate := NewDate;
     end;
