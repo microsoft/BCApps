@@ -224,10 +224,12 @@ function Update-AppSourceCopVersion
     return $appSourceCopJsonPath
 }
 
-function Get-StrictModeBranchStatus()
+function Test-IsStrictModeEnabled
 {
     Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
     $StrictModeString = "/StrictMode"
+
+    # If the build is a pull request we check the target branch, otherwise we check the current branch
     $BranchName = Get-PullRequestTargetBranch
     if (!$BranchName)
     {
