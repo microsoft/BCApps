@@ -175,7 +175,6 @@ page 2516 "AppSource Product Details"
                 Image = Insert;
                 ToolTip = 'Install App';
                 AccessByPermission = TableData "Installed Application" = i;
-                Visible = false;
 
                 trigger OnAction()
                 var
@@ -218,14 +217,15 @@ page 2516 "AppSource Product Details"
         CurrentRecordCanBeInstalled: Boolean;
         PlansOverview: Text;
         PlansAreVisible: Boolean;
-        PurchaseLicensesElsewhereLbl: Label 'Installing this app may lead to an undesired if licenses are not purchaed before use. You must purchase licenses through Microsoft AppSource.\Do you want to continue with the installation?';
-        PlanLineCellBeginTemplateLbl: Label '<td>', Locked = true, Comment = 'Template for a plan line beginning';
-        PlanLineCellEndTemplateLbl: Label '</td>', Locked = true, Comment = 'Template for a plan line end';
+        PurchaseLicensesElsewhereLbl: Label 'Installing this app may lead to undesired behavior if licenses are not purchaed before use. You must purchase licenses through Microsoft AppSource.\Do you want to continue with the installation?';
         PlanLinePrUserPrMonthLbl: Label '%1 %2 user/month', Comment = 'Price added a plan line, %1 is the currency, %2 is the price';
-        PlanLinePrUserPrYearLbl: Label '%1 %2 user/month', Comment = 'Price added a plan line, %1 is the currency, %2 is the price';
+        PlanLinePrUserPrYearLbl: Label '%1 %2 user/year', Comment = 'Price added a plan line, %1 is the currency, %2 is the price';
         PlanLineFirstMonthIsFreeLbl: Label 'First month free', Comment = 'Added to the plan line when the first month is free.';
         PlanLinePostFillerIfFreeLbl: Label ', then ', Comment = 'Added to the plan line when the first month is free.';
         PlanLinePriceVariesLbl: Label 'Varies', Comment = 'Added to the plan line when the price varies.';
+        PlanLineHeaderLbl: Label '<table width="100%" padding="2" style="border-collapse:collapse;text-align:left;vertical-align:top;"><tr style="border-bottom: 1pt solid black;"><td>Plan</td><td>Description</td><td>Monthly Price</td><td>Annual Price</td></tr>', Comment = 'Header for the plans section';
+        PlanLineEndLbl: Label '</table>', Comment = 'End of the plans section';
+        PlanLineItemTemplateLbl: Label '<tr style="text-align:left;vertical-align:top;"><td>%1</td><td>%2</td><td>%3</td><td>%4</td></tr>', Comment = 'Template for a plan line item, %1 is the plan name, %2 is the plan description, %3 is the monthly price, %4 is the annual price';
 
     procedure SetProduct(var ToProductObject: JsonObject)
     var
@@ -249,36 +249,33 @@ page 2516 "AppSource Product Details"
         PlanItem: JsonToken;
         PlanItemObject: JsonObject;
         PlanItemArray: JsonArray;
+        MonthlyPriceText, YearlyPriceText : Text;
         i, availabilitiesAdded : Integer;
     begin
         availabilitiesAdded := 0;
         PlansOverviewBuilder.Clear();
 
         AllPlans := PlansObject.AsArray();
-        PlansOverviewBuilder.Append('<table width="100%" padding="2" style="border-collapse:collapse;text-align:left;vertical-align:top;">');
-        PlansOverviewBuilder.Append('<tr style="border-bottom: 1pt solid black;"><td>Plan</td><td>Description</td><td>Monthly Price</td><td>Annual Price</td></tr>');
+        PlansOverviewBuilder.Append(PlanLineHeaderLbl);
         for i := 0 to AllPlans.Count() do
             if AllPlans.Get(i, PlanItem) then begin
                 PlanItemObject := PlanItem.AsObject();
                 if PlanItem.SelectToken('availabilities', PlanItem) then begin
                     PlanItemArray := PlanItem.AsArray();
                     if PlanItemArray.Count() > 0 then begin
-                        PlansOverviewBuilder.Append('<tr style="text-align:left;vertical-align:top;">');
-                        PlansOverviewBuilder.Append('<td>');
-                        PlansOverviewBuilder.Append(GetStringValue(PlanItemObject, 'displayName'));
-                        PlansOverviewBuilder.Append('</td>');
-                        PlansOverviewBuilder.Append('<td>');
-                        PlansOverviewBuilder.Append(GetStringValue(PlanItemObject, 'description'));
-                        PlansOverviewBuilder.Append('</td>');
-                        if RenderAvailabilities(PlanItemArray, PlansOverviewBuilder) then
+                        if BuildPlanPriceText(PlanItemArray, MonthlyPriceText, YearlyPriceText) then
                             availabilitiesAdded += 1;
-
+                        PlansOverviewBuilder.Append(
+                            StrSubstNo(
+                                PlanLineItemTemplateLbl,
+                                GetStringValue(PlanItemObject, 'displayName'),
+                                GetStringValue(PlanItemObject, 'description'),
+                                MonthlyPriceText,
+                                YearlyPriceText));
                     end;
-
-                    PlansOverviewBuilder.AppendLine('</tr>');
                 end;
             end;
-        PlansOverviewBuilder.Append('</table>');
+        PlansOverviewBuilder.Append(PlanLineEndLbl);
 
         if (availabilitiesAdded > 0) then begin
             PlansAreVisible := true;
@@ -288,11 +285,11 @@ page 2516 "AppSource Product Details"
             PlansOverview := '';
         end;
 
-        CurrentRecordCanBeInstalled := AppSourceProductManager.CanInstallProductWithPlans(AllPlans);
+        CurrentRecordCanBeInstalled := (not CurrentRecordCanBeUninstalled) and AppSourceProductManager.CanInstallProductWithPlans(AllPlans);
 
     end;
 
-    local procedure RenderAvailabilities(Availabilities: JsonArray; var Builder: TextBuilder): Boolean
+    local procedure BuildPlanPriceText(Availabilities: JsonArray; var MonthlyPriceText: Text; var YearlyPriceText: Text): Boolean
     var
         item: JsonToken;
         itemObject: JsonObject;
@@ -311,43 +308,39 @@ page 2516 "AppSource Product Details"
                 if (GetStringValue(itemObject, 'hasFreeTrials') = 'true') then
                     freeTrial := true;
 
-                if (itemObject.Get('terms', item2)) then begin
+                if (itemObject.Get('terms', item2)) then
                     if item2.IsArray then begin
                         arrayItem := item2.AsArray();
                         GetTerms(arrayItem, monthly, yearly, currency);
                     end;
-                end else
-                    freeTrial := true; // not terms, so free trial
             end;
 
-        Builder.Append(PlanLineCellBeginTemplateLbl);
-        if freeTrial then
-            Builder.Append(PlanLineFirstMonthIsFreeLbl);
+        MonthlyPriceText := '';
+        if freeTrial then begin
+            MonthlyPriceText += PlanLineFirstMonthIsFreeLbl;
+            MonthlyPriceText += PlanLinePostFillerIfFreeLbl;
+            if (monthly <= 0) then
+                MonthlyPriceText += PlanLinePriceVariesLbl;
+        end;
 
-        if (monthly > 0) or freeTrial then begin
-            if freeTrial then
-                Builder.Append(PlanLinePostFillerIfFreeLbl);
-            Builder.Append(StrSubstNo(PlanLinePrUserPrMonthLbl, currency, FORMAT(monthly, 12, 2)));
-        end else
-            if freeTrial then
-                Builder.Append(PlanLinePriceVariesLbl);
+        if (monthly > 0) then
+            MonthlyPriceText += StrSubstNo(PlanLinePrUserPrMonthLbl, currency, FORMAT(monthly, 12, 2));
 
-        Builder.Append(PlanLineCellEndTemplateLbl);
-        Builder.Append(PlanLineCellBeginTemplateLbl);
-        if freeTrial then
-            Builder.Append(PlanLineFirstMonthIsFreeLbl);
-        if (yearly > 0) or freeTrial then begin
-            if freeTrial then
-                Builder.Append(PlanLinePostFillerIfFreeLbl);
-            Builder.Append(StrSubstNo(PlanLinePrUserPrYearLbl, currency, FORMAT(yearly, 12, 2)));
-        end else
-            Builder.Append(PlanLinePriceVariesLbl);
+        YearlyPriceText := '';
+        if freeTrial then begin
+            YearlyPriceText += PlanLineFirstMonthIsFreeLbl;
+            YearlyPriceText += PlanLinePostFillerIfFreeLbl;
+            if (yearly <= 0) then
+                YearlyPriceText += PlanLinePriceVariesLbl;
+        end;
 
-        Builder.Append(PlanLineCellEndTemplateLbl);
+        if (yearly > 0) then
+            YearlyPriceText += StrSubstNo(PlanLinePrUserPrYearLbl, currency, FORMAT(yearly, 12, 2));
+
         exit((monthly <> 0) or (yearly <> 0) or freeTrial);
     end;
 
-    local procedure GetTerms(Terms: JsonArray; var Monthly: decimal; var Yearly: decimal; Currency: Text)
+    local procedure GetTerms(Terms: JsonArray; var Monthly: decimal; var Yearly: decimal; var Currency: Text)
     var
         item: JsonToken;
         priceToken: JsonToken;
@@ -371,7 +364,6 @@ page 2516 "AppSource Product Details"
                 end;
             end;
     end;
-
 
     local procedure GetStringValue(JsonObject: JsonObject; PropertyName: Text): Text
     var
