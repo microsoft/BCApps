@@ -219,6 +219,13 @@ page 2516 "AppSource Product Details"
         PlansOverview: Text;
         PlansAreVisible: Boolean;
         PurchaseLicensesElsewhereLbl: Label 'Installing this app may lead to an undesired if licenses are not purchaed before use. You must purchase licenses through Microsoft AppSource.\Do you want to continue with the installation?';
+        PlanLineCellBeginTemplateLbl: Label '<td>', Locked = true, Comment = 'Template for a plan line beginning';
+        PlanLineCellEndTemplateLbl: Label '</td>', Locked = true, Comment = 'Template for a plan line end';
+        PlanLinePrUserPrMonthLbl: Label '%1 %2 user/month', Comment = 'Price added a plan line, %1 is the currency, %2 is the price';
+        PlanLinePrUserPrYearLbl: Label '%1 %2 user/month', Comment = 'Price added a plan line, %1 is the currency, %2 is the price';
+        PlanLineFirstMonthIsFreeLbl: Label 'First month free', Comment = 'Added to the plan line when the first month is free.';
+        PlanLinePostFillerIfFreeLbl: Label ', then ', Comment = 'Added to the plan line when the first month is free.';
+        PlanLinePriceVariesLbl: Label 'Varies', Comment = 'Added to the plan line when the price varies.';
 
     procedure SetProduct(var ToProductObject: JsonObject)
     var
@@ -276,11 +283,13 @@ page 2516 "AppSource Product Details"
         if (availabilitiesAdded > 0) then begin
             PlansAreVisible := true;
             PlansOverview := PlansOverviewBuilder.ToText();
-            CurrentRecordCanBeInstalled := true;
         end else begin
             PlansAreVisible := false;
             PlansOverview := '';
         end;
+
+        CurrentRecordCanBeInstalled := AppSourceProductManager.CanInstallProductWithPlans(AllPlans);
+
     end;
 
     local procedure RenderAvailabilities(Availabilities: JsonArray; var Builder: TextBuilder): Boolean
@@ -302,41 +311,39 @@ page 2516 "AppSource Product Details"
                 if (GetStringValue(itemObject, 'hasFreeTrials') = 'true') then
                     freeTrial := true;
 
-                if (itemObject.Get('terms', item2)) then
+                if (itemObject.Get('terms', item2)) then begin
                     if item2.IsArray then begin
                         arrayItem := item2.AsArray();
                         GetTerms(arrayItem, monthly, yearly, currency);
                     end;
+                end else
+                    freeTrial := true; // not terms, so free trial
             end;
 
-        Builder.Append('<td>');
+        Builder.Append(PlanLineCellBeginTemplateLbl);
         if freeTrial then
-            Builder.Append('First month free');
+            Builder.Append(PlanLineFirstMonthIsFreeLbl);
 
         if (monthly > 0) or freeTrial then begin
             if freeTrial then
-                Builder.Append(', then ');
-            Builder.Append(currency);
-            builder.Append(' ');
-            Builder.Append(FORMAT(monthly, 12, 2));
-            Builder.Append(' user/month');
+                Builder.Append(PlanLinePostFillerIfFreeLbl);
+            Builder.Append(StrSubstNo(PlanLinePrUserPrMonthLbl, currency, FORMAT(monthly, 12, 2)));
         end else
             if freeTrial then
-                Builder.Append('Varies');
+                Builder.Append(PlanLinePriceVariesLbl);
 
-        Builder.Append('</td><td>');
+        Builder.Append(PlanLineCellEndTemplateLbl);
+        Builder.Append(PlanLineCellBeginTemplateLbl);
         if freeTrial then
-            Builder.Append('First month free');
+            Builder.Append(PlanLineFirstMonthIsFreeLbl);
         if (yearly > 0) or freeTrial then begin
             if freeTrial then
-                Builder.Append(', then ');
-            Builder.Append(currency);
-            builder.Append(' ');
-            Builder.Append(FORMAT(yearly, 12, 2));
-            Builder.Append(' user/year');
+                Builder.Append(PlanLinePostFillerIfFreeLbl);
+            Builder.Append(StrSubstNo(PlanLinePrUserPrYearLbl, currency, FORMAT(yearly, 12, 2)));
         end else
-            Builder.Append('Varies');
+            Builder.Append(PlanLinePriceVariesLbl);
 
+        Builder.Append(PlanLineCellEndTemplateLbl);
         exit((monthly <> 0) or (yearly <> 0) or freeTrial);
     end;
 

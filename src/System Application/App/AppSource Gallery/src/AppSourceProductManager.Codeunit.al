@@ -135,6 +135,55 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
             exit(CopyStr(UniqueProductIDValue, AppIDPos + 7, 36));
         exit('');
     end;
+
+    /// <summary>
+    /// Checks if the product can be installed or your are required to perform operations on AppSource before you can install the product.
+    /// </summary>
+    /// <param name="Plans">JSonArray representing the product plans</param>
+    /// <returns>True if the product can be installed, otherwise false</returns>
+    internal procedure CanInstallProductWithPlans(Plans: JsonArray): Boolean
+    var
+        PlanToken: JsonToken;
+        AvailabilitiesToken: JsonToken;
+        Availabilities: JsonArray;
+        AvailabilityToken: JsonToken;
+        Availability: JsonObject;
+        TermsToken: JsonToken;
+        Terms: JsonArray;
+        TermToken: JsonToken;
+        Term: JsonObject;
+        PriceToken: JsonToken;
+        Price: JsonObject;
+        PriceValue: Decimal;
+    begin
+        foreach PlanToken in Plans do begin
+            PlanToken.AsObject().Get('availabilities', AvailabilitiesToken);
+            Availabilities := AvailabilitiesToken.AsArray();
+
+            foreach AvailabilityToken in Availabilities do begin
+                Availability := AvailabilityToken.AsObject();
+
+                if (GetStringValue(Availability, 'hasFreeTrials') = 'true') then
+                    // Free trial means it can be installed
+                    exit(true);
+
+                if (Availability.Get('terms', TermsToken)) then
+                    if TermsToken.IsArray then begin
+                        Terms := TermsToken.AsArray();
+                        foreach TermToken in Terms do begin
+                            Term := TermToken.AsObject();
+                            Term.SelectToken('price', PriceToken);
+                            Price := PriceToken.AsObject();
+                            if Evaluate(PriceValue, GetStringValue(Price, 'priceValue'), 9) then
+                                // Price > 0 means it can be installed
+                                exit(PriceValue > 0);
+                        end;
+                    end;
+            end;
+        end;
+
+        exit(false);
+    end;
     #endregion
 
     /// <summary>
@@ -435,7 +484,6 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     var
         ApiKey: SecretText;
     begin
-        Init();
         if not Dependencies.EnvironmentInformation_IsSaas() then
             Error('Not Supported On Premises');
 
