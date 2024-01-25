@@ -176,10 +176,11 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     begin
         Init();
         ClientRequestID := CreateGuid();
-        PopulateTelemetryDictionary(ClientRequestID, UniqueProductIDValue, TelemetryDictionary);
-        Session.LogMessage('AL:AppSource-GetProduct', 'Requesting product data for', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDictionary);
-
         RequestUri := ConstructProductUri(UniqueProductIDValue);
+
+        PopulateTelemetryDictionary(ClientRequestID, UniqueProductIDValue, RequestUri, TelemetryDictionary);
+        Session.LogMessage('AL:AppSource-GetProduct', 'Requesting product details.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDictionary);
+
         RestClient.Initialize();
         SetCommonHeaders(RestClient);
 
@@ -197,8 +198,8 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         TelemetryDictionary: Dictionary of [Text, Text];
     begin
         ClientRequestID := CreateGuid();
-        PopulateTelemetryDictionary(ClientRequestID, '', TelemetryDictionary);
-        Session.LogMessage('AL:AppSource-NextPageProducts', 'Requesting product data for', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDictionary);
+        PopulateTelemetryDictionary(ClientRequestID, '', NextPageLink, TelemetryDictionary);
+        Session.LogMessage('AL:AppSource-NextPageProducts', 'Requesting product list data', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDictionary);
         RestClient.SetDefaultRequestHeader('x-ms-client-request-id', ClientRequestID);
 
         ResponseObject := Dependencies.RestClient_GetAsJSon(RestClient, NextPageLink).AsObject();
@@ -263,10 +264,11 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
 
 
     #region Telemetry helpers
-    local procedure PopulateTelemetryDictionary(RequestID: Text; UniqueIdentifier: text; var TelemetryDictionary: Dictionary of [Text, Text])
+    local procedure PopulateTelemetryDictionary(RequestID: Text; UniqueIdentifier: text; Uri: Text; var TelemetryDictionary: Dictionary of [Text, Text])
     begin
         PopulateTelemetryDictionary(RequestID, telemetryDictionary);
         TelemetryDictionary.Add('UniqueIdentifier', UniqueIdentifier);
+        TelemetryDictionary.Add('Uri', Uri);
     end;
 
     local procedure PopulateTelemetryDictionary(RequestID: Text; var TelemetryDictionary: Dictionary of [Text, Text])
