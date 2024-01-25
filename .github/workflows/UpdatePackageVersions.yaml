@@ -23,7 +23,7 @@ jobs:
         id: GetBranches
         run: |
           git fetch
-          $branches = @(git for-each-ref --format="'%(refname:short)'" refs/remotes/origin/release/ | % { $_ -replace 'origin/', '' })
+          $branches = @(git for-each-ref --format="'%(refname:short)'" refs/remotes/origin/releases/ | % { $_ -replace 'origin/', '' })
           $branches += "'main'"
 
           $branchMatrix = "[$($branches -join ',')]"

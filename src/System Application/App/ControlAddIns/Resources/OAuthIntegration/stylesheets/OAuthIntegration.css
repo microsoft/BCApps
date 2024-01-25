@@ -1,0 +1,22 @@
+/*! Copyright (C) Microsoft Corporation. All rights reserved. */
+
+.addInLink-desktop, .addInLink-tablet, .addInLink-phone, .addInLink-windows, .addInLink-outlook {
+    color: #0072c6;
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+.addInLink-desktop {
+    font-family: "Segoe UI","Segoe",Tahoma,Helvetica,Arial,sans-serif;
+    font-size: 13px;
+}
+
+.addInLink-tablet, .addInLink-phone {
+    font-family: "Segoe UI","Segoe","ms-device-segoe",Tahoma,Helvetica,Arial,sans-serif;
+    font-size: 10pt;
+}
+
+.addInLink-windows, .addInLink-outlook {
+    font-family: "Segoe UI","Segoe",Tahoma,Helvetica,Arial,sans-serif;
+    font-size: 9pt;
+}
