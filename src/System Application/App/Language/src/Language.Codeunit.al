@@ -218,6 +218,18 @@ codeunit 43 Language
     end;
 
     /// <summary>
+    /// Converts a three-letter ISO language name to a two-letter ISO language name.
+    /// </summary>
+    /// <param name="ThreeLetterISOLanguageName">The three-letter ISO language name to convert.</param>
+    /// <returns>The two-letter ISO language name if a match is found, otherwise an empty string.</returns>
+    procedure ConvertThreeLetterISOLanguageNameToTwoLetterISOLanguageName(ThreeLetterISOLanguageName: Text): Text
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        exit(LanguageImpl.convertThreeLetterISOLanguageNameToTwoLetterISOLanguageName(ThreeLetterISOLanguageName));
+    end;
+
+    /// <summary>
     /// Integration event, emitted from <see cref="GetUserLanguageCode"/>.
     /// Subscribe to this event to change the default behavior by changing the provided parameter(s).
     /// </summary>

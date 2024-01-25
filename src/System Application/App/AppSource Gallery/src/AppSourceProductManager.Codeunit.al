@@ -106,7 +106,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     procedure OpenAppSource()
     begin
         Init();
-        Hyperlink(StrSubstNo(AppSourceUriLbl, Dependencies.Language_GetFormatRegionOrDefault('')));
+        Hyperlink(StrSubstNo(AppSourceUriLbl, Dependencies.Language_GetFormatRegionOrDefault('en-us')));
     end;
 
 
@@ -171,13 +171,13 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     local procedure GetCurrentUserLanguageCode(): Text
     var
         TempUserSettings: Record "User Settings" temporary;
-        FormatRegion: Text;
+        LanguageCode: Text;
     begin
         Init();
         Dependencies.UserSettings_GetUserSettings(Database.UserSecurityID(), TempUserSettings);
-        FormatRegion := Dependencies.Language_GetLanguageCode(TempUserSettings."Language ID");
+        LanguageCode := Dependencies.Language_GetLanguageCode(TempUserSettings."Language ID");
 
-        exit(FormatRegion);
+        exit(LanguageCode);
     end;
 
     /// <summary>
@@ -239,7 +239,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         UriBuilder: Codeunit "Uri Builder";
         Uri: Codeunit Uri;
         QueryPart: Text;
-        Language: Text[2];
+        Language: Text;
         Market: Text[2];
     begin
         ResolveMarketAndLanguage(Market, Language);
@@ -264,7 +264,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     var
         UriBuilder: Codeunit "Uri Builder";
         Uri: Codeunit Uri;
-        Language: Text[2];
+        Language: Text;
         Market: Text[2];
     begin
         ResolveMarketAndLanguage(Market, Language);
@@ -352,11 +352,12 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     #endregion
 
     #region Market and language helper functions
-    local procedure ResolveMarketAndLanguage(var Market: Text[2]; var Language: Text[2])
+    local procedure ResolveMarketAndLanguage(var Market: Text[2]; var Language: Text)
     begin
         Init();
 
-        Language := GetCurrentUserIso369_1Language();
+        // Marketplace API only supports two letter languages.
+        Language := GetCurrentUserTwoLetterLanguage();
 
         Market := CopyStr(Dependencies.EnvironmentInformation_GetApplicationFamily(), 1, 2);
 
@@ -372,10 +373,12 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         Language := EnsureValidLanguage(Language);
     end;
 
-    local procedure GetCurrentUserIso369_1Language(): Text[2]
+    local procedure GetCurrentUserTwoLetterLanguage(): Text
+    var
+        Language: Codeunit Language;
     begin
         Init();
-        exit(ConvertIso369_3_ToIso369_1(GetCurrentUserLanguageCode()));
+        exit(Language.ConvertThreeLetterISOLanguageNameToTwoLetterISOLanguageName(GetCurrentUserLanguageCode()));
     end;
 
     [TryFunction]
@@ -386,7 +389,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     end;
 
     [TryFunction]
-    local procedure TryGetEnvironmentPreferredLanguage(var PreferredLanguage: Text[2])
+    local procedure TryGetEnvironmentPreferredLanguage(var PreferredLanguage: Text)
     begin
         Init();
         PreferredLanguage := Dependencies.AzureADTenant_GetPreferredLanguage();
@@ -420,7 +423,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     /// <param name="language">Language requested</param>
     /// <returns>The requested language if supported otherwise en</returns>
     /// <remarks>See https://learn.microsoft.com/en-us/rest/api/marketplacecatalog/dataplane/products/list?view=rest-marketplacecatalog-dataplane-2023-05-01-preview&amp;tabs=HTTP for supported languages</remarks>
-    local procedure EnsureValidLanguage(language: Text[2]): Text[2]
+    local procedure EnsureValidLanguage(language: Text): Text
     begin
         case LowerCase(language) of
             'en', 'cs', 'de', 'es', 'fr', 'hu', 'it', 'ja', 'ko', 'nl', 'pl', 'pt-br', 'pt-pt', 'ru', 'sv', 'tr', 'zh-hans', 'zh-hant':
@@ -430,244 +433,6 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         end;
     end;
 
-    local procedure ConvertIso369_3_ToIso369_1(Iso369_3: Text): Text[2]
-    var
-    begin
-        case LowerCase(Iso369_3) of
-            'afr':
-                exit('af');
-            'amh':
-                exit('am');
-            'ara':
-                exit('ar');
-            'asm':
-                exit('as');
-            'aze':
-                exit('az');
-            'bak':
-                exit('ba');
-            'bel':
-                exit('be');
-            'ben':
-                exit('bn');
-            'bod':
-                exit('bo');
-            'bos':
-                exit('bs');
-            'bre':
-                exit('br');
-            'bul':
-                exit('bg');
-            'cat':
-                exit('ca');
-            'ces':
-                exit('cs');
-            'cos':
-                exit('co');
-            'cym':
-                exit('cy');
-            'dan':
-                exit('da');
-            'deu':
-                exit('de');
-            'div':
-                exit('dv');
-            'dzo':
-                exit('dz');
-            'ell':
-                exit('el');
-            'eng':
-                exit('en');
-            'est':
-                exit('et');
-            'eus':
-                exit('eu');
-            'fao':
-                exit('fo');
-            'fas':
-                exit('fa');
-            'fin':
-                exit('fi');
-            'fra':
-                exit('fr');
-            'fry':
-                exit('fy');
-            'ful':
-                exit('ff');
-            'gla':
-                exit('gd');
-            'gle':
-                exit('ga');
-            'glg':
-                exit('gl');
-            'grn':
-                exit('gn');
-            'guj':
-                exit('gu');
-            'heb':
-                exit('he');
-            'hin':
-                exit('hi');
-            'hrv':
-                exit('hr');
-            'hun':
-                exit('hu');
-            'hye':
-                exit('hy');
-            'ibo':
-                exit('ig');
-            'iii':
-                exit('ii');
-            'iku':
-                exit('iu');
-            'ind':
-                exit('id');
-            'isl':
-                exit('is');
-            'ita':
-                exit('it');
-            'jpn':
-                exit('ja');
-            'kal':
-                exit('kl');
-            'kan':
-                exit('kn');
-            'kas':
-                exit('ks');
-            'kat':
-                exit('ka');
-            'kaz':
-                exit('kk');
-            'khm':
-                exit('km');
-            'kin':
-                exit('rw');
-            'kir':
-                exit('ky');
-            'kor':
-                exit('ko');
-            'lao':
-                exit('lo');
-            'lav':
-                exit('lv');
-            'lit':
-                exit('lt');
-            'ltz':
-                exit('lb');
-            'mal':
-                exit('ml');
-            'mar':
-                exit('mr');
-            'mkd':
-                exit('mk');
-            'mlt':
-                exit('mt');
-            'mon':
-                exit('mn');
-            'mri':
-                exit('mi');
-            'msa':
-                exit('ms');
-            'mya':
-                exit('my');
-            'nep':
-                exit('ne');
-            'nld':
-                exit('nl');
-            'nno':
-                exit('nn');
-            'nob':
-                exit('nb');
-            'oci':
-                exit('oc');
-            'ori':
-                exit('or');
-            'orm':
-                exit('om');
-            'pan':
-                exit('pa');
-            'pol':
-                exit('pl');
-            'por':
-                exit('pt');
-            'pus':
-                exit('ps');
-            'roh':
-                exit('rm');
-            'ron':
-                exit('ro');
-            'rus':
-                exit('ru');
-            'san':
-                exit('sa');
-            'sin':
-                exit('si');
-            'slk':
-                exit('sk');
-            'slv':
-                exit('sl');
-            'sme':
-                exit('se');
-            'snd':
-                exit('sd');
-            'som':
-                exit('so');
-            'sot':
-                exit('st');
-            'spa':
-                exit('es');
-            'sqi':
-                exit('sq');
-            'srp':
-                exit('sr');
-            'swa':
-                exit('sw');
-            'swe':
-                exit('sv');
-            'tam':
-                exit('ta');
-            'tat':
-                exit('tt');
-            'tel':
-                exit('te');
-            'tha':
-                exit('th');
-            'tir':
-                exit('ti');
-            'tsn':
-                exit('tn');
-            'tso':
-                exit('ts');
-            'tuk':
-                exit('tk');
-            'tur':
-                exit('tr');
-            'uig':
-                exit('ug');
-            'ukr':
-                exit('uk');
-            'urd':
-                exit('ur');
-            'uzb':
-                exit('uz');
-            'ven':
-                exit('ve');
-            'vie':
-                exit('vi');
-            'wol':
-                exit('wo');
-            'xho':
-                exit('xh');
-            'yid':
-                exit('yi');
-            'yor':
-                exit('yo');
-            'zul':
-                exit('zu');
-        end;
-
-        exit('');
-    end;
     #endregion
 
     local procedure InsertProductFromObject(offer: JsonObject; var Product: Record "AppSource Product")

@@ -262,6 +262,20 @@ codeunit 54 "Language Impl."
         UserPersonalization.Modify(true);
     end;
 
+    procedure ConvertThreeLetterISOLanguageNameToTwoLetterISOLanguageName(ThreeLetterISOLanguageName: Text): Text
+    var
+        CultureInfo: DotNet CultureInfo;
+        NeutralCulture: DotNet CultureInfo;
+        CultureTypes: dotnet CultureTypes;
+    begin
+
+        foreach NeutralCulture in CultureInfo.GetCultures(CultureTypes::NeutralCultures) do
+            if LowerCase(ThreeLetterISOLanguageName) = LowerCase(NeutralCulture.ThreeLetterISOLanguageName) then
+                exit(LowerCase(NeutralCulture.TwoLetterISOLanguageName));
+
+        exit('');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"UI Helper Triggers", GetApplicationLanguage, '', false, false)]
     local procedure SetApplicationLanguageId(var language: Integer)
     begin
