@@ -1542,10 +1542,6 @@ dotnet
         {
         }
 
-        type("System.Globalization.CultureTypes"; "CultureTypes")
-        {
-        }
-
         type("System.Globalization.DateTimeFormatInfo"; "DateTimeFormatInfo")
         {
         }

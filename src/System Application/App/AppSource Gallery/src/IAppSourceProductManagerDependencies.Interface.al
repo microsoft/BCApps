@@ -18,7 +18,6 @@ interface "IAppSource Product Manager Dependencies"
     // Dependency to Azure AD Tenant
     procedure AzureADTenant_GetAadTenantID(): Text
     procedure AzureADTenant_GetCountryLetterCode(): Text[2];
-    procedure AzureADTenant_GetPreferredLanguage(): Text[2]
 
     // Dependency to  Azure Key Vault 
     procedure AzureKeyVault_GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText);
@@ -29,7 +28,6 @@ interface "IAppSource Product Manager Dependencies"
 
     // Dependency to Language 
     procedure Language_GetFormatRegionOrDefault(FormatRegion: Text[80]): Text;
-    procedure Language_GetLanguageCode(LanguageID: integer): Text;
 
     // Rest client override
     procedure RestClient_GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken;

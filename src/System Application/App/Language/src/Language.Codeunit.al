@@ -218,15 +218,27 @@ codeunit 43 Language
     end;
 
     /// <summary>
-    /// Converts a three-letter ISO language name to a two-letter ISO language name.
+    /// Retrieves the two-letter ISO language name for the specified language ID.
     /// </summary>
-    /// <param name="ThreeLetterISOLanguageName">The three-letter ISO language name to convert.</param>
-    /// <returns>The two-letter ISO language name if a match is found, otherwise an empty string.</returns>
-    procedure ConvertThreeLetterISOLanguageNameToTwoLetterISOLanguageName(ThreeLetterISOLanguageName: Text): Text
+    /// <param name="LanguageID">The language ID.</param>
+    /// <returns>The two-letter ISO language name.</returns>
+    procedure GetTwoLetterISOLanguageName(LanguageID: Integer): Text
     var
         LanguageImpl: Codeunit "Language Impl.";
     begin
-        exit(LanguageImpl.convertThreeLetterISOLanguageNameToTwoLetterISOLanguageName(ThreeLetterISOLanguageName));
+        exit(LanguageImpl.GetTwoLetterISOLanguageName(LanguageID));
+    end;
+
+    /// <summary>
+    /// Retrieves the culture name for the specified language ID.
+    /// </summary>
+    /// <param name="LanguageID">The language ID.</param>
+    /// <returns>The culture name.</returns>
+    procedure GetCultureName(LanguageID: Integer): Text
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        exit(LanguageImpl.GetCultureName(LanguageID));
     end;
 
     /// <summary>

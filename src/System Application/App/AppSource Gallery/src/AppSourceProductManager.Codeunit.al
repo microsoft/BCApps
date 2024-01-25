@@ -30,13 +30,6 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         exit(entraTenant.GetCountryLetterCode());
     end;
 
-    procedure AzureADTenant_GetPreferredLanguage(): Text[2]
-    var
-        entraTenant: Codeunit "Azure AD Tenant";
-    begin
-        exit(entraTenant.GetPreferredLanguage());
-    end;
-
     procedure AzureADTenant_GetAadTenantID(): Text
     var
         entraTenant: Codeunit "Azure AD Tenant";
@@ -70,14 +63,6 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         Language: Codeunit Language;
     begin
         exit(Language.GetFormatRegionOrDefault(FormatRegion));
-    end;
-
-    procedure Language_GetLanguageCode(LanguageID: Integer): Text
-    var
-        Language: Codeunit Language;
-    begin
-        exit(Language.GetLanguageCode(LanguageID));
-
     end;
 
     procedure RestClient_GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken
@@ -115,8 +100,10 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     /// </summary>
     /// <param name="UniqueProductIDValue">The Unique Product ID of the product to show in MicrosoftAppSource</param>
     procedure OpenInAppSource(UniqueProductIDValue: Text)
+    var
+        Language: Codeunit Language;
     begin
-        Hyperlink(StrSubstNo(AppSourceListingUriLbl, GetCurrentUserLanguageCode(), UniqueProductIDValue));
+        Hyperlink(StrSubstNo(AppSourceListingUriLbl, Language.GetCultureName(GetCurrentUserLanguageID()), UniqueProductIDValue));
     end;
 
     /// <summary>
@@ -168,16 +155,13 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         until NextPageLink = '';
     end;
 
-    local procedure GetCurrentUserLanguageCode(): Text
+    local procedure GetCurrentUserLanguageID(): Integer
     var
         TempUserSettings: Record "User Settings" temporary;
-        LanguageCode: Text;
     begin
         Init();
         Dependencies.UserSettings_GetUserSettings(Database.UserSecurityID(), TempUserSettings);
-        LanguageCode := Dependencies.Language_GetLanguageCode(TempUserSettings."Language ID");
-
-        exit(LanguageCode);
+        exit(TempUserSettings."Language ID");
     end;
 
     /// <summary>
@@ -365,10 +349,6 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
             if not TryGetEnvironmentCountryLetterCode(Market) then
                 Market := 'us';
 
-        if Language = '' then
-            if not TryGetEnvironmentPreferredLanguage(Language) then
-                Language := 'en';
-
         Market := EnsureValidMarket(Market);
         Language := EnsureValidLanguage(Language);
     end;
@@ -378,7 +358,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         Language: Codeunit Language;
     begin
         Init();
-        exit(Language.ConvertThreeLetterISOLanguageNameToTwoLetterISOLanguageName(GetCurrentUserLanguageCode()));
+        exit(Language.GetTwoLetterISOLanguageName(GetCurrentUserLanguageID()));
     end;
 
     [TryFunction]
@@ -386,13 +366,6 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     begin
         Init();
         CountryLetterCode := Dependencies.AzureADTenant_GetCountryLetterCode();
-    end;
-
-    [TryFunction]
-    local procedure TryGetEnvironmentPreferredLanguage(var PreferredLanguage: Text)
-    begin
-        Init();
-        PreferredLanguage := Dependencies.AzureADTenant_GetPreferredLanguage();
     end;
 
     /// <summary>

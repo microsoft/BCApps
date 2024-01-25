@@ -17,7 +17,6 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
     var
         Assert: Codeunit "Library Assert";
         HyperlinkStorage: Codeunit "Library - Variable Storage";
-        LanguageStorage: Codeunit "Library - Variable Storage";
         FormatRegionStore: Codeunit "Library - Variable Storage";
         UserSettingsLanguageIDStore: Codeunit "Library - Variable Storage";
         ApplicationFamilyStore: Codeunit "Library - Variable Storage";
@@ -26,7 +25,6 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
         TenantIdStore: Codeunit "Library - Variable Storage";
         RestClientGetJsonStore: Codeunit "Library - Variable Storage";
         CountryLetterCodeStore: Codeunit "Library - Variable Storage";
-        PreferredLanguageStore: Codeunit "Library - Variable Storage";
 
     [Test]
     procedure TestExtractAppIDFromUniqueProductIDReturnsExpectedAppId()
@@ -105,13 +103,12 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
         AppSourceProductManager.SetDependencies(AppSourceProductManagerTest);
 
         // Given
-        AppSourceProductManagerTest.AddToUserSettingsLanguageIDStore(1030);
-        AppSourceProductManagerTest.AddToLanguageStore('da');
+        AppSourceProductManagerTest.AddToUserSettingsLanguageIDStore(3082); //es-ES
 
         UniqueId := 'PUBID.nav24spzoo1579516366010%7CAID.n24_test_transactability%7CPAPPID.0984da34-5ec1-4ac1-9575-b73fb2212327';
 
         // With handler expectation
-        HyperlinkStorage.Enqueue('https://appsource.microsoft.com/da/product/dynamics-365-business-central/PUBID.nav24spzoo1579516366010%7CAID.n24_test_transactability%7CPAPPID.0984da34-5ec1-4ac1-9575-b73fb2212327');
+        HyperlinkStorage.Enqueue('https://appsource.microsoft.com/es-ES/product/dynamics-365-business-central/PUBID.nav24spzoo1579516366010%7CAID.n24_test_transactability%7CPAPPID.0984da34-5ec1-4ac1-9575-b73fb2212327');
 
         // When 
         AppSourceProductManager.OpenInAppSource(UniqueId);
@@ -137,8 +134,7 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
 
         // Given
         AppSourceProductManagerTest.AddToIsSaasStore(false);
-        AppSourceProductManagerTest.AddToUserSettingsLanguageIDStore(1030);
-        AppSourceProductManagerTest.AddToLanguageStore('da');
+        AppSourceProductManagerTest.AddToUserSettingsLanguageIDStore(3082); //es-ES
         AppSourceProductManagerTest.AddToApplicationFamilyStore('W1');
 
         // When   
@@ -167,8 +163,7 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
         // Given
         AppSourceProductManagerTest.AddToIsSaasStore(true);
         AppSourceProductManagerTest.AddToApplicationFamilyStore('W1');
-        AppSourceProductManagerTest.AddToUserSettingsLanguageIDStore(1030);
-        AppSourceProductManagerTest.AddToLanguageStore('da');
+        AppSourceProductManagerTest.AddToUserSettingsLanguageIDStore(3082); //es-ES
         AppSourceProductManagerTest.AddToKeyVaultStore('secret');
         AppSourceProductManagerTest.AddToTenantIdStore('tenantId');
         AppSourceProductManagerTest.AddToRestClientGetJsonStore('{"items": [{"uniqueProductId": "PUBID.pbsi_software|AID.247timetracker|PAPPID.9a12247e-8564-4b90-b80b-cd5f4b64217e","displayName": "Dynamics 365 Business Central","publisherId": "pbsi_software","publisherDisplayName": "David Boehm, CPA and Company Inc.","publisherType": "ThirdParty","ratingAverage": 5.0,"ratingCount": 2,"productType": "DynamicsBC","popularity": 7.729569120865367,"privacyPolicyUri": "https://pbsisoftware.com/24-7-tt-privacy-statement","lastModifiedDateTime": "2023-09-03T11:08:28.5348241+00:00"}]}');
@@ -199,12 +194,10 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
         // Given
         AppSourceProductManagerTest.AddToIsSaasStore(true);
         AppSourceProductManagerTest.AddToApplicationFamilyStore('W1');
-        AppSourceProductManagerTest.AddToUserSettingsLanguageIDStore(1030);
-        AppSourceProductManagerTest.AddToLanguageStore('da');
+        AppSourceProductManagerTest.AddToUserSettingsLanguageIDStore(3082); //es-ES
         AppSourceProductManagerTest.AddToKeyVaultStore('secret');
         AppSourceProductManagerTest.AddToTenantIdStore('tenantId');
         AppSourceProductManagerTest.AddToCountryLetterCodeStore('dk');
-        AppSourceProductManagerTest.AddToPreferredLanguageStore('da');
         // Push first with next page link
         AppSourceProductManagerTest.AddToRestClientGetJsonStore('{"items": [{"uniqueProductId": "PUBID.advania|AID.advania_approvals|PAPPID.603d81ef-542b-46ae-9cb5-17dc16fa3842","displayName": "Dynamics 365 Business Central - First","publisherId": "advania","publisherDisplayName": "Advania","publisherType": "ThirdParty","ratingAverage": 0.0,"ratingCount": 0,"productType": "DynamicsBC","popularity": 7.729569120865367,"privacyPolicyUri": "https://privacy.d365bc.is/","lastModifiedDateTime": "2024-01-19T03:23:15.4319343+00:00"}],"nextPageLink": "next page uri"}');
         // Push second without next page link
@@ -233,7 +226,6 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
     internal procedure Initialize()
     begin
         HyperlinkStorage.Clear();
-        LanguageStorage.Clear();
         FormatRegionStore.Clear();
         UserSettingsLanguageIDStore.Clear();
         ApplicationFamilyStore.Clear();
@@ -242,13 +234,11 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
         TenantIdStore.Clear();
         RestClientGetJsonStore.Clear();
         CountryLetterCodeStore.Clear();
-        PreferredLanguageStore.Clear();
     end;
 
     internal procedure AssertCleanedUp()
     begin
         HyperlinkStorage.AssertEmpty();
-        LanguageStorage.AssertEmpty();
         FormatRegionStore.AssertEmpty();
         UserSettingsLanguageIDStore.AssertEmpty();
         ApplicationFamilyStore.AssertEmpty();
@@ -257,15 +247,9 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
         TenantIdStore.AssertEmpty();
         RestClientGetJsonStore.AssertEmpty();
         CountryLetterCodeStore.AssertEmpty();
-        PreferredLanguageStore.AssertEmpty();
     end;
 
     #region this helpers
-    internal procedure AddToLanguageStore(LanguageCode: Text[2])
-    begin
-        LanguageStorage.Enqueue(LanguageCode);
-    end;
-
     internal procedure AddToFormatRegionStore(FormatRegion: Text[80])
     begin
         FormatRegionStore.Enqueue(FormatRegion);
@@ -309,10 +293,6 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
         CountryLetterCodeStore.Enqueue(CountryLetterCode);
     end;
 
-    internal procedure AddToPreferredLanguageStore(PreferredLanguage: Text[2])
-    begin
-        PreferredLanguageStore.Enqueue(PreferredLanguage);
-    end;
     #endregion
 
     #region dependencies implementation
@@ -330,14 +310,6 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
             exit(CopyStr(CountryLetterCodeStore.DequeueText(), 1, 2));
 
         Assert.Fail('AzureADTenant_GetCountryLetterCode should not be called');
-    end;
-
-    procedure AzureADTenant_GetPreferredLanguage(): Text[2]
-    begin
-        if (PreferredLanguageStore.Length() > 0) then
-            exit(CopyStr(PreferredLanguageStore.DequeueText(), 1, 2));
-
-        Assert.Fail('AzureADTenant_GetPreferredLanguage should not be called');
     end;
 
     // Dependency to  Azure Key Vault 
@@ -375,14 +347,6 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
             exit(FormatRegionStore.DequeueText());
 
         Assert.Fail('Language_GetFormatRegionOrDefault should not be called');
-    end;
-
-    procedure Language_GetLanguageCode(LanguageID: integer): Text
-    begin
-        if (LanguageStorage.Length() > 0) then
-            exit(LanguageStorage.DequeueText());
-
-        Assert.Fail('Language_GetLanguageCode should not be called');
     end;
 
     procedure RestClient_GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken
