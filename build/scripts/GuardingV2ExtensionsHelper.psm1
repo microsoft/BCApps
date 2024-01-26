@@ -246,7 +246,7 @@ function Test-IsStrictModeEnabled
 
     if ($remoteTags -and ($remoteTags -match $expectedTag)) {
         return $true
-    } 
+    }
 
     return $false
 }
