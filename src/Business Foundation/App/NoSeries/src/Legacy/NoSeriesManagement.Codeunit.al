@@ -237,6 +237,29 @@ codeunit 396 NoSeriesManagement
     end;
 
 #if not CLEAN24
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <remarks>
+    /// There's a bit of a symantic change with this event. You can no longer change things like ModifySeries, UsageDate, SeriesCode using this event
+    /// Also, the line record passed is no longer the line from the previous call as that data is not kept anymore in regular scenarios.
+    /// </remarks>
+    /// <param name="NoSeriesLine"></param>
+    /// <param name="UsageDate"></param>
+    /// <param name="ModifySeries"></param>
+    /// <param name="Result"></param>
+    /// <param name="IsHandled"></param>
+    [Obsolete('This is a temporary method for compatibility only. Please use the "No. Series" codeunit instead', '24.0')]
+    internal procedure RaiseObsoleteOnBeforeGetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; ModifySeries: Boolean; var Result: Code[20]; var IsHandled: Boolean)
+    var
+        NoSeriesLine2: Record "No. Series Line";
+    begin
+        NoSeriesLine2.Copy(NoSeriesLine);
+        OnBeforeGetNextNo(NoSeriesLine2."Series Code", UsageDate, ModifySeries, Result, IsHandled, NoSeriesLine);
+        if IsHandled then
+            NoSeriesLine.Copy(NoSeriesLine2);
+    end;
+
     [Obsolete('Use DoGetNextNo() instead', '21.0')]
     procedure GetNextNo3(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean; NoErrorsOrWarnings: Boolean): Code[20]
     begin

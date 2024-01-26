@@ -102,16 +102,31 @@ codeunit 304 "No. Series - Impl."
 
     procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     var
+#if not CLEAN24
+#pragma warning disable AL0432
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+#pragma warning restore AL0432
+#endif
         NoSeriesSingle: Interface "No. Series - Single";
+#if not CLEAN24
+        Result: Code[20];
+        IsHandled: Boolean;
+#endif
     begin
         if UsageDate = 0D then
             UsageDate := WorkDate();
 
+#if not CLEAN24
+#pragma warning disable AL0432, AA0205
+        NoSeriesManagement.RaiseObsoleteOnBeforeGetNextNo(NoSeriesLine, UsageDate, true, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+#pragma warning restore AL0432, AA0205
+#endif
         if not ValidateCanGetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings) then
             exit('');
 
         NoSeriesSingle := GetImplementation(NoSeriesLine);
-
         exit(NoSeriesSingle.GetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings));
     end;
 
