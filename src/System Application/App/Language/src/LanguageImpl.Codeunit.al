@@ -270,6 +270,14 @@ codeunit 54 "Language Impl."
         exit(CultureInfo.TwoLetterISOLanguageName);
     end;
 
+    procedure GetLanguageIdFromCultureName(CultureName: Text): Integer
+    var
+        CultureInfo: DotNet CultureInfo;
+    begin
+        CultureInfo := CultureInfo.CultureInfo(CultureName);
+        exit(CultureInfo.LCID());
+    end;
+
     procedure GetCultureName(LanguageID: Integer): Text
     var
         CultureInfo: DotNet CultureInfo;

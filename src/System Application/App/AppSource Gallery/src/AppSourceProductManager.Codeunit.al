@@ -30,6 +30,14 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         exit(entraTenant.GetCountryLetterCode());
     end;
 
+    procedure AzureAdTenant_GetPreferredLanguage(): Text
+    var
+        entraTenant: Codeunit "Azure AD Tenant";
+    begin
+        exit(entraTenant.GetPreferredLanguage());
+    end;
+
+
     procedure AzureADTenant_GetAadTenantID(): Text
     var
         entraTenant: Codeunit "Azure AD Tenant";
@@ -207,10 +215,17 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     local procedure GetCurrentUserLanguageID(): Integer
     var
         TempUserSettings: Record "User Settings" temporary;
+        Language: Codeunit Language;
+        LanguageID: Integer;
     begin
         Init();
         Dependencies.UserSettings_GetUserSettings(Database.UserSecurityID(), TempUserSettings);
-        exit(TempUserSettings."Language ID");
+        LanguageID := TempUserSettings."Language ID";
+        if (LanguageID = 0) then
+            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.AzureAdTenant_GetPreferredLanguage());
+        if (LanguageID = 0) then
+            LanguageID := 1033; // Default to EN-US
+        exit(LanguageID);
     end;
 
     /// <summary>

@@ -230,6 +230,24 @@ codeunit 43 Language
     end;
 
     /// <summary>
+    /// Retrieves the language ID for the specified culture name.
+    /// </summary>
+    /// <param name="CultureName">The Culture name.</param>
+    /// <returns>The language ID.</returns>
+    /// <example>
+    /// <code>
+    /// Language.GetLanguageIdFromLanguageName('en-US');
+    /// Language.GetLanguageIdFromLanguageName('en');
+    /// </code>
+    /// </example>
+    procedure GetLanguageIdFromCultureName(CultureName: Text): Integer
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        exit(LanguageImpl.GetLanguageIdFromCultureName(CultureName));
+    end;
+
+    /// <summary>
     /// Retrieves the culture name for the specified language ID.
     /// </summary>
     /// <param name="LanguageID">The language ID.</param>

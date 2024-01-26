@@ -18,6 +18,7 @@ interface "IAppSource Product Manager Dependencies"
     // Dependency to Azure AD Tenant
     procedure AzureADTenant_GetAadTenantID(): Text
     procedure AzureADTenant_GetCountryLetterCode(): Text[2];
+    procedure AzureAdTenant_GetPreferredLanguage(): Text
 
     // Dependency to  Azure Key Vault 
     procedure AzureKeyVault_GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText);
