@@ -213,6 +213,10 @@ page 8883 "Sent Emails"
         EmailConnector.ShowAccountInformation(Rec."Account Id");
     end;
 
+    /// <summary>
+    /// Set date filter for sent emails.
+    /// </summary>
+    /// <param name="NewDate">Earliest date to include sent emails from.</param>
     procedure SetNewerThan(NewDate: DateTime)
     begin
         NewerThanDate := NewDate;
@@ -223,7 +227,12 @@ page 8883 "Sent Emails"
         EmailAccountId := AccountId;
     end;
 
-    internal procedure SetRelatedRecord(TableID: Integer; SystemID: Guid)
+    /// <summary>
+    /// Set filter for related record on sent emails.
+    /// </summary>
+    /// <param name="TableID">The entity table.</param>
+    /// <param name="SystemID">A record to filter on.</param>
+    procedure SetRelatedRecord(TableID: Integer; SystemID: Guid)
     begin
         SourceTableID := TableID;
         SourceSystemID := SystemID;
