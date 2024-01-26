@@ -241,13 +241,12 @@ function Test-IsStrictModeEnabled
         return $false
     }
 
-    git fetch origin tag "$($BranchName+$StrictModeString)"
-    [string] $GitStrictModeTag = git tag -l "$($BranchName+$StrictModeString)"
+    $remoteTags = git ls-remote --tags origin
+    $expectedTag = "$($BranchName+$StrictModeString)"
 
-    if ($GitStrictModeTag -eq ($BranchName + $StrictModeString))
-    {
+    if ($remoteTags -and ($remoteTags -match $expectedTag)) {
         return $true
-    }
+    } 
 
     return $false
 }
