@@ -223,9 +223,12 @@ page 2516 "AppSource Product Details"
         PlanLineFirstMonthIsFreeLbl: Label 'First month free', Comment = 'Added to the plan line when the first month is free.';
         PlanLinePostFillerIfFreeLbl: Label ', then ', Comment = 'Added to the plan line when the first month is free.';
         PlanLinePriceVariesLbl: Label 'Varies', Comment = 'Added to the plan line when the price varies.';
-        PlanLineHeaderLbl: Label '<table width="100%" padding="2" style="border-collapse:collapse;text-align:left;vertical-align:top;"><tr style="border-bottom: 1pt solid black;"><td>Plan</td><td>Description</td><td>Monthly Price</td><td>Annual Price</td></tr>', Comment = 'Header for the plans section';
-        PlanLineEndLbl: Label '</table>', Comment = 'End of the plans section';
-        PlanLineItemTemplateLbl: Label '<tr style="text-align:left;vertical-align:top;"><td>%1</td><td>%2</td><td>%3</td><td>%4</td></tr>', Comment = 'Template for a plan line item, %1 is the plan name, %2 is the plan description, %3 is the monthly price, %4 is the annual price';
+        PlanLinesTemplateLbl: Label '<table width="100%" padding="2" style="border-collapse:collapse;text-align:left;vertical-align:top;"><tr style="border-bottom: 1pt solid black;"><td>%1</td><td>%2</td><td>%3</td><td>%4</td></tr>%5</table>', Comment = 'Template for the plans section, %1 is the plans column header, %2 is the description column header, %3 is the monthly price column header, %4 is the yearly column header, %5 is the plan rows', Locked = true;
+        PlanLineItemTemplateLbl: Label '<tr style="text-align:left;vertical-align:top;"><td>%1</td><td>%2</td><td>%3</td><td>%4</td></tr>', Comment = 'Template for a plan line item, %1 is the plan name, %2 is the plan description, %3 is the monthly price, %4 is the annual price', Locked = true;
+        PlanLinesColumnPlansLbl: Label 'Plans', Comment = 'Column header for the plans section';
+        PlanLinesColumnDescriptionLbl: Label 'Description', Comment = 'Column header for the plans section';
+        PlanLinesColumnMonthlyPriceLbl: Label 'Monthly Price', Comment = 'Column header for the plans section';
+        PlanLinesColumnAnnualPriceLbl: Label 'Annual Price', Comment = 'Column header for the plans section';
 
     procedure SetProduct(var ToProductObject: JsonObject)
     var
@@ -245,7 +248,7 @@ page 2516 "AppSource Product Details"
     procedure RenderPlans(PlansObject: JsonToken)
     var
         AllPlans: JsonArray;
-        PlansOverviewBuilder: TextBuilder;
+        PlanLinesBuilder: TextBuilder;
         PlanItem: JsonToken;
         PlanItemObject: JsonObject;
         PlanItemArray: JsonArray;
@@ -253,10 +256,9 @@ page 2516 "AppSource Product Details"
         i, availabilitiesAdded : Integer;
     begin
         availabilitiesAdded := 0;
-        PlansOverviewBuilder.Clear();
+        PlanLinesBuilder.Clear();
 
         AllPlans := PlansObject.AsArray();
-        PlansOverviewBuilder.Append(PlanLineHeaderLbl);
         for i := 0 to AllPlans.Count() do
             if AllPlans.Get(i, PlanItem) then begin
                 PlanItemObject := PlanItem.AsObject();
@@ -265,7 +267,7 @@ page 2516 "AppSource Product Details"
                     if PlanItemArray.Count() > 0 then begin
                         if BuildPlanPriceText(PlanItemArray, MonthlyPriceText, YearlyPriceText) then
                             availabilitiesAdded += 1;
-                        PlansOverviewBuilder.Append(
+                        PlanLinesBuilder.Append(
                             StrSubstNo(
                                 PlanLineItemTemplateLbl,
                                 GetStringValue(PlanItemObject, 'displayName'),
@@ -275,11 +277,16 @@ page 2516 "AppSource Product Details"
                     end;
                 end;
             end;
-        PlansOverviewBuilder.Append(PlanLineEndLbl);
 
         if (availabilitiesAdded > 0) then begin
             PlansAreVisible := true;
-            PlansOverview := PlansOverviewBuilder.ToText();
+            PlansOverview := StrSubstNo(
+                PlanLinesTemplateLbl,
+                PlanLinesColumnPlansLbl,
+                PlanLinesColumnDescriptionLbl,
+                PlanLinesColumnMonthlyPriceLbl,
+                PlanLinesColumnAnnualPriceLbl,
+                PlanLinesBuilder.ToText());
         end else begin
             PlansAreVisible := false;
             PlansOverview := '';
