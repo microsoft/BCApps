@@ -123,21 +123,17 @@ codeunit 132578 "Password Handler Test"
     var
         PasswordHandler: Codeunit "Password Handler";
         Password: Text;
+        SecretPassword: SecretText;
     begin
         // [SCENARIO] A password with less than eight characters is not considered to be strong.
         PermissionsMock.Set('All Objects');
 
         // [GIVEN] A password that is less than eight characters long.
         Password := 'Pass1@';
+        SecretPassword := Password;
 
         // [THEN] The password is not considered to be strong.
-#if not CLEAN24
-#pragma warning disable AL0432
-#endif
-        Assert.IsFalse(PasswordHandler.IsPasswordStrong(Password), PasswordIsStrongErr);
-#if not CLEAN24
-#pragma warning restore AL0432
-#endif
+        Assert.IsFalse(PasswordHandler.IsPasswordStrong(SecretPassword), PasswordIsStrongErr);
     end;
 
     [Test]
@@ -168,6 +164,7 @@ codeunit 132578 "Password Handler Test"
     var
         PasswordHandler: Codeunit "Password Handler";
         Password: Text;
+        SecretPassword: SecretText;
     begin
         // [SCENARIO] A strong passord must contain characters from all the character sets:
         // uppercase, lowercase, digits, special characters.
@@ -175,26 +172,30 @@ codeunit 132578 "Password Handler Test"
 
         // [GIVEN] A password without any uppercase characters.
         Password := 'password1@';
+        SecretPassword := Password;
         // [THEN] The password is not considered to be strong.
 #if not CLEAN24
 #pragma warning disable AL0432
 #endif
-        Assert.IsFalse(PasswordHandler.IsPasswordStrong(Password), 'Password must contain uppercase characters.');
+        Assert.IsFalse(PasswordHandler.IsPasswordStrong(SecretPassword), 'Password must contain uppercase characters.');
 
         // [GIVEN] A password without any lowercase characters.
         Password := 'PASSWORD1@';
+        SecretPassword := Password;
         // [THEN] The password is not considered to be strong.
-        Assert.IsFalse(PasswordHandler.IsPasswordStrong(Password), 'Password must contain lowercase characters.');
+        Assert.IsFalse(PasswordHandler.IsPasswordStrong(SecretPassword), 'Password must contain lowercase characters.');
 
         // [GIVEN] A password without any digigts.
         Password := 'Password@';
+        SecretPassword := Password;
         // [THEN] The password is not considered to be strong.
-        Assert.IsFalse(PasswordHandler.IsPasswordStrong(Password), 'Password must contain digits.');
+        Assert.IsFalse(PasswordHandler.IsPasswordStrong(SecretPassword), 'Password must contain digits.');
 
         // [GIVEN] A password without any special characters.
         Password := 'Password1';
+        SecretPassword := Password;
         // [THEN] The password is not considered to be strong.
-        Assert.IsFalse(PasswordHandler.IsPasswordStrong(Password), 'Password must contain special characters.');
+        Assert.IsFalse(PasswordHandler.IsPasswordStrong(SecretPassword), 'Password must contain special characters.');
 #if not CLEAN24
 #pragma warning restore AL0432
 #endif
@@ -206,6 +207,7 @@ codeunit 132578 "Password Handler Test"
     var
         PasswordHandler: Codeunit "Password Handler";
         Password: Text;
+        SecretPassword: SecretText;
         NoSequencesMsg: Text;
     begin
         // [SCENARIO] A strong passord must not contain sequences of characters.
@@ -216,29 +218,27 @@ codeunit 132578 "Password Handler Test"
 
         // [GIVEN] A password with a '123' sequence.
         Password := 'Password@123';
+        SecretPassword := Password;
         // [THEN] The password is not considered to be strong.
-#if not CLEAN24
-#pragma warning disable AL0432
-#endif
-        Assert.IsFalse(PasswordHandler.IsPasswordStrong(Password), NoSequencesMsg);
+        Assert.IsFalse(PasswordHandler.IsPasswordStrong(SecretPassword), NoSequencesMsg);
 
         // [GIVEN] A password with an 'ooo' sequence.
         Password := 'Passwooord1@';
+        SecretPassword := Password;
         // [THEN] The password is not considered to be strong.
-        Assert.IsFalse(PasswordHandler.IsPasswordStrong(Password), NoSequencesMsg);
+        Assert.IsFalse(PasswordHandler.IsPasswordStrong(SecretPassword), NoSequencesMsg);
 
         // [GIVEN] A password with a 'ZYX' sequence.
         Password := 'ZYX_Password1@';
+        SecretPassword := Password;
         // [THEN] The password is not considered to be strong.
-        Assert.IsFalse(PasswordHandler.IsPasswordStrong(Password), NoSequencesMsg);
+        Assert.IsFalse(PasswordHandler.IsPasswordStrong(SecretPassword), NoSequencesMsg);
 
         // [GIVEN] A password with a '@AB' substring.
         Password := 'Password1@AB';
+        SecretPassword := Password;
         // [THEN] The password is considered to be strong.
-        Assert.IsTrue(PasswordHandler.IsPasswordStrong(Password), 'Character sets must not be mixed when determining a sequence.');
-#if not CLEAN24
-#pragma warning restore AL0432
-#endif
+        Assert.IsTrue(PasswordHandler.IsPasswordStrong(SecretPassword), 'Character sets must not be mixed when determining a sequence.');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Password Dialog Management", 'OnSetMinPasswordLength', '', false, false)]

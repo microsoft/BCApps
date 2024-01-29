@@ -48,7 +48,7 @@ codeunit 132612 "Signed Xml Module Test"
     [Test]
     procedure VerifyXmlSignatureUsingKeyXmlString()
     var
-        XmlString: Text;
+        XmlString: SecretText;
         SignedXmlDocument: XmlDocument;
         SignatureElement: XmlElement;
     begin
@@ -59,13 +59,7 @@ codeunit 132612 "Signed Xml Module Test"
         SignedXml.LoadXml(SignatureElement);
 
         GetSignatureKeyXmlString(XmlString);
-#if not CLEAN24
-#pragma warning disable AL0432
-#endif
         LibraryAssert.IsTrue(SignedXml.CheckSignature(XmlString), 'Failed to verify the xml signature.');
-#if not CLEAN24
-#pragma warning restore AL0432
-#endif
     end;
 
     [Test]
@@ -180,7 +174,9 @@ codeunit 132612 "Signed Xml Module Test"
             SignedXmlDocument);
     end;
 
-    local procedure GetSignatureKeyXmlString(var XmlString: Text)
+    local procedure GetSignatureKeyXmlString(var SecretXmlString: SecretText)
+    var
+        XmlString: Text;
     begin
         XmlString :=
             '<RSAKeyValue>' +
@@ -193,6 +189,7 @@ codeunit 132612 "Signed Xml Module Test"
             '<InverseQ>SfjdGT81HDJSzTseigrM+JnBKPPrzpeEp0RbTP52Lm23YARjLCwmPMMdAwYZsvqeTuHEDQcOHxLHWuyN/zgP2A==</InverseQ>' +
             '<D>XzxrIwgmBHeIqUe5FOBnDsOZQlyAQA+pXYjCf8Rll2XptFwUdkzAUMzWUGWTG5ZspA9l8Wc7IozRe/bhjMxuVK5yZhPDKbjqRdWICA95Jd7fxlIirHOVMQRdzI7xNKqMNQN05MLJfsEHUYtOLhZE+tfhJTJnnmB7TMwnJgc4O5E=</D>' +
             '</RSAKeyValue>';
+        SecretXmlString := XmlString;
     end;
 
     local procedure GetCertificateData(): Text
