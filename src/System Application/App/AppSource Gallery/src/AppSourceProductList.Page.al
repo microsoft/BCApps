@@ -5,6 +5,7 @@
 namespace System.Apps.AppSource;
 
 using System.Apps;
+using System.Environment.Configuration;
 
 /// <summary>
 /// List of Products retrieved from AppSource
@@ -98,6 +99,7 @@ page 2515 "AppSource Product List"
             actionref(AppSource_Promoted; OpenAppSource) { }
             actionref(Open_Promoted; OpenInAppSource) { }
             actionref(Refresh_Promoted; UpdateProducts) { }
+            actionref(ShowSettings_Promoted; ShowSettings) { }
         }
 
         area(Processing)
@@ -134,6 +136,14 @@ page 2515 "AppSource Product List"
                     else
                         Error(SelectOneRowErrLbl);
                 end;
+            }
+
+            action(ShowSettings)
+            {
+                Caption = 'Edit User Settings';
+                RunObject = Page "User Settings";
+                Image = UserSetup;
+                ToolTip = 'Locale will be used to determine the market and language will be used to determine the language of the App details listed here.';
             }
         }
 
