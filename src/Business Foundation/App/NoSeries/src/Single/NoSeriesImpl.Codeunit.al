@@ -121,13 +121,23 @@ codeunit 304 "No. Series - Impl."
         NoSeriesManagement.RaiseObsoleteOnBeforeGetNextNo(NoSeriesLine, UsageDate, true, Result, IsHandled);
         if IsHandled then
             exit(Result);
+        NoSeriesManagement.RaiseObsoleteOnBeforeDoGetNextNo(NoSeriesLine."Series Code", UsageDate, true, HideErrorsAndWarnings);
 #pragma warning restore AL0432, AA0205
 #endif
         if not ValidateCanGetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings) then
             exit('');
 
         NoSeriesSingle := GetImplementation(NoSeriesLine);
-        exit(NoSeriesSingle.GetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings));
+
+#if not CLEAN24
+#pragma warning disable AL0432, AA0205
+        Result := NoSeriesSingle.GetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings);
+        NoSeriesManagement.RaiseObsoleteOnAfterGetNextNo3(NoSeriesLine, true);
+        exit(Result);
+#pragma warning restore AL0432, AA0205
+#else
+        exit(NoSeriesSingle.GetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings))
+#endif
     end;
 
     local procedure GetImplementation(var NoSeriesLine: Record "No. Series Line"): Interface "No. Series - Single"
@@ -204,17 +214,45 @@ codeunit 304 "No. Series - Impl."
 
     procedure PeekNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     var
+#if not CLEAN24
+#pragma warning disable AL0432
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+#pragma warning restore AL0432
+#endif
         NoSeriesSingle: Interface "No. Series - Single";
+#if not CLEAN24
+        Result: Code[20];
+        HideErrorsAndWarnings: Boolean;
+        IsHandled: Boolean;
+#endif
     begin
         if UsageDate = 0D then
             UsageDate := WorkDate();
 
+#if not CLEAN24
+#pragma warning disable AL0432, AA0205
+        NoSeriesManagement.RaiseObsoleteOnBeforeGetNextNo(NoSeriesLine, UsageDate, false, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+        HideErrorsAndWarnings := false;
+        NoSeriesManagement.RaiseObsoleteOnBeforeDoGetNextNo(NoSeriesLine."Series Code", UsageDate, false, HideErrorsAndWarnings);
+#pragma warning restore AL0432, AA0205
+#endif
         if not ValidateCanGetNextNo(NoSeriesLine, UsageDate, false) then
             exit('');
 
         NoSeriesSingle := GetImplementation(NoSeriesLine);
 
+
+#if not CLEAN24
+#pragma warning disable AL0432, AA0205
+        Result := NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate);
+        NoSeriesManagement.RaiseObsoleteOnAfterGetNextNo3(NoSeriesLine, false);
+        exit(Result);
+#pragma warning restore AL0432, AA0205
+#else
         exit(NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate));
+#endif
     end;
 
     procedure TestAreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])

@@ -447,6 +447,8 @@ codeunit 396 NoSeriesManagement
         exit(TryNo);
     end;
 
+#if not CLEAN24
+    [Obsolete('Use the SaveState method in the No. Series - Batch codeunit instead.', '24.0')]
     procedure SaveNoSeries()
     var
         NoSeries: Codeunit "No. Series";
@@ -465,7 +467,7 @@ codeunit 396 NoSeriesManagement
             end;
         OnAfterSaveNoSeries(LastNoSeriesLine);
     end;
-
+#endif
     procedure ClearNoSeriesLine()
     begin
         Clear(LastNoSeriesLine);
@@ -856,16 +858,26 @@ codeunit 396 NoSeriesManagement
         exit(NoSeriesLine."Last No. Used");
     end;
 
+#if not CLEAN24
+    [Obsolete('This is a temporary method for compatibility only. Please use the "No. Series" codeunit instead', '24.0')]
+    internal procedure RaiseObsoleteOnAfterGetNextNo3(NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean)
+    begin
+        OnAfterGetNextNo3(NoSeriesLine, ModifySeries);
+    end;
+
+    [Obsolete('This event is obsolete. Please use the extensibility options provided by the No. Series module.', '24.0')]
     [IntegrationEvent(false, false)]
-    internal procedure OnAfterGetNextNo3(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean)
+    local procedure OnAfterGetNextNo3(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean)
     begin
     end;
 
+    [Obsolete('This event is no longer used. Please use the No. Series Batch codeunit instead.', '24.0')]
+    // Symbol usage indicates no subscribers
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveNoSeries(var NoSeriesLine: Record "No. Series Line")
     begin
     end;
-#if not CLEAN24
+
     [Obsolete('The No. Series module cannot have dependencies to Sales. Please use XXX instead', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveNoSeriesSales(var NoSeriesLineSales: Record "No. Series Line Sales")
@@ -889,16 +901,25 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 
+#if not CLEAN24
+    [Obsolete('This event is obsolete. Please use the extensibility options provided by the No. Series module.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetNextNo(var NoSeriesCode: Code[20]; var SeriesDate: Date; var ModifySeries: Boolean; var Result: Code[20]; var IsHandled: Boolean; var NoSeriesLine: Record "No. Series Line")
     begin
     end;
 
+    [Obsolete('This is a temporary method for compatibility only. Please use the "No. Series" codeunit instead', '24.0')]
+    internal procedure RaiseObsoleteOnBeforeDoGetNextNo(var NoSeriesCode: Code[20]; var SeriesDate: Date; ModifySeries: Boolean; var NoErrorsOrWarnings: Boolean)
+    begin
+        OnBeforeDoGetNextNo(NoSeriesCode, SeriesDate, ModifySeries, NoErrorsOrWarnings);
+    end;
+
+    [Obsolete('This event is obsolete. Please use the extensibility options provided by the No. Series module.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDoGetNextNo(var NoSeriesCode: Code[20]; var SeriesDate: Date; var ModifySeries: Boolean; var NoErrorsOrWarnings: Boolean)
     begin
     end;
-
+#endif
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeModifyNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; var IsHandled: Boolean)
     begin
@@ -952,11 +973,14 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 
+#if not CLEAN24
+    [Obsolete('This event is no longer used. Please use the No. Series Batch codeunit instead.', '24.0')]
+    // Symbol usage indicates no subscribers
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSaveNoSeries(var NoSeriesLine: Record "No. Series Line"; var IsHandled: Boolean)
     begin
     end;
-
+#endif
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeTestManual(var DefaultNoSeriesCode: Code[20]; var IsHandled: Boolean);
     begin
