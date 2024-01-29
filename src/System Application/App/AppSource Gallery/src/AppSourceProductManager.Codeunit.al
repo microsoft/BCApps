@@ -559,13 +559,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     local procedure GetAPIKey(): SecretText
     var
         ApiKey: SecretText;
-    // TextValue: TExt;
     begin
-        // if not Dependencies.EnvironmentInformation_IsSaas() then begin
-        //     TextValue := '9c7772eb58a438cf4bf3b398496ae320aafd9ea16a777c2ed583ac965f8a9947';
-        //     ApiKey := TextValue;
-        //     exit(ApiKey);
-        // end;
         Init();
         if not Dependencies.EnvironmentInformation_IsSaas() then
             Error('Not Supported On Premises');
