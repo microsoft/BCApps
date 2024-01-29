@@ -1,4 +1,3 @@
-
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -152,6 +151,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     internal procedure CanInstallProductWithPlans(Plans: JsonArray): Boolean
     var
         PlanToken: JsonToken;
+        PlanObject: JsonObject;
         AvailabilitiesToken: JsonToken;
         Availabilities: JsonArray;
         AvailabilityToken: JsonToken;
@@ -163,9 +163,28 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         PriceToken: JsonToken;
         Price: JsonObject;
         PriceValue: Decimal;
+        PricingTypesToken: JsonToken;
+        PricingTypes: JsonArray;
+        PricingType: JsonToken;
     begin
         foreach PlanToken in Plans do begin
-            PlanToken.AsObject().Get('availabilities', AvailabilitiesToken);
+            PlanObject := PlanToken.AsObject();
+
+            PlanObject.Get('pricingTypes', PricingTypesToken);
+            if (PricingTypesToken.IsArray()) then begin
+                PricingTypes := PricingTypesToken.AsArray();
+                if PricingTypes.Count() = 0 then
+                    exit(false); // No price structure, you need to contact the publisher
+
+                foreach PricingType in PricingTypes do begin
+                    if LowerCase(PricingType.AsValue().AsText()) = 'freetrial' then
+                        exit(true); // Free means it can be installed
+                    if LowerCase(PricingType.AsValue().AsText()) = 'payg' then
+                        exit(true); // Pay as you go means it can be installed
+                end;
+            end;
+
+            PlanObject.Get('availabilities', AvailabilitiesToken);
             Availabilities := AvailabilitiesToken.AsArray();
 
             foreach AvailabilityToken in Availabilities do begin
@@ -226,6 +245,22 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         if (LanguageID = 0) then
             LanguageID := 1033; // Default to EN-US
         exit(LanguageID);
+    end;
+
+    local procedure GetCurrentUserLanguageAnLocaleID(var LanguageID: Integer; var LocaleID: Integer)
+    var
+        TempUserSettings: Record "User Settings" temporary;
+        Language: Codeunit Language;
+    begin
+        Init();
+        Dependencies.UserSettings_GetUserSettings(Database.UserSecurityID(), TempUserSettings);
+        LanguageID := TempUserSettings."Language ID";
+        if (LanguageID = 0) then
+            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.AzureAdTenant_GetPreferredLanguage());
+        if (LanguageID = 0) then
+            LanguageID := 1033; // Default to EN-US
+
+        LocaleID := TempUserSettings."Locale ID";
     end;
 
     /// <summary>
@@ -289,7 +324,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         Uri: Codeunit Uri;
         QueryPart: Text;
         Language: Text;
-        Market: Text[2];
+        Market: Text;
     begin
         ResolveMarketAndLanguage(Market, Language);
 
@@ -314,7 +349,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         UriBuilder: Codeunit "Uri Builder";
         Uri: Codeunit Uri;
         Language: Text;
-        Market: Text[2];
+        Market: Text;
     begin
         ResolveMarketAndLanguage(Market, Language);
         UriBuilder.Init(CatalogProductsUriLbl);
@@ -402,36 +437,50 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     #endregion
 
     #region Market and language helper functions
-    local procedure ResolveMarketAndLanguage(var Market: Text[2]; var Language: Text)
+    local procedure ResolveMarketAndLanguage(var Market: Text; var LanguageName: Text)
+    var
+        Language: Codeunit Language;
+        LanguageID, LocalID : integer;
     begin
         Init();
 
+        GetCurrentUserLanguageAnLocaleID(LanguageID, LocalID);
+
         // Marketplace API only supports two letter languages.
-        Language := GetCurrentUserTwoLetterLanguage();
+        LanguageName := Language.GetTwoLetterISOLanguageName(LanguageID);
 
-        Market := CopyStr(Dependencies.EnvironmentInformation_GetApplicationFamily(), 1, 2);
-
+        Market := '';
+        if LocalID <> 0 then
+            Market := ResolveMarketFromLanguageID(LocalID);
+        if Market = '' then
+            Market := CopyStr(Dependencies.EnvironmentInformation_GetApplicationFamily(), 1, 2);
         if (Market = '') or (Market = 'W1') then
             if not TryGetEnvironmentCountryLetterCode(Market) then
                 Market := 'us';
 
         Market := EnsureValidMarket(Market);
-        Language := EnsureValidLanguage(Language);
-    end;
-
-    local procedure GetCurrentUserTwoLetterLanguage(): Text
-    var
-        Language: Codeunit Language;
-    begin
-        Init();
-        exit(Language.GetTwoLetterISOLanguageName(GetCurrentUserLanguageID()));
+        LanguageName := EnsureValidLanguage(LanguageName);
     end;
 
     [TryFunction]
-    local procedure TryGetEnvironmentCountryLetterCode(var CountryLetterCode: Text[2])
+    local procedure TryGetEnvironmentCountryLetterCode(var CountryLetterCode: Text)
     begin
         Init();
         CountryLetterCode := Dependencies.AzureADTenant_GetCountryLetterCode();
+    end;
+
+    local procedure ResolveMarketFromLanguageID(LanguageID: Integer): Text
+    var
+        Language: Codeunit Language;
+        SeperatorPos: Integer;
+        LanguageAndRequestRegion: Text;
+    begin
+        LanguageAndRequestRegion := Language.GetCultureName(LanguageID);
+        SeperatorPos := StrPos(LanguageAndRequestRegion, '-');
+        if SeperatorPos > 1 then
+            exit(CopyStr(LanguageAndRequestRegion, SeperatorPos + 1, 2));
+
+        exit('');
     end;
 
     /// <summary>
@@ -440,7 +489,9 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     /// <param name="market">Market requested</param>
     /// <returns>The requested market if supported, otherwise us</returns>
     /// <remarks>See https://learn.microsoft.com/en-us/partner-center/marketplace/marketplace-geo-availability-currencies for supported markets</remarks>
-    local procedure EnsureValidMarket(market: Text[2]): Text[2]
+    local procedure EnsureValidMarket(market: Text): Text
+    var
+        NotSupportedNotification: Notification;
     begin
         case LowerCase(market) of
             'af', 'al', 'dz', 'ad', 'ao', 'ar', 'am', 'au', 'at', 'az', 'bh', 'bd', 'bb', 'by', 'be', 'bz', 'bm', 'bo', 'ba', 'bw'
@@ -452,23 +503,33 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         , 'tw', 'tj', 'tz', 'th', 'tt', 'tn', 'tr', 'tm', 'ug', 'ua', 'ae', 'gb', 'us', 'vi', 'uy', 'uz', 'va', 've', 'vn', 'ye'
         , 'zm', 'zw':
                 exit(LowerCase(market));
-            else
+            else begin
+                NotSupportedNotification.Message(StrSubstNo(UnsupportedMarketNotificationLbl, market));
+                NotSupportedNotification.Send();
                 exit('us');
+            end;
         end;
     end;
+
     /// <summary>
     /// Ensures that the language is valid for AppSource.
     /// </summary>
-    /// <param name="language">Language requested</param>
+    /// <param name="Language">Language requested</param>
     /// <returns>The requested language if supported otherwise en</returns>
     /// <remarks>See https://learn.microsoft.com/en-us/rest/api/marketplacecatalog/dataplane/products/list?view=rest-marketplacecatalog-dataplane-2023-05-01-preview&amp;tabs=HTTP for supported languages</remarks>
-    local procedure EnsureValidLanguage(language: Text): Text
+    local procedure EnsureValidLanguage(Language: Text): Text
+    var
+        NotSupportedNotification: Notification;
     begin
-        case LowerCase(language) of
+        case LowerCase(Language) of
             'en', 'cs', 'de', 'es', 'fr', 'hu', 'it', 'ja', 'ko', 'nl', 'pl', 'pt-br', 'pt-pt', 'ru', 'sv', 'tr', 'zh-hans', 'zh-hant':
-                exit(LowerCase(language));
-            else
+                exit(LowerCase(Language));
+            else begin
+                NotSupportedNotification.Message(StrSubstNo(UnsupportedLanguageNotificationLbl, Language));
+                NotSupportedNotification.Send();
+
                 exit('en');
+            end;
         end;
     end;
 
@@ -498,7 +559,14 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     local procedure GetAPIKey(): SecretText
     var
         ApiKey: SecretText;
+    // TextValue: TExt;
     begin
+        // if not Dependencies.EnvironmentInformation_IsSaas() then begin
+        //     TextValue := '9c7772eb58a438cf4bf3b398496ae320aafd9ea16a777c2ed583ac965f8a9947';
+        //     ApiKey := TextValue;
+        //     exit(ApiKey);
+        // end;
+        Init();
         if not Dependencies.EnvironmentInformation_IsSaas() then
             Error('Not Supported On Premises');
 
@@ -533,4 +601,6 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         CatalogApiSelectQueryParamNameLbl: Label '$select', Locked = true;
         AppSourceListingUriLbl: Label 'https://appsource.microsoft.com/%1/product/dynamics-365-business-central/%2', Comment = '%1=Language, %2=Url Query Content', Locked = true;
         AppSourceUriLbl: Label 'https://appsource.microsoft.com/%1/marketplace/apps?product=dynamics-365-business-central', Comment = '%=Language', Locked = true;
+        UnsupportedMarketNotificationLbl: Label 'Market %1 is not supported by AppSource. Defaulting to en. Change region in the user profile to change the market.', Comment = '%1=Market', Locked = true;
+        UnsupportedLanguageNotificationLbl: Label 'Language %1 is not supported by AppSource. Defaulting to en. Change language in the user profile to change the language.', Comment = '%1=Language', Locked = true;
 }
