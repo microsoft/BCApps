@@ -504,6 +504,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         , 'zm', 'zw':
                 exit(LowerCase(market));
             else begin
+                NotSupportedNotification.Id := '0c0f2e34-e72f-4da4-a7d5-80b33653d13d';
                 NotSupportedNotification.Message(StrSubstNo(UnsupportedMarketNotificationLbl, market));
                 NotSupportedNotification.Send();
                 exit('us');
@@ -525,6 +526,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
             'en', 'cs', 'de', 'es', 'fr', 'hu', 'it', 'ja', 'ko', 'nl', 'pl', 'pt-br', 'pt-pt', 'ru', 'sv', 'tr', 'zh-hans', 'zh-hant':
                 exit(LowerCase(Language));
             else begin
+                NotSupportedNotification.Id := '0664870f-bd05-46cc-9e98-cc338d7fdc64';
                 NotSupportedNotification.Message(StrSubstNo(UnsupportedLanguageNotificationLbl, Language));
                 NotSupportedNotification.Send();
 
