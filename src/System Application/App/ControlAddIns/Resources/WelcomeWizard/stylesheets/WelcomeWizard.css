@@ -1,0 +1,157 @@
+
+.container {
+    width: 100%;
+    max-width: 550px;
+}
+
+.welcomediv {
+    display: inline-block;
+    vertical-align: top;
+    max-width: 70%;
+    margin-bottom: 10px;
+}
+
+.title {
+    color: #212121;
+    vertical-align: text-top;
+    line-height: 15pt;
+    display: inline-block;
+}
+
+.subtitle {
+    vertical-align: text-top;
+    display: inline-block;
+    margin-bottom: 12px;
+}
+
+.titlefont {
+    font-family: "Segoe UI Light",device-segoe-light;
+    font-size: 12pt;
+}
+
+.explanation {
+    font-family: "Segoe UI", device-segoe;
+    font-size: 10.5pt;
+    vertical-align: text-top;
+}
+
+.welcomeimagediv {
+    display: inline-block;
+    vertical-align: top;
+    max-width: 30%;
+}
+
+.welcomeimage {
+    max-height: 123px;
+    max-width: 123px;
+    width: 100%;
+    margin-top: 5px;
+}
+
+.brandPrimary {
+    color: #008489;
+}
+
+.brandSecondary {
+    color: #505C6D;
+}
+
+.sectionborder {
+    border-bottom: solid 1px #D0D3D7;
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+
+.links {
+    vertical-align: top;
+    max-height: 400px;
+}
+
+.tile {
+    max-width: 29.7%;
+    vertical-align: top;
+    display: inline-block;
+    width: 33%;
+    text-align: left;
+}
+
+.button {
+    border: 0;
+    padding: 0;
+    background-color: transparent;
+    text-align: left;
+}
+
+.tilemarginright {
+    margin-right: 3.3%;
+}
+
+.tileDescription {
+    font-family: "Segoe UI Semibold", device-segoe-semibold;
+    font-size: 9pt;
+    color: #212121;
+    line-height: 9pt;
+}
+
+.tile img {
+    max-width: 205px;
+    max-height: 120px;
+    width: 100%;
+    display: block;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.segoeRegularfont {
+    font-family: "Segoe UI", device-segoe;
+    font-size: 9pt;
+    line-height: 9pt;
+    min-height: 26px;
+}
+
+.truncate {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    height: 26px;
+    cursor: pointer;
+}
+
+.legalDescription {
+    display: inline-block;
+    vertical-align: top;
+    width: 70%;
+    padding-top: 10px;
+}
+
+.legalDescriptionHeight {
+    line-height: 11pt;
+}
+
+.checkbox {
+    display: inline-block;
+    width: 10%;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: white;
+  color: black;
+  text-align: center;
+  padding: 5px 0;
+  border-radius: 6px;
+ 
+  position: absolute;
+  z-index: 1;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}

@@ -5,7 +5,7 @@
     "runs-on":  "windows-latest",
     "cacheImageName":  "",
     "UsePsSession":  false,
-    "artifact":  "https://bcinsider.azureedge.net/sandbox/24.0.15442.0/base",
+    "artifact":  "https://bcinsider.azureedge.net/sandbox/24.0.15733.0/base",
     "country":  "base",
     "useProjectDependencies":  true,
     "repoVersion":  "24.0",
@@ -42,11 +42,11 @@
                    ],
     "CICDPushBranches":  [
                              "main",
-                             "release/*"
+                             "releases/*"
                          ],
     "CICDPullRequestBranches":  [
                                     "main",
-                                    "release/*",
+                                    "releases/*",
                                     "features/*"
                                 ],
     "enableCodeCop":  true,
@@ -72,5 +72,6 @@
                                           "build_projects_System Application Modules"
                                       ]
               },
-    "templateSha":  "8fe39e623ddffef215ec03093203d29ee63fe6d4"
+    "UpdateALGoSystemFilesEnvironment":  "Official-Build",
+    "templateSha":  "0476547896ebcd3ba5455b3e0e59b48c0d4a26ca"
 }
