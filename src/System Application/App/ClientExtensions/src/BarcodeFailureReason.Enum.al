@@ -1,3 +1,5 @@
+namespace System.ClientExtensions;
+
 /*
 * The failure reason for the barcode scanner.
 */
