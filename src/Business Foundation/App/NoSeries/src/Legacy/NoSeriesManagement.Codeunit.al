@@ -290,7 +290,7 @@ codeunit 396 NoSeriesManagement
         NoSeriesSequenceImpl: Codeunit "No. Series - Sequence Impl.";
 #endif
     begin
-#if CLEAN24
+#if not CLEAN24
         OnBeforeDoGetNextNo(NoSeriesCode, SeriesDate, ModifySeries, NoErrorsOrWarnings);
 #endif
 
