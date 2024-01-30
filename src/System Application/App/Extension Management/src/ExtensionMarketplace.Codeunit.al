@@ -530,7 +530,7 @@ codeunit 2501 "Extension Marketplace"
         Page.Run(Page::"Extension Marketplace");
 #pragma warning restore AL0432
 #else        
-        Hyperlink('https://appsource.microsoft.com/en-us/marketplace/apps?product=dynamics-365%3Bdynamics-365-business-central&page=1');
+        Hyperlink('https://aka.ms/BCAppSource');
 #endif        
     end;
 }
