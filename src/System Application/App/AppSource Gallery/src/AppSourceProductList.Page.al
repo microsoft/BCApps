@@ -121,7 +121,7 @@ page 2515 "AppSource Product List"
             {
                 Caption = 'View in AppSource';
                 Scope = Repeater;
-                Image = Select;
+                Image = Open;
                 ToolTip = 'View selected app in AppSource';
 
                 trigger OnAction()

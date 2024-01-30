@@ -174,7 +174,6 @@ page 2516 "AppSource Product Details"
                 Enabled = CurrentRecordCanBeInstalled;
                 Image = Insert;
                 ToolTip = 'Install App';
-                AccessByPermission = TableData "Installed Application" = i;
 
                 trigger OnAction()
                 var
@@ -293,7 +292,6 @@ page 2516 "AppSource Product Details"
         end;
 
         CurrentRecordCanBeInstalled := (not CurrentRecordCanBeUninstalled) and AppSourceProductManager.CanInstallProductWithPlans(AllPlans);
-
     end;
 
     local procedure BuildPlanPriceText(Availabilities: JsonArray; var MonthlyPriceText: Text; var YearlyPriceText: Text): Boolean
