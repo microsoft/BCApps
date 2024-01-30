@@ -28,4 +28,10 @@ codeunit 2014 "Entity Text AI Install"
             if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Entity Text") then
                 CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Entity Text", Enum::"Copilot Availability"::"Generally Available", LearnMoreUrlTxt);
     end;
+
+    [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", 'OnRegisterCopilotCapability', '', false, false)]
+    local procedure OnRegisterCopilotCapability()
+    begin
+        RegisterCapability();
+    end;
 }

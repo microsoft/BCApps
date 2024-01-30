@@ -30,16 +30,6 @@
   ],
   "rules": [
     {
-      "id": "AS0059",
-      "action": "Warning",
-      "justification": "Will be fixed. Reserved database tables are read-only in a multi-tenant environment"
-    },
-    {
-      "id": "AW0009",
-      "action": "Warning",
-      "justification": "Using a Blob with subtype Bitmap on a page field is deprecated. Instead use the Media/MediaSet data types."
-    },
-    {
       "id": "AS0053",
       "action": "None",
       "justification": "The compilation target of an application must be a value that is allowed in a multi-tenant SaaS environment"

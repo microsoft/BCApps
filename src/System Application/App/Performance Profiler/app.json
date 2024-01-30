@@ -44,6 +44,12 @@
                              "name":  "Document Sharing Service",
                              "publisher":  "Microsoft",
                              "version":  "24.0.0.0"
+                         },
+                         {
+                            "id":  "a3964a53-9345-458a-af20-d13f7eab7bd8",
+                            "name":  "Control Add-Ins",
+                            "publisher":  "Microsoft",
+                            "version":  "24.0.0.0"
                          }
                      ],
     "internalsVisibleTo":  [

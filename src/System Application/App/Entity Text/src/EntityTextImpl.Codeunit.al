@@ -431,6 +431,11 @@ codeunit 2012 "Entity Text Impl."
         AOAIChatMessages.AddUserMessage(UserPrompt);
 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAICompletionParams, AOAIOperationResponse);
+        if not AOAIOperationResponse.IsSuccess() then begin
+            Clear(Result);
+            Error(CompletionDeniedPhraseErr);
+        end;
+
         Result := HttpUtility.HtmlEncode(AOAIChatMessages.GetLastMessage());
         Result := Result.Replace(NewLineChar, EncodedNewlineTok);
 
