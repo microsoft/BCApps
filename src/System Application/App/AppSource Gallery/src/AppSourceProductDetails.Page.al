@@ -235,6 +235,7 @@ page 2516 "AppSource Product Details"
     begin
         ProductObject := ToProductObject;
         UniqueProductID := AppSourceProductManager.GetStringValue(ProductObject, 'uniqueProductId');
+        AppId := AppSourceProductManager.ExtractAppIDFromUniqueProductID(UniqueProductID);
         CurrentRecordCanBeUninstalled := false;
         CurrentRecordCanBeInstalled := false;
         if (AppID <> '') then
@@ -291,7 +292,7 @@ page 2516 "AppSource Product Details"
             PlansOverview := '';
         end;
 
-        CurrentRecordCanBeInstalled := (not CurrentRecordCanBeUninstalled) and AppSourceProductManager.CanInstallProductWithPlans(AllPlans);
+        CurrentRecordCanBeInstalled := (AppID <> '') and (not CurrentRecordCanBeUninstalled) and AppSourceProductManager.CanInstallProductWithPlans(AllPlans);
     end;
 
     local procedure BuildPlanPriceText(Availabilities: JsonArray; var MonthlyPriceText: Text; var YearlyPriceText: Text): Boolean
