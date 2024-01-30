@@ -27,7 +27,7 @@ codeunit 1758 "Data Privacy Entities Mgt."
         if TempDataPrivacyEntities.FindSet() then
             repeat
                 RecordRef.Open(TempDataPrivacyEntities."Table No.");
-                if (not RecordRef.IsEmpty()) and (TempDataPrivacyEntities."Table No." <> DATABASE::User) then
+                if (not RecordRef.IsEmpty()) and (TempDataPrivacyEntities."Table No." <> Database::User) then
                     exit(true);
                 RecordRef.Close();
             until TempDataPrivacyEntities.Next() = 0;
@@ -38,7 +38,7 @@ codeunit 1758 "Data Privacy Entities Mgt."
         DataClassificationMgt: Codeunit "Data Classification Mgt.";
     begin
         if not DataPrivacyEntities.IsTemporary() then
-            error('Please call this function with a temporary record.');
+            Error('Please call this function with a temporary record.');
 
         DataClassificationMgt.OnGetDataPrivacyEntities(DataPrivacyEntities);
     end;

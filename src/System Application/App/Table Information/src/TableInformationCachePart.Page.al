@@ -90,7 +90,7 @@ page 8701 "Table Information Cache Part"
                     Visible = false;
                 }
 
-                field("Compression"; Rec."Compression")
+                field(Compression; Rec.Compression)
                 {
                     ApplicationArea = All;
                     OptionCaption = 'None,Row,Page,,';
@@ -106,7 +106,7 @@ page 8701 "Table Information Cache Part"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the number of records in the table 30 days ago.';
-                    visible = false;
+                    Visible = false;
                 }
                 field("Growth %"; Rec."Growth %")
                 {

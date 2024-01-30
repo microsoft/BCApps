@@ -86,15 +86,11 @@ table 9861 "Permission Set Relation Buffer"
         }
         field(13; Name; Text[30])
         {
-            CalcFormula = lookup("Aggregate Permission Set".Name where("Role ID" = field("Role ID")));
             Caption = 'Name';
-            FieldClass = FlowField;
         }
         field(14; "Related Name"; Text[30])
         {
-            CalcFormula = lookup("Aggregate Permission Set".Name where("Role ID" = field("Related Role ID")));
             Caption = 'Related Name';
-            FieldClass = FlowField;
         }
     }
 
@@ -110,8 +106,5 @@ table 9861 "Permission Set Relation Buffer"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

@@ -9,7 +9,7 @@ namespace System.Telemetry;
 /// A wrapper on top of Session.LogMessage that allows for having additional common custom dimensions emitted with every message.
 /// </summary>
 /// <remarks>
-/// Every publisher needs to have an implementation of the "Telemetry Logger" interface and a subscriber 
+/// Every publisher needs to have an implementation of the "Telemetry Logger" interface and a subscriber
 /// to "Telemetry Loggers".OnRegisterTelemetryLogger event in one of their apps in order for this codeunit
 /// to work as expected (see "System Telemetry Logger" codeunit or example below).
 /// </remarks>
@@ -33,7 +33,7 @@ namespace System.Telemetry;
 ///    end;
 /// }
 /// </example>
-codeunit 8711 "Telemetry"
+codeunit 8711 Telemetry
 {
     Access = Public;
     InherentEntitlements = X;

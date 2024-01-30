@@ -43,7 +43,7 @@ codeunit 132928 "Azure AD User Sync Test"
         NonBcEmailTxt: Label 'nonbc@microsoft.com';
 #pragma warning restore AA0240
         CommonLastNameTxt: Label 'User';
-        MixedPlansNonAdminErr: Label 'Before you can update user information, go to your Microsoft 365 admin center and make sure that all users are assigned to the same Business Central license, either Basic, Essential, or Premium. For example, we found that users %1 and %2 are assigned to different licenses, but there may be other mismatches.', Comment = '%1 = %2 = Authentication email.';
+        MixedPlansNonAdminErr: Label 'All users must be assigned to the same license, either Basic, Essential, or Premium. %1 and %2 are assigned to different licenses, for example, but there may be other mismatches. Your system administrator or Microsoft partner can verify license assignments in your Microsoft 365 admin portal.\\We will sign you out when you choose the OK button.', Comment = '%1 = %2 = Authentication email.';
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]

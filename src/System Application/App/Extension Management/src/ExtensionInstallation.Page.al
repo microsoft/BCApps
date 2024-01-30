@@ -31,17 +31,16 @@ page 2503 "Extension Installation"
         GetDetailsFromFilters();
 
         MarketplaceExtnDeployment.SetAppID(Rec.ID);
-        MarketplaceExtnDeployment.SetPreviewKey(Rec.PREVIEWKEY);
+        MarketplaceExtnDeployment.SetPreviewKey(Rec.PreviewKey);
         MarketplaceExtnDeployment.RunModal();
-        if MarketplaceExtnDeployment.GetInstalledSelected() then begin
+        if MarketplaceExtnDeployment.GetInstalledSelected() then
             if not IsNullGuid(Rec.ID) then
                 ExtensionMarketplace.InstallMarketplaceExtension(
                     Rec.ID,
-                    '', // Unlike an installation triggered from the marketplace embedded view, there is no response URL in this context.
+                    Rec.ResponseUrl,
                     MarketplaceExtnDeployment.GetLanguageId(),
-                    Rec.PREVIEWKEY);
-            CurrPage.Close();
-        end;
+                    Rec.PreviewKey);
+        CurrPage.Close();
     end;
 
     local procedure GetDetailsFromFilters()

@@ -25,7 +25,7 @@ page 9983 "Word Templates Related Edit"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             label(SelectRelatedEntity)
             {

@@ -8,9 +8,9 @@ namespace System.Text;
 using System;
 using System.Utilities;
 
-/// <summary> 
+/// <summary>
 /// Code-128 barcode font implementation from IDAutomation
-/// from: https://www.idautomation.com/barcode-fonts/code-128/ 
+/// from: https://www.idautomation.com/barcode-fonts/code-128/
 /// Alpha-numeric barcode with three character sets. Supports Code-128, GS1-128 (Formerly known as UCC/EAN-128) and ISBT-128.
 /// </summary>
 codeunit 9206 "IDA 1D Code128 Encoder" implements "Barcode Font Encoder"
@@ -42,7 +42,7 @@ codeunit 9206 "IDA 1D Code128 Encoder" implements "Barcode Font Encoder"
 
     procedure IsValidInput(InputText: Text; var BarcodeEncodeSettings: Record "Barcode Encode Settings"): Boolean;
     var
-        RegexPattern: codeunit Regex;
+        RegexPattern: Codeunit Regex;
         Result: Boolean;
     begin
         if InputText = '' then

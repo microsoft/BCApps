@@ -18,7 +18,7 @@ page 684 "Date-Time Dialog"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             field(Date; DateValue)
             {
@@ -42,9 +42,6 @@ page 684 "Date-Time Dialog"
         }
     }
 
-    actions
-    {
-    }
 
     var
         DateValue: Date;

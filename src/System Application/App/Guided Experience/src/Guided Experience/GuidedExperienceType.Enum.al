@@ -18,7 +18,7 @@ enum 1990 "Guided Experience Type"
     {
         Caption = 'Manual Setup', Locked = true;
     }
-    value(2; "Learn")
+    value(2; Learn)
     {
         Caption = 'Learn', Locked = true;
     }

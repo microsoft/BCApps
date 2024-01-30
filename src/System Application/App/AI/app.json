@@ -70,6 +70,12 @@
             "name":  "User Permissions",
             "publisher":  "Microsoft",
             "version": "24.0.0.0"
+          },
+          {
+            "id":  "c64d75f0-e9f1-4d0f-9949-cd453b9b1466",
+            "name":  "Guided Experience",
+            "publisher":  "Microsoft",
+            "version": "24.0.0.0"
           }
                      ],
     "screenshots":  [
@@ -85,8 +91,8 @@
     "platform":  "24.0.0.0",
     "idRanges":  [
                      {
-                         "from":  7761,
-                         "to":  7775
+                         "from":  7759,
+                         "to":  7776
                      }
                  ],
     "target":  "OnPrem",

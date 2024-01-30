@@ -5,6 +5,8 @@
 
 namespace System.Media;
 
+using System.Integration;
+
 /// <summary>This page shows the video playing in Business Central.</summary>
 page 1821 "Video Link"
 {
@@ -18,7 +20,7 @@ page 1821 "Video Link"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(Control5)
             {

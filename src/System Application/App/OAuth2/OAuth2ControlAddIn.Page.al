@@ -28,7 +28,7 @@ page 502 OAuth2ControlAddIn
                 InstructionalText = 'A sign in window is open. To continue, pick the account you want to use and accept the conditions. This message will close when you are done.';
                 ShowCaption = false;
             }
-            usercontrol(OAuthIntegration; OAuthControlAddIn)
+            usercontrol(OAuthIntegration; OAuthIntegration)
             {
                 ApplicationArea = All;
                 trigger AuthorizationCodeRetrieved(code: Text)

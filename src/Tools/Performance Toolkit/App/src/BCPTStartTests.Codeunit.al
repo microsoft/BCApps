@@ -104,6 +104,7 @@ codeunit 149000 "BCPT Start Tests"
         BCPTHeader.LockTable();
         BCPTHeader.Find();
         if BCPTHeader.Status <> BCPTHeader.Status::Running then begin
+            BCPTHeader.RunID := CreateGuid();
             BCPTHeader.Validate("Started at", CurrentDateTime);
             BCPTHeaderCU.SetRunStatus(BCPTHeader, BCPTHeader.Status::Running);
 

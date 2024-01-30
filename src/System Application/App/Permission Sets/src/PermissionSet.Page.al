@@ -42,7 +42,7 @@ page 9855 "Permission Set"
                     ToolTip = 'Specifies the permission set.';
                 }
 
-                field("Name"; Rec.Name)
+                field(Name; Rec.Name)
                 {
                     ApplicationArea = All;
                     Editable = false;
@@ -98,7 +98,7 @@ page 9855 "Permission Set"
         }
 
 #if not CLEAN22
-        area(factboxes)
+        area(FactBoxes)
         {
             part(PermissionsRelated; "Expanded Permissions Factbox")
             {

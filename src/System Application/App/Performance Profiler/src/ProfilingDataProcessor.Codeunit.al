@@ -77,7 +77,7 @@ codeunit 1923 "Profiling Data Processor"
     /// <param name="AggregatedProfilingNode">The resulting aggregation.</param>
     /// <param name="ProfilingAggregationType">The value of what to aggregate self time by.</param>
     /// <param name="FilterText">The table view to indicate which profiling nodes should be included in aggregation.</param>
-    procedure GetSelfTimeAggregate(var AggregatedProfilingNode: Record "Profiling Node"; ProfilingAggregationType: Enum "Profiling Aggregation Type"; FilterText: text)
+    procedure GetSelfTimeAggregate(var AggregatedProfilingNode: Record "Profiling Node"; ProfilingAggregationType: Enum "Profiling Aggregation Type"; FilterText: Text)
     begin
         RawProfilingNodes.SetView(FilterText);
         RawProfilingNodes.SetFilter("Self Time", '>%1', 0);

@@ -11,7 +11,7 @@ using System.Reflection;
 /// <summary>
 /// Manage the checklist presented to users by inserting and deleting checklist items and controling the visibility of the checklist.
 /// </summary>
-codeunit 1992 "Checklist"
+codeunit 1992 Checklist
 {
     Access = Public;
 
@@ -19,7 +19,7 @@ codeunit 1992 "Checklist"
         ChecklistImplementation: Codeunit "Checklist Implementation";
 
     /// <summary>
-    /// Inserts a new checklist item. 
+    /// Inserts a new checklist item.
     /// </summary>
     /// <param name="GuidedExperienceType">The type of guided experience item that the checklist item references.</param>
     /// <param name="ObjectTypeToRun">The object type run by the guided experience item that the checklist item references.</param>

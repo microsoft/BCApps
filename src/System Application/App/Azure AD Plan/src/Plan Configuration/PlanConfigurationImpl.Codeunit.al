@@ -115,7 +115,7 @@ codeunit 9822 "Plan Configuration Impl."
             exit;
 
         repeat
-            if AccessControl.Get(UserSecurityID, CustomPermissionSetInPlan."Role ID", CustomPermissionSetInPlan."Company Name", CustomPermissionSetInPlan.Scope, CustomPermissionSetInPlan."App ID") then
+            if AccessControl.Get(UserSecurityId, CustomPermissionSetInPlan."Role ID", CustomPermissionSetInPlan."Company Name", CustomPermissionSetInPlan.Scope, CustomPermissionSetInPlan."App ID") then
 #if not CLEAN22
 #pragma warning disable AA0013
             begin
@@ -210,7 +210,7 @@ codeunit 9822 "Plan Configuration Impl."
             exit;
 
         repeat
-            AccessControl.SetRange("User Security ID", UserSecurityID);
+            AccessControl.SetRange("User Security ID", UserSecurityId);
             AccessControl.SetRange("Role ID", DefaultPermissionSetInPlan."Role ID");
             AccessControl.SetRange(Scope, DefaultPermissionSetInPlan.Scope);
             AccessControl.SetRange("App ID", DefaultPermissionSetInPlan."App ID");
@@ -439,7 +439,7 @@ codeunit 9822 "Plan Configuration Impl."
         AccessControl: Record "Access Control";
         NullGuid: Guid;
     begin
-        AccessControl.SetRange("User Security ID", UserSecurityID);
+        AccessControl.SetRange("User Security ID", UserSecurityId);
         AccessControl.SetRange("Role ID", RoleId);
         AccessControl.SetRange("Company Name", Company);
         AccessControl.SetRange(Scope, Scope);
@@ -456,7 +456,7 @@ codeunit 9822 "Plan Configuration Impl."
 
         if AccessControl.IsEmpty() then begin
             AccessControl.Init();
-            AccessControl."User Security ID" := UserSecurityID;
+            AccessControl."User Security ID" := UserSecurityId;
             AccessControl."Role ID" := RoleId;
             AccessControl."Company Name" := Company;
             AccessControl.Scope := Scope;

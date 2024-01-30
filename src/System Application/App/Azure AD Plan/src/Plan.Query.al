@@ -26,7 +26,7 @@ query 775 Plan
             column(Plan_ID; "Plan ID")
             {
             }
-            column(Plan_Name; "Name")
+            column(Plan_Name; Name)
             {
             }
             column(Role_Center_ID; "Role Center ID")

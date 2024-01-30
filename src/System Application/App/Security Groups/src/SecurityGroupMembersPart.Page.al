@@ -17,7 +17,7 @@ page 9866 "Security Group Members Part"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {

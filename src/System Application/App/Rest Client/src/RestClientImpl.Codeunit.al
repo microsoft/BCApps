@@ -17,9 +17,9 @@ codeunit 2351 "Rest Client Impl."
         HttpClientHandler: Interface "Http Client Handler";
         HttpClient: HttpClient;
         IsInitialized: Boolean;
-        EnvironmentBlocksErr: label 'Environment blocks an outgoing HTTP request to ''%1''.', Comment = '%1 = url, e.g. https://microsoft.com';
-        ConnectionErr: label 'Connection to the remote service ''%1'' could not be established.', Comment = '%1 = url, e.g. https://microsoft.com';
-        RequestFailedErr: label 'The request failed: %1 %2', Comment = '%1 = HTTP status code, %2 = Reason phrase';
+        EnvironmentBlocksErr: Label 'Environment blocks an outgoing HTTP request to ''%1''.', Comment = '%1 = url, e.g. https://microsoft.com';
+        ConnectionErr: Label 'Connection to the remote service ''%1'' could not be established.', Comment = '%1 = url, e.g. https://microsoft.com';
+        RequestFailedErr: Label 'The request failed: %1 %2', Comment = '%1 = HTTP status code, %2 = Reason phrase';
         UserAgentLbl: Label 'Dynamics 365 Business Central - |%1| %2/%3', Locked = true, Comment = '%1 = App Publisher; %2 = App Name; %3 = App Version';
 
     #region Initialization
@@ -28,7 +28,7 @@ codeunit 2351 "Rest Client Impl."
         Initialize(DefaultHttpClientHandler, HttpAuthenticationAnonymous);
     end;
 
-    #pragma warning disable AA0244
+#pragma warning disable AA0244
     procedure Initialize(HttpClientHandler: Interface "Http Client Handler")
     begin
         Initialize(HttpClientHandler, HttpAuthenticationAnonymous);
@@ -38,7 +38,7 @@ codeunit 2351 "Rest Client Impl."
     begin
         Initialize(DefaultHttpClientHandler, HttpAuthentication);
     end;
-    #pragma warning restore AA0244
+#pragma warning restore AA0244
 
     procedure Initialize(HttpClientHandlerInstance: Interface "Http Client Handler"; HttpAuthenticationInstance: Interface "Http Authentication")
     begin
@@ -140,7 +140,7 @@ codeunit 2351 "Rest Client Impl."
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
 
-    procedure PatchAsJson(RequestUri: Text; Content: JSonToken) Response: JsonToken
+    procedure PatchAsJson(RequestUri: Text; Content: JsonToken) Response: JsonToken
     var
         HttpResponseMessage: Codeunit "Http Response Message";
         HttpContent: Codeunit "Http Content";
@@ -153,7 +153,7 @@ codeunit 2351 "Rest Client Impl."
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
 
-    procedure PutAsJson(RequestUri: Text; Content: JSonToken) Response: JsonToken
+    procedure PutAsJson(RequestUri: Text; Content: JsonToken) Response: JsonToken
     var
         HttpResponseMessage: Codeunit "Http Response Message";
         HttpContent: Codeunit "Http Content";

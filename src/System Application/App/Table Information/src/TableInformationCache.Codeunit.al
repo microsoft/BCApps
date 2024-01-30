@@ -7,7 +7,7 @@ namespace System.DataAdministration;
 
 /// <summary>
 /// Exposes functionality to manage the Table Information Cache table and the Company Size Cache table.
-/// </summary> 
+/// </summary>
 codeunit 8701 "Table Information Cache"
 {
     Access = Public;

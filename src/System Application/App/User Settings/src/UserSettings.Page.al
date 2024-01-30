@@ -32,7 +32,7 @@ page 9204 "User Settings"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(Control1)
             {
@@ -135,7 +135,7 @@ page 9204 "User Settings"
     trigger OnOpenPage()
     begin
         if not Rec.Initialized then
-            UserSettingsImpl.GetUserSettings(UserSecurityID(), Rec);
+            UserSettingsImpl.GetUserSettings(UserSecurityId(), Rec);
 
         OldUserSettings := Rec;
 

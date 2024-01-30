@@ -8,7 +8,7 @@ namespace System.Security.User;
 using System.Security.AccessControl;
 
 /// <summary>
-/// Provides basic functionality to open a search page and validate user information. 
+/// Provides basic functionality to open a search page and validate user information.
 /// </summary>
 codeunit 9843 "User Selection"
 {

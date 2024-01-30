@@ -200,7 +200,7 @@ codeunit 9175 "User Settings Impl."
 
         if OldUserSettings."Time Zone" <> NewUserSettings."Time Zone" then begin
             ShouldRefreshSession := true;
-            sessionSetting.Timezone := NewUserSettings."Time Zone";
+            sessionSetting.TimeZone := NewUserSettings."Time Zone";
         end;
 
         if OldUserSettings.Company <> NewUserSettings.Company then begin

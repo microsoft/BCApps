@@ -19,11 +19,11 @@ page 1875 "Manual Setup"
     SourceTableTemporary = true;
     UsageCategory = Administration;
     ContextSensitiveHelpPage = 'setup';
-    Permissions = TableData "Guided Experience Item" = r;
+    Permissions = tabledata "Guided Experience Item" = r;
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -66,7 +66,7 @@ page 1875 "Manual Setup"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action("Open Manual Setup")
             {
@@ -74,7 +74,7 @@ page 1875 "Manual Setup"
                 Caption = 'Open Manual Setup';
                 Image = Edit;
                 Scope = Repeater;
-                ShortCutKey = 'Return';
+                ShortcutKey = 'Return';
                 ToolTip = 'View or edit the setup for the application feature.';
                 Enabled = (Rec."Object Type to Run" = Rec."Object Type to Run"::Page) and (Rec."Object ID to Run" <> 0);
 

@@ -10,9 +10,7 @@ table 4150 "Temp Blob"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-#pragma warning disable AS0034
     TableType = Temporary;
-#pragma warning restore AS0034
 
 
     fields
@@ -21,7 +19,7 @@ table 4150 "Temp Blob"
         {
             DataClassification = SystemMetadata;
         }
-        field(2; Blob; BLOB)
+        field(2; Blob; Blob)
         {
             DataClassification = SystemMetadata;
         }
@@ -35,8 +33,5 @@ table 4150 "Temp Blob"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

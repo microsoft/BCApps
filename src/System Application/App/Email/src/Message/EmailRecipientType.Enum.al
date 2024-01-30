@@ -22,7 +22,7 @@ enum 8901 "Email Recipient Type"
     /// <summary>
     /// Recipient type 'Cc'.
     /// </summary>
-    value(1; "Cc")
+    value(1; Cc)
     {
     }
 
@@ -30,7 +30,7 @@ enum 8901 "Email Recipient Type"
     /// <summary>
     /// Recipient type 'Bcc'.
     /// </summary>
-    value(3; "Bcc")
+    value(3; Bcc)
     {
     }
 }

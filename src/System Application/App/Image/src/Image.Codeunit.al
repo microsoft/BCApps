@@ -41,15 +41,15 @@ codeunit 3971 Image
     end;
 
     /// <summary>
-    /// Crops the image based on a rectangle specified by the user. 
+    /// Crops the image based on a rectangle specified by the user.
     /// The resulting crop will be a hole-cut in the image made by the rectangle.
     /// </summary>
     /// <param name="X">X coordinate of the rectangle.</param>
     /// <param name="Y">Y coordinate of the rectangle.</param>
     /// <param name="Width">Width of rectangle.</param>
     /// <param name="Height">Height of the rectangle./</param>
-    /// <remarks>The Rectangles top left corner has to be within the image dimensions, 
-    /// but specifying a width or height that makes the rectangle go outside the image dimensions is allowed.   
+    /// <remarks>The Rectangles top left corner has to be within the image dimensions,
+    /// but specifying a width or height that makes the rectangle go outside the image dimensions is allowed.
     /// Anything outside the image dimensions will be filled with the image background color.</remarks>
     /// <error>X and Y is not within the image dimensions.</error>
     /// <error>Width and Height is less than one.</error>

@@ -27,6 +27,7 @@ codeunit 135214 "In Memory Secret Provider Test"
     var
         InMemorySecretProvider: Codeunit "In Memory Secret Provider";
         Secret: Text;
+        SecretSecretText: SecretText;
         Result: Boolean;
     begin
         // [SCENARIO] Populate the secret provider with some values and read them back
@@ -37,10 +38,13 @@ codeunit 135214 "In Memory Secret Provider Test"
 
         // [WHEN] The a secret is retrieved
         Result := InMemorySecretProvider.GetSecret('secret1', Secret);
+        Assert.IsTrue(Result, 'GetSecret should return true if it could read the secret');
+        Result := InMemorySecretProvider.GetSecret('secret1', SecretSecretText);
+        Assert.IsTrue(Result, 'GetSecret as SecretText should return true if it could read the secret');
 
         // [THEN] The value is retrieved
         Assert.AreEqual('value1', Secret, 'The returned secret does not match.');
-        Assert.IsTrue(Result, 'GetSecret should return true if it could read the secret');
+        Assert.AreEqual('value1', GetSecretOut(SecretSecretText), 'The returned secret does not match.');
     end;
 
     [Test]
@@ -49,6 +53,7 @@ codeunit 135214 "In Memory Secret Provider Test"
     var
         InMemorySecretProvider: Codeunit "In Memory Secret Provider";
         Secret: Text;
+        SecretSecretText: SecretText;
         Result: Boolean;
     begin
         // [SCENARIO] Populate the secret provider with the same value twice -> show overwrite the value
@@ -59,10 +64,13 @@ codeunit 135214 "In Memory Secret Provider Test"
         // [WHEN] Overwriting a secret and reading it back
         InMemorySecretProvider.AddSecret('secret1', 'value2');
         Result := InMemorySecretProvider.GetSecret('secret1', Secret);
+        Assert.IsTrue(Result, 'GetSecret should return true if it could read the secret');
+        Result := InMemorySecretProvider.GetSecret('secret1', SecretSecretText);
+        Assert.IsTrue(Result, 'GetSecret as SecretText should return true if it could read the secret');
 
         // [THEN] The new value is retrieved
         Assert.AreEqual('value2', Secret, 'The returned secret does not match.');
-        Assert.IsTrue(Result, 'GetSecret should return true if it could read the secret');
+        Assert.AreEqual('value2', GetSecretOut(SecretSecretText), 'The returned secret does not match.');
     end;
 
     [Test]
@@ -71,6 +79,7 @@ codeunit 135214 "In Memory Secret Provider Test"
     var
         InMemorySecretProvider: Codeunit "In Memory Secret Provider";
         Secret: Text;
+        SecretSecretText: SecretText;
         Result: Boolean;
     begin
         // [SCENARIO] Try to read a secret that doesn't exist
@@ -78,9 +87,19 @@ codeunit 135214 "In Memory Secret Provider Test"
         // [GIVEN] A secret provider
         // [WHEN] Reading a non-existing secret
         Result := InMemorySecretProvider.GetSecret('secret1', Secret);
+        Assert.IsFalse(Result, 'GetSecret should return false if it couldn''t read the secret');
+        Result := InMemorySecretProvider.GetSecret('secret1', SecretSecretText);
+        Assert.IsFalse(Result, 'GetSecret as SecretText should return false if it couldn''t read the secret');
+
 
         // [THEN] The value should be empty, and the result should be false
         Assert.AreEqual('', Secret, 'The returned secret should be empty.');
-        Assert.IsFalse(Result, 'GetSecret should return false if it couldn''t read the secret');
+        Assert.IsTrue(SecretSecretText.IsEmpty(), 'The returned secret should be empty.');
+    end;
+
+    [NonDebuggable]
+    local procedure GetSecretOut(Secret: SecretText): Text
+    begin
+        exit(Secret.Unwrap());
     end;
 }

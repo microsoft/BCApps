@@ -90,25 +90,25 @@ codeunit 9751 "Web Service Management Impl."
                 WebServiceAggregate."Object Type"::Page:
                     case ClientTypeParam of
                         ClientTypeParam::SOAP:
-                            exit(GetUrl(CLIENTTYPE::SOAP, CompanyName(), OBJECTTYPE::Page, WebServiceAggregate."Object ID", WebService));
+                            exit(GetUrl(ClientType::SOAP, CompanyName(), ObjectType::Page, WebServiceAggregate."Object ID", WebService));
                         ClientTypeParam::ODataV3:
-                            exit(GetUrl(CLIENTTYPE::OData, CompanyName(), OBJECTTYPE::Page, WebServiceAggregate."Object ID", WebService));
+                            exit(GetUrl(ClientType::OData, CompanyName(), ObjectType::Page, WebServiceAggregate."Object ID", WebService));
                         ClientTypeParam::ODataV4:
-                            exit(GetUrl(CLIENTTYPE::ODataV4, CompanyName(), OBJECTTYPE::Page, WebServiceAggregate."Object ID", WebService));
+                            exit(GetUrl(ClientType::ODataV4, CompanyName(), ObjectType::Page, WebServiceAggregate."Object ID", WebService));
                     end;
                 WebServiceAggregate."Object Type"::Query:
                     case ClientTypeParam of
                         ClientTypeParam::SOAP:
                             exit(NotApplicableTxt);
                         ClientTypeParam::ODataV3:
-                            exit(GetUrl(CLIENTTYPE::OData, CompanyName(), OBJECTTYPE::Query, WebServiceAggregate."Object ID", WebService));
+                            exit(GetUrl(ClientType::OData, CompanyName(), ObjectType::Query, WebServiceAggregate."Object ID", WebService));
                         ClientTypeParam::ODataV4:
-                            exit(GetUrl(CLIENTTYPE::ODataV4, CompanyName(), OBJECTTYPE::Query, WebServiceAggregate."Object ID", WebService));
+                            exit(GetUrl(ClientType::ODataV4, CompanyName(), ObjectType::Query, WebServiceAggregate."Object ID", WebService));
                     end;
                 WebServiceAggregate."Object Type"::Codeunit:
                     case ClientTypeParam of
                         ClientTypeParam::SOAP:
-                            exit(GetUrl(CLIENTTYPE::SOAP, CompanyName(), OBJECTTYPE::Codeunit, WebServiceAggregate."Object ID", WebService));
+                            exit(GetUrl(ClientType::SOAP, CompanyName(), ObjectType::Codeunit, WebServiceAggregate."Object ID", WebService));
                         ClientTypeParam::ODataV3:
                             exit(NotApplicableTxt);
                         ClientTypeParam::ODataV4:
@@ -123,15 +123,15 @@ codeunit 9751 "Web Service Management Impl."
                 WebServiceAggregate."Object Type"::Page:
                     case ClientTypeParam of
                         ClientTypeParam::SOAP:
-                            exit(GetUrl(CLIENTTYPE::SOAP, CompanyName(), OBJECTTYPE::Page, WebServiceAggregate."Object ID", TenantWebService));
+                            exit(GetUrl(ClientType::SOAP, CompanyName(), ObjectType::Page, WebServiceAggregate."Object ID", TenantWebService));
                         ClientTypeParam::ODataV3:
                             begin
-                                ODataServiceRootUrl := GetUrl(CLIENTTYPE::OData, CompanyName(), OBJECTTYPE::Page, WebServiceAggregate."Object ID", TenantWebService);
+                                ODataServiceRootUrl := GetUrl(ClientType::OData, CompanyName(), ObjectType::Page, WebServiceAggregate."Object ID", TenantWebService);
                                 exit(GenerateODataV3Url(ODataServiceRootUrl, TenantWebService."Service Name", TenantWebService."Object Type"));
                             end;
                         ClientTypeParam::ODataV4:
                             begin
-                                ODataServiceRootUrl := GetUrl(CLIENTTYPE::ODataV4, CompanyName(), OBJECTTYPE::Page, WebServiceAggregate."Object ID", TenantWebService);
+                                ODataServiceRootUrl := GetUrl(ClientType::ODataV4, CompanyName(), ObjectType::Page, WebServiceAggregate."Object ID", TenantWebService);
                                 exit(GenerateODataV4Url(ODataServiceRootUrl, TenantWebService."Service Name", TenantWebService."Object Type"));
                             end;
                     end;
@@ -141,19 +141,19 @@ codeunit 9751 "Web Service Management Impl."
                             exit(NotApplicableTxt);
                         ClientTypeParam::ODataV3:
                             begin
-                                ODataServiceRootUrl := GetUrl(CLIENTTYPE::OData, CompanyName(), OBJECTTYPE::Query, WebServiceAggregate."Object ID", TenantWebService);
+                                ODataServiceRootUrl := GetUrl(ClientType::OData, CompanyName(), ObjectType::Query, WebServiceAggregate."Object ID", TenantWebService);
                                 exit(GenerateODataV3Url(ODataServiceRootUrl, TenantWebService."Service Name", TenantWebService."Object Type"));
                             end;
                         ClientTypeParam::ODataV4:
                             begin
-                                ODataServiceRootUrl := GetUrl(CLIENTTYPE::ODataV4, CompanyName(), OBJECTTYPE::Query, WebServiceAggregate."Object ID", TenantWebService);
+                                ODataServiceRootUrl := GetUrl(ClientType::ODataV4, CompanyName(), ObjectType::Query, WebServiceAggregate."Object ID", TenantWebService);
                                 exit(GenerateODataV4Url(ODataServiceRootUrl, TenantWebService."Service Name", TenantWebService."Object Type"));
                             end;
                     end;
                 WebServiceAggregate."Object Type"::Codeunit:
                     case ClientTypeParam of
                         ClientTypeParam::SOAP:
-                            exit(GetUrl(CLIENTTYPE::SOAP, CompanyName(), OBJECTTYPE::Codeunit, WebServiceAggregate."Object ID", TenantWebService));
+                            exit(GetUrl(ClientType::SOAP, CompanyName(), ObjectType::Codeunit, WebServiceAggregate."Object ID", TenantWebService));
                         ClientTypeParam::ODataV3:
                             exit(NotApplicableTxt);
                         ClientTypeParam::ODataV4:
@@ -163,7 +163,7 @@ codeunit 9751 "Web Service Management Impl."
         end;
     end;
 
-    procedure CreateTenantWebServiceColumnsFromTemp(var TenantWebServiceColumns: Record "Tenant Web Service Columns"; var TempTenantWebServiceColumns: Record "Tenant Web Service Columns" temporary; TenantWebServiceRecordId: RecordID)
+    procedure CreateTenantWebServiceColumnsFromTemp(var TenantWebServiceColumns: Record "Tenant Web Service Columns"; var TempTenantWebServiceColumns: Record "Tenant Web Service Columns" temporary; TenantWebServiceRecordId: RecordId)
     begin
         if TempTenantWebServiceColumns.FindSet() then begin
             TenantWebServiceColumns.SetRange(TenantWebServiceID, TenantWebServiceRecordId);
@@ -179,7 +179,7 @@ codeunit 9751 "Web Service Management Impl."
         end;
     end;
 
-    procedure CreateTenantWebServiceFilterFromRecordRef(var TenantWebServiceFilter: Record "Tenant Web Service Filter"; var RecordRef: RecordRef; TenantWebServiceRecordId: RecordID)
+    procedure CreateTenantWebServiceFilterFromRecordRef(var TenantWebServiceFilter: Record "Tenant Web Service Filter"; var RecordRef: RecordRef; TenantWebServiceRecordId: RecordId)
     begin
         TenantWebServiceFilter.SetRange(TenantWebServiceID, TenantWebServiceRecordId);
         TenantWebServiceFilter.DeleteAll();
@@ -309,14 +309,19 @@ codeunit 9751 "Web Service Management Impl."
         TenantWebService: Record "Tenant Web Service";
     begin
         WebServiceAggregate.Reset();
+#pragma warning disable AS0059
         WebServiceAggregate.DeleteAll();
+#pragma warning restore AS0059
 
         if WebService.FindSet() then
             repeat
                 WebServiceAggregate.Init();
                 WebServiceAggregate.TransferFields(WebService);
                 WebServiceAggregate."All Tenants" := true;
+
+#pragma warning disable AS0059
                 WebServiceAggregate.Insert();
+#pragma warning restore AS0059
             until WebService.Next() = 0;
 
         WebServiceAggregate."All Tenants" := false;
@@ -333,7 +338,9 @@ codeunit 9751 "Web Service Management Impl."
                     if WebService.IsEmpty() then begin
                         WebServiceAggregate.Init();
                         WebServiceAggregate.TransferFields(TenantWebService);
+#pragma warning disable AS0059
                         WebServiceAggregate.Insert();
+#pragma warning restore AS0059
                     end
                 end
             until TenantWebService.Next() = 0;
@@ -561,7 +568,7 @@ codeunit 9751 "Web Service Management Impl."
         TenantWebServiceOData.DeleteAll();
     end;
 
-    procedure CreateTenantWebServiceColumnForPage(TenantWebServiceRecordId: RecordID; FieldNumber: Integer; DataItem: Integer)
+    procedure CreateTenantWebServiceColumnForPage(TenantWebServiceRecordId: RecordId; FieldNumber: Integer; DataItem: Integer)
     var
         TenantWebServiceColumns: Record "Tenant Web Service Columns";
         FieldTable: Record "Field";
@@ -603,7 +610,7 @@ codeunit 9751 "Web Service Management Impl."
         end;
     end;
 
-    procedure CreateTenantWebServiceColumnForQuery(TenantWebServiceRecordId: RecordID; FieldNumber: Integer; DataItem: Integer; MetaData: DotNet QueryMetadataReader)
+    procedure CreateTenantWebServiceColumnForQuery(TenantWebServiceRecordId: RecordId; FieldNumber: Integer; DataItem: Integer; MetaData: DotNet QueryMetadataReader)
     var
         TenantWebServiceColumns: Record "Tenant Web Service Columns";
         queryField: DotNet QueryFields;

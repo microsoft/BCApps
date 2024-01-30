@@ -13,7 +13,7 @@ page 1564 "Privacy Notice Approvals"
     SourceTable = "Privacy Notice Approval";
     InsertAllowed = false;
     ModifyAllowed = false;
-    
+
     layout
     {
         area(Content)

@@ -18,7 +18,7 @@ page 9810 "Password Dialog"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             field(OldPassword; OldPasswordValue)
             {
@@ -58,9 +58,6 @@ page 9810 "Password Dialog"
         }
     }
 
-    actions
-    {
-    }
 
     trigger OnInit()
     begin
@@ -75,7 +72,7 @@ page 9810 "Password Dialog"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
-        if CloseAction = ACTION::OK then begin
+        if CloseAction = Action::OK then begin
             ValidPassword := PasswordDialogImpl.ValidatePassword(
                 RequiresPasswordConfirmation,
                 RequiresPasswordValidation,
