@@ -282,8 +282,9 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
 
         RestClient.Initialize();
         SetCommonHeaders(RestClient);
+        RestClient.SetDefaultRequestHeader('client-request-id', ClientRequestID);
 
-        exit(Dependencies.RestClient_GetAsJSon(restClient, RequestUri).AsObject());
+        exit(Dependencies.RestClient_GetAsJSon(RestClient, RequestUri).AsObject());
     end;
 
     local procedure DownloadAndAddNextPageProducts(NextPageLink: Text; var AppSourceProductRec: record "AppSource Product"; var RestClient: Codeunit "Rest Client"): Text
@@ -299,7 +300,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         ClientRequestID := CreateGuid();
         PopulateTelemetryDictionary(ClientRequestID, '', NextPageLink, TelemetryDictionary);
         Session.LogMessage('AL:AppSource-NextPageProducts', 'Requesting product list data', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDictionary);
-        RestClient.SetDefaultRequestHeader('x-ms-client-request-id', ClientRequestID);
+        RestClient.SetDefaultRequestHeader('client-request-id', ClientRequestID);
 
         ResponseObject := Dependencies.RestClient_GetAsJSon(RestClient, NextPageLink).AsObject();
         if (ResponseObject.Get('items', ProductArrayToken)) then begin
@@ -372,7 +373,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
 
     local procedure PopulateTelemetryDictionary(RequestID: Text; var TelemetryDictionary: Dictionary of [Text, Text])
     begin
-        TelemetryDictionary.Add('RequestID', RequestID);
+        TelemetryDictionary.Add('client-request-id', RequestID);
     end;
     #endregion
 
@@ -486,14 +487,14 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     /// <summary>
     /// Ensures that the market is valid for AppSource.
     /// </summary>
-    /// <param name="market">Market requested</param>
+    /// <param name="Market">Market requested</param>
     /// <returns>The requested market if supported, otherwise us</returns>
     /// <remarks>See https://learn.microsoft.com/en-us/partner-center/marketplace/marketplace-geo-availability-currencies for supported markets</remarks>
-    local procedure EnsureValidMarket(market: Text): Text
+    local procedure EnsureValidMarket(Market: Text): Text
     var
         NotSupportedNotification: Notification;
     begin
-        case LowerCase(market) of
+        case LowerCase(Market) of
             'af', 'al', 'dz', 'ad', 'ao', 'ar', 'am', 'au', 'at', 'az', 'bh', 'bd', 'bb', 'by', 'be', 'bz', 'bm', 'bo', 'ba', 'bw'
         , 'br', 'bn', 'bg', 'cv', 'cm', 'ca', 'ky', 'cl', 'cn', 'co', 'cr', 'ci', 'hr', 'cw', 'cy', 'cz', 'dk', 'do', 'ec', 'eg'
         , 'sv', 'ee', 'et', 'fo', 'fj', 'fi', 'fr', 'ge', 'de', 'gh', 'gr', 'gt', 'hn', 'hk', 'hu', 'is', 'in', 'id', 'iq', 'ie'
@@ -502,10 +503,10 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         , 'ph', 'pl', 'pt', 'pr', 'qa', 'ro', 'ru', 'rw', 'kn', 'sa', 'sn', 'rs', 'sg', 'sk', 'si', 'za', 'es', 'lk', 'se', 'ch'
         , 'tw', 'tj', 'tz', 'th', 'tt', 'tn', 'tr', 'tm', 'ug', 'ua', 'ae', 'gb', 'us', 'vi', 'uy', 'uz', 'va', 've', 'vn', 'ye'
         , 'zm', 'zw':
-                exit(LowerCase(market));
+                exit(LowerCase(Market));
             else begin
                 NotSupportedNotification.Id := '0c0f2e34-e72f-4da4-a7d5-80b33653d13d';
-                NotSupportedNotification.Message(StrSubstNo(UnsupportedMarketNotificationLbl, market));
+                NotSupportedNotification.Message(StrSubstNo(UnsupportedMarketNotificationLbl, Market));
                 NotSupportedNotification.Send();
                 exit('us');
             end;
@@ -537,19 +538,19 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
 
     #endregion
 
-    local procedure InsertProductFromObject(offer: JsonObject; var Product: Record "AppSource Product")
+    local procedure InsertProductFromObject(Offer: JsonObject; var Product: Record "AppSource Product")
     begin
         Product.Init();
-        Product.UniqueProductID := CopyStr(GetStringValue(offer, 'uniqueProductId'), 1, MaxStrLen(Product.UniqueProductID));
-        Product.DisplayName := CopyStr(GetStringValue(offer, 'displayName'), 1, MaxStrLen(Product.DisplayName));
-        Product.PublisherID := CopyStr(GetStringValue(offer, 'publisherId'), 1, MaxStrLen(Product.PublisherID));
-        Product.PublisherDisplayName := CopyStr(GetStringValue(offer, 'publisherDisplayName'), 1, MaxStrLen(Product.PublisherDisplayName));
-        Product.PublisherType := CopyStr(GetStringValue(offer, 'publisherType'), 1, MaxStrLen(Product.PublisherType));
-        Product.RatingAverage := GetDecimalValue(offer, 'ratingAverage');
-        Product.RatingCount := GetIntegerValue(offer, 'ratingCount');
-        Product.ProductType := CopyStr(GetStringValue(offer, 'productType'), 1, MaxStrLen(Product.ProductType));
-        Product.Popularity := GetDecimalValue(offer, 'popularity');
-        Product.LastModifiedDateTime := GetDateTimeValue(offer, 'lastModifiedDateTime');
+        Product.UniqueProductID := CopyStr(GetStringValue(Offer, 'uniqueProductId'), 1, MaxStrLen(Product.UniqueProductID));
+        Product.DisplayName := CopyStr(GetStringValue(Offer, 'displayName'), 1, MaxStrLen(Product.DisplayName));
+        Product.PublisherID := CopyStr(GetStringValue(Offer, 'publisherId'), 1, MaxStrLen(Product.PublisherID));
+        Product.PublisherDisplayName := CopyStr(GetStringValue(Offer, 'publisherDisplayName'), 1, MaxStrLen(Product.PublisherDisplayName));
+        Product.PublisherType := CopyStr(GetStringValue(Offer, 'publisherType'), 1, MaxStrLen(Product.PublisherType));
+        Product.RatingAverage := GetDecimalValue(Offer, 'ratingAverage');
+        Product.RatingCount := GetIntegerValue(Offer, 'ratingCount');
+        Product.ProductType := CopyStr(GetStringValue(Offer, 'productType'), 1, MaxStrLen(Product.ProductType));
+        Product.Popularity := GetDecimalValue(Offer, 'popularity');
+        Product.LastModifiedDateTime := GetDateTimeValue(Offer, 'lastModifiedDateTime');
 
         Product.AppID := ExtractAppIDFromUniqueProductID(Product.UniqueProductID);
 
@@ -564,7 +565,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     begin
         Init();
         if not Dependencies.EnvironmentInformation_IsSaas() then
-            Error('Not Supported On Premises');
+            Error(NotSupportedOnPremisesErrorLbl);
 
         Dependencies.AzureKeyVault_GetAzureKeyVaultSecret('MS-AppSource-ApiKey', ApiKey);
         exit(ApiKey);
@@ -599,4 +600,5 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         AppSourceUriLbl: Label 'https://appsource.microsoft.com/%1/marketplace/apps?product=dynamics-365-business-central', Comment = '%=Language', Locked = true;
         UnsupportedMarketNotificationLbl: Label 'Market %1 is not supported by AppSource. Defaulting to en. Change region in the user profile to change the market.', Comment = '%1=Market', Locked = true;
         UnsupportedLanguageNotificationLbl: Label 'Language %1 is not supported by AppSource. Defaulting to en. Change language in the user profile to change the language.', Comment = '%1=Language', Locked = true;
+        NotSupportedOnPremisesErrorLbl: Label 'Not supported on premises', Locked = true;
 }
