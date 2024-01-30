@@ -229,7 +229,9 @@ codeunit 396 NoSeriesManagement
         IsHandled: Boolean;
     begin
         IsHandled := false;
+#if not CLEAN24
         OnBeforeGetNextNo(NoSeriesCode, SeriesDate, ModifySeries, Result, IsHandled, LastNoSeriesLine);
+#endif
         if IsHandled then
             exit(Result);
 
@@ -288,7 +290,9 @@ codeunit 396 NoSeriesManagement
         NoSeriesSequenceImpl: Codeunit "No. Series - Sequence Impl.";
 #endif
     begin
+#if CLEAN24
         OnBeforeDoGetNextNo(NoSeriesCode, SeriesDate, ModifySeries, NoErrorsOrWarnings);
+#endif
 
         if SeriesDate = 0D then
             SeriesDate := WorkDate();
@@ -368,8 +372,9 @@ codeunit 396 NoSeriesManagement
         if not ModifySeries then
             LastNoSeriesLine := NoSeriesLine;
 
+#if not CLEAN24
         OnAfterGetNextNo3(NoSeriesLine, ModifySeries);
-
+#endif
         exit(NoSeriesLine."Last No. Used");
     end;
 
