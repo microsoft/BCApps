@@ -12,6 +12,26 @@ tableextension 309 NoSeriesLineObsolete extends "No. Series Line"
 {
     fields
     {
+#if not CLEAN24
+#pragma warning disable AL0432
+        modify(Implementation)
+        {
+            trigger OnAfterValidate()
+            var
+                NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+            begin
+                if Rec.Implementation = xRec.Implementation then
+                    exit;
+
+#pragma warning disable AA0206
+                SkipAllowGapsValidationTrigger := true;
+#pragma warning restore AA0206
+
+                Validate("Allow Gaps in Nos.", NoSeriesSetupImpl.MayProduceGaps(Rec)); // Keep the Allow Gaps field in sync with the implementation
+            end;
+        }
+#pragma warning restore AL0432
+#endif
         field(11; "Allow Gaps in Nos."; Boolean)
         {
             Caption = 'Allow Gaps in Nos.';
@@ -96,6 +116,10 @@ tableextension 309 NoSeriesLineObsolete extends "No. Series Line"
 #if not CLEAN24
     var
         ShouldBeValidYearErr: Label 'Should be a valid year.';
+
+    protected var
+        [Obsolete('Use the Implementation field instead.', '24.0')]
+        SkipAllowGapsValidationTrigger: Boolean;
 
     [Obsolete('Use the field Last Date Used instead.', '24.0')]
     procedure GetLastDateUsed(): Date

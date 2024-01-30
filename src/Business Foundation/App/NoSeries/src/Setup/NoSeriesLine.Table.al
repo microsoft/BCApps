@@ -123,23 +123,6 @@ table 309 "No. Series Line"
             Caption = 'Implementation';
             DataClassification = SystemMetadata;
 
-#if not CLEAN24
-#pragma warning disable AL0432
-            trigger OnValidate()
-            var
-                NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
-            begin
-                if Rec.Implementation = xRec.Implementation then
-                    exit;
-
-#pragma warning disable AA0206
-                SkipAllowGapsValidationTrigger := true;
-#pragma warning restore AA0206
-
-                Validate("Allow Gaps in Nos.", NoSeriesSetupImpl.MayProduceGaps(Rec)); // Keep the Allow Gaps field in sync with the implementation
-            end;
-#pragma warning restore AL0432
-#endif
         }
     }
 
@@ -159,10 +142,4 @@ table 309 "No. Series Line"
         {
         }
     }
-
-#if not CLEAN24
-    protected var
-        [Obsolete('Use the Implementation field instead.', '24.0')]
-        SkipAllowGapsValidationTrigger: Boolean;
-#endif
 }
