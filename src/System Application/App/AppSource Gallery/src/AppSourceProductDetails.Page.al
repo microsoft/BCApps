@@ -216,7 +216,7 @@ page 2516 "AppSource Product Details"
         CurrentRecordCanBeInstalled: Boolean;
         PlansOverview: Text;
         PlansAreVisible: Boolean;
-        PurchaseLicensesElsewhereLbl: Label 'Installing this app may lead to undesired behavior if licenses are not purchaed before use. You must purchase licenses through Microsoft AppSource.\Do you want to continue with the installation?';
+        PurchaseLicensesElsewhereLbl: Label 'Installing this app might lead to undesired behavior if licenses are not purchaed before use. You must purchase licenses through Microsoft AppSource.\Do you want to continue with the installation?';
         PlanLinePrUserPrMonthLbl: Label '%1 %2 user/month', Comment = 'Price added a plan line, %1 is the currency, %2 is the price';
         PlanLinePrUserPrYearLbl: Label '%1 %2 user/year', Comment = 'Price added a plan line, %1 is the currency, %2 is the price';
         PlanLineFirstMonthIsFreeLbl: Label 'First month free', Comment = 'Added to the plan line when the first month is free.';
