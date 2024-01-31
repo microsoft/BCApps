@@ -54,7 +54,7 @@ codeunit 283 "Cross-Company No. Series"
     /// </summary>
     /// <param name="NoSeriesCode">Code for the No. Series Tenant to use.</param>
     /// <returns>Whether the No. Series exist.</returns>
-    procedure Exist(NoSeriesCode: Code[10]): Boolean
+    procedure Exists(NoSeriesCode: Code[10]): Boolean
     var
         CrossCompanyNoSeriesImpl: Codeunit "Cross-Company No. Series Impl.";
     begin

@@ -229,9 +229,7 @@ codeunit 396 NoSeriesManagement
         IsHandled: Boolean;
     begin
         IsHandled := false;
-#if not CLEAN24
         OnBeforeGetNextNo(NoSeriesCode, SeriesDate, ModifySeries, Result, IsHandled, LastNoSeriesLine);
-#endif
         if IsHandled then
             exit(Result);
 
@@ -239,29 +237,6 @@ codeunit 396 NoSeriesManagement
     end;
 
 #if not CLEAN24
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <remarks>
-    /// There's a bit of a symantic change with this event. You can no longer change things like ModifySeries, UsageDate, SeriesCode using this event
-    /// Also, the line record passed is no longer the line from the previous call as that data is not kept anymore in regular scenarios.
-    /// </remarks>
-    /// <param name="NoSeriesLine"></param>
-    /// <param name="UsageDate"></param>
-    /// <param name="ModifySeries"></param>
-    /// <param name="Result"></param>
-    /// <param name="IsHandled"></param>
-    [Obsolete('This is a temporary method for compatibility only. Please use the "No. Series" codeunit instead', '24.0')]
-    internal procedure RaiseObsoleteOnBeforeGetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; ModifySeries: Boolean; var Result: Code[20]; var IsHandled: Boolean)
-    var
-        NoSeriesLine2: Record "No. Series Line";
-    begin
-        NoSeriesLine2.Copy(NoSeriesLine);
-        OnBeforeGetNextNo(NoSeriesLine2."Series Code", UsageDate, ModifySeries, Result, IsHandled, NoSeriesLine);
-        if IsHandled then
-            NoSeriesLine.Copy(NoSeriesLine2);
-    end;
-
     [Obsolete('Use DoGetNextNo() instead', '21.0')]
     procedure GetNextNo3(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean; NoErrorsOrWarnings: Boolean): Code[20]
     begin
@@ -272,8 +247,8 @@ codeunit 396 NoSeriesManagement
     /// <summary>
     /// Gets the next number in a number series.
     /// If ModifySeries is set to true, the number series is incremented when getting the next number.
-    /// NOTE: If you set ModifySeries to false you should manually increment the number series to ensure consistency.
     /// </summary>
+    /// <remark>If you set ModifySeries to false you should manually increment the number series to ensure consistency.</remark>
     /// <param name="NoSeriesCode">The identifier of the number series.</param>
     /// <param name="SeriesDate">The date of the number series. The default date is WorkDate.</param>
     /// <param name="ModifySeries">
@@ -290,9 +265,7 @@ codeunit 396 NoSeriesManagement
         NoSeriesSequenceImpl: Codeunit "No. Series - Sequence Impl.";
 #endif
     begin
-#if not CLEAN24
         OnBeforeDoGetNextNo(NoSeriesCode, SeriesDate, ModifySeries, NoErrorsOrWarnings);
-#endif
 
         if SeriesDate = 0D then
             SeriesDate := WorkDate();
@@ -372,9 +345,8 @@ codeunit 396 NoSeriesManagement
         if not ModifySeries then
             LastNoSeriesLine := NoSeriesLine;
 
-#if not CLEAN24
         OnAfterGetNextNo3(NoSeriesLine, ModifySeries);
-#endif
+
         exit(NoSeriesLine."Last No. Used");
     end;
 
@@ -452,8 +424,6 @@ codeunit 396 NoSeriesManagement
         exit(TryNo);
     end;
 
-#if not CLEAN24
-    [Obsolete('Use the SaveState method in the No. Series - Batch codeunit instead.', '24.0')]
     procedure SaveNoSeries()
     var
         NoSeries: Codeunit "No. Series";
@@ -472,7 +442,7 @@ codeunit 396 NoSeriesManagement
             end;
         OnAfterSaveNoSeries(LastNoSeriesLine);
     end;
-#endif
+
     procedure ClearNoSeriesLine()
     begin
         Clear(LastNoSeriesLine);
@@ -635,7 +605,7 @@ codeunit 396 NoSeriesManagement
     end;
 
 #if not CLEAN24
-    [Obsolete('The No. Series module cannot have a dependency on Sales. Please use XXX instead', '24.0')]
+    [Obsolete('The No. Series Line Sales table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [Scope('OnPrem')]
     procedure SetNoSeriesLineSalesFilter(var NoSeriesLineSales: Record "No. Series Line Sales"; NoSeriesCode: Code[20]; StartDate: Date)
     var
@@ -644,7 +614,7 @@ codeunit 396 NoSeriesManagement
         OnObsoleteSetNoSeriesLineSalesFilter(NoSeriesLineSales, NoSeriesCode, StartDate);
     end;
 
-    [Obsolete('The No. Series module cannot have a dependency on Purchases. Please use XXX instead', '24.0')]
+    [Obsolete('The No. Series Line Purchase table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [Scope('OnPrem')]
     procedure SetNoSeriesLinePurchaseFilter(var NoSeriesLinePurchase: Record "No. Series Line Purchase"; NoSeriesCode: Code[20]; StartDate: Date)
     var
@@ -653,7 +623,7 @@ codeunit 396 NoSeriesManagement
         OnObsoleteSetNoSeriesLinePurchaseFilter(NoSeriesLinePurchase, NoSeriesCode, StartDate);
     end;
 
-    [Obsolete('The No. Series module cannot have a dependency on Sales. Please use XXX instead', '24.0')]
+    [Obsolete('The No. Series Line Sales table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [Scope('OnPrem')]
     procedure UpdateNoSeriesLineSales(var NoSeriesLineSales: Record "No. Series Line Sales"; NewNo: Code[20]; NewFieldName: Text[30])
     var
@@ -686,7 +656,7 @@ codeunit 396 NoSeriesManagement
         end;
     end;
 
-    [Obsolete('The No. Series module cannot have a dependency on Purchases. Please use XXX instead', '24.0')]
+    [Obsolete('The No. Series Line Purchase table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [Scope('OnPrem')]
     procedure UpdateNoSeriesLinePurchase(var NoSeriesLinePurchase: Record "No. Series Line Purchase"; NewNo: Code[20]; NewFieldName: Text[30])
     var
@@ -863,27 +833,17 @@ codeunit 396 NoSeriesManagement
         exit(NoSeriesLine."Last No. Used");
     end;
 
-#if not CLEAN24
-    [Obsolete('This is a temporary method for compatibility only. Please use the "No. Series" codeunit instead', '24.0')]
-    internal procedure RaiseObsoleteOnAfterGetNextNo3(NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean)
-    begin
-        OnAfterGetNextNo3(NoSeriesLine, ModifySeries);
-    end;
-
-    [Obsolete('This event is obsolete. Please use the extensibility options provided by the No. Series module.', '24.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnAfterGetNextNo3(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean)
+    internal procedure OnAfterGetNextNo3(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean)
     begin
     end;
 
-    [Obsolete('This event is no longer used. Please use the No. Series Batch codeunit instead.', '24.0')]
-    // Symbol usage indicates no subscribers
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveNoSeries(var NoSeriesLine: Record "No. Series Line")
     begin
     end;
-
-    [Obsolete('The No. Series module cannot have dependencies to Sales. Please use XXX instead', '24.0')]
+#if not CLEAN24
+    [Obsolete('The No. Series Line Sales table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveNoSeriesSales(var NoSeriesLineSales: Record "No. Series Line Sales")
     begin
@@ -895,7 +855,7 @@ codeunit 396 NoSeriesManagement
     end;
 
 #if not CLEAN24
-    [Obsolete('The No. Series module cannot have dependencies to Purchases. Please use XXX instead', '24.0')]
+    [Obsolete('The No. Series Line Purchase table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveNoSeriesPurchase(var NoSeriesLinePurchase: Record "No. Series Line Purchase")
     begin
@@ -906,25 +866,16 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 
-#if not CLEAN24
-    [Obsolete('This event is obsolete. Please use the extensibility options provided by the No. Series module.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetNextNo(var NoSeriesCode: Code[20]; var SeriesDate: Date; var ModifySeries: Boolean; var Result: Code[20]; var IsHandled: Boolean; var NoSeriesLine: Record "No. Series Line")
     begin
     end;
 
-    [Obsolete('This is a temporary method for compatibility only. Please use the "No. Series" codeunit instead', '24.0')]
-    internal procedure RaiseObsoleteOnBeforeDoGetNextNo(var NoSeriesCode: Code[20]; var SeriesDate: Date; ModifySeries: Boolean; var NoErrorsOrWarnings: Boolean)
-    begin
-        OnBeforeDoGetNextNo(NoSeriesCode, SeriesDate, ModifySeries, NoErrorsOrWarnings);
-    end;
-
-    [Obsolete('This event is obsolete. Please use the extensibility options provided by the No. Series module.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDoGetNextNo(var NoSeriesCode: Code[20]; var SeriesDate: Date; var ModifySeries: Boolean; var NoErrorsOrWarnings: Boolean)
     begin
     end;
-#endif
+
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeModifyNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; var IsHandled: Boolean)
     begin
@@ -978,14 +929,11 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 
-#if not CLEAN24
-    [Obsolete('This event is no longer used. Please use the No. Series Batch codeunit instead.', '24.0')]
-    // Symbol usage indicates no subscribers
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSaveNoSeries(var NoSeriesLine: Record "No. Series Line"; var IsHandled: Boolean)
     begin
     end;
-#endif
+
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeTestManual(var DefaultNoSeriesCode: Code[20]; var IsHandled: Boolean);
     begin

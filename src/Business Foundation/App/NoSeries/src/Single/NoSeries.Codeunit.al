@@ -132,8 +132,8 @@ codeunit 310 "No. Series"
     #region GetLastNoUsed
     /// <summary>
     /// Get the last number used in the No. Series.
-    /// Note: If a line was just closed, this function will return an empty string. Please use the NoSeriesLine overload to get the Last number for closed lines.
     /// </summary>
+    /// <remark>If a line was just closed, this function will return an empty string. Please use the NoSeriesLine overload to get the Last number for closed lines.</remark>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
     /// <returns>The last number used in the series.</returns>
     procedure GetLastNoUsed(NoSeriesCode: Code[20]): Code[20]
@@ -159,8 +159,8 @@ codeunit 310 "No. Series"
     #region NoSeriesUsage
     /// <summary>
     /// Verifies that the No. Series allows using manual numbers.
-    /// Note: This function allows manual numbers for blank No. Series Codes.
     /// </summary>
+    /// <remark>This function allows manual numbers for blank No. Series Codes.</remark>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
     procedure TestManual(NoSeriesCode: Code[20])
     var
@@ -171,8 +171,8 @@ codeunit 310 "No. Series"
 
     /// <summary>
     /// Verifies that the No. Series allows using manual numbers and throws an error for the document no. if it does not.
-    /// Note: This function allows manual numbers for blank No. Series Codes.
     /// </summary>
+    /// <remark>This function allows manual numbers for blank No. Series Codes.</remark>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
     /// <param name="DocumentNo">Document No. to be shown in the error message.</param>
     procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])
@@ -184,8 +184,8 @@ codeunit 310 "No. Series"
 
     /// <summary>
     /// Determines whether the No. Series allows using manual numbers.
-    /// Note: This function allows manual numbers for blank No. Series Codes.
     /// </summary>
+    /// <remark>This function allows manual numbers for blank No. Series Codes.</remark>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
     /// <returns>True if the No. Series allows manual numbers, false otherwise.</returns>
     procedure IsManual(NoSeriesCode: Code[20]): Boolean

@@ -89,8 +89,6 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
     begin
         NoSeriesMgt.FindNoSeriesLineToShow(Rec, NoSeriesLine)
     end;
-#pragma warning restore AL0432
-#endif
 
     [Obsolete('The event has been moved to codeunit NoSeriesManagement', '24.0')]
     [IntegrationEvent(false, false)]
@@ -103,4 +101,6 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
     internal procedure OnBeforeValidateManualNos(var NoSeries: Record "No. Series"; var IsHandled: Boolean)
     begin
     end;
+#pragma warning restore AL0432
+#endif
 }
