@@ -20,7 +20,7 @@ function Get-DisabledTests
         return
     }
 
-    $disabledCodeunits = Get-ChildItem -Filter "*.json" -Path $DisabledTestsFolder
+    $disabledCodeunits = Get-ChildItem -Filter "*.json" -Path $DisabledTestsFolder # Test
 
     $disabledTests = @()
     foreach($disabledCodeunit in $disabledCodeunits)

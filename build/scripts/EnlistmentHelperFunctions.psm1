@@ -14,7 +14,7 @@ function Get-BuildMode() {
 
 <#
 .Synopsis
-    Creates a new directory if it does not exist. If the directory exists, it will be emptied.
+    Creates a new directory if it does not exist. If the directory exists, it will be emptied. dpåakedpå
 .Parameter Path
     The path of the directory to create
 .Parameter ForceEmpty

@@ -17,7 +17,7 @@ codeunit 8901 Email
     /// <summary>
     /// Saves a draft email in the Outbox.
     /// </summary>
-    /// <param name="EmailMessage">The email message to save.</param>
+    /// <param name="EmailMessage">The email message to save.</param> 
     procedure SaveAsDraft(EmailMessage: Codeunit "Email Message")
     begin
         EmailImpl.SaveAsDraft(EmailMessage);
