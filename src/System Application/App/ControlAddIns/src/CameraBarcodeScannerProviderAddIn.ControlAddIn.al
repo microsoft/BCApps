@@ -10,7 +10,7 @@ namespace System.Device;
 /// </summary>
 controladdin CameraBarcodeScannerProviderAddIn
 {
-    Scripts = 'Resources\ClientExtensibility\js\emptyScript.js';
+    Scripts = 'emptyScript.js';
 
     /// <summary>
     /// This method is used to request the camera barcode scanner.
