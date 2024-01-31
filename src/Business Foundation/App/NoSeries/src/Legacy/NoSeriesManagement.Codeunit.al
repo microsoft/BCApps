@@ -247,8 +247,8 @@ codeunit 396 NoSeriesManagement
     /// <summary>
     /// Gets the next number in a number series.
     /// If ModifySeries is set to true, the number series is incremented when getting the next number.
-    /// NOTE: If you set ModifySeries to false you should manually increment the number series to ensure consistency.
     /// </summary>
+    /// <remark>If you set ModifySeries to false you should manually increment the number series to ensure consistency.</remark>
     /// <param name="NoSeriesCode">The identifier of the number series.</param>
     /// <param name="SeriesDate">The date of the number series. The default date is WorkDate.</param>
     /// <param name="ModifySeries">
@@ -605,7 +605,7 @@ codeunit 396 NoSeriesManagement
     end;
 
 #if not CLEAN24
-    [Obsolete('The No. Series module cannot have a dependency on Sales. Please use XXX instead', '24.0')]
+    [Obsolete('The No. Series Line Sales table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [Scope('OnPrem')]
     procedure SetNoSeriesLineSalesFilter(var NoSeriesLineSales: Record "No. Series Line Sales"; NoSeriesCode: Code[20]; StartDate: Date)
     var
@@ -614,7 +614,7 @@ codeunit 396 NoSeriesManagement
         OnObsoleteSetNoSeriesLineSalesFilter(NoSeriesLineSales, NoSeriesCode, StartDate);
     end;
 
-    [Obsolete('The No. Series module cannot have a dependency on Purchases. Please use XXX instead', '24.0')]
+    [Obsolete('The No. Series Line Purchase table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [Scope('OnPrem')]
     procedure SetNoSeriesLinePurchaseFilter(var NoSeriesLinePurchase: Record "No. Series Line Purchase"; NoSeriesCode: Code[20]; StartDate: Date)
     var
@@ -623,7 +623,7 @@ codeunit 396 NoSeriesManagement
         OnObsoleteSetNoSeriesLinePurchaseFilter(NoSeriesLinePurchase, NoSeriesCode, StartDate);
     end;
 
-    [Obsolete('The No. Series module cannot have a dependency on Sales. Please use XXX instead', '24.0')]
+    [Obsolete('The No. Series Line Sales table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [Scope('OnPrem')]
     procedure UpdateNoSeriesLineSales(var NoSeriesLineSales: Record "No. Series Line Sales"; NewNo: Code[20]; NewFieldName: Text[30])
     var
@@ -656,7 +656,7 @@ codeunit 396 NoSeriesManagement
         end;
     end;
 
-    [Obsolete('The No. Series module cannot have a dependency on Purchases. Please use XXX instead', '24.0')]
+    [Obsolete('The No. Series Line Purchase table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [Scope('OnPrem')]
     procedure UpdateNoSeriesLinePurchase(var NoSeriesLinePurchase: Record "No. Series Line Purchase"; NewNo: Code[20]; NewFieldName: Text[30])
     var
@@ -843,7 +843,7 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 #if not CLEAN24
-    [Obsolete('The No. Series module cannot have dependencies to Sales. Please use XXX instead', '24.0')]
+    [Obsolete('The No. Series Line Sales table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveNoSeriesSales(var NoSeriesLineSales: Record "No. Series Line Sales")
     begin
@@ -855,7 +855,7 @@ codeunit 396 NoSeriesManagement
     end;
 
 #if not CLEAN24
-    [Obsolete('The No. Series module cannot have dependencies to Purchases. Please use XXX instead', '24.0')]
+    [Obsolete('The No. Series Line Purchase table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveNoSeriesPurchase(var NoSeriesLinePurchase: Record "No. Series Line Purchase")
     begin

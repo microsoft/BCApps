@@ -129,7 +129,7 @@ codeunit 309 "No. Series - Batch Impl."
         SimulationMode := true;
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm')]
     procedure SaveState(TempNoSeriesLine: Record "No. Series Line" temporary)
     begin
         if SimulationMode then
@@ -139,7 +139,7 @@ codeunit 309 "No. Series - Batch Impl."
         UpdateNoSeriesLine(TempGlobalNoSeriesLine);
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm')]
     procedure SaveState();
     begin
         if SimulationMode then

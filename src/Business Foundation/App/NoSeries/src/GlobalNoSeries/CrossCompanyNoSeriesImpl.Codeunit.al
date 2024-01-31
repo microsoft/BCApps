@@ -10,7 +10,7 @@ codeunit 284 "Cross-Company No. Series Impl."
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "No. Series Tenant" = rimd;
+    Permissions = tabledata "No. Series Tenant" = rim;
 
     procedure CreateNoSeries(NoSeriesCode: Code[10]; NoSeriesDescription: Text[50]; LastUsedNo: Code[10])
     var

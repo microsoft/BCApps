@@ -44,8 +44,8 @@ codeunit 308 "No. Series - Batch"
     /// <summary>
     /// Get the next number in the No. Series.
     /// This function uses the specified No. Series line and calls the No. Series Line implementation to get the next number.
-    /// Note: The caller is responsible for providing an up to date Line.
     /// </summary>
+    /// <remark>The caller is responsible for providing an up to date Line.</remark>
     /// <param name="NoSeriesLine">The No. Series line to use.</param>
     /// <param name="UsageDate">The last date used, this will influence which line is used.</param>
     /// <returns>The next number in the series.</returns>
@@ -70,8 +70,8 @@ codeunit 308 "No. Series - Batch"
     /// <summary>
     /// Get the next number in the No. Series.
     /// This function uses the specified No. Series line and calls the No. Series Line implementation to get the next number.
-    /// Note: The caller is responsible for providing an up to date Line.
     /// </summary>
+    /// <remark>The caller is responsible for providing an up to date Line.</remark>
     /// <param name="NoSeriesLine">The No. Series line to use.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
     /// <param name="HideErrorsAndWarnings">Whether errors should be ignored.</param>
@@ -121,8 +121,8 @@ codeunit 308 "No. Series - Batch"
     #endregion
     /// <summary>
     /// Get the last number used in the No. Series.
-    /// Note: If a line was just closed, this function will return an empty string. Please use the NoSeriesLine overload to get the Last number for closed lines.
     /// </summary>
+    /// <remark>If a line was just closed, this function will return an empty string. Please use the NoSeriesLine overload to get the Last number for closed lines.</remark>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
     /// <returns>The last number used in the series.</returns>
     procedure GetLastNoUsed(NoSeriesCode: Code[20]): Code[20]
@@ -142,8 +142,8 @@ codeunit 308 "No. Series - Batch"
 
     /// <summary>
     /// Verifies that the No. Series allows using manual numbers.
-    /// Note: This function allows manual numbers for blank No. Series Codes.
     /// </summary>
+    /// <remark>This function allows manual numbers for blank No. Series Codes.</remark>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
     procedure TestManual(NoSeriesCode: Code[20])
     var
@@ -154,8 +154,8 @@ codeunit 308 "No. Series - Batch"
 
     /// <summary>
     /// Verifies that the No. Series allows using manual numbers and throws an error for the document no. if it does not.
-    /// Note: This function allows manual numbers for blank No. Series Codes.
     /// </summary>
+    /// <remark>This function allows manual numbers for blank No. Series Codes.</remark>
     /// <param name="NoSeriesCode">Code for the No. Series.</param>
     /// <param name="DocumentNo">Document No. to be shown in the error message.</param>
     procedure TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20])
