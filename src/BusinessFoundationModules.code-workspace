@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"name": "No. Series",
+			"path": "Business Foundation/App/No Series"
+		},
+		{
+			"name": "No. Series Test Library",
+			"path": "Business Foundation/Test Library/No Series"
+		},
+		{
+			"name": "No. Series Tests",
+			"path": "Business Foundation/Test/No Series"
+		}
+	]
+}
