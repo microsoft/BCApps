@@ -35,7 +35,7 @@ controladdin BarcodeScannerProviderAddIn
     /// <summary>
     /// This event is raised when the barcode is received.
     /// </summary>
-    /// <param name="Barcode">The barcode value</param>
-    /// <param name="Format">The barcode format</param>
+    /// <param name="Barcode">The barcode value.</param>
+    /// <param name="Format">The barcode format.</param>
     event BarcodeReceived(Barcode: Text; Format: Text)
 }

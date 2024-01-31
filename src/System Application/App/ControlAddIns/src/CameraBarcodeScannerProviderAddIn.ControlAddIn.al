@@ -41,7 +41,7 @@ controladdin CameraBarcodeScannerProviderAddIn
     /// <summary>
     /// This event is raised when the barcode scanner had a failure.
     /// </summary>
-    /// <param name="Failure">The barcode failure</param>
+    /// <param name="Failure">The barcode failure.</param>
     event BarcodeFailure(Failure: Enum "BarcodeFailure")
 }
 
