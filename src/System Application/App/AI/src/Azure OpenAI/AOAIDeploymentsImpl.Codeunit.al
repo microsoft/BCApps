@@ -21,10 +21,10 @@ codeunit 7769 "AOAI Deployments Impl"
         Turbo0301Lbl: Label 'chatGPT_GPT35-turbo-0301', Locked = true;
         GPT40613Lbl: Label 'gpt-4-32k', Locked = true;
         Turbo031316kLbl: Label 'gpt-35-turbo-16k', Locked = true;
-        GPT4Latest: Label 'gpt-4-latest', Locked = true;
-        GPT4Preview: Label 'gpt-4-preview', Locked = true;
-        GPT35TurboLatest: Label 'gpt-35-turbo-latest', Locked = true;
-        GPT35TurboPreview: Label 'gpt-35-turbo-preview', Locked = true;
+        GPT4LatestLbL: Label 'gpt-4-latest', Locked = true;
+        GPT4PreviewLbL: Label 'gpt-4-preview', Locked = true;
+        GPT35TurboLatestLbl: Label 'gpt-35-turbo-latest', Locked = true;
+        GPT35TurboPreviewLbl: Label 'gpt-35-turbo-preview', Locked = true;
 
     [NonDebuggable]
     procedure GetTurbo0301(CallerModuleInfo: ModuleInfo): Text
@@ -58,8 +58,8 @@ codeunit 7769 "AOAI Deployments Impl"
     begin
         if EnviromentInformation.IsSaaS() then begin
             if Preview then
-                exit(GetDeploymentName(GPT35TurboPreview, CallerModuleInfo));
-            exit(GetDeploymentName(GPT35TurboLatest, CallerModuleInfo));
+                exit(GetDeploymentName(GPT35TurboPreviewLbl, CallerModuleInfo));
+            exit(GetDeploymentName(GPT35TurboLatestLbl, CallerModuleInfo));
         end;
 
         exit(Turbo031316kLbl);
@@ -76,8 +76,8 @@ codeunit 7769 "AOAI Deployments Impl"
     begin
         if EnviromentInformation.IsSaaS() then begin
             if Preview then
-                exit(GetDeploymentName(GPT4Preview, CallerModuleInfo));
-            exit(GetDeploymentName(GPT4Latest, CallerModuleInfo));
+                exit(GetDeploymentName(GPT4PreviewLbL, CallerModuleInfo));
+            exit(GetDeploymentName(GPT4LatestLbL, CallerModuleInfo));
         end;
 
         exit(GPT40613Lbl);
