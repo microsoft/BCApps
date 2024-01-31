@@ -60,7 +60,7 @@ page 2515 "AppSource Product List"
                 field(Installed; CurrentRecordCanBeUninstalled)
                 {
                     Caption = 'Installed';
-                    ToolTip = 'Specifies if thisappis installed';
+                    ToolTip = 'Specifies if this app is installed';
                 }
                 field(RatingAverage; Rec.RatingAverage)
                 {
@@ -143,7 +143,7 @@ page 2515 "AppSource Product List"
                 Caption = 'Edit User Settings';
                 RunObject = Page "User Settings";
                 Image = UserSetup;
-                ToolTip = 'Locale will be used to determine the market and language will be used to determine the language of the App details listed here.';
+                ToolTip = 'Locale will be used to determine the market and language will be used to determine the language of the app details listed here.';
             }
         }
 
