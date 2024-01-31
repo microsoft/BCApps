@@ -7,6 +7,7 @@ namespace System.Apps;
 
 using System;
 using System.Utilities;
+using System.Integration;
 
 /// <summary>
 /// Shows the Extension Marketplace.
@@ -24,7 +25,7 @@ page 2502 "Extension Marketplace"
     {
         area(Content)
         {
-            usercontrol(Marketplace; WebPageViewerExtMgmt)
+            usercontrol(Marketplace; WebPageViewer)
             {
                 ApplicationArea = Basic, Suite;
                 trigger ControlAddInReady(callbackUrl: Text)
