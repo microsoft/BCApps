@@ -350,6 +350,17 @@ codeunit 8901 Email
     end;
 
     ///<summary>
+    /// Open the sent emails page for a source record given by its table ID and system ID.
+    ///</summary>
+    ///<param name="TableId">The table ID of the source record.</param>
+    ///<param name="SystemId">The system ID of the source record.</param>
+    ///<param name="NewerThanDate">The date to which the sent emails are filtered.</param>
+    procedure OpenSentEmails(TableId: Integer; SystemId: Guid; NewerThanDate: DateTime)
+    begin
+        EmailImpl.OpenSentEmails(TableId, SystemId, NewerThanDate);
+    end;
+
+    ///<summary>
     /// Gets the outbox email status.
     ///</summary>
     ///<param name="MessageId">The MessageId of the record.</param>
