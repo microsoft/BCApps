@@ -21,8 +21,8 @@ codeunit 7769 "AOAI Deployments Impl"
         Turbo0301Lbl: Label 'chatGPT_GPT35-turbo-0301', Locked = true;
         GPT40613Lbl: Label 'gpt-4-32k', Locked = true;
         Turbo031316kLbl: Label 'gpt-35-turbo-16k', Locked = true;
-        GPT4LatestLbL: Label 'gpt-4-latest', Locked = true;
-        GPT4PreviewLbL: Label 'gpt-4-preview', Locked = true;
+        GPT4LatestLbl: Label 'gpt-4-latest', Locked = true;
+        GPT4PreviewLbl: Label 'gpt-4-preview', Locked = true;
         GPT35TurboLatestLbl: Label 'gpt-35-turbo-latest', Locked = true;
         GPT35TurboPreviewLbl: Label 'gpt-35-turbo-preview', Locked = true;
 
@@ -76,8 +76,8 @@ codeunit 7769 "AOAI Deployments Impl"
     begin
         if EnviromentInformation.IsSaaS() then begin
             if Preview then
-                exit(GetDeploymentName(GPT4PreviewLbL, CallerModuleInfo));
-            exit(GetDeploymentName(GPT4LatestLbL, CallerModuleInfo));
+                exit(GetDeploymentName(GPT4PreviewLbl, CallerModuleInfo));
+            exit(GetDeploymentName(GPT4LatestLbl, CallerModuleInfo));
         end;
 
         exit(GPT40613Lbl);
