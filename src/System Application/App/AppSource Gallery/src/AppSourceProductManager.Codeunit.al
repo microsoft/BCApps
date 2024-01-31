@@ -598,7 +598,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         CatalogApiSelectQueryParamNameLbl: Label '$select', Locked = true;
         AppSourceListingUriLbl: Label 'https://appsource.microsoft.com/%1/product/dynamics-365-business-central/%2', Comment = '%1=Language, %2=Url Query Content', Locked = true;
         AppSourceUriLbl: Label 'https://appsource.microsoft.com/%1/marketplace/apps?product=dynamics-365-business-central', Comment = '%=Language', Locked = true;
-        UnsupportedMarketNotificationLbl: Label 'Market %1 is not supported by AppSource. Defaulting to en. Change region in the user profile to change the market.', Comment = '%1=Market', Locked = true;
-        UnsupportedLanguageNotificationLbl: Label 'Language %1 is not supported by AppSource. Defaulting to en. Change language in the user profile to change the language.', Comment = '%1=Language', Locked = true;
-        NotSupportedOnPremisesErrorLbl: Label 'Not supported on premises', Locked = true;
+        UnsupportedMarketNotificationLbl: Label 'Market %1 is not supported by AppSource. Defaulting to en. Change region in the user profile to change the market.', Comment = '%1=Market';
+        UnsupportedLanguageNotificationLbl: Label 'Language %1 is not supported by AppSource. Defaulting to en. Change language in the user profile to change the language.', Comment = '%1=Language';
+        NotSupportedOnPremisesErrorLbl: Label 'Not supported on premises';
 }
