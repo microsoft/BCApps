@@ -135,7 +135,7 @@ codeunit 2012 "Entity Text Impl."
     procedure SetEntityTextAuthorization(NewEndpoint: Text; NewDeployment: Text; NewApiKey: SecretText)
     begin
         Endpoint := NewEndpoint;
-        Deployment := NewEndpoint;
+        Deployment := NewDeployment;
         ApiKey := NewApiKey;
     end;
 
@@ -413,15 +413,16 @@ codeunit 2012 "Entity Text Impl."
         NewLineChar := 10;
 
         NavApp.GetCurrentModuleInfo(EntityTextModuleInfo);
-        if (not IsNullGuid(CallerModuleInfo.Id())) and (CallerModuleInfo.Publisher() = EntityTextModuleInfo.Publisher()) then
-            AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetTurbo0301())
-        else begin
-            if (Endpoint = '') or (Deployment = '') then begin
+        if (not (Endpoint = '')) and (not (Deployment = ''))
+        then
+            AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", Endpoint, Deployment, ApiKey)
+        else
+            if (not IsNullGuid(CallerModuleInfo.Id())) and (CallerModuleInfo.Publisher() = EntityTextModuleInfo.Publisher()) then
+                AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetTurbo0301())
+            else begin
                 Session.LogMessage('0000LJB', TelemetryNoAuthorizationHandlerTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
                 Error(NoAuthorizationHandlerErr);
             end;
-            AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", Endpoint, Deployment, ApiKey);
-        end;
 
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"Entity Text");
 
