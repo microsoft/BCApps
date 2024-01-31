@@ -54,4 +54,60 @@ codeunit 7768 "AOAI Deployments"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         exit(AOAIDeploymentsImpl.GetTurbo0613(CallerModuleInfo));
     end;
+
+    /// <summary>
+    /// Returns the name of the latest AOAI deployment model of GPT3.5 Turbo.
+    /// </summary>
+    /// <returns>The deployment name.</returns>
+    [NonDebuggable]
+    procedure GetGPT35Turbo(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT35Turbo(CallerModuleInfo));
+    end;
+
+    /// <summary>
+    /// Returns the name of preview or latest AOAI deployment model of GPT3.5 Turbo.
+    /// </summary>
+    /// <param name="Preview">If true, returns the name of the preview deployment model.
+    /// Otherwise, returns the name of the latest deployment model.</param>
+    /// <returns>The deployment name.</returns>
+    [NonDebuggable]
+    procedure GetGPT35Turbo(Preview: Boolean): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT35Turbo(CallerModuleInfo, Preview));
+    end;
+
+    /// <summary>
+    /// Returns the name of the latest AOAI deployment model of GPT4.
+    /// </summary>
+    /// <returns>The deployment name.</returns>
+    [NonDebuggable]
+    procedure GetGPT4(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT4(CallerModuleInfo));
+    end;
+
+    /// <summary>
+    /// Returns the name of preview or latest AOAI deployment model of GPT4.
+    /// </summary>
+    /// <param name="Preview">If true, returns the name of the preview deployment model.
+    /// Otherwise, returns the name of the latest deployment model.</param>
+    /// <returns>The deployment name.</returns>
+    [NonDebuggable]
+    procedure GetGPT4(Preview: Boolean): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT4(CallerModuleInfo, Preview));
+    end;
 }

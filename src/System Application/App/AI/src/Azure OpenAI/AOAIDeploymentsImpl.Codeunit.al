@@ -56,13 +56,9 @@ codeunit 7769 "AOAI Deployments Impl"
     [NonDebuggable]
     procedure GetGPT35Turbo(CallerModuleInfo: ModuleInfo; Preview: Boolean): Text
     begin
-        if EnviromentInformation.IsSaaS() then begin
-            if Preview then
-                exit(GetDeploymentName(GPT35TurboPreviewLbl, CallerModuleInfo));
-            exit(GetDeploymentName(GPT35TurboLatestLbl, CallerModuleInfo));
-        end;
-
-        exit(Turbo031316kLbl);
+        if Preview then
+            exit(GetDeploymentName(GPT35TurboPreviewLbl, CallerModuleInfo));
+        exit(GetDeploymentName(GPT35TurboLatestLbl, CallerModuleInfo));
     end;
 
     [NonDebuggable]
@@ -74,13 +70,9 @@ codeunit 7769 "AOAI Deployments Impl"
     [NonDebuggable]
     procedure GetGPT4(CallerModuleInfo: ModuleInfo; Preview: Boolean): Text
     begin
-        if EnviromentInformation.IsSaaS() then begin
-            if Preview then
-                exit(GetDeploymentName(GPT4PreviewLbl, CallerModuleInfo));
-            exit(GetDeploymentName(GPT4LatestLbl, CallerModuleInfo));
-        end;
-
-        exit(GPT40613Lbl);
+        if Preview then
+            exit(GetDeploymentName(GPT4PreviewLbl, CallerModuleInfo));
+        exit(GetDeploymentName(GPT4LatestLbl, CallerModuleInfo));
     end;
 
     [NonDebuggable]
