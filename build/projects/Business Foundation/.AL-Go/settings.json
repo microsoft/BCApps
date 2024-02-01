@@ -1,0 +1,17 @@
+{
+    "projectName": "Business Foundation",
+    "appFolders":  [
+        "..\\..\\..\\src\\Business Foundation\\App"
+    ],
+    "testFolders":  [
+        "..\\..\\..\\src\\Business Foundation\\Test",
+        "..\\..\\..\\src\\Business Foundation\\Test Library"
+    ],
+    "buildModes": [
+        "Translated"
+    ],
+    "enableAppSourceCop": true,
+    "enablePerTenantExtensionCop": true,
+    "enableUICop": true,
+    "installOnlyReferencedApps": false
+}
