@@ -487,6 +487,12 @@ codeunit 2501 "Extension Marketplace"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OpenAppSourceMarket, '', false, false)]
     local procedure OpenAppSourceMarket()
     begin
+#if not CLEAN24        
+#pragma warning disable AL0432
         Page.Run(Page::"Extension Marketplace");
+#pragma warning restore AL0432
+#else        
+        Hyperlink('https://aka.ms/BCAppSource');
+#endif        
     end;
 }
