@@ -151,6 +151,7 @@ codeunit 309 "No. Series - Batch Impl."
             until TempGlobalNoSeriesLine.Next() = 0;
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm')]
     local procedure UpdateNoSeriesLine(var TempNoSeriesLine: Record "No. Series Line" temporary)
     var
         NoSeriesLine: Record "No. Series Line";
@@ -183,6 +184,7 @@ codeunit 309 "No. Series - Batch Impl."
         exit(LineFound);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'r')]
     local procedure CopyNoSeriesLinesToTemp(NoSeriesCode: Code[20])
     var
         NoSeriesLine: Record "No. Series Line";

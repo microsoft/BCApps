@@ -52,6 +52,7 @@ codeunit 304 "No. Series - Impl."
         TestManualInternal(NoSeriesCode, StrSubstNo(PostErr, DocumentNo));
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series", 'r')]
     local procedure TestManualInternal(NoSeriesCode: Code[20]; ErrorText: Text);
     var
         NoSeries: Record "No. Series";
@@ -61,6 +62,7 @@ codeunit 304 "No. Series - Impl."
             Error(ErrorText);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series", 'r')]
     procedure IsManual(NoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";
@@ -120,6 +122,8 @@ codeunit 304 "No. Series - Impl."
         exit(NoSeriesLine.Implementation);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series", 'r')]
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
     var
         NoSeriesRec: Record "No. Series";
@@ -208,6 +212,7 @@ codeunit 304 "No. Series - Impl."
             Error(SeriesNotRelatedErr, DefaultNoSeriesCode, RelatedNoSeriesCode);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series", 'r')]
     procedure AreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";
@@ -225,6 +230,7 @@ codeunit 304 "No. Series - Impl."
         exit(NoSeriesRelationship.Get(DefaultNoSeriesCode, RelatedNoSeriesCode));
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series", 'r')]
     procedure IsAutomaticNoSeries(NoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";
@@ -242,6 +248,8 @@ codeunit 304 "No. Series - Impl."
             Error(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series", 'r')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Relationship", 'r')]
     procedure SelectRelatedNoSeries(OriginalNoSeriesCode: Code[20]; DefaultHighlightedNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";
