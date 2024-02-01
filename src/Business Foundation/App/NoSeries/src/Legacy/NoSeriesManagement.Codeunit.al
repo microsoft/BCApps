@@ -979,7 +979,8 @@ codeunit 396 NoSeriesManagement
 
 #if not CLEAN24
     [Obsolete('This event is no longer used. Please use the No. Series Batch codeunit instead.', '24.0')]
-    // Symbol usage indicates no subscribers    [IntegrationEvent(false, false)]
+    // Symbol usage indicates no subscribers
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeSaveNoSeries(var NoSeriesLine: Record "No. Series Line"; var IsHandled: Boolean)
     begin
     end;
