@@ -266,7 +266,7 @@ page 2500 "Extension Management"
 #else                    
                     trigger OnAction()
                     begin
-                        Hyperlink('https://appsource.microsoft.com/en-us/marketplace/apps?product=dynamics-365%3Bdynamics-365-business-central&page=1');
+                        Hyperlink('https://aka.ms/bcappsource');
                     end;
 #endif
                 }
