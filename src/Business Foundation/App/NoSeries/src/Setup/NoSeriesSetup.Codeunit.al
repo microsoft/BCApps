@@ -8,7 +8,7 @@ namespace Microsoft.Foundation.NoSeries;
 /// <summary>
 /// Provides helper methods used in the setup of No. Series and No. Series lines.
 /// </summary>
-codeunit 311 "No. Series - Setup"
+codeunit 299 "No. Series - Setup"
 {
     Access = Public;
 
