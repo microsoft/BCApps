@@ -22,8 +22,8 @@ table 12145 "No. Series Line Sales"
     ObsoleteState = Pending;
     ObsoleteTag = '24.0';
 #endif
-    InherentEntitlements = r;
-    InherentPermissions = r;
+    InherentEntitlements = rX;
+    InherentPermissions = rX;
 
     fields
     {

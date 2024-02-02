@@ -12,8 +12,8 @@ table 310 "No. Series Relationship"
     DrillDownPageId = "No. Series Relationships";
     LookupPageId = "No. Series Relationships";
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
-    InherentEntitlements = r;
-    InherentPermissions = r;
+    InherentEntitlements = rX;
+    InherentPermissions = rX;
 
     fields
     {

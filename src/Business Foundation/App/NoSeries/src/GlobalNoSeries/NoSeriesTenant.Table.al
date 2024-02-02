@@ -16,8 +16,8 @@ table 1263 "No. Series Tenant"
     DataPerCompany = false;
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
     ReplicateData = false;
-    InherentEntitlements = r;
-    InherentPermissions = r;
+    InherentEntitlements = rX;
+    InherentPermissions = rX;
 
     fields
     {
