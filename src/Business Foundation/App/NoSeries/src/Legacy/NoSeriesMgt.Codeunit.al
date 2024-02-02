@@ -8,6 +8,8 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 281 NoSeriesMgt
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Permissions =
         tabledata "No. Series" = r,
         tabledata "No. Series Line" = rimd;

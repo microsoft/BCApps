@@ -145,6 +145,7 @@ codeunit 304 "No. Series - Impl."
         exit(NoSeriesLine.Implementation);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'm')]
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
     var
         NoSeriesRec: Record "No. Series";
