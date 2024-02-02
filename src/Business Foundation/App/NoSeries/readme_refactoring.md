@@ -1,7 +1,6 @@
 # Refactoring to use the new No. Series module
 
 This document is created to give a brief explanation of how refactor your code to use the new No. Series module.
-This is done through examples that was also shown during directions.
 Old refers to the current ways of using the No. Series implementation while New refers to using the newly created No. Series module.
 
 ## Uptake examples
