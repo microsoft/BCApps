@@ -26,7 +26,6 @@ codeunit 7769 "AOAI Deployments Impl"
         GPT35TurboLatestLbl: Label 'gpt-35-turbo-latest', Locked = true;
         GPT35TurboPreviewLbl: Label 'gpt-35-turbo-preview', Locked = true;
 
-    [NonDebuggable]
     procedure GetTurbo0301(CallerModuleInfo: ModuleInfo): Text
     begin
         if EnviromentInformation.IsSaaS() then
@@ -35,7 +34,6 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(Turbo0301Lbl);
     end;
 
-    [NonDebuggable]
     procedure GetGPT40613(CallerModuleInfo: ModuleInfo): Text
     begin
         if EnviromentInformation.IsSaaS() then
@@ -44,7 +42,6 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(GPT40613Lbl);
     end;
 
-    [NonDebuggable]
     procedure GetTurbo0613(CallerModuleInfo: ModuleInfo): Text
     begin
         if EnviromentInformation.IsSaaS() then
@@ -53,7 +50,6 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(Turbo031316kLbl);
     end;
 
-    [NonDebuggable]
     procedure GetGPT35Turbo(CallerModuleInfo: ModuleInfo; Preview: Boolean): Text
     begin
         if Preview then
@@ -61,13 +57,11 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(GetDeploymentName(GPT35TurboLatestLbl, CallerModuleInfo));
     end;
 
-    [NonDebuggable]
     procedure GetGPT35Turbo(CallerModuleInfo: ModuleInfo): Text
     begin
         exit(GetGPT35Turbo(CallerModuleInfo, false));
     end;
 
-    [NonDebuggable]
     procedure GetGPT4(CallerModuleInfo: ModuleInfo; Preview: Boolean): Text
     begin
         if Preview then
@@ -75,13 +69,11 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(GetDeploymentName(GPT4LatestLbl, CallerModuleInfo));
     end;
 
-    [NonDebuggable]
     procedure GetGPT4(CallerModuleInfo: ModuleInfo): Text
     begin
         exit(GetGPT4(CallerModuleInfo, false));
     end;
 
-    [NonDebuggable]
     local procedure GetDeploymentName(DeploymentName: Text; CallerModuleInfo: ModuleInfo): Text
     var
         CurrentModuleInfo: ModuleInfo;
