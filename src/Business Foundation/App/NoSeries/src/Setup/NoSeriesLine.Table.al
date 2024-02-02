@@ -117,27 +117,6 @@ table 309 "No. Series Line"
 #else
             ObsoleteState = Pending;
             ObsoleteTag = '24.0';
-
-            trigger OnValidate()
-            var
-                NoSeries: Record "No. Series";
-            begin
-                NoSeries.Get("Series Code");
-                if Rec."Allow Gaps in Nos." = xRec."Allow Gaps in Nos." then
-                    exit;
-                if SkipAllowGapsValidationTrigger then begin
-                    SkipAllowGapsValidationTrigger := false;
-                    exit;
-                end;
-
-                if "Allow Gaps in Nos." then // Keep the implementation in sync with the Allow Gaps field
-                    Validate(Implementation, Enum::"No. Series Implementation"::Sequence)
-                else
-                    Validate(Implementation, Enum::"No. Series Implementation"::Normal);
-
-                if "Line No." <> 0 then
-                    Modify();
-            end;
 #endif
         }
         field(12; "Sequence Name"; Code[40])
@@ -157,23 +136,6 @@ table 309 "No. Series Line"
             Caption = 'Implementation';
             DataClassification = SystemMetadata;
 
-#if not CLEAN24
-#pragma warning disable AL0432
-            trigger OnValidate()
-            var
-                NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
-            begin
-                if Rec.Implementation = xRec.Implementation then
-                    exit;
-
-#pragma warning disable AA0206
-                SkipAllowGapsValidationTrigger := true;
-#pragma warning restore AA0206
-
-                Validate("Allow Gaps in Nos.", NoSeriesSetupImpl.MayProduceGaps(Rec)); // Keep the Allow Gaps field in sync with the implementation
-            end;
-#pragma warning restore AL0432
-#endif
         }
         field(10000; Series; Code[10]) // NA (MX) Functionality
         {
@@ -212,12 +174,6 @@ table 309 "No. Series Line"
 #else
             ObsoleteState = Pending;
             ObsoleteTag = '24.0';
-
-            trigger OnValidate()
-            begin
-                if StrLen(Format("Authorization Year")) <> 4 then
-                    Message(ShouldBeValidYearErr);
-            end;
 #endif
         }
     }
@@ -238,10 +194,4 @@ table 309 "No. Series Line"
         {
         }
     }
-
-#if not CLEAN24
-    var
-        ShouldBeValidYearErr: Label 'Should be a valid year.';
-        SkipAllowGapsValidationTrigger: Boolean;
-#endif
 }
