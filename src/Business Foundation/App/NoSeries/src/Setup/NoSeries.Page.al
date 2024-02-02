@@ -158,14 +158,15 @@ page 456 "No. Series"
 #if CLEAN24
                     Editable = false;
 #else
-
+#pragma warning disable AL0432
                     trigger OnValidate()
                     var
-                        NoSeriesMgt: Codeunit NoSeriesMgt;
+                        NoSeriesManagement: Codeunit NoSeriesManagement;
                     begin
                         Rec.TestField(Code);
-                        NoSeriesMgt.SetAllowGaps(Rec, AllowGaps);
+                        NoSeriesManagement.SetAllowGaps(Rec, AllowGaps);
                     end;
+#pragma warning restore AL0432
 #endif
                 }
                 field(Implementation; Implementation)

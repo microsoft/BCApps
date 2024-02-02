@@ -36,9 +36,9 @@ table 308 "No. Series"
 
             trigger OnValidate()
             var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
+                NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
             begin
-                NoSeriesMgt.ValidateDefaultNos(Rec, xRec);
+                NoSeriesSetupImpl.ValidateDefaultNos(Rec, xRec);
             end;
         }
         field(4; "Manual Nos."; Boolean)
@@ -47,9 +47,9 @@ table 308 "No. Series"
 
             trigger OnValidate()
             var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
+                NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
             begin
-                NoSeriesMgt.ValidateManualNos(Rec, xRec);
+                NoSeriesSetupImpl.ValidateManualNos(Rec, xRec);
             end;
         }
         field(5; "Date Order"; Boolean)
@@ -83,8 +83,8 @@ table 308 "No. Series"
 
     trigger OnDelete()
     var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
+        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
     begin
-        NoSeriesMgt.DeleteNoSeries(Rec);
+        NoSeriesSetupImpl.DeleteNoSeries(Rec);
     end;
 }
