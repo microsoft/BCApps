@@ -77,7 +77,7 @@ codeunit 309 "No. Series - Batch Impl."
         NextNo: Code[20];
     begin
         SyncGlobalLineWithProvidedLine(TempNoSeriesLine, UsageDate);
-        LockedNoSeriesLine.LockTable();
+        LockedNoSeriesLine.ReadIsolation(IsolationLevel::UpdLock);
         NextNo := NoSeries.GetNextNo(TempGlobalNoSeriesLine, UsageDate, HideErrorsAndWarnings);
         TempNoSeriesLine := TempGlobalNoSeriesLine;
         exit(NextNo);
@@ -129,7 +129,6 @@ codeunit 309 "No. Series - Batch Impl."
         SimulationMode := true;
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm')]
     procedure SaveState(TempNoSeriesLine: Record "No. Series Line" temporary)
     begin
         if SimulationMode then
@@ -139,7 +138,6 @@ codeunit 309 "No. Series - Batch Impl."
         UpdateNoSeriesLine(TempGlobalNoSeriesLine);
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm')]
     procedure SaveState();
     begin
         if SimulationMode then
@@ -151,14 +149,14 @@ codeunit 309 "No. Series - Batch Impl."
             until TempGlobalNoSeriesLine.Next() = 0;
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'r')]
     local procedure UpdateNoSeriesLine(var TempNoSeriesLine: Record "No. Series Line" temporary)
-    var
-        NoSeriesLine: Record "No. Series Line";
     begin
-        NoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
-        NoSeriesLine.TransferFields(TempNoSeriesLine);
-        NoSeriesLine.Modify(true);
+        LockedNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
+        LockedNoSeriesLine.TransferFields(TempNoSeriesLine);
+        LockedNoSeriesLine.Modify(true);
+        TempNoSeriesLine := LockedNoSeriesLine;
+        TempNoSeriesLine.Modify();
     end;
 
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line" temporary; NoSeriesCode: Code[20]; UsageDate: Date)
