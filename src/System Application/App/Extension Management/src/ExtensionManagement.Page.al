@@ -7,6 +7,7 @@ namespace System.Apps;
 
 using System.Environment;
 using System.Environment.Configuration;
+using System.Apps.AppSource;
 
 /// <summary>
 /// Lists the available extensions, and provides features for managing them.
@@ -42,29 +43,24 @@ page 2500 "Extension Management"
                 Editable = false;
                 field(Logo; Rec.Logo)
                 {
-                    ApplicationArea = All;
                     Caption = 'Logo';
                     ToolTip = 'Specifies the logo of the extension, such as the logo of the service provider.';
                 }
                 field(Name; Rec.Name)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the name of the extension.';
                 }
                 field(Publisher; Rec.Publisher)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the publisher of the extension.';
                 }
                 field(Version; VersionDisplay)
                 {
-                    ApplicationArea = All;
                     Caption = 'Version';
                     ToolTip = 'Specifies the version of the extension.';
                 }
                 field("Is Installed"; IsInstalled)
                 {
-                    ApplicationArea = All;
                     Caption = 'Is Installed';
                     Style = Favorable;
                     StyleExpr = InfoStyle;
@@ -72,14 +68,12 @@ page 2500 "Extension Management"
                 }
                 field("Published As"; Rec."Published As")
                 {
-                    ApplicationArea = All;
                     Caption = 'Published As';
                     ToolTip = 'Specifies whether the extension is published as a per-tenant, development, or a global extension.';
                 }
 
                 label(Control18)
                 {
-                    ApplicationArea = All;
                     Enabled = IsSaaS;
                     HideValue = true;
                     ShowCaption = false;
@@ -102,7 +96,6 @@ page 2500 "Extension Management"
                 Caption = 'Process';
                 action(View)
                 {
-                    ApplicationArea = All;
                     Caption = 'View';
                     Enabled = ActionsEnabled;
                     Image = View;
@@ -117,7 +110,6 @@ page 2500 "Extension Management"
                 }
                 action(Install)
                 {
-                    ApplicationArea = All;
                     Caption = 'Install';
                     Enabled = ActionsEnabled and (not IsInstalled);
                     Image = NewRow;
@@ -135,7 +127,6 @@ page 2500 "Extension Management"
                 }
                 action(Uninstall)
                 {
-                    ApplicationArea = All;
                     Caption = 'Uninstall';
                     Enabled = ActionsEnabled and IsInstalled;
                     Image = RemoveLine;
@@ -153,7 +144,6 @@ page 2500 "Extension Management"
                 }
                 action(Unpublish)
                 {
-                    ApplicationArea = All;
                     Caption = 'Unpublish';
                     Enabled = ActionsEnabled and IsTenantExtension and (not IsInstalled);
                     Image = RemoveLine;
@@ -175,7 +165,6 @@ page 2500 "Extension Management"
                 }
                 action(SetupApp)
                 {
-                    ApplicationArea = All;
                     Caption = 'Set up';
                     Image = SetupList;
                     Enabled = ActionsEnabled and IsInstalled;
@@ -199,7 +188,6 @@ page 2500 "Extension Management"
                 }
                 action("Download Source")
                 {
-                    ApplicationArea = All;
                     Caption = 'Download Source';
                     Enabled = IsTenantExtension;
                     Image = ExportFile;
@@ -216,7 +204,6 @@ page 2500 "Extension Management"
                 }
                 action("Learn More")
                 {
-                    ApplicationArea = All;
                     Caption = 'Learn More';
                     Visible = HelpActionVisible;
                     Enabled = ActionsEnabled;
@@ -234,7 +221,6 @@ page 2500 "Extension Management"
                 }
                 action(Refresh)
                 {
-                    ApplicationArea = All;
                     Caption = 'Refresh';
                     Image = Refresh;
                     Promoted = true;
@@ -249,7 +235,6 @@ page 2500 "Extension Management"
                 }
                 action("Extension Marketplace")
                 {
-                    ApplicationArea = All;
                     Caption = 'Extension Marketplace';
                     Enabled = IsSaaS;
                     Image = NewItem;
@@ -270,9 +255,22 @@ page 2500 "Extension Management"
                     end;
 #endif
                 }
+                action("Microsoft AppSource Gallery")
+                {
+                    Caption = 'AppSource Gallery';
+                    Enabled = IsSaaS;
+                    Image = NewItem;
+                    Promoted = true;
+                    PromotedOnly = true;
+                    PromotedCategory = Category5;
+                    PromotedIsBig = true;
+                    ToolTip = 'Browse the Microsoft AppSource Gallery for new extensions to install.';
+                    Visible = not IsOnPremDisplay;
+                    RunObject = page "AppSource Product List";
+                    RunPageMode = View;
+                }
                 action("Upload Extension")
                 {
-                    ApplicationArea = All;
                     Caption = 'Upload Extension';
                     Image = Import;
                     Promoted = true;
@@ -286,7 +284,6 @@ page 2500 "Extension Management"
                 }
                 action("Deployment Status")
                 {
-                    ApplicationArea = All;
                     Caption = 'Installation Status';
                     Image = Status;
                     Promoted = true;
@@ -299,7 +296,7 @@ page 2500 "Extension Management"
                 }
                 action("Delete Orphaned Extension Data")
                 {
-                    ApplicationArea = All;
+
                     Caption = 'Delete Orphaned Extension Data';
                     Image = Delete;
                     RunObject = page "Delete Orphaned Extension Data";
