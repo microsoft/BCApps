@@ -16,6 +16,8 @@ table 308 "No. Series"
     DrillDownPageId = "No. Series";
     LookupPageId = "No. Series";
     MovedFrom = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+    InherentEntitlements = r;
+    InherentPermissions = r;
 
     fields
     {
