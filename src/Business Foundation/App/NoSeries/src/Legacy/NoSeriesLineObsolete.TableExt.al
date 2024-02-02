@@ -98,7 +98,7 @@ tableextension 309 NoSeriesLineObsolete extends "No. Series Line"
         exit(NoSeries.PeekNextNo(Rec, WorkDate()));
     end;
 
-    [Obsolete('This functionality has been made internal.', '24.0')]
+    [Obsolete('This functionality will be removed without public replacement.', '24.0')]
     procedure ExtractNoFromCode(NumberCode: Code[20]): BigInteger
     var
         NoSeriesSequenceImpl: Codeunit "No. Series - Sequence Impl.";
@@ -106,7 +106,7 @@ tableextension 309 NoSeriesLineObsolete extends "No. Series Line"
         exit(NoSeriesSequenceImpl.ExtractNoFromCode(NumberCode));
     end;
 
-    [Obsolete('This functionality has been made internal.', '24.0')]
+    [Obsolete('This functionality will be removed without public replacement.', '24.0')]
     procedure GetFormattedNo(Number: BigInteger): Code[20]
     var
         NoSeriesSequenceImpl: Codeunit "No. Series - Sequence Impl.";
