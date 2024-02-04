@@ -421,10 +421,11 @@ codeunit 149006 "BCPT Test Suite"
     /// <param name="Description">Description of the test on the "BCPT Line"</param>
     /// <param name="Operation">Which operation that is currently executed</param>
     /// <param name="ExecutionSuccess">If the test succedded or not</param>
-    /// <param name="Message"></param>
+    /// <param name="Message">Message in the log entry</param>
     /// <param name="IsHandled">Handled pattern parameter</param>
+    /// <param name="ValuesAreChanged">Specifies if the values has been modified</param>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeBCPTLineAddLogEntry(SuiteCode: Code[10]; CodeunitId: Integer; Description: Text; var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text; var IsHandled: Boolean)
+    procedure OnBeforeBCPTLineAddLogEntry(SuiteCode: Code[10]; CodeunitId: Integer; Description: Text; var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text; var IsHandled: Boolean; var ValuesAreChanged: Boolean)
     begin
     end;
 }
