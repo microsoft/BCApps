@@ -34,7 +34,7 @@ codeunit 299 "No. Series - Setup"
     var
         NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
     begin
-        NoSeriesSetupImpl.IncrementNoText(No, Increment);
+        exit(NoSeriesSetupImpl.IncrementNoText(No, Increment));
     end;
 
     /// <summary>
