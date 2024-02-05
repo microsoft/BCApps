@@ -60,7 +60,7 @@ codeunit 7768 "AOAI Deployments"
     /// </summary>
     /// <returns>The deployment name.</returns>
     [NonDebuggable]
-    procedure GetGPT35Turbo(): Text
+    procedure GetGPT35Turbo(ModelVersion: Enum "AOAI Deployment Version"): Text
     var
         CallerModuleInfo: ModuleInfo;
     begin
@@ -75,7 +75,7 @@ codeunit 7768 "AOAI Deployments"
     /// Otherwise, returns the name of the latest deployment model.</param>
     /// <returns>The deployment name.</returns>
     [NonDebuggable]
-    procedure GetGPT35Turbo(Preview: Boolean): Text
+    procedure GetGPT35Turbo(ModelVersion: Enum "AOAI Deployment Version"; Preview: Boolean): Text
     var
         CallerModuleInfo: ModuleInfo;
     begin
@@ -88,7 +88,7 @@ codeunit 7768 "AOAI Deployments"
     /// </summary>
     /// <returns>The deployment name.</returns>
     [NonDebuggable]
-    procedure GetGPT4(): Text
+    procedure GetGPT4(ModelVersion: Enum "AOAI Deployment Version"): Text
     var
         CallerModuleInfo: ModuleInfo;
     begin
@@ -103,7 +103,7 @@ codeunit 7768 "AOAI Deployments"
     /// Otherwise, returns the name of the latest deployment model.</param>
     /// <returns>The deployment name.</returns>
     [NonDebuggable]
-    procedure GetGPT4(Preview: Boolean): Text
+    procedure GetGPT4(ModelVersion: Enum "AOAI Deployment Version"; Preview: Boolean): Text
     var
         CallerModuleInfo: ModuleInfo;
     begin
