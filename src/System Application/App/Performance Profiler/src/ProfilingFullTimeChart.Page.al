@@ -6,6 +6,7 @@
 namespace System.Tooling;
 
 using System.Visualization;
+using System.Integration;
 
 /// <summary>
 /// The chart showing the breakdown of time full spent by app name / app publisher on the performance profiler page.
@@ -21,7 +22,7 @@ page 1925 "Profiling Full Time Chart"
     {
         area(Content)
         {
-            usercontrol(BusinessChart; BusinessChartUserControl)
+            usercontrol(BusinessChart; BusinessChart)
             {
                 ApplicationArea = All;
 
