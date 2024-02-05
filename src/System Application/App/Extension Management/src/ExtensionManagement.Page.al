@@ -7,7 +7,6 @@ namespace System.Apps;
 
 using System.Environment;
 using System.Environment.Configuration;
-using System.Apps.AppSource;
 
 /// <summary>
 /// Lists the available extensions, and provides features for managing them.
@@ -227,16 +226,6 @@ page 2500 "Extension Management"
                     end;
 #endif
                 }
-                action("Microsoft AppSource Gallery")
-                {
-                    Caption = 'AppSource Gallery';
-                    Enabled = IsSaaS;
-                    Image = NewItem;
-                    ToolTip = 'Browse the Microsoft AppSource Gallery for new extensions to install.';
-                    Visible = not IsOnPremDisplay;
-                    RunObject = page "AppSource Product List";
-                    RunPageMode = View;
-                }
                 action("Upload Extension")
                 {
                     Caption = 'Upload Extension';
@@ -271,7 +260,6 @@ page 2500 "Extension Management"
                 Caption = 'Manage', Comment = 'Generated from the PromotedActionCategories property index 4.';
 
                 actionref("Extension Marketplace_Promoted"; "Extension Marketplace") { }
-                actionref("Microsoft AppSource Gallery_Promoted"; "Microsoft AppSource Gallery") { }
                 actionref("Upload Extension_Promoted"; "Upload Extension") { }
                 actionref("Deployment Status_Promoted"; "Deployment Status") { }
                 actionref(View_Promoted; View) { }
