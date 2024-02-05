@@ -10,8 +10,15 @@
     "buildModes": [
         "Translated"
     ],
-    "enableAppSourceCop": true,
-    "enablePerTenantExtensionCop": true,
-    "enableUICop": true,
-    "installOnlyReferencedApps": false
+    "installOnlyReferencedApps": false,
+    "ConditionalSettings": [
+        {
+            "branches": [
+                "releases/*.[0-5]"
+            ],
+            "settings": {
+                "buildModes": [ "Strict" ]
+            }
+        }
+    ]
 }
