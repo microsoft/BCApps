@@ -166,12 +166,8 @@ codeunit 149005 "BCPT Line"
         BCPTRoleWrapperImpl: Codeunit "BCPT Role Wrapper"; // single instance
         ValuesAreChanged: Boolean;
         BCPTTestSuite: Codeunit "BCPT Test Suite";
-        ModifiedMessage, ModifiedOperation : Text;
-        ModifiedExecutionSuccess: Boolean;
     begin
-        InitValuesSubscriberCanModify(Operation, ExecutionSuccess, Message, ModifiedExecutionSuccess, ModifiedMessage, ModifiedOperation);
-        BCPTTestSuite.OnBeforeBCPTLineAddLogEntry(BCPTLine."BCPT Code", BCPTLine."Codeunit ID", BCPTLine.Description, Operation, ExecutionSuccess, Message, ModifiedOperation, ModifiedExecutionSuccess, ModifiedMessage);
-        UpdateValuesFromSubscribers(Operation, ExecutionSuccess, Message, ModifiedExecutionSuccess, ModifiedMessage, ModifiedOperation);
+        BCPTTestSuite.OnBeforeBCPTLineAddLogEntry(BCPTLine."BCPT Code", BCPTLine."Codeunit ID", BCPTLine.Description, Operation, ExecutionSuccess, Message, Operation, ExecutionSuccess, Message);
 
         BCPTLine.Testfield("BCPT Code");
         BCPTRoleWrapperImpl.GetBCPTHeader(BCPTHeader);
@@ -237,16 +233,6 @@ codeunit 149005 "BCPT Line"
             DataClassification::SystemMetadata,
             TelemetryScope::All,
             Dimensions)
-    end;
-
-    local procedure UpdateValuesFromSubscribers(var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text; var ModifiedExecutionSuccess: Boolean; var ModifiedMessage: Text; var ModifiedOperation: Text)
-    begin
-        if ModifiedExecutionSuccess <> ExecutionSuccess then
-            ExecutionSuccess := ModifiedExecutionSuccess;
-        if ModifiedMessage <> Message then
-            Message := ModifiedMessage;
-        if ModifiedOperation <> Operation then
-            Operation := ModifiedOperation;
     end;
 
     local procedure InitValuesSubscriberCanModify(var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text; var ModifiedExecutionSuccess: Boolean; var ModifiedMessage: Text; var ModifiedOperation: Text)
