@@ -387,9 +387,11 @@ codeunit 135072 "Uri Builder Query Test"
         UriBuilder.AddODataQueryParameter('$filter', 'Name eq ''&Contoso''');
         UriBuilder.AddODataQueryParameter('$expand', 'Products($filter=DiscontinuedDate eq null)');
         UriBuilder.AddODataQueryParameter('moreGarbledStuff😊', '&/\''"*!???%20');
+
+        // [When] Adding a flag afterwards that does not require OData encoding
         UriBuilder.AddQueryFlag('$newschemaversion');
 
-        // [Then] The resulting URI has encoded query parameters, except the $ sign in the parameter name
+        // [Then] The library honours the encoding of the last parameter or flag added, and hence the resulting URI has encoded query parameters, including the $ sign in the parameter name.
         UriBuilder.GetUri(Uri);
         Assert.AreEqual('https://microsoft.com/?%24top=33&%24skip=41' // Initial parameters
             + '&%24filter=Name%20eq%20%27%26Contoso%27' // Filter

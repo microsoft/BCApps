@@ -229,10 +229,7 @@ codeunit 3062 "Uri Builder Impl."
         foreach CurrentKey in KeysWithValueList.Keys() do begin
             KeysWithValueList.Get(CurrentKey, CurrentValues);
             foreach CurrentValue in CurrentValues do
-                if UseODataEncoding then
-                    FinalQuery += '&' + EncodeODataParameterKey(CurrentKey) + '=' + Uri.EscapeDataString(CurrentValue)
-                else
-                    FinalQuery += '&' + Uri.EscapeDataString(CurrentKey) + '=' + Uri.EscapeDataString(CurrentValue);
+                FinalQuery += '&' + EncodeParameterKey(CurrentKey, UseODataEncoding) + '=' + Uri.EscapeDataString(CurrentValue);
         end;
 
         foreach CurrentKey in Flags do
@@ -241,7 +238,7 @@ codeunit 3062 "Uri Builder Impl."
         FinalQuery := DelChr(FinalQuery, '<', '&');
     end;
 
-    local procedure EncodeODataParameterKey(ODataParameter: Text) EncodedODataParameter: Text
+    local procedure EncodeParameterKey(ParameterKey: Text; UseODataEncoding: Boolean) EncodedParameterKey: Text
     var
         Uri: Codeunit Uri;
     begin
@@ -253,8 +250,10 @@ codeunit 3062 "Uri Builder Impl."
         // Notice: even though parameters such as "$filter" and "$expand" will include "$" (and "(", ")", " ", ...) in the parameter value as well, we
         // assume the server will decode these correctly, and limit this special encoding only for the OData parameters keys.
 
-        EncodedODataParameter := Uri.EscapeDataString(ODataParameter);
-        EncodedODataParameter := EncodedODataParameter.Replace('%24', '$');
+        EncodedParameterKey := Uri.EscapeDataString(ParameterKey);
+
+        if UseODataEncoding then
+            EncodedParameterKey := EncodedParameterKey.Replace('%24', '$');
     end;
 
     var
