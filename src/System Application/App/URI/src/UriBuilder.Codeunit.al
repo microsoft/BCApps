@@ -175,6 +175,7 @@ codeunit 3061 "Uri Builder"
     /// <param name="Flag">A flag to add to the query string of this UriBuilder. This value will be encoded before being added to the URI query string. Cannot be empty.</param>
     /// <error>If the provided <paramref name="Flag"/> is empty.</error>
     /// <remarks>This function could alter the order of the existing query string parts. For example, if the previous URL was "https://microsoft.com?foo=bar&amp;john=doe" and the new flag is "contoso", the result could be "https://microsoft.com?john=doe&amp;foo=bar&amp;contoso".</remarks>
+    /// <remarks>This function will encode OData parameters (and will ensure encoding of the ones added to the <see cref="UriBuilder"/> before). For example "$skip=3" will result in "%24skip=3". Some servers don't support the encoded version. Use <see cref="AddODataQueryParameter"/> in these cases instead.</remarks>
     procedure AddQueryFlag(Flag: Text)
     begin
         UriBuilderImpl.AddQueryFlag(Flag, Enum::"Uri Query Duplicate Behaviour"::"Overwrite All Matching");
@@ -190,6 +191,7 @@ codeunit 3061 "Uri Builder"
     /// <error>If the provided <paramref name="DuplicateAction"/> is <c>"Throw Error"</c>.</error>
     /// <error>If the provided <paramref name="DuplicateAction"/> is not a valid value for the enum.</error>
     /// <remarks>This function could alter the order of the existing query string parts. For example, if the previous URL was "https://microsoft.com?foo=bar&amp;john=doe" and the new flag is "contoso=42", the result could be "https://microsoft.com?john=doe&amp;foo=bar&amp;contoso=42".</remarks>
+    /// <remarks>This function will encode OData parameters (and will ensure encoding of the ones added to the <see cref="UriBuilder"/> before). For example "$skip=3" will result in "%24skip=3". Some servers don't support the encoded version. Use <see cref="AddODataQueryParameter"/> in these cases instead.</remarks>
     procedure AddQueryParameter(ParameterKey: Text; ParameterValue: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour")
     begin
         UriBuilderImpl.AddQueryParameter(ParameterKey, ParameterValue, DuplicateAction);
@@ -202,9 +204,23 @@ codeunit 3061 "Uri Builder"
     /// <param name="ParameterValue">The value for the new query parameter. This value will be encoded before being added to the URI query string. Can be empty.</param>
     /// <error>If the provided <paramref name="ParameterKey"/> is empty.</error>
     /// <remarks>This function could alter the order of the existing query string parts. For example, if the previous URL was "https://microsoft.com?foo=bar&amp;john=doe" and the new flag is "contoso=42", the result could be "https://microsoft.com?john=doe&amp;foo=bar&amp;contoso=42".</remarks>
+    /// <remarks>This function will encode OData parameters (and will ensure encoding of the ones added to the <see cref="UriBuilder"/> before). For example "$skip=3" will result in "%24skip=3". Some servers don't support the encoded version. Use <see cref="AddODataQueryParameter"/> in these cases instead.</remarks>
     procedure AddQueryParameter(ParameterKey: Text; ParameterValue: Text)
     begin
         UriBuilderImpl.AddQueryParameter(ParameterKey, ParameterValue, Enum::"Uri Query Duplicate Behaviour"::"Overwrite All Matching");
+    end;
+
+    /// <summary>
+    /// Adds an OData parameter key-value pair to the query string of this UriBuilder (in the form <c>ParameterKey=ParameterValue</c>), preserving the "$" sign in unencoded form. In case the same query key exists already, its value is overwritten.
+    /// </summary>
+    /// <param name="ParameterKey">The key for the new query parameter. This value will be encoded before being added to the URI query string, except for any "$" sign. Cannot be empty.</param>
+    /// <param name="ParameterValue">The value for the new query parameter. This value will be encoded before being added to the URI query string. Can be empty.</param>
+    /// <error>If the provided <paramref name="ParameterKey"/> is empty.</error>
+    /// <remarks>This function could alter the order of the existing query string parts. For example, if the previous URL was "https://microsoft.com?foo=bar&amp;john=doe" and the new flag is "contoso=42", the result could be "https://microsoft.com?john=doe&amp;foo=bar&amp;contoso=42".</remarks>
+    /// <remarks>This function might modify existing query parameters to apply the same encoding rules. For example if the URL is "https://microsoft.com?%24top=1" and the new flag is "$skip=42", the result could be "https://microsoft.com?$skip=42&amp;$top=1".</remarks>
+    procedure AddODataQueryParameter(ParameterKey: Text; ParameterValue: Text)
+    begin
+        UriBuilderImpl.AddODataQueryParameter(ParameterKey, ParameterValue);
     end;
 
     var
