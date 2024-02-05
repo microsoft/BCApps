@@ -164,13 +164,14 @@ codeunit 149005 "BCPT Line"
     var
         BCPTLogEntry: Record "BCPT Log Entry";
         BCPTRoleWrapperImpl: Codeunit "BCPT Role Wrapper"; // single instance
-        IsHandled: Boolean;
         ValuesAreChanged: Boolean;
         BCPTTestSuite: Codeunit "BCPT Test Suite";
+        ModifiedMessage, ModifiedOperation : Text;
+        ModifiedExecutionSuccess: Boolean;
     begin
-        BCPTTestSuite.OnBeforeBCPTLineAddLogEntry(BCPTLine."BCPT Code", BCPTLine."Codeunit ID", BCPTLine.Description, Operation, ExecutionSuccess, Message, IsHandled, ValuesAreChanged);
-        if IsHandled then
-            exit;
+        InitValuesSubscriberCanModify(Operation, ExecutionSuccess, Message, ModifiedExecutionSuccess, ModifiedMessage, ModifiedOperation);
+        BCPTTestSuite.OnBeforeBCPTLineAddLogEntry(BCPTLine."BCPT Code", BCPTLine."Codeunit ID", BCPTLine.Description, Operation, ExecutionSuccess, Message, ModifiedOperation, ModifiedExecutionSuccess, ModifiedMessage);
+        UpdateValuesFromSubscribers(Operation, ExecutionSuccess, Message, ModifiedExecutionSuccess, ModifiedMessage, ModifiedOperation);
 
         BCPTLine.Testfield("BCPT Code");
         BCPTRoleWrapperImpl.GetBCPTHeader(BCPTHeader);
@@ -236,6 +237,23 @@ codeunit 149005 "BCPT Line"
             DataClassification::SystemMetadata,
             TelemetryScope::All,
             Dimensions)
+    end;
+
+    local procedure UpdateValuesFromSubscribers(var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text; var ModifiedExecutionSuccess: Boolean; var ModifiedMessage: Text; var ModifiedOperation: Text)
+    begin
+        if ModifiedExecutionSuccess <> ExecutionSuccess then
+            ExecutionSuccess := ModifiedExecutionSuccess;
+        if ModifiedMessage <> Message then
+            Message := ModifiedMessage;
+        if ModifiedOperation <> Operation then
+            Operation := ModifiedOperation;
+    end;
+
+    local procedure InitValuesSubscriberCanModify(var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text; var ModifiedExecutionSuccess: Boolean; var ModifiedMessage: Text; var ModifiedOperation: Text)
+    begin
+        ModifiedMessage := Message;
+        ModifiedOperation := Operation;
+        ModifiedExecutionSuccess := ExecutionSuccess;
     end;
 
     procedure UserWait(var BCPTLine: Record "BCPT Line")

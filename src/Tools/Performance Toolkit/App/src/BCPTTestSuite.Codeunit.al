@@ -419,13 +419,14 @@ codeunit 149006 "BCPT Test Suite"
     /// <param name="SuiteCode">The test suite code</param>
     /// <param name="CodeunitId">The id of the test codunit that is being run</param>
     /// <param name="Description">Description of the test on the "BCPT Line"</param>
-    /// <param name="Operation">Which operation that is currently executed</param>
-    /// <param name="ExecutionSuccess">If the test succedded or not</param>
-    /// <param name="Message">Message in the log entry</param>
-    /// <param name="IsHandled">Handled pattern parameter</param>
-    /// <param name="ValuesAreChanged">Specifies if the values has been modified</param>
+    /// <param name="Orig. Operation">Original operation that is currently executed</param>
+    /// <param name="Orig. ExecutionSuccess">The original ExecutionSuccess</param>
+    /// <param name="Orig. Message">The original message</param>
+    /// <param name="Operation">Replacement operation that is currently executed</param>
+    /// <param name="ExecutionSuccess">Replacement ExcecutionSuccess</param>
+    /// <param name="Message">Replacement Message</param>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeBCPTLineAddLogEntry(SuiteCode: Code[10]; CodeunitId: Integer; Description: Text; var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text; var IsHandled: Boolean; var ValuesAreChanged: Boolean)
+    procedure OnBeforeBCPTLineAddLogEntry(SuiteCode: Code[10]; CodeunitId: Integer; Description: Text; "Orig. Operation": Text; "Orig. ExecutionSuccess": Boolean; "Orig. Message": Text; var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text)
     begin
     end;
 }
