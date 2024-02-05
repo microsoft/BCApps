@@ -38,7 +38,6 @@ table 308 "No. Series"
             var
                 NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
             begin
-                error('foo');
                 NoSeriesSetupImpl.ValidateDefaultNos(Rec, xRec);
             end;
         }
@@ -50,7 +49,6 @@ table 308 "No. Series"
             var
                 NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
             begin
-                error('bar');
                 NoSeriesSetupImpl.ValidateManualNos(Rec, xRec);
             end;
         }
