@@ -1,3 +1,4 @@
+#define CLEAN24
 #pragma warning disable AL0432
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -42,12 +43,14 @@ codeunit 396 NoSeriesManagement
         CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1=No. Series Code';
         CannotAssignNewBeforeDateErr: Label 'You cannot assign new numbers from the number series %1 on a date before %2.', Comment = '%1=No. Series Code,%2=Date';
         CannotAssignGreaterErr: Label 'You cannot assign numbers greater than %1 from the number series %2.', Comment = '%1=Last No.,%2=No. Series Code';
+#if not CLEAN24
         NumberFormatErr: Label 'The number format in %1 must be the same as the number format in %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
+#endif
         NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
 #if not CLEAN24
         PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
-#endif
         UnincrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
+#endif
 
 #if not CLEAN24
     [Obsolete('Please use the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
@@ -991,12 +994,13 @@ codeunit 396 NoSeriesManagement
         exit(GetNextNo(NoSeriesCode, WorkDate(), false));
     end;
 
+#if not CLEAN24
+    [Obsolete('Please use OnAfterSetNoSeriesCurrentLineFilters in the No. Series module instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnNoSeriesLineFilterOnBeforeFindLast(var NoSeriesLine: Record "No. Series Line")
     begin
     end;
 
-#if not CLEAN24
     [Obsolete('Please use the No. Series module instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitSeries(var NoSeries: Record "No. Series"; DefaultNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20])
