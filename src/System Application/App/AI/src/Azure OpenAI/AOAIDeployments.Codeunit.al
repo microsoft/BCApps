@@ -56,51 +56,47 @@ codeunit 7768 "AOAI Deployments"
     /// Returns the name of the latest AOAI deployment model of GPT3.5 Turbo.
     /// </summary>
     /// <returns>The deployment name.</returns>
-    procedure GetGPT35Turbo(ModelVersion: Enum "AOAI Deployment Version"): Text
+    procedure GetGPT35TurboLatest(): Text
     var
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        exit(AOAIDeploymentsImpl.GetGPT35Turbo(CallerModuleInfo));
+        exit(AOAIDeploymentsImpl.GetGPT35TurboLatest(CallerModuleInfo));
     end;
 
     /// <summary>
-    /// Returns the name of preview or latest AOAI deployment model of GPT3.5 Turbo.
+    /// Returns the name of preview AOAI deployment model of GPT3.5 Turbo.
     /// </summary>
-    /// <param name="Preview">If true, returns the name of the preview deployment model.
-    /// Otherwise, returns the name of the latest deployment model.</param>
     /// <returns>The deployment name.</returns>
-    procedure GetGPT35Turbo(ModelVersion: Enum "AOAI Deployment Version"; Preview: Boolean): Text
+    procedure GetGPT35TurboPreview(): Text
     var
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        exit(AOAIDeploymentsImpl.GetGPT35Turbo(CallerModuleInfo, Preview));
+        exit(AOAIDeploymentsImpl.GetGPT35TurboPreview(CallerModuleInfo));
     end;
 
     /// <summary>
     /// Returns the name of the latest AOAI deployment model of GPT4.
     /// </summary>
     /// <returns>The deployment name.</returns>
-    procedure GetGPT4(ModelVersion: Enum "AOAI Deployment Version"): Text
+    procedure GetGPT4Latest(): Text
     var
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        exit(AOAIDeploymentsImpl.GetGPT4(CallerModuleInfo));
+        exit(AOAIDeploymentsImpl.GetGPT4Latest(CallerModuleInfo));
     end;
 
     /// <summary>
-    /// Returns the name of preview or latest AOAI deployment model of GPT4.
+    /// Returns the name of preview AOAI deployment model of GPT4.
     /// </summary>
-    /// <param name="Preview">If true, returns the name of the preview deployment model.
-    /// Otherwise, returns the name of the latest deployment model.</param>
     /// <returns>The deployment name.</returns>
-    procedure GetGPT4(ModelVersion: Enum "AOAI Deployment Version"; Preview: Boolean): Text
+    procedure GetGPT4Preview(): Text
     var
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        exit(AOAIDeploymentsImpl.GetGPT4(CallerModuleInfo, Preview));
+        exit(AOAIDeploymentsImpl.GetGPT4Preview(CallerModuleInfo));
     end;
 }

@@ -50,28 +50,24 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(Turbo031316kLbl);
     end;
 
-    procedure GetGPT35Turbo(CallerModuleInfo: ModuleInfo; Preview: Boolean): Text
+    procedure GetGPT35TurboPreview(CallerModuleInfo: ModuleInfo): Text
     begin
-        if Preview then
-            exit(GetDeploymentName(GPT35TurboPreviewLbl, CallerModuleInfo));
+        exit(GetDeploymentName(GPT35TurboPreviewLbl, CallerModuleInfo));
+    end;
+
+    procedure GetGPT35TurboLatest(CallerModuleInfo: ModuleInfo): Text
+    begin
         exit(GetDeploymentName(GPT35TurboLatestLbl, CallerModuleInfo));
     end;
 
-    procedure GetGPT35Turbo(CallerModuleInfo: ModuleInfo): Text
+    procedure GetGPT4Preview(CallerModuleInfo: ModuleInfo): Text
     begin
-        exit(GetGPT35Turbo(CallerModuleInfo, false));
+        exit(GetDeploymentName(GPT4PreviewLbl, CallerModuleInfo));
     end;
 
-    procedure GetGPT4(CallerModuleInfo: ModuleInfo; Preview: Boolean): Text
+    procedure GetGPT4Latest(CallerModuleInfo: ModuleInfo): Text
     begin
-        if Preview then
-            exit(GetDeploymentName(GPT4PreviewLbl, CallerModuleInfo));
         exit(GetDeploymentName(GPT4LatestLbl, CallerModuleInfo));
-    end;
-
-    procedure GetGPT4(CallerModuleInfo: ModuleInfo): Text
-    begin
-        exit(GetGPT4(CallerModuleInfo, false));
     end;
 
     local procedure GetDeploymentName(DeploymentName: Text; CallerModuleInfo: ModuleInfo): Text
