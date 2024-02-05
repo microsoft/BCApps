@@ -8,6 +8,8 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Permissions =
         tabledata "No. Series" = r,
         tabledata "No. Series Line" = rimd;
@@ -50,6 +52,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         LastSeqNoUsed := NumberSequence.Current(SequenceName);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'm')]
     local procedure GetNextNoInternal(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     var
         NoSeriesLine2: Record "No. Series Line";

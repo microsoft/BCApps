@@ -8,6 +8,8 @@ namespace Microsoft.Foundation.NoSeries;
 
 codeunit 396 NoSeriesManagement
 {
+    InherentEntitlements = X;
+    InherentPermissions = X;
     ObsoleteReason = 'Please use the "No. Series" and "No. Series - Batch" codeunits instead';
     ObsoleteState = Pending;
     ObsoleteTag = '24.0';

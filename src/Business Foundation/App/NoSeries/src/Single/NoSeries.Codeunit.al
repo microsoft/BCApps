@@ -12,6 +12,8 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 310 "No. Series"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     #region GetNextNo
     /// <summary>

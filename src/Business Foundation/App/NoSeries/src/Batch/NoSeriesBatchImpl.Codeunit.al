@@ -149,7 +149,7 @@ codeunit 309 "No. Series - Batch Impl."
             until TempGlobalNoSeriesLine.Next() = 0;
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'rm', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'm')]
     local procedure UpdateNoSeriesLine(var TempNoSeriesLine: Record "No. Series Line" temporary)
     begin
         LockedNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
