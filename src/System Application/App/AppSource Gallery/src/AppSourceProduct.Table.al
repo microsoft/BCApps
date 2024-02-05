@@ -101,13 +101,11 @@ table 2515 "AppSource Product"
 
     procedure ReloadAllProducts()
     var
-        AppSourceProductManager: codeunit "AppSource Product Manager";
+        AppSourceProductManager: Codeunit "AppSource Product Manager";
     begin
         Clear(Rec);
         Rec.DeleteAll(false);
         AppSourceProductManager.GetProductsAndPopulateRecord(Rec);
-
         Rec.SetCurrentKey(Rec.DisplayName);
-        if Rec.FindSet(false) then;
     end;
 }

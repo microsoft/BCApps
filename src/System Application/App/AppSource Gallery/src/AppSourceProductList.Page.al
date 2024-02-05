@@ -196,13 +196,13 @@ page 2515 "AppSource Product List"
 
     trigger OnOpenPage()
     begin
-        rec.ReloadAllProducts();
+        Rec.ReloadAllProducts();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
         CurrentRecordCanBeUninstalled := false;
         if (Rec.AppID <> '') then
-            CurrentRecordCanBeUninstalled := ExtensionManagement.IsInstalledByAppID(rec.AppID);
+            CurrentRecordCanBeUninstalled := ExtensionManagement.IsInstalledByAppID(Rec.AppID);
     end;
 }
