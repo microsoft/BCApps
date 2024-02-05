@@ -623,7 +623,7 @@ codeunit 396 NoSeriesManagement
                 ReplaceNoText(No, NewNo, Length, StartPos, EndPos);
             end;
     end;
-
+#endif
     local procedure ReplaceNoText(var No: Code[20]; NewNo: Code[20]; FixedLength: Integer; StartPos: Integer; EndPos: Integer)
     var
         StartNo: Code[20];
@@ -646,7 +646,7 @@ codeunit 396 NoSeriesManagement
             Error(NumberLengthErr, No);
         No := CopyStr(StartNo + ZeroNo + NewNo + EndNo, 1, MaxStrLen(No));
     end;
-
+#if not CLEAN24
     local procedure GetNoText(No: Code[20]): Code[20]
     var
         StartPos: Integer;
@@ -656,7 +656,7 @@ codeunit 396 NoSeriesManagement
         if StartPos <> 0 then
             exit(CopyStr(CopyStr(No, StartPos, EndPos - StartPos + 1), 1, 20));
     end;
-
+#endif
     local procedure GetIntegerPos(No: Code[20]; var StartPos: Integer; var EndPos: Integer)
     var
         IsDigit: Boolean;
@@ -677,7 +677,7 @@ codeunit 396 NoSeriesManagement
             until (i = 0) or (StartPos <> 0) and not IsDigit;
         end;
     end;
-
+#if not CLEAN24
     [Obsolete('The No. Series Line Sales table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [Scope('OnPrem')]
     procedure SetNoSeriesLineSalesFilter(var NoSeriesLineSales: Record "No. Series Line Sales"; NoSeriesCode: Code[20]; StartDate: Date)
