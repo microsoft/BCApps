@@ -19,5 +19,7 @@ permissionset 300 "No. Series - Objects"
 #endif
         page "No. Series" = X,
         page "No. Series Lines" = X,
+        page "No. Series Lines Purchase" = X,
+        page "No. Series Lines Sales" = X,
         page "No. Series Relationships" = X;
 }
