@@ -1,11 +1,12 @@
 # Refactoring to use the new No. Series module
 
-This document is created to give a brief explanation of how refactor your code to use the new No. Series module.
-Old refers to the current ways of using the No. Series implementation while New refers to using the newly created No. Series module.
+This document provides brief explanations and some examples that can help you refactor your code to use the new No. Series module.
+Each section offers examples of the old and new ways of using the No. Series implementation. "Old" refers to how we currently do that, and "New" refers to using the new No. Series module.
 
 ## Uptake examples
 
 ### TryGetNextNo
+TryGetNextNo is a function that will get and return the next no. without modifying the No. Series. PeekNextNo does the same now and makes the code easier to understand.
 
 Old:
 ```
@@ -20,24 +21,24 @@ DocNo := NoSeries.PeekNextNo(GenJnlBatch."No. Series", EndDateReq);
 
 Old:
 ```
-if DocNo := NoSeriesMgt.GetNextNo(GenJnlBatch."No. Series", EndDateReq, false) then
+if DocNo = NoSeriesMgt.GetNextNo(GenJnlBatch."No. Series", EndDateReq, false) then
     NoSeriesMgt.SaveNoSeries();
 ```
 New:
-You have two options here, either you can Peek the next No. and update or use batch
+You have two options here. Either you Peek the next No. and update, or use a batch. This depends on the use case, but using batch you ensure the number saved to the database is the DocNo.
 ```
-if DocNo := NoSeries.PeekNextNo(GenJnlBatch."No. Series", EndDateReq) then
+if DocNo = NoSeries.PeekNextNo(GenJnlBatch."No. Series", EndDateReq) then
     NoSeries.GetNextNo(GenJnlBatch."No. Series", EndDateReq);
 ```
 or
 ```
-if DocNo := NoSeriesBatch.GetNextNo(GenJnlBatch."No. Series", EndDateReq) then
+if DocNo = NoSeriesBatch.GetNextNo(GenJnlBatch."No. Series", EndDateReq) then
     NoSeriesBatch.SaveState();
 ```
 
 ### InitSeries
 
-Now InitSeries is a very complex implementation. In most cases where InitSeries is used, we verify that the given No. is not set, which this example will also verify. If it is, you will need to verify whether manual Nos are allowed.
+InitSeries is a complex implementation since it handles multiple cases. In most cases that use InitSeries, we verify that the given No. isn't set, as shown in the following example. If it is, you'll need to verify whether manual Nos are allowed (see IsManual or TestManual procedures in the No. Series codeunit).
 
 Old:
 ```
@@ -58,7 +59,9 @@ if "No." = '' then begin
     "No." := NoSeries.GetNextNo("No. Series");
 end;
 ```
-The new style is a bit more lines but better describes what is happening. Furthermore to keep this backwards compatible with old events, please add calls to the obsoleted functions NoSeriesManagement.RaiseObsoleteOnBeforeInitSeries and NoSeriesManagement.RaiseObsoleteOnAfterInitSeries. Example:
+The new style has a few more lines, but it also better describes what's happening.
+
+To keep your code backwards compatible with old events that you or other partners may use, add calls to the obsoleted functions NoSeriesManagement.RaiseObsoleteOnBeforeInitSeries and NoSeriesManagement.RaiseObsoleteOnAfterInitSeries. Example:
 ```
 if "No." = '' then begin
     GLSetup.Get();
@@ -75,6 +78,7 @@ end;
 ```
 
 ### Document posting with delayed modify
+During posting we often want to delay the update of No. Series. Currently the only way to do this for multiple No. Series is to use an array of NoSeriesManagement and find the correct one during posting. This is very confusing and not very readable. Using the new Batch codeunit, you only need to define a single codeunit, request new No. for your different No. Series and posting dates. Finally Save the state and all records are updated.
 Old:
 ```
 var
@@ -107,7 +111,7 @@ NoSeriesBatch.SaveState();
 ```
 ### Simulating new numbers
 
-Sometimes we want to simulate using the No. Series without actually updating it and we may want to start from a specific No. For this purpose we added the SimulateGetNextNo function on the No. Series - Batch:
+Sometimes we want to simulate the use of No. Series without actually updating it, and we may want to start from a specific No. For this purpose, we added the SimulateGetNextNo function on the No. Series - Batch.
 
 Old:
 ```
@@ -130,4 +134,4 @@ New:
 "Document No." := NoSeriesBatch.SimulateGetNextNo(GenJnlBatch."No. Series", Rec."Posting Date", "Document No.")
 ```
 
-This new function will use the details of the given No. Series to increment the Document No. In case the No. Series does not exist, the Document No. will be increased by one.
+This new function uses the details of the given No. Series to increment the Document No. If the No. Series doesn't exist, the Document No. increases by one.
