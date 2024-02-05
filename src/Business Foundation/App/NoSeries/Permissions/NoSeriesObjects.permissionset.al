@@ -19,5 +19,6 @@ permissionset 300 "No. Series - Objects"
 #endif
         page "No. Series" = X,
         page "No. Series Lines" = X,
-        page "No. Series Relationships" = X;
+        page "No. Series Relationships" = X,
+        Codeunit "No. Series - Setup" = X;
 }

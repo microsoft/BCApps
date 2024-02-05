@@ -1,4 +1,3 @@
-#define CLEAN24
 #pragma warning disable AL0432
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
