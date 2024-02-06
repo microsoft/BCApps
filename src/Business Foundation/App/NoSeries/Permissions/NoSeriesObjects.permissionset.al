@@ -19,6 +19,12 @@ permissionset 300 "No. Series - Objects"
 #endif
         page "No. Series" = X,
         page "No. Series Lines" = X,
+#if not CLEAN24
+#pragma warning disable AL0432
+        page "No. Series Lines Purchase" = X,
+        page "No. Series Lines Sales" = X,
+#pragma warning restore AL0432
+#endif
         page "No. Series Relationships" = X,
         Codeunit "No. Series - Setup" = X;
 }
