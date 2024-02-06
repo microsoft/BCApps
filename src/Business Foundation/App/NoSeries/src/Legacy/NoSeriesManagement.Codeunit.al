@@ -85,13 +85,13 @@ codeunit 396 NoSeriesManagement
         end;
     end;
 
-    [Obsolete('This function is used for compatibility with extension usages of the old OnBeforeInitSeries event. Now the new No. Series is used. InitSeries no longer exist, instead a No. Series is selected and the next number is retrieved.', '24.0')]
+    [Obsolete('This method is used for compatibility with extension usages of the old OnBeforeInitSeries event. Now the new No. Series is used. InitSeries no longer exist, instead a No. Series is selected and the next number is retrieved.', '24.0')]
     procedure RaiseObsoleteOnBeforeInitSeries(var DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20]; var IsHandled: Boolean)
     begin
         OnBeforeInitSeries(DefaultNoSeriesCode, OldNoSeriesCode, NewDate, NewNo, NewNoSeriesCode, GlobalNoSeries, IsHandled, GlobalNoSeriesCode);
     end;
 
-    [Obsolete('This function is used for compatibility with extension usages of the old OnAfterInitSeries event. Now the new No. Series is used. InitSeries no longer exist, instead a No. Series is selected and the next number is retrieved.', '24.0')]
+    [Obsolete('This method is used for compatibility with extension usages of the old OnAfterInitSeries event. Now the new No. Series is used. InitSeries no longer exist, instead a No. Series is selected and the next number is retrieved.', '24.0')]
     procedure RaiseObsoleteOnAfterInitSeries(NoSeriesCode: Code[20]; DefaultNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20])
     var
         NoSeries: Record "No. Series";
@@ -129,7 +129,7 @@ codeunit 396 NoSeriesManagement
     end;
 #endif
 
-    [Obsolete('This function is used for compatibility with extension usages of the old OnBeforeSetDefaultSeries event.', '24.0')]
+    [Obsolete('This method is used for compatibility with extension usages of the old OnBeforeSetDefaultSeries event.', '24.0')]
     procedure RaiseObsoleteOnBeforeSetDefaultSeries(var NewNoSeriesCode: Code[20]; NoSeriesCode: Code[20]; var IsHandled: Boolean)
     begin
         OnBeforeSetDefaultSeries(NewNoSeriesCode, NoSeriesCode, IsHandled);
@@ -523,7 +523,7 @@ codeunit 396 NoSeriesManagement
         NoSeriesLine.SetRange("Series Code", NoSeries.Code);
     end;
 
-    [Obsolete('Please use the procedure GetNoSeriesLine on the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
+    [Obsolete('Please use the method GetNoSeriesLine on the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
     procedure SetNoSeriesLineFilter(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; StartDate: Date)
     begin
         if StartDate = 0D then
@@ -562,7 +562,7 @@ codeunit 396 NoSeriesManagement
     end;
 
 #if not CLEAN24
-    [Obsolete('The method was moved to No. Series Setup Impl. and is now internal.', '24.0')]
+    [Obsolete('Please use the method from "No. Series - Setup" instead.', '24.0')]
     procedure UpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldName: Text[100])
     var
         NoSeriesLine2: Record "No. Series Line";
