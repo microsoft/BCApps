@@ -13,6 +13,9 @@ table 2515 "AppSource Product"
     Access = Internal;
     TableType = Temporary;
 
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
     fields
     {
         field(1; UniqueProductID; Text[200])
