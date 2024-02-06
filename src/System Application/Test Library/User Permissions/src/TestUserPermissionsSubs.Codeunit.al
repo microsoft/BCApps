@@ -36,5 +36,15 @@ codeunit 130019 "Test User Permissions Subs."
         if CanManageUserSecIDs.Contains(UserSID) then
             Result := true;
     end;
+
+    /// <summary>
+    /// Skip calls to NavUserAccountHelper.IsPermissionSetAssigned, as it may fail in tests.
+    /// </summary>
+    /// <param name="Skip">Skip calls NavUserAccountHelper.IsPermissionSetAssigned.</param>
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"User Permissions Impl.", 'OnHasUserPermissionSetAssigned', '', false, false)]
+    local procedure OnHasUserPermissionSetAssigned(var Skip: Boolean)
+    begin
+        Skip := true;
+    end;
 }
 

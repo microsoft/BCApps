@@ -7,10 +7,8 @@ namespace System.Security.Authentication;
 
 controladdin OAuthIntegration
 {
-    RequestedWidth = 30;
-    RequestedHeight = 200;
-    MinimumHeight = 20;
-    MinimumWidth = 200;
+    RequestedWidth = 0;
+    RequestedHeight = 0;
     HorizontalStretch = false;
     VerticalStretch = false;
     HorizontalShrink = true;
