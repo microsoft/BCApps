@@ -2,15 +2,15 @@
 	"folders": [
 		{
 			"name": "No. Series",
-			"path": "Business Foundation/App/No Series"
+			"path": "Business Foundation\\App"
 		},
 		{
 			"name": "No. Series Test Library",
-			"path": "Business Foundation/Test Library/No Series"
+			"path": "Business Foundation\\Test Library"
 		},
 		{
 			"name": "No. Series Tests",
-			"path": "Business Foundation/Test/No Series"
+			"path": "Business Foundation\\Test"
 		}
 	]
 }

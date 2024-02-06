@@ -22,6 +22,9 @@ codeunit 304 "No. Series - Impl."
         CannotAssignAutomaticallyErr: Label 'It is not possible to assign numbers automatically. If you want the program to assign numbers automatically, please activate %1 in %2 %3.', Comment = '%1=Default Nos. setting,%2=No. Series table caption,%3=No. Series Code';
         SeriesNotRelatedErr: Label 'The number series %1 is not related to %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
         PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
+        CannotAssignAutomaticallyQst: Label 'The No. Series %1 is not setup to allow Automatic Nos., hence it is not possible to use this No. Series for new Nos. Do you wish to modify the No. Series %1 to allow Default Nos.?', Comment = '%1=No. Series Code';
+        CannotAssignManuallyQst: Label 'The No. Series %1 is not setup to allow Manual Nos., hence it is not possible to use this No. Series for manual Nos. Do you wish to modify the No. Series %1 to allow Manual Nos.?', Comment = '%1=No. Series Code';
+        NoSeriesNotOpenQst: Label 'The No. Series %1 does not have an open line for %2. Do you wish to open the No. Series Lines page to add this?', Comment = '%1=No. Series Code,%2=Usage Date';
 
 #if not CLEAN24
 #pragma warning disable AL0432
@@ -52,13 +55,31 @@ codeunit 304 "No. Series - Impl."
         TestManualInternal(NoSeriesCode, StrSubstNo(PostErr, DocumentNo));
     end;
 
-    local procedure TestManualInternal(NoSeriesCode: Code[20]; ErrorText: Text);
+    local procedure TestManualInternal(NoSeriesCode: Code[20]; ErrorText: Text)
     var
         NoSeries: Record "No. Series";
     begin
         NoSeries.Get(NoSeriesCode);
         if not NoSeries."Manual Nos." then
-            Error(ErrorText);
+            if HandleActionableManualNosError(NoSeries) then
+                if not NoSeries.Get(NoSeriesCode) and not NoSeries."Manual Nos." then
+                    Error(ErrorText);
+    end;
+
+    local procedure HandleActionableManualNosError(NoSeries: Record "No. Series"): Boolean
+    begin
+        if NoSeries."Manual Nos." then
+            exit(true); // The code is already default
+
+        if not NoSeries.WritePermission() then
+            exit(false); // Nothing actionable to do, since user does not have permission to modify the record
+
+        if Confirm(CannotAssignManuallyQst, false, NoSeries.Code) then begin
+            NoSeries.Validate("Manual Nos.", true);
+            NoSeries.Modify(true);
+            exit(true);
+        end;
+        exit(false);
     end;
 
     procedure IsManual(NoSeriesCode: Code[20]): Boolean
@@ -186,9 +207,12 @@ codeunit 304 "No. Series - Impl."
             // Throw an error depending on the reason we couldn't find a date
             if HideErrorsAndWarnings then
                 exit(false);
+
+            HandleActionableMissingNoSeriesLineError(NoSeriesCode, UsageDate);
             NoSeriesLine.SetRange("Starting Date");
             if not NoSeriesLine.IsEmpty() then
                 Error(CannotAssignNewOnDateErr, NoSeriesCode, UsageDate);
+
             Error(CannotAssignNewErr, NoSeriesCode);
         end;
 
@@ -201,6 +225,22 @@ codeunit 304 "No. Series - Impl."
             Error(CannotAssignNewBeforeDateErr, NoSeriesRec.Code, NoSeriesLine."Last Date Used");
         end;
         exit(true);
+    end;
+
+    local procedure HandleActionableMissingNoSeriesLineError(NoSeriesCode: Code[20]; UsageDate: Date)
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLinesRecord: Record "No. Series Line";
+        NoSeriesLines: Page "No. Series Lines";
+    begin
+        if not NoSeries.WritePermission() then
+            exit; // Nothing actionable to do, since user does not have permission to modify the record
+
+        if Confirm(NoSeriesNotOpenQst, false, NoSeriesCode, UsageDate) then begin
+            NoSeriesLinesRecord.SetRange("Series Code", NoSeriesCode);
+            NoSeriesLines.SetTableView(NoSeriesLinesRecord);
+            NoSeriesLines.Run();
+        end;
     end;
 
     procedure PeekNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
@@ -270,8 +310,7 @@ codeunit 304 "No. Series - Impl."
         if not NoSeries.Get(DefaultNoSeriesCode) then
             exit(false);
 
-        if not NoSeries."Default Nos." then
-            Error(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
+        TestAutomatic(NoSeries);
 
         if DefaultNoSeriesCode = RelatedNoSeriesCode then
             exit(true);
@@ -292,8 +331,34 @@ codeunit 304 "No. Series - Impl."
     var
         NoSeries: Record "No. Series";
     begin
-        if not IsAutomaticNoSeries(NoSeriesCode) then
-            Error(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
+        if not NoSeries.Get(NoSeriesCode) then
+            Error(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeriesCode);
+
+        TestAutomatic(NoSeries);
+    end;
+
+    local procedure TestAutomatic(NoSeries: Record "No. Series")
+    begin
+        if not NoSeries."Default Nos." then
+            if HandleActionableDefaultNosError(NoSeries) then
+                if not NoSeries.Get(NoSeries.Code) and not NoSeries."Default Nos." then
+                    Error(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
+    end;
+
+    local procedure HandleActionableDefaultNosError(NoSeries: Record "No. Series"): Boolean
+    begin
+        if NoSeries."Default Nos." then
+            exit(true); // The code is already default
+
+        if not NoSeries.WritePermission() then
+            exit(false); // Nothing actionable to do, since user does not have permission to modify the record
+
+        if Confirm(CannotAssignAutomaticallyQst, false, NoSeries.Code) then begin
+            NoSeries.Validate("Default Nos.", true);
+            NoSeries.Modify(true);
+            exit(true);
+        end;
+        exit(false);
     end;
 
     procedure SelectRelatedNoSeries(OriginalNoSeriesCode: Code[20]; DefaultHighlightedNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean

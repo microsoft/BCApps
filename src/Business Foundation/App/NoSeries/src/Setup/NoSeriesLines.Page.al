@@ -38,6 +38,7 @@ page 457 "No. Series Lines"
                 {
                     Caption = 'Starting No.';
                     ToolTip = 'Specifies the first number in the series.';
+                    ShowMandatory = true;
                 }
                 field("Ending No."; Rec."Ending No.")
                 {
