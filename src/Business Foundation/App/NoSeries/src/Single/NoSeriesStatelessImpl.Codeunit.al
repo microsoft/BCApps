@@ -8,6 +8,8 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Permissions =
         tabledata "No. Series" = r,
         tabledata "No. Series Line" = rimd;
@@ -26,6 +28,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         exit(GetNextNoInternal(NoSeriesLine, true, UsageDate, HideErrorsAndWarnings));
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'm')]
     local procedure GetNextNoInternal(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     begin
         if NoSeriesLine."Last No. Used" = '' then begin

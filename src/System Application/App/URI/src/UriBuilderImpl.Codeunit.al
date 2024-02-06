@@ -95,12 +95,22 @@ codeunit 3062 "Uri Builder Impl."
         QueryString := GetQuery();
         ParseParametersAndFlags(QueryString, KeysWithValueList, Flags);
         ProcessNewFlag(Flags, Flag, DuplicateAction);
-        QueryString := CreateNewQueryString(KeysWithValueList, Flags);
+        QueryString := CreateNewQueryString(KeysWithValueList, Flags, false);
 
         SetQuery(QueryString);
     end;
 
     procedure AddQueryParameter(ParameterKey: Text; ParameterValue: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour")
+    begin
+        AddQueryParameterInternal(ParameterKey, ParameterValue, DuplicateAction, false);
+    end;
+
+    procedure AddODataQueryParameter(ParameterKey: Text; ParameterValue: Text)
+    begin
+        AddQueryParameterInternal(ParameterKey, ParameterValue, Enum::"Uri Query Duplicate Behaviour"::"Overwrite All Matching", true);
+    end;
+
+    local procedure AddQueryParameterInternal(ParameterKey: Text; ParameterValue: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour"; UseODataEncoding: Boolean)
     var
         KeysWithValueList: Dictionary of [Text, List of [Text]];
         Flags: List of [Text];
@@ -112,7 +122,7 @@ codeunit 3062 "Uri Builder Impl."
         QueryString := GetQuery();
         ParseParametersAndFlags(QueryString, KeysWithValueList, Flags);
         ProcessNewParameter(KeysWithValueList, ParameterKey, ParameterValue, DuplicateAction);
-        QueryString := CreateNewQueryString(KeysWithValueList, Flags);
+        QueryString := CreateNewQueryString(KeysWithValueList, Flags, UseODataEncoding);
 
         SetQuery(QueryString);
     end;
@@ -209,7 +219,7 @@ codeunit 3062 "Uri Builder Impl."
         end;
     end;
 
-    local procedure CreateNewQueryString(KeysWithValueList: Dictionary of [Text, List of [Text]]; Flags: List of [Text]) FinalQuery: Text
+    local procedure CreateNewQueryString(KeysWithValueList: Dictionary of [Text, List of [Text]]; Flags: List of [Text]; UseODataEncoding: Boolean) FinalQuery: Text
     var
         Uri: Codeunit Uri;
         CurrentKey: Text;
@@ -219,13 +229,31 @@ codeunit 3062 "Uri Builder Impl."
         foreach CurrentKey in KeysWithValueList.Keys() do begin
             KeysWithValueList.Get(CurrentKey, CurrentValues);
             foreach CurrentValue in CurrentValues do
-                FinalQuery += '&' + Uri.EscapeDataString(CurrentKey) + '=' + Uri.EscapeDataString(CurrentValue);
+                FinalQuery += '&' + EncodeParameterKey(CurrentKey, UseODataEncoding) + '=' + Uri.EscapeDataString(CurrentValue);
         end;
 
         foreach CurrentKey in Flags do
             FinalQuery += '&' + Uri.EscapeDataString(CurrentKey);
 
         FinalQuery := DelChr(FinalQuery, '<', '&');
+    end;
+
+    local procedure EncodeParameterKey(ParameterKey: Text; UseODataEncoding: Boolean) EncodedParameterKey: Text
+    var
+        Uri: Codeunit Uri;
+    begin
+        // Uri.EscapeDataString converts all characters except for RFC 3986 unreserved characters (alphanumeric and "-", ".", "_", "~") to their hex
+        // representation, as per: https://learn.microsoft.com/dotnet/api/system.uri.escapedatastring
+        // "$" is reserved but has currently no meaning in query strings (i.e. it's safe to leave unencoded). Some servers don't recognize encoded
+        // OData parameter keys (such as "%24filter"), hence this function.
+
+        // Notice: even though parameters such as "$filter" and "$expand" will include "$" (and "(", ")", " ", ...) in the parameter value as well, we
+        // assume the server will decode these correctly, and limit this special encoding only for the OData parameters keys.
+
+        EncodedParameterKey := Uri.EscapeDataString(ParameterKey);
+
+        if UseODataEncoding then
+            EncodedParameterKey := EncodedParameterKey.Replace('%24', '$');
     end;
 
     var
