@@ -60,6 +60,13 @@
             "publisher": "Microsoft",
             "version": "24.0.0.0"
         }
+    ],   
+    "internalsVisibleTo":  [
+        {
+            "name": "Microsoft AppSource Product Gallery Test",
+            "id": "c1830429-77f6-4469-837a-7bfd4705ff41",
+            "publisher": "Microsoft"
+        }
     ],
     "screenshots": [],
     "platform": "24.0.0.0",
