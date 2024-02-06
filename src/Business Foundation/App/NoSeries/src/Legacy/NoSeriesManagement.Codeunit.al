@@ -42,12 +42,14 @@ codeunit 396 NoSeriesManagement
         CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1=No. Series Code';
         CannotAssignNewBeforeDateErr: Label 'You cannot assign new numbers from the number series %1 on a date before %2.', Comment = '%1=No. Series Code,%2=Date';
         CannotAssignGreaterErr: Label 'You cannot assign numbers greater than %1 from the number series %2.', Comment = '%1=Last No.,%2=No. Series Code';
+#if not CLEAN24
         NumberFormatErr: Label 'The number format in %1 must be the same as the number format in %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
+#endif
         NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
 #if not CLEAN24
         PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
-#endif
         UnincrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
+#endif
 
 #if not CLEAN24
     [Obsolete('Please use the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
@@ -83,13 +85,13 @@ codeunit 396 NoSeriesManagement
         end;
     end;
 
-    [Obsolete('This function is used for compatibility with extension usages of the old OnBeforeInitSeries event. Now the new No. Series is used. InitSeries no longer exist, instead a No. Series is selected and the next number is retrieved.', '24.0')]
+    [Obsolete('This method is used for compatibility with extension usages of the old OnBeforeInitSeries event. Now the new No. Series is used. InitSeries no longer exist, instead a No. Series is selected and the next number is retrieved.', '24.0')]
     procedure RaiseObsoleteOnBeforeInitSeries(var DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20]; var IsHandled: Boolean)
     begin
         OnBeforeInitSeries(DefaultNoSeriesCode, OldNoSeriesCode, NewDate, NewNo, NewNoSeriesCode, GlobalNoSeries, IsHandled, GlobalNoSeriesCode);
     end;
 
-    [Obsolete('This function is used for compatibility with extension usages of the old OnAfterInitSeries event. Now the new No. Series is used. InitSeries no longer exist, instead a No. Series is selected and the next number is retrieved.', '24.0')]
+    [Obsolete('This method is used for compatibility with extension usages of the old OnAfterInitSeries event. Now the new No. Series is used. InitSeries no longer exist, instead a No. Series is selected and the next number is retrieved.', '24.0')]
     procedure RaiseObsoleteOnAfterInitSeries(NoSeriesCode: Code[20]; DefaultNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20])
     var
         NoSeries: Record "No. Series";
@@ -127,7 +129,7 @@ codeunit 396 NoSeriesManagement
     end;
 #endif
 
-    [Obsolete('This function is used for compatibility with extension usages of the old OnBeforeSetDefaultSeries event.', '24.0')]
+    [Obsolete('This method is used for compatibility with extension usages of the old OnBeforeSetDefaultSeries event.', '24.0')]
     procedure RaiseObsoleteOnBeforeSetDefaultSeries(var NewNoSeriesCode: Code[20]; NoSeriesCode: Code[20]; var IsHandled: Boolean)
     begin
         OnBeforeSetDefaultSeries(NewNoSeriesCode, NoSeriesCode, IsHandled);
@@ -458,7 +460,7 @@ codeunit 396 NoSeriesManagement
     procedure SaveNoSeries()
     var
         NoSeries: Codeunit "No. Series";
-        NoSeriesMgt: Codeunit NoSeriesMgt;
+        NoSeriesSequenceImpl: Codeunit "No. Series - Sequence Impl.";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -467,11 +469,24 @@ codeunit 396 NoSeriesManagement
             if LastNoSeriesLine."Series Code" <> '' then begin
                 if (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) then
                     if (LastNoSeriesLine."Last No. Used" <> '') and (LastNoSeriesLine."Last No. Used" > NoSeries.GetLastNoUsed(LastNoSeriesLine)) then
-                        NoSeriesMgt.RestartSequence(LastNoSeriesLine, NoSeriesMgt.ExtractNoFromCode(LastNoSeriesLine."Last No. Used"));
+                        RestartSequence(LastNoSeriesLine, NoSeriesSequenceImpl.ExtractNoFromCode(LastNoSeriesLine."Last No. Used"));
                 if not (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) or UpdateLastUsedDate then
                     ModifyNoSeriesLine(LastNoSeriesLine);
             end;
         OnAfterSaveNoSeries(LastNoSeriesLine);
+    end;
+
+    internal procedure RestartSequence(var NoSeriesLine: Record "No. Series Line"; NewStartingNo: BigInteger)
+    begin
+        NoSeriesLine.TestField(Implementation, NoSeriesLine.Implementation::Sequence);
+        NoSeriesLine.TestField("Sequence Name");
+        NoSeriesLine."Starting Sequence No." := NewStartingNo;
+        if NoSeriesLine."Last No. Used" = '' then
+            NumberSequence.Restart(NoSeriesLine."Sequence Name", NoSeriesLine."Starting Sequence No." - NoSeriesLine."Increment-by No.")
+        else begin
+            NumberSequence.Restart(NoSeriesLine."Sequence Name", NoSeriesLine."Starting Sequence No.");
+            if NumberSequence.Next(NoSeriesLine."Sequence Name") = 0 then;  // Simulate that a number was used
+        end;
     end;
 #endif
     procedure ClearNoSeriesLine()
@@ -480,7 +495,35 @@ codeunit 396 NoSeriesManagement
     end;
 
 #if not CLEAN24
-    [Obsolete('Please use the procedure GetNoSeriesLine on the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
+    internal procedure SetAllowGaps(var NoSeries: Record "No. Series"; AllowGaps: Boolean)
+    var
+        NoSeriesLine: Record "No. Series Line";
+        StartDate: Date;
+    begin
+        FindNoSeriesLineToShow(NoSeries, NoSeriesLine);
+        StartDate := NoSeriesLine."Starting Date";
+        NoSeriesLine.SetRange("Allow Gaps in Nos.", not AllowGaps);
+        NoSeriesLine.SetFilter("Starting Date", '>=%1', StartDate);
+        NoSeriesLine.LockTable();
+        if NoSeriesLine.FindSet() then
+            repeat
+                NoSeriesLine.Validate("Allow Gaps in Nos.", AllowGaps);
+                NoSeriesLine.Modify();
+            until NoSeriesLine.Next() = 0;
+    end;
+
+    internal procedure FindNoSeriesLineToShow(var NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line")
+    begin
+        SetNoSeriesLineFilter(NoSeriesLine, NoSeries.Code, 0D);
+
+        if NoSeriesLine.FindLast() then
+            exit;
+
+        NoSeriesLine.Reset();
+        NoSeriesLine.SetRange("Series Code", NoSeries.Code);
+    end;
+
+    [Obsolete('Please use the method GetNoSeriesLine on the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
     procedure SetNoSeriesLineFilter(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; StartDate: Date)
     begin
         if StartDate = 0D then
@@ -496,12 +539,12 @@ codeunit 396 NoSeriesManagement
             NoSeriesLine.SetRange(Open, true);
         end;
     end;
-#endif
 
     internal procedure RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(var NoSeriesLine: Record "No. Series Line")
     begin
         OnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
     end;
+#endif
 
     procedure IncrementNoText(var No: Code[20]; IncrementByNo: Decimal)
     var
@@ -518,6 +561,8 @@ codeunit 396 NoSeriesManagement
         ReplaceNoText(No, NewNo, 0, StartPos, EndPos);
     end;
 
+#if not CLEAN24
+    [Obsolete('Please use the method from "No. Series - Setup" instead.', '24.0')]
     procedure UpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldName: Text[100])
     var
         NoSeriesLine2: Record "No. Series Line";
@@ -580,7 +625,7 @@ codeunit 396 NoSeriesManagement
                 ReplaceNoText(No, NewNo, Length, StartPos, EndPos);
             end;
     end;
-
+#endif
     local procedure ReplaceNoText(var No: Code[20]; NewNo: Code[20]; FixedLength: Integer; StartPos: Integer; EndPos: Integer)
     var
         StartNo: Code[20];
@@ -603,7 +648,7 @@ codeunit 396 NoSeriesManagement
             Error(NumberLengthErr, No);
         No := CopyStr(StartNo + ZeroNo + NewNo + EndNo, 1, MaxStrLen(No));
     end;
-
+#if not CLEAN24
     local procedure GetNoText(No: Code[20]): Code[20]
     var
         StartPos: Integer;
@@ -613,7 +658,7 @@ codeunit 396 NoSeriesManagement
         if StartPos <> 0 then
             exit(CopyStr(CopyStr(No, StartPos, EndPos - StartPos + 1), 1, 20));
     end;
-
+#endif
     local procedure GetIntegerPos(No: Code[20]; var StartPos: Integer; var EndPos: Integer)
     var
         IsDigit: Boolean;
@@ -634,13 +679,10 @@ codeunit 396 NoSeriesManagement
             until (i = 0) or (StartPos <> 0) and not IsDigit;
         end;
     end;
-
 #if not CLEAN24
     [Obsolete('The No. Series Line Sales table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [Scope('OnPrem')]
     procedure SetNoSeriesLineSalesFilter(var NoSeriesLineSales: Record "No. Series Line Sales"; NoSeriesCode: Code[20]; StartDate: Date)
-    var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
         OnObsoleteSetNoSeriesLineSalesFilter(NoSeriesLineSales, NoSeriesCode, StartDate);
     end;
@@ -648,8 +690,6 @@ codeunit 396 NoSeriesManagement
     [Obsolete('The No. Series Line Purchase table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [Scope('OnPrem')]
     procedure SetNoSeriesLinePurchaseFilter(var NoSeriesLinePurchase: Record "No. Series Line Purchase"; NoSeriesCode: Code[20]; StartDate: Date)
-    var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
     begin
         OnObsoleteSetNoSeriesLinePurchaseFilter(NoSeriesLinePurchase, NoSeriesCode, StartDate);
     end;
@@ -931,11 +971,19 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 
-    [IntegrationEvent(false, false)]
-    internal procedure OnBeforeUpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldName: Text[100]; var IsHandled: Boolean)
+#if not CLEAN24
+    [Obsolete('This is a temporary method for compatibility only. Please use the "No. Series" codeunit instead', '24.0')]
+    internal procedure RaiseObsoleteOnBeforeUpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldName: Text[100]; var IsHandled: Boolean)
     begin
+        OnBeforeUpdateNoSeriesLine(NoSeriesLine, NewNo, NewFieldName, IsHandled);
     end;
 
+    [Obsolete('This event is obsolete. Please use the extensibility options provided by the No. Series module.', '24.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldName: Text[100]; var IsHandled: Boolean)
+    begin
+    end;
+#endif
     procedure ClearStateAndGetNextNo(NoSeriesCode: Code[20]): Code[20]
     begin
         Clear(LastNoSeriesLine);
@@ -945,12 +993,13 @@ codeunit 396 NoSeriesManagement
         exit(GetNextNo(NoSeriesCode, WorkDate(), false));
     end;
 
+#if not CLEAN24
+    [Obsolete('Please use OnAfterSetNoSeriesCurrentLineFilters in the No. Series module instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnNoSeriesLineFilterOnBeforeFindLast(var NoSeriesLine: Record "No. Series Line")
     begin
     end;
 
-#if not CLEAN24
     [Obsolete('Please use the No. Series module instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitSeries(var NoSeries: Record "No. Series"; DefaultNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20])
