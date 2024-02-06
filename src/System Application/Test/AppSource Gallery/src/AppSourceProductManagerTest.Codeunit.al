@@ -142,7 +142,7 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
         asserterror AppSourceProductManager.GetProductsAndPopulateRecord(TempProduct);
 
         // Then
-        Assert.ExpectedError('Not supported on premises');
+        Assert.ExpectedError('Not supported on premises.');
 
         AppSourceProductManagerTest.AssertCleanedUp();
         AssertCleanedUp();

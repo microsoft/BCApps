@@ -36,7 +36,6 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         exit(entraTenant.GetPreferredLanguage());
     end;
 
-
     procedure AzureADTenant_GetAadTenantID(): Text
     var
         entraTenant: Codeunit "Azure AD Tenant";
@@ -93,14 +92,13 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
 
     #region Product helpers 
     /// <summary>
-    /// Opens Microsoft AppSource web page.
+    /// Opens Microsoft AppSource web page for the region is specified in the UserSessionSettings or 'en-us' by default.
     /// </summary>
     procedure OpenAppSource()
     begin
         Init();
-        Hyperlink(StrSubstNo(AppSourceUriLbl, Dependencies.Language_GetFormatRegionOrDefault('en-us')));
+        Hyperlink(StrSubstNo(AppSourceUriLbl, Dependencies.Language_GetFormatRegionOrDefault('')));
     end;
-
 
     /// <summary>
     /// Opens the AppSource product page in Microsoft AppSource, for the specified unique product ID.
@@ -362,7 +360,6 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         exit(Uri.GetAbsoluteUri());
     end;
 
-
     #region Telemetry helpers
     local procedure PopulateTelemetryDictionary(RequestID: Text; UniqueIdentifier: text; Uri: Text; var TelemetryDictionary: Dictionary of [Text, Text])
     begin
@@ -596,9 +593,9 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
         CatalogLanguageQueryParamNameLbl: label 'language', Locked = true;
         CatalogApiFilterQueryParamNameLbl: Label '$filter', Locked = true;
         CatalogApiSelectQueryParamNameLbl: Label '$select', Locked = true;
-        AppSourceListingUriLbl: Label 'https://appsource.microsoft.com/%1/product/dynamics-365-business-central/%2', Comment = '%1=Language, %2=Url Query Content', Locked = true;
-        AppSourceUriLbl: Label 'https://appsource.microsoft.com/%1/marketplace/apps?product=dynamics-365-business-central', Comment = '%=Language', Locked = true;
-        UnsupportedMarketNotificationLbl: Label 'Market %1 is not supported by AppSource. Defaulting to en. Change region in the user profile to change the market.', Comment = '%1=Market';
-        UnsupportedLanguageNotificationLbl: Label 'Language %1 is not supported by AppSource. Defaulting to en. Change language in the user profile to change the language.', Comment = '%1=Language';
-        NotSupportedOnPremisesErrorLbl: Label 'Not supported on premises';
+        AppSourceListingUriLbl: Label 'https://appsource.microsoft.com/%1/product/dynamics-365-business-central/%2', Comment = '%1=Language ID, such as en-US, %2=Url Query Content', Locked = true;
+        AppSourceUriLbl: Label 'https://appsource.microsoft.com/%1/marketplace/apps?product=dynamics-365-business-central', Comment = '1%=Language ID, such as en-US', Locked = true;
+        UnsupportedMarketNotificationLbl: Label 'Market %1 is not supported by AppSource. Defaulting to "us". Change the region in the user profile to use another market.', Comment = '%1=Market ID, such as "us"';
+        UnsupportedLanguageNotificationLbl: Label 'Language %1 is not supported by AppSource. Defaulting to "en". Change the language in the user profile to use another language.', Comment = '%1=Language ID, such as en';
+        NotSupportedOnPremisesErrorLbl: Label 'Not supported on premises.';
 }

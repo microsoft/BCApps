@@ -13,9 +13,6 @@ table 2515 "AppSource Product"
     Access = Internal;
     TableType = Temporary;
 
-    InherentEntitlements = RIMDX;
-    InherentPermissions = RIMDX;
-
     fields
     {
         field(1; UniqueProductID; Text[200])
@@ -104,7 +101,7 @@ table 2515 "AppSource Product"
         AppSourceProductManager: Codeunit "AppSource Product Manager";
     begin
         Clear(Rec);
-        Rec.DeleteAll(false);
+        Rec.DeleteAll();
         AppSourceProductManager.GetProductsAndPopulateRecord(Rec);
         Rec.SetCurrentKey(Rec.DisplayName);
     end;

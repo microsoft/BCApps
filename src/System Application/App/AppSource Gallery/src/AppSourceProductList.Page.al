@@ -35,7 +35,7 @@ page 2515 "AppSource Product List"
                 field(DisplayName; Rec.DisplayName)
                 {
                     DrillDown = true;
-                    ToolTip = 'Specifies the Display Name';
+                    ToolTip = 'Specifies the display name of the offer.';
 
                     trigger OnDrillDown()
                     begin
@@ -45,34 +45,34 @@ page 2515 "AppSource Product List"
                 field(UniqueProductID; Rec.UniqueProductID)
                 {
                     Visible = false;
-                    ToolTip = 'Specifies the Unique Product ID';
+                    ToolTip = 'Specifies the unique product identifier.';
                 }
                 field(PublisherID; Rec.PublisherID)
                 {
                     Visible = false;
-                    ToolTip = 'Specifies the Publisher ID';
+                    ToolTip = 'Specifies the ID of the publisher.';
                 }
 
                 field(PublisherDisplayName; Rec.PublisherDisplayName)
                 {
-                    ToolTip = 'Specifies the Publisher Display Name';
+                    ToolTip = 'Specifies the display name of the publisher.';
                 }
                 field(Installed; CurrentRecordCanBeUninstalled)
                 {
                     Caption = 'Installed';
-                    ToolTip = 'Specifies if this app is installed';
+                    ToolTip = 'Specifies whether this app is installed.';
                 }
                 field(RatingAverage; Rec.RatingAverage)
                 {
-                    ToolTip = 'Specifies the Rating Average';
+                    ToolTip = 'Specifies a value from 0-5 indicating the average user rating.';
                 }
                 field(Popularity; Rec.Popularity)
                 {
-                    ToolTip = 'Specifies the Popularity index';
+                    ToolTip = 'Specifies a value from 0-10 indicating the popularity of the offer.';
                 }
                 field(RatingCount; Rec.RatingCount)
                 {
-                    ToolTip = 'Specifies the number of times this has been rated';
+                    ToolTip = 'Specifies the number of users that have rated the offer.';
                     Visible = false;
                 }
                 field(LastModifiedDateTime; Rec.LastModifiedDateTime)
@@ -81,12 +81,12 @@ page 2515 "AppSource Product List"
                 }
                 field(AppID; Rec.AppID)
                 {
-                    ToolTip = 'Specifies theappID';
+                    ToolTip = 'Specifies the app ID.';
                     Visible = false;
                 }
                 field(PublisherType; Rec.PublisherType)
                 {
-                    ToolTip = 'Specifies the Publisher Type';
+                    ToolTip = 'Specifies whether the offer is a Microsoft or third party product.';
                 }
             }
         }

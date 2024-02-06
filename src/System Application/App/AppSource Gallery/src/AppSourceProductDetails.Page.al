@@ -1,6 +1,6 @@
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License. See License.txt in the project root for license information.
+// Licensed under the MIT License. See License.txt in the project root for license inFormation.
 // ------------------------------------------------------------------------------------------------
 namespace System.Apps.AppSource;
 
@@ -31,40 +31,40 @@ page 2516 "AppSource Product Details"
                 field(Offer_UniqueID; UniqueProductID)
                 {
                     Caption = 'Unique Product ID';
-                    ToolTip = 'Specifies the Unique Product ID';
+                    ToolTip = 'Specifies the unique product identifier.';
                     Visible = false;
                 }
                 field(Offer_ProductType; AppSourceProductManager.GetStringValue(ProductObject, 'productType'))
                 {
                     Caption = 'Product Type';
-                    ToolTip = 'Specifies the Product Type';
+                    ToolTip = 'Specifies the delivery method or deployment mode of the offer.';
                     Visible = false;
                 }
                 field(Offer_DisplayName; AppSourceProductManager.GetStringValue(ProductObject, 'displayName'))
                 {
                     Caption = 'Display Name';
-                    ToolTip = 'Specifies the Display Name';
+                    ToolTip = 'Specifies the display name of the offer.';
                 }
                 field(Offer_PublisherID; AppSourceProductManager.GetStringValue(ProductObject, 'publisherId'))
                 {
                     Caption = 'Publisher ID';
-                    ToolTip = 'Specifies the Publisher ID';
+                    ToolTip = 'Specifies the ID of the publisher.';
                     Visible = false;
                 }
                 field(Offer_PublisherDisplayName; AppSourceProductManager.GetStringValue(ProductObject, 'publisherDisplayName'))
                 {
                     Caption = 'Publisher Display Name';
-                    ToolTip = 'Specifies the Publisher Display Name';
+                    ToolTip = 'Specifies the display name of the publisher.';
                 }
                 field(Offer_PublisherType; AppSourceProductManager.GetStringValue(ProductObject, 'publisherType'))
                 {
                     Caption = 'Publisher Type';
-                    ToolTip = 'Specifies the Publisher Type';
+                    ToolTip = 'Specifies whether the offer is a Microsoft or third party product.';
                 }
                 field(Offer_LastModifiedDateTime; AppSourceProductManager.GetStringValue(ProductObject, 'lastModifiedDateTime'))
                 {
                     Caption = 'Last Modified Date Time';
-                    ToolTip = 'Specifies the Last Modified Date Time';
+                    ToolTip = 'Specifies the date the offer was last updated.';
                 }
             }
             group(DescriptionGroup)
@@ -77,7 +77,7 @@ page 2516 "AppSource Product Details"
                     MultiLine = true;
                     ExtendedDatatype = RichContent;
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the Description';
+                    ToolTip = 'Specifies the description text of the offer.';
                 }
             }
             group(PlansGroup)
@@ -90,10 +90,9 @@ page 2516 "AppSource Product Details"
                     ExtendedDatatype = RichContent;
                     MultiLine = true;
                     Caption = 'Plans Overview';
-                    ToolTip = 'Specifies the overview of all plans';
+                    ToolTip = 'Specifies the overview of all the plans available for the offer.';
                 }
             }
-
 
             group(RatingGroup)
             {
@@ -102,20 +101,19 @@ page 2516 "AppSource Product Details"
                 field(Rating_Popularity; AppSourceProductManager.GetStringValue(ProductObject, 'popularity'))
                 {
                     Caption = 'Popularity';
-                    ToolTip = 'Specifies the Popularity';
+                    ToolTip = 'Specifies a value from 0-10 indicating the popularity of the offer.';
                 }
                 field(Rating_RatingAverage; AppSourceProductManager.GetStringValue(ProductObject, 'ratingAverage'))
                 {
                     Caption = 'Rating Average';
-                    ToolTip = 'Specifies the Rating Average';
+                    ToolTip = 'Specifies a value from 0-5 indicating the average user rating.';
                 }
                 field(Rating_RatingCount; AppSourceProductManager.GetStringValue(ProductObject, 'ratingCount'))
                 {
                     Caption = 'Rating Count';
-                    ToolTip = 'Specifies the Rating Count';
+                    ToolTip = 'Specifies the number of users that have rated the offer.';
                 }
             }
-
 
             group(LinksGroup)
             {
@@ -124,19 +122,19 @@ page 2516 "AppSource Product Details"
                 field(Links_LegalTermsUri; AppSourceProductManager.GetStringValue(ProductObject, 'legalTermsUri'))
                 {
                     Caption = 'Legal Terms Uri';
-                    ToolTip = 'Specifies the Legal Terms Uri';
+                    ToolTip = 'Specifies the legal terms of the offer.';
                     ExtendedDatatype = Url;
                 }
                 field(Links_PrivacyPolicyUri; AppSourceProductManager.GetStringValue(ProductObject, 'privacyPolicyUri'))
                 {
                     Caption = 'Privacy Policy Uri';
-                    ToolTip = 'Specifies the Privacy Policy Uri';
+                    ToolTip = 'Specifies the privacy policy of the offer.';
                     ExtendedDatatype = Url;
                 }
                 field(Links_SupportUri; AppSourceProductManager.GetStringValue(ProductObject, 'supportUri'))
                 {
                     Caption = 'Support Uri';
-                    ToolTip = 'Specifies the Support Uri';
+                    ToolTip = 'Specifies the support Uri of the offer.';
                     ExtendedDatatype = Url;
                 }
             }
@@ -159,7 +157,7 @@ page 2516 "AppSource Product Details"
                 Caption = 'View in AppSource';
                 Scope = Page;
                 Image = Open;
-                ToolTip = 'View app in AppSource';
+                ToolTip = 'Opens the app offer in the AppSource marketplace.';
 
                 trigger OnAction()
                 begin
@@ -173,15 +171,12 @@ page 2516 "AppSource Product Details"
                 Scope = Page;
                 Enabled = CurrentRecordCanBeInstalled;
                 Image = Insert;
-                ToolTip = 'Install App';
+                ToolTip = 'Installs the app.';
 
                 trigger OnAction()
                 var
                     ExtensionManagement: Codeunit "Extension Management";
                 begin
-                    if not (CurrentRecordCanBeInstalled) then
-                        exit;
-
                     if (PlansAreVisible) then
                         if not Confirm(PurchaseLicensesElsewhereLbl) then
                             exit;
@@ -195,7 +190,7 @@ page 2516 "AppSource Product Details"
                 Scope = Page;
                 Enabled = CurrentRecordCanBeUninstalled;
                 Image = Delete;
-                ToolTip = 'Uninstall App';
+                ToolTip = 'Uninstalls the app.';
                 AccessByPermission = TableData "Installed Application" = d;
 
                 trigger OnAction()
@@ -216,12 +211,11 @@ page 2516 "AppSource Product Details"
         CurrentRecordCanBeInstalled: Boolean;
         PlansOverview: Text;
         PlansAreVisible: Boolean;
-        PurchaseLicensesElsewhereLbl: Label 'Installing this app might lead to undesired behavior if licenses are not purchaed before use. You must purchase licenses through Microsoft AppSource.\Do you want to continue with the installation?';
-        PlanLinePrUserPrMonthLbl: Label '%1 %2 user/month', Comment = 'Price added a plan line, %1 is the currency, %2 is the price';
-        PlanLinePrUserPrYearLbl: Label '%1 %2 user/year', Comment = 'Price added a plan line, %1 is the currency, %2 is the price';
-        PlanLineFirstMonthIsFreeLbl: Label 'First month free', Comment = 'Added to the plan line when the first month is free.';
-        PlanLinePostFillerIfFreeLbl: Label ', then ', Comment = 'Added to the plan line when the first month is free.';
-        PlanLinePriceVariesLbl: Label 'Varies', Comment = 'Added to the plan line when the price varies.';
+        PurchaseLicensesElsewhereLbl: Label 'Installing this app might lead to undesired behavior if licenses are not purchased before use. You must purchase licenses through Microsoft AppSource.\Do you want to continue with the installation?';
+        PlanLinePrUserPrMonthLbl: Label '%1 %2 user/month', Comment = 'Price added a plan line, %1 is the currency code, such as USD or IDR, %2 is the price';
+        PlanLinePrUserPrYearLbl: Label '%1 %2 user/year', Comment = 'Price added a plan line, %1 is the currency code, such as USD or IDR, %2 is the price';
+        PlanLineFirstMonthIsFreeLbl: Label 'First month free, then %1.', Comment = 'Added to the plan line when the first month is free.';
+        PlanLinePriceVariesLbl: Label 'varies', Comment = 'Added to the plan line when the price varies.';
         PlanLinesTemplateLbl: Label '<table width="100%" padding="2" style="border-collapse:collapse;text-align:left;vertical-align:top;"><tr style="border-bottom: 1pt solid black;"><td>%1</td><td>%2</td><td>%3</td><td>%4</td></tr>%5</table>', Comment = 'Template for the plans section, %1 is the plans column header, %2 is the description column header, %3 is the monthly price column header, %4 is the yearly column header, %5 is the plan rows', Locked = true;
         PlanLineItemTemplateLbl: Label '<tr style="text-align:left;vertical-align:top;"><td>%1</td><td>%2</td><td>%3</td><td>%4</td></tr>', Comment = 'Template for a plan line item, %1 is the plan name, %2 is the plan description, %3 is the monthly price, %4 is the annual price', Locked = true;
         PlanLinesColumnPlansLbl: Label 'Plans', Comment = 'Column header for the plans section';
@@ -253,9 +247,9 @@ page 2516 "AppSource Product Details"
         PlanItemObject: JsonObject;
         PlanItemArray: JsonArray;
         MonthlyPriceText, YearlyPriceText : Text;
-        i, availabilitiesAdded : Integer;
+        i, AvailabilitiesAdded : Integer;
     begin
-        availabilitiesAdded := 0;
+        AvailabilitiesAdded := 0;
         PlanLinesBuilder.Clear();
 
         AllPlans := PlansObject.AsArray();
@@ -266,7 +260,7 @@ page 2516 "AppSource Product Details"
                     PlanItemArray := PlanItem.AsArray();
                     if PlanItemArray.Count() > 0 then begin
                         if BuildPlanPriceText(PlanItemArray, MonthlyPriceText, YearlyPriceText) then
-                            availabilitiesAdded += 1;
+                            AvailabilitiesAdded += 1;
                         PlanLinesBuilder.Append(
                             StrSubstNo(
                                 PlanLineItemTemplateLbl,
@@ -278,7 +272,7 @@ page 2516 "AppSource Product Details"
                 end;
             end;
 
-        if (availabilitiesAdded > 0) then begin
+        if AvailabilitiesAdded > 0 then begin
             PlansAreVisible := true;
             PlansOverview := StrSubstNo(
                 PlanLinesTemplateLbl,
@@ -297,53 +291,58 @@ page 2516 "AppSource Product Details"
 
     local procedure BuildPlanPriceText(Availabilities: JsonArray; var MonthlyPriceText: Text; var YearlyPriceText: Text): Boolean
     var
-        item: JsonToken;
-        itemObject: JsonObject;
-        item2: JsonToken;
-        arrayItem: JsonArray;
+        Availability: JsonToken;
+        AvailabilityObject: JsonObject;
+        TermItem: JsonToken;
+        ArrayItem: JsonArray;
         i: integer;
-        currency: text;
-        monthly, yearly : decimal;
-        freeTrial: Boolean;
+        Currency: text;
+        Monthly, Yearly : decimal;
+        FreeTrial: Boolean;
+        PriceText: Text;
     begin
-        freeTrial := false;
+        FreeTrial := false;
         for i := 0 to Availabilities.Count do
-            if (Availabilities.Get(i, item)) then begin
-                itemObject := item.AsObject();
+            if Availabilities.Get(i, Availability) then begin
+                AvailabilityObject := Availability.AsObject();
 
-                if (GetStringValue(itemObject, 'hasFreeTrials') = 'true') then
-                    freeTrial := true;
+                if (GetStringValue(AvailabilityObject, 'hasFreeTrials') = 'true') then
+                    FreeTrial := true;
 
-                if (itemObject.Get('terms', item2)) then
-                    if item2.IsArray then begin
-                        arrayItem := item2.AsArray();
-                        GetTerms(arrayItem, monthly, yearly, currency);
+                if (AvailabilityObject.Get('terms', TermItem)) then
+                    if TermItem.IsArray then begin
+                        ArrayItem := TermItem.AsArray();
+                        GetTerms(ArrayItem, Monthly, Yearly, Currency);
                     end;
             end;
 
-        MonthlyPriceText := '';
-        if freeTrial then begin
-            MonthlyPriceText += PlanLineFirstMonthIsFreeLbl;
-            MonthlyPriceText += PlanLinePostFillerIfFreeLbl;
-            if (monthly <= 0) then
-                MonthlyPriceText += PlanLinePriceVariesLbl;
-        end;
-
-        if (monthly > 0) then
-            MonthlyPriceText += StrSubstNo(PlanLinePrUserPrMonthLbl, currency, FORMAT(monthly, 12, 2));
-
         YearlyPriceText := '';
-        if freeTrial then begin
-            YearlyPriceText += PlanLineFirstMonthIsFreeLbl;
-            YearlyPriceText += PlanLinePostFillerIfFreeLbl;
-            if (yearly <= 0) then
-                YearlyPriceText += PlanLinePriceVariesLbl;
+        MonthlyPriceText := '';
+        if (Monthly = 0) or (Yearly = 0) or not FreeTrial then
+            exit(false);
+
+        if FreeTrial then begin
+            if Monthly > 0 then begin
+                PriceText := StrSubstNo(PlanLinePrUserPrMonthLbl, Currency, Format(Monthly, 12, 2));
+                MonthlyPriceText := StrSubstNo(PlanLineFirstMonthIsFreeLbl, PriceText)
+            end
+            else
+                MonthlyPriceText := StrSubstNo(PlanLineFirstMonthIsFreeLbl, PlanLinePriceVariesLbl);
+            if Yearly > 0 then begin
+                PriceText := StrSubstNo(PlanLinePrUserPrYearLbl, Currency, Format(Yearly, 12, 2));
+                YearlyPriceText := StrSubstNo(PlanLineFirstMonthIsFreeLbl, PriceText)
+            end
+            else
+                YearlyPriceText := StrSubstNo(PlanLineFirstMonthIsFreeLbl, PlanLinePriceVariesLbl);
+        end
+        else begin
+            if Monthly > 0 then
+                MonthlyPriceText := StrSubstNo(PlanLinePrUserPrMonthLbl, Currency, Format(Monthly, 12, 2));
+            if Yearly > 0 then
+                YearlyPriceText := StrSubstNo(PlanLinePrUserPrYearLbl, Currency, Format(Yearly, 12, 2));
         end;
 
-        if (yearly > 0) then
-            YearlyPriceText += StrSubstNo(PlanLinePrUserPrYearLbl, currency, FORMAT(yearly, 12, 2));
-
-        exit((monthly <> 0) or (yearly <> 0) or freeTrial);
+        exit(true);
     end;
 
     local procedure GetTerms(Terms: JsonArray; var Monthly: decimal; var Yearly: decimal; var Currency: Text)
