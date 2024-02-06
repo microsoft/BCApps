@@ -125,6 +125,7 @@ codeunit 1266 "Cryptography Management"
     /// <param name="HashAlgorithmType">The available hash algorithms include HMACMD5, HMACSHA1, HMACSHA256, HMACSHA384, and HMACSHA512.</param>
     /// <returns>Hashed value.</returns>
     [Obsolete('Use GenerateHash with SecretText data type for Key.', '24.0')]
+    [NonDebuggable]
     procedure GenerateHash(InputString: Text; "Key": Text; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     begin
         exit(CryptographyManagementImpl.GenerateHash(InputString, Key, HashAlgorithmType));
@@ -174,6 +175,7 @@ codeunit 1266 "Cryptography Management"
     /// <param name="HashAlgorithmType">The available hash algorithms include HMACMD5, HMACSHA1, HMACSHA256, HMACSHA384, and HMACSHA512.</param>
     /// <returns>Base64 hashed value.</returns>
     [Obsolete('Use GenerateHashAsBase64String with SecretText data type for Key.', '24.0')]
+    [NonDebuggable]
     procedure GenerateHashAsBase64String(InputString: Text; "Key": Text; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     begin
         exit(CryptographyManagementImpl.GenerateHashAsBase64String(InputString, Key, HashAlgorithmType));
@@ -201,6 +203,7 @@ codeunit 1266 "Cryptography Management"
     /// <param name="HashAlgorithmType">The available hash algorithms include HMACMD5, HMACSHA1, HMACSHA256, HMACSHA384, and HMACSHA512.</param>
     /// <returns>Base64 hashed value.</returns>
     [Obsolete('Use GenerateBase64KeyedHashAsBase64String with SecretText data type for Key.', '24.0')]
+    [NonDebuggable]
     procedure GenerateBase64KeyedHashAsBase64String(InputString: Text; "Key": Text; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     begin
         exit(CryptographyManagementImpl.GenerateBase64KeyedHashAsBase64String(InputString, Key, HashAlgorithmType));
@@ -228,6 +231,7 @@ codeunit 1266 "Cryptography Management"
     /// <param name="HashAlgorithmType">The available hash algorithms include HMACMD5, HMACSHA1, HMACSHA256, HMACSHA384, and HMACSHA512.</param>
     /// <returns>Hashed value.</returns>
     [Obsolete('Use GenerateBase64KeyedHash with SecretText data type for Key.', '24.0')]
+    [NonDebuggable]
     procedure GenerateBase64KeyedHash(InputString: Text; "Key": Text; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     begin
         exit(CryptographyManagementImpl.GenerateBase64KeyedHash(InputString, Key, HashAlgorithmType));
@@ -255,6 +259,7 @@ codeunit 1266 "Cryptography Management"
     /// <param name="HashAlgorithm">The available hash algorithms are MD5, SHA1, SHA256, SHA384, and SHA512.</param>
     /// <param name="SignatureOutStream">The stream to write the signature for the specified string.</param>
     [Obsolete('Use SignData with SecretText data type for XmlString.', '24.0')]
+    [NonDebuggable]
     procedure SignData(InputString: Text; XmlString: Text; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
     begin
         CryptographyManagementImpl.SignData(InputString, XmlString, HashAlgorithm, SignatureOutStream);
@@ -282,6 +287,7 @@ codeunit 1266 "Cryptography Management"
     /// <param name="HashAlgorithm">The available hash algorithms are MD5, SHA1, SHA256, SHA384, and SHA512.</param>
     /// <param name="SignatureOutStream">The stream to write the signature for the specified input data.</param>
     [Obsolete('Use SignData with SecretText data type for XmlString.', '24.0')]
+    [NonDebuggable]
     procedure SignData(DataInStream: InStream; XmlString: Text; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
     begin
         CryptographyManagementImpl.SignData(DataInStream, XmlString, HashAlgorithm, SignatureOutStream);

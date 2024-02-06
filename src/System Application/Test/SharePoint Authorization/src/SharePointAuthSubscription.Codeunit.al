@@ -17,8 +17,20 @@ codeunit 132976 "SharePoint Auth. Subscription"
         ShouldFail: Boolean;
         ExpectedError: Text;
 
+#if not CLEAN24
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SharePoint Authorization Code", 'OnBeforeGetToken', '', false, false)]
     local procedure OnBeforeGetToken(var IsHandled: Boolean; var IsSuccess: Boolean; var ErrorText: Text; var AccessToken: Text)
+    begin
+        IsHandled := true;
+        IsSuccess := not ShouldFail;
+        if IsSuccess then
+            AccessToken := Any.AlphanumericText(250)
+        else
+            ErrorText := ExpectedError;
+    end;
+#endif
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"SharePoint Authorization Code", 'OnBeforeGetSecretToken', '', false, false)]
+    local procedure OnBeforeGetSecretToken(var IsHandled: Boolean; var IsSuccess: Boolean; var ErrorText: Text; var AccessToken: SecretText)
     begin
         IsHandled := true;
         IsSuccess := not ShouldFail;

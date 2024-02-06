@@ -20,7 +20,6 @@ codeunit 1466 "EncryptedXml Impl."
         XmlEncRSA15UrlTok: Label 'http://www.w3.org/2001/04/xmlenc#rsa-1_5', Locked = true;
         XmlEncUrlTok: Label 'http://www.w3.org/2001/04/xmlenc#', Locked = true;
 
-    [NonDebuggable]
     procedure Encrypt(var XmlDocument: XmlDocument; ElementToEncrypt: Text; X509CertBase64Value: Text; X509CertPassword: SecretText)
     var
         XmlDotNetConvert: Codeunit "Xml DotNet Convert";
@@ -53,7 +52,6 @@ codeunit 1466 "EncryptedXml Impl."
         XmlDotNetConvert.FromDotNet(DotNetXmlDocument, XmlDocument);
     end;
 
-    [NonDebuggable]
     procedure Encrypt(var XmlDocument: XmlDocument; ElementToEncrypt: Text; X509CertBase64Value: Text; X509CertPassword: SecretText; SymmetricAlgorithm: Enum SymmetricAlgorithm)
     var
         XmlDotNetConvert: Codeunit "Xml DotNet Convert";
@@ -125,7 +123,6 @@ codeunit 1466 "EncryptedXml Impl."
         XmlDotNetConvert.FromDotNet(DotNetXmlDocument, XmlDocument);
     end;
 
-    [NonDebuggable]
     procedure DecryptDocument(var EncryptedDocument: XmlDocument; EncryptionKey: SecretText; SignatureAlgorithm: Enum SignatureAlgorithm): Boolean
     var
         XmlDotNetConvert: Codeunit "Xml DotNet Convert";
@@ -157,7 +154,6 @@ codeunit 1466 "EncryptedXml Impl."
         exit(true);
     end;
 
-    [NonDebuggable]
     local procedure DecryptDataElement(DotNetXmlElement: DotNet XmlElement; DotNetAsymmetricAlgorithm: DotNet AsymmetricAlgorithm): Boolean
     var
         SymmetricAlgorithmInterface: Interface SymmetricAlgorithm;
@@ -209,7 +205,6 @@ codeunit 1466 "EncryptedXml Impl."
         exit(true);
     end;
 
-    [NonDebuggable]
     procedure DecryptKey(EncryptedKey: XmlElement; EncryptionKey: SecretText; UseOAEP: Boolean; var KeyBase64Value: Text; SignatureAlgorithm: Enum SignatureAlgorithm): Boolean
     var
         XmlDocument: XmlDocument;

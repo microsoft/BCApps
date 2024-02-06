@@ -16,6 +16,7 @@ codeunit 1282 "Password Handler Impl."
 
 #if not CLEAN24
     [Obsolete('Replaced by GenerateSecretPassword with SecretText data type.', '24.0')]
+    [NonDebuggable]
     procedure GeneratePassword(): Text;
     begin
 #pragma warning disable AL0432
@@ -24,6 +25,7 @@ codeunit 1282 "Password Handler Impl."
     end;
 
     [Obsolete('Replaced by GenerateSecretPassword with SecretText data type.', '24.0')]
+    [NonDebuggable]
     procedure GeneratePassword(Length: Integer): Text;
     var
         PasswordGenerator: DotNet "PasswordGenerator";

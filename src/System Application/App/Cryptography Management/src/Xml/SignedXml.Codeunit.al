@@ -232,6 +232,7 @@ codeunit 1460 SignedXml
     /// <param name="VerifySignatureOnly">true to verify the signature only; false to verify both the signature and certificate.</param>
     /// <returns>true if the signature verifies; otherwise, false.</returns>
     [Obsolete('Replaced with CheckSignature which takes in a SecretText', '24.0')]
+    [NonDebuggable]
     procedure CheckSignature(X509CertBase64Value: Text; X509CertPassword: Text; VerifySignatureOnly: Boolean): Boolean
     begin
         exit(SignedXmlImpl.CheckSignature(X509CertBase64Value, X509CertPassword, VerifySignatureOnly));

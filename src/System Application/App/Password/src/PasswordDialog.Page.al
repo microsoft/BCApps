@@ -133,7 +133,6 @@ page 9810 "Password Dialog"
     /// </summary>
     /// <returns>The password value typed on the page.</returns>
     [Scope('OnPrem')]
-    [NonDebuggable]
     procedure GetPasswordSecretValue() Password: SecretText
     begin
         if ValidPassword then
@@ -145,7 +144,6 @@ page 9810 "Password Dialog"
     /// </summary>
     /// <returns>The old password typed on the page.</returns>
     [Scope('OnPrem')]
-    [NonDebuggable]
     procedure GetOldPasswordSecretValue() Password: SecretText
     begin
         if ValidPassword then

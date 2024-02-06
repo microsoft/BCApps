@@ -13,7 +13,6 @@ codeunit 1382 "DESCryptoServiceProvider Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    [NonDebuggable]
     procedure EncryptText(VarInput: Text; Password: SecretText; Salt: Text) VarOutput: Text
     var
         ByteArray: DotNet Array;
@@ -29,7 +28,6 @@ codeunit 1382 "DESCryptoServiceProvider Impl."
         VarOutput := Encoding.GetEncoding(0).GetString(ByteArray, 0, ByteArray.Length);
     end;
 
-    [NonDebuggable]
     procedure DecryptText(VarInput: Text; Password: SecretText; Salt: Text) VarOutput: Text
     var
         ByteArray: DotNet Array;
@@ -45,7 +43,6 @@ codeunit 1382 "DESCryptoServiceProvider Impl."
         VarOutput := Encoding.GetEncoding(0).GetString(ByteArray, 0, ByteArray.Length);
     end;
 
-    [NonDebuggable]
     procedure EncryptStream(Password: SecretText; Salt: Text; InputInstream: InStream; var OutputOutstream: OutStream)
     var
         MemoryStream: DotNet MemoryStream;
@@ -61,7 +58,6 @@ codeunit 1382 "DESCryptoServiceProvider Impl."
         CopyStream(OutputOutstream, MemoryStream);
     end;
 
-    [NonDebuggable]
     procedure DecryptStream(Password: SecretText; Salt: Text; InputInstream: InStream; var OutputOutstream: OutStream)
     var
         MemoryStream: DotNet MemoryStream;

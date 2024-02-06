@@ -85,7 +85,6 @@ codeunit 1465 EncryptedXml
     /// <param name="ElementToEncrypt">The name of the element to encrypt.</param>
     /// <param name="X509CertBase64Value">The X509Certificate2 to use for the asymmetric encryption.</param>
     /// <param name="X509CertPassword">Password to the X509Certificate2.</param>
-    [NonDebuggable]
     procedure Encrypt(var XmlDocument: XmlDocument; ElementToEncrypt: Text; X509CertBase64Value: Text; X509CertPassword: SecretText)
     begin
         EncryptedXmlImpl.Encrypt(XmlDocument, ElementToEncrypt, X509CertBase64Value, X509CertPassword);
@@ -100,7 +99,6 @@ codeunit 1465 EncryptedXml
     /// <param name="X509CertBase64Value">The X509Certificate2 to use for the asymmetric encryption.</param>
     /// <param name="X509CertPassword">Password to the X509Certificate2.</param>
     /// <param name="SymmetricAlgorithm">The symmetric algorithm to be used when encrypting.</param>
-    [NonDebuggable]
     procedure Encrypt(var XmlDocument: XmlDocument; ElementToEncrypt: Text; X509CertBase64Value: Text; X509CertPassword: SecretText; SymmetricAlgorithm: Enum SymmetricAlgorithm)
     begin
         EncryptedXmlImpl.Encrypt(XmlDocument, ElementToEncrypt, X509CertBase64Value, X509CertPassword, SymmetricAlgorithm);
@@ -113,7 +111,6 @@ codeunit 1465 EncryptedXml
     /// <param name="EncryptionKey">The asymmetric key to use to decrypt the symmetric keys in the document.</param>
     /// <param name="SignatureAlgorithm">The asymmetric algorithm used to decrypt the symmetric key.</param>
     /// <returns>Returns true if decryption was successful, otherwise false.</returns>
-    [NonDebuggable]
     procedure DecryptDocument(var EncryptedDocument: XmlDocument; EncryptionKey: SecretText; SignatureAlgorithm: Enum SignatureAlgorithm): Boolean
     begin
         exit(EncryptedXmlImpl.DecryptDocument(EncryptedDocument, EncryptionKey, SignatureAlgorithm));
@@ -128,7 +125,6 @@ codeunit 1465 EncryptedXml
     /// <param name="KeyBase64Value">The Base64 encoded decrypted key value.</param>
     /// <param name="SignatureAlgorithm">The asymmetric algorithm used to decrypt the symmetric key.</param>
     /// <returns>Returns true if decryption was successful, otherwise false.</returns>
-    [NonDebuggable]
     procedure DecryptKey(EncryptedKey: XmlElement; EncryptionKey: SecretText; UseOAEP: Boolean; var KeyBase64Value: Text; SignatureAlgorithm: Enum SignatureAlgorithm): Boolean
     begin
         exit(EncryptedXmlImpl.DecryptKey(EncryptedKey, EncryptionKey, UseOAEP, KeyBase64Value, SignatureAlgorithm));

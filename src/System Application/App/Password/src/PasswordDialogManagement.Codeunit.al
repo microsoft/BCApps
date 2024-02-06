@@ -26,6 +26,7 @@ codeunit 9810 "Password Dialog Management"
     /// <param name="DisablePasswordConfirmation">If set to true the new password is only needed once. Default value is false.</param>
     /// <returns>The typed password, or empty text if the password validations fail.</returns>
     [Obsolete('Replaced by OpenSecretPasswordDialog with SecretText return data type.', '24.0')]
+    [NonDebuggable]
     procedure OpenPasswordDialog(DisablePasswordValidation: Boolean; DisablePasswordConfirmation: Boolean): Text
     begin
 #pragma warning disable AL0432
@@ -40,6 +41,7 @@ codeunit 9810 "Password Dialog Management"
     /// <param name="DisablePasswordValidation">Disables the checks for the password validity. Default value is false.</param>
     /// <returns>The typed password, or empty text if the password validations fail.</returns>
     [Obsolete('Replaced by OpenSecretPasswordDialog with SecretText return data type.', '24.0')]
+    [NonDebuggable]
     procedure OpenPasswordDialog(DisablePasswordValidation: Boolean): Text
     begin
 #pragma warning disable AL0432
@@ -53,6 +55,7 @@ codeunit 9810 "Password Dialog Management"
     /// </summary>
     /// <returns>The typed password, or empty text if the password validations fail.</returns>
     [Obsolete('Replaced by OpenSecretPasswordDialog with SecretText return data type.', '24.0')]
+    [NonDebuggable]
     procedure OpenPasswordDialog(): Text
     begin
 #pragma warning disable AL0432
@@ -67,6 +70,7 @@ codeunit 9810 "Password Dialog Management"
     /// <param name="OldPassword">Out parameter, the old password user typed on the dialog.</param>
     /// <param name="Password">Out parameter, the new password user typed on the dialog.</param>
     [Obsolete('Replaced by OpenChangePassworDialog with SecretText parameter data type.', '24.0')]
+    [NonDebuggable]
     procedure OpenChangePasswordDialog(var OldPassword: Text; var Password: Text)
     begin
 #pragma warning disable AL0432

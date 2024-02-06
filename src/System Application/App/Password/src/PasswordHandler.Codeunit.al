@@ -25,6 +25,7 @@ codeunit 1284 "Password Handler"
     /// <error>The length is less than the minimum defined in <see cref="OnSetMinPasswordLength"/> event.</error>
     /// <returns>The generated password.</returns>
     [Obsolete('Replaced by GenerateSecretPassword with SecretText data type.', '24.0')]
+    [NonDebuggable]
     procedure GeneratePassword(): Text;
     begin
 #pragma warning disable AL0432
@@ -39,6 +40,7 @@ codeunit 1284 "Password Handler"
     /// <error>The length is less than the minimum defined in <see cref="OnSetMinPasswordLength"/> event.</error>
     /// <returns>The generated password.</returns>
     [Obsolete('Replaced by GenerateSecretPassword with SecretText data type.', '24.0')]
+    [NonDebuggable]
     procedure GeneratePassword(Length: Integer): Text;
     begin
 #pragma warning disable AL0432
@@ -55,6 +57,7 @@ codeunit 1284 "Password Handler"
     /// <param name="Password">The password to check.</param>
     /// <returns>True if the password meets the conditions for strong passwords.</returns>
     [Obsolete('Replaced by IsPasswordStrong with SecretText data type.', '24.0')]
+    [NonDebuggable]
     procedure IsPasswordStrong(Password: Text): Boolean;
     begin
         exit(PasswordHandlerImpl.IsPasswordStrong(Password));

@@ -203,6 +203,7 @@ codeunit 1258 "Rijndael Cryptography"
     /// <param name="KeyAsBase64">Represents the secret key for the symmetric algorithm encoded as Base64 Text</param>
     /// <param name="VectorAsBase64">Represents the initialization vector (IV) for the symmetric algorithm encoded as Base64 Text</param>
     [Obsolete('Use GetEncryptionData with SecretText data type for KeyAsBase64.', '24.0')]
+    [NonDebuggable]
     procedure GetEncryptionData(var KeyAsBase64: Text; var VectorAsBase64: Text)
     begin
         CryptographyManagementImpl.GetEncryptionData(KeyAsBase64, VectorAsBase64);

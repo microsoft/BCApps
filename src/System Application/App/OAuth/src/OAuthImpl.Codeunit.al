@@ -32,7 +32,6 @@ codeunit 1289 "OAuth Impl."
         AccessTokenSecret := SecretAccessTokenSecret.Unwrap();
     end;
 
-
     [TryFunction]
     [NonDebuggable]
     [Obsolete('Use GetAccessToken with SecretText data type for AccessTokenKey and AccessTokenSecret.', '24.0')]
@@ -58,7 +57,6 @@ codeunit 1289 "OAuth Impl."
     end;
 #endif
     [TryFunction]
-    [NonDebuggable]
     procedure GetRequestToken(ConsumerKey: SecretText; ConsumerSecret: SecretText; RequestTokenUrl: Text; CallbackUrl: Text; var AccessTokenKey: SecretText; var AccessTokenSecret: SecretText)
     var
         OAuthAuthorization: DotNet OAuthAuthorization;
@@ -78,7 +76,6 @@ codeunit 1289 "OAuth Impl."
     end;
 
     [TryFunction]
-    [NonDebuggable]
     procedure GetAccessToken(ConsumerKey: SecretText; ConsumerSecret: SecretText; RequestTokenUrl: Text; Verifier: Text; RequestTokenKey: SecretText; RequestTokenSecret: SecretText; var AccessTokenKey: SecretText; var AccessTokenSecret: SecretText)
     var
         OAuthAuthorization: DotNet OAuthAuthorization;
@@ -86,7 +83,7 @@ codeunit 1289 "OAuth Impl."
         RequestToken: DotNet Token;
         AccessToken: DotNet Token;
     begin
-        RequestToken := RequestToken.Token(RequestTokenKey.Unwrap(), RequestTokenSecret.Unwrap());
+        RequestToken := RequestToken.Token(RequestTokenKey, RequestTokenSecret);
         Consumer := Consumer.Consumer(ConsumerKey, ConsumerSecret);
         OAuthAuthorization := OAuthAuthorization.OAuthAuthorization(Consumer, RequestToken);
 
@@ -97,7 +94,6 @@ codeunit 1289 "OAuth Impl."
     end;
 
     [TryFunction]
-    [NonDebuggable]
     procedure GetAuthorizationHeader(ConsumerKey: SecretText; ConsumerSecret: SecretText; RequestTokenKey: SecretText; RequestTokenSecret: SecretText; RequestUrl: Text; RequestMethod: Enum "Http Request Type"; var AuthorizationHeader: SecretText)
     var
         OAuthAuthorization: DotNet OAuthAuthorization;

@@ -15,7 +15,6 @@ codeunit 1445 RSACryptoServiceProvider
     InherentPermissions = X;
 
     var
-        [NonDebuggable]
         RSACryptoServiceProviderImpl: Codeunit "RSACryptoServiceProvider Impl.";
 
     /// <summary>
@@ -27,18 +26,20 @@ codeunit 1445 RSACryptoServiceProvider
         RSACryptoServiceProviderImpl.InitializeRSA(KeySize);
     end;
 
+#if not CLEAN24
     /// <summary>
     /// Creates and returns an XML string containing the key of the current RSA object.
     /// </summary>
     /// <param name="IncludePrivateParameters">true to include a public and private RSA key; false to include only the public key.</param>
     /// <returns>An XML string containing the key of the current RSA object.</returns>
-    [NonDebuggable]
+    [Obsolete('Use ToSecretXmlString with SecretText data type for XmlString.', '24.0')]
     procedure ToXmlString(IncludePrivateParameters: Boolean): Text
     begin
+#pragma warning disable AL0432
         exit(RSACryptoServiceProviderImpl.ToXmlString(IncludePrivateParameters));
+#pragma warning restore AL0432
     end;
 
-#if not CLEAN24
     /// <summary>
     /// Computes the hash value of the specified data and signs it.
     /// </summary>
@@ -69,6 +70,19 @@ codeunit 1445 RSACryptoServiceProvider
     end;
 
     /// <summary>
+    /// Encrypts the specified text with the RSA algorithm.
+    /// </summary>
+    /// <param name="XmlString">The XML string containing RSA key information.</param>
+    /// <param name="PlainTextInStream">The input stream to encrypt.</param>
+    /// <param name="OaepPadding">True to perform RSA encryption using OAEP padding; otherwise, false to use PKCS#1 padding.</param>
+    /// <param name="EncryptedTextOutStream">The RSA encryption stream for the specified text.</param>
+    [Obsolete('Use Encrypt with SecretText data type for XmlString.', '24.0')]
+    procedure Encrypt(XmlString: Text; PlainTextInStream: InStream; OaepPadding: Boolean; EncryptedTextOutStream: OutStream)
+    begin
+        RSACryptoServiceProviderImpl.Encrypt(XmlString, PlainTextInStream, OaepPadding, EncryptedTextOutStream);
+    end;
+
+    /// <summary>
     /// Decrypts the specified text that was previously encrypted with the RSA algorithm.
     /// </summary>
     /// <param name="XmlString">The XML string containing RSA key information.</param>
@@ -84,13 +98,22 @@ codeunit 1445 RSACryptoServiceProvider
 #endif
 
     /// <summary>
+    /// Creates and returns an XML string containing the key of the current RSA object.
+    /// </summary>
+    /// <param name="IncludePrivateParameters">true to include a public and private RSA key; false to include only the public key.</param>
+    /// <returns>An XML string containing the key of the current RSA object.</returns>
+    procedure ToSecretXmlString(IncludePrivateParameters: Boolean): SecretText
+    begin
+        exit(RSACryptoServiceProviderImpl.ToSecretXmlString(IncludePrivateParameters));
+    end;
+
+    /// <summary>
     /// Computes the hash value of the specified data and signs it.
     /// </summary>
     /// <param name="XmlString">The XML string containing RSA key information.</param>
     /// <param name="DataInStream">The input stream to hash and sign.</param>
     /// <param name="HashAlgorithm">The hash algorithm to use to create the hash value.</param>
     /// <param name="SignatureOutStream">The RSA signature stream for the specified data.</param>
-    [NonDebuggable]
     procedure SignData(XmlString: SecretText; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
     begin
         RSACryptoServiceProviderImpl.SignData(XmlString, DataInStream, HashAlgorithm, SignatureOutStream);
@@ -104,7 +127,6 @@ codeunit 1445 RSACryptoServiceProvider
     /// <param name="HashAlgorithm">The name of the hash algorithm used to create the hash value of the data.</param>
     /// <param name="SignatureInStream">The stream of signature data to be verified.</param>
     /// <returns>True if the signature is valid; otherwise, false.</returns>
-    [NonDebuggable]
     procedure VerifyData(XmlString: SecretText; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
     begin
         exit(RSACryptoServiceProviderImpl.VerifyData(XmlString, DataInStream, HashAlgorithm, SignatureInStream));
@@ -117,8 +139,7 @@ codeunit 1445 RSACryptoServiceProvider
     /// <param name="PlainTextInStream">The input stream to encrypt.</param>
     /// <param name="OaepPadding">True to perform RSA encryption using OAEP padding; otherwise, false to use PKCS#1 padding.</param>
     /// <param name="EncryptedTextOutStream">The RSA encryption stream for the specified text.</param>
-    [NonDebuggable]
-    procedure Encrypt(XmlString: Text; PlainTextInStream: InStream; OaepPadding: Boolean; EncryptedTextOutStream: OutStream)
+    procedure Encrypt(XmlString: SecretText; PlainTextInStream: InStream; OaepPadding: Boolean; EncryptedTextOutStream: OutStream)
     begin
         RSACryptoServiceProviderImpl.Encrypt(XmlString, PlainTextInStream, OaepPadding, EncryptedTextOutStream);
     end;
@@ -130,7 +151,6 @@ codeunit 1445 RSACryptoServiceProvider
     /// <param name="EncryptedTextInStream">The input stream to decrypt.</param>
     /// <param name="OaepPadding">true to perform RSA encryption using OAEP padding; otherwise, false to use PKCS#1 padding.</param>
     /// <param name="DecryptedTextOutStream">The RSA decryption stream for the specified text.</param>
-    [NonDebuggable]
     procedure Decrypt(XmlString: SecretText; EncryptedTextInStream: InStream; OaepPadding: Boolean; DecryptedTextOutStream: OutStream)
     begin
         RSACryptoServiceProviderImpl.Decrypt(XmlString, EncryptedTextInStream, OaepPadding, DecryptedTextOutStream);

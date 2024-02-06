@@ -169,7 +169,6 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
         ErrorMessage := JToken.AsValue().AsText();
     end;
 
-    [NonDebuggable]
     local procedure Authorize(var HttpHeaders: HttpHeaders; var ErrorMessage: Text; IsGraph: Boolean): Boolean
     var
         AccessToken: SecretText;
@@ -191,7 +190,6 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
         exit(false);
     end;
 
-    [NonDebuggable]
     local procedure AcquireToken(var ErrorMessage: Text): SecretText
     var
         OAuth2: Codeunit OAuth2;

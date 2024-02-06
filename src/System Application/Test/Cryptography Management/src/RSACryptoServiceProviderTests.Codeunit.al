@@ -41,12 +41,12 @@ codeunit 132613 RSACryptoServiceProviderTests
         KeyXml: XmlDocument;
         Root: XmlElement;
         Node: XmlNode;
-        KeyXmlText: Text;
+        KeyXmlText: SecretText;
     begin
         RSACryptoServiceProvider.InitializeRSA(2048);
-        KeyXmlText := RSACryptoServiceProvider.ToXmlString(true);
+        KeyXmlText := RSACryptoServiceProvider.ToSecretXmlString(true);
 
-        LibraryAssert.IsTrue(XmlDocument.ReadFrom(KeyXmlText, KeyXml), 'RSA key is not valid xml data.');
+        LibraryAssert.IsTrue(XmlDocument.ReadFrom(GetXmlString(KeyXmlText), KeyXml), 'RSA key is not valid xml data.');
         LibraryAssert.IsTrue(KeyXml.GetRoot(Root), 'Could not get Root element of key.');
 
         LibraryAssert.IsTrue(Root.SelectSingleNode('Modulus', Node), 'Could not find <Modulus> in key.');
@@ -95,7 +95,7 @@ codeunit 132613 RSACryptoServiceProviderTests
         PlainText := SaveRandomTextToOutStream(EncryptingOutStream);
         EncryptingTempBlob.CreateInStream(EncryptingInStream);
         EncryptedTempBlob.CreateOutStream(EncryptedOutStream);
-        RSACryptoServiceProvider.Encrypt(PublicKeyXmlString, EncryptingInStream, true, EncryptedOutStream);
+        RSACryptoServiceProvider.Encrypt(GetPublicKeyXmlStringAsSecret(), EncryptingInStream, true, EncryptedOutStream);
         EncryptedTempBlob.CreateInStream(EncryptedInStream);
 
         // [WHEN] Decrypt encrypted text stream
@@ -130,7 +130,7 @@ codeunit 132613 RSACryptoServiceProviderTests
         PlainText := SaveRandomTextToOutStream(EncryptingOutStream);
         EncryptingTempBlob.CreateInStream(EncryptingInStream);
         EncryptedTempBlob.CreateOutStream(EncryptedOutStream);
-        RSACryptoServiceProvider.Encrypt(PublicKeyXmlString, EncryptingInStream, false, EncryptedOutStream);
+        RSACryptoServiceProvider.Encrypt(GetPublicKeyXmlStringAsSecret(), EncryptingInStream, false, EncryptedOutStream);
         EncryptedTempBlob.CreateInStream(EncryptedInStream);
 
         // [WHEN] Decrypt encrypted text stream
@@ -163,7 +163,7 @@ codeunit 132613 RSACryptoServiceProviderTests
         SaveRandomTextToOutStream(EncryptingOutStream);
         EncryptingTempBlob.CreateInStream(EncryptingInStream);
         EncryptedTempBlob.CreateOutStream(EncryptedOutStream);
-        RSACryptoServiceProvider.Encrypt(PublicKeyXmlString, EncryptingInStream, false, EncryptedOutStream);
+        RSACryptoServiceProvider.Encrypt(GetPublicKeyXmlStringAsSecret(), EncryptingInStream, false, EncryptedOutStream);
         EncryptedTempBlob.CreateInStream(EncryptedInStream);
 
         // [WHEN] Decrypt encrypted text stream using OAEP Padding
@@ -194,7 +194,7 @@ codeunit 132613 RSACryptoServiceProviderTests
         SaveRandomTextToOutStream(EncryptingOutStream);
         EncryptingTempBlob.CreateInStream(EncryptingInStream);
         EncryptedTempBlob.CreateOutStream(EncryptedOutStream);
-        RSACryptoServiceProvider.Encrypt(PublicKeyXmlString, EncryptingInStream, true, EncryptedOutStream);
+        RSACryptoServiceProvider.Encrypt(GetPublicKeyXmlStringAsSecret(), EncryptingInStream, true, EncryptedOutStream);
         EncryptedTempBlob.CreateInStream(EncryptedInStream);
 
         // [WHEN] Decrypt encrypted text stream using PKCS#1 padding.
@@ -224,4 +224,19 @@ codeunit 132613 RSACryptoServiceProviderTests
         exit(Password);
     end;
 
+    local procedure GetPublicKeyXmlStringAsSecret(): SecretText
+    var
+        XmlString: Text;
+        SecretXmlString: SecretText;
+    begin
+        XmlString := PublicKeyXmlString;
+        SecretXmlString := XmlString;
+        exit(SecretXmlString);
+    end;
+
+    [NonDebuggable]
+    local procedure GetXmlString(XmlString: SecretText): Text
+    begin
+        exit(XmlString.Unwrap());
+    end;
 }

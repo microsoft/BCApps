@@ -89,7 +89,6 @@ codeunit 1288 OAuth
     /// <param name="AccessTokenKey">The OAuth response token key.</param>
     /// <param name="AccessTokenSecret">The OAuth response token secret.</param>
     [TryFunction]
-    [NonDebuggable]
     procedure GetOAuthAccessToken(ConsumerKey: SecretText; ConsumerSecret: SecretText; RequestTokenUrl: Text; CallbackUrl: Text; var AccessTokenKey: SecretText; var AccessTokenSecret: SecretText)
     begin
         OAuthImpl.GetRequestToken(ConsumerKey, ConsumerSecret, RequestTokenUrl, CallbackUrl, AccessTokenKey, AccessTokenSecret);
@@ -107,7 +106,6 @@ codeunit 1288 OAuth
     /// <param name="AccessTokenKey">Exit parameter containing the OAuth response token key.</param>
     /// <param name="AccessTokenSecret">Exit parameter containing the OAuth response token secret.</param>
     [TryFunction]
-    [NonDebuggable]
     procedure GetOAuthAccessToken(ConsumerKey: SecretText; ConsumerSecret: SecretText; RequestTokenUrl: Text; Verifier: Text; RequestTokenKey: Text; RequestTokenSecret: Text; var AccessTokenKey: SecretText; var AccessTokenSecret: SecretText)
     begin
         OAuthImpl.GetAccessToken(ConsumerKey, ConsumerSecret, RequestTokenUrl, Verifier, RequestTokenKey, RequestTokenSecret, AccessTokenKey, AccessTokenSecret);
@@ -124,7 +122,6 @@ codeunit 1288 OAuth
     /// <param name="RequestMethod">The REST method call with capital letters(POST, GET, PUT, PATCH, DELETE).</param>
     /// <param name="AuthorizationHeader">Exit parameter containing the requested OAuth specific authorization header.</param>
     [TryFunction]
-    [NonDebuggable]
     procedure GetAuthorizationHeader(ConsumerKey: SecretText; ConsumerSecret: SecretText; RequestTokenKey: SecretText; RequestTokenSecret: SecretText; RequestUrl: Text; RequestMethod: Enum "Http Request Type"; var AuthorizationHeader: SecretText)
     begin
         OAuthImpl.GetAuthorizationHeader(ConsumerKey, ConsumerSecret, RequestTokenKey, RequestTokenSecret, RequestUrl, RequestMethod, AuthorizationHeader);
