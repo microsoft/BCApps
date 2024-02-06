@@ -168,7 +168,7 @@ codeunit 502 OAuth2Impl
         HasGrantConsentSucceeded := OAuth2ControlAddIn.GetGrantConsentSuccess();
         PermissionGrantError := OAuth2ControlAddIn.GetAuthError();
     end;
-#if not CLEAN24
+
     [NonDebuggable]
     [TryFunction]
     [Obsolete('Use AcquireTokenByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
@@ -179,7 +179,286 @@ codeunit 502 OAuth2Impl
         AcquireTokenByAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, ResourceUrl, PromptInteraction, SecretAccessToken, AuthCodeErr);
         AccessToken := SecretAccessToken.Unwrap();
     end;
-#endif
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceUrl: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var AuthCodeErr: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, ResourceUrl, PromptInteraction, SecretAccessToken, AuthCodeErr);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokenByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokenByAuthorizationCode(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var AuthCodeErr: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokenByAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, AuthCodeErr);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var AuthCodeErr: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, AuthCodeErr);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokensByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokensByAuthorizationCode(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var AuthCodeErr: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokensByAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, IdToken, AuthCodeErr);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var AuthCodeErr: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokensByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, IdToken, AuthCodeErr);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokenAndTokenCacheByAuthorizationCode(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var TokenCache: Text; var Error: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokenAndTokenCacheByAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, TokenCache, Error);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var TokenCache: Text; var Error: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, TokenCache, Error);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokensAndTokenCacheByAuthorizationCode(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var TokenCache: Text; var Error: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokensAndTokenCacheByAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, IdToken, TokenCache, Error);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var TokenCache: Text; var Error: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, IdToken, TokenCache, Error);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireOnBehalfOfToken with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireOnBehalfOfToken(RedirectURL: Text; ResourceUrl: Text; var AccessToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireOnBehalfOfToken(RedirectURL, ResourceUrl, SecretAccessToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireOnBehalfOfToken with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireOnBehalfOfToken(RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireOnBehalfOfToken(RedirectURL, Scopes, SecretAccessToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireOnBehalfOfTokens with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireOnBehalfOfTokens(RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireOnBehalfOfTokens(RedirectURL, Scopes, SecretAccessToken, IdToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [Obsolete('Use AcquireOnBehalfAccessTokenAndTokenCache with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireOnBehalfAccessTokenAndTokenCache(OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text; var RefreshToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireOnBehalfAccessTokenAndTokenCache(OAuthAuthorityUrl, RedirectURL, Scopes, SecretAccessToken, RefreshToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [Obsolete('Use AcquireOnBehalfTokensAndTokenCache with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireOnBehalfTokensAndTokenCache(OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text; var RefreshToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireOnBehalfTokensAndTokenCache(OAuthAuthorityUrl, RedirectURL, Scopes, SecretAccessToken, IdToken, RefreshToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [Obsolete('Use AcquireOnBehalfOfTokenByTokenCache with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireOnBehalfOfTokenByTokenCache(LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; RefreshToken: Text; var AccessToken: Text; var NewRefreshToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireOnBehalfOfTokenByTokenCache(LoginHint, RedirectURL, Scopes, RefreshToken, SecretAccessToken, NewRefreshToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [Obsolete('Use AcquireOnBehalfOfTokensByTokenCache with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireOnBehalfOfTokensByTokenCache(LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; RefreshToken: Text; var AccessToken: Text; var IdToken: Text; var NewRefreshToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireOnBehalfOfTokensByTokenCache(LoginHint, RedirectURL, Scopes, RefreshToken, SecretAccessToken, IdToken, NewRefreshToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [Obsolete('Use AcquireOnBehalfOfTokenByTokenCache with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireOnBehalfOfTokenByTokenCache(ClientId: Text; ClientSecret: Text; LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: Text; var NewTokenCache: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireOnBehalfOfTokenByTokenCache(ClientId, ClientSecret, LoginHint, RedirectURL, Scopes, TokenCache, SecretAccessToken, NewTokenCache);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [Obsolete('Use AcquireOnBehalfOfTokensByTokenCache with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireOnBehalfOfTokensByTokenCache(ClientId: Text; ClientSecret: Text; LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: Text; var IdToken: Text; var NewTokenCache: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireOnBehalfOfTokensByTokenCache(ClientId, ClientSecret, LoginHint, RedirectURL, Scopes, TokenCache, SecretAccessToken, IdToken, NewTokenCache);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, ResourceURL, SecretAccessToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokenFromCache with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokenFromCache(RedirectURL: Text; ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokenFromCache(RedirectURL, ClientId, ClientSecret, OAuthAuthorityUrl, Scopes, SecretAccessToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, Scopes, SecretAccessToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokensFromCache with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokensFromCache(RedirectURL: Text; ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokensFromCache(RedirectURL, ClientId, ClientSecret, OAuthAuthorityUrl, Scopes, SecretAccessToken, IdToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokensFromCacheWithCertificate with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokensFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokensFromCacheWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, Scopes, SecretAccessToken, IdToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokensWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokensWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, Scopes, SecretAccessToken, IdToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokenWithClientCredentials with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text; var AccessToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokenWithClientCredentials(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, ResourceURL, SecretAccessToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
+
+    [NonDebuggable]
+    [TryFunction]
+    [Obsolete('Use AcquireTokenWithClientCredentials with SecretText data type for AccessToken.', '24.0')]
+    procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text)
+    var
+        SecretAccessToken: SecretText;
+    begin
+        AcquireTokenWithClientCredentials(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, SecretAccessToken);
+        AccessToken := SecretAccessToken.Unwrap();
+    end;
 
     [TryFunction]
     procedure AcquireTokenByAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceUrl: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
@@ -202,18 +481,6 @@ codeunit 502 OAuth2Impl
 
         AcquireTokenByAuthorizationCodeWithCredentials(AuthCode, ClientId, ClientSecret, RedirectURL, OAuthAuthorityUrl, ResourceUrl, AccessToken);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceUrl: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var AuthCodeErr: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, ResourceUrl, PromptInteraction, SecretAccessToken, AuthCodeErr);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceUrl: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
@@ -241,18 +508,6 @@ codeunit 502 OAuth2Impl
 
         AcquireTokenByAuthorizationCodeWithCertificate(AuthCode, ClientId, Certificate, CertificatePassword, RedirectURL, OAuthAuthorityUrl, ResourceUrl, AccessToken);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokenByAuthorizationCode(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var AuthCodeErr: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokenByAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, AuthCodeErr);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokenByAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
@@ -275,19 +530,6 @@ codeunit 502 OAuth2Impl
 
         AcquireTokenByAuthorizationCodeWithCredentials(AuthCode, ClientId, ClientSecret, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken);
     end;
-
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var AuthCodeErr: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, AuthCodeErr);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
@@ -315,18 +557,6 @@ codeunit 502 OAuth2Impl
 
         AcquireTokenByAuthorizationCodeWithCertificate(AuthCode, ClientId, Certificate, CertificatePassword, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokensByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokensByAuthorizationCode(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var AuthCodeErr: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokensByAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, IdToken, AuthCodeErr);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokensByAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var AuthCodeErr: Text)
@@ -346,18 +576,6 @@ codeunit 502 OAuth2Impl
 
         AcquireTokensByAuthorizationCodeWithCredentials(AuthCode, ClientId, ClientSecret, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var AuthCodeErr: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokensByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, IdToken, AuthCodeErr);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var AuthCodeErr: Text)
@@ -385,18 +603,6 @@ codeunit 502 OAuth2Impl
 
         AcquireTokensByAuthorizationCodeWithCertificate(AuthCode, ClientId, Certificate, CertificatePassword, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokenAndTokenCacheByAuthorizationCode(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var TokenCache: Text; var Error: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokenAndTokenCacheByAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, TokenCache, Error);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokenAndTokenCacheByAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var TokenCache: Text; var Error: Text)
@@ -416,18 +622,6 @@ codeunit 502 OAuth2Impl
 
         AcquireTokenAndTokenCacheByAuthorizationCodeWithCredentials(AuthCode, ClientId, ClientSecret, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken, TokenCache);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var TokenCache: Text; var Error: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, TokenCache, Error);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var TokenCache: Text; var Error: Text)
@@ -456,19 +650,6 @@ codeunit 502 OAuth2Impl
         AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(AuthCode, ClientId, Certificate, CertificatePassword, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken, TokenCache);
     end;
 
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokensAndTokenCacheByAuthorizationCode(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var TokenCache: Text; var Error: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokensAndTokenCacheByAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, IdToken, TokenCache, Error);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
-
     [TryFunction]
     procedure AcquireTokensAndTokenCacheByAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text; var Error: Text)
     var
@@ -487,18 +668,6 @@ codeunit 502 OAuth2Impl
 
         AcquireTokensAndTokenCacheByAuthorizationCodeWithCredentials(AuthCode, ClientId, ClientSecret, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken, IdToken, TokenCache);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var TokenCache: Text; var Error: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, IdToken, TokenCache, Error);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text; var Error: Text)
@@ -543,18 +712,6 @@ codeunit 502 OAuth2Impl
         AuthCode := OAuth2ControlAddIn.GetAuthCode();
         AuthCodeErr := OAuth2ControlAddIn.GetAuthError();
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireOnBehalfOfToken with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireOnBehalfOfToken(RedirectURL: Text; ResourceUrl: Text; var AccessToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireOnBehalfOfToken(RedirectURL, ResourceUrl, SecretAccessToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireOnBehalfOfToken(RedirectURL: Text; ResourceUrl: Text; var AccessToken: SecretText)
@@ -562,18 +719,6 @@ codeunit 502 OAuth2Impl
         Initialize(RedirectURL);
         AccessToken := AuthFlow.ALAcquireOnBehalfOfToken(ResourceUrl);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireOnBehalfOfToken with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireOnBehalfOfToken(RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireOnBehalfOfToken(RedirectURL, Scopes, SecretAccessToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireOnBehalfOfToken(RedirectURL: Text; Scopes: List of [Text]; var AccessToken: SecretText)
@@ -584,18 +729,6 @@ codeunit 502 OAuth2Impl
         Initialize(RedirectURL);
         AccessToken := AuthFlow.ALAcquireOnBehalfOfToken(ScopesArray);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireOnBehalfOfTokens with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireOnBehalfOfTokens(RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireOnBehalfOfTokens(RedirectURL, Scopes, SecretAccessToken, IdToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireOnBehalfOfTokens(RedirectURL: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
@@ -615,17 +748,6 @@ codeunit 502 OAuth2Impl
         Initialize(OAuthAuthorityUrl, RedirectURL);
         AccessToken := AuthFlow.ALAcquireOnBehalfOfToken(ResourceUrl, RefreshToken);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [Obsolete('Use AcquireOnBehalfAccessTokenAndTokenCache with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireOnBehalfAccessTokenAndTokenCache(OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text; var RefreshToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireOnBehalfAccessTokenAndTokenCache(OAuthAuthorityUrl, RedirectURL, Scopes, SecretAccessToken, RefreshToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     procedure AcquireOnBehalfAccessTokenAndTokenCache(OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: SecretText; var RefreshToken: Text)
     var
@@ -635,17 +757,6 @@ codeunit 502 OAuth2Impl
         Initialize(OAuthAuthorityUrl, RedirectURL);
         AccessToken := AuthFlow.ALAcquireOnBehalfOfToken(ScopesArray, RefreshToken);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [Obsolete('Use AcquireOnBehalfTokensAndTokenCache with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireOnBehalfTokensAndTokenCache(OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text; var RefreshToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireOnBehalfTokensAndTokenCache(OAuthAuthorityUrl, RedirectURL, Scopes, SecretAccessToken, IdToken, RefreshToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     procedure AcquireOnBehalfTokensAndTokenCache(OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text; var RefreshToken: Text)
     var
@@ -664,17 +775,6 @@ codeunit 502 OAuth2Impl
         Initialize(RedirectURL);
         AccessToken := AuthFlow.ALAcquireTokenFromTokenCacheState(ResourceURL, LoginHint, RefreshToken, NewRefreshToken);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [Obsolete('Use AcquireOnBehalfOfTokenByTokenCache with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireOnBehalfOfTokenByTokenCache(LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; RefreshToken: Text; var AccessToken: Text; var NewRefreshToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireOnBehalfOfTokenByTokenCache(LoginHint, RedirectURL, Scopes, RefreshToken, SecretAccessToken, NewRefreshToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     procedure AcquireOnBehalfOfTokenByTokenCache(LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; RefreshToken: Text; var AccessToken: SecretText; var NewRefreshToken: Text)
     var
@@ -684,17 +784,6 @@ codeunit 502 OAuth2Impl
         Initialize(RedirectURL);
         AccessToken := AuthFlow.ALAcquireTokenFromTokenCacheState(ScopesArray, LoginHint, RefreshToken, NewRefreshToken);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [Obsolete('Use AcquireOnBehalfOfTokensByTokenCache with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireOnBehalfOfTokensByTokenCache(LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; RefreshToken: Text; var AccessToken: Text; var IdToken: Text; var NewRefreshToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireOnBehalfOfTokensByTokenCache(LoginHint, RedirectURL, Scopes, RefreshToken, SecretAccessToken, IdToken, NewRefreshToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     procedure AcquireOnBehalfOfTokensByTokenCache(LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; RefreshToken: Text; var AccessToken: SecretText; var IdToken: Text; var NewRefreshToken: Text)
     var
@@ -707,17 +796,6 @@ codeunit 502 OAuth2Impl
         AccessToken := CompoundToken.AccessToken;
         IdToken := CompoundToken.IdToken;
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [Obsolete('Use AcquireOnBehalfOfTokenByTokenCache with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireOnBehalfOfTokenByTokenCache(ClientId: Text; ClientSecret: Text; LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: Text; var NewTokenCache: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireOnBehalfOfTokenByTokenCache(ClientId, ClientSecret, LoginHint, RedirectURL, Scopes, TokenCache, SecretAccessToken, NewTokenCache);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     procedure AcquireOnBehalfOfTokenByTokenCache(ClientId: Text; ClientSecret: SecretText; LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: SecretText; var NewTokenCache: Text)
     var
@@ -727,17 +805,6 @@ codeunit 502 OAuth2Impl
         Initialize(RedirectURL);
         AccessToken := AuthFlow.ALAcquireTokenFromTokenCacheState(ClientId, ClientSecret, ScopesArray, LoginHint, TokenCache, NewTokenCache);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [Obsolete('Use AcquireOnBehalfOfTokensByTokenCache with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireOnBehalfOfTokensByTokenCache(ClientId: Text; ClientSecret: Text; LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: Text; var IdToken: Text; var NewTokenCache: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireOnBehalfOfTokensByTokenCache(ClientId, ClientSecret, LoginHint, RedirectURL, Scopes, TokenCache, SecretAccessToken, IdToken, NewTokenCache);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     procedure AcquireOnBehalfOfTokensByTokenCache(ClientId: Text; ClientSecret: SecretText; LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: SecretText; var IdToken: Text; var NewTokenCache: Text)
     var
@@ -757,18 +824,6 @@ codeunit 502 OAuth2Impl
         Initialize(OAuthAuthorityUrl, RedirectURL);
         AccessToken := AuthFlow.ALAcquireTokenFromCacheWithCredentials(ClientId, ClientSecret, ResourceURL);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, ResourceURL, SecretAccessToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
@@ -785,18 +840,6 @@ codeunit 502 OAuth2Impl
         Initialize(OAuthAuthorityUrl, RedirectURL);
         AccessToken := AuthFlow.ALAcquireTokenFromCacheWithCertificate(ClientId, Certificate, CertificatePassword, ResourceURL);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokenFromCache with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokenFromCache(RedirectURL: Text; ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokenFromCache(RedirectURL, ClientId, ClientSecret, OAuthAuthorityUrl, Scopes, SecretAccessToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokenFromCache(RedirectURL: Text; ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
@@ -807,18 +850,6 @@ codeunit 502 OAuth2Impl
         Initialize(OAuthAuthorityUrl, RedirectURL);
         AccessToken := AuthFlow.ALAcquireTokenFromCacheWithCredentials(ClientId, ClientSecret, ScopesArray);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, Scopes, SecretAccessToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
@@ -837,18 +868,6 @@ codeunit 502 OAuth2Impl
         Initialize(OAuthAuthorityUrl, RedirectURL);
         AccessToken := AuthFlow.ALAcquireTokenFromCacheWithCertificate(ClientId, Certificate, CertificatePassword, ScopesArray);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokensFromCache with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokensFromCache(RedirectURL: Text; ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokensFromCache(RedirectURL, ClientId, ClientSecret, OAuthAuthorityUrl, Scopes, SecretAccessToken, IdToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokensFromCache(RedirectURL: Text; ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
@@ -862,18 +881,6 @@ codeunit 502 OAuth2Impl
         AccessToken := CompoundToken.AccessToken;
         IdToken := CompoundToken.IdToken;
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokensFromCacheWithCertificate with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokensFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokensFromCacheWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, Scopes, SecretAccessToken, IdToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokensFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
@@ -896,19 +903,6 @@ codeunit 502 OAuth2Impl
         IdToken := CompoundToken.IdToken;
     end;
 
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokensWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokensWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, Scopes, SecretAccessToken, IdToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
-
     [TryFunction]
     procedure AcquireTokensWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
@@ -930,19 +924,6 @@ codeunit 502 OAuth2Impl
         IdToken := CompoundToken.IdToken;
     end;
 
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokenWithClientCredentials with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text; var AccessToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokenWithClientCredentials(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, ResourceURL, SecretAccessToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
-
     [TryFunction]
     procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text; var AccessToken: SecretText)
     begin
@@ -951,18 +932,6 @@ codeunit 502 OAuth2Impl
         if AccessToken.IsEmpty() then
             Session.LogMessage('0000C23', EmptyAccessTokenClientCredsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', Oauth2CategoryLbl);
     end;
-#if not CLEAN24
-    [NonDebuggable]
-    [TryFunction]
-    [Obsolete('Use AcquireTokenWithClientCredentials with SecretText data type for AccessToken.', '24.0')]
-    procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text)
-    var
-        SecretAccessToken: SecretText;
-    begin
-        AcquireTokenWithClientCredentials(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, SecretAccessToken);
-        AccessToken := SecretAccessToken.Unwrap();
-    end;
-#endif
 
     [TryFunction]
     procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: SecretText)
