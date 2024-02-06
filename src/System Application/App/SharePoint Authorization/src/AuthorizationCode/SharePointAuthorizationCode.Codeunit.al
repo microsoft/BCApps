@@ -56,7 +56,9 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
     var
         OAuth2: Codeunit OAuth2;
         IsHandled, IsSuccess : Boolean;
+#if not CLEAN24
         EventAccessToken: Text;
+#endif
     begin
         OnBeforeGetSecretToken(IsHandled, IsSuccess, ErrorText, AccessToken);
 #if not CLEAN24
