@@ -82,7 +82,7 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
         AllowGaps := NoSeriesSingle.MayProduceGaps();
     end;
 
-    [Obsolete('The fmethod has been moved to codeunit NoSeriesManagement', '24.0')]
+    [Obsolete('The method has been moved to codeunit NoSeriesManagement', '24.0')]
     procedure FindNoSeriesLineToShow(var NoSeriesLine: Record "No. Series Line")
     var
         NoSeriesManagement: Codeunit NoSeriesManagement;
