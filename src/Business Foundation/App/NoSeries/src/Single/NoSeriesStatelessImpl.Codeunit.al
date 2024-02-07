@@ -40,7 +40,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
             if NoSeriesLine."Increment-by No." <= 1 then
                 NoSeriesLine."Last No. Used" := IncStr(NoSeriesLine."Last No. Used")
             else
-                NoSeriesLine."Last No. Used" := IncrementNoText(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.");
+                NoSeriesLine."Last No. Used" := IncrementNoText(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.", NoSeriesLine."Series Code");
 
         if not EnsureLastNoUsedIsWithinValidRange(NoSeriesLine, HideErrorsAndWarnings) then
             exit('');
@@ -64,7 +64,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         exit(false);
     end;
 
-    procedure IncrementNoText(No: Code[20]; IncrementByNo: Decimal): Code[20]
+    procedure IncrementNoText(No: Code[20]; IncrementByNo: Decimal; NoSeriesCode: Code[20]): Code[20]
     var
         BigIntNo: BigInteger;
         BigIntIncByNo: BigInteger;
@@ -76,7 +76,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         Evaluate(BigIntNo, CopyStr(No, StartPos, EndPos - StartPos + 1));
         BigIntIncByNo := IncrementByNo;
         NewNo := CopyStr(Format(BigIntNo + BigIntIncByNo, 0, 1), 1, MaxStrLen(NewNo));
-        ReplaceNoText(No, NewNo, 0, StartPos, EndPos);
+        ReplaceNoText(No, NewNo, 0, StartPos, EndPos, NoSeriesCode);
         exit(No);
     end;
 
@@ -101,8 +101,9 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         end;
     end;
 
-    local procedure ReplaceNoText(var No: Code[20]; NewNo: Code[20]; FixedLength: Integer; StartPos: Integer; EndPos: Integer)
+    local procedure ReplaceNoText(var No: Code[20]; NewNo: Code[20]; FixedLength: Integer; StartPos: Integer; EndPos: Integer; NoSeriesCode: Code[20])
     var
+        NoSeriesActionableErrors: Codeunit "No. Series Actionable Errors";
         StartNo: Code[20];
         EndNo: Code[20];
         ZeroNo: Code[20];
@@ -120,7 +121,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         if OldLength > NewLength then
             ZeroNo := CopyStr(PadStr('', OldLength - NewLength, '0'), 1, MaxStrLen(ZeroNo));
         if StrLen(StartNo) + StrLen(ZeroNo) + StrLen(NewNo) + StrLen(EndNo) > 20 then
-            Error(NumberLengthErr, No);
+            NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(NumberLengthErr, No), NoSeriesCode);
         No := CopyStr(StartNo + ZeroNo + NewNo + EndNo, 1, MaxStrLen(No));
     end;
 
@@ -139,11 +140,13 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
     end;
 
     procedure EnsureLastNoUsedIsWithinValidRange(NoSeriesLine: Record "No. Series Line"; NoErrorsOrWarnings: Boolean): Boolean
+    var
+        NoSeriesActionableErrors: Codeunit "No. Series Actionable Errors";
     begin
         if not NoIsWithinValidRange(NoSeriesLine."Last No. Used", NoSeriesLine."Starting No.", NoSeriesLine."Ending No.") then begin
             if NoErrorsOrWarnings then
                 exit(false);
-            Error(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code", NoSeriesLine."Last No. Used");
+            NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code", NoSeriesLine."Last No. Used"), NoSeriesLine."Series Code");
         end;
 
         if (NoSeriesLine."Ending No." <> '') and (NoSeriesLine."Warning No." <> '') and (NoSeriesLine."Last No. Used" >= NoSeriesLine."Warning No.") then begin

@@ -126,7 +126,7 @@ codeunit 305 "No. Series - Setup Impl."
             exit(false);
 
         if NoSeriesLine."Increment-by No." <> 1 then begin
-            NextNo := NoSeriesStatelessImpl.IncrementNoText(LastNoUsed, NoSeriesLine."Increment-by No.");
+            NextNo := NoSeriesStatelessImpl.IncrementNoText(LastNoUsed, NoSeriesLine."Increment-by No.", NoSeriesLine."Series Code");
             if NextNo > NoSeriesLine."Ending No." then
                 exit(false);
             if StrLen(NextNo) > StrLen(NoSeriesLine."Ending No.") then
