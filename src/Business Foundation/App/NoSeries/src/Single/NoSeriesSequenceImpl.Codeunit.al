@@ -142,7 +142,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         exit(NumberCode);
     end;
 
-    local procedure ExtractNoFromCode(NumberCode: Code[20]; NoSeriesCode: Code[20]): BigInteger
+    procedure ExtractNoFromCode(NumberCode: Code[20]; NoSeriesCode: Code[20]): BigInteger
     var
         NoSeriesActionableErrors: Codeunit "No. Series Actionable Errors";
         i: Integer;

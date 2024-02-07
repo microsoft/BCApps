@@ -41,7 +41,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
             if NoSeriesLine."Increment-by No." <= 1 then
                 NoSeriesLine."Last No. Used" := IncStr(NoSeriesLine."Last No. Used")
             else
-                NoSeriesLine."Last No. Used" := NoSeriesSetup.IncrementNoText(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.", NoSeriesLine."Series Code");
+                NoSeriesLine."Last No. Used" := NoSeriesSetup.IncrementNoText(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.");
 
         if not EnsureLastNoUsedIsWithinValidRange(NoSeriesLine, HideErrorsAndWarnings) then
             exit('');

@@ -469,7 +469,7 @@ codeunit 396 NoSeriesManagement
             if LastNoSeriesLine."Series Code" <> '' then begin
                 if (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) then
                     if (LastNoSeriesLine."Last No. Used" <> '') and (LastNoSeriesLine."Last No. Used" > NoSeries.GetLastNoUsed(LastNoSeriesLine)) then
-                        RestartSequence(LastNoSeriesLine, NoSeriesSequenceImpl.ExtractNoFromCode(LastNoSeriesLine."Last No. Used"));
+                        RestartSequence(LastNoSeriesLine, NoSeriesSequenceImpl.ExtractNoFromCode(LastNoSeriesLine."Last No. Used", LastNoSeriesLine."Series Code"));
                 if not (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) or UpdateLastUsedDate then
                     ModifyNoSeriesLine(LastNoSeriesLine);
             end;
