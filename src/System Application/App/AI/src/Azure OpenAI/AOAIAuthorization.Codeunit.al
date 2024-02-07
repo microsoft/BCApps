@@ -7,7 +7,7 @@ namespace System.AI;
 using System;
 
 /// <summary>
-/// Store the authorization information for the AOAI service.
+/// Store the authorization information for the AOAI service. TEST 
 /// </summary>
 codeunit 7767 "AOAI Authorization"
 {
