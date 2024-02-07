@@ -62,12 +62,11 @@ codeunit 304 "No. Series - Impl."
     begin
         NoSeries.Get(NoSeriesCode);
         if not NoSeries."Manual Nos." then
-            if HandleActionableManualNosError(NoSeries) then
-                if not NoSeries.Get(NoSeriesCode) and not NoSeries."Manual Nos." then
-                    Error(ErrorText);
+            if not HandleActionableManualNosError(NoSeries) then
+                Error(ErrorText);
     end;
 
-    local procedure HandleActionableManualNosError(NoSeries: Record "No. Series"): Boolean
+    local procedure HandleActionableManualNosError(var NoSeries: Record "No. Series"): Boolean
     begin
         if NoSeries."Manual Nos." then
             exit(true); // The code is already default
@@ -348,12 +347,11 @@ codeunit 304 "No. Series - Impl."
     local procedure TestAutomatic(NoSeries: Record "No. Series")
     begin
         if not NoSeries."Default Nos." then
-            if HandleActionableDefaultNosError(NoSeries) then
-                if not NoSeries.Get(NoSeries.Code) and not NoSeries."Default Nos." then
-                    Error(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
+            if not HandleActionableDefaultNosError(NoSeries) then
+                Error(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
     end;
 
-    local procedure HandleActionableDefaultNosError(NoSeries: Record "No. Series"): Boolean
+    local procedure HandleActionableDefaultNosError(var NoSeries: Record "No. Series"): Boolean
     begin
         if NoSeries."Default Nos." then
             exit(true); // The code is already default
