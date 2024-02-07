@@ -21,7 +21,7 @@ table 12146 "No. Series Line Purchase"
 #else
     ObsoleteState = Pending;
     ObsoleteTag = '24.0';
-#endif
+#endif // Test
     InherentEntitlements = rX;
     InherentPermissions = rX;
 
