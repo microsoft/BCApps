@@ -8,6 +8,8 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 323 "No. Series Actionable Errors"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         OpenNoSeriesLinesTxt: Label 'Open No. Series Lines';
