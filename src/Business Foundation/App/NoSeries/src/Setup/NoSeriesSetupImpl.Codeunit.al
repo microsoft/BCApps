@@ -195,6 +195,11 @@ codeunit 305 "No. Series - Setup Impl."
 #if not CLEAN24
 #pragma warning disable AL0432
         NoSeriesManagement: Codeunit NoSeriesManagement;
+#pragma warning restore AL0432
+#endif
+        NoSeriesActionableErrors: Codeunit "No. Series Actionable Errors";
+#if not CLEAN24
+#pragma warning disable AL0432
         IsHandled: Boolean;
 #pragma warning restore AL0432
 #endif
@@ -210,7 +215,7 @@ codeunit 305 "No. Series - Setup Impl."
 #endif
         if NewNo <> '' then begin
             if IncStr(NewNo) = '' then
-                Error(UnIncrementableStringErr, NewFieldCaption);
+                NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(UnIncrementableStringErr, NewFieldCaption), NoSeriesLine."Series Code");
             NoSeriesLine2 := NoSeriesLine;
             if NewNo = GetNoText(NewNo) then
                 Length := 0
@@ -228,9 +233,7 @@ codeunit 305 "No. Series - Setup Impl."
             if (NewFieldCaption <> NoSeriesLine.FieldCaption("Last No. Used")) and
                (NoSeriesLine."Last No. Used" <> NoSeriesLine2."Last No. Used")
             then
-                Error(
-                  NumberFormatErr,
-                  NewFieldCaption, NoSeriesLine.FieldCaption("Last No. Used"));
+                NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(NumberFormatErr, NewFieldCaption, NoSeriesLine.FieldCaption("Last No. Used")), NoSeriesLine."Series Code");
         end;
     end;
 
