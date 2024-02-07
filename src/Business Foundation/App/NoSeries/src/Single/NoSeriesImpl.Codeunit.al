@@ -312,7 +312,7 @@ codeunit 304 "No. Series - Impl."
                 ErrorInfo.CustomDimensions.Add('DefaultNoSeriesCode', DefaultNoSeriesCode);
                 ErrorInfo.AddAction(OpenNoSeriesLinesTxt, CodeUnit::"No. Series - Impl.", 'OpenNoSeriesRelationships');
             end;
-            Error(SeriesNotRelatedErr, DefaultNoSeriesCode, RelatedNoSeriesCode);
+            Error(ErrorInfo);
         end;
     end;
 
