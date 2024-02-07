@@ -138,8 +138,9 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         exit(NumberCode);
     end;
 
-    internal procedure ExtractNoFromCode(NumberCode: Code[20]): BigInteger
+    local procedure ExtractNoFromCode(NumberCode: Code[20]): BigInteger
     var
+        ErrorInfo: ErrorInfo;
         i: Integer;
         j: Integer;
         Number: BigInteger;
@@ -161,8 +162,10 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if (i = 1) and (NumberCode[i] in ['0' .. '9']) then
             i -= 1;
         NoCodeSnip := CopyStr(CopyStr(NumberCode, i + 1, j - i), 1, MaxStrLen(NoCodeSnip));
-        if StrLen(NoCodeSnip) > 18 then
-            Error(NoOverFlowErr, NumberCode, StrLen(NoCodeSnip));
+        if StrLen(NoCodeSnip) > 18 then begin
+            ErrorInfo.Message := StrSubstNo(NoOverFlowErr, NoCodeSnip, StrLen(NoCodeSnip));
+            Error(ErrorInfo);
+        end;
         Evaluate(Number, NoCodeSnip);
         exit(Number);
     end;
