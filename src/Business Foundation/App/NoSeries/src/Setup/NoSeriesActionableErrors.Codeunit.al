@@ -12,6 +12,7 @@ codeunit 323 "No. Series Actionable Errors"
     var
         OpenNoSeriesLinesTxt: Label 'Open No. Series Lines';
         OpenNoSeriesTxt: Label 'Open No. Series';
+        NoSeriesCodeTok: Label 'NoSeriesCode', Locked = true;
 
     procedure ThrowActionableErrorOpenNoSeries(ErrorMessage: Text; NoSeriesCode: Code[20])
     var
@@ -20,7 +21,7 @@ codeunit 323 "No. Series Actionable Errors"
         ErrorInfo.Message := ErrorMessage;
 
         if UserCanEditNoSeries() then begin
-            ErrorInfo.CustomDimensions.Add('NoSeriesCode', NoSeriesCode);
+            ErrorInfo.CustomDimensions.Add(NoSeriesCodeTok, NoSeriesCode);
             ErrorInfo.AddAction(OpenNoSeriesTxt, CodeUnit::"No. Series Actionable Errors", 'OpenNoSeries');
         end;
 
@@ -32,7 +33,7 @@ codeunit 323 "No. Series Actionable Errors"
         ErrorInfo.Message := ErrorMessage;
 
         if UserCanEditNoSeries() then begin
-            ErrorInfo.CustomDimensions.Add('NoSeriesCode', NoSeriesCode);
+            ErrorInfo.CustomDimensions.Add(NoSeriesCodeTok, NoSeriesCode);
             ErrorInfo.AddAction(OpenNoSeriesLinesTxt, CodeUnit::"No. Series Actionable Errors", 'OpenNoSeriesLines');
         end;
 
@@ -44,7 +45,7 @@ codeunit 323 "No. Series Actionable Errors"
         ErrorInfo.Message := ErrorMessage;
 
         if UserCanEditNoSeries() then begin
-            ErrorInfo.CustomDimensions.Add('NoSeriesCode', NoSeriesCode);
+            ErrorInfo.CustomDimensions.Add(NoSeriesCodeTok, NoSeriesCode);
             ErrorInfo.AddAction(OpenNoSeriesLinesTxt, CodeUnit::"No. Series Actionable Errors", 'OpenNoSeriesRelationships');
         end;
 
@@ -55,7 +56,7 @@ codeunit 323 "No. Series Actionable Errors"
     var
         NoSeriesLines: Record "No. Series Line";
     begin
-        NoSeriesLines.SetRange("Series Code", ErrorInfo.CustomDimensions.Get('NoSeriesCode'));
+        NoSeriesLines.SetRange("Series Code", ErrorInfo.CustomDimensions.Get(NoSeriesCodeTok));
         Page.Run(Page::"No. Series Relationships", NoSeriesLines);
     end;
 
@@ -63,8 +64,8 @@ codeunit 323 "No. Series Actionable Errors"
     var
         NoSeries: Record "No. Series";
     begin
-        if ErrorInfo.CustomDimensions.Get('NoSeriesCode') <> '' then
-            NoSeries.SetRange(Code, ErrorInfo.CustomDimensions.Get('NoSeriesCode'));
+        if ErrorInfo.CustomDimensions.Get(NoSeriesCodeTok) <> '' then
+            NoSeries.SetRange(Code, ErrorInfo.CustomDimensions.Get(NoSeriesCodeTok));
         Page.Run(Page::"No. Series", NoSeries);
     end;
 
@@ -72,7 +73,7 @@ codeunit 323 "No. Series Actionable Errors"
     var
         NoSeriesLines: Record "No. Series Line";
     begin
-        NoSeriesLines.SetRange("Series Code", ErrorInfo.CustomDimensions.Get('NoSeriesCode'));
+        NoSeriesLines.SetRange("Series Code", ErrorInfo.CustomDimensions.Get(NoSeriesCodeTok));
         Page.Run(Page::"No. Series Lines", NoSeriesLines);
     end;
 
