@@ -25,5 +25,6 @@ permissionset 300 "No. Series - Objects"
         page "No. Series Lines Sales" = X,
 #pragma warning restore AL0432
 #endif
-        page "No. Series Relationships" = X;
+        page "No. Series Relationships" = X,
+        Codeunit "No. Series - Setup" = X;
 }

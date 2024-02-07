@@ -21,8 +21,11 @@ codeunit 7769 "AOAI Deployments Impl"
         Turbo0301Lbl: Label 'chatGPT_GPT35-turbo-0301', Locked = true;
         GPT40613Lbl: Label 'gpt-4-32k', Locked = true;
         Turbo031316kLbl: Label 'gpt-35-turbo-16k', Locked = true;
+        GPT4LatestLbl: Label 'gpt-4-latest', Locked = true;
+        GPT4PreviewLbl: Label 'gpt-4-preview', Locked = true;
+        GPT35TurboLatestLbl: Label 'gpt-35-turbo-latest', Locked = true;
+        GPT35TurboPreviewLbl: Label 'gpt-35-turbo-preview', Locked = true;
 
-    [NonDebuggable]
     procedure GetTurbo0301(CallerModuleInfo: ModuleInfo): Text
     begin
         if EnviromentInformation.IsSaaS() then
@@ -31,7 +34,6 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(Turbo0301Lbl);
     end;
 
-    [NonDebuggable]
     procedure GetGPT40613(CallerModuleInfo: ModuleInfo): Text
     begin
         if EnviromentInformation.IsSaaS() then
@@ -40,7 +42,6 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(GPT40613Lbl);
     end;
 
-    [NonDebuggable]
     procedure GetTurbo0613(CallerModuleInfo: ModuleInfo): Text
     begin
         if EnviromentInformation.IsSaaS() then
@@ -49,7 +50,26 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(Turbo031316kLbl);
     end;
 
-    [NonDebuggable]
+    procedure GetGPT35TurboPreview(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT35TurboPreviewLbl, CallerModuleInfo));
+    end;
+
+    procedure GetGPT35TurboLatest(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT35TurboLatestLbl, CallerModuleInfo));
+    end;
+
+    procedure GetGPT4Preview(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT4PreviewLbl, CallerModuleInfo));
+    end;
+
+    procedure GetGPT4Latest(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT4LatestLbl, CallerModuleInfo));
+    end;
+
     local procedure GetDeploymentName(DeploymentName: Text; CallerModuleInfo: ModuleInfo): Text
     var
         CurrentModuleInfo: ModuleInfo;

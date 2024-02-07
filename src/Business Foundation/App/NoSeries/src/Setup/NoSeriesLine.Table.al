@@ -37,9 +37,9 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
+                NoSeriesSetup: Codeunit "No. Series - Setup";
             begin
-                NoSeriesMgt.UpdateNoSeriesLine(Rec, "Starting No.", CopyStr(FieldCaption("Starting No."), 1, 100));
+                NoSeriesSetup.UpdateNoSeriesLine(Rec, "Starting No.", CopyStr(FieldCaption("Starting No."), 1, 100));
             end;
         }
         field(5; "Ending No."; Code[20])
@@ -48,11 +48,11 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
+                NoSeriesSetup: Codeunit "No. Series - Setup";
             begin
                 if "Ending No." = '' then
                     "Warning No." := '';
-                NoSeriesMgt.UpdateNoSeriesLine(Rec, "Ending No.", CopyStr(FieldCaption("Ending No."), 1, 100));
+                NoSeriesSetup.UpdateNoSeriesLine(Rec, "Ending No.", CopyStr(FieldCaption("Ending No."), 1, 100));
                 Validate(Open);
             end;
         }
@@ -62,10 +62,10 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
+                NoSeriesSetup: Codeunit "No. Series - Setup";
             begin
                 TestField("Ending No.");
-                NoSeriesMgt.UpdateNoSeriesLine(Rec, "Warning No.", CopyStr(FieldCaption("Warning No."), 1, 100));
+                NoSeriesSetup.UpdateNoSeriesLine(Rec, "Warning No.", CopyStr(FieldCaption("Warning No."), 1, 100));
             end;
         }
         field(7; "Increment-by No."; Integer)
@@ -85,9 +85,9 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
+                NoSeriesSetup: Codeunit "No. Series - Setup";
             begin
-                NoSeriesMgt.UpdateNoSeriesLine(Rec, "Last No. Used", CopyStr(FieldCaption("Last No. Used"), 1, 100));
+                NoSeriesSetup.UpdateNoSeriesLine(Rec, "Last No. Used", CopyStr(FieldCaption("Last No. Used"), 1, 100));
                 Validate(Open);
             end;
         }
@@ -99,9 +99,9 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                NoSeriesSetup: Codeunit "No. Series - Setup";
             begin
-                Open := NoSeriesSetupImpl.CalculateOpen(Rec);
+                Open := NoSeriesSetup.CalculateOpen(Rec);
             end;
         }
         field(10; "Last Date Used"; Date)
