@@ -24,7 +24,8 @@ codeunit 304 "No. Series - Impl."
         PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
         CannotAssignAutomaticallyQst: Label 'The No. Series %1 is not setup to allow Automatic Nos., hence it is not possible to use this No. Series for new Nos. Do you wish to modify the No. Series %1 to allow Default Nos.?', Comment = '%1=No. Series Code';
         CannotAssignManuallyQst: Label 'The No. Series %1 is not setup to allow Manual Nos., hence it is not possible to use this No. Series for manual Nos. Do you wish to modify the No. Series %1 to allow Manual Nos.?', Comment = '%1=No. Series Code';
-        NoSeriesNotOpenQst: Label 'The No. Series %1 does not have an open line for %2. Do you wish to open the No. Series Lines page to add this?', Comment = '%1=No. Series Code,%2=Usage Date';
+        NoSeriesNotOpenQst: Label 'Do you wish to open the No. Series Lines page for this No. Series?';
+        OpenNoSeriesLinesTxt: Label 'Open No. Series Lines';
 
 #if not CLEAN24
 #pragma warning disable AL0432
@@ -171,6 +172,7 @@ codeunit 304 "No. Series - Impl."
     var
         NoSeriesRec: Record "No. Series";
         NoSeries: Codeunit "No. Series";
+        ErrorInfo: ErrorInfo;
         LineFound: Boolean;
     begin
         if UsageDate = 0D then
@@ -208,12 +210,12 @@ codeunit 304 "No. Series - Impl."
             if HideErrorsAndWarnings then
                 exit(false);
 
-            HandleActionableMissingNoSeriesLineError(NoSeriesCode, UsageDate);
             NoSeriesLine.SetRange("Starting Date");
             if not NoSeriesLine.IsEmpty() then
-                Error(CannotAssignNewOnDateErr, NoSeriesCode, UsageDate);
-
-            Error(CannotAssignNewErr, NoSeriesCode);
+                ErrorInfo := CreateActionableErrorInfoMissingNoSeriesLineError(NoSeriesCode, StrSubstNo(CannotAssignNewOnDateErr, NoSeriesCode, UsageDate))
+            else
+                ErrorInfo := CreateActionableErrorInfoMissingNoSeriesLineError(NoSeriesCode, StrSubstNo(CannotAssignNewErr, NoSeriesCode));
+            Error(ErrorInfo);
         end;
 
         // If Date Order is required for this No. Series, make sure the usage date is not before the last date used
@@ -227,20 +229,26 @@ codeunit 304 "No. Series - Impl."
         exit(true);
     end;
 
-    local procedure HandleActionableMissingNoSeriesLineError(NoSeriesCode: Code[20]; UsageDate: Date)
+    local procedure CreateActionableErrorInfoMissingNoSeriesLineError(NoSeriesCode: Code[20]; ErrorMessage: Text) ErrorInfo: ErrorInfo
     var
         NoSeries: Record "No. Series";
-        NoSeriesLinesRecord: Record "No. Series Line";
-        NoSeriesLines: Page "No. Series Lines";
     begin
+        ErrorInfo.Message := ErrorMessage;
+
         if not NoSeries.WritePermission() then
             exit; // Nothing actionable to do, since user does not have permission to modify the record
 
-        if Confirm(NoSeriesNotOpenQst, false, NoSeriesCode, UsageDate) then begin
-            NoSeriesLinesRecord.SetRange("Series Code", NoSeriesCode);
-            NoSeriesLines.SetTableView(NoSeriesLinesRecord);
-            NoSeriesLines.Run();
-        end;
+        ErrorInfo.CustomDimensions.Add('NoSeriesCode', NoSeriesCode);
+        ErrorInfo.AddAction(OpenNoSeriesLinesTxt, CodeUnit::"No. Series - Impl.", 'OpenNoSeriesLines');
+        ErrorInfo.Message := StrSubstNo('%1\\%2', ErrorMessage, NoSeriesNotOpenQst);
+    end;
+
+    procedure OpenNoSeriesLines(ErrorInfo: ErrorInfo)
+    var
+        NoSeriesLines: Record "No. Series Line";
+    begin
+        NoSeriesLines.SetRange("Series Code", ErrorInfo.CustomDimensions.Get('NoSeriesCode'));
+        Page.Run(Page::"No. Series Lines", NoSeriesLines);
     end;
 
     procedure PeekNextNo(NoSeriesCode: Code[20]; UsageDate: Date): Code[20]
