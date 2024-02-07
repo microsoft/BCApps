@@ -108,19 +108,6 @@ table 309 "No. Series Line"
         {
             Caption = 'Last Date Used';
         }
-        field(11; "Allow Gaps in Nos."; Boolean)
-        {
-            Caption = 'Allow Gaps in Nos.';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'The specific implementation is defined by the Implementation field and whether the implementation may produce gaps can be determined through the implementation interface or the procedure MayProduceGaps.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '24.0';
-#endif
-        }
         field(12; "Sequence Name"; Code[40])
         {
             Caption = 'Sequence Name';
@@ -138,45 +125,6 @@ table 309 "No. Series Line"
             Caption = 'Implementation';
             DataClassification = SystemMetadata;
 
-        }
-        field(10000; Series; Code[10]) // NA (MX) Functionality
-        {
-            Caption = 'Series';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'The No. Series module cannot reference tax features.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '24.0';
-#endif
-        }
-        field(10001; "Authorization Code"; Integer) // NA (MX) Functionality
-        {
-            Caption = 'Authorization Code';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'The No. Series module cannot reference tax features.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '24.0';
-#endif
-        }
-        field(10002; "Authorization Year"; Integer) // NA (MX) Functionality
-        {
-            Caption = 'Authorization Year';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'The No. Series module cannot reference tax features.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '24.0';
-#endif
         }
     }
 
