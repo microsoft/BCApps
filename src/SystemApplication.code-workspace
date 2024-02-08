@@ -32,5 +32,23 @@
 			"name": "System Application Tests",
 			"path": "System Application\\Test"
 		}
-	]
+	],
+	"settings": {
+		"al.assemblyProbingPaths": [
+			"C:\\Program Files\\dotnet\\shared\\Microsoft.AspNetCore.App\\8.0.1",
+			"C:\\Program Files\\dotnet\\shared\\Microsoft.NetCore.App\\8.0.1",
+			"C:\\Program Files\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\8.0.1",
+			"C:\\NugetCache\\System.Management.7.0.0\\lib\\netstandard2.0",
+			"C:\\NugetCache\\microsoft.nav.platform.main.universal.24.0.15816-0\\lib\\Tools",
+			"C:\\NugetCache\\microsoft.nav.platform.main.universal.24.0.15816-0\\lib\\ServiceTier",
+			"C:\\Windows\\assembly\\GAC\\ADODB",
+			"C:\\Git\\NAV\\test\\App\\MockService\\MockService",
+			"C:\\Git\\NAV\\test\\App\\MockTest",
+			//"C:/Users/brobledodiaz/Downloads/server-debug"
+			//"C:\\Git\\Platform-Core\\out\\platform\\server\\debug",
+		],
+		"al.codeAnalyzers": [ "${CodeCop}", "${UICop}"],
+		"al.enableCodeAnalysis": true,
+		//"al.env" : "tie"
+	}
 }

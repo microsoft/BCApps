@@ -38,8 +38,13 @@ page 2515 "AppSource Product List"
                     ToolTip = 'Specifies the display name of the offer.';
 
                     trigger OnDrillDown()
+                    var
+                        AppSourceProductDetailsPage: Page "AppSource Product Details";
+                        ProductObject: JsonObject;
                     begin
-                        AppSourceProductManager.OpenProductDetailsPage(Rec.UniqueProductID);
+                        ProductObject := AppSourceProductManager.GetProductDetails(Rec.UniqueProductID);
+                        AppSourceProductDetailsPage.SetProduct(ProductObject);
+                        AppSourceProductDetailsPage.RunModal();
                     end;
                 }
                 field(UniqueProductID; Rec.UniqueProductID)
@@ -119,22 +124,14 @@ page 2515 "AppSource Product List"
 
             action(OpenInAppSource)
             {
-                Caption = 'View in AppSource';
+                Caption = 'View app in AppSource';
                 Scope = Repeater;
                 Image = Open;
-                ToolTip = 'View selected app in AppSource';
+                ToolTip = 'View selected app in AppSource.';
 
                 trigger OnAction()
-                var
-                    SelectedRec: Record "AppSource Product";
                 begin
-                    CurrPage.SetSelectionFilter(SelectedRec);
-                    SelectedRec.Next();
-
-                    if (SelectedRec.Count() = 1) then
-                        AppSourceProductManager.OpenInAppSource(SelectedRec.UniqueProductID)
-                    else
-                        Error(SelectOneRowErrLbl);
+                    AppSourceProductManager.OpenAppInAppSource(Rec.UniqueProductID)
                 end;
             }
 
@@ -192,7 +189,6 @@ page 2515 "AppSource Product List"
         ExtensionManagement: Codeunit "Extension Management";
         AppSourceProductManager: Codeunit "AppSource Product Manager";
         CurrentRecordCanBeUninstalled: Boolean;
-        SelectOneRowErrLbl: Label 'Action requires exactly one row to be selected.';
 
     trigger OnOpenPage()
     begin

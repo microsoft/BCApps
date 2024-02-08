@@ -15,7 +15,7 @@ page 2516 "AppSource Product Details"
     ApplicationArea = All;
     Editable = false;
     Caption = 'App Overview';
-    DataCaptionExpression = AppSourceProductManager.GetStringValue(ProductObject, 'displayName');
+    DataCaptionExpression = AppSourceJsonUtilities.GetStringValue(ProductObject, 'displayName');
 
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -34,34 +34,34 @@ page 2516 "AppSource Product Details"
                     ToolTip = 'Specifies the unique product identifier.';
                     Visible = false;
                 }
-                field(Offer_ProductType; AppSourceProductManager.GetStringValue(ProductObject, 'productType'))
+                field(Offer_ProductType; AppSourceJsonUtilities.GetStringValue(ProductObject, 'productType'))
                 {
                     Caption = 'Product Type';
                     ToolTip = 'Specifies the delivery method or deployment mode of the offer.';
                     Visible = false;
                 }
-                field(Offer_DisplayName; AppSourceProductManager.GetStringValue(ProductObject, 'displayName'))
+                field(Offer_DisplayName; AppSourceJsonUtilities.GetStringValue(ProductObject, 'displayName'))
                 {
                     Caption = 'Display Name';
                     ToolTip = 'Specifies the display name of the offer.';
                 }
-                field(Offer_PublisherID; AppSourceProductManager.GetStringValue(ProductObject, 'publisherId'))
+                field(Offer_PublisherID; AppSourceJsonUtilities.GetStringValue(ProductObject, 'publisherId'))
                 {
                     Caption = 'Publisher ID';
                     ToolTip = 'Specifies the ID of the publisher.';
                     Visible = false;
                 }
-                field(Offer_PublisherDisplayName; AppSourceProductManager.GetStringValue(ProductObject, 'publisherDisplayName'))
+                field(Offer_PublisherDisplayName; AppSourceJsonUtilities.GetStringValue(ProductObject, 'publisherDisplayName'))
                 {
                     Caption = 'Publisher Display Name';
                     ToolTip = 'Specifies the display name of the publisher.';
                 }
-                field(Offer_PublisherType; AppSourceProductManager.GetStringValue(ProductObject, 'publisherType'))
+                field(Offer_PublisherType; AppSourceJsonUtilities.GetStringValue(ProductObject, 'publisherType'))
                 {
                     Caption = 'Publisher Type';
                     ToolTip = 'Specifies whether the offer is a Microsoft or third party product.';
                 }
-                field(Offer_LastModifiedDateTime; AppSourceProductManager.GetStringValue(ProductObject, 'lastModifiedDateTime'))
+                field(Offer_LastModifiedDateTime; AppSourceJsonUtilities.GetStringValue(ProductObject, 'lastModifiedDateTime'))
                 {
                     Caption = 'Last Modified Date Time';
                     ToolTip = 'Specifies the date the offer was last updated.';
@@ -71,7 +71,7 @@ page 2516 "AppSource Product Details"
             {
                 ShowCaption = false;
 
-                field(Description_Description; AppSourceProductManager.GetStringValue(ProductObject, 'description'))
+                field(Description_Description; AppSourceJsonUtilities.GetStringValue(ProductObject, 'description'))
                 {
                     Caption = 'Description';
                     MultiLine = true;
@@ -98,17 +98,17 @@ page 2516 "AppSource Product Details"
             {
                 Caption = 'Rating';
 
-                field(Rating_Popularity; AppSourceProductManager.GetStringValue(ProductObject, 'popularity'))
+                field(Rating_Popularity; AppSourceJsonUtilities.GetStringValue(ProductObject, 'popularity'))
                 {
                     Caption = 'Popularity';
                     ToolTip = 'Specifies a value from 0-10 indicating the popularity of the offer.';
                 }
-                field(Rating_RatingAverage; AppSourceProductManager.GetStringValue(ProductObject, 'ratingAverage'))
+                field(Rating_RatingAverage; AppSourceJsonUtilities.GetStringValue(ProductObject, 'ratingAverage'))
                 {
                     Caption = 'Rating Average';
                     ToolTip = 'Specifies a value from 0-5 indicating the average user rating.';
                 }
-                field(Rating_RatingCount; AppSourceProductManager.GetStringValue(ProductObject, 'ratingCount'))
+                field(Rating_RatingCount; AppSourceJsonUtilities.GetStringValue(ProductObject, 'ratingCount'))
                 {
                     Caption = 'Rating Count';
                     ToolTip = 'Specifies the number of users that have rated the offer.';
@@ -119,19 +119,19 @@ page 2516 "AppSource Product Details"
             {
                 Caption = 'Links';
 
-                field(Links_LegalTermsUri; AppSourceProductManager.GetStringValue(ProductObject, 'legalTermsUri'))
+                field(Links_LegalTermsUri; AppSourceJsonUtilities.GetStringValue(ProductObject, 'legalTermsUri'))
                 {
                     Caption = 'Legal Terms Uri';
                     ToolTip = 'Specifies the legal terms of the offer.';
                     ExtendedDatatype = Url;
                 }
-                field(Links_PrivacyPolicyUri; AppSourceProductManager.GetStringValue(ProductObject, 'privacyPolicyUri'))
+                field(Links_PrivacyPolicyUri; AppSourceJsonUtilities.GetStringValue(ProductObject, 'privacyPolicyUri'))
                 {
                     Caption = 'Privacy Policy Uri';
                     ToolTip = 'Specifies the privacy policy of the offer.';
                     ExtendedDatatype = Url;
                 }
-                field(Links_SupportUri; AppSourceProductManager.GetStringValue(ProductObject, 'supportUri'))
+                field(Links_SupportUri; AppSourceJsonUtilities.GetStringValue(ProductObject, 'supportUri'))
                 {
                     Caption = 'Support Uri';
                     ToolTip = 'Specifies the support Uri of the offer.';
@@ -161,7 +161,7 @@ page 2516 "AppSource Product Details"
 
                 trigger OnAction()
                 begin
-                    AppSourceProductManager.OpenInAppSource(UniqueProductID);
+                    AppSourceProductManager.OpenAppInAppSource(UniqueProductID);
                 end;
             }
 
@@ -204,6 +204,7 @@ page 2516 "AppSource Product Details"
     var
         ExtensionManagement: Codeunit "Extension Management";
         AppSourceProductManager: Codeunit "AppSource Product Manager";
+        AppSourceJsonUtilities: Codeunit "AppSource Json Utilities";
         ProductObject: JsonObject;
         UniqueProductID: Text;
         AppID: Text;
@@ -228,7 +229,7 @@ page 2516 "AppSource Product Details"
         ProductPlansToken: JsonToken;
     begin
         ProductObject := ToProductObject;
-        UniqueProductID := AppSourceProductManager.GetStringValue(ProductObject, 'uniqueProductId');
+        UniqueProductID := AppSourceJsonUtilities.GetStringValue(ProductObject, 'uniqueProductId');
         AppId := AppSourceProductManager.ExtractAppIDFromUniqueProductID(UniqueProductID);
         CurrentRecordCanBeUninstalled := false;
         CurrentRecordCanBeInstalled := false;
@@ -264,8 +265,8 @@ page 2516 "AppSource Product Details"
                         PlanLinesBuilder.Append(
                             StrSubstNo(
                                 PlanLineItemTemplateLbl,
-                                GetStringValue(PlanItemObject, 'displayName'),
-                                GetStringValue(PlanItemObject, 'description'),
+                                AppSourceJsonUtilities.GetStringValue(PlanItemObject, 'displayName'),
+                                AppSourceJsonUtilities.GetStringValue(PlanItemObject, 'description'),
                                 MonthlyPriceText,
                                 YearlyPriceText));
                     end;
@@ -306,7 +307,7 @@ page 2516 "AppSource Product Details"
             if Availabilities.Get(i, Availability) then begin
                 AvailabilityObject := Availability.AsObject();
 
-                if (GetStringValue(AvailabilityObject, 'hasFreeTrials') = 'true') then
+                if (AppSourceJsonUtilities.GetStringValue(AvailabilityObject, 'hasFreeTrials') = 'true') then
                     FreeTrial := true;
 
                 if (AvailabilityObject.Get('terms', TermItem)) then
@@ -347,48 +348,26 @@ page 2516 "AppSource Product Details"
 
     local procedure GetTerms(Terms: JsonArray; var Monthly: decimal; var Yearly: decimal; var Currency: Text)
     var
-        item: JsonToken;
-        priceToken: JsonToken;
-        price: JsonObject;
-        priceValue: Decimal;
+        Item: JsonToken;
+        PriceToken: JsonToken;
+        Price: JsonObject;
+        PriceValue: Decimal;
         i: integer;
     begin
         for i := 0 to Terms.Count do
-            if (Terms.Get(i, item)) then begin
-                item.SelectToken('price', priceToken);
-                price := priceToken.AsObject();
-                Currency := GetStringValue(price, 'currencyCode');
-                if not evaluate(priceValue, GetStringValue(price, 'listPrice')) then
-                    priceValue := 0;
+            if (Terms.Get(i, Item)) then begin
+                Item.SelectToken('price', PriceToken);
+                Price := PriceToken.AsObject();
+                Currency := AppSourceJsonUtilities.GetStringValue(Price, 'currencyCode');
+                if not evaluate(PriceValue, AppSourceJsonUtilities.GetStringValue(Price, 'listPrice')) then
+                    PriceValue := 0;
 
-                case GetStringValue(item.AsObject(), 'termUnit') of
+                case AppSourceJsonUtilities.GetStringValue(Item.AsObject(), 'termUnit') of
                     'P1Y':
-                        Yearly := priceValue;
+                        Yearly := PriceValue;
                     'P1M':
-                        Monthly := priceValue;
+                        Monthly := PriceValue;
                 end;
             end;
-    end;
-
-    local procedure GetStringValue(JsonObject: JsonObject; PropertyName: Text): Text
-    var
-        JsonValue: JsonValue;
-    begin
-        if GetJsonValue(JsonObject, PropertyName, JsonValue) then
-            exit(JsonValue.AsText());
-        exit('');
-    end;
-
-    procedure GetJsonValue(JsonObject: JsonObject; PropertyName: Text; var ReturnValue: JsonValue): Boolean
-    var
-        jsonToken: JsonToken;
-    begin
-        if jsonObject.Contains(PropertyName) then
-            if jsonObject.Get(PropertyName, jsonToken) then
-                if not jsonToken.AsValue().IsNull() then begin
-                    ReturnValue := jsonToken.AsValue();
-                    exit(true);
-                end;
-        exit(false);
     end;
 }
