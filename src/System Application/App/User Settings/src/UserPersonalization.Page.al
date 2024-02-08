@@ -116,6 +116,21 @@ page 9214 "User Personalization"
                             UserSettingsImpl.DisableTeachingTips(Rec."User SID");
                     end;
                 }
+                field("Modern Action Bar"; ModernActionBarEnabled)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Modern Action Bar';
+                    ToolTip = 'Specifies whether to display the modern action bar on pages.';
+
+                    trigger OnValidate()
+                    begin
+                        if ModernActionBarEnabled then
+                            UserSettingsImpl.EnableModernActionBar(Rec."User SID")
+                        else
+                            UserSettingsImpl.DisableModernActionBar(Rec."User SID");
+                    end;
+
+                }
             }
         }
     }
@@ -140,6 +155,7 @@ page 9214 "User Personalization"
     trigger OnAfterGetCurrRecord()
     begin
         TeachingTipsEnabled := UserSettingsImpl.TeachingTipsEnabled(Rec."User SID");
+        ModernActionBarEnabled := UserSettingsImpl.ModernActionBarEnabled(Rec."User SID");
     end;
 
     var
@@ -147,5 +163,6 @@ page 9214 "User Personalization"
         Language: Codeunit Language;
         TimeZoneSelection: Codeunit "Time Zone Selection";
         TeachingTipsEnabled: Boolean;
+        ModernActionBarEnabled: Boolean;
         UserSettingsTok: Label 'User Settings';
 }

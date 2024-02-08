@@ -87,7 +87,12 @@ table 9172 "User Settings"
         field(100; "Teaching Tips"; Boolean)
         {
             Caption = 'Teaching Tips';
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
+        }
+        field(101; "Modern Action Bar"; Boolean)
+        {
+            Caption = 'Modern Action Bar';
+            DataClassification = CustomerContent;
         }
     }
 }

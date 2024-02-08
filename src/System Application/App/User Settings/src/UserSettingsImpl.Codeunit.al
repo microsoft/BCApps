@@ -6,11 +6,12 @@
 namespace System.Environment.Configuration;
 
 using System;
-using System.Security.User;
-using System.Environment;
 using System.Azure.Identity;
+using System.Environment;
+using System.Feedback;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Security.User;
 
 codeunit 9175 "User Settings Impl."
 {
@@ -319,6 +320,7 @@ codeunit 9175 "User Settings Impl."
     begin
         ApplicationUserSettings."User Security ID" := UserSecurityID;
         ApplicationUserSettings."Teaching Tips" := true;
+        ApplicationUserSettings."Modern Action Bar" := true;
         ApplicationUserSettings.Insert();
     end;
 
@@ -365,6 +367,40 @@ codeunit 9175 "User Settings Impl."
     begin
         GetAppSettings(UserSecurityId, ApplicationUserSettings);
         ApplicationUserSettings."Teaching Tips" := true;
+        ApplicationUserSettings.Modify();
+    end;
+
+    procedure ModernActionBarEnabled(UserSecurityId: Guid): Boolean
+    var
+        ApplicationUserSettings: Record "Application User Settings";
+    begin
+        GetAppSettings(UserSecurityId, ApplicationUserSettings);
+        exit(ApplicationUserSettings."Modern Action Bar");
+    end;
+
+    procedure DisableModernActionBar(UserSecurityId: Guid)
+    var
+        ApplicationUserSettings: Record "Application User Settings";
+        CustomerExperienceSurvey: Codeunit "Customer Experience Survey";
+        FormsProId: Text;
+        FormsProEligibilityId: Text;
+        IsEligible: Boolean;
+    begin
+        GetAppSettings(UserSecurityId, ApplicationUserSettings);
+        ApplicationUserSettings."Modern Action Bar" := false;
+        ApplicationUserSettings.Modify();
+
+        if CustomerExperienceSurvey.RegisterEventAndGetEligibility('modernactionbar_event', 'modernactionbar', FormsProId, FormsProEligibilityId, IsEligible) then
+            if IsEligible then
+                CustomerExperienceSurvey.RenderSurvey('modernactionbar', FormsProId, FormsProEligibilityId);
+    end;
+
+    procedure EnableModernActionBar(UserSecurityId: Guid)
+    var
+        ApplicationUserSettings: Record "Application User Settings";
+    begin
+        GetAppSettings(UserSecurityId, ApplicationUserSettings);
+        ApplicationUserSettings."Modern Action Bar" := true;
         ApplicationUserSettings.Modify();
     end;
 

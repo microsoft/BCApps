@@ -114,6 +114,12 @@ page 9204 "User Settings"
                         Caption = 'Teaching Tips';
                         ToolTip = 'Specifies whether to display short messages that inform, remind, or teach you about important fields and actions when you open a page.';
                     }
+                    field("Modern Action Bar"; Rec."Modern Action Bar")
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Modern Action Bar';
+                        ToolTip = 'Specifies whether to display the modern action bar on pages.';
+                    }
                 }
                 group(Security)
                 {

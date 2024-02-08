@@ -33,6 +33,15 @@ table 9222 "Application User Settings"
         {
             DataClassification = CustomerContent;
         }
+
+        /// <summary>
+        /// Specifies whether the modern action bar is enabled.
+        /// </summary>
+        field(3; "Modern Action Bar"; Boolean)
+        {
+            DataClassification = CustomerContent;
+            InitValue = true;
+        }
     }
 
     keys
