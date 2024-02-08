@@ -7,7 +7,7 @@ namespace System.Email;
 
 codeunit 8885 "Email Activities"
 {
-    Access = Internal;
+    Access = Internal; // Internal, External, Internal and External
     InherentPermissions = X;
     InherentEntitlements = X;
 
