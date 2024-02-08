@@ -12,6 +12,8 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 308 "No. Series - Batch"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         NoSeriesBatchImpl: Codeunit "No. Series - Batch Impl."; // Required to keep state

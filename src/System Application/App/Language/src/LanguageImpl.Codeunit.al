@@ -262,6 +262,30 @@ codeunit 54 "Language Impl."
         UserPersonalization.Modify(true);
     end;
 
+    procedure GetTwoLetterISOLanguageName(LanguageID: Integer): Text
+    var
+        CultureInfo: DotNet CultureInfo;
+    begin
+        CultureInfo := CultureInfo.CultureInfo(LanguageID);
+        exit(CultureInfo.TwoLetterISOLanguageName);
+    end;
+
+    procedure GetLanguageIdFromCultureName(CultureName: Text): Integer
+    var
+        CultureInfo: DotNet CultureInfo;
+    begin
+        CultureInfo := CultureInfo.CultureInfo(CultureName);
+        exit(CultureInfo.LCID());
+    end;
+
+    procedure GetCultureName(LanguageID: Integer): Text
+    var
+        CultureInfo: DotNet CultureInfo;
+    begin
+        CultureInfo := CultureInfo.CultureInfo(LanguageID);
+        exit(CultureInfo.Name);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"UI Helper Triggers", GetApplicationLanguage, '', false, false)]
     local procedure SetApplicationLanguageId(var language: Integer)
     begin

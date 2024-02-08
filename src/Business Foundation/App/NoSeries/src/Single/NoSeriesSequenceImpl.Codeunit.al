@@ -8,6 +8,8 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Permissions =
         tabledata "No. Series" = r,
         tabledata "No. Series Line" = rimd;
@@ -50,6 +52,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         LastSeqNoUsed := NumberSequence.Current(SequenceName);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'm')]
     local procedure GetNextNoInternal(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     var
         NoSeriesLine2: Record "No. Series Line";
@@ -106,7 +109,11 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if NumberSequence.Next(NoSeriesLine."Sequence Name") = 0 then; // Get a number to make sure LastNoUsed is set correctly
     end;
 
+#if not CLEAN24
+    internal procedure GetFormattedNo(NoSeriesLine: Record "No. Series Line"; Number: BigInteger): Code[20]
+#else
     local procedure GetFormattedNo(NoSeriesLine: Record "No. Series Line"; Number: BigInteger): Code[20]
+#endif
     var
         NumberCode: Code[20];
         i: Integer;

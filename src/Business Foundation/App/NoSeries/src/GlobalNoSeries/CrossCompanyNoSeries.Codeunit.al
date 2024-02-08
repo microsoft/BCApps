@@ -12,6 +12,9 @@ namespace Microsoft.Foundation.NoSeries;
 /// </summary>
 codeunit 283 "Cross-Company No. Series"
 {
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
     /// <summary>
     /// Creates a new cross-company No. Series
     /// </summary>
