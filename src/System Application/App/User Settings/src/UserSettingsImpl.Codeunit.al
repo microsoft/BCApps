@@ -320,7 +320,7 @@ codeunit 9175 "User Settings Impl."
     begin
         ApplicationUserSettings."User Security ID" := UserSecurityID;
         ApplicationUserSettings."Teaching Tips" := true;
-        ApplicationUserSettings."Modern Action Bar" := true;
+        ApplicationUserSettings."Legacy Action Bar" := false;
         ApplicationUserSettings.Insert();
     end;
 
@@ -370,15 +370,24 @@ codeunit 9175 "User Settings Impl."
         ApplicationUserSettings.Modify();
     end;
 
-    procedure ModernActionBarEnabled(UserSecurityId: Guid): Boolean
+    procedure LegacyActionBarEnabled(UserSecurityId: Guid): Boolean
     var
         ApplicationUserSettings: Record "Application User Settings";
     begin
         GetAppSettings(UserSecurityId, ApplicationUserSettings);
-        exit(ApplicationUserSettings."Modern Action Bar");
+        exit(ApplicationUserSettings."Legacy Action Bar");
     end;
 
-    procedure DisableModernActionBar(UserSecurityId: Guid)
+    procedure DisableLegacyActionBar(UserSecurityId: Guid)
+    var
+        ApplicationUserSettings: Record "Application User Settings";
+    begin
+        GetAppSettings(UserSecurityId, ApplicationUserSettings);
+        ApplicationUserSettings."Legacy Action Bar" := false;
+        ApplicationUserSettings.Modify();
+    end;
+
+    procedure EnableLegacyActionBar(UserSecurityId: Guid)
     var
         ApplicationUserSettings: Record "Application User Settings";
         CustomerExperienceSurvey: Codeunit "Customer Experience Survey";
@@ -387,21 +396,12 @@ codeunit 9175 "User Settings Impl."
         IsEligible: Boolean;
     begin
         GetAppSettings(UserSecurityId, ApplicationUserSettings);
-        ApplicationUserSettings."Modern Action Bar" := false;
+        ApplicationUserSettings."Legacy Action Bar" := true;
         ApplicationUserSettings.Modify();
 
         if CustomerExperienceSurvey.RegisterEventAndGetEligibility('modernactionbar_event', 'modernactionbar', FormsProId, FormsProEligibilityId, IsEligible) then
             if IsEligible then
                 CustomerExperienceSurvey.RenderSurvey('modernactionbar', FormsProId, FormsProEligibilityId);
-    end;
-
-    procedure EnableModernActionBar(UserSecurityId: Guid)
-    var
-        ApplicationUserSettings: Record "Application User Settings";
-    begin
-        GetAppSettings(UserSecurityId, ApplicationUserSettings);
-        ApplicationUserSettings."Modern Action Bar" := true;
-        ApplicationUserSettings.Modify();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAutoStartTours, '', false, false)]

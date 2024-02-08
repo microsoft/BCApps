@@ -89,9 +89,9 @@ table 9172 "User Settings"
             Caption = 'Teaching Tips';
             DataClassification = CustomerContent;
         }
-        field(101; "Modern Action Bar"; Boolean)
+        field(101; "Legacy Action Bar"; Boolean)
         {
-            Caption = 'Modern Action Bar';
+            Caption = 'Legacy Action Bar';
             DataClassification = CustomerContent;
         }
     }

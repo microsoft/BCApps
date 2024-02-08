@@ -114,11 +114,13 @@ page 9204 "User Settings"
                         Caption = 'Teaching Tips';
                         ToolTip = 'Specifies whether to display short messages that inform, remind, or teach you about important fields and actions when you open a page.';
                     }
-                    field("Modern Action Bar"; Rec."Modern Action Bar")
+                    field("Modern Action Bar"; Rec."Legacy Action Bar")
                     {
                         ApplicationArea = All;
-                        Caption = 'Modern Action Bar';
-                        ToolTip = 'Specifies whether to display the modern action bar on pages.';
+                        Caption = 'Legacy Action Bar';
+#pragma warning disable AA0219
+                        ToolTip = 'Revert the action bar to the legacy terms and layout. For example, the action bar won''t be pinned on pages, the Home tab is named Process, and split buttons become multiple actions, which means more clicks. Also, your options for personalization will be limited.';
+#pragma warning restore AA0219
                     }
                 }
                 group(Security)

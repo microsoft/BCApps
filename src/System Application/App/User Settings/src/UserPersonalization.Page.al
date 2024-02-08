@@ -116,18 +116,20 @@ page 9214 "User Personalization"
                             UserSettingsImpl.DisableTeachingTips(Rec."User SID");
                     end;
                 }
-                field("Modern Action Bar"; ModernActionBarEnabled)
+                field("Legacy Action Bar"; LegacyActionBarEnabled)
                 {
                     ApplicationArea = All;
-                    Caption = 'Modern Action Bar';
-                    ToolTip = 'Specifies whether to display the modern action bar on pages.';
+                    Caption = 'Legacy Action Bar';
+#pragma warning disable AA0219
+                    ToolTip = 'Revert the action bar to the legacy terms and layout. For example, the action bar won''t be pinned on pages, the Home tab is named Process, and split buttons become multiple actions, which means more clicks. Also, your options for personalization will be limited.';
+#pragma warning restore AA0219
 
                     trigger OnValidate()
                     begin
-                        if ModernActionBarEnabled then
-                            UserSettingsImpl.EnableModernActionBar(Rec."User SID")
+                        if LegacyActionBarEnabled then
+                            UserSettingsImpl.EnableLegacyActionBar(Rec."User SID")
                         else
-                            UserSettingsImpl.DisableModernActionBar(Rec."User SID");
+                            UserSettingsImpl.DisableLegacyActionBar(Rec."User SID");
                     end;
 
                 }
@@ -155,7 +157,7 @@ page 9214 "User Personalization"
     trigger OnAfterGetCurrRecord()
     begin
         TeachingTipsEnabled := UserSettingsImpl.TeachingTipsEnabled(Rec."User SID");
-        ModernActionBarEnabled := UserSettingsImpl.ModernActionBarEnabled(Rec."User SID");
+        LegacyActionBarEnabled := UserSettingsImpl.LegacyActionBarEnabled(Rec."User SID");
     end;
 
     var
@@ -163,6 +165,6 @@ page 9214 "User Personalization"
         Language: Codeunit Language;
         TimeZoneSelection: Codeunit "Time Zone Selection";
         TeachingTipsEnabled: Boolean;
-        ModernActionBarEnabled: Boolean;
+        LegacyActionBarEnabled: Boolean;
         UserSettingsTok: Label 'User Settings';
 }
