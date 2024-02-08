@@ -12,22 +12,6 @@ Param(
 $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
 
 try {
-$webClient = New-Object System.Net.WebClient
-$webClient.CachePolicy = New-Object System.Net.Cache.RequestCachePolicy -argumentList ([System.Net.Cache.RequestCacheLevel]::NoCacheNoStore)
-$webClient.Encoding = [System.Text.Encoding]::UTF8
-Write-Host "Downloading GitHub Helper module"
-$GitHubHelperPath = "$([System.IO.Path]::GetTempFileName()).psm1"
-$webClient.DownloadFile('https://raw.githubusercontent.com/microsoft/AL-Go/54737c26ba5d1c8b647c089a372d9cd2cd907365/Actions/Github-Helper.psm1', $GitHubHelperPath)
-Write-Host "Downloading AL-Go Helper script"
-$ALGoHelperPath = "$([System.IO.Path]::GetTempFileName()).ps1"
-$webClient.DownloadFile('https://raw.githubusercontent.com/microsoft/AL-Go/54737c26ba5d1c8b647c089a372d9cd2cd907365/Actions/AL-Go-Helper.ps1', $ALGoHelperPath)
-
-Import-Module $GitHubHelperPath
-. $ALGoHelperPath -local
-
-$baseFolder = GetBaseFolder -folder $PSScriptRoot
-$project = GetProject -baseFolder $baseFolder -projectALGoFolder $PSScriptRoot
-
 Clear-Host
 Write-Host
 Write-Host -ForegroundColor Yellow @'
@@ -40,7 +24,26 @@ Write-Host -ForegroundColor Yellow @'
 
 '@
 
+$webClient = New-Object System.Net.WebClient
+$webClient.CachePolicy = New-Object System.Net.Cache.RequestCachePolicy -argumentList ([System.Net.Cache.RequestCacheLevel]::NoCacheNoStore)
+$webClient.Encoding = [System.Text.Encoding]::UTF8
+$GitHubHelperUrl = 'https://raw.githubusercontent.com/mazhelez/AL-Go/fix-CreateRelease/Actions/Github-Helper.psm1'
+Write-Host "Downloading GitHub Helper module from $GitHubHelperUrl"
+$GitHubHelperPath = "$([System.IO.Path]::GetTempFileName()).psm1"
+$webClient.DownloadFile($GitHubHelperUrl, $GitHubHelperPath)
+$ALGoHelperUrl = 'https://raw.githubusercontent.com/mazhelez/AL-Go/fix-CreateRelease/Actions/AL-Go-Helper.ps1'
+Write-Host "Downloading AL-Go Helper script from $ALGoHelperUrl"
+$ALGoHelperPath = "$([System.IO.Path]::GetTempFileName()).ps1"
+$webClient.DownloadFile($ALGoHelperUrl, $ALGoHelperPath)
+
+Import-Module $GitHubHelperPath
+. $ALGoHelperPath -local
+
+$baseFolder = GetBaseFolder -folder $PSScriptRoot
+$project = GetProject -baseFolder $baseFolder -projectALGoFolder $PSScriptRoot
+
 Write-Host @'
+
 This script will create a cloud based development environment (Business Central SaaS Sandbox) for your project.
 All apps and test apps will be compiled and published to the environment in the development scope.
 The script will also modify launch.json to have a "Cloud Sandbox (<name>)" configuration point to your environment.
