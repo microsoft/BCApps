@@ -270,9 +270,23 @@ codeunit 9016 "Azure AD Plan"
     /// <param name="ErrorOutForAdmin">Specifies if an error (instead of a message) should be shown for an admin when this function is called.</param>
     [Scope('OnPrem')]
     [NonDebuggable]
-    procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]]; ErrorOutForAdmin: Boolean)
+    procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]]; ErrorOutForAdmin: Boolean) // Todo: Obsolete
     begin
         AzureAdPlanImpl.CheckMixedPlans(PlanNamesPerUser, ErrorOutForAdmin);
+    end;
+
+    /// <summary>
+    /// Checks whether the plan configuration mixes different plans.
+    /// </summary>
+    /// <param name="PlanNamesPerUser">A mapping of new plans for user identifiers.</param>
+    /// <param name="BasicPlanExists">Specifies whether the plan configuration contains the Basic plan</param>
+    /// <param name="EssentialsPlanExists">Specifies whether the plan configuration contains the Essentials plan</param>
+    /// <param name="PremiumPlanExists">Specifies whether the plan configuration contains the Premium plan</param>
+    [Scope('OnPrem')]
+    [NonDebuggable]
+    procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]]; var BasicPlanExists: Boolean; var EssentialsPlanExists: Boolean; var PremiumPlanExists: Boolean)
+    begin
+        AzureAdPlanImpl.CheckMixedPlans(PlanNamesPerUser, BasicPlanExists, EssentialsPlanExists, PremiumPlanExists);
     end;
 
     /// <summary>
