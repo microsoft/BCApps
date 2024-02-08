@@ -12,7 +12,7 @@ function New-BCAppsBackport() {
     PrecheckBackport -TargetBranches $TargetBranches -PullRequestNumber $PullRequestNumber
 
     # Get the pull request details
-    $pullRequestDetails = (gh pr view $PullRequestNumber --json title,number,body,headRefName,baseRefName | ConvertFrom-Json)
+    $pullRequestDetails = (gh pr view $PullRequestNumber --json title,number,body,headRefName,baseRefName,mergeCommit,potentialMergeCommit | ConvertFrom-Json)
     Write-Host "Backport to: $($TargetBranches -join ",")" -ForegroundColor Cyan
     Write-Host "Pull Request Source Branch: $($pullRequestDetails.headRefName)" -ForegroundColor Cyan
     Write-Host "Pull Request Target Branch: $($pullRequestDetails.baseRefName)" -ForegroundColor Cyan
@@ -24,7 +24,7 @@ function New-BCAppsBackport() {
     }
 
     # Get the list of existing pull requests
-    $existingPullRequests = gh pr list --json title,state,baseRefName,url | ConvertFrom-Json
+    $existingOpenPullRequests = gh pr list --state open --json title,state,baseRefName,url | ConvertFrom-Json
 
     # Get the current branch before starting to backport
     $startingBranch = RunAndCheck git rev-parse --abbrev-ref HEAD
@@ -38,7 +38,7 @@ function New-BCAppsBackport() {
             $body += "`r`n`r`nFixes [**Insert Work Item Number Here**]"
 
             # Check if there is already a pull request for this branch
-            $existingPr = $existingPullRequests | Where-Object { $_.title -eq $title -and $_.state -eq "OPEN" -and $_.baseRefName -eq $TargetBranch }
+            $existingPr = $existingOpenPullRequests | Where-Object { ($_.title -eq $title) -and ($_.baseRefName -eq $TargetBranch) }
             if ($existingPr) {
                 Write-Host "Pull request for $TargetBranch already exists: $($existingPr.url)" -ForegroundColor Yellow
                 continue
@@ -48,7 +48,7 @@ function New-BCAppsBackport() {
             $cherryPickBranch = "hotfix/$TargetBranch/$branchNameSuffix"
 
             # Port the pull request to the target branch
-            PortPullRequest -PullRequestNumber $PullRequestNumber -TargetBranch $TargetBranch -CherryPickBranch $cherryPickBranch
+            PortPullRequest -PullRequestDetails $pullRequestDetails -TargetBranch $TargetBranch -CherryPickBranch $cherryPickBranch
 
             # Create a pull request for the cherry-pick
             gh pr create --title $title --body $body --base $TargetBranch --head $cherryPickBranch
@@ -99,22 +99,14 @@ function PrecheckBackport($TargetBranches, $PullRequestNumber) {
     }
 }
 
-function GetConfirmation($Message) {
-    $confirmation = Read-Host -Prompt "$Message (y/n)"
-    if ($confirmation -ne "y") {
-        throw "Operation cancelled"
-    }
-}
-
-function PortPullRequest($PullRequestNumber, $TargetBranch, $CherryPickBranch) {
-    $pullRequestDetails = gh pr view $PullRequestNumber --json mergeCommit, potentialMergeCommit | ConvertFrom-Json
+function PortPullRequest($PullRequestDetails, $TargetBranch, $CherryPickBranch) {
     RunAndCheck git checkout -b $CherryPickBranch origin/$TargetBranch
 
     try {
         if ($pullRequestDetails.mergeCommit) {
-            RunAndCheck git cherry-pick $pullRequestDetails.mergeCommit.oid
+            RunAndCheck git cherry-pick $pullRequestDetails.mergeCommit.oid 
         } else {
-            RunAndCheck git fetch origin refs/pull/$PullRequestNumber/merge
+            RunAndCheck git fetch origin refs/pull/$($pullRequestDetails.number)/merge
             RunAndCheck git cherry-pick $pullRequestDetails.potentialMergeCommit.oid -m 1
         }
     } catch {
@@ -123,10 +115,15 @@ function PortPullRequest($PullRequestNumber, $TargetBranch, $CherryPickBranch) {
         Write-Host "To continue, resolve all conflicts in a new window, run git cherry-pick --continue and then press 'y'"
         GetConfirmation -Message "Do you want to continue?"
     }
-    
 
     RunAndCheck git push origin $CherryPickBranch
-
 }
 
-Export-ModuleMember -Function *-*
+function GetConfirmation($Message) {
+    $confirmation = Read-Host -Prompt "$Message (y/n)"
+    if ($confirmation -ne "y") {
+        throw "Operation cancelled"
+    }
+}
+
+Export-ModuleMember -Function New-BCAppsBackport
