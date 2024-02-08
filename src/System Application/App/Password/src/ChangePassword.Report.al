@@ -47,9 +47,10 @@ report 9810 "Change Password"
         PasswordUpdatedMsg: Label 'Your Password has been updated.';
         UserDoesNotExistErr: Label 'The user with %1 %2 does not exist.', Comment = '%1 = Label User Security Id, %2 = User Security ID';
 
+    [NonDebuggable]
     local procedure ChangePassword(OldPassword: SecretText; Password: SecretText): Boolean
     begin
-        exit(ChangeUserPassword(OldPassword, Password));
+        exit(ChangeUserPassword(OldPassword.Unwrap(), Password.Unwrap()));
     end;
 }
 
