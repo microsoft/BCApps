@@ -66,6 +66,18 @@ If you would like to add new capabilities to the product as described in **B)**,
 
     Once the issue is created on GitHub, it still needs to be approved. Once approved, the rest of the process is identical to the process described in **A)**.
 
+## Get To Know System App
+
+There are several chapters on Microsoft Learn that explains several aspects of the System app.  
+Here are some:
+
+- [Module Architecture](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
+- [Get started with modules in the System Application](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
+- [Set Up an Environment for Developing a Module](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-set-up-an-environment)
+- [Create a new module in the System Application](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-new-module)
+- [Create a .NET Wrapper Module](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-create-a-wrapper-module)
+- [Change a module in the System Application](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-change-a-module)
+
 ## More Resources
 * This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
