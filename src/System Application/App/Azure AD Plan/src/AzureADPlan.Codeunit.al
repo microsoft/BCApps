@@ -278,6 +278,20 @@ codeunit 9016 "Azure AD Plan"
     /// <summary>
     /// Checks whether the plan configuration mixes different plans.
     /// </summary>
+    /// <param name="BasicPlanExists">Specifies whether the plan configuration contains the Basic plan</param>
+    /// <param name="EssentialsPlanExists">Specifies whether the plan configuration contains the Essentials plan</param>
+    /// <param name="PremiumPlanExists">Specifies whether the plan configuration contains the Premium plan</param>
+    /// <returns>Returns true if there are incompatible plans in the system. </returns>
+    [Scope('OnPrem')]
+    [NonDebuggable]
+    procedure CheckMixedPlans(var BasicPlanExists: Boolean; var EssentialsPlanExists: Boolean; var PremiumPlanExists: Boolean): Boolean
+    begin
+        exit(AzureAdPlanImpl.CheckMixedPlans(BasicPlanExists, EssentialsPlanExists, PremiumPlanExists));
+    end;
+
+    /// <summary>
+    /// Checks whether the plan configuration mixes different plans.
+    /// </summary>
     /// <param name="PlanNamesPerUser">A mapping of new plans for user identifiers.</param>
     /// <param name="BasicPlanExists">Specifies whether the plan configuration contains the Basic plan</param>
     /// <param name="EssentialsPlanExists">Specifies whether the plan configuration contains the Essentials plan</param>

@@ -250,6 +250,7 @@ codeunit 9018 "Azure AD Plan Impl."
         CheckMixedPlans(DummyDictionary, false);
     end;
 
+#if not CLEAN24
     [NonDebuggable]
     procedure CheckMixedPlans(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]; ErrorOutForAdmin: Boolean)
     var
@@ -262,6 +263,15 @@ codeunit 9018 "Azure AD Plan Impl."
 
         if not MixedPlansExist(PlanNamesPerUserFromGraph, BasicPlanExists, EssentialsPlanExists, PremiumPlanExists) then
             exit;
+    end;
+#endif
+
+    [NonDebuggable]
+    procedure CheckMixedPlans(var BasicPlanExists: Boolean; var EssentialsPlanExists: Boolean; var PremiumPlanExists: Boolean): Boolean
+    var
+        EmptyDictionary: Dictionary of [Text, List of [Text]];
+    begin
+        exit(CheckMixedPlans(EmptyDictionary, BasicPlanExists, EssentialsPlanExists, PremiumPlanExists));
     end;
 
     [NonDebuggable]
