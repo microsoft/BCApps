@@ -36,8 +36,14 @@ codeunit 54 "Language Impl."
 
     procedure GetLanguageIdOrDefault(LanguageCode: Code[10]): Integer;
     var
+        Language: Codeunit Language;
         LanguageId: Integer;
+        Handled: Boolean;
     begin
+        Language.OnGetLanguageIdOrDefault(LanguageCode, LanguageId, Handled);
+        if Handled then
+            exit(LanguageId);
+
         LanguageId := GetLanguageId(LanguageCode);
 
         if LanguageId = 0 then
@@ -49,9 +55,15 @@ codeunit 54 "Language Impl."
     procedure GetFormatRegionOrDefault(FormatRegion: Text[80]): Text[80]
     var
         LanguageSelection: Record "Language Selection";
+        Language: Codeunit Language;
         UserSessionSettings: SessionSettings;
         LocalId: Integer;
+        Handled: Boolean;
     begin
+        Language.OnGetFormatRegionOrDefault(FormatRegion, Handled);
+        if Handled then
+            exit(FormatRegion);
+
         if FormatRegion <> '' then
             exit(FormatRegion);
 

@@ -270,5 +270,30 @@ codeunit 43 Language
     internal procedure OnGetUserLanguageCode(var UserLanguageCode: Code[10]; var Handled: Boolean)
     begin
     end;
+
+    /// <summary>
+    /// Integration event, emitted from <see cref="GetLanguageIdOrDefault"/>.
+    /// Subscribe to this event to change language id returned by GetLanguageIdOrDefault.
+    /// </summary>
+    /// <seealso cref="GetLanguageIdOrDefault"/>
+    /// <param name="LanguageCode">Language code that GetLanguageIdOrDefault was provided with.</param>
+    /// <param name="LanguageId">Exit parameter that holds the language id set by function.</param>
+    /// <param name="Handled">True when this event is handled.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnGetLanguageIdOrDefault(LanguageCode: Code[10]; var LanguageId: Integer; var Handled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event, emitted from <see cref="GetFormatRegionOrDefault"/>.
+    /// Subscribe to this event to change format region returned by GetFormatRegionOrDefault.
+    /// </summary>
+    /// <seealso cref="GetFormatRegionOrDefault"/>
+    /// <param name="FormatRegion">Exit parameter that holds the format region returned by function.</param>
+    /// <param name="Handled">True when this event is handled.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnGetFormatRegionOrDefault(var FormatRegion: Text[80]; var Handled: Boolean)
+    begin
+    end;
 }
 
