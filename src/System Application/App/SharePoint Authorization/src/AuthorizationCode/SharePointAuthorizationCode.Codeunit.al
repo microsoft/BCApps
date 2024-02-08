@@ -56,16 +56,10 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
     var
         OAuth2: Codeunit OAuth2;
         IsHandled, IsSuccess : Boolean;
-#if not CLEAN24
         EventAccessToken: Text;
-#endif
     begin
-        OnBeforeGetSecretToken(IsHandled, IsSuccess, ErrorText, AccessToken);
-#if not CLEAN24
         if not IsHandled then begin
-#pragma warning disable AL0432
             OnBeforeGetToken(IsHandled, IsSuccess, ErrorText, EventAccessToken);
-#pragma warning restore AL0432
             if IsHandled then
                 AccessToken := EventAccessToken;
         end;
@@ -86,16 +80,8 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
         exit(IsSuccess);
     end;
 
-#if not CLEAN24
     [InternalEvent(false, true)]
-    [Obsolete('Replaced by OnBeforeGetSecretToken with SecretText data type for AccessToken parameter.', '24.0')]
     local procedure OnBeforeGetToken(var IsHandled: Boolean; var IsSuccess: Boolean; var ErrorText: Text; var AccessToken: Text)
-    begin
-    end;
-#endif
-
-    [InternalEvent(false, true)]
-    local procedure OnBeforeGetSecretToken(var IsHandled: Boolean; var IsSuccess: Boolean; var ErrorText: Text; var AccessToken: SecretText)
     begin
     end;
 }
