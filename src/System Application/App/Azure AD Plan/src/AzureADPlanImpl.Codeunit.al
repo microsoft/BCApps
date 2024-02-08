@@ -243,44 +243,38 @@ codeunit 9018 "Azure AD Plan Impl."
     end;
 
     [NonDebuggable]
-    procedure CheckMixedPlans()
+    procedure GetUserPlanExperience(): Enum "User Plan Experience"
+    var
+        PlanIds: Codeunit "Plan Ids";
+        UserPlanExperience: Enum "User Plan Experience";
+    begin
+        if UserHasPlan(UserSecurityId(), PlanIds.GetPremiumPlanId()) then
+            exit(UserPlanExperience::Premium);
+
+        if UserHasPlan(UserSecurityId(), PlanIds.GetEssentialPlanId()) then
+            exit(UserPlanExperience::Essentials);
+
+        if UserHasPlan(UserSecurityId(), PlanIds.GetBasicPlanId()) then
+            exit(UserPlanExperience::Basic);
+
+        exit(UserPlanExperience::Other);
+    end;
+
+    [NonDebuggable]
+    procedure CheckMixedPlans(): BOolean
     var
         DummyDictionary: Dictionary of [Text, List of [Text]];
     begin
-        CheckMixedPlans(DummyDictionary, false);
-    end;
-
-#if not CLEAN24
-    [NonDebuggable]
-    procedure CheckMixedPlans(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]; ErrorOutForAdmin: Boolean)
-    var
-        BasicPlanExists: Boolean;
-        EssentialsPlanExists: Boolean;
-        PremiumPlanExists: Boolean;
-    begin
-        if not ShouldCheckMixedPlans() then
-            exit;
-
-        if not MixedPlansExist(PlanNamesPerUserFromGraph, BasicPlanExists, EssentialsPlanExists, PremiumPlanExists) then
-            exit;
-    end;
-#endif
-
-    [NonDebuggable]
-    procedure CheckMixedPlans(var BasicPlanExists: Boolean; var EssentialsPlanExists: Boolean; var PremiumPlanExists: Boolean): Boolean
-    var
-        EmptyDictionary: Dictionary of [Text, List of [Text]];
-    begin
-        exit(CheckMixedPlans(EmptyDictionary, BasicPlanExists, EssentialsPlanExists, PremiumPlanExists));
+        exit(CheckMixedPlans(DummyDictionary));
     end;
 
     [NonDebuggable]
-    procedure CheckMixedPlans(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]; var BasicPlanExists: Boolean; var EssentialsPlanExists: Boolean; var PremiumPlanExists: Boolean): Boolean
+    procedure CheckMixedPlans(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]): Boolean
     begin
         if not ShouldCheckMixedPlans() then
             exit(false);
 
-        if not MixedPlansExist(PlanNamesPerUserFromGraph, BasicPlanExists, EssentialsPlanExists, PremiumPlanExists) then
+        if not MixedPlansExist(PlanNamesPerUserFromGraph) then
             exit(false);
 
         exit(true);
@@ -290,15 +284,12 @@ codeunit 9018 "Azure AD Plan Impl."
     procedure MixedPlansExist(): Boolean
     var
         EmptyDictionary: Dictionary of [Text, List of [Text]];
-        BasicPlanExists: Boolean;
-        EssentialsPlanExists: Boolean;
-        PremiumPlanExists: Boolean;
     begin
-        exit(MixedPlansExist(EmptyDictionary, BasicPlanExists, EssentialsPlanExists, PremiumPlanExists));
+        exit(MixedPlansExist(EmptyDictionary));
     end;
 
     [NonDebuggable]
-    procedure MixedPlansExist(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]; var BasicPlanExists: Boolean; var EssentialsPlanExists: Boolean; var PremiumPlanExists: Boolean): Boolean
+    procedure MixedPlansExist(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]): Boolean
     var
         PlanIds: Codeunit "Plan Ids";
         UsersInPlans: Query "Users in Plans";
@@ -311,6 +302,9 @@ codeunit 9018 "Azure AD Plan Impl."
         UserAuthenticationEmailSecondConflicting: Text;
         FirstConflictingPlanName: Text;
         SecondConflictingPlanName: Text;
+        BasicPlanExists: Boolean;
+        EssentialsPlanExists: Boolean;
+        PremiumPlanExists: Boolean;
     begin
         Session.LogMessage('0000BPB', CheckingForMixedPlansTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
 
@@ -401,6 +395,15 @@ codeunit 9018 "Azure AD Plan Impl."
             PlanIds.GetPremiumPlanId():
                 PlanName := PremiumPlanNameTxt;
         end;
+    end;
+
+    local procedure UserHasPlan(UserSecurityId: Guid; PlanId: Guid): Boolean
+    var
+        UserPlan: Record "User Plan";
+    begin
+        UserPlan.SetRange("User Security ID", UserSecurityId);
+        UserPlan.SetRange("Plan ID", PlanId);
+        exit(not UserPlan.IsEmpty());
     end;
 
     [NonDebuggable]

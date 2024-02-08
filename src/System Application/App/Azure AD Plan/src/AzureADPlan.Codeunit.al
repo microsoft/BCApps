@@ -254,40 +254,42 @@ codeunit 9016 "Azure AD Plan"
     end;
 
     /// <summary>
-    /// Checks whether the plan configuration mixes different plans.
+    /// Returns the user plan experience of the user. Either Basic, Essentials, Premium or Other.
     /// </summary>
+    /// <returns>The the user plan experience.</returns>
     [Scope('OnPrem')]
     [NonDebuggable]
-    procedure CheckMixedPlans()
+    procedure GetUserPlanExperience(): Enum "User Plan Experience"
+    begin
+        exit(AzureAdPlanImpl.GetUserPlanExperience());
+    end;
+
+    /// <summary>
+    /// Checks whether the plan configuration mixes different plans.
+    /// </summary>
+    /// <returns>Returns true if there are incompatible plans in the system. </returns>
+    [Scope('OnPrem')]
+    [NonDebuggable]
+    procedure CheckMixedPlans(): Boolean;
     begin
         AzureAdPlanImpl.CheckMixedPlans();
     end;
 
+#if not CLEAN24
     /// <summary>
     /// Checks whether the plan configuration mixes different plans.
     /// </summary>
     /// <param name="PlanNamesPerUser">A mapping of new plans for user identifiers.</param>
     /// <param name="ErrorOutForAdmin">Specifies if an error (instead of a message) should be shown for an admin when this function is called.</param>
-    [Scope('OnPrem')]
-    [NonDebuggable]
-    procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]]; ErrorOutForAdmin: Boolean) // Todo: Obsolete
-    begin
-        AzureAdPlanImpl.CheckMixedPlans(PlanNamesPerUser, ErrorOutForAdmin);
-    end;
-
-    /// <summary>
-    /// Checks whether the plan configuration mixes different plans.
-    /// </summary>
-    /// <param name="BasicPlanExists">Specifies whether the plan configuration contains the Basic plan</param>
-    /// <param name="EssentialsPlanExists">Specifies whether the plan configuration contains the Essentials plan</param>
-    /// <param name="PremiumPlanExists">Specifies whether the plan configuration contains the Premium plan</param>
     /// <returns>Returns true if there are incompatible plans in the system. </returns>
     [Scope('OnPrem')]
     [NonDebuggable]
-    procedure CheckMixedPlans(var BasicPlanExists: Boolean; var EssentialsPlanExists: Boolean; var PremiumPlanExists: Boolean): Boolean
+    [Obsolete('Use overload function without ErrorOutForAdmin variable', '24.0')]
+    procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]]; ErrorOutForAdmin: Boolean)
     begin
-        exit(AzureAdPlanImpl.CheckMixedPlans(BasicPlanExists, EssentialsPlanExists, PremiumPlanExists));
+        AzureAdPlanImpl.CheckMixedPlans(PlanNamesPerUser);
     end;
+#endif
 
     /// <summary>
     /// Checks whether the plan configuration mixes different plans.
@@ -298,9 +300,9 @@ codeunit 9016 "Azure AD Plan"
     /// <param name="PremiumPlanExists">Specifies whether the plan configuration contains the Premium plan</param>
     [Scope('OnPrem')]
     [NonDebuggable]
-    procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]]; var BasicPlanExists: Boolean; var EssentialsPlanExists: Boolean; var PremiumPlanExists: Boolean)
+    procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]])
     begin
-        AzureAdPlanImpl.CheckMixedPlans(PlanNamesPerUser, BasicPlanExists, EssentialsPlanExists, PremiumPlanExists);
+        AzureAdPlanImpl.CheckMixedPlans(PlanNamesPerUser);
     end;
 
     /// <summary>
