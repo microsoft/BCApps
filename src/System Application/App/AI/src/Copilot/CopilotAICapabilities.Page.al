@@ -168,7 +168,7 @@ page 7775 "Copilot AI Capabilities"
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             CopilotCapabilityImpl.ShowCapabilitiesNotAvailableOnPremNotification();
 
-        if WithinGeo and (not AllowDataMovement) then
+        if (WithinGeo and not WithinEuropeGeo) and (not AllowDataMovement) then
             CopilotCapabilityImpl.ShowPrivacyNoticeDisagreedNotification();
 
         CopilotCapabilityImpl.UpdateGuidedExperience(AllowDataMovement);
