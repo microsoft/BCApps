@@ -36,9 +36,9 @@ table 308 "No. Series"
 
             trigger OnValidate()
             var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
+                NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
             begin
-                NoSeriesMgt.ValidateDefaultNos(Rec, xRec);
+                NoSeriesSetupImpl.ValidateDefaultNos(Rec, xRec);
             end;
         }
         field(4; "Manual Nos."; Boolean)
@@ -47,22 +47,14 @@ table 308 "No. Series"
 
             trigger OnValidate()
             var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
+                NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
             begin
-                NoSeriesMgt.ValidateManualNos(Rec, xRec);
+                NoSeriesSetupImpl.ValidateManualNos(Rec, xRec);
             end;
         }
         field(5; "Date Order"; Boolean)
         {
             Caption = 'Date Order';
-        }
-        field(11790; Mask; Text[20]) // CZ Functionality
-        {
-            Caption = 'Mask';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'The field is used in CZ localization only. The functionality of No. Series Enhancements will be removed and this field should not be used. (Obsolete::Removed in release 01.2021)';
-            ObsoleteState = Removed;
-            ObsoleteTag = '18.0';
         }
     }
 
@@ -83,8 +75,8 @@ table 308 "No. Series"
 
     trigger OnDelete()
     var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
+        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
     begin
-        NoSeriesMgt.DeleteNoSeries(Rec);
+        NoSeriesSetupImpl.DeleteNoSeries(Rec);
     end;
 }

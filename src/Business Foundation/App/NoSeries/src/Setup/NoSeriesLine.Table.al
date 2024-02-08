@@ -37,9 +37,9 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
+                NoSeriesSetup: Codeunit "No. Series - Setup";
             begin
-                NoSeriesMgt.UpdateNoSeriesLine(Rec, "Starting No.", CopyStr(FieldCaption("Starting No."), 1, 100));
+                NoSeriesSetup.UpdateNoSeriesLine(Rec, "Starting No.", CopyStr(FieldCaption("Starting No."), 1, 100));
             end;
         }
         field(5; "Ending No."; Code[20])
@@ -48,11 +48,11 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
+                NoSeriesSetup: Codeunit "No. Series - Setup";
             begin
                 if "Ending No." = '' then
                     "Warning No." := '';
-                NoSeriesMgt.UpdateNoSeriesLine(Rec, "Ending No.", CopyStr(FieldCaption("Ending No."), 1, 100));
+                NoSeriesSetup.UpdateNoSeriesLine(Rec, "Ending No.", CopyStr(FieldCaption("Ending No."), 1, 100));
                 Validate(Open);
             end;
         }
@@ -62,10 +62,10 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
+                NoSeriesSetup: Codeunit "No. Series - Setup";
             begin
                 TestField("Ending No.");
-                NoSeriesMgt.UpdateNoSeriesLine(Rec, "Warning No.", CopyStr(FieldCaption("Warning No."), 1, 100));
+                NoSeriesSetup.UpdateNoSeriesLine(Rec, "Warning No.", CopyStr(FieldCaption("Warning No."), 1, 100));
             end;
         }
         field(7; "Increment-by No."; Integer)
@@ -85,9 +85,9 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                NoSeriesMgt: Codeunit NoSeriesMgt;
+                NoSeriesSetup: Codeunit "No. Series - Setup";
             begin
-                NoSeriesMgt.UpdateNoSeriesLine(Rec, "Last No. Used", CopyStr(FieldCaption("Last No. Used"), 1, 100));
+                NoSeriesSetup.UpdateNoSeriesLine(Rec, "Last No. Used", CopyStr(FieldCaption("Last No. Used"), 1, 100));
                 Validate(Open);
             end;
         }
@@ -99,27 +99,14 @@ table 309 "No. Series Line"
 
             trigger OnValidate()
             var
-                NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                NoSeriesSetup: Codeunit "No. Series - Setup";
             begin
-                Open := NoSeriesSetupImpl.CalculateOpen(Rec);
+                Open := NoSeriesSetup.CalculateOpen(Rec);
             end;
         }
         field(10; "Last Date Used"; Date)
         {
             Caption = 'Last Date Used';
-        }
-        field(11; "Allow Gaps in Nos."; Boolean)
-        {
-            Caption = 'Allow Gaps in Nos.';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'The specific implementation is defined by the Implementation field and whether the implementation may produce gaps can be determined through the implementation interface or the procedure MayProduceGaps.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '24.0';
-#endif
         }
         field(12; "Sequence Name"; Code[40])
         {
@@ -138,45 +125,6 @@ table 309 "No. Series Line"
             Caption = 'Implementation';
             DataClassification = SystemMetadata;
 
-        }
-        field(10000; Series; Code[10]) // NA (MX) Functionality
-        {
-            Caption = 'Series';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'The No. Series module cannot reference tax features.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '24.0';
-#endif
-        }
-        field(10001; "Authorization Code"; Integer) // NA (MX) Functionality
-        {
-            Caption = 'Authorization Code';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'The No. Series module cannot reference tax features.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '24.0';
-#endif
-        }
-        field(10002; "Authorization Year"; Integer) // NA (MX) Functionality
-        {
-            Caption = 'Authorization Year';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'The No. Series module cannot reference tax features.';
-#if CLEAN24
-            ObsoleteState = Removed;
-            ObsoleteTag = '27.0';
-#else
-            ObsoleteState = Pending;
-            ObsoleteTag = '24.0';
-#endif
         }
     }
 
