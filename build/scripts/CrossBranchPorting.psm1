@@ -3,22 +3,25 @@ function New-BCAppsBackport() {
         [Parameter(Mandatory=$true)]
         [string] $PullRequestNumber,
         [Parameter(Mandatory=$true)]
-        [string[]] $TargetBranches
+        [string[]] $TargetBranches,
+        [Parameter(Mandatory=$false)]
+        [switch] $SkipConfirmation
     )
     Import-Module $PSScriptRoot/EnlistmentHelperFunctions.psm1
 
-    # Check gh cli is installed
-    if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
-        throw "Please install the gh cli from"
-    }
-
-    # Check that there are no uncommitted changes
-    if (RunAndCheck git diff --name-only) {
-        throw "You have uncommitted changes. Please commit, revert or stash your changes before running this command."
-    }
+    PrecheckBackport -TargetBranches $TargetBranches -PullRequestNumber $PullRequestNumber
 
     # Get the pull request details
-    $pullRequestDetails = (gh pr view $PullRequestNumber --json title,number | ConvertFrom-Json)
+    $pullRequestDetails = (gh pr view $PullRequestNumber --json title,number,body,headRefName,baseRefName | ConvertFrom-Json)
+    Write-Host "Backport to: $($TargetBranches -join ",")" -ForegroundColor Cyan
+    Write-Host "Pull Request Source Branch: $($pullRequestDetails.headRefName)" -ForegroundColor Cyan
+    Write-Host "Pull Request Target Branch: $($pullRequestDetails.baseRefName)" -ForegroundColor Cyan
+    Write-Host "Pull Request Title: $($pullRequestDetails.title)" -ForegroundColor Cyan
+    Write-Host "Pull Request Description: `n$($pullRequestDetails.body)" -ForegroundColor Cyan
+
+    if (-not $SkipConfirmation) {
+        GetConfirmation -Message "Please review the about information and press (y)es to continue or any other key to stop" 
+    }
 
     # Get the list of existing pull requests
     $existingPullRequests = gh pr list --json title,state,baseRefName,url | ConvertFrom-Json
@@ -43,22 +46,18 @@ function New-BCAppsBackport() {
 
             # Create a new branch for the cherry-pick
             $cherryPickBranch = "hotfix/$TargetBranch/$branchNameSuffix"
-            RunAndCheck git checkout -b $cherryPickBranch $TargetBranch
-            RunAndCheck git pull origin $TargetBranch
 
-            # Apply patch on top of the branch
-            gh pr diff --patch $PullRequestNumber | RunAndCheck git am
+            # Port the pull request to the target branch
+            PortPullRequest -PullRequestNumber $PullRequestNumber -TargetBranch $TargetBranch -CherryPickBranch $cherryPickBranch
 
-            # Push the branch and create a pull request
-            RunAndCheck git push origin $cherryPickBranch
+            # Create a pull request for the cherry-pick
             gh pr create --title $title --body $body --base $TargetBranch --head $cherryPickBranch
 
-            $backportPr = gh pr view --json url | ConvertFrom-Json
+            $backportPr = gh pr view $cherryPickBranch --json url | ConvertFrom-Json
             if ($backportPr.url) {
                 $pullRequests.Add($TargetBranch, $backportPr.url)
             }
         } catch {
-            git am --abort
             RunAndCheck git checkout $startingBranch
             Write-Host "Failed to backport to $TargetBranch. Please inspect the error and try again." -ForegroundColor Red
             Write-Host $_.Exception.Message -ForegroundColor Red
@@ -78,6 +77,56 @@ function New-BCAppsBackport() {
     foreach($pullRequest in $pullRequests.GetEnumerator()) {
         Write-Host " - $($pullRequest.Key): $($pullRequest.Value)" -ForegroundColor Green
     }
+}
+
+function PrecheckBackport($TargetBranches, $PullRequestNumber) {
+    # Check gh cli is installed
+    if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
+        throw "Please install the gh cli from"
+    }
+
+    # Check that there are no uncommitted changes
+    if (RunAndCheck git diff --name-only) {
+        throw "You have uncommitted changes. Please commit, revert or stash your changes before running this command."
+    }
+
+    # Validate Target Branches exist
+    foreach($TargetBranch in $TargetBranches) {
+        git show-ref --verify --quiet "refs/heads/$TargetBranch"
+        if ($LASTEXITCODE -ne 0) {
+            throw "Branch $TargetBranch does not exist"
+        }
+    }
+}
+
+function GetConfirmation($Message) {
+    $confirmation = Read-Host -Prompt "$Message (y/n)"
+    if ($confirmation -ne "y") {
+        throw "Operation cancelled"
+    }
+}
+
+function PortPullRequest($PullRequestNumber, $TargetBranch, $CherryPickBranch) {
+    $pullRequestDetails = gh pr view $PullRequestNumber --json mergeCommit, potentialMergeCommit | ConvertFrom-Json
+    RunAndCheck git checkout -b $CherryPickBranch origin/$TargetBranch
+
+    try {
+        if ($pullRequestDetails.mergeCommit) {
+            RunAndCheck git cherry-pick $pullRequestDetails.mergeCommit.oid
+        } else {
+            RunAndCheck git fetch origin refs/pull/$PullRequestNumber/merge
+            RunAndCheck git cherry-pick $pullRequestDetails.potentialMergeCommit.oid -m 1
+        }
+    } catch {
+        Write-Host -ForegroundColor Red "Cherry picking commitid $cherrypickId failed. $_"
+        Write-Host "To abort, press 'n' and run git cherry-pick --abort"
+        Write-Host "To continue, resolve all conflicts in a new window, run git cherry-pick --continue and then press 'y'"
+        GetConfirmation -Message "Do you want to continue?"
+    }
+    
+
+    RunAndCheck git push origin $CherryPickBranch
+
 }
 
 Export-ModuleMember -Function *-*
