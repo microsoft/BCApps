@@ -15,7 +15,6 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         tabledata "No. Series Line" = rimd;
 
     var
-        NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
         CannotAssignNumbersGreaterThanErr: Label 'You cannot assign numbers greater than %1 from the number series %2. No. assigned: %3', Comment = '%1=Last No.,%2=No. Series Code, %3=the new no.';
 
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
@@ -30,6 +29,8 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'm')]
     local procedure GetNextNoInternal(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
+    var
+        NoSeriesSetup: Codeunit "No. Series - Setup";
     begin
         if NoSeriesLine."Last No. Used" = '' then begin
             if HideErrorsAndWarnings and (NoSeriesLine."Starting No." = '') then
@@ -40,7 +41,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
             if NoSeriesLine."Increment-by No." <= 1 then
                 NoSeriesLine."Last No. Used" := IncStr(NoSeriesLine."Last No. Used")
             else
-                NoSeriesLine."Last No. Used" := IncrementNoText(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.");
+                NoSeriesLine."Last No. Used" := NoSeriesSetup.IncrementNoText(NoSeriesLine."Last No. Used", NoSeriesLine."Increment-by No.");
 
         if not EnsureLastNoUsedIsWithinValidRange(NoSeriesLine, HideErrorsAndWarnings) then
             exit('');
@@ -62,66 +63,6 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
     procedure MayProduceGaps(): Boolean
     begin
         exit(false);
-    end;
-
-    procedure IncrementNoText(No: Code[20]; IncrementByNo: Decimal): Code[20]
-    var
-        BigIntNo: BigInteger;
-        BigIntIncByNo: BigInteger;
-        StartPos: Integer;
-        EndPos: Integer;
-        NewNo: Code[20];
-    begin
-        GetIntegerPos(No, StartPos, EndPos);
-        Evaluate(BigIntNo, CopyStr(No, StartPos, EndPos - StartPos + 1));
-        BigIntIncByNo := IncrementByNo;
-        NewNo := CopyStr(Format(BigIntNo + BigIntIncByNo, 0, 1), 1, MaxStrLen(NewNo));
-        ReplaceNoText(No, NewNo, 0, StartPos, EndPos);
-        exit(No);
-    end;
-
-    local procedure GetIntegerPos(No: Code[20]; var StartPos: Integer; var EndPos: Integer)
-    var
-        IsDigit: Boolean;
-        i: Integer;
-    begin
-        StartPos := 0;
-        EndPos := 0;
-        if No <> '' then begin
-            i := StrLen(No);
-            repeat
-                IsDigit := No[i] in ['0' .. '9'];
-                if IsDigit then begin
-                    if EndPos = 0 then
-                        EndPos := i;
-                    StartPos := i;
-                end;
-                i := i - 1;
-            until (i = 0) or (StartPos <> 0) and not IsDigit;
-        end;
-    end;
-
-    local procedure ReplaceNoText(var No: Code[20]; NewNo: Code[20]; FixedLength: Integer; StartPos: Integer; EndPos: Integer)
-    var
-        StartNo: Code[20];
-        EndNo: Code[20];
-        ZeroNo: Code[20];
-        NewLength: Integer;
-        OldLength: Integer;
-    begin
-        if StartPos > 1 then
-            StartNo := CopyStr(CopyStr(No, 1, StartPos - 1), 1, MaxStrLen(StartNo));
-        if EndPos < StrLen(No) then
-            EndNo := CopyStr(CopyStr(No, EndPos + 1), 1, MaxStrLen(EndNo));
-        NewLength := StrLen(NewNo);
-        OldLength := EndPos - StartPos + 1;
-        if FixedLength > OldLength then
-            OldLength := FixedLength;
-        if OldLength > NewLength then
-            ZeroNo := CopyStr(PadStr('', OldLength - NewLength, '0'), 1, MaxStrLen(ZeroNo));
-        if StrLen(StartNo) + StrLen(ZeroNo) + StrLen(NewNo) + StrLen(EndNo) > 20 then
-            Error(NumberLengthErr, No);
-        No := CopyStr(StartNo + ZeroNo + NewNo + EndNo, 1, MaxStrLen(No));
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Implementation', false, false)]

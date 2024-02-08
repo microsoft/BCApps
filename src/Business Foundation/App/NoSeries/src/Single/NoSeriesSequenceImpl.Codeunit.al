@@ -109,7 +109,11 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if NumberSequence.Next(NoSeriesLine."Sequence Name") = 0 then; // Get a number to make sure LastNoUsed is set correctly
     end;
 
+#if not CLEAN24
+    internal procedure GetFormattedNo(NoSeriesLine: Record "No. Series Line"; Number: BigInteger): Code[20]
+#else
     local procedure GetFormattedNo(NoSeriesLine: Record "No. Series Line"; Number: BigInteger): Code[20]
+#endif
     var
         NumberCode: Code[20];
         i: Integer;

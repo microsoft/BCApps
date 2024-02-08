@@ -54,7 +54,7 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
 
 #if not CLEAN24
 #pragma warning disable AL0432
-    [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
+    [Obsolete('The method has been moved to codeunit "No. Series Setup Impl."', '24.0')]
     procedure DrillDown()
     var
         NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
@@ -62,7 +62,7 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
         NoSeriesSetupImpl.DrillDown(Rec);
     end;
 
-    [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
+    [Obsolete('The method has been moved to codeunit "No. Series Setup Impl."', '24.0')]
     procedure UpdateLine(var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date)
     var
         AllowGaps: Boolean;
@@ -70,7 +70,7 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
         UpdateLine(StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, AllowGaps);
     end;
 
-    [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
+    [Obsolete('The method has been moved to codeunit "No. Series Setup Impl."', '24.0')]
     procedure UpdateLine(var StartDate: Date; var StartNo: Code[20]; var EndNo: Code[20]; var LastNoUsed: Code[20]; var WarningNo: Code[20]; var IncrementByNo: Integer; var LastDateUsed: Date; var AllowGaps: Boolean)
     var
         NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
@@ -82,21 +82,23 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
         AllowGaps := NoSeriesSingle.MayProduceGaps();
     end;
 
-    [Obsolete('The function has been moved to codeunit NoSeriesManagement', '24.0')]
+    [Obsolete('The method has been moved to codeunit NoSeriesManagement', '24.0')]
     procedure FindNoSeriesLineToShow(var NoSeriesLine: Record "No. Series Line")
     var
-        NoSeriesMgt: Codeunit NoSeriesMgt;
+        NoSeriesManagement: Codeunit NoSeriesManagement;
     begin
-        NoSeriesMgt.FindNoSeriesLineToShow(Rec, NoSeriesLine)
+        NoSeriesManagement.FindNoSeriesLineToShow(Rec, NoSeriesLine)
     end;
 
-    [Obsolete('The event has been moved to codeunit NoSeriesManagement', '24.0')]
+    [Obsolete('The event has been removed. There is no replacement.', '24.0')]
+    // Symbol usage indicates no subscribers.
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeValidateDefaultNos(var NoSeries: Record "No. Series"; var IsHandled: Boolean)
     begin
     end;
 
-    [Obsolete('The event has been moved to codeunit NoSeriesManagement', '24.0')]
+    [Obsolete('The event has been removed. There is no replacement.', '24.0')]
+    // Symbol usage indicates no subscribers.
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeValidateManualNos(var NoSeries: Record "No. Series"; var IsHandled: Boolean)
     begin
