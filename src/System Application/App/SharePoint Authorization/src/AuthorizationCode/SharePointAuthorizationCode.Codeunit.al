@@ -63,7 +63,6 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
             if IsHandled then
                 AccessToken := EventAccessToken;
         end;
-#endif
 
         if not IsHandled then begin
             if (not OAuth2.AcquireAuthorizationCodeTokenFromCache(ClientId, ClientSecret, '', StrSubstNo(AuthorityTxt, EntraTenantId), Scopes, AccessToken)) or (AccessToken.IsEmpty()) then
