@@ -6,6 +6,7 @@
 namespace System.Integration.Excel;
 
 using System;
+using System.Reflection;
 
 /// <summary>
 /// This codeunit provides an interface to running Edit in Excel for a specific page.
@@ -32,6 +33,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
         NodeTypeNotRecognizedTxt: Label 'Node type %1 was not recognized.', Locked = true;
         FilterContainsMultipleOperatorsTxt: Label 'The page filter contains multiple operators, the latter was removed.', Locked = true;
         FieldPayloadEdmTypeTok: Label 'fieldPayload.%1.edmType', Locked = true;
+        FieldNotOnThePageTxt: Label 'Field not on the page', Locked = true;
 
     procedure AddField(ODataFieldName: Text; EditinExcelFilterCollectionType: Enum "Edit in Excel Filter Collection Type"; EditInExcelEdmType: Enum "Edit in Excel Edm Type"): Interface "Edit in Excel Field Filter"
     begin
@@ -72,7 +74,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
     var
         FieldFilterGroupingOperator: Dictionary of [Text, Enum "Edit in Excel Filter Collection Type"];
     begin
-        ConvertStructuredFiltersToEntityFilterCollection(JsonFilter, JsonPayload, FieldFilterGroupingOperator, "Edit in Excel Filter Collection Type"::"and");
+        ConvertStructuredFiltersToEntityFilterCollection(JsonFilter, JsonPayload, FieldFilterGroupingOperator, "Edit in Excel Filter Collection Type"::"and", PageId);
     end;
 
     internal procedure GetFilters(var SpecifiedFieldFilters: DotNet GenericDictionary2)
@@ -80,7 +82,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
         SpecifiedFieldFilters := FieldFilters;
     end;
 
-    procedure ConvertStructuredFiltersToEntityFilterCollection(StructuredFilterObject: JsonObject; ODataJsonPayload: JsonObject; var FieldFilterGroupingOperator: Dictionary of [Text, Enum "Edit in Excel Filter Collection Type"]; ParentGroupingOperator: Enum "Edit in Excel Filter Collection Type")
+    procedure ConvertStructuredFiltersToEntityFilterCollection(StructuredFilterObject: JsonObject; ODataJsonPayload: JsonObject; var FieldFilterGroupingOperator: Dictionary of [Text, Enum "Edit in Excel Filter Collection Type"]; ParentGroupingOperator: Enum "Edit in Excel Filter Collection Type"; PageId: Integer)
     var
         ChildNodesJsonFilterArray: JsonArray;
         TypeJsonToken: JsonToken;
@@ -120,11 +122,12 @@ codeunit 1491 "Edit in Excel Filters Impl."
                             ChildNodesJsonToken.AsObject(),
                             ODataJsonPayload,
                             FieldFilterGroupingOperator,
-                            "Edit in Excel Filter Collection Type".FromInteger(ExcelFilterNodeType.AsInteger()));
+                            "Edit in Excel Filter Collection Type".FromInteger(ExcelFilterNodeType.AsInteger()),
+                            PageId);
                 end;
             "Excel Filter Node Type"::lt, "Excel Filter Node Type"::le, "Excel Filter Node Type"::eq, "Excel Filter Node Type"::ge, "Excel Filter Node Type"::gt, "Excel Filter Node Type"::ne:
                 begin
-                    if not ReadNodeValues(StructuredFilterObject, ODataJsonPayload, ODataFieldName, EdmType, FilterValue) then
+                    if not ReadNodeValues(StructuredFilterObject, ODataJsonPayload, ODataFieldName, EdmType, FilterValue, PageId) then
                         exit;
 
                     EditinExcelFilterType := "Edit in Excel Filter Type".FromInteger(ExcelFilterNodeType.AsInteger());
@@ -143,7 +146,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
     end;
 
     local procedure ReadNodeValues(JsonFilterObject: JsonObject; ODataJsonPayload: JsonObject; var ODataFieldName: Text;
-                                    var EdmType: Text; var FilterValue: Text): Boolean
+                                    var EdmType: Text; var FilterValue: Text; PageNumber: Integer): Boolean
     var
         LeftNodeJsonToken: JsonToken;
         RightNodeJsonToken: JsonToken;
@@ -159,6 +162,11 @@ codeunit 1491 "Edit in Excel Filters Impl."
         if not LeftNodeJsonToken.AsObject().Get(NameJsonTok, NameJsonToken) then begin
             Session.LogMessage('0000I3Z', StrSubstNo(TypeNotFoundTxt, NameJsonTok), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
             exit(false);
+        end;
+
+        if IsKey(PageNumber, NameJsonToken.AsValue().AsText()) then begin
+            Session.LogMessage('0000I5U', FieldNotOnThePageTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
+            exit(false); // Currently only adding fields that are on a page, mitigating problems with some table fields.
         end;
 
         ODataFieldName := NameJsonToken.AsValue().AsText();
@@ -181,8 +189,29 @@ codeunit 1491 "Edit in Excel Filters Impl."
             exit(false);
         end;
 
+
         FilterValue := NameJsonToken.AsValue().AsText();
         exit(true);
+    end;
+
+    local procedure IsKey(PageId: Integer; ControlNameAsText: Text): Boolean
+    var
+        PageControlField: Record "Page Control Field";
+        KeyRec: Record "Key";
+        RecordRef1: RecordRef;
+        SomeField: FieldRef;
+    begin
+        PageControlField.SetRange(PageNo, PageId);
+        PageControlField.SetRange(ControlName, ControlNameAsText);
+        PageControlField.FindFirst();
+
+        RecordRef1.Open(PageControlField.TableNo);
+        SomeField := RecordRef1.Field(PageControlField.FieldNo);
+
+        KeyRec.SetRange(TableNo, PageControlField.TableNo);
+        KeyRec.SetRange("Key", SomeField.Name);
+
+        exit(not KeyRec.IsEmpty())
     end;
 
     local procedure TryAdd(ODataFieldName: Text; EditInExcelFilterOperatorType: Enum "Edit in Excel Filter Collection Type"; EdmType: Text)
@@ -202,3 +231,4 @@ codeunit 1491 "Edit in Excel Filters Impl."
     end;
 
 }
+
