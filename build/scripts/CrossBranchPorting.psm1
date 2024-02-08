@@ -100,14 +100,20 @@ function PrecheckBackport($TargetBranches, $PullRequestNumber) {
 }
 
 function PortPullRequest($PullRequestDetails, $TargetBranch, $CherryPickBranch) {
+    if ((-not $PullRequestDetails.mergeCommit) -and (-not $PullRequestDetails.potentialMergeCommit)) {
+        throw "Cannot find commit to cherry-pick."
+    }
+
+    # Create a new branch for the cherry-pick
     RunAndCheck git checkout -b $CherryPickBranch origin/$TargetBranch
 
+    # Cherry pick the merge commit
     try {
         if ($pullRequestDetails.mergeCommit) {
-            RunAndCheck git cherry-pick $pullRequestDetails.mergeCommit.oid 
+            RunAndCheck git cherry-pick $PullRequestDetails.mergeCommit.oid
         } else {
-            RunAndCheck git fetch origin refs/pull/$($pullRequestDetails.number)/merge
-            RunAndCheck git cherry-pick $pullRequestDetails.potentialMergeCommit.oid -m 1
+            RunAndCheck git fetch origin $PullRequestDetails.potentialMergeCommit.oid
+            RunAndCheck git cherry-pick $PullRequestDetails.potentialMergeCommit.oid -m 1
         }
     } catch {
         Write-Host -ForegroundColor Red "Cherry picking commitid $cherrypickId failed. $_"
