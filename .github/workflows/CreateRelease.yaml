@@ -1,0 +1,363 @@
+name: ' Create release'
+
+on:
+  workflow_dispatch:
+    inputs:
+      appVersion:
+        description: App version to promote to release (default is latest)
+        required: false
+        default: 'latest'
+      name:
+        description: Name of this release
+        required: true
+        default: ''
+      tag:
+        description: Tag of this release (needs to be semantic version string https://semver.org, ex. 1.0.0)
+        required: true
+        default: ''
+      prerelease:
+        description: Prerelease?
+        type: boolean
+        default: false
+      draft:
+        description: Draft?
+        type: boolean
+        default: false
+      createReleaseBranch:
+        description: Create Release Branch?
+        type: boolean
+        default: false
+      releaseBranchPrefix:
+        description: The prefix for the release branch. Used only if 'Create Release Branch?' is checked.
+        type: string
+        default: release/
+      updateVersionNumber:
+        description: New Version Number in main branch. Use Major.Minor for absolute change, use +Major.Minor for incremental change.
+        required: false
+        default: ''
+      directCommit:
+        description: Direct Commit?
+        type: boolean
+        default: false
+      useGhTokenWorkflow:
+        description: Use GhTokenWorkflow for PR/Commit?
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+concurrency: release
+
+defaults:
+  run:
+    shell: powershell
+
+env:
+  ALGoOrgSettings: ${{ vars.ALGoOrgSettings }}
+  ALGoRepoSettings: ${{ vars.ALGoRepoSettings }}
+
+jobs:
+  CreateRelease:
+    needs: [ ]
+    runs-on: [ windows-latest ]
+    outputs:
+      telemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
+      artifacts: ${{ steps.analyzeartifacts.outputs.artifacts }}
+      releaseId: ${{ steps.createrelease.outputs.releaseId }}
+      commitish: ${{ steps.analyzeartifacts.outputs.commitish }}
+      releaseVersion: ${{ steps.createreleasenotes.outputs.releaseVersion }}
+    steps:
+      - name: Dump Workflow Information
+        uses: mazhelez/AL-Go/Actions/DumpWorkflowInfo@fix-CreateRelease
+        with:
+          shell: powershell
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize the workflow
+        id: init
+        uses: mazhelez/AL-Go/Actions/WorkflowInitialize@fix-CreateRelease
+        with:
+          shell: powershell
+          eventId: "DO0094"
+
+      - name: Read settings
+        id: ReadSettings
+        uses: mazhelez/AL-Go/Actions/ReadSettings@fix-CreateRelease
+        with:
+          shell: powershell
+          get: templateUrl,repoName
+
+      - name: Determine Projects
+        id: determineProjects
+        uses: mazhelez/AL-Go/Actions/DetermineProjectsToBuild@fix-CreateRelease
+        with:
+          shell: powershell
+
+      - name: Check for updates to AL-Go system files
+        uses: mazhelez/AL-Go/Actions/CheckForUpdates@fix-CreateRelease
+        with:
+          shell: powershell
+          templateUrl: ${{ env.templateUrl }}
+          downloadLatest: true
+
+      - name: Analyze Artifacts
+        id: analyzeartifacts
+        run: |
+          $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
+          $projects = '${{ steps.determineProjects.outputs.ProjectsJson }}' | ConvertFrom-Json
+          Write-Host "projects:"
+          $projects | ForEach-Object { Write-Host "- $_" }
+          $include = @()
+          $sha = ''
+          $allArtifacts = @()
+          $page = 1
+          $headers = @{
+            "Authorization" = "token ${{ github.token }}"
+            "X-GitHub-Api-Version" = "2022-11-28"
+            "Accept" = "application/vnd.github+json"
+          }
+          do {
+            $repoArtifacts = Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri "$($ENV:GITHUB_API_URL)/repos/$($ENV:GITHUB_REPOSITORY)/actions/artifacts?per_page=100&page=$page" | ConvertFrom-Json
+            $allArtifacts += $repoArtifacts.Artifacts | Where-Object { !$_.expired }
+            $page++
+          }
+          while ($repoArtifacts.Artifacts.Count -gt 0)
+          Write-Host "Repo Artifacts count: $($repoArtifacts.total_count)"
+          Write-Host "Downloaded Artifacts count: $($allArtifacts.Count)"
+          $projects | ForEach-Object {
+            $thisProject = $_
+            if ($thisProject -and ($thisProject -ne '.')) {
+              $project = $thisProject.Replace('\','_').Replace('/','_')
+            }
+            else {
+              $project = $env:repoName
+            }
+            $refname = "$ENV:GITHUB_REF_NAME".Replace('/','_')
+            Write-Host "Analyzing artifacts for project $project"
+            $appVersion = '${{ github.event.inputs.appVersion }}'
+            if ($appVersion -eq "latest") {
+              Write-Host "Grab latest"
+              $artifact = $allArtifacts | Where-Object { $_.name -like "$project-$refname-Apps-*" } | Select-Object -First 1
+            }
+            else {
+              Write-Host "Search for $project-$refname-Apps-$appVersion"
+              $artifact = $allArtifacts | Where-Object { $_.name -eq "$project-$refname-Apps-$appVersion" } | Select-Object -First 1
+            }
+            if ($artifact) {
+              $artifactsVersion = $artifact.name.SubString($artifact.name.LastIndexOf('-Apps-')+6)
+            }
+            else {
+              Write-Host "::Error::No artifacts found for this project"
+              exit 1
+            }
+            if ($sha) {
+              if ($artifact.workflow_run.head_sha -ne $sha) {
+                Write-Host "::Error::The build selected for release doesn't contain all projects. Please rebuild all projects by manually running the CI/CD workflow and recreate the release."
+                throw "The build selected for release doesn't contain all projects. Please rebuild all projects by manually running the CI/CD workflow and recreate the release."
+              }
+            }
+            else {
+              $sha = $artifact.workflow_run.head_sha
+            }
+
+            $allArtifacts | Where-Object { ($_.name -like "$project-$refname-Apps-$($artifactsVersion)" -or $_.name -like "$project-$refname-TestApps-$($artifactsVersion)" -or $_.name -like "$project-$refname-Dependencies-$($artifactsVersion)") } | ForEach-Object {
+              $atype = $_.name.SubString(0,$_.name.Length-$artifactsVersion.Length-1)
+              $atype = $atype.SubString($atype.LastIndexOf('-')+1)
+              $include += $( [ordered]@{ "name" = $_.name; "url" = $_.archive_download_url; "atype" = $atype; "project" = $thisproject } )
+            }
+            if ($include.Count -eq 0) {
+              Write-Host "::Error::No artifacts found"
+              exit 1
+            }
+          }
+          $artifacts = @{ "include" = $include }
+          $artifactsJson = $artifacts | ConvertTo-Json -compress
+          Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "artifacts=$artifactsJson"
+          Write-Host "artifacts=$artifactsJson"
+          Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "commitish=$sha"
+          Write-Host "commitish=$sha"
+
+      - name: Prepare release notes
+        id: createreleasenotes
+        uses: mazhelez/AL-Go/Actions/CreateReleaseNotes@fix-CreateRelease
+        with:
+          shell: powershell
+          parentTelemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
+          tag_name: ${{ github.event.inputs.tag }}
+          target_commitish: ${{ steps.analyzeartifacts.outputs.commitish }}
+
+      - name: Create release
+        uses: actions/github-script@v7
+        id: createrelease
+        env:
+          bodyMD: ${{ steps.createreleasenotes.outputs.releaseNotes }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            var bodyMD = process.env.bodyMD
+            const createReleaseResponse = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: '${{ github.event.inputs.tag }}',
+              name: '${{ github.event.inputs.name }}',
+              body: bodyMD.replaceAll('\\n','\n').replaceAll('%0A','\n').replaceAll('%0D','\n').replaceAll('%25','%'),
+              draft: ${{ github.event.inputs.draft=='true' }},
+              prerelease: ${{ github.event.inputs.prerelease=='true' }},
+              make_latest: 'legacy',
+              target_commitish: '${{ steps.analyzeartifacts.outputs.commitish }}'
+            });
+            const {
+              data: { id: releaseId, html_url: htmlUrl, upload_url: uploadUrl }
+            } = createReleaseResponse;
+            core.setOutput('releaseId', releaseId);
+
+  UploadArtifacts:
+    needs: [ CreateRelease ]
+    runs-on: [ windows-latest ]
+    strategy:
+      matrix: ${{ fromJson(needs.CreateRelease.outputs.artifacts) }}
+      fail-fast: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read settings
+        uses: mazhelez/AL-Go/Actions/ReadSettings@fix-CreateRelease
+        with:
+          shell: powershell
+
+      - name: Read secrets
+        id: ReadSecrets
+        uses: mazhelez/AL-Go/Actions/ReadSecrets@fix-CreateRelease
+        with:
+          shell: powershell
+          gitHubSecrets: ${{ toJson(secrets) }}
+          getSecrets: 'nuGetContext,storageContext'
+
+      - name: Download artifact
+        run: |
+          $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
+          Write-Host "Downloading artifact ${{ matrix.name}}"
+          $headers = @{
+            "Authorization" = "token ${{ github.token }}"
+            "X-GitHub-Api-Version" = "2022-11-28"
+            "Accept" = "application/vnd.github+json"
+          }
+          Invoke-WebRequest -UseBasicParsing -Headers $headers -Uri '${{ matrix.url }}' -OutFile '${{ matrix.name }}.zip'
+
+      - name: Upload release artifacts
+        uses: actions/github-script@v7
+        env:
+          releaseId: ${{ needs.createrelease.outputs.releaseId }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const releaseId = process.env.releaseId
+            const assetPath = '${{ matrix.name }}.zip'
+            const assetName = '${{ matrix.name }}.zip'
+            const fs = require('fs');
+            const uploadAssetResponse = await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: releaseId,
+              name: assetName,
+              data: fs.readFileSync(assetPath)
+            });
+
+      - name: Deliver to NuGet
+        uses: mazhelez/AL-Go/Actions/Deliver@fix-CreateRelease
+        if: ${{ fromJson(steps.ReadSecrets.outputs.Secrets).nuGetContext != '' }}
+        env:
+          Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
+        with:
+          shell: powershell
+          type: 'Release'
+          projects: ${{ matrix.project }}
+          deliveryTarget: 'NuGet'
+          artifacts: ${{ github.event.inputs.appVersion }}
+          atypes: 'Apps,TestApps'
+
+      - name: Deliver to Storage
+        uses: mazhelez/AL-Go/Actions/Deliver@fix-CreateRelease
+        if: ${{ fromJson(steps.ReadSecrets.outputs.Secrets).storageContext != '' }}
+        env:
+          Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
+        with:
+          shell: powershell
+          type: 'Release'
+          projects: ${{ matrix.project }}
+          deliveryTarget: 'Storage'
+          artifacts: ${{ github.event.inputs.appVersion }}
+          atypes: 'Apps,TestApps,Dependencies'
+
+  CreateReleaseBranch:
+    needs: [ CreateRelease, UploadArtifacts ]
+    if: ${{ github.event.inputs.createReleaseBranch=='true' }}
+    runs-on: [ windows-latest ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: '${{ needs.createRelease.outputs.commitish }}'
+
+      - name: Create Release Branch
+        env:
+          releaseBranchPrefix: ${{ github.event.inputs.releaseBranchPrefix }}
+        run: |
+          $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
+          $releaseBranch = "$($env:releaseBranchPrefix)" + "${{ needs.CreateRelease.outputs.releaseVersion }}"
+          Write-Host "Creating release branch $releaseBranch"
+          git checkout -b $releaseBranch
+          git config user.name ${{ github.actor}}
+          git config user.email ${{ github.actor}}@users.noreply.github.com
+          git commit --allow-empty -m "Release branch $releaseBranch"
+          git push origin $releaseBranch
+
+  UpdateVersionNumber:
+    needs: [ CreateRelease, UploadArtifacts ]
+    if: ${{ github.event.inputs.updateVersionNumber!='' }}
+    runs-on: [ windows-latest ]
+    steps:
+      - name: Read settings
+        uses: mazhelez/AL-Go/Actions/ReadSettings@fix-CreateRelease
+        with:
+          shell: powershell
+
+      - name: Read secrets
+        id: ReadSecrets
+        uses: mazhelez/AL-Go/Actions/ReadSecrets@fix-CreateRelease
+        with:
+          shell: powershell
+          gitHubSecrets: ${{ toJson(secrets) }}
+          getSecrets: 'TokenForPush'
+          useGhTokenWorkflowForPush: '${{ github.event.inputs.useGhTokenWorkflow }}'
+
+      - name: Update Version Number
+        uses: mazhelez/AL-Go/Actions/IncrementVersionNumber@fix-CreateRelease
+        with:
+          shell: powershell
+          token: ${{ steps.ReadSecrets.outputs.TokenForPush }}
+          parentTelemetryScopeJson: ${{ needs.CreateRelease.outputs.telemetryScopeJson }}
+          versionNumber: ${{ github.event.inputs.updateVersionNumber }}
+          directCommit: ${{ github.event.inputs.directCommit }}
+
+  PostProcess:
+    needs: [ CreateRelease, UploadArtifacts, CreateReleaseBranch, UpdateVersionNumber ]
+    if: always()
+    runs-on: [ windows-latest ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Finalize the workflow
+        id: PostProcess
+        uses: mazhelez/AL-Go/Actions/WorkflowPostProcess@fix-CreateRelease
+        with:
+          shell: powershell
+          eventId: "DO0094"
+          telemetryScopeJson: ${{ needs.CreateRelease.outputs.telemetryScopeJson }}
