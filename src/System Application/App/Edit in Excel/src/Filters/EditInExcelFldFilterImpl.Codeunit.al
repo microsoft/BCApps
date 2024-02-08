@@ -47,6 +47,16 @@ codeunit 1492 "Edit in Excel Fld Filter Impl." implements "Edit in Excel Field F
         FilterValue := FilterBinaryNode.Right;
     end;
 
+    procedure GetCollectionType(): Enum "Edit in Excel Filter Collection Type"
+    var
+        TempString: DotNet String;
+    begin
+        TempString := FilterCollectionNode.Operator();
+        if TempString = 'or' then
+            exit("Edit in Excel Filter Collection Type"::"or");
+        exit("Edit in Excel Filter Collection Type"::"and")
+    end;
+
     procedure Remove(Index: Integer)
     begin
         FilterCollectionNode.Collection.RemoveAt(Index);

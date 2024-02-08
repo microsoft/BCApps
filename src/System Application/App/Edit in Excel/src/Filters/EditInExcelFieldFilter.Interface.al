@@ -27,6 +27,8 @@ interface "Edit in Excel Field Filter"
     /// <param name="FilterValue">The value which the field should be Equal to, Greater than etc.</param>
     procedure Get(Index: Integer; var EditinExcelFilterType: Enum "Edit in Excel Filter Type"; var FilterValue: Text)
 
+    procedure GetCollectionType(): Enum "Edit in Excel Filter Collection Type"
+
     /// <summary>
     /// Remove a specific filter
     /// </summary>
