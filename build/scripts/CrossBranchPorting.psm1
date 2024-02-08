@@ -1,3 +1,15 @@
+<#
+    .SYNOPSIS
+    This script is used to backport a pull request to multiple branches.
+    .DESCRIPTION
+    This script is used to backport a pull request to multiple branches. It will create a new branch for each backport and create a pull request for each branch.
+    .PARAMETER PullRequestNumber
+    The number of the pull request to backport.
+    .PARAMETER TargetBranches
+    The list of branches to backport the pull request to.
+    .PARAMETER SkipConfirmation
+    Skip the confirmation prompt.
+#>
 function New-BCAppsBackport() {
     param(
         [Parameter(Mandatory=$true)]
@@ -20,7 +32,7 @@ function New-BCAppsBackport() {
     Write-Host "Pull Request Description: `n$($pullRequestDetails.body)" -ForegroundColor Cyan
 
     if (-not $SkipConfirmation) {
-        GetConfirmation -Message "Please review the about information and press (y)es to continue or any other key to stop" 
+        GetConfirmation -Message "Please review the about information and press (y)es to continue or any other key to stop"
     }
 
     # Get the list of existing pull requests
