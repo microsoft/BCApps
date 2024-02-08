@@ -18,7 +18,9 @@ codeunit 132976 "SharePoint Auth. Subscription"
         ExpectedError: Text;
 
 #if not CLEAN24
+#pragma warning disable AL0432
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SharePoint Authorization Code", 'OnBeforeGetToken', '', false, false)]
+#pragma warning restore AL0432
     local procedure OnBeforeGetToken(var IsHandled: Boolean; var IsSuccess: Boolean; var ErrorText: Text; var AccessToken: Text)
     begin
         IsHandled := true;
