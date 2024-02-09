@@ -6,7 +6,7 @@ Each section offers examples of the old and new ways of using the No. Series imp
 ## Uptake examples
 
 ### TryGetNextNo
-TryGetNextNo is a function that will get and return the next no. without modifying the No. Series. PeekNextNo does the same now and makes the code easier to understand.
+TryGetNextNo is a function that gets and returns the next number, without modifying the No. Series. PeekNextNo does the same now and makes the code easier to understand.
 
 Old:
 ```
@@ -25,7 +25,7 @@ if DocNo = NoSeriesMgt.GetNextNo(GenJnlBatch."No. Series", EndDateReq, false) th
     NoSeriesMgt.SaveNoSeries();
 ```
 New:
-You have two options here. Either you Peek the next No. and update, or use a batch. This depends on the use case, but using batch you ensure the number saved to the database is the DocNo.
+You have two options here. Either you Peek the next number and update, or use a batch. This depends on the use case, but by using a batch you ensure that the number saved to the database is the DocNo.
 ```
 if DocNo = NoSeries.PeekNextNo(GenJnlBatch."No. Series", EndDateReq) then
     NoSeries.GetNextNo(GenJnlBatch."No. Series", EndDateReq);
@@ -38,7 +38,7 @@ if DocNo = NoSeriesBatch.GetNextNo(GenJnlBatch."No. Series", EndDateReq) then
 
 ### InitSeries
 
-InitSeries is a complex implementation since it handles multiple cases. In most cases that use InitSeries, we verify that the given No. isn't set, as shown in the following example. If it is, you'll need to verify whether manual Nos are allowed (see IsManual or TestManual procedures in the No. Series codeunit).
+InitSeries is a complex implementation because it handles multiple cases. In most cases that use InitSeries, we verify that the given number isn't set, as shown in the following example. If it is, you'll need to verify whether manual numbers are allowed (see IsManual or TestManual procedures in the No. Series codeunit).
 
 Old:
 ```
@@ -78,7 +78,8 @@ end;
 ```
 
 ### Document posting with delayed modify
-During posting we often want to delay the update of No. Series. Currently the only way to do this for multiple No. Series is to use an array of NoSeriesManagement and find the correct one during posting. This is very confusing and not very readable. Using the new Batch codeunit, you only need to define a single codeunit, request new No. for your different No. Series and posting dates. Finally Save the state and all records are updated.
+During posting we often want to delay the update of No. Series. Currently the only way to do this for multiple No. Series is to use an array of NoSeriesManagement and find the correct one during posting. This is very confusing and not very readable. Using the new Batch codeunit, you only need to define a single codeunit, request new number for your different number series and posting dates. Finally, save the state and all records are updated.
+
 Old:
 ```
 var
@@ -111,7 +112,7 @@ NoSeriesBatch.SaveState();
 ```
 ### Simulating new numbers
 
-Sometimes we want to simulate the use of No. Series without actually updating it, and we may want to start from a specific No. For this purpose, we added the SimulateGetNextNo function on the No. Series - Batch.
+Sometimes we want to simulate the use of No. Series without actually updating it, and we may want to start from a specific number. For this purpose, we added the SimulateGetNextNo function on the No. Series - Batch.
 
 Old:
 ```
@@ -134,4 +135,4 @@ New:
 "Document No." := NoSeriesBatch.SimulateGetNextNo(GenJnlBatch."No. Series", Rec."Posting Date", "Document No.")
 ```
 
-This new function uses the details of the given No. Series to increment the Document No. If the No. Series doesn't exist, the Document No. increases by one.
+This new function uses the details of the given number series to increment the document number. If the number series doesn't exist, the document number increases by one.
