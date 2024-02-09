@@ -35,7 +35,7 @@ table 9222 "Application User Settings"
         }
 
         /// <summary>
-        /// Specifies whether the modern action bar is enabled.
+        /// Specifies whether the legacy action bar is enabled.
         /// </summary>
         field(3; "Legacy Action Bar"; Boolean)
         {

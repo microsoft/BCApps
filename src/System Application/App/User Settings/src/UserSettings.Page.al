@@ -114,7 +114,7 @@ page 9204 "User Settings"
                         Caption = 'Teaching Tips';
                         ToolTip = 'Specifies whether to display short messages that inform, remind, or teach you about important fields and actions when you open a page.';
                     }
-                    field("Modern Action Bar"; Rec."Legacy Action Bar")
+                    field("Legacy Action Bar"; Rec."Legacy Action Bar")
                     {
                         ApplicationArea = All;
                         Caption = 'Legacy Action Bar';
