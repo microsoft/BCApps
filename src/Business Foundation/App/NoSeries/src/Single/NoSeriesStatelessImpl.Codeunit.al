@@ -86,7 +86,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         if not NoIsWithinValidRange(NoSeriesLine."Last No. Used", NoSeriesLine."Starting No.", NoSeriesLine."Ending No.") then begin
             if NoErrorsOrWarnings then
                 exit(false);
-            NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code", NoSeriesLine."Last No. Used"), NoSeriesLine."Series Code");
+            NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code", NoSeriesLine."Last No. Used"), NoSeriesLine);
         end;
 
         if (NoSeriesLine."Ending No." <> '') and (NoSeriesLine."Warning No." <> '') and (NoSeriesLine."Last No. Used" >= NoSeriesLine."Warning No.") then begin

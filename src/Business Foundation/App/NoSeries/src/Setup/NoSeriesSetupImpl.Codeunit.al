@@ -215,7 +215,7 @@ codeunit 305 "No. Series - Setup Impl."
 #endif
         if NewNo <> '' then begin
             if IncStr(NewNo) = '' then
-                NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(UnIncrementableStringErr, NewFieldCaption), NoSeriesLine."Series Code");
+                NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(UnIncrementableStringErr, NewFieldCaption), NoSeriesLine);
             NoSeriesLine2 := NoSeriesLine;
             if NewNo = GetNoText(NewNo) then
                 Length := 0
@@ -233,7 +233,7 @@ codeunit 305 "No. Series - Setup Impl."
             if (NewFieldCaption <> NoSeriesLine.FieldCaption("Last No. Used")) and
                (NoSeriesLine."Last No. Used" <> NoSeriesLine2."Last No. Used")
             then
-                NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(NumberFormatErr, NewFieldCaption, NoSeriesLine.FieldCaption("Last No. Used")), NoSeriesLine."Series Code");
+                NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(NumberFormatErr, NewFieldCaption, NoSeriesLine.FieldCaption("Last No. Used")), NoSeriesLine);
         end;
     end;
 

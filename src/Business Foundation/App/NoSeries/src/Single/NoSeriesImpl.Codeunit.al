@@ -201,7 +201,7 @@ codeunit 304 "No. Series - Impl."
         if NoSeriesRec."Date Order" and (UsageDate < NoSeriesLine."Last Date Used") then begin
             if HideErrorsAndWarnings then
                 exit(false);
-            NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(CannotAssignNewBeforeDateErr, NoSeriesRec.Code, NoSeriesLine."Last Date Used"), NoSeriesCode);
+            NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(CannotAssignNewBeforeDateErr, NoSeriesRec.Code, NoSeriesLine."Last Date Used"), NoSeriesLine);
         end;
         exit(true);
     end;

@@ -42,6 +42,23 @@ codeunit 323 "No. Series Actionable Errors"
         Error(ErrorInfo);
     end;
 
+    procedure ThrowActionableErrorOpenNoSeriesLinesError(ErrorMessage: Text; NoSeriesLine: Record "No. Series Line") ErrorInfo: ErrorInfo
+    var
+        NoSeriesLineLookup: Record "No. Series Line";
+    begin
+        ErrorInfo.Message := ErrorMessage;
+
+        if UserCanEditNoSeries() then begin
+            if NoSeriesLineLookup.Get(NoSeriesLine.RecordId()) then
+                ErrorInfo.RecordId := NoSeriesLine.RecordId() // The record may not exist in the database if insertion failed or it's temporary
+            else
+                ErrorInfo.CustomDimensions.Add(NoSeriesCodeTok, NoSeriesLine."Series Code");
+            ErrorInfo.AddAction(OpenNoSeriesLinesTxt, CodeUnit::"No. Series Actionable Errors", 'OpenNoSeriesLines');
+        end;
+
+        Error(ErrorInfo);
+    end;
+
     procedure ThrowActionableErrorOpenNoSeriesRelationships(ErrorMessage: Text; NoSeriesCode: Code[20]) ErrorInfo: ErrorInfo
     begin
         ErrorInfo.Message := ErrorMessage;
@@ -75,7 +92,14 @@ codeunit 323 "No. Series Actionable Errors"
     var
         NoSeriesLines: Record "No. Series Line";
     begin
-        NoSeriesLines.SetRange("Series Code", ErrorInfo.CustomDimensions.Get(NoSeriesCodeTok));
+        if ErrorInfo.CustomDimensions.ContainsKey(NoSeriesCodeTok) then
+            NoSeriesLines.SetRange("Series Code", ErrorInfo.CustomDimensions.Get(NoSeriesCodeTok))
+        else
+            if ErrorInfo.RecordId().TableNo = Database::"No. Series Line" then begin
+                NoSeriesLines.Get(ErrorInfo.RecordId());
+                NoSeriesLines.SetRange("Series Code", NoSeriesLines."Series Code");
+            end;
+
         Page.Run(Page::"No. Series Lines", NoSeriesLines);
     end;
 
