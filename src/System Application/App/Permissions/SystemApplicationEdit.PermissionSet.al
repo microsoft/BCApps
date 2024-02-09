@@ -25,6 +25,7 @@ permissionset 22 "System Application - Edit"
                              "Entity Text - Edit",
                              "Guided Experience - Edit",
                              "Language - Edit",
+                             "PageScripting - Rec",
                              "Translation - Edit",
                              "Word Templates - Edit";
 }

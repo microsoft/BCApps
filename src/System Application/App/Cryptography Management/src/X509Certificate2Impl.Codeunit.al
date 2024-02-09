@@ -16,7 +16,7 @@ codeunit 1285 "X509Certificate2 Impl."
     var
         CertInitializeErr: Label 'Unable to initialize certificate!';
 
-    procedure VerifyCertificate(var CertBase64Value: Text; Password: Text; X509ContentType: Enum "X509 Content Type"): Boolean
+    procedure VerifyCertificate(var CertBase64Value: Text; Password: SecretText; X509ContentType: Enum "X509 Content Type"): Boolean
     var
         X509Certificate2: DotNet X509Certificate2;
     begin
@@ -25,7 +25,7 @@ codeunit 1285 "X509Certificate2 Impl."
         exit(true);
     end;
 
-    procedure GetCertificateFriendlyName(CertBase64Value: Text; Password: Text; var FriendlyName: Text)
+    procedure GetCertificateFriendlyName(CertBase64Value: Text; Password: SecretText; var FriendlyName: Text)
     var
         X509Certificate2: DotNet X509Certificate2;
     begin
@@ -33,7 +33,7 @@ codeunit 1285 "X509Certificate2 Impl."
         FriendlyName := X509Certificate2.FriendlyName();
     end;
 
-    procedure GetCertificateSubject(CertBase64Value: Text; Password: Text; var Subject: Text)
+    procedure GetCertificateSubject(CertBase64Value: Text; Password: SecretText; var Subject: Text)
     var
         X509Certificate2: DotNet X509Certificate2;
     begin
@@ -41,7 +41,7 @@ codeunit 1285 "X509Certificate2 Impl."
         Subject := X509Certificate2.Subject;
     end;
 
-    procedure GetCertificateThumbprint(CertBase64Value: Text; Password: Text; var Thumbprint: Text)
+    procedure GetCertificateThumbprint(CertBase64Value: Text; Password: SecretText; var Thumbprint: Text)
     var
         X509Certificate2: DotNet X509Certificate2;
     begin
@@ -49,7 +49,7 @@ codeunit 1285 "X509Certificate2 Impl."
         Thumbprint := X509Certificate2.Thumbprint();
     end;
 
-    procedure GetCertificateIssuer(CertBase64Value: Text; Password: Text; var Issuer: Text)
+    procedure GetCertificateIssuer(CertBase64Value: Text; Password: SecretText; var Issuer: Text)
     var
         X509Certificate2: DotNet X509Certificate2;
     begin
@@ -57,7 +57,7 @@ codeunit 1285 "X509Certificate2 Impl."
         Issuer := X509Certificate2.Issuer();
     end;
 
-    procedure GetCertificateExpiration(CertBase64Value: Text; Password: Text; var Expiration: DateTime)
+    procedure GetCertificateExpiration(CertBase64Value: Text; Password: SecretText; var Expiration: DateTime)
     var
         X509Certificate2: DotNet X509Certificate2;
     begin
@@ -65,7 +65,7 @@ codeunit 1285 "X509Certificate2 Impl."
         Evaluate(Expiration, X509Certificate2.GetExpirationDateString());
     end;
 
-    procedure GetCertificateNotBefore(CertBase64Value: Text; Password: Text; var NotBefore: DateTime)
+    procedure GetCertificateNotBefore(CertBase64Value: Text; Password: SecretText; var NotBefore: DateTime)
     var
         X509Certificate2: DotNet X509Certificate2;
     begin
@@ -73,7 +73,7 @@ codeunit 1285 "X509Certificate2 Impl."
         Evaluate(NotBefore, X509Certificate2.GetEffectiveDateString());
     end;
 
-    procedure HasPrivateKey(CertBase64Value: Text; Password: Text): Boolean
+    procedure HasPrivateKey(CertBase64Value: Text; Password: SecretText): Boolean
     var
         X509Certificate2: DotNet X509Certificate2;
     begin
@@ -81,7 +81,7 @@ codeunit 1285 "X509Certificate2 Impl."
         exit(X509Certificate2.HasPrivateKey());
     end;
 
-    procedure GetCertificateSerialNumber(CertBase64Value: Text; Password: Text; var SerialNumber: Text)
+    procedure GetCertificateSerialNumber(CertBase64Value: Text; Password: SecretText; var SerialNumber: Text)
     var
         X509Certificate2: DotNet X509Certificate2;
     begin
@@ -89,7 +89,7 @@ codeunit 1285 "X509Certificate2 Impl."
         SerialNumber := X509Certificate2.SerialNumber;
     end;
 
-    procedure GetCertificateSerialNumberAsASCII(CertBase64Value: Text; Password: Text; var SerialNumberASCII: Text)
+    procedure GetCertificateSerialNumberAsASCII(CertBase64Value: Text; Password: SecretText; var SerialNumberASCII: Text)
     var
         X509Certificate2: DotNet X509Certificate2;
         SerialHex: Text;
@@ -103,7 +103,7 @@ codeunit 1285 "X509Certificate2 Impl."
         SerialNumberASCII := ConvertHexToAscii(SerialHex);
     end;
 
-    procedure GetCertificatePropertiesAsJson(CertBase64Value: Text; Password: Text; var CertPropertyJson: Text)
+    procedure GetCertificatePropertiesAsJson(CertBase64Value: Text; Password: SecretText; var CertPropertyJson: Text)
     var
         X509Certificate2: DotNet X509Certificate2;
     begin
@@ -111,8 +111,24 @@ codeunit 1285 "X509Certificate2 Impl."
         CreateCertificatePropertyJson(X509Certificate2, CertPropertyJson);
     end;
 
+#if not CLEAN24
     [NonDebuggable]
-    procedure GetCertificatePrivateKey(CertBase64Value: Text; Password: Text): Text
+    [Obsolete('Replaced by GetSecretCertificatePrivateKey with SecretText data type return value.', '24.0')]
+    procedure GetCertificatePrivateKey(CertBase64Value: Text; Password: SecretText): Text
+    var
+        X509Certificate2: DotNet X509Certificate2;
+        AsymmetricAlgorithm: DotNet AsymmetricAlgorithm;
+    begin
+        InitializeX509Certificate(CertBase64Value, Password, X509Certificate2);
+        if not X509Certificate2.HasPrivateKey then
+            exit;
+
+        AsymmetricAlgorithm := X509Certificate2.PrivateKey;
+        exit(AsymmetricAlgorithm.ToXmlString(true));
+    end;
+#endif
+    [NonDebuggable]
+    procedure GetSecretCertificatePrivateKey(CertBase64Value: Text; Password: SecretText): SecretText
     var
         X509Certificate2: DotNet X509Certificate2;
         AsymmetricAlgorithm: DotNet AsymmetricAlgorithm;
@@ -126,7 +142,7 @@ codeunit 1285 "X509Certificate2 Impl."
     end;
 
     [NonDebuggable]
-    procedure GetCertificatePublicKey(CertBase64Value: Text; Password: Text): Text
+    procedure GetCertificatePublicKey(CertBase64Value: Text; Password: SecretText): Text
     var
         X509Certificate2: DotNet X509Certificate2;
         AsymmetricAlgorithm: DotNet AsymmetricAlgorithm;
@@ -136,13 +152,14 @@ codeunit 1285 "X509Certificate2 Impl."
         exit(AsymmetricAlgorithm.ToXmlString(false));
     end;
 
+    [NonDebuggable]
     [TryFunction]
-    local procedure TryInitializeCertificate(CertBase64Value: Text; Password: Text; var X509Certificate2: DotNet X509Certificate2)
+    local procedure TryInitializeCertificate(CertBase64Value: Text; Password: SecretText; var X509Certificate2: DotNet X509Certificate2)
     var
         X509KeyStorageFlags: DotNet X509KeyStorageFlags;
         Convert: DotNet Convert;
     begin
-        X509Certificate2 := X509Certificate2.X509Certificate2(Convert.FromBase64String(CertBase64Value), Password, X509KeyStorageFlags.Exportable);
+        X509Certificate2 := X509Certificate2.X509Certificate2(Convert.FromBase64String(CertBase64Value), Password.Unwrap(), X509KeyStorageFlags.Exportable);
         if IsNull(X509Certificate2) then
             Error('');
     end;
@@ -158,7 +175,7 @@ codeunit 1285 "X509Certificate2 Impl."
         CertBase64Value := Convert.ToBase64String(X509Certificate2.Export(X509ContType));
     end;
 
-    procedure InitializeX509Certificate(CertBase64Value: Text; Password: Text; var X509Certificate2: DotNet X509Certificate2)
+    procedure InitializeX509Certificate(CertBase64Value: Text; Password: SecretText; var X509Certificate2: DotNet X509Certificate2)
     begin
         if not TryInitializeCertificate(CertBase64Value, Password, X509Certificate2) then
             Error(CertInitializeErr);

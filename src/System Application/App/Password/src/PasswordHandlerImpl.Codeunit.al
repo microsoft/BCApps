@@ -14,12 +14,18 @@ codeunit 1282 "Password Handler Impl."
     var
         InsufficientPassLengthErr: Label 'The password must contain at least %1 characters.', Comment = '%1 = the number of characters';
 
-
+#if not CLEAN24
+    [Obsolete('Replaced by GenerateSecretPassword with SecretText data type.', '24.0')]
+    [NonDebuggable]
     procedure GeneratePassword(): Text;
     begin
+#pragma warning disable AL0432
         exit(GeneratePassword(GetPasswordMinLength()));
+#pragma warning restore AL0432
     end;
 
+    [Obsolete('Replaced by GenerateSecretPassword with SecretText data type.', '24.0')]
+    [NonDebuggable]
     procedure GeneratePassword(Length: Integer): Text;
     var
         PasswordGenerator: DotNet "PasswordGenerator";
@@ -35,15 +41,39 @@ codeunit 1282 "Password Handler Impl."
         until IsPasswordStrong(Password);
         exit(Password);
     end;
+#endif
 
-    procedure IsPasswordStrong(Password: Text): Boolean;
+    procedure GenerateSecretPassword(): SecretText;
+    begin
+        exit(GenerateSecretPassword(GetPasswordMinLength()));
+    end;
+
+    procedure GenerateSecretPassword(Length: Integer) Password: SecretText;
+    var
+        PasswordGenerator: DotNet "PasswordGenerator";
+        MinNumOfNonAlphanumericChars: Integer;
+    begin
+        if Length < GetPasswordMinLength() then
+            Error(InsufficientPassLengthErr, GetPasswordMinLength());
+
+        MinNumOfNonAlphanumericChars := 1;
+        repeat
+            Password := PasswordGenerator.GeneratePassword(Length, MinNumOfNonAlphanumericChars);
+        until IsPasswordStrong(Password);
+        exit(Password);
+    end;
+
+    [NonDebuggable]
+    procedure IsPasswordStrong(Password: SecretText): Boolean;
     var
         CharacterSets: List of [Text];
         CharacterSet: Text;
         Counter: Integer;
         SequenceLength: Integer;
+        PasswordPlain: Text;
     begin
-        if StrLen(Password) < GetPasswordMinLength() then
+        PasswordPlain := Password.Unwrap();
+        if StrLen(PasswordPlain) < GetPasswordMinLength() then
             exit(false);
 
         AddRequiredCharacterSets(CharacterSets);
@@ -51,15 +81,15 @@ codeunit 1282 "Password Handler Impl."
         // Check all character sets are present
         for Counter := 1 to CharacterSets.Count() do begin
             CharacterSets.Get(Counter, CharacterSet);
-            if not ContainsAny(Password, CharacterSet) then
+            if not ContainsAny(PasswordPlain, CharacterSet) then
                 exit(false);
         end;
 
         // Check no sequences
         SequenceLength := 3;
         AddReversedCharacterSets(CharacterSets);
-        for Counter := 1 to StrLen(Password) - SequenceLength + 1 do
-            if AreCharacterValuesEqualOrSequential(CharacterSets, CopyStr(Password, Counter, SequenceLength)) then
+        for Counter := 1 to StrLen(PasswordPlain) - SequenceLength + 1 do
+            if AreCharacterValuesEqualOrSequential(CharacterSets, CopyStr(PasswordPlain, Counter, SequenceLength)) then
                 exit(false);
 
         exit(true);
@@ -77,6 +107,7 @@ codeunit 1282 "Password Handler Impl."
         exit(MinPasswordLength);
     end;
 
+    [NonDebuggable]
     local procedure ContainsAny(String: Text; Characters: Text): Boolean;
     var
         ReplacedText: Text;
@@ -87,6 +118,7 @@ codeunit 1282 "Password Handler Impl."
         exit(false);
     end;
 
+    [NonDebuggable]
     local procedure AreCharacterValuesEqualOrSequential(CharacterSets: List of [Text]; SeqLetters: Text): Boolean;
     var
         CharacterSet: Text;

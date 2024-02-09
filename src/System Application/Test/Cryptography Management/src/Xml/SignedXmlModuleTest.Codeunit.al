@@ -48,7 +48,7 @@ codeunit 132612 "Signed Xml Module Test"
     [Test]
     procedure VerifyXmlSignatureUsingKeyXmlString()
     var
-        XmlString: Text;
+        XmlString: SecretText;
         SignedXmlDocument: XmlDocument;
         SignatureElement: XmlElement;
     begin
@@ -59,7 +59,6 @@ codeunit 132612 "Signed Xml Module Test"
         SignedXml.LoadXml(SignatureElement);
 
         GetSignatureKeyXmlString(XmlString);
-
         LibraryAssert.IsTrue(SignedXml.CheckSignature(XmlString), 'Failed to verify the xml signature.');
     end;
 
@@ -69,6 +68,7 @@ codeunit 132612 "Signed Xml Module Test"
         SignedXmlDocument: XmlDocument;
         SignatureElement: XmlElement;
         CertBase64Data: Text;
+        Password: SecretText;
     begin
         GetValidSignedXml(SignedXmlDocument);
         GetSignatureElement(SignedXmlDocument, SignatureElement);
@@ -78,7 +78,7 @@ codeunit 132612 "Signed Xml Module Test"
 
         CertBase64Data := GetCertificateData();
 
-        LibraryAssert.IsTrue(SignedXml.CheckSignature(CertBase64Data, '', true), 'Failed to verify the xml signature.');
+        LibraryAssert.IsTrue(SignedXml.CheckSignature(CertBase64Data, Password, true), 'Failed to verify the xml signature.');
     end;
 
     local procedure GetSignatureElement(SignedXmlDocument: XmlDocument; var SignatureElement: XmlElement)
@@ -174,7 +174,9 @@ codeunit 132612 "Signed Xml Module Test"
             SignedXmlDocument);
     end;
 
-    local procedure GetSignatureKeyXmlString(var XmlString: Text)
+    local procedure GetSignatureKeyXmlString(var SecretXmlString: SecretText)
+    var
+        XmlString: Text;
     begin
         XmlString :=
             '<RSAKeyValue>' +
@@ -187,6 +189,7 @@ codeunit 132612 "Signed Xml Module Test"
             '<InverseQ>SfjdGT81HDJSzTseigrM+JnBKPPrzpeEp0RbTP52Lm23YARjLCwmPMMdAwYZsvqeTuHEDQcOHxLHWuyN/zgP2A==</InverseQ>' +
             '<D>XzxrIwgmBHeIqUe5FOBnDsOZQlyAQA+pXYjCf8Rll2XptFwUdkzAUMzWUGWTG5ZspA9l8Wc7IozRe/bhjMxuVK5yZhPDKbjqRdWICA95Jd7fxlIirHOVMQRdzI7xNKqMNQN05MLJfsEHUYtOLhZE+tfhJTJnnmB7TMwnJgc4O5E=</D>' +
             '</RSAKeyValue>';
+        SecretXmlString := XmlString;
     end;
 
     local procedure GetCertificateData(): Text

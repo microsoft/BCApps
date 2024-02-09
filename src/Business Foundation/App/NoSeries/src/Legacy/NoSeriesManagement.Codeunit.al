@@ -52,7 +52,7 @@ codeunit 396 NoSeriesManagement
 #endif
 
 #if not CLEAN24
-    [Obsolete('Please use the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
+    [Obsolete('Please use method TestManual(NoSeriesCode: Code[20]) in codeunit "No. Series" instead.', '24.0')]
     procedure TestManual(DefaultNoSeriesCode: Code[20])
     var
         IsHandled: Boolean;
@@ -68,14 +68,14 @@ codeunit 396 NoSeriesManagement
         OnAfterTestManual(DefaultNoSeriesCode);
     end;
 
-    [Obsolete('Please use the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
+    [Obsolete('Please use method IsManual(NoSeriesCode: Code[20]) in codeunit "No. Series" instead.', '24.0')]
     procedure ManualNoAllowed(DefaultNoSeriesCode: Code[20]): Boolean
     begin
         GlobalNoSeries.Get(DefaultNoSeriesCode);
         exit(GlobalNoSeries."Manual Nos.");
     end;
 
-    [Obsolete('Please use the "No. Series" and "No. Series - Batch" codeunits instead', '24.0')]
+    [Obsolete('Please use method TestManual(NoSeriesCode: Code[20]; DocumentNo: Code[20]) in codeunit "No. Series" instead.', '24.0')]
     procedure TestManualWithDocumentNo(DefaultNoSeriesCode: Code[20]; DocumentNo: Code[20])
     begin
         if DefaultNoSeriesCode <> '' then begin
@@ -469,7 +469,7 @@ codeunit 396 NoSeriesManagement
             if LastNoSeriesLine."Series Code" <> '' then begin
                 if (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) then
                     if (LastNoSeriesLine."Last No. Used" <> '') and (LastNoSeriesLine."Last No. Used" > NoSeries.GetLastNoUsed(LastNoSeriesLine)) then
-                        RestartSequence(LastNoSeriesLine, NoSeriesSequenceImpl.ExtractNoFromCode(LastNoSeriesLine."Last No. Used"));
+                        RestartSequence(LastNoSeriesLine, NoSeriesSequenceImpl.ExtractNoFromCode(LastNoSeriesLine."Last No. Used", LastNoSeriesLine."Series Code"));
                 if not (LastNoSeriesLine.Implementation = "No. Series Implementation"::Sequence) or UpdateLastUsedDate then
                     ModifyNoSeriesLine(LastNoSeriesLine);
             end;
