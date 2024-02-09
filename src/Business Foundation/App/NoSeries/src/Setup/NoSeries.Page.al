@@ -188,6 +188,11 @@ page 456 "No. Series"
         }
         area(FactBoxes)
         {
+            part(NoSeriesRelationsFactBox; "No. Series Relationships Part")
+            {
+                Caption = 'No. Series Relationships';
+                SubPageLink = Code = field(Code);
+            }
             systempart(Control1900383207; Links)
             {
                 ApplicationArea = RecordLinks;
