@@ -27,4 +27,10 @@ codeunit 132976 "SharePoint Auth. Subscription"
         else
             ErrorText := ExpectedError;
     end;
+
+    procedure SetParameters(NewShouldFail: Boolean; NewExpectedError: Text)
+    begin
+        ShouldFail := NewShouldFail;
+        ExpectedError := NewExpectedError;
+    end;
 }
