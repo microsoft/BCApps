@@ -54,7 +54,7 @@ if "No." = '' then begin
     GLSetup.Get();
     GLSetup.TestField("Bank Account Nos.");
     "No. Series" := GLSetup."Bank Account Nos.";
-    NoSeries.AreRelated(GLSetup."Bank Account Nos.", xRec."No. Series") then
+    if NoSeries.AreRelated(GLSetup."Bank Account Nos.", xRec."No. Series") then
         "No. Series" := xRec."No. Series"
     "No." := NoSeries.GetNextNo("No. Series");
 end;
@@ -69,7 +69,7 @@ if "No." = '' then begin
     NoSeriesManagement.RaiseObsoleteOnBeforeInitSeries(GLSetup."Bank Account Nos.", xRec."No. Series", 0D, "No.", "No. Series", IsHandled);
     if not IsHandled then begin
         "No. Series" := GLSetup."Bank Account Nos.";
-        NoSeries.AreRelated(GLSetup."Bank Account Nos.", xRec."No. Series") then
+        if NoSeries.AreRelated(GLSetup."Bank Account Nos.", xRec."No. Series") then
             "No. Series" := xRec."No. Series"
         "No." := NoSeries.GetNextNo("No. Series");
         NoSeriesManagement.RaiseObsoleteOnAfterInitSeries("No. Series", GLSetup."Bank Account Nos.", 0D, "No.");
