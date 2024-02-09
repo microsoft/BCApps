@@ -5,7 +5,7 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-page 430 "No. Series Relationships Part"
+page 420 "No. Series Relationships Part"
 {
     PageType = ListPart;
     ApplicationArea = Basic, Suite;

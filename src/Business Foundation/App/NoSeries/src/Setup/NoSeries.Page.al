@@ -188,9 +188,14 @@ page 456 "No. Series"
         }
         area(FactBoxes)
         {
-            part(NoSeriesRelationsFactBox; "No. Series Relationships Part")
+            part(NoSeriesLinesPart; "No. Series Lines Part")
             {
-                Caption = 'No. Series Relationships';
+                Caption = 'Open Lines';
+                SubPageLink = "Series Code" = field(Code), Open = const(true);
+            }
+            part(NoSeriesRelationsPart; "No. Series Relationships Part")
+            {
+                Caption = 'Relationships';
                 SubPageLink = Code = field(Code);
             }
             systempart(Control1900383207; Links)
