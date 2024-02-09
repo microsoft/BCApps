@@ -5,7 +5,7 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-codeunit 323 "No. Series Actionable Errors"
+codeunit 323 "No. Series - Actionable Errors"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -24,7 +24,7 @@ codeunit 323 "No. Series Actionable Errors"
 
         if UserCanEditNoSeries() then begin
             ErrorInfo.CustomDimensions.Add(NoSeriesCodeTok, NoSeriesCode);
-            ErrorInfo.AddAction(OpenNoSeriesTxt, CodeUnit::"No. Series Actionable Errors", 'OpenNoSeries');
+            ErrorInfo.AddAction(OpenNoSeriesTxt, CodeUnit::"No. Series - Actionable Errors", 'OpenNoSeries');
         end;
 
         Error(ErrorInfo);
@@ -36,7 +36,7 @@ codeunit 323 "No. Series Actionable Errors"
 
         if UserCanEditNoSeries() then begin
             ErrorInfo.CustomDimensions.Add(NoSeriesCodeTok, NoSeriesCode);
-            ErrorInfo.AddAction(OpenNoSeriesLinesTxt, CodeUnit::"No. Series Actionable Errors", 'OpenNoSeriesLines');
+            ErrorInfo.AddAction(OpenNoSeriesLinesTxt, CodeUnit::"No. Series - Actionable Errors", 'OpenNoSeriesLines');
         end;
 
         Error(ErrorInfo);
@@ -53,7 +53,7 @@ codeunit 323 "No. Series Actionable Errors"
                 ErrorInfo.RecordId := NoSeriesLine.RecordId() // The record may not exist in the database if insertion failed or it's temporary
             else
                 ErrorInfo.CustomDimensions.Add(NoSeriesCodeTok, NoSeriesLine."Series Code");
-            ErrorInfo.AddAction(OpenNoSeriesLinesTxt, CodeUnit::"No. Series Actionable Errors", 'OpenNoSeriesLines');
+            ErrorInfo.AddAction(OpenNoSeriesLinesTxt, CodeUnit::"No. Series - Actionable Errors", 'OpenNoSeriesLines');
         end;
 
         Error(ErrorInfo);
@@ -65,7 +65,7 @@ codeunit 323 "No. Series Actionable Errors"
 
         if UserCanEditNoSeries() then begin
             ErrorInfo.CustomDimensions.Add(NoSeriesCodeTok, NoSeriesCode);
-            ErrorInfo.AddAction(OpenNoSeriesLinesTxt, CodeUnit::"No. Series Actionable Errors", 'OpenNoSeriesRelationships');
+            ErrorInfo.AddAction(OpenNoSeriesLinesTxt, CodeUnit::"No. Series - Actionable Errors", 'OpenNoSeriesRelationships');
         end;
 
         Error(ErrorInfo);

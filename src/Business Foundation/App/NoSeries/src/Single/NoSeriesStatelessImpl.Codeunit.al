@@ -81,7 +81,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
 
     procedure EnsureLastNoUsedIsWithinValidRange(NoSeriesLine: Record "No. Series Line"; NoErrorsOrWarnings: Boolean): Boolean
     var
-        NoSeriesActionableErrors: Codeunit "No. Series Actionable Errors";
+        NoSeriesActionableErrors: Codeunit "No. Series - Actionable Errors";
     begin
         if not NoIsWithinValidRange(NoSeriesLine."Last No. Used", NoSeriesLine."Starting No.", NoSeriesLine."Ending No.") then begin
             if NoErrorsOrWarnings then

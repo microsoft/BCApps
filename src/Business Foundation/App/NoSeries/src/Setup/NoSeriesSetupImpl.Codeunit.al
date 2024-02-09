@@ -197,7 +197,7 @@ codeunit 305 "No. Series - Setup Impl."
         NoSeriesManagement: Codeunit NoSeriesManagement;
 #pragma warning restore AL0432
 #endif
-        NoSeriesActionableErrors: Codeunit "No. Series Actionable Errors";
+        NoSeriesActionableErrors: Codeunit "No. Series - Actionable Errors";
 #if not CLEAN24
 #pragma warning disable AL0432
         IsHandled: Boolean;

@@ -55,7 +55,7 @@ codeunit 304 "No. Series - Impl."
     local procedure TestManualInternal(NoSeriesCode: Code[20]; ErrorText: Text)
     var
         NoSeries: Record "No. Series";
-        NoSeriesActionableErrors: Codeunit "No. Series Actionable Errors";
+        NoSeriesActionableErrors: Codeunit "No. Series - Actionable Errors";
     begin
         NoSeries.Get(NoSeriesCode);
         if not NoSeries."Manual Nos." then
@@ -151,7 +151,7 @@ codeunit 304 "No. Series - Impl."
     var
         NoSeriesRec: Record "No. Series";
         NoSeries: Codeunit "No. Series";
-        NoSeriesActionableErrors: Codeunit "No. Series Actionable Errors";
+        NoSeriesActionableErrors: Codeunit "No. Series - Actionable Errors";
         LineFound: Boolean;
     begin
         if UsageDate = 0D then
@@ -261,7 +261,7 @@ codeunit 304 "No. Series - Impl."
 
     procedure TestAreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
     var
-        NoSeriesActionableErrors: Codeunit "No. Series Actionable Errors";
+        NoSeriesActionableErrors: Codeunit "No. Series - Actionable Errors";
     begin
         if not AreRelated(DefaultNoSeriesCode, RelatedNoSeriesCode) then
             NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesRelationships(StrSubstNo(SeriesNotRelatedErr, DefaultNoSeriesCode, RelatedNoSeriesCode), DefaultNoSeriesCode);
@@ -303,7 +303,7 @@ codeunit 304 "No. Series - Impl."
     procedure TestAutomatic(NoSeriesCode: Code[20])
     var
         NoSeries: Record "No. Series";
-        NoSeriesActionableErrors: Codeunit "No. Series Actionable Errors";
+        NoSeriesActionableErrors: Codeunit "No. Series - Actionable Errors";
     begin
         if not NoSeries.Get(NoSeriesCode) then
             NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeries(StrSubstNo(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeriesCode), '');
@@ -313,7 +313,7 @@ codeunit 304 "No. Series - Impl."
 
     local procedure TestAutomatic(NoSeries: Record "No. Series")
     var
-        NoSeriesActionableErrors: Codeunit "No. Series Actionable Errors";
+        NoSeriesActionableErrors: Codeunit "No. Series - Actionable Errors";
     begin
         if not NoSeries."Default Nos." then
             NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeries(StrSubstNo(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code), NoSeries.Code);
@@ -356,7 +356,7 @@ codeunit 304 "No. Series - Impl."
 
     local procedure ValidateCanGetNextNo(var NoSeriesLine: Record "No. Series Line"; SeriesDate: Date; HideErrorsAndWarnings: Boolean): Boolean
     var
-        NoSeriesActionableErrors: Codeunit "No. Series Actionable Errors";
+        NoSeriesActionableErrors: Codeunit "No. Series - Actionable Errors";
     begin
         if SeriesDate < NoSeriesLine."Starting Date" then
             if HideErrorsAndWarnings then

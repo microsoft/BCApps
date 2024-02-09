@@ -144,7 +144,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 
     procedure ExtractNoFromCode(NumberCode: Code[20]; NoSeriesCode: Code[20]): BigInteger
     var
-        NoSeriesActionableErrors: Codeunit "No. Series Actionable Errors";
+        NoSeriesActionableErrors: Codeunit "No. Series - Actionable Errors";
         i: Integer;
         j: Integer;
         Number: BigInteger;
