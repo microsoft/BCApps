@@ -23,8 +23,8 @@ codeunit 132977 "SharePoint Authorization Test"
     var
         SharepointAuth: Codeunit "SharePoint Auth.";
         HttpRequestMessage: HttpRequestMessage;
-        HttpHehaders: HttpHeaders;
-        Values: array[100] of Text;
+        HttpHeaders: HttpHeaders;
+        SecretValues: array[100] of SecretText;
         SharepointAuthorization: Interface "SharePoint Authorization";
     begin
         // [Scenario] Request is succesfully authorized with authorization code
@@ -33,11 +33,9 @@ codeunit 132977 "SharePoint Authorization Test"
         SharePointAuthSubscription.SetParameters(false, '');
         SharepointAuthorization := SharepointAuth.CreateAuthorizationCode(CreateGuid(), Any.AlphanumericText(10), GetClientSecret(), Any.AlphabeticText(20));
         SharepointAuthorization.Authorize(HttpRequestMessage);
-
-        Assert.IsTrue(HttpRequestMessage.GetHeaders(HttpHehaders), 'Headers expected');
-        Assert.IsTrue(HttpHehaders.GetValues('Authorization', Values), 'Authorization header expected');
-        Assert.IsTrue(Values[1].StartsWith('Bearer '), 'Incorrecte header value');
-        Assert.IsTrue(StrLen(Values[1].Remove(1, StrLen('Bearer '))) > 0, 'Missing token');
+        HttpRequestMessage.GetHeaders(HttpHeaders);
+        Assert.IsTrue(HttpHeaders.GetSecretValues('Authorization', SecretValues), 'Authorization header expected');
+        CheckAuthorizationHeader(SecretValues[1]);
     end;
 
     [Test]
@@ -70,5 +68,12 @@ codeunit 132977 "SharePoint Authorization Test"
     local procedure GetClientSecret(): SecretText
     begin
         exit(Any.AlphabeticText(20));
+    end;
+
+    [NonDebuggable]
+    local procedure CheckAuthorizationHeader(Value: SecretText): Boolean
+    begin
+        Assert.IsTrue(Value.Unwrap().StartsWith('Bearer '), 'Incorrect header value');
+        Assert.IsTrue(StrLen(Value.Unwrap().Remove(1, StrLen('Bearer '))) > 0, 'Missing token');
     end;
 }
