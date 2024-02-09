@@ -362,7 +362,7 @@ codeunit 304 "No. Series - Impl."
             if HideErrorsAndWarnings then
                 exit(false)
             else
-                NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(CannotAssignNewBeforeDateErr, NoSeriesLine."Series Code", NoSeriesLine."Starting Date"), NoSeriesLine."Series Code");
+                NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(CannotAssignNewBeforeDateErr, NoSeriesLine."Series Code", NoSeriesLine."Starting Date"), NoSeriesLine);
 
         exit(true);
     end;
