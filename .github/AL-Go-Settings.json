@@ -8,7 +8,7 @@
   "artifact": "https://bcinsider.azureedge.net/sandbox/24.0.16025.0/base",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "25.0",
+  "repoVersion": "24.0",
   "cleanModePreprocessorSymbols": [
     "CLEAN17",
     "CLEAN18",
