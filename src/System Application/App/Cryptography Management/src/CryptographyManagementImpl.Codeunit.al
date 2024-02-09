@@ -51,12 +51,12 @@ codeunit 1279 "Cryptography Management Impl."
     var
         PasswordDialogManagement: Codeunit "Password Dialog Management";
         TempBlob: Codeunit "Temp Blob";
-        Password: Text;
+        Password: SecretText;
     begin
         AssertEncryptionPossible();
         if Confirm(ExportEncryptionKeyConfirmQst, true) then begin
-            Password := PasswordDialogManagement.OpenPasswordDialog();
-            if Password = '' then
+            Password := PasswordDialogManagement.OpenSecretPasswordDialog();
+            if Password.IsEmpty() then
                 exit;
         end;
 
@@ -64,20 +64,21 @@ codeunit 1279 "Cryptography Management Impl."
         DownloadEncryptionFileFromStream(TempBlob);
     end;
 
-    procedure ExportKeyAsStream(var TempBlob: Codeunit "Temp Blob"; Password: Text)
+    procedure ExportKeyAsStream(var TempBlob: Codeunit "Temp Blob"; Password: SecretText)
     begin
         AssertEncryptionPossible();
         GetEncryptionKeyAsStream(TempBlob, Password);
     end;
 
-    local procedure GetEncryptionKeyAsStream(var TempBlob: Codeunit "Temp Blob"; Password: Text)
+    [NonDebuggable]
+    local procedure GetEncryptionKeyAsStream(var TempBlob: Codeunit "Temp Blob"; Password: SecretText)
     var
         FileObj: File;
         FileInStream: InStream;
         TempOutStream: OutStream;
         ServerFilename: Text;
     begin
-        ServerFilename := ExportEncryptionKey(Password);
+        ServerFilename := ExportEncryptionKey(Password.Unwrap());
         FileObj.Open(ServerFilename);
 
         TempBlob.CreateOutStream(TempOutStream);
@@ -105,7 +106,7 @@ codeunit 1279 "Cryptography Management Impl."
     var
         PasswordDialogManagement: Codeunit "Password Dialog Management";
         TempKeyFilePath: Text;
-        Password: Text;
+        Password: SecretText;
     begin
         TempKeyFilePath := UploadFile();
 
@@ -113,8 +114,8 @@ codeunit 1279 "Cryptography Management Impl."
         if TempKeyFilePath = '' then
             exit;
 
-        Password := PasswordDialogManagement.OpenPasswordDialog(true, true);
-        if Password <> '' then
+        Password := PasswordDialogManagement.OpenSecretPasswordDialog(true, true);
+        if not Password.IsEmpty() then
             ImportKeyAndConfirm(TempKeyFilePath, Password);
 
         File.Erase(TempKeyFilePath);
@@ -124,7 +125,7 @@ codeunit 1279 "Cryptography Management Impl."
     var
         PasswordDialogManagement: Codeunit "Password Dialog Management";
         TempKeyFilePath: Text;
-        Password: Text;
+        Password: SecretText;
     begin
         TempKeyFilePath := UploadFile();
 
@@ -132,8 +133,8 @@ codeunit 1279 "Cryptography Management Impl."
         if TempKeyFilePath = '' then
             exit;
 
-        Password := PasswordDialogManagement.OpenPasswordDialog(true, true);
-        if Password <> '' then begin
+        Password := PasswordDialogManagement.OpenSecretPasswordDialog(true, true);
+        if not Password.IsEmpty() then begin
             if IsEncryptionEnabled() then begin
                 if not Confirm(ReencryptConfirmQst, true) then
                     exit;
@@ -151,7 +152,7 @@ codeunit 1279 "Cryptography Management Impl."
         PasswordDialogManagement: Codeunit "Password Dialog Management";
         TempBlob: Codeunit "Temp Blob";
         ShouldExportKey: Boolean;
-        Password: Text;
+        Password: SecretText;
     begin
         if Silent then begin
             CreateEncryptionKeys();
@@ -160,8 +161,8 @@ codeunit 1279 "Cryptography Management Impl."
 
         if Confirm(EnableEncryptionConfirmQst, true) then begin
             if Confirm(ExportEncryptionKeyConfirmQst, true) then begin
-                Password := PasswordDialogManagement.OpenPasswordDialog();
-                if Password <> '' then
+                Password := PasswordDialogManagement.OpenSecretPasswordDialog();
+                if not Password.IsEmpty() then
                     ShouldExportKey := true;
             end;
 
@@ -220,9 +221,10 @@ codeunit 1279 "Cryptography Management Impl."
         exit(ServerFileName);
     end;
 
-    local procedure ImportKeyAndConfirm(KeyFilePath: Text; Password: Text)
+    [NonDebuggable]
+    local procedure ImportKeyAndConfirm(KeyFilePath: Text; Password: SecretText)
     begin
-        ImportEncryptionKey(KeyFilePath, Password);
+        ImportEncryptionKey(KeyFilePath, Password.Unwrap());
         Message(EncryptionKeyImportedMsg);
     end;
 
@@ -268,32 +270,35 @@ codeunit 1279 "Cryptography Management Impl."
         HashAlgorithm.Dispose();
     end;
 
-    procedure GenerateHash(InputString: Text; "Key": Text; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    [NonDebuggable]
+    procedure GenerateHash(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     var
         HashBytes: DotNet Array;
         Encoding: DotNet Encoding;
     begin
-        if not GenerateKeyedHashBytes(HashBytes, InputString, Encoding.UTF8().GetBytes(Key), HashAlgorithmType) then
+        if not GenerateKeyedHashBytes(HashBytes, InputString, Encoding.UTF8().GetBytes(Key.Unwrap()), HashAlgorithmType) then
             exit('');
         exit(ConvertByteHashToString(HashBytes));
     end;
 
-    procedure GenerateHashAsBase64String(InputString: Text; "Key": Text; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    [NonDebuggable]
+    procedure GenerateHashAsBase64String(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     var
         HashBytes: DotNet Array;
         Encoding: DotNet Encoding;
     begin
-        if not GenerateKeyedHashBytes(HashBytes, InputString, Encoding.UTF8().GetBytes(Key), HashAlgorithmType) then
+        if not GenerateKeyedHashBytes(HashBytes, InputString, Encoding.UTF8().GetBytes(Key.Unwrap()), HashAlgorithmType) then
             exit('');
         exit(ConvertByteHashToBase64String(HashBytes));
     end;
 
-    procedure GenerateBase64KeyedHashAsBase64String(InputString: Text; "Key": Text; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    [NonDebuggable]
+    procedure GenerateBase64KeyedHashAsBase64String(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     var
         HashBytes: DotNet Array;
         Convert: DotNet Convert;
     begin
-        if not GenerateKeyedHashBytes(HashBytes, InputString, Convert.FromBase64String(Key), HashAlgorithmType) then
+        if not GenerateKeyedHashBytes(HashBytes, InputString, Convert.FromBase64String(Key.Unwrap()), HashAlgorithmType) then
             exit('');
         exit(ConvertByteHashToBase64String(HashBytes));
     end;
@@ -354,17 +359,18 @@ codeunit 1279 "Cryptography Management Impl."
         exit(ConvertByteHashToString(HashBytes));
     end;
 
-    procedure GenerateBase64KeyedHash(InputString: Text; "Key": Text; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    [NonDebuggable]
+    procedure GenerateBase64KeyedHash(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     var
         HashBytes: DotNet Array;
         Convert: DotNet Convert;
     begin
-        if not GenerateKeyedHashBytes(HashBytes, InputString, Convert.FromBase64String(Key), HashAlgorithmType) then
+        if not GenerateKeyedHashBytes(HashBytes, InputString, Convert.FromBase64String(Key.Unwrap()), HashAlgorithmType) then
             exit('');
         exit(ConvertByteHashToString(HashBytes));
     end;
 
-    procedure SignData(InputString: Text; XmlString: Text; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    procedure SignData(InputString: Text; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
     var
         TempBlob: Codeunit "Temp Blob";
         DataOutStream: OutStream;
@@ -383,14 +389,15 @@ codeunit 1279 "Cryptography Management Impl."
         SignData(InputString, SignatureKey.ToXmlString(), HashAlgorithm, SignatureOutStream);
     end;
 
-    procedure SignData(DataInStream: InStream; XmlString: Text; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    [NonDebuggable]
+    procedure SignData(DataInStream: InStream; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
     var
-        ISignatureAlgorithm: Interface SignatureAlgorithm;
+        ISignatureAlgorithm: Interface "Signature Algorithm v2";
     begin
         if DataInStream.EOS() then
             exit;
         ISignatureAlgorithm := Enum::SignatureAlgorithm::RSA;
-        ISignatureAlgorithm.FromXmlString(XmlString);
+        ISignatureAlgorithm.FromSecretXmlString(XmlString);
         ISignatureAlgorithm.SignData(DataInStream, HashAlgorithm, SignatureOutStream);
     end;
 
@@ -399,7 +406,7 @@ codeunit 1279 "Cryptography Management Impl."
         SignData(DataInStream, SignatureKey.ToXmlString(), HashAlgorithm, SignatureOutStream);
     end;
 
-    procedure VerifyData(InputString: Text; XmlString: Text; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    procedure VerifyData(InputString: Text; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
     var
         TempBlob: Codeunit "Temp Blob";
         DataOutStream: OutStream;
@@ -418,14 +425,15 @@ codeunit 1279 "Cryptography Management Impl."
         exit(VerifyData(InputString, SignatureKey.ToXmlString(), HashAlgorithm, SignatureInStream));
     end;
 
-    procedure VerifyData(DataInStream: InStream; XmlString: Text; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    [NonDebuggable]
+    procedure VerifyData(DataInStream: InStream; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
     var
-        ISignatureAlgorithm: Interface SignatureAlgorithm;
+        ISignatureAlgorithm: Interface "Signature Algorithm v2";
     begin
         if DataInStream.EOS() then
             exit(false);
         ISignatureAlgorithm := Enum::SignatureAlgorithm::RSA;
-        ISignatureAlgorithm.FromXmlString(XmlString);
+        ISignatureAlgorithm.FromSecretXmlString(XmlString);
         exit(ISignatureAlgorithm.VerifyData(DataInStream, HashAlgorithm, SignatureInStream));
     end;
 
@@ -441,27 +449,28 @@ codeunit 1279 "Cryptography Management Impl."
         RijndaelProvider.GenerateIV();
     end;
 
-    procedure InitRijndaelProvider(EncryptionKey: Text)
+    [NonDebuggable]
+    procedure InitRijndaelProvider(EncryptionKey: SecretText)
     var
         Encoding: DotNet Encoding;
     begin
         InitRijndaelProvider();
-        RijndaelProvider."Key" := Encoding.GetEncoding(0).GetBytes(EncryptionKey);
+        RijndaelProvider."Key" := Encoding.GetEncoding(0).GetBytes(EncryptionKey.Unwrap());
     end;
 
-    procedure InitRijndaelProvider(EncryptionKey: Text; BlockSize: Integer)
+    procedure InitRijndaelProvider(EncryptionKey: SecretText; BlockSize: Integer)
     begin
         InitRijndaelProvider(EncryptionKey);
         SetBlockSize(BlockSize);
     end;
 
-    procedure InitRijndaelProvider(EncryptionKey: Text; BlockSize: Integer; CipherMode: Text)
+    procedure InitRijndaelProvider(EncryptionKey: SecretText; BlockSize: Integer; CipherMode: Text)
     begin
         InitRijndaelProvider(EncryptionKey, BlockSize);
         SetCipherMode(CipherMode);
     end;
 
-    procedure InitRijndaelProvider(EncryptionKey: Text; BlockSize: Integer; CipherMode: Text; PaddingMode: Text)
+    procedure InitRijndaelProvider(EncryptionKey: SecretText; BlockSize: Integer; CipherMode: Text; PaddingMode: Text)
     begin
         InitRijndaelProvider(EncryptionKey, BlockSize, CipherMode);
         SetPaddingMode(PaddingMode);
@@ -491,12 +500,13 @@ codeunit 1279 "Cryptography Management Impl."
         RijndaelProvider.Padding := CryptographyPaddingMode.Parse(CryptographyPaddingMode.GetType(), PaddingMode);
     end;
 
-    procedure SetEncryptionData(KeyAsBase64: Text; VectorAsBase64: Text)
+    [NonDebuggable]
+    procedure SetEncryptionData(KeyAsBase64: SecretText; VectorAsBase64: Text)
     var
         Convert: DotNet Convert;
     begin
         Construct();
-        RijndaelProvider."Key"(Convert.FromBase64String(KeyAsBase64));
+        RijndaelProvider."Key"(Convert.FromBase64String(KeyAsBase64.Unwrap()));
         RijndaelProvider.IV(Convert.FromBase64String(VectorAsBase64));
     end;
 
@@ -541,7 +551,23 @@ codeunit 1279 "Cryptography Management Impl."
         VectorAsBase64 := Convert.ToBase64String(RijndaelProvider.IV());
     end;
 
+    procedure GetEncryptionData(var KeyAsBase64: SecretText; var VectorAsBase64: Text)
+    var
+        Convert: DotNet Convert;
+    begin
+        Construct();
+        KeyAsBase64 := Convert.ToBase64String(RijndaelProvider."Key"());
+        VectorAsBase64 := Convert.ToBase64String(RijndaelProvider.IV());
+    end;
+
+    [NonDebuggable]
     procedure EncryptRijndael(PlainText: Text) EncryptedText: Text
+    begin
+        EncryptedText := EncryptRijndaelSecret(PlainText).Unwrap();
+    end;
+
+    [NonDebuggable]
+    procedure EncryptRijndaelSecret(PlainText: SecretText) EncryptedText: SecretText
     var
         Encryptor: DotNet "Cryptography.ICryptoTransform";
         Convert: DotNet Convert;
@@ -554,14 +580,21 @@ codeunit 1279 "Cryptography Management Impl."
         EncMemoryStream := EncMemoryStream.MemoryStream();
         EncCryptoStream := EncCryptoStream.CryptoStream(EncMemoryStream, Encryptor, CryptoStreamMode.Write);
         EncStreamWriter := EncStreamWriter.StreamWriter(EncCryptoStream);
-        EncStreamWriter.Write(PlainText);
+        EncStreamWriter.Write(PlainText.Unwrap());
         EncStreamWriter.Close();
         EncCryptoStream.Close();
         EncMemoryStream.Close();
         EncryptedText := Convert.ToBase64String(EncMemoryStream.ToArray());
     end;
 
-    procedure DecryptRijndael(EncryptedText: Text) PlainText: Text
+    [NonDebuggable]
+    procedure DecryptRijndael(EncryptedText: SecretText) PlainText: Text
+    begin
+        PlainText := DecryptRijndaelSecret(EncryptedText).Unwrap();
+    end;
+
+    [NonDebuggable]
+    procedure DecryptRijndaelSecret(EncryptedText: SecretText) PlainText: SecretText
     var
         Decryptor: DotNet "Cryptography.ICryptoTransform";
         Convert: DotNet Convert;
@@ -572,7 +605,7 @@ codeunit 1279 "Cryptography Management Impl."
     begin
         Construct();
         Decryptor := RijndaelProvider.CreateDecryptor();
-        DecMemoryStream := DecMemoryStream.MemoryStream(Convert.FromBase64String(EncryptedText));
+        DecMemoryStream := DecMemoryStream.MemoryStream(Convert.FromBase64String(EncryptedText.Unwrap()));
         DecCryptoStream := DecCryptoStream.CryptoStream(DecMemoryStream, Decryptor, CryptoStreamMode.Read);
         DecStreamReader := DecStreamReader.StreamReader(DecCryptoStream);
 #pragma warning disable AA0205
@@ -589,6 +622,7 @@ codeunit 1279 "Cryptography Management Impl."
             InitRijndaelProvider();
     end;
 
+    [NonDebuggable]
     procedure HashRfc2898DeriveBytes(InputString: Text; Salt: Text; NoOfBytes: Integer; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text;
     var
         ByteArray: DotNet Array;
