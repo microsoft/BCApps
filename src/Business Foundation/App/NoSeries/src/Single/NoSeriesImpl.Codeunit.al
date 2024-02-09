@@ -52,13 +52,14 @@ codeunit 304 "No. Series - Impl."
         TestManualInternal(NoSeriesCode, StrSubstNo(PostErr, DocumentNo));
     end;
 
-    local procedure TestManualInternal(NoSeriesCode: Code[20]; ErrorText: Text);
+    local procedure TestManualInternal(NoSeriesCode: Code[20]; ErrorText: Text)
     var
         NoSeries: Record "No. Series";
+        NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
     begin
         NoSeries.Get(NoSeriesCode);
         if not NoSeries."Manual Nos." then
-            Error(ErrorText);
+            NoSeriesErrorsImpl.Throw(ErrorText, NoSeriesCode, NoSeriesErrorsImpl.OpenNoSeriesLinesAction());
     end;
 
     procedure IsManual(NoSeriesCode: Code[20]): Boolean
@@ -150,6 +151,7 @@ codeunit 304 "No. Series - Impl."
     var
         NoSeriesRec: Record "No. Series";
         NoSeries: Codeunit "No. Series";
+        NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
         LineFound: Boolean;
     begin
         if UsageDate = 0D then
@@ -186,10 +188,11 @@ codeunit 304 "No. Series - Impl."
             // Throw an error depending on the reason we couldn't find a date
             if HideErrorsAndWarnings then
                 exit(false);
+
             NoSeriesLine.SetRange("Starting Date");
             if not NoSeriesLine.IsEmpty() then
-                Error(CannotAssignNewOnDateErr, NoSeriesCode, UsageDate);
-            Error(CannotAssignNewErr, NoSeriesCode);
+                NoSeriesErrorsImpl.Throw(StrSubstNo(CannotAssignNewOnDateErr, NoSeriesCode, UsageDate), NoSeriesCode, NoSeriesErrorsImpl.OpenNoSeriesLinesAction());
+            NoSeriesErrorsImpl.Throw(StrSubstNo(CannotAssignNewErr, NoSeriesCode), NoSeriesCode, NoSeriesErrorsImpl.OpenNoSeriesLinesAction());
         end;
 
         // If Date Order is required for this No. Series, make sure the usage date is not before the last date used
@@ -198,7 +201,7 @@ codeunit 304 "No. Series - Impl."
         if NoSeriesRec."Date Order" and (UsageDate < NoSeriesLine."Last Date Used") then begin
             if HideErrorsAndWarnings then
                 exit(false);
-            Error(CannotAssignNewBeforeDateErr, NoSeriesRec.Code, NoSeriesLine."Last Date Used");
+            NoSeriesErrorsImpl.Throw(StrSubstNo(CannotAssignNewBeforeDateErr, NoSeriesRec.Code, NoSeriesLine."Last Date Used"), NoSeriesLine, NoSeriesErrorsImpl.OpenNoSeriesLinesAction());
         end;
         exit(true);
     end;
@@ -257,9 +260,19 @@ codeunit 304 "No. Series - Impl."
     end;
 
     procedure TestAreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
+    var
+        NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
     begin
         if not AreRelated(DefaultNoSeriesCode, RelatedNoSeriesCode) then
-            Error(SeriesNotRelatedErr, DefaultNoSeriesCode, RelatedNoSeriesCode);
+            NoSeriesErrorsImpl.Throw(StrSubstNo(SeriesNotRelatedErr, DefaultNoSeriesCode, RelatedNoSeriesCode), DefaultNoSeriesCode, NoSeriesErrorsImpl.OpenNoSeriesRelationshipsAction());
+    end;
+
+    procedure OpenNoSeriesRelationships(ErrorInfo: ErrorInfo)
+    var
+        NoSeriesLines: Record "No. Series Line";
+    begin
+        NoSeriesLines.SetRange("Series Code", ErrorInfo.CustomDimensions.Get('DefaultNoSeriesCode'));
+        Page.Run(Page::"No. Series Relationships", NoSeriesLines);
     end;
 
     procedure AreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20]): Boolean
@@ -270,8 +283,7 @@ codeunit 304 "No. Series - Impl."
         if not NoSeries.Get(DefaultNoSeriesCode) then
             exit(false);
 
-        if not NoSeries."Default Nos." then
-            Error(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
+        TestAutomatic(NoSeries);
 
         if DefaultNoSeriesCode = RelatedNoSeriesCode then
             exit(true);
@@ -291,9 +303,20 @@ codeunit 304 "No. Series - Impl."
     procedure TestAutomatic(NoSeriesCode: Code[20])
     var
         NoSeries: Record "No. Series";
+        NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
     begin
-        if not IsAutomaticNoSeries(NoSeriesCode) then
-            Error(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code);
+        if not NoSeries.Get(NoSeriesCode) then
+            NoSeriesErrorsImpl.Throw(StrSubstNo(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeriesCode), '', NoSeriesErrorsImpl.OpenNoSeriesAction());
+
+        TestAutomatic(NoSeries);
+    end;
+
+    local procedure TestAutomatic(NoSeries: Record "No. Series")
+    var
+        NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
+    begin
+        if not NoSeries."Default Nos." then
+            NoSeriesErrorsImpl.Throw(StrSubstNo(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code), NoSeries.Code, NoSeriesErrorsImpl.OpenNoSeriesAction());
     end;
 
     procedure SelectRelatedNoSeries(OriginalNoSeriesCode: Code[20]; DefaultHighlightedNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
@@ -332,12 +355,14 @@ codeunit 304 "No. Series - Impl."
     end;
 
     local procedure ValidateCanGetNextNo(var NoSeriesLine: Record "No. Series Line"; SeriesDate: Date; HideErrorsAndWarnings: Boolean): Boolean
+    var
+        NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
     begin
         if SeriesDate < NoSeriesLine."Starting Date" then
             if HideErrorsAndWarnings then
                 exit(false)
             else
-                Error(CannotAssignNewBeforeDateErr, NoSeriesLine."Series Code", NoSeriesLine."Starting Date");
+                NoSeriesErrorsImpl.Throw(StrSubstNo(CannotAssignNewBeforeDateErr, NoSeriesLine."Series Code", NoSeriesLine."Starting Date"), NoSeriesLine, NoSeriesErrorsImpl.OpenNoSeriesLinesAction());
 
         exit(true);
     end;
