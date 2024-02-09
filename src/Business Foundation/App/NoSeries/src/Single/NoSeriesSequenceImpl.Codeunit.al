@@ -144,7 +144,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 
     procedure ExtractNoFromCode(NumberCode: Code[20]; NoSeriesCode: Code[20]): BigInteger
     var
-        NoSeriesActionableErrors: Codeunit "No. Series - Actionable Errors";
+        NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
         i: Integer;
         j: Integer;
         Number: BigInteger;
@@ -167,7 +167,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
             i -= 1;
         NoCodeSnip := CopyStr(CopyStr(NumberCode, i + 1, j - i), 1, MaxStrLen(NoCodeSnip));
         if StrLen(NoCodeSnip) > 18 then
-            NoSeriesActionableErrors.ThrowActionableErrorOpenNoSeriesLinesError(StrSubstNo(NoOverFlowErr, NoCodeSnip, StrLen(NoCodeSnip)), NoSeriesCode);
+            NoSeriesErrorsImpl.Throw(StrSubstNo(NoOverFlowErr, NoCodeSnip, StrLen(NoCodeSnip)), NoSeriesCode, NoSeriesErrorsImpl.OpenNoSeriesLinesAction());
         Evaluate(Number, NoCodeSnip);
         exit(Number);
     end;
