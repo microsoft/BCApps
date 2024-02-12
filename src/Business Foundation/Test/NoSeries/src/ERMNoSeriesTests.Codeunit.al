@@ -545,6 +545,7 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('TestSeriesSuccessMessageHandler')]
     procedure NoSeriesThatCanGenerateNextNoSucceedsValidation()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -562,6 +563,7 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('TestSeriesSuccessMessageHandler')]
     procedure NoSeriesValidationDoesNotChangeTheNextNoGenerated()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -1079,10 +1081,15 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeriesPage.OK().Invoke();
     end;
 
-
     local procedure Initialize()
     begin
         PermissionsMock.Set('No. Series - Admin');
         DeleteNumberSeries('TEST');
+    end;
+
+    [MessageHandler]
+    procedure TestSeriesSuccessMessageHandler(Message: Text[1024])
+    begin
+        LibraryAssert.IsTrue(Message.StartsWith('The test was successful.'), 'The test series was not successful, message: ' + Message);
     end;
 }
