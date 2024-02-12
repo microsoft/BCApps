@@ -70,12 +70,12 @@ If you would like to add new capabilities to the product as described in **B)**,
 
 Before updating the System Application, familiarize yourself with the following sites on Microsoft Learn:
 
-- [Module Architecture](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
-- [Get started with modules in the System Application](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
-- [Set Up an Environment for Developing a Module](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-set-up-an-environment)
-- [Create a new module in the System Application](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-new-module)
-- [Create a .NET Wrapper Module](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-create-a-wrapper-module)
-- [Change a module in the System Application](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-change-a-module)
+- [Module architecture](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
+- [Get started with modules](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
+- [Set up your development environment](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-set-up-an-environment)
+- [Create a new module](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-new-module)
+- [Create a .NET wrapper module](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-create-a-wrapper-module)
+- [Change a module](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-change-a-module)
 
 ## More Resources
 * This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
