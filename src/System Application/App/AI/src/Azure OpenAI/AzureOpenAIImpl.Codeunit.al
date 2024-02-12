@@ -465,7 +465,7 @@ codeunit 7772 "Azure OpenAI Impl"
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         EnvironmentInformation: Codeunit "Environment Information";
-        KVSecret: Text;
+        KVSecret: SecretText;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit;

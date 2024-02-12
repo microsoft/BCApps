@@ -22,13 +22,14 @@ codeunit 132587 "X509Certificate2 Test"
         X509ContentType: Enum "X509 Content Type";
         CertBase64Value: Text;
         CertificateVerified: Boolean;
+        Password: SecretText;
     begin
         // [SCENARIO] Verify X509 Certificate from Base64 value
         // [GIVEN] Get Test Certificate Base64
         CertBase64Value := GetCertificateBase64();
 
         // [WHEN] Verify Certificate from Base64 value 
-        CertificateVerified := X509CertificateCryptography.VerifyCertificate(CertBase64Value, '', X509ContentType::Pkcs12);
+        CertificateVerified := X509CertificateCryptography.VerifyCertificate(CertBase64Value, Password, X509ContentType::Pkcs12);
 
         // [THEN] Verify that certificate is created
         LibraryAssert.IsTrue(CertificateVerified, 'Failed to verify certificate.');
@@ -39,13 +40,14 @@ codeunit 132587 "X509Certificate2 Test"
     var
         CertBase64Value: Text;
         FriendlyName: Text;
+        Password: SecretText;
     begin
         // [SCENARIO] Create certificate from Base64, and verify FriendlyName from certificate
         // [GIVEN] Get Test Certificate Base64 value
         CertBase64Value := GetCertificateBase64();
 
         // [WHEN]  Get Certificate FriendlyName
-        X509CertificateCryptography.GetCertificateFriendlyName(CertBase64Value, '', FriendlyName);
+        X509CertificateCryptography.GetCertificateFriendlyName(CertBase64Value, Password, FriendlyName);
 
         // [THEN] Certificate Friendly Name is retrieved
         LibraryAssert.AreEqual(FriendlyName, GetFriendlyName(), 'Failed to create certificate.');
@@ -56,13 +58,14 @@ codeunit 132587 "X509Certificate2 Test"
     var
         CertBase64Value: Text;
         Subject: Text;
+        Password: SecretText;
     begin
         // [SCENARIO] Create certificate from Base64, and verify Subject from certificate
         // [GIVEN] Get Test Certificate Base64 value
         CertBase64Value := GetCertificateBase64();
 
         // [WHEN]  Get Certificate Subject
-        X509CertificateCryptography.GetCertificateSubject(CertBase64Value, '', Subject);
+        X509CertificateCryptography.GetCertificateSubject(CertBase64Value, Password, Subject);
 
         // [THEN] Certificate Subject is retrieved
         LibraryAssert.AreEqual(Subject, GetSubject(), 'Failed to create certificate.');
@@ -73,13 +76,14 @@ codeunit 132587 "X509Certificate2 Test"
     var
         CertBase64Value: Text;
         Thumbprint: Text;
+        Password: SecretText;
     begin
         // [SCENARIO] Create certificate from Base64, and verify Thumbprint from certificate
         // [GIVEN] Get Test Certificate Base64 value
         CertBase64Value := GetCertificateBase64();
 
         // [WHEN]  Get Certificate Thumbprint
-        X509CertificateCryptography.GetCertificateThumbprint(CertBase64Value, '', Thumbprint);
+        X509CertificateCryptography.GetCertificateThumbprint(CertBase64Value, Password, Thumbprint);
 
         // [THEN] Certificate Thumbprint is retrieved  
         LibraryAssert.AreEqual(Thumbprint, GetThumbprint(), 'Failed to create certificate.');
@@ -89,13 +93,14 @@ codeunit 132587 "X509Certificate2 Test"
     var
         CertBase64Value: Text;
         Issuer: Text;
+        Password: SecretText;
     begin
         // [SCENARIO] Create certificate from Base64, and verify Issuer from certificate
         // [GIVEN] Get Test Certificate Base64 value
         CertBase64Value := GetCertificateBase64();
 
         // [WHEN]  Get Certificate Issuer
-        X509CertificateCryptography.GetCertificateIssuer(CertBase64Value, '', Issuer);
+        X509CertificateCryptography.GetCertificateIssuer(CertBase64Value, Password, Issuer);
 
         // [THEN] Certificate Issuer is retrieved        
         LibraryAssert.AreEqual(Issuer, GetIssuer(), 'Failed to create certificate.');
@@ -106,13 +111,14 @@ codeunit 132587 "X509Certificate2 Test"
     var
         CertBase64Value: Text;
         Expiration: DateTime;
+        Password: SecretText;
     begin
         // [SCENARIO] Create certificate from Base64, and verify Expiration Date from certificate
         // [GIVEN] Get Test Certificate Base64 value
         CertBase64Value := GetCertificateBase64();
 
         // [WHEN]  Get Certificate Expiration in Local Time Zone
-        X509CertificateCryptography.GetCertificateExpiration(CertBase64Value, '', Expiration);
+        X509CertificateCryptography.GetCertificateExpiration(CertBase64Value, Password, Expiration);
 
         // [THEN] Certificate Expiration Date is retrieved
         LibraryAssert.AreEqual(Expiration, GetExpirationDateTimeInLocalTimeZone(), 'Wrong certificate Expiration DateTime.');
@@ -123,13 +129,14 @@ codeunit 132587 "X509Certificate2 Test"
     var
         CertBase64Value: Text;
         NotBefore: DateTime;
+        Password: SecretText;
     begin
         // [SCENARIO] Create certificate from Base64, and verify NotBefore Date from certificate
         // [GIVEN] Get Test Certificate Base64 value
         CertBase64Value := GetCertificateBase64();
 
         // [WHEN]  Get Certificate NotBefore in Local Time Zone
-        X509CertificateCryptography.GetCertificateNotBefore(CertBase64Value, '', NotBefore);
+        X509CertificateCryptography.GetCertificateNotBefore(CertBase64Value, Password, NotBefore);
 
         // [THEN] Certificate NotBefore Date is retrieved        
         LibraryAssert.AreEqual(NotBefore, GetNotBeforeDateInLocalTimeZone(), 'Wrong certificate NotBefore DateTime.');
@@ -140,13 +147,14 @@ codeunit 132587 "X509Certificate2 Test"
     var
         CertBase64Value: Text;
         HasPrivateKey: Boolean;
+        Password: SecretText;
     begin
         // [SCENARIO] Create certificate from Base64, and verify HasPrivateKey from certificate
         // [GIVEN] Get Test Certificate Base64 value
         CertBase64Value := GetCertificateBase64();
 
         // [WHEN]  Get Certificate HasPrivateKey property value
-        HasPrivateKey := X509CertificateCryptography.HasPrivateKey(CertBase64Value, '');
+        HasPrivateKey := X509CertificateCryptography.HasPrivateKey(CertBase64Value, Password);
 
         // [THEN] Certificate HasPrivateKey property is retrieved
         LibraryAssert.AreEqual(HasPrivateKey, GetHasPrivateKey(), 'Failed to create certificate.');
@@ -157,13 +165,14 @@ codeunit 132587 "X509Certificate2 Test"
     var
         CertBase64Value: Text;
         CertPropertyJson: Text;
+        Password: SecretText;
     begin
         // [SCENARIO] Create certificate from Base64, and verify certificate properties from json object
         // [GIVEN] Get Test Certificate Base64
         CertBase64Value := GetCertificateBase64();
 
         // [WHEN] Return Json object with certificate properties
-        X509CertificateCryptography.GetCertificatePropertiesAsJson(CertBase64Value, '', CertPropertyJson);
+        X509CertificateCryptography.GetCertificatePropertiesAsJson(CertBase64Value, Password, CertPropertyJson);
 
         // [THEN] Certificate properties are retrieved
         LibraryAssert.AreEqual(ReturnJsonTokenTextValue(CertPropertyJson, 'FriendlyName'), GetFriendlyName(), 'Failed to create certificate.');
@@ -180,13 +189,14 @@ codeunit 132587 "X509Certificate2 Test"
     var
         X509ContentType: Enum "X509 Content Type";
         CertBase64Value: Text;
+        Password: SecretText;
     begin
         // [SCENARIO] Try to initialize X509 Certificate from not valid Base64 and catch an error
         // [GIVEN] Get Not Valid Test Certificate Base64
         CertBase64Value := GetNotValidCertificateBase64();
 
         // [WHEN] Verify Certificate from Base64             
-        asserterror X509CertificateCryptography.VerifyCertificate(CertBase64Value, '', X509ContentType::Pkcs12);
+        asserterror X509CertificateCryptography.VerifyCertificate(CertBase64Value, Password, X509ContentType::Pkcs12);
 
         // [THEN] Verify that certificate is not created
         LibraryAssert.ExpectedError('Unable to initialize certificate!');
@@ -197,18 +207,19 @@ codeunit 132587 "X509Certificate2 Test"
     var
         CertBase64Value: Text;
         SerialNumber, SerialNumberASCII : Text;
+        Password: SecretText;
     begin
         // [SCENARIO] Get certificate serial number as hex and ascii
         // [GIVEN] Certificate Base64
         CertBase64Value := GetCertificateBase64();
 
         // [WHEN] Retrieving cert serial number
-        X509CertificateCryptography.GetCertificateSerialNumber(CertBase64Value, '', SerialNumber);
+        X509CertificateCryptography.GetCertificateSerialNumber(CertBase64Value, Password, SerialNumber);
         // [THEN] Verifying if serial number match the expected one
         LibraryAssert.AreEqual('65C2091E54AB879948654BB906FD377F', SerialNumber, 'Cert serial number is not correct');
 
         // [WHEN] Converting hex to ascii
-        X509CertificateCryptography.GetCertificateSerialNumberAsASCII(CertBase64Value, '', SerialNumberASCII);
+        X509CertificateCryptography.GetCertificateSerialNumberAsASCII(CertBase64Value, Password, SerialNumberASCII);
         // [THEN] Verifying that hex convertion to ascii was correct
         LibraryAssert.AreEqual('eÂ	T«HeK¹ý7', SerialNumberASCII, 'Converting hex to ascii is not correct.');
     end;

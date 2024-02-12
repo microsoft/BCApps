@@ -89,6 +89,21 @@ codeunit 131006 "Permissions Mock"
     end;
 
     /// <summary>
+    /// Clears all already assigned Permission Sets and Sets the given Permission Set
+    /// No additional permissions are provided, even test execution permissions have to be handled manually.
+    /// </summary>
+    /// <param name="RoleID">The Permission Set to set.</param>
+    procedure SetExactPermissionSet(RoleID: Code[20])
+    begin
+        if not Started then
+            exit;
+
+        PermissionTestHelper.Clear();
+
+        Assign(RoleID);
+    end;
+
+    /// <summary>
     /// Get whether permission sets mocking is started
     /// </summary>
     /// <returns>True if permission sets mocking is started.</returns>

@@ -28,11 +28,11 @@ codeunit 132611 "CertificateRequestTest"
         KeyXml: XmlDocument;
         Root: XmlElement;
         Node: XmlNode;
-        KeyXmlText: Text;
+        KeyXmlText: SecretText;
     begin
         CertificateRequest.InitializeRSA(2048, true, KeyXmlText);
 
-        Assert.IsTrue(XmlDocument.ReadFrom(KeyXmlText, KeyXml), 'RSA key is not valid xml data.');
+        Assert.IsTrue(XmlDocument.ReadFrom(GetSecretTextValue(KeyXmlText), KeyXml), 'RSA key is not valid xml data.');
         Assert.IsTrue(KeyXml.GetRoot(Root), 'Could not get Root element of key.');
 
         Assert.IsTrue(Root.SelectSingleNode('Modulus', Node), 'Could not find <Modulus> in key.');
@@ -150,6 +150,7 @@ codeunit 132611 "CertificateRequestTest"
         RSASignaturePadding: Enum "RSA Signature Padding";
         X509ContentType: Enum "X509 Content Type";
         SubjectName: Text;
+        Password: SecretText;
     begin
         CertSigningRequest.InitializeRSA(2048, true, KeyXmlText);
 
@@ -163,12 +164,18 @@ codeunit 132611 "CertificateRequestTest"
         CertSigningRequest.CreateSelfSigned(
             CreateDateTime(Today, 000000T), CreateDateTime(Today + 365, 000000T), X509ContentType::Cert, CertBase64Value);
 
-        X509Certificate2.GetCertificateSubject(CertBase64Value, '', Subject);
+        X509Certificate2.GetCertificateSubject(CertBase64Value, Password, Subject);
         Assert.AreEqual(SubjectName, Subject, 'Self signed certificate generation failed.');
     end;
 
     local procedure GetSubjectName(): Text
     begin
         exit(StrSubstNo(SubjectNameLbl, Any.AlphabeticText(8)));
+    end;
+
+    [NonDebuggable]
+    local procedure GetSecretTextValue(SecretText: SecretText): Text
+    begin
+        exit(SecretText.Unwrap());
     end;
 }
