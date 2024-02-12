@@ -264,7 +264,7 @@ page 456 "No. Series"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Show Expiring';
                     Image = ShowList;
-                    ToolTip = 'Show only No. Series that have open lines which have reached the warning threshold.';
+                    ToolTip = 'Show No. Series that have no lines or an open line which have reached the warning threshold.';
 
                     trigger OnAction()
                     begin
@@ -351,7 +351,9 @@ page 456 "No. Series"
                                 break;
                             end;
                         end;
-                    until NoSeriesLine.Next() = 0;
+                    until NoSeriesLine.Next() = 0
+                else
+                    Rec.Mark(true);
             until Rec.Next() = 0;
         Rec.MarkedOnly(true);
         CurrPage.Update(false);
