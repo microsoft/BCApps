@@ -222,7 +222,7 @@ codeunit 43 Language
     /// </summary>
     /// <param name="LanguageID">The language ID.</param>
     /// <returns>The two-letter ISO language name.</returns>
-    procedure GetTwoLetterISOLanguageName(LanguageID: Integer): Text
+    procedure GetTwoLetterISOLanguageName(LanguageID: Integer): Text[2]
     var
         LanguageImpl: Codeunit "Language Impl.";
     begin
