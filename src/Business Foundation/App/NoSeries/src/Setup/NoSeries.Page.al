@@ -165,6 +165,7 @@ page 456 "No. Series"
                     begin
                         Rec.TestField(Code);
                         NoSeriesManagement.SetAllowGaps(Rec, AllowGaps);
+                        UpdateLineActionOnPage();
                     end;
 #pragma warning restore AL0432
 #endif
@@ -180,12 +181,23 @@ page 456 "No. Series"
                     begin
                         Rec.TestField(Code);
                         NoSeriesSetupImpl.SetImplementation(Rec, Implementation);
+                        UpdateLineActionOnPage();
                     end;
                 }
             }
         }
         area(FactBoxes)
         {
+            part(NoSeriesLinesPart; "No. Series Lines Part")
+            {
+                Caption = 'Open Lines';
+                SubPageLink = "Series Code" = field(Code), Open = const(true);
+            }
+            part(NoSeriesRelationsPart; "No. Series Relationships Part")
+            {
+                Caption = 'Relationships';
+                SubPageLink = Code = field(Code);
+            }
             systempart(Control1900383207; Links)
             {
                 ApplicationArea = RecordLinks;
@@ -207,6 +219,7 @@ page 456 "No. Series"
             {
                 Caption = 'Series';
                 Image = SerialNo;
+
                 action(Lines)
                 {
                     Caption = 'Lines';
@@ -237,8 +250,13 @@ page 456 "No. Series"
                 trigger OnAction()
                 var
                     NoSeries: Codeunit "No. Series";
+                    NextNo: Code[20];
                 begin
-                    NoSeries.PeekNextNo(Rec.Code, WorkDate());
+                    NextNo := NoSeries.PeekNextNo(Rec.Code, WorkDate());
+                    if NextNo <> '' then
+                        Message(CheckNoSucceededTxt, NextNo, WorkDate())
+                    else
+                        Message(CheckNoFailedTxt, WorkDate());
                 end;
             }
             group(View)
@@ -275,20 +293,27 @@ page 456 "No. Series"
         }
         area(Promoted)
         {
+#if not CLEAN24
             group(Category_Report)
             {
                 Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
+                ObsoleteReason = 'This promoted group is no longer used, please create a group manually.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '24.0';
             }
             group(Category_Category4)
             {
                 Caption = 'Navigate', Comment = 'Generated from the PromotedActionCategories property index 3.';
-
-                actionref(Lines_Promoted; Lines)
-                {
-                }
-                actionref(Relationships_Promoted; Relationships)
-                {
-                }
+                ObsoleteReason = 'This promoted group is no longer used, please create a group manually.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '24.0';
+            }
+#endif
+            actionref(Lines_Promoted; Lines)
+            {
+            }
+            actionref(Relationships_Promoted; Relationships)
+            {
             }
         }
     }
@@ -314,6 +339,8 @@ page 456 "No. Series"
         AllowGaps: Boolean;
         Implementation: Enum "No. Series Implementation";
         ShowNoSeriesWithWarnings: Boolean;
+        CheckNoSucceededTxt: Label 'The test was successful. Number %1 for date %2 was returned.', Comment = '%1 = A No. Series number, %2 = a date';
+        CheckNoFailedTxt: Label 'The test failed. No number was returned for date %1.', Comment = '%1 = a date';
 
     protected procedure UpdateLineActionOnPage()
     var
