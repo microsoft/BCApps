@@ -68,8 +68,7 @@ If you would like to add new capabilities to the product as described in **B)**,
 
 ## Get to Know the System App
 
-There are several chapters on Microsoft Learn that explains several aspects of the System app.  
-Here are some:
+Before updating the System Application, familiarize yourself with the following sites on Microsoft Learn:
 
 - [Module Architecture](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
 - [Get started with modules in the System Application](https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
