@@ -325,7 +325,7 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
             exit;
 
         // Add IsAdmin
-        IsAdmin := AzureADGraphUser.IsUserDelegatedAdmin() or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId());
+        IsAdmin := AzureADGraphUser.IsUserDelegatedAdmin() or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetBCAdminPlanId());
         Sender.AddCommonCustomDimension('IsAdmin', Language.ToDefaultLanguage(IsAdmin));
 
         // Add CountryCode
