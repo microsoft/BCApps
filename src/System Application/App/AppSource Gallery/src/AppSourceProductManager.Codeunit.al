@@ -15,7 +15,7 @@ using System.RestClient;
 /// <summary>
 /// Library for managing AppSource product retrival and usage.
 /// </summary>
-codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager Dependencies"
+codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager Dependencies"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -84,7 +84,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     end;
 
     #endregion
-    procedure SetDependencies(SpecificDependencies: Interface "IAppSource Product Manager Dependencies")
+    procedure SetDependencies(SpecificDependencies: Interface "AppSource Product Manager Dependencies")
     begin
         Dependencies := SpecificDependencies;
         IsDependenciesSet := true;
@@ -188,7 +188,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
             foreach AvailabilityToken in Availabilities do begin
                 Availability := AvailabilityToken.AsObject();
 
-                if (GetStringValue(Availability, 'hasFreeTrials') = 'true') then
+                if (AppSourceJsonUtilities.GetStringValue(Availability, 'hasFreeTrials') = 'true') then
                     // Free trial means it can be installed
                     exit(true);
 
@@ -199,7 +199,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
                             Term := TermToken.AsObject();
                             Term.SelectToken('price', PriceToken);
                             Price := PriceToken.AsObject();
-                            if Evaluate(PriceValue, GetStringValue(Price, 'priceValue'), 9) then
+                            if Evaluate(PriceValue, AppSourceJsonUtilities.GetStringValue(Price, 'priceValue'), 9) then
                                 // Price > 0 means it can be installed
                                 exit(PriceValue > 0);
                         end;
@@ -307,7 +307,7 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
                 if (ProductArray.Get(i, ProductToken)) then
                     InsertProductFromObject(ProductToken.AsObject(), AppSourceProductRec);
         end;
-        exit(GetStringValue(ResponseObject, 'nextPageLink'));
+        exit(AppSourceJsonUtilities.GetStringValue(ResponseObject, 'nextPageLink'));
     end;
 
     local procedure SetCommonHeaders(var RestClient: Codeunit "Rest Client")
@@ -371,66 +371,6 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     local procedure PopulateTelemetryDictionary(RequestID: Text; var TelemetryDictionary: Dictionary of [Text, Text])
     begin
         TelemetryDictionary.Add('client-request-id', RequestID);
-    end;
-    #endregion
-
-    #region JSon Helper Functions
-    procedure GetDecimalValue(var JsonObject: JsonObject; PropertyName: Text): Decimal
-    var
-        JsonValue: JsonValue;
-    begin
-        if GetJsonValue(JsonObject, PropertyName, JsonValue) then
-            exit(JsonValue.AsDecimal());
-        exit(0);
-    end;
-
-    procedure GetIntegerValue(var JsonObject: JsonObject; PropertyName: Text): Integer
-    var
-        JsonValue: JsonValue;
-    begin
-        if GetJsonValue(JsonObject, PropertyName, JsonValue) then
-            exit(JsonValue.AsInteger());
-        exit(0);
-    end;
-
-    procedure GetDateTimeValue(var JsonObject: JsonObject; PropertyName: Text): DateTime
-    var
-        JsonValue: JsonValue;
-    begin
-        if GetJsonValue(JsonObject, PropertyName, JsonValue) then
-            exit(JsonValue.AsDateTime());
-        exit(0DT);
-    end;
-
-    procedure GetStringValue(var JsonObject: JsonObject; PropertyName: Text): Text
-    var
-        JsonValue: JsonValue;
-    begin
-        if GetJsonValue(JsonObject, PropertyName, JsonValue) then
-            exit(JsonValue.AsText());
-        exit('');
-    end;
-
-    procedure GetBooleanValue(var JsonObject: JsonObject; PropertyName: Text): Boolean
-    var
-        JsonValue: JsonValue;
-    begin
-        if GetJsonValue(JsonObject, PropertyName, JsonValue) then
-            exit(JsonValue.AsBoolean());
-        exit(false);
-    end;
-
-    procedure GetJsonValue(var JsonObject: JsonObject; PropertyName: Text; var ReturnValue: JsonValue): Boolean
-    var
-        jsonToken: JsonToken;
-    begin
-        if jsonObject.Contains(PropertyName) then
-            if jsonObject.Get(PropertyName, jsonToken) then
-                if not jsonToken.AsValue().IsNull() then begin
-                    ReturnValue := jsonToken.AsValue();
-                    exit(true);
-                end;
-        exit(false);
     end;
     #endregion
 
@@ -538,16 +478,16 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     local procedure InsertProductFromObject(Offer: JsonObject; var Product: Record "AppSource Product")
     begin
         Product.Init();
-        Product.UniqueProductID := CopyStr(GetStringValue(Offer, 'uniqueProductId'), 1, MaxStrLen(Product.UniqueProductID));
-        Product.DisplayName := CopyStr(GetStringValue(Offer, 'displayName'), 1, MaxStrLen(Product.DisplayName));
-        Product.PublisherID := CopyStr(GetStringValue(Offer, 'publisherId'), 1, MaxStrLen(Product.PublisherID));
-        Product.PublisherDisplayName := CopyStr(GetStringValue(Offer, 'publisherDisplayName'), 1, MaxStrLen(Product.PublisherDisplayName));
-        Product.PublisherType := CopyStr(GetStringValue(Offer, 'publisherType'), 1, MaxStrLen(Product.PublisherType));
-        Product.RatingAverage := GetDecimalValue(Offer, 'ratingAverage');
-        Product.RatingCount := GetIntegerValue(Offer, 'ratingCount');
-        Product.ProductType := CopyStr(GetStringValue(Offer, 'productType'), 1, MaxStrLen(Product.ProductType));
-        Product.Popularity := GetDecimalValue(Offer, 'popularity');
-        Product.LastModifiedDateTime := GetDateTimeValue(Offer, 'lastModifiedDateTime');
+        Product.UniqueProductID := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'uniqueProductId'), 1, MaxStrLen(Product.UniqueProductID));
+        Product.DisplayName := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'displayName'), 1, MaxStrLen(Product.DisplayName));
+        Product.PublisherID := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'publisherId'), 1, MaxStrLen(Product.PublisherID));
+        Product.PublisherDisplayName := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'publisherDisplayName'), 1, MaxStrLen(Product.PublisherDisplayName));
+        Product.PublisherType := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'publisherType'), 1, MaxStrLen(Product.PublisherType));
+        Product.RatingAverage := AppSourceJsonUtilities.GetDecimalValue(Offer, 'ratingAverage');
+        Product.RatingCount := AppSourceJsonUtilities.GetIntegerValue(Offer, 'ratingCount');
+        Product.ProductType := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'productType'), 1, MaxStrLen(Product.ProductType));
+        Product.Popularity := AppSourceJsonUtilities.GetDecimalValue(Offer, 'popularity');
+        Product.LastModifiedDateTime := AppSourceJsonUtilities.GetDateTimeValue(Offer, 'lastModifiedDateTime');
 
         Product.AppID := ExtractAppIDFromUniqueProductID(Product.UniqueProductID);
 
@@ -583,7 +523,8 @@ codeunit 2515 "AppSource Product Manager" implements "IAppSource Product Manager
     end;
 
     var
-        Dependencies: Interface "IAppSource Product Manager Dependencies";
+        Dependencies: Interface "AppSource Product Manager Dependencies";
+        AppSourceJsonUtilities: Codeunit "AppSource Json Utilities";
         IsDependenciesSet: boolean;
         CatalogProductsUriLbl: label 'https://catalogapi.azure.com/products', Locked = true;
         CatalogApiVersionQueryParamNameLbl: label 'api-version', Locked = true;

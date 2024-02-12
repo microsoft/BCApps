@@ -125,16 +125,8 @@ page 2515 "AppSource Product List"
                 ToolTip = 'View selected app in AppSource';
 
                 trigger OnAction()
-                var
-                    SelectedRec: Record "AppSource Product";
                 begin
-                    CurrPage.SetSelectionFilter(SelectedRec);
-                    SelectedRec.Next();
-
-                    if (SelectedRec.Count() = 1) then
-                        AppSourceProductManager.OpenInAppSource(SelectedRec.UniqueProductID)
-                    else
-                        Error(SelectOneRowErrLbl);
+                    AppSourceProductManager.OpenInAppSource(Rec.UniqueProductID)
                 end;
             }
 
