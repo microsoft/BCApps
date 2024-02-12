@@ -66,7 +66,7 @@ If you would like to add new capabilities to the product as described in **B)**,
 
     Once the issue is created on GitHub, it still needs to be approved. Once approved, the rest of the process is identical to the process described in **A)**.
 
-## Get To Know System App
+## Get to Know the System App
 
 There are several chapters on Microsoft Learn that explains several aspects of the System app.  
 Here are some:
