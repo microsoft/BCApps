@@ -22,61 +22,61 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     InherentPermissions = X;
 
     #region Dependency Interface implementation
-    procedure AzureADTenant_GetCountryLetterCode(): Text[2]
+    procedure GetCountryLetterCode(): Text[2]
     var
         entraTenant: Codeunit "Azure AD Tenant";
     begin
         exit(entraTenant.GetCountryLetterCode());
     end;
 
-    procedure AzureAdTenant_GetPreferredLanguage(): Text
+    procedure GetPreferredLanguage(): Text
     var
         entraTenant: Codeunit "Azure AD Tenant";
     begin
         exit(entraTenant.GetPreferredLanguage());
     end;
 
-    procedure AzureADTenant_GetAadTenantID(): Text
+    procedure GetAadTenantID(): Text
     var
         entraTenant: Codeunit "Azure AD Tenant";
     begin
         exit(entraTenant.GetAadTenantID());
     end;
 
-    procedure AzureKeyVault_GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText);
+    procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText);
     var
         KeyVault: Codeunit "Azure Key Vault";
     begin
         KeyVault.GetAzureKeyVaultSecret(SecretName, Secret);
     end;
 
-    procedure EnvironmentInformation_GetApplicationFamily(): Text
+    procedure GetApplicationFamily(): Text
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         exit(EnvironmentInformation.GetApplicationFamily());
     end;
 
-    procedure EnvironmentInformation_IsSaas(): boolean
+    procedure IsSaas(): boolean
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         exit(EnvironmentInformation.IsSaas());
     end;
 
-    procedure Language_GetFormatRegionOrDefault(FormatRegion: Text[80]): Text
+    procedure GetFormatRegionOrDefault(FormatRegion: Text[80]): Text
     var
         Language: Codeunit Language;
     begin
         exit(Language.GetFormatRegionOrDefault(FormatRegion));
     end;
 
-    procedure RestClient_GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken
+    procedure GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken
     begin
         exit(RestClient.GetAsJSon(RequestUri));
     end;
 
-    procedure UserSettings_GetUserSettings(UserSecurityId: Guid; var TempUserSettingsRecord: record "User Settings" temporary)
+    procedure GetUserSettings(UserSecurityId: Guid; var TempUserSettingsRecord: record "User Settings" temporary)
     var
         UserSettings: Codeunit "User Settings";
     begin
@@ -97,7 +97,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     procedure OpenAppSource()
     begin
         Init();
-        Hyperlink(StrSubstNo(AppSourceUriLbl, Dependencies.Language_GetFormatRegionOrDefault('')));
+        Hyperlink(StrSubstNo(AppSourceUriLbl, Dependencies.GetFormatRegionOrDefault('')));
     end;
 
     /// <summary>
@@ -236,10 +236,10 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         LanguageID: Integer;
     begin
         Init();
-        Dependencies.UserSettings_GetUserSettings(Database.UserSecurityID(), TempUserSettings);
+        Dependencies.GetUserSettings(Database.UserSecurityID(), TempUserSettings);
         LanguageID := TempUserSettings."Language ID";
         if (LanguageID = 0) then
-            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.AzureAdTenant_GetPreferredLanguage());
+            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.GetPreferredLanguage());
         if (LanguageID = 0) then
             LanguageID := 1033; // Default to EN-US
         exit(LanguageID);
@@ -251,10 +251,10 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         Language: Codeunit Language;
     begin
         Init();
-        Dependencies.UserSettings_GetUserSettings(Database.UserSecurityID(), TempUserSettings);
+        Dependencies.GetUserSettings(Database.UserSecurityID(), TempUserSettings);
         LanguageID := TempUserSettings."Language ID";
         if (LanguageID = 0) then
-            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.AzureAdTenant_GetPreferredLanguage());
+            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.GetPreferredLanguage());
         if (LanguageID = 0) then
             LanguageID := 1033; // Default to EN-US
 
@@ -282,7 +282,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         SetCommonHeaders(RestClient);
         RestClient.SetDefaultRequestHeader('client-request-id', ClientRequestID);
 
-        exit(Dependencies.RestClient_GetAsJSon(RestClient, RequestUri).AsObject());
+        exit(Dependencies.GetAsJSon(RestClient, RequestUri).AsObject());
     end;
 
     local procedure DownloadAndAddNextPageProducts(NextPageLink: Text; var AppSourceProductRec: record "AppSource Product"; var RestClient: Codeunit "Rest Client"): Text
@@ -300,7 +300,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         Session.LogMessage('AL:AppSource-NextPageProducts', 'Requesting product list data', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDictionary);
         RestClient.SetDefaultRequestHeader('client-request-id', ClientRequestID);
 
-        ResponseObject := Dependencies.RestClient_GetAsJSon(RestClient, NextPageLink).AsObject();
+        ResponseObject := Dependencies.GetAsJSon(RestClient, NextPageLink).AsObject();
         if (ResponseObject.Get('items', ProductArrayToken)) then begin
             ProductArray := ProductArrayToken.AsArray();
             for i := 0 to ProductArray.Count() do
@@ -313,7 +313,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     local procedure SetCommonHeaders(var RestClient: Codeunit "Rest Client")
     begin
         RestClient.SetDefaultRequestHeader('X-API-Key', GetAPIKey());
-        RestClient.SetDefaultRequestHeader('x-ms-client-tenant-id', Dependencies.AzureADTenant_GetAadTenantID());
+        RestClient.SetDefaultRequestHeader('x-ms-client-tenant-id', Dependencies.GetAadTenantID());
         RestClient.SetDefaultRequestHeader('x-ms-app', 'Dynamics 365 Business Central');
     end;
 
@@ -400,10 +400,10 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         ApiKey: SecretText;
     begin
         Init();
-        if not Dependencies.EnvironmentInformation_IsSaas() then
+        if not Dependencies.IsSaas() then
             Error(NotSupportedOnPremisesErrorLbl);
 
-        Dependencies.AzureKeyVault_GetAzureKeyVaultSecret('MS-AppSource-ApiKey', ApiKey);
+        Dependencies.GetAzureKeyVaultSecret('MS-AppSource-ApiKey', ApiKey);
         exit(ApiKey);
     end;
 

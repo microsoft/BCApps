@@ -16,23 +16,23 @@ interface "AppSource Product Manager Dependencies"
     Access = Internal;
 
     // Dependency to Azure AD Tenant
-    procedure AzureADTenant_GetAadTenantID(): Text
-    procedure AzureADTenant_GetCountryLetterCode(): Text[2];
-    procedure AzureAdTenant_GetPreferredLanguage(): Text
+    procedure GetAadTenantID(): Text
+    procedure GetCountryLetterCode(): Text[2];
+    procedure GetPreferredLanguage(): Text
 
     // Dependency to  Azure Key Vault 
-    procedure AzureKeyVault_GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText);
+    procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText);
 
     // Dependency to Environment Information 
-    procedure EnvironmentInformation_GetApplicationFamily(): text;
-    procedure EnvironmentInformation_IsSaas(): boolean;
+    procedure GetApplicationFamily(): text;
+    procedure IsSaas(): boolean;
 
     // Dependency to Language 
-    procedure Language_GetFormatRegionOrDefault(FormatRegion: Text[80]): Text;
+    procedure GetFormatRegionOrDefault(FormatRegion: Text[80]): Text;
 
     // Rest client override
-    procedure RestClient_GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken;
+    procedure GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken;
 
     // Dependency to User Settings
-    procedure UserSettings_GetUserSettings(UserSecurityID: Guid; var TempUserSettingsRecord: Record "User Settings" temporary);
+    procedure GetUserSettings(UserSecurityID: Guid; var TempUserSettingsRecord: Record "User Settings" temporary);
 }

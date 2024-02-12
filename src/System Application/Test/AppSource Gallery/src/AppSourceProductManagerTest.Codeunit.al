@@ -10,7 +10,7 @@ using System.RestClient;
 using System.Environment.Configuration;
 using System.TestLibraries.Utilities;
 
-codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product Manager Dependencies"
+codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product Manager Dependencies"
 {
     Subtype = Test;
 
@@ -381,65 +381,65 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
     #endregion
 
     #region dependencies implementation
-    procedure AzureADTenant_GetAADTenantId(): Text
+    procedure GetAADTenantId(): Text
     begin
         if (TenantIdStore.Length() > 0) then
             exit(TenantIdStore.DequeueText());
 
-        Assert.Fail('AzureADTenant_GetTenantId should not be called');
+        Assert.Fail('GetTenantId should not be called');
     end;
 
-    procedure AzureADTenant_GetCountryLetterCode(): Text[2]
+    procedure GetCountryLetterCode(): Text[2]
     begin
         if (CountryLetterCodeStore.Length() > 0) then
             exit(CopyStr(CountryLetterCodeStore.DequeueText(), 1, 2));
 
-        Assert.Fail('AzureADTenant_GetCountryLetterCode should not be called');
+        Assert.Fail('GetCountryLetterCode should not be called');
     end;
 
-    procedure AzureAdTenant_GetPreferredLanguage(): Text
+    procedure GetPreferredLanguage(): Text
     begin
-        Assert.Fail('AzureAdTenant_GetPreferredLanguage should not be called');
+        Assert.Fail('GetPreferredLanguage should not be called');
     end;
 
     // Dependency to  Azure Key Vault 
-    procedure AzureKeyVault_GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText)
+    procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText)
     begin
         if (KeyVaultStore.Length() > 0) then begin
             Secret := KeyVaultStore.DequeueText();
             exit;
         end;
 
-        Assert.Fail('AzureKeyVault_GetAzureKeyVaultSecret should not be called');
+        Assert.Fail('GetAzureKeyVaultSecret should not be called');
     end;
 
     // Dependency to Environment Information 
-    procedure EnvironmentInformation_GetApplicationFamily(): Text
+    procedure GetApplicationFamily(): Text
     begin
         if (ApplicationFamilyStore.Length() > 0) then
             exit(ApplicationFamilyStore.DequeueText());
 
-        Assert.Fail('EnvironmentInformation_GetApplicationFamily should not be called');
+        Assert.Fail('GetApplicationFamily should not be called');
     end;
 
-    procedure EnvironmentInformation_IsSaas(): boolean
+    procedure IsSaas(): boolean
     begin
         if (IsSaasStore.Length() > 0) then
             exit(IsSaasStore.DequeueBoolean());
 
-        Assert.Fail('EnvironmentInformation_IsSaas should not be called');
+        Assert.Fail('IsSaas should not be called');
     end;
 
     // Dependency to Language 
-    procedure Language_GetFormatRegionOrDefault(FormatRegion: Text[80]): Text
+    procedure GetFormatRegionOrDefault(FormatRegion: Text[80]): Text
     begin
         if (FormatRegionStore.Length() > 0) then
             exit(FormatRegionStore.DequeueText());
 
-        Assert.Fail('Language_GetFormatRegionOrDefault should not be called');
+        Assert.Fail('GetFormatRegionOrDefault should not be called');
     end;
 
-    procedure RestClient_GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken
+    procedure GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken
     var
         ValueVariant: Variant;
     begin
@@ -448,11 +448,11 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
             exit(ValueVariant);
         end;
 
-        Assert.Fail('RestClient_GetAsJSon should not be called');
+        Assert.Fail('GetAsJSon should not be called');
     end;
 
     // Dependency to User Settings
-    procedure UserSettings_GetUserSettings(UserSecurityID: Guid; var TempUserSettingsRecord: Record "User Settings" temporary)
+    procedure GetUserSettings(UserSecurityID: Guid; var TempUserSettingsRecord: Record "User Settings" temporary)
     var
         LanguageID: Variant;
     begin
@@ -463,7 +463,7 @@ codeunit 135074 "AppSource Product Manager Test" implements "IAppSource Product 
             TempUserSettingsRecord."Language ID" := LanguageID;
             exit;
         end;
-        Assert.Fail('UserSettings_GetUserSettings should not be called');
+        Assert.Fail('GetUserSettings should not be called');
     end;
     #endregion
 

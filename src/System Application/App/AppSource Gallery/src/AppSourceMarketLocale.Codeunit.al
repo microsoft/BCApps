@@ -38,7 +38,7 @@ codeunit 2517 "AppSource Market Locale Helper"
         if LocalID <> 0 then
             Market := ResolveMarketFromLanguageID(LocalID);
         if Market = '' then
-            Market := CopyStr(Dependencies.EnvironmentInformation_GetApplicationFamily(), 1, 2);
+            Market := CopyStr(Dependencies.GetApplicationFamily(), 1, 2);
         if (Market = '') or (Market = 'W1') then
             if not TryGetEnvironmentCountryLetterCode(Market) then
                 Market := 'us';
@@ -53,10 +53,10 @@ codeunit 2517 "AppSource Market Locale Helper"
         Language: Codeunit Language;
         LanguageID: Integer;
     begin
-        Dependencies.UserSettings_GetUserSettings(Database.UserSecurityID(), TempUserSettings);
+        Dependencies.GetUserSettings(Database.UserSecurityID(), TempUserSettings);
         LanguageID := TempUserSettings."Language ID";
         if (LanguageID = 0) then
-            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.AzureAdTenant_GetPreferredLanguage());
+            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.GetPreferredLanguage());
         if (LanguageID = 0) then
             LanguageID := 1033; // Default to EN-US
         exit(LanguageID);
@@ -67,10 +67,10 @@ codeunit 2517 "AppSource Market Locale Helper"
         TempUserSettings: Record "User Settings" temporary;
         Language: Codeunit Language;
     begin
-        Dependencies.UserSettings_GetUserSettings(Database.UserSecurityID(), TempUserSettings);
+        Dependencies.GetUserSettings(Database.UserSecurityID(), TempUserSettings);
         LanguageID := TempUserSettings."Language ID";
         if (LanguageID = 0) then
-            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.AzureADTenant_GetPreferredLanguage());
+            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.GetPreferredLanguage());
         if (LanguageID = 0) then
             LanguageID := 1033; // Default to EN-US
 
@@ -80,7 +80,7 @@ codeunit 2517 "AppSource Market Locale Helper"
     [TryFunction]
     local procedure TryGetEnvironmentCountryLetterCode(var CountryLetterCode: Text)
     begin
-        CountryLetterCode := Dependencies.AzureADTenant_GetCountryLetterCode();
+        CountryLetterCode := Dependencies.GetCountryLetterCode();
     end;
 
     local procedure ResolveMarketFromLanguageID(LanguageID: Integer): Text
