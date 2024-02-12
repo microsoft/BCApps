@@ -269,7 +269,7 @@ page 456 "No. Series"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Show All';
                     Image = List;
-                    ToolTip = 'Show all No. Series.';
+                    ToolTip = 'Show all number series.';
 
                     trigger OnAction()
                     begin
@@ -282,7 +282,7 @@ page 456 "No. Series"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Show Expiring';
                     Image = ShowList;
-                    ToolTip = 'Show No. Series that have no lines or an open line which have reached the warning threshold.';
+                    ToolTip = 'Show number series that have no lines or an open line which have reached the warning threshold.';
 
                     trigger OnAction()
                     begin
@@ -338,7 +338,6 @@ page 456 "No. Series"
         LastDateUsed: Date;
         AllowGaps: Boolean;
         Implementation: Enum "No. Series Implementation";
-        ShowNoSeriesWithWarnings: Boolean;
         CheckNoSucceededTxt: Label 'The test was successful. Number %1 for date %2 was returned.', Comment = '%1 = A No. Series number, %2 = a date';
         CheckNoFailedTxt: Label 'The test failed. No number was returned for date %1.', Comment = '%1 = a date';
 
@@ -358,9 +357,8 @@ page 456 "No. Series"
         NoSeries: Codeunit "No. Series";
         LastNoUsedForLine: Code[20];
     begin
-        ShowNoSeriesWithWarnings := ShowWarningsOnly;
         Rec.ClearMarks();
-        if not ShowNoSeriesWithWarnings then begin
+        if not ShowWarningsOnly then begin
             Rec.MarkedOnly(false);
             CurrPage.Update(false);
             exit;
