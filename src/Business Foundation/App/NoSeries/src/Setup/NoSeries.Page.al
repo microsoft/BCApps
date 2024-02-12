@@ -227,6 +227,7 @@ page 456 "No. Series"
                     ToolTip = 'View or edit additional information about the number series lines.';
                     RunObject = Page "No. Series Lines";
                     RunPageLink = "Series Code" = field(Code);
+                    Scope = Repeater;
                 }
                 action(Relationships)
                 {
@@ -235,6 +236,7 @@ page 456 "No. Series"
                     RunObject = page "No. Series Relationships";
                     RunPageLink = Code = field(Code);
                     ToolTip = 'View or edit relationships between number series.';
+                    Scope = Repeater;
                 }
             }
         }
@@ -282,7 +284,7 @@ page 456 "No. Series"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Show Expiring';
                     Image = ShowList;
-                    ToolTip = 'Show number series that have no lines or an open line which have reached the warning threshold.';
+                    ToolTip = 'Show number series that require your attention, such as, number series that have no lines or an have open lines which have reached the warning threshold.';
 
                     trigger OnAction()
                     begin
@@ -313,6 +315,19 @@ page 456 "No. Series"
             {
             }
             actionref(Relationships_Promoted; Relationships)
+            {
+            }
+            group(View_Promoted)
+            {
+                ShowAs = SplitButton;
+                actionref(ShowAll_Promoted; ShowAll)
+                {
+                }
+                actionref(ShowExpiring_Promoted; ShowExpiring)
+                {
+                }
+            }
+            actionref(TestNoSeriesSingle_Promoted; TestNoSeriesSingle)
             {
             }
         }
