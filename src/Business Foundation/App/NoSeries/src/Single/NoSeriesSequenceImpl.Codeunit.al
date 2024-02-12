@@ -142,8 +142,9 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         exit(NumberCode);
     end;
 
-    internal procedure ExtractNoFromCode(NumberCode: Code[20]): BigInteger
+    procedure ExtractNoFromCode(NumberCode: Code[20]; NoSeriesCode: Code[20]): BigInteger
     var
+        NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
         i: Integer;
         j: Integer;
         Number: BigInteger;
@@ -166,7 +167,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
             i -= 1;
         NoCodeSnip := CopyStr(CopyStr(NumberCode, i + 1, j - i), 1, MaxStrLen(NoCodeSnip));
         if StrLen(NoCodeSnip) > 18 then
-            Error(NoOverFlowErr, NumberCode, StrLen(NoCodeSnip));
+            NoSeriesErrorsImpl.Throw(StrSubstNo(NoOverFlowErr, NoCodeSnip, StrLen(NoCodeSnip)), NoSeriesCode, NoSeriesErrorsImpl.OpenNoSeriesLinesAction());
         Evaluate(Number, NoCodeSnip);
         exit(Number);
     end;
@@ -198,7 +199,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if Rec.Implementation <> "No. Series Implementation"::Sequence then
             exit;
 
-        Rec."Starting Sequence No." := ExtractNoFromCode(Rec."Starting No.");
+        Rec."Starting Sequence No." := ExtractNoFromCode(Rec."Starting No.", Rec."Series Code");
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeValidateEvent', 'Increment-by No.', false, false)]
@@ -212,7 +213,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         // Make sure to keep the last used No. if the No. Series is already in use
         LastNoUsed := GetLastNoUsed(Rec);
         if LastNoUsed <> '' then
-            RecreateNoSeriesWithLastUsedNo(Rec, ExtractNoFromCode(LastNoUsed))
+            RecreateNoSeriesWithLastUsedNo(Rec, ExtractNoFromCode(LastNoUsed, Rec."Series Code"))
         else
             RecreateNoSeries(Rec, Rec."Starting Sequence No.");
     end;
@@ -228,7 +229,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if Rec."Last No. Used" = '' then
             exit;
 
-        SequenceNumber := ExtractNoFromCode(Rec."Last No. Used");
+        SequenceNumber := ExtractNoFromCode(Rec."Last No. Used", Rec."Series Code");
         Rec."Last No. Used" := '';
         RecreateNoSeriesWithLastUsedNo(Rec, SequenceNumber);
     end;
@@ -245,9 +246,9 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if Rec.Implementation = "No. Series Implementation"::Sequence then begin
             LastNoUsed := NoSeries.GetLastNoUsed(xRec);
             if LastNoUsed <> '' then
-                RecreateNoSeriesWithLastUsedNo(Rec, ExtractNoFromCode(LastNoUsed))
+                RecreateNoSeriesWithLastUsedNo(Rec, ExtractNoFromCode(LastNoUsed, Rec."Series Code"))
             else
-                RecreateNoSeries(Rec, ExtractNoFromCode(Rec."Starting No."));
+                RecreateNoSeries(Rec, ExtractNoFromCode(Rec."Starting No.", Rec."Series Code"));
             Rec."Last No. Used" := '';
         end else
             if xRec.Implementation = "No. Series Implementation"::Sequence then begin

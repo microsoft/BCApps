@@ -151,7 +151,7 @@ tableextension 309 NoSeriesLineObsolete extends "No. Series Line"
     var
         NoSeriesSequenceImpl: Codeunit "No. Series - Sequence Impl.";
     begin
-        exit(NoSeriesSequenceImpl.ExtractNoFromCode(NumberCode));
+        exit(NoSeriesSequenceImpl.ExtractNoFromCode(NumberCode, Rec."Series Code"));
     end;
 
     [Obsolete('This functionality will be removed without public replacement.', '24.0')]
