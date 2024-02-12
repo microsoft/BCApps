@@ -127,13 +127,6 @@ codeunit 396 NoSeriesManagement
             TestManual(DefaultNoSeriesCode);
         OnAfterInitSeries(GlobalNoSeries, DefaultNoSeriesCode, NewDate, NewNo);
     end;
-#endif
-
-    [Obsolete('This method is used for compatibility with extension usages of the old OnBeforeSetDefaultSeries event.', '24.0')]
-    procedure RaiseObsoleteOnBeforeSetDefaultSeries(var NewNoSeriesCode: Code[20]; NoSeriesCode: Code[20]; var IsHandled: Boolean)
-    begin
-        OnBeforeSetDefaultSeries(NewNoSeriesCode, NoSeriesCode, IsHandled);
-    end;
 
     [Obsolete('Please use the "No. Series" codeunit instead', '24.0')]
     procedure SetDefaultSeries(var NewNoSeriesCode: Code[20]; NoSeriesCode: Code[20])
@@ -141,7 +134,7 @@ codeunit 396 NoSeriesManagement
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        RaiseObsoleteOnBeforeSetDefaultSeries(NewNoSeriesCode, NoSeriesCode, IsHandled);
+        OnBeforeSetDefaultSeries(NewNoSeriesCode, NoSeriesCode, IsHandled);
         if IsHandled then
             exit;
 
@@ -156,6 +149,7 @@ codeunit 396 NoSeriesManagement
     // If this one is not specified then OldNoSeriesCode is used instead as default highlight
     // Otherwise DefaultNoSeriesCode is used if it exist
     // All related no series to DefaultNoSeriesCode are also available for selection
+    [Obsolete('Use method LookupRelatedNoSeries in codeunit "No. Series instead.', '24.0')]
     procedure SelectSeries(DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
     var
         IsHandled: Boolean;
@@ -180,11 +174,25 @@ codeunit 396 NoSeriesManagement
         end;
     end;
 
+    [Obsolete('This is a temporary method for compatibility only.', '24.0')]
+    internal procedure RaiseObsoleteOnBeforeSelectSeries(var DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]; var Result: Boolean; var IsHandled: Boolean)
+    begin
+        OnBeforeSelectSeries(DefaultNoSeriesCode, OldNoSeriesCode, NewNoSeriesCode, Result, IsHandled);
+    end;
+
+    [Obsolete('This is a temporary method for compatibility only.', '24.0')]
+    internal procedure RaiseObsoleteOnSelectSeriesOnBeforePageRunModal(var DefaultNoSeriesCode: Code[20]; var NoSeries: Record "No. Series")
+    begin
+        OnSelectSeriesOnBeforePageRunModal(DefaultNoSeriesCode, NoSeries);
+    end;
+
+    [Obsolete('Use method LookupRelatedNoSeries in codeunit "No. Series" instead.', '24.0')]
     procedure LookupSeries(DefaultNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
     begin
         exit(SelectSeries(DefaultNoSeriesCode, NewNoSeriesCode, NewNoSeriesCode));
     end;
 
+    [Obsolete('Use method TestAreRelated in codeunit "No. Series" instead.', '24.0')]
     procedure TestSeries(DefaultNoSeriesCode: Code[20]; NewNoSeriesCode: Code[20])
     begin
         GlobalNoSeriesCode := DefaultNoSeriesCode;
@@ -195,6 +203,7 @@ codeunit 396 NoSeriesManagement
 #pragma warning restore AA0175
     end;
 
+    [Obsolete('Use method GetNextNo in codeunit "No. Series" instead.', '24.0')]
     procedure SetSeries(var NewNo: Code[20])
     var
         NoSeriesCode2: Code[20];
@@ -206,6 +215,7 @@ codeunit 396 NoSeriesManagement
         NewNo := GetNextNo(GlobalNoSeries.Code, 0D, true);
     end;
 
+    [Obsolete('This method will be removed. There is no replacement.', '24.0')]
     procedure FilterSeries()
     var
         NoSeriesRelationship: Record "No. Series Relationship";
@@ -228,6 +238,12 @@ codeunit 396 NoSeriesManagement
         GlobalNoSeries.MarkedOnly := true;
     end;
 
+    [Obsolete('This is a temporary method for compatibility only.', '24.0')]
+    internal procedure RaiseObsoleteOnBeforeFilterSeries(var NoSeries: Record "No. Series"; NoSeriesCode: Code[20]; IsHandled: Boolean);
+    begin
+        OnBeforeFilterSeries(NoSeries, NoSeriesCode, IsHandled);
+    end;
+#endif
     procedure GetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean) Result: Code[20]
     var
         IsHandled: Boolean;
@@ -648,6 +664,7 @@ codeunit 396 NoSeriesManagement
             Error(NumberLengthErr, No);
         No := CopyStr(StartNo + ZeroNo + NewNo + EndNo, 1, MaxStrLen(No));
     end;
+
 #if not CLEAN24
     local procedure GetNoText(No: Code[20]): Code[20]
     var
@@ -679,6 +696,7 @@ codeunit 396 NoSeriesManagement
             until (i = 0) or (StartPos <> 0) and not IsDigit;
         end;
     end;
+
 #if not CLEAN24
     [Obsolete('The No. Series Line Sales table is obsolete. Please use the No. Series Line table instead.', '24.0')]
     [Scope('OnPrem')]
@@ -817,7 +835,8 @@ codeunit 396 NoSeriesManagement
     local procedure OnBeforeCheckSalesDocNoGaps(MaxDate: Date; var IsHandled: Boolean)
     begin
     end;
-#endif
+
+    [Obsolete('Use method LookupRelatedNoSeries in codeunit "No. Series" instead.', '24.0')]
     procedure GetNoSeriesWithCheck(NewNoSeriesCode: Code[20]; SelectNoSeriesAllowed: Boolean; CurrentNoSeriesCode: Code[20]): Code[20]
     begin
         if not SelectNoSeriesAllowed then
@@ -833,6 +852,7 @@ codeunit 396 NoSeriesManagement
         exit(NewNoSeriesCode);
     end;
 
+    [Obsolete('Use method HasRelatedSeries in codeunit "No. Series" instead.', '24.0')]
     procedure SeriesHasRelations(DefaultNoSeriesCode: Code[20]): Boolean
     var
         NoSeriesRelationship: Record "No. Series Relationship";
@@ -841,6 +861,7 @@ codeunit 396 NoSeriesManagement
         NoSeriesRelationship.SetRange(Code, DefaultNoSeriesCode);
         exit(not NoSeriesRelationship.IsEmpty);
     end;
+#endif
 
     [Scope('OnPrem')]
     procedure ReverseGetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean): Code[20] // Backwards compatibility for apac
@@ -941,13 +962,12 @@ codeunit 396 NoSeriesManagement
     local procedure OnAfterSaveNoSeriesPurchase(var NoSeriesLinePurchase: Record "No. Series Line Purchase")
     begin
     end;
-#endif
+
     [IntegrationEvent(false, false)]
     internal procedure OnAfterTestManual(DefaultNoSeriesCode: Code[20])
     begin
     end;
 
-#if not CLEAN24
     [Obsolete('This event is obsolete. Please use the extensibility options provided by the No. Series module.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetNextNo(var NoSeriesCode: Code[20]; var SeriesDate: Date; var ModifySeries: Boolean; var Result: Code[20]; var IsHandled: Boolean; var NoSeriesLine: Record "No. Series Line")
@@ -1000,54 +1020,55 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 
-    [Obsolete('Please use the No. Series module instead.', '24.0')]
+    [Obsolete('This event will be removed. There is no replacement. Please use the No. Series module instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitSeries(var NoSeries: Record "No. Series"; DefaultNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20])
     begin
     end;
-#endif
+
+    [Obsolete('This event will be removed. There is no replacement. Please use the No. Series module instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFilterSeries(var NoSeries: Record "No. Series"; NoSeriesCode: Code[20]; var IsHandled: Boolean)
     begin
     end;
 
-#if not CLEAN24
-    [Obsolete('Please use the No. Series module instead.', '24.0')]
+    [Obsolete('This event will be removed. There is no replacement. Please use the No. Series module instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitSeries(var DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; NewDate: Date; var NewNo: Code[20]; var NewNoSeriesCode: Code[20]; var NoSeries: Record "No. Series"; var IsHandled: Boolean; var NoSeriesCode: Code[20])
     begin
     end;
-#endif
+
+    [Obsolete('This event will be removed. Please use the Page trigger events instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSelectSeries(var DefaultNoSeriesCode: Code[20]; OldNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
+    [Obsolete('This event will be removed. Please use the Page trigger events instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnSelectSeriesOnBeforePageRunModal(DefaultNoSeriesCode: Code[20]; var NoSeries: Record "No. Series")
     begin
     end;
 
-#if not CLEAN24
     [Obsolete('This event is no longer used. Please use the No. Series Batch codeunit instead.', '24.0')]
     // Symbol usage indicates no subscribers
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSaveNoSeries(var NoSeriesLine: Record "No. Series Line"; var IsHandled: Boolean)
     begin
     end;
-#endif
+
+    [Obsolete('This event will be removed. There is no replacement. Please use the No. Series module instead.', '24.0')]
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeTestManual(var DefaultNoSeriesCode: Code[20]; var IsHandled: Boolean);
     begin
     end;
 
-    [Obsolete('Please use the No. Series module instead.', '24.0')]
+    [Obsolete('This event will be removed. There is no replacement. Please use the No. Series module instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetDefaultSeries(var NewNoSeriesCode: Code[20]; var NoSeriesCode: Code[20]; var IsHandled: Boolean);
     begin
     end;
 
-#if not CLEAN24
     [Obsolete('The No. Series module cannot have a dependency on Sales. Do not use this event.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnObsoleteSetNoSeriesLineSalesFilter(var NoSeriesLineSales: Record "No. Series Line Sales"; NoSeriesCode: Code[20]; StartDate: Date)
