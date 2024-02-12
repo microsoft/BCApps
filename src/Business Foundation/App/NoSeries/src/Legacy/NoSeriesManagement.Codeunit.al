@@ -28,7 +28,9 @@ codeunit 396 NoSeriesManagement
     var
         GlobalNoSeries: Record "No. Series";
         LastNoSeriesLine: Record "No. Series Line";
+#if not CLEAN24
         GlobalNoSeriesCode: Code[20];
+#endif
         WarningNoSeriesCode: Code[20];
         TryNoSeriesCode: Code[20];
         TrySeriesDate: Date;
@@ -963,6 +965,7 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 
+    [Obsolete('This event will be removed. There is no replacement. Please use the extensibility options provided by the No. Series module.', '24.0')]
     [IntegrationEvent(false, false)]
     internal procedure OnAfterTestManual(DefaultNoSeriesCode: Code[20])
     begin
