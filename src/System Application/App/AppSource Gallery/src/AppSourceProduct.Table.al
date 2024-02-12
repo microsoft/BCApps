@@ -99,6 +99,11 @@ table 2515 "AppSource Product"
         }
     }
 
+    trigger OnInsert()
+    begin
+        // Validate
+    end;
+
     procedure ReloadAllProducts()
     var
         AppSourceProductManager: Codeunit "AppSource Product Manager";

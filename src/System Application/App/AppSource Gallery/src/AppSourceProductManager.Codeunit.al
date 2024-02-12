@@ -325,7 +325,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         Language: Text;
         Market: Text;
     begin
-        ResolveMarketAndLanguage(Market, Language);
+        AppsourceMarketLocaleHelper.ResolveMarketAndLanguage(Market, Language);
 
         UriBuilder.Init(CatalogProductsUriLbl);
         UriBuilder.AddQueryParameter(CatalogApiVersionQueryParamNameLbl, CatalogApiVersionQueryParamValueLbl);
@@ -350,7 +350,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         Language: Text;
         Market: Text;
     begin
-        ResolveMarketAndLanguage(Market, Language);
+        AppsourceMarketLocaleHelper.ResolveMarketAndLanguage(Market, Language);
         UriBuilder.Init(CatalogProductsUriLbl);
         UriBuilder.SetPath('products/' + UniqueIdentifier);
         UriBuilder.AddQueryParameter(CatalogApiVersionQueryParamNameLbl, CatalogApiVersionQueryParamValueLbl);
@@ -372,107 +372,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     begin
         TelemetryDictionary.Add('client-request-id', RequestID);
     end;
-    #endregion
-
-    #region Market and language helper functions
-    local procedure ResolveMarketAndLanguage(var Market: Text; var LanguageName: Text)
-    var
-        Language: Codeunit Language;
-        LanguageID, LocalID : integer;
-    begin
-        Init();
-
-        GetCurrentUserLanguageAnLocaleID(LanguageID, LocalID);
-
-        // Marketplace API only supports two letter languages.
-        LanguageName := Language.GetTwoLetterISOLanguageName(LanguageID);
-
-        Market := '';
-        if LocalID <> 0 then
-            Market := ResolveMarketFromLanguageID(LocalID);
-        if Market = '' then
-            Market := CopyStr(Dependencies.EnvironmentInformation_GetApplicationFamily(), 1, 2);
-        if (Market = '') or (Market = 'W1') then
-            if not TryGetEnvironmentCountryLetterCode(Market) then
-                Market := 'us';
-
-        Market := EnsureValidMarket(Market);
-        LanguageName := EnsureValidLanguage(LanguageName);
-    end;
-
-    [TryFunction]
-    local procedure TryGetEnvironmentCountryLetterCode(var CountryLetterCode: Text)
-    begin
-        Init();
-        CountryLetterCode := Dependencies.AzureADTenant_GetCountryLetterCode();
-    end;
-
-    local procedure ResolveMarketFromLanguageID(LanguageID: Integer): Text
-    var
-        Language: Codeunit Language;
-        SeperatorPos: Integer;
-        LanguageAndRequestRegion: Text;
-    begin
-        LanguageAndRequestRegion := Language.GetCultureName(LanguageID);
-        SeperatorPos := StrPos(LanguageAndRequestRegion, '-');
-        if SeperatorPos > 1 then
-            exit(CopyStr(LanguageAndRequestRegion, SeperatorPos + 1, 2));
-
-        exit('');
-    end;
-
-    /// <summary>
-    /// Ensures that the market is valid for AppSource.
-    /// </summary>
-    /// <param name="Market">Market requested</param>
-    /// <returns>The requested market if supported, otherwise us</returns>
-    /// <remarks>See https://learn.microsoft.com/en-us/partner-center/marketplace/marketplace-geo-availability-currencies for supported markets</remarks>
-    local procedure EnsureValidMarket(Market: Text): Text
-    var
-        NotSupportedNotification: Notification;
-    begin
-        case LowerCase(Market) of
-            'af', 'al', 'dz', 'ad', 'ao', 'ar', 'am', 'au', 'at', 'az', 'bh', 'bd', 'bb', 'by', 'be', 'bz', 'bm', 'bo', 'ba', 'bw'
-        , 'br', 'bn', 'bg', 'cv', 'cm', 'ca', 'ky', 'cl', 'cn', 'co', 'cr', 'ci', 'hr', 'cw', 'cy', 'cz', 'dk', 'do', 'ec', 'eg'
-        , 'sv', 'ee', 'et', 'fo', 'fj', 'fi', 'fr', 'ge', 'de', 'gh', 'gr', 'gt', 'hn', 'hk', 'hu', 'is', 'in', 'id', 'iq', 'ie'
-        , 'il', 'it', 'jm', 'jp', 'jo', 'kz', 'ke', 'kr', 'kw', 'kg', 'lv', 'lb', 'ly', 'li', 'lt', 'lu', 'mo', 'my', 'mt', 'mu'
-        , 'mx', 'md', 'mc', 'mn', 'me', 'ma', 'na', 'np', 'nl', 'nz', 'ni', 'ng', 'mk', 'no', 'om', 'pk', 'ps', 'pa', 'py', 'pe'
-        , 'ph', 'pl', 'pt', 'pr', 'qa', 'ro', 'ru', 'rw', 'kn', 'sa', 'sn', 'rs', 'sg', 'sk', 'si', 'za', 'es', 'lk', 'se', 'ch'
-        , 'tw', 'tj', 'tz', 'th', 'tt', 'tn', 'tr', 'tm', 'ug', 'ua', 'ae', 'gb', 'us', 'vi', 'uy', 'uz', 'va', 've', 'vn', 'ye'
-        , 'zm', 'zw':
-                exit(LowerCase(Market));
-            else begin
-                NotSupportedNotification.Id := '0c0f2e34-e72f-4da4-a7d5-80b33653d13d';
-                NotSupportedNotification.Message(StrSubstNo(UnsupportedMarketNotificationLbl, Market));
-                NotSupportedNotification.Send();
-                exit('us');
-            end;
-        end;
-    end;
-
-    /// <summary>
-    /// Ensures that the language is valid for AppSource.
-    /// </summary>
-    /// <param name="Language">Language requested</param>
-    /// <returns>The requested language if supported otherwise en</returns>
-    /// <remarks>See https://learn.microsoft.com/en-us/rest/api/marketplacecatalog/dataplane/products/list?view=rest-marketplacecatalog-dataplane-2023-05-01-preview&amp;tabs=HTTP for supported languages</remarks>
-    local procedure EnsureValidLanguage(Language: Text): Text
-    var
-        NotSupportedNotification: Notification;
-    begin
-        case LowerCase(Language) of
-            'en', 'cs', 'de', 'es', 'fr', 'hu', 'it', 'ja', 'ko', 'nl', 'pl', 'pt-br', 'pt-pt', 'ru', 'sv', 'tr', 'zh-hans', 'zh-hant':
-                exit(LowerCase(Language));
-            else begin
-                NotSupportedNotification.Id := '0664870f-bd05-46cc-9e98-cc338d7fdc64';
-                NotSupportedNotification.Message(StrSubstNo(UnsupportedLanguageNotificationLbl, Language));
-                NotSupportedNotification.Send();
-
-                exit('en');
-            end;
-        end;
-    end;
-
     #endregion
 
     local procedure InsertProductFromObject(Offer: JsonObject; var Product: Record "AppSource Product")
@@ -516,14 +415,16 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
 
     local procedure SetDefaultDependencyImplementation()
     var
-        dependencyInstance: Codeunit "AppSource Product Manager";
+        DependencyInstance: Codeunit "AppSource Product Manager";
     begin
-        dependencies := dependencyInstance;
+        Dependencies := DependencyInstance;
+        AppsourceMarketLocaleHelper.SetDependencies(DependencyInstance);
         IsDependenciesSet := true;
     end;
 
     var
         Dependencies: Interface "AppSource Product Manager Dependencies";
+        AppsourceMarketLocaleHelper: Codeunit "AppSource Market Locale Helper";
         AppSourceJsonUtilities: Codeunit "AppSource Json Utilities";
         IsDependenciesSet: boolean;
         CatalogProductsUriLbl: label 'https://catalogapi.azure.com/products', Locked = true;
