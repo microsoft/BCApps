@@ -241,6 +241,37 @@ page 456 "No. Series"
                     NoSeries.PeekNextNo(Rec.Code, WorkDate());
                 end;
             }
+            group(View)
+            {
+                Caption = 'View';
+                ShowAs = SplitButton;
+
+                action(ShowAll)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Show All';
+                    Image = List;
+                    ToolTip = 'Show all No. Series.';
+
+                    trigger OnAction()
+                    begin
+                        ShowNoSeriesWithWarningsOnly(false);
+                    end;
+                }
+
+                action(ShowExpiring)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Show Expiring';
+                    Image = ShowList;
+                    ToolTip = 'Show only No. Series that have open lines which have reached the warning threshold.';
+
+                    trigger OnAction()
+                    begin
+                        ShowNoSeriesWithWarningsOnly(true);
+                    end;
+                }
+            }
         }
         area(Promoted)
         {
@@ -282,6 +313,7 @@ page 456 "No. Series"
         LastDateUsed: Date;
         AllowGaps: Boolean;
         Implementation: Enum "No. Series Implementation";
+        ShowNoSeriesWithWarnings: Boolean;
 
     protected procedure UpdateLineActionOnPage()
     var
@@ -291,5 +323,37 @@ page 456 "No. Series"
         NoSeriesSetupImpl.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, Implementation);
         NoSeriesSingle := Implementation;
         AllowGaps := NoSeriesSingle.MayProduceGaps();
+    end;
+
+    local procedure ShowNoSeriesWithWarningsOnly(ShowWarningsOnly: Boolean)
+    var
+        NoSeriesLine: Record "No. Series Line";
+        NoSeries: Codeunit "No. Series";
+        LastNoUsedForLine: Code[20];
+    begin
+        ShowNoSeriesWithWarnings := ShowWarningsOnly;
+        Rec.ClearMarks();
+        if not ShowNoSeriesWithWarnings then begin
+            Rec.MarkedOnly(false);
+            CurrPage.Update(false);
+            exit;
+        end;
+
+        if Rec.FindSet() then
+            repeat
+                NoSeriesLine.SetRange("Series Code", Rec.Code);
+                if NoSeriesLine.FindSet() then
+                    repeat
+                        if (NoSeriesLine."Warning No." <> '') and NoSeriesLine.Open then begin
+                            LastNoUsedForLine := NoSeries.GetLastNoUsed(NoSeriesLine);
+                            if (LastNoUsedForLine <> '') and (LastNoUsedForLine >= NoSeriesLine."Warning No.") then begin
+                                Rec.Mark(true);
+                                break;
+                            end;
+                        end;
+                    until NoSeriesLine.Next() = 0;
+            until Rec.Next() = 0;
+        Rec.MarkedOnly(true);
+        CurrPage.Update(false);
     end;
 }
