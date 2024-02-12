@@ -261,7 +261,7 @@ codeunit 9018 "Azure AD Plan Impl."
     end;
 
     [NonDebuggable]
-    procedure CheckMixedPlans(): BOolean
+    procedure CheckMixedPlans(): Boolean
     var
         DummyDictionary: Dictionary of [Text, List of [Text]];
     begin
