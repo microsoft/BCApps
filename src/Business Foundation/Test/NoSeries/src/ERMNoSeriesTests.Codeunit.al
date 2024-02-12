@@ -1003,7 +1003,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeries: Record "No. Series";
     begin
         NoSeries.Init();
-        NoSeries.Code := CopyStr(CreateGuid(), 1, 10);    // todo: use the last instead of the first charackters
+        NoSeries.Code := CopyStr(CreateGuid(), 1, 10);    // todo: use the last instead of the first characters
         NoSeries."Default Nos." := true;
         NoSeries."Manual Nos." := false;
         if not NoSeries.Insert() then;

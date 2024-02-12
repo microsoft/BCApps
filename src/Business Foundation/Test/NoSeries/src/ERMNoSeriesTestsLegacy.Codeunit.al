@@ -628,7 +628,7 @@ codeunit 134532 "ERM No. Series Tests Legacy"
     [MessageHandler]
     procedure TestSeriesSuccessMessageHandler(Message: Text[1024])
     begin
-        LibraryAssert.IsTrue(Message.StartsWith('The test was successful.'), 'The test series was not successful, message: ' + Message);
+        Assert.IsTrue(Message.StartsWith('The test was successful.'), 'The test series was not successful, message: ' + Message);
     end;
 }
 #endif
