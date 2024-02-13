@@ -170,13 +170,21 @@ codeunit 304 "No. Series - Impl."
         NoSeriesLine.SetRange(Open, true);
         if (NoSeriesLine."Line No." <> 0) and (NoSeriesLine."Series Code" = NoSeriesCode) then begin
             NoSeriesLine.SetRange("Line No.", NoSeriesLine."Line No.");
+#if not CLEAN24
+#pragma warning disable AL0432
             NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
+#pragma warning restore AL0432
+#endif
             LineFound := NoSeriesLine.FindLast();
             if not LineFound then
                 NoSeriesLine.SetRange("Line No.");
         end;
         if not LineFound then begin
+#if not CLEAN24
+#pragma warning disable AL0432
             NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
+#pragma warning restore AL0432
+#endif
             LineFound := NoSeriesLine.FindLast();
         end;
 

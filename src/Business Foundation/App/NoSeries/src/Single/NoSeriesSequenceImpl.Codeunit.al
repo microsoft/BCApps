@@ -304,12 +304,26 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if Rec.IsTemporary() then
             exit;
 
-        if Rec."Temp Current Sequence No." = 0 then
+        EnsureTempCurrentSequenceNoIsReset(Rec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeInsertEvent', '', false, false)]
+    local procedure OnInsertNoSeriesLine(var Rec: Record "No. Series Line"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary() then
             exit;
 
-        if Rec.Implementation = "No. Series Implementation"::Sequence then
-            RecreateNoSeriesWithLastUsedNo(Rec, Rec."Temp Current Sequence No.");
+        EnsureTempCurrentSequenceNoIsReset(Rec);
+    end;
 
-        Rec."Temp Current Sequence No." := 0; // Always reset the temporary sequence number!
+    local procedure EnsureTempCurrentSequenceNoIsReset(var NoSeriesLine: Record "No. Series Line")
+    begin
+        if NoSeriesLine."Temp Current Sequence No." = 0 then
+            exit;
+
+        if NoSeriesLine.Implementation = "No. Series Implementation"::Sequence then
+            RecreateNoSeriesWithLastUsedNo(NoSeriesLine, NoSeriesLine."Temp Current Sequence No.");
+
+        NoSeriesLine."Temp Current Sequence No." := 0; // Always reset the temporary sequence number!
     end;
 }

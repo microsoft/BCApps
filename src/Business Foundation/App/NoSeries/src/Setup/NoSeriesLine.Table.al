@@ -131,7 +131,6 @@ table 309 "No. Series Line"
             Caption = 'Temporary Sequence Number';
             DataClassification = SystemMetadata;
             Access = Internal;
-
         }
     }
 
