@@ -206,6 +206,8 @@ codeunit 396 NoSeriesManagement
         NewNo := GetNextNo(GlobalNoSeries.Code, 0D, true);
     end;
 
+#if not CLEAN24
+    [Obsolete('To check whether No. Series are related, please use the methods TestAreRelated and AreRelated in codeunit "No. Series"', '24.0')]
     procedure FilterSeries()
     var
         NoSeriesRelationship: Record "No. Series Relationship";
@@ -227,6 +229,7 @@ codeunit 396 NoSeriesManagement
             GlobalNoSeries.Mark := true;
         GlobalNoSeries.MarkedOnly := true;
     end;
+#endif
 
     procedure GetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean) Result: Code[20]
     var
@@ -831,6 +834,8 @@ codeunit 396 NoSeriesManagement
         exit(NewNoSeriesCode);
     end;
 
+#if not CLEAN24
+    [Obsolete('Please use the the No. Series Relationship table instead to lookup if there are any relations.', '24.0')]
     procedure SeriesHasRelations(DefaultNoSeriesCode: Code[20]): Boolean
     var
         NoSeriesRelationship: Record "No. Series Relationship";
@@ -839,6 +844,7 @@ codeunit 396 NoSeriesManagement
         NoSeriesRelationship.SetRange(Code, DefaultNoSeriesCode);
         exit(not NoSeriesRelationship.IsEmpty);
     end;
+#endif
 
     [Scope('OnPrem')]
     procedure ReverseGetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean): Code[20] // Backwards compatibility for apac
@@ -987,7 +993,8 @@ codeunit 396 NoSeriesManagement
     local procedure OnBeforeUpdateNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NewNo: Code[20]; NewFieldName: Text[100]; var IsHandled: Boolean)
     begin
     end;
-#endif
+
+    [Obsolete('Use PeekNextNo from codeunit "No. Series" instead.', '24.0')]
     procedure ClearStateAndGetNextNo(NoSeriesCode: Code[20]): Code[20]
     begin
         Clear(LastNoSeriesLine);
@@ -997,7 +1004,6 @@ codeunit 396 NoSeriesManagement
         exit(GetNextNo(NoSeriesCode, WorkDate(), false));
     end;
 
-#if not CLEAN24
     [Obsolete('Please use OnAfterSetNoSeriesCurrentLineFilters in the No. Series module instead.', '24.0')]
     [IntegrationEvent(false, false)]
     local procedure OnNoSeriesLineFilterOnBeforeFindLast(var NoSeriesLine: Record "No. Series Line")
