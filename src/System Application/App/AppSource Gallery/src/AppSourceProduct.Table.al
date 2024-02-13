@@ -50,7 +50,7 @@ table 2515 "AppSource Product"
         {
             Caption = 'Product Type';
         }
-        field(11; AppID; Text[36])
+        field(11; AppID; Guid)
         {
             Caption = 'Application Identifier';
         }
@@ -98,11 +98,6 @@ table 2515 "AppSource Product"
         {
         }
     }
-
-    trigger OnInsert()
-    begin
-        // Validate
-    end;
 
     procedure ReloadAllProducts()
     var
