@@ -10,7 +10,7 @@ schedules:
     - main
 
 pool:
-  name: 'd365bc-agentpool-nonprod-bcapps-sync'
+  name: 'd365bc-agentpool-nonprod-build-official'
 
 resources:
   repositories:
@@ -26,6 +26,8 @@ variables:
 jobs:
 - job: SyncMirror
   dependsOn: []
+  pool: 'd365bc-agentpool-nonprod-bcapps-sync'
+  displayName: Sync mirror with upstream
   steps:
   - powershell: |
       git config --global user.email "BCApps-Sync@microsoft.com"
@@ -36,9 +38,19 @@ jobs:
     inputs:
       filePath: build\scripts\SyncMirror.ps1
       arguments: '-SourceRepository "https://github.com/microsoft/BCApps.git" -TargetRepository $(TargetRepository) -Branch $(Build.SourceBranch) -ManagedIdentityAuth'
+
+- job: ReportBuildStatus
+  dependsOn:
+  - SyncMirror
+  pool: 'd365bc-agentpool-nonprod-build-official'
+  condition: failed()
+  displayName: Report build status
+  steps:
+  - checkout: none
   - template: workitem-build-tracking.yml@PipelineTemplates
     parameters:
-        Priority: '2'
-        Severity: '2'
-        Issue: 'Infrastructure Defect'
-        SecurityImpact: 'No'
+      Priority: '2'
+      Severity: '2'
+      Issue: 'Infrastructure Defect'
+      SecurityImpact: 'No'
+      Condition: always()
