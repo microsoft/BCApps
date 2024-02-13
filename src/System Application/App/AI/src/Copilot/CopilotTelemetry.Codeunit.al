@@ -16,6 +16,7 @@ codeunit 7775 "Copilot Telemetry"
     var
         CopilotCapability: Enum "Copilot Capability";
         AppId: Guid;
+        Initialized: Boolean;
         TelemetryFeedbackOnCopilotCapabilityLbl: Label 'Feedback on Copilot Capability.', Locked = true;
         TelemetryActionInvokedOnCopilotCapabilityLbl: Label 'Action invoked on Copilot Capability.', Locked = true;
 
@@ -23,6 +24,7 @@ codeunit 7775 "Copilot Telemetry"
     begin
         CopilotCapability := NewCopilotCapability;
         AppId := NewAppId;
+        Initialized := true;
     end;
 
     procedure SendCopilotFeedbackTelemetry(CustomDimensions: Dictionary of [Text, Text])
@@ -30,7 +32,8 @@ codeunit 7775 "Copilot Telemetry"
         CopilotCapabilitiesImpl: Codeunit "Copilot Capability Impl";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        CopilotCapabilitiesImpl.AddTelemetryDimensions(CopilotCapability, AppId, CustomDimensions);
+        if Initialized then
+            CopilotCapabilitiesImpl.AddTelemetryDimensions(CopilotCapability, AppId, CustomDimensions);
         FeatureTelemetry.LogUsage('0000LFO', CopilotCapabilitiesImpl.GetCopilotCategory(), TelemetryFeedbackOnCopilotCapabilityLbl, CustomDimensions);
     end;
 
@@ -39,7 +42,8 @@ codeunit 7775 "Copilot Telemetry"
         CopilotCapabilitiesImpl: Codeunit "Copilot Capability Impl";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        CopilotCapabilitiesImpl.AddTelemetryDimensions(CopilotCapability, AppId, CustomDimensions);
+        if Initialized then
+            CopilotCapabilitiesImpl.AddTelemetryDimensions(CopilotCapability, AppId, CustomDimensions);
         FeatureTelemetry.LogUsage('0000LLW', CopilotCapabilitiesImpl.GetCopilotCategory(), TelemetryActionInvokedOnCopilotCapabilityLbl, CustomDimensions);
     end;
 }
