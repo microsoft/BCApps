@@ -238,12 +238,11 @@ codeunit 153 "User Permissions Impl."
     var
         User: Record User;
         NavUserAccountHelper: DotNet NavUserAccountHelper;
-        Skip: Boolean;
     begin
         if HasUserPermissionSetDirectlyAssigned(UserSecurityId, Company, RoleId, ItemScope, AppId) then
             exit(true);
 
-        // NavUserAccountHelper doesn't work with buffered inserts.
+        // NavUserAccountHelper doesn't work with bulk (buffered) inserts.
         // Calling a Get flushes the buffer.
         if not User.Get(UserSecurityId) then
             exit(false);
