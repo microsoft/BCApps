@@ -989,6 +989,12 @@ codeunit 396 NoSeriesManagement
     begin
     end;
 #endif
+    [Obsolete('This is a temporary method for compatibility only. Please use the "No. Series" codeunit instead', '24.0')]
+    internal procedure RaiseObsoleteOnBeforeModifyNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; var IsHandled: Boolean)
+    begin
+        OnBeforeModifyNoSeriesLine(NoSeriesLine, IsHandled);
+    end;
+
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeModifyNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; var IsHandled: Boolean)
     begin
