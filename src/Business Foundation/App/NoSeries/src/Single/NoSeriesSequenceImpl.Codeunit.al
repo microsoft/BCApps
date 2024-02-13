@@ -31,11 +31,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
     var
         LastSeqNoUsed: BigInteger;
     begin
-        if not TryGetCurrentSequenceNo(NoSeriesLine."Sequence Name", LastSeqNoUsed) then begin
-            if not NumberSequence.Exists(NoSeriesLine."Sequence Name") then
-                CreateNewSequence(NoSeriesLine);
-            TryGetCurrentSequenceNo(NoSeriesLine."Sequence Name", LastSeqNoUsed);
-        end;
+        LastSeqNoUsed := GetCurrentSequenceNo(NoSeriesLine);
         if LastSeqNoUsed >= NoSeriesLine."Starting Sequence No." then
             exit(GetFormattedNo(NoSeriesLine, LastSeqNoUsed));
         exit(''); // No. Series has not been used yet, so there is no last no. used
@@ -44,6 +40,18 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
     procedure MayProduceGaps(): Boolean
     begin
         exit(true);
+    end;
+
+    local procedure GetCurrentSequenceNo(var NoSeriesLine: Record "No. Series Line") LastSeqNoUsed: BigInteger
+    begin
+        if NoSeriesLine."Temp Current Sequence No." <> 0 then
+            exit(NoSeriesLine."Temp Current Sequence No.");
+
+        if not TryGetCurrentSequenceNo(NoSeriesLine."Sequence Name", LastSeqNoUsed) then begin
+            if not NumberSequence.Exists(NoSeriesLine."Sequence Name") then
+                CreateNewSequence(NoSeriesLine);
+            TryGetCurrentSequenceNo(NoSeriesLine."Sequence Name", LastSeqNoUsed);
+        end;
     end;
 
     [TryFunction]
@@ -57,13 +65,28 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
     var
         NoSeriesLine2: Record "No. Series Line";
         NoSeriesStatelessImpl: Codeunit "No. Series - Stateless Impl.";
+#if not CLEAN24
+#pragma warning disable AL0432
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+        IsHandled: Boolean;
+#pragma warning restore AL0432
+#endif
         NewNo: BigInteger;
     begin
-        if not TryGetNextSequenceNo(NoSeriesLine, ModifySeries, NewNo) then begin
-            if not NumberSequence.Exists(NoSeriesLine."Sequence Name") then
-                CreateNewSequence(NoSeriesLine);
-            TryGetNextSequenceNo(NoSeriesLine, ModifySeries, NewNo);
-        end;
+        if NoSeriesLine.IsTemporary() or ((NoSeriesLine."Temp Current Sequence No." <> 0) and (not ModifySeries)) then begin // Do not update the database for temporary records, if Temp Current Sequence No. is set that means we are emulating the next numbers
+            if NoSeriesLine."Temp Current Sequence No." = 0 then
+                NoSeriesLine."Temp Current Sequence No." := GetCurrentSequenceNo(NoSeriesLine);
+
+            NewNo := NoSeriesLine."Temp Current Sequence No." + NoSeriesLine."Increment-by No.";
+
+            if ModifySeries then
+                NoSeriesLine."Temp Current Sequence No." := NewNo;
+        end else
+            if not TryGetNextSequenceNo(NoSeriesLine, ModifySeries, NewNo) then begin
+                if not NumberSequence.Exists(NoSeriesLine."Sequence Name") then
+                    CreateNewSequence(NoSeriesLine);
+                TryGetNextSequenceNo(NoSeriesLine, ModifySeries, NewNo);
+            end;
 
         NoSeriesLine2 := NoSeriesLine;
         NoSeriesLine2."Last No. Used" := GetFormattedNo(NoSeriesLine, NewNo);
@@ -72,9 +95,15 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if not NoSeriesStatelessImpl.EnsureLastNoUsedIsWithinValidRange(NoSeriesLine2, HideErrorsAndWarnings) then
             exit('');
 
-        if ModifySeries and ((NoSeriesLine."Last Date Used" <> UsageDate) or (NoSeriesLine.Open <> NoSeriesLine2.Open)) then begin // Only modify the series if either the date or the open status has changed. Otherwise avoid locking the record.
+        if ModifySeries and ((NoSeriesLine."Last Date Used" <> UsageDate) or (NoSeriesLine.Open <> NoSeriesLine2.Open) or NoSeriesLine.IsTemporary()) then begin // Only modify the series if either the date or the open status has changed. Otherwise avoid locking the record.
             NoSeriesLine."Last Date Used" := UsageDate;
             NoSeriesLine.Open := NoSeriesLine2.Open;
+#if not CLEAN24
+#pragma warning disable AL0432
+            NoSeriesManagement.RaiseObsoleteOnBeforeModifyNoSeriesLine(NoSeriesLine, IsHandled);
+            if not IsHandled then
+#pragma warning restore AL0432
+#endif
             NoSeriesLine.Modify(true);
         end;
 
@@ -267,5 +296,20 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if Rec."Sequence Name" <> '' then
             if NumberSequence.Exists(Rec."Sequence Name") then
                 NumberSequence.Delete(Rec."Sequence Name");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"No. Series Line", 'OnBeforeModifyEvent', '', false, false)]
+    local procedure OnModifyNoSeriesLine(var Rec: Record "No. Series Line"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if Rec."Temp Current Sequence No." = 0 then
+            exit;
+
+        if Rec.Implementation = "No. Series Implementation"::Sequence then
+            RecreateNoSeriesWithLastUsedNo(Rec, Rec."Temp Current Sequence No.");
+
+        Rec."Temp Current Sequence No." := 0; // Always reset the temporary sequence number!
     end;
 }

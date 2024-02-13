@@ -126,6 +126,13 @@ table 309 "No. Series Line"
             DataClassification = SystemMetadata;
 
         }
+        field(15; "Temp Current Sequence No."; Integer)
+        {
+            Caption = 'Temporary Sequence Number';
+            DataClassification = SystemMetadata;
+            Access = Internal;
+
+        }
     }
 
     keys

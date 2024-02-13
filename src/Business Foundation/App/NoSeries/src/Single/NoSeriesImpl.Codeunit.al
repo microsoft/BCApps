@@ -152,6 +152,11 @@ codeunit 304 "No. Series - Impl."
         NoSeriesRec: Record "No. Series";
         NoSeries: Codeunit "No. Series";
         NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
+#if not CLEAN24
+#pragma warning disable AL0432
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+#pragma warning restore AL0432
+#endif
         LineFound: Boolean;
     begin
         if UsageDate = 0D then
@@ -165,12 +170,15 @@ codeunit 304 "No. Series - Impl."
         NoSeriesLine.SetRange(Open, true);
         if (NoSeriesLine."Line No." <> 0) and (NoSeriesLine."Series Code" = NoSeriesCode) then begin
             NoSeriesLine.SetRange("Line No.", NoSeriesLine."Line No.");
+            NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
             LineFound := NoSeriesLine.FindLast();
             if not LineFound then
                 NoSeriesLine.SetRange("Line No.");
         end;
-        if not LineFound then
+        if not LineFound then begin
+            NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
             LineFound := NoSeriesLine.FindLast();
+        end;
 
         if LineFound and NoSeries.MayProduceGaps(NoSeriesLine) then begin
             NoSeriesLine.Validate(Open);

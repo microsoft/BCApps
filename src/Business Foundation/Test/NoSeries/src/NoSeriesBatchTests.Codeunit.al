@@ -570,6 +570,7 @@ codeunit 134531 "No. Series Batch Tests"
         NoSeriesBatch: Codeunit "No. Series - Batch";
         PermissionsMock: Codeunit "Permissions Mock";
         NoSeriesBatch2: Codeunit "No. Series - Batch";
+        NoSeriesBatch3: Codeunit "No. Series - Batch";
         NoSeriesCode: Code[20];
         i: Integer;
     begin
@@ -601,10 +602,17 @@ codeunit 134531 "No. Series Batch Tests"
         LibraryAssert.AreEqual('B3', NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate()), 'Getting Next No. should continue the simulation');
 
         // [WHEN] We get the next number from the No. Series using a different batch
-        // [THEN] The numbers from line 1 are exhausted so we continue from line 2
-        LibraryAssert.AreEqual('B4', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
-        LibraryAssert.AreEqual('B5', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
-        LibraryAssert.AreEqual('B6', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        // [THEN] The numbers start again from A1
+        LibraryAssert.AreEqual('A1', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        LibraryAssert.AreEqual('A2', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        LibraryAssert.AreEqual('A3', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+
+        // [WHEN] We save the original batch
+        NoSeriesBatch.SaveState();
+        // [THEN] The numbers from another batch will continue from line 2
+        LibraryAssert.AreEqual('B4', NoSeriesBatch3.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        LibraryAssert.AreEqual('B5', NoSeriesBatch3.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        LibraryAssert.AreEqual('B6', NoSeriesBatch3.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
     end;
 
     [Test]
@@ -735,9 +743,9 @@ codeunit 134531 "No. Series Batch Tests"
         // [THEN] No number is returned
         LibraryAssert.AreEqual('', NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate(), true), 'A number was returned even though the sequence has run out');
 
-        // [THEN] GetLastNoUsed returns blank, however new batch references will return A9 until save since the Line is not yet closed but the sequence is updated in the database.
+        // [THEN] GetLastNoUsed returns A9, however new batch references will return blank since no number has been saved.
         LibraryAssert.AreEqual('A9', NoSeriesBatch.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed Number was not as expected after getting invalid number');
-        LibraryAssert.AreEqual('A9', NoSeriesBatch2.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed Number was not as expected');
+        LibraryAssert.AreEqual('', NoSeriesBatch2.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed Number was not as expected');
 
         // [GIVEN] The No. Series is saved
         NoSeriesBatch.SaveState();
