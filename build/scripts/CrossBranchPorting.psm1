@@ -32,7 +32,7 @@ function New-BCAppsBackport() {
     Write-Host "Pull Request Description: `n$($pullRequestDetails.body)" -ForegroundColor Cyan
 
     if (-not $SkipConfirmation) {
-        GetConfirmation -Message "Please review the about information and press (y)es to continue or any other key to stop"
+        GetConfirmation -Message "Please review the above information and press (y)es to continue or any other key to stop"
     }
 
     # Get the list of existing pull requests
@@ -45,7 +45,7 @@ function New-BCAppsBackport() {
     $branchNameSuffix = "$PullRequestNumber/$(Get-Date -Format "yyyyMMddHHmmss")"
     foreach($TargetBranch in $TargetBranches) {
         try {
-            $title = "[$TargetBranch] $($pullRequestDetails.title)"
+            $title = "[$TargetBranch] $($pullRequestDetails.title)".Substring(0, 255) # Title is limited to 256 characters
             $body = "This pull request backports #$($pullRequestDetails.number) to $TargetBranch"
             $body += "`r`n`r`nFixes AB#[**Insert Work Item Number Here**]"
 
