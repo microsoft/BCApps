@@ -98,20 +98,20 @@ function Get-ConfigValue() {
 function Set-ContentLF {
     Param(
         [parameter(mandatory = $true, ValueFromPipeline = $false)]
-        [string] $path,
+        [string] $Path,
         [parameter(mandatory = $true, ValueFromPipeline = $true)]
-        $content
+        $Content
     )
 
     Process {
-        $path = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($path)
-        if ($content -is [array]) {
-            $content = $content -join "`n"
+        $Path = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+        if ($Content -is [array]) {
+            $Content = $Content -join "`n"
         }
         else {
-            $content = "$content".Replace("`r", "")
+            $Content = "$Content".Replace("`r", "")
         }
-        [System.IO.File]::WriteAllText($path, "$content`n")
+        [System.IO.File]::WriteAllText($Path, "$Content`n")
     }
 
 }
