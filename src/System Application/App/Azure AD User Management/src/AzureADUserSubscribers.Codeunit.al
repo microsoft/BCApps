@@ -12,6 +12,8 @@ using System.Telemetry;
 codeunit 9034 "Azure AD User Subscribers"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
     SingleInstance = true;
 
     var
