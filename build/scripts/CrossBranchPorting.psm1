@@ -47,7 +47,7 @@ function New-BCAppsBackport() {
         try {
             $title = "[$TargetBranch] $($pullRequestDetails.title)"
             $body = "This pull request backports #$($pullRequestDetails.number) to $TargetBranch"
-            $body += "`r`n`r`nFixes [**Insert Work Item Number Here**]"
+            $body += "`r`n`r`nFixes AB#[**Insert Work Item Number Here**]"
 
             # Check if there is already a pull request for this branch
             $existingPr = $existingOpenPullRequests | Where-Object { ($_.title -eq $title) -and ($_.baseRefName -eq $TargetBranch) }
