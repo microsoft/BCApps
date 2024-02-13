@@ -428,7 +428,7 @@ codeunit 396 NoSeriesManagement
             exit(NoSeriesManagement.GetNextNoAfterRun());
     end;
 
-    [Obsolete('Use SetParametersBeforeRun() instead', '21.0')]
+    [Obsolete('Use PeekNextNo from codeunit "No. Series" instead.', '21.0')]
     procedure GetNextNo1(NoSeriesCode: Code[20]; SeriesDate: Date)
     begin
         SetParametersBeforeRun(NoSeriesCode, SeriesDate);
@@ -442,7 +442,7 @@ codeunit 396 NoSeriesManagement
         OnAfterSetParametersBeforeRun(TryNoSeriesCode, TrySeriesDate, WarningNoSeriesCode);
     end;
 
-    [Obsolete('Use GetNextNoAfterRun() instead', '21.0')]
+    [Obsolete('Use PeekNextNo from codeunit "No. Series" instead.', '21.0')]
     procedure GetNextNo2(): Code[20]
     begin
         exit(GetNextNoAfterRun());
