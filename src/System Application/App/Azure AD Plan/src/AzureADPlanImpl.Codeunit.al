@@ -274,10 +274,7 @@ codeunit 9018 "Azure AD Plan Impl."
         if not ShouldCheckMixedPlans() then
             exit(false);
 
-        if not MixedPlansExist(PlanNamesPerUserFromGraph) then
-            exit(false);
-
-        exit(true);
+        exit(MixedPlansExist(PlanNamesPerUserFromGraph));
     end;
 
     [NonDebuggable]
