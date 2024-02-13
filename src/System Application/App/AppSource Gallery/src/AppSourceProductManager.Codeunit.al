@@ -104,7 +104,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     /// Opens the AppSource product page in Microsoft AppSource, for the specified unique product ID.
     /// </summary>
     /// <param name="UniqueProductIDValue">The Unique Product ID of the product to show in MicrosoftAppSource</param>
-    procedure OpenInAppSource(UniqueProductIDValue: Text)
+    procedure OpenAppInAppSource(UniqueProductIDValue: Text)
     var
         Language: Codeunit Language;
     begin

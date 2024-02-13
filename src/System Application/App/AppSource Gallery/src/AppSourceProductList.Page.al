@@ -107,7 +107,7 @@ page 2515 "AppSource Product List"
             action(OpenAppSource)
             {
                 Caption = 'View AppSource';
-                Scope = Repeater;
+                Scope = Page;
                 Image = OpenWorksheet;
                 ToolTip = 'View all apps in AppSource';
 
@@ -126,7 +126,7 @@ page 2515 "AppSource Product List"
 
                 trigger OnAction()
                 begin
-                    AppSourceProductManager.OpenInAppSource(Rec.UniqueProductID)
+                    AppSourceProductManager.OpenAppInAppSource(Rec.UniqueProductID)
                 end;
             }
 

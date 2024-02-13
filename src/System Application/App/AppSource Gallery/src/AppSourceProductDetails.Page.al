@@ -161,7 +161,7 @@ page 2516 "AppSource Product Details"
 
                 trigger OnAction()
                 begin
-                    AppSourceProductManager.OpenInAppSource(UniqueProductID);
+                    AppSourceProductManager.OpenAppInAppSource(UniqueProductID);
                 end;
             }
 
