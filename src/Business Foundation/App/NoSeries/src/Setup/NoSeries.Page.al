@@ -274,8 +274,11 @@ page 456 "No. Series"
                     ToolTip = 'Show all number series.';
 
                     trigger OnAction()
+                    var
+                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
                     begin
-                        ShowNoSeriesWithWarningsOnly(false);
+                        NoSeriesSetupImpl.ShowNoSeriesWithWarningsOnly(Rec, false);
+                        CurrPage.Update(false);
                     end;
                 }
 
@@ -287,8 +290,11 @@ page 456 "No. Series"
                     ToolTip = 'Show number series that require your attention, such as, number series that have no lines or an have open lines which have reached the warning threshold.';
 
                     trigger OnAction()
+                    var
+                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
                     begin
-                        ShowNoSeriesWithWarningsOnly(true);
+                        NoSeriesSetupImpl.ShowNoSeriesWithWarningsOnly(Rec, true);
+                        CurrPage.Update(false);
                     end;
                 }
             }
@@ -364,38 +370,5 @@ page 456 "No. Series"
         NoSeriesSetupImpl.UpdateLine(Rec, StartDate, StartNo, EndNo, LastNoUsed, WarningNo, IncrementByNo, LastDateUsed, Implementation);
         NoSeriesSingle := Implementation;
         AllowGaps := NoSeriesSingle.MayProduceGaps();
-    end;
-
-    local procedure ShowNoSeriesWithWarningsOnly(ShowWarningsOnly: Boolean)
-    var
-        NoSeriesLine: Record "No. Series Line";
-        NoSeries: Codeunit "No. Series";
-        LastNoUsedForLine: Code[20];
-    begin
-        Rec.ClearMarks();
-        if not ShowWarningsOnly then begin
-            Rec.MarkedOnly(false);
-            CurrPage.Update(false);
-            exit;
-        end;
-
-        if Rec.FindSet() then
-            repeat
-                NoSeriesLine.SetRange("Series Code", Rec.Code);
-                if NoSeriesLine.FindSet() then
-                    repeat
-                        if (NoSeriesLine."Warning No." <> '') and NoSeriesLine.Open then begin
-                            LastNoUsedForLine := NoSeries.GetLastNoUsed(NoSeriesLine);
-                            if (LastNoUsedForLine <> '') and (LastNoUsedForLine >= NoSeriesLine."Warning No.") then begin
-                                Rec.Mark(true);
-                                break;
-                            end;
-                        end;
-                    until NoSeriesLine.Next() = 0
-                else
-                    Rec.Mark(true);
-            until Rec.Next() = 0;
-        Rec.MarkedOnly(true);
-        CurrPage.Update(false);
     end;
 }
