@@ -731,6 +731,60 @@ codeunit 134530 "No. Series Tests"
     end;
     #endregion
 
+    [Test]
+    procedure TestSequenceTempCurrentSequenceNoField()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        TempNoSeriesLine: Record "No. Series Line" temporary;
+        NoSeries: Codeunit "No. Series";
+        PermissionsMock: Codeunit "Permissions Mock";
+        RecordRef: RecordRef;
+        TempCurrentSequenceNoField: FieldRef;
+        NoSeriesCode: Code[20];
+    begin
+        // [Scenario] Make sure the Temp Current Sequence No. field cannot be abused and is always set to 0 upon database modify
+        // Note: These scenarios are not supported, this is simply to make sure the Temp Current Sequence No. field works as expected behind the scenes.
+
+        Initialize();
+        PermissionsMock.Set('No. Series - Admin');
+
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, '1', '9');
+        NoSeriesLine.SetRange("Series Code", NoSeriesCode);
+        NoSeriesLine.FindFirst();
+        TempNoSeriesLine := NoSeriesLine;
+        TempNoSeriesLine.Insert();
+
+        // [GIVEN] A No. Series Line and Temporary No. Series Line with Current Sequence No. set to 5
+        PermissionsMock.SetExactPermissionSet('No. Series Test');
+        RecordRef.GetTable(NoSeriesLine);
+        TempCurrentSequenceNoField := RecordRef.Field(15); // Field "Temp Current Sequence No."
+        TempCurrentSequenceNoField.Value := 5;
+        RecordRef.SetTable(NoSeriesLine);
+        TempNoSeriesLine := NoSeriesLine;
+
+        // [WHEN] Fetching the Last No. Used, both implementations return 5
+        LibraryAssert.AreEqual('5', NoSeries.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed returned wrong value');
+        LibraryAssert.AreEqual('5', NoSeries.GetLastNoUsed(TempNoSeriesLine), 'GetLastNoUsed with temporary record returned wrong value');
+
+        // [WHEN] We peek the next number from both No. Series, they both return 6
+        LibraryAssert.AreEqual('6', NoSeries.PeekNextNo(NoSeriesLine, WorkDate()), 'PeekNextNo returned wrong value');
+        LibraryAssert.AreEqual('6', NoSeries.PeekNextNo(TempNoSeriesLine, WorkDate()), 'PeekNextNo with temporary record returned wrong value');
+
+        // [WHEN] We get the next number from both No. Series, they both return 6 since that's the number set to be next number based on Temp Current Sequence No., furthermore the Temp Current Sequence No. in the normal No. Series has been saved into the sequence due to modify on Get
+        LibraryAssert.AreEqual('6', NoSeries.GetNextNo(NoSeriesLine, WorkDate()), 'GetNextNo returned wrong value');
+        LibraryAssert.AreEqual('6', NoSeries.GetNextNo(TempNoSeriesLine, WorkDate()), 'GetNextNo with temporary record returned wrong value');
+        RecordRef.GetTable(NoSeriesLine);
+        TempCurrentSequenceNoField := RecordRef.Field(15); // Field "Temp Current Sequence No."
+        LibraryAssert.AreEqual(0, TempCurrentSequenceNoField.Value, 'Temp Current Sequence No. was not as expected');
+
+        // [THEN] Getting the next number, they again both return 7
+        LibraryAssert.AreEqual('7', NoSeries.GetNextNo(NoSeriesLine, WorkDate()), 'GetNextNo returned wrong value');
+        LibraryAssert.AreEqual('7', NoSeries.GetNextNo(TempNoSeriesLine, WorkDate()), 'GetNextNo with temporary record returned wrong value');
+    end;
+
     local procedure Initialize()
     begin
         Any.SetDefaultSeed();

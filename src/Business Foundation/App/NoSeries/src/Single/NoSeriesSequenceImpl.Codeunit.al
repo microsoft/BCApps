@@ -73,7 +73,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 #endif
         NewNo: BigInteger;
     begin
-        if NoSeriesLine.IsTemporary() or ((NoSeriesLine."Temp Current Sequence No." <> 0) and (not ModifySeries)) then begin // Do not update the database for temporary records, if Temp Current Sequence No. is set that means we are emulating the next numbers
+        if NoSeriesLine.IsTemporary() or (NoSeriesLine."Temp Current Sequence No." <> 0) then begin // Do not update the database for temporary records, if Temp Current Sequence No. is set that means we are emulating the next numbers
             if NoSeriesLine."Temp Current Sequence No." = 0 then
                 NoSeriesLine."Temp Current Sequence No." := GetCurrentSequenceNo(NoSeriesLine);
 
