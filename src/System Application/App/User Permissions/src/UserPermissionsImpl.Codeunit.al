@@ -236,14 +236,15 @@ codeunit 153 "User Permissions Impl."
 
     procedure HasUserPermissionSetAssigned(UserSecurityId: Guid; Company: Text; RoleId: Code[20]; ItemScope: Option; AppId: Guid): Boolean
     var
+        User: Record User;
         NavUserAccountHelper: DotNet NavUserAccountHelper;
-        Skip: Boolean;
     begin
         if HasUserPermissionSetDirectlyAssigned(UserSecurityId, Company, RoleId, ItemScope, AppId) then
             exit(true);
 
-        OnHasUserPermissionSetAssigned(Skip);
-        if Skip then
+        // NavUserAccountHelper doesn't work with bulk (buffered) inserts.
+        // Calling a Get flushes the buffer.
+        if not User.Get(UserSecurityId) then
             exit(false);
 
         if NavUserAccountHelper.IsPermissionSetAssigned(UserSecurityId, '', RoleId, AppId, ItemScope) then
@@ -299,15 +300,6 @@ codeunit 153 "User Permissions Impl."
     /// </remarks>
     [InternalEvent(false)]
     local procedure OnCanManageUsersOnTenant(UserSID: Guid; var Result: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Allows the subscriber library to skip calls to NavUserAccountHelper in tests.
-    /// </summary>
-    /// <param name="Skip">Skip calls to NavUserAccountHelper.IsPermissionSetAssigned.</param>
-    [InternalEvent(false)]
-    local procedure OnHasUserPermissionSetAssigned(var Skip: Boolean)
     begin
     end;
 }
