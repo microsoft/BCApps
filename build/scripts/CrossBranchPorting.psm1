@@ -94,7 +94,7 @@ function New-BCAppsBackport() {
 function PrecheckBackport($TargetBranches, $PullRequestNumber) {
     # Check gh cli is installed
     if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
-        throw "Please install the gh cli from"
+        throw "Please install the GitHub CLI from https://cli.github.com/"
     }
 
     # Check that there are no uncommitted changes
