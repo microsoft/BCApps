@@ -94,7 +94,11 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         end;
     end;
 
+#if not CLEAN24
+    internal procedure CreateNewSequence(var NoSeriesLine: Record "No. Series Line")
+#else
     local procedure CreateNewSequence(var NoSeriesLine: Record "No. Series Line")
+#endif
     begin
         CreateNewSequence(NoSeriesLine, NoSeriesLine."Starting Sequence No.");
     end;

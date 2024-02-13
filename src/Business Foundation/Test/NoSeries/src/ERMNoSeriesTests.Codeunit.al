@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace Microsoft.Test.Foundation.NoSeries;
 
 using System.TestLibraries.Utilities;
@@ -19,7 +24,7 @@ codeunit 134370 "ERM No. Series Tests"
         StartingNumberTxt: Label 'ABC00010D';
         SecondNumberTxt: Label 'ABC00020D';
         EndingNumberTxt: Label 'ABC00090D';
-        NoSeriesCodeForUseInModalPageHendler: Code[20];
+        NoSeriesCodeForUseInModalPageHandler: Code[20];
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -968,9 +973,9 @@ codeunit 134370 "ERM No. Series Tests"
     begin
         Initialize();
 
-        NoSeriesCodeForUseInModalPageHendler := CreateNonVisibleNoSeries(false);
+        NoSeriesCodeForUseInModalPageHandler := CreateNonVisibleNoSeries(false);
 
-        NoSeries.Get(NoSeriesCodeForUseInModalPageHendler);
+        NoSeries.Get(NoSeriesCodeForUseInModalPageHandler);
         NoSeriesPage.OpenView();
         NoSeriesPage.GoToRecord(NoSeries);
         NoSeriesPage.StartNo.Drilldown();
@@ -998,7 +1003,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeries: Record "No. Series";
     begin
         NoSeries.Init();
-        NoSeries.Code := CopyStr(CreateGuid(), 1, 10);    // todo: use the last instead of the first charackters
+        NoSeries.Code := CopyStr(CreateGuid(), 1, 10);    // todo: use the last instead of the first characters
         NoSeries."Default Nos." := true;
         NoSeries."Manual Nos." := false;
         if not NoSeries.Insert() then;
@@ -1053,7 +1058,7 @@ codeunit 134370 "ERM No. Series Tests"
     var
         NoSeriesLine: Record "No. Series Line";
     begin
-        NoSeriesLine.SetRange("Series Code", NoSeriesCodeForUseInModalPageHendler);
+        NoSeriesLine.SetRange("Series Code", NoSeriesCodeForUseInModalPageHandler);
         NoSeriesLine.Find('-');
 
         repeat
