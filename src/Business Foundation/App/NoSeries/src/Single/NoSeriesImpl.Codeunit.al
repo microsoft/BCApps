@@ -179,14 +179,17 @@ codeunit 304 "No. Series - Impl."
             if not LineFound then
                 NoSeriesLine.SetRange("Line No.");
         end;
-        if not LineFound then begin
 #if not CLEAN24
 #pragma warning disable AL0432
+        if not LineFound then begin
             NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
-#pragma warning restore AL0432
-#endif
             LineFound := NoSeriesLine.FindLast();
         end;
+#pragma warning restore AL0432
+#else
+        if not LineFound then
+            LineFound := NoSeriesLine.FindLast();
+#endif
 
         if LineFound and NoSeries.MayProduceGaps(NoSeriesLine) then begin
             NoSeriesLine.Validate(Open);
