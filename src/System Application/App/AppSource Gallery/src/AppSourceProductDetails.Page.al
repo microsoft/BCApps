@@ -227,13 +227,14 @@ page 2516 "AppSource Product Details"
     procedure SetProduct(var ToProductObject: JsonObject)
     var
         ProductPlansToken: JsonToken;
+        EmptyGuid: Guid;
     begin
         ProductObject := ToProductObject;
         UniqueProductID := AppSourceJsonUtilities.GetStringValue(ProductObject, 'uniqueProductId');
         AppId := AppSourceProductManager.ExtractAppIDFromUniqueProductID(UniqueProductID);
         CurrentRecordCanBeUninstalled := false;
         CurrentRecordCanBeInstalled := false;
-        if (AppID <> '') then
+        if (AppID <> EmptyGuid) then
             CurrentRecordCanBeUninstalled := ExtensionManagement.IsInstalledByAppID(AppID);
 
         if ProductObject.Get('plans', ProductPlansToken) then

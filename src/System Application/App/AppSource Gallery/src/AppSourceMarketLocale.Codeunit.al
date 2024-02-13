@@ -47,7 +47,7 @@ codeunit 2517 "AppSource Market Locale Helper"
         LanguageName := EnsureValidLanguage(LanguageName);
     end;
 
-    local procedure GetCurrentUserLanguageID(): Integer
+    procedure GetCurrentUserLanguageID(): Integer
     var
         TempUserSettings: Record "User Settings" temporary;
         Language: Codeunit Language;

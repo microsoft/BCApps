@@ -98,14 +98,4 @@ table 2515 "AppSource Product"
         {
         }
     }
-
-    procedure ReloadAllProducts()
-    var
-        AppSourceProductManager: Codeunit "AppSource Product Manager";
-    begin
-        Clear(Rec);
-        Rec.DeleteAll();
-        AppSourceProductManager.GetProductsAndPopulateRecord(Rec);
-        Rec.SetCurrentKey(Rec.DisplayName);
-    end;
 }

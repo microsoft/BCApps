@@ -150,7 +150,7 @@ page 2515 "AppSource Product List"
 
                 trigger OnAction()
                 begin
-                    Rec.ReloadAllProducts();
+                    ReloadAllProducts();
                     CurrPage.Update();
                 end;
 
@@ -188,7 +188,7 @@ page 2515 "AppSource Product List"
 
     trigger OnOpenPage()
     begin
-        Rec.ReloadAllProducts();
+        ReloadAllProducts();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -196,5 +196,15 @@ page 2515 "AppSource Product List"
         CurrentRecordCanBeUninstalled := false;
         if (Rec.AppID <> '') then
             CurrentRecordCanBeUninstalled := ExtensionManagement.IsInstalledByAppID(Rec.AppID);
+    end;
+
+    local procedure ReloadAllProducts()
+    var
+        AppSourceProductManager: Codeunit "AppSource Product Manager";
+    begin
+        Clear(Rec);
+        Rec.DeleteAll();
+        AppSourceProductManager.GetProductsAndPopulateRecord(Rec);
+        Rec.SetCurrentKey(Rec.DisplayName);
     end;
 }

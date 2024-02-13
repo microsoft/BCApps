@@ -21,6 +21,25 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    var
+        Dependencies: Interface "AppSource Product Manager Dependencies";
+        AppsourceMarketLocaleHelper: Codeunit "AppSource Market Locale Helper";
+        AppSourceJsonUtilities: Codeunit "AppSource Json Utilities";
+        IsDependenciesSet: boolean;
+        CatalogProductsUriLbl: label 'https://catalogapi.azure.com/products', Locked = true;
+        CatalogApiVersionQueryParamNameLbl: label 'api-version', Locked = true;
+        CatalogApiVersionQueryParamValueLbl: label '2023-05-01-preview', Locked = true;
+        CatalogApiOrderByQueryParamNameLbl: label '$orderby', Locked = true;
+        CatalogMarketQueryParamNameLbl: label 'market', Locked = true;
+        CatalogLanguageQueryParamNameLbl: label 'language', Locked = true;
+        CatalogApiFilterQueryParamNameLbl: Label '$filter', Locked = true;
+        CatalogApiSelectQueryParamNameLbl: Label '$select', Locked = true;
+        AppSourceListingUriLbl: Label 'https://appsource.microsoft.com/%1/product/dynamics-365-business-central/%2', Comment = '%1=Language ID, such as en-US, %2=Url Query Content', Locked = true;
+        AppSourceUriLbl: Label 'https://appsource.microsoft.com/%1/marketplace/apps?product=dynamics-365-business-central', Comment = '1%=Language ID, such as en-US', Locked = true;
+        UnsupportedMarketNotificationLbl: Label 'Market %1 is not supported by AppSource. Defaulting to "us". Change the region in the user profile to use another market.', Comment = '%1=Market ID, such as "us"';
+        UnsupportedLanguageNotificationLbl: Label 'Language %1 is not supported by AppSource. Defaulting to "en". Change the language in the user profile to use another language.', Comment = '%1=Language ID, such as en';
+        NotSupportedOnPremisesErrorLbl: Label 'Not supported on premises.';
+
     #region Dependency Interface implementation
     procedure GetCountryLetterCode(): Text[2]
     var
@@ -108,7 +127,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     var
         Language: Codeunit Language;
     begin
-        Hyperlink(StrSubstNo(AppSourceListingUriLbl, Language.GetCultureName(GetCurrentUserLanguageID()), UniqueProductIDValue));
+        Hyperlink(StrSubstNo(AppSourceListingUriLbl, AppsourceMarketLocaleHelper.GetCurrentLanguageCultureName(), UniqueProductIDValue));
     end;
 
     /// <summary>
@@ -134,11 +153,12 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     internal procedure ExtractAppIDFromUniqueProductID(UniqueProductIDValue: Text): Guid
     var
         AppIDPos: Integer;
+        EmptyGuid: Guid;
     begin
         AppIDPos := StrPos(UniqueProductIDValue, 'PAPPID.');
         if (AppIDPos > 0) then
             exit(CopyStr(UniqueProductIDValue, AppIDPos + 7, 36));
-        exit('');
+        exit(EmptyGuid);
     end;
 
     /// <summary>
@@ -219,6 +239,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         RestClient: Codeunit "Rest Client";
         NextPageLink: text;
     begin
+        Init();
         NextPageLink := ConstructProductListUri();
 
         RestClient.Initialize();
@@ -227,38 +248,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         repeat
             NextPageLink := DownloadAndAddNextPageProducts(NextPageLink, AppSourceProductRec, RestClient);
         until NextPageLink = '';
-    end;
-
-    local procedure GetCurrentUserLanguageID(): Integer
-    var
-        TempUserSettings: Record "User Settings" temporary;
-        Language: Codeunit Language;
-        LanguageID: Integer;
-    begin
-        Init();
-        Dependencies.GetUserSettings(Database.UserSecurityID(), TempUserSettings);
-        LanguageID := TempUserSettings."Language ID";
-        if (LanguageID = 0) then
-            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.GetPreferredLanguage());
-        if (LanguageID = 0) then
-            LanguageID := 1033; // Default to EN-US
-        exit(LanguageID);
-    end;
-
-    local procedure GetCurrentUserLanguageAnLocaleID(var LanguageID: Integer; var LocaleID: Integer)
-    var
-        TempUserSettings: Record "User Settings" temporary;
-        Language: Codeunit Language;
-    begin
-        Init();
-        Dependencies.GetUserSettings(Database.UserSecurityID(), TempUserSettings);
-        LanguageID := TempUserSettings."Language ID";
-        if (LanguageID = 0) then
-            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.GetPreferredLanguage());
-        if (LanguageID = 0) then
-            LanguageID := 1033; // Default to EN-US
-
-        LocaleID := TempUserSettings."Locale ID";
     end;
 
     /// <summary>
@@ -421,23 +410,4 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         AppsourceMarketLocaleHelper.SetDependencies(DependencyInstance);
         IsDependenciesSet := true;
     end;
-
-    var
-        Dependencies: Interface "AppSource Product Manager Dependencies";
-        AppsourceMarketLocaleHelper: Codeunit "AppSource Market Locale Helper";
-        AppSourceJsonUtilities: Codeunit "AppSource Json Utilities";
-        IsDependenciesSet: boolean;
-        CatalogProductsUriLbl: label 'https://catalogapi.azure.com/products', Locked = true;
-        CatalogApiVersionQueryParamNameLbl: label 'api-version', Locked = true;
-        CatalogApiVersionQueryParamValueLbl: label '2023-05-01-preview', Locked = true;
-        CatalogApiOrderByQueryParamNameLbl: label '$orderby', Locked = true;
-        CatalogMarketQueryParamNameLbl: label 'market', Locked = true;
-        CatalogLanguageQueryParamNameLbl: label 'language', Locked = true;
-        CatalogApiFilterQueryParamNameLbl: Label '$filter', Locked = true;
-        CatalogApiSelectQueryParamNameLbl: Label '$select', Locked = true;
-        AppSourceListingUriLbl: Label 'https://appsource.microsoft.com/%1/product/dynamics-365-business-central/%2', Comment = '%1=Language ID, such as en-US, %2=Url Query Content', Locked = true;
-        AppSourceUriLbl: Label 'https://appsource.microsoft.com/%1/marketplace/apps?product=dynamics-365-business-central', Comment = '1%=Language ID, such as en-US', Locked = true;
-        UnsupportedMarketNotificationLbl: Label 'Market %1 is not supported by AppSource. Defaulting to "us". Change the region in the user profile to use another market.', Comment = '%1=Market ID, such as "us"';
-        UnsupportedLanguageNotificationLbl: Label 'Language %1 is not supported by AppSource. Defaulting to "en". Change the language in the user profile to use another language.', Comment = '%1=Language ID, such as en';
-        NotSupportedOnPremisesErrorLbl: Label 'Not supported on premises.';
 }
