@@ -433,8 +433,8 @@ codeunit 396 NoSeriesManagement
     begin
         SetParametersBeforeRun(NoSeriesCode, SeriesDate);
     end;
-#endif
 
+    [Obsolete('Use PeekNextNo from codeunit "No. Series" instead.', '24.0')]
     procedure SetParametersBeforeRun(NoSeriesCode: Code[20]; SeriesDate: Date)
     begin
         TryNoSeriesCode := NoSeriesCode;
@@ -442,20 +442,18 @@ codeunit 396 NoSeriesManagement
         OnAfterSetParametersBeforeRun(TryNoSeriesCode, TrySeriesDate, WarningNoSeriesCode);
     end;
 
-#if not CLEAN24
     [Obsolete('Use GetNextNoAfterRun() instead', '21.0')]
     procedure GetNextNo2(): Code[20]
     begin
         exit(GetNextNoAfterRun());
     end;
-#endif
 
+    [Obsolete('Use PeekNextNo from codeunit "No. Series" instead.', '24.0')]
     procedure GetNextNoAfterRun(): Code[20]
     begin
         exit(TryNo);
     end;
 
-#if not CLEAN24
     [Obsolete('Use the SaveState method in the No. Series - Batch codeunit instead.', '24.0')]
     procedure SaveNoSeries()
     var
