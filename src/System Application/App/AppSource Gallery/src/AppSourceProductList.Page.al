@@ -203,5 +203,6 @@ page 2515 "AppSource Product List"
         Rec.DeleteAll();
         AppSourceProductManager.GetProductsAndPopulateRecord(Rec);
         Rec.SetCurrentKey(Rec.DisplayName);
+        Rec.FindSet(false);
     end;
 }
