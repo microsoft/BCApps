@@ -5,7 +5,7 @@
 
 namespace System.AI;
 
-codeunit 7777 "AOAI Tools Impl"
+codeunit 7778 "AOAI Tools Impl"
 {
     Access = Internal;
     InherentEntitlements = X;
