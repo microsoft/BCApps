@@ -111,7 +111,7 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
         HyperlinkStorage.Enqueue('https://appsource.microsoft.com/es-ES/product/dynamics-365-business-central/PUBID.nav24spzoo1579516366010%7CAID.n24_test_transactability%7CPAPPID.0984da34-5ec1-4ac1-9575-b73fb2212327');
 
         // When 
-        AppSourceProductManager.OpenInAppSource(UniqueId);
+        AppSourceProductManager.OpenAppInAppSource(UniqueId);
 
         // Then
         // Asserted in handler
