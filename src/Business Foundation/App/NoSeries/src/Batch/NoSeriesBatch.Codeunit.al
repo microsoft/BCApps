@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Foundation.NoSeries;
-
+ 
 /// <summary>
 /// Provides an interface for interacting with number series.
-/// This codeunit batches requests until SaveState() is called (The database is not updated in the meantime but locked instead). For more direct database interactions, see codeunit "No. Series".
+/// This codeunit batches requests until SaveState() is called (The database is not updated in the meantime but locked instead). For more direct database interactions, see codeunit "No. Series".  
 /// </summary>
 codeunit 308 "No. Series - Batch"
 {
