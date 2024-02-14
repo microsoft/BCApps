@@ -575,6 +575,7 @@ codeunit 134531 "No. Series Batch Tests"
         NoSeriesBatch: Codeunit "No. Series - Batch";
         PermissionsMock: Codeunit "Permissions Mock";
         NoSeriesBatch2: Codeunit "No. Series - Batch";
+        NoSeriesBatch3: Codeunit "No. Series - Batch";
         NoSeriesCode: Code[20];
         i: Integer;
     begin
@@ -606,10 +607,17 @@ codeunit 134531 "No. Series Batch Tests"
         LibraryAssert.AreEqual('B3', NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate()), 'Getting Next No. should continue the simulation');
 
         // [WHEN] We get the next number from the No. Series using a different batch
-        // [THEN] The numbers from line 1 are exhausted so we continue from line 2
-        LibraryAssert.AreEqual('B4', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
-        LibraryAssert.AreEqual('B5', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
-        LibraryAssert.AreEqual('B6', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        // [THEN] The numbers start again from A1
+        LibraryAssert.AreEqual('A1', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        LibraryAssert.AreEqual('A2', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        LibraryAssert.AreEqual('A3', NoSeriesBatch2.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+
+        // [WHEN] We save the original batch
+        NoSeriesBatch.SaveState();
+        // [THEN] The numbers from another batch will continue from line 2
+        LibraryAssert.AreEqual('B4', NoSeriesBatch3.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        LibraryAssert.AreEqual('B5', NoSeriesBatch3.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
+        LibraryAssert.AreEqual('B6', NoSeriesBatch3.GetNextNo(NoSeriesCode, WorkDate()), 'No numbers from the sequence should have been used');
     end;
 
     [Test]
@@ -740,9 +748,9 @@ codeunit 134531 "No. Series Batch Tests"
         // [THEN] No number is returned
         LibraryAssert.AreEqual('', NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate(), true), 'A number was returned even though the sequence has run out');
 
-        // [THEN] GetLastNoUsed returns blank, however new batch references will return A9 until save since the Line is not yet closed but the sequence is updated in the database.
+        // [THEN] GetLastNoUsed returns A9, however new batch references will return blank since no number has been saved.
         LibraryAssert.AreEqual('A9', NoSeriesBatch.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed Number was not as expected after getting invalid number');
-        LibraryAssert.AreEqual('A9', NoSeriesBatch2.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed Number was not as expected');
+        LibraryAssert.AreEqual('', NoSeriesBatch2.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed Number was not as expected');
 
         // [GIVEN] The No. Series is saved
         NoSeriesBatch.SaveState();
@@ -863,6 +871,58 @@ codeunit 134531 "No. Series Batch Tests"
         LibraryAssert.AreEqual('', NoSeriesBatch2.GetLastNoUsed(NoSeriesCode), 'GetLastNoUsed with code Number was not as expected');
     end;
     #endregion
+
+    [Test]
+    procedure TestSequenceTempCurrentSequenceNoField()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        TempNoSeriesLine: Record "No. Series Line" temporary;
+        NoSeriesBatch: Codeunit "No. Series - Batch";
+        NoSeriesBatch2: Codeunit "No. Series - Batch";
+        PermissionsMock: Codeunit "Permissions Mock";
+        RecordRef: RecordRef;
+        TempCurrentSequenceNoField: FieldRef;
+        NoSeriesCode: Code[20];
+    begin
+        // [Scenario] Make sure the Temp Current Sequence No. field cannot be abused and is always set to 0 upon database modify
+        // Note: These scenarios are not supported, this is simply to make sure the Temp Current Sequence No. field works as expected behind the scenes.
+
+        Initialize();
+        PermissionsMock.Set('No. Series - Admin');
+
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, '1', '9');
+        NoSeriesLine.SetRange("Series Code", NoSeriesCode);
+        NoSeriesLine.FindFirst();
+        TempNoSeriesLine := NoSeriesLine;
+        TempNoSeriesLine.Insert();
+
+        // [GIVEN] A No. Series Line and Temporary No. Series Line with Current Sequence No. set to 5
+        PermissionsMock.SetExactPermissionSet('No. Series Test');
+        RecordRef.GetTable(NoSeriesLine);
+        TempCurrentSequenceNoField := RecordRef.Field(15); // Field "Temp Current Sequence No."
+        TempCurrentSequenceNoField.Value := 5;
+        RecordRef.SetTable(NoSeriesLine);
+        TempNoSeriesLine := NoSeriesLine;
+
+        // [WHEN] Fetching the Last No. Used, both implementations return blank (batch will fetch the correct line from the database which does not contain the Temp Current Sequence No.)
+        LibraryAssert.AreEqual('', NoSeriesBatch.GetLastNoUsed(NoSeriesLine), 'GetLastNoUsed returned wrong value');
+        LibraryAssert.AreEqual('', NoSeriesBatch2.GetLastNoUsed(TempNoSeriesLine), 'GetLastNoUsed with temporary record returned wrong value');
+
+        // [WHEN] We peek the next number from both No. Series, they both return 1 since no number has been used
+        LibraryAssert.AreEqual('1', NoSeriesBatch.PeekNextNo(NoSeriesLine, WorkDate()), 'PeekNextNo returned wrong value');
+        LibraryAssert.AreEqual('1', NoSeriesBatch2.PeekNextNo(TempNoSeriesLine, WorkDate()), 'PeekNextNo with temporary record returned wrong value');
+
+        // [WHEN] We get the next number from both No. Series, they both return 1
+        LibraryAssert.AreEqual('1', NoSeriesBatch.GetNextNo(NoSeriesLine, WorkDate()), 'GetNextNo returned wrong value');
+        LibraryAssert.AreEqual('1', NoSeriesBatch2.GetNextNo(TempNoSeriesLine, WorkDate()), 'GetNextNo with temporary record returned wrong value');
+
+        // [THEN] Getting the next number, they again both return 7
+        LibraryAssert.AreEqual('2', NoSeriesBatch.GetNextNo(NoSeriesLine, WorkDate()), 'GetNextNo returned wrong value');
+        LibraryAssert.AreEqual('2', NoSeriesBatch2.GetNextNo(TempNoSeriesLine, WorkDate()), 'GetNextNo with temporary record returned wrong value');
+    end;
 
     local procedure Initialize()
     begin
