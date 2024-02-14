@@ -87,6 +87,7 @@ page 2515 "AppSource Product List"
                 field(PublisherType; Rec.PublisherType)
                 {
                     ToolTip = 'Specifies whether the offer is a Microsoft or third party product.';
+                    Visible = false;
                 }
             }
         }
