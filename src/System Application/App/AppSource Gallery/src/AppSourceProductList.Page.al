@@ -191,9 +191,11 @@ page 2515 "AppSource Product List"
     end;
 
     trigger OnAfterGetCurrRecord()
+    var
+        EmptyGuid: Guid;
     begin
         CurrentRecordCanBeUninstalled := false;
-        if (Rec.AppID <> '') then
+        if (Rec.AppID <> EmptyGuid) then
             CurrentRecordCanBeUninstalled := ExtensionManagement.IsInstalledByAppID(Rec.AppID);
     end;
 
