@@ -21,6 +21,7 @@ codeunit 7777 "AOAI Tools Impl"
         ToolIdDoesNotExistErr: Label 'Tool id does not exist.';
         ToolObjectInvalidErr: Label '%1 object does not contain %2 property.', Comment = '%1 is the object name and %2 is the property that is missing.';
         ToolTypeErr: Label 'Tool type must be of function type.';
+        CapabilityBlockedErr: Label 'Tools capability is currently blocked for non Microsoft features.';
 
     [NonDebuggable]
     procedure AddTool(NewTool: JsonObject; CallerModuleInfo: ModuleInfo)
@@ -151,7 +152,6 @@ codeunit 7777 "AOAI Tools Impl"
     local procedure CapabilityBlocked(CallerModuleInfo: ModuleInfo)
     var
         CurrentModuleInfo: ModuleInfo;
-        CapabilityBlockedErr: Label 'Tools capability is currently blocked for non Microsoft features.';
     begin
         NavApp.GetCallerModuleInfo(CurrentModuleInfo);
 
