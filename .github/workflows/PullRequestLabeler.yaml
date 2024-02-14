@@ -20,7 +20,6 @@ jobs:
         uses: actions/labeler@v5
         with:
             repo-token: '${{ secrets.GITHUB_TOKEN }}'
-            dot: true
             sync-labels: true
 
       - name: Label community contribution
