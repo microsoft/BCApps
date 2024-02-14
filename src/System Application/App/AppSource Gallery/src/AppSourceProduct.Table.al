@@ -44,7 +44,7 @@ table 2515 "AppSource Product"
         }
         field(9; RatingCount; Integer)
         {
-            Caption = 'No. of Ratings';
+            Caption = 'No. Of Ratings';
         }
         field(10; ProductType; Text[200])
         {

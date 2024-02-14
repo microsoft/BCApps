@@ -31,16 +31,18 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
     var
         AppSourceProductManager: codeunit "AppSource Product Manager";
         UniqueId: Text;
-        AppId: Text;
+        AppId: Guid;
+        ExpectedAppId: Guid;
     begin
         // Given
         UniqueId := 'PUBID.nav24spzoo1579516366010%7CAID.n24_test_transactability%7CPAPPID.0984da34-5ec1-4ac1-9575-b73fb2212327';
+        ExpectedAppId := '0984da34-5ec1-4ac1-9575-b73fb2212327';
 
         // When 
         AppId := AppSourceProductManager.ExtractAppIDFromUniqueProductID(UniqueId);
 
         // Then
-        Assert.AreEqual('0984da34-5ec1-4ac1-9575-b73fb2212327', AppId, 'Expected AppId to be extracted from UniqueId');
+        Assert.AreEqual(ExpectedAppId, AppId, 'Expected AppId to be extracted from UniqueId');
     end;
 
     [Test]
@@ -48,7 +50,7 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
     var
         AppSourceProductManager: codeunit "AppSource Product Manager";
         UniqueId: Text;
-        AppId: Text;
+        AppId: Guid;
     begin
         // Given
         UniqueId := 'articentgroupllc1635512619530.ackee-ubuntu-18-04-minimal';
@@ -57,7 +59,7 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
         AppId := AppSourceProductManager.ExtractAppIDFromUniqueProductID(UniqueId);
 
         // Then
-        Assert.AreEqual('', AppId, 'Expected AppId to be empty when not present in the UniqueId');
+        Assert.IsTrue(IsNullGuid(AppId), 'Expected AppId to be empty when not present in the UniqueId');
     end;
 
     [Test]
