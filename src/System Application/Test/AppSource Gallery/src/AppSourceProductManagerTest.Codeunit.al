@@ -350,9 +350,9 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
         ApplicationFamilyStore.Enqueue(ApplicationFamily);
     end;
 
-    internal procedure AddToIsSaasStore(IsSaas: Boolean)
+    internal procedure AddToIsSaasStore(IsSaasValue: Boolean)
     begin
-        IsSaasStore.Enqueue(IsSaas);
+        IsSaasStore.Enqueue(IsSaasValue);
     end;
 
     internal procedure AddToKeyVaultStore(Secret: Text)
