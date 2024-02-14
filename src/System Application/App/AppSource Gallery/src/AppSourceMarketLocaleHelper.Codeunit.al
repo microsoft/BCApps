@@ -150,7 +150,7 @@ codeunit 2517 "AppSource Market Locale Helper"
         end;
     end;
 
-    procedure SetDependencies(DependencyInstance: Codeunit "AppSource Product Manager")
+    procedure SetDependencies(DependencyInstance: Interface "AppSource Product Manager Dependencies")
     begin
         Dependencies := DependencyInstance;
     end;

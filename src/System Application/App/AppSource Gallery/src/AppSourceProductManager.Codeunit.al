@@ -104,6 +104,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     procedure SetDependencies(SpecificDependencies: Interface "AppSource Product Manager Dependencies")
     begin
         Dependencies := SpecificDependencies;
+        AppsourceMarketLocaleHelper.SetDependencies(SpecificDependencies);
         IsDependenciesSet := true;
     end;
 
@@ -123,6 +124,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     /// <param name="UniqueProductIDValue">The Unique Product ID of the product to show in MicrosoftAppSource</param>
     procedure OpenAppInAppSource(UniqueProductIDValue: Text)
     begin
+        Init();
         Hyperlink(StrSubstNo(AppSourceListingUriLbl, AppsourceMarketLocaleHelper.GetCurrentLanguageCultureName(), UniqueProductIDValue));
     end;
 
@@ -402,8 +404,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     var
         DependencyInstance: Codeunit "AppSource Product Manager";
     begin
-        Dependencies := DependencyInstance;
-        AppsourceMarketLocaleHelper.SetDependencies(DependencyInstance);
+        SetDependencies(DependencyInstance);
         IsDependenciesSet := true;
     end;
 }
