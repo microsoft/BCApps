@@ -77,7 +77,6 @@ codeunit 309 "No. Series - Batch Impl."
         NextNo: Code[20];
     begin
         SyncGlobalLineWithProvidedLine(TempNoSeriesLine, UsageDate);
-        LockedNoSeriesLine.ReadIsolation(IsolationLevel::UpdLock);
         NextNo := NoSeries.GetNextNo(TempGlobalNoSeriesLine, UsageDate, HideErrorsAndWarnings);
         TempNoSeriesLine := TempGlobalNoSeriesLine;
         exit(NextNo);
