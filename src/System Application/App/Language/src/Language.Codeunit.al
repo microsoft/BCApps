@@ -67,6 +67,42 @@ codeunit 43 Language
         exit(LanguageImpl.GetLanguageId(LanguageCode));
     end;
 
+    /// <summary>  
+    /// Sets an override for the language ID.   
+    /// This function is used to override the default or user-selected language ID.   
+    /// Once set, the system will return this language ID for any subsequent calls to `GetLanguageIdOrDefault` method, until the override is cleared.  
+    /// </summary>  
+    /// <param name="LanguageId">The language ID that should be used as an override.</param>  
+    /// <example>  
+    /// <code>  
+    /// LanguageImpl.SetOverrideLanguageId(1031); // Sets the override language ID to German (1031)  
+    /// </code>  
+    /// </example>  
+    procedure SetOverrideLanguageId(LanguageId: Integer)
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        LanguageImpl.SetOverrideLanguageId(LanguageId);
+    end;
+
+    /// <summary>  
+    /// Sets an override for the format region.   
+    /// This function is used to override the default or user-selected format region.   
+    /// Once set, the system will return this format region for any subsequent calls to `GetFormatRegionOrDefault` method, until the override is cleared.  
+    /// </summary>  
+    /// <param name="FormatRegion">The format region that should be used as an override.</param>  
+    /// <example>  
+    /// <code>  
+    /// LanguageImpl.SetOverrideFormatRegion("de-DE"); // Sets the override format region to German (de-DE)  
+    /// </code>  
+    /// </example>  
+    procedure SetOverrideFormatRegion(FormatRegion: Text[80])
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        LanguageImpl.SetOverrideFormatRegion(FormatRegion);
+    end;
+
     /// <summary>
     /// Gets the code for a language based on its ID.
     /// </summary>
@@ -268,31 +304,6 @@ codeunit 43 Language
     /// <param name="Handled">To change the default behavior of the function that emits the event, set this parameter to true.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnGetUserLanguageCode(var UserLanguageCode: Code[10]; var Handled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Integration event, emitted from <see cref="GetLanguageIdOrDefault"/>.
-    /// Subscribe to this event to change language id returned by GetLanguageIdOrDefault.
-    /// </summary>
-    /// <seealso cref="GetLanguageIdOrDefault"/>
-    /// <param name="LanguageCode">Language code that GetLanguageIdOrDefault was provided with.</param>
-    /// <param name="LanguageId">Exit parameter that holds the language id set by function.</param>
-    /// <param name="Handled">True when this event is handled.</param>
-    [IntegrationEvent(false, false)]
-    internal procedure OnGetLanguageIdOrDefault(LanguageCode: Code[10]; var LanguageId: Integer; var Handled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// Integration event, emitted from <see cref="GetFormatRegionOrDefault"/>.
-    /// Subscribe to this event to change format region returned by GetFormatRegionOrDefault.
-    /// </summary>
-    /// <seealso cref="GetFormatRegionOrDefault"/>
-    /// <param name="FormatRegion">Exit parameter that holds the format region returned by function.</param>
-    /// <param name="Handled">True when this event is handled.</param>
-    [IntegrationEvent(false, false)]
-    internal procedure OnGetFormatRegionOrDefault(var FormatRegion: Text[80]; var Handled: Boolean)
     begin
     end;
 }

@@ -21,6 +21,8 @@ codeunit 54 "Language Impl."
                   tabledata "Windows Language" = r;
 
     var
+        LanguageIdOverride: Integer;
+        FormatRegionOverride: Text[80];
         LanguageNotFoundErr: Label 'The language %1 could not be found.', Comment = '%1 = Language ID';
 
     procedure GetUserLanguageCode() UserLanguageCode: Code[10]
@@ -36,16 +38,12 @@ codeunit 54 "Language Impl."
 
     procedure GetLanguageIdOrDefault(LanguageCode: Code[10]): Integer;
     var
-        Language: Codeunit Language;
         LanguageId: Integer;
-        Handled: Boolean;
     begin
-        Language.OnGetLanguageIdOrDefault(LanguageCode, LanguageId, Handled);
-        if Handled then
-            exit(LanguageId);
+        if LanguageIdOverride <> 0 then
+            exit(LanguageIdOverride);
 
         LanguageId := GetLanguageId(LanguageCode);
-
         if LanguageId = 0 then
             LanguageId := GlobalLanguage();
 
@@ -55,14 +53,11 @@ codeunit 54 "Language Impl."
     procedure GetFormatRegionOrDefault(FormatRegion: Text[80]): Text[80]
     var
         LanguageSelection: Record "Language Selection";
-        Language: Codeunit Language;
         UserSessionSettings: SessionSettings;
         LocalId: Integer;
-        Handled: Boolean;
     begin
-        Language.OnGetFormatRegionOrDefault(FormatRegion, Handled);
-        if Handled then
-            exit(FormatRegion);
+        if FormatRegionOverride <> '' then
+            exit(FormatRegionOverride);
 
         if FormatRegion <> '' then
             exit(FormatRegion);
@@ -75,6 +70,16 @@ codeunit 54 "Language Impl."
             exit(LanguageSelection."Language Tag");
 
         exit('en-US');
+    end;
+
+    procedure SetOverrideLanguageId(LanguageId: Integer)
+    begin
+        LanguageIdOverride := LanguageId;
+    end;
+
+    procedure SetOverrideFormatRegion(FormatRegion: Text[80])
+    begin
+        FormatRegionOverride := FormatRegion;
     end;
 
     procedure GetLanguageId(LanguageCode: Code[10]): Integer
