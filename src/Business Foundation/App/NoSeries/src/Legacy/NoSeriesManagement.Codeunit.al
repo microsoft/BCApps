@@ -209,6 +209,9 @@ codeunit 396 NoSeriesManagement
 #if not CLEAN24
     [Obsolete('To check whether No. Series are related, please use the methods TestAreRelated and AreRelated in codeunit "No. Series"', '24.0')]
     procedure FilterSeries()
+#else
+    local procedure FilterSeries()
+#endif
     var
         NoSeriesRelationship: Record "No. Series Relationship";
         IsHandled: Boolean;
@@ -229,7 +232,6 @@ codeunit 396 NoSeriesManagement
             GlobalNoSeries.Mark := true;
         GlobalNoSeries.MarkedOnly := true;
     end;
-#endif
 
     procedure GetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean) Result: Code[20]
     var
@@ -837,6 +839,9 @@ codeunit 396 NoSeriesManagement
 #if not CLEAN24
     [Obsolete('Please use the the No. Series Relationship table instead to lookup if there are any relations.', '24.0')]
     procedure SeriesHasRelations(DefaultNoSeriesCode: Code[20]): Boolean
+#else
+    local procedure SeriesHasRelations(DefaultNoSeriesCode: Code[20]): Boolean
+#endif
     var
         NoSeriesRelationship: Record "No. Series Relationship";
     begin
@@ -844,7 +849,6 @@ codeunit 396 NoSeriesManagement
         NoSeriesRelationship.SetRange(Code, DefaultNoSeriesCode);
         exit(not NoSeriesRelationship.IsEmpty);
     end;
-#endif
 
     [Scope('OnPrem')]
     procedure ReverseGetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean): Code[20] // Backwards compatibility for apac
