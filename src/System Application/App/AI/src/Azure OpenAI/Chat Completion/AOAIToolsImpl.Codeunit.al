@@ -75,7 +75,7 @@ codeunit 7777 "AOAI Tools Impl"
         until Counter > Tools.Count;
     end;
 
-    procedure ToolExists(): Boolean
+    procedure ToolsExists(): Boolean
     begin
         exit(AddToolToPayload and (Tools.Count > 0));
     end;

@@ -209,7 +209,6 @@ codeunit 7763 "AOAI Chat Messages"
     /// </summary>
     /// <param name="Id">Id of the Tool.</param>
     /// <error>Message id does not exist.</error>
-    [NonDebuggable]
     procedure DeleteTool(Id: Integer)
     begin
         AOAIToolsImpl.DeleteTool(Id);
@@ -229,17 +228,15 @@ codeunit 7763 "AOAI Chat Messages"
     /// Checks if at least one Tools exists in the list.
     /// </summary>
     /// <returns>True if Tools exists, false otherwise.</returns>
-    [NonDebuggable]
-    procedure ToolExists(): Boolean
+    procedure ToolsExists(): Boolean
     begin
-        exit(AOAIToolsImpl.ToolExists());
+        exit(AOAIToolsImpl.ToolsExists());
     end;
 
     /// <summary>
     /// Sets the Tools to be added to the payload.
     /// </summary>
     /// <param name="AddToolsToPayload">True if Tools is to be added to the payload, false otherwise.</param>
-    [NonDebuggable]
     procedure SetAddToolsToPayload(AddToolsToPayload: Boolean)
     begin
         AOAIToolsImpl.SetAddToolToPayload(AddToolsToPayload);

@@ -316,7 +316,7 @@ codeunit 7772 "Azure OpenAI Impl"
         AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
         Payload.Add('messages', ChatMessages.AssembleHistory(MetapromptTokenCount, PromptTokenCount));
 
-        if ChatMessages.ToolExists() then begin
+        if ChatMessages.ToolsExists() then begin
             ToolsPayload := ChatMessages.AssembleTools();
             Payload.Add('tools', ToolsPayload);
             ToolChoice := ChatMessages.GetToolChoice();
