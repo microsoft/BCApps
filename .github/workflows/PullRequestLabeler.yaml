@@ -1,6 +1,6 @@
 name: Pull request Labeler
 on:
-  pull_request_target:
+  pull_request:
 
 permissions:
   contents: read
@@ -17,9 +17,10 @@ jobs:
     if: github.repository_owner == 'microsoft'
     steps:
       - name: Label pull request
-        uses: actions/labeler@v5
+        uses: actions/labeler@v4
         with:
             repo-token: '${{ secrets.GITHUB_TOKEN }}'
+            dot: true # allows for easier matching of paths
             sync-labels: true
 
       - name: Label community contribution

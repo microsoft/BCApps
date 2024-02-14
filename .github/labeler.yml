@@ -8,6 +8,9 @@
 "AL: System Application":
 - src/System Application/**
 
+"AL: Business Foundation":
+- src/Business Foundation/**
+
 "AL: Tools":
 - src/Tools/**
 
