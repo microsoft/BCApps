@@ -106,13 +106,13 @@ codeunit 132686 "Azure OpenAI Tools Test"
         TestTool: Text;
         ToolJsonObject: JsonObject;
     begin
-        TestTool := '{"type": "function", "function": {"name": "test_function", "parameters": {"type": "object", "properties": {"message": {"type": "string", "description": "The input from user."}}}}}';
+        TestTool := '{"type": "function", "function": {"name": "test_function_2", "parameters": {"type": "object", "properties": {"message": {"type": "string", "description": "The input from user."}}}}}';
         ToolJsonObject.ReadFrom(TestTool);
         exit(ToolJsonObject);
     end;
 
     local procedure GetToolChoice(): Text
     begin
-        exit('{"type": "function","function": {"name": "test_function"}');
+        exit('{"type": "function","function": {"name": "test_function_1"}');
     end;
 }
