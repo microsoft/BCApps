@@ -68,39 +68,52 @@ codeunit 43 Language
     end;
 
     /// <summary>  
-    /// Sets an override for the language ID.   
-    /// This function is used to override the default or user-selected language ID.   
-    /// Once set, the system will return this language ID for any subsequent calls to `GetLanguageIdOrDefault` method, until the override is cleared.  
+    /// Overrides the language ID returned by the GetLanguageIdOrDefault function. 
     /// </summary>  
-    /// <param name="LanguageId">The language ID that should be used as an override.</param>  
-    /// <example>  
-    /// <code>  
-    /// LanguageImpl.SetOverrideLanguageId(1031); // Sets the override language ID to German (1031)  
-    /// </code>  
-    /// </example>  
+    /// <param name="LanguageId">The ID of the language to use. This must be a valid language ID.</param>  
+    /// <remarks>  
+    /// This override will be reset after it's used once in the GetLanguageIdOrDefault function. To keep the override throughout the application, use SetOverrideLanguageId(LanguageId: Integer; ResetOverride: Boolean) method.  
+    /// </remarks>  
     procedure SetOverrideLanguageId(LanguageId: Integer)
-    var
-        LanguageImpl: Codeunit "Language Impl.";
     begin
-        LanguageImpl.SetOverrideLanguageId(LanguageId);
+        SetOverrideLanguageId(LanguageId, true);
     end;
 
     /// <summary>  
-    /// Sets an override for the format region.   
-    /// This function is used to override the default or user-selected format region.   
-    /// Once set, the system will return this format region for any subsequent calls to `GetFormatRegionOrDefault` method, until the override is cleared.  
+    /// Overrides the language ID returned by the GetLanguageIdOrDefault function.  
     /// </summary>  
-    /// <param name="FormatRegion">The format region that should be used as an override.</param>  
-    /// <example>  
-    /// <code>  
-    /// LanguageImpl.SetOverrideFormatRegion("de-DE"); // Sets the override format region to German (de-DE)  
-    /// </code>  
-    /// </example>  
-    procedure SetOverrideFormatRegion(FormatRegion: Text[80])
+    /// <param name="LanguageId">The ID of the language to use. This must be a valid language ID.</param>  
+    /// <param name="ResetOverride">A boolean value indicating whether the override should be reset after use in the GetLanguageIdOrDefault function. If set to true, the override is reset after it's used once. If set to false, the override remains until it's manually reset or the session is restarted.</param>  
+
+    procedure SetOverrideLanguageId(LanguageId: Integer; ResetOverride: Boolean)
     var
         LanguageImpl: Codeunit "Language Impl.";
     begin
-        LanguageImpl.SetOverrideFormatRegion(FormatRegion);
+        LanguageImpl.SetOverrideLanguageId(LanguageId, ResetOverride);
+    end;
+
+    /// <summary>  
+    /// Overrides the format region returned by the GetFormatRegionOrDefault function.  
+    /// </summary>  
+    /// <param name="FormatRegion">The region to use for formatting purposes. This must be a valid region code.</param>  
+    /// <remarks>  
+    /// This override will be reset after it's used once in the GetFormatRegionOrDefault function. To keep the override throughout the session, use SetOverrideFormatRegion(FormatRegion: Text[80]; ResetOverride: Boolean) method.  
+    /// </remarks>  
+    procedure SetOverrideFormatRegion(FormatRegion: Text[80])
+    begin
+        SetOverrideFormatRegion(FormatRegion, true);
+    end;
+
+    /// <summary>  
+    /// Overrides the format region returned by the GetFormatRegionOrDefault function.
+    /// </summary>  
+    /// <param name="FormatRegion">The region to use for formatting purposes. This must be a valid region code.</param>  
+    /// <param name="ResetOverride">A boolean value indicating whether the override should be reset after use in the GetFormatRegionOrDefault function. If set to true, the override is reset after it's used once. If set to false, the override remains until it's manually reset or the session is restarted.</param>  
+    procedure SetOverrideFormatRegion(FormatRegion: Text[80]; ResetOverride: Boolean)
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        LanguageImpl.SetOverrideFormatRegion(FormatRegion, ResetOverride);
     end;
 
     /// <summary>

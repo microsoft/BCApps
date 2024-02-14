@@ -7,6 +7,7 @@ namespace System.Globalization;
 
 using System;
 using System.Environment.Configuration;
+using System.Telemetry;
 using System.Environment;
 
 codeunit 54 "Language Impl."
@@ -21,9 +22,12 @@ codeunit 54 "Language Impl."
                   tabledata "Windows Language" = r;
 
     var
+        ResetLanguageIdOverrideAfterUse, ResetFormatRegionOverrideAfterUse : Boolean;
         LanguageIdOverride: Integer;
         FormatRegionOverride: Text[80];
         LanguageNotFoundErr: Label 'The language %1 could not be found.', Comment = '%1 = Language ID';
+        LanguageIdOverrideMsg: Label 'LanguageIdOverride has been applied in GetLanguageIdOrDefault. The new Language Id is %1.', Comment = '%1 - Language ID';
+        FormatRegionOverrideMsg: Label 'FormatRegionOverride has been applied in GetFormatRegionOrDefault. The new FormatRegion is %1.', Comment = '%1 - Format Region';
 
     procedure GetUserLanguageCode() UserLanguageCode: Code[10]
     var
@@ -38,10 +42,16 @@ codeunit 54 "Language Impl."
 
     procedure GetLanguageIdOrDefault(LanguageCode: Code[10]): Integer;
     var
+        Telemetry: Codeunit Telemetry;
         LanguageId: Integer;
     begin
-        if LanguageIdOverride <> 0 then
-            exit(LanguageIdOverride);
+        if LanguageIdOverride <> 0 then begin
+            LanguageId := LanguageIdOverride;
+            Telemetry.LogMessage('', StrSubstNo(LanguageIdOverrideMsg, LanguageId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
+            if ResetLanguageIdOverrideAfterUse then
+                LanguageIdOverride := 0;
+            exit(LanguageId);
+        end;
 
         LanguageId := GetLanguageId(LanguageCode);
         if LanguageId = 0 then
@@ -53,11 +63,17 @@ codeunit 54 "Language Impl."
     procedure GetFormatRegionOrDefault(FormatRegion: Text[80]): Text[80]
     var
         LanguageSelection: Record "Language Selection";
+        Telemetry: Codeunit Telemetry;
         UserSessionSettings: SessionSettings;
         LocalId: Integer;
     begin
-        if FormatRegionOverride <> '' then
-            exit(FormatRegionOverride);
+        if FormatRegionOverride <> '' then begin
+            FormatRegion := FormatRegionOverride;
+            Telemetry.LogMessage('', StrSubstNo(FormatRegionOverrideMsg, FormatRegion), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
+            if ResetFormatRegionOverrideAfterUse then
+                FormatRegionOverride := '';
+            exit(FormatRegion);
+        end;
 
         if FormatRegion <> '' then
             exit(FormatRegion);
@@ -72,14 +88,16 @@ codeunit 54 "Language Impl."
         exit('en-US');
     end;
 
-    procedure SetOverrideLanguageId(LanguageId: Integer)
+    procedure SetOverrideLanguageId(LanguageId: Integer; ResetOverride: Boolean)
     begin
         LanguageIdOverride := LanguageId;
+        ResetLanguageIdOverrideAfterUse := ResetOverride;
     end;
 
-    procedure SetOverrideFormatRegion(FormatRegion: Text[80])
+    procedure SetOverrideFormatRegion(FormatRegion: Text[80]; ResetOverride: Boolean)
     begin
         FormatRegionOverride := FormatRegion;
+        ResetFormatRegionOverrideAfterUse := ResetOverride;
     end;
 
     procedure GetLanguageId(LanguageCode: Code[10]): Integer
