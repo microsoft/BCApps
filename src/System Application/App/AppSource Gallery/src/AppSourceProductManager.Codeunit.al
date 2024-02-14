@@ -188,19 +188,19 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         foreach PlanToken in Plans do begin
             PlanObject := PlanToken.AsObject();
 
-            PlanObject.Get('pricingTypes', PricingTypesToken);
-            if (PricingTypesToken.IsArray()) then begin
-                PricingTypes := PricingTypesToken.AsArray();
-                if PricingTypes.Count() = 0 then
-                    exit(false); // No price structure, you need to contact the publisher
+            if PlanObject.Get('pricingTypes', PricingTypesToken) then
+                if (PricingTypesToken.IsArray()) then begin
+                    PricingTypes := PricingTypesToken.AsArray();
+                    if PricingTypes.Count() = 0 then
+                        exit(false); // No price structure, you need to contact the publisher
 
-                foreach PricingType in PricingTypes do begin
-                    if LowerCase(PricingType.AsValue().AsText()) = 'freetrial' then
-                        exit(true); // Free means it can be installed
-                    if LowerCase(PricingType.AsValue().AsText()) = 'payg' then
-                        exit(true); // Pay as you go means it can be installed
+                    foreach PricingType in PricingTypes do begin
+                        if LowerCase(PricingType.AsValue().AsText()) = 'freetrial' then
+                            exit(true); // Free means it can be installed
+                        if LowerCase(PricingType.AsValue().AsText()) = 'payg' then
+                            exit(true); // Pay as you go means it can be installed
+                    end;
                 end;
-            end;
 
             PlanObject.Get('availabilities', AvailabilitiesToken);
             Availabilities := AvailabilitiesToken.AsArray();
