@@ -59,7 +59,7 @@ codeunit 309 "No. Series - Batch Impl."
     var
         NoSeries: Codeunit "No. Series";
     begin
-        SetInitialState(TempNoSeriesLine);
+        SyncGlobalLineWithProvidedLine(TempNoSeriesLine, UsageDate);
         exit(NoSeries.PeekNextNo(TempGlobalNoSeriesLine, UsageDate));
     end;
 

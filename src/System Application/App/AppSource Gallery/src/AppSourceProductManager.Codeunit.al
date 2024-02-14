@@ -22,9 +22,9 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     InherentPermissions = X;
 
     var
-        Dependencies: Interface "AppSource Product Manager Dependencies";
         AppsourceMarketLocaleHelper: Codeunit "AppSource Market Locale Helper";
         AppSourceJsonUtilities: Codeunit "AppSource Json Utilities";
+        Dependencies: Interface "AppSource Product Manager Dependencies";
         IsDependenciesSet: boolean;
         CatalogProductsUriLbl: label 'https://catalogapi.azure.com/products', Locked = true;
         CatalogApiVersionQueryParamNameLbl: label 'api-version', Locked = true;
@@ -36,8 +36,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         CatalogApiSelectQueryParamNameLbl: Label '$select', Locked = true;
         AppSourceListingUriLbl: Label 'https://appsource.microsoft.com/%1/product/dynamics-365-business-central/%2', Comment = '%1=Language ID, such as en-US, %2=Url Query Content', Locked = true;
         AppSourceUriLbl: Label 'https://appsource.microsoft.com/%1/marketplace/apps?product=dynamics-365-business-central', Comment = '1%=Language ID, such as en-US', Locked = true;
-        UnsupportedMarketNotificationLbl: Label 'Market %1 is not supported by AppSource. Defaulting to "us". Change the region in the user profile to use another market.', Comment = '%1=Market ID, such as "us"';
-        UnsupportedLanguageNotificationLbl: Label 'Language %1 is not supported by AppSource. Defaulting to "en". Change the language in the user profile to use another language.', Comment = '%1=Language ID, such as en';
         NotSupportedOnPremisesErrorLbl: Label 'Not supported on premises.';
 
     #region Dependency Interface implementation
@@ -106,6 +104,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     procedure SetDependencies(SpecificDependencies: Interface "AppSource Product Manager Dependencies")
     begin
         Dependencies := SpecificDependencies;
+        AppsourceMarketLocaleHelper.SetDependencies(SpecificDependencies);
         IsDependenciesSet := true;
     end;
 
@@ -124,9 +123,8 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     /// </summary>
     /// <param name="UniqueProductIDValue">The Unique Product ID of the product to show in MicrosoftAppSource</param>
     procedure OpenAppInAppSource(UniqueProductIDValue: Text)
-    var
-        Language: Codeunit Language;
     begin
+        Init();
         Hyperlink(StrSubstNo(AppSourceListingUriLbl, AppsourceMarketLocaleHelper.GetCurrentLanguageCultureName(), UniqueProductIDValue));
     end;
 
@@ -188,19 +186,19 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         foreach PlanToken in Plans do begin
             PlanObject := PlanToken.AsObject();
 
-            PlanObject.Get('pricingTypes', PricingTypesToken);
-            if (PricingTypesToken.IsArray()) then begin
-                PricingTypes := PricingTypesToken.AsArray();
-                if PricingTypes.Count() = 0 then
-                    exit(false); // No price structure, you need to contact the publisher
+            if PlanObject.Get('pricingTypes', PricingTypesToken) then
+                if (PricingTypesToken.IsArray()) then begin
+                    PricingTypes := PricingTypesToken.AsArray();
+                    if PricingTypes.Count() = 0 then
+                        exit(false); // No price structure, you need to contact the publisher
 
-                foreach PricingType in PricingTypes do begin
-                    if LowerCase(PricingType.AsValue().AsText()) = 'freetrial' then
-                        exit(true); // Free means it can be installed
-                    if LowerCase(PricingType.AsValue().AsText()) = 'payg' then
-                        exit(true); // Pay as you go means it can be installed
+                    foreach PricingType in PricingTypes do begin
+                        if LowerCase(PricingType.AsValue().AsText()) = 'freetrial' then
+                            exit(true); // Free means it can be installed
+                        if LowerCase(PricingType.AsValue().AsText()) = 'payg' then
+                            exit(true); // Pay as you go means it can be installed
+                    end;
                 end;
-            end;
 
             PlanObject.Get('availabilities', AvailabilitiesToken);
             Availabilities := AvailabilitiesToken.AsArray();
@@ -406,8 +404,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     var
         DependencyInstance: Codeunit "AppSource Product Manager";
     begin
-        Dependencies := DependencyInstance;
-        AppsourceMarketLocaleHelper.SetDependencies(DependencyInstance);
+        SetDependencies(DependencyInstance);
         IsDependenciesSet := true;
     end;
 }

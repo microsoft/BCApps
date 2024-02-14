@@ -1,0 +1,31 @@
+name: MSDO
+
+on:
+  push:
+    branches: [ "main", "releases/*" ]
+  pull_request:
+    branches: [ "main", "releases/*" ]
+
+permissions:
+  id-token: write # This is required for federation to Defender for DevOps
+  security-events: write # This is required to upload SARIF files
+
+jobs:
+  MSDO:
+    name: Run Microsoft Security DevOps Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Credential Scanning
+        uses: microsoft/security-devops-action@v1.10.0
+        id: credscan
+        with:
+          policy: Microsoft
+          tools: credscan
+
+      - name: Upload results to Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ${{ steps.credscan.outputs.sarifFile }}

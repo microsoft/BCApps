@@ -62,18 +62,17 @@ page 2515 "AppSource Product List"
                     Caption = 'Installed';
                     ToolTip = 'Specifies whether this app is installed.';
                 }
-                field(RatingAverage; Rec.RatingAverage)
-                {
-                    ToolTip = 'Specifies a value from 0-5 indicating the average user rating.';
-                }
                 field(Popularity; Rec.Popularity)
                 {
                     ToolTip = 'Specifies a value from 0-10 indicating the popularity of the offer.';
                 }
+                field(RatingAverage; Rec.RatingAverage)
+                {
+                    ToolTip = 'Specifies a value from 0-5 indicating the average user rating.';
+                }
                 field(RatingCount; Rec.RatingCount)
                 {
                     ToolTip = 'Specifies the number of users that have rated the offer.';
-                    Visible = false;
                 }
                 field(LastModifiedDateTime; Rec.LastModifiedDateTime)
                 {
@@ -87,6 +86,7 @@ page 2515 "AppSource Product List"
                 field(PublisherType; Rec.PublisherType)
                 {
                     ToolTip = 'Specifies whether the offer is a Microsoft or third party product.';
+                    Visible = false;
                 }
             }
         }
@@ -184,7 +184,6 @@ page 2515 "AppSource Product List"
         ExtensionManagement: Codeunit "Extension Management";
         AppSourceProductManager: Codeunit "AppSource Product Manager";
         CurrentRecordCanBeUninstalled: Boolean;
-        SelectOneRowErrLbl: Label 'Action requires exactly one row to be selected.';
 
     trigger OnOpenPage()
     begin
@@ -201,12 +200,11 @@ page 2515 "AppSource Product List"
     end;
 
     local procedure ReloadAllProducts()
-    var
-        AppSourceProductManager: Codeunit "AppSource Product Manager";
     begin
         Clear(Rec);
         Rec.DeleteAll();
         AppSourceProductManager.GetProductsAndPopulateRecord(Rec);
         Rec.SetCurrentKey(Rec.DisplayName);
+        Rec.FindSet(false);
     end;
 }
