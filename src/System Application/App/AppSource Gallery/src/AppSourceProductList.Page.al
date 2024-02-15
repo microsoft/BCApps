@@ -151,7 +151,6 @@ page 2515 "AppSource Product List"
                 trigger OnAction()
                 begin
                     ReloadAllProducts();
-                    CurrPage.Update();
                 end;
 
             }
@@ -200,11 +199,11 @@ page 2515 "AppSource Product List"
     end;
 
     local procedure ReloadAllProducts()
+    var
+        AppSourceProductTemp: Record "AppSource Product";
     begin
-        Clear(Rec);
-        Rec.DeleteAll();
-        AppSourceProductManager.GetProductsAndPopulateRecord(Rec);
-        Rec.SetCurrentKey(Rec.DisplayName);
-        Rec.FindSet(false);
+        AppSourceProductManager.GetProductsAndPopulateRecord(AppSourceProductTemp);
+        AppSourceProductTemp.CopyFilters(Rec);
+        Rec.Copy(AppSourceProductTemp, true);
     end;
 }
