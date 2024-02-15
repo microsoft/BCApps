@@ -17,7 +17,7 @@ interface "AppSource Product Manager Dependencies"
 
     // Dependency to Azure AD Tenant
     procedure GetAadTenantID(): Text
-    procedure GetCountryLetterCode(): Text[2];
+    procedure GetCountryLetterCode(): Code[2];
     procedure GetPreferredLanguage(): Text
 
     // Dependency to  Azure Key Vault 

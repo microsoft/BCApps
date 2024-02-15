@@ -391,7 +391,7 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
         Assert.Fail('GetTenantId should not be called');
     end;
 
-    procedure GetCountryLetterCode(): Text[2]
+    procedure GetCountryLetterCode(): Code[2]
     begin
         if (CountryLetterCodeStore.Length() > 0) then
             exit(CopyStr(CountryLetterCodeStore.DequeueText(), 1, 2));

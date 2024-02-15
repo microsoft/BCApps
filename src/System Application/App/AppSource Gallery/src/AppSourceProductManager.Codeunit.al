@@ -23,7 +23,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
 
     var
         AppSourceJsonUtilities: Codeunit "AppSource Json Utilities";
-        Dependencies: Interface "AppSource Product Manager Dependencies";
+        AppSourceProductManagerDependencies: Interface "AppSource Product Manager Dependencies";
         IsDependenciesSet: boolean;
         CatalogProductsUriLbl: label 'https://catalogapi.azure.com/products', Locked = true;
         CatalogApiVersionQueryParamNameLbl: label 'api-version', Locked = true;
@@ -40,25 +40,25 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         UnsupportedMarketNotificationLbl: Label 'Market %1 is not supported by AppSource. Defaulting to "us". Change the region in the user profile to use another market.', Comment = '%1=Market ID, such as "us"';
 
     #region Dependency Interface implementation
-    procedure GetCountryLetterCode(): Text[2]
+    procedure GetCountryLetterCode(): Code[2]
     var
-        entraTenant: Codeunit "Azure AD Tenant";
+        EntraTenant: Codeunit "Azure AD Tenant";
     begin
-        exit(entraTenant.GetCountryLetterCode());
+        exit(EntraTenant.GetCountryLetterCode());
     end;
 
     procedure GetPreferredLanguage(): Text
     var
-        entraTenant: Codeunit "Azure AD Tenant";
+        EntraTenant: Codeunit "Azure AD Tenant";
     begin
-        exit(entraTenant.GetPreferredLanguage());
+        exit(EntraTenant.GetPreferredLanguage());
     end;
 
     procedure GetAadTenantID(): Text
     var
-        entraTenant: Codeunit "Azure AD Tenant";
+        EntraTenant: Codeunit "Azure AD Tenant";
     begin
-        exit(entraTenant.GetAadTenantID());
+        exit(EntraTenant.GetAadTenantID());
     end;
 
     procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText);
@@ -104,7 +104,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     #endregion
     procedure SetDependencies(SpecificDependencies: Interface "AppSource Product Manager Dependencies")
     begin
-        Dependencies := SpecificDependencies;
+        AppSourceProductManagerDependencies := SpecificDependencies;
         IsDependenciesSet := true;
     end;
 
@@ -115,7 +115,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     procedure OpenAppSource()
     begin
         Init();
-        Hyperlink(StrSubstNo(AppSourceUriLbl, Dependencies.GetFormatRegionOrDefault('')));
+        Hyperlink(StrSubstNo(AppSourceUriLbl, AppSourceProductManagerDependencies.GetFormatRegionOrDefault('')));
     end;
 
     /// <summary>
@@ -204,7 +204,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         exit(Language.GetCultureName(GetCurrentUserLanguageID()));
     end;
 
-    procedure ResolveMarketAndLanguage(var Market: Text; var LanguageName: Text)
+    procedure ResolveMarketAndLanguage(var Market: Code[2]; var LanguageName: Text)
     var
         Language: Codeunit Language;
         LanguageID, LocalID : integer;
@@ -218,7 +218,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         if LocalID <> 0 then
             Market := ResolveMarketFromLanguageID(LocalID);
         if Market = '' then
-            Market := CopyStr(Dependencies.GetApplicationFamily(), 1, 2);
+            Market := CopyStr(AppSourceProductManagerDependencies.GetApplicationFamily(), 1, 2);
         if (Market = '') or (Market = 'W1') then
             if not TryGetEnvironmentCountryLetterCode(Market) then
                 Market := 'us';
@@ -233,10 +233,10 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         Language: Codeunit Language;
         LanguageID: Integer;
     begin
-        Dependencies.GetUserSettings(Database.UserSecurityID(), TempUserSettings);
+        AppSourceProductManagerDependencies.GetUserSettings(Database.UserSecurityID(), TempUserSettings);
         LanguageID := TempUserSettings."Language ID";
         if (LanguageID = 0) then
-            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.GetPreferredLanguage());
+            LanguageID := Language.GetLanguageIdFromCultureName(AppSourceProductManagerDependencies.GetPreferredLanguage());
         if (LanguageID = 0) then
             LanguageID := 1033; // Default to EN-US
         exit(LanguageID);
@@ -247,10 +247,10 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         TempUserSettings: Record "User Settings" temporary;
         Language: Codeunit Language;
     begin
-        Dependencies.GetUserSettings(Database.UserSecurityID(), TempUserSettings);
+        AppSourceProductManagerDependencies.GetUserSettings(Database.UserSecurityID(), TempUserSettings);
         LanguageID := TempUserSettings."Language ID";
         if (LanguageID = 0) then
-            LanguageID := Language.GetLanguageIdFromCultureName(Dependencies.GetPreferredLanguage());
+            LanguageID := Language.GetLanguageIdFromCultureName(AppSourceProductManagerDependencies.GetPreferredLanguage());
         if (LanguageID = 0) then
             LanguageID := 1033; // Default to EN-US
 
@@ -258,9 +258,9 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     end;
 
     [TryFunction]
-    local procedure TryGetEnvironmentCountryLetterCode(var CountryLetterCode: Text)
+    local procedure TryGetEnvironmentCountryLetterCode(var CountryLetterCode: Code[2])
     begin
-        CountryLetterCode := Dependencies.GetCountryLetterCode();
+        CountryLetterCode := AppSourceProductManagerDependencies.GetCountryLetterCode();
     end;
 
     local procedure ResolveMarketFromLanguageID(LanguageID: Integer): Text
@@ -371,7 +371,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         SetCommonHeaders(RestClient);
         RestClient.SetDefaultRequestHeader('client-request-id', ClientRequestID);
 
-        exit(Dependencies.GetAsJSon(RestClient, RequestUri).AsObject());
+        exit(AppSourceProductManagerDependencies.GetAsJSon(RestClient, RequestUri).AsObject());
     end;
 
     local procedure DownloadAndAddNextPageProducts(NextPageLink: Text; var AppSourceProductRec: record "AppSource Product"; var RestClient: Codeunit "Rest Client"): Text
@@ -389,7 +389,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         Session.LogMessage('AL:AppSource-NextPageProducts', 'Requesting product list data', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDictionary);
         RestClient.SetDefaultRequestHeader('client-request-id', ClientRequestID);
 
-        ResponseObject := Dependencies.GetAsJSon(RestClient, NextPageLink).AsObject();
+        ResponseObject := AppSourceProductManagerDependencies.GetAsJSon(RestClient, NextPageLink).AsObject();
         if (ResponseObject.Get('items', ProductArrayToken)) then begin
             ProductArray := ProductArrayToken.AsArray();
             for i := 0 to ProductArray.Count() do
@@ -402,7 +402,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     local procedure SetCommonHeaders(var RestClient: Codeunit "Rest Client")
     begin
         RestClient.SetDefaultRequestHeader('X-API-Key', GetAPIKey());
-        RestClient.SetDefaultRequestHeader('x-ms-client-tenant-id', Dependencies.GetAadTenantID());
+        RestClient.SetDefaultRequestHeader('x-ms-client-tenant-id', AppSourceProductManagerDependencies.GetAadTenantID());
         RestClient.SetDefaultRequestHeader('x-ms-app', 'Dynamics 365 Business Central');
     end;
 
@@ -411,7 +411,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         UriBuilder: Codeunit "Uri Builder";
         Uri: Codeunit Uri;
         Language: Text;
-        Market: Text;
+        Market: Code[2];
     begin
         ResolveMarketAndLanguage(Market, Language);
 
@@ -433,7 +433,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         UriBuilder: Codeunit "Uri Builder";
         Uri: Codeunit Uri;
         Language: Text;
-        Market: Text;
+        Market: Code[2];
     begin
         ResolveMarketAndLanguage(Market, Language);
         UriBuilder.Init(CatalogProductsUriLbl);
@@ -459,24 +459,24 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     end;
     #endregion
 
-    local procedure InsertProductFromObject(Offer: JsonObject; var Product: Record "AppSource Product")
+    local procedure InsertProductFromObject(Offer: JsonObject; var AppSourceProduct: Record "AppSource Product")
     begin
-        Product.Init();
-        Product.UniqueProductID := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'uniqueProductId'), 1, MaxStrLen(Product.UniqueProductID));
-        Product.DisplayName := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'displayName'), 1, MaxStrLen(Product.DisplayName));
-        Product.PublisherID := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'publisherId'), 1, MaxStrLen(Product.PublisherID));
-        Product.PublisherDisplayName := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'publisherDisplayName'), 1, MaxStrLen(Product.PublisherDisplayName));
-        Product.PublisherType := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'publisherType'), 1, MaxStrLen(Product.PublisherType));
-        Product.RatingAverage := AppSourceJsonUtilities.GetDecimalValue(Offer, 'ratingAverage');
-        Product.RatingCount := AppSourceJsonUtilities.GetIntegerValue(Offer, 'ratingCount');
-        Product.ProductType := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'productType'), 1, MaxStrLen(Product.ProductType));
-        Product.Popularity := AppSourceJsonUtilities.GetDecimalValue(Offer, 'popularity');
-        Product.LastModifiedDateTime := AppSourceJsonUtilities.GetDateTimeValue(Offer, 'lastModifiedDateTime');
+        AppSourceProduct.Init();
+        AppSourceProduct.UniqueProductID := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'uniqueProductId'), 1, MaxStrLen(AppSourceProduct.UniqueProductID));
+        AppSourceProduct.DisplayName := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'displayName'), 1, MaxStrLen(AppSourceProduct.DisplayName));
+        AppSourceProduct.PublisherID := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'publisherId'), 1, MaxStrLen(AppSourceProduct.PublisherID));
+        AppSourceProduct.PublisherDisplayName := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'publisherDisplayName'), 1, MaxStrLen(AppSourceProduct.PublisherDisplayName));
+        AppSourceProduct.PublisherType := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'publisherType'), 1, MaxStrLen(AppSourceProduct.PublisherType));
+        AppSourceProduct.RatingAverage := AppSourceJsonUtilities.GetDecimalValue(Offer, 'ratingAverage');
+        AppSourceProduct.RatingCount := AppSourceJsonUtilities.GetIntegerValue(Offer, 'ratingCount');
+        AppSourceProduct.ProductType := CopyStr(AppSourceJsonUtilities.GetStringValue(Offer, 'productType'), 1, MaxStrLen(AppSourceProduct.ProductType));
+        AppSourceProduct.Popularity := AppSourceJsonUtilities.GetDecimalValue(Offer, 'popularity');
+        AppSourceProduct.LastModifiedDateTime := AppSourceJsonUtilities.GetDateTimeValue(Offer, 'lastModifiedDateTime');
 
-        Product.AppID := ExtractAppIDFromUniqueProductID(Product.UniqueProductID);
+        AppSourceProduct.AppID := ExtractAppIDFromUniqueProductID(AppSourceProduct.UniqueProductID);
 
         // Insert, if it fails to insert due to the data (ex duplicate ids), ignore the error
-        if not Product.Insert() then;
+        if not AppSourceProduct.Insert() then;
     end;
 
     [NonDebuggable]
@@ -485,10 +485,10 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         ApiKey: SecretText;
     begin
         Init();
-        if not Dependencies.IsSaas() then
+        if not AppSourceProductManagerDependencies.IsSaas() then
             Error(NotSupportedOnPremisesErrorLbl);
 
-        Dependencies.GetAzureKeyVaultSecret('MS-AppSource-ApiKey', ApiKey);
+        AppSourceProductManagerDependencies.GetAzureKeyVaultSecret('MS-AppSource-ApiKey', ApiKey);
         exit(ApiKey);
     end;
 
@@ -500,9 +500,9 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
 
     local procedure SetDefaultDependencyImplementation()
     var
-        DependencyInstance: Codeunit "AppSource Product Manager";
+        AppSourceProductManager: Codeunit "AppSource Product Manager";
     begin
-        SetDependencies(DependencyInstance);
+        SetDependencies(AppSourceProductManager);
         IsDependenciesSet := true;
     end;
 }
