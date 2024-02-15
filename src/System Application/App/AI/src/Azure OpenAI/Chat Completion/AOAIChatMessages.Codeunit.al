@@ -16,6 +16,7 @@ codeunit 7763 "AOAI Chat Messages"
 
     var
         AOAIChatMessagesImpl: Codeunit "AOAI Chat Messages Impl";
+        AOAIToolsImpl: Codeunit "AOAI Tools Impl";
 
     /// <summary>
     /// Sets the system message which is always at the top of the chat messages history provided to the model.
@@ -175,5 +176,101 @@ codeunit 7763 "AOAI Chat Messages"
     internal procedure AssembleHistory(var SystemMessageTokenCount: Integer; var MessagesTokenCount: Integer): JsonArray
     begin
         exit(AOAIChatMessagesImpl.PrepareHistory(SystemMessageTokenCount, MessagesTokenCount));
+    end;
+
+    /// <summary>
+    /// Appends a Tool to the payload.
+    /// </summary>
+    /// <param name="NewTool">The Tool to be added to the payload.</param>
+    /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
+    [NonDebuggable]
+    procedure AddTool(NewTool: JsonObject)
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        AOAIToolsImpl.AddTool(NewTool, CallerModuleInfo);
+    end;
+
+    /// <summary>
+    /// Modifies a Tool in the list of Tool.
+    /// </summary>
+    /// <param name="Id">Id of the message.</param>
+    /// <param name="NewTool">The new Tool.</param>
+    /// <error>Message id does not exist.</error>
+    [NonDebuggable]
+    procedure ModifyTool(Id: Integer; NewTool: JsonObject)
+    begin
+        AOAIToolsImpl.ModifyTool(Id, NewTool);
+    end;
+
+    /// <summary>
+    /// Deletes a Tool from the list of Tool.
+    /// </summary>
+    /// <param name="Id">Id of the Tool.</param>
+    /// <error>Message id does not exist.</error>
+    procedure DeleteTool(Id: Integer)
+    begin
+        AOAIToolsImpl.DeleteTool(Id);
+    end;
+
+    /// <summary>
+    /// Gets the list of Tools.
+    /// </summary>
+    /// <returns>List of Tools.</returns>
+    [NonDebuggable]
+    procedure GetTools(): List of [JsonObject]
+    begin
+        exit(AOAIToolsImpl.GetTools());
+    end;
+
+    /// <summary>
+    /// Checks if at least one Tools exists in the list.
+    /// </summary>
+    /// <returns>True if Tools exists, false otherwise.</returns>
+    procedure ToolsExists(): Boolean
+    begin
+        exit(AOAIToolsImpl.ToolsExists());
+    end;
+
+    /// <summary>
+    /// Sets the Tools to be added to the payload.
+    /// </summary>
+    /// <param name="AddToolsToPayload">True if Tools is to be added to the payload, false otherwise.</param>
+    procedure SetAddToolsToPayload(AddToolsToPayload: Boolean)
+    begin
+        AOAIToolsImpl.SetAddToolToPayload(AddToolsToPayload);
+    end;
+
+    /// <summary>
+    /// Sets the Tool choice, which allow model to determine how Tools should be called.
+    /// </summary>
+    /// <param name="Toolchoice">The Tool choice parameter. </param>
+    /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
+    [NonDebuggable]
+    procedure SetToolChoice(ToolChoice: Text)
+    begin
+        AOAIToolsImpl.SetToolChoice(ToolChoice);
+    end;
+
+    /// <summary>
+    /// Gets the Tool choice parameter.
+    /// </summary>
+    /// <returns>The Tool choice parameter.</returns>
+    [NonDebuggable]
+    procedure GetToolChoice(): Text
+    begin
+        exit(AOAIToolsImpl.GetToolChoice());
+    end;
+
+    /// <summary>
+    /// Prepares the Tools to be sent to the deployment model.
+    /// </summary>
+    /// <returns>Tools in a JsonArray.</returns>
+    /// <remarks>Use this after adding Tools, to construct a json array of all Tools.</remarks>
+    [NonDebuggable]
+    internal procedure AssembleTools(): JsonArray
+    begin
+        exit(AOAIToolsImpl.PrepareTools());
     end;
 }
