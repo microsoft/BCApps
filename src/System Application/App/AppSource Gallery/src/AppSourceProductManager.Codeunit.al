@@ -168,17 +168,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     var
         PlanToken: JsonToken;
         PlanObject: JsonObject;
-        AvailabilitiesToken: JsonToken;
-        Availabilities: JsonArray;
-        AvailabilityToken: JsonToken;
-        Availability: JsonObject;
-        TermsToken: JsonToken;
-        Terms: JsonArray;
-        TermToken: JsonToken;
-        Term: JsonObject;
-        PriceToken: JsonToken;
-        Price: JsonObject;
-        PriceValue: Decimal;
         PricingTypesToken: JsonToken;
         PricingTypes: JsonArray;
         PricingType: JsonToken;
@@ -192,37 +181,15 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
                     if PricingTypes.Count() = 0 then
                         exit(false); // No price structure, you need to contact the publisher
 
-                    foreach PricingType in PricingTypes do begin
-                        if LowerCase(PricingType.AsValue().AsText()) = 'freetrial' then
-                            exit(true); // Free means it can be installed
-                        if LowerCase(PricingType.AsValue().AsText()) = 'payg' then
-                            exit(true); // Pay as you go means it can be installed
-                    end;
-                end;
-
-            PlanObject.Get('availabilities', AvailabilitiesToken);
-            Availabilities := AvailabilitiesToken.AsArray();
-
-            foreach AvailabilityToken in Availabilities do begin
-                Availability := AvailabilityToken.AsObject();
-
-                if (AppSourceJsonUtilities.GetStringValue(Availability, 'hasFreeTrials') = 'true') then
-                    // Free trial means it can be installed
-                    exit(true);
-
-                if (Availability.Get('terms', TermsToken)) then
-                    if TermsToken.IsArray then begin
-                        Terms := TermsToken.AsArray();
-                        foreach TermToken in Terms do begin
-                            Term := TermToken.AsObject();
-                            Term.SelectToken('price', PriceToken);
-                            Price := PriceToken.AsObject();
-                            if Evaluate(PriceValue, AppSourceJsonUtilities.GetStringValue(Price, 'priceValue'), 9) then
-                                // Price > 0 means it can be installed
-                                exit(PriceValue > 0);
+                    foreach PricingType in PricingTypes do
+                        case LowerCase(PricingType.AsValue().AsText()) of
+                            'free', // Free
+                            'freetrial', // Free trial
+                            'payg', // Pay as you go
+                            'byol': // Bring your own license
+                                exit(true);
                         end;
-                    end;
-            end;
+                end;
         end;
 
         exit(false);
