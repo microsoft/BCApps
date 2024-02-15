@@ -63,17 +63,12 @@ codeunit 305 "No. Series - Setup Impl."
         Implementation := NoSeriesLine.Implementation;
     end;
 
-    procedure ShowNoSeriesWithWarningsOnly(var NoSeries: Record "No. Series"; ShowWarningsOnly: Boolean)
+    procedure ShowNoSeriesWithWarningsOnly(var NoSeries: Record "No. Series")
     var
         NoSeriesLine: Record "No. Series Line";
         NoSeriesCodeunit: Codeunit "No. Series";
         LastNoUsedForLine: Code[20];
     begin
-        NoSeries.ClearMarks();
-        NoSeries.MarkedOnly(false);
-        if not ShowWarningsOnly then
-            exit;
-
         if NoSeries.FindSet() then
             repeat
                 NoSeriesLine.SetRange("Series Code", NoSeries.Code);

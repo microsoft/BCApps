@@ -274,10 +274,9 @@ page 456 "No. Series"
                     ToolTip = 'Show all number series.';
 
                     trigger OnAction()
-                    var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
                     begin
-                        NoSeriesSetupImpl.ShowNoSeriesWithWarningsOnly(Rec, false);
+                        Rec.ClearMarks();
+                        Rec.MarkedOnly(false);
                         CurrPage.Update(false);
                     end;
                 }
@@ -293,7 +292,7 @@ page 456 "No. Series"
                     var
                         NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
                     begin
-                        NoSeriesSetupImpl.ShowNoSeriesWithWarningsOnly(Rec, true);
+                        NoSeriesSetupImpl.ShowNoSeriesWithWarningsOnly(Rec);
                         CurrPage.Update(false);
                     end;
                 }
