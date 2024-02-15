@@ -235,13 +235,6 @@ codeunit 149005 "BCPT Line"
             Dimensions)
     end;
 
-    local procedure InitValuesSubscriberCanModify(var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text; var ModifiedExecutionSuccess: Boolean; var ModifiedMessage: Text; var ModifiedOperation: Text)
-    begin
-        ModifiedMessage := Message;
-        ModifiedOperation := Operation;
-        ModifiedExecutionSuccess := ExecutionSuccess;
-    end;
-
     procedure UserWait(var BCPTLine: Record "BCPT Line")
     var
         BCPTRoleWrapperImpl: Codeunit "BCPT Role Wrapper"; // single instance
