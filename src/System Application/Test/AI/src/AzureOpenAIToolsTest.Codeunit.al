@@ -1,6 +1,7 @@
 namespace System.Test.AI;
 
 using System.AI;
+using System.TestLibraries.AI;
 using System.TestLibraries.Utilities;
 
 codeunit 132686 "Azure OpenAI Tools Test"
@@ -93,6 +94,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
     [Test]
     procedure TestAssembleToolsInChatMessages()
     var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
         Function1Tool: JsonObject;
         Function2Tool: JsonObject;
@@ -106,7 +108,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
         Function2Tool := GetTestFunction2Tool();
         AOAIChatMessages.AddTool(GetTestFunction2Tool());
 
-        Tools := AOAIChatMessages.AssembleTools();
+        Tools := AzureOpenAITestLibrary.GetAOAIAssembleTools(AOAIChatMessages);
 
         Tools.Get(0, Tool1);
         Tools.Get(1, Tool2);
