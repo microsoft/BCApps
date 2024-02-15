@@ -88,7 +88,32 @@ codeunit 132686 "Azure OpenAI Tools Test"
         ToolChoice := GetToolChoice();
         AOAIChatMessages.SetToolChoice(ToolChoice);
         LibraryAssert.AreEqual(ToolChoice, AOAIChatMessages.GetToolChoice(), 'Tool choice should be equal to what was set.');
+    end;
 
+    [Test]
+    procedure TestAssembleToolsInChatMessages()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        Function1Tool: JsonObject;
+        Function2Tool: JsonObject;
+        Tool1: JsonToken;
+        Tool2: JsonToken;
+        Tools: JsonArray;
+    begin
+        Function1Tool := GetTestFunction1Tool();
+        AOAIChatMessages.AddTool(GetTestFunction1Tool());
+
+        Function2Tool := GetTestFunction2Tool();
+        AOAIChatMessages.AddTool(GetTestFunction2Tool());
+
+        Tools := AOAIChatMessages.AssembleTools();
+
+        Tools.Get(0, Tool1);
+        Tools.Get(1, Tool2);
+
+        LibraryAssert.AreEqual(2, Tools.Count, 'Tools should have 2 items.');
+        LibraryAssert.AreEqual(Format(Function1Tool), Format(Tool1), 'Tool should have same value.');
+        LibraryAssert.AreEqual(Format(Function2Tool), Format(Tool2), 'Tool should have same value.');
     end;
 
     local procedure GetTestFunction1Tool(): JsonObject
