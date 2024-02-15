@@ -187,6 +187,7 @@ page 2515 "AppSource Product List"
     trigger OnOpenPage()
     begin
         ReloadAllProducts();
+        Rec.SetCurrentKey(DisplayName);
     end;
 
     trigger OnAfterGetCurrRecord()
