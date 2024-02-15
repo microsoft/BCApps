@@ -392,7 +392,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         ResponseObject := AppSourceProductManagerDependencies.GetAsJSon(RestClient, NextPageLink).AsObject();
         if (ResponseObject.Get('items', ProductArrayToken)) then begin
             ProductArray := ProductArrayToken.AsArray();
-            for i := 0 to ProductArray.Count() do
+            for i := 0 to (ProductArray.Count() - 1) do
                 if (ProductArray.Get(i, ProductToken)) then
                     InsertProductFromObject(ProductToken.AsObject(), AppSourceProductRec);
         end;
