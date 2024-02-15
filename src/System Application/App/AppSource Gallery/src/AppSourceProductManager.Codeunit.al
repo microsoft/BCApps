@@ -24,7 +24,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     var
         AppSourceJsonUtilities: Codeunit "AppSource Json Utilities";
         AppSourceProductManagerDependencies: Interface "AppSource Product Manager Dependencies";
-        IsDependenciesSet: boolean;
+        IsDependenciesIntrfaceSet: boolean;
         CatalogProductsUriLbl: label 'https://catalogapi.azure.com/products', Locked = true;
         CatalogApiVersionQueryParamNameLbl: label 'api-version', Locked = true;
         CatalogApiVersionQueryParamValueLbl: label '2023-05-01-preview', Locked = true;
@@ -105,7 +105,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     procedure SetDependencies(SpecificDependencies: Interface "AppSource Product Manager Dependencies")
     begin
         AppSourceProductManagerDependencies := SpecificDependencies;
-        IsDependenciesSet := true;
+        IsDependenciesIntrfaceSet := true;
     end;
 
     #region Product helpers
@@ -494,7 +494,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
 
     local procedure Init()
     begin
-        if not IsDependenciesSet then
+        if not IsDependenciesIntrfaceSet then
             SetDefaultDependencyImplementation();
     end;
 
@@ -503,6 +503,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         AppSourceProductManager: Codeunit "AppSource Product Manager";
     begin
         SetDependencies(AppSourceProductManager);
-        IsDependenciesSet := true;
+        IsDependenciesIntrfaceSet := true;
     end;
 }
