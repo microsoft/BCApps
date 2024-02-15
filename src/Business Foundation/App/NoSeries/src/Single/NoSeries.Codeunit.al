@@ -231,7 +231,7 @@ codeunit 310 "No. Series"
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
-        NoSeriesImpl.HasRelatedSeries(NoSeriesCode);
+        exit(NoSeriesImpl.HasRelatedSeries(NoSeriesCode));
     end;
 
     /// <summary>
