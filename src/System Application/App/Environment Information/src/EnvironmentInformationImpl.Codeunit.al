@@ -27,26 +27,12 @@ codeunit 3702 "Environment Information Impl."
         DefaultProductionEnvironmentNameTxt: Label 'Production', Locked = true;
 
     procedure IsProduction(): Boolean
-    var
-        Production: Boolean;
-        TestMode: Boolean;
     begin
-        OnBeforeIsProduction(TestMode, Production);
-        if TestMode then
-            exit(Production);
-
         exit(NavTenantSettingsHelper.IsProduction())
     end;
 
     procedure IsSandbox(): Boolean
-    var
-        Sandbox: Boolean;
-        TestMode: Boolean;
     begin
-        OnBeforeIsSandbox(TestMode, Sandbox);
-        if TestMode then
-            exit(Sandbox);
-
         if TestabilitySandbox then
             exit(true);
 
@@ -60,12 +46,7 @@ codeunit 3702 "Environment Information Impl."
     procedure GetEnvironmentName(): Text
     var
         EnvironmentName: Text;
-        TestMode: Boolean;
     begin
-        OnBeforeEnvironmentName(TestMode, EnvironmentName);
-        if TestMode then
-            exit(EnvironmentName);
-
         EnvironmentName := NavTenantSettingsHelper.GetEnvironmentName();
         if EnvironmentName <> '' then
             exit(EnvironmentName);
@@ -89,13 +70,7 @@ codeunit 3702 "Environment Information Impl."
     procedure IsSaaS(): Boolean
     var
         ServerSettings: Codeunit "Server Setting";
-        TestMode: Boolean;
-        SaaS: Boolean;
     begin
-        OnBeforeIsSaaS(TestMode, SaaS);
-        if TestMode then
-            exit(SaaS);
-
         if TestabilitySoftwareAsAService then
             exit(true);
 
@@ -110,13 +85,7 @@ codeunit 3702 "Environment Information Impl."
     procedure IsSaaSInfrastructure(): Boolean
     var
         UserAccountHelper: DotNet NavUserAccountHelper;
-        SaaSInfrastructure: Boolean;
-        TestMode: Boolean;
     begin
-        OnBeforeIsSaaSInfrastructure(TestMode, SaaSInfrastructure);
-        if TestMode then
-            exit(SaaSInfrastructure);
-
         if TestabilitySoftwareAsAService then
             exit(true);
 
@@ -134,28 +103,15 @@ codeunit 3702 "Environment Information Impl."
     end;
 
     procedure GetApplicationFamily(): Text
-    var
-        TestMode: Boolean;
-        ApplicationFamily: Text;
     begin
-        OnBeforeApplicationFamily(TestMode, ApplicationFamily);
-        if TestMode then
-            exit(ApplicationFamily);
-
         exit(NavTenantSettingsHelper.GetApplicationFamily());
     end;
 
     procedure VersionInstalled(AppID: Guid): Integer
     var
         AppInfo: ModuleInfo;
-        WhichVersionInstalled: Integer;
-        TestMode: Boolean;
     begin
-        OnBeforeVersionInstalled(TestMode, WhichVersionInstalled);
-        if TestMode then
-            exit(WhichVersionInstalled);
-
-        NavApp.GetModuleInfo(AppId, AppInfo);
+        NavApp.GetModuleInfo(AppID, AppInfo);
         exit(AppInfo.DataVersion.Major());
     end;
 
@@ -196,55 +152,6 @@ codeunit 3702 "Environment Information Impl."
     procedure OnBeforeGetApplicationIdentifier(var AppId: Text)
     begin
         // An event which asks for the AppId to be filled in by the subscriber.
-        // Do not use this event in a production environment. This should be subscribed to only in tests.
-    end;
-
-    [InternalEvent(false)]
-    procedure OnBeforeIsSaaSInfrastructure(var TestMode: Boolean; var IsSaaSInfrastructure: Boolean)
-    begin
-        // An event which asks for the IsSaaSInfrastructure to be filled in by the subscriber.
-        // Do not use this event in a production environment. This should be subscribed to only in tests.
-    end;
-
-    [InternalEvent(false)]
-    procedure OnBeforeVersionInstalled(var TestMode: Boolean; var VersionInstalled: Integer)
-    begin
-        // An event which asks for the VersionInstalled to be filled in by the subscriber.
-        // Do not use this event in a production environment. This should be subscribed to only in tests.
-    end;
-
-    [InternalEvent(false)]
-    procedure OnBeforeIsSaaS(var TestMode: Boolean; var IsSaaS: Boolean)
-    begin
-        // An event which asks for the IsSaaS to be filled in by the subscriber.
-        // Do not use this event in a production environment. This should be subscribed to only in tests.
-    end;
-
-    [InternalEvent(false)]
-    procedure OnBeforeEnvironmentName(var TestMode: Boolean; var EnvironmentName: Text)
-    begin
-        // An event which asks for the EnvironmentName to be filled in by the subscriber.
-        // Do not use this event in a production environment. This should be subscribed to only in tests.
-    end;
-
-    [InternalEvent(false)]
-    procedure OnBeforeIsSandbox(var TestMode: Boolean; var IsSandbox: Boolean)
-    begin
-        // An event which asks for the IsSandbox to be filled in by the subscriber.
-        // Do not use this event in a production environment. This should be subscribed to only in tests.
-    end;
-
-    [InternalEvent(false)]
-    procedure OnBeforeIsProduction(var TestMode: Boolean; var IsProduction: Boolean)
-    begin
-        // An event which asks for the IsProduction to be filled in by the subscriber.
-        // Do not use this event in a production environment. This should be subscribed to only in tests.
-    end;
-
-    [InternalEvent(false)]
-    procedure OnBeforeApplicationFamily(var TestMode: Boolean; var ApplicationFamily: Text)
-    begin
-        // An event which asks for the ApplicationFamily to be filled in by the subscriber.
         // Do not use this event in a production environment. This should be subscribed to only in tests.
     end;
 }
