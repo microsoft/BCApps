@@ -263,7 +263,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         CountryLetterCode := AppSourceProductManagerDependencies.GetCountryLetterCode();
     end;
 
-    local procedure ResolveMarketFromLanguageID(LanguageID: Integer): Text
+    local procedure ResolveMarketFromLanguageID(LanguageID: Integer): Code[2]
     var
         Language: Codeunit Language;
         SeperatorPos: Integer;
@@ -284,7 +284,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     /// <param name="Market">Market requested</param>
     /// <returns>The requested market if supported, otherwise us</returns>
     /// <remarks>See https://learn.microsoft.com/en-us/partner-center/marketplace/marketplace-geo-availability-currencies for supported markets</remarks>
-    local procedure EnsureValidMarket(Market: Text): Text
+    local procedure EnsureValidMarket(Market: Code[2]): Code[2]
     var
         NotSupportedNotification: Notification;
     begin
