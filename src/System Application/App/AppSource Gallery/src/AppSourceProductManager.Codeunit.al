@@ -108,7 +108,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         IsDependenciesSet := true;
     end;
 
-    #region Product helpers 
+    #region Product helpers
     /// <summary>
     /// Opens Microsoft AppSource web page for the region is specified in the UserSessionSettings or 'en-us' by default.
     /// </summary>
@@ -308,7 +308,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     var
         UriBuilder: Codeunit "Uri Builder";
         Uri: Codeunit Uri;
-        QueryPart: Text;
         Language: Text;
         Market: Text;
     begin
@@ -319,12 +318,9 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         UriBuilder.AddQueryParameter(CatalogMarketQueryParamNameLbl, Market);
         UriBuilder.AddQueryParameter(CatalogLanguageQueryParamNameLbl, Language);
 
-        // UriBuilder always encodes the $ in the $filter and $select etc. parameters and MarketPlace API does not support that , so we need to add them manually
-        QueryPart := UriBuilder.GetQuery();
-        QueryPart := QueryPart + '&' + CatalogApiFilterQueryParamNameLbl + '=productType eq ''DynamicsBC''';
-        QueryPart := QueryPart + '&' + CatalogApiSelectQueryParamNameLbl + '=uniqueProductID,displayName,publisherID,publisherDisplayName,publisherType,ratingAverage,ratingCount,productType,popularity,privacyPolicyUri,lastModifiedDateTime';
-        QueryPart := QueryPart + '&' + CatalogApiOrderByQueryParamNameLbl + '=displayName asc';
-        UriBuilder.SetQuery(QueryPart);
+        UriBuilder.AddODataQueryParameter(CatalogApiFilterQueryParamNameLbl, 'productType eq ''DynamicsBC''');
+        UriBuilder.AddODataQueryParameter(CatalogApiSelectQueryParamNameLbl, 'uniqueProductID,displayName,publisherID,publisherDisplayName,publisherType,ratingAverage,ratingCount,productType,popularity,privacyPolicyUri,lastModifiedDateTime');
+        UriBuilder.AddODataQueryParameter(CatalogApiOrderByQueryParamNameLbl, 'displayName asc');
 
         UriBuilder.GetUri(Uri);
         exit(Uri.GetAbsoluteUri());
