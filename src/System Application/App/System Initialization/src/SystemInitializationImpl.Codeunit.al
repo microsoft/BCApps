@@ -72,6 +72,8 @@ codeunit 151 "System Initialization Impl."
             exit;
         end;
 
+        Telemetry.LogMessage('', NoSignupContextTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+
         if not SignupContext.Get('name') then begin
             InsertSignupContext(SignupContextValues."Signup Context"::" ");
             Telemetry.LogMessage('0000HOJ', NoNameKeySignupContextTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
