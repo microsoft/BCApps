@@ -42,16 +42,16 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     #region Dependency Interface implementation
     procedure GetCountryLetterCode(): Code[2]
     var
-        EntraTenant: Codeunit "Azure AD Tenant";
+        AzureAdTenant: Codeunit "Azure AD Tenant";
     begin
-        exit(EntraTenant.GetCountryLetterCode());
+        exit(AzureAdTenant.GetCountryLetterCode());
     end;
 
     procedure GetPreferredLanguage(): Text
     var
-        EntraTenant: Codeunit "Azure AD Tenant";
+        AzureAdTenant: Codeunit "Azure AD Tenant";
     begin
-        exit(EntraTenant.GetPreferredLanguage());
+        exit(AzureAdTenant.GetPreferredLanguage());
     end;
 
     procedure GetApplicationFamily(): Text
@@ -120,12 +120,12 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     /// <param name="UniqueProductIDValue"></param>
     internal procedure OpenProductDetailsPage(UniqueProductIDValue: Text)
     var
-        ProductDetailsPage: Page "AppSource Product Details";
+        AppSourceProductDetailsPage: Page "AppSource Product Details";
         ProductObject: JsonObject;
     begin
         ProductObject := GetProductDetails(UniqueProductIDValue);
-        ProductDetailsPage.SetProduct(ProductObject);
-        ProductDetailsPage.RunModal();
+        AppSourceProductDetailsPage.SetProduct(ProductObject);
+        AppSourceProductDetailsPage.RunModal();
     end;
 
     /// <summary>
@@ -388,15 +388,15 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     [NonDebuggable]
     internal procedure SetCommonHeaders(var RestClient: Codeunit "Rest Client")
     var
-        ApiKey: SecretText;
-        AzureKeyValut: Codeunit "Azure Key Vault";
+        AzureKeyVault: Codeunit "Azure Key Vault";
         AzureAdTenant: Codeunit "Azure AD Tenant";
+        ApiKey: SecretText;
     begin
         Init();
         if not AppSourceProductManagerDependencies.IsSaas() then
             Error(NotSupportedOnPremisesErrorLbl);
 
-        AzureKeyValut.GetAzureKeyVaultSecret('MS-AppSource-ApiKey', ApiKey);
+        AzureKeyVault.GetAzureKeyVaultSecret('MS-AppSource-ApiKey', ApiKey);
 
         RestClient.SetDefaultRequestHeader('X-API-Key', ApiKey);
         RestClient.SetDefaultRequestHeader('x-ms-client-tenant-id', AzureAdTenant.GetAadTenantID());
