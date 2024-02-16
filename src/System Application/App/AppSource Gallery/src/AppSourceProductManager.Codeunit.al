@@ -15,7 +15,7 @@ using System.RestClient;
 /// <summary>
 /// Library for managing AppSource product retrival and usage.
 /// </summary>
-codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager Dependencies"
+codeunit 2515 "AppSource Product Manager"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -23,7 +23,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
 
     var
         AppSourceJsonUtilities: Codeunit "AppSource Json Utilities";
-        AppSourceProductManagerDependencies: Interface "AppSource Product Manager Dependencies";
+        AppSourceProductManagerDependencies: Interface "Dependency Provider";
         IsDependenciesInterfaceSet: boolean;
         CatalogProductsUriLbl: label 'https://catalogapi.azure.com/products', Locked = true;
         CatalogApiVersionQueryParamNameLbl: label 'api-version', Locked = true;
@@ -102,7 +102,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     end;
 
     #endregion
-    procedure SetDependencies(SpecificDependencies: Interface "AppSource Product Manager Dependencies")
+    procedure SetDependencies(SpecificDependencies: Interface "Dependency Provider")
     begin
         AppSourceProductManagerDependencies := SpecificDependencies;
         IsDependenciesInterfaceSet := true;
@@ -124,7 +124,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     /// <param name="UniqueProductIDValue">The Unique Product ID of the product to show in MicrosoftAppSource</param>
     procedure OpenAppInAppSource(UniqueProductIDValue: Text)
     begin
-        Init();
         Hyperlink(StrSubstNo(AppSourceListingUriLbl, GetCurrentLanguageCultureName(), UniqueProductIDValue));
     end;
 
@@ -339,7 +338,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         RestClient: Codeunit "Rest Client";
         NextPageLink: text;
     begin
-        Init();
         NextPageLink := ConstructProductListUri();
 
         RestClient.Initialize();
@@ -360,7 +358,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         ClientRequestID: Guid;
         TelemetryDictionary: Dictionary of [Text, Text];
     begin
-        Init();
         ClientRequestID := CreateGuid();
         RequestUri := ConstructProductUri(UniqueProductIDValue);
 
@@ -492,17 +489,17 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         exit(ApiKey);
     end;
 
-    local procedure Init()
+    procedure Init()
+    var
+        AppSourceDependencyProvider: Codeunit "AppSource Dependency Provider";
     begin
         if not IsDependenciesInterfaceSet then
-            SetDefaultDependencyImplementation();
+            SetDefaultDependencyImplementation(AppSourceDependencyProvider);
     end;
 
-    local procedure SetDefaultDependencyImplementation()
-    var
-        AppSourceProductManager: Codeunit "AppSource Product Manager";
+    local procedure SetDefaultDependencyImplementation(DependencyProvider: Interface "Dependency Provider")
     begin
-        SetDependencies(AppSourceProductManager);
+        SetDependencies(DependencyProvider);
         IsDependenciesInterfaceSet := true;
     end;
 }

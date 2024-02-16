@@ -11,7 +11,7 @@ using System.RestClient;
 /// <summary>
 /// Interface for managing dependencies to the AppSource Product Manager codeunit.
 /// </summary>
-interface "AppSource Product Manager Dependencies"
+interface "Dependency Provider"
 {
     Access = Internal;
 

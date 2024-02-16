@@ -1,0 +1,32 @@
+{
+    "id":  "ba17b564-d600-44d5-be0b-ca7ff7ac28fc",
+    "name":  "AppSource Gallery Test Library",
+    "publisher":  "Microsoft",
+    "brief":  "Test objects for the AppSource Gallery module.",
+    "description":  "Test objects for the AppSource Gallery module.",
+    "version":  "24.0.0.0",
+    "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
+    "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help":  "",
+    "url":  "https://go.microsoft.com/fwlink/?LinkId=724011",
+    "logo":  "",
+    "dependencies":  [
+                         {
+                            "id": "79952567-63d7-4586-8b47-ba13a11a8a18",
+                            "name": "AppSource Product Gallery",
+                            "publisher": "Microsoft",
+                            "version": "24.0.0.0"
+                         }
+                     ],
+    "screenshots":  [
+
+                    ],
+    "idRanges":  [
+                     {
+                         "from":  133920,
+                         "to":  133921
+                     }
+                 ],
+    "platform":  "24.0.0.0",
+    "target":  "OnPrem"
+}
