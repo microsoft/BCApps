@@ -47,7 +47,7 @@ codeunit 54 "Language Impl."
     begin
         if LanguageIdOverride <> 0 then begin
             LanguageId := LanguageIdOverride;
-            Telemetry.LogMessage('', StrSubstNo(LanguageIdOverrideMsg, LanguageId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
+            Telemetry.LogMessage('0000MH9', StrSubstNo(LanguageIdOverrideMsg, LanguageId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
             if ResetLanguageIdOverrideAfterUse then
                 LanguageIdOverride := 0;
             exit(LanguageId);
@@ -69,7 +69,7 @@ codeunit 54 "Language Impl."
     begin
         if FormatRegionOverride <> '' then begin
             FormatRegion := FormatRegionOverride;
-            Telemetry.LogMessage('', StrSubstNo(FormatRegionOverrideMsg, FormatRegion), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
+            Telemetry.LogMessage('0000MHA', StrSubstNo(FormatRegionOverrideMsg, FormatRegion), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
             if ResetFormatRegionOverrideAfterUse then
                 FormatRegionOverride := '';
             exit(FormatRegion);
