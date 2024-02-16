@@ -387,31 +387,20 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
 
     [NonDebuggable]
     internal procedure SetCommonHeaders(var RestClient: Codeunit "Rest Client")
-    begin
-        RestClient.SetDefaultRequestHeader('X-API-Key', GetApiKey());
-        RestClient.SetDefaultRequestHeader('x-ms-client-tenant-id', GetAadTenantID());
-        RestClient.SetDefaultRequestHeader('x-ms-app', 'Dynamics 365 Business Central');
-    end;
-
-    [NonDebuggable]
-    local procedure GetAPIKey(): SecretText
     var
         ApiKey: SecretText;
         AzureKeyValut: Codeunit "Azure Key Vault";
+        AzureAdTenant: Codeunit "Azure AD Tenant";
     begin
         Init();
         if not AppSourceProductManagerDependencies.IsSaas() then
             Error(NotSupportedOnPremisesErrorLbl);
 
         AzureKeyValut.GetAzureKeyVaultSecret('MS-AppSource-ApiKey', ApiKey);
-        exit(ApiKey);
-    end;
 
-    procedure GetAadTenantID(): Text
-    var
-        EntraTenant: Codeunit "Azure AD Tenant";
-    begin
-        exit(EntraTenant.GetAadTenantID());
+        RestClient.SetDefaultRequestHeader('X-API-Key', ApiKey);
+        RestClient.SetDefaultRequestHeader('x-ms-client-tenant-id', AzureAdTenant.GetAadTenantID());
+        RestClient.SetDefaultRequestHeader('x-ms-app', 'Dynamics 365 Business Central');
     end;
 
     local procedure ConstructProductListUri(): Text
