@@ -61,6 +61,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         exit(EntraTenant.GetAadTenantID());
     end;
 
+    [Scope('OnPrem')]
     procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText);
     var
         KeyVault: Codeunit "Azure Key Vault";
