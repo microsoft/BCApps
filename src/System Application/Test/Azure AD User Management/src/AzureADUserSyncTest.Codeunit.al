@@ -32,6 +32,7 @@ codeunit 132928 "Azure AD User Sync Test"
         UnexpectedFullNameErr: Label 'Unexpected full name.';
         IncorrectPlanErr: Label 'The user does not have the correct plan assigned.';
         UnexpectedNoOfChangesErr: Label 'Unexpected number of successful changes were made.';
+        ExpectedMixedPlansErr: Label 'Expected that mixed plans exists.';
 #pragma warning disable AA0240
         EssentialEmailTxt: Label 'essential@microsoft.com';
         PremiumEmailTxt: Label 'premium@microsoft.com';
@@ -43,7 +44,6 @@ codeunit 132928 "Azure AD User Sync Test"
         NonBcEmailTxt: Label 'nonbc@microsoft.com';
 #pragma warning restore AA0240
         CommonLastNameTxt: Label 'User';
-        MixedPlansNonAdminErr: Label 'All users must be assigned to the same license, either Basic, Essential, or Premium. %1 and %2 are assigned to different licenses, for example, but there may be other mismatches. Your system administrator or Microsoft partner can verify license assignments in your Microsoft 365 admin portal.\\We will sign you out when you choose the OK button.', Comment = '%1 = %2 = Authentication email.';
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -606,10 +606,45 @@ codeunit 132928 "Azure AD User Sync Test"
 
         // [WHEN] The information from M365 is fetched and applied
         AzureADUserSyncImpl.FetchUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
-        // [THEN] The error happens before any updates are applied stating that the customer cannot mix Essential and Premium plans
-        asserterror AzureADUserSyncImpl.ApplyUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
 
-        LibraryAssert.ExpectedError(StrSubstNo(MixedPlansNonAdminErr, EssentialEmailTxt, PremiumEmailTxt));
+        // [THEN] User updates can be applied
+        AzureADUserSyncImpl.ApplyUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
+
+        TearDown();
+    end;
+
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [CommitBehavior(CommitBehavior::Ignore)]
+    procedure TestMixedPlansExist()
+    var
+        TempAzureADUserUpdateBuffer: Record "Azure AD User Update Buffer" temporary;
+        AzureADUserSyncImpl: Codeunit "Azure AD User Sync Impl.";
+        AzureADPlan: Codeunit "Azure AD Plan";
+        PlanIds: Codeunit "Plan Ids";
+        GraphUserEssential, GraphUserPremium : DotNet UserInfo;
+        MixedPlansExist: Boolean;
+    begin
+        Initialize();
+
+        // [GIVEN] A user in Azure AD with Essential license
+        MockGraphQueryTestLibrary.AddAndReturnGraphUser(GraphUserEssential, CreateGuid(), 'Essential', CommonLastNameTxt, EssentialEmailTxt);
+        MockGraphQueryTestLibrary.AddUserPlan(GraphUserEssential.ObjectId, PlanIds.GetEssentialPlanId(), '', 'Enabled');
+
+        // [GIVEN] The information from M365 is fetched and applied
+        AzureADUserSyncImpl.FetchUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
+        AzureADUserSyncImpl.ApplyUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
+
+        // [WHEN] A different user in Azure AD is assigned a Premium license
+        MockGraphQueryTestLibrary.AddAndReturnGraphUser(GraphUserPremium, CreateGuid(), 'Premium', CommonLastNameTxt, PremiumEmailTxt);
+        MockGraphQueryTestLibrary.AddUserPlan(GraphUserPremium.ObjectId, PlanIds.GetPremiumPlanId(), '', 'Enabled');
+
+        // [WHEN] Checking if mixed plans exists
+        MixedPlansExist := AzureADPlan.CheckMixedPlansExist();
+
+        // [THEN] Mixed plans exist
+        LibraryAssert.IsTrue(MixedPlansExist, ExpectedMixedPlansErr);
 
         TearDown();
     end;
