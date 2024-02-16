@@ -383,6 +383,14 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
     #endregion
 
     #region dependencies implementation
+
+    procedure SetCommonHeaders(var RestClient: Codeunit "Rest Client")
+    begin
+        RestClient.SetDefaultRequestHeader('X-API-Key', GetApiKey());
+        RestClient.SetDefaultRequestHeader('x-ms-client-tenant-id', GetAadTenantID());
+        RestClient.SetDefaultRequestHeader('x-ms-app', 'Dynamics 365 Business Central');
+    end;
+
     procedure GetAADTenantId(): Text
     begin
         if (TenantIdStore.Length() > 0) then
@@ -405,11 +413,10 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
     end;
 
     // Dependency to  Azure Key Vault 
-    procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText)
+    procedure GetApiKey(): SecretText
     begin
         if (KeyVaultStore.Length() > 0) then begin
-            Secret := KeyVaultStore.DequeueText();
-            exit;
+            exit(KeyVaultStore.DequeueText());
         end;
 
         Assert.Fail('GetAzureKeyVaultSecret should not be called');
