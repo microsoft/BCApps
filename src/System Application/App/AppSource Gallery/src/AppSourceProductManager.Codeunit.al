@@ -54,21 +54,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         exit(EntraTenant.GetPreferredLanguage());
     end;
 
-    procedure GetAadTenantID(): Text
-    var
-        EntraTenant: Codeunit "Azure AD Tenant";
-    begin
-        exit(EntraTenant.GetAadTenantID());
-    end;
-
-    [Scope('OnPrem')]
-    procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: SecretText);
-    var
-        KeyVault: Codeunit "Azure Key Vault";
-    begin
-        KeyVault.GetAzureKeyVaultSecret(SecretName, Secret);
-    end;
-
     procedure GetApplicationFamily(): Text
     var
         EnvironmentInformation: Codeunit "Environment Information";
@@ -408,6 +393,27 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         RestClient.SetDefaultRequestHeader('x-ms-app', 'Dynamics 365 Business Central');
     end;
 
+    [NonDebuggable]
+    local procedure GetAPIKey(): SecretText
+    var
+        ApiKey: SecretText;
+        AzureKeyValut: Codeunit "Azure Key Vault";
+    begin
+        Init();
+        if not AppSourceProductManagerDependencies.IsSaas() then
+            Error(NotSupportedOnPremisesErrorLbl);
+
+        AzureKeyValut.GetAzureKeyVaultSecret('MS-AppSource-ApiKey', ApiKey);
+        exit(ApiKey);
+    end;
+
+    procedure GetAadTenantID(): Text
+    var
+        EntraTenant: Codeunit "Azure AD Tenant";
+    begin
+        exit(EntraTenant.GetAadTenantID());
+    end;
+
     local procedure ConstructProductListUri(): Text
     var
         UriBuilder: Codeunit "Uri Builder";
@@ -479,20 +485,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
 
         // Insert, if it fails to insert due to the data (ex duplicate ids), ignore the error
         if not AppSourceProduct.Insert() then;
-    end;
-
-    [NonDebuggable]
-    local procedure GetAPIKey(): SecretText
-    var
-        ApiKey: SecretText;
-        AzureKeyValut: Codeunit "Azure Key Vault";
-    begin
-        Init();
-        if not AppSourceProductManagerDependencies.IsSaas() then
-            Error(NotSupportedOnPremisesErrorLbl);
-
-        AzureKeyValut.GetAzureKeyVaultSecret('MS-AppSource-ApiKey', ApiKey);
-        exit(ApiKey);
     end;
 
     local procedure Init()
