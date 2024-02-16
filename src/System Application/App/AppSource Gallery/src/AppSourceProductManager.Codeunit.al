@@ -24,7 +24,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     var
         AppSourceJsonUtilities: Codeunit "AppSource Json Utilities";
         AppSourceProductManagerDependencies: Interface "AppSource Product Manager Dependencies";
-        IsDependenciesIntrfaceSet: boolean;
+        IsDependenciesInterfaceSet: boolean;
         CatalogProductsUriLbl: label 'https://catalogapi.azure.com/products', Locked = true;
         CatalogApiVersionQueryParamNameLbl: label 'api-version', Locked = true;
         CatalogApiVersionQueryParamValueLbl: label '2023-05-01-preview', Locked = true;
@@ -105,7 +105,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
     procedure SetDependencies(SpecificDependencies: Interface "AppSource Product Manager Dependencies")
     begin
         AppSourceProductManagerDependencies := SpecificDependencies;
-        IsDependenciesIntrfaceSet := true;
+        IsDependenciesInterfaceSet := true;
     end;
 
     #region Product helpers
@@ -209,7 +209,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         Language: Codeunit Language;
         LanguageID, LocalID : integer;
     begin
-        GetCurrentUserLanguageAnLocaleID(LanguageID, LocalID);
+        GetCurrentUserLanguageAndLocaleID(LanguageID, LocalID);
 
         // Marketplace API only supports two letter languages.
         LanguageName := Language.GetTwoLetterISOLanguageName(LanguageID);
@@ -242,7 +242,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         exit(LanguageID);
     end;
 
-    local procedure GetCurrentUserLanguageAnLocaleID(var LanguageID: Integer; var LocaleID: Integer)
+    local procedure GetCurrentUserLanguageAndLocaleID(var LanguageID: Integer; var LocaleID: Integer)
     var
         TempUserSettings: Record "User Settings" temporary;
         Language: Codeunit Language;
@@ -494,7 +494,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
 
     local procedure Init()
     begin
-        if not IsDependenciesIntrfaceSet then
+        if not IsDependenciesInterfaceSet then
             SetDefaultDependencyImplementation();
     end;
 
@@ -503,6 +503,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         AppSourceProductManager: Codeunit "AppSource Product Manager";
     begin
         SetDependencies(AppSourceProductManager);
-        IsDependenciesIntrfaceSet := true;
+        IsDependenciesInterfaceSet := true;
     end;
 }
