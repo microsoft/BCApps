@@ -32,8 +32,11 @@ codeunit 9034 "Azure AD User Subscribers"
             exit;
         Initialized := true;
 
-        IsAdmin := AzureADGraphUser.IsUserDelegatedAdmin() or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId());
         IsAzure := UserAccountHelper.IsAzure();
+        if not IsAzure then
+            exit;
+
+        IsAdmin := AzureADGraphUser.IsUserDelegatedAdmin() or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId());
         if TryGetCountryCode() then;
     end;
 
