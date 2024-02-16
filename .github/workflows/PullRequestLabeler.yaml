@@ -17,11 +17,11 @@ jobs:
     if: github.repository_owner == 'microsoft'
     steps:
       - name: Label pull request
-        uses: actions/labeler@v4
+        uses: actions/labeler@v5
         with:
             repo-token: '${{ secrets.GITHUB_TOKEN }}'
             sync-labels: true
-      
+
       - name: Label community contribution
         if: github.event.pull_request.head.repo.full_name != github.repository
         env:
