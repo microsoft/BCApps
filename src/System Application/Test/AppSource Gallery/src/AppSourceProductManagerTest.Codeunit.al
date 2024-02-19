@@ -21,8 +21,6 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
         UserSettingsLanguageIDStore: Codeunit "Library - Variable Storage";
         ApplicationFamilyStore: Codeunit "Library - Variable Storage";
         IsSaasStore: Codeunit "Library - Variable Storage";
-        KeyVaultStore: Codeunit "Library - Variable Storage";
-        TenantIdStore: Codeunit "Library - Variable Storage";
         RestClientGetJsonStore: Codeunit "Library - Variable Storage";
         CountryLetterCodeStore: Codeunit "Library - Variable Storage";
 
@@ -153,7 +151,7 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
     [Test]
     procedure TestLoadProduct()
     var
-        TempProduct: Record "AppSource Product" temporary;
+        TempAppSourceProduct: Record "AppSource Product" temporary;
         AppSourceProductManager: codeunit "AppSource Product Manager";
         AppSourceProductManagerTest: Codeunit "AppSource Product Manager Test";
     begin
@@ -169,15 +167,13 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
         AppSourceProductManagerTest.AddToApplicationFamilyStore('W1');
         AppSourceProductManagerTest.AddToUserSettingsLanguageIDStore(3082); //es-ES
         AppSourceProductManagerTest.AddToCountryLetterCodeStore('us');
-        AppSourceProductManagerTest.AddToKeyVaultStore('secret');
-        AppSourceProductManagerTest.AddToTenantIdStore('tenantId');
         AppSourceProductManagerTest.AddToRestClientGetJsonStore('{"items": [{"uniqueProductId": "PUBID.pbsi_software|AID.247timetracker|PAPPID.9a12247e-8564-4b90-b80b-cd5f4b64217e","displayName": "Dynamics 365 Business Central","publisherId": "pbsi_software","publisherDisplayName": "David Boehm, CPA and Company Inc.","publisherType": "ThirdParty","ratingAverage": 5.0,"ratingCount": 2,"productType": "DynamicsBC","popularity": 7.729569120865367,"privacyPolicyUri": "https://pbsisoftware.com/24-7-tt-privacy-statement","lastModifiedDateTime": "2023-09-03T11:08:28.5348241+00:00"}]}');
         // When
-        AppSourceProductManager.GetProductsAndPopulateRecord(TempProduct);
+        AppSourceProductManager.GetProductsAndPopulateRecord(TempAppSourceProduct);
 
         // Then
-        Assert.AreEqual(TempProduct.Count, 1, 'The number of products is incorrect.');
-        Assert.AreEqual('Dynamics 365 Business Central', TempProduct.DisplayName, 'The product name is incorrect.');
+        Assert.AreEqual(TempAppSourceProduct.Count, 1, 'The number of products is incorrect.');
+        Assert.AreEqual('Dynamics 365 Business Central', TempAppSourceProduct.DisplayName, 'The product name is incorrect.');
         AppSourceProductManagerTest.AssertCleanedUp();
         AssertCleanedUp();
     end;
@@ -185,7 +181,7 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
     [Test]
     procedure TestLoadProductWithNextPageLink()
     var
-        TempProduct: Record "AppSource Product" temporary;
+        TempAppSourceProduct: Record "AppSource Product" temporary;
         AppSourceProductManager: codeunit "AppSource Product Manager";
         AppSourceProductManagerTest: Codeunit "AppSource Product Manager Test";
     begin
@@ -200,8 +196,6 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
         AppSourceProductManagerTest.AddToApplicationFamilyStore('W1');
         AppSourceProductManagerTest.AddToUserSettingsLanguageIDStore(3082); //es-ES
         AppSourceProductManagerTest.AddToCountryLetterCodeStore('dk');
-        AppSourceProductManagerTest.AddToKeyVaultStore('secret');
-        AppSourceProductManagerTest.AddToTenantIdStore('tenantId');
 
         // Push first with next page link
         AppSourceProductManagerTest.AddToRestClientGetJsonStore('{"items": [{"uniqueProductId": "PUBID.advania|AID.advania_approvals|PAPPID.603d81ef-542b-46ae-9cb5-17dc16fa3842","displayName": "Dynamics 365 Business Central - First","publisherId": "advania","publisherDisplayName": "Advania","publisherType": "ThirdParty","ratingAverage": 0.0,"ratingCount": 0,"productType": "DynamicsBC","popularity": 7.729569120865367,"privacyPolicyUri": "https://privacy.d365bc.is/","lastModifiedDateTime": "2024-01-19T03:23:15.4319343+00:00"}],"nextPageLink": "next page uri"}');
@@ -209,14 +203,14 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
         AppSourceProductManagerTest.AddToRestClientGetJsonStore('{"items": [{"uniqueProductId": "PUBID.pbsi_software|AID.247timetracker|PAPPID.9a12247e-8564-4b90-b80b-cd5f4b64217e","displayName": "Dynamics 365 Business Central - Second","publisherId": "pbsi_software","publisherDisplayName": "David Boehm, CPA and Company Inc.","publisherType": "ThirdParty","ratingAverage": 5.0,"ratingCount": 2,"productType": "DynamicsBC","popularity": 7.729569120865367,"privacyPolicyUri": "https://pbsisoftware.com/24-7-tt-privacy-statement","lastModifiedDateTime": "2023-09-03T11:08:28.5348241+00:00"}]}');
 
         // When
-        AppSourceProductManager.GetProductsAndPopulateRecord(TempProduct);
+        AppSourceProductManager.GetProductsAndPopulateRecord(TempAppSourceProduct);
 
         // Then
-        Assert.AreEqual(2, TempProduct.Count, 'The number of products is incorrect.');
-        TempProduct.FindSet();
-        Assert.AreEqual('Dynamics 365 Business Central - First', TempProduct.DisplayName, 'The first product name is incorrect.');
-        TempProduct.Next();
-        Assert.AreEqual('Dynamics 365 Business Central - Second', TempProduct.DisplayName, 'The second product name is incorrect.');
+        Assert.AreEqual(2, TempAppSourceProduct.Count, 'The number of products is incorrect.');
+        TempAppSourceProduct.FindSet();
+        Assert.AreEqual('Dynamics 365 Business Central - First', TempAppSourceProduct.DisplayName, 'The first product name is incorrect.');
+        TempAppSourceProduct.Next();
+        Assert.AreEqual('Dynamics 365 Business Central - Second', TempAppSourceProduct.DisplayName, 'The second product name is incorrect.');
 
         AppSourceProductManagerTest.AssertCleanedUp();
         AssertCleanedUp();
@@ -317,8 +311,6 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
         UserSettingsLanguageIDStore.Clear();
         ApplicationFamilyStore.Clear();
         IsSaasStore.Clear();
-        KeyVaultStore.Clear();
-        TenantIdStore.Clear();
         RestClientGetJsonStore.Clear();
         CountryLetterCodeStore.Clear();
     end;
@@ -330,8 +322,6 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
         UserSettingsLanguageIDStore.AssertEmpty();
         ApplicationFamilyStore.AssertEmpty();
         IsSaasStore.AssertEmpty();
-        KeyVaultStore.AssertEmpty();
-        TenantIdStore.AssertEmpty();
         RestClientGetJsonStore.AssertEmpty();
         CountryLetterCodeStore.AssertEmpty();
     end;
@@ -355,16 +345,6 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
     internal procedure AddToIsSaasStore(IsSaasValue: Boolean)
     begin
         IsSaasStore.Enqueue(IsSaasValue);
-    end;
-
-    internal procedure AddToKeyVaultStore(Secret: Text)
-    begin
-        KeyVaultStore.Enqueue(Secret);
-    end;
-
-    internal procedure AddToTenantIdStore(TenantId: Text)
-    begin
-        TenantIdStore.Enqueue(TenantId);
     end;
 
     internal procedure AddToRestClientGetJsonStore(JsonText: Text)
