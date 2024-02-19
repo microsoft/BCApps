@@ -268,7 +268,6 @@ codeunit 9016 "Azure AD Plan"
     /// <summary>
     /// Checks whether the plan configuration mixes different plans.
     /// </summary>
-    /// <returns>Returns true if there are incompatible plans in the system. </returns>
     [Scope('OnPrem')]
     [NonDebuggable]
     [Obsolete('Replaced with CheckMixedPlansExist', '24.0')]
@@ -282,7 +281,6 @@ codeunit 9016 "Azure AD Plan"
     /// </summary>
     /// <param name="PlanNamesPerUser">A mapping of new plans for user identifiers.</param>
     /// <param name="ErrorOutForAdmin">Specifies if an error (instead of a message) should be shown for an admin when this function is called.</param>
-    /// <returns>Returns true if there are incompatible plans in the system. </returns>
     [Scope('OnPrem')]
     [NonDebuggable]
     [Obsolete('Replaced with CheckMixedPlansExist', '24.0')]
@@ -295,9 +293,6 @@ codeunit 9016 "Azure AD Plan"
     /// Checks whether the plan configuration mixes different plans.
     /// </summary>
     /// <param name="PlanNamesPerUser">A mapping of new plans for user identifiers.</param>
-    /// <param name="BasicPlanExists">Specifies whether the plan configuration contains the Basic plan</param>
-    /// <param name="EssentialsPlanExists">Specifies whether the plan configuration contains the Essentials plan</param>
-    /// <param name="PremiumPlanExists">Specifies whether the plan configuration contains the Premium plan</param>
     [Scope('OnPrem')]
     [NonDebuggable]
     [Obsolete('Replaced with CheckMixedPlansExist', '24.0')]
@@ -309,10 +304,9 @@ codeunit 9016 "Azure AD Plan"
 
     /// <summary>
     /// Checks whether the plan configuration mixes different plans.
-    /// Returns true if there are incompatible plans in the system.
-    /// Only checks when conditions for plan check is met, otherwise returns false.
+    /// Returns true if there are incompatible plans in the system. Only checks when conditions for plan check is met, otherwise returns false.
     /// </summary>
-    /// <returns>Returns true if there are incompatible plans in the system. </returns>
+    /// <returns>Returns true if there are incompatible plans in the system.</returns>
     [Scope('OnPrem')]
     [NonDebuggable]
     procedure CheckMixedPlansExist(): Boolean
