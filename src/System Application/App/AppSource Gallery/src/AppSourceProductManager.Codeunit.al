@@ -87,6 +87,11 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         UserSettings.GetUserSettings(Database.UserSecurityID(), TempUserSettingsRecord);
     end;
 
+    procedure ShouldSetCommonHeaders(): Boolean
+    begin
+        exit(true);
+    end;
+
     #endregion
     procedure SetDependencies(SpecificDependencies: Interface "AppSource Product Manager Dependencies")
     begin
@@ -329,7 +334,8 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         NextPageLink := ConstructProductListUri();
 
         RestClient.Initialize();
-        AppSourceProductManagerDependencies.SetCommonHeaders(RestClient);
+        if AppSourceProductManagerDependencies.ShouldSetCommonHeaders() then
+            SetCommonHeaders(RestClient);
 
         repeat
             NextPageLink := DownloadAndAddNextPageProducts(NextPageLink, AppSourceProductRec, RestClient);
@@ -354,7 +360,8 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         Session.LogMessage('AL:AppSource-GetProduct', 'Requesting product details.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDictionary);
 
         RestClient.Initialize();
-        SetCommonHeaders(RestClient);
+        if AppSourceProductManagerDependencies.ShouldSetCommonHeaders() then
+            SetCommonHeaders(RestClient);
         RestClient.SetDefaultRequestHeader('client-request-id', ClientRequestID);
 
         exit(AppSourceProductManagerDependencies.GetAsJSon(RestClient, RequestUri).AsObject());

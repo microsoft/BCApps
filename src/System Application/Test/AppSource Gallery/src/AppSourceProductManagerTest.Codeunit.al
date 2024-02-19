@@ -384,19 +384,9 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
 
     #region dependencies implementation
 
-    procedure SetCommonHeaders(var RestClient: Codeunit "Rest Client")
+    procedure ShouldSetCommonHeaders(): Boolean
     begin
-        RestClient.SetDefaultRequestHeader('X-API-Key', GetApiKey());
-        RestClient.SetDefaultRequestHeader('x-ms-client-tenant-id', GetAadTenantID());
-        RestClient.SetDefaultRequestHeader('x-ms-app', 'Dynamics 365 Business Central');
-    end;
-
-    procedure GetAADTenantId(): Text
-    begin
-        if (TenantIdStore.Length() > 0) then
-            exit(TenantIdStore.DequeueText());
-
-        Assert.Fail('GetTenantId should not be called');
+        exit(false);
     end;
 
     procedure GetCountryLetterCode(): Code[2]
@@ -410,15 +400,6 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
     procedure GetPreferredLanguage(): Text
     begin
         Assert.Fail('GetPreferredLanguage should not be called');
-    end;
-
-    // Dependency to  Azure Key Vault 
-    procedure GetApiKey(): SecretText
-    begin
-        if (KeyVaultStore.Length() > 0) then
-            exit(KeyVaultStore.DequeueText());
-
-        Assert.Fail('GetAzureKeyVaultSecret should not be called');
     end;
 
     // Dependency to Environment Information 

@@ -28,7 +28,7 @@ interface "AppSource Product Manager Dependencies"
 
     // Rest client override
     procedure GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken;
-    procedure SetCommonHeaders(var RestClient: Codeunit "Rest Client");
+    procedure ShouldSetCommonHeaders(): Boolean;
 
     // Dependency to User Settings
     procedure GetUserSettings(UserSecurityID: Guid; var TempUserSettingsRecord: Record "User Settings" temporary);
