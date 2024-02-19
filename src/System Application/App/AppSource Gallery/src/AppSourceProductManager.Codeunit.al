@@ -329,7 +329,7 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         NextPageLink := ConstructProductListUri();
 
         RestClient.Initialize();
-        SetCommonHeaders(RestClient);
+        AppSourceProductManagerDependencies.SetCommonHeaders(RestClient);
 
         repeat
             NextPageLink := DownloadAndAddNextPageProducts(NextPageLink, AppSourceProductRec, RestClient);
