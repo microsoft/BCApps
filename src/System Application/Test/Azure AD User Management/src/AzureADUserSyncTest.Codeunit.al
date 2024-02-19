@@ -32,7 +32,6 @@ codeunit 132928 "Azure AD User Sync Test"
         UnexpectedFullNameErr: Label 'Unexpected full name.';
         IncorrectPlanErr: Label 'The user does not have the correct plan assigned.';
         UnexpectedNoOfChangesErr: Label 'Unexpected number of successful changes were made.';
-        ExpectedMixedPlansErr: Label 'Expected that mixed plans exists.';
 #pragma warning disable AA0240
         EssentialEmailTxt: Label 'essential@microsoft.com';
         PremiumEmailTxt: Label 'premium@microsoft.com';
