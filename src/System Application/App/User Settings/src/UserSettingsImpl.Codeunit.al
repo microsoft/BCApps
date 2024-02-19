@@ -532,4 +532,10 @@ codeunit 9175 "User Settings Impl."
             UserPersonalization.CalcFields("Role");
         end;
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetIsLegacyActionBarEnabled', '', false, false)]
+    local procedure GetIsLegacyActionBarEnabled(var IsEnabled: Boolean)
+    begin
+        IsEnabled := LegacyActionBarEnabled(UserSecurityId());
+    end;
 }
