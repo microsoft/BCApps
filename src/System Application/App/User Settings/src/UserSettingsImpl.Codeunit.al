@@ -336,58 +336,58 @@ codeunit 9175 "User Settings Impl."
             InitializePlatformSettings(UserSecurityID, UserPersonalization);
     end;
 
-    procedure GetUsersFullName(UserSecurityId: Guid): Text
+    procedure GetUsersFullName(UserSecurityID: Guid): Text
     var
         User: Record User;
     begin
-        if User.Get(UserSecurityId) then
+        if User.Get(UserSecurityID) then
             exit(User."Full Name");
     end;
 
-    procedure TeachingTipsEnabled(UserSecurityId: Guid): Boolean
+    procedure TeachingTipsEnabled(UserSecurityID: Guid): Boolean
     var
         ApplicationUserSettings: Record "Application User Settings";
     begin
-        GetAppSettings(UserSecurityId, ApplicationUserSettings);
+        GetAppSettings(UserSecurityID, ApplicationUserSettings);
         exit(ApplicationUserSettings."Teaching Tips");
     end;
 
-    procedure DisableTeachingTips(UserSecurityId: Guid)
+    procedure DisableTeachingTips(UserSecurityID: Guid)
     var
         ApplicationUserSettings: Record "Application User Settings";
     begin
-        GetAppSettings(UserSecurityId, ApplicationUserSettings);
+        GetAppSettings(UserSecurityID, ApplicationUserSettings);
         ApplicationUserSettings."Teaching Tips" := false;
         ApplicationUserSettings.Modify();
     end;
 
-    procedure EnableTeachingTips(UserSecurityId: Guid)
+    procedure EnableTeachingTips(UserSecurityID: Guid)
     var
         ApplicationUserSettings: Record "Application User Settings";
     begin
-        GetAppSettings(UserSecurityId, ApplicationUserSettings);
+        GetAppSettings(UserSecurityID, ApplicationUserSettings);
         ApplicationUserSettings."Teaching Tips" := true;
         ApplicationUserSettings.Modify();
     end;
 
-    procedure LegacyActionBarEnabled(UserSecurityId: Guid): Boolean
+    procedure IsLegacyActionBarEnabled(UserSecurityID: Guid): Boolean
     var
         ApplicationUserSettings: Record "Application User Settings";
     begin
-        GetAppSettings(UserSecurityId, ApplicationUserSettings);
+        GetAppSettings(UserSecurityID, ApplicationUserSettings);
         exit(ApplicationUserSettings."Legacy Action Bar");
     end;
 
-    procedure DisableLegacyActionBar(UserSecurityId: Guid)
+    procedure DisableLegacyActionBar(UserSecurityID: Guid)
     var
         ApplicationUserSettings: Record "Application User Settings";
     begin
-        GetAppSettings(UserSecurityId, ApplicationUserSettings);
+        GetAppSettings(UserSecurityID, ApplicationUserSettings);
         ApplicationUserSettings."Legacy Action Bar" := false;
         ApplicationUserSettings.Modify();
     end;
 
-    procedure EnableLegacyActionBar(UserSecurityId: Guid)
+    procedure EnableLegacyActionBar(UserSecurityID: Guid)
     var
         ApplicationUserSettings: Record "Application User Settings";
         CustomerExperienceSurvey: Codeunit "Customer Experience Survey";
@@ -395,7 +395,7 @@ codeunit 9175 "User Settings Impl."
         FormsProEligibilityId: Text;
         IsEligible: Boolean;
     begin
-        GetAppSettings(UserSecurityId, ApplicationUserSettings);
+        GetAppSettings(UserSecurityID, ApplicationUserSettings);
         ApplicationUserSettings."Legacy Action Bar" := true;
         ApplicationUserSettings.Modify();
 
@@ -536,6 +536,6 @@ codeunit 9175 "User Settings Impl."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetIsLegacyActionBarEnabled', '', false, false)]
     local procedure GetIsLegacyActionBarEnabled(var IsEnabled: Boolean)
     begin
-        IsEnabled := LegacyActionBarEnabled(UserSecurityId());
+        IsEnabled := IsLegacyActionBarEnabled(UserSecurityId());
     end;
 }

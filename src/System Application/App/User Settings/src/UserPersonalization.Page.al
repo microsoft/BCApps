@@ -157,7 +157,7 @@ page 9214 "User Personalization"
     trigger OnAfterGetCurrRecord()
     begin
         TeachingTipsEnabled := UserSettingsImpl.TeachingTipsEnabled(Rec."User SID");
-        LegacyActionBarEnabled := UserSettingsImpl.LegacyActionBarEnabled(Rec."User SID");
+        LegacyActionBarEnabled := UserSettingsImpl.IsLegacyActionBarEnabled(Rec."User SID");
     end;
 
     var
