@@ -334,6 +334,9 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         NextPageLink := ConstructProductListUri();
 
         RestClient.Initialize();
+        if not AppSourceProductManagerDependencies.IsSaas() then
+            Error(NotSupportedOnPremisesErrorLbl);
+
         if AppSourceProductManagerDependencies.ShouldSetCommonHeaders() then
             SetCommonHeaders(RestClient);
 
@@ -360,8 +363,12 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         Session.LogMessage('AL:AppSource-GetProduct', 'Requesting product details.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDictionary);
 
         RestClient.Initialize();
+        if not AppSourceProductManagerDependencies.IsSaas() then
+            Error(NotSupportedOnPremisesErrorLbl);
+
         if AppSourceProductManagerDependencies.ShouldSetCommonHeaders() then
             SetCommonHeaders(RestClient);
+
         RestClient.SetDefaultRequestHeader('client-request-id', ClientRequestID);
 
         exit(AppSourceProductManagerDependencies.GetAsJSon(RestClient, RequestUri).AsObject());
@@ -399,10 +406,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         AzureAdTenant: Codeunit "Azure AD Tenant";
         ApiKey: SecretText;
     begin
-        Init();
-        if not AppSourceProductManagerDependencies.IsSaas() then
-            Error(NotSupportedOnPremisesErrorLbl);
-
         AzureKeyVault.GetAzureKeyVaultSecret('MS-AppSource-ApiKey', ApiKey);
 
         RestClient.SetDefaultRequestHeader('X-API-Key', ApiKey);
