@@ -233,6 +233,15 @@ page 2610 "Feature Management"
         }
     }
 
+    views
+    {
+        view("Try it out now")
+        {
+            caption = 'Try it out now';
+            Filters = where("Can Try" = const(true));
+        }
+    }
+
     trigger OnOpenPage()
     var
         FeatureIDFilter: Text;
