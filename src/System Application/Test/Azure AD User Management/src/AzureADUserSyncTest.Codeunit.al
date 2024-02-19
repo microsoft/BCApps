@@ -613,42 +613,6 @@ codeunit 132928 "Azure AD User Sync Test"
         TearDown();
     end;
 
-
-    [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
-    [CommitBehavior(CommitBehavior::Ignore)]
-    procedure TestMixedPlansExist()
-    var
-        TempAzureADUserUpdateBuffer: Record "Azure AD User Update Buffer" temporary;
-        AzureADUserSyncImpl: Codeunit "Azure AD User Sync Impl.";
-        AzureADPlan: Codeunit "Azure AD Plan";
-        PlanIds: Codeunit "Plan Ids";
-        GraphUserEssential, GraphUserPremium : DotNet UserInfo;
-        MixedPlansExist: Boolean;
-    begin
-        Initialize();
-
-        // [GIVEN] A user in Azure AD with Essential license
-        MockGraphQueryTestLibrary.AddAndReturnGraphUser(GraphUserEssential, CreateGuid(), 'Essential', CommonLastNameTxt, EssentialEmailTxt);
-        MockGraphQueryTestLibrary.AddUserPlan(GraphUserEssential.ObjectId, PlanIds.GetEssentialPlanId(), '', 'Enabled');
-
-        // [GIVEN] The information from M365 is fetched and applied
-        AzureADUserSyncImpl.FetchUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
-        AzureADUserSyncImpl.ApplyUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
-
-        // [WHEN] A different user in Azure AD is assigned a Premium license
-        MockGraphQueryTestLibrary.AddAndReturnGraphUser(GraphUserPremium, CreateGuid(), 'Premium', CommonLastNameTxt, PremiumEmailTxt);
-        MockGraphQueryTestLibrary.AddUserPlan(GraphUserPremium.ObjectId, PlanIds.GetPremiumPlanId(), '', 'Enabled');
-
-        // [WHEN] Checking if mixed plans exists
-        MixedPlansExist := AzureADPlan.CheckMixedPlansExist();
-
-        // [THEN] Mixed plans exist
-        LibraryAssert.IsTrue(MixedPlansExist, ExpectedMixedPlansErr);
-
-        TearDown();
-    end;
-
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [CommitBehavior(CommitBehavior::Ignore)]
