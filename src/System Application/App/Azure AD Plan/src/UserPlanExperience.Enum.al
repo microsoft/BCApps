@@ -33,7 +33,7 @@ enum 9005 "User Plan Experience"
     /// </summary>
     value(3; Basic)
     {
-        Caption = 'Line';
+        Caption = 'Basic';
     }
 
     /// <summary>

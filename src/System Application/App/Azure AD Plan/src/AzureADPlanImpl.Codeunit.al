@@ -261,15 +261,15 @@ codeunit 9018 "Azure AD Plan Impl."
     end;
 
     [NonDebuggable]
-    procedure CheckMixedPlans(): Boolean
+    procedure CheckMixedPlansExist(): Boolean
     var
         DummyDictionary: Dictionary of [Text, List of [Text]];
     begin
-        exit(CheckMixedPlans(DummyDictionary));
+        exit(CheckMixedPlansExist(DummyDictionary));
     end;
 
     [NonDebuggable]
-    procedure CheckMixedPlans(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]): Boolean
+    procedure CheckMixedPlansExist(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]): Boolean
     begin
         if not ShouldCheckMixedPlans() then
             exit(false);

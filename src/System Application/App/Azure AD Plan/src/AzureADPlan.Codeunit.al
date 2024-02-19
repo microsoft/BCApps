@@ -273,7 +273,7 @@ codeunit 9016 "Azure AD Plan"
     [Obsolete('Replaced with CheckMixedPlansExist', '24.0')]
     procedure CheckMixedPlans()
     begin
-        AzureAdPlanImpl.CheckMixedPlans();
+        AzureAdPlanImpl.CheckMixedPlansExist();
     end;
 
     /// <summary>
@@ -286,7 +286,7 @@ codeunit 9016 "Azure AD Plan"
     [Obsolete('Replaced with CheckMixedPlansExist', '24.0')]
     procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]]; ErrorOutForAdmin: Boolean)
     begin
-        AzureAdPlanImpl.CheckMixedPlans(PlanNamesPerUser);
+        AzureAdPlanImpl.CheckMixedPlansExist(PlanNamesPerUser);
     end;
 
     /// <summary>
@@ -298,7 +298,7 @@ codeunit 9016 "Azure AD Plan"
     [Obsolete('Replaced with CheckMixedPlansExist', '24.0')]
     procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]])
     begin
-        AzureAdPlanImpl.CheckMixedPlans(PlanNamesPerUser);
+        AzureAdPlanImpl.CheckMixedPlansExist(PlanNamesPerUser);
     end;
 #endif
 
@@ -311,7 +311,7 @@ codeunit 9016 "Azure AD Plan"
     [NonDebuggable]
     procedure CheckMixedPlansExist(): Boolean
     begin
-        exit(AzureAdPlanImpl.CheckMixedPlans());
+        exit(AzureAdPlanImpl.CheckMixedPlansExist());
     end;
 
     /// <summary>
