@@ -415,9 +415,8 @@ codeunit 135074 "AppSource Product Manager Test" implements "AppSource Product M
     // Dependency to  Azure Key Vault 
     procedure GetApiKey(): SecretText
     begin
-        if (KeyVaultStore.Length() > 0) then begin
+        if (KeyVaultStore.Length() > 0) then
             exit(KeyVaultStore.DequeueText());
-        end;
 
         Assert.Fail('GetAzureKeyVaultSecret should not be called');
     end;
