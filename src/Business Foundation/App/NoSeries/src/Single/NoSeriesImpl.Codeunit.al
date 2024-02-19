@@ -278,6 +278,14 @@ codeunit 304 "No. Series - Impl."
 #endif
     end;
 
+    procedure HasRelatedSeries(NoSeriesCode: Code[20]): Boolean
+    var
+        NoSeriesRelationship: Record "No. Series Relationship";
+    begin
+        NoSeriesRelationship.SetRange(Code, NoSeriesCode);
+        exit(not NoSeriesRelationship.IsEmpty());
+    end;
+
     procedure TestAreRelated(DefaultNoSeriesCode: Code[20]; RelatedNoSeriesCode: Code[20])
     var
         NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
@@ -310,7 +318,7 @@ codeunit 304 "No. Series - Impl."
         exit(NoSeriesRelationship.Get(DefaultNoSeriesCode, RelatedNoSeriesCode));
     end;
 
-    procedure IsAutomaticNoSeries(NoSeriesCode: Code[20]): Boolean
+    procedure IsAutomatic(NoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";
     begin
@@ -338,27 +346,52 @@ codeunit 304 "No. Series - Impl."
             NoSeriesErrorsImpl.Throw(StrSubstNo(CannotAssignAutomaticallyErr, NoSeries.FieldCaption("Default Nos."), NoSeries.TableCaption(), NoSeries.Code), NoSeries.Code, NoSeriesErrorsImpl.OpenNoSeriesAction());
     end;
 
-    procedure SelectRelatedNoSeries(OriginalNoSeriesCode: Code[20]; DefaultHighlightedNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
+    procedure LookupRelatedNoSeries(OriginalNoSeriesCode: Code[20]; DefaultHighlightedNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
     var
         NoSeries: Record "No. Series";
         NoSeriesRelationship: Record "No. Series Relationship";
+#if not CLEAN24
+#pragma warning disable AL0432
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+        IsHandled: Boolean;
+        Result: Boolean;
+#pragma warning restore AL0432
+#endif
     begin
-        // Mark all related series
-        NoSeriesRelationship.SetRange(Code, OriginalNoSeriesCode);
-        if NoSeriesRelationship.FindSet() then
-            repeat
-                NoSeries.Code := NoSeriesRelationship."Series Code";
-                NoSeries.Mark := true;
-            until NoSeriesRelationship.Next() = 0;
+#if not CLEAN24
+#pragma warning disable AL0432
+        IsHandled := false;
+        NoSeriesManagement.RaiseObsoleteOnBeforeSelectSeries(OriginalNoSeriesCode, DefaultHighlightedNoSeriesCode, NewNoSeriesCode, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
 
-        // Mark the original series
-        NoSeries.Code := OriginalNoSeriesCode;
-        NoSeries.Mark := true;
+        NoSeriesManagement.RaiseObsoleteOnBeforeFilterSeries(NoSeries, OriginalNoSeriesCode, IsHandled);
+        if not IsHandled then begin
+#pragma warning restore AL0432
+#endif
+            NoSeriesRelationship.SetRange(Code, OriginalNoSeriesCode);
+            if NoSeriesRelationship.FindSet() then
+                repeat
+                    NoSeries.Code := NoSeriesRelationship."Series Code";
+                    NoSeries.Mark := true;
+                until NoSeriesRelationship.Next() = 0;
+
+            // Mark the original series
+            NoSeries.Code := OriginalNoSeriesCode;
+            NoSeries.Mark := true;
+#if not CLEAN24
+        end;
+#endif
 
         // If DefaultHighlightedNoSeriesCode is set, make sure we select it by default on the page
         if DefaultHighlightedNoSeriesCode <> '' then
             NoSeries.Code := DefaultHighlightedNoSeriesCode;
 
+#if not CLEAN24
+#pragma warning disable AL0432
+        NoSeriesManagement.RaiseObsoleteOnSelectSeriesOnBeforePageRunModal(NoSeries.Code, NoSeries);
+#pragma warning restore AL0432
+#endif
         if Page.RunModal(0, NoSeries) = Action::LookupOK then begin
             NewNoSeriesCode := NoSeries.Code;
             exit(true);
