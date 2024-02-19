@@ -258,7 +258,6 @@ codeunit 9016 "Azure AD Plan"
     /// </summary>
     /// <returns>The the user plan experience.</returns>
     [Scope('OnPrem')]
-    [NonDebuggable]
     procedure GetUserPlanExperience(): Enum "User Plan Experience"
     begin
         exit(AzureAdPlanImpl.GetUserPlanExperience());
@@ -308,7 +307,6 @@ codeunit 9016 "Azure AD Plan"
     /// </summary>
     /// <returns>Returns true if there are incompatible plans in the system.</returns>
     [Scope('OnPrem')]
-    [NonDebuggable]
     procedure CheckMixedPlansExist(): Boolean
     begin
         exit(AzureAdPlanImpl.CheckMixedPlansExist());
@@ -319,7 +317,6 @@ codeunit 9016 "Azure AD Plan"
     /// </summary>
     /// <returns>Returns true if there are incompatible plans in the system. </returns>
     [Scope('OnPrem')]
-    [NonDebuggable]
     procedure MixedPlansExist(): Boolean
     begin
         exit(AzureAdPlanImpl.MixedPlansExist());

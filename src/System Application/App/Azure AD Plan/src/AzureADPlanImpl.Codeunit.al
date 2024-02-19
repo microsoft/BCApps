@@ -242,7 +242,6 @@ codeunit 9018 "Azure AD Plan Impl."
         exit(PlanIDs);
     end;
 
-    [NonDebuggable]
     procedure GetUserPlanExperience(): Enum "User Plan Experience"
     var
         PlanIds: Codeunit "Plan Ids";
@@ -260,7 +259,6 @@ codeunit 9018 "Azure AD Plan Impl."
         exit(UserPlanExperience::Other);
     end;
 
-    [NonDebuggable]
     procedure CheckMixedPlansExist(): Boolean
     var
         DummyDictionary: Dictionary of [Text, List of [Text]];
@@ -268,7 +266,6 @@ codeunit 9018 "Azure AD Plan Impl."
         exit(CheckMixedPlansExist(DummyDictionary));
     end;
 
-    [NonDebuggable]
     procedure CheckMixedPlansExist(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]): Boolean
     begin
         if not ShouldCheckMixedPlans() then
@@ -277,7 +274,6 @@ codeunit 9018 "Azure AD Plan Impl."
         exit(MixedPlansExist(PlanNamesPerUserFromGraph));
     end;
 
-    [NonDebuggable]
     procedure MixedPlansExist(): Boolean
     var
         EmptyDictionary: Dictionary of [Text, List of [Text]];
@@ -285,7 +281,6 @@ codeunit 9018 "Azure AD Plan Impl."
         exit(MixedPlansExist(EmptyDictionary));
     end;
 
-    [NonDebuggable]
     procedure MixedPlansExist(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]): Boolean
     var
         PlanIds: Codeunit "Plan Ids";
@@ -340,7 +335,6 @@ codeunit 9018 "Azure AD Plan Impl."
         end;
     end;
 
-    [NonDebuggable]
     local procedure ShouldCheckMixedPlans(): Boolean
     var
         Company: Record Company;
