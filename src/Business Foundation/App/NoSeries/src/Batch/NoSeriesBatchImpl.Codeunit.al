@@ -14,7 +14,6 @@ codeunit 309 "No. Series - Batch Impl."
 
     var
         TempGlobalNoSeriesLine: Record "No. Series Line" temporary;
-        LockedNoSeriesLine: Record "No. Series Line";
         SimulationMode: Boolean;
         CannotSaveNonExistingNoSeriesErr: Label 'Cannot save No. Series Line that does not exist: %1, %2', Comment = '%1 = No. Series Code, %2 = Line No.';
         CannotSaveWhileSimulatingNumbersErr: Label 'No. Series state cannot be saved while simulating numbers.';
@@ -59,7 +58,7 @@ codeunit 309 "No. Series - Batch Impl."
     var
         NoSeries: Codeunit "No. Series";
     begin
-        SetInitialState(TempNoSeriesLine);
+        SyncGlobalLineWithProvidedLine(TempNoSeriesLine, UsageDate);
         exit(NoSeries.PeekNextNo(TempGlobalNoSeriesLine, UsageDate));
     end;
 
@@ -77,7 +76,6 @@ codeunit 309 "No. Series - Batch Impl."
         NextNo: Code[20];
     begin
         SyncGlobalLineWithProvidedLine(TempNoSeriesLine, UsageDate);
-        LockedNoSeriesLine.ReadIsolation(IsolationLevel::UpdLock);
         NextNo := NoSeries.GetNextNo(TempGlobalNoSeriesLine, UsageDate, HideErrorsAndWarnings);
         TempNoSeriesLine := TempGlobalNoSeriesLine;
         exit(NextNo);
@@ -151,11 +149,13 @@ codeunit 309 "No. Series - Batch Impl."
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'm')]
     local procedure UpdateNoSeriesLine(var TempNoSeriesLine: Record "No. Series Line" temporary)
+    var
+        NoSeriesLine: Record "No. Series Line";
     begin
-        LockedNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
-        LockedNoSeriesLine.TransferFields(TempNoSeriesLine);
-        LockedNoSeriesLine.Modify(true);
-        TempNoSeriesLine := LockedNoSeriesLine;
+        NoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
+        NoSeriesLine.TransferFields(TempNoSeriesLine);
+        NoSeriesLine.Modify(true);
+        TempNoSeriesLine := NoSeriesLine;
         TempNoSeriesLine.Modify();
     end;
 

@@ -47,6 +47,8 @@ codeunit 7772 "Azure OpenAI Impl"
         TelemetryGenerateTextCompletionLbl: Label 'Generate Text Completion', Locked = true;
         TelemetryGenerateEmbeddingLbl: Label 'Generate Embedding', Locked = true;
         TelemetryGenerateChatCompletionLbl: Label 'Generate Chat Completion', Locked = true;
+        TelemetryChatCompletionToolCallLbl: Label 'The chat completion called tools.', Locked = true;
+        TelemetryChatCompletionToolUsedLbl: Label 'Tools added to chat completion.', Locked = true;
         TelemetrySetCapabilityLbl: Label 'Set Capability', Locked = true;
         TelemetryCopilotCapabilityNotRegisteredLbl: Label 'Copilot capability was not registered.', Locked = true;
         TelemetryIsEnabledLbl: Label 'Is Enabled', Locked = true;
@@ -298,8 +300,9 @@ codeunit 7772 "Azure OpenAI Impl"
     procedure GenerateChatCompletion(var ChatMessages: Codeunit "AOAI Chat Messages"; AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
         CustomDimensions: Dictionary of [Text, Text];
-        Payload: JsonObject;
-        PayloadText: Text;
+        Payload, ToolChoicePayload : JsonObject;
+        ToolsPayload: JsonArray;
+        PayloadText, ToolChoice : Text;
         MetapromptTokenCount: Integer;
         PromptTokenCount: Integer;
     begin
@@ -308,34 +311,60 @@ codeunit 7772 "Azure OpenAI Impl"
         CheckCapabilitySet();
         CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
+        AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
         AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
         Payload.Add('messages', ChatMessages.AssembleHistory(MetapromptTokenCount, PromptTokenCount));
+
+        if ChatMessages.ToolsExists() then begin
+            ToolsPayload := ChatMessages.AssembleTools();
+            Payload.Add('tools', ToolsPayload);
+            ToolChoice := ChatMessages.GetToolChoice();
+            if ToolChoice = 'auto' then
+                Payload.Add('tool_choice', ToolChoice)
+            else begin
+                ToolChoicePayload.ReadFrom(ToolChoice);
+                Payload.Add('tool_choice', ToolChoicePayload);
+            end;
+
+            CustomDimensions.Add('ToolsCount', Format(ToolsPayload.Count));
+            FeatureTelemetry.LogUsage('0000MFG', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryChatCompletionToolUsedLbl, CustomDimensions);
+        end;
+
         Payload.WriteTo(PayloadText);
 
-        AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
         SendTokenCountTelemetry(MetapromptTokenCount, PromptTokenCount, CustomDimensions);
         if not SendRequest(Enum::"AOAI Model Type"::"Chat Completions", ChatCompletionsAOAIAuthorization, PayloadText, AOAIOperationResponse) then begin
             FeatureTelemetry.LogError('0000KVF', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, ChatCompletionsFailedWithCodeErr, '', CustomDimensions);
             exit;
         end;
 
-        ProcessChatCompletionResponse(AOAIOperationResponse.GetResult(), ChatMessages);
+        ProcessChatCompletionResponse(AOAIOperationResponse.GetResult(), ChatMessages, CallerModuleInfo);
 
         FeatureTelemetry.LogUsage('0000KVN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, CustomDimensions);
     end;
 
     [NonDebuggable]
     [TryFunction]
-    local procedure ProcessChatCompletionResponse(ResponseText: Text; var ChatMessages: Codeunit "AOAI Chat Messages")
+    local procedure ProcessChatCompletionResponse(ResponseText: Text; var ChatMessages: Codeunit "AOAI Chat Messages"; CallerModuleInfo: ModuleInfo)
     var
+        CustomDimensions: Dictionary of [Text, Text];
+        ToolsCall: Text;
         Response: JsonObject;
         CompletionToken: JsonToken;
         XPathLbl: Label '$.content', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
+        XPathToolCallsLbl: Label '$.tool_calls', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
     begin
         Response.ReadFrom(ResponseText);
-        Response.SelectToken(XPathLbl, CompletionToken);
-        ChatMessages.AddAssistantMessage(CompletionToken.AsValue().AsText());
+        if Response.SelectToken(XPathLbl, CompletionToken) then
+            ChatMessages.AddAssistantMessage(CompletionToken.AsValue().AsText());
+        if Response.SelectToken(XPathToolCallsLbl, CompletionToken) then begin
+            CompletionToken.AsArray().WriteTo(ToolsCall);
+            ChatMessages.AddAssistantMessage(ToolsCall);
+
+            AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+            FeatureTelemetry.LogUsage('0000MFH', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryChatCompletionToolCallLbl, CustomDimensions);
+        end;
     end;
 
     [TryFunction]
@@ -465,7 +494,7 @@ codeunit 7772 "Azure OpenAI Impl"
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         EnvironmentInformation: Codeunit "Environment Information";
-        KVSecret: Text;
+        KVSecret: SecretText;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit;

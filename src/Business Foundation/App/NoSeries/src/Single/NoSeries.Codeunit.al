@@ -217,11 +217,23 @@ codeunit 310 "No. Series"
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
-        exit(NoSeriesImpl.IsAutomaticNoSeries(NoSeriesCode));
+        exit(NoSeriesImpl.IsAutomatic(NoSeriesCode));
     end;
     #endregion
 
     #region NoSeriesRelations
+    /// <summary>
+    /// Returns true if the No. Series is related to one or more other No. Series.
+    /// </summary>
+    /// <param name="NoSeriesCode">The No. Series code to check</param>
+    /// <returns>True if the No. Series is related to one or more other No. Series.</returns>
+    procedure HasRelatedSeries(NoSeriesCode: Code[20]): Boolean
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.HasRelatedSeries(NoSeriesCode));
+    end;
+
     /// <summary>
     /// Verifies that the two No. Series are related.
     /// </summary>
@@ -251,6 +263,19 @@ codeunit 310 "No. Series"
     /// Opens a page to select a No. Series related to the OriginalNoSeriesCode (including the OriginalNoSeriesCode).
     /// </summary>
     /// <param name="OriginalNoSeriesCode">The No. Series code to find related No. Series for.</param>
+    /// <param name="NewNoSeriesCode">The selected No. Series code.</param>
+    /// <returns>True if a No. Series was selected, false otherwise.</returns>
+    procedure LookupRelatedNoSeries(OriginalNoSeriesCode: Code[20]; var NewNoSeriesCode: Code[20]): Boolean
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.LookupRelatedNoSeries(OriginalNoSeriesCode, OriginalNoSeriesCode, NewNoSeriesCode));
+    end;
+
+    /// <summary>
+    /// Opens a page to select a No. Series related to the OriginalNoSeriesCode (including the OriginalNoSeriesCode).
+    /// </summary>
+    /// <param name="OriginalNoSeriesCode">The No. Series code to find related No. Series for.</param>
     /// <param name="DefaultHighlightedNoSeriesCode">The No. Series code to highlight by default. If empty, the OriginalNoSeriesCode will be used.</param>
     /// <param name="NewNoSeriesCode">The selected No. Series code.</param>
     /// <returns>True if a No. Series was selected, false otherwise.</returns>
@@ -258,7 +283,7 @@ codeunit 310 "No. Series"
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
-        exit(NoSeriesImpl.SelectRelatedNoSeries(OriginalNoSeriesCode, DefaultHighlightedNoSeriesCode, NewNoSeriesCode));
+        exit(NoSeriesImpl.LookupRelatedNoSeries(OriginalNoSeriesCode, DefaultHighlightedNoSeriesCode, NewNoSeriesCode));
     end;
     #endregion
 

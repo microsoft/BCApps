@@ -265,7 +265,7 @@ codeunit 138074 "Satisfaction Survey Tests"
     begin
         // Setup
         Initialize();
-        EnvironmentInfoTestLibrary.SetIsSandbox(true);
+        EnvironmentInfoTestLibrary.SetTestabilitySandbox(true);
         SimulatePuidNotEmpty();
         SimulateApiUrlNotEmpty();
         PermissionsMock.Set('Satisfaction View');
@@ -305,7 +305,7 @@ codeunit 138074 "Satisfaction Survey Tests"
     begin
         // Setup
         Initialize();
-        EnvironmentInfoTestLibrary.SetIsSaaS(false);
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         SimulatePuidNotEmpty();
         SimulateApiUrlNotEmpty();
         PermissionsMock.Set('Satisfaction View');
@@ -527,8 +527,8 @@ codeunit 138074 "Satisfaction Survey Tests"
     local procedure Initialize()
     begin
         ClearLastError();
-        EnvironmentInfoTestLibrary.SetIsSaaS(true);
-        EnvironmentInfoTestLibrary.SetIsSandbox(false);
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
         SatisfactionSurveyMgt.ResetCache();
         TestClientTypeSubscriber.SetClientType(ClientType::Web);
         SatisfactionSurveyMgt.ResetState();

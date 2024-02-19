@@ -16,6 +16,7 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
 
     var
         CannotAssignNumbersGreaterThanErr: Label 'You cannot assign numbers greater than %1 from the number series %2. No. assigned: %3', Comment = '%1=Last No.,%2=No. Series Code, %3=the new no.';
+        WarnNoSeriesRunningOutMsg: Label 'The No. Series %1 is soon running out. The current number is %2 and the last allowed number of the sequence is %3.', Comment = '%1=No. Series code,%2=Current No.,%3=Last No. of the sequence';
 
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin
@@ -80,17 +81,20 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
     end;
 
     procedure EnsureLastNoUsedIsWithinValidRange(NoSeriesLine: Record "No. Series Line"; NoErrorsOrWarnings: Boolean): Boolean
+    var
+        NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
     begin
         if not NoIsWithinValidRange(NoSeriesLine."Last No. Used", NoSeriesLine."Starting No.", NoSeriesLine."Ending No.") then begin
             if NoErrorsOrWarnings then
                 exit(false);
-            Error(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code", NoSeriesLine."Last No. Used");
+            NoSeriesErrorsImpl.Throw(StrSubstNo(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code", NoSeriesLine."Last No. Used"), NoSeriesLine, NoSeriesErrorsImpl.OpenNoSeriesLinesAction());
         end;
 
         if (NoSeriesLine."Ending No." <> '') and (NoSeriesLine."Warning No." <> '') and (NoSeriesLine."Last No. Used" >= NoSeriesLine."Warning No.") then begin
             if NoErrorsOrWarnings then
                 exit(false);
-            Message(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code", NoSeriesLine."Last No. Used");
+            if GuiAllowed() then
+                Message(WarnNoSeriesRunningOutMsg, NoSeriesLine."Series Code", NoSeriesLine."Last No. Used", NoSeriesLine."Ending No.");
         end;
         exit(true);
     end;
