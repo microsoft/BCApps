@@ -7,7 +7,6 @@ namespace System.Globalization;
 
 using System;
 using System.Environment.Configuration;
-using System.Telemetry;
 using System.Environment;
 
 codeunit 54 "Language Impl."
@@ -42,12 +41,10 @@ codeunit 54 "Language Impl."
 
     procedure GetLanguageIdOrDefault(LanguageCode: Code[10]): Integer;
     var
-        Telemetry: Codeunit Telemetry;
         LanguageId: Integer;
     begin
         if LanguageIdOverride <> 0 then begin
             LanguageId := LanguageIdOverride;
-            Telemetry.LogMessage('0000MH9', StrSubstNo(LanguageIdOverrideMsg, LanguageId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
             if ResetLanguageIdOverrideAfterUse then
                 LanguageIdOverride := 0;
             exit(LanguageId);
@@ -63,13 +60,11 @@ codeunit 54 "Language Impl."
     procedure GetFormatRegionOrDefault(FormatRegion: Text[80]): Text[80]
     var
         LanguageSelection: Record "Language Selection";
-        Telemetry: Codeunit Telemetry;
         UserSessionSettings: SessionSettings;
         LocalId: Integer;
     begin
         if FormatRegionOverride <> '' then begin
             FormatRegion := FormatRegionOverride;
-            Telemetry.LogMessage('0000MHA', StrSubstNo(FormatRegionOverrideMsg, FormatRegion), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
             if ResetFormatRegionOverrideAfterUse then
                 FormatRegionOverride := '';
             exit(FormatRegion);
