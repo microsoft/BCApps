@@ -25,8 +25,6 @@ codeunit 54 "Language Impl."
         LanguageIdOverride: Integer;
         FormatRegionOverride: Text[80];
         LanguageNotFoundErr: Label 'The language %1 could not be found.', Comment = '%1 = Language ID';
-        LanguageIdOverrideMsg: Label 'LanguageIdOverride has been applied in GetLanguageIdOrDefault. The new Language Id is %1.', Comment = '%1 - Language ID';
-        FormatRegionOverrideMsg: Label 'FormatRegionOverride has been applied in GetFormatRegionOrDefault. The new FormatRegion is %1.', Comment = '%1 - Format Region';
 
     procedure GetUserLanguageCode() UserLanguageCode: Code[10]
     var
