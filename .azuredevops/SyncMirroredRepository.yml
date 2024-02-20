@@ -11,7 +11,7 @@ schedules:
     - releases/*
 
 pool:
-  name: 'd365bc-agentpool-nonprod-build-official'
+  name: 'd365bc-agentpool-nonprod-bcapps-sync'
 
 resources:
   repositories:
