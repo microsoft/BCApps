@@ -27,7 +27,6 @@ variables:
 jobs:
 - job: SyncMirror
   dependsOn: []
-  pool: 'd365bc-agentpool-nonprod-bcapps-sync'
   displayName: Sync mirror with upstream
   steps:
   - powershell: |
