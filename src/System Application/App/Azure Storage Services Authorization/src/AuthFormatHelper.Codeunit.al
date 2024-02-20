@@ -41,6 +41,19 @@ codeunit 9060 "Auth. Format Helper"
         exit(DotNetDateTime.Parse(DateTimeAsXmlString).ToUniversalTime().ToString(FormatSpecifier));
     end;
 
+#if not CLEAN24
+    [NonDebuggable]
+    [Obsolete('Replaced by GetAccessKeyHashCode with SecretText data type for AccessKey parameter.', '24.0')]
+    procedure GetAccessKeyHashCode(StringToSign: Text; AccessKey: Text): Text;
+    var
+        CryptographyManagement: Codeunit "Cryptography Management";
+        HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512;
+    begin
+#pragma warning disable AL0432
+        exit(CryptographyManagement.GenerateBase64KeyedHashAsBase64String(StringToSign, AccessKey, HashAlgorithmType::HMACSHA256));
+#pragma warning restore AL0432
+    end;
+#endif
     [NonDebuggable]
     procedure GetAccessKeyHashCode(StringToSign: Text; AccessKey: SecretText): Text;
     var

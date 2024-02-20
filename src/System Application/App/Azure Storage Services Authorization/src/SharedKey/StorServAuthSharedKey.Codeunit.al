@@ -28,6 +28,15 @@ codeunit 9064 "Stor. Serv. Auth. Shared Key" implements "Storage Service Authori
         Headers.Add('Authorization', GetSharedKeySignature(HttpRequest, StorageAccount));
     end;
 
+#if not CLEAN24
+    [NonDebuggable]
+    [Obsolete('Replaced by SetSharedKey with SecretText data type for SharedKey parameter.', '24.0')]
+    procedure SetSharedKey(SharedKey: Text)
+    begin
+        Secret := SharedKey;
+    end;
+#endif
+
     [NonDebuggable]
     procedure SetSharedKey(SharedKey: SecretText)
     begin

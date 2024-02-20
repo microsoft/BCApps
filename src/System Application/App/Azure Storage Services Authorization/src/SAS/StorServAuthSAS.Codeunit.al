@@ -45,6 +45,15 @@ codeunit 9061 "Stor. Serv. Auth. SAS" implements "Storage Service Authorization"
         StorageAccountName := NewStorageAccountName;
     end;
 
+#if not CLEAN24
+    [NonDebuggable]
+    [Obsolete('Replaced by SetSigningKey with SecretText data type for NewSigningKey parameter.', '24.0')]
+    procedure SetSigningKey(NewSigningKey: Text)
+    begin
+        SigningKey := NewSigningKey;
+    end;
+#endif
+
     [NonDebuggable]
     procedure SetSigningKey(NewSigningKey: SecretText)
     begin
