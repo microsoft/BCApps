@@ -63,9 +63,9 @@
     ],   
     "internalsVisibleTo":  [
         {
-            "name": "AppSource Product Gallery Test",
-            "id": "c1830429-77f6-4469-837a-7bfd4705ff41",
-            "publisher": "Microsoft"
+            "id":  "ba17b564-d600-44d5-be0b-ca7ff7ac28fc",
+            "name":  "AppSource Gallery Test Library",
+            "publisher":  "Microsoft"
         }
     ],
     "screenshots": [],
