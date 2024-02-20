@@ -46,7 +46,7 @@ function New-BCAppsBackport() {
     foreach($TargetBranch in $TargetBranches) {
         try {
             $title = "[$TargetBranch] $($pullRequestDetails.title)"
-            $title = $title.Substring(0, [Math]::Min(255, $title.Length))
+            $title = $title.Substring(0, [Math]::Min(255,$title.Length))
             $body = "This pull request backports #$($pullRequestDetails.number) to $TargetBranch"
             $body += "`r`n`r`nFixes AB#[**Insert Work Item Number Here**]"
 
