@@ -1,4 +1,4 @@
-This module provides functionality for generating pseudorandom values during test set-up. 
+This module provides functionality for generating pseudorandom values during test set-up.
 
 Use this module to do the following:
 - Generate values in the test setup.
@@ -7,10 +7,12 @@ Use this module to do the following:
 
 Additional Notes:
 This module always generates values in the same order, unless the SetSeed method is called.
-This helps with reproducing the test failures. 
+This helps with reproducing the test failures.
 
-Tests should always use the pseudorandom values, unless the parameter must be set to a specific value. 
+Tests should always use the pseudorandom values, unless the parameter must be set to a specific value.
 In that case, document the reason for hard-coding the value.
 
 This module must not be used outside the test code.
+
+Check the reference documentation at [https://microsoft.github.io/BCApps](https://microsoft.github.io/BCApps/reference/any/Module/Any.html).
 
