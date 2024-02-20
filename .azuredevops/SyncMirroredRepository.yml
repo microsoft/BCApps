@@ -51,6 +51,6 @@ jobs:
     parameters:
       Priority: '2'
       Severity: '2'
-      Issue: 'Infrastructure Defect'
+      Issue: 'Build Break'
       SecurityImpact: 'No'
       Condition: always()
