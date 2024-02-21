@@ -5,3 +5,5 @@ There are two ways to run tests:
 - In the Console, which is suitable for running in CI/CD pipeline. To set this up you must use the ALTestRunner.psm1 file in this module.
 
 Do mot modify or extend this module. In the future we will move test execution to a platform-based API.
+
+Check the reference documentation at [https://microsoft.github.io/BCApps](https://microsoft.github.io/BCApps/reference/test-runner/Module/Test-Runner.html).
