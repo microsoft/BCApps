@@ -16,6 +16,12 @@
                             "name": "AppSource Product Gallery",
                             "publisher": "Microsoft",
                             "version": "24.0.0.0"
+                         },
+                         {
+                            "id": "812b339d-a9db-4a6e-84e4-fe35cbef0c44",
+                            "name": "Rest Client",
+                            "publisher": "Microsoft",
+                            "version": "24.0.0.0"
                          }
                      ],
     "screenshots":  [
