@@ -5,8 +5,6 @@
 namespace System.TestLibraries.Apps.AppSource;
 
 using System.Environment.Configuration;
-using System.Globalization;
-using System.Utilities;
 using System.RestClient;
 using System.Apps.AppSource;
 
@@ -47,15 +45,6 @@ codeunit 132910 "AppSource Product Manager Test" implements "AppSource Product M
     end;
 
     /// <summary>
-    /// Opens the AppSource product details page for the specified unique product ID.
-    /// </summary>
-    /// <param name="UniqueProductIDValue"></param>
-    procedure OpenProductDetailsPage(UniqueProductIDValue: Text)
-    begin
-        AppSourceProductManager.OpenProductDetailsPage(UniqueProductIDValue);
-    end;
-
-    /// <summary>
     /// Extracts the AppID from the Unique Product ID.
     /// </summary>
     /// <param name="UniqueProductIDValue">The Unique Product ID of the product as defined in MicrosoftAppSource</param>
@@ -76,21 +65,21 @@ codeunit 132910 "AppSource Product Manager Test" implements "AppSource Product M
     /// <summary>
     /// Get all products from a remote server and adds them to the AppSource Product table.
     /// </summary>
-    internal procedure GetProductsAndPopulateRecord(): Text
+    procedure GetProductsAndPopulateRecord(): Text
     begin
         AppSourceProductManager.GetProductsAndPopulateRecord(TempAppSourceProduct);
     end;
 
-    internal procedure GetRecordAtPosDisplayName(Position: Integer): Text
+    procedure GetRecordAtPosDisplayName(Position: Integer): Text
     var
-        i : Integer;
+        i: Integer;
     begin
         for i := 1 to Position do
             TempAppSourceProduct.Next();
         exit(TempAppSourceProduct.DisplayName);
     end;
 
-    internal procedure GetRecordCount(): Integer
+    procedure GetRecordCount(): Integer
     begin
         exit(TempAppSourceProduct.Count());
     end;
@@ -175,7 +164,7 @@ codeunit 132910 "AppSource Product Manager Test" implements "AppSource Product M
         LanguageID := InputLanguageId;
     end;
 
-    internal procedure SetDependencies(AppSourceProductManagerDependencies: Interface "AppSource Product Manager Dependencies")
+    procedure SetDependencies(AppSourceProductManagerDependencies: Interface "AppSource Product Manager Dependencies")
     begin
         AppSourceProductManager.SetDependencies(AppSourceProductManagerDependencies);
     end;
