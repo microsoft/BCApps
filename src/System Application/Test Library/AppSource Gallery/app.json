@@ -22,6 +22,12 @@
                             "name": "Rest Client",
                             "publisher": "Microsoft",
                             "version": "24.0.0.0"
+                         },
+                         {
+                            "id":  "7b9b59f5-a68d-4271-b11a-0d3b9c0938dd",
+                            "name":  "User Settings",
+                            "publisher":  "Microsoft",
+                            "version": "24.0.0.0"
                          }
                      ],
     "screenshots":  [
@@ -30,7 +36,7 @@
     "idRanges":  [
                      {
                          "from":  132910,
-                         "to":  132910
+                         "to":  132911
                      }
                  ],
     "platform":  "24.0.0.0",
