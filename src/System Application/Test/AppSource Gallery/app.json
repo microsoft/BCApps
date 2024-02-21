@@ -1,6 +1,6 @@
 {
     "id": "c1830429-77f6-4469-837a-7bfd4705ff41",
-    "name": "Microsoft AppSource Product Gallery Test",
+    "name": "AppSource Product Gallery Test",
     "publisher": "Microsoft",
     "brief": "",
     "description": "Tests for the AppSource Gallery module",
@@ -31,7 +31,7 @@
         },
         {
             "id": "79952567-63d7-4586-8b47-ba13a11a8a18",
-            "name": "Microsoft AppSource Product Gallery",
+            "name": "AppSource Product Gallery",
             "publisher": "Microsoft",
             "version": "24.0.0.0"
         },
