@@ -4,14 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.TestLibraries.Apps.AppSource;
 
-using System.Environment.Configuration;
-using System.RestClient;
 using System.Apps.AppSource;
 
 /// <summary>
 /// Library for managing AppSource product retrival and usage.
 /// </summary>
-codeunit 132910 "AppSource Product Manager Test" implements "AppSource Product Manager Dependencies"
+codeunit 132910 "AppSrc Product Mgr. Test Impl."
 {
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -19,13 +17,6 @@ codeunit 132910 "AppSource Product Manager Test" implements "AppSource Product M
     var
         TempAppSourceProduct: Record "AppSource Product" temporary;
         AppSourceProductManager: Codeunit "AppSource Product Manager";
-        FormatRegionStore: Text[80];
-        CountryLetterCode: Code[2];
-        PreferredLanguage: Text;
-        LanguageID: Variant;
-        IsInSaas: Boolean;
-        Json: JsonToken;
-        ApplicationFamily: Text;
 
     /// <summary>
     /// Opens Microsoft AppSource web page for the region is specified in the UserSessionSettings or 'en-us' by default.
@@ -88,94 +79,10 @@ codeunit 132910 "AppSource Product Manager Test" implements "AppSource Product M
     end;
     #endregion
 
-    // Dependency to Azure AD Tenant
-    procedure GetCountryLetterCode(): Code[2]
-    begin
-        exit(CountryLetterCode)
-    end;
-
-    procedure SetCountryLetterCode(InputCountryLetterCode: Code[2])
-    begin
-        CountryLetterCode := InputCountryLetterCode;
-    end;
-
-    procedure GetPreferredLanguage(): Text
-    begin
-        exit(PreferredLanguage);
-    end;
-
-    procedure SetPreferredLanguage(InputPreferredLanguage: Text)
-    begin
-        PreferredLanguage := InputPreferredLanguage;
-    end;
-
-    // Dependency to Environment Information 
-    procedure GetApplicationFamily(): Text
-    begin
-        exit(ApplicationFamily);
-    end;
-
-    procedure SetApplicationFamily(InputApplicationFamily: Text)
-    begin
-        ApplicationFamily := InputApplicationFamily;
-    end;
-
-    procedure IsSaas(): Boolean
-    begin
-        exit(IsInSaas);
-    end;
-
-    procedure SetIsSaas(InputIsSaas: Boolean)
-    begin
-        IsInSaas := InputIsSaas;
-    end;
-
-    // Dependency to Language 
-    procedure GetFormatRegionOrDefault(InputFormatRegion: Text[80]): Text
-    begin
-        if (InputFormatRegion <> '') then
-            exit(InputFormatRegion);
-        exit(FormatRegionStore);
-    end;
-
-    procedure SetFormatRegionStore(InputFormatRegion: Text[80])
-    begin
-        FormatRegionStore := InputFormatRegion;
-    end;
-
-    // Rest client override
-    procedure GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken
-    begin
-        exit(Json);
-    end;
-
-    procedure SetJSon(JsonText: Text)
-    begin
-        Json.ReadFrom(JsonText);
-    end;
-
-    procedure ShouldSetCommonHeaders(): Boolean
-    begin
-        exit(false);
-    end;
-
-    // Dependency to User Settings
-    procedure GetUserSettings(UserSecurityID: Guid; var TempUserSettingsRecord: Record "User Settings" temporary)
-    begin
-        TempUserSettingsRecord.Init();
-        TempUserSettingsRecord."User Security ID" := UserSecurityID;
-        TempUserSettingsRecord."Language ID" := LanguageID;
-    end;
-
-    procedure SetUserSettings(InputLanguageId: Variant)
-    begin
-        LanguageID := InputLanguageId;
-    end;
-
     // Dependencies
-    procedure SetDependencies(AppSourceProductManagerDependencies: Codeunit "AppSource Product Manager Test")
+    procedure SetDependencies(AppSourceMockDepsProvider: Codeunit "AppSource Mock Deps. Provider")
     begin
-        AppSourceProductManager.SetDependencies(AppSourceProductManagerDependencies);
+        AppSourceProductManager.SetDependencies(AppSourceMockDepsProvider);
     end;
 
     procedure ResetDependencies()
