@@ -3,7 +3,7 @@ name: Update BC Artifact Version
 on:
   workflow_dispatch:
   schedule:
-    - cron: "55 05 * * 0,2,4" # Run at 05:55 UTC on Sunday, Tuesday, and Thursday
+    - cron: '55 5 * * *' # Daily at 05:55 UTC
 
 defaults:
   run:

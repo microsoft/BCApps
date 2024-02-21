@@ -227,6 +227,7 @@ page 456 "No. Series"
                     ToolTip = 'View or edit additional information about the number series lines.';
                     RunObject = Page "No. Series Lines";
                     RunPageLink = "Series Code" = field(Code);
+                    Scope = Repeater;
                 }
                 action(Relationships)
                 {
@@ -235,6 +236,7 @@ page 456 "No. Series"
                     RunObject = page "No. Series Relationships";
                     RunPageLink = Code = field(Code);
                     ToolTip = 'View or edit relationships between number series.';
+                    Scope = Repeater;
                 }
             }
         }
@@ -259,6 +261,42 @@ page 456 "No. Series"
                         Message(CheckNoFailedTxt, WorkDate());
                 end;
             }
+            group(View)
+            {
+                Caption = 'View';
+                ShowAs = SplitButton;
+
+                action(ShowAll)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Show All';
+                    Image = List;
+                    ToolTip = 'Show all number series.';
+
+                    trigger OnAction()
+                    begin
+                        Rec.ClearMarks();
+                        Rec.MarkedOnly(false);
+                        CurrPage.Update(false);
+                    end;
+                }
+
+                action(ShowExpiring)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Show Expiring';
+                    Image = ShowList;
+                    ToolTip = 'Show number series that require your attention, such as, number series that have no lines or an have open lines which have reached the warning threshold.';
+
+                    trigger OnAction()
+                    var
+                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                    begin
+                        NoSeriesSetupImpl.ShowNoSeriesWithWarningsOnly(Rec);
+                        CurrPage.Update(false);
+                    end;
+                }
+            }
         }
         area(Promoted)
         {
@@ -282,6 +320,19 @@ page 456 "No. Series"
             {
             }
             actionref(Relationships_Promoted; Relationships)
+            {
+            }
+            group(View_Promoted)
+            {
+                ShowAs = SplitButton;
+                actionref(ShowAll_Promoted; ShowAll)
+                {
+                }
+                actionref(ShowExpiring_Promoted; ShowExpiring)
+                {
+                }
+            }
+            actionref(TestNoSeriesSingle_Promoted; TestNoSeriesSingle)
             {
             }
         }
