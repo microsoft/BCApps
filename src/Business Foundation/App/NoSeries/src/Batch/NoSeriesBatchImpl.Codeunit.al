@@ -17,6 +17,11 @@ codeunit 309 "No. Series - Batch Impl."
         SimulationMode: Boolean;
         CannotSaveNonExistingNoSeriesErr: Label 'Cannot save No. Series Line that does not exist: %1, %2', Comment = '%1 = No. Series Code, %2 = Line No.';
         CannotSaveWhileSimulatingNumbersErr: Label 'No. Series state cannot be saved while simulating numbers.';
+        NoSeriesBatchLbl: Label 'No. Series - Batch', Locked = true;
+        SimulationModeStartedTxt: Label 'No. Series simulation mode started.', Locked = true;
+        SavingSingleNoSeriesStateTxt: Label 'Saving single No. Series state.', Locked = true;
+        SavingAllNoSeriesStatesTxt: Label 'Saving all No. Series states.', Locked = true;
+        UpdatingNoSeriesLinesFromDbTxt: Label 'Updating No. Series lines from database.', Locked = true;
 
     procedure SetInitialState(TempNoSeriesLine: Record "No. Series Line" temporary)
     begin
@@ -124,6 +129,10 @@ codeunit 309 "No. Series - Batch Impl."
 
     procedure SetSimulationMode()
     begin
+        if SimulationMode then
+            exit;
+
+        Session.LogMessage('0000MI2', SimulationModeStartedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesBatchLbl);
         SimulationMode := true;
     end;
 
@@ -133,6 +142,7 @@ codeunit 309 "No. Series - Batch Impl."
             Error(CannotSaveWhileSimulatingNumbersErr);
         if not TempGlobalNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.") then
             Error(CannotSaveNonExistingNoSeriesErr, TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
+        Session.LogMessage('0000MI3', SavingSingleNoSeriesStateTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesBatchLbl);
         UpdateNoSeriesLine(TempGlobalNoSeriesLine);
     end;
 
@@ -140,6 +150,7 @@ codeunit 309 "No. Series - Batch Impl."
     begin
         if SimulationMode then
             Error(CannotSaveWhileSimulatingNumbersErr);
+        Session.LogMessage('0000MI4', SavingAllNoSeriesStatesTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesBatchLbl);
         TempGlobalNoSeriesLine.Reset();
         if TempGlobalNoSeriesLine.FindSet() then
             repeat
@@ -152,6 +163,7 @@ codeunit 309 "No. Series - Batch Impl."
     var
         NoSeriesLine: Record "No. Series Line";
     begin
+        Session.LogMessage('0000MI5', UpdatingNoSeriesLinesFromDbTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesBatchLbl);
         NoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
         NoSeriesLine.TransferFields(TempNoSeriesLine);
         NoSeriesLine.Modify(true);
