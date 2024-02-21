@@ -60,7 +60,7 @@ codeunit 132910 "AppSource Product Manager Test" implements "AppSource Product M
         exit(AppSourceProductManager.CanInstallProductWithPlans(Plans));
     end;
 
-    #region Market and language helper functions
+    #region Record handling functions
 
     /// <summary>
     /// Get all products from a remote server and adds them to the AppSource Product table.
@@ -70,16 +70,19 @@ codeunit 132910 "AppSource Product Manager Test" implements "AppSource Product M
         AppSourceProductManager.GetProductsAndPopulateRecord(TempAppSourceProduct);
     end;
 
-    procedure GetRecordAtPosDisplayName(Position: Integer): Text
-    var
-        i: Integer;
+    /// <summary>
+    /// Returns true if a product with the given display name is present in the AppSource Product table.
+    /// </summary>
+    procedure IsRecordWithDisplayNameinProductTable(DisplayName: Text): Boolean
     begin
-        for i := 1 to Position do
-            TempAppSourceProduct.Next();
-        exit(TempAppSourceProduct.DisplayName);
+        TempAppSourceProduct.SetRange(DisplayName, DisplayName);
+        exit(TempAppSourceProduct.FindSet());
     end;
 
-    procedure GetRecordCount(): Integer
+    /// <summary>
+    /// Gets the number of records in the AppSource Product table.
+    /// </summary>
+    procedure GetProductTable(): Integer
     begin
         exit(TempAppSourceProduct.Count());
     end;
@@ -151,6 +154,11 @@ codeunit 132910 "AppSource Product Manager Test" implements "AppSource Product M
         Json.ReadFrom(JsonText);
     end;
 
+    procedure ShouldSetCommonHeaders(): Boolean
+    begin
+        exit(false);
+    end;
+
     // Dependency to User Settings
     procedure GetUserSettings(UserSecurityID: Guid; var TempUserSettingsRecord: Record "User Settings" temporary)
     begin
@@ -164,13 +172,16 @@ codeunit 132910 "AppSource Product Manager Test" implements "AppSource Product M
         LanguageID := InputLanguageId;
     end;
 
+    // Dependencies
     procedure SetDependencies(AppSourceProductManagerDependencies: Interface "AppSource Product Manager Dependencies")
     begin
         AppSourceProductManager.SetDependencies(AppSourceProductManagerDependencies);
     end;
 
-    procedure ShouldSetCommonHeaders(): Boolean
+    procedure ResetDependencies()
+    var
+        AppSourceProductManagerDependencies: Interface "AppSource Product Manager Dependencies";
     begin
-        exit(false);
+        AppSourceProductManager.SetDependencies(AppSourceProductManagerDependencies);
     end;
 }

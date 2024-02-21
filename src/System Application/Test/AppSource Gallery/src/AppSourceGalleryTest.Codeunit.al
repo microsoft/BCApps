@@ -23,14 +23,13 @@ codeunit 135074 "AppSource Gallery Test"
         UniqueId: Text;
         AppId: Guid;
         ExpectedAppId: Guid;
-        AppSourceProductManager: Codeunit "AppSource Product Manager Test";
     begin
         // Given
         UniqueId := 'PUBID.nav24spzoo1579516366010%7CAID.n24_test_transactability%7CPAPPID.0984da34-5ec1-4ac1-9575-b73fb2212327';
         ExpectedAppId := '0984da34-5ec1-4ac1-9575-b73fb2212327';
 
         // When 
-        AppId := AppSourceProductManager.ExtractAppIDFromUniqueProductID(UniqueId);
+        AppId := AppSourceProductManagerTest.ExtractAppIDFromUniqueProductID(UniqueId);
 
         // Then
         LibraryAssert.AreEqual(ExpectedAppId, AppId, 'Expected AppId to be extracted from UniqueId');
@@ -41,13 +40,12 @@ codeunit 135074 "AppSource Gallery Test"
     var
         UniqueId: Text;
         AppId: Guid;
-        AppSourceProductManager: Codeunit "AppSource Product Manager Test";
     begin
         // Given
         UniqueId := 'articentgroupllc1635512619530.ackee-ubuntu-18-04-minimal';
 
         // When 
-        AppId := AppSourceProductManager.ExtractAppIDFromUniqueProductID(UniqueId);
+        AppId := AppSourceProductManagerTest.ExtractAppIDFromUniqueProductID(UniqueId);
 
         // Then
         LibraryAssert.IsTrue(IsNullGuid(AppId), 'Expected AppId to be empty when not present in the UniqueId');
@@ -72,8 +70,7 @@ codeunit 135074 "AppSource Gallery Test"
         // Then
         // Asserted in handler
         AssertCleanedUp();
-
-        //AppSourceProductManagerTest.Clear();
+        AppSourceProductManagerTest.ResetDependencies();
     end;
 
     [Test]
@@ -99,6 +96,7 @@ codeunit 135074 "AppSource Gallery Test"
         // Then
         // Asserted in handler
         AssertCleanedUp();
+        AppSourceProductManagerTest.ResetDependencies();
     end;
 
     [Test]
@@ -119,7 +117,7 @@ codeunit 135074 "AppSource Gallery Test"
         // Then
         LibraryAssert.ExpectedError('Not supported on premises.');
 
-        AssertCleanedUp();
+        AppSourceProductManagerTest.ResetDependencies();
     end;
 
     [Test]
@@ -140,9 +138,10 @@ codeunit 135074 "AppSource Gallery Test"
         AppSourceProductManagerTest.GetProductsAndPopulateRecord();
 
         // Then
-        LibraryAssert.AreEqual(AppSourceProductManagerTest.GetRecordCount(), 1, 'The number of products is incorrect.');
-        LibraryAssert.AreEqual('Dynamics 365 Business Central', AppSourceProductManagerTest.GetRecordAtPosDisplayName(1), 'The product name is incorrect.');
-        AssertCleanedUp();
+        LibraryAssert.AreEqual(AppSourceProductManagerTest.GetProductTable(), 1, 'The number of products is incorrect.');
+        LibraryAssert.IsTrue(AppSourceProductManagerTest.IsRecordWithDisplayNameinProductTable('Dynamics 365 Business Central'), 'The product name is incorrect.');
+
+        AppSourceProductManagerTest.ResetDependencies();
     end;
 
     [Test]
@@ -157,22 +156,18 @@ codeunit 135074 "AppSource Gallery Test"
         AppSourceProductManagerDependencies.SetCountryLetterCode('dk');
         AppSourceProductManagerTest.SetDependencies(AppSourceProductManagerDependencies);
 
-
-        // Push first with next page link
-        AppSourceProductManagerDependencies.SetJson('{"items": [{"uniqueProductId": "PUBID.advania|AID.advania_approvals|PAPPID.603d81ef-542b-46ae-9cb5-17dc16fa3842","displayName": "Dynamics 365 Business Central - First","publisherId": "advania","publisherDisplayName": "Advania","publisherType": "ThirdParty","ratingAverage": 0.0,"ratingCount": 0,"productType": "DynamicsBC","popularity": 7.729569120865367,"privacyPolicyUri": "https://privacy.d365bc.is/","lastModifiedDateTime": "2024-01-19T03:23:15.4319343+00:00"}],"nextPageLink": "next page uri"}');
-        // Push second without next page link
-        AppSourceProductManagerDependencies.SetJson('{"items": [{"uniqueProductId": "PUBID.pbsi_software|AID.247timetracker|PAPPID.9a12247e-8564-4b90-b80b-cd5f4b64217e","displayName": "Dynamics 365 Business Central - Second","publisherId": "pbsi_software","publisherDisplayName": "David Boehm, CPA and Company Inc.","publisherType": "ThirdParty","ratingAverage": 5.0,"ratingCount": 2,"productType": "DynamicsBC","popularity": 7.729569120865367,"privacyPolicyUri": "https://pbsisoftware.com/24-7-tt-privacy-statement","lastModifiedDateTime": "2023-09-03T11:08:28.5348241+00:00"}]}');
+        // Push items
+        AppSourceProductManagerDependencies.SetJson('{"items": [{"uniqueProductId": "PUBID.advania|AID.advania_approvals|PAPPID.603d81ef-542b-46ae-9cb5-17dc16fa3842","displayName": "Dynamics 365 Business Central - First","publisherId": "advania","publisherDisplayName": "Advania","publisherType": "ThirdParty","ratingAverage": 0.0,"ratingCount": 0,"productType": "DynamicsBC","popularity": 7.729569120865367,"privacyPolicyUri": "https://privacy.d365bc.is/","lastModifiedDateTime": "2024-01-19T03:23:15.4319343+00:00"}, {"uniqueProductId": "PUBID.pbsi_software|AID.247timetracker|PAPPID.9a12247e-8564-4b90-b80b-cd5f4b64217e","displayName": "Dynamics 365 Business Central - Second","publisherId": "pbsi_software","publisherDisplayName": "David Boehm, CPA and Company Inc.","publisherType": "ThirdParty","ratingAverage": 5.0,"ratingCount": 2,"productType": "DynamicsBC","popularity": 7.729569120865367,"privacyPolicyUri": "https://pbsisoftware.com/24-7-tt-privacy-statement","lastModifiedDateTime": "2023-09-03T11:08:28.5348241+00:00"}],"nextPageLink": "next page uri"}');
 
         // When
         AppSourceProductManagerTest.GetProductsAndPopulateRecord();
 
-
         //Then
-        LibraryAssert.AreEqual(2, AppSourceProductManagerTest.GetRecordCount(), 'The number of products is incorrect.');
-        LibraryAssert.AreEqual('Dynamics 365 Business Central - First', AppSourceProductManagerTest.GetRecordAtPosDisplayName(1), 'The first product name is incorrect.');
-        LibraryAssert.AreEqual('Dynamics 365 Business Central - Second', AppSourceProductManagerTest.GetRecordAtPosDisplayName(2), 'The second product name is incorrect.');
+        LibraryAssert.AreEqual(2, AppSourceProductManagerTest.GetProductTable(), 'The number of products is incorrect.');
+        LibraryAssert.IsTrue(AppSourceProductManagerTest.IsRecordWithDisplayNameinProductTable('Dynamics 365 Business Central - First'), 'The first product name is incorrect.');
+        LibraryAssert.IsTrue(AppSourceProductManagerTest.IsRecordWithDisplayNameinProductTable('Dynamics 365 Business Central - Second'), 'The second product name is incorrect.');
 
-        AssertCleanedUp();
+        AppSourceProductManagerTest.ResetDependencies();
     end;
 
     [Test]
@@ -210,7 +205,6 @@ codeunit 135074 "AppSource Gallery Test"
         // Then
         if (CanInstall) then
             LibraryAssert.Fail('Test now produces expected outcome and should be update.');
-        // Assert.IsTrue(CanInstall, 'The product should be installable.');
     end;
 
 
@@ -231,7 +225,6 @@ codeunit 135074 "AppSource Gallery Test"
         // Then
         if (CanInstall) then
             LibraryAssert.Fail('Test now produces expected outcome and should be update.');
-        // Assert.IsTrue(CanInstall, 'The product should be installable.');
     end;
 
     [Test]
