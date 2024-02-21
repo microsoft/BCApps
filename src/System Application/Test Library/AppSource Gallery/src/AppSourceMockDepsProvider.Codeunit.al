@@ -11,7 +11,7 @@ using System.Apps.AppSource;
 /// <summary>
 /// Library for managing AppSource product retrival and usage.
 /// </summary>
-codeunit 132911 "AppSource Mock Deps. Provider" implements "AppSource Product Manager Dependencies"
+codeunit 132913 "AppSource Mock Deps. Provider" implements "AppSource Product Manager Dependencies"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
