@@ -16,6 +16,8 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 
     var
         NoOverFlowErr: Label 'Number series can only use up to 18 digit numbers. %1 has %2 digits.', Comment = '%1 is a string that also contains digits. %2 is a number.';
+        NoSeriesSequenceTxt: Label 'No. Series - Sequence', Locked = true;
+        UpdatingSequenceBasedOnTempValueTxt: Label 'Updating sequence based on temporary value.', Locked = true;
 
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
     begin
@@ -325,8 +327,11 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if NoSeriesLine."Temp Current Sequence No." = 0 then
             exit;
 
-        if NoSeriesLine.Implementation = "No. Series Implementation"::Sequence then
+        if NoSeriesLine.Implementation = "No. Series Implementation"::Sequence then begin
+            Session.LogMessage('0000MI6', UpdatingSequenceBasedOnTempValueTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesSequenceTxt);
             RecreateNoSeriesWithLastUsedNo(NoSeriesLine, NoSeriesLine."Temp Current Sequence No.");
+        end;
+
 
         NoSeriesLine."Temp Current Sequence No." := 0; // Always reset the temporary sequence number!
     end;
