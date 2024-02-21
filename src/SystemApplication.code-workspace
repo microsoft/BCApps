@@ -32,9 +32,5 @@
 			"name": "System Application Tests",
 			"path": "System Application\\Test"
 		}
-	],
-	"settings": {
-		"al.codeAnalyzers": ["${CodeCop}", "${UICop}"],
-	"al.enableCodeAnalysis": true
-	}
+	]
 }

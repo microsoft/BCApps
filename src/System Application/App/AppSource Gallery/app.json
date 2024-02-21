@@ -4,8 +4,6 @@
     "publisher": "Microsoft",
     "brief": "AppSource Product Gallery app provides a Gallery for navigating Microsoft AppSource apps.",
     "description": "Using AppSource Product Gallery you can explore apps from Microsoft AppSource and choose to install them on the current environment.",
-    "brief": "AppSource Product Gallery app provides a Gallery for navigating Microsoft AppSource apps.",
-    "description": "Using AppSource Product Gallery you can explore apps from Microsoft AppSource and choose to install them on the current environment.",
     "version": "24.0.0.0",
     "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
     "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
@@ -67,7 +65,7 @@
         {
             "id":  "ba17b564-d600-44d5-be0b-ca7ff7ac28fc",
             "name":  "AppSource Gallery Test Library",
-            "publisher":  "Microsoft"
+            "publisher": "Microsoft"
         }
     ],
     "screenshots": [],
