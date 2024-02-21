@@ -8,7 +8,7 @@
     "artifact":  "https://bcinsider.azureedge.net/sandbox/24.0.16336.0/base",
     "country":  "base",
     "useProjectDependencies":  true,
-    "repoVersion":  "24.0",
+    "repoVersion":  "25.0",
     "cleanModePreprocessorSymbols":  [
                                          "CLEAN17",
                                          "CLEAN18",
@@ -17,7 +17,8 @@
                                          "CLEAN21",
                                          "CLEAN22",
                                          "CLEAN23",
-                                         "CLEAN24"
+                                         "CLEAN24",
+                                         "CLEAN25"
                                      ],
     "unusedALGoSystemFiles":  [
                                   "AddExistingAppOrTestApp.yaml",
