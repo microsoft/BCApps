@@ -17,8 +17,8 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
     var
         CannotAssignNumbersGreaterThanErr: Label 'You cannot assign numbers greater than %1 from the number series %2. No. assigned: %3', Comment = '%1=Last No.,%2=No. Series Code, %3=the new no.';
         WarnNoSeriesRunningOutMsg: Label 'The No. Series %1 is soon running out. The current number is %2 and the last allowed number of the sequence is %3.', Comment = '%1=No. Series code,%2=Current No.,%3=Last No. of the sequence';
-        NoSeriesLbl: Label 'No. Series', Locked = true;
-        NoSeriesOutOfRangeErr: Label 'The last number used is outside range.', Locked = true;
+        NoSeriesTxt: Label 'No. Series', Locked = true;
+        NoSeriesOutOfRangeTxt: Label 'The last number used is outside range.', Locked = true;
         NoSeriesWarningTxt: Label 'The No. Series is running out of numbers.', Locked = true;
 
     procedure PeekNextNo(NoSeriesLine: Record "No. Series Line"; UsageDate: Date): Code[20]
@@ -88,14 +88,14 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
         NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
     begin
         if not NoIsWithinValidRange(NoSeriesLine."Last No. Used", NoSeriesLine."Starting No.", NoSeriesLine."Ending No.") then begin
-            Session.LogMessage('0000MI7', NoSeriesOutOfRangeErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesLbl);
+            Session.LogMessage('0000MI7', NoSeriesOutOfRangeTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesTxt);
             if NoErrorsOrWarnings then
                 exit(false);
             NoSeriesErrorsImpl.Throw(StrSubstNo(CannotAssignNumbersGreaterThanErr, NoSeriesLine."Ending No.", NoSeriesLine."Series Code", NoSeriesLine."Last No. Used"), NoSeriesLine, NoSeriesErrorsImpl.OpenNoSeriesLinesAction());
         end;
 
         if (NoSeriesLine."Ending No." <> '') and (NoSeriesLine."Warning No." <> '') and (NoSeriesLine."Last No. Used" >= NoSeriesLine."Warning No.") then begin
-            Session.LogMessage('0000MI8', NoSeriesWarningTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesLbl);
+            Session.LogMessage('0000MI8', NoSeriesWarningTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesTxt);
             if NoErrorsOrWarnings then
                 exit(false);
             if GuiAllowed() then
