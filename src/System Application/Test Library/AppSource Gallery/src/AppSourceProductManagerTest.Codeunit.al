@@ -173,7 +173,7 @@ codeunit 132910 "AppSource Product Manager Test" implements "AppSource Product M
     end;
 
     // Dependencies
-    procedure SetDependencies(AppSourceProductManagerDependencies: Interface "AppSource Product Manager Dependencies")
+    procedure SetDependencies(AppSourceProductManagerDependencies: Codeunit "AppSource Product Manager Test")
     begin
         AppSourceProductManager.SetDependencies(AppSourceProductManagerDependencies);
     end;
