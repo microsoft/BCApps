@@ -9,7 +9,7 @@ using System.RestClient;
 using System.Apps.AppSource;
 
 /// <summary>
-/// Library for managing AppSource product retrival and usage.
+/// Library for providing mock dependencies for the AppSource product manager.
 /// </summary>
 codeunit 132913 "AppSource Mock Deps. Provider" implements "AppSource Product Manager Dependencies"
 {

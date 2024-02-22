@@ -7,7 +7,7 @@ namespace System.TestLibraries.Apps.AppSource;
 using System.Apps.AppSource;
 
 /// <summary>
-/// Library for managing AppSource product retrival and usage.
+/// Library for mocking AppSource product retrieval and usage.
 /// </summary>
 codeunit 132910 "AppSrc Product Mgr. Test Impl."
 {
