@@ -21,6 +21,7 @@ codeunit 7774 "Copilot Capability Impl"
     Permissions = tabledata "Copilot Settings" = rimd;
 
     var
+        CopilotCapabilityCU: Codeunit "Copilot Capability";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         CopilotCategoryLbl: Label 'Copilot', Locked = true;
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
@@ -63,6 +64,7 @@ codeunit 7774 "Copilot Capability Impl"
 
         AddTelemetryDimensions(CopilotCapability, CallerModuleInfo.Id(), CustomDimensions);
         FeatureTelemetry.LogUsage('0000LDV', CopilotCategoryLbl, TelemetryRegisteredNewCopilotCapabilityLbl, CustomDimensions);
+        CopilotCapabilityCU.OnCapabilityActivated(CopilotCapability, CopilotSettings."App Id", CopilotSettings.Publisher);
     end;
 
     procedure ModifyCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
@@ -76,8 +78,10 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
         CopilotSettings.Get(CopilotCapability, CallerModuleInfo.Id());
 
-        if CopilotSettings.Availability <> CopilotAvailability then
+        if CopilotSettings.Availability <> CopilotAvailability then begin
             CopilotSettings.Status := Enum::"Copilot Status"::Active;
+            CopilotCapabilityCU.OnCapabilityActivated(CopilotCapability, CopilotSettings."App Id", CopilotSettings.Publisher);
+        end;
 
         CopilotSettings.Availability := CopilotAvailability;
         CopilotSettings."Learn More Url" := LearnMoreUrl;
@@ -105,6 +109,30 @@ codeunit 7774 "Copilot Capability Impl"
 
         AddTelemetryDimensions(CopilotCapability, CallerModuleInfo.Id(), CustomDimensions);
         FeatureTelemetry.LogUsage('0000LDX', CopilotCategoryLbl, TelemetryUnregisteredCopilotCapabilityLbl, CustomDimensions);
+        CopilotCapabilityCU.OnCapabilityDeactivated(CopilotCapability, CopilotSettings."App Id", CopilotSettings.Publisher);
+    end;
+
+    procedure ActivateCapability(var CopilotSettings: Record "Copilot Settings")
+    begin
+        CopilotSettings.Status := CopilotSettings.Status::Active;
+        CopilotSettings.Modify(true);
+        Commit();
+        SendActivateTelemetry(CopilotSettings.Capability, CopilotSettings."App Id");
+        CopilotCapabilityCU.OnCapabilityActivated(CopilotSettings.Capability, CopilotSettings."App Id", CopilotSettings.Publisher);
+    end;
+
+    procedure DeactivateCapability(var CopilotSettings: Record "Copilot Settings")
+    var
+        CopilotDeactivate: Page "Copilot Deactivate Capability";
+    begin
+        CopilotDeactivate.SetCaption(Format(CopilotSettings.Capability));
+        if CopilotDeactivate.RunModal() <> Action::OK then
+            exit;
+        CopilotSettings.Status := CopilotSettings.Status::Inactive;
+        CopilotSettings.Modify(true);
+        Commit();
+        SendDeactivateTelemetry(CopilotSettings.Capability, CopilotSettings."App Id", CopilotDeactivate.GetReason());
+        CopilotCapabilityCU.OnCapabilityDeactivated(CopilotSettings.Capability, CopilotSettings."App Id", CopilotSettings.Publisher);
     end;
 
     procedure IsCapabilityRegistered(CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
