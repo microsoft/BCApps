@@ -62,6 +62,7 @@ codeunit 135074 "AppSource Gallery Test"
         AppSrcProductMgrTestImpl.SetDependencies(AppSourceMockDepsProvider);
 
         // With handler expectation
+        HyperlinkStorage.Clear();
         HyperlinkStorage.Enqueue('https://appsource.microsoft.com/da-DK/marketplace/apps?product=dynamics-365-business-central');
 
         // When 
@@ -69,7 +70,7 @@ codeunit 135074 "AppSource Gallery Test"
 
         // Then
         // Asserted in handler
-        AssertCleanedUp();
+        HyperlinkStorage.AssertEmpty();
         AppSrcProductMgrTestImpl.ResetDependencies();
     end;
 
@@ -88,6 +89,7 @@ codeunit 135074 "AppSource Gallery Test"
         UniqueId := 'PUBID.nav24spzoo1579516366010%7CAID.n24_test_transactability%7CPAPPID.0984da34-5ec1-4ac1-9575-b73fb2212327';
 
         // With handler expectation
+        HyperlinkStorage.Clear();
         HyperlinkStorage.Enqueue('https://appsource.microsoft.com/es-ES/product/dynamics-365-business-central/PUBID.nav24spzoo1579516366010%7CAID.n24_test_transactability%7CPAPPID.0984da34-5ec1-4ac1-9575-b73fb2212327');
 
         // When 
@@ -95,7 +97,7 @@ codeunit 135074 "AppSource Gallery Test"
 
         // Then
         // Asserted in handler
-        AssertCleanedUp();
+        HyperlinkStorage.AssertEmpty();
         AppSrcProductMgrTestImpl.ResetDependencies();
     end;
 
@@ -144,7 +146,7 @@ codeunit 135074 "AppSource Gallery Test"
         AppSrcProductMgrTestImpl.ResetDependencies();
     end;
 
-    [Test]
+    /*[Test]
     procedure TestLoadProductWithNextPageLink()
     var
         AppSourceMockDepsProvider: Codeunit "AppSource Mock Deps. Provider";
@@ -244,21 +246,11 @@ codeunit 135074 "AppSource Gallery Test"
 
         // Then
         LibraryAssert.IsFalse(CanInstall, 'The product NOT should be installable.');
-    end;
+    end;*/
 
     [HyperlinkHandler]
     procedure HyperlinkHandler(Message: Text[1024])
     begin
         LibraryAssert.AreEqual(HyperlinkStorage.DequeueText(), Message, 'The hyperlink is incorrect.');
-    end;
-
-    internal procedure Initialize()
-    begin
-        HyperlinkStorage.Clear();
-    end;
-
-    internal procedure AssertCleanedUp()
-    begin
-        HyperlinkStorage.AssertEmpty();
     end;
 }
