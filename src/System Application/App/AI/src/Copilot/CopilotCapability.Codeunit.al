@@ -125,7 +125,7 @@ codeunit 7773 "Copilot Capability"
     /// <param name="CopilotCapability">The copilot capability.</param>
     /// <param name="AppId">The copilot capability's application id.</param>
     /// <param name="Publisher">The copilot capability's publisher.</param>
-    [IntegrationEvent(false, false)]
+    [IntegrationEvent(false, false, true)]
     procedure OnCapabilityActivated(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; Publisher: Text[2048])
     begin
     end;
@@ -136,7 +136,7 @@ codeunit 7773 "Copilot Capability"
     /// <param name="CopilotCapability">The copilot capability.</param>
     /// <param name="AppId">The copilot capability's application id.</param>
     /// <param name="Publisher">The copilot capability's publisher.</param>
-    [IntegrationEvent(false, false)]
+    [IntegrationEvent(false, false, true)]
     procedure OnCapabilityDeactivated(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; Publisher: Text[2048])
     begin
     end;

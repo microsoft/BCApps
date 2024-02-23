@@ -197,10 +197,14 @@ page 7775 "Copilot AI Capabilities"
 
     local procedure UpdateAllowDataMovement()
     begin
-        if AllowDataMovement then
-            PrivacyNotice.SetApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), Enum::"Privacy Notice Approval State"::Agreed)
-        else
+        if AllowDataMovement then begin
+            PrivacyNotice.SetApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), Enum::"Privacy Notice Approval State"::Agreed);
+            CopilotCapabilityImpl.CopilotActivated();
+        end
+        else begin
             PrivacyNotice.SetApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), Enum::"Privacy Notice Approval State"::Disagreed);
+            CopilotCapabilityImpl.CopilotDeactivated();
+        end;
 
         CurrPage.GenerallyAvailableCapabilities.Page.SetDataMovement(AllowDataMovement);
         CurrPage.PreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
@@ -210,7 +214,6 @@ page 7775 "Copilot AI Capabilities"
     [IntegrationEvent(false, false)]
     local procedure OnRegisterCopilotCapability()
     begin
-
     end;
 
     var

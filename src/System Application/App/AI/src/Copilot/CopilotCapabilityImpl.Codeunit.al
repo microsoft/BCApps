@@ -135,6 +135,34 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotCapabilityCU.OnCapabilityDeactivated(CopilotSettings.Capability, CopilotSettings."App Id", CopilotSettings.Publisher);
     end;
 
+    procedure CopilotActivated()
+    var
+        CopilotSettings: Record "Copilot Settings";
+    begin
+        CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
+        CopilotSettings.SetRange(Status, Enum::"Copilot Status"::Active);
+        if not CopilotSettings.FindSet() then
+            exit;
+
+        repeat
+            CopilotCapabilityCU.OnCapabilityActivated(CopilotSettings.Capability, CopilotSettings."App Id", CopilotSettings.Publisher);
+        until CopilotSettings.Next() = 0;
+    end;
+
+    procedure CopilotDeactivated()
+    var
+        CopilotSettings: Record "Copilot Settings";
+    begin
+        CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
+        CopilotSettings.SetRange(Status, Enum::"Copilot Status"::Active);
+        if not CopilotSettings.FindSet() then
+            exit;
+
+        repeat
+            CopilotCapabilityCU.OnCapabilityDeactivated(CopilotSettings.Capability, CopilotSettings."App Id", CopilotSettings.Publisher);
+        until CopilotSettings.Next() = 0;
+    end;
+
     procedure IsCapabilityRegistered(CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
         exit(IsCapabilityRegistered(CopilotCapability, CallerModuleInfo.Id()));
