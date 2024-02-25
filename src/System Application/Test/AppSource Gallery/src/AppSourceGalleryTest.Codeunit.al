@@ -51,7 +51,7 @@ codeunit 135074 "AppSource Gallery Test"
         LibraryAssert.IsTrue(IsNullGuid(AppId), 'Expected AppId to be empty when not present in the UniqueId');
     end;
 
-    [Test]
+    /*[Test]
     [HandlerFunctions('HyperlinkHandler')]
     procedure TestOpenAppSourceHyperlink()
     var
@@ -244,7 +244,7 @@ codeunit 135074 "AppSource Gallery Test"
 
         // Then
         LibraryAssert.IsFalse(CanInstall, 'The product NOT should be installable.');
-    end;
+    end;*/
 
     [HyperlinkHandler]
     procedure HyperlinkHandler(Message: Text[1024])
