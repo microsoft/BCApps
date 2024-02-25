@@ -9,7 +9,7 @@ using System.Apps.AppSource;
 /// <summary>
 /// Library for mocking AppSource product retrieval and usage.
 /// </summary>
-codeunit 132910 "AppSrc Product Mgr. Test Impl."
+codeunit 132935 "AppSrc Product Mgr. Test Impl."
 {
     InherentEntitlements = X;
     InherentPermissions = X;

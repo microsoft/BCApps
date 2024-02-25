@@ -11,7 +11,7 @@ using System.Apps.AppSource;
 /// <summary>
 /// Library for providing mock dependencies for the AppSource product manager.
 /// </summary>
-codeunit 132913 "AppSource Mock Deps. Provider" implements "AppSource Product Manager Dependencies"
+codeunit 132930 "AppSource Mock Deps. Provider" implements "AppSource Product Manager Dependencies"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
