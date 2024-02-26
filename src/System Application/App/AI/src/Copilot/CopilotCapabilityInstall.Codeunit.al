@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-using System.Environment;
-
 codeunit 7760 "Copilot Capability Install"
 {
     Subtype = Install;
