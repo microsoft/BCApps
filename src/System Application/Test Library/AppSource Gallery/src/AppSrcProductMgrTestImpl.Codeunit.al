@@ -43,7 +43,7 @@ codeunit 132910 "AppSrc Product Mgr. Test Impl."
     /// <remarks>The AppSource unique product ID is specific to AppSource and combines different features while always ending with PAPID. and extension app id. Example: PUBID.mdcc1667400477212|AID.bc_converttemp_sample|PAPPID.9d314b3e-ffd3-41fd-8755-7744a6a790df</remarks>
     procedure ExtractAppIDFromUniqueProductID(UniqueProductIDValue: Text): Guid
     begin
-        AppSourceProductManager.ExtractAppIDFromUniqueProductID(UniqueProductIDValue)
+        exit(AppSourceProductManager.ExtractAppIDFromUniqueProductID(UniqueProductIDValue))
     end;
 
     procedure CanInstallProductWithPlans(Plans: JsonArray): Boolean
@@ -58,7 +58,7 @@ codeunit 132910 "AppSrc Product Mgr. Test Impl."
     /// </summary>
     procedure GetProductsAndPopulateRecord(): Text
     begin
-        AppSourceProductManager.GetProductsAndPopulateRecord(TempAppSourceProduct);
+        exit(AppSourceProductManager.GetProductsAndPopulateRecord(TempAppSourceProduct));
     end;
 
     /// <summary>
@@ -87,8 +87,8 @@ codeunit 132910 "AppSrc Product Mgr. Test Impl."
 
     procedure ResetDependencies()
     var
-        AppSourceProductManagerDependencies: Interface "AppSource Product Manager Dependencies";
+        AppSourceMockDepsProvider: Codeunit "AppSource Mock Deps. Provider";
     begin
-        AppSourceProductManager.SetDependencies(AppSourceProductManagerDependencies);
+        AppSourceProductManager.SetDependencies(AppSourceMockDepsProvider);
     end;
 }
