@@ -136,6 +136,7 @@ codeunit 9175 "User Settings Impl."
 
         GetAppSettings(UserSecurityID, ApplicationUserSettings);
         UserSettingsRec."Teaching Tips" := ApplicationUserSettings."Teaching Tips";
+        UserSettingsRec."Legacy Action Bar" := ApplicationUserSettings."Legacy Action Bar";
 
         if not UserSettingsRec.Insert() then
             UserSettingsRec.Modify();
@@ -229,6 +230,13 @@ codeunit 9175 "User Settings Impl."
             GetAppSettings(UserSecurityId(), ApplicationUserSettings);
             ApplicationUserSettings."Teaching Tips" := NewUserSettings."Teaching Tips";
             ApplicationUserSettings.Modify();
+        end;
+
+        if OldUserSettings."Legacy Action Bar" <> NewUserSettings."Legacy Action Bar" then begin
+            GetAppSettings(UserSecurityId(), ApplicationUserSettings);
+            ApplicationUserSettings."Legacy Action Bar" := NewUserSettings."Legacy Action Bar";
+            ApplicationUserSettings.Modify();
+            ShouldRefreshSession := true;
         end;
 
         if ShouldRefreshSession then
