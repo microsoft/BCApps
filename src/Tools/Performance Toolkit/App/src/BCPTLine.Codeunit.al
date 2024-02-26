@@ -164,7 +164,6 @@ codeunit 149005 "BCPT Line"
     var
         BCPTLogEntry: Record "BCPT Log Entry";
         BCPTRoleWrapperImpl: Codeunit "BCPT Role Wrapper"; // single instance
-        ValuesAreChanged: Boolean;
         BCPTTestSuite: Codeunit "BCPT Test Suite";
         ModifiedOperation: Text;
         ModifiedExecutionSuccess: Boolean;
