@@ -28,9 +28,3 @@ end;
 ```
 
 
-# Public Objects
-## Objects (Page 358)
-
- List page that contains all of the application objects.
- 
-

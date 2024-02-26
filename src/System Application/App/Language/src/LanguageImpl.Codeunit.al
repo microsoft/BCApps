@@ -262,7 +262,7 @@ codeunit 54 "Language Impl."
         UserPersonalization.Modify(true);
     end;
 
-    procedure GetTwoLetterISOLanguageName(LanguageID: Integer): Text
+    procedure GetTwoLetterISOLanguageName(LanguageID: Integer): Text[2]
     var
         CultureInfo: DotNet CultureInfo;
     begin

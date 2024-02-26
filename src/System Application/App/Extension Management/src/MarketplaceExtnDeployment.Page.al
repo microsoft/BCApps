@@ -80,7 +80,26 @@ page 2510 "Marketplace Extn Deployment"
                     ToolTip = 'You are about to install a preview version of the extension.';
                     Visible = InstallPreview;
                 }
+                group(InstallAppDependencyDisclaimer)
+                {
+                    Caption = 'Important';
+                    InstructionalText = 'When installing an AppSource app, it may require additional apps to be installed as dependencies. Make sure to review the provider''s terms of use and privacy policy review before proceeding. For more information on installing and uninstalling apps, see the link below.';
 
+                    field(HelpLink; InstallAppsURLLbl)
+                    {
+                        ApplicationArea = All;
+                        ShowCaption = false;
+                        ToolTip = 'Read more about installing and uninstalling apps.';
+                        Editable = false;
+                        MultiLine = true;
+                        Style = None;
+
+                        trigger OnDrillDown()
+                        begin
+                            Hyperlink(InstallAppsURLLbl);
+                        end;
+                    }
+                }
             }
         }
     }
@@ -155,4 +174,5 @@ page 2510 "Marketplace Extn Deployment"
         WarningLbl: Label 'Installing extensions during business hours will disrupt other users.';
         RefreshInfoLbl: Label 'After installation, your session will refresh, and you can set up your extension.';
         PreviewInfoLbl: Label 'Note: A preview key was provided for the installation. A preview version of the extension is about to be installed. If a higher public version exists for your environment, it will be installed instead of the preview version.';
+        InstallAppsURLLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2260926', Locked = true;
 }
