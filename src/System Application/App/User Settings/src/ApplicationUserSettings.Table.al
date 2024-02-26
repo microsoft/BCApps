@@ -33,6 +33,15 @@ table 9222 "Application User Settings"
         {
             DataClassification = CustomerContent;
         }
+
+        /// <summary>
+        /// Specifies whether the legacy action bar is enabled.
+        /// </summary>
+        field(3; "Legacy Action Bar"; Boolean)
+        {
+            DataClassification = CustomerContent;
+            InitValue = false;
+        }
     }
 
     keys
