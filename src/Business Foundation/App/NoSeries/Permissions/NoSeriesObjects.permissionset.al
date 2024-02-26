@@ -18,7 +18,6 @@ permissionset 300 "No. Series - Objects"
 #pragma warning restore AL0432
 #endif
         page "No. Series" = X,
-        page "No. Series Lines" = X,
         page "No. Series Lines Part" = X,
 #if not CLEAN24
 #pragma warning disable AL0432
