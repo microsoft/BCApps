@@ -22,7 +22,7 @@ codeunit 132913 "AppSource Mock Deps. Provider" implements "AppSource Product Ma
         PreferredLanguage: Text;
         LanguageID: Variant;
         IsInSaas: Boolean;
-        Json: JsonToken;
+        JsonRequests: JsonArray;
         ApplicationFamily: Text;
 
     // Dependency to Azure AD Tenant
@@ -82,13 +82,20 @@ codeunit 132913 "AppSource Mock Deps. Provider" implements "AppSource Product Ma
 
     // Rest client override
     procedure GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken
+    var
+        Json: JsonToken;
     begin
+        JsonRequests.Get(0, Json);
+        JsonRequests.RemoveAt(0);
         exit(Json);
     end;
 
     procedure SetJSon(JsonText: Text)
+    var
+        Json: JsonToken;
     begin
         Json.ReadFrom(JsonText);
+        JsonRequests.Add(Json);
     end;
 
     procedure ShouldSetCommonHeaders(): Boolean
