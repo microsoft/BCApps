@@ -76,6 +76,12 @@
                              "name":  "Azure AD User",
                              "publisher":  "Microsoft",
                              "version":  "25.0.0.0"
+                         },
+                         {
+                            "id":  "2bb91532-8396-4a7b-bc95-7ad7b988c47e",
+                            "name":  "Customer Experience Survey",
+                            "publisher":  "Microsoft",
+                            "version":  "25.0.0.0"
                          }
                      ],
     "internalsVisibleTo":  [
