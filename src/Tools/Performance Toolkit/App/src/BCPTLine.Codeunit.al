@@ -185,8 +185,8 @@ codeunit 149005 "BCPT Line"
         BCPTLogEntry."BCPT Line No." := BCPTLine."Line No.";
         BCPTLogEntry.Version := BCPTHeader.Version;
         BCPTLogEntry."Codeunit ID" := BCPTLine."Codeunit ID";
-        BCPTLogEntry.Operation := copystr(ModifiedOperation, 1, MaxStrLen(BCPTLogEntry.Operation));
-        BCPTLogEntry."Orig. Operation" := copystr(Operation, 1, MaxStrLen(BCPTLogEntry."Orig. Operation"));
+        BCPTLogEntry.Operation := CopyStr(ModifiedOperation, 1, MaxStrLen(BCPTLogEntry.Operation));
+        BCPTLogEntry."Orig. Operation" := CopyStr(Operation, 1, MaxStrLen(BCPTLogEntry."Orig. Operation"));
         BCPTLogEntry.Tag := BCPTRoleWrapperImpl.GetBCPTHeaderTag();
         BCPTLogEntry."Entry No." := 0;
         BCPTLogEntry."Test Company Name" := BCPTHeader."Test Company Name";
