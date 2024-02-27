@@ -14,7 +14,7 @@
                 "releases/*.[0-5]"
             ],
             "settings": {
-                "buildModes": [ "Translated" ]
+                "buildModes": [ "Translated", "Strict"]
             }
         }
     ]
