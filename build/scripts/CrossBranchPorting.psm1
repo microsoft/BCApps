@@ -58,7 +58,7 @@ function New-BCAppsBackport() {
             }
 
             # Create a new branch for the cherry-pick
-            $cherryPickBranch = "hotfix/$TargetBranch/$branchNameSuffix"
+            $cherryPickBranch = "backport/$TargetBranch/$branchNameSuffix"
 
             # Port the pull request to the target branch
             PortPullRequest -PullRequestDetails $pullRequestDetails -TargetBranch $TargetBranch -CherryPickBranch $cherryPickBranch
