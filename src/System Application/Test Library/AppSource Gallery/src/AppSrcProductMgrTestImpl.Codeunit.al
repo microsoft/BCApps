@@ -66,15 +66,17 @@ codeunit 132910 "AppSrc Product Mgr. Test Impl."
     /// </summary>
     procedure IsRecordWithDisplayNameinProductTable(DisplayName: Text): Boolean
     begin
+        TempAppSourceProduct.Reset();
         TempAppSourceProduct.SetRange(DisplayName, DisplayName);
-        exit(TempAppSourceProduct.FindSet());
+        exit(TempAppSourceProduct.FindFirst());
     end;
 
     /// <summary>
     /// Gets the number of records in the AppSource Product table.
     /// </summary>
-    procedure GetProductTable(): Integer
+    procedure GetProductTableCount(): Integer
     begin
+        TempAppSourceProduct.Reset();
         exit(TempAppSourceProduct.Count());
     end;
     #endregion
@@ -90,5 +92,6 @@ codeunit 132910 "AppSrc Product Mgr. Test Impl."
         AppSourceMockDepsProvider: Codeunit "AppSource Mock Deps. Provider";
     begin
         AppSourceProductManager.SetDependencies(AppSourceMockDepsProvider);
+        TempAppSourceProduct.DeleteAll();
     end;
 }

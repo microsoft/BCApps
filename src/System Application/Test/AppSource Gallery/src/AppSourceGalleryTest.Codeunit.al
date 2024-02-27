@@ -138,7 +138,7 @@ codeunit 135074 "AppSource Gallery Test"
         AppSrcProductMgrTestImpl.GetProductsAndPopulateRecord();
 
         // Then
-        LibraryAssert.AreEqual(AppSrcProductMgrTestImpl.GetProductTable(), 1, 'The number of products is incorrect.');
+        LibraryAssert.AreEqual(AppSrcProductMgrTestImpl.GetProductTableCount(), 1, 'The number of products is incorrect.');
         LibraryAssert.IsTrue(AppSrcProductMgrTestImpl.IsRecordWithDisplayNameinProductTable('Dynamics 365 Business Central'), 'The product name is incorrect.');
 
         AppSrcProductMgrTestImpl.ResetDependencies();
@@ -165,7 +165,7 @@ codeunit 135074 "AppSource Gallery Test"
         AppSrcProductMgrTestImpl.GetProductsAndPopulateRecord();
 
         //Then
-        LibraryAssert.AreEqual(2, AppSrcProductMgrTestImpl.GetProductTable(), 'The number of products is incorrect.');
+        LibraryAssert.AreEqual(2, AppSrcProductMgrTestImpl.GetProductTableCount(), 'The number of products is incorrect.');
         LibraryAssert.IsTrue(AppSrcProductMgrTestImpl.IsRecordWithDisplayNameinProductTable('Dynamics 365 Business Central - First'), 'The first product name is incorrect.');
         LibraryAssert.IsTrue(AppSrcProductMgrTestImpl.IsRecordWithDisplayNameinProductTable('Dynamics 365 Business Central - Second'), 'The second product name is incorrect.');
 
