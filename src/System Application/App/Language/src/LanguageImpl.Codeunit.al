@@ -25,6 +25,9 @@ codeunit 54 "Language Impl."
         LanguageIdOverride: Integer;
         FormatRegionOverride: Text[80];
         LanguageNotFoundErr: Label 'The language %1 could not be found.', Comment = '%1 = Language ID';
+        LanguageIdOverrideMsg: Label 'LanguageIdOverride has been applied in GetLanguageIdOrDefault. The new Language Id is %1.', Comment = '%1 - Language ID';
+        FormatRegionOverrideMsg: Label 'FormatRegionOverride has been applied in GetFormatRegionOrDefault. The new FormatRegion is %1.', Comment = '%1 - Format Region';
+        LanguageCategoryTxt: Label 'Language';
 
     procedure GetUserLanguageCode() UserLanguageCode: Code[10]
     var
@@ -43,6 +46,7 @@ codeunit 54 "Language Impl."
     begin
         if LanguageIdOverride <> 0 then begin
             LanguageId := LanguageIdOverride;
+            Session.LogMessage('0000MJQ', StrSubstNo(LanguageIdOverrideMsg, LanguageId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', LanguageCategoryTxt);
             if ResetLanguageIdOverrideAfterUse then
                 LanguageIdOverride := 0;
             exit(LanguageId);
@@ -63,6 +67,7 @@ codeunit 54 "Language Impl."
     begin
         if FormatRegionOverride <> '' then begin
             FormatRegion := FormatRegionOverride;
+            Session.LogMessage('0000MJR', StrSubstNo(FormatRegionOverrideMsg, FormatRegion), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', LanguageCategoryTxt);
             if ResetFormatRegionOverrideAfterUse then
                 FormatRegionOverride := '';
             exit(FormatRegion);
