@@ -62,21 +62,19 @@
                          }
                      ],
     "internalsVisibleTo":  [
-                               {
-                                   "name":  "AppSource Product Gallery Test",
-                                   "id":  "c1830429-77f6-4469-837a-7bfd4705ff41",
-                                   "publisher":  "Microsoft"
-                               }
-                           ],
-    "screenshots":  [
-
-                    ],
-    "platform":  "25.0.0.0",
-    "idRanges":  [
-                     {
-                         "from":  2515,
-                         "to":  2517
-                     }
-                 ],
-    "target":  "OnPrem"
+        {
+            "id":  "ba17b564-d600-44d5-be0b-ca7ff7ac28fc",
+            "name":  "AppSource Gallery Test Library",
+            "publisher": "Microsoft"
+        }
+    ],
+    "screenshots": [],
+    "platform": "25.0.0.0",
+    "idRanges": [
+        {
+            "from": 2515,
+            "to": 2518
+        }
+    ],
+    "target": "OnPrem"
 }
