@@ -123,6 +123,7 @@ function PortPullRequest($PullRequestDetails, $TargetBranch, $CherryPickBranch) 
     # Cherry pick the merge commit
     try {
         if ($pullRequestDetails.mergeCommit) {
+            RunAndCheck git fetch origin $PullRequestDetails.mergeCommit.oid
             RunAndCheck git cherry-pick $PullRequestDetails.mergeCommit.oid
         } else {
             RunAndCheck git fetch origin $PullRequestDetails.potentialMergeCommit.oid
@@ -131,7 +132,7 @@ function PortPullRequest($PullRequestDetails, $TargetBranch, $CherryPickBranch) 
     } catch {
         Write-Host -ForegroundColor Red "Cherry picking commitid $cherrypickId failed. $_"
         Write-Host "To abort, press 'n' and run git cherry-pick --abort"
-        Write-Host "To continue, resolve all conflicts in a new window, run git cherry-pick --continue and then press 'y'"
+        Write-Host "To continue, resolve all conflicts in VS Code, commit the changes and press 'y' to continue"
         GetConfirmation -Message "Do you want to continue?"
     }
 
