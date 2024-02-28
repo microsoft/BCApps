@@ -564,9 +564,13 @@ codeunit 2610 "Feature Management Impl."
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Feature Management Triggers", OpenFeatureManagement, '', false, false)]
     local procedure DefaultOpenFeatureManagement()
     var
-        FeatureManagementID: Integer;
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+        IsHandled: Boolean;
+        FeatureManagementPageID: Integer;
     begin
-        FeatureManagementID := page::"Feature Management";
-        PAGE.Run(FeatureManagementID);
+        FeatureManagementPageID := page::"Feature Management";
+        FeatureManagementFacade.OnBeforeOpenFeatureManagement(FeatureManagementPageID, IsHandled);
+        if not IsHandled then
+            PAGE.Run(FeatureManagementPageID);
     end;
 }
