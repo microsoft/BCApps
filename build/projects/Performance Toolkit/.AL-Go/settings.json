@@ -13,7 +13,7 @@
                 "releases/*.[0-5]"
             ],
             "settings": {
-                "buildModes": [ ]
+                "buildModes": [ "Strict" ]
             }
         }
     ]
