@@ -2202,5 +2202,40 @@ dotnet
         {
         }
     }
+    assembly("Microsoft.Dynamics.Nav.DataSearch")
+    {
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
+
+        type("Microsoft.Dynamics.Nav.DataSearch.AL.ALSearch"; "ALSearch")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchResult"; "ALSearchResult")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchOptions"; "ALSearchOptions")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchMode"; "ALSearchMode")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchRankingContext"; "ALSearchRankingContext")
+        {
+        }
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchQuery"; "ALSearchQuery")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchQueryResult"; "ALSearchQueryResult")
+        {
+        }
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchFilter"; "SearchFilter")
+        {
+        }
+    }
 }
 
