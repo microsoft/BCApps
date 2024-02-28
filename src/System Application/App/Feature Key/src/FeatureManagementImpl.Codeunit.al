@@ -568,7 +568,6 @@ codeunit 2610 "Feature Management Impl."
         FeatureManagementID: Integer;
     begin
         FeatureManagementID := page::"Feature Management";
-        //AdvancedSettingsExtApi.OnBeforeOpenCompanySettings(CompanySettingsID, Handled);
         if not Handled then
             PAGE.Run(FeatureManagementID);
         Handled := true;
