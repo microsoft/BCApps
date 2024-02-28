@@ -298,7 +298,7 @@ codeunit 9018 "Azure AD Plan Impl."
         EssentialsPlanExists: Boolean;
         PremiumPlanExists: Boolean;
     begin
-        Session.LogMessage('0000BPB', CheckingForMixedPlansTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+        Session.LogMessage('', CheckingForMixedPlansTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
 
         // Get content of the User plan table into a new Dictionary
         UsersInPlans.SetRange(User_State, UsersInPlans.User_State::Enabled);
@@ -313,7 +313,7 @@ codeunit 9018 "Azure AD Plan Impl."
                         PlanNamesPerUser.Set(UserAuthenticationObjectId, CurrentUserPlanList);
                     end;
                 end else
-                    Session.LogMessage('0000CMW', StrSubstNo(UserDoesNotExistTxt, UsersInPlans.User_Security_ID), Verbosity::Verbose, DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::ExtensionPublisher, 'Category', 'UserSetupCategoryTxt');
+                    Session.LogMessage('', StrSubstNo(UserDoesNotExistTxt, UsersInPlans.User_Security_ID), Verbosity::Verbose, DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::ExtensionPublisher, 'Category', 'UserSetupCategoryTxt');
 
         // update the dictionary with the values from input
         foreach UserAuthenticationObjectId in PlanNamesPerUserFromGraph.Keys do
@@ -323,14 +323,14 @@ codeunit 9018 "Azure AD Plan Impl."
         EssentialsPlanExists := PlansExist(PlanNamesPerUser, PlanIds.GetEssentialPlanId(), AuthenticationObjectIDs, PlanNames);
         PremiumPlanExists := PlansExist(PlanNamesPerUser, PlanIds.GetPremiumPlanId(), AuthenticationObjectIDs, PlanNames);
 
-        Session.LogMessage('0000BPC', StrSubstNo(MixedPlansExistTxt, BasicPlanExists, EssentialsPlanExists, PremiumPlanExists), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+        Session.LogMessage('', StrSubstNo(MixedPlansExistTxt, BasicPlanExists, EssentialsPlanExists, PremiumPlanExists), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
 
         if PlanNames.Count() > 1 then begin
             UserAuthenticationEmailFirstConflicting := GetAuthenticationEmailFromAuthenticationObjectID(AuthenticationObjectIDs.Get(1));
             UserAuthenticationEmailSecondConflicting := GetAuthenticationEmailFromAuthenticationObjectID(AuthenticationObjectIDs.Get(2));
             FirstConflictingPlanName := PlanNames.Get(1);
             SecondConflictingPlanName := PlanNames.Get(2);
-            Session.LogMessage('0000BPD', StrSubstNo(UsersWithMixedPlansTxt, AuthenticationObjectIDs.Get(1), AuthenticationObjectIDs.Get(2)), Verbosity::Normal, DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+            Session.LogMessage('', StrSubstNo(UsersWithMixedPlansTxt, AuthenticationObjectIDs.Get(1), AuthenticationObjectIDs.Get(2)), Verbosity::Normal, DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
             exit(true);
         end;
     end;
