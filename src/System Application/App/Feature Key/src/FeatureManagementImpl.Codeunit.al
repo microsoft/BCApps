@@ -560,4 +560,17 @@ codeunit 2610 "Feature Management Impl."
             RenameFeatureDataUpdateStatus.Rename(RenameFeatureDataUpdateStatus."Feature Key", Rec.Name);
         until FeatureDataUpdateStatus.Next() = 0;
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Feature Management Triggers", OpenFeatureManagement, '', false, false)]
+    local procedure DefaultOpenFeatureManagement()
+    var
+        Handled: Boolean;
+        FeatureManagementID: Integer;
+    begin
+        FeatureManagementID := page::"Feature Management";
+        //AdvancedSettingsExtApi.OnBeforeOpenCompanySettings(CompanySettingsID, Handled);
+        if not Handled then
+            PAGE.Run(FeatureManagementID);
+        Handled := true;
+    end;
 }
