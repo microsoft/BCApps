@@ -1,5 +1,6 @@
 # Each line is a file pattern followed by one or more owners.
 # Order is important; the last matching pattern takes the most precedence.
+# CODEOWNERS paths are case sensitive, because GitHub uses a case sensitive file system
 
 # Default owners
 * @microsoft/dynamics-365-business-central
@@ -21,8 +22,11 @@ dotnet.al @microsoft/d365-bc-app-required @microsoft/d365-bc-app-security
 
 # App Permissions
 *.permissionset.al @microsoft/d365-bc-app-required @microsoft/d365-bc-app-permissions
+*.Permissionset.al @microsoft/d365-bc-app-required @microsoft/d365-bc-app-permissions
 *.permissionsetext.al @microsoft/d365-bc-app-required @microsoft/d365-bc-app-permissions
+*.Permissionsetext.al @microsoft/d365-bc-app-required @microsoft/d365-bc-app-permissions
 *.entitlement.al @microsoft/d365-bc-app-required @microsoft/d365-bc-app-permissions
+*.Entitlement.al @microsoft/d365-bc-app-required @microsoft/d365-bc-app-permissions
 
 # AL-Go files and build scripts are owned by Engineering Systems
 .AL-Go/ @microsoft/d365-bc-engineering-systems
