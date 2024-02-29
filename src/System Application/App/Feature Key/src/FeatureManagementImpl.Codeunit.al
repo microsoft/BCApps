@@ -560,4 +560,17 @@ codeunit 2610 "Feature Management Impl."
             RenameFeatureDataUpdateStatus.Rename(RenameFeatureDataUpdateStatus."Feature Key", Rec.Name);
         until FeatureDataUpdateStatus.Next() = 0;
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Feature Management Triggers", OpenFeatureManagement, '', false, false)]
+    local procedure DefaultOpenFeatureManagement()
+    var
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+        IsHandled: Boolean;
+        FeatureManagementPageID: Integer;
+    begin
+        FeatureManagementPageID := Page::"Feature Management";
+        FeatureManagementFacade.OnBeforeOpenFeatureManagement(FeatureManagementPageID, IsHandled);
+        if not IsHandled then
+            Page.Run(FeatureManagementPageID);
+    end;
 }
