@@ -26,6 +26,17 @@ codeunit 132921 "ABS Test Library"
         exit(SampleText);
     end;
 
+    procedure GetSampleTextBlobContentAsBlockDictionary() BlockIdBlockContentDict: Dictionary of [Text, Text]
+    var
+        BlobContentBlockList: List of [Text];
+    begin
+        BlobContentBlockList := GetSampleTextBlobContent().Split(GetNewLineCharacter());
+
+        BlockIdBlockContentDict.Add('AAAAAA==', BlobContentBlockList.Get(1) + GetNewLineCharacter());
+        BlockIdBlockContentDict.Add('AQAAAA==', BlobContentBlockList.Get(2) + GetNewLineCharacter());
+        BlockIdBlockContentDict.Add('AZAAAA==', BlobContentBlockList.Get(3));
+    end;
+
     procedure GetBlobName(): Text
     begin
         Any.SetSeed(Random(2000));
