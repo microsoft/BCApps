@@ -6,10 +6,11 @@
 namespace System.Utilities;
 
 dotnet
-{
+{
+
     assembly("netstandard")
     {
-        type("System.Uri"; "Uri")
+        type("System.Uri"; "Uri")  
         {
         }
 
