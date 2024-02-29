@@ -178,16 +178,17 @@ page 2515 "AppSource Product List"
 
     trigger OnOpenPage()
     begin
-        ReloadAllProducts();
         Rec.SetCurrentKey(DisplayName);
+        ReloadAllProducts();
     end;
 
     local procedure ReloadAllProducts()
     var
         AppSourceProductTemp: Record "AppSource Product";
     begin
+        AppSourceProductTemp.Copy(Rec);
         AppSourceProductManager.GetProductsAndPopulateRecord(AppSourceProductTemp);
-        AppSourceProductTemp.CopyFilters(Rec);
         Rec.Copy(AppSourceProductTemp, true);
+        Rec.FindFirst();
     end;
 }
