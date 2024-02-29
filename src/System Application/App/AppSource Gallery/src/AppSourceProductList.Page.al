@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Apps.AppSource;
 
-using System.Apps;
 using System.Environment.Configuration;
 
 /// <summary>
@@ -56,11 +55,6 @@ page 2515 "AppSource Product List"
                 field(PublisherDisplayName; Rec.PublisherDisplayName)
                 {
                     ToolTip = 'Specifies the display name of the publisher.';
-                }
-                field(Installed; CurrentRecordCanBeUninstalled)
-                {
-                    Caption = 'Installed';
-                    ToolTip = 'Specifies whether this app is installed.';
                 }
                 field(Popularity; Rec.Popularity)
                 {
@@ -180,21 +174,12 @@ page 2515 "AppSource Product List"
     }
 
     var
-        ExtensionManagement: Codeunit "Extension Management";
         AppSourceProductManager: Codeunit "AppSource Product Manager";
-        CurrentRecordCanBeUninstalled: Boolean;
 
     trigger OnOpenPage()
     begin
         ReloadAllProducts();
         Rec.SetCurrentKey(DisplayName);
-    end;
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        CurrentRecordCanBeUninstalled := false;
-        if (not IsNullGuid(Rec.AppID)) then
-            CurrentRecordCanBeUninstalled := ExtensionManagement.IsInstalledByAppID(Rec.AppID);
     end;
 
     local procedure ReloadAllProducts()
