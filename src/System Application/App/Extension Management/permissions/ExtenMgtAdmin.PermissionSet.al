@@ -14,7 +14,7 @@ permissionset 2502 "Exten. Mgt. - Admin"
     Caption = 'Extension Management - Admin';
 
     IncludedPermissionSets = "Extension Management - View",
-                             "Guided Experience - View";
+                             "Guided Experience - View";  
 
     Permissions = tabledata "Application Dependency" = Rimd,
                   tabledata "Application Object Metadata" = Rimd, // r needed for check CanManageExtensions
