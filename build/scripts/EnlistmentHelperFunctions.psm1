@@ -241,8 +241,12 @@ function Get-BCArtifactVersion(
     if ($artifactUrl) {
         if ($ReturnUrl) {
             return $artifactUrl
-        } elseif($artifactUrl -match "\d+\.\d+\.\d+\.\d+") {
-            return $Matches[0]
+        } else {
+            return $artifactUrl | ForEach-Object {
+                if ($_ -match "\d+\.\d+\.\d+\.\d+") {
+                    return $Matches[0]
+                }
+            }
         }
     }
 }
