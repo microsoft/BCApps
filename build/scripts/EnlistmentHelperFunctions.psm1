@@ -187,61 +187,65 @@ function Get-LatestBCArtifactVersion
     $minimumVersion
 )
 {
-    $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest
-
-    if(-not $artifactUrl) {
+    $latestVersion = Get-BCArtifactVersion -StorageAccount bcartifacts -MinimumVersion $minimumVersion
+    if(-not $latestVersion) {
         #Fallback to bcinsider
-        $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount bcinsider -accept_insiderEula
+        $latestVersion = Get-BCArtifactVersion -StorageAccount bcinsider -MinimumVersion $minimumVersion
     }
 
-    if ($artifactUrl -and ($artifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
-        $latestVersion = $Matches[0]
-    } else {
+    if(-not $latestVersion) {
         throw "Could not find BCArtifact version (for min version: $minimumVersion)"
     }
 
     return $latestVersion
 }
 
-function Update-BCArtifactVersion($branchName, $minimumVersion) {
-    if (($branchName -eq "main") -or ($branchName -match "^releases/\d+\.x")) {
-        # The artifact version for main and releases/*.x should always come from bcinsider
-        Write-Host "Getting latest version from bcinsider"
-        $latestVersion = GetBCArtifactVersion -storageAccount bcinsider -minimumVersion $minimumVersion
-    } else {
-        # For other branches use bcartifacts if possible. Otherwise, fallback to bcinsider artifacts from the last 7 days
-        Write-Host "Getting latest version from bcartifacts"
-        $latestVersion = GetBCArtifactVersion -storageAccount bcartifacts -minimumVersion $minimumVersion
-        if (-not $latestVersion) {
-            Write-Host "Latest version not found in bcartifacts. Trying bcinsider"
-            return GetBCArtifactVersion -storageAccount bcinsider -minimumVersion $minimumVersion -after ((Get-Date).AddDays(-7))
+
+<#
+.Synopsis
+    Gets the URL or version of a BC artifact
+.Parameter StorageAccount
+    The storage account to look for the artifact in. Can be either "bcartifacts" or "bcinsider"
+.Parameter MinimumVersion
+    The minimum version of the artifact to look for
+.Parameter Type
+    The type of artifact to look for. Can be either "SandBox" or "OnPrem"
+.Parameter Country
+    The country of the artifact to look for. Can be either "base" or a country code
+.Parameter Select
+    The select parameter to use when looking for the artifact. Can be either "Latest" or "All"
+.Parameter After
+    The date to look for artifacts after. Default is 90 days ago
+.Parameter ReturnUrl
+    If specified, the function will return the URL of the artifact. Otherwise, it will return the version of the artifact    
+#>
+function Get-BCArtifactVersion(
+    [Parameter(Mandatory=$true)]
+    [ValidateSet("bcartifacts","bcinsider")]
+    [string] $StorageAccount,
+    [Parameter(Mandatory=$true)]
+    [string] $MinimumVersion,
+    [Parameter(Mandatory=$false)]
+    [string] $Type = "SandBox",
+    [Parameter(Mandatory=$false)]
+    [string] $Country = "base",
+    [Parameter(Mandatory=$false)]
+    $Select = "Latest",
+    [Parameter(Mandatory=$false)]
+    $After = ((Get-Date).AddDays(-90)),
+    [Parameter(Mandatory=$false)]
+    [switch] $ReturnUrl
+) {
+    $artifactUrl = Get-BCArtifactUrl -type $Type -country $Country -version $MinimumVersion -select $Select -storageAccount $StorageAccount -accept_insiderEula -after $After
+    
+    if ($artifactUrl) {
+        if ($ReturnUrl) {
+            return $artifactUrl
+        } elseif($artifactUrl -match "\d+\.\d+\.\d+\.\d+") {
+            return $Matches[0]
         }
     }
-
-    if (-not $latestVersion) {
-        throw "Could not find BCArtifact version (for min version: $minimumVersion)"
-    }
-    return $latestVersion
 }
-
-function GetBCArtifactVersion(
-    [Parameter(Mandatory=$true)]
-    [string] $storageAccount,
-    [Parameter(Mandatory=$true)]
-    [string] $minimumVersion,
-    [Parameter(Mandatory=$false)]
-    $select = "Latest",
-    [Parameter(Mandatory=$false)]
-    $after = ((Get-Date).AddDays(-90))
-) {
-    $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select $select -storageAccount $storageAccount -accept_insiderEula -after $after
-    
-    if ($artifactUrl -and ($artifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
-        $latestVersion = $Matches[0]
-    }
-    return $latestVersion
-}
-
 
 <#
 .Synopsis

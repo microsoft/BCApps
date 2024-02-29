@@ -25,37 +25,38 @@ Import-Module BcContainerHelper
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\AutomatedSubmission.psm1
 
-function UpdateBCArtifactVersion() {
+function Update-BCArtifactVersion($BranchName) {
     $artifactValue = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
-    if ($artifactValue -and ($artifactValue -match "\d+\.\d+\.\d+\.\d+")) {
-        $currentArtifactVersion = $Matches[0]
+    $minimumVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
+    Write-Host "Current BCArtifact is $artifactValue. Looking for a new artifact with minimum version $minimumVersion"
+
+    if (($BranchName -eq "main") -or ($BranchName -match "^releases/\d+\.x")) {
+        # The artifact version for main and releases/*.x should always come from bcinsider
+        Write-Host "Getting latest version from bcinsider"
+        $newArtifact = Get-BCArtifactVersion -StorageAccount bcinsider -MinimumVersion $minimumVersion -ReturnUrl
     } else {
-        throw "Could not find BCArtifact version: $artifactValue"
+        # For other branches use bcartifacts if possible. Otherwise, fallback to bcinsider artifacts from the last 7 days
+        Write-Host "Getting latest version from bcartifacts"
+        $newArtifact = Get-BCArtifactVersion -StorageAccount bcartifacts -MinimumVersion $minimumVersion -ReturnUrl
+        if (-not $newArtifact) {
+            Write-Host "Latest version not found in bcartifacts. Trying bcinsider"
+            $newArtifact = Get-BCArtifactVersion -StorageAccount bcinsider -MinimumVersion $minimumVersion -After ((Get-Date).AddDays(-7)) -ReturnUrl
+        }
     }
 
-    Write-Host "Current BCArtifact version: $currentArtifactVersion"
-
-    $currentVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
-    $latestArtifactVersion = Get-LatestBCArtifactVersion -minimumVersion $currentVersion
-
-    Write-Host "Latest BCArtifact version: $latestArtifactVersion"
-
-    if($latestArtifactVersion -gt $currentArtifactVersion) {
-        Write-Host "Updating BCArtifact version from $currentArtifactVersion to $latestArtifactVersion"
-
-        $artifactValue = $artifactValue -replace $currentArtifactVersion, $latestArtifactVersion
-        Set-ConfigValue -Key "artifact" -Value $artifactValue -ConfigType AL-Go
-
-        return $true
+    if (-not $newArtifact) {
+        throw "Could not find BCArtifact version (for min version: $minimumVersion)"
     }
 
-    return $false
+    Write-Host "Updating to latest BCArtifact: $newArtifact"
+    Set-ConfigValue -Key "artifact" -Value $newArtifact -ConfigType AL-Go
+    return $newArtifact
 }
 
 $pullRequestTitle = "[$TargetBranch] Update BC Artifact version"
 $BranchName = New-TopicBranchIfNeeded -Repository $Repository -Category "UpdateBCArtifactVersion/$TargetBranch" -PullRequestTitle $pullRequestTitle
 
-$updatesAvailable = UpdateBCArtifactVersion
+$updatesAvailable = Update-BCArtifactVersion -BranchName $TargetBranch
 
 if ($updatesAvailable) {
     # Create branch and push changes
