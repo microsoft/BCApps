@@ -7,7 +7,7 @@ namespace System.FileSystem;
 
 using System.Environment;
 
-permissionset 70003 "File System - Edit"
+permissionset 9453 "File System - Edit"
 {
     Access = Public;
     Assignable = false;

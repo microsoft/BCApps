@@ -5,7 +5,7 @@
 
 namespace System.FileSystem;
 
-codeunit 70005 "File System Impl."
+codeunit 9455 "File System Impl."
 {
     var
         IFileConnector: Interface "File System Connector";

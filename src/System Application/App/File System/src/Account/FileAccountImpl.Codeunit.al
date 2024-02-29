@@ -8,7 +8,7 @@ namespace System.FileSystem;
 using System.Utilities;
 using System.Text;
 
-codeunit 70001 "File Account Impl."
+codeunit 9451 "File Account Impl."
 {
     Access = Internal;
     InherentPermissions = X;

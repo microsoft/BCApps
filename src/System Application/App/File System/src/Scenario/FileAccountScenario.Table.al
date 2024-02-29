@@ -8,7 +8,7 @@ namespace System.FileSystem;
 /// <summary>
 /// Temporary table used to display the tree sctructure in "File Scenario Setup".
 /// </summary>
-table 70003 "File Account Scenario"
+table 9453 "File Account Scenario"
 {
     Access = Internal;
     InherentPermissions = X;

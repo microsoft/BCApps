@@ -9,7 +9,7 @@ namespace System.FileSystem;
 /// Provides functionality to work with file accounts.
 /// </summary>
 
-codeunit 70000 "File Account"
+codeunit 9450 "File Account"
 {
     Access = Public;
 

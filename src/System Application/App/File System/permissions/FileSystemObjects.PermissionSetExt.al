@@ -5,7 +5,7 @@
 
 namespace System.FileSystem;
 
-permissionset 70001 "File System - Objects"
+permissionset 9452 "File System - Objects"
 {
     Access = Internal;
     Assignable = false;

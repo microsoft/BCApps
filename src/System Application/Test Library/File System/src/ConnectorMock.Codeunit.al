@@ -116,21 +116,4 @@ codeunit 80200 "Connector Mock"
         TestFileConnectorSetup."Unsuccessful Register" := Fail;
         TestFileConnectorSetup.Modify();
     end;
-
-    procedure SetEmailMessageID(EmailMessageID: Guid)
-    var
-        TestFileConnectorSetup: Record "Test File Connector Setup";
-    begin
-        TestFileConnectorSetup.FindFirst();
-        TestFileConnectorSetup."Email Message ID" := EmailMessageID;
-        TestFileConnectorSetup.Modify();
-    end;
-
-    procedure GetEmailMessageID(): Guid
-    var
-        TestFileConnectorSetup: Record "Test File Connector Setup";
-    begin
-        TestFileConnectorSetup.FindFirst();
-        exit(TestFileConnectorSetup."Email Message ID");
-    end;
 }

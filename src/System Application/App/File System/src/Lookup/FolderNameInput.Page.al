@@ -5,7 +5,7 @@
 
 namespace System.FileSystem;
 
-page 70006 "Folder Name Input"
+page 9456 "Folder Name Input"
 {
     ApplicationArea = All;
     Caption = 'Create Folder...';

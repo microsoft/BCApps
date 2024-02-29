@@ -28,10 +28,6 @@ table 80201 "Test File Connector Setup"
         {
             Caption = 'Unsuccessful Register';
         }
-        field(5; "Email Message ID"; Guid)
-        {
-            Caption = 'Email Message ID';
-        }
     }
 
     keys

@@ -9,7 +9,7 @@ namespace System.FileSystem;
 /// File scenarios.
 /// Used to decouple file accounts from sending files.
 /// </summary>
-enum 70001 "File Scenario"
+enum 9451 "File Scenario"
 {
     Extensible = true;
 

@@ -12,7 +12,7 @@ using System.Telemetry;
 /// <summary>
 /// Step by step guide for adding a new file account in Business Central
 /// </summary>
-page 70001 "File Account Wizard"
+page 9451 "File Account Wizard"
 {
     PageType = NavigatePage;
     ApplicationArea = All;

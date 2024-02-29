@@ -8,7 +8,7 @@ namespace System.Test.FileSystem;
 using System.FileSystem;
 
 /// <summary>
-/// Used to mock selected email accounts on Email Accounts page.
+/// Used to mock selected file accounts on File Accounts page.
 /// </summary>
 codeunit 134697 "File System Acc Selection Mock"
 {

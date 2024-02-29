@@ -8,7 +8,7 @@ namespace System.FileSystem;
 /// <summary>
 /// Provides functionality to work with file scenarios.
 /// </summary>
-codeunit 70002 "File Scenario"
+codeunit 9452 "File Scenario"
 {
     /// <summary>
     /// Gets the default file account.

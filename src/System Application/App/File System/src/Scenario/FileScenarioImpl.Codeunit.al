@@ -7,7 +7,7 @@ namespace System.FileSystem;
 
 using System;
 
-codeunit 70003 "File Scenario Impl."
+codeunit 9453 "File Scenario Impl."
 {
     Access = Internal;
     InherentPermissions = X;

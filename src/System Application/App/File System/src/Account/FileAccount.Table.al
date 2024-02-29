@@ -8,7 +8,7 @@ namespace System.FileSystem;
 /// <summary>
 /// A common representation of an file account.
 /// </summary>
-table 70000 "File Account"
+table 9450 "File Account"
 {
     Extensible = false;
     TableType = Temporary;

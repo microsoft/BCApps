@@ -7,7 +7,7 @@ namespace System.FileSystem;
 
 using System.Environment;
 
-permissionset 70002 "File System - Read"
+permissionset 9451 "File System - Read"
 {
     Access = Internal;
     Assignable = false;

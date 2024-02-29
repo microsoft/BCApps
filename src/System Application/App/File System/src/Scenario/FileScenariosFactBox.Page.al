@@ -8,7 +8,7 @@ namespace System.FileSystem;
 /// <summary>
 /// Lists of all scenarios assigned to an account.
 /// </summary>
-page 70003 "File Scenarios FactBox"
+page 9453 "File Scenarios FactBox"
 {
     PageType = ListPart;
     Extensible = false;

@@ -5,7 +5,7 @@
 
 namespace System.FileSystem;
 
-codeunit 70006 "File Pagination Data"
+codeunit 9456 "File Pagination Data"
 {
     var
         Marker: Text;

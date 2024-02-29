@@ -17,7 +17,7 @@ codeunit 134695 "File Scenario Page Test"
     var
         Assert: Codeunit "Library Assert";
         ConnectorMock: Codeunit "Connector Mock";
-        EmailScenarioMock: Codeunit "File Scenario Mock";
+        FileScenarioMock: Codeunit "File Scenario Mock";
         PermissionsMock: Codeunit "Permissions Mock";
         DisplayNameTxt: Label '%1', Locked = true;
 
@@ -29,10 +29,10 @@ codeunit 134695 "File Scenario Page Test"
     var
         FileScenarioPage: TestPage "File Scenario Setup";
     begin
-        // [Scenario] The "Email Scenario Setup" shows no data when there are no email accounts
-        PermissionsMock.Set('Email Admin');
+        // [Scenario] The "File Scenario Setup" shows no data when there are no file accounts
+        PermissionsMock.Set('File System Admin');
 
-        // [Given] No email account is registered.
+        // [Given] No file account is registered.
         ConnectorMock.Initialize();
 
         // [When] Opening the the page
@@ -51,10 +51,10 @@ codeunit 134695 "File Scenario Page Test"
         FileAccount: Record "File Account";
         FileScenarioPage: TestPage "File Scenario Setup";
     begin
-        // [Scenario] The "Email Scenario Setup" shows one entry when there is only one email account and no scenarios
-        PermissionsMock.Set('File Admin');
+        // [Scenario] The "File Scenario Setup" shows one entry when there is only one file account and no scenarios
+        PermissionsMock.Set('File System Admin');
 
-        // [Given] One email account is registered.
+        // [Given] One file account is registered.
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(FileAccount);
 
@@ -81,36 +81,36 @@ codeunit 134695 "File Scenario Page Test"
     [Scope('OnPrem')]
     procedure PageOpenOneDefaultEntryTest()
     var
-        EmailAccount: Record "File Account";
-        EmailScenarioPage: TestPage "File Scenario Setup";
+        FileAccount: Record "File Account";
+        FileScenarioPage: TestPage "File Scenario Setup";
     begin
-        // [Scenario] The "Email Scenario Setup" shows one entry when there is only one email account and no scenarios
-        PermissionsMock.Set('File Admin');
+        // [Scenario] The "File Scenario Setup" shows one entry when there is only one file account and no scenarios
+        PermissionsMock.Set('File System Admin');
 
-        // [Given] One email account is registered and it's set as default.
+        // [Given] One file account is registered and it's set as default.
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(FileAccount);
 
-        EmailScenarioMock.DeleteAllMappings();
-        EmailScenarioMock.AddMapping(Enum::"File Scenario"::Default, EmailAccount."Account Id", EmailAccount.Connector);
+        FileScenarioMock.DeleteAllMappings();
+        FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, FileAccount."Account Id", FileAccount.Connector);
 
         // [When] Opening the the page
-        EmailScenarioPage.Trap();
-        EmailScenarioPage.OpenView();
+        FileScenarioPage.Trap();
+        FileScenarioPage.OpenView();
 
         // [Then] There is one entry on the page and it is set as default
-        Assert.IsTrue(EmailScenarioPage.First(), 'There should be an entry on the page');
+        Assert.IsTrue(FileScenarioPage.First(), 'There should be an entry on the page');
 
         // Properties are as expected
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, EmailAccount.Name), EmailScenarioPage.Name.Value, 'Wrong entry name');
-        Assert.IsTrue(GetDefaultFieldValueAsBoolean(EmailScenarioPage.Default.Value), 'The account should be marked as default');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, FileAccount.Name), FileScenarioPage.Name.Value, 'Wrong entry name');
+        Assert.IsTrue(GetDefaultFieldValueAsBoolean(FileScenarioPage.Default.Value), 'The account should be marked as default');
 
         // Actions visibility is as expected
-        Assert.IsTrue(EmailScenarioPage.AddScenario.Visible(), 'The action "Add Scenarios" should be visible');
-        Assert.IsFalse(EmailScenarioPage.ChangeAccount.Visible(), 'The action "Change Accounts" should not be visible');
-        Assert.IsFalse(EmailScenarioPage.Unassign.Visible(), 'The action "Unassign" should not be visible');
+        Assert.IsTrue(FileScenarioPage.AddScenario.Visible(), 'The action "Add Scenarios" should be visible');
+        Assert.IsFalse(FileScenarioPage.ChangeAccount.Visible(), 'The action "Change Accounts" should not be visible');
+        Assert.IsFalse(FileScenarioPage.Unassign.Visible(), 'The action "Unassign" should not be visible');
 
-        Assert.IsFalse(EmailScenarioPage.Next(), 'There should not be another entry on the page');
+        Assert.IsFalse(FileScenarioPage.Next(), 'There should not be another entry on the page');
     end;
 
 
@@ -119,47 +119,47 @@ codeunit 134695 "File Scenario Page Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure PageOpenOneAcountsTwoScenariosTest()
     var
-        EmailAccount: Record "File Account";
-        EmailScenarioPage: TestPage "File Scenario Setup";
+        FileAccount: Record "File Account";
+        FileScenarioPage: TestPage "File Scenario Setup";
     begin
-        // [Scenario] Having one default account with a non-default scenario assigned displays propely on "Email Scenario Setup"
-        PermissionsMock.Set('Email Admin');
+        // [Scenario] Having one default account with a non-default scenario assigned displays propely on "File Scenario Setup"
+        PermissionsMock.Set('File System Admin');
 
-        // [Given] One email account is registered and it's set as default.
+        // [Given] One file account is registered and it's set as default.
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(EmailAccount);
+        ConnectorMock.AddAccount(FileAccount);
 
-        EmailScenarioMock.DeleteAllMappings();
-        EmailScenarioMock.AddMapping(Enum::"File Scenario"::Default, EmailAccount."Account Id", EmailAccount.Connector);
-        EmailScenarioMock.AddMapping(Enum::"File Scenario"::"Test File Scenario", EmailAccount."Account Id", EmailAccount.Connector);
+        FileScenarioMock.DeleteAllMappings();
+        FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, FileAccount."Account Id", FileAccount.Connector);
+        FileScenarioMock.AddMapping(Enum::"File Scenario"::"Test File Scenario", FileAccount."Account Id", FileAccount.Connector);
 
         // [When] Opening the the page
-        EmailScenarioPage.Trap();
-        EmailScenarioPage.OpenView();
+        FileScenarioPage.Trap();
+        FileScenarioPage.OpenView();
 
         // [Then] There is one entry on the page and it is set as default. There's another entry for the other assigned scenario
-        Assert.IsTrue(EmailScenarioPage.First(), 'There should be data on the page');
+        Assert.IsTrue(FileScenarioPage.First(), 'There should be data on the page');
 
         // Properties are as expected
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, EmailAccount.Name), EmailScenarioPage.Name.Value, 'Wrong entry name');
-        Assert.IsTrue(GetDefaultFieldValueAsBoolean(EmailScenarioPage.Default.Value), 'The account should be marked as default');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, FileAccount.Name), FileScenarioPage.Name.Value, 'Wrong entry name');
+        Assert.IsTrue(GetDefaultFieldValueAsBoolean(FileScenarioPage.Default.Value), 'The account should be marked as default');
 
         // Actions visibility is as expected
-        Assert.IsTrue(EmailScenarioPage.AddScenario.Visible(), 'The action "Add Scenarios" should be visible');
-        Assert.IsFalse(EmailScenarioPage.ChangeAccount.Visible(), 'The action "Change Accounts" should not be visible');
-        Assert.IsFalse(EmailScenarioPage.Unassign.Visible(), 'The action "Unassign" should not be visible');
+        Assert.IsTrue(FileScenarioPage.AddScenario.Visible(), 'The action "Add Scenarios" should be visible');
+        Assert.IsFalse(FileScenarioPage.ChangeAccount.Visible(), 'The action "Change Accounts" should not be visible');
+        Assert.IsFalse(FileScenarioPage.Unassign.Visible(), 'The action "Unassign" should not be visible');
 
-        EmailScenarioPage.Expand(true);
-        Assert.IsTrue(EmailScenarioPage.Next(), 'There should be another entry on the page');
+        FileScenarioPage.Expand(true);
+        Assert.IsTrue(FileScenarioPage.Next(), 'There should be another entry on the page');
 
         // Properies are as expected
-        Assert.AreEqual(Format(Enum::"File Scenario"::"Test File Scenario"), EmailScenarioPage.Name.Value, 'Wrong entry name');
-        Assert.IsFalse(GetDefaultFieldValueAsBoolean(EmailScenarioPage.Default.Value), 'The account should not be marked as default');
+        Assert.AreEqual(Format(Enum::"File Scenario"::"Test File Scenario"), FileScenarioPage.Name.Value, 'Wrong entry name');
+        Assert.IsFalse(GetDefaultFieldValueAsBoolean(FileScenarioPage.Default.Value), 'The account should not be marked as default');
 
         // Actions visibility is as expected
-        Assert.IsFalse(EmailScenarioPage.AddScenario.Visible(), 'The action "Add Scenarios" should be visible');
-        Assert.IsTrue(EmailScenarioPage.ChangeAccount.Visible(), 'The action "Change Accounts" should not be visible');
-        Assert.IsTrue(EmailScenarioPage.Unassign.Visible(), 'The action "Unassign" should not be visible');
+        Assert.IsFalse(FileScenarioPage.AddScenario.Visible(), 'The action "Add Scenarios" should be visible');
+        Assert.IsTrue(FileScenarioPage.ChangeAccount.Visible(), 'The action "Change Accounts" should not be visible');
+        Assert.IsTrue(FileScenarioPage.Unassign.Visible(), 'The action "Unassign" should not be visible');
     end;
 
     [Test]
@@ -167,38 +167,38 @@ codeunit 134695 "File Scenario Page Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure PageOpenTwoAcountsTwoScenariosTest()
     var
-        FirstEmailAccount, SecondEmailAccount : Record "File Account";
-        EmailScenarioPage: TestPage "File Scenario Setup";
+        FirstFileAccount, SecondFileAccount : Record "File Account";
+        FileScenarioPage: TestPage "File Scenario Setup";
     begin
-        // [Scenario] The "Email Scenario Setup" shows three entries when there are two accounts - one with the default scenario and one with a non-default scenario
-        PermissionsMock.Set('Email Admin');
+        // [Scenario] The "File Scenario Setup" shows three entries when there are two accounts - one with the default scenario and one with a non-default scenario
+        PermissionsMock.Set('File System Admin');
 
-        // [Given] Two email accounts are registered. One is set as default.
+        // [Given] Two file accounts are registered. One is set as default.
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FirstEmailAccount);
-        ConnectorMock.AddAccount(SecondEmailAccount);
+        ConnectorMock.AddAccount(FirstFileAccount);
+        ConnectorMock.AddAccount(SecondFileAccount);
 
-        EmailScenarioMock.DeleteAllMappings();
-        EmailScenarioMock.AddMapping(Enum::"File Scenario"::Default, FirstEmailAccount."Account Id", FirstEmailAccount.Connector);
-        EmailScenarioMock.AddMapping(Enum::"File Scenario"::"Test File Scenario", SecondEmailAccount."Account Id", SecondEmailAccount.Connector);
+        FileScenarioMock.DeleteAllMappings();
+        FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, FirstFileAccount."Account Id", FirstFileAccount.Connector);
+        FileScenarioMock.AddMapping(Enum::"File Scenario"::"Test File Scenario", SecondFileAccount."Account Id", SecondFileAccount.Connector);
 
         // [When] Opening the the page
-        EmailScenarioPage.Trap();
-        EmailScenarioPage.OpenView();
+        FileScenarioPage.Trap();
+        FileScenarioPage.OpenView();
 
         // [Then] There are three entries on the page. One is set as dedault
-        Assert.IsTrue(EmailScenarioPage.GoToKey(-1, FirstEmailAccount."Account Id", FirstEmailAccount.Connector), 'There should be data on the page');
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, FirstEmailAccount.Name), EmailScenarioPage.Name.Value, 'Wrong first entry name');
-        Assert.IsTrue(GetDefaultFieldValueAsBoolean(EmailScenarioPage.Default.Value), 'The account should be marked as default');
+        Assert.IsTrue(FileScenarioPage.GoToKey(-1, FirstFileAccount."Account Id", FirstFileAccount.Connector), 'There should be data on the page');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, FirstFileAccount.Name), FileScenarioPage.Name.Value, 'Wrong first entry name');
+        Assert.IsTrue(GetDefaultFieldValueAsBoolean(FileScenarioPage.Default.Value), 'The account should be marked as default');
 
-        Assert.IsTrue(EmailScenarioPage.GoToKey(-1, SecondEmailAccount."Account Id", SecondEmailAccount.Connector), 'There should be another entry on the page');
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, SecondEmailAccount.Name), EmailScenarioPage.Name.Value, 'Wrong second entry name');
-        Assert.IsFalse(GetDefaultFieldValueAsBoolean(EmailScenarioPage.Default.Value), 'The account should not be marked as default');
+        Assert.IsTrue(FileScenarioPage.GoToKey(-1, SecondFileAccount."Account Id", SecondFileAccount.Connector), 'There should be another entry on the page');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, SecondFileAccount.Name), FileScenarioPage.Name.Value, 'Wrong second entry name');
+        Assert.IsFalse(GetDefaultFieldValueAsBoolean(FileScenarioPage.Default.Value), 'The account should not be marked as default');
 
-        EmailScenarioPage.Expand(true);
-        Assert.IsTrue(EmailScenarioPage.Next(), 'There should be a third entry on the page');
-        Assert.AreEqual(Format(Enum::"File Scenario"::"Test File Scenario"), EmailScenarioPage.Name.Value, 'Wrong third entry name');
-        Assert.IsFalse(GetDefaultFieldValueAsBoolean(EmailScenarioPage.Default.Value), 'The account should not be marked as default');
+        FileScenarioPage.Expand(true);
+        Assert.IsTrue(FileScenarioPage.Next(), 'There should be a third entry on the page');
+        Assert.AreEqual(Format(Enum::"File Scenario"::"Test File Scenario"), FileScenarioPage.Name.Value, 'Wrong third entry name');
+        Assert.IsFalse(GetDefaultFieldValueAsBoolean(FileScenarioPage.Default.Value), 'The account should not be marked as default');
     end;
 
     local procedure GetDefaultFieldValueAsBoolean(DefaultFieldValue: Text): Boolean

@@ -5,7 +5,7 @@
 
 namespace System.FileSystem;
 
-permissionset 70000 "File System - Admin"
+permissionset 9450 "File System - Admin"
 {
     Access = Public;
     Assignable = true;

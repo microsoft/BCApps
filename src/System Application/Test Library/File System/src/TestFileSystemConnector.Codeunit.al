@@ -9,16 +9,6 @@ using System.FileSystem;
 
 codeunit 80202 "Test File System Connector" implements "File System Connector"
 {
-    /*
-    procedure Send(EmailMessage: Codeunit "Email Message"; AccountId: Guid)
-    begin
-        ConnectorMock.SetEmailMessageID(EmailMessage.GetId());
-        Commit();
-        if ConnectorMock.FailOnSend() then
-            Error('Failed to send email');
-    end;
-*/
-
     procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary);
     begin
         FileAccountContent.Init();

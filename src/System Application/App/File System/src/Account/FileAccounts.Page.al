@@ -10,7 +10,7 @@ using System.Telemetry;
 /// <summary>
 /// Lists all of the registered file accounts
 /// </summary>
-page 70000 "File Accounts"
+page 9450 "File Accounts"
 {
     PageType = List;
     Caption = 'File Accounts';

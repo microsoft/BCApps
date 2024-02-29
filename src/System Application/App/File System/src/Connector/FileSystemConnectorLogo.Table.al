@@ -5,7 +5,7 @@
 
 namespace System.FileSystem;
 
-table 70002 "File System Connector Logo"
+table 9452 "File System Connector Logo"
 {
     DataClassification = SystemMetadata;
     Access = Internal;

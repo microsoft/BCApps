@@ -8,7 +8,7 @@ namespace System.FileSystem;
 /// <summary>
 /// Indicator of what type the resource is.
 /// </summary>
-enum 70002 "File Type"
+enum 9452 "File Type"
 {
     Access = Public;
     Extensible = false;

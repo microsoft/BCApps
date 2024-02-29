@@ -5,7 +5,7 @@
 
 namespace System.FileSystem;
 
-page 70005 "File Account Browser"
+page 9455 "File Account Browser"
 {
     Caption = 'File Account Browser';
     PageType = List;

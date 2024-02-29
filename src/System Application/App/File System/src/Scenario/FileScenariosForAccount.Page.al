@@ -8,7 +8,7 @@ namespace System.FileSystem;
 /// <summary>
 /// Displays the scenarios that could be linked to a provided file account.
 /// </summary>
-page 70004 "File Scenarios for Account"
+page 9454 "File Scenarios for Account"
 {
     PageType = List;
     Extensible = false;

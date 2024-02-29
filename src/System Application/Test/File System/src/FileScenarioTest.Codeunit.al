@@ -30,7 +30,7 @@ codeunit 134693 "File Scenario Test"
         FileAccount: Record "File Account";
     begin
         // [Scenario] When the File scenario isn't mapped an File account, GetFileAccount returns false
-        PermissionsMock.Set('File Admin');
+        PermissionsMock.Set('File System Admin');
 
         // [Given] No mappings between Files and scenarios
         Initialize();
@@ -48,7 +48,7 @@ codeunit 134693 "File Scenario Test"
         NonExistentAccountId: Guid;
     begin
         // [Scenario] When the File scenario is mapped non-existing File account, GetFileAccount returns false
-        PermissionsMock.Set('File Admin');
+        PermissionsMock.Set('File System Admin');
 
         // [Given] An File scenario pointing to a non-existing File account
         Initialize();
@@ -68,7 +68,7 @@ codeunit 134693 "File Scenario Test"
         NonExistentAccountId: Guid;
     begin
         // [Scenario] When the default File scenario is mapped to a non-existing File account, GetFileAccount returns false
-        PermissionsMock.Set('File Admin');
+        PermissionsMock.Set('File System Admin');
 
         // [Given] An File scenario isn't mapped to a account and the default scenario is mapped to a non-existing account
         Initialize();
@@ -88,7 +88,7 @@ codeunit 134693 "File Scenario Test"
         AccountId: Guid;
     begin
         // [Scenario] When the default File scenario is mapped to an existing File account, GetFileAccount returns that account
-        PermissionsMock.Set('File Admin');
+        PermissionsMock.Set('File System Admin');
 
         // [Given] An File scenario isn't mapped to an account and the default scenario is mapped to an existing account
         Initialize();
@@ -110,7 +110,7 @@ codeunit 134693 "File Scenario Test"
         AccountId: Guid;
     begin
         // [Scenario] When the File scenario is mapped to an existing File account, GetFileAccount returns that account
-        PermissionsMock.Set('File Admin');
+        PermissionsMock.Set('File System Admin');
 
         // [Given] An File scenario is mapped to an account
         Initialize();
@@ -133,7 +133,7 @@ codeunit 134693 "File Scenario Test"
         DefaultAccountId: Guid;
     begin
         // [Scenario] When the File scenario and the default scenarion are mapped to different File accounts, GetFileAccount returns the corrent account
-        PermissionsMock.Set('File Admin');
+        PermissionsMock.Set('File System Admin');
 
         // [Given] An File scenario is mapped to an account, the default scenarion is mapped to another account
         Initialize();
@@ -162,7 +162,7 @@ codeunit 134693 "File Scenario Test"
         DefaultAccountId: Guid;
     begin
         // [Scenario] When the File scenario is mapped to a non-existing account and the default scenarion is mapped to an existing accounts, GetFileAccount returns the corrent account
-        PermissionsMock.Set('File Admin');
+        PermissionsMock.Set('File System Admin');
 
         // [Given] An File scenario is mapped to a non-exisitng account, the default scenarion is mapped to an existing account
         Initialize();
@@ -191,7 +191,7 @@ codeunit 134693 "File Scenario Test"
         DefaultAccountId: Guid;
     begin
         // [Scenario] When the File scenario is mapped to an existing account and the default scenarion is mapped to a non-existing accounts, GetFileAccount returns the corrent account
-        PermissionsMock.Set('File Admin');
+        PermissionsMock.Set('File System Admin');
 
         // [Given] An File scenario is mapped to an exisitng account, the default scenarion is mapped to a non-existing account
         Initialize();
@@ -220,7 +220,7 @@ codeunit 134693 "File Scenario Test"
         Scenario: Enum "File Scenario";
     begin
         // [Scenario] When SetAccount is called, the entry in the database is as expected
-        PermissionsMock.Set('File Admin');
+        PermissionsMock.Set('File System Admin');
 
         // [Given] A random File account
         Initialize();
@@ -257,7 +257,7 @@ codeunit 134693 "File Scenario Test"
         ResultAccount: Record "File Account";
     begin
         // [Scenario] When unassigning a scenario then it falls back to the default account.
-        PermissionsMock.Set('File Admin');
+        PermissionsMock.Set('File System Admin');
 
         // [Given] Two accounts, one default and one not 
         Initialize();

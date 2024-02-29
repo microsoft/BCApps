@@ -10,7 +10,7 @@ using System.Telemetry;
 /// <summary>
 /// Page is used to display file scenarios usage by file accounts.
 /// </summary>
-page 70002 "File Scenario Setup"
+page 9452 "File Scenario Setup"
 {
     Caption = 'File Scenario Assignment';
     PageType = List;

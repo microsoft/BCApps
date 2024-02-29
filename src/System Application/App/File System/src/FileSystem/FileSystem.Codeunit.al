@@ -5,7 +5,7 @@
 
 namespace System.FileSystem;
 
-codeunit 70004 "File System"
+codeunit 9454 "File System"
 {
     var
         FileSystemImpl: Codeunit "File System Impl.";

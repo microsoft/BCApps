@@ -10,7 +10,7 @@ namespace System.FileSystem;
 /// One scenarios is mapped to one file account.
 /// One file account can be used for multiple scenarios.
 /// </summary>
-table 70004 "File Scenario"
+table 9454 "File Scenario"
 {
     Access = Internal;
 

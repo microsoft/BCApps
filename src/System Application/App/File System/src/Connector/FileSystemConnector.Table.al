@@ -5,7 +5,7 @@
 
 namespace System.FileSystem;
 
-table 70001 "File System Connector"
+table 9451 "File System Connector"
 {
     TableType = Temporary;
     Access = Internal;
