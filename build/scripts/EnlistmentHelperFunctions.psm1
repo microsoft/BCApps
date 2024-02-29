@@ -217,7 +217,7 @@ function Get-LatestBCArtifactVersion
 .Parameter After
     The date to look for artifacts after. Default is 90 days ago
 .Parameter ReturnUrl
-    If specified, the function will return the URL of the artifact. Otherwise, it will return the version of the artifact    
+    If specified, the function will return the URL of the artifact. Otherwise, it will return the version of the artifact
 #>
 function Get-BCArtifactVersion(
     [Parameter(Mandatory=$true)]
@@ -237,7 +237,7 @@ function Get-BCArtifactVersion(
     [switch] $ReturnUrl
 ) {
     $artifactUrl = Get-BCArtifactUrl -type $Type -country $Country -version $MinimumVersion -select $Select -storageAccount $StorageAccount -accept_insiderEula -after $After
-    
+
     if ($artifactUrl) {
         if ($ReturnUrl) {
             return $artifactUrl
