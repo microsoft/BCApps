@@ -8,7 +8,7 @@ using System.Environment;
 using System.Privacy;
 
 /// <summary>
-/// This page is used to set the Copilot settings in the Environment.
+/// This page is used to set the Copilot settings in the Environment. TEST
 /// </summary>
 page 7775 "Copilot AI Capabilities"
 {
