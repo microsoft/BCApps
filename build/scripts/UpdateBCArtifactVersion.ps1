@@ -48,9 +48,13 @@ function Update-BCArtifactVersion($BranchName) {
         throw "Could not find BCArtifact version (for min version: $minimumVersion)"
     }
 
+    if ($artifactValue -eq $newArtifact) {
+        return $false
+    }
+
     Write-Host "Updating to latest BCArtifact: $newArtifact"
     Set-ConfigValue -Key "artifact" -Value $newArtifact -ConfigType AL-Go
-    return $newArtifact
+    return $true
 }
 
 $pullRequestTitle = "[$TargetBranch] Update BC Artifact version"
