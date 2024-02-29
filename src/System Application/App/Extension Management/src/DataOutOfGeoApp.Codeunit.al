@@ -6,7 +6,7 @@
 namespace System.Apps;
 
 /// <summary>
-/// Provides functions for adding, removing or checking if an App ID is within the list of apps that send data out of the Geolocation.
+/// Provides functions for adding, removing or checking if an App ID is within the list of   apps that send data out of the Geolocation.
 /// </summary>
 codeunit 2506 "Data Out Of Geo. App"
 {
