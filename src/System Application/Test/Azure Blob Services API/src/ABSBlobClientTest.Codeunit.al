@@ -50,7 +50,7 @@ codeunit 132920 "ABS Blob Client Test"
     procedure PutMultipleBlocksTextToSingleBlobTest()
     var
         Response: Codeunit "ABS Operation Response";
-        ContainerName, BlobName, BlobContent, NewBlobContent, BlobContentPart, BlockId, BlockContent : Text;
+        ContainerName, BlobName, BlobContent, NewBlobContent, BlockId, BlockContent : Text;
         BlockIdBlockContentDict: Dictionary of [Text, Text];
         BlobList: Dictionary of [Text, XmlNode];
         CommitedBlocks: Dictionary of [Text, Integer];
