@@ -203,6 +203,46 @@ function Get-LatestBCArtifactVersion
     return $latestVersion
 }
 
+function Update-BCArtifactVersion($branchName, $minimumVersion) {
+    if (($branchName -eq "main") -or ($branchName -match "^releases/\d+\.x")) {
+        # The artifact version for main and releases/*.x should always come from bcinsider
+        Write-Host "Getting latest version from bcinsider"
+        $latestVersion = GetBCArtifactVersion -storageAccount bcinsider -minimumVersion $minimumVersion
+    } else {
+        # For other branches use bcartifacts if possible. Otherwise, fallback to bcinsider artifacts from the last 7 days
+        Write-Host "Getting latest version from bcartifacts"
+        $latestVersion = GetBCArtifactVersion -storageAccount bcartifacts -minimumVersion $minimumVersion
+        if (-not $latestVersion) {
+            Write-Host "Latest version not found in bcartifacts. Trying bcinsider"
+            return GetBCArtifactVersion -storageAccount bcinsider -minimumVersion $minimumVersion -after ((Get-Date).AddDays(-7))
+        }
+    }
+
+    if (-not $latestVersion) {
+        throw "Could not find BCArtifact version (for min version: $minimumVersion)"
+    }
+    return $latestVersion
+}
+
+function GetBCArtifactVersion(
+    [Parameter(Mandatory=$true)]
+    [string] $storageAccount,
+    [Parameter(Mandatory=$true)]
+    [string] $minimumVersion,
+    [Parameter(Mandatory=$false)]
+    $select = "Latest",
+    [Parameter(Mandatory=$false)]
+    $after = ((Get-Date).AddDays(-90))
+) {
+    $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select $select -storageAccount $storageAccount -accept_insiderEula -after $after
+    
+    if ($artifactUrl -and ($artifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
+        $latestVersion = $Matches[0]
+    }
+    return $latestVersion
+}
+
+
 <#
 .Synopsis
     Installs a package from a NuGet.org feed
