@@ -35,13 +35,13 @@ function Update-BCArtifactVersion($BranchName) {
         Write-Host "Getting latest version from bcinsider"
         $newArtifact = Get-BCArtifactVersion -StorageAccount bcinsider -MinimumVersion $minimumVersion -ReturnUrl
     } else {
-        # For other branches use bcartifacts if possible. Otherwise, fallback to bcinsider artifacts from the last 7 days
+        # For other branches use bcartifacts if possible. Otherwise, fallback to bcinsider artifacts
         Write-Host "Getting latest version from bcartifacts"
         $newArtifact = Get-BCArtifactVersion -StorageAccount bcartifacts -MinimumVersion $minimumVersion -ReturnUrl
         if (-not $newArtifact) {
             Write-Host "Latest version not found in bcartifacts. Trying bcinsider"
-            # Getting all artifact versions from the last 7 days
-            $allArtifacts = Get-BCArtifactVersion -StorageAccount bcinsider -MinimumVersion $minimumVersion -After ((Get-Date).AddDays(-7)) -Select "All"
+            # Getting all artifact versions from the last 30 days
+            $allArtifacts = Get-BCArtifactVersion -StorageAccount bcinsider -MinimumVersion $minimumVersion -After ((Get-Date).AddDays(-30)) -Select "All"
 
             # If there are artifacts with the pattern major.minor.12345.54321 available we should use those as they are generated from the right hotfix branch
             # Otherwise we might end up with an artifact from a releases/*.x branch
