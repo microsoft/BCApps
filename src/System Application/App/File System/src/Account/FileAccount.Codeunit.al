@@ -12,6 +12,8 @@ namespace System.FileSystem;
 codeunit 9450 "File Account"
 {
     Access = Public;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     /// <summary>
     /// Gets all of the file accounts registered in Business Central.

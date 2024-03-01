@@ -15,6 +15,8 @@ page 9455 "File Account Browser"
     InsertAllowed = false;
     DeleteAllowed = false;
     Extensible = false;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     layout
     {

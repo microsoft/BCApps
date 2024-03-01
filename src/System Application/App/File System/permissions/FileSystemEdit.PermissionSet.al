@@ -12,9 +12,7 @@ permissionset 9451 "File System - Read"
     Access = Internal;
     Assignable = false;
 
-    IncludedPermissionSets = "File System - Objects";
-
-    Permissions = tabledata "File Account" = r,
+    Permissions =
         tabledata "File System Connector" = r,
         tabledata "File System Connector Logo" = r,
         tabledata "File Account Scenario" = r,

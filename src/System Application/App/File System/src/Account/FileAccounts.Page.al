@@ -24,6 +24,8 @@ page 9450 "File Accounts"
     ShowFilter = false;
     LinksAllowed = false;
     RefreshOnActivate = true;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     layout
     {

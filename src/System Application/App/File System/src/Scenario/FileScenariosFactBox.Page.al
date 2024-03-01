@@ -21,6 +21,8 @@ page 9453 "File Scenarios FactBox"
     ShowFilter = false;
     LinksAllowed = false;
     Permissions = tabledata "File Scenario" = r;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     layout
     {

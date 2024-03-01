@@ -13,6 +13,8 @@ namespace System.FileSystem;
 table 9454 "File Scenario"
 {
     Access = Internal;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     fields
     {

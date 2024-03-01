@@ -11,6 +11,8 @@ page 9456 "Folder Name Input"
     Caption = 'Create Folder...';
     PageType = StandardDialog;
     Extensible = false;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     layout
     {

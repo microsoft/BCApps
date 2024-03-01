@@ -7,6 +7,9 @@ namespace System.FileSystem;
 
 codeunit 9456 "File Pagination Data"
 {
+    InherentPermissions = X;
+    InherentEntitlements = X;
+
     var
         Marker: Text;
         EndOfListing: Boolean;

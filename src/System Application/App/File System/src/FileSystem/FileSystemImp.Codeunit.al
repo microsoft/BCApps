@@ -7,12 +7,16 @@ namespace System.FileSystem;
 
 codeunit 9455 "File System Impl."
 {
-    var
-        IFileConnector: Interface "File System Connector";
-        CurrFileAccount: Record "File Account";
-        Initialized: Boolean;
+    Access = Internal;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
-    internal procedure Initialize(Scenario: Enum "File Scenario")
+    var
+        FileSystemConnector: Interface "File System Connector";
+        CurrFileAccount: Record "File Account";
+        IsInitialized: Boolean;
+
+    procedure Initialize(Scenario: Enum "File Scenario")
     var
         FileAccount: Record "File Account";
         FileScenario: Codeunit "File Scenario";
@@ -24,99 +28,99 @@ codeunit 9455 "File System Impl."
         Initialize(FileAccount);
     end;
 
-    internal procedure Initialize(FileAccount: Record "File Account")
+    procedure Initialize(FileAccount: Record "File Account")
     begin
         CurrFileAccount := FileAccount;
-        IFileConnector := FileAccount.Connector;
-        Initialized := true;
+        FileSystemConnector := FileAccount.Connector;
+        IsInitialized := true;
     end;
 
-    internal procedure ListFiles(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
+    procedure ListFiles(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
     begin
         CheckPath(Path);
         CheckInitialization();
-        IFileConnector.ListFiles(CurrFileAccount."Account Id", Path, FilePaginationData, FileAccountContent);
+        FileSystemConnector.ListFiles(CurrFileAccount."Account Id", Path, FilePaginationData, FileAccountContent);
     end;
 
-    internal procedure GetFile(Path: Text; Stream: InStream)
+    procedure GetFile(Path: Text; Stream: InStream)
     begin
         CheckPath(Path);
         CheckInitialization();
-        IFileConnector.GetFile(CurrFileAccount."Account Id", Path, Stream);
+        FileSystemConnector.GetFile(CurrFileAccount."Account Id", Path, Stream);
     end;
 
-    internal procedure CreateFile(Path: Text; Stream: InStream)
+    procedure CreateFile(Path: Text; Stream: InStream)
     begin
         CheckPath(Path);
         CheckInitialization();
-        IFileConnector.CreateFile(CurrFileAccount."Account Id", Path, Stream);
+        FileSystemConnector.CreateFile(CurrFileAccount."Account Id", Path, Stream);
     end;
 
 
-    internal procedure CopyFile(SourcePath: Text; TargetPath: Text)
+    procedure CopyFile(SourcePath: Text; TargetPath: Text)
     begin
         CheckPath(SourcePath);
         CheckPath(TargetPath);
         CheckInitialization();
-        IFileConnector.CopyFile(CurrFileAccount."Account Id", SourcePath, TargetPath);
+        FileSystemConnector.CopyFile(CurrFileAccount."Account Id", SourcePath, TargetPath);
     end;
 
-    internal procedure MoveFile(SourcePath: Text; TargetPath: Text)
+    procedure MoveFile(SourcePath: Text; TargetPath: Text)
     begin
         CheckPath(SourcePath);
         CheckPath(TargetPath);
         CheckInitialization();
-        IFileConnector.MoveFile(CurrFileAccount."Account Id", SourcePath, TargetPath);
+        FileSystemConnector.MoveFile(CurrFileAccount."Account Id", SourcePath, TargetPath);
     end;
 
-    internal procedure FileExists(Path: Text): Boolean
+    procedure FileExists(Path: Text): Boolean
     begin
         CheckPath(Path);
         CheckInitialization();
-        exit(IFileConnector.FileExists(CurrFileAccount."Account Id", Path));
+        exit(FileSystemConnector.FileExists(CurrFileAccount."Account Id", Path));
     end;
 
-    internal procedure DeleteFile(Path: Text)
+    procedure DeleteFile(Path: Text)
     begin
         CheckPath(Path);
         CheckInitialization();
-        IFileConnector.DeleteFile(CurrFileAccount."Account Id", Path);
+        FileSystemConnector.DeleteFile(CurrFileAccount."Account Id", Path);
     end;
 
-    internal procedure ListDirectories(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
+    procedure ListDirectories(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
     begin
         CheckPath(Path);
         CheckInitialization();
-        IFileConnector.ListDirectories(CurrFileAccount."Account Id", Path, FilePaginationData, FileAccountContent);
+        FileSystemConnector.ListDirectories(CurrFileAccount."Account Id", Path, FilePaginationData, FileAccountContent);
     end;
 
-    internal procedure CreateDirectory(Path: Text)
+    procedure CreateDirectory(Path: Text)
     begin
         CheckPath(Path);
         CheckInitialization();
-        IFileConnector.CreateDirectory(CurrFileAccount."Account Id", Path);
+        FileSystemConnector.CreateDirectory(CurrFileAccount."Account Id", Path);
     end;
 
-    internal procedure DirectoryExists(Path: Text): Boolean
+    procedure DirectoryExists(Path: Text): Boolean
     begin
         CheckPath(Path);
         CheckInitialization();
-        exit(IFileConnector.DirectoryExists(CurrFileAccount."Account Id", Path));
+        exit(FileSystemConnector.DirectoryExists(CurrFileAccount."Account Id", Path));
     end;
 
-    internal procedure DeleteDirectory(Path: Text)
+    procedure DeleteDirectory(Path: Text)
     begin
         CheckPath(Path);
         CheckInitialization();
-        IFileConnector.DeleteDirectory(CurrFileAccount."Account Id", Path);
+        FileSystemConnector.DeleteDirectory(CurrFileAccount."Account Id", Path);
     end;
 
-    internal procedure PathSeparator(): Text
+    procedure PathSeparator(): Text
     begin
         exit('/');
     end;
 
-    internal procedure CombinePath(Path: Text; ChildPath: Text): Text
+    procedure CombinePath(Path: Text; ChildPath: Text): Text
     begin
         if Path = '' then
             exit(ChildPath);
@@ -127,14 +131,14 @@ codeunit 9455 "File System Impl."
         exit(Path + ChildPath);
     end;
 
-    internal procedure GetParentPath(Path: Text) ParentPath: Text
+    procedure GetParentPath(Path: Text) ParentPath: Text
     begin
         Path := Path.TrimEnd(PathSeparator());
         if Path.TrimEnd(PathSeparator()).Contains(PathSeparator()) then
             ParentPath := Path.Substring(1, Path.LastIndexOf(PathSeparator()));
     end;
 
-    internal procedure SelectFolderUI(Path: Text; DialogTitle: Text): Text
+    procedure SelectFolderUI(Path: Text; DialogTitle: Text): Text
     var
         FileAccountContent: Record "File Account Content";
         FileAccountBrowser: Page "File Account Browser";
@@ -155,7 +159,7 @@ codeunit 9455 "File System Impl."
         exit(CombinePath(FileAccountContent."Parent Directory", FileAccountContent.Name));
     end;
 
-    internal procedure SelectFileUI(Path: Text; FileFilter: Text; DialogTitle: Text): Text
+    procedure SelectFileUI(Path: Text; FileFilter: Text; DialogTitle: Text): Text
     var
         FileAccountContent: Record "File Account Content";
         FileAccountBrowser: Page "File Account Browser";
@@ -176,7 +180,7 @@ codeunit 9455 "File System Impl."
         exit(CombinePath(FileAccountContent."Parent Directory", FileAccountContent.Name));
     end;
 
-    internal procedure SaveFileUI(Path: Text; FileExtension: Text; DialogTitle: Text): Text
+    procedure SaveFileUI(Path: Text; FileExtension: Text; DialogTitle: Text): Text
     var
         FileAccountContent: Record "File Account Content";
         FileAccountBrowser: Page "File Account Browser";
@@ -204,7 +208,7 @@ codeunit 9455 "File System Impl."
         exit(CombinePath(FileAccountBrowser.GetCurrentDirectory(), FileNameWithExtenion));
     end;
 
-    internal procedure BrowseAccount()
+    procedure BrowseAccount()
     var
         FileAccountImpl: Codeunit "File Account Impl.";
     begin
@@ -216,7 +220,7 @@ codeunit 9455 "File System Impl."
     var
         NotInitializedErr: Label 'Please call Initalize() first.';
     begin
-        if Initialized then
+        if IsInitialized then
             exit;
 
         Error(NotInitializedErr);

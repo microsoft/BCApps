@@ -14,10 +14,9 @@ permissionset 9450 "File System - Admin"
     IncludedPermissionSets = "File System - Edit";
 
     Permissions =
-        tabledata "File Account" = RMID,
-        tabledata "File System Connector" = RMID,
-        tabledata "File System Connector Logo" = RMID,
-        tabledata "File Account Scenario" = RMID,
-        tabledata "File Scenario" = RMID,
-        tabledata "File Account Content" = RMID;
+        tabledata "File System Connector" = RIMD,
+        tabledata "File System Connector Logo" = RIMD,
+        tabledata "File Account Scenario" = RIMD,
+        tabledata "File Scenario" = RIMD,
+        tabledata "File Account Content" = RIMD;
 }

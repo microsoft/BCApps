@@ -26,6 +26,8 @@ page 9451 "File Account Wizard"
     Editable = true;
     ShowFilter = false;
     LinksAllowed = false;
+    InherentPermissions = X;
+    InherentEntitlements = X;
     Permissions = tabledata Media = r,
                   tabledata "Media Resources" = r;
 

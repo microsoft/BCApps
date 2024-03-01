@@ -20,6 +20,8 @@ page 9454 "File Scenarios for Account"
     Editable = false;
     ShowFilter = false;
     LinksAllowed = false;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     layout
     {

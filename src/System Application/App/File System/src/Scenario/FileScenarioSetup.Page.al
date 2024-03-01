@@ -23,6 +23,8 @@ page 9452 "File Scenario Setup"
     ModifyAllowed = false;
     SourceTable = "File Account Scenario";
     InstructionalText = 'Assign file scenarios';
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     layout
     {

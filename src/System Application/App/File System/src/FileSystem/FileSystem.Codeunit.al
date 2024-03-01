@@ -7,6 +7,9 @@ namespace System.FileSystem;
 
 codeunit 9454 "File System"
 {
+    InherentPermissions = X;
+    InherentEntitlements = X;
+
     var
         FileSystemImpl: Codeunit "File System Impl.";
 

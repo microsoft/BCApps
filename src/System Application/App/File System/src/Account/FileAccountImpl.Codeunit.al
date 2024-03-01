@@ -19,17 +19,17 @@ codeunit 9451 "File Account Impl."
     procedure GetAllAccounts(LoadLogos: Boolean; var TempFileAccount: Record "File Account" temporary)
     var
         FileAccounts: Record "File Account";
-        IFileConnector: Interface "File System Connector";
+        FileSystemConnector: Interface "File System Connector";
         Connector: Enum "File System Connector";
     begin
         TempFileAccount.Reset();
         TempFileAccount.DeleteAll();
 
         foreach Connector in Connector.Ordinals do begin
-            IFileConnector := Connector;
+            FileSystemConnector := Connector;
 
             FileAccounts.DeleteAll();
-            IFileConnector.GetAccounts(FileAccounts);
+            FileSystemConnector.GetAccounts(FileAccounts);
 
             if FileAccounts.FindSet() then
                 repeat
@@ -54,7 +54,7 @@ codeunit 9451 "File Account Impl."
         CurrentDefaultFileAccount: Record "File Account";
         ConfirmManagement: Codeunit "Confirm Management";
         FileScenario: Codeunit "File Scenario";
-        FileConnector: Interface "File System Connector";
+        FileSystemConnector: Interface "File System Connector";
     begin
         CheckPermissions();
 
@@ -72,15 +72,15 @@ codeunit 9451 "File Account Impl."
             // Check to validate that the connector is still installed
             // The connector could have been uninstalled by another user/session
             if IsValidConnector(FileAccountsToDelete.Connector) then begin
-                FileConnector := FileAccountsToDelete.Connector;
-                FileConnector.DeleteAccount(FileAccountsToDelete."Account Id");
+                FileSystemConnector := FileAccountsToDelete.Connector;
+                FileSystemConnector.DeleteAccount(FileAccountsToDelete."Account Id");
             end;
         until FileAccountsToDelete.Next() = 0;
 
-        HandleDefaultAccountDeletion(CurrentDefaultFileAccount."Account Id", CurrentDefaultFileAccount.Connector);
+        DefaultAccountDeletion(CurrentDefaultFileAccount."Account Id", CurrentDefaultFileAccount.Connector);
     end;
 
-    local procedure HandleDefaultAccountDeletion(CurrentDefaultAccountId: Guid; Connector: Enum "File System Connector")
+    local procedure DefaultAccountDeletion(CurrentDefaultAccountId: Guid; Connector: Enum "File System Connector")
     var
         AllFileAccounts: Record "File Account";
         NewDefaultFileAccount: Record "File Account";
@@ -167,14 +167,14 @@ codeunit 9451 "File Account Impl."
     var
         Base64Convert: Codeunit "Base64 Convert";
         ConnectorInterface: Interface "File System Connector";
-        Connector: Enum "File System Connector";
+        FileSystemConnector: Enum "File System Connector";
         ConnectorLogoBase64: Text;
         OutStream: Outstream;
     begin
-        foreach Connector in Enum::"File System Connector".Ordinals() do begin
-            ConnectorInterface := Connector;
+        foreach FileSystemConnector in Enum::"File System Connector".Ordinals() do begin
+            ConnectorInterface := FileSystemConnector;
             ConnectorLogoBase64 := ConnectorInterface.GetLogoAsBase64();
-            FileConnector.Connector := Connector;
+            FileConnector.Connector := FileSystemConnector;
             FileConnector.Description := ConnectorInterface.GetDescription();
             if ConnectorLogoBase64 <> '' then begin
                 FileConnector.Logo.CreateOutStream(OutStream);
@@ -221,13 +221,13 @@ codeunit 9451 "File Account Impl."
             Error(CannotManageSetupErr);
     end;
 
-    local procedure ImportLogoBlob(var FileAccount: Record "File Account"; Connector: Interface "File System Connector")
+    local procedure ImportLogoBlob(var FileAccount: Record "File Account"; FileSystemConnector: Interface "File System Connector")
     var
         Base64Convert: Codeunit "Base64 Convert";
         ConnectorLogoBase64: Text;
         OutStream: Outstream;
     begin
-        ConnectorLogoBase64 := Connector.GetLogoAsBase64();
+        ConnectorLogoBase64 := FileSystemConnector.GetLogoAsBase64();
 
         if ConnectorLogoBase64 <> '' then begin
             FileAccount.LogoBlob.CreateOutStream(OutStream);
