@@ -11,26 +11,41 @@ codeunit 9456 "File Pagination Data"
     InherentEntitlements = X;
 
     var
-        Marker: Text;
-        EndOfListing: Boolean;
+        FilePaginationDataImpl: Codeunit "File Pagination Data Impl.";
 
+    /// <summary>
+    /// Sets a marker if files and directories can be getted in batches.
+    /// </summary>
+    /// <param name="NewMarker">Marker value to set.</param>
     procedure SetMarker(NewMarker: Text)
     begin
-        Marker := NewMarker;
+        FilePaginationDataImpl.SetMarker(NewMarker);
     end;
 
+    /// <summary>
+    /// Gets the current marker value.
+    /// </summary>
+    /// <returns>Current marker value.</returns>
     procedure GetMarker(): Text
     begin
-        exit(Marker);
+        exit(FilePaginationDataImpl.GetMarker());
     end;
 
+    /// <summary>
+    /// Set this value to true, if all files or directoreis have beend read a from the File System.
+    /// </summary>
+    /// <param name="NewEndOfListing">End of listing reached.</param>
     procedure SetEndOfListing(NewEndOfListing: Boolean)
     begin
-        EndOfListing := NewEndOfListing;
+        FilePaginationDataImpl.SetEndOfListing(NewEndOfListing);
     end;
 
+    /// <summary>
+    /// Defines if all batches of directory or file listing has beend received.
+    /// </summary>
+    /// <returns>End of listing reached.</returns>
     procedure IsEndOfListing(): Boolean
     begin
-        exit(EndOfListing);
+        exit(FilePaginationDataImpl.IsEndOfListing());
     end;
 }
