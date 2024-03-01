@@ -5,6 +5,9 @@
 namespace System.AI;
 
 using System;
+using System.Azure.Identity;
+using System.Azure.KeyVault;
+using System.Environment;
 
 /// <summary>
 /// Store the authorization information for the AOAI service.
@@ -22,6 +25,8 @@ codeunit 7767 "AOAI Authorization"
         Deployment: Text;
         [NonDebuggable]
         ApiKey: SecretText;
+        TenantIsAllowListedTxt: Label 'The current tenant is allowlisted for first party auth.', Locked = true;
+        AllowlistedTenantsAkvKeyTok: Label 'AOAI-Allow-1P-Auth', Locked = true;
 
     [NonDebuggable]
     procedure IsConfigured(CallerModule: ModuleInfo): Boolean
@@ -35,7 +40,8 @@ codeunit 7767 "AOAI Authorization"
             exit(false);
 
         if (Endpoint = '') and ApiKey.IsEmpty() then
-            exit(ALCopilotFunctions.IsPlatformAuthorizationConfigured(CallerModule.Publisher(), CurrentModule.Publisher()));
+            exit(IsTenantAllowlistedForPlatformAuthorization()
+                or ALCopilotFunctions.IsPlatformAuthorizationConfigured(CallerModule.Publisher(), CurrentModule.Publisher()));
 
         if (Endpoint = '') or ApiKey.IsEmpty() then
             exit(false);
@@ -67,5 +73,27 @@ codeunit 7767 "AOAI Authorization"
     procedure GetApiKey(): SecretText
     begin
         exit(ApiKey);
+    end;
+
+    [NonDebuggable]
+    local procedure IsTenantAllowlistedForPlatformAuthorization(): Boolean
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        AzureAdTenant: Codeunit "Azure AD Tenant";
+        AllowlistedTenants: Text;
+    begin
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit(false);
+
+        if (not AzureKeyVault.GetAzureKeyVaultSecret(AllowlistedTenantsAkvKeyTok, AllowlistedTenants)) or (AllowlistedTenants.Trim() = '') then
+            exit(false);
+
+        if not AllowlistedTenants.Contains(AzureAdTenant.GetAadTenantId()) then
+            exit(false);
+
+        Session.LogMessage('0000MLE', TenantIsAllowListedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
+        exit(true);
     end;
 }
