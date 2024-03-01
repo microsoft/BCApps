@@ -142,9 +142,8 @@ codeunit 132520 "AFS File Client Test"
         AFSOperationResponse := AFSFileClient.ListDirectory('anotherdir/', AFSDirectoryContent, AFSOptionalParameters);
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
-        // [THEN] Entries must contain timestamps and etag
-        AFSDirectoryContent.SetRange("Resource Type", Enum::"AFS File Resource Type"::File);
-        AFSDirectoryContent.Find('-');
+        // [THEN] Directory and file entries must contain timestamps and etag
+        AFSDirectoryContent.FindSet();
 
         repeat
             LibraryAssert.AreNotEqual(0DT, AFSDirectoryContent."Creation Time", 'Timestamp CreationTime must be set');
