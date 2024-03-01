@@ -210,7 +210,7 @@ codeunit 9451 "File Account Impl."
         if IsNullGuid(FileAccount."Account Id") then
             exit;
 
-        FileAccountBrowser.SetFileAcconut(FileAccount);
+        FileAccountBrowser.SetFileAccount(FileAccount);
         FileAccountBrowser.BrowseFileAccount('');
         FileAccountBrowser.Run();
     end;

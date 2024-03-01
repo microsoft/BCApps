@@ -43,7 +43,7 @@ page 9455 "File Account Browser"
                             (Rec.Type = Rec.Type::Directory):
                                 BrowseFolder(Rec);
                             (not IsInLookupMode):
-                                DownloadFile(Rec);
+                                FileAccountBrowserMgt.DownloadFile(Rec);
                         end;
                     end;
                 }
@@ -87,7 +87,7 @@ page 9455 "File Account Browser"
 
                 trigger OnAction()
                 begin
-                    UploadFile();
+                    FileAccountBrowserMgt.UploadFile(CurrPath);
                     BrowseFolder(CurrPath);
                 end;
             }
@@ -101,7 +101,7 @@ page 9455 "File Account Browser"
 
                 trigger OnAction()
                 begin
-                    CreateDirectory();
+                    FileAccountBrowserMgt.CreateDirectory(CurrPath);
                     BrowseFolder(CurrPath);
                 end;
             }
@@ -115,7 +115,7 @@ page 9455 "File Account Browser"
 
                 trigger OnAction()
                 begin
-                    DeleteFileOrDirectory();
+                    FileAccountBrowserMgt.DeleteFileOrDirectory(Rec);
                     BrowseFolder(CurrPath);
                 end;
             }
@@ -123,9 +123,9 @@ page 9455 "File Account Browser"
     }
 
     var
-        FileSystem: Codeunit "File System";
+        FileAccountBrowserMgt: Codeunit "File Account Browser Mgt.";
         CurrPath, CurrFileFilter, SaveFileName, CurrPageCaption : Text;
-        ParentFolderExists, DoNotLoadFields, IsInLookupMode, ShowFileName : Boolean;
+        DoNotLoadFiles, IsInLookupMode, ShowFileName : Boolean;
 
     trigger OnOpenPage()
     begin
@@ -133,9 +133,9 @@ page 9455 "File Account Browser"
             CurrPage.Caption(CurrPageCaption);
     end;
 
-    internal procedure SetFileAcconut(FileAccount: Record "File Account")
+    internal procedure SetFileAccount(FileAccount: Record "File Account")
     begin
-        FileSystem.Initialize(FileAccount);
+        FileAccountBrowserMgt.SetFileAccount(FileAccount);
     end;
 
     internal procedure BrowseFileAccount(Path: Text)
@@ -152,7 +152,7 @@ page 9455 "File Account Browser"
 
     internal procedure EnableDirectoryLookupMode(Path: Text)
     begin
-        DoNotLoadFields := true;
+        DoNotLoadFiles := true;
         EnableLookupMode();
         BrowseFolder(Path);
     end;
@@ -177,18 +177,9 @@ page 9455 "File Account Browser"
         exit(SaveFileName);
     end;
 
-
     internal procedure SetPageCaption(NewCaption: Text)
     begin
         CurrPageCaption := NewCaption;
-    end;
-
-    local procedure StripNotsupportChrInFileName(InText: Text): Text
-    var
-        InvalidChrStringTxt: Label '"#%&*:<>?\/{|}~', Locked = true;
-    begin
-        InText := DelChr(InText, '=', InvalidChrStringTxt);
-        exit(InText);
     end;
 
     local procedure EnableLookupMode()
@@ -201,106 +192,12 @@ page 9455 "File Account Browser"
     var
         Path: Text;
     begin
-        Path := FileSystem.CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name);
+        Path := FileAccountBrowserMgt.CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name);
         BrowseFolder(Path);
     end;
 
     local procedure BrowseFolder(Path: Text)
-    var
-        FilePaginationData: Codeunit "File Pagination Data";
     begin
-        CurrPath := Path.TrimEnd('/');
-        ParentFolderExists := Path <> '';
-        Rec.DeleteAll();
-
-        repeat
-            FileSystem.ListDirectories(Path, FilePaginationData, Rec);
-        until FilePaginationData.IsEndOfListing();
-
-        ListFiles(Path);
-        if Rec.FindFirst() then;
-    end;
-
-    local procedure DownloadFile(var TempFileAccountContent: Record "File Account Content" temporary)
-    var
-        Stream: InStream;
-    begin
-        FileSystem.GetFile(FileSystem.CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name), Stream);
-        DownloadFromStream(Stream, '', '', '', TempFileAccountContent.Name);
-    end;
-
-    local procedure UploadFile()
-    var
-        UploadDialogTxt: Label 'Upload File';
-        FromFile: Text;
-        Stream: InStream;
-    begin
-        if not UploadIntoStream(UploadDialogTxt, '', '', FromFile, Stream) then
-            exit;
-
-        FileSystem.CreateFile(FileSystem.CombinePath(CurrPath, FromFile), Stream);
-    end;
-
-    local procedure CreateDirectory()
-    var
-        FolderNameInput: Page "Folder Name Input";
-        FolderName: Text;
-    begin
-        if FolderNameInput.RunModal() <> Action::OK then
-            exit;
-
-        FolderName := StripNotsupportChrInFileName(FolderNameInput.GetFolderName());
-        FileSystem.CreateDirectory(FileSystem.CombinePath(CurrPath, FolderName));
-    end;
-
-    local procedure ListFiles(var Path: Text)
-    var
-        FileAccountContent: Record "File Account Content" temporary;
-        FilePaginationData: Codeunit "File Pagination Data";
-    begin
-        if DoNotLoadFields then
-            exit;
-
-        repeat
-            FileSystem.ListFiles(Path, FilePaginationData, FileAccountContent);
-        until FilePaginationData.IsEndOfListing();
-
-        AddFiles(FileAccountContent);
-    end;
-
-    local procedure AddFiles(var FileAccountContent: Record "File Account Content" temporary)
-    begin
-        if CurrFileFilter <> '' then
-            FileAccountContent.SetFilter(Name, CurrFileFilter);
-
-        if FileAccountContent.FindSet() then
-            repeat
-                Rec.Init();
-                Rec.TransferFields(FileAccountContent);
-                Rec.Insert();
-            until FileAccountContent.Next() = 0;
-
-        Rec.Init();
-        Rec.Name := '..';
-        Rec.Type := Rec.Type::Directory;
-        Rec."Parent Directory" := FileSystem.GetParentPath(CurrPath);
-        Rec.Insert();
-    end;
-
-    local procedure DeleteFileOrDirectory()
-    var
-        PathToDelete: Text;
-        DeleteQst: Label 'Delete %1?', Comment = '%1 - Path to Delete';
-    begin
-        PathToDelete := FileSystem.CombinePath(Rec."Parent Directory", Rec.Name);
-        if not Confirm(DeleteQst, false, PathToDelete) then
-            exit;
-
-        case Rec.Type of
-            Rec.Type::Directory:
-                FileSystem.DeleteDirectory(PathToDelete);
-            Rec.Type::File:
-                FileSystem.DeleteFile(PathToDelete);
-        end;
+        FileAccountBrowserMgt.BrowseFolder(Rec, Path, CurrPath, DoNotLoadFiles, CurrFileFilter);
     end;
 }

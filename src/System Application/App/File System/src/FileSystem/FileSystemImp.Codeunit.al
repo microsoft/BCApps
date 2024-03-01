@@ -147,7 +147,7 @@ codeunit 9455 "File System Impl."
         CheckInitialization();
 
         FileAccountBrowser.SetPageCaption(DialogTitle);
-        FileAccountBrowser.SetFileAcconut(CurrFileAccount);
+        FileAccountBrowser.SetFileAccount(CurrFileAccount);
         FileAccountBrowser.EnableDirectoryLookupMode(Path);
         if FileAccountBrowser.RunModal() <> Action::LookupOK then
             exit('');
@@ -168,7 +168,7 @@ codeunit 9455 "File System Impl."
         CheckInitialization();
 
         FileAccountBrowser.SetPageCaption(DialogTitle);
-        FileAccountBrowser.SetFileAcconut(CurrFileAccount);
+        FileAccountBrowser.SetFileAccount(CurrFileAccount);
         FileAccountBrowser.EnableFileLookupMode(Path, FileFilter);
         if FileAccountBrowser.RunModal() <> Action::LookupOK then
             exit('');
@@ -195,7 +195,7 @@ codeunit 9455 "File System Impl."
             Error(PleaseProvideFileExtensionErr);
 
         FileAccountBrowser.SetPageCaption(DialogTitle);
-        FileAccountBrowser.SetFileAcconut(CurrFileAccount);
+        FileAccountBrowser.SetFileAccount(CurrFileAccount);
         FileAccountBrowser.EnableSaveFileLookupMode(Path, FileExtension);
         if FileAccountBrowser.RunModal() <> Action::LookupOK then
             exit('');
