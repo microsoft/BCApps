@@ -27,7 +27,7 @@ codeunit 80202 "Test File System Connector" implements "File System Connector"
 
     end;
 
-    procedure SetFile(AccountId: Guid; Path: Text; Stream: InStream);
+    procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream);
     begin
 
     end;
@@ -68,11 +68,6 @@ codeunit 80202 "Test File System Connector" implements "File System Connector"
     end;
 
     procedure DeleteDirectory(AccountId: Guid; Path: Text);
-    begin
-
-    end;
-
-    procedure PathSeparator(): Text;
     begin
 
     end;

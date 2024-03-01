@@ -33,7 +33,7 @@ interface "File System Connector"
     /// <param name="AccountId">The file account ID which is used to send out the file.</param>
     /// <param name="Path">The file path inside the file account.</param>
     /// <param name="Stream">The Stream were the file is read from.</param>
-    procedure SetFile(AccountId: Guid; Path: Text; Stream: InStream);
+    procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream);
 
 
     /// <summary>
@@ -98,12 +98,6 @@ interface "File System Connector"
     /// <param name="AccountId">The file account ID which is used to send out the file.</param>
     /// <param name="Path">The directory path inside the file account.</param>
     procedure DeleteDirectory(AccountId: Guid; Path: Text);
-
-    /// <summary>
-    /// Returns the path separator of the file account.
-    /// </summary>
-    /// <returns>The Path separator like / or \</returns>
-    procedure PathSeparator(): Text;
 
     /// <summary>
     /// Gets the file accounts registered for the connector.

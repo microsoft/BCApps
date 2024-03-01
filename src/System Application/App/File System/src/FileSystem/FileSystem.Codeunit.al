@@ -56,9 +56,9 @@ codeunit 9454 "File System"
     /// <param name="Path">File Path inside the file account.</param>
     /// <param name="Stream">Stream to store.</param>
     [TryFunction]
-    procedure SetFile(Path: Text; Stream: InStream)
+    procedure CreateFile(Path: Text; Stream: InStream)
     begin
-        FileSystemImpl.SetFile(Path, Stream);
+        FileSystemImpl.CreateFile(Path, Stream);
     end;
 
     /// <summary>
@@ -143,15 +143,6 @@ codeunit 9454 "File System"
     procedure DeleteDirectory(Path: Text)
     begin
         FileSystemImpl.DeleteDirectory(Path);
-    end;
-
-    /// <summary>
-    /// Returns the path separator used by the file account system.
-    /// </summary>
-    /// <returns></returns>
-    procedure PathSeparator(): Text
-    begin
-        exit(FileSystemImpl.PathSeparator());
     end;
 
     /// <summary>

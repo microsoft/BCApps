@@ -33,75 +33,87 @@ codeunit 9455 "File System Impl."
 
     internal procedure ListFiles(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
     begin
+        CheckPath(Path);
         CheckInitialization();
         IFileConnector.ListFiles(CurrFileAccount."Account Id", Path, FilePaginationData, FileAccountContent);
     end;
 
     internal procedure GetFile(Path: Text; Stream: InStream)
     begin
+        CheckPath(Path);
         CheckInitialization();
         IFileConnector.GetFile(CurrFileAccount."Account Id", Path, Stream);
     end;
 
-    internal procedure SetFile(Path: Text; Stream: InStream)
+    internal procedure CreateFile(Path: Text; Stream: InStream)
     begin
+        CheckPath(Path);
         CheckInitialization();
-        IFileConnector.SetFile(CurrFileAccount."Account Id", Path, Stream);
+        IFileConnector.CreateFile(CurrFileAccount."Account Id", Path, Stream);
     end;
 
 
     internal procedure CopyFile(SourcePath: Text; TargetPath: Text)
     begin
+        CheckPath(SourcePath);
+        CheckPath(TargetPath);
         CheckInitialization();
         IFileConnector.CopyFile(CurrFileAccount."Account Id", SourcePath, TargetPath);
     end;
 
     internal procedure MoveFile(SourcePath: Text; TargetPath: Text)
     begin
+        CheckPath(SourcePath);
+        CheckPath(TargetPath);
         CheckInitialization();
         IFileConnector.MoveFile(CurrFileAccount."Account Id", SourcePath, TargetPath);
     end;
 
     internal procedure FileExists(Path: Text): Boolean
     begin
+        CheckPath(Path);
         CheckInitialization();
         exit(IFileConnector.FileExists(CurrFileAccount."Account Id", Path));
     end;
 
     internal procedure DeleteFile(Path: Text)
     begin
+        CheckPath(Path);
         CheckInitialization();
         IFileConnector.DeleteFile(CurrFileAccount."Account Id", Path);
     end;
 
     internal procedure ListDirectories(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
     begin
+        CheckPath(Path);
         CheckInitialization();
         IFileConnector.ListDirectories(CurrFileAccount."Account Id", Path, FilePaginationData, FileAccountContent);
     end;
 
     internal procedure CreateDirectory(Path: Text)
     begin
+        CheckPath(Path);
         CheckInitialization();
         IFileConnector.CreateDirectory(CurrFileAccount."Account Id", Path);
     end;
 
     internal procedure DirectoryExists(Path: Text): Boolean
     begin
+        CheckPath(Path);
         CheckInitialization();
         exit(IFileConnector.DirectoryExists(CurrFileAccount."Account Id", Path));
     end;
 
     internal procedure DeleteDirectory(Path: Text)
     begin
+        CheckPath(Path);
         CheckInitialization();
         IFileConnector.DeleteDirectory(CurrFileAccount."Account Id", Path);
     end;
 
     internal procedure PathSeparator(): Text
     begin
-        CheckInitialization();
-        exit(IFileConnector.PathSeparator());
+        exit('/');
     end;
 
     internal procedure CombinePath(Path: Text; ChildPath: Text): Text
@@ -126,6 +138,7 @@ codeunit 9455 "File System Impl."
         FileAccountContent: Record "File Account Content";
         FileAccountBrowser: Page "File Account Browser";
     begin
+        CheckPath(Path);
         CheckInitialization();
 
         FileAccountBrowser.SetPageCaption(DialogTitle);
@@ -146,6 +159,7 @@ codeunit 9455 "File System Impl."
         FileAccountContent: Record "File Account Content";
         FileAccountBrowser: Page "File Account Browser";
     begin
+        CheckPath(Path);
         CheckInitialization();
 
         FileAccountBrowser.SetPageCaption(DialogTitle);
@@ -169,6 +183,7 @@ codeunit 9455 "File System Impl."
         PleaseProvideFileExtensionErr: Label 'Please provide a valid file extension.';
         FileNameTok: Label '%1.%2', Locked = true;
     begin
+        CheckPath(Path);
         CheckInitialization();
 
         if FileExtension = '' then
@@ -204,5 +219,28 @@ codeunit 9455 "File System Impl."
             exit;
 
         Error(NotInitializedErr);
+    end;
+
+    local procedure CheckPath(Path: Text)
+    var
+        InvalidChars: Text;
+        InvalidChar: Char;
+        PathCannotStartWithSlashErr: Label 'The path %1 can not start with /.', Comment = '%1 - Path';
+
+    begin
+        if Path.StartsWith('/') then
+            Error(PathCannotStartWithSlashErr, Path);
+
+        InvalidChars := '"''<>\|';
+        foreach InvalidChar in InvalidChars do
+            CheckPath(Path, InvalidChar);
+    end;
+
+    local procedure CheckPath(Path: Text; InvalidChar: Char)
+    var
+        InvalidPathErr: Label 'The path %1 contains the invalid character %2.', Comment = '%1 - Path, %2 - Invalid Character';
+    begin
+        if Path.Contains(InvalidChar) then
+            Error(InvalidPathErr, Path, InvalidChar);
     end;
 }

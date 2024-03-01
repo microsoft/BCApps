@@ -251,7 +251,7 @@ page 9455 "File Account Browser"
         if not UploadIntoStream(UploadDialogTxt, '', '', FromFile, Stream) then
             exit;
 
-        FileSystem.SetFile(FileSystem.CombinePath(CurrPath, FromFile), Stream);
+        FileSystem.CreateFile(FileSystem.CombinePath(CurrPath, FromFile), Stream);
     end;
 
     local procedure CreateDirectory()
