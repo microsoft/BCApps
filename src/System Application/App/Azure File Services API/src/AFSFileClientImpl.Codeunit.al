@@ -186,6 +186,8 @@ codeunit 8951 "AFS File Client Impl."
         DirectoryURI := AFSHelperLibrary.GetDirectoryPathFromResponse(ResponseText);
 
         AFSHelperLibrary.DirectoryContentNodeListToTempRecord(DirectoryURI, DirectoryPath, NodeList, PreserveDirectoryContent, AFSDirectoryContent);
+        AFSDirectoryContent."Next Marker" := CopyStr(AFSHelperLibrary.GetNextMarkerFromResponse(ResponseText), 1, MaxStrLen(AFSDirectoryContent."Next Marker"));
+        AFSDirectoryContent.Modify();
 
         exit(AFSOperationResponse);
     end;
