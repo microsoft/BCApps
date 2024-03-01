@@ -1,4 +1,4 @@
-using module .\GitHub\GitHubPullRequest.class.psm1
+using module ..\GitHub\GitHubPullRequest.class.psm1
 
 <#
 .Synopsis
@@ -62,7 +62,7 @@ function New-TopicBranch
     )
 
     if($PsCmdlet.ParameterSetName -eq "Category") {
-        $currentDate = (Get-Date).ToUniversalTime().ToString("yyMMddHHmm")
+        $currentDate = (Get-Date).ToUniversalTime().ToString("yyMMddHHmmss")
         $BranchName = "automation/$Category/$currentDate"
     }
 
@@ -145,8 +145,10 @@ function New-GitHubPullRequest
     $parameters = ($params -join " ")
 
     Write-Host "gh pr create $parameters"
-    Invoke-Expression "gh pr create $parameters"
-    gh pr merge --auto --squash --delete-branch
+    $prLink = Invoke-Expression "gh pr create $parameters"
+    gh pr merge --auto --squash --delete-branch | Out-Null
+
+    return $prLink
 }
 
 Export-ModuleMember -Function *-*

@@ -216,9 +216,84 @@ function Get-PackageLatestVersion() {
 
 <#
 .Synopsis
+    Gets the current version of a package from the Packages config file
+.Parameter PackageName
+    The name of the package to get the version for
+.Returns
+    The current version of the package
+#>
+function Get-PackageCurrentVersion {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $PackageName
+    )
+
+    $package = Get-ConfigValue -Key $PackageName -ConfigType Packages
+    if(!$package) {
+        throw "Package $PackageName not found in Packages config"
+    }
+
+    return $package.Version
+}
+
+<#
+.Synopsis
+    Updates the version of a package in the Packages config file to the latest version available.
+.Parameter PackageName
+    The name of the package to update
+.Returns
+    The new version of the package, if it was updated
+#>
+function Update-PackageVersion {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string] $PackageName
+    )
+
+    $updatesAvailable = $false
+    $currentVersion = Get-PackageCurrentVersion -PackageName $PackageName
+    $latestVersion = Get-PackageLatestVersion -PackageName $PackageName
+
+    if ([System.Version] $latestVersion -gt [System.Version] $currentVersion) {
+        Write-Host "Updating $PackageName version from $currentVersion to $latestVersion"
+
+        $package = Get-ConfigValue -Key $PackageName -ConfigType Packages
+        $package.Version = $latestVersion
+
+        Set-ConfigValue -Key $PackageName -Value $package -ConfigType Packages
+
+        $updatesAvailable = $true
+    } else {
+        Write-Host "$PackageName is already up to date. Version: $currentVersion"
+    }
+
+    if($updatesAvailable) {
+        return $latestVersion
+    }
+}
+
+<#
+.Synopsis
+    Gets the current version of a BC artifact
+.Returns
+    The current version of the BC artifact
+#>
+function Get-CurrentBCArtifactVersion {
+    $artifactValue = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+    if ($artifactValue -and ($artifactValue -match "\d+\.\d+\.\d+\.\d+")) {
+        return $Matches[0]
+    } else {
+        throw "Could not find BCArtifact version: $artifactValue"
+    }
+}
+
+<#
+.Synopsis
     Gets the latest version of a BC artifact
 .Parameter MinimumVersion
     The minimum version of the artifact to look for
+.Returns
+    The latest version of the artifact
 #>
 function Get-LatestBCArtifactVersion
 (
@@ -240,6 +315,33 @@ function Get-LatestBCArtifactVersion
     }
 
     return $latestVersion
+}
+
+<#
+.Synopsis
+    Updates the BCArtifact version in the AL-Go settings file (artifact property) to the latest version available on the BC artifacts feed (bcinsider/bcartifacts storage account).
+.Returns
+    The new version of the BCArtifact, if it was updated
+#>
+function Update-BCArtifactVersion {
+    $currentArtifactVersion = Get-CurrentBCArtifactVersion
+
+    Write-Host "Current BCArtifact version: $currentArtifactVersion"
+
+    $currentVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
+    $latestArtifactVersion = Get-LatestBCArtifactVersion -minimumVersion $currentVersion
+
+    Write-Host "Latest BCArtifact version: $latestArtifactVersion"
+
+    if($latestArtifactVersion -gt $currentArtifactVersion) {
+        Write-Host "Updating BCArtifact version from $currentArtifactVersion to $latestArtifactVersion"
+
+        $artifactValue = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+        $artifactValue = $artifactValue -replace $currentArtifactVersion, $latestArtifactVersion
+        Set-ConfigValue -Key "artifact" -Value $artifactValue -ConfigType AL-Go
+
+        return $latestArtifactVersion
+    }
 }
 
 <#
