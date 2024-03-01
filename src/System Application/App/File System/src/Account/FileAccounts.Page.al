@@ -14,11 +14,9 @@ page 9450 "File Accounts"
 {
     PageType = List;
     Caption = 'File Accounts';
-    ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "File Account";
     SourceTableTemporary = true;
-    PromotedActionCategories = 'New,Process,Report,Navigate';
     InsertAllowed = false;
     ModifyAllowed = false;
     DeleteAllowed = false;
@@ -37,7 +35,6 @@ page 9450 "File Accounts"
                 FreezeColumn = NameField;
                 field(LogoField; Rec.LogoBlob)
                 {
-                    ApplicationArea = All;
                     ShowCaption = false;
                     Caption = ' ';
                     Visible = ShowLogo;
@@ -47,7 +44,6 @@ page 9450 "File Accounts"
 
                 field(NameField; Rec.Name)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the name of the account.';
                     Visible = not IsInLookupMode;
 
@@ -59,14 +55,12 @@ page 9450 "File Accounts"
 
                 field(NameFieldLookup; Rec.Name)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the name of the account.';
                     Visible = IsInLookupMode;
                 }
 
                 field(DefaultField; DefaultTxt)
                 {
-                    ApplicationArea = All;
                     Caption = 'Default';
                     ToolTip = 'Specifies whether the file account will be used for all scenarios for which an account is not specified. You must have a default file account, even if you have only one account.';
                     Visible = not IsInLookupMode;
@@ -74,7 +68,6 @@ page 9450 "File Accounts"
 
                 field(FileConnector; Rec.Connector)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the type of file extension that the account is added to.';
                     Visible = false;
                 }
@@ -87,7 +80,6 @@ page 9450 "File Accounts"
             {
                 Caption = 'File Scenarios';
                 SubPageLink = "Account Id" = field("Account Id"), Connector = field(Connector), Scenario = filter(<> 0); // Do not show Default scenario
-                ApplicationArea = All;
             }
         }
     }
@@ -98,7 +90,6 @@ page 9450 "File Accounts"
         {
             action(View)
             {
-                ApplicationArea = All;
                 Image = View;
                 ToolTip = 'View settings for the file account.';
                 ShortcutKey = return;
@@ -112,10 +103,6 @@ page 9450 "File Accounts"
 
             action(AddAccount)
             {
-                ApplicationArea = All;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = New;
                 Image = Add;
                 Caption = 'Add an file account';
                 ToolTip = 'Add an file account.';
@@ -134,15 +121,10 @@ page 9450 "File Accounts"
         {
             action(MakeDefault)
             {
-                ApplicationArea = All;
                 Image = Default;
                 Caption = 'Set as default';
                 ToolTip = 'Mark the selected file account as the default account. This account will be used for all scenarios for which an account is not specified.';
                 Visible = (not IsInLookupMode) and CanUserManageFileSetup;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
-                PromotedIsBig = true;
                 Scope = Repeater;
                 Enabled = not IsDefault;
 
@@ -156,15 +138,10 @@ page 9450 "File Accounts"
             }
             action(BrowseAccount)
             {
-                ApplicationArea = All;
                 Image = SelectField;
                 Caption = 'Browse Account';
                 ToolTip = 'Opens a File Browser and shows the content of the selected account.';
                 Visible = (not IsInLookupMode) and CanUserManageFileSetup;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
-                PromotedIsBig = true;
                 Scope = Repeater;
 
                 trigger OnAction()
@@ -178,10 +155,6 @@ page 9450 "File Accounts"
 
             action(Delete)
             {
-                ApplicationArea = All;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
                 Image = Delete;
                 Caption = 'Delete file account';
                 ToolTip = 'Delete the file account.';
@@ -204,10 +177,6 @@ page 9450 "File Accounts"
         {
             action(FileScenarioSetup)
             {
-                ApplicationArea = All;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Category4;
                 Image = Answers;
                 Caption = 'File Scenarios';
                 ToolTip = 'Assign scenarios to the file accounts.';
@@ -220,6 +189,43 @@ page 9450 "File Accounts"
                     FileScenarioSetup.SetFileAccountId(Rec."Account Id", Rec.Connector);
                     FileScenarioSetup.Run();
                 end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_New)
+            {
+                Caption = 'New';
+
+                actionref(AddAccount_Promoted; AddAccount)
+                {
+                }
+            }
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(MakeDefault_Promoted; MakeDefault)
+                {
+                }
+                actionref(BrowseAccount_Promoted; BrowseAccount)
+                {
+                }
+                actionref(Delete_Promoted; Delete)
+                {
+                }
+            }
+            group(Category_Report)
+            {
+                Caption = 'Report';
+            }
+            group(Category_Category4)
+            {
+                Caption = 'Navigate';
+
+                actionref(FileScenarioSetup_Promoted; FileScenarioSetup)
+                {
+                }
             }
         }
     }

@@ -78,7 +78,6 @@ page 9455 "File Account Browser"
             action(Upload)
             {
                 Caption = 'Upload';
-                ApplicationArea = All;
                 Image = Import;
                 Ellipsis = true;
                 Visible = not IsInLookupMode;
@@ -93,7 +92,6 @@ page 9455 "File Account Browser"
             action("Create Directory")
             {
                 Caption = 'Create Directory';
-                ApplicationArea = All;
                 Image = Bin;
                 Ellipsis = true;
                 Visible = not IsInLookupMode;
@@ -108,7 +106,6 @@ page 9455 "File Account Browser"
             action(Delete)
             {
                 Caption = 'Delete';
-                ApplicationArea = All;
                 Image = Delete;
                 Ellipsis = true;
                 Visible = not IsInLookupMode;

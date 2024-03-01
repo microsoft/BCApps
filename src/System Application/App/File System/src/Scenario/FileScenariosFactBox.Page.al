@@ -11,6 +11,7 @@ namespace System.FileSystem;
 page 9453 "File Scenarios FactBox"
 {
     PageType = ListPart;
+    ApplicationArea = All;
     Extensible = false;
     SourceTable = "File Scenario";
     InsertAllowed = false;
@@ -29,7 +30,6 @@ page 9453 "File Scenarios FactBox"
             {
                 field(Name; Format(Rec.Scenario))
                 {
-                    ApplicationArea = All;
                     ToolTip = 'The file scenario.';
                     Caption = 'File scenario';
                     Editable = false;

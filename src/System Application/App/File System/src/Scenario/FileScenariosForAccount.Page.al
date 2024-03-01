@@ -11,6 +11,7 @@ namespace System.FileSystem;
 page 9454 "File Scenarios for Account"
 {
     PageType = List;
+    ApplicationArea = All;
     Extensible = false;
     SourceTable = "File Account Scenario";
     InsertAllowed = false;
@@ -28,7 +29,6 @@ page 9454 "File Scenarios for Account"
             {
                 field(Name; Rec."Display Name")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'The file scenario.';
                     Caption = 'File scenario';
                     Editable = false;

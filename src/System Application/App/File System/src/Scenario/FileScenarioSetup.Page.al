@@ -36,7 +36,6 @@ page 9452 "File Scenario Setup"
 
                 field(Name; Rec."Display Name")
                 {
-                    ApplicationArea = All;
                     Caption = 'Scenarios by file accounts';
                     ToolTip = 'Specifies the scenarios that are using the file account.';
                     Editable = false;
@@ -45,7 +44,6 @@ page 9452 "File Scenario Setup"
 
                 field(Default; DefaultTxt)
                 {
-                    ApplicationArea = All;
                     Caption = 'Default';
                     ToolTip = 'Specifies whether this is the default account to use for scenarios when no other account is specified.';
                     StyleExpr = Style;
@@ -64,14 +62,9 @@ page 9452 "File Scenario Setup"
                 {
                     Visible = (TypeOfEntry = TypeOfEntry::Account) and CanUserManageFileSetup;
 
-                    ApplicationArea = All;
                     Caption = 'Assign scenarios';
                     ToolTip = 'Assign file scenarios for the selected file account. When assigned, everyone will use the account for the scenario. For example, if you assign the Sales Order scenario, everyone will use the account to send sales orders.';
                     Image = NewDocument;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Process;
-                    PromotedIsBig = true;
                     Scope = Repeater;
 
                     trigger OnAction()
@@ -91,14 +84,9 @@ page 9452 "File Scenario Setup"
                 {
                     Visible = (TypeOfEntry = TypeOfEntry::Scenario) and CanUserManageFileSetup;
 
-                    ApplicationArea = All;
                     Caption = 'Reassign';
                     ToolTip = 'Reassign the selected scenarios to another file account.';
                     Image = Change;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Process;
-                    PromotedIsBig = true;
                     Scope = Repeater;
 
                     trigger OnAction()
@@ -116,14 +104,9 @@ page 9452 "File Scenario Setup"
                 {
                     Visible = (TypeOfEntry = TypeOfEntry::Scenario) and CanUserManageFileSetup;
 
-                    ApplicationArea = All;
                     Caption = 'Unassign';
                     ToolTip = 'Unassign the selected scenarios. Afterward, the default file account will be used to send files for the scenarios.';
                     Image = Delete;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Process;
-                    PromotedIsBig = true;
                     Scope = Repeater;
 
                     trigger OnAction()
@@ -135,6 +118,21 @@ page 9452 "File Scenario Setup"
                         FileScenarioImpl.GetScenariosByFileAccount(Rec); // refresh the data on the page
                         SetSelectedRecord();
                     end;
+                }
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                actionref(AddScenario_Promoted; AddScenario)
+                {
+                }
+                actionref(ChangeAccount_Promoted; ChangeAccount)
+                {
+                }
+                actionref(Unassign_Promoted; Unassign)
+                {
                 }
             }
         }

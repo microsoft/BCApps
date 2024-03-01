@@ -76,7 +76,6 @@ page 9451 "File Account Wizard"
 
                 field(LearnMoreHeader; LearnMoreTok)
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ShowCaption = false;
                     Caption = ' ';
@@ -118,7 +117,6 @@ page 9451 "File Account Wizard"
                 label("Specify the type of file account to add")
                 {
                     Caption = 'Specify the type of file account to add';
-                    ApplicationArea = All;
                 }
 
                 repeater(Connectors)
@@ -130,7 +128,6 @@ page 9451 "File Account Wizard"
 
                     field(Logo; Rec.Logo)
                     {
-                        ApplicationArea = All;
                         Caption = ' ';
                         Editable = false;
                         Visible = ChooseConnectorVisible;
@@ -141,7 +138,6 @@ page 9451 "File Account Wizard"
 
                     field(Name; Rec.Connector)
                     {
-                        ApplicationArea = All;
                         Caption = 'Account Type';
                         ToolTip = 'Specifies the type of the account you want to create.';
                         Editable = false;
@@ -149,7 +145,6 @@ page 9451 "File Account Wizard"
 
                     field(Details; Rec.Description)
                     {
-                        ApplicationArea = All;
                         Caption = 'Details';
                         ToolTip = 'Specifies more details about the account type.';
                         Editable = false;
@@ -163,19 +158,16 @@ page 9451 "File Account Wizard"
                 Visible = ChooseConnectorVisible and not ConnectorsAvailable;
                 label(NoConnectorsAvailable)
                 {
-                    ApplicationArea = All;
                     Caption = 'There are no file apps available. To use this feature you must install an file app.';
                 }
 
                 label(NoConnectorsAvailable2)
                 {
-                    ApplicationArea = All;
                     Caption = 'File apps are available in Extension Management and AppSource.';
                 }
 
                 field(ExtensionManagement; ExtensionManagementTok)
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ShowCaption = false;
                     Caption = ' ';
@@ -189,7 +181,6 @@ page 9451 "File Account Wizard"
 
                 field(AppSource; AppSourceTok)
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ShowCaption = false;
                     Visible = AppSourceAvailable;
@@ -198,11 +189,8 @@ page 9451 "File Account Wizard"
 
                     trigger OnDrillDown()
                     begin
-                        //FIXME
-                        /*
                         AppSource := AppSource.Create();
                         AppSource.ShowAppSource();
-                        */
                     end;
                 }
 
@@ -376,7 +364,7 @@ page 9451 "File Account Wizard"
             SetAsDefault := true;
 
         ConnectorsAvailable := Rec.FindFirst(); // Set the focus on the first record
-        AppSourceAvailable := false; //FIXME AppSource.IsAvailable();
+        AppSourceAvailable := AppSource.IsAvailable();
         LoadTopBanners();
     end;
 
@@ -496,8 +484,8 @@ page 9451 "File Account Wizard"
         RegisteredAccount: Record "File Account";
         MediaResourcesStandard: Record "Media Resources";
         MediaResourcesDone: Record "Media Resources";
-        //FIXME [RunOnClient]
-        //FIXME AppSource: DotNet AppSource;
+        [RunOnClient]
+        AppSource: DotNet AppSource;
         Step: Option Welcome,"Choose Connector","Register Account",Done;
         RateLimit: Integer;
         AppSourceTok: Label 'AppSource';
