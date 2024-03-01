@@ -13,7 +13,6 @@ using System.TestLibraries.Security.AccessControl;
 codeunit 134693 "File Scenario Test"
 {
     Subtype = Test;
-    Permissions = tabledata "File Scenario" = r;
 
     var
         Assert: Codeunit "Library Assert";
@@ -216,7 +215,9 @@ codeunit 134693 "File Scenario Test"
     var
         FileAccount: Record "File Account";
         AnotherAccount: Record "File Account";
-        FileScenarios: Record "File Scenario";
+        FileSystemTestLib: Codeunit "File System Test Lib.";
+        FileSystemConnector: Interface "File System Connector";
+        AccountId: Guid;
         Scenario: Enum "File Scenario";
     begin
         // [Scenario] When SetAccount is called, the entry in the database is as expected
@@ -232,9 +233,9 @@ codeunit 134693 "File Scenario Test"
         FileScenario.SetFileAccount(Scenario, FileAccount);
 
         // [Then] The scenario exists and is as expected
-        Assert.IsTrue(FileScenarios.Get(Scenario), 'The File scenario should exist');
-        Assert.AreEqual(FileScenarios."Account Id", FileAccount."Account Id", 'Wrong accound ID');
-        Assert.AreEqual(FileScenarios.Connector, FileAccount.Connector, 'Wrong connector');
+        Assert.IsTrue(FileSystemTestLib.GetFileScenarioAccountIdAndFileConnector(Scenario, AccountId, FileSystemConnector), 'The File scenario should exist');
+        Assert.AreEqual(AccountId, FileAccount."Account Id", 'Wrong accound ID');
+        Assert.AreEqual(FileSystemConnector, FileAccount.Connector, 'Wrong connector');
 
         AnotherAccount."Account Id" := Any.GuidValue();
         AnotherAccount.Connector := Enum::"File System Connector"::"Test File System Connector";
@@ -243,9 +244,9 @@ codeunit 134693 "File Scenario Test"
         FileScenario.SetFileAccount(Scenario, AnotherAccount);
 
         // [Then] The scenario still exists and is as expected
-        Assert.IsTrue(FileScenarios.Get(Scenario), 'The File scenario should exist');
-        Assert.AreEqual(FileScenarios."Account Id", AnotherAccount."Account Id", 'Wrong accound ID');
-        Assert.AreEqual(FileScenarios.Connector, AnotherAccount.Connector, 'Wrong connector');
+        Assert.IsTrue(FileSystemTestLib.GetFileScenarioAccountIdAndFileConnector(Scenario, AccountId, FileSystemConnector), 'The File scenario should exist');
+        Assert.AreEqual(AccountId, AnotherAccount."Account Id", 'Wrong accound ID');
+        Assert.AreEqual(FileSystemConnector, AnotherAccount.Connector, 'Wrong connector');
     end;
 
     [Test]

@@ -50,11 +50,6 @@
                     ],
     "internalsVisibleTo":  [
                                {
-                                   "id":  "fff6eee5-083f-4f07-9a49-e34f7e2aad77",
-                                   "name":  "File Systen Test",
-                                   "publisher":  "Microsoft"
-                               },
-                               {
                                    "id":  "f188754b-3ffb-443a-9507-f5fbdae3af2c",
                                    "name":  "File System Test Library",
                                    "publisher":  "Microsoft"

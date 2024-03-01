@@ -10,15 +10,14 @@ using System.FileSystem;
 /// <summary>
 /// Used to mock selected file accounts on File Accounts page.
 /// </summary>
-codeunit 134697 "File System Acc Selection Mock"
+codeunit 80203 "File System Acc Selection Mock"
 {
-    Access = Internal;
     EventSubscriberInstance = Manual;
 
     var
         SelectionFilterLbl: Label '%1|%2', Locked = true;
 
-    internal procedure SelectAccount(AccountId: Guid)
+    procedure SelectAccount(AccountId: Guid)
     begin
         SelectedAccounts.Add(AccountId);
     end;
