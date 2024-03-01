@@ -22,7 +22,7 @@ page 9455 "File Account Browser"
     {
         area(content)
         {
-            field(CurrPathField; CurrPath)
+            field(CurrentPathField; CurrentPath)
             {
                 Caption = 'Path';
                 ShowCaption = false;
@@ -87,8 +87,8 @@ page 9455 "File Account Browser"
 
                 trigger OnAction()
                 begin
-                    FileAccountBrowserMgt.UploadFile(CurrPath);
-                    BrowseFolder(CurrPath);
+                    FileAccountBrowserMgt.UploadFile(CurrentPath);
+                    BrowseFolder(CurrentPath);
                 end;
             }
             action("Create Directory")
@@ -101,8 +101,8 @@ page 9455 "File Account Browser"
 
                 trigger OnAction()
                 begin
-                    FileAccountBrowserMgt.CreateDirectory(CurrPath);
-                    BrowseFolder(CurrPath);
+                    FileAccountBrowserMgt.CreateDirectory(CurrentPath);
+                    BrowseFolder(CurrentPath);
                 end;
             }
             action(Delete)
@@ -116,7 +116,7 @@ page 9455 "File Account Browser"
                 trigger OnAction()
                 begin
                     FileAccountBrowserMgt.DeleteFileOrDirectory(Rec);
-                    BrowseFolder(CurrPath);
+                    BrowseFolder(CurrentPath);
                 end;
             }
         }
@@ -124,13 +124,13 @@ page 9455 "File Account Browser"
 
     var
         FileAccountBrowserMgt: Codeunit "File Account Browser Mgt.";
-        CurrPath, CurrFileFilter, SaveFileName, CurrPageCaption : Text;
+        CurrentPath, FileFilter, SaveFileName, CurrentPageCaption : Text;
         DoNotLoadFiles, IsInLookupMode, ShowFileName : Boolean;
 
     trigger OnOpenPage()
     begin
-        if CurrPageCaption <> '' then
-            CurrPage.Caption(CurrPageCaption);
+        if CurrentPageCaption <> '' then
+            CurrPage.Caption(CurrentPageCaption);
     end;
 
     internal procedure SetFileAccount(FileAccount: Record "File Account")
@@ -143,9 +143,9 @@ page 9455 "File Account Browser"
         BrowseFolder('');
     end;
 
-    internal procedure EnableFileLookupMode(Path: Text; FileFilter: Text)
+    internal procedure EnableFileLookupMode(Path: Text; PassedFileFilter: Text)
     begin
-        CurrFileFilter := FileFilter;
+        FileFilter := PassedFileFilter;
         EnableLookupMode();
         BrowseFolder(Path);
     end;
@@ -162,14 +162,14 @@ page 9455 "File Account Browser"
         FileFilterTok: Label '*.%1', Locked = true;
     begin
         ShowFileName := true;
-        CurrFileFilter := StrSubstNo(FileFilterTok, FileExtension);
+        FileFilter := StrSubstNo(FileFilterTok, FileExtension);
         EnableLookupMode();
         BrowseFolder(Path);
     end;
 
     internal procedure GetCurrentDirectory(): Text
     begin
-        exit(CurrPath);
+        exit(CurrentPath);
     end;
 
     internal procedure GetFileName(): Text
@@ -179,7 +179,7 @@ page 9455 "File Account Browser"
 
     internal procedure SetPageCaption(NewCaption: Text)
     begin
-        CurrPageCaption := NewCaption;
+        CurrentPageCaption := NewCaption;
     end;
 
     local procedure EnableLookupMode()
@@ -198,6 +198,6 @@ page 9455 "File Account Browser"
 
     local procedure BrowseFolder(Path: Text)
     begin
-        FileAccountBrowserMgt.BrowseFolder(Rec, Path, CurrPath, DoNotLoadFiles, CurrFileFilter);
+        FileAccountBrowserMgt.BrowseFolder(Rec, Path, CurrentPath, DoNotLoadFiles, FileFilter);
     end;
 }

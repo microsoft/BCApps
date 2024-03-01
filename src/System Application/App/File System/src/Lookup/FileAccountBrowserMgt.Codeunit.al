@@ -20,18 +20,18 @@ codeunit 9458 "File Account Browser Mgt."
         exit(InText);
     end;
 
-    procedure BrowseFolder(var TempFileAccountContent: Record "File Account Content" temporary; Path: Text; var CurrPath: Text; DoNotLoadFiles: Boolean; FileNameFilter: Text)
+    procedure BrowseFolder(var TempFileAccountContent: Record "File Account Content" temporary; Path: Text; var CurrentPath: Text; DoNotLoadFiles: Boolean; FileNameFilter: Text)
     var
         FilePaginationData: Codeunit "File Pagination Data";
     begin
-        CurrPath := Path.TrimEnd('/');
+        CurrentPath := Path.TrimEnd('/');
         TempFileAccountContent.DeleteAll();
 
         repeat
             FileSystem.ListDirectories(Path, FilePaginationData, TempFileAccountContent);
         until FilePaginationData.IsEndOfListing();
 
-        ListFiles(TempFileAccountContent, Path, DoNotLoadFiles, CurrPath, FileNameFilter);
+        ListFiles(TempFileAccountContent, Path, DoNotLoadFiles, CurrentPath, FileNameFilter);
         if TempFileAccountContent.FindFirst() then;
     end;
 
@@ -67,7 +67,7 @@ codeunit 9458 "File Account Browser Mgt."
         FileSystem.CreateDirectory(FileSystem.CombinePath(Path, FolderName));
     end;
 
-    local procedure ListFiles(var FileAccountContent: Record "File Account Content" temporary; var Path: Text; DoNotLoadFields: Boolean; CurrPath: Text; FileNameFilter: Text)
+    local procedure ListFiles(var FileAccountContent: Record "File Account Content" temporary; var Path: Text; DoNotLoadFields: Boolean; CurrentPath: Text; FileNameFilter: Text)
     var
         FileAccountContentToAdd: Record "File Account Content" temporary;
         FilePaginationData: Codeunit "File Pagination Data";
@@ -79,10 +79,10 @@ codeunit 9458 "File Account Browser Mgt."
             FileSystem.ListFiles(Path, FilePaginationData, FileAccountContent);
         until FilePaginationData.IsEndOfListing();
 
-        AddFiles(FileAccountContent, FileAccountContentToAdd, CurrPath, FileNameFilter);
+        AddFiles(FileAccountContent, FileAccountContentToAdd, CurrentPath, FileNameFilter);
     end;
 
-    local procedure AddFiles(var FileAccountContent: Record "File Account Content" temporary; var FileAccountContentToAdd: Record "File Account Content" temporary; CurrPath: Text; FileNameFilter: Text)
+    local procedure AddFiles(var FileAccountContent: Record "File Account Content" temporary; var FileAccountContentToAdd: Record "File Account Content" temporary; CurrentPath: Text; FileNameFilter: Text)
     begin
         if FileNameFilter <> '' then
             FileAccountContentToAdd.SetFilter(Name, FileNameFilter);
@@ -97,7 +97,7 @@ codeunit 9458 "File Account Browser Mgt."
         FileAccountContent.Init();
         FileAccountContent.Name := '..';
         FileAccountContent.Type := FileAccountContent.Type::Directory;
-        FileAccountContent."Parent Directory" := FileSystem.GetParentPath(CurrPath);
+        FileAccountContent."Parent Directory" := FileSystem.GetParentPath(CurrentPath);
         FileAccountContent.Insert();
     end;
 
