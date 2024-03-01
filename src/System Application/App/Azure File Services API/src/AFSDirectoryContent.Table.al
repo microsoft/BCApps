@@ -115,7 +115,7 @@ table 8950 "AFS Directory Content"
         }
         field(120; "Next Marker"; Text[2048])
         {
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
             Caption = 'NextMarker';
         }
     }
