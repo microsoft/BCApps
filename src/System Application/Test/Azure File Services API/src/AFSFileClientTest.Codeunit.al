@@ -140,7 +140,7 @@ codeunit 132520 "AFS File Client Test"
         // [WHEN] The programmer runs a list operation on the anotherdir/ directory with the parameters requesting timestamps and etag
         AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.ListDirectory('anotherdir/', AFSDirectoryContent, AFSOptionalParameters);
-        LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
+        LibraryAssert.IsTrue(AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
         // [THEN] Directory and file entries must contain timestamps and etag
         AFSDirectoryContent.FindSet();
