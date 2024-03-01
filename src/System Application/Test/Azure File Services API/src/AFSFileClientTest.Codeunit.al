@@ -99,7 +99,7 @@ codeunit 132520 "AFS File Client Test"
         // [WHEN] The programmer runs a list operation on the root directory
         AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.ListDirectory('', AFSDirectoryContent, AFSOptionalParameters);
-        LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
+        LibraryAssert.IsTrue(AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
         // [THEN] Only the first entry parentdir must be returned and a marker must be set
         LibraryAssert.AreEqual(1, AFSDirectoryContent.Count(), 'Wrong number of files and/or directories returned with MaxResults set.');
@@ -111,7 +111,7 @@ codeunit 132520 "AFS File Client Test"
         // [WHEN] The programmer runs a further list operation on the root directory with the returned marker set
         AFSOptionalParameters.Marker(AFSDirectoryContent."Next Marker");
         AFSOperationResponse := AFSFileClient.ListDirectory('', AFSDirectoryContent, AFSOptionalParameters);
-        LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
+        LibraryAssert.IsTrue(AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
         // [THEN] The second entry anotherdir must be returned and the marker must be cleared
         LibraryAssert.AreEqual(1, AFSDirectoryContent.Count(), 'Wrong number of files and/or directories returned with MaxResults set.');
