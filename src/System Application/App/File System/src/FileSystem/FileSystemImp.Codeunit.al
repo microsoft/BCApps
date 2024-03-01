@@ -129,8 +129,9 @@ codeunit 9455 "File System Impl."
 
     internal procedure GetParentPath(Path: Text) ParentPath: Text
     begin
-        if (Path.TrimEnd(PathSeparator()).Contains(PathSeparator())) then
-            ParentPath := Path.TrimEnd(PathSeparator()).Substring(1, Path.LastIndexOf(PathSeparator()));
+        Path := Path.TrimEnd(PathSeparator());
+        if Path.TrimEnd(PathSeparator()).Contains(PathSeparator()) then
+            ParentPath := Path.Substring(1, Path.LastIndexOf(PathSeparator()));
     end;
 
     internal procedure SelectFolderUI(Path: Text; DialogTitle: Text): Text

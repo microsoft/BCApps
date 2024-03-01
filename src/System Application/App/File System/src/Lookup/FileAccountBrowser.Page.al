@@ -9,6 +9,7 @@ page 9455 "File Account Browser"
 {
     Caption = 'File Account Browser';
     PageType = List;
+    ApplicationArea = All;
     SourceTable = "File Account Content";
     ModifyAllowed = false;
     InsertAllowed = false;
@@ -19,26 +20,33 @@ page 9455 "File Account Browser"
     {
         area(content)
         {
+            field(CurrPathField; CurrPath)
+            {
+                Caption = 'Path';
+                ShowCaption = false;
+                Editable = false;
+            }
             repeater(General)
             {
                 field(Name; Rec.Name)
                 {
                     DrillDown = true;
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Name field.';
 
                     trigger OnDrillDown()
                     begin
-                        if Rec.Type = Rec.Type::Directory then
-                            BrowseFolder(Rec)
-                        else
-                            if not IsInLookupMode then
+                        case true of
+                            (Rec.Name = '..'):
+                                BrowseFolder(Rec."Parent Directory");
+                            (Rec.Type = Rec.Type::Directory):
+                                BrowseFolder(Rec);
+                            (not IsInLookupMode):
                                 DownloadFile(Rec);
+                        end;
                     end;
                 }
                 field("Type"; Rec."Type")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Type field.';
                 }
             }
@@ -51,7 +59,6 @@ page 9455 "File Account Browser"
 
                 field(SaveFileNameField; SaveFileName)
                 {
-                    ApplicationArea = All;
                     Caption = 'Filename';
                 }
             }
@@ -62,31 +69,12 @@ page 9455 "File Account Browser"
     {
         area(Promoted)
         {
-            actionref(UpRef; Up) { }
             actionref(UploadRef; Upload) { }
             actionref(CreateDirectoryRef; "Create Directory") { }
             actionref(DeleteRef; Delete) { }
         }
         area(Processing)
         {
-            action(Up)
-            {
-                Caption = 'Up';
-                ApplicationArea = All;
-                Image = MoveUp;
-                Enabled = ParentFolderExists;
-
-                trigger OnAction()
-                var
-                    Path: Text;
-                begin
-                    if CurrPath = '' then
-                        exit;
-
-                    Path := FileSystem.GetParentPath(CurrPath);
-                    BrowseFolder(Path);
-                end;
-            }
             action(Upload)
             {
                 Caption = 'Upload';
@@ -222,7 +210,7 @@ page 9455 "File Account Browser"
     var
         FilePaginationData: Codeunit "File Pagination Data";
     begin
-        CurrPath := Path;
+        CurrPath := Path.TrimEnd('/');
         ParentFolderExists := Path <> '';
         Rec.DeleteAll();
 
@@ -286,14 +274,18 @@ page 9455 "File Account Browser"
         if CurrFileFilter <> '' then
             FileAccountContent.SetFilter(Name, CurrFileFilter);
 
-        if not FileAccountContent.FindSet() then
-            exit;
+        if FileAccountContent.FindSet() then
+            repeat
+                Rec.Init();
+                Rec.TransferFields(FileAccountContent);
+                Rec.Insert();
+            until FileAccountContent.Next() = 0;
 
-        repeat
-            Rec.Init();
-            Rec.TransferFields(FileAccountContent);
-            Rec.Insert();
-        until FileAccountContent.Next() = 0;
+        Rec.Init();
+        Rec.Name := '..';
+        Rec.Type := Rec.Type::Directory;
+        Rec."Parent Directory" := FileSystem.GetParentPath(CurrPath);
+        Rec.Insert();
     end;
 
     local procedure DeleteFileOrDirectory()
