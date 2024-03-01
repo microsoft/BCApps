@@ -1,9 +1,9 @@
 {
     "id":  "36bf351b-e157-4cf2-932d-b600716b0b4a",
-    "name":  "Page Style",
+    "name":  "System Enums",
     "publisher":  "Microsoft",
-    "brief":  "Provides an enum for defined page styles to set the StyleExpr property",
-    "description":  "Provides an enum for defined page styles to set the StyleExpr property",
+    "brief":  "Provides enums for different system values to be accessible via development",
+    "description":  "Provides enums for different system values to be accessible via development",
     "version":  "25.0.0.0",
     "privacyStatement":  "https://go.microsoft.com/fwlink/?linkid=724009",
     "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
@@ -23,8 +23,8 @@
     "target":  "OnPrem",
     "idRanges":  [
                      {
-                         "from":  50000,
-                         "to":  50000
+                         "from":  1,
+                         "to":  10
                      }
                  ],
     "contextSensitiveHelpUrl":  "https://learn.microsoft.com/dynamics365/business-central/"
