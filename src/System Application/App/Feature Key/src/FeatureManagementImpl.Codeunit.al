@@ -571,6 +571,8 @@ codeunit 2610 "Feature Management Impl."
         FeatureManagementPageID := Page::"Feature Management";
         FeatureManagementFacade.OnBeforeOpenFeatureManagement(FeatureManagementPageID, IsHandled);
         if not IsHandled then
+            Page.Run(Page::"Feature Management")
+        else
             Page.Run(FeatureManagementPageID);
     end;
 }
