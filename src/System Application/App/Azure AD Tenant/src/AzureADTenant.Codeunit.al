@@ -21,7 +21,7 @@ codeunit 433 "Azure AD Tenant"
     /// <summary>
     /// Gets the Microsoft Entra tenant ID.
     /// </summary>
-    /// <returns>If it cannot be found, an empty string is returned.</returns>
+    /// <returns>If the Entra tenant ID is a valid GUID, it will be returned in lowercase format and without brackets or parentheses (as per RFC4122 section 3), such as "f81d4fae-7dec-11d0-a765-00a0c91e6bf6". If it cannot be found, an empty string is returned.</returns>
     procedure GetAadTenantId(): Text
     begin
         exit(AzureADTenantImpl.GetAadTenantId());
