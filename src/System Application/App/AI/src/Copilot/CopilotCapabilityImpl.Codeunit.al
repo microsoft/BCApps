@@ -62,7 +62,7 @@ codeunit 7774 "Copilot Capability Impl"
         Commit();
 
         AddTelemetryDimensions(CopilotCapability, CallerModuleInfo.Id(), CustomDimensions);
-        FeatureTelemetry.LogUsage('0000LDV', CopilotCategoryLbl, TelemetryRegisteredNewCopilotCapabilityLbl, CustomDimensions);
+        FeatureTelemetry.LogUsage('', CopilotCategoryLbl, TelemetryRegisteredNewCopilotCapabilityLbl, CustomDimensions);
     end;
 
     procedure ModifyCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
@@ -159,7 +159,7 @@ codeunit 7774 "Copilot Capability Impl"
         GlobalLanguage(Language.GetDefaultApplicationLanguageId());
 
         CustomDimensions.Add('Reason', Format(Reason));
-        FeatureTelemetry.LogUsage('0000LDZ', CopilotCategoryLbl, TelemetryDeactivatedCopilotCapabilityLbl, CustomDimensions);
+        FeatureTelemetry.LogUsage('', CopilotCategoryLbl, TelemetryDeactivatedCopilotCapabilityLbl, CustomDimensions);
 
         GlobalLanguage(SavedGlobalLanguageId);
     end;
