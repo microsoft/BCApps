@@ -5,6 +5,13 @@ function Get-BaseFolder() {
     return git rev-parse --show-toplevel
 }
 
+function Get-BaseFolderForPath($path) {
+    Push-Location $path
+    $baseFolder = Get-BaseFolder
+    Pop-Location
+    return $baseFolder
+}
+
 function Get-BuildMode() {
     if ($ENV:BuildMode) {
         return $ENV:BuildMode
