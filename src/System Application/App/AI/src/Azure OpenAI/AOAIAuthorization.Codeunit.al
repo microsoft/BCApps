@@ -25,7 +25,8 @@ codeunit 7767 "AOAI Authorization"
         Deployment: Text;
         [NonDebuggable]
         ApiKey: SecretText;
-        TenantIsAllowListedTxt: Label 'The current tenant is allowlisted for first party auth.', Locked = true;
+        EmptyTenantIdTelemetryMsg: Label 'Empty or malformed tenant ID.', Locked = true;
+        TenantIsAllowListedTelemetryMsg: Label 'The current tenant is allowlisted for first party auth.', Locked = true;
         AllowlistedTenantsAkvKeyTok: Label 'AOAI-Allow-1P-Auth', Locked = true;
 
     [NonDebuggable]
@@ -83,6 +84,8 @@ codeunit 7767 "AOAI Authorization"
         AzureKeyVault: Codeunit "Azure Key Vault";
         AzureAdTenant: Codeunit "Azure AD Tenant";
         AllowlistedTenants: Text;
+        EntraTenantIdAsText: Text;
+        EntraTenantIdAsGuid: Guid;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit(false);
@@ -90,10 +93,17 @@ codeunit 7767 "AOAI Authorization"
         if (not AzureKeyVault.GetAzureKeyVaultSecret(AllowlistedTenantsAkvKeyTok, AllowlistedTenants)) or (AllowlistedTenants.Trim() = '') then
             exit(false);
 
-        if not AllowlistedTenants.Contains(AzureAdTenant.GetAadTenantId()) then
+        EntraTenantIdAsText := AzureAdTenant.GetAadTenantId();
+
+        if (EntraTenantIdAsText = '') or not Evaluate(EntraTenantIdAsGuid, EntraTenantIdAsText) or IsNullGuid(EntraTenantIdAsGuid) then begin
+            Session.LogMessage('0000MLN', EmptyTenantIdTelemetryMsg, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
+            exit(false);
+        end;
+
+        if not AllowlistedTenants.Contains(EntraTenantIdAsText) then
             exit(false);
 
-        Session.LogMessage('0000MLE', TenantIsAllowListedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
+        Session.LogMessage('0000MLE', TenantIsAllowListedTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
         exit(true);
     end;
 }
