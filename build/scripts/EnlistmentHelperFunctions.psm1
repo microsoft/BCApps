@@ -5,8 +5,8 @@ function Get-BaseFolder() {
     return git rev-parse --show-toplevel
 }
 
-function Get-BaseFolderForPath($path) {
-    Push-Location $path
+function Get-BaseFolderForPath($Path) {
+    Push-Location $Path
     $baseFolder = Get-BaseFolder
     Pop-Location
     return $baseFolder

@@ -22,7 +22,7 @@ function New-BCAppsBackport() {
     Import-Module $PSScriptRoot/EnlistmentHelperFunctions.psm1
 
     # Change to the base folder of the repository
-    Push-Location (Get-BaseFolderForPath $PSScriptRoot)
+    Push-Location (Get-BaseFolderForPath -Path $PSScriptRoot)
 
     try {
         PrecheckBackport -TargetBranches $TargetBranches -PullRequestNumber $PullRequestNumber
