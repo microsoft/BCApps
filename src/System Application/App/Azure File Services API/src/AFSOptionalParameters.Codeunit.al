@@ -332,6 +332,6 @@ codeunit 8956 "AFS Optional Parameters"
 
     internal procedure GetParameters(): Dictionary of [Text, Text]
     begin
-        AFSOptionalParametersImpl.GetParameters();
+        exit(AFSOptionalParametersImpl.GetParameters());
     end;
 }
