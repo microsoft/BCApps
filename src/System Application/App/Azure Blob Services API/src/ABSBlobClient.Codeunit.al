@@ -769,10 +769,10 @@ codeunit 9053 "ABS Blob Client"
     /// <param name="CommitedBlocks">Dictionary of [Text, Integer] containing the list of commited blocks that should be put to the Blob</param>
     /// <param name="UncommitedBlocks">Dictionary of [Text, Integer] containing the list of uncommited blocks that should be put to the Blob</param>
     /// <returns>An operation response object</returns>
-    procedure PutBlockList(CommitedBlocks: Dictionary of [Text, Integer]; UncommitedBlocks: Dictionary of [Text, Integer]): Codeunit "ABS Operation Response"
-    begin
-        exit(ABSClientImpl.PutBlockList(CommitedBlocks, UncommitedBlocks));
-    end;
+    //procedure PutBlockList(CommitedBlocks: Dictionary of [Text, Integer]; UncommitedBlocks: Dictionary of [Text, Integer]): Codeunit "ABS Operation Response"
+    //begin
+    //        exit(ABSClientImpl.PutBlockList(CommitedBlocks, UncommitedBlocks));
+    //end;
 
     /// <summary>
     /// The Put Block From URL operation creates a new block to be committed as part of a blob where the contents are read from a URL.

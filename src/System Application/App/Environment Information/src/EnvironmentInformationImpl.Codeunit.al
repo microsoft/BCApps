@@ -145,7 +145,7 @@ codeunit 3702 "Environment Information Impl."
 
     procedure GetLinkedPowerPlatformEnvironmentId(): Text
     begin
-        exit(NavTenantSettingsHelper.GetLinkedPowerPlatformEnvironmentId());
+        exit('NavTenantSettingsHelper.GetLinkedPowerPlatformEnvironmentId()');
     end;
 
     [InternalEvent(false)]

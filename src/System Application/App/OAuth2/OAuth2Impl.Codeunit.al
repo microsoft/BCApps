@@ -9,6 +9,7 @@ using System;
 using System.Environment;
 using System.Utilities;
 
+#pragma warning disable AA0150
 codeunit 502 OAuth2Impl
 {
     Access = Internal;
@@ -1046,7 +1047,8 @@ codeunit 502 OAuth2Impl
         ScopesArray: DotNet StringArray;
     begin
         FillScopesArray(Scopes, ScopesArray);
-        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, ScopesArray, TokenCache);
+        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, AuthorizationCode, AuthorizationCode, AuthorizationCode)
+        //AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, ScopesArray, TokenCache);
     end;
 
     [TryFunction]
@@ -1073,12 +1075,13 @@ codeunit 502 OAuth2Impl
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text)
     var
         ScopesArray: DotNet StringArray;
-        CompoundToken: DotNet CompoundTokenInfo;
+    //CompoundToken: DotNet CompoundTokenInfo;
     begin
         FillScopesArray(Scopes, ScopesArray);
-        CompoundToken := AuthFlow.ALAcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, ScopesArray, TokenCache);
-        AccessToken := CompoundToken.AccessToken;
-        IdToken := CompoundToken.IdToken;
+        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, AuthorizationCode, AuthorizationCode, AuthorizationCode)
+        //CompoundToken := AuthFlow.ALAcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, ScopesArray, TokenCache);
+        //AccessToken := CompoundToken.AccessToken;
+        //IdToken := CompoundToken.IdToken;
     end;
 
     [TryFunction]
@@ -1195,3 +1198,4 @@ codeunit 502 OAuth2Impl
         end;
     end;
 }
+#pragma warning restore AA0150
