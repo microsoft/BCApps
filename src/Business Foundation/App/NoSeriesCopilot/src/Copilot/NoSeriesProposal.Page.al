@@ -1,4 +1,4 @@
-page 324 "No. Series Proposal"
+page 332 "No. Series Proposal"
 {
     Caption = 'Generate No. Series with Copilot';
     DataCaptionExpression = PageCaptionLbl;

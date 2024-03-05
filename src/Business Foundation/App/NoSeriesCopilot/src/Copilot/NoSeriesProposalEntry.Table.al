@@ -1,4 +1,4 @@
-table 324 "No. Series Proposal Entry"
+table 391 "No. Series Proposal Entry"
 {
     TableType = Temporary;
 
