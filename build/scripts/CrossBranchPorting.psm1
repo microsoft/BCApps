@@ -47,7 +47,7 @@ function New-BCAppsBackport() {
 
         $pullRequests = @{}
         $branchNameSuffix = "$PullRequestNumber/$(Get-Date -Format "yyyyMMddHHmmss")"
-        
+
         try {
             foreach($TargetBranch in $TargetBranches) {
                 $title = "[$TargetBranch] $($pullRequestDetails.title)"
