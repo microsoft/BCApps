@@ -47,8 +47,9 @@ function New-BCAppsBackport() {
 
         $pullRequests = @{}
         $branchNameSuffix = "$PullRequestNumber/$(Get-Date -Format "yyyyMMddHHmmss")"
-        foreach($TargetBranch in $TargetBranches) {
-            try {
+        
+        try {
+            foreach($TargetBranch in $TargetBranches) {
                 $title = "[$TargetBranch] $($pullRequestDetails.title)"
                 $title = $title.Substring(0, [Math]::Min(255, $title.Length))
                 $body = "This pull request backports #$($pullRequestDetails.number) to $TargetBranch"
@@ -74,16 +75,15 @@ function New-BCAppsBackport() {
                 if ($backportPr.url) {
                     $pullRequests.Add($TargetBranch, $backportPr.url)
                 }
-            } catch {
-                RunAndCheck git checkout $startingBranch
-                Write-Host "Failed to backport to $TargetBranch. Please inspect the error and try again." -ForegroundColor Red
-                Write-Host $_.Exception.Message -ForegroundColor Red
-                throw $_.Exception.Message
             }
+        } catch {
+            Write-Host "Failed to backport to $TargetBranch. Please inspect the error and try again." -ForegroundColor Red
+            Write-Host $_.Exception.Message -ForegroundColor Red
+            throw $_.Exception.Message
+        } finally {
+            # Go back to the original branch
+            RunAndCheck git checkout $startingBranch
         }
-
-        # Go back to the original branch
-        RunAndCheck git checkout $startingBranch
 
         if ($pullRequests.Count -eq 0) {
             Write-Host "No pull requests created" -ForegroundColor Yellow
@@ -144,7 +144,7 @@ function PortPullRequest($PullRequestDetails, $TargetBranch, $CherryPickBranch) 
     } catch {
         Write-Host -ForegroundColor Red "Cherry picking commitid $cherrypickId failed. $_"
         Write-Host "To abort, press 'n' and run git cherry-pick --abort"
-        Write-Host "To continue, resolve all conflicts in a new window, run git cherry-pick --continue and then press 'y'"
+        Write-Host "To continue, resolve all conflicts in a new window, commit your changes and then press 'y'"
         GetConfirmation -Message "Do you want to continue?"
     }
 
