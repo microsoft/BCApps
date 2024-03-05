@@ -54,7 +54,7 @@ codeunit 2012 "Entity Text Impl."
 
         Session.LogMessage('0000JVG', TelemetryGenerationRequestedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
 
-        Suggestion := GenerateAndReviewCompletion(SystemPrompt, UserPrompt, TextFormat, Facts, CallerModuleInfo);
+        Suggestion := GenerateAndReviewCompletion(SystemPrompt, UserPrompt, TextFormat, Facts, CallerModuleInfo, Tone, TextEmphasis);
 
         exit(Suggestion);
     end;
@@ -272,15 +272,26 @@ codeunit 2012 "Entity Text Impl."
     end;
 
     [NonDebuggable]
-    local procedure GenerateAndReviewCompletion(SystemPrompt: Text; UserPrompt: Text; TextFormat: Enum "Entity Text Format"; Facts: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo): Text
+    local procedure GenerateAndReviewCompletion(SystemPrompt: Text; UserPrompt: Text; TextFormat: Enum "Entity Text Format"; Facts: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo; Tone: Enum "Entity Text Tone"; TextEmphasis: Enum "Entity Text Emphasis"): Text
     var
         Completion: Text;
+        CompletionTag: Text;
+        CompletionPar: Text;
         MaxAttempts: Integer;
         Attempt: Integer;
     begin
         MaxAttempts := 5;
         for Attempt := 0 to MaxAttempts do begin
-            Completion := GenerateCompletion(SystemPrompt, UserPrompt, CallerModuleInfo);
+            if TextFormat = TextFormat::TaglineParagraph then begin
+                BuildPrompts(Facts, Tone, TextFormat::Tagline, TextEmphasis, SystemPrompt, UserPrompt);
+                CompletionTag := GenerateCompletion(SystemPrompt, UserPrompt, CallerModuleInfo);
+
+                BuildPrompts(Facts, Tone, TextFormat::Paragraph, TextEmphasis, SystemPrompt, UserPrompt);
+                CompletionPar := GenerateCompletion(SystemPrompt, UserPrompt, CallerModuleInfo);
+                Completion := CompletionTag + EncodedNewlineTok + EncodedNewlineTok + CompletionPar;
+            end
+            else
+                Completion := GenerateCompletion(SystemPrompt, UserPrompt, CallerModuleInfo);
 
             if (not CompletionContainsPrompt(Completion, SystemPrompt)) and IsGoodCompletion(Completion, TextFormat, Facts) then
                 exit(Completion);
