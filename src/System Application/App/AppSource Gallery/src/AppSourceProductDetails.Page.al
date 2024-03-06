@@ -147,6 +147,7 @@ page 2516 "AppSource Product Details"
         {
             actionref(Open_Promoted; OpenInAppSource) { }
             actionref(Install_Promoted; Install) { }
+            actionref(InstallFromAppSource_Promoted; InstallFromAppSource) { }
             actionref(Uninstall_Promoted; Uninstall) { }
         }
 
@@ -169,7 +170,8 @@ page 2516 "AppSource Product Details"
             {
                 Caption = 'Install App';
                 Scope = Page;
-                Enabled = CurrentRecordCanBeInstalled;
+                Enabled = (not CurrentRecordCanBeUninstalled) and CurrentRecordCanBeInstalled;
+                Visible = (not CurrentRecordCanBeUninstalled) and CurrentRecordCanBeInstalled;
                 Image = Insert;
                 ToolTip = 'Installs the app.';
 
@@ -181,6 +183,21 @@ page 2516 "AppSource Product Details"
                         if not Confirm(PurchaseLicensesElsewhereLbl) then
                             exit;
                     ExtensionManagement.InstallMarketplaceExtension(AppID);
+                end;
+            }
+
+            action(InstallFromAppSource)
+            {
+                Caption = 'Install From AppSource';
+                Scope = Page;
+                Image = Insert;
+                ToolTip = 'Installs the app from Microsoft AppSource.';
+                Enabled = (not CurrentRecordCanBeUninstalled) and (not CurrentRecordCanBeInstalled);
+                Visible = (not CurrentRecordCanBeUninstalled) and (not CurrentRecordCanBeInstalled);
+
+                trigger OnAction()
+                begin
+                    AppSourceProductManager.OpenAppInAppSource(UniqueProductID);
                 end;
             }
 
