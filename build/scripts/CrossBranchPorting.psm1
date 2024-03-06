@@ -45,7 +45,8 @@ function New-BCAppsBackport() {
     $branchNameSuffix = "$PullRequestNumber/$(Get-Date -Format "yyyyMMddHHmmss")"
     foreach($TargetBranch in $TargetBranches) {
         try {
-            $title = "[$TargetBranch] $($pullRequestDetails.title)".Substring(0, 255) # Title is limited to 256 characters
+            $title = "[$TargetBranch] $($pullRequestDetails.title)"
+            $title = $title.Substring(0, [Math]::Min(255, $title.Length))
             $body = "This pull request backports #$($pullRequestDetails.number) to $TargetBranch"
             $body += "`r`n`r`nFixes AB#[**Insert Work Item Number Here**]"
 
@@ -104,7 +105,7 @@ function PrecheckBackport($TargetBranches, $PullRequestNumber) {
 
     # Validate Target Branches exist
     foreach($TargetBranch in $TargetBranches) {
-        git show-ref --verify --quiet "refs/heads/$TargetBranch"
+        RunAndCheck git show-ref --verify --quiet "refs/remotes/origin/$TargetBranch"
         if ($LASTEXITCODE -ne 0) {
             throw "Branch $TargetBranch does not exist"
         }

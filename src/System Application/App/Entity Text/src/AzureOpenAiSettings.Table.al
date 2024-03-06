@@ -20,12 +20,14 @@ using System.Azure.Identity;
 table 2010 "Azure OpenAi Settings"
 {
 #if not CLEAN24
-    ObsoleteState = Pending;
-#else
-    ObsoleteState = Removed;
-#endif
     ObsoleteReason = 'Moving OpenAI capabilities to AI SDK, use the SDK module instead.';
     ObsoleteTag = '24.0';
+    ObsoleteState = Pending;
+#else
+    ObsoleteReason = 'Moved to AI SDK';
+    ObsoleteTag = '27.0';
+    ObsoleteState = Removed;
+#endif
     Caption = 'Azure OpenAI Settings';
     DataPerCompany = false;
     ReplicateData = false;

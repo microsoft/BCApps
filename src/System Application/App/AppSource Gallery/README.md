@@ -5,4 +5,3 @@ Use this module to do the following:
 - view AppSource product details
 - start installation of AppSource product
 
-# Public Objects

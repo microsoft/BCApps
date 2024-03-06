@@ -357,7 +357,8 @@ codeunit 7772 "Azure OpenAI Impl"
     begin
         Response.ReadFrom(ResponseText);
         if Response.SelectToken(XPathLbl, CompletionToken) then
-            ChatMessages.AddAssistantMessage(CompletionToken.AsValue().AsText());
+            if not CompletionToken.AsValue().IsNull() then
+                ChatMessages.AddAssistantMessage(CompletionToken.AsValue().AsText());
         if Response.SelectToken(XPathToolCallsLbl, CompletionToken) then begin
             CompletionToken.AsArray().WriteTo(ToolsCall);
             ChatMessages.AddAssistantMessage(ToolsCall);
