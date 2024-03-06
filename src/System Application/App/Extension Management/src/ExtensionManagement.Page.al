@@ -226,6 +226,20 @@ page 2500 "Extension Management"
                     end;
 #endif
                 }
+                action("Microsoft AppSource Gallery")
+                {
+                    Caption = 'AppSource Gallery';
+                    Enabled = IsSaaS;
+                    Image = NewItem;
+                    ToolTip = 'Browse the Microsoft AppSource Gallery for new extensions to install.';
+                    Visible = not IsOnPremDisplay;
+                    RunPageMode = View;
+
+                    trigger OnAction()
+                    begin
+                        Page.Run(2515);
+                    end;
+                }
                 action("Upload Extension")
                 {
                     Caption = 'Upload Extension';
