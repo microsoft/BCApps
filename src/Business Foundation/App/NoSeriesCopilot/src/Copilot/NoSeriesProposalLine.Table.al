@@ -1,11 +1,11 @@
-table 392 "No. Series Proposal Entry Line"
+table 392 "No. Series Proposal Line"
 {
     TableType = Temporary;
     fields
     {
-        field(1; "Entry No."; Integer)
+        field(1; "Proposal No."; Integer)
         {
-            Caption = 'Generation Id';
+            Caption = 'No.';
         }
         field(2; "Series Code"; Code[20])
         {
@@ -40,7 +40,7 @@ table 392 "No. Series Proposal Entry Line"
 
     keys
     {
-        key(PK; "Entry No.", "Series Code", "Line No.")
+        key(PK; "Proposal No.", "Series Code", "Line No.")
         {
             Clustered = true;
         }

@@ -7,7 +7,7 @@ page 332 "No. Series Proposal"
     Extensible = false;
     ApplicationArea = All;
     Editable = true;
-    SourceTable = "No. Series Proposal Entry";
+    SourceTable = "No. Series Proposal";
     SourceTableTemporary = true;
     InherentPermissions = X;
     InherentEntitlements = X;
@@ -34,14 +34,23 @@ page 332 "No. Series Proposal"
         }
         area(Content)
         {
+            field(ResponseText; ResponseText)
+            {
+                Caption = 'AI Response';
+                MultiLine = true;
+                ApplicationArea = All;
+                Editable = false;
+                Enabled = false;
+            }
             part(ProposalDetails; "No. Series Proposal Sub")
             {
                 Caption = 'No. Series proposals';
                 ShowFilter = false;
                 ApplicationArea = All;
-                Editable = true;
+                Editable = false;
                 Enabled = true;
-                SubPageLink = "Entry No." = field("Entry No.");
+                Visible = IsProposalDetailsVisible;
+                SubPageLink = "Proposal No." = field("No.");
             }
         }
     }
@@ -81,11 +90,13 @@ page 332 "No. Series Proposal"
 
     var
         InputText: Text;
+        ResponseText: Text;
         PageCaptionLbl: text;
+        IsProposalDetailsVisible: Boolean;
 
     trigger OnAfterGetCurrRecord()
     begin
-        PageCaptionLbl := Rec.Input;
+        PageCaptionLbl := Rec.GetInputText();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -98,18 +109,20 @@ page 332 "No. Series Proposal"
     local procedure GenerateNoSeries()
     var
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
-        NoSeriesGenerated: Record "No. Series Proposal Entry Line";
+        NoSeriesGenerated: Record "No. Series Proposal Line";
     begin
-        NoSeriesCopilotImpl.Generate(Rec, NoSeriesGenerated, InputText);
+        NoSeriesCopilotImpl.Generate(Rec, ResponseText, NoSeriesGenerated, InputText);
         CurrPage.ProposalDetails.Page.Load(NoSeriesGenerated);
+        IsProposalDetailsVisible := not NoSeriesGenerated.IsEmpty;
     end;
 
     local procedure ApplyProposedNoSeries()
     var
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
-        NoSeriesGenerated: Record "No. Series Proposal Entry Line";
+        NoSeriesGenerated: Record "No. Series Proposal Line";
     begin
-        CurrPage.ProposalDetails.Page.GetTempRecord(Rec."Entry No.", NoSeriesGenerated);
-        NoSeriesCopilotImpl.ApplyProposedNoSeries(NoSeriesGenerated);
+        Error('Not implemented');
+        // CurrPage.ProposalDetails.Page.GetTempRecord(Rec."No.", NoSeriesGenerated);
+        // NoSeriesCopilotImpl.ApplyProposedNoSeries(NoSeriesGenerated);
     end;
 }

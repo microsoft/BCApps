@@ -3,7 +3,7 @@ page 333 "No. Series Proposal Sub"
 
     Caption = 'No. Series Proposals';
     PageType = ListPart;
-    SourceTable = "No. Series Proposal Entry Line";
+    SourceTable = "No. Series Proposal Line";
     SourceTableTemporary = true;
     DeleteAllowed = true;
     InsertAllowed = false;
@@ -45,7 +45,7 @@ page 333 "No. Series Proposal Sub"
         }
     }
 
-    internal procedure Load(var NoSeriesGenerated: Record "No. Series Proposal Entry Line")
+    internal procedure Load(var NoSeriesGenerated: Record "No. Series Proposal Line")
     begin
         NoSeriesGenerated.Reset();
         if NoSeriesGenerated.FindSet() then
@@ -55,11 +55,11 @@ page 333 "No. Series Proposal Sub"
             until NoSeriesGenerated.Next() = 0;
     end;
 
-    internal procedure GetTempRecord(EntryNo: Integer; var NoSeriesGenerated: Record "No. Series Proposal Entry Line")
+    internal procedure GetTempRecord(EntryNo: Integer; var NoSeriesGenerated: Record "No. Series Proposal Line")
     begin
         NoSeriesGenerated.DeleteAll();
         Rec.Reset();
-        Rec.SetRange("Entry No.", EntryNo);
+        Rec.SetRange("Proposal No.", EntryNo);
         if Rec.FindSet() then
             repeat
                 NoSeriesGenerated.Copy(Rec, false);
