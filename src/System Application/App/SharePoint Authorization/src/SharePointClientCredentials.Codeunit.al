@@ -60,7 +60,7 @@ codeunit 9145 "SharePoint Client Credentials" implements "SharePoint Authorizati
         if (not OAuth2.AcquireTokensFromCacheWithCertificate(ClientId, Certificate, CertificatePassword, '', AuthorityUrl, Scopes, AccessToken, IdToken)) or (AccessToken.IsEmpty()) then
             OAuth2.AcquireTokensWithCertificate(ClientId, Certificate, CertificatePassword, '', AuthorityUrl, Scopes, AccessToken, IdToken);
 
-        IsSuccess := AccessToken.IsEmpty();
+        IsSuccess := not AccessToken.IsEmpty();
 
         if not IsSuccess then begin
             ErrorText := GetLastErrorText();
