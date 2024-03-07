@@ -109,6 +109,13 @@ function PrecheckBackport($TargetBranches, $PullRequestNumber) {
         throw "Please install GitHub CLI."
     }
 
+    # Check gh cli is authenticated and prompt to authenticate if not
+    gh auth status
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "GitHub CLI is not authenticated. Please authenticate before continuing to backport." -ForegroundColor Yellow
+        gh auth login
+    }
+
     # Check that there are no uncommitted changes
     if (RunAndCheck git diff --name-only) {
         throw "You have uncommitted changes. Please commit, revert or stash your changes before running this command."
