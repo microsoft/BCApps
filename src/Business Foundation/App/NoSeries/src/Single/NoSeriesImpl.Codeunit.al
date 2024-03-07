@@ -379,6 +379,7 @@ codeunit 304 "No. Series - Impl."
             // Mark the original series
             NoSeries.Code := OriginalNoSeriesCode;
             NoSeries.Mark := true;
+            NoSeries.MarkedOnly := true;
 #if not CLEAN24
         end;
 #endif
