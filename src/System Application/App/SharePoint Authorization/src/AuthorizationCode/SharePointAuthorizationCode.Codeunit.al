@@ -62,7 +62,9 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
     var
         OAuth2: Codeunit OAuth2;
         IsHandled, IsSuccess : Boolean;
+#if not CLEAN24
         EventAccessToken: Text;
+#endif
     begin
 #if not CLEAN24
 #pragma warning disable AL0432
@@ -81,9 +83,13 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
                 ErrorText := AuthCodeErr
             else
                 ErrorText := GetLastErrorText();
+#if not CLEAN24
         end
         else
             AccessToken := EventAccessToken;
+#else
+        end;
+#endif
 
         exit(IsSuccess);
     end;
