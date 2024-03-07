@@ -26,7 +26,7 @@ codeunit 7800 "Azure Functions Authentication"
     /// <param name="ResourceURL">The Application ID URI</param>
     /// <returns>Instance of Azure function response object.</returns>
     [NonDebuggable]
-    procedure CreateOAuth2(Endpoint: Text; AuthenticationCode: Text; ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text): Interface "Azure Functions Authentication"
+    procedure CreateOAuth2(Endpoint: Text; AuthenticationCode: Text; ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text): Interface "Azure Functions Authentication"
     var
         AzureFunctionsOAuth2: Codeunit "Azure Functions OAuth2";
     begin
