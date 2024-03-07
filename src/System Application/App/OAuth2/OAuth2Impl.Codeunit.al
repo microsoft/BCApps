@@ -224,20 +224,9 @@ codeunit 502 OAuth2Impl
     [TryFunction]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceUrl: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     var
-        AuthRequestUrl: Text;
-        AuthCode: Text;
-        State: Text;
+        CertificatePassword: SecretText;
     begin
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-
-        AuthRequestUrl := GetAuthRequestUrl(ClientId, OAuthAuthorityUrl, RedirectURL, State, ResourceUrl, PromptInteraction);
-
-        SetPropertiesBasedOnAuthRequestUrlAndRunOAuth2ControlAddIn(AuthRequestUrl, State, AuthCode, AuthCodeErr);
-
-        if AuthCode = '' then
-            exit;
-
-        AcquireTokenByAuthorizationCodeWithCertificate(AuthCode, ClientId, Certificate, RedirectURL, OAuthAuthorityUrl, ResourceUrl, AccessToken);
+        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, RedirectURL, ResourceUrl, PromptInteraction, AccessToken, AuthCodeErr);
     end;
 
     [NonDebuggable]
@@ -312,20 +301,9 @@ codeunit 502 OAuth2Impl
     [TryFunction]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     var
-        AuthRequestUrl: Text;
-        AuthCode: Text;
-        State: Text;
+        CertificatePassword: SecretText;
     begin
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-
-        AuthRequestUrl := GetAuthRequestUrl(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, State, Scopes, PromptInteraction);
-
-        SetPropertiesBasedOnAuthRequestUrlAndRunOAuth2ControlAddIn(AuthRequestUrl, State, AuthCode, AuthCodeErr);
-
-        if AuthCode = '' then
-            exit;
-
-        AcquireTokenByAuthorizationCodeWithCertificate(AuthCode, ClientId, Certificate, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken);
+        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, AuthCodeErr);
     end;
 
     [NonDebuggable]
@@ -396,20 +374,9 @@ codeunit 502 OAuth2Impl
     [TryFunction]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var AuthCodeErr: Text)
     var
-        AuthRequestUrl: Text;
-        AuthCode: Text;
-        State: Text;
+        CertificatePassword: SecretText;
     begin
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-
-        AuthRequestUrl := GetAuthRequestUrl(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, State, Scopes, PromptInteraction);
-
-        SetPropertiesBasedOnAuthRequestUrlAndRunOAuth2ControlAddIn(AuthRequestUrl, State, AuthCode, AuthCodeErr);
-
-        if AuthCode = '' then
-            exit;
-
-        AcquireTokensByAuthorizationCodeWithCertificate(AuthCode, ClientId, Certificate, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
+        AcquireTokensByAuthorizationCodeWithCertificate(ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, IdToken, AuthCodeErr);
     end;
 
     [NonDebuggable]
@@ -480,20 +447,9 @@ codeunit 502 OAuth2Impl
     [TryFunction]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var TokenCache: Text; var Error: Text)
     var
-        AuthRequestUrl: Text;
-        AuthCode: Text;
-        State: Text;
+        CertificatePassword: SecretText;
     begin
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-
-        AuthRequestUrl := GetAuthRequestUrl(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, State, Scopes, PromptInteraction);
-
-        SetPropertiesBasedOnAuthRequestUrlAndRunOAuth2ControlAddIn(AuthRequestUrl, State, AuthCode, Error);
-
-        if AuthCode = '' then
-            exit;
-
-        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(AuthCode, ClientId, Certificate, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken, TokenCache);
+        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, TokenCache, Error);
     end;
 
     [NonDebuggable]
@@ -849,9 +805,10 @@ codeunit 502 OAuth2Impl
     [NonDebuggable]
     [TryFunction]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
+    var
+        CertificatePassword: SecretText;
     begin
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-        AccessToken := AuthFlow.ALAcquireTokenFromCacheWithCertificate(ClientId, Certificate, ResourceURL);
+        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, ResourceURL, AccessToken);
     end;
 
     [NonDebuggable]
@@ -901,11 +858,9 @@ codeunit 502 OAuth2Impl
     [TryFunction]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     var
-        ScopesArray: DotNet StringArray;
+        CertificatePassword: SecretText;
     begin
-        FillScopesArray(Scopes, ScopesArray);
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-        AccessToken := AuthFlow.ALAcquireTokenFromCacheWithCertificate(ClientId, Certificate, ScopesArray);
+        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, Scopes, AccessToken);
     end;
 
     [NonDebuggable]
@@ -961,14 +916,9 @@ codeunit 502 OAuth2Impl
     [TryFunction]
     procedure AcquireTokensFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
-        ScopesArray: DotNet StringArray;
-        CompoundToken: DotNet CompoundTokenInfo;
+        CertificatePassword: SecretText;
     begin
-        FillScopesArray(Scopes, ScopesArray);
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-        CompoundToken := AuthFlow.ALAcquireTokensFromCacheWithCertificate(ClientId, Certificate, ScopesArray);
-        AccessToken := CompoundToken.AccessToken;
-        IdToken := CompoundToken.IdToken;
+        AcquireTokensFromCacheWithCertificate(RedirectURL, ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
     end;
 
     [NonDebuggable]
@@ -1002,14 +952,9 @@ codeunit 502 OAuth2Impl
     [TryFunction]
     procedure AcquireTokensWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
-        ScopesArray: DotNet StringArray;
-        CompoundToken: DotNet CompoundTokenInfo;
+        CertificatePassword: SecretText;
     begin
-        FillScopesArray(Scopes, ScopesArray);
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-        CompoundToken := AuthFlow.ALAcquireApplicationTokensWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, ScopesArray);
-        AccessToken := CompoundToken.AccessToken;
-        IdToken := CompoundToken.IdToken;
+        AcquireTokensWithCertificate(RedirectURL, ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
     end;
 
     [NonDebuggable]
@@ -1084,8 +1029,10 @@ codeunit 502 OAuth2Impl
     [NonDebuggable]
     [TryFunction]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
+    var
+        CertificatePassword: SecretText;
     begin
-        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, ResourceURL);
+        AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, ResourceURL, AccessToken);
     end;
 
     [NonDebuggable]
@@ -1109,10 +1056,9 @@ codeunit 502 OAuth2Impl
     [TryFunction]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     var
-        ScopesArray: DotNet StringArray;
+        CertificatePassword: SecretText;
     begin
-        FillScopesArray(Scopes, ScopesArray);
-        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, ScopesArray);
+        AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken);
     end;
 
     [NonDebuggable]
@@ -1142,13 +1088,9 @@ codeunit 502 OAuth2Impl
     [TryFunction]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
-        ScopesArray: DotNet StringArray;
-        CompoundToken: DotNet CompoundTokenInfo;
+        CertificatePassword: SecretText;
     begin
-        FillScopesArray(Scopes, ScopesArray);
-        CompoundToken := AuthFlow.ALAcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, ScopesArray);
-        AccessToken := CompoundToken.AccessToken;
-        IdToken := CompoundToken.IdToken;
+        AcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
     end;
 
     [NonDebuggable]
@@ -1178,10 +1120,9 @@ codeunit 502 OAuth2Impl
     [TryFunction]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var TokenCache: Text)
     var
-        ScopesArray: DotNet StringArray;
+        CertificatePassword: SecretText;
     begin
-        FillScopesArray(Scopes, ScopesArray);
-        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, ScopesArray, TokenCache);
+        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken, TokenCache);
     end;
 
     [NonDebuggable]
@@ -1224,7 +1165,7 @@ codeunit 502 OAuth2Impl
         CompoundToken: DotNet CompoundTokenInfo;
     begin
         FillScopesArray(Scopes, ScopesArray);
-        CompoundToken := AuthFlow.ALAcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, ScopesArray, TokenCache);
+        CompoundToken := AuthFlow.ALAcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, ScopesArray, TokenCache);
         AccessToken := CompoundToken.AccessToken;
         IdToken := CompoundToken.IdToken;
     end;
