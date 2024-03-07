@@ -902,10 +902,10 @@ codeunit 502 OAuth2Impl
 
     [NonDebuggable]
     [TryFunction]
-    procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text; var AccessToken: SecretText)
+    procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text; var AccessToken: SecretText)
     begin
         Initialize(OAuthAuthorityUrl, RedirectURL);
-        AccessToken := AuthFlow.ALAcquireApplicationToken(ClientId, ClientSecret, OAuthAuthorityUrl, ResourceURL);
+        AccessToken := AuthFlow.ALAcquireApplicationToken(ClientId, ClientSecret.Unwrap(), OAuthAuthorityUrl, ResourceURL);
         if AccessToken.IsEmpty() then
             Session.LogMessage('0000C23', EmptyAccessTokenClientCredsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', Oauth2CategoryLbl);
     end;
