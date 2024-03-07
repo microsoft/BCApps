@@ -65,7 +65,9 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
         EventAccessToken: Text;
     begin
 #if not CLEAN24
+#pragma warning disable AL0432
         OnBeforeGetToken(IsHandled, IsSuccess, ErrorText, EventAccessToken);
+#pragma warning restore AL0432
 #endif
         OnBeforeGetSecretToken(IsHandled, IsSuccess, ErrorText, AccessToken);
 

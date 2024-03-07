@@ -34,7 +34,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var AuthCodeErr: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokenByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, ResourceURL, PromptInteraction, AccessToken, AuthCodeErr);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -72,7 +74,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokenByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokenByAuthorizationCode(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var AuthCodeErr: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokenByAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, AuthCodeErr);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -110,7 +114,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var AuthCodeErr: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokenByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, AuthCodeErr);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -149,7 +155,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokensByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokensByAuthorizationCode(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var AuthCodeErr: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokensByAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, IdToken, AuthCodeErr);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -189,7 +197,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var AuthCodeErr: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokensByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, IdToken, AuthCodeErr);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -229,7 +239,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokenAndTokenCacheByAuthorizationCode(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var TokenCache: Text; var Error: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokenAndTokenCacheByAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, TokenCache, Error);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -269,7 +281,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var TokenCache: Text; var Error: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, TokenCache, Error);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -310,7 +324,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokensAndTokenCacheByAuthorizationCode(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var TokenCache: Text; var Error: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokensAndTokenCacheByAuthorizationCode(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, IdToken, TokenCache, Error);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -352,7 +368,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var TokenCache: Text; var Error: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, IdToken, TokenCache, Error);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -390,7 +408,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireOnBehalfOfToken with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireOnBehalfOfToken(RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireOnBehalfOfToken(RedirectURL, Scopes, AccessToken);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -421,7 +441,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireOnBehalfOfTokens with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireOnBehalfOfTokens(RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireOnBehalfOfTokens(RedirectURL, Scopes, AccessToken, IdToken);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -469,7 +491,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokenWithClientCredentials with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text; var AccessToken: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokenWithClientCredentials(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, ResourceURL, AccessToken);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -503,7 +527,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokenWithClientCredentials with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokenWithClientCredentials(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, AccessToken);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -537,7 +563,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireAuthorizationCodeTokenFromCacheWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireAuthorizationCodeTokenFromCacheWithCertificate(ClientId: Text; Certificate: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, ResourceURL, AccessToken);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -570,7 +598,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireAuthorizationCodeTokenFromCache with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireAuthorizationCodeTokenFromCache(ClientId: Text; ClientSecret: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokenFromCache(RedirectURL, ClientId, ClientSecret, OAuthAuthorityUrl, Scopes, AccessToken);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -603,7 +633,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokensFromCache with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokensFromCache(ClientId: Text; ClientSecret: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokensFromCache(RedirectURL, ClientId, ClientSecret, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -636,7 +668,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireAuthorizationCodeTokenFromCacheWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireAuthorizationCodeTokenFromCacheWithCertificate(ClientId: Text; Certificate: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, Scopes, AccessToken);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -669,7 +703,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokensFromCacheWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokensFromCacheWithCertificate(ClientId: Text; Certificate: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokensFromCacheWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -703,7 +739,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokensWithCertificate(ClientId: Text; Certificate: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireTokensWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -737,7 +775,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireOnBehalfAccessTokenAndTokenCache with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireOnBehalfAccessTokenAndTokenCache(OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text; var TokenCache: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireOnBehalfAccessTokenAndTokenCache(OAuthAuthorityUrl, RedirectURL, Scopes, AccessToken, TokenCache);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -772,7 +812,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireOnBehalfTokensAndTokenCache with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireOnBehalfTokensAndTokenCache(OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text; var TokenCache: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireOnBehalfTokensAndTokenCache(OAuthAuthorityUrl, RedirectURL, Scopes, AccessToken, IdToken, TokenCache);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -808,7 +850,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireOnBehalfOfTokenByTokenCache with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireOnBehalfOfTokenByTokenCache(LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: Text; var NewTokenCache: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireOnBehalfOfTokenByTokenCache(LoginHint, RedirectURL, Scopes, TokenCache, AccessToken, NewTokenCache);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -845,7 +889,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireOnBehalfOfTokensByTokenCache with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireOnBehalfOfTokensByTokenCache(LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: Text; var IdToken: Text; var NewTokenCache: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireOnBehalfOfTokensByTokenCache(LoginHint, RedirectURL, Scopes, TokenCache, AccessToken, IdToken, NewTokenCache);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -883,7 +929,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireOnBehalfOfTokenByTokenCache with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireOnBehalfOfTokenByTokenCache(ClientId: Text; ClientSecret: Text; LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: Text; var NewTokenCache: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireOnBehalfOfTokenByTokenCache(ClientId, ClientSecret, LoginHint, RedirectURL, Scopes, TokenCache, AccessToken, NewTokenCache);
+#pragma warning restore AL0432
     end;
 #endif
 
@@ -922,7 +970,9 @@ codeunit 501 OAuth2
     [Obsolete('Use AcquireOnBehalfOfTokensByTokenCache with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireOnBehalfOfTokensByTokenCache(ClientId: Text; ClientSecret: Text; LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: Text; var IdToken: Text; var NewTokenCache: Text)
     begin
+#pragma warning disable AL0432
         OAuth2Impl.AcquireOnBehalfOfTokensByTokenCache(ClientId, ClientSecret, LoginHint, RedirectURL, Scopes, TokenCache, AccessToken, IdToken, NewTokenCache);
+#pragma warning restore AL0432
     end;
 #endif
 
