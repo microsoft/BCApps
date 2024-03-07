@@ -191,20 +191,21 @@ table 2010 "Azure OpenAi Settings"
         EnvironmentInformation: Codeunit "Environment Information";
         AzureKeyVault: Codeunit "Azure Key Vault";
         EntityTextModuleInfo: ModuleInfo;
-        Secret: Text;
+        Secret: SecretText;
+        Cert: Text;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then begin
             if IsolatedStorage.Get(SecretTok, DataScope::Module, Secret) then;
-            exit(Secret <> '');
+            exit(not Secret.IsEmpty());
         end;
 
         NavApp.GetCurrentModuleInfo(EntityTextModuleInfo);
         if (not IsNullGuid(CallerModuleInfo.Id())) and (CallerModuleInfo.Publisher() = EntityTextModuleInfo.Publisher()) then
-            if AzureKeyVault.GetAzureKeyVaultCertificate(SecretTok, Secret) then
-                exit(Secret <> '');
+            if AzureKeyVault.GetAzureKeyVaultCertificate(SecretTok, Cert) then
+                exit(not Secret.IsEmpty());
 
         if IsolatedStorage.Get(SecretTok, DataScope::Module, Secret) then;
-        exit(Secret <> '');
+        exit(not Secret.IsEmpty());
     end;
 
     [NonDebuggable]
