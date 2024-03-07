@@ -26,6 +26,54 @@ codeunit 1258 "Rijndael Cryptography"
         CryptographyManagementImpl.InitRijndaelProvider();
     end;
 
+#if not CLEAN24
+    /// <summary>
+    /// Initializes a new instance of the RijndaelManaged class providing the encryption key.
+    /// </summary>
+    /// <param name="EncryptionKey">Represents the secret key for the symmetric algorithm.</param>
+    [Obsolete('Use InitRijndaelProvider with SecretText data type for EncryptionKey.', '24.0')]
+    procedure InitRijndaelProvider(EncryptionKey: Text)
+    begin
+        CryptographyManagementImpl.InitRijndaelProvider(EncryptionKey);
+    end;
+
+    /// <summary>
+    /// Initializes a new instance of the RijndaelManaged class providing the encryption key and block size.
+    /// </summary>
+    /// <param name="EncryptionKey">Represents the secret key for the symmetric algorithm.</param>
+    /// <param name="BlockSize">Represents the block size, in bits, of the cryptographic operation.</param>
+    [Obsolete('Use InitRijndaelProvider with SecretText data type for EncryptionKey.', '24.0')]
+    procedure InitRijndaelProvider(EncryptionKey: Text; BlockSize: Integer)
+    begin
+        CryptographyManagementImpl.InitRijndaelProvider(EncryptionKey, BlockSize);
+    end;
+
+    /// <summary>
+    /// Initializes a new instance of the RijndaelManaged class providing the encryption key, block size and cipher mode.
+    /// </summary>
+    /// <param name="EncryptionKey">Represents the secret key for the symmetric algorithm.</param>
+    /// <param name="BlockSize">Represents the block size, in bits, of the cryptographic operation.</param>
+    /// <param name="CipherMode">Represents the cipher mode used in the symmetric algorithm. Valid values: ECB,CBC,CFB,CTS,OFB</param>
+    [Obsolete('Use InitRijndaelProvider with SecretText data type for EncryptionKey.', '24.0')]
+    procedure InitRijndaelProvider(EncryptionKey: Text; BlockSize: Integer; CipherMode: Text)
+    begin
+        CryptographyManagementImpl.InitRijndaelProvider(EncryptionKey, BlockSize, CipherMode);
+    end;
+
+    /// <summary>
+    /// Initializes a new instance of the RijndaelManaged class providing the encryption key, block size, cipher mode and padding mode.
+    /// </summary>
+    /// <param name="EncryptionKey">Represents the secret key for the symmetric algorithm.</param>
+    /// <param name="BlockSize">Represents the block size, in bits, of the cryptographic operation.</param>
+    /// <param name="CipherMode">Represents the cipher mode used in the symmetric algorithm. Valid values: ECB,CBC,CFB,CTS,OFB</param>
+    /// <param name="PaddingMode">Represents the padding mode used in the symmetric algorithm.. Valid values: None,ANSIX923,ISO10126,PKCS7,Zeros</param>
+    [Obsolete('Use InitRijndaelProvider with SecretText data type for EncryptionKey.', '24.0')]
+    procedure InitRijndaelProvider(EncryptionKey: Text; BlockSize: Integer; CipherMode: Text; PaddingMode: Text)
+    begin
+        CryptographyManagementImpl.InitRijndaelProvider(EncryptionKey, BlockSize, CipherMode, PaddingMode);
+    end;
+#endif
+
     /// <summary>
     /// Initializes a new instance of the RijndaelManaged class providing the encryption key.
     /// </summary>
@@ -55,7 +103,6 @@ codeunit 1258 "Rijndael Cryptography"
     begin
         CryptographyManagementImpl.InitRijndaelProvider(EncryptionKey, BlockSize, CipherMode);
     end;
-
 
     /// <summary>
     /// Initializes a new instance of the RijndaelManaged class providing the encryption key, block size, cipher mode and padding mode.
