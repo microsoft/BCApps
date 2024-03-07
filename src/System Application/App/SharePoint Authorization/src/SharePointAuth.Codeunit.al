@@ -94,7 +94,6 @@ codeunit 9142 "SharePoint Auth."
     /// <param name="CertificatePassword">Password for the certificate.</param>
     /// <param name="Scope">A scope that you want the user to consent to.</param>
     /// <returns>Codeunit instance implementing authorization interface</returns>
-    [NonDebuggable]
     procedure CreateClientCredentials(AadTenantId: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; Scope: Text): Interface "SharePoint Authorization";
     var
         Scopes: List of [Text];
@@ -112,7 +111,6 @@ codeunit 9142 "SharePoint Auth."
     /// <param name="CertificatePassword">Password for the certificate.</param>
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <returns>Codeunit instance implementing authorization interface</returns>
-    [NonDebuggable]
     procedure CreateClientCredentials(AadTenantId: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; Scopes: List of [Text]): Interface "SharePoint Authorization";
     var
         SharePointAuthImpl: Codeunit "SharePoint Auth. - Impl.";
