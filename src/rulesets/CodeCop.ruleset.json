@@ -556,7 +556,8 @@
                   },
                   {
                       "id":  "AA0139",
-                      "action":  "Warning"
+                      "action":  "None",
+                      "justification": "This rule reports potential text overflows."
                   },
                   {
                       "id":  "AA0140",
