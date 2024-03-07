@@ -17,7 +17,7 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
         [NonDebuggable]
         ClientId: Text;
         [NonDebuggable]
-        ClientSecret: Text;
+        ClientSecret: SecretText;
         [NonDebuggable]
         AuthCodeErr: Text;
         [NonDebuggable]
