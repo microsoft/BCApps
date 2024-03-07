@@ -68,7 +68,7 @@ codeunit 1289 "OAuth Impl."
         EmptySecretText: SecretText;
     begin
         Token := Token.Token(EmptySecretText, EmptySecretText);
-        Consumer := Consumer.Consumer(ConsumerKey.Unwrap(), ConsumerSecret.Unwrap());
+        Consumer := Consumer.Consumer(ConsumerKey, ConsumerSecret);
         OAuthAuthorization := OAuthAuthorization.OAuthAuthorization(Consumer, Token);
 
         RequestToken := OAuthAuthorization.GetRequestToken(RequestTokenUrl, CallbackUrl);
@@ -76,7 +76,6 @@ codeunit 1289 "OAuth Impl."
         AccessTokenKey := RequestToken.TokenKey();
         AccessTokenSecret := RequestToken.TokenSecret();
     end;
-
 
     [TryFunction]
     [NonDebuggable]
@@ -88,7 +87,7 @@ codeunit 1289 "OAuth Impl."
         AccessToken: DotNet Token;
     begin
         RequestToken := RequestToken.Token(RequestTokenKey.Unwrap(), RequestTokenSecret.Unwrap());
-        Consumer := Consumer.Consumer(ConsumerKey.Unwrap(), ConsumerSecret.Unwrap());
+        Consumer := Consumer.Consumer(ConsumerKey, ConsumerSecret);
         OAuthAuthorization := OAuthAuthorization.OAuthAuthorization(Consumer, RequestToken);
 
         AccessToken := OAuthAuthorization.GetAccessToken(RequestTokenUrl, Verifier);
