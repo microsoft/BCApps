@@ -12,7 +12,7 @@ codeunit 9143 "SharePoint Auth. - Impl."
     InherentPermissions = X;
 
     [NonDebuggable]
-    procedure CreateAuthorizationCode(EntraTenantId: Text; ClientId: Text; ClientSecret: Text; Scopes: List of [Text]): Interface "SharePoint Authorization";
+    procedure CreateAuthorizationCode(EntraTenantId: Text; ClientId: Text; ClientSecret: SecretText; Scopes: List of [Text]): Interface "SharePoint Authorization";
     var
         SharePointAuthorizationCode: Codeunit "SharePoint Authorization Code";
     begin
