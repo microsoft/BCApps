@@ -924,13 +924,13 @@ codeunit 502 OAuth2Impl
 
     [NonDebuggable]
     [TryFunction]
-    procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: SecretText)
+    procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     var
         ScopesArray: DotNet StringArray;
     begin
         FillScopesArray(Scopes, ScopesArray);
         Initialize(OAuthAuthorityUrl, RedirectURL);
-        AccessToken := AuthFlow.ALAcquireApplicationToken(ClientId, ClientSecret, OAuthAuthorityUrl, ScopesArray);
+        AccessToken := AuthFlow.ALAcquireApplicationToken(ClientId, ClientSecret.Unwrap(), OAuthAuthorityUrl, ScopesArray);
         if AccessToken.IsEmpty() then
             Session.LogMessage('0000D1L', EmptyAccessTokenClientCredsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', Oauth2CategoryLbl);
     end;
