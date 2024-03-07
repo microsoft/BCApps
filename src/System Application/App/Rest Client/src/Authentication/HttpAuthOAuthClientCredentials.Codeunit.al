@@ -46,7 +46,6 @@ codeunit 2361 "HttpAuthOAuthClientCredentials" implements "Http Authentication"
         Header.Add('Authorization', SecretStrSubstNo(BearerTxt, GetToken()));
     end;
 
-    [NonDebuggable]
     local procedure GetToken(): SecretText
     var
         AccessToken: SecretText;
@@ -57,22 +56,14 @@ codeunit 2361 "HttpAuthOAuthClientCredentials" implements "Http Authentication"
         exit(AccessToken);
     end;
 
-    [NonDebuggable]
     local procedure AcquireToken(var AccessToken: SecretText; var ErrorText: Text): Boolean
     var
         OAuth2: Codeunit System.Security.Authentication.OAuth2;
         IsSuccess: Boolean;
         AquireTokenFailedErr: Label 'Acquire of token with Client Credentials failed.';
     begin
-#if not CLEAN24
-#pragma warning disable AL0432
-        if (not OAuth2.AcquireAuthorizationCodeTokenFromCache(ClientIdGlobal, ClientSecretGlobal.Unwrap(), '', OAuthAuthorityUrlGlobal, ScopesGlobal, AccessToken)) or (AccessToken.IsEmpty()) then
-            OAuth2.AcquireTokenWithClientCredentials(ClientIdGlobal, ClientSecretGlobal.Unwrap(), OAuthAuthorityUrlGlobal, '', ScopesGlobal, AccessToken);
-#pragma warning restore AL0432
-#else
-        if not (OAuth2.AcquireAuthorizationCodeTokenFromCache(ClientIdGlobal, ClientSecretGlobal, '', OAuthAuthorityUrlGlobal, ScopesGlobal, AccessToken) or (AccessToken.IsEmpty())) then
+        if (not OAuth2.AcquireAuthorizationCodeTokenFromCache(ClientIdGlobal, ClientSecretGlobal, '', OAuthAuthorityUrlGlobal, ScopesGlobal, AccessToken) or (AccessToken.IsEmpty())) then
             OAuth2.AcquireTokenWithClientCredentials(ClientIdGlobal, ClientSecretGlobal, OAuthAuthorityUrlGlobal, '', ScopesGlobal, AccessToken);
-#endif
         IsSuccess := not AccessToken.IsEmpty();
 
         if not IsSuccess then begin

@@ -51,7 +51,6 @@ codeunit 501 OAuth2
     /// <param name="PromptInteraction">Indicates the type of user interaction that is required.</param>
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the AuthCodeErr for a description of the error.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     begin
@@ -70,7 +69,6 @@ codeunit 501 OAuth2
     /// <param name="PromptInteraction">Indicates the type of user interaction that is required.</param>
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the AuthCodeErr for a description of the error.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     begin
@@ -110,7 +108,6 @@ codeunit 501 OAuth2
     /// <param name="PromptInteraction">Indicates the type of user interaction that is required.</param>
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the AuthCodeErr for a description of the error.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokenByAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     begin
@@ -150,7 +147,6 @@ codeunit 501 OAuth2
     /// <param name="PromptInteraction">Indicates the type of user interaction that is required.</param>
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the AuthCodeErr for a description of the error.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     begin
@@ -169,7 +165,6 @@ codeunit 501 OAuth2
     /// <param name="PromptInteraction">Indicates the type of user interaction that is required.</param>
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the AuthCodeErr for a description of the error.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     begin
@@ -211,7 +206,6 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the AuthCodeErr for a description of the error.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokensByAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var AuthCodeErr: Text)
     begin
@@ -253,7 +247,6 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the AuthCodeErr for a description of the error.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var AuthCodeErr: Text)
     begin
@@ -273,7 +266,6 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the AuthCodeErr for a description of the error.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var AuthCodeErr: Text)
     begin
@@ -315,7 +307,6 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the Error for a description of the error.</param>
     /// <param name="TokenCache">Exit parameter containing the token cache acquired when the access token was requested.</param>
     /// <param name="Error">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokenAndTokenCacheByAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var TokenCache: Text; var Error: Text)
     begin
@@ -357,7 +348,6 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the Error for a description of the error.</param>
     /// <param name="TokenCache">Exit parameter containing the token cache acquired when the access token was requested.</param>
     /// <param name="Error">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var TokenCache: Text; var Error: Text)
     begin
@@ -377,7 +367,6 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the Error for a description of the error.</param>
     /// <param name="TokenCache">Exit parameter containing the token cache acquired when the access token was requested.</param>
     /// <param name="Error">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var TokenCache: Text; var Error: Text)
     begin
@@ -421,7 +410,6 @@ codeunit 501 OAuth2
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     /// <param name="TokenCache">Exit parameter containing the token cache acquired when the access token was requested.</param>
     /// <param name="Error">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokensAndTokenCacheByAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text; var Error: Text)
     begin
@@ -465,7 +453,6 @@ codeunit 501 OAuth2
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     /// <param name="TokenCache">Exit parameter containing the token cache acquired when the access token was requested.</param>
     /// <param name="Error">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text; var Error: Text)
     begin
@@ -486,7 +473,6 @@ codeunit 501 OAuth2
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     /// <param name="TokenCache">Exit parameter containing the token cache acquired when the access token was requested.</param>
     /// <param name="Error">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text; var Error: Text)
     begin
@@ -518,7 +504,6 @@ codeunit 501 OAuth2
     /// <param name="RedirectURL">The redirectURL of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirectURLs you registered in the portal. If this parameter is empty, the default Business Central URL will be used.</param>
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
-    [NonDebuggable]
     [Scope('OnPrem')]
     [TryFunction]
     procedure AcquireOnBehalfOfToken(RedirectURL: Text; Scopes: List of [Text]; var AccessToken: SecretText)
@@ -552,7 +537,6 @@ codeunit 501 OAuth2
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
-    [NonDebuggable]
     [Scope('OnPrem')]
     [TryFunction]
     procedure AcquireOnBehalfOfTokens(RedirectURL: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
@@ -568,7 +552,6 @@ codeunit 501 OAuth2
     /// <param name="RedirectURL">The redirectURL of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirectURLs you registered in the portal. If this parameter is empty, the default Business Central URL will be used.</param>
     /// <param name="HasGrantConsentSucceeded">Exit parameter indicating the success of granting application permissions.</param>
     /// <param name="PermissionGrantError">Exit parameter containing the encountered error in the application permissions grant. This parameter will be empty in case the flow is completed successfuly.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure RequestClientCredentialsAdminPermissions(ClientId: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; var HasGrantConsentSucceeded: Boolean; var PermissionGrantError: Text)
     begin
@@ -604,7 +587,6 @@ codeunit 501 OAuth2
     /// <param name="RedirectURL">The redirectURL of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirectURLs you registered in the portal. If this parameter is empty, the default Business Central URL will be used.</param>
     /// <param name="ResourceURL">The Application ID of the resource the application is requesting access to. This parameter can be empty.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text; var AccessToken: SecretText)
     begin
@@ -640,7 +622,6 @@ codeunit 501 OAuth2
     /// <param name="RedirectURL">The redirectURL of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirectURLs you registered in the portal. If this parameter is empty, the default Business Central URL will be used.</param>
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokenWithClientCredentials(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     begin
@@ -676,7 +657,6 @@ codeunit 501 OAuth2
     /// <param name="OAuthAuthorityUrl">The identity authorization provider URL.</param>
     /// <param name="ResourceURL">The Application ID of the resource the application is requesting access to. This parameter can be empty.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireAuthorizationCodeTokenFromCacheWithCertificate(ClientId: Text; Certificate: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
     begin
@@ -693,7 +673,6 @@ codeunit 501 OAuth2
     /// <param name="OAuthAuthorityUrl">The identity authorization provider URL.</param>
     /// <param name="ResourceURL">The Application ID of the resource the application is requesting access to. This parameter can be empty.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireAuthorizationCodeTokenFromCacheWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectURL: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
     begin
@@ -727,7 +706,6 @@ codeunit 501 OAuth2
     /// <param name="RedirectURL">The redirectURL of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirectURLs you registered in the portal. If this parameter is empty, the default Business Central URL will be used.</param>
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireAuthorizationCodeTokenFromCache(ClientId: Text; ClientSecret: SecretText; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     begin
@@ -763,7 +741,6 @@ codeunit 501 OAuth2
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokensFromCache(ClientId: Text; ClientSecret: SecretText; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     begin
@@ -797,7 +774,6 @@ codeunit 501 OAuth2
     /// <param name="RedirectURL">The redirectURL of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirectURLs you registered in the portal. If this parameter is empty, the default Business Central URL will be used.</param>
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireAuthorizationCodeTokenFromCacheWithCertificate(ClientId: Text; Certificate: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     begin
@@ -813,7 +789,6 @@ codeunit 501 OAuth2
     /// <param name="RedirectURL">The redirectURL of your app, where authentication responses can be sent and received by your app. It must exactly match one of the redirectURLs you registered in the portal. If this parameter is empty, the default Business Central URL will be used.</param>
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireAuthorizationCodeTokenFromCacheWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     begin
@@ -850,7 +825,6 @@ codeunit 501 OAuth2
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokensFromCacheWithCertificate(ClientId: Text; Certificate: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     begin
@@ -868,7 +842,6 @@ codeunit 501 OAuth2
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokensFromCacheWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     begin
@@ -905,7 +878,6 @@ codeunit 501 OAuth2
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokensWithCertificate(ClientId: Text; Certificate: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     begin
@@ -923,7 +895,6 @@ codeunit 501 OAuth2
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireTokensWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     begin
@@ -958,7 +929,6 @@ codeunit 501 OAuth2
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="TokenCache">Exit parameter containing the token cache acquired when the access token was requested .</param>
-    [NonDebuggable]
     [Scope('OnPrem')]
     [TryFunction]
     procedure AcquireOnBehalfAccessTokenAndTokenCache(OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: SecretText; var TokenCache: Text)
@@ -996,7 +966,6 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     /// <param name="TokenCache">Exit parameter containing the token cache acquired when the access token was requested .</param>
-    [NonDebuggable]
     [Scope('OnPrem')]
     [TryFunction]
     procedure AcquireOnBehalfTokensAndTokenCache(OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text)
@@ -1034,7 +1003,6 @@ codeunit 501 OAuth2
     /// <param name="TokenCache">The token cache acquired when the access token was requested .</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="NewTokenCache">Exit parameter containing the new token cache.</param>
-    [NonDebuggable]
     [Scope('OnPrem')]
     [TryFunction]
     procedure AcquireOnBehalfOfTokenByTokenCache(LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: SecretText; var NewTokenCache: Text)
@@ -1074,7 +1042,6 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     /// <param name="NewTokenCache">Exit parameter containing the new token cache.</param>
-    [NonDebuggable]
     [Scope('OnPrem')]
     [TryFunction]
     procedure AcquireOnBehalfOfTokensByTokenCache(LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: SecretText; var IdToken: Text; var NewTokenCache: Text)
@@ -1115,7 +1082,6 @@ codeunit 501 OAuth2
     /// <param name="TokenCache">The token cache acquired when the access token was requested .</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="NewTokenCache">Exit parameter containing the new token cache.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireOnBehalfOfTokenByTokenCache(ClientId: Text; ClientSecret: SecretText; LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: SecretText; var NewTokenCache: Text)
     begin
@@ -1157,7 +1123,6 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     /// <param name="NewTokenCache">Exit parameter containing the new token cache.</param>
-    [NonDebuggable]
     [TryFunction]
     procedure AcquireOnBehalfOfTokensByTokenCache(ClientId: Text; ClientSecret: SecretText; LoginHint: Text; RedirectURL: Text; Scopes: List of [Text]; TokenCache: Text; var AccessToken: SecretText; var IdToken: Text; var NewTokenCache: Text)
     begin
