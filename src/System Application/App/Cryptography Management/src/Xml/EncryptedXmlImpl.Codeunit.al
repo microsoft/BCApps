@@ -134,14 +134,14 @@ codeunit 1466 "EncryptedXml Impl."
         DotNetEncryptedNodes: DotNet XmlNodeList;
         DotNetEncryptedNode: DotNet XmlNode;
         DotNetAsymmetricAlgorithm: DotNet AsymmetricAlgorithm;
-        SignatureAlgorithmInterface: Interface SignatureAlgorithm;
+        SignatureAlgorithmInterface: Interface "Signature Algorithm v2";
     begin
         //Convert the XmlDocument to a DotNet XmlDocument
         XmlDotNetConvert.ToDotNet(EncryptedDocument, DotNetXmlDocument, true);
 
         //Get the asymmetric algorithm instance to be used for decrypting the symmetric session key
         SignatureAlgorithmInterface := SignatureAlgorithm;
-        SignatureAlgorithmInterface.FromXmlString(EncryptionKey.Unwrap());
+        SignatureAlgorithmInterface.FromSecretXmlString(EncryptionKey);
         SignatureAlgorithmInterface.GetInstance(DotNetAsymmetricAlgorithm);
 
         //Find all encrypted data elements and decrypt them
@@ -219,11 +219,11 @@ codeunit 1466 "EncryptedXml Impl."
         DotNetCipherBytes, DotNetKeyBytes : DotNet Array;
         DotNetConvert: DotNet Convert;
         DotNetAsymmetricAlgorithm: DotNet AsymmetricAlgorithm;
-        SignatureAlgorithmInterface: Interface SignatureAlgorithm;
+        SignatureAlgorithmInterface: Interface "Signature Algorithm v2";
     begin
         //Get the asymmetric algorithm instance to be used for decrypting the key
         SignatureAlgorithmInterface := SignatureAlgorithm;
-        SignatureAlgorithmInterface.FromXmlString(EncryptionKey.Unwrap());
+        SignatureAlgorithmInterface.FromSecretXmlString(EncryptionKey);
         SignatureAlgorithmInterface.GetInstance(DotNetAsymmetricAlgorithm);
 
         //Get the XML document of the XML element
