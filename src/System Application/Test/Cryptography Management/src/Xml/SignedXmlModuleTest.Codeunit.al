@@ -69,6 +69,7 @@ codeunit 132612 "Signed Xml Module Test"
         SignedXmlDocument: XmlDocument;
         SignatureElement: XmlElement;
         CertBase64Data: Text;
+        Password: SecretText;
     begin
         GetValidSignedXml(SignedXmlDocument);
         GetSignatureElement(SignedXmlDocument, SignatureElement);
@@ -78,7 +79,7 @@ codeunit 132612 "Signed Xml Module Test"
 
         CertBase64Data := GetCertificateData();
 
-        LibraryAssert.IsTrue(SignedXml.CheckSignature(CertBase64Data, '', true), 'Failed to verify the xml signature.');
+        LibraryAssert.IsTrue(SignedXml.CheckSignature(CertBase64Data, Password, true), 'Failed to verify the xml signature.');
     end;
 
     local procedure GetSignatureElement(SignedXmlDocument: XmlDocument; var SignatureElement: XmlElement)

@@ -23,6 +23,7 @@ codeunit 132614 "EncryptedXml Test"
         NamespaceManager: XmlNamespaceManager;
         EncryptedKey: XmlNode;
         EncryptionSignatureKey: Text;
+        Password: SecretText;
         SignatureAlgorithm: Enum SignatureAlgorithm;
     begin
         // [GIVEN] The XmlDocument to encrypt
@@ -32,7 +33,7 @@ codeunit 132614 "EncryptedXml Test"
         EncryptionSignatureKey := GetPrivateKey();
 
         // [WHEN] Encrypt the document
-        EncryptedXml.Encrypt(XmlDocumentToEncrypt, 'Login', GetCertificateData(), '');
+        EncryptedXml.Encrypt(XmlDocumentToEncrypt, 'Login', GetCertificateData(), Password);
 
         // [THEN] Check that there is a EncryptedKey element present in the encrypted XmlDocument
         NamespaceManager.NameTable := XmlDocumentToEncrypt.NameTable;
@@ -58,6 +59,7 @@ codeunit 132614 "EncryptedXml Test"
         SymmetricAlgorithm: Enum SymmetricAlgorithm;
         SignatureAlgorithm: Enum SignatureAlgorithm;
         EncryptionSignatureKey: Text;
+        Password: SecretText;
     begin
         // [GIVEN] The XmlDocument to encrypt
         GetXml(XmlDocumentToEncrypt);
@@ -66,7 +68,7 @@ codeunit 132614 "EncryptedXml Test"
         EncryptionSignatureKey := GetPrivateKey();
 
         // [WHEN] Encrypt the document
-        EncryptedXml.Encrypt(XmlDocumentToEncrypt, 'Login', GetCertificateData(), '', SymmetricAlgorithm::TripleDES);
+        EncryptedXml.Encrypt(XmlDocumentToEncrypt, 'Login', GetCertificateData(), Password, SymmetricAlgorithm::TripleDES);
 
         // [THEN] Check that there is a EncryptedKey element present in the encrypted XmlDocument
         NamespaceManager.NameTable := XmlDocumentToEncrypt.NameTable;
