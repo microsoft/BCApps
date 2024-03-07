@@ -23,7 +23,7 @@ codeunit 9142 "SharePoint Auth."
     /// <param name="Scope">A scope that you want the user to consent to.</param>
     /// <returns>Codeunit instance implementing authorization interface</returns>
     [NonDebuggable]
-    procedure CreateAuthorizationCode(EntraTenantId: Text; ClientId: Text; ClientSecret: Text; Scope: Text): Interface "SharePoint Authorization";
+    procedure CreateAuthorizationCode(EntraTenantId: Text; ClientId: Text; ClientSecret: SecretText; Scope: Text): Interface "SharePoint Authorization";
     var
         Scopes: List of [Text];
     begin
@@ -40,7 +40,7 @@ codeunit 9142 "SharePoint Auth."
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <returns>Codeunit instance implementing authorization interface</returns>
     [NonDebuggable]
-    procedure CreateAuthorizationCode(EntraTenantId: Text; ClientId: Text; ClientSecret: Text; Scopes: List of [Text]): Interface "SharePoint Authorization";
+    procedure CreateAuthorizationCode(EntraTenantId: Text; ClientId: Text; ClientSecret: SecretText; Scopes: List of [Text]): Interface "SharePoint Authorization";
     var
         SharePointAuthImpl: Codeunit "SharePoint Auth. - Impl.";
     begin
