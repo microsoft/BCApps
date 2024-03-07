@@ -25,9 +25,9 @@ codeunit 1448 "DSACryptoServiceProvider Impl." implements SignatureAlgorithm
 
     #region SignData
     [NonDebuggable]
-    procedure SignData(XmlString: Text; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    procedure SignData(XmlString: SecretText; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
     begin
-        FromXmlString(XmlString);
+        FromXmlString(XmlString.Unwrap());
         SignData(DataInStream, HashAlgorithm, SignatureOutStream);
     end;
 
@@ -65,9 +65,9 @@ codeunit 1448 "DSACryptoServiceProvider Impl." implements SignatureAlgorithm
 
     #region VerifyData
     [NonDebuggable]
-    procedure VerifyData(XmlString: Text; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    procedure VerifyData(XmlString: SecretText; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
     begin
-        FromXmlString(XmlString);
+        FromXmlString(XmlString.Unwrap());
         VerifyData(DataInStream, HashAlgorithm, SignatureInStream);
     end;
 

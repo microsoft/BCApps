@@ -37,7 +37,7 @@ codeunit 1447 DSACryptoServiceProvider
     /// <param name="HashAlgorithm">The hash algorithm to use to create the hash value.</param>
     /// <param name="SignatureOutStream">The DSA signature stream for the specified data.</param>
     [NonDebuggable]
-    procedure SignData(XmlString: Text; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    procedure SignData(XmlString: SecretText; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
     begin
         DSACryptoServiceProviderImpl.SignData(XmlString, DataInStream, HashAlgorithm, SignatureOutStream);
     end;
@@ -51,7 +51,7 @@ codeunit 1447 DSACryptoServiceProvider
     /// <param name="SignatureInStream">The stream of signature data to be verified.</param>
     /// <returns>True if the signature is valid; otherwise, false.</returns>
     [NonDebuggable]
-    procedure VerifyData(XmlString: Text; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    procedure VerifyData(XmlString: SecretText; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
     begin
         exit(DSACryptoServiceProviderImpl.VerifyData(XmlString, DataInStream, HashAlgorithm, SignatureInStream));
     end;

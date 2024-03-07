@@ -22,7 +22,7 @@ codeunit 1474 "Signature Key"
     /// </summary>
     /// <param name="XmlString">The XML string containing key information.</param>
     [NonDebuggable]
-    procedure FromXmlString(XmlString: Text)
+    procedure FromXmlString(XmlString: SecretText)
     begin
         SignatureKeyImpl.FromXmlString(XmlString);
     end;
@@ -34,7 +34,7 @@ codeunit 1474 "Signature Key"
     /// <param name="Represents the password of the certificate">Certificate Password</param>
     /// <param name="IncludePrivateParameters">true to include private parameters; otherwise, false.</param>
     [NonDebuggable]
-    procedure FromBase64String(CertBase64Value: Text; Password: Text; IncludePrivateParameters: Boolean)
+    procedure FromBase64String(CertBase64Value: Text; Password: SecretText; IncludePrivateParameters: Boolean)
     begin
         SignatureKeyImpl.FromBase64String(CertBase64Value, Password, IncludePrivateParameters);
     end;
@@ -43,7 +43,7 @@ codeunit 1474 "Signature Key"
     /// Gets an XML string containing the key of the saved key value.
     /// </summary>
     /// <returns>An XML string containing the key of the saved key value.</returns>
-    internal procedure ToXmlString(): Text
+    internal procedure ToXmlString(): SecretText
     begin
         exit(SignatureKeyImpl.ToXmlString());
     end;

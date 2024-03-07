@@ -28,7 +28,7 @@ codeunit 1379 DESCryptoServiceProvider
     /// <param name="DecryptedText">Represents the text to encrypt</param>
     /// <returns name="EncryptedText">Returns the encrypted text</returns>
     [NonDebuggable]
-    procedure EncryptText(DecryptedText: Text; Password: Text; Salt: Text) EncryptedText: Text
+    procedure EncryptText(DecryptedText: Text; Password: SecretText; Salt: Text) EncryptedText: Text
     begin
         EncryptedText := DESCryptoServiceProviderImpl.EncryptText(DecryptedText, Password, Salt);
     end;
@@ -41,7 +41,7 @@ codeunit 1379 DESCryptoServiceProvider
     /// <param name="EncryptedText">Represents the text to decrypt</param>
     /// <returns name="DecryptedText">Returns the decrypted text</returns>
     [NonDebuggable]
-    procedure DecryptText(EncryptedText: Text; Password: Text; Salt: Text) DecryptedText: Text
+    procedure DecryptText(EncryptedText: Text; Password: SecretText; Salt: Text) DecryptedText: Text
     begin
         DecryptedText := DESCryptoServiceProviderImpl.DecryptText(EncryptedText, Password, Salt);
     end;
@@ -54,7 +54,7 @@ codeunit 1379 DESCryptoServiceProvider
     /// <param name="InputInstream">Represents the input instream data to encrypt</param>
     /// <param name="OutputOutstream">Represents the output instream encrypted data</param>
     [NonDebuggable]
-    procedure EncryptStream(Password: Text; Salt: Text; InputInstream: InStream; var OutputOutstream: OutStream)
+    procedure EncryptStream(Password: SecretText; Salt: Text; InputInstream: InStream; var OutputOutstream: OutStream)
     begin
         DESCryptoServiceProviderImpl.EncryptStream(Password, Salt, InputInstream, OutputOutstream);
     end;
@@ -67,7 +67,7 @@ codeunit 1379 DESCryptoServiceProvider
     /// <param name="InputInstream">Represents the input instream data to decrypt</param>
     /// <param name="OutputOutstream">Represents the output instream decrypted data</param>
     [NonDebuggable]
-    procedure DecryptStream(Password: Text; Salt: Text; InputInstream: InStream; var OutputOutstream: OutStream)
+    procedure DecryptStream(Password: SecretText; Salt: Text; InputInstream: InStream; var OutputOutstream: OutStream)
     begin
         DESCryptoServiceProviderImpl.DecryptStream(Password, Salt, InputInstream, OutputOutstream);
     end;
