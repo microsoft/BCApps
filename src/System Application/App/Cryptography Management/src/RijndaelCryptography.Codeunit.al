@@ -159,20 +159,16 @@ codeunit 1258 "Rijndael Cryptography"
     begin
         CryptographyManagementImpl.GetEncryptionData(KeyAsBase64, VectorAsBase64);
     end;
-#if not CLEAN24
+
     /// <summary>
     /// Returns plain text as an encrypted value.
     /// </summary>
     /// <param name="PlainText">The value to encrypt.</param>
     /// <returns>Encrypted value.</returns>
-    [Obsolete('Use Encrypt with SecretText data type return.', '24.0')]
     procedure Encrypt(PlainText: Text) CryptedText: Text
     begin
-#pragma warning disable AL0432
         CryptedText := CryptographyManagementImpl.EncryptRijndael(PlainText);
-#pragma warning restore AL0432
     end;
-#endif
 
     /// <summary>
     /// Returns plain text as an encrypted value.
@@ -181,7 +177,7 @@ codeunit 1258 "Rijndael Cryptography"
     /// <returns>Encrypted value.</returns>
     procedure Encrypt(PlainText: SecretText) CryptedText: SecretText
     begin
-        CryptedText := CryptographyManagementImpl.EncryptRijndael(PlainText);
+        CryptedText := CryptographyManagementImpl.EncryptRijndaelSecret(PlainText);
     end;
 
     /// <summary>
@@ -192,5 +188,15 @@ codeunit 1258 "Rijndael Cryptography"
     procedure Decrypt(CryptedText: Text) PlainText: Text
     begin
         PlainText := CryptographyManagementImpl.DecryptRijndael(CryptedText);
+    end;
+
+    /// <summary>
+    /// Returns encrypted text as plain text.
+    /// </summary>
+    /// <param name="CryptedText">The value to decrypt.</param>
+    /// <returns>Plain text.</returns>
+    procedure Decrypt(CryptedText: SecretText) PlainText: SecretText
+    begin
+        PlainText := CryptographyManagementImpl.DecryptRijndaelSecret(CryptedText);
     end;
 }
