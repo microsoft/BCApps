@@ -69,20 +69,6 @@ codeunit 1445 RSACryptoServiceProvider
     end;
 
     /// <summary>
-    /// Encrypts the specified text with the RSA algorithm.
-    /// </summary>
-    /// <param name="XmlString">The XML string containing RSA key information.</param>
-    /// <param name="PlainTextInStream">The input stream to encrypt.</param>
-    /// <param name="OaepPadding">True to perform RSA encryption using OAEP padding; otherwise, false to use PKCS#1 padding.</param>
-    /// <param name="EncryptedTextOutStream">The RSA encryption stream for the specified text.</param>
-    [NonDebuggable]
-    [Obsolete('Use Encrypt with SecretText data type for XmlString.', '24.0')]
-    procedure Encrypt(XmlString: Text; PlainTextInStream: InStream; OaepPadding: Boolean; EncryptedTextOutStream: OutStream)
-    begin
-        RSACryptoServiceProviderImpl.Encrypt(XmlString, PlainTextInStream, OaepPadding, EncryptedTextOutStream);
-    end;
-
-    /// <summary>
     /// Decrypts the specified text that was previously encrypted with the RSA algorithm.
     /// </summary>
     /// <param name="XmlString">The XML string containing RSA key information.</param>
@@ -132,7 +118,7 @@ codeunit 1445 RSACryptoServiceProvider
     /// <param name="OaepPadding">True to perform RSA encryption using OAEP padding; otherwise, false to use PKCS#1 padding.</param>
     /// <param name="EncryptedTextOutStream">The RSA encryption stream for the specified text.</param>
     [NonDebuggable]
-    procedure Encrypt(XmlString: SecretText; PlainTextInStream: InStream; OaepPadding: Boolean; EncryptedTextOutStream: OutStream)
+    procedure Encrypt(XmlString: Text; PlainTextInStream: InStream; OaepPadding: Boolean; EncryptedTextOutStream: OutStream)
     begin
         RSACryptoServiceProviderImpl.Encrypt(XmlString, PlainTextInStream, OaepPadding, EncryptedTextOutStream);
     end;

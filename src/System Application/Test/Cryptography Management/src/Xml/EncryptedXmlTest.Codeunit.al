@@ -22,7 +22,7 @@ codeunit 132614 "EncryptedXml Test"
         XmlDocumentToEncrypt: XmlDocument;
         NamespaceManager: XmlNamespaceManager;
         EncryptedKey: XmlNode;
-        EncryptionSignatureKey: Text;
+        EncryptionSignatureKey: SecretText;
         Password: SecretText;
         SignatureAlgorithm: Enum SignatureAlgorithm;
     begin
@@ -58,7 +58,7 @@ codeunit 132614 "EncryptedXml Test"
         EncryptedKey: XmlNode;
         SymmetricAlgorithm: Enum SymmetricAlgorithm;
         SignatureAlgorithm: Enum SignatureAlgorithm;
-        EncryptionSignatureKey: Text;
+        EncryptionSignatureKey: SecretText;
         Password: SecretText;
     begin
         // [GIVEN] The XmlDocument to encrypt
@@ -92,7 +92,7 @@ codeunit 132614 "EncryptedXml Test"
         XmlWriteOptions: XmlWriteOptions;
         DecryptedXmlString, ExpectedXmlString : Text;
         Result: Boolean;
-        EncryptionSignatureKey: Text;
+        EncryptionSignatureKey: SecretText;
         SignatureAlgorithm: Enum SignatureAlgorithm;
     begin
         // [GIVEN] The encrypted XmlDocument to decrypt
@@ -126,7 +126,7 @@ codeunit 132614 "EncryptedXml Test"
         EncryptedKey: XmlNode;
         KeyBase64Value: Text;
         Result: Boolean;
-        EncryptionSignatureKey: Text;
+        EncryptionSignatureKey: SecretText;
         SignatureAlgorithm: Enum SignatureAlgorithm;
     begin
         // [GIVEN] The XmlDocument with the encrypted key to decrypt

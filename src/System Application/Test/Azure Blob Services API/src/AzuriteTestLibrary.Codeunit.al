@@ -67,8 +67,11 @@ codeunit 132923 "Azurite Test Library"
     /// See: https://go.microsoft.com/fwlink/?linkid=2212637
     /// </summary>
     /// <returns>Azurite storage account key</returns>
-    procedure GetAccessKey(): Text;
+    procedure GetAccessKey(): SecretText;
+    var
+        AccessKey: Text;
     begin
-        exit(AccessKeyTxt);
+        AccessKey := AccessKeyTxt;
+        exit(AccessKey);
     end;
 }
