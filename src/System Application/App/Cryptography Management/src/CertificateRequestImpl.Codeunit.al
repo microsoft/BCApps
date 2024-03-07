@@ -22,20 +22,21 @@ codeunit 1464 "CertificateRequest Impl."
         EndCertReqTok: Label '-----END CERTIFICATE REQUEST-----', Locked = true;
         DepricatedHashAlgorithmsMsg: Label 'In compliance with the Microsoft Secure Hash Algorithm deprecation policy SHA1 and MD5 hash alghoritms have been deprecated.';
 
-#if not CLEAN24
-    [Obsolete('Use InitializeRSA with SecretText data type for KeyAsXmlString.', '24.0')]
+    [NonDebuggable]
     procedure InitializeRSA(KeySize: Integer; IncludePrivateParameters: Boolean; var KeyAsXmlString: Text)
     begin
         DotNetRSACryptoServiceProvider := DotNetRSACryptoServiceProvider.RSACryptoServiceProvider(KeySize);
         DotNetRSACryptoServiceProvider.PersistKeyInCsp(false);
         KeyAsXmlString := DotNetRSACryptoServiceProvider.ToXmlString(IncludePrivateParameters);
     end;
-#endif
+
     procedure InitializeRSA(KeySize: Integer; IncludePrivateParameters: Boolean; var KeyAsXmlString: SecretText)
+    var
+        [NonDebuggable]
+        KeyAsXml: Text;
     begin
-        DotNetRSACryptoServiceProvider := DotNetRSACryptoServiceProvider.RSACryptoServiceProvider(KeySize);
-        DotNetRSACryptoServiceProvider.PersistKeyInCsp(false);
-        KeyAsXmlString := DotNetRSACryptoServiceProvider.ToXmlString(IncludePrivateParameters);
+        InitializeRSA(KeySize, IncludePrivateParameters, KeyAsXml);
+        KeyAsXmlString := KeyAsXml;
     end;
 
     procedure InitializeCertificateRequestUsingRSA(SubjectName: Text; HashAlgorithm: Enum "Hash Algorithm"; RSASignaturePaddingMode: Enum "RSA Signature Padding")

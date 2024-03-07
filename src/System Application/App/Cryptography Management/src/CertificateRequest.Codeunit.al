@@ -17,21 +17,18 @@ codeunit 1463 CertificateRequest
     var
         CertSigningRequestImpl: Codeunit "CertificateRequest Impl.";
 
-#if not CLEAN24
     /// <summary>
     /// Initializes a new instance of RSACryptoServiceProvider with the specified key size and returns the key as an XML string.
     /// </summary>
     /// <param name="KeySize">The size of the key in bits.</param>
     /// <param name="IncludePrivateParameters">True to include a public and private RSA key in KeyAsXmlString. False to include only the public key.</param>
     /// <param name="KeyAsXmlString">Returns an XML string that contains the key of the RSA object that was created.</param>
-    [Obsolete('Use InitializeRSA with SecretText data type for KeyAsXmlString.', '24.0')]
+    [NonDebuggable]
     procedure InitializeRSA(KeySize: Integer; IncludePrivateParameters: Boolean; var KeyAsXmlString: Text)
     begin
-#pragma warning disable AL0432
         CertSigningRequestImpl.InitializeRSA(KeySize, IncludePrivateParameters, KeyAsXmlString);
-#pragma warning restore AL0432
     end;
-#endif
+
     /// <summary>
     /// Initializes a new instance of RSACryptoServiceProvider with the specified key size and returns the key as an XML string.
     /// </summary>
