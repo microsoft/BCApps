@@ -6,7 +6,7 @@ pageextension 324 "No. Series Ext" extends "No. Series"
         {
             actionref("Generate_Promoted"; "Generate With Copilot") { }
         }
-        addfirst(Processing)
+        addfirst(Prompting)
         {
             action("Generate With Copilot")
             {
@@ -49,8 +49,8 @@ pageextension 324 "No. Series Ext" extends "No. Series"
         else
             CopilotActionsVisible := FeatureManagementFacade.IsEnabled(NumberSeriesWithAILbl);
 
-        if CopilotActionsVisible then
-            CopilotActionsVisible := EnvironmentInformation.IsSaaSInfrastructure();
+        // if CopilotActionsVisible then
+        //     CopilotActionsVisible := EnvironmentInformation.IsSaaSInfrastructure(); //TODO: Check how to keep IsSaaSInfrastructure but be able to test in Docker Environment
     end;
 
     var

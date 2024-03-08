@@ -23,6 +23,7 @@ page 332 "No. Series Proposal"
             field(InputText; InputText)
             {
                 Caption = 'Request';
+                ShowCaption = false;
                 MultiLine = true;
                 ApplicationArea = All;
                 trigger OnValidate()
@@ -39,6 +40,7 @@ page 332 "No. Series Proposal"
                 Caption = 'AI Response';
                 MultiLine = true;
                 ApplicationArea = All;
+                ShowCaption = false;
                 Editable = false;
                 Enabled = false;
             }

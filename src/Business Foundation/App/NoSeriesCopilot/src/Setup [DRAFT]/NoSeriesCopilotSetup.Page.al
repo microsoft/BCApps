@@ -5,7 +5,7 @@
 page 9245 "No. Series Copilot Setup"
 {
 
-    Caption = 'Generate No. Series with Copilot Setup';
+    Caption = 'No. Series with Copilot Setup';
     PageType = Card;
     SourceTable = "No. Series Copilot Setup";
     InsertAllowed = false;
@@ -29,6 +29,9 @@ page 9245 "No. Series Copilot Setup"
                 {
                     ApplicationArea = All;
                 }
+            }
+            group(Secrets)
+            {
                 field(SecretKey; SecretKey)
                 {
                     ApplicationArea = Basic, Suite;
@@ -51,6 +54,7 @@ page 9245 "No. Series Copilot Setup"
                     NotBlank = true;
                     ShowMandatory = true;
                     ExtendedDatatype = Masked;
+                    MultiLine = true;
                     trigger OnValidate()
                     begin
                         Rec.SetSystemPromptToIsolatedStorage(SystemPrompt);
@@ -63,6 +67,7 @@ page 9245 "No. Series Copilot Setup"
                     NotBlank = true;
                     ShowMandatory = true;
                     ExtendedDatatype = Masked;
+                    MultiLine = true;
                     trigger OnValidate()
                     begin
                         Rec.SetFunctionsPromptToIsolatedStorage(FunctionsPrompt);

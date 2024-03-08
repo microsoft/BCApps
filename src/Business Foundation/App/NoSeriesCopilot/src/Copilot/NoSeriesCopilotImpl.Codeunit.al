@@ -55,6 +55,7 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         // This is a temporary solution to get the tools. The tools should be retrieved from the Azure Key Vault.
         // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
         exit(NoSeriesCopilotSetup.GetFunctionsPromptFromIsolatedStorage())
     end;
 
@@ -97,52 +98,68 @@ codeunit 324 "No. Series Copilot Impl."
 
     local procedure CheckIfToolShouldBeCalled(var CompletionAnswerTxt: Text): Boolean
     var
-        JsonObj: JsonObject;
-        FunctionCallNameToken: JsonToken;
-        XPathFunctionCallNameLbl: Label '$.function_call.name', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
+        Response: JsonArray;
+        TypeToken: JsonToken;
+        XPathLbl: Label '$[0].type', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
     begin
-        if not JsonObj.ReadFrom(CompletionAnswerTxt) then
+        if not Response.ReadFrom(CompletionAnswerTxt) then
             exit(false);
 
-        exit(JsonObj.SelectToken(XPathFunctionCallNameLbl, FunctionCallNameToken));
+        if Response.SelectToken(XPathLbl, TypeToken) then
+            exit(TypeToken.AsValue().AsText() = 'function');
+
+        exit(false);
     end;
 
-    local procedure GetToolNameAndParams(var CompletionAnswerTxt: Text; var FunctionCallName: Text; var FunctionCallParams: Text)
+    local procedure GetToolNameAndParamsAndCallId(var CompletionAnswerTxt: Text; var FunctionName: Text; var FunctionArguments: Text; var ToolCallId: Text)
     var
-        JsonObj: JsonObject;
-        FunctionCallNameToken: JsonToken;
-        FunctionCallParamsToken: JsonToken;
-        XPathFunctionCallNameLbl: Label '$.function_call.name', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
-        XPathFunctionCallParamsLbl: Label '$.function_call.arguments', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
+        Response: JsonArray;
+        FunctionNameToken: JsonToken;
+        FunctionArgumentsToken: JsonToken;
+        ToolCallIdToken: JsonToken;
+        XPathFunctionNameLbl: Label '$[0].function.name', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
+        XPathFunctionArgumentsLbl: Label '$[0].function.arguments', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
+        XPathToolCallIdLbl: Label '$[0].id', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
     begin
-        if not JsonObj.ReadFrom(CompletionAnswerTxt) then
+        if not Response.ReadFrom(CompletionAnswerTxt) then
             exit;
 
-        JsonObj.SelectToken(XPathFunctionCallNameLbl, FunctionCallNameToken);
-        JsonObj.SelectToken(XPathFunctionCallParamsLbl, FunctionCallParamsToken);
+        if Response.Count > 1 then
+            Error('More than one tool found'); //TODO: handle More than one tool found case
 
-        FunctionCallName := FunctionCallNameToken.AsValue().AsText();
-        FunctionCallParams := FunctionCallParamsToken.AsValue().AsText();
+        if not Response.SelectToken(XPathFunctionNameLbl, FunctionNameToken) then
+            Error('function.name not found'); //TODO: handle function.name not found case
+
+        if not Response.SelectToken(XPathFunctionArgumentsLbl, FunctionArgumentsToken) then
+            Error('function.arguments not found'); //TODO: handle function.arguments not found case
+
+        if not Response.SelectToken(XPathToolCallIdLbl, ToolCallIdToken) then
+            Error('tool_call_id not found'); //TODO: handle tool_call_id not found case
+
+        FunctionName := FunctionNameToken.AsValue().AsText();
+        FunctionArguments := FunctionArgumentsToken.AsValue().AsText();
+        ToolCallId := ToolCallIdToken.AsValue().AsText();
     end;
 
     local procedure CallTool(var AzureOpenAI: Codeunit "Azure OpenAi"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var ToolDefinition: Text): Text
     var
-        FunctionCallName: Text;
-        FunctionCallParams: Text;
+        ToolCallId: Text;
+        FunctionName: Text;
+        FunctionArguments: Text;
         ToolResponse: Text;
         ToolResponseMessageJson: JsonObject;
         ToolResponseMessage: Text;
         i: Integer;
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
     begin
-        GetToolNameAndParams(ToolDefinition, FunctionCallName, FunctionCallParams);
+        GetToolNameAndParamsAndCallId(ToolDefinition, FunctionName, FunctionArguments, ToolCallId);
 
         case
-            FunctionCallName of
+            FunctionName of
             'generate_new_numbers_series':
-                ToolResponse := GenerateNewNumbersSeries(FunctionCallParams);
+                ToolResponse := BuildGenerateNewNumbersSeriesPrompt(FunctionArguments);
             'modify_existing_numbers_series':
-                ToolResponse := ModifyExistingNumbersSeries(FunctionCallParams);
+                ToolResponse := BuildModifyExistingNumbersSeriesPrompt(FunctionArguments);
             else
                 Error('Function call not supported');
         end;
@@ -152,14 +169,16 @@ codeunit 324 "No. Series Copilot Impl."
 
         // remove the tool message from the chat messages
         for i := 1 to AOAIChatMessages.GetTools().Count do
-            AOAIChatMessages.DeleteTool(i);
+            AOAIChatMessages.DeleteTool(1); //TODO: when the tool is removed the index of the next tool is i-1, so the next tool should be removed with index 1
+
 
         // add the assistant response and function response to the messages
-        AOAIChatMessages.AddAssistantMessage(ToolDefinition);
+        // AOAIChatMessages.AddAssistantMessage(ToolDefinition);
 
         // adding function response to messages
-        ToolResponseMessageJson.Add('role', 'function');
-        ToolResponseMessageJson.Add('name', FunctionCallName);
+        ToolResponseMessageJson.Add('tool_call_id', ToolCallId);
+        ToolResponseMessageJson.Add('role', 'tool');
+        ToolResponseMessageJson.Add('name', FunctionName);
         ToolResponseMessageJson.Add('content', ToolResponse);
         ToolResponseMessageJson.WriteTo(ToolResponseMessage);
         AOAIChatMessages.AddAssistantMessage(ToolResponseMessage);
@@ -172,6 +191,148 @@ codeunit 324 "No. Series Copilot Impl."
             Error(AOAIOperationResponse.GetError());
     end;
 
+    local procedure BuildGenerateNewNumbersSeriesPrompt(var FunctionArguments: Text): Text
+    var
+        NewNoSeriesPrompt: TextBuilder;
+    begin
+        NewNoSeriesPrompt.AppendLine('Your task: Generate No. Series for the next entities: ');
+        if CheckIfTablesSpecified(FunctionArguments) then
+            ListOnlySpecifiedTables(NewNoSeriesPrompt, GetEntities(FunctionArguments))
+        else
+            ListAllTablesWithNumberSeries(NewNoSeriesPrompt);
+
+        NewNoSeriesPrompt.AppendLine('Apply next patterns: ');
+        if CheckIfPatternSpecified(FunctionArguments) then
+            NewNoSeriesPrompt.AppendLine(GetPattern(FunctionArguments))
+        else
+            ListDefaultOrExistingPattern(NewNoSeriesPrompt);
+
+        exit(NewNoSeriesPrompt.ToText());
+    end;
+
+    local procedure CheckIfTablesSpecified(var FunctionArguments: Text): Boolean
+    begin
+        exit(GetEntities(FunctionArguments).Count > 0);
+    end;
+
+    local procedure GetEntities(var FunctionArguments: Text): List of [Text]
+    var
+        Arguments: JsonObject;
+        EntitiesToken: JsonToken;
+        XpathLbl: Label '$.entities', Locked = true;
+    begin
+        if not Arguments.ReadFrom(FunctionArguments) then
+            exit;
+
+        if not Arguments.SelectToken(XpathLbl, EntitiesToken) then
+            exit;
+
+        exit(EntitiesToken.AsValue().AsText().Split());
+    end;
+
+    local procedure ListOnlySpecifiedTables(var NewNoSeriesPrompt: TextBuilder; Entities: List of [Text])
+    begin
+        //TODO: implement
+        Error('Not implemented');
+    end;
+
+    local procedure ListAllTablesWithNumberSeries(var NewNoSeriesPrompt: TextBuilder)
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        // Looping trhough all Setup tables
+        TableMetadata.SetFilter(Name, '* Setup');
+        TableMetadata.SetRange(ObsoleteState, TableMetadata.ObsoleteState::No); //TODO: Check if 'Pending' should be included
+        TableMetadata.SetRange(TableType, TableMetadata.TableType::Normal);
+        if TableMetadata.FindSet() then
+            repeat
+                ListAllNoSeriesFields(NewNoSeriesPrompt, TableMetadata);
+            until TableMetadata.Next() = 0;
+    end;
+
+    local procedure ListAllNoSeriesFields(var NewNoSeriesPrompt: TextBuilder; var TableMetadata: Record "Table Metadata")
+    var
+        Field: Record "Field";
+    begin
+        Field.SetRange(TableNo, TableMetadata.ID);
+        Field.SetFilter(ObsoleteState, '<>%1', Field.ObsoleteState::Removed);
+        Field.SetRange(Type, Field.Type::Code);
+        Field.SetRange(Len, 20);
+        Field.SetFilter(FieldName, '*Nos.'); //TODO: Check if this is the correct filter
+        if Field.FindSet() then
+            repeat
+                NewNoSeriesPrompt.AppendLine('TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', Name: ' + Field.FieldName);
+            until Field.Next() = 0;
+    end;
+
+    local procedure CheckIfPatternSpecified(var FunctionArguments: Text): Boolean
+    begin
+        exit(GetPattern(FunctionArguments) <> '');
+    end;
+
+    local procedure GetPattern(var FunctionArguments: Text): Text
+    var
+        Arguments: JsonObject;
+        PatternToken: JsonToken;
+        XpathLbl: Label '$.pattern', Locked = true;
+    begin
+        if not Arguments.ReadFrom(FunctionArguments) then
+            exit;
+
+        if not Arguments.SelectToken(XpathLbl, PatternToken) then
+            exit;
+
+        exit(PatternToken.AsValue().AsText());
+    end;
+
+
+    local procedure ListDefaultOrExistingPattern(var NewNoSeriesPrompt: TextBuilder): Text
+    begin
+        if CheckIfNumberSeriesExists() then
+            ListExistingPattern(NewNoSeriesPrompt)
+        else
+            ListDefaultPattern(NewNoSeriesPrompt);
+    end;
+
+    local procedure CheckIfNumberSeriesExists(): Boolean
+    var
+        NoSeries: Record "No. Series";
+    begin
+        exit(not NoSeries.IsEmpty);
+    end;
+
+    local procedure ListExistingPattern(var NewNoSeriesPrompt: TextBuilder)
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesManagement: Codeunit "No. Series";
+        i: Integer;
+    begin
+        // show first 5 existing number series as example
+        // TODO: Probably there is better way to show the existing number series, maybe by showing the most used ones, or the ones that are used in the same tables as the ones that are specified in the input
+        if NoSeries.FindSet() then
+            repeat
+                NewNoSeriesPrompt.AppendLine('Code: ' + NoSeries.Code + ', Description: ' + NoSeries.Description + ', Last No.: ' + NoSeriesManagement.GetLastNoUsed(NoSeries.Code));
+                if i > 5 then
+                    break;
+                i += 1;
+            until NoSeries.Next() = 0;
+    end;
+
+    local procedure ListDefaultPattern(var NewNoSeriesPrompt: TextBuilder)
+    begin
+        // TODO: Probably there are better default patterns. These are taken from CRONUS USA, Inc. demo data
+        NewNoSeriesPrompt.AppendLine('Code: CUST, Description: Customer, Last No.: C00010');
+        NewNoSeriesPrompt.AppendLine('Code: GJNL-GEN, Description: General Journal, Last No.: G00001');
+        NewNoSeriesPrompt.AppendLine('Code: P-CR, Description: Purchase Credit Memo, Last No.: 1001');
+        NewNoSeriesPrompt.AppendLine('Code: P-CR+, Description: Posted Purchase Credit Memo, Last No.: 109001');
+        NewNoSeriesPrompt.AppendLine('Code: S-ORD, Description: Sales Order, Last No.: S-ORD101009');
+        NewNoSeriesPrompt.AppendLine('Code: SVC-INV+, Description: Posted Service Invoices, Last No.: PSVI000001');
+    end;
+
+    local procedure BuildModifyExistingNumbersSeriesPrompt(var FunctionCallParams: Text): Text
+    begin
+        Error('Not implemented');
+    end;
 
     [TryFunction]
     local procedure CheckIfValidCompletion(var Completion: Text)

@@ -17,8 +17,8 @@ codeunit 327 "No. Series Copilot Register"
         UpgradeTag: Codeunit "Upgrade Tag";
         NoSeriesCopilotUpgradeTags: Codeunit "No. Series Copilot Upgr. Tags";
     begin
-        if not EnvironmentInformation.IsSaaSInfrastructure() then
-            exit;
+        // if not EnvironmentInformation.IsSaaSInfrastructure() then //TODO: Check how to keep IsSaaSInfrastructure but be able to test in Docker Environment
+        //     exit;
 
         if UpgradeTag.HasUpgradeTag(NoSeriesCopilotUpgradeTags.GetImplementationUpgradeTag()) then
             exit;
