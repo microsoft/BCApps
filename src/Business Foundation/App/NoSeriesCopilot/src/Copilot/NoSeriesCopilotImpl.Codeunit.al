@@ -147,8 +147,6 @@ codeunit 324 "No. Series Copilot Impl."
         FunctionName: Text;
         FunctionArguments: Text;
         ToolResponse: Text;
-        ToolResponseMessageJson: JsonObject;
-        ToolResponseMessage: Text;
         i: Integer;
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
     begin
@@ -171,17 +169,8 @@ codeunit 324 "No. Series Copilot Impl."
         for i := 1 to AOAIChatMessages.GetTools().Count do
             AOAIChatMessages.DeleteTool(1); //TODO: when the tool is removed the index of the next tool is i-1, so the next tool should be removed with index 1
 
-
-        // add the assistant response and function response to the messages
-        // AOAIChatMessages.AddAssistantMessage(ToolDefinition);
-
         // adding function response to messages
-        ToolResponseMessageJson.Add('tool_call_id', ToolCallId);
-        ToolResponseMessageJson.Add('role', 'tool');
-        ToolResponseMessageJson.Add('name', FunctionName);
-        ToolResponseMessageJson.Add('content', ToolResponse);
-        ToolResponseMessageJson.WriteTo(ToolResponseMessage);
-        AOAIChatMessages.AddAssistantMessage(ToolResponseMessage);
+        AOAIChatMessages.AddToolMessage(ToolCallId, FunctionName, ToolResponse);
 
         // call the API again to get the final response from the model
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
