@@ -97,6 +97,32 @@ codeunit 7778 "AOAI Tools Impl"
         exit(ToolChoice);
     end;
 
+    [TryFunction]
+    [NonDebuggable]
+    procedure IsToolsList(Message: Text)
+    var
+        MessageJArray: JsonArray;
+        ToolToken: JsonToken;
+        TypeToken: JsonToken;
+        XPathLbl: Label '$.type', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
+        i: Integer;
+    begin
+        MessageJArray := ConvertToJsonArray(Message);
+
+        for i := 0 to MessageJArray.Count - 1 do begin
+            MessageJArray.Get(i, ToolToken);
+            ToolToken.SelectToken(XPathLbl, TypeToken);
+            if TypeToken.AsValue().AsText() <> 'function' then
+                Error('');
+        end;
+    end;
+
+    [NonDebuggable]
+    procedure ConvertToJsonArray(Message: Text) MessageJArray: JsonArray;
+    begin
+        MessageJArray.ReadFrom(Message);
+    end;
+
     local procedure Initialize()
     begin
         if Initialized then

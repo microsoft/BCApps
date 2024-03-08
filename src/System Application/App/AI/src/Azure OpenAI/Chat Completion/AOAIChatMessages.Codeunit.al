@@ -70,17 +70,30 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Adds a tool result to the chat messages history.
+    /// </summary>
+    /// <param name="ToolCallId">The id of the tool call.</param>
+    /// <param name="FunctionName">The name of the called function.</param>
+    /// <param name="Result">The result of the tool call.</param>
+    [NonDebuggable]
+    procedure AddToolMessage(ToolCallId: Text; ToolName: Text; ToolResult: Text)
+    begin
+        AOAIChatMessagesImpl.AddToolMessage(ToolCallId, ToolName, ToolResult);
+    end;
+
+    /// <summary>
     /// Modifies a message in the chat messages history.
     /// </summary>
     /// <param name="Id">Id of the message.</param>
     /// <param name="NewMessage">The new message.</param>
     /// <param name="NewRole">The new role.</param>
     /// <param name="NewName">The new name.</param>
+    /// <param name="NewToolCallId">The new tool call id.</param>
     /// <error>Message id does not exist.</error>
     [NonDebuggable]
-    procedure ModifyMessage(Id: Integer; NewMessage: Text; NewRole: Enum "AOAI Chat Roles"; NewName: Text[2048])
+    procedure ModifyMessage(Id: Integer; NewMessage: Text; NewRole: Enum "AOAI Chat Roles"; NewName: Text[2048]; NewToolCallId: Text)
     begin
-        AOAIChatMessagesImpl.ModifyMessage(Id, NewMessage, NewRole, NewName);
+        AOAIChatMessagesImpl.ModifyMessage(Id, NewMessage, NewRole, NewName, NewToolCallId);
     end;
 
     /// <summary>
@@ -272,5 +285,14 @@ codeunit 7763 "AOAI Chat Messages"
     internal procedure AssembleTools(): JsonArray
     begin
         exit(AOAIToolsImpl.PrepareTools());
+    end;
+
+    /// <summary>
+    /// Checks if the message is a list of tools.
+    /// </summary>
+    [NonDebuggable]
+    procedure IsToolsList(Message: Text): Boolean
+    begin
+        exit(AOAIChatMessagesImpl.IsToolsList(Message));
     end;
 }
