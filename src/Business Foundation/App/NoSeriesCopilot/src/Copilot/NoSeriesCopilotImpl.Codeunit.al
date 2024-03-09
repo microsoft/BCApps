@@ -169,6 +169,9 @@ codeunit 324 "No. Series Copilot Impl."
         for i := 1 to AOAIChatMessages.GetTools().Count do
             AOAIChatMessages.DeleteTool(1); //TODO: when the tool is removed the index of the next tool is i-1, so the next tool should be removed with index 1
 
+        ToolResponse := ToolResponse + '\nAnswer in Json format'; //TODO: implement better output format specification declaration
+        AOAIChatCompletionParams.SetJsonMode(true);
+
         // adding function response to messages
         AOAIChatMessages.AddToolMessage(ToolCallId, FunctionName, ToolResponse);
 
@@ -228,6 +231,7 @@ codeunit 324 "No. Series Copilot Impl."
     local procedure ListAllTablesWithNumberSeries(var NewNoSeriesPrompt: TextBuilder)
     var
         TableMetadata: Record "Table Metadata";
+        i: Integer;
     begin
         // Looping trhough all Setup tables
         TableMetadata.SetFilter(Name, '* Setup');
@@ -236,6 +240,9 @@ codeunit 324 "No. Series Copilot Impl."
         if TableMetadata.FindSet() then
             repeat
                 ListAllNoSeriesFields(NewNoSeriesPrompt, TableMetadata);
+                if i > 5 then  // TODO: Refactor this, probably send tables in chunks, as when there are many tables the prompt will reach the token limit and timeout
+                    break;
+                i += 1;
             until TableMetadata.Next() = 0;
     end;
 
