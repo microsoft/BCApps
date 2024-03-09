@@ -26,8 +26,11 @@ codeunit 135033 "Password Dialog Test"
         DisablePasswordValidation: Boolean;
         PasswordMissmatch: Boolean;
         ValidPasswordTxt: Label 'Some Password 2!';
+        AnotherValidPasswordTxt: Label 'Some Password 3!';
         InValidPasswordTxt: Label 'Some Password';
         AnotherPasswordTxt: Label 'Another Password';
+        PasswordSameAsOldErr: Label 'The new password cannot be the same as the old password.';
+        OldPasswordMismatchErr: Label 'The old password does not match the entered password.';
 
     [Test]
     [HandlerFunctions('PasswordDialogModalPageHandler')]
@@ -221,6 +224,29 @@ codeunit 135033 "Password Dialog Test"
         Assert.AreEqual(ValidPasswordTxt, GetPasswordValue(Password), 'A diferrent password was expected.')
     end;
 
+    [Test]
+    [HandlerFunctions('ChangePasswordDialogWitldOldPasswordModalPageHandler')]
+    procedure OpenChangePasswordDialogWithOldPasswordTest();
+    var
+        Password: SecretText;
+        OldPassword: SecretText;
+    begin
+        // [SCENARIO] Open Password dialog in change password mode. Old password
+        // The old password has been passed on.
+        PermissionsMock.Set('All Objects');
+
+        // [GIVEN] The old password is for comparison that the old password matches the entered user and 
+        // the new password does not match the old password.
+        OldPassword := SecretStrSubstNo(ValidPasswordTxt);
+
+        // [WHEN] The password dialog is opened in change password mode.
+        PasswordDialogManagement.OpenChangePasswordDialog(OldPassword, Password);
+
+        // [THEN] The Old and New passwords are retrieved.
+        Assert.AreEqual(ValidPasswordTxt, GetPasswordValue(OldPassword), 'A diferrent password was expected.');
+        Assert.AreEqual(AnotherValidPasswordTxt, GetPasswordValue(Password), 'A diferrent password was expected.')
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Password Dialog Management", 'OnSetMinPasswordLength', '', true, true)]
     local procedure OnSetMinimumPAsswordLength(var MinPasswordLength: Integer);
     begin
@@ -243,11 +269,26 @@ codeunit 135033 "Password Dialog Test"
     [ModalPageHandler]
     procedure ChangePasswordDialogModalPageHandler(var PasswordDialog: TestPage "Password Dialog");
     begin
-        Assert.IsTrue(PasswordDialog.OldPassword.Visible(), 'Old Password Field should not be visible.');
-        Assert.IsTrue(PasswordDialog.ConfirmPassword.Visible(), 'Confirm Password Field should not be visible.');
+        Assert.IsTrue(PasswordDialog.OldPassword.Visible(), 'Old Password Field should be visible.');
+        Assert.IsTrue(PasswordDialog.ConfirmPassword.Visible(), 'Confirm Password Field should be visible.');
         PasswordDialog.OldPassword.SetValue(InValidPasswordTxt);
         PasswordDialog.Password.SetValue(ValidPasswordTxt);
         PasswordDialog.ConfirmPassword.SetValue(ValidPasswordTxt);
+        PasswordDialog.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure ChangePasswordDialogWitldOldPasswordModalPageHandler(var PasswordDialog: TestPage "Password Dialog");
+    begin
+        Assert.IsTrue(PasswordDialog.OldPassword.Visible(), 'Old Password Field should be visible.');
+        Assert.IsTrue(PasswordDialog.ConfirmPassword.Visible(), 'Confirm Password Field should be visible.');
+        asserterror PasswordDialog.OldPassword.SetValue(InValidPasswordTxt);
+        Assert.ExpectedError(OldPasswordMismatchErr);
+        PasswordDialog.OldPassword.SetValue(ValidPasswordTxt);
+        asserterror PasswordDialog.Password.SetValue(ValidPasswordTxt);
+        Assert.ExpectedError(PasswordSameAsOldErr);
+        PasswordDialog.Password.SetValue(AnotherValidPasswordTxt);
+        PasswordDialog.ConfirmPassword.SetValue(AnotherValidPasswordTxt);
         PasswordDialog.OK().Invoke();
     end;
 

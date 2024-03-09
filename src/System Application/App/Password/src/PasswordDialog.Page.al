@@ -27,6 +27,12 @@ page 9810 "Password Dialog"
                 ExtendedDatatype = Masked;
                 ToolTip = 'Specifies the current password, before the user defines a new one.';
                 Visible = ShowOldPassword;
+                trigger OnValidate()
+                begin
+                    if OldPasswordToCompare <> '' then
+                        if OldPasswordToCompare <> OldPasswordValue then
+                            Error(OldPasswordMismatchErr);
+                end;
             }
             field(Password; PasswordValue)
             {
@@ -39,6 +45,10 @@ page 9810 "Password Dialog"
                 begin
                     if RequiresPasswordValidation then
                         PasswordDialogImpl.ValidatePasswordStrength(PasswordValue);
+
+                    if OldPasswordToCompare <> '' then
+                        if OldPasswordToCompare = PasswordValue then
+                            Error(PasswordSameAsOldErr);
                 end;
             }
             field(ConfirmPassword; ConfirmPasswordValue)
@@ -85,12 +95,16 @@ page 9810 "Password Dialog"
     var
         PasswordDialogImpl: Codeunit "Password Dialog Impl.";
         PasswordMismatchErr: Label 'The passwords that you entered do not match.';
+        PasswordSameAsOldErr: Label 'The new password cannot be the same as the old password.';
+        OldPasswordMismatchErr: Label 'The old password does not match the entered password.';
         [NonDebuggable]
         PasswordValue: Text;
         [NonDebuggable]
         ConfirmPasswordValue: Text;
         [NonDebuggable]
         OldPasswordValue: Text;
+        [NonDebuggable]
+        OldPasswordToCompare: Text;
         ShowOldPassword: Boolean;
         ValidPassword: Boolean;
         RequiresPasswordValidation: Boolean;
@@ -148,6 +162,16 @@ page 9810 "Password Dialog"
     begin
         if ValidPassword then
             Password := OldPasswordValue;
+    end;
+
+    /// <summary>
+    /// Set the old password value to compare with typed on the page.
+    /// </summary>
+    /// <param name="OldPassword">Old password to compare.</param>
+    [Scope('OnPrem')]
+    procedure SetOldPasswordToCompareSecretValue(OldPassword: SecretText)
+    begin
+        OldPasswordToCompare := OldPassword.Unwrap();
     end;
 
     /// <summary>

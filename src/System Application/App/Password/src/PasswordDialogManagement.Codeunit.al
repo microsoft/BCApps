@@ -116,7 +116,7 @@ codeunit 9810 "Password Dialog Management"
     /// Opens a dialog for the user to change a password and returns the old and new typed passwords if there is no validation error,
     /// otherwise an empty text are returned.
     /// </summary>
-    /// <param name="OldPassword">Out parameter, the old password user typed on the dialog.</param>
+    /// <param name="OldPassword">Out parameter, the old password to compare with the password user typed on the dialog.</param>
     /// <param name="Password">Out parameter, the new password user typed on the dialog.</param>
     procedure OpenChangePasswordDialog(var OldPassword: SecretText; var Password: SecretText)
     begin

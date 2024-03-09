@@ -73,6 +73,7 @@ codeunit 9811 "Password Dialog Impl."
         PasswordDialog: Page "Password Dialog";
     begin
         PasswordDialog.EnableChangePassword();
+        PasswordDialog.SetOldPasswordToCompareSecretValue(OldPassword);
         if PasswordDialog.RunModal() = Action::OK then begin
             Password := PasswordDialog.GetPasswordSecretValue();
             OldPassword := PasswordDialog.GetOldPasswordSecretValue();
