@@ -90,25 +90,10 @@ codeunit 324 "No. Series Copilot Impl."
         else
             Error(AOAIOperationResponse.GetError());
 
-        if CheckIfToolShouldBeCalled(CompletionAnswerTxt) then
+        if AOAIChatMessages.IsToolsList(CompletionAnswerTxt) then
             CompletionAnswerTxt := CallTool(AzureOpenAI, AOAIChatMessages, AOAIChatCompletionParams, CompletionAnswerTxt);
 
         exit(CompletionAnswerTxt);
-    end;
-
-    local procedure CheckIfToolShouldBeCalled(var CompletionAnswerTxt: Text): Boolean
-    var
-        Response: JsonArray;
-        TypeToken: JsonToken;
-        XPathLbl: Label '$[0].type', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
-    begin
-        if not Response.ReadFrom(CompletionAnswerTxt) then
-            exit(false);
-
-        if Response.SelectToken(XPathLbl, TypeToken) then
-            exit(TypeToken.AsValue().AsText() = 'function');
-
-        exit(false);
     end;
 
     local procedure GetToolNameAndParamsAndCallId(var CompletionAnswerTxt: Text; var FunctionName: Text; var FunctionArguments: Text; var ToolCallId: Text)
@@ -154,9 +139,9 @@ codeunit 324 "No. Series Copilot Impl."
 
         case
             FunctionName of
-            'generate_new_numbers_series':
+            'get_new_tables_and_patterns':
                 ToolResponse := BuildGenerateNewNumbersSeriesPrompt(FunctionArguments);
-            'modify_existing_numbers_series':
+            'get_existing_tables_and_patterns':
                 ToolResponse := BuildModifyExistingNumbersSeriesPrompt(FunctionArguments);
             else
                 Error('Function call not supported');
@@ -186,18 +171,22 @@ codeunit 324 "No. Series Copilot Impl."
     local procedure BuildGenerateNewNumbersSeriesPrompt(var FunctionArguments: Text): Text
     var
         NewNoSeriesPrompt: TextBuilder;
+        NewNumbersSeriesOutputFormatLbl: Label '{noSeries:[ {seriesCode: ''string (len 20) (mandatory)'',lineNo: ''integer (mandatory)'',description: ''string (len 100) (mandatory)'',startingNo: ''string (len 20) (mandatory)'',endingNo: ''string (len 20) (mandatory)'',warningNo: ''string (len 20) (mandatory)'',incrementByNo: ''integer (mandatory)'', TableId : ''integer (mandatory)'',FieldId:''integer (mandatory)'' },{seriesCode:...}, ... ]}', Locked = true;
     begin
-        NewNoSeriesPrompt.AppendLine('Your task: Generate No. Series for the next entities: ');
+        NewNoSeriesPrompt.AppendLine('Tables:');
         if CheckIfTablesSpecified(FunctionArguments) then
             ListOnlySpecifiedTables(NewNoSeriesPrompt, GetEntities(FunctionArguments))
         else
             ListAllTablesWithNumberSeries(NewNoSeriesPrompt);
 
-        NewNoSeriesPrompt.AppendLine('Apply next patterns: ');
+        NewNoSeriesPrompt.AppendLine('Patterns:');
         if CheckIfPatternSpecified(FunctionArguments) then
             NewNoSeriesPrompt.AppendLine(GetPattern(FunctionArguments))
         else
             ListDefaultOrExistingPattern(NewNoSeriesPrompt);
+
+        NewNoSeriesPrompt.AppendLine('Response format: Json Array:');
+        NewNoSeriesPrompt.AppendLine(NewNumbersSeriesOutputFormatLbl);
 
         exit(NewNoSeriesPrompt.ToText());
     end;
@@ -239,14 +228,13 @@ codeunit 324 "No. Series Copilot Impl."
         TableMetadata.SetRange(TableType, TableMetadata.TableType::Normal);
         if TableMetadata.FindSet() then
             repeat
-                ListAllNoSeriesFields(NewNoSeriesPrompt, TableMetadata);
+                ListAllNoSeriesFields(NewNoSeriesPrompt, TableMetadata, i);
                 if i > 5 then  // TODO: Refactor this, probably send tables in chunks, as when there are many tables the prompt will reach the token limit and timeout
                     break;
-                i += 1;
             until TableMetadata.Next() = 0;
     end;
 
-    local procedure ListAllNoSeriesFields(var NewNoSeriesPrompt: TextBuilder; var TableMetadata: Record "Table Metadata")
+    local procedure ListAllNoSeriesFields(var NewNoSeriesPrompt: TextBuilder; var TableMetadata: Record "Table Metadata"; var AddedCount: Integer)
     var
         Field: Record "Field";
     begin
@@ -257,7 +245,8 @@ codeunit 324 "No. Series Copilot Impl."
         Field.SetFilter(FieldName, '*Nos.'); //TODO: Check if this is the correct filter
         if Field.FindSet() then
             repeat
-                NewNoSeriesPrompt.AppendLine('TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', Name: ' + Field.FieldName);
+                NewNoSeriesPrompt.AppendLine('TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + Field.FieldName);
+                AddedCount += 1;
             until Field.Next() = 0;
     end;
 
@@ -307,7 +296,7 @@ codeunit 324 "No. Series Copilot Impl."
         // TODO: Probably there is better way to show the existing number series, maybe by showing the most used ones, or the ones that are used in the same tables as the ones that are specified in the input
         if NoSeries.FindSet() then
             repeat
-                NewNoSeriesPrompt.AppendLine('Code: ' + NoSeries.Code + ', Description: ' + NoSeries.Description + ', Last No.: ' + NoSeriesManagement.GetLastNoUsed(NoSeries.Code));
+                NewNoSeriesPrompt.AppendLine('Code: ' + NoSeries.Code + ', Description: ' + NoSeries.Description + ', Pattern: ' + NoSeriesManagement.GetLastNoUsed(NoSeries.Code)); //TODO: Replace `GetLastNoUsed` with `GetStartingNo`
                 if i > 5 then
                     break;
                 i += 1;
@@ -317,12 +306,12 @@ codeunit 324 "No. Series Copilot Impl."
     local procedure ListDefaultPattern(var NewNoSeriesPrompt: TextBuilder)
     begin
         // TODO: Probably there are better default patterns. These are taken from CRONUS USA, Inc. demo data
-        NewNoSeriesPrompt.AppendLine('Code: CUST, Description: Customer, Last No.: C00010');
-        NewNoSeriesPrompt.AppendLine('Code: GJNL-GEN, Description: General Journal, Last No.: G00001');
-        NewNoSeriesPrompt.AppendLine('Code: P-CR, Description: Purchase Credit Memo, Last No.: 1001');
-        NewNoSeriesPrompt.AppendLine('Code: P-CR+, Description: Posted Purchase Credit Memo, Last No.: 109001');
-        NewNoSeriesPrompt.AppendLine('Code: S-ORD, Description: Sales Order, Last No.: S-ORD101009');
-        NewNoSeriesPrompt.AppendLine('Code: SVC-INV+, Description: Posted Service Invoices, Last No.: PSVI000001');
+        NewNoSeriesPrompt.AppendLine('Code: CUST, Description: Customer, Pattern: C00001');
+        NewNoSeriesPrompt.AppendLine('Code: GJNL-GEN, Description: General Journal, Pattern: G00001');
+        NewNoSeriesPrompt.AppendLine('Code: P-CR, Description: Purchase Credit Memo, Pattern: 1001');
+        NewNoSeriesPrompt.AppendLine('Code: P-CR+, Description: Posted Purchase Credit Memo, Pattern: 109001');
+        NewNoSeriesPrompt.AppendLine('Code: S-ORD, Description: Sales Order, Pattern: S-ORD101001');
+        NewNoSeriesPrompt.AppendLine('Code: SVC-INV+, Description: Posted Service Invoices, Pattern: PSVI000001');
     end;
 
     local procedure BuildModifyExistingNumbersSeriesPrompt(var FunctionCallParams: Text): Text
@@ -333,9 +322,12 @@ codeunit 324 "No. Series Copilot Impl."
     [TryFunction]
     local procedure CheckIfValidCompletion(var Completion: Text)
     var
-        JsonArray: JsonArray;
+        JsonObject: JsonObject;
+        JsonArrayToken: JsonToken;
+        XPathLbl: Label '$.noSeries', Locked = true;
     begin
-        JsonArray.ReadFrom(Completion);
+        JsonObject.ReadFrom(Completion);
+        JsonObject.SelectToken(XPathLbl, JsonArrayToken);
     end;
 
     local procedure SaveGenerationHistory(var NoSeriesProposal: Record "No. Series Proposal"; InputText: Text)
