@@ -70,17 +70,30 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Adds a tool result to the chat messages history.
+    /// </summary>
+    /// <param name="ToolCallId">The id of the tool call.</param>
+    /// <param name="FunctionName">The name of the called function.</param>
+    /// <param name="Result">The result of the tool call.</param>
+    [NonDebuggable]
+    procedure AddToolMessage(ToolCallId: Text; ToolName: Text; ToolResult: Text)
+    begin
+        AOAIChatMessagesImpl.AddToolMessage(ToolCallId, ToolName, ToolResult);
+    end;
+
+    /// <summary>
     /// Modifies a message in the chat messages history.
     /// </summary>
     /// <param name="Id">Id of the message.</param>
     /// <param name="NewMessage">The new message.</param>
     /// <param name="NewRole">The new role.</param>
     /// <param name="NewName">The new name.</param>
+    /// <param name="NewToolCallId">The new tool call id.</param>
     /// <error>Message id does not exist.</error>
     [NonDebuggable]
-    procedure ModifyMessage(Id: Integer; NewMessage: Text; NewRole: Enum "AOAI Chat Roles"; NewName: Text[2048])
+    procedure ModifyMessage(Id: Integer; NewMessage: Text; NewRole: Enum "AOAI Chat Roles"; NewName: Text[2048]; NewToolCallId: Text)
     begin
-        AOAIChatMessagesImpl.ModifyMessage(Id, NewMessage, NewRole, NewName);
+        AOAIChatMessagesImpl.ModifyMessage(Id, NewMessage, NewRole, NewName, NewToolCallId);
     end;
 
     /// <summary>
@@ -152,6 +165,20 @@ codeunit 7763 "AOAI Chat Messages"
     procedure GetLastName(): Text[2048]
     begin
         exit(AOAIChatMessagesImpl.GetLastName());
+    end;
+
+    /// <summary>
+    /// Parses the message to get the function name, function arguments and tool call id.
+    /// </summary>
+    /// <param name="Message">The tools array returned by the Azure OpenAI</param>
+    /// <param name="FunctionName">Name of the function to call</param>
+    /// <param name="FunctionArguments">Arguments to pass to the function</param>
+    /// <param name="ToolCallId">Tool Call Id returned by Azure OpenAI</param>
+    /// <param name="Index">Index of the tool in the array, index starts from 0</param>
+    [NonDebuggable]
+    procedure ParseTool(Message: Text; var FunctionName: Text; var FunctionArguments: Text; var ToolCallId: Text; Index: Integer)
+    begin
+        AOAIToolsImpl.ParseTool(Message, FunctionName, FunctionArguments, ToolCallId, Index);
     end;
 
     /// <summary>
@@ -272,5 +299,14 @@ codeunit 7763 "AOAI Chat Messages"
     internal procedure AssembleTools(): JsonArray
     begin
         exit(AOAIToolsImpl.PrepareTools());
+    end;
+
+    /// <summary>
+    /// Checks if the message is a list of tools.
+    /// </summary>
+    [NonDebuggable]
+    procedure IsToolsList(Message: Text): Boolean
+    begin
+        exit(AOAIChatMessagesImpl.IsToolsList(Message));
     end;
 }

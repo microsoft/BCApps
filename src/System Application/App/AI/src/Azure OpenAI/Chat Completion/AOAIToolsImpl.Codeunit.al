@@ -97,6 +97,56 @@ codeunit 7778 "AOAI Tools Impl"
         exit(ToolChoice);
     end;
 
+    [TryFunction]
+    [NonDebuggable]
+    procedure IsToolsList(Message: Text)
+    var
+        MessageJArray: JsonArray;
+        ToolToken: JsonToken;
+        TypeToken: JsonToken;
+        XPathLbl: Label '$.type', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
+        i: Integer;
+    begin
+        MessageJArray := ConvertToJsonArray(Message);
+
+        for i := 0 to MessageJArray.Count - 1 do begin
+            MessageJArray.Get(i, ToolToken);
+            ToolToken.SelectToken(XPathLbl, TypeToken);
+            if TypeToken.AsValue().AsText() <> 'function' then
+                Error('');
+        end;
+    end;
+
+    [NonDebuggable]
+    procedure ConvertToJsonArray(Message: Text) MessageJArray: JsonArray;
+    begin
+        MessageJArray.ReadFrom(Message);
+    end;
+
+    [NonDebuggable]
+    procedure ParseTool(Message: Text; var FunctionName: Text; var FunctionArguments: Text; var ToolCallId: Text; Index: Integer)
+    var
+        ToolsJArray: JsonArray;
+        FunctionNameToken, FunctionArgumentsToken, ToolCallIdToken : JsonToken;
+        FunctionNameXPath, FunctionArgumentsXPath, ToolCallIdXPath : Text;
+    begin
+        if not ToolsJArray.ReadFrom(Message) then
+            exit;
+
+        // Construct XPath with dynamic index
+        FunctionNameXPath := StrSubstNo('$[%1].function.name', Index);
+        FunctionArgumentsXPath := StrSubstNo('$[%1].function.arguments', Index);
+        ToolCallIdXPath := StrSubstNo('$[%1].id', Index);
+
+        ToolsJArray.SelectToken(FunctionNameXPath, FunctionNameToken);
+        ToolsJArray.SelectToken(FunctionArgumentsXPath, FunctionArgumentsToken);
+        ToolsJArray.SelectToken(ToolCallIdXPath, ToolCallIdToken);
+
+        FunctionName := FunctionNameToken.AsValue().AsText();
+        FunctionArguments := FunctionArgumentsToken.AsValue().AsText();
+        ToolCallId := ToolCallIdToken.AsValue().AsText();
+    end;
+
     local procedure Initialize()
     begin
         if Initialized then
