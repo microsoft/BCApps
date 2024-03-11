@@ -18,16 +18,54 @@ codeunit 1289 "OAuth Impl."
         TelemetrySecurityTok: Label 'AL Security', Locked = true;
         WeakHashFunctionTxt: Label 'Use of weak hash function', Locked = true;
 
+#if not CLEAN24
     [TryFunction]
     [NonDebuggable]
+    [Obsolete('Use GetRequestToken with SecretText data type for AccessTokenKey and AccessTokenSecret.', '24.0')]
     procedure GetRequestToken(ConsumerKey: Text; ConsumerSecret: Text; RequestTokenUrl: Text; CallbackUrl: Text; var AccessTokenKey: Text; var AccessTokenSecret: Text)
+    var
+        SecretAccessTokenKey: SecretText;
+        SecretAccessTokenSecret: SecretText;
+    begin
+        GetRequestToken(ConsumerKey, ConsumerSecret, RequestTokenUrl, CallbackUrl, SecretAccessTokenKey, SecretAccessTokenSecret);
+        AccessTokenKey := SecretAccessTokenKey.Unwrap();
+        AccessTokenSecret := SecretAccessTokenSecret.Unwrap();
+    end;
+
+    [TryFunction]
+    [NonDebuggable]
+    [Obsolete('Use GetAccessToken with SecretText data type for AccessTokenKey and AccessTokenSecret.', '24.0')]
+    procedure GetAccessToken(ConsumerKey: Text; ConsumerSecret: Text; RequestTokenUrl: Text; Verifier: Text; RequestTokenKey: Text; RequestTokenSecret: Text; var AccessTokenKey: Text; var AccessTokenSecret: Text)
+    var
+        SecretAccessTokenKey: SecretText;
+        SecretAccessTokenSecret: SecretText;
+    begin
+        GetAccessToken(ConsumerKey, ConsumerSecret, RequestTokenUrl, Verifier, RequestTokenKey, RequestTokenSecret, SecretAccessTokenKey, SecretAccessTokenSecret);
+        AccessTokenKey := SecretAccessTokenKey.Unwrap();
+        AccessTokenSecret := SecretAccessTokenSecret.Unwrap();
+    end;
+
+    [TryFunction]
+    [NonDebuggable]
+    [Obsolete('Use GetAuthorizationHeader with SecretText data type for AuthorizationHeader.', '24.0')]
+    procedure GetAuthorizationHeader(ConsumerKey: Text; ConsumerSecret: Text; RequestTokenKey: Text; RequestTokenSecret: Text; RequestUrl: Text; RequestMethod: Enum "Http Request Type"; var AuthorizationHeader: Text)
+    var
+        SecretAuthorizationHeader: SecretText;
+    begin
+        GetAuthorizationHeader(ConsumerKey, ConsumerSecret, RequestTokenKey, RequestTokenSecret, RequestUrl, RequestMethod, SecretAuthorizationHeader);
+        AuthorizationHeader := SecretAuthorizationHeader.Unwrap();
+    end;
+#endif
+    [TryFunction]
+    procedure GetRequestToken(ConsumerKey: SecretText; ConsumerSecret: SecretText; RequestTokenUrl: Text; CallbackUrl: Text; var AccessTokenKey: SecretText; var AccessTokenSecret: SecretText)
     var
         OAuthAuthorization: DotNet OAuthAuthorization;
         Consumer: DotNet Consumer;
         Token: DotNet Token;
         RequestToken: DotNet Token;
+        EmptySecretText: SecretText;
     begin
-        Token := Token.Token('', '');
+        Token := Token.Token(EmptySecretText, EmptySecretText);
         Consumer := Consumer.Consumer(ConsumerKey, ConsumerSecret);
         OAuthAuthorization := OAuthAuthorization.OAuthAuthorization(Consumer, Token);
 
@@ -35,13 +73,10 @@ codeunit 1289 "OAuth Impl."
 
         AccessTokenKey := RequestToken.TokenKey();
         AccessTokenSecret := RequestToken.TokenSecret();
-
     end;
 
-
     [TryFunction]
-    [NonDebuggable]
-    procedure GetAccessToken(ConsumerKey: Text; ConsumerSecret: Text; RequestTokenUrl: Text; Verifier: Text; RequestTokenKey: Text; RequestTokenSecret: Text; var AccessTokenKey: Text; var AccessTokenSecret: Text)
+    procedure GetAccessToken(ConsumerKey: SecretText; ConsumerSecret: SecretText; RequestTokenUrl: Text; Verifier: Text; RequestTokenKey: SecretText; RequestTokenSecret: SecretText; var AccessTokenKey: SecretText; var AccessTokenSecret: SecretText)
     var
         OAuthAuthorization: DotNet OAuthAuthorization;
         Consumer: DotNet Consumer;
@@ -56,12 +91,10 @@ codeunit 1289 "OAuth Impl."
 
         AccessTokenKey := AccessToken.TokenKey();
         AccessTokenSecret := AccessToken.TokenSecret();
-
     end;
 
     [TryFunction]
-    [NonDebuggable]
-    procedure GetAuthorizationHeader(ConsumerKey: Text; ConsumerSecret: Text; RequestTokenKey: Text; RequestTokenSecret: Text; RequestUrl: Text; RequestMethod: Enum "Http Request Type"; var AuthorizationHeader: Text)
+    procedure GetAuthorizationHeader(ConsumerKey: SecretText; ConsumerSecret: SecretText; RequestTokenKey: SecretText; RequestTokenSecret: SecretText; RequestUrl: Text; RequestMethod: Enum "Http Request Type"; var AuthorizationHeader: SecretText)
     var
         OAuthAuthorization: DotNet OAuthAuthorization;
         Consumer: DotNet Consumer;

@@ -270,8 +270,8 @@ codeunit 43 Language
     /// Retrieves the two-letter ISO language name for the specified language ID.
     /// </summary>
     /// <param name="LanguageID">The language ID.</param>
-    /// <returns>The two-letter ISO language name.</returns>
-    procedure GetTwoLetterISOLanguageName(LanguageID: Integer): Text
+    /// <returns>The two-letter ISO language name. For example, "en" or "es"</returns>
+    procedure GetTwoLetterISOLanguageName(LanguageID: Integer): Text[2]
     var
         LanguageImpl: Codeunit "Language Impl.";
     begin
@@ -282,7 +282,7 @@ codeunit 43 Language
     /// Retrieves the language ID for the specified culture name.
     /// </summary>
     /// <param name="CultureName">The Culture name.</param>
-    /// <returns>The language ID.</returns>
+    /// <returns>The language ID. See https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/a29e5c28-9fb9-4c49-8e43-4b9b8e733a05.</returns>
     /// <example>
     /// <code>
     /// Language.GetLanguageIdFromLanguageName('en-US');
@@ -299,8 +299,8 @@ codeunit 43 Language
     /// <summary>
     /// Retrieves the culture name for the specified language ID.
     /// </summary>
-    /// <param name="LanguageID">The language ID.</param>
-    /// <returns>The culture name.</returns>
+    /// <param name="LanguageID">The language ID. See https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/a29e5c28-9fb9-4c49-8e43-4b9b8e733a05.</param>
+    /// <returns>The culture name. For example, 'en-US'.</returns>
     procedure GetCultureName(LanguageID: Integer): Text
     var
         LanguageImpl: Codeunit "Language Impl.";

@@ -16,7 +16,7 @@ codeunit 9811 "Password Dialog Impl."
         PasswordTooSimpleErr: Label 'The password that you entered does not meet the minimum requirements. It must be at least %1 characters long and contain at least one uppercase letter, one lowercase letter, one number and one special character. It must not have a sequence of 3 or more ascending, descending or repeating characters.', Comment = '%1: The minimum number of characters required in the password';
         ConfirmBlankPasswordQst: Label 'Do you want to exit without entering a password?';
 
-    procedure ValidatePasswordStrength(Password: Text)
+    procedure ValidatePasswordStrength(Password: SecretText)
     var
         PasswordHandler: Codeunit "Password Handler";
     begin
@@ -24,6 +24,8 @@ codeunit 9811 "Password Dialog Impl."
             Error(PasswordTooSimpleErr, PasswordHandler.GetPasswordMinLength());
     end;
 
+#if not CLEAN24
+    [Obsolete('Replaced by OpenSecretPasswordDialog with SecretText return data type.', '24.0')]
     procedure OpenPasswordDialog(DisablePasswordValidation: Boolean; DisablePasswordConfirmation: Boolean): Text
     var
         PasswordDialog: Page "Password Dialog";
@@ -33,29 +35,59 @@ codeunit 9811 "Password Dialog Impl."
         if DisablePasswordConfirmation then
             PasswordDialog.DisablePasswordConfirmation();
         if PasswordDialog.RunModal() = Action::OK then
+#pragma warning disable AL0432
             exit(PasswordDialog.GetPasswordValue());
+#pragma warning restore AL0432
         exit('');
     end;
 
+    [Obsolete('Replaced by OpenChangePassworDialog with SecretText parameter data type.', '24.0')]
     procedure OpenChangePasswordDialog(var OldPassword: Text; var Password: Text)
     var
         PasswordDialog: Page "Password Dialog";
     begin
         PasswordDialog.EnableChangePassword();
         if PasswordDialog.RunModal() = Action::OK then begin
+#pragma warning disable AL0432
             Password := PasswordDialog.GetPasswordValue();
             OldPassword := PasswordDialog.GetOldPasswordValue();
+#pragma warning restore AL0432
+        end;
+    end;
+#endif
+
+    procedure OpenSecretPasswordDialog(DisablePasswordValidation: Boolean; DisablePasswordConfirmation: Boolean): SecretText
+    var
+        PasswordDialog: Page "Password Dialog";
+    begin
+        if DisablePasswordValidation then
+            PasswordDialog.DisablePasswordValidation();
+        if DisablePasswordConfirmation then
+            PasswordDialog.DisablePasswordConfirmation();
+        if PasswordDialog.RunModal() = Action::OK then
+            exit(PasswordDialog.GetPasswordSecretValue());
+    end;
+
+    procedure OpenChangePasswordDialog(var OldPassword: SecretText; var Password: SecretText)
+    var
+        PasswordDialog: Page "Password Dialog";
+    begin
+        PasswordDialog.EnableChangePassword();
+        if PasswordDialog.RunModal() = Action::OK then begin
+            Password := PasswordDialog.GetPasswordSecretValue();
+            OldPassword := PasswordDialog.GetOldPasswordSecretValue();
         end;
     end;
 
-    procedure ValidatePassword(RequiresPasswordConfirmation: Boolean; RequiresPasswordValidation: Boolean; Password: Text; ConfirmPassword: Text): Boolean
+    [NonDebuggable]
+    procedure ValidatePassword(RequiresPasswordConfirmation: Boolean; RequiresPasswordValidation: Boolean; Password: SecretText; ConfirmPassword: SecretText): Boolean
     begin
-        if RequiresPasswordConfirmation and (Password <> ConfirmPassword) then
+        if RequiresPasswordConfirmation and (Password.Unwrap() <> ConfirmPassword.Unwrap()) then
             Error(PasswordMismatchErr);
 
         if RequiresPasswordValidation then
             ValidatePasswordStrength(Password);
-        if Password = '' then
+        if Password.IsEmpty() then
             if not Confirm(ConfirmBlankPasswordQst) then
                 exit(false);
         exit(true);

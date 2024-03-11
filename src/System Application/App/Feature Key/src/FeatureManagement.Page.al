@@ -60,6 +60,13 @@ page 2610 "Feature Management"
                     ApplicationArea = All;
                     Editable = false;
                 }
+                field("Mandatory By Version"; Rec."Mandatory By Version")
+                {
+                    Caption = 'Automatically enabled from version';
+                    ToolTip = 'Specifies a future software version when this feature is automatically enabled for all users and cannot be disabled. Until this future version, the feature is optional.';
+                    ApplicationArea = All;
+                    Editable = false;
+                }
                 field(EnabledFor; Rec.Enabled)
                 {
                     Caption = 'Enabled for';
@@ -223,6 +230,15 @@ page 2610 "Feature Management"
                     end;
                 }
             }
+        }
+    }
+
+    views
+    {
+        view("Try it out now")
+        {
+            caption = 'Try it out now';
+            Filters = where("Can Try" = const(true));
         }
     }
 

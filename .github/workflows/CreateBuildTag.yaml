@@ -4,7 +4,7 @@ on:
   workflow_run:
     workflows: [' CI/CD']
     types: [completed]
-    branches: ['main']
+    branches: [ 'main', 'releases/*' ]
 
 run-name: "[${{ github.ref_name }}] Create build tag"
 
@@ -17,7 +17,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get Build Version
         id: GetBuildVersion
@@ -31,7 +31,7 @@ jobs:
           Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "BuildVersion=$buildVersion"
 
       - name: Create version tag
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         env:
           BuildVersion: ${{ steps.GetBuildVersion.outputs.BuildVersion}}
         with:

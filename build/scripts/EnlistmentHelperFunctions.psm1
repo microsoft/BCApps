@@ -5,6 +5,13 @@ function Get-BaseFolder() {
     return git rev-parse --show-toplevel
 }
 
+function Get-BaseFolderForPath($Path) {
+    Push-Location $Path
+    $baseFolder = Get-BaseFolder
+    Pop-Location
+    return $baseFolder
+}
+
 function Get-BuildMode() {
     if ($ENV:BuildMode) {
         return $ENV:BuildMode
@@ -85,6 +92,38 @@ function Get-ConfigValue() {
 }
 
 <#
+    .Synopsis
+        Sets the content of a file, without carriage returns at the end of each line.
+    .Description
+        This function is similar to Set-Content, but it does not add carriage returns at the end of each line.
+        AL-Go uses this function to write JSON files to ensure that the files are consistent across platforms.
+    .Parameter Path
+        The path of the file to write to
+    .Parameter Content
+        The content to write to the file
+#>
+function Set-ContentLF {
+    Param(
+        [parameter(mandatory = $true, ValueFromPipeline = $false)]
+        [string] $Path,
+        [parameter(mandatory = $true, ValueFromPipeline = $true)]
+        $Content
+    )
+
+    Process {
+        $Path = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+        if ($Content -is [array]) {
+            $Content = $Content -join "`n"
+        }
+        else {
+            $Content = "$Content".Replace("`r", "")
+        }
+        [System.IO.File]::WriteAllText($Path, "$Content`n")
+    }
+
+}
+
+<#
 .Synopsis
     Sets a config value in a config file
 .Parameter ConfigType
@@ -119,7 +158,7 @@ function Set-ConfigValue() {
 
     $BuildConfig = Get-Content -Path $ConfigPath -Raw | ConvertFrom-Json
     $BuildConfig.$Key = $Value
-    $BuildConfig | ConvertTo-Json -Depth 100 | Set-Content -Path $ConfigPath
+    $BuildConfig | ConvertTo-Json -Depth 100 | Set-ContentLF -Path $ConfigPath
 }
 
 <#

@@ -12,27 +12,19 @@ tableextension 309 NoSeriesLineObsolete extends "No. Series Line"
 {
     fields
     {
-#if not CLEAN24
-#pragma warning disable AL0432
-        modify(Implementation)
+        field(11; "Allow Gaps in Nos."; Boolean)
         {
-            trigger OnAfterValidate()
-            var
-                NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
-            begin
-                if Rec.Implementation = xRec.Implementation then
-                    exit;
+            Caption = 'Allow Gaps in Nos.';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The specific implementation is defined by the Implementation field and whether the implementation may produce gaps can be determined through the implementation interface or the procedure MayProduceGaps.';
+#if CLEAN24
+            ObsoleteState = Removed;
+            ObsoleteTag = '27.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '24.0';
 
-#pragma warning disable AA0206
-                SkipAllowGapsValidationTrigger := true;
-#pragma warning restore AA0206
-
-                Validate("Allow Gaps in Nos.", NoSeriesSetupImpl.MayProduceGaps(Rec)); // Keep the Allow Gaps field in sync with the implementation
-            end;
-        }
-        modify("Allow Gaps in Nos.")
-        {
-            trigger OnAfterValidate()
+            trigger OnValidate()
             var
                 NoSeries: Record "No. Series";
             begin
@@ -52,13 +44,69 @@ tableextension 309 NoSeriesLineObsolete extends "No. Series Line"
                 if "Line No." <> 0 then
                     Modify();
             end;
+#endif
         }
-        modify("Authorization Year")
+        field(10000; Series; Code[10]) // NA (MX) Functionality
         {
-            trigger OnAfterValidate()
+            Caption = 'Series';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The No. Series module cannot reference tax features.';
+#if CLEAN24
+            ObsoleteState = Removed;
+            ObsoleteTag = '27.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '24.0';
+#endif
+        }
+        field(10001; "Authorization Code"; Integer) // NA (MX) Functionality
+        {
+            Caption = 'Authorization Code';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The No. Series module cannot reference tax features.';
+#if CLEAN24
+            ObsoleteState = Removed;
+            ObsoleteTag = '27.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '24.0';
+#endif
+        }
+        field(10002; "Authorization Year"; Integer) // NA (MX) Functionality
+        {
+            Caption = 'Authorization Year';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The No. Series module cannot reference tax features.';
+#if CLEAN24
+            ObsoleteState = Removed;
+            ObsoleteTag = '27.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '24.0';
+
+            trigger OnValidate()
             begin
                 if StrLen(Format("Authorization Year")) <> 4 then
                     Message(ShouldBeValidYearErr);
+            end;
+#endif
+        }
+#if not CLEAN24
+#pragma warning disable AL0432
+        modify(Implementation)
+        {
+            trigger OnAfterValidate()
+            var
+                NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+            begin
+                if Rec.Implementation = xRec.Implementation then
+                    exit;
+
+#pragma warning disable AA0206
+                SkipAllowGapsValidationTrigger := true;
+#pragma warning restore AA0206
+
+                Validate("Allow Gaps in Nos.", NoSeriesSetupImpl.MayProduceGaps(Rec)); // Keep the Allow Gaps field in sync with the implementation
             end;
         }
 #pragma warning restore AL0432
@@ -90,12 +138,32 @@ tableextension 309 NoSeriesLineObsolete extends "No. Series Line"
     [Obsolete('Use GetNextNo in No. Series codeunit instead.', '24.0')]
     procedure GetNextSequenceNo(ModifySeries: Boolean): Code[20]
     var
-        NoSeries: Interface "No. Series - Single";
+        NoSeriesSequenceImpl: Codeunit "No. Series - Sequence Impl.";
+        NewNo: BigInteger;
     begin
-        NoSeries := Enum::"No. Series Implementation"::Sequence;
-        if ModifySeries then
-            exit(NoSeries.GetNextNo(Rec, WorkDate(), false));
-        exit(NoSeries.PeekNextNo(Rec, WorkDate()));
+        TestField("Allow Gaps in Nos.");
+        TestField("Sequence Name");
+        if not TryGetNextSequenceNo(ModifySeries, NewNo) then begin
+            if not NumberSequence.Exists("Sequence Name") then
+                NoSeriesSequenceImpl.CreateNewSequence(Rec);
+            TryGetNextSequenceNo(ModifySeries, NewNo);
+        end;
+#pragma warning disable AL0432
+        exit(GetFormattedNo(NewNo));
+#pragma warning restore AL0432
+    end;
+
+    [TryFunction]
+    local procedure TryGetNextSequenceNo(ModifySeries: Boolean; var NewNo: BigInteger)
+    begin
+        if ModifySeries then begin
+            NewNo := NumberSequence.Next("Sequence Name");
+            if NewNo < "Starting Sequence No." then  // first no. ?
+                NewNo := NumberSequence.Next("Sequence Name");
+        end else begin
+            NewNo := NumberSequence.Current("Sequence Name");
+            NewNo += "Increment-by No.";
+        end;
     end;
 
     [Obsolete('This functionality will be removed without public replacement.', '24.0')]
@@ -103,7 +171,7 @@ tableextension 309 NoSeriesLineObsolete extends "No. Series Line"
     var
         NoSeriesSequenceImpl: Codeunit "No. Series - Sequence Impl.";
     begin
-        exit(NoSeriesSequenceImpl.ExtractNoFromCode(NumberCode));
+        exit(NoSeriesSequenceImpl.ExtractNoFromCode(NumberCode, Rec."Series Code"));
     end;
 
     [Obsolete('This functionality will be removed without public replacement.', '24.0')]

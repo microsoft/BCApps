@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace Microsoft.Test.Foundation.NoSeries;
 
 using System.TestLibraries.Utilities;
@@ -16,10 +21,11 @@ codeunit 134370 "ERM No. Series Tests"
     var
         LibraryAssert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         StartingNumberTxt: Label 'ABC00010D';
         SecondNumberTxt: Label 'ABC00020D';
         EndingNumberTxt: Label 'ABC00090D';
-        NoSeriesCodeForUseInModalPageHendler: Code[20];
+        NoSeriesCodeForUseInModalPageHandler: Code[20];
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -540,6 +546,7 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('TestSeriesSuccessMessageHandler')]
     procedure NoSeriesThatCanGenerateNextNoSucceedsValidation()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -557,6 +564,7 @@ codeunit 134370 "ERM No. Series Tests"
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('TestSeriesSuccessMessageHandler')]
     procedure NoSeriesValidationDoesNotChangeTheNextNoGenerated()
     var
         NoSeriesLine: Record "No. Series Line";
@@ -689,6 +697,12 @@ codeunit 134370 "ERM No. Series Tests"
 #endif
 
     local procedure CreateNewNumberSeries(NewName: Code[20]; IncrementBy: Integer; Implementation: Enum "No. Series Implementation"; var NoSeriesLine: Record "No. Series Line")
+    begin
+        CreateNewNumberSeries(NewName);
+        CreateNewNumberSeriesLine(NewName, IncrementBy, Implementation, NoSeriesLine);
+    end;
+
+    local procedure CreateNewNumberSeries(NewName: Code[20]);
     var
         NoSeries: Record "No. Series";
     begin
@@ -696,8 +710,11 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeries.Description := NewName;
         NoSeries."Default Nos." := true;
         NoSeries.Insert();
+    end;
 
-        NoSeriesLine."Series Code" := NoSeries.Code;
+    local procedure CreateNewNumberSeriesLine(NewName: Code[20]; IncrementBy: Integer; Implementation: Enum "No. Series Implementation"; var NoSeriesLine: Record "No. Series Line");
+    begin
+        NoSeriesLine."Series Code" := NewName;
         NoSeriesLine."Line No." := 10000;
         NoSeriesLine.Validate("Starting No.", StartingNumberTxt);
         NoSeriesLine.Validate("Ending No.", EndingNumberTxt);
@@ -705,6 +722,15 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeriesLine.Insert(true);
         NoSeriesLine.Validate(Implementation, Implementation);
         NoSeriesLine.Modify(true);
+    end;
+
+    local procedure CreateNoSeriesRelation(MainSeriesCode: Code[20]; RelatedSeriesCode: Code[20]);
+    var
+        NoSeriesRelation: Record "No. Series Relationship";
+    begin
+        NoSeriesRelation.Code := MainSeriesCode;
+        NoSeriesRelation."Series Code" := RelatedSeriesCode;
+        NoSeriesRelation.Insert();
     end;
 
 #if not CLEAN24
@@ -966,14 +992,59 @@ codeunit 134370 "ERM No. Series Tests"
     begin
         Initialize();
 
-        NoSeriesCodeForUseInModalPageHendler := CreateNonVisibleNoSeries(false);
+        NoSeriesCodeForUseInModalPageHandler := CreateNonVisibleNoSeries(false);
 
-        NoSeries.Get(NoSeriesCodeForUseInModalPageHendler);
+        NoSeries.Get(NoSeriesCodeForUseInModalPageHandler);
         NoSeriesPage.OpenView();
         NoSeriesPage.GoToRecord(NoSeries);
         NoSeriesPage.StartNo.Drilldown();
         NoSeriesPage.Close();
     end;
+
+    [Test]
+    [HandlerFunctions('NoSeriesLookupHandler')]
+    procedure TestLookupNoSeries()
+    var
+        NoSeries: Codeunit "No. Series";
+        SelectedNoSeriesCode: Code[20];
+    begin
+        // init
+        Initialize();
+
+        // setup
+        CreateNewNumberSeries('TEST');
+        CreateNewNumberSeries('TESTRELATED1');
+        CreateNewNumberSeries('TESTRELATED2');
+        CreateNewNumberSeries('TESTUNRELATED1');
+        CreateNewNumberSeries('TESTUNREALTED2');
+        CreateNoSeriesRelation('TEST', 'TESTRELATED1');
+        CreateNoSeriesRelation('TEST', 'TESTRELATED2');
+        LibraryVariableStorage.Enqueue('TEST');
+
+        // exexute
+        NoSeries.LookupRelatedNoSeries('TEST', SelectedNoSeriesCode);
+
+        // verify
+        LibraryAssert.IsTrue(NoSeries.AreRelated('TEST', 'TESTRELATED2'), 'Related No Series not found');
+    end;
+
+    [ModalPageHandler]
+    procedure NoSeriesLookupHandler(var NoSeriesTestPage: TestPage "No. Series")
+    var
+        NoSeries: Codeunit "No. Series";
+        NosSeriesCode: Code[20];
+    begin
+        NosSeriesCode := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(NosSeriesCode));
+        LibraryAssert.IsTrue(NoSeriesTestPage.First(), 'No records found');
+        LibraryAssert.IsTrue(NoSeries.AreRelated(NosSeriesCode, CopyStr(NoSeriesTestPage.Code.Value, 1, MaxStrLen(NosSeriesCode))), 'The No. Series must be related');
+        LibraryAssert.IsTrue(NoSeriesTestPage.NEXT(), 'Too few records found');
+        LibraryAssert.IsTrue(NoSeries.AreRelated(NosSeriesCode, CopyStr(NoSeriesTestPage.Code.Value, 1, MaxStrLen(NosSeriesCode))), 'The No. Series must be related');
+        LibraryAssert.IsTrue(NoSeriesTestPage.NEXT(), 'Too few records found');
+        LibraryAssert.IsTrue(NoSeries.AreRelated(NosSeriesCode, CopyStr(NoSeriesTestPage.Code.Value, 1, MaxStrLen(NosSeriesCode))), 'The No. Series must be related');
+        LibraryAssert.IsFalse(NoSeriesTestPage.NEXT(), 'Too many records found');
+        NoSeriesTestPage.OK().Invoke();
+    end;
+
 
     local procedure DeleteNumberSeries(NameToDelete: Code[20])
     var
@@ -996,7 +1067,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeries: Record "No. Series";
     begin
         NoSeries.Init();
-        NoSeries.Code := CopyStr(CreateGuid(), 1, 10);    // todo: use the last instead of the first charackters
+        NoSeries.Code := CopyStr(CreateGuid(), 1, 10);    // todo: use the last instead of the first characters
         NoSeries."Default Nos." := true;
         NoSeries."Manual Nos." := false;
         if not NoSeries.Insert() then;
@@ -1051,7 +1122,7 @@ codeunit 134370 "ERM No. Series Tests"
     var
         NoSeriesLine: Record "No. Series Line";
     begin
-        NoSeriesLine.SetRange("Series Code", NoSeriesCodeForUseInModalPageHendler);
+        NoSeriesLine.SetRange("Series Code", NoSeriesCodeForUseInModalPageHandler);
         NoSeriesLine.Find('-');
 
         repeat
@@ -1074,10 +1145,15 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeriesPage.OK().Invoke();
     end;
 
-
     local procedure Initialize()
     begin
         PermissionsMock.Set('No. Series - Admin');
         DeleteNumberSeries('TEST');
+    end;
+
+    [MessageHandler]
+    procedure TestSeriesSuccessMessageHandler(Message: Text[1024])
+    begin
+        LibraryAssert.IsTrue(Message.StartsWith('The test was successful.'), 'The test series was not successful, message: ' + Message);
     end;
 }

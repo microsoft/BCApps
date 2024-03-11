@@ -5,12 +5,14 @@
 
 namespace System.Text;
 
+#if not CLEAN24
 using System;
 using System.Utilities;
 using System.Environment;
 using System.Azure.KeyVault;
 using System.Security.Authentication;
 using System.Azure.Identity;
+#endif
 
 /// <summary>
 /// Contains settings for Azure OpenAI.
@@ -18,12 +20,14 @@ using System.Azure.Identity;
 table 2010 "Azure OpenAi Settings"
 {
 #if not CLEAN24
-    ObsoleteState = Pending;
-#else
-    ObsoleteState = Removed;
-#endif
     ObsoleteReason = 'Moving OpenAI capabilities to AI SDK, use the SDK module instead.';
     ObsoleteTag = '24.0';
+    ObsoleteState = Pending;
+#else
+    ObsoleteReason = 'Moved to AI SDK';
+    ObsoleteTag = '27.0';
+    ObsoleteState = Removed;
+#endif
     Caption = 'Azure OpenAI Settings';
     DataPerCompany = false;
     ReplicateData = false;
@@ -42,7 +46,7 @@ table 2010 "Azure OpenAi Settings"
         {
             Caption = 'Endpoint';
             DataClassification = CustomerContent;
-
+#if not CLEAN24
             trigger OnValidate()
             var
                 Uri: Codeunit Uri;
@@ -72,17 +76,19 @@ table 2010 "Azure OpenAi Settings"
 
                 Session.LogMessage('0000JY5', TelemetryEndpointSetTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
             end;
+#endif
         }
 
         field(3; Model; Text[250])
         {
             Caption = 'Model';
             DataClassification = CustomerContent;
-
+#if not CLEAN24
             trigger OnValidate()
             begin
                 Rec.Model := CopyStr(DelChr(Rec.Model.Trim(), '<>', '.'), 1, MaxStrLen(Rec.Model));
             end;
+#endif
         }
     }
 
@@ -94,6 +100,7 @@ table 2010 "Azure OpenAi Settings"
     }
 
 
+#if not CLEAN24
     trigger OnDelete()
     begin
         ClearSecret();
@@ -110,7 +117,7 @@ table 2010 "Azure OpenAi Settings"
     end;
 
     [NonDebuggable]
-    procedure SetSecret(Secret: Text)
+    procedure SetSecret(Secret: SecretText)
     begin
         if EncryptionEnabled() then
             IsolatedStorage.SetEncrypted(SecretTok, Secret, DataScope::Module)
@@ -191,28 +198,29 @@ table 2010 "Azure OpenAi Settings"
         EnvironmentInformation: Codeunit "Environment Information";
         AzureKeyVault: Codeunit "Azure Key Vault";
         EntityTextModuleInfo: ModuleInfo;
-        Secret: Text;
+        Secret: SecretText;
+        Cert: Text;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then begin
             if IsolatedStorage.Get(SecretTok, DataScope::Module, Secret) then;
-            exit(Secret <> '');
+            exit(not Secret.IsEmpty());
         end;
 
         NavApp.GetCurrentModuleInfo(EntityTextModuleInfo);
         if (not IsNullGuid(CallerModuleInfo.Id())) and (CallerModuleInfo.Publisher() = EntityTextModuleInfo.Publisher()) then
-            if AzureKeyVault.GetAzureKeyVaultCertificate(SecretTok, Secret) then
-                exit(Secret <> '');
+            if AzureKeyVault.GetAzureKeyVaultCertificate(SecretTok, Cert) then
+                exit(not Secret.IsEmpty());
 
         if IsolatedStorage.Get(SecretTok, DataScope::Module, Secret) then;
-        exit(Secret <> '');
+        exit(not Secret.IsEmpty());
     end;
 
-    [NonDebuggable]
-    internal procedure GetSecret(CallerModuleInfo: ModuleInfo): Text
+    internal procedure GetSecret(CallerModuleInfo: ModuleInfo): SecretText
     var
         EnvironmentInformation: Codeunit "Environment Information";
         AzureKeyVault: Codeunit "Azure Key Vault";
         EntityTextModuleInfo: ModuleInfo;
+        [NonDebuggable]
         Secret: Text;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then begin
@@ -235,14 +243,14 @@ table 2010 "Azure OpenAi Settings"
     end;
 
     [NonDebuggable]
-    local procedure GetOauthSecret(Secret: Text): Text
+    local procedure GetOauthSecret(Secret: Text): SecretText
     var
         OAuth2: Codeunit OAuth2;
         Scopes: List of [Text];
         ClientId: Text;
         Authority: Text;
         Resource: Text;
-        Token: Text;
+        Token: SecretText;
         IdToken: Text;
     begin
         ClientId := GetConfigurationValue(ClientTok);
@@ -361,4 +369,5 @@ table 2010 "Azure OpenAi Settings"
         TelemetryTenantIdInvalidTxt: Label 'The Microsoft Entra tenant ID is not a valid guid, generating a random one.', Locked = true;
         TelemetrySelectedIslandTxt: Label 'Island %1 of %2 was selected.', Locked = true;
         TelemetryTotalIslandsInvalidTxt: Label 'The total islands config key is not set or is not a number.', Locked = true;
+#endif
 }

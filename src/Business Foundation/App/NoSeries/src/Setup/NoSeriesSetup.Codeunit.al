@@ -25,7 +25,7 @@ codeunit 299 "No. Series - Setup"
     end;
 
     /// <summary>
-    /// Increments the given No. by the sepcified Increment.
+    /// Increments the given No. by the specified Increment.
     /// </summary>
     /// <param name="No">The number, as a code string to increment</param>
     /// <param name="Increment">Indicates by how much to increment the No.</param>
