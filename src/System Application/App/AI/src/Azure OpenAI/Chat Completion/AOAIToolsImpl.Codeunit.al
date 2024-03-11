@@ -123,6 +123,30 @@ codeunit 7778 "AOAI Tools Impl"
         MessageJArray.ReadFrom(Message);
     end;
 
+    [NonDebuggable]
+    procedure ParseTool(Message: Text; var FunctionName: Text; var FunctionArguments: Text; var ToolCallId: Text; Index: Integer)
+    var
+        ToolsJArray: JsonArray;
+        FunctionNameToken, FunctionArgumentsToken, ToolCallIdToken : JsonToken;
+        FunctionNameXPath, FunctionArgumentsXPath, ToolCallIdXPath : Text;
+    begin
+        if not ToolsJArray.ReadFrom(Message) then
+            exit;
+
+        // Construct XPath with dynamic index
+        FunctionNameXPath := StrSubstNo('$[%1].function.name', Index);
+        FunctionArgumentsXPath := StrSubstNo('$[%1].function.arguments', Index);
+        ToolCallIdXPath := StrSubstNo('$[%1].id', Index);
+
+        ToolsJArray.SelectToken(FunctionNameXPath, FunctionNameToken);
+        ToolsJArray.SelectToken(FunctionArgumentsXPath, FunctionArgumentsToken);
+        ToolsJArray.SelectToken(ToolCallIdXPath, ToolCallIdToken);
+
+        FunctionName := FunctionNameToken.AsValue().AsText();
+        FunctionArguments := FunctionArgumentsToken.AsValue().AsText();
+        ToolCallId := ToolCallIdToken.AsValue().AsText();
+    end;
+
     local procedure Initialize()
     begin
         if Initialized then
