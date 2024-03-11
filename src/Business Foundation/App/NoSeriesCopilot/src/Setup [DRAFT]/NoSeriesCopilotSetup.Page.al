@@ -60,18 +60,36 @@ page 9245 "No. Series Copilot Setup"
                         Rec.SetSystemPromptToIsolatedStorage(SystemPrompt);
                     end;
                 }
-                field("Functions Prompt"; FunctionsPrompt)
+            }
+            group(Tools)
+            {
+                field("Tools Definition"; ToolsDefinition)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Functions Prompt';
+                    Caption = 'Tools Definition';
                     NotBlank = true;
                     ShowMandatory = true;
                     ExtendedDatatype = Masked;
                     MultiLine = true;
                     trigger OnValidate()
                     begin
-                        Rec.SetFunctionsPromptToIsolatedStorage(FunctionsPrompt);
+                        Rec.SetToolsDefinitionToIsolatedStorage(ToolsDefinition);
                     end;
+                }
+
+                field("Tool 1 Output Format"; Tool1OutputFormat)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Tool 1 Output Format';
+                    NotBlank = true;
+                    ShowMandatory = true;
+                    ExtendedDatatype = Masked;
+                    MultiLine = true;
+                    trigger OnValidate()
+                    begin
+                        Rec.SetTool1OutputFormatToIsolatedStorage(Tool1OutputFormat);
+                    end;
+
                 }
             }
         }
@@ -81,7 +99,9 @@ page 9245 "No. Series Copilot Setup"
         [NonDebuggable]
         SecretKey: Text;
         SystemPrompt: Text;
-        FunctionsPrompt: Text;
+        ToolsDefinition: Text;
+        Tool1OutputFormat: Text;
+
 
 
     trigger OnOpenPage()
@@ -94,7 +114,8 @@ page 9245 "No. Series Copilot Setup"
     begin
         SecretKey := Rec.GetSecretKeyFromIsolatedStorage();
         SystemPrompt := Rec.GetSystemPromptFromIsolatedStorage();
-        FunctionsPrompt := Rec.GetFunctionsPromptFromIsolatedStorage();
+        ToolsDefinition := Rec.GetToolsDefinitionFromIsolatedStorage();
+        Tool1OutputFormat := Rec.GetTool1OutputFormatFromIsolatedStorage();
     end;
 
 }

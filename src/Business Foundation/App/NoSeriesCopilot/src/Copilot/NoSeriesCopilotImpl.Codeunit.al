@@ -56,7 +56,18 @@ codeunit 324 "No. Series Copilot Impl."
         // This is a temporary solution to get the tools. The tools should be retrieved from the Azure Key Vault.
         // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
         NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetFunctionsPromptFromIsolatedStorage())
+        exit(NoSeriesCopilotSetup.GetToolsDefinitionFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool1OutputFormat(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 1 output format definition. The tool 1 output format definition should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tool 1 output format definition from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool1OutputFormatFromIsolatedStorage())
     end;
 
 
@@ -154,7 +165,6 @@ codeunit 324 "No. Series Copilot Impl."
         for i := 1 to AOAIChatMessages.GetTools().Count do
             AOAIChatMessages.DeleteTool(1); //TODO: when the tool is removed the index of the next tool is i-1, so the next tool should be removed with index 1
 
-        ToolResponse := ToolResponse + '\nAnswer in Json format'; //TODO: implement better output format specification declaration
         AOAIChatCompletionParams.SetJsonMode(true);
 
         // adding function response to messages
@@ -171,22 +181,24 @@ codeunit 324 "No. Series Copilot Impl."
     local procedure BuildGenerateNewNumbersSeriesPrompt(var FunctionArguments: Text): Text
     var
         NewNoSeriesPrompt: TextBuilder;
-        NewNumbersSeriesOutputFormatLbl: Label '{noSeries:[ {seriesCode: ''string (len 20) (mandatory)'',lineNo: ''integer (mandatory)'',description: ''string (len 100) (mandatory)'',startingNo: ''string (len 20) (mandatory)'',endingNo: ''string (len 20) (mandatory)'',warningNo: ''string (len 20) (mandatory)'',incrementByNo: ''integer (mandatory)'', TableId : ''integer (mandatory)'',FieldId:''integer (mandatory)'' },{seriesCode:...}, ... ]}', Locked = true;
+        NewNumbersSeriesInstructionsLbl: Label 'Generate number series configurations based on the following table entries, ensuring each JSON object directly corresponds to one table entry. Use the Pattern Examples solely to inform the `startingNo`, `endingNo`, and `warningNo` fields based on the seriesCode relationship. Patterns are not to generate additional JSON objects.', Locked = true;
+        NewNumbersSeriesPatternUsageInstructionsLbl: Label 'For `startingNo`, `endingNo`, and `warningNo` values, refer to these pattern examples, applying them based on their seriesCode:', Locked = true;
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
+        NewNoSeriesPrompt.AppendLine(NewNumbersSeriesInstructionsLbl);
         NewNoSeriesPrompt.AppendLine('Tables:');
         if CheckIfTablesSpecified(FunctionArguments) then
             ListOnlySpecifiedTables(NewNoSeriesPrompt, GetEntities(FunctionArguments))
         else
             ListAllTablesWithNumberSeries(NewNoSeriesPrompt);
 
-        NewNoSeriesPrompt.AppendLine('Patterns:');
+        NewNoSeriesPrompt.AppendLine(NewNumbersSeriesPatternUsageInstructionsLbl);
         if CheckIfPatternSpecified(FunctionArguments) then
             NewNoSeriesPrompt.AppendLine(GetPattern(FunctionArguments))
         else
             ListDefaultOrExistingPattern(NewNoSeriesPrompt);
 
-        NewNoSeriesPrompt.AppendLine('Response format: Json Array:');
-        NewNoSeriesPrompt.AppendLine(NewNumbersSeriesOutputFormatLbl);
+        NewNoSeriesPrompt.AppendLine(GetTool1OutputFormat());
 
         exit(NewNoSeriesPrompt.ToText());
     end;
@@ -229,8 +241,6 @@ codeunit 324 "No. Series Copilot Impl."
         if TableMetadata.FindSet() then
             repeat
                 ListAllNoSeriesFields(NewNoSeriesPrompt, TableMetadata, i);
-                if i > 5 then  // TODO: Refactor this, probably send tables in chunks, as when there are many tables the prompt will reach the token limit and timeout
-                    break;
             until TableMetadata.Next() = 0;
     end;
 
@@ -245,6 +255,9 @@ codeunit 324 "No. Series Copilot Impl."
         Field.SetFilter(FieldName, '*Nos.'); //TODO: Check if this is the correct filter
         if Field.FindSet() then
             repeat
+                if (AddedCount + 1) > 5 then  // TODO: Refactor this, probably send tables in chunks, as when there are many tables the prompt will reach the token limit and timeout
+                    exit;
+
                 NewNoSeriesPrompt.AppendLine('TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + Field.FieldName);
                 AddedCount += 1;
             until Field.Next() = 0;
@@ -402,7 +415,7 @@ codeunit 324 "No. Series Copilot Impl."
 
     local procedure MaxModelTokens(): Integer
     begin
-        exit(8192); //gpt-4-0613
+        exit(16385); //gpt-3.5-turbo-1106
     end;
 
     procedure FeatureName(): Text

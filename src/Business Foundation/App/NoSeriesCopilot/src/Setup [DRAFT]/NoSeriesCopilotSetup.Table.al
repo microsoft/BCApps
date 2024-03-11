@@ -38,10 +38,16 @@ table 9200 "No. Series Copilot Setup"
             DataClassification = CustomerContent;
             Caption = 'System Prompt';
         }
-        field(6; "Functions Prompt"; Guid)
+        field(6; "Tools Definition"; Guid)
         {
             DataClassification = CustomerContent;
-            Caption = 'Functions Prompt';
+            Caption = 'Tools Definition';
+        }
+
+        field(7; "Tool 1 Output Format"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 1 Output Format';
         }
     }
 
@@ -58,6 +64,7 @@ table 9200 "No. Series Copilot Setup"
         Rec: Record "No. Series Copilot Setup";
     begin
         Rec.Get();
+        Rec.TestField(Rec.Endpoint);
         exit(Rec.Endpoint);
     end;
 
@@ -66,6 +73,7 @@ table 9200 "No. Series Copilot Setup"
         Rec: Record "No. Series Copilot Setup";
     begin
         Rec.Get();
+        Rec.TestField(Rec.Deployment);
         exit(Rec.Deployment);
     end;
 
@@ -119,26 +127,50 @@ table 9200 "No. Series Copilot Setup"
     end;
 
     [NonDebuggable]
-    procedure GetFunctionsPromptFromIsolatedStorage() FunctionsPrompt: Text
+    procedure GetToolsDefinitionFromIsolatedStorage() FunctionsPrompt: Text
     begin
-        if not IsNullGuid(Rec."Functions Prompt") then
-            if not IsolatedStorage.Get(Rec."Functions Prompt", DataScope::Module, FunctionsPrompt) then;
+        if not IsNullGuid(Rec."Tools Definition") then
+            if not IsolatedStorage.Get(Rec."Tools Definition", DataScope::Module, FunctionsPrompt) then;
 
         exit(FunctionsPrompt);
     end;
 
     [NonDebuggable]
-    procedure SetFunctionsPromptToIsolatedStorage(FunctionsPrompt: Text)
+    procedure SetToolsDefinitionToIsolatedStorage(FunctionsPrompt: Text)
     var
         NewFunctionsPromptGuid: Guid;
     begin
-        if not IsNullGuid(Rec."Functions Prompt") then
-            if not IsolatedStorage.Delete(Rec."Functions Prompt", DataScope::Module) then;
+        if not IsNullGuid(Rec."Tools Definition") then
+            if not IsolatedStorage.Delete(Rec."Tools Definition", DataScope::Module) then;
 
         NewFunctionsPromptGuid := CreateGuid();
 
         IsolatedStorage.Set(NewFunctionsPromptGuid, FunctionsPrompt, DataScope::Module);
 
-        Rec."Functions Prompt" := NewFunctionsPromptGuid;
+        Rec."Tools Definition" := NewFunctionsPromptGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetTool1OutputFormatFromIsolatedStorage() Tool1OutputFormat: Text
+    begin
+        if not IsNullGuid(Rec."Tool 1 Output Format") then
+            if not IsolatedStorage.Get(Rec."Tool 1 Output Format", DataScope::Module, Tool1OutputFormat) then;
+
+        exit(Tool1OutputFormat);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool1OutputFormatToIsolatedStorage(Tool1OutputFormat: Text)
+    var
+        NewTool1OutputFormatGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 1 Output Format") then
+            if not IsolatedStorage.Delete(Rec."Tool 1 Output Format", DataScope::Module) then;
+
+        NewTool1OutputFormatGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewTool1OutputFormatGuid, Tool1OutputFormat, DataScope::Module);
+
+        Rec."Tool 1 Output Format" := NewTool1OutputFormatGuid;
     end;
 }
