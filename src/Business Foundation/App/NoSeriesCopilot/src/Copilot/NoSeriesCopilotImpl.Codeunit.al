@@ -107,36 +107,6 @@ codeunit 324 "No. Series Copilot Impl."
         exit(CompletionAnswerTxt);
     end;
 
-    local procedure GetToolNameAndParamsAndCallId(var CompletionAnswerTxt: Text; var FunctionName: Text; var FunctionArguments: Text; var ToolCallId: Text)
-    var
-        Response: JsonArray;
-        FunctionNameToken: JsonToken;
-        FunctionArgumentsToken: JsonToken;
-        ToolCallIdToken: JsonToken;
-        XPathFunctionNameLbl: Label '$[0].function.name', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
-        XPathFunctionArgumentsLbl: Label '$[0].function.arguments', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
-        XPathToolCallIdLbl: Label '$[0].id', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
-    begin
-        if not Response.ReadFrom(CompletionAnswerTxt) then
-            exit;
-
-        if Response.Count > 1 then
-            Error('More than one tool found'); //TODO: handle More than one tool found case
-
-        if not Response.SelectToken(XPathFunctionNameLbl, FunctionNameToken) then
-            Error('function.name not found'); //TODO: handle function.name not found case
-
-        if not Response.SelectToken(XPathFunctionArgumentsLbl, FunctionArgumentsToken) then
-            Error('function.arguments not found'); //TODO: handle function.arguments not found case
-
-        if not Response.SelectToken(XPathToolCallIdLbl, ToolCallIdToken) then
-            Error('tool_call_id not found'); //TODO: handle tool_call_id not found case
-
-        FunctionName := FunctionNameToken.AsValue().AsText();
-        FunctionArguments := FunctionArgumentsToken.AsValue().AsText();
-        ToolCallId := ToolCallIdToken.AsValue().AsText();
-    end;
-
     local procedure CallTool(var AzureOpenAI: Codeunit "Azure OpenAi"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var ToolDefinition: Text): Text
     var
         ToolCallId: Text;
@@ -146,7 +116,7 @@ codeunit 324 "No. Series Copilot Impl."
         i: Integer;
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
     begin
-        GetToolNameAndParamsAndCallId(ToolDefinition, FunctionName, FunctionArguments, ToolCallId);
+        AOAIChatMessages.ParseTool(ToolDefinition, FunctionName, FunctionArguments, ToolCallId, 0);
 
         case
             FunctionName of
@@ -163,7 +133,7 @@ codeunit 324 "No. Series Copilot Impl."
 
         // remove the tool message from the chat messages
         for i := 1 to AOAIChatMessages.GetTools().Count do
-            AOAIChatMessages.DeleteTool(1); //TODO: when the tool is removed the index of the next tool is i-1, so the next tool should be removed with index 1
+            AOAIChatMessages.DeleteTool(1); //when the tool is removed the index of the next tool is i-1, so the next tool should be removed with index 1
 
         AOAIChatCompletionParams.SetJsonMode(true);
 
