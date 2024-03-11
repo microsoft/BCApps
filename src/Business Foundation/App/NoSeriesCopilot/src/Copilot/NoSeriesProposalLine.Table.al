@@ -11,10 +11,6 @@ table 392 "No. Series Proposal Line"
         {
             Caption = 'Series Code';
         }
-        field(3; "Line No."; Integer)
-        {
-            Caption = 'Line No.';
-        }
 
         field(4; Description; Text[100])
         {
@@ -36,11 +32,19 @@ table 392 "No. Series Proposal Line"
         {
             Caption = 'Increment-by No.';
         }
+        field(9; "Setup Table No."; Integer)
+        {
+            Caption = 'Setup Table No.';
+        }
+        field(10; "Setup Field No."; Integer)
+        {
+            Caption = 'Setup Field No.';
+        }
     }
 
     keys
     {
-        key(PK; "Proposal No.", "Series Code", "Line No.")
+        key(PK; "Proposal No.", "Series Code")
         {
             Clustered = true;
         }

@@ -16,9 +16,9 @@ codeunit 324 "No. Series Copilot Impl."
             Completion := GenerateNoSeries(SystemPromptTxt, InputText);
             if CheckIfValidCompletion(Completion) then begin
                 SaveGenerationHistory(NoSeriesProposal, InputText);
-                // CreateNoSeries(NoSeriesProposal, NoSeriesGenerated, Completion);
+                CreateNoSeries(NoSeriesProposal, NoSeriesGenerated, Completion);
+            end else
                 ResponseText := Completion;
-            end;
         end;
     end;
 
@@ -334,6 +334,11 @@ codeunit 324 "No. Series Copilot Impl."
 
     [TryFunction]
     local procedure CheckIfValidCompletion(var Completion: Text)
+    begin
+        ReadGeneratedNumberSeriesJArray(Completion);
+    end;
+
+    local procedure ReadGeneratedNumberSeriesJArray(var Completion: Text): JsonArray
     var
         JsonObject: JsonObject;
         JsonArrayToken: JsonToken;
@@ -341,7 +346,9 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         JsonObject.ReadFrom(Completion);
         JsonObject.SelectToken(XPathLbl, JsonArrayToken);
+        exit(JsonArrayToken.AsArray());
     end;
+
 
     local procedure SaveGenerationHistory(var NoSeriesProposal: Record "No. Series Proposal"; InputText: Text)
     begin
@@ -350,20 +357,52 @@ codeunit 324 "No. Series Copilot Impl."
         NoSeriesProposal.Insert(true);
     end;
 
-    // local procedure CreateNoSeries(var NoSeriesProposal: Record "No. Series Proposal"; var NoSeriesGenerated: Record "No. Series Proposal Line"; Completion: Text)
-    // var
-    //     JSONManagement: Codeunit "JSON Management";
-    //     NoSeriesObj: Text;
-    //     i: Integer;
-    // begin
-    //     JSONManagement.InitializeCollection(Completion);
+    local procedure CreateNoSeries(var NoSeriesProposal: Record "No. Series Proposal"; var NoSeriesGenerated: Record "No. Series Proposal Line"; Completion: Text)
+    var
+        Json: Codeunit Json;
+        NoSeriesArrText: Text;
+        NoSeriesObj: Text;
+        i: Integer;
+    begin
+        ReadGeneratedNumberSeriesJArray(Completion).WriteTo(NoSeriesArrText);
+        Json.InitializeCollection(NoSeriesArrText);
 
-    //     for i := 0 to JSONManagement.GetCollectionCount() - 1 do begin
-    //         JSONManagement.GetObjectFromCollectionByIndex(NoSeriesObj, i);
+        for i := 0 to Json.GetCollectionCount() - 1 do begin
+            Json.GetObjectFromCollectionByIndex(NoSeriesObj, i);
 
-    //         InsertNoSeriesGenerated(NoSeriesGenerated, NoSeriesObj, GenerationId.ID);
-    //     end;
-    // end;
+            InsertNoSeriesGenerated(NoSeriesGenerated, NoSeriesObj, NoSeriesProposal."No.");
+        end;
+    end;
+
+    local procedure InsertNoSeriesGenerated(var NoSeriesGenerated: Record "No. Series Proposal Line"; var NoSeriesObj: Text; ProposalNo: Integer)
+    var
+        Json: Codeunit Json;
+        RecRef: RecordRef;
+        FieldRef: FieldRef;
+    begin
+        Json.InitializeObject(NoSeriesObj);
+
+        RecRef.GetTable(NoSeriesGenerated);
+        RecRef.Init();
+        SetProposalNo(RecRef, ProposalNo, NoSeriesGenerated.FieldNo("Proposal No."));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'seriesCode', NoSeriesGenerated.FieldNo("Series Code"));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'description', NoSeriesGenerated.FieldNo("Description"));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'startingNo', NoSeriesGenerated.FieldNo("Starting No."));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'endingNo', NoSeriesGenerated.FieldNo("Ending No."));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'warningNo', NoSeriesGenerated.FieldNo("Warning No."));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'incrementByNo', NoSeriesGenerated.FieldNo("Increment-by No."));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'tableId', NoSeriesGenerated.FieldNo("Setup Table No."));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'fieldId', NoSeriesGenerated.FieldNo("Setup Field No."));
+        RecRef.Insert(true);
+    end;
+
+    local procedure SetProposalNo(var RecRef: RecordRef; GenerationId: Integer; FieldNo: Integer)
+    var
+        FieldRef: FieldRef;
+    begin
+        FieldRef := RecRef.Field(FieldNo);
+        FieldRef.Value(GenerationId);
+    end;
 
     /// <summary>
     /// Get the endpoint from the Azure Key Vault.

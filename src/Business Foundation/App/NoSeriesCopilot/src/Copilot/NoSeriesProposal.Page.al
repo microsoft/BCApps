@@ -41,6 +41,7 @@ page 332 "No. Series Proposal"
                 MultiLine = true;
                 ApplicationArea = All;
                 ShowCaption = false;
+                Visible = IsResponseTextVisible;
                 Editable = false;
                 Enabled = false;
             }
@@ -94,6 +95,7 @@ page 332 "No. Series Proposal"
         InputText: Text;
         ResponseText: Text;
         PageCaptionLbl: text;
+        IsResponseTextVisible: Boolean;
         IsProposalDetailsVisible: Boolean;
 
     trigger OnAfterGetCurrRecord()
@@ -115,6 +117,7 @@ page 332 "No. Series Proposal"
     begin
         NoSeriesCopilotImpl.Generate(Rec, ResponseText, NoSeriesGenerated, InputText);
         CurrPage.ProposalDetails.Page.Load(NoSeriesGenerated);
+        IsResponseTextVisible := ResponseText <> '';
         IsProposalDetailsVisible := not NoSeriesGenerated.IsEmpty;
     end;
 
