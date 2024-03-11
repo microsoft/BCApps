@@ -29,9 +29,7 @@ page 9810 "Password Dialog"
                 Visible = ShowOldPassword;
                 trigger OnValidate()
                 begin
-                    if OldPasswordToCompare <> '' then
-                        if OldPasswordToCompare <> OldPasswordValue then
-                            Error(OldPasswordMismatchErr);
+                    PasswordDialogImpl.ValidateOldPasswordMatch(OldPasswordToCompare, OldPasswordValue);
                 end;
             }
             field(Password; PasswordValue)
@@ -46,9 +44,7 @@ page 9810 "Password Dialog"
                     if RequiresPasswordValidation then
                         PasswordDialogImpl.ValidatePasswordStrength(PasswordValue);
 
-                    if OldPasswordToCompare <> '' then
-                        if OldPasswordToCompare = PasswordValue then
-                            Error(PasswordSameAsOldErr);
+                    PasswordDialogImpl.ValidateNewPasswordUniqueness(OldPasswordToCompare, PasswordValue);
                 end;
             }
             field(ConfirmPassword; ConfirmPasswordValue)
@@ -95,16 +91,13 @@ page 9810 "Password Dialog"
     var
         PasswordDialogImpl: Codeunit "Password Dialog Impl.";
         PasswordMismatchErr: Label 'The passwords that you entered do not match.';
-        PasswordSameAsOldErr: Label 'The new password cannot be the same as the old password.';
-        OldPasswordMismatchErr: Label 'The old password does not match the entered password.';
         [NonDebuggable]
         PasswordValue: Text;
         [NonDebuggable]
         ConfirmPasswordValue: Text;
         [NonDebuggable]
         OldPasswordValue: Text;
-        [NonDebuggable]
-        OldPasswordToCompare: Text;
+        OldPasswordToCompare: SecretText;
         ShowOldPassword: Boolean;
         ValidPassword: Boolean;
         RequiresPasswordValidation: Boolean;
@@ -171,7 +164,7 @@ page 9810 "Password Dialog"
     [Scope('OnPrem')]
     procedure SetOldPasswordToCompareSecretValue(OldPassword: SecretText)
     begin
-        OldPasswordToCompare := OldPassword.Unwrap();
+        OldPasswordToCompare := OldPassword;
     end;
 
     /// <summary>

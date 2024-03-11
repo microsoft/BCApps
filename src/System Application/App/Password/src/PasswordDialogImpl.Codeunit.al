@@ -15,6 +15,8 @@ codeunit 9811 "Password Dialog Impl."
         PasswordMismatchErr: Label 'The passwords that you entered do not match.';
         PasswordTooSimpleErr: Label 'The password that you entered does not meet the minimum requirements. It must be at least %1 characters long and contain at least one uppercase letter, one lowercase letter, one number and one special character. It must not have a sequence of 3 or more ascending, descending or repeating characters.', Comment = '%1: The minimum number of characters required in the password';
         ConfirmBlankPasswordQst: Label 'Do you want to exit without entering a password?';
+        PasswordSameAsOldErr: Label 'The new password cannot be the same as the old password.';
+        OldPasswordMismatchErr: Label 'The old password does not match the entered password.';
 
     procedure ValidatePasswordStrength(Password: SecretText)
     var
@@ -92,6 +94,22 @@ codeunit 9811 "Password Dialog Impl."
             if not Confirm(ConfirmBlankPasswordQst) then
                 exit(false);
         exit(true);
+    end;
+
+    [NonDebuggable]
+    procedure ValidateOldPasswordMatch(OldPasswordToCompare: SecretText; OldPasswordEntered: SecretText)
+    begin
+        if OldPasswordToCompare.Unwrap() <> '' then
+            if OldPasswordToCompare.Unwrap() <> OldPasswordEntered.Unwrap() then
+                Error(OldPasswordMismatchErr);
+    end;
+
+    [NonDebuggable]
+    procedure ValidateNewPasswordUniqueness(OldPasswordToCompare: SecretText; NewPassword: SecretText)
+    begin
+        if OldPasswordToCompare.Unwrap() <> '' then
+            if OldPasswordToCompare.Unwrap() = NewPassword.Unwrap() then
+                Error(PasswordSameAsOldErr);
     end;
 }
 
