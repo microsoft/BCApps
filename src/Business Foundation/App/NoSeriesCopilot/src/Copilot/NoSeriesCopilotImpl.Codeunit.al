@@ -258,7 +258,7 @@ codeunit 324 "No. Series Copilot Impl."
                 if (AddedCount + 1) > 5 then  // TODO: Refactor this, probably send tables in chunks, as when there are many tables the prompt will reach the token limit and timeout
                     exit;
 
-                NewNoSeriesPrompt.AppendLine('TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + Field.FieldName);
+                NewNoSeriesPrompt.AppendLine('Area: ' + TableMetadata.Caption + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + Field.FieldName);
                 AddedCount += 1;
             until Field.Next() = 0;
     end;
