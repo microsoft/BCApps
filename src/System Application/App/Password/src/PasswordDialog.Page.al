@@ -160,11 +160,11 @@ page 9810 "Password Dialog"
     /// <summary>
     /// Set the old password value to compare with typed on the page.
     /// </summary>
-    /// <param name="OldPassword">Old password to compare.</param>
+    /// <param name="OldPasswordSecret">Old password to compare.</param>
     [Scope('OnPrem')]
-    procedure SetOldPasswordToCompareSecretValue(OldPassword: SecretText)
+    procedure SetOldPasswordToCompareSecretValue(OldPasswordSecret: SecretText)
     begin
-        OldPasswordToCompare := OldPassword;
+        OldPasswordToCompare := OldPasswordSecret;
     end;
 
     /// <summary>
