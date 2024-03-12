@@ -5,7 +5,7 @@
 namespace System.Apps.AppSource;
 
 /// <summary>
-/// Library for managing AppSource product retrival and usage.
+/// Library for managing AppSource product retrieval and usage.
 /// </summary>
 codeunit 2516 "AppSource Json Utilities"
 {
