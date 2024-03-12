@@ -8,14 +8,13 @@ using System.Environment.Configuration;
 using System.Globalization;
 using System.Azure.Identity;
 using System.Utilities;
-using System.Environment;
 using System.Azure.KeyVault;
 using System.RestClient;
 
 /// <summary>
-/// Library for managing AppSource product retrival and usage.
+/// Library for managing AppSource product retrieval and usage.
 /// </summary>
-codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager Dependencies"
+codeunit 2515 "AppSource Product Manager"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -38,66 +37,6 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
         NotSupportedOnPremisesErrorLbl: Label 'Not supported on premises.';
         UnsupportedLanguageNotificationLbl: Label 'Language %1 is not supported by AppSource. Defaulting to "en". Change the language in the user profile to use another language.', Comment = '%1=Language ID, such as en';
         UnsupportedMarketNotificationLbl: Label 'Market %1 is not supported by AppSource. Defaulting to "us". Change the region in the user profile to use another market.', Comment = '%1=Market ID, such as "us"';
-
-    #region Dependency Interface implementation
-    procedure GetCountryLetterCode(): Code[2]
-    var
-        AzureAdTenant: Codeunit "Azure AD Tenant";
-    begin
-        exit(AzureAdTenant.GetCountryLetterCode());
-    end;
-
-    procedure GetPreferredLanguage(): Text
-    var
-        AzureAdTenant: Codeunit "Azure AD Tenant";
-    begin
-        exit(AzureAdTenant.GetPreferredLanguage());
-    end;
-
-    procedure GetApplicationFamily(): Text
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
-    begin
-        exit(EnvironmentInformation.GetApplicationFamily());
-    end;
-
-    procedure IsSaas(): boolean
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
-    begin
-        exit(EnvironmentInformation.IsSaas());
-    end;
-
-    procedure GetFormatRegionOrDefault(FormatRegion: Text[80]): Text
-    var
-        Language: Codeunit Language;
-    begin
-        exit(Language.GetFormatRegionOrDefault(FormatRegion));
-    end;
-
-    procedure GetAsJSon(var RestClient: Codeunit "Rest Client"; RequestUri: Text): JsonToken
-    begin
-        exit(RestClient.GetAsJSon(RequestUri));
-    end;
-
-    procedure GetUserSettings(UserSecurityId: Guid; var TempUserSettingsRecord: record "User Settings" temporary)
-    var
-        UserSettings: Codeunit "User Settings";
-    begin
-        UserSettings.GetUserSettings(Database.UserSecurityID(), TempUserSettingsRecord);
-    end;
-
-    procedure ShouldSetCommonHeaders(): Boolean
-    begin
-        exit(true);
-    end;
-
-    #endregion
-    procedure SetDependencies(SpecificDependencies: Interface "AppSource Product Manager Dependencies")
-    begin
-        AppSourceProductManagerDependencies := SpecificDependencies;
-        IsDependenciesInterfaceSet := true;
-    end;
 
     #region Product helpers
     /// <summary>
@@ -494,9 +433,14 @@ codeunit 2515 "AppSource Product Manager" implements "AppSource Product Manager 
 
     local procedure SetDefaultDependencyImplementation()
     var
-        AppSourceProductManager: Codeunit "AppSource Product Manager";
+        AppSrcProductDepsProvider: Codeunit "AppSrc Product Deps. Provider";
     begin
-        SetDependencies(AppSourceProductManager);
+        SetDependencies(AppSrcProductDepsProvider);
+    end;
+
+    internal procedure SetDependencies(AppSourceProductManagerDependencyProvider: Interface "AppSource Product Manager Dependencies")
+    begin
+        AppSourceProductManagerDependencies := AppSourceProductManagerDependencyProvider;
         IsDependenciesInterfaceSet := true;
     end;
 }
