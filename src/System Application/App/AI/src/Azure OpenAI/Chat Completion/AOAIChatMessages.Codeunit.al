@@ -206,6 +206,15 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Gets the number of tokens used by the primary system messages and all other messages.
+    /// </summary>
+    [NonDebuggable]
+    procedure GetHistoryTokenCount(): Integer
+    begin
+        exit(AOAIChatMessagesImpl.GetHistoryTokenCount());
+    end;
+
+    /// <summary>
     /// Appends a Tool to the payload.
     /// </summary>
     /// <param name="NewTool">The Tool to be added to the payload.</param>

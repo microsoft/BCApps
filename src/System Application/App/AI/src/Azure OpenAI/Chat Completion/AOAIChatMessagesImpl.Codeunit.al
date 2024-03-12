@@ -172,6 +172,16 @@ codeunit 7764 "AOAI Chat Messages Impl"
     end;
 
     [NonDebuggable]
+    procedure GetHistoryTokenCount(): Integer
+    var
+        SystemMessageTokenCount: Integer;
+        MessagesTokenCount: Integer;
+    begin
+        PrepareHistory(SystemMessageTokenCount, MessagesTokenCount);
+        exit(SystemMessageTokenCount + MessagesTokenCount);
+    end;
+
+    [NonDebuggable]
     procedure PrepareHistory(var SystemMessageTokenCount: Integer; var MessagesTokenCount: Integer) HistoryResult: JsonArray
     var
         AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
