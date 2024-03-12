@@ -359,8 +359,6 @@ codeunit 2012 "Entity Text Impl."
                 begin
                     SplitCompletion := Completion.Split(EncodedNewlineTok + EncodedNewlineTok);
                     FormatValid := SplitCompletion.Count() = 2; // a tagline + paragraph must contain an empty line
-                    if FormatValid then
-                        FormatValid := SplitCompletion.Get(2).Split(' ').Count() >= MinParagraphWords; // the paragraph must be more than MinParagraphWords words
                 end;
             TextFormat::Paragraph:
                 FormatValid := (not Completion.Contains(EncodedNewlineTok + EncodedNewlineTok)) and (Completion.Split(' ').Count() >= MinParagraphWords); // multiple paragraphs should be avoided, and must have more than MinParagraphWords words
