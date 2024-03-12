@@ -2,8 +2,8 @@ codeunit 324 "No. Series Copilot Impl."
 {
     procedure Generate(var NoSeriesProposal: Record "No. Series Proposal"; var ResponseText: text; var NoSeriesGenerated: Record "No. Series Proposal Line"; InputText: Text)
     var
-        SystemPromptTxt: Text;
-        ToolsTxt: Text;
+        SystemPromptTxt: SecretText;
+        ToolsTxt: SecretText;
         CompletePromptTokenCount: Integer;
         Completion: Text;
         TokenCountImpl: Codeunit "AOAI Token";
@@ -72,7 +72,7 @@ codeunit 324 "No. Series Copilot Impl."
 
 
     [NonDebuggable]
-    internal procedure GenerateNoSeries(var SystemPromptTxt: Text; InputText: Text): Text
+    internal procedure GenerateNoSeries(SystemPromptTxt: SecretText; InputText: Text): Text
     var
         AzureOpenAI: Codeunit "Azure OpenAi";
         AOAIDeployments: Codeunit "AOAI Deployments";
@@ -89,7 +89,7 @@ codeunit 324 "No. Series Copilot Impl."
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"No. Series Copilot");
         AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
         AOAIChatCompletionParams.SetTemperature(0);
-        AOAIChatMessages.AddSystemMessage(SystemPromptTxt);
+        AOAIChatMessages.AddSystemMessage(SystemPromptTxt.Unwrap());
 
         foreach ToolJson in GetTools() do
             AOAIChatMessages.AddTool(ToolJson);
@@ -110,67 +110,96 @@ codeunit 324 "No. Series Copilot Impl."
     local procedure CallTool(var AzureOpenAI: Codeunit "Azure OpenAi"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var ToolDefinition: Text): Text
     var
         ToolCallId: Text;
-        FunctionName: Text;
-        FunctionArguments: Text;
-        ToolResponse: Text;
-        i: Integer;
+        FunctionName, FunctionArguments, ToolResponse : Text;
+        ToolResponses, FinalResults : List of [Text]; // tool response can be a list of strings, as the response can be too long and exceed the token limit. In this case each string would be a separate message, each of them should be called separately. The final response will be the concatenation of all the LLM responses.
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        MaxToolResponseTokenLength, i : Integer;
     begin
-        AOAIChatMessages.ParseTool(ToolDefinition, FunctionName, FunctionArguments, ToolCallId, 0);
+        // remove the tools from the chat messages, as they are not needed anymore
+        for i := 1 to AOAIChatMessages.GetTools().Count do
+            AOAIChatMessages.DeleteTool(1); //when the tool is removed the index of the next tool is i-1, so the next tool should be removed with index 1
 
+        MaxToolResponseTokenLength := MaxInputTokens() - AOAIChatMessages.GetHistoryTokenCount();
+
+        AOAIChatMessages.ParseTool(ToolDefinition, FunctionName, FunctionArguments, ToolCallId, 0);
         case
             FunctionName of
             'get_new_tables_and_patterns':
-                ToolResponse := BuildGenerateNewNumbersSeriesPrompt(FunctionArguments);
+                ToolResponses := BuildGenerateNewNumbersSeriesPrompts(FunctionArguments, MaxToolResponseTokenLength);
             'get_existing_tables_and_patterns':
-                ToolResponse := BuildModifyExistingNumbersSeriesPrompt(FunctionArguments);
+                ToolResponses := BuildModifyExistingNumbersSeriesPrompt(FunctionArguments, MaxToolResponseTokenLength);
             else
                 Error('Function call not supported');
         end;
 
-        if ToolResponse = '' then
+        if ToolResponses.Count = 0 then
             Error('Function call failed');
-
-        // remove the tool message from the chat messages
-        for i := 1 to AOAIChatMessages.GetTools().Count do
-            AOAIChatMessages.DeleteTool(1); //when the tool is removed the index of the next tool is i-1, so the next tool should be removed with index 1
 
         AOAIChatCompletionParams.SetJsonMode(true);
 
-        // adding function response to messages
-        AOAIChatMessages.AddToolMessage(ToolCallId, FunctionName, ToolResponse);
+        foreach ToolResponse in ToolResponses do begin
+            // adding function response to messages
+            AOAIChatMessages.AddToolMessage(ToolCallId, FunctionName, ToolResponse);
+            // call the API again to get the final response from the model
+            AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
+            if not AOAIOperationResponse.IsSuccess() then
+                Error(AOAIOperationResponse.GetError());
+            FinalResults.Add(AOAIChatMessages.GetLastMessage());
 
-        // call the API again to get the final response from the model
-        AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
-        if AOAIOperationResponse.IsSuccess() then
-            exit(AOAIChatMessages.GetLastMessage())
-        else
-            Error(AOAIOperationResponse.GetError());
+            AOAIChatMessages.DeleteMessage(AOAIChatMessages.GetHistory().Count); // remove the last message, as it is not needed anymore
+            AOAIChatMessages.DeleteMessage(AOAIChatMessages.GetHistory().Count); // remove the tools message, as it is not needed anymore
+        end;
+
+        exit(ConcatenateToolResponse(FinalResults));
     end;
 
-    local procedure BuildGenerateNewNumbersSeriesPrompt(var FunctionArguments: Text): Text
+    /// <summary>
+    /// Build the prompts for generating new number series.
+    /// </summary>
+    /// <param name="FunctionArguments">Function Arguments retrieved from LLM</param>
+    /// <param name="MaxToolResultsTokensLength">Maximum number of tokens can be allocated for the result</param>
+    /// <returns></returns>
+    /// <remarks> This function is used to build the prompts for generating new number series. The prompts are built based on the tables and patterns specified in the input. If no tables are specified, all tables with number series are used. If no patterns are specified, default patterns are used. In case number of tables can't be pasted in one prompt, due to token limits, function chunk result into several messages, that need to be called separately</remarks>
+    local procedure BuildGenerateNewNumbersSeriesPrompts(var FunctionArguments: Text; MaxToolResultsTokensLength: Integer) ToolResults: List of [Text]
     var
-        NewNoSeriesPrompt: TextBuilder;
-        NewNumbersSeriesInstructionsLbl: Label 'Generate number series configurations based on the following table entries, ensuring each JSON object directly corresponds to one table entry. Use the Pattern Examples solely to inform the `startingNo`, `endingNo`, and `warningNo` fields based on the seriesCode relationship. Patterns are not to generate additional JSON objects.', Locked = true;
-        NewNumbersSeriesPatternUsageInstructionsLbl: Label 'For `startingNo`, `endingNo`, and `warningNo` values, refer to these pattern examples, applying them based on their seriesCode:', Locked = true;
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+        NewNoSeriesPrompt, TablesPromptList, PatternsPromptList : List of [Text];
+        GeneralInstructionsLbl: Label 'Generate number series configurations based on the following table entries, ensuring each JSON object directly corresponds to one table entry. Use the Pattern Examples solely to inform the `startingNo`, `endingNo`, and `warningNo` fields based on the seriesCode relationship. Patterns are not to generate additional JSON objects.', Locked = true;
+        TablesInstructionsLbl: Label 'Tables:', Locked = true;
+        PatternUsageInstructionsLbl: Label 'For `startingNo`, `endingNo`, and `warningNo` values, refer to these pattern examples, applying them based on their seriesCode:', Locked = true;
+        NumberOfToolResponses, MaxTablesPromptListTokensLength, ActualTablesPromptListTokensLength, i : Integer;
+        TokenCountImpl: Codeunit "AOAI Token";
     begin
-        NewNoSeriesPrompt.AppendLine(NewNumbersSeriesInstructionsLbl);
-        NewNoSeriesPrompt.AppendLine('Tables:');
+        GetTablesPrompt(FunctionArguments, TablesPromptList);
+        GetPatternsPrompt(FunctionArguments, PatternsPromptList);
+
+        MaxTablesPromptListTokensLength := MaxToolResultsTokensLength -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(GeneralInstructionsLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(TablesInstructionsLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(PatternUsageInstructionsLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(ConvertListToText(PatternsPromptList)) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool1OutputFormat());
+
+        ActualTablesPromptListTokensLength := TokenCountImpl.GetGPT4TokenCount(ConvertListToText(TablesPromptList));
+        NumberOfToolResponses := Round(ActualTablesPromptListTokensLength / MaxTablesPromptListTokensLength, 1, '>');
+
+        for i := 1 to NumberOfToolResponses do begin
+            Clear(NewNoSeriesPrompt);
+            NewNoSeriesPrompt.Add(GeneralInstructionsLbl);
+            NewNoSeriesPrompt.Add(TablesInstructionsLbl);
+            BuildTablesPrompt(NewNoSeriesPrompt, TablesPromptList, MaxTablesPromptListTokensLength);
+            NewNoSeriesPrompt.Add(PatternUsageInstructionsLbl);
+            NewNoSeriesPrompt.Add(ConvertListToText(PatternsPromptList));
+            NewNoSeriesPrompt.Add(GetTool1OutputFormat());
+            ToolResults.Add(ConvertListToText(NewNoSeriesPrompt));
+        end;
+    end;
+
+    local procedure GetTablesPrompt(var FunctionArguments: Text; var TablesPromptList: List of [Text])
+    begin
         if CheckIfTablesSpecified(FunctionArguments) then
-            ListOnlySpecifiedTables(NewNoSeriesPrompt, GetEntities(FunctionArguments))
+            ListOnlySpecifiedTables(TablesPromptList, GetEntities(FunctionArguments))
         else
-            ListAllTablesWithNumberSeries(NewNoSeriesPrompt);
-
-        NewNoSeriesPrompt.AppendLine(NewNumbersSeriesPatternUsageInstructionsLbl);
-        if CheckIfPatternSpecified(FunctionArguments) then
-            NewNoSeriesPrompt.AppendLine(GetPattern(FunctionArguments))
-        else
-            ListDefaultOrExistingPattern(NewNoSeriesPrompt);
-
-        NewNoSeriesPrompt.AppendLine(GetTool1OutputFormat());
-
-        exit(NewNoSeriesPrompt.ToText());
+            ListAllTablesWithNumberSeries(TablesPromptList);
     end;
 
     local procedure CheckIfTablesSpecified(var FunctionArguments: Text): Boolean
@@ -193,16 +222,15 @@ codeunit 324 "No. Series Copilot Impl."
         exit(EntitiesToken.AsValue().AsText().Split());
     end;
 
-    local procedure ListOnlySpecifiedTables(var NewNoSeriesPrompt: TextBuilder; Entities: List of [Text])
+    local procedure ListOnlySpecifiedTables(var TablesPromptList: List of [Text]; Entities: List of [Text])
     begin
         //TODO: implement
         Error('Not implemented');
     end;
 
-    local procedure ListAllTablesWithNumberSeries(var NewNoSeriesPrompt: TextBuilder)
+    local procedure ListAllTablesWithNumberSeries(var TablesPromptList: List of [Text])
     var
         TableMetadata: Record "Table Metadata";
-        i: Integer;
     begin
         // Looping trhough all Setup tables
         TableMetadata.SetFilter(Name, '* Setup');
@@ -210,11 +238,11 @@ codeunit 324 "No. Series Copilot Impl."
         TableMetadata.SetRange(TableType, TableMetadata.TableType::Normal);
         if TableMetadata.FindSet() then
             repeat
-                ListAllNoSeriesFields(NewNoSeriesPrompt, TableMetadata, i);
+                ListAllNoSeriesFields(TablesPromptList, TableMetadata);
             until TableMetadata.Next() = 0;
     end;
 
-    local procedure ListAllNoSeriesFields(var NewNoSeriesPrompt: TextBuilder; var TableMetadata: Record "Table Metadata"; var AddedCount: Integer)
+    local procedure ListAllNoSeriesFields(var TablesPromptList: List of [Text]; var TableMetadata: Record "Table Metadata")
     var
         Field: Record "Field";
     begin
@@ -225,12 +253,32 @@ codeunit 324 "No. Series Copilot Impl."
         Field.SetFilter(FieldName, '*Nos.'); //TODO: Check if this is the correct filter
         if Field.FindSet() then
             repeat
-                if (AddedCount + 1) > 5 then  // TODO: Refactor this, probably send tables in chunks, as when there are many tables the prompt will reach the token limit and timeout
-                    exit;
-
-                NewNoSeriesPrompt.AppendLine('Area: ' + TableMetadata.Caption + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + Field.FieldName);
-                AddedCount += 1;
+                TablesPromptList.Add('Area: ' + TableMetadata.Caption + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + Field.FieldName);
             until Field.Next() = 0;
+    end;
+
+    local procedure BuildTablesPrompt(var FinalPrompt: List of [Text]; var TablesPromptList: List of [Text]; MaxTokensLength: Integer)
+    var
+        TokenCountImpl: Codeunit "AOAI Token";
+        TablePrompt: Text;
+        IncludedTablePrompts: List of [Text];
+    begin
+        foreach TablePrompt in TablesPromptList do
+            if TokenCountImpl.GetGPT4TokenCount(ConvertListToText(IncludedTablePrompts)) + TokenCountImpl.GetGPT4TokenCount(TablePrompt) < MaxTokensLength then
+                IncludedTablePrompts.Add(TablePrompt);
+
+        foreach TablePrompt in IncludedTablePrompts do begin
+            FinalPrompt.Add(TablePrompt);
+            TablesPromptList.Remove(TablePrompt);
+        end;
+    end;
+
+    local procedure GetPatternsPrompt(var FunctionArguments: Text; var PatternsPromptList: List of [Text])
+    begin
+        if CheckIfPatternSpecified(FunctionArguments) then
+            PatternsPromptList.Add(GetPattern(FunctionArguments))
+        else
+            ListDefaultOrExistingPattern(PatternsPromptList);
     end;
 
     local procedure CheckIfPatternSpecified(var FunctionArguments: Text): Boolean
@@ -254,12 +302,12 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
 
-    local procedure ListDefaultOrExistingPattern(var NewNoSeriesPrompt: TextBuilder): Text
+    local procedure ListDefaultOrExistingPattern(var PatternsPromptList: List of [Text]): Text
     begin
         if CheckIfNumberSeriesExists() then
-            ListExistingPattern(NewNoSeriesPrompt)
+            ListExistingPattern(PatternsPromptList)
         else
-            ListDefaultPattern(NewNoSeriesPrompt);
+            ListDefaultPattern(PatternsPromptList);
     end;
 
     local procedure CheckIfNumberSeriesExists(): Boolean
@@ -269,7 +317,7 @@ codeunit 324 "No. Series Copilot Impl."
         exit(not NoSeries.IsEmpty);
     end;
 
-    local procedure ListExistingPattern(var NewNoSeriesPrompt: TextBuilder)
+    local procedure ListExistingPattern(var PatternsPromptList: List of [Text])
     var
         NoSeries: Record "No. Series";
         NoSeriesManagement: Codeunit "No. Series";
@@ -279,27 +327,61 @@ codeunit 324 "No. Series Copilot Impl."
         // TODO: Probably there is better way to show the existing number series, maybe by showing the most used ones, or the ones that are used in the same tables as the ones that are specified in the input
         if NoSeries.FindSet() then
             repeat
-                NewNoSeriesPrompt.AppendLine('Code: ' + NoSeries.Code + ', Description: ' + NoSeries.Description + ', Pattern: ' + NoSeriesManagement.GetLastNoUsed(NoSeries.Code)); //TODO: Replace `GetLastNoUsed` with `GetStartingNo`
+                PatternsPromptList.Add('Code: ' + NoSeries.Code + ', Description: ' + NoSeries.Description + ', Pattern: ' + NoSeriesManagement.GetLastNoUsed(NoSeries.Code)); //TODO: Replace `GetLastNoUsed` with `GetStartingNo`
                 if i > 5 then
                     break;
                 i += 1;
             until NoSeries.Next() = 0;
     end;
 
-    local procedure ListDefaultPattern(var NewNoSeriesPrompt: TextBuilder)
+    local procedure ListDefaultPattern(var PatternsPromptList: List of [Text])
     begin
-        // TODO: Probably there are better default patterns. These are taken from CRONUS USA, Inc. demo data
-        NewNoSeriesPrompt.AppendLine('Code: CUST, Description: Customer, Pattern: C00001');
-        NewNoSeriesPrompt.AppendLine('Code: GJNL-GEN, Description: General Journal, Pattern: G00001');
-        NewNoSeriesPrompt.AppendLine('Code: P-CR, Description: Purchase Credit Memo, Pattern: 1001');
-        NewNoSeriesPrompt.AppendLine('Code: P-CR+, Description: Posted Purchase Credit Memo, Pattern: 109001');
-        NewNoSeriesPrompt.AppendLine('Code: S-ORD, Description: Sales Order, Pattern: S-ORD101001');
-        NewNoSeriesPrompt.AppendLine('Code: SVC-INV+, Description: Posted Service Invoices, Pattern: PSVI000001');
+        // TODO: Probably there are better default patterns.
+        // TODO: Probably good idea to add event here to allow the user to add the default patterns
+        PatternsPromptList.Add('Code: CUST, Description: Customer, Pattern: C00001');
+        PatternsPromptList.Add('Code: GJNL-GEN, Description: General Journal, Pattern: G00001');
+        PatternsPromptList.Add('Code: P-CR, Description: Purchase Credit Memo, Pattern: PCR00001');
+        PatternsPromptList.Add('Code: P-CR+, Description: Posted Purchase Credit Memo, Pattern: PPCR00001');
+        PatternsPromptList.Add('Code: S-ORD, Description: Sales Order, Pattern: SO00001');
+        PatternsPromptList.Add('Code: S-ORD+, Description: Posted Sales Invoice, Pattern: PSI00001');
+        PatternsPromptList.Add('Code: SVC-INV+, Description: Posted Service Invoices, Pattern: PSVI00001');
     end;
 
-    local procedure BuildModifyExistingNumbersSeriesPrompt(var FunctionCallParams: Text): Text
+    local procedure BuildModifyExistingNumbersSeriesPrompt(var FunctionCallParams: Text; MaxToolResultsTokensLength: Integer): List of [Text]
     begin
         Error('Not implemented');
+    end;
+
+    local procedure ConvertListToText(MyList: List of [Text]): Text
+    var
+        Element: Text;
+        Result: TextBuilder;
+    begin
+        foreach Element in MyList do
+            Result.AppendLine(Element);
+
+        exit(Result.ToText());
+    end;
+
+    local procedure ConcatenateToolResponse(var FinalResults: List of [Text]) ConcatenatedResponse: Text
+    var
+        Result: Text;
+        ResultJArray: JsonArray;
+        JsonTok: JsonToken;
+        JsonArr: JsonArray;
+        JsonObj: JsonObject;
+        i: Integer;
+    begin
+        foreach Result in FinalResults do begin
+            ResultJArray := ReadGeneratedNumberSeriesJArray(Result);
+            for i := 0 to ResultJArray.Count - 1 do begin
+                ResultJArray.Get(i, JsonTok);
+                JsonArr.Add(JsonTok);
+            end;
+        end;
+
+        JsonObj.Add('noSeries', JsonArr);
+        JsonObj.WriteTo(ConcatenatedResponse);
     end;
 
     [TryFunction]
