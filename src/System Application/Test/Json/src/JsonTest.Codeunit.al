@@ -106,4 +106,118 @@ codeunit 139910 "Json Test"
         Assert.AreEqual('ABC123', Printer.ID, 'The Id field was not set correctly.');
         Assert.AreEqual('Test Name', Printer.Name, 'The Name field was not set correctly.');
     end;
+
+    [Test]
+    procedure TestGetPropertyValueByName()
+    var
+        Json: Codeunit "Json";
+        JsonObjectText: Text;
+        Value: Variant;
+    begin
+        // [GIVEN] A JSON object with a known value
+        JsonObjectText := '{"id":"ABC123", "name":"Test Name"}';
+        Json.InitializeObject(JsonObjectText);
+
+        // [WHEN] Retrieve a value from the JSON object
+        Json.GetPropertyValueByName('id', Value);
+
+        // [THEN] The retrieved value matches the expected value
+        Assert.AreEqual('ABC123', Format(Value), 'The retrieved value does not match the expected value.');
+    end;
+
+    [Test]
+    procedure TestGetStringPropertyValueByName()
+    var
+        Json: Codeunit "Json";
+        JsonObjectText: Text;
+        Value: Text;
+    begin
+        // [GIVEN] A JSON object with a known value
+        JsonObjectText := '{"id":"ABC123", "name":"Test Name"}';
+        Json.InitializeObject(JsonObjectText);
+
+        // [WHEN] Retrieve a value from the JSON object
+        Json.GetStringPropertyValueByName('id', Value);
+
+        // [THEN] The retrieved value matches the expected value
+        Assert.AreEqual('ABC123', Value, 'The retrieved value does not match the expected value.');
+
+        // [WHEN] Retrieve a value from the JSON object
+        Json.GetStringPropertyValueByName('name', Value);
+
+        // [THEN] The retrieved value matches the expected value
+        Assert.AreEqual('Test Name', Value, 'The retrieved value does not match the expected value.');
+    end;
+
+    [Test]
+    procedure TestGetIntegerPropertyValueFromJObjectByName()
+    var
+        Json: Codeunit "Json";
+        JsonObjectText: Text;
+        Value: Integer;
+    begin
+        // [GIVEN] A JSON object with a known value
+        JsonObjectText := '{"id":123, "name":"Test Name"}';
+        Json.InitializeObject(JsonObjectText);
+
+        // [WHEN] Retrieve a value from the JSON object
+        Json.GetIntegerPropertyValueFromJObjectByName('id', Value);
+
+        // [THEN] The retrieved value matches the expected value
+        Assert.AreEqual(123, Value, 'The retrieved value does not match the expected value.');
+    end;
+
+    [Test]
+    procedure TestGetBoolPropertyValueFromJObjectByName()
+    var
+        Json: Codeunit "Json";
+        JsonObjectText: Text;
+        Value: Boolean;
+    begin
+        // [GIVEN] A JSON object with a known value
+        JsonObjectText := '{"id":123, "name":"Test Name", "isActive":true}';
+        Json.InitializeObject(JsonObjectText);
+
+        // [WHEN] Retrieve a value from the JSON object
+        Json.GetBoolPropertyValueFromJObjectByName('isActive', Value);
+
+        // [THEN] The retrieved value matches the expected value
+        Assert.IsTrue(Value, 'The retrieved value does not match the expected value.');
+    end;
+
+    [Test]
+    procedure TestGetDecimalPropertyValueFromJObjectByName()
+    var
+        Json: Codeunit "Json";
+        JsonObjectText: Text;
+        Value: Decimal;
+    begin
+        // [GIVEN] A JSON object with a known value
+        JsonObjectText := '{"id":123, "name":"Test Name", "price":123.45}';
+        Json.InitializeObject(JsonObjectText);
+
+        // [WHEN] Retrieve a value from the JSON object
+        Json.GetDecimalPropertyValueFromJObjectByName('price', Value);
+
+        // [THEN] The retrieved value matches the expected value
+        Assert.AreEqual(123.45, Value, 'The retrieved value does not match the expected value.');
+    end;
+
+    [Test]
+    procedure TestGetEnumPropertyValueFromJObjectByName()
+    var
+        Json: Codeunit "Json";
+        JsonObjectText: Text;
+        Value: Option Option1,Option2,Option3;
+    begin
+        // [GIVEN] A JSON object with a known value
+        JsonObjectText := '{"id":123, "name":"Test Name", "optionValue":"Option1"}';
+        Json.InitializeObject(JsonObjectText);
+
+        // [WHEN] Retrieve a value from the JSON object
+        Json.GetEnumPropertyValueFromJObjectByName('optionValue', Value);
+
+        // [THEN] The retrieved value matches the expected value
+        Assert.AreEqual(Value::Option1, Value, 'The retrieved value does not match the expected value.');
+    end;
 }

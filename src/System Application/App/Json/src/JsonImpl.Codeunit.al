@@ -57,6 +57,41 @@ codeunit 5461 "Json Impl."
         exit(GetPropertyValueFromJObjectByPathSetToFieldRef(JsonObject, PropertyPath, FieldRef));
     end;
 
+    procedure GetPropertyValueByName(propertyName: Text; var value: Variant): Boolean
+    begin
+        exit(GetPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+    end;
+
+    procedure GetStringPropertyValueByName(propertyName: Text; var value: Text): Boolean
+    begin
+        exit(GetStringPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+    end;
+
+    procedure GetEnumPropertyValueFromJObjectByName(propertyName: Text; var value: Option): Boolean
+    begin
+        exit(GetEnumPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+    end;
+
+    procedure GetBoolPropertyValueFromJObjectByName(propertyName: Text; var value: Boolean): Boolean
+    begin
+        exit(GetBoolPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+    end;
+
+    procedure GetDecimalPropertyValueFromJObjectByName(propertyName: Text; var value: Decimal): Boolean
+    begin
+        exit(GetDecimalPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+    end;
+
+    procedure GetIntegerPropertyValueFromJObjectByName(propertyName: Text; var value: Integer): Boolean
+    begin
+        exit(GetIntegerPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+    end;
+
+    procedure GetGuidPropertyValueFromJObjectByName(propertyName: Text; var value: Guid): Boolean
+    begin
+        exit(GetGuidPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+    end;
+
     local procedure InitializeCollectionFromString(JSONString: Text)
     begin
         Clear(JsonArray);
@@ -233,6 +268,93 @@ codeunit 5461 "Json Impl."
         until Counter = Number;
     end;
 
+    [Scope('OnPrem')]
+    procedure GetEnumPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Option): Boolean
+    var
+        StringValue: Text;
+    begin
+        if GetStringPropertyValueFromJObjectByName(JObject, propertyName, StringValue) then begin
+            Evaluate(value, StringValue, 0);
+            exit(true);
+        end;
+        exit(false);
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetBoolPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Boolean): Boolean
+    var
+        StringValue: Text;
+    begin
+        if GetStringPropertyValueFromJObjectByName(JObject, propertyName, StringValue) then begin
+            Evaluate(value, StringValue, 2);
+            exit(true);
+        end;
+        exit(false);
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetDecimalPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Decimal): Boolean
+    var
+        StringValue: Text;
+    begin
+        if GetStringPropertyValueFromJObjectByName(JObject, propertyName, StringValue) then begin
+            Evaluate(value, StringValue);
+            exit(true);
+        end;
+        exit(false);
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetIntegerPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Integer): Boolean
+    var
+        StringValue: Text;
+    begin
+        if GetStringPropertyValueFromJObjectByName(JObject, propertyName, StringValue) then begin
+            Evaluate(value, StringValue);
+            exit(true);
+        end;
+        exit(false);
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetGuidPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Guid): Boolean
+    var
+        StringValue: Text;
+    begin
+        if GetStringPropertyValueFromJObjectByName(JObject, propertyName, StringValue) then begin
+            Evaluate(value, StringValue);
+            exit(true);
+        end;
+        exit(false);
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetStringPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Text): Boolean
+    var
+        VariantValue: Variant;
+    begin
+        Clear(value);
+        if GetPropertyValueFromJObjectByName(JObject, propertyName, VariantValue) then begin
+            value := Format(VariantValue);
+            exit(true);
+        end;
+        exit(false);
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Variant): Boolean
+    var
+        JProperty: DotNet JProperty;
+        JToken: DotNet JToken;
+    begin
+        Clear(value);
+        if JObject.TryGetValue(propertyName, JToken) then begin
+            JProperty := JObject.Property(propertyName);
+            value := JProperty.Value;
+            exit(true);
+        end;
+    end;
+
     local procedure InitializeEmptyCollection()
     begin
         JsonArray := JsonArray.JArray();
@@ -243,4 +365,3 @@ codeunit 5461 "Json Impl."
         JsonObject := JsonObject.JObject();
     end;
 }
-
