@@ -99,17 +99,19 @@ codeunit 9811 "Password Dialog Impl."
     [NonDebuggable]
     procedure ValidateOldPasswordMatch(OldPasswordToCompare: SecretText; OldPasswordEntered: SecretText)
     begin
-        if not OldPasswordToCompare.IsEmpty() then
-            if OldPasswordToCompare.Unwrap() <> OldPasswordEntered.Unwrap() then
-                Error(OldPasswordMismatchErr);
+        if OldPasswordToCompare.IsEmpty() then
+            exit;
+        if OldPasswordToCompare.Unwrap() <> OldPasswordEntered.Unwrap() then
+            Error(OldPasswordMismatchErr);
     end;
 
     [NonDebuggable]
     procedure ValidateNewPasswordUniqueness(OldPasswordToCompare: SecretText; NewPassword: SecretText)
     begin
-        if not OldPasswordToCompare.IsEmpty() then
-            if OldPasswordToCompare.Unwrap() = NewPassword.Unwrap() then
-                Error(PasswordSameAsOldErr);
+        if OldPasswordToCompare.IsEmpty() then
+            exit;
+        if OldPasswordToCompare.Unwrap() = NewPassword.Unwrap() then
+            Error(PasswordSameAsOldErr);
     end;
 }
 
