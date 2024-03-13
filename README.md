@@ -9,7 +9,7 @@ The source code in this repository is available to everyone under the standard [
 
 ## Contributing
 
-In this repository, we welcome contributions to the **System Application** and the **Developer Tools**. 
+In this repository, we welcome contributions to the **System Application**, **Business Foudantion** and the **Developer Tools**, such as **Test Runner**, **Performance Toolkit** and others.
 
 * If you are looking to contribute to **Microsoft's 1st party apps** you can do so in the [ALAppExtensions](https://github.com/microsoft/ALAppExtensions) repository. 
 * If you are looking to contribute to the **Base Application** you can do so in the [BusinessCentralApps](https://github.com/microsoft/BusinessCentralApps/) repository. Please note, that this repository is private but you can request access by filling out [this form](https://forms.office.com/pages/responsepage.aspx?id=v4j5cvGGr0GRqy180BHbR_Qj5hjzNeNOhBcvBoRIOltUOVBVTklZN1hBOTZJUU40OE5CUzNWNk1FQy4u). 
