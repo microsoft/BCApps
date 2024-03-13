@@ -59,6 +59,11 @@ table 9200 "No. Series Copilot Setup"
             DataClassification = CustomerContent;
             Caption = 'Tool 1 Examples Prompt';
         }
+        field(10; "Tool 1 General Instr. Prompt"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 1 General Instructions Prompt';
+        }
     }
 
     keys
@@ -230,5 +235,29 @@ table 9200 "No. Series Copilot Setup"
         IsolatedStorage.Set(NewTool1ExamplesPromptGuid, Tool1ExamplesPrompt, DataScope::Module);
 
         Rec."Tool 1 Examples Prompt" := NewTool1ExamplesPromptGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetTool1GeneralInstructionsPromptFromIsolatedStorage() Tool1GeneralInstrPrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tool 1 General Instr. Prompt") then
+            if not IsolatedStorage.Get(Rec."Tool 1 General Instr. Prompt", DataScope::Module, Tool1GeneralInstrPrompt) then;
+
+        exit(Tool1GeneralInstrPrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool1GeneralInstructionsPromptToIsolatedStorage(Tool1GeneralInstrPrompt: Text)
+    var
+        NewTool1GeneralInstrPromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 1 General Instr. Prompt") then
+            if not IsolatedStorage.Delete(Rec."Tool 1 General Instr. Prompt", DataScope::Module) then;
+
+        NewTool1GeneralInstrPromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewTool1GeneralInstrPromptGuid, Tool1GeneralInstrPrompt, DataScope::Module);
+
+        Rec."Tool 1 General Instr. Prompt" := NewTool1GeneralInstrPromptGuid;
     end;
 }

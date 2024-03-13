@@ -78,6 +78,19 @@ page 9245 "No. Series Copilot Setup"
                 }
                 group(Tool1)
                 {
+                    field(Tool1GeneralInstructionsPrompt; Tool1GeneralInstructionsPrompt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Tool 1 General Instructions Prompt';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool1GeneralInstructionsPromptToIsolatedStorage(Tool1GeneralInstructionsPrompt);
+                        end;
+                    }
                     field(Tool1PatternPrompt; Tool1PatternPrompt)
                     {
                         ApplicationArea = All;
@@ -130,6 +143,7 @@ page 9245 "No. Series Copilot Setup"
         SecretKey: Text;
         SystemPrompt: Text;
         ToolsDefinition: Text;
+        Tool1GeneralInstructionsPrompt: Text;
         Tool1PatternPrompt: Text;
         Tool1ExamplesPrompt: Text;
         Tool1OutputFormat: Text;
@@ -148,6 +162,9 @@ page 9245 "No. Series Copilot Setup"
         SystemPrompt := Rec.GetSystemPromptFromIsolatedStorage();
         ToolsDefinition := Rec.GetToolsDefinitionFromIsolatedStorage();
         Tool1OutputFormat := Rec.GetTool1OutputFormatFromIsolatedStorage();
+        Tool1GeneralInstructionsPrompt := Rec.GetTool1GeneralInstructionsPromptFromIsolatedStorage();
+        Tool1PatternPrompt := Rec.GetTool1PatternPromptFromIsolatedStorage();
+        Tool1ExamplesPrompt := Rec.GetTool1ExamplesPromptFromIsolatedStorage();
     end;
 
 }

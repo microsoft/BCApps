@@ -63,6 +63,16 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
     [NonDebuggable]
+    local procedure GetTool1GeneralInstructions(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 1 general instructions. The tool 1 general instructions should be retrieved from the Azure Key Vault.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool1GeneralInstructionsPromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
     local procedure GetTool1Patterns(): Text
     var
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
@@ -188,7 +198,6 @@ codeunit 324 "No. Series Copilot Impl."
     local procedure BuildGenerateNewNumbersSeriesPrompts(var FunctionArguments: Text; MaxToolResultsTokensLength: Integer) ToolResults: Dictionary of [Text, Integer]
     var
         NewNoSeriesPrompt, TablesPromptList, PatternsPromptList : List of [Text];
-        GeneralInstructionsLbl: Label 'Generate number series configurations based on the following table entries, ensuring each JSON object directly corresponds to one table entry. Use the Pattern Examples solely to inform the `startingNo`, `endingNo`, and `warningNo` fields based on the seriesCode relationship. Patterns are not to generate additional JSON objects.', Locked = true;
         TablesBlockLbl: Label 'Tables:', Locked = true;
         PatternsBlockLbl: Label 'Pattern Guidelines:', Locked = true;
         OutputExamplesBlockLbl: Label 'Output Examples:', Locked = true;
@@ -201,19 +210,20 @@ codeunit 324 "No. Series Copilot Impl."
         GetPatternsPrompt(FunctionArguments, PatternsPromptList);
 
         MaxTablesPromptListTokensLength := MaxToolResultsTokensLength -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(GeneralInstructionsLbl)) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(TablesBlockLbl)) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool1GeneralInstructions()) -
                                             TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
                                             TokenCountImpl.GetGPT4TokenCount(Format(PatternsBlockLbl)) -
-                                            // we skip the token count of the tables, as that's what we are trying to calculate
-                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
                                             TokenCountImpl.GetGPT4TokenCount(ConvertListToText(PatternsPromptList)) -
                                             TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(OutputExamplesBlockLbl)) -
                                             TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
-                                            TokenCountImpl.GetGPT4TokenCount(GetTool1OutputFormat()) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl));
+                                            TokenCountImpl.GetGPT4TokenCount(Format(OutputExamplesBlockLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool1OutputExamples()) -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(TablesBlockLbl)) -
+                                            // we skip the token count of the tables, as that's what we are trying to calculate
+                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(OutputFormatBlockLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool1OutputFormat());
 
         NumberOfToolResponses := Round(TablesPromptList.Count / GetTablesChunkSize(), 1, '>'); // we add tables by small chunks, as more tables can lead to hallucinations
 
@@ -221,23 +231,19 @@ codeunit 324 "No. Series Copilot Impl."
             if TablesPromptList.Count > 0 then begin
                 Clear(NewNoSeriesPrompt);
                 Clear(ActualTablesChunkSize);
-                NewNoSeriesPrompt.Add(GeneralInstructionsLbl);
-                NewNoSeriesPrompt.Add(TablesBlockLbl);
-                NewNoSeriesPrompt.Add(SeparatorLbl);
-                BuildTablesPrompt(NewNoSeriesPrompt, TablesPromptList, MaxTablesPromptListTokensLength, ActualTablesChunkSize);
+                NewNoSeriesPrompt.Add(GetTool1GeneralInstructions());
                 NewNoSeriesPrompt.Add(SeparatorLbl);
                 NewNoSeriesPrompt.Add(PatternsBlockLbl);
-                NewNoSeriesPrompt.Add(SeparatorLbl);
                 NewNoSeriesPrompt.Add(ConvertListToText(PatternsPromptList));
                 NewNoSeriesPrompt.Add(SeparatorLbl);
                 NewNoSeriesPrompt.Add(OutputExamplesBlockLbl);
-                NewNoSeriesPrompt.Add(SeparatorLbl);
                 NewNoSeriesPrompt.Add(GetTool1OutputExamples());
                 NewNoSeriesPrompt.Add(SeparatorLbl);
+                NewNoSeriesPrompt.Add(TablesBlockLbl);
+                BuildTablesPrompt(NewNoSeriesPrompt, TablesPromptList, MaxTablesPromptListTokensLength, ActualTablesChunkSize);
+                NewNoSeriesPrompt.Add(SeparatorLbl);
                 NewNoSeriesPrompt.Add(OutputFormatBlockLbl);
-                NewNoSeriesPrompt.Add(SeparatorLbl);
                 NewNoSeriesPrompt.Add(GetTool1OutputFormat());
-                NewNoSeriesPrompt.Add(SeparatorLbl);
                 ToolResults.Add(ConvertListToText(NewNoSeriesPrompt), ActualTablesChunkSize);
             end
         end;
