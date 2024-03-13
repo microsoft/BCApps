@@ -1,6 +1,6 @@
-name: Report a contribution bug
+name: Report a bug in the contribution process
 description: Report a bug in the contribution process
-title: "[Contribution Bug]: "
+title: "[Contribution Process Bug]: "
 labels: ["Contribution-Bug"]
 body:
   - type: markdown
