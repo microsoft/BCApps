@@ -43,11 +43,11 @@ codeunit 5460 Json
     /// <summary>
     /// Returns the JSON object at the specified index in the JSON array.
     /// </summary>
-    /// <param name="Object">The JSON object</param>
     /// <param name="Index">The index of the JSON object</param>
-    procedure GetObjectFromCollectionByIndex(var "Object": Text; Index: Integer): Boolean
+    /// <param name="JsonObjectTxt">The JSON object in text format</param>
+    procedure GetObjectFromCollectionByIndex(Index: Integer; var JsonObjectTxt: Text): Boolean
     begin
-        exit(JsonImpl.GetObjectFromCollectionByIndex("Object", Index));
+        exit(JsonImpl.GetObjectFromCollectionByIndex(Index, JsonObjectTxt));
     end;
 
     /// <summary>

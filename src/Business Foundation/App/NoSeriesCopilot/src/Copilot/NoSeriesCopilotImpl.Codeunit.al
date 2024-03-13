@@ -63,6 +63,26 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
     [NonDebuggable]
+    local procedure GetTool1Patterns(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 1 patterns. The tool 1 patterns should be retrieved from the Azure Key Vault.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool1PatternPromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool1OutputExamples(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 1 output examples. The tool 1 output examples should be retrieved from the Azure Key Vault.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool1ExamplesPromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
     local procedure GetTool1OutputFormat(): Text
     var
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
@@ -151,6 +171,8 @@ codeunit 324 "No. Series Copilot Impl."
 
             AOAIChatMessages.DeleteMessage(AOAIChatMessages.GetHistory().Count); // remove the last message, as it is not needed anymore
             AOAIChatMessages.DeleteMessage(AOAIChatMessages.GetHistory().Count); // remove the tools message, as it is not needed anymore
+
+            Sleep(1000); // sleep for 1000ms, as the model can be called only limited number of times per second
         end;
 
         exit(ConcatenateToolResponse(FinalResults));
@@ -167,8 +189,11 @@ codeunit 324 "No. Series Copilot Impl."
     var
         NewNoSeriesPrompt, TablesPromptList, PatternsPromptList : List of [Text];
         GeneralInstructionsLbl: Label 'Generate number series configurations based on the following table entries, ensuring each JSON object directly corresponds to one table entry. Use the Pattern Examples solely to inform the `startingNo`, `endingNo`, and `warningNo` fields based on the seriesCode relationship. Patterns are not to generate additional JSON objects.', Locked = true;
-        TablesInstructionsLbl: Label 'Tables:', Locked = true;
-        PatternUsageInstructionsLbl: Label 'For `startingNo`, `endingNo`, and `warningNo` values, refer to these pattern examples, applying them based on their seriesCode:', Locked = true;
+        TablesBlockLbl: Label 'Tables:', Locked = true;
+        PatternsBlockLbl: Label 'Pattern Guidelines:', Locked = true;
+        OutputExamplesBlockLbl: Label 'Output Examples:', Locked = true;
+        OutputFormatBlockLbl: Label 'Output Format:', Locked = true;
+        SeparatorLbl: Label '------------', Locked = true;
         NumberOfToolResponses, MaxTablesPromptListTokensLength, i, ActualTablesChunkSize : Integer;
         TokenCountImpl: Codeunit "AOAI Token";
     begin
@@ -177,10 +202,18 @@ codeunit 324 "No. Series Copilot Impl."
 
         MaxTablesPromptListTokensLength := MaxToolResultsTokensLength -
                                             TokenCountImpl.GetGPT4TokenCount(Format(GeneralInstructionsLbl)) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(TablesInstructionsLbl)) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(PatternUsageInstructionsLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(TablesBlockLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(PatternsBlockLbl)) -
+                                            // we skip the token count of the tables, as that's what we are trying to calculate
+                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
                                             TokenCountImpl.GetGPT4TokenCount(ConvertListToText(PatternsPromptList)) -
-                                            TokenCountImpl.GetGPT4TokenCount(GetTool1OutputFormat());
+                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(OutputExamplesBlockLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool1OutputFormat()) -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl));
 
         NumberOfToolResponses := Round(TablesPromptList.Count / GetTablesChunkSize(), 1, '>'); // we add tables by small chunks, as more tables can lead to hallucinations
 
@@ -189,11 +222,22 @@ codeunit 324 "No. Series Copilot Impl."
                 Clear(NewNoSeriesPrompt);
                 Clear(ActualTablesChunkSize);
                 NewNoSeriesPrompt.Add(GeneralInstructionsLbl);
-                NewNoSeriesPrompt.Add(TablesInstructionsLbl);
+                NewNoSeriesPrompt.Add(TablesBlockLbl);
+                NewNoSeriesPrompt.Add(SeparatorLbl);
                 BuildTablesPrompt(NewNoSeriesPrompt, TablesPromptList, MaxTablesPromptListTokensLength, ActualTablesChunkSize);
-                NewNoSeriesPrompt.Add(PatternUsageInstructionsLbl);
+                NewNoSeriesPrompt.Add(SeparatorLbl);
+                NewNoSeriesPrompt.Add(PatternsBlockLbl);
+                NewNoSeriesPrompt.Add(SeparatorLbl);
                 NewNoSeriesPrompt.Add(ConvertListToText(PatternsPromptList));
+                NewNoSeriesPrompt.Add(SeparatorLbl);
+                NewNoSeriesPrompt.Add(OutputExamplesBlockLbl);
+                NewNoSeriesPrompt.Add(SeparatorLbl);
+                NewNoSeriesPrompt.Add(GetTool1OutputExamples());
+                NewNoSeriesPrompt.Add(SeparatorLbl);
+                NewNoSeriesPrompt.Add(OutputFormatBlockLbl);
+                NewNoSeriesPrompt.Add(SeparatorLbl);
                 NewNoSeriesPrompt.Add(GetTool1OutputFormat());
+                NewNoSeriesPrompt.Add(SeparatorLbl);
                 ToolResults.Add(ConvertListToText(NewNoSeriesPrompt), ActualTablesChunkSize);
             end
         end;
@@ -286,7 +330,7 @@ codeunit 324 "No. Series Copilot Impl."
         if CheckIfPatternSpecified(FunctionArguments) then
             PatternsPromptList.Add(GetPattern(FunctionArguments))
         else
-            ListDefaultOrExistingPattern(PatternsPromptList);
+            AddDefaultOrExistingPattern(PatternsPromptList);
     end;
 
     local procedure CheckIfPatternSpecified(var FunctionArguments: Text): Boolean
@@ -310,12 +354,12 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
 
-    local procedure ListDefaultOrExistingPattern(var PatternsPromptList: List of [Text]): Text
+    local procedure AddDefaultOrExistingPattern(var PatternsPromptList: List of [Text]): Text
     begin
         if CheckIfNumberSeriesExists() then
-            ListExistingPattern(PatternsPromptList)
+            AddExistingPattern(PatternsPromptList)
         else
-            ListDefaultPattern(PatternsPromptList);
+            AddDefaultPattern(PatternsPromptList);
     end;
 
     local procedure CheckIfNumberSeriesExists(): Boolean
@@ -325,7 +369,7 @@ codeunit 324 "No. Series Copilot Impl."
         exit(not NoSeries.IsEmpty);
     end;
 
-    local procedure ListExistingPattern(var PatternsPromptList: List of [Text])
+    local procedure AddExistingPattern(var PatternsPromptList: List of [Text])
     var
         NoSeries: Record "No. Series";
         NoSeriesManagement: Codeunit "No. Series";
@@ -342,17 +386,9 @@ codeunit 324 "No. Series Copilot Impl."
             until NoSeries.Next() = 0;
     end;
 
-    local procedure ListDefaultPattern(var PatternsPromptList: List of [Text])
+    local procedure AddDefaultPattern(var PatternsPromptList: List of [Text])
     begin
-        // TODO: Probably there are better default patterns.
-        // TODO: Probably good idea to add event here to allow the user to add the default patterns
-        PatternsPromptList.Add('Code: CUST, Description: Customer, Pattern: C00001');
-        PatternsPromptList.Add('Code: GJNL-GEN, Description: General Journal, Pattern: G00001');
-        PatternsPromptList.Add('Code: P-CR, Description: Purchase Credit Memo, Pattern: PCR00001');
-        PatternsPromptList.Add('Code: P-CR+, Description: Posted Purchase Credit Memo, Pattern: PPCR00001');
-        PatternsPromptList.Add('Code: S-ORD, Description: Sales Order, Pattern: SO00001');
-        PatternsPromptList.Add('Code: S-ORD+, Description: Posted Sales Invoice, Pattern: PSI00001');
-        PatternsPromptList.Add('Code: SVC-INV+, Description: Posted Service Invoices, Pattern: PSVI00001');
+        PatternsPromptList.Add(GetTool1Patterns());
     end;
 
     local procedure BuildModifyExistingNumbersSeriesPrompt(var FunctionCallParams: Text; MaxToolResultsTokensLength: Integer): Dictionary of [Text, Integer]
@@ -371,7 +407,7 @@ codeunit 324 "No. Series Copilot Impl."
         exit(Result.ToText());
     end;
 
-    local procedure GenerateAndReviewToolCompletion(var AzureOpenAI: Codeunit "Azure OpenAi"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; ExpectedNoSeriesCount: Integer)
+    local procedure GenerateAndReviewToolCompletion(var AzureOpenAI: Codeunit "Azure OpenAi"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; ExpectedNoSeriesCount: Integer): Boolean
     var
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         MaxAttempts: Integer;
@@ -384,7 +420,9 @@ codeunit 324 "No. Series Copilot Impl."
                 Error(AOAIOperationResponse.GetError());
 
             if IsExpectedNoSeriesCount(AOAIChatMessages.GetLastMessage(), ExpectedNoSeriesCount) and CheckIfValidCompletion(AOAIChatMessages.GetLastMessage()) then
-                exit;
+                exit(true);
+
+            Sleep(500);
         end;
     end;
 
@@ -429,7 +467,7 @@ codeunit 324 "No. Series Copilot Impl."
         Json.InitializeCollection(NoSeriesArrText);
 
         for i := 0 to Json.GetCollectionCount() - 1 do begin
-            Json.GetObjectFromCollectionByIndex(NoSeriesObj, i);
+            Json.GetObjectFromCollectionByIndex(i, NoSeriesObj);
             Json.InitializeObject(NoSeriesObj);
             CheckTextPropertyExistAndCheckIfNotEmpty('seriesCode', Json);
             CheckTextPropertyExistAndCheckIfNotEmpty('description', Json);
@@ -489,7 +527,7 @@ codeunit 324 "No. Series Copilot Impl."
         Json.InitializeCollection(NoSeriesArrText);
 
         for i := 0 to Json.GetCollectionCount() - 1 do begin
-            Json.GetObjectFromCollectionByIndex(NoSeriesObj, i);
+            Json.GetObjectFromCollectionByIndex(i, NoSeriesObj);
 
             InsertNoSeriesGenerated(NoSeriesGenerated, NoSeriesObj, NoSeriesProposal."No.");
         end;

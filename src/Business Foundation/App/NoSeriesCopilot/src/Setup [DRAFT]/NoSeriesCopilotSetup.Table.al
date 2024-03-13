@@ -49,6 +49,16 @@ table 9200 "No. Series Copilot Setup"
             DataClassification = CustomerContent;
             Caption = 'Tool 1 Output Format';
         }
+        field(8; "Tool 1 Pattern Prompt"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 1 Pattern Prompt';
+        }
+        field(9; "Tool 1 Examples Prompt"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 1 Examples Prompt';
+        }
     }
 
     keys
@@ -172,5 +182,53 @@ table 9200 "No. Series Copilot Setup"
         IsolatedStorage.Set(NewTool1OutputFormatGuid, Tool1OutputFormat, DataScope::Module);
 
         Rec."Tool 1 Output Format" := NewTool1OutputFormatGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetTool1PatternPromptFromIsolatedStorage() Tool1PatternPrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tool 1 Pattern Prompt") then
+            if not IsolatedStorage.Get(Rec."Tool 1 Pattern Prompt", DataScope::Module, Tool1PatternPrompt) then;
+
+        exit(Tool1PatternPrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool1PatternPromptToIsolatedStorage(Tool1PatternPrompt: Text)
+    var
+        NewTool1PatternPromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 1 Pattern Prompt") then
+            if not IsolatedStorage.Delete(Rec."Tool 1 Pattern Prompt", DataScope::Module) then;
+
+        NewTool1PatternPromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewTool1PatternPromptGuid, Tool1PatternPrompt, DataScope::Module);
+
+        Rec."Tool 1 Pattern Prompt" := NewTool1PatternPromptGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetTool1ExamplesPromptFromIsolatedStorage() Tool1ExamplesPrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tool 1 Examples Prompt") then
+            if not IsolatedStorage.Get(Rec."Tool 1 Examples Prompt", DataScope::Module, Tool1ExamplesPrompt) then;
+
+        exit(Tool1ExamplesPrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool1ExamplesPromptToIsolatedStorage(Tool1ExamplesPrompt: Text)
+    var
+        NewTool1ExamplesPromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 1 Examples Prompt") then
+            if not IsolatedStorage.Delete(Rec."Tool 1 Examples Prompt", DataScope::Module) then;
+
+        NewTool1ExamplesPromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewTool1ExamplesPromptGuid, Tool1ExamplesPrompt, DataScope::Module);
+
+        Rec."Tool 1 Examples Prompt" := NewTool1ExamplesPromptGuid;
     end;
 }

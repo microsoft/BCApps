@@ -47,7 +47,7 @@ page 9245 "No. Series Copilot Setup"
             }
             group(Prompts)
             {
-                field("System Prompt"; SystemPrompt)
+                field(SystemPrompt; SystemPrompt)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'System Prompt';
@@ -63,7 +63,7 @@ page 9245 "No. Series Copilot Setup"
             }
             group(Tools)
             {
-                field("Tools Definition"; ToolsDefinition)
+                field(ToolsDefinition; ToolsDefinition)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Tools Definition';
@@ -76,20 +76,50 @@ page 9245 "No. Series Copilot Setup"
                         Rec.SetToolsDefinitionToIsolatedStorage(ToolsDefinition);
                     end;
                 }
-
-                field("Tool 1 Output Format"; Tool1OutputFormat)
+                group(Tool1)
                 {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Tool 1 Output Format';
-                    NotBlank = true;
-                    ShowMandatory = true;
-                    ExtendedDatatype = Masked;
-                    MultiLine = true;
-                    trigger OnValidate()
-                    begin
-                        Rec.SetTool1OutputFormatToIsolatedStorage(Tool1OutputFormat);
-                    end;
+                    field(Tool1PatternPrompt; Tool1PatternPrompt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Tool 1 Pattern Prompt';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool1PatternPromptToIsolatedStorage(Tool1PatternPrompt);
+                        end;
+                    }
 
+                    field(Tool1ExamplesPrompt; Tool1ExamplesPrompt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Tool 1 Examples Prompt';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool1ExamplesPromptToIsolatedStorage(Tool1ExamplesPrompt);
+                        end;
+                    }
+
+                    field(Tool1OutputFormat; Tool1OutputFormat)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Tool 1 Output Format';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool1OutputFormatToIsolatedStorage(Tool1OutputFormat);
+                        end;
+
+                    }
                 }
             }
         }
@@ -100,6 +130,8 @@ page 9245 "No. Series Copilot Setup"
         SecretKey: Text;
         SystemPrompt: Text;
         ToolsDefinition: Text;
+        Tool1PatternPrompt: Text;
+        Tool1ExamplesPrompt: Text;
         Tool1OutputFormat: Text;
 
 
