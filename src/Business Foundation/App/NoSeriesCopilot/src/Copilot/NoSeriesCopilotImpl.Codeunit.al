@@ -1,5 +1,8 @@
 codeunit 324 "No. Series Copilot Impl."
 {
+    var
+        IncorrectCompletionErr: Label 'Incorrect completion. The property %1 is empty';
+
     procedure Generate(var NoSeriesProposal: Record "No. Series Proposal"; var ResponseText: text; var NoSeriesGenerated: Record "No. Series Proposal Line"; InputText: Text)
     var
         SystemPromptTxt: SecretText;
@@ -111,9 +114,9 @@ codeunit 324 "No. Series Copilot Impl."
     var
         ToolCallId: Text;
         FunctionName, FunctionArguments, ToolResponse : Text;
-        ToolResponses, FinalResults : List of [Text]; // tool response can be a list of strings, as the response can be too long and exceed the token limit. In this case each string would be a separate message, each of them should be called separately. The final response will be the concatenation of all the LLM responses.
-        AOAIOperationResponse: Codeunit "AOAI Operation Response";
-        MaxToolResponseTokenLength, i : Integer;
+        ToolResponses: Dictionary of [Text, Integer]; // tool response can be a list of strings, as the response can be too long and exceed the token limit. In this case each string would be a separate message, each of them should be called separately. The integer is the number of tables used in the prompt, so we can test if the LLM answer covers all tables
+        FinalResults: List of [Text]; // The final response will be the concatenation of all the LLM responses (final results).        MaxToolResponseTokenLength, i : Integer;
+        MaxToolResponseTokenLength, ExpectedNoSeriesCount, i : Integer;
     begin
         // remove the tools from the chat messages, as they are not needed anymore
         for i := 1 to AOAIChatMessages.GetTools().Count do
@@ -137,13 +140,13 @@ codeunit 324 "No. Series Copilot Impl."
 
         AOAIChatCompletionParams.SetJsonMode(true);
 
-        foreach ToolResponse in ToolResponses do begin
+        foreach ToolResponse in ToolResponses.Keys() do begin
             // adding function response to messages
             AOAIChatMessages.AddToolMessage(ToolCallId, FunctionName, ToolResponse);
+
             // call the API again to get the final response from the model
-            AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
-            if not AOAIOperationResponse.IsSuccess() then
-                Error(AOAIOperationResponse.GetError());
+            ToolResponses.Get(ToolResponse, ExpectedNoSeriesCount);
+            GenerateAndReviewToolCompletion(AzureOpenAI, AOAIChatMessages, AOAIChatCompletionParams, ExpectedNoSeriesCount);
             FinalResults.Add(AOAIChatMessages.GetLastMessage());
 
             AOAIChatMessages.DeleteMessage(AOAIChatMessages.GetHistory().Count); // remove the last message, as it is not needed anymore
@@ -160,13 +163,13 @@ codeunit 324 "No. Series Copilot Impl."
     /// <param name="MaxToolResultsTokensLength">Maximum number of tokens can be allocated for the result</param>
     /// <returns></returns>
     /// <remarks> This function is used to build the prompts for generating new number series. The prompts are built based on the tables and patterns specified in the input. If no tables are specified, all tables with number series are used. If no patterns are specified, default patterns are used. In case number of tables can't be pasted in one prompt, due to token limits, function chunk result into several messages, that need to be called separately</remarks>
-    local procedure BuildGenerateNewNumbersSeriesPrompts(var FunctionArguments: Text; MaxToolResultsTokensLength: Integer) ToolResults: List of [Text]
+    local procedure BuildGenerateNewNumbersSeriesPrompts(var FunctionArguments: Text; MaxToolResultsTokensLength: Integer) ToolResults: Dictionary of [Text, Integer]
     var
         NewNoSeriesPrompt, TablesPromptList, PatternsPromptList : List of [Text];
         GeneralInstructionsLbl: Label 'Generate number series configurations based on the following table entries, ensuring each JSON object directly corresponds to one table entry. Use the Pattern Examples solely to inform the `startingNo`, `endingNo`, and `warningNo` fields based on the seriesCode relationship. Patterns are not to generate additional JSON objects.', Locked = true;
         TablesInstructionsLbl: Label 'Tables:', Locked = true;
         PatternUsageInstructionsLbl: Label 'For `startingNo`, `endingNo`, and `warningNo` values, refer to these pattern examples, applying them based on their seriesCode:', Locked = true;
-        NumberOfToolResponses, MaxTablesPromptListTokensLength, ActualTablesPromptListTokensLength, i : Integer;
+        NumberOfToolResponses, MaxTablesPromptListTokensLength, i, ActualTablesChunkSize : Integer;
         TokenCountImpl: Codeunit "AOAI Token";
     begin
         GetTablesPrompt(FunctionArguments, TablesPromptList);
@@ -179,18 +182,20 @@ codeunit 324 "No. Series Copilot Impl."
                                             TokenCountImpl.GetGPT4TokenCount(ConvertListToText(PatternsPromptList)) -
                                             TokenCountImpl.GetGPT4TokenCount(GetTool1OutputFormat());
 
-        ActualTablesPromptListTokensLength := TokenCountImpl.GetGPT4TokenCount(ConvertListToText(TablesPromptList));
-        NumberOfToolResponses := Round(ActualTablesPromptListTokensLength / MaxTablesPromptListTokensLength, 1, '>');
+        NumberOfToolResponses := Round(TablesPromptList.Count / GetTablesChunkSize(), 1, '>'); // we add tables by small chunks, as more tables can lead to hallucinations
 
         for i := 1 to NumberOfToolResponses do begin
-            Clear(NewNoSeriesPrompt);
-            NewNoSeriesPrompt.Add(GeneralInstructionsLbl);
-            NewNoSeriesPrompt.Add(TablesInstructionsLbl);
-            BuildTablesPrompt(NewNoSeriesPrompt, TablesPromptList, MaxTablesPromptListTokensLength);
-            NewNoSeriesPrompt.Add(PatternUsageInstructionsLbl);
-            NewNoSeriesPrompt.Add(ConvertListToText(PatternsPromptList));
-            NewNoSeriesPrompt.Add(GetTool1OutputFormat());
-            ToolResults.Add(ConvertListToText(NewNoSeriesPrompt));
+            if TablesPromptList.Count > 0 then begin
+                Clear(NewNoSeriesPrompt);
+                Clear(ActualTablesChunkSize);
+                NewNoSeriesPrompt.Add(GeneralInstructionsLbl);
+                NewNoSeriesPrompt.Add(TablesInstructionsLbl);
+                BuildTablesPrompt(NewNoSeriesPrompt, TablesPromptList, MaxTablesPromptListTokensLength, ActualTablesChunkSize);
+                NewNoSeriesPrompt.Add(PatternUsageInstructionsLbl);
+                NewNoSeriesPrompt.Add(ConvertListToText(PatternsPromptList));
+                NewNoSeriesPrompt.Add(GetTool1OutputFormat());
+                ToolResults.Add(ConvertListToText(NewNoSeriesPrompt), ActualTablesChunkSize);
+            end
         end;
     end;
 
@@ -257,15 +262,18 @@ codeunit 324 "No. Series Copilot Impl."
             until Field.Next() = 0;
     end;
 
-    local procedure BuildTablesPrompt(var FinalPrompt: List of [Text]; var TablesPromptList: List of [Text]; MaxTokensLength: Integer)
+    local procedure BuildTablesPrompt(var FinalPrompt: List of [Text]; var TablesPromptList: List of [Text]; MaxTokensLength: Integer; var AddedCount: Integer)
     var
         TokenCountImpl: Codeunit "AOAI Token";
         TablePrompt: Text;
         IncludedTablePrompts: List of [Text];
     begin
+        // we add by chunks of 10 tables, not to exceed the token limit, as more than 10 tables can lead to hallucinations
         foreach TablePrompt in TablesPromptList do
-            if TokenCountImpl.GetGPT4TokenCount(ConvertListToText(IncludedTablePrompts)) + TokenCountImpl.GetGPT4TokenCount(TablePrompt) < MaxTokensLength then
+            if (AddedCount <= GetTablesChunkSize()) and (TokenCountImpl.GetGPT4TokenCount(ConvertListToText(IncludedTablePrompts)) + TokenCountImpl.GetGPT4TokenCount(TablePrompt) < MaxTokensLength) then begin
                 IncludedTablePrompts.Add(TablePrompt);
+                AddedCount += 1;
+            end;
 
         foreach TablePrompt in IncludedTablePrompts do begin
             FinalPrompt.Add(TablePrompt);
@@ -347,7 +355,7 @@ codeunit 324 "No. Series Copilot Impl."
         PatternsPromptList.Add('Code: SVC-INV+, Description: Posted Service Invoices, Pattern: PSVI00001');
     end;
 
-    local procedure BuildModifyExistingNumbersSeriesPrompt(var FunctionCallParams: Text; MaxToolResultsTokensLength: Integer): List of [Text]
+    local procedure BuildModifyExistingNumbersSeriesPrompt(var FunctionCallParams: Text; MaxToolResultsTokensLength: Integer): Dictionary of [Text, Integer]
     begin
         Error('Not implemented');
     end;
@@ -361,6 +369,31 @@ codeunit 324 "No. Series Copilot Impl."
             Result.AppendLine(Element);
 
         exit(Result.ToText());
+    end;
+
+    local procedure GenerateAndReviewToolCompletion(var AzureOpenAI: Codeunit "Azure OpenAi"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; ExpectedNoSeriesCount: Integer)
+    var
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        MaxAttempts: Integer;
+        Attempt: Integer;
+    begin
+        MaxAttempts := 5;
+        for Attempt := 0 to MaxAttempts do begin
+            AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
+            if not AOAIOperationResponse.IsSuccess() then
+                Error(AOAIOperationResponse.GetError());
+
+            if IsExpectedNoSeriesCount(AOAIChatMessages.GetLastMessage(), ExpectedNoSeriesCount) and CheckIfValidCompletion(AOAIChatMessages.GetLastMessage()) then
+                exit;
+        end;
+    end;
+
+    local procedure IsExpectedNoSeriesCount(Completion: Text; ExpectedNoSeriesCount: Integer): Boolean
+    var
+        ResultJArray: JsonArray;
+    begin
+        ResultJArray := ReadGeneratedNumberSeriesJArray(Completion);
+        exit(ResultJArray.Count = ExpectedNoSeriesCount);
     end;
 
     local procedure ConcatenateToolResponse(var FinalResults: List of [Text]) ConcatenatedResponse: Text
@@ -385,12 +418,49 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
     [TryFunction]
-    local procedure CheckIfValidCompletion(var Completion: Text)
+    local procedure CheckIfValidCompletion(Completion: Text)
+    var
+        Json: Codeunit Json;
+        NoSeriesArrText: Text;
+        NoSeriesObj: Text;
+        i: Integer;
     begin
-        ReadGeneratedNumberSeriesJArray(Completion);
+        ReadGeneratedNumberSeriesJArray(Completion).WriteTo(NoSeriesArrText);
+        Json.InitializeCollection(NoSeriesArrText);
+
+        for i := 0 to Json.GetCollectionCount() - 1 do begin
+            Json.GetObjectFromCollectionByIndex(NoSeriesObj, i);
+            Json.InitializeObject(NoSeriesObj);
+            CheckTextPropertyExistAndCheckIfNotEmpty('seriesCode', Json);
+            CheckTextPropertyExistAndCheckIfNotEmpty('description', Json);
+            CheckTextPropertyExistAndCheckIfNotEmpty('startingNo', Json);
+            CheckTextPropertyExistAndCheckIfNotEmpty('endingNo', Json);
+            CheckTextPropertyExistAndCheckIfNotEmpty('warningNo', Json);
+            CheckIntegerPropertyExistAndCheckIfNotEmpty('incrementByNo', Json);
+            CheckIntegerPropertyExistAndCheckIfNotEmpty('tableId', Json);
+            CheckIntegerPropertyExistAndCheckIfNotEmpty('fieldId', Json);
+        end;
     end;
 
-    local procedure ReadGeneratedNumberSeriesJArray(var Completion: Text): JsonArray
+    local procedure CheckTextPropertyExistAndCheckIfNotEmpty(propertyName: Text; var Json: Codeunit Json)
+    var
+        value: Text;
+    begin
+        Json.GetStringPropertyValueByName(propertyName, value);
+        if value = '' then
+            Error(StrSubstNo(IncorrectCompletionErr, propertyName));
+    end;
+
+    local procedure CheckIntegerPropertyExistAndCheckIfNotEmpty(propertyName: Text; var Json: Codeunit Json)
+    var
+        value: Integer;
+    begin
+        Json.GetIntegerPropertyValueFromJObjectByName(propertyName, value);
+        if value = 0 then
+            Error(StrSubstNo(IncorrectCompletionErr, propertyName));
+    end;
+
+    local procedure ReadGeneratedNumberSeriesJArray(Completion: Text): JsonArray
     var
         JsonObject: JsonObject;
         JsonArrayToken: JsonToken;
@@ -400,7 +470,6 @@ codeunit 324 "No. Series Copilot Impl."
         JsonObject.SelectToken(XPathLbl, JsonArrayToken);
         exit(JsonArrayToken.AsArray());
     end;
-
 
     local procedure SaveGenerationHistory(var NoSeriesProposal: Record "No. Series Proposal"; InputText: Text)
     begin
@@ -492,6 +561,11 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         NoSeriesCopilotSetup.Get();
         exit(NoSeriesCopilotSetup.GetSecretKeyFromIsolatedStorage())
+    end;
+
+    local procedure GetTablesChunkSize(): Integer
+    begin
+        exit(10);
     end;
 
     local procedure MaxInputTokens(): Integer
