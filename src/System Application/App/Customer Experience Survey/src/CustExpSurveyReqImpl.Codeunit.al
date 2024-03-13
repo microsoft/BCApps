@@ -178,7 +178,7 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
         else
             AccessToken := AcquireToken(ErrorMessage);
 
-        if AccessToken.IsEmpty() then begin
+        if not AccessToken.IsEmpty() then begin
             HttpHeaders.Add('Authorization', SecretStrSubstNo(BearerLbl, AccessToken));
             exit(true);
         end;
