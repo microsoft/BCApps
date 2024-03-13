@@ -50,7 +50,7 @@ codeunit 139910 "Json Test"
         // [WHEN] Retrieve an object by its index
         ExpectedJObject.ReadFrom('{"id":"XYZ789"}');
         ExpectedJObject.WriteTo(ExpectedJObjectText);
-        Success := Json.GetObjectFromCollectionByIndex(ActualJObjectText, 1); // Index is zero-based
+        Success := Json.GetObjectFromCollectionByIndex(1, ActualJObjectText); // Index is zero-based
         ActualJObject.ReadFrom(ActualJObjectText);
         ActualJObject.WriteTo(ActualJObjectText);
 
@@ -75,7 +75,7 @@ codeunit 139910 "Json Test"
         // [WHEN] Retrieve an object by a zero index
         ExpectedJObject.ReadFrom('{"id":"ABC123"}');
         ExpectedJObject.WriteTo(ExpectedJObjectText);
-        Success := Json.GetObjectFromCollectionByIndex(ActualJObjectText, 0);
+        Success := Json.GetObjectFromCollectionByIndex(0, ActualJObjectText);
         ActualJObject.ReadFrom(ActualJObjectText);
         ActualJObject.WriteTo(ActualJObjectText);
 

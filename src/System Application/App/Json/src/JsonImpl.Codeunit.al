@@ -35,14 +35,14 @@ codeunit 5461 "Json Impl."
         exit(JsonArray.Count);
     end;
 
-    procedure GetObjectFromCollectionByIndex(var "Object": Text; Index: Integer): Boolean
+    procedure GetObjectFromCollectionByIndex(Index: Integer; var JsonObjectTxt: Text): Boolean
     var
         JObject: DotNet JObject;
     begin
         if not GetJObjectFromCollectionByIndex(JObject, Index) then
             exit(false);
 
-        Object := JObject.ToString();
+        JsonObjectTxt := JObject.ToString();
         exit(true);
     end;
 
@@ -121,15 +121,14 @@ codeunit 5461 "Json Impl."
 
     local procedure GetPropertyValueFromJObjectByPathSetToFieldRef(JObject: DotNet JObject; propertyPath: Text; var FieldRef: FieldRef): Boolean
     var
-        JProperty: DotNet JProperty;
         RecID: RecordID;
         Value: Variant;
+        IntVar: Integer;
         DecimalVal: Decimal;
-        BoolVal: Boolean;
         GuidVal: Guid;
         DateVal: Date;
-        Success: Boolean;
-        IntVar: Integer;
+        BoolVal, Success : Boolean;
+        JProperty: DotNet JProperty;
     begin
         Success := false;
         JProperty := JObject.SelectToken(propertyPath);
@@ -268,8 +267,7 @@ codeunit 5461 "Json Impl."
         until Counter = Number;
     end;
 
-    [Scope('OnPrem')]
-    procedure GetEnumPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Option): Boolean
+    local procedure GetEnumPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Option): Boolean
     var
         StringValue: Text;
     begin
@@ -280,8 +278,7 @@ codeunit 5461 "Json Impl."
         exit(false);
     end;
 
-    [Scope('OnPrem')]
-    procedure GetBoolPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Boolean): Boolean
+    local procedure GetBoolPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Boolean): Boolean
     var
         StringValue: Text;
     begin
@@ -292,8 +289,7 @@ codeunit 5461 "Json Impl."
         exit(false);
     end;
 
-    [Scope('OnPrem')]
-    procedure GetDecimalPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Decimal): Boolean
+    local procedure GetDecimalPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Decimal): Boolean
     var
         StringValue: Text;
     begin
@@ -304,8 +300,7 @@ codeunit 5461 "Json Impl."
         exit(false);
     end;
 
-    [Scope('OnPrem')]
-    procedure GetIntegerPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Integer): Boolean
+    local procedure GetIntegerPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Integer): Boolean
     var
         StringValue: Text;
     begin
@@ -316,8 +311,7 @@ codeunit 5461 "Json Impl."
         exit(false);
     end;
 
-    [Scope('OnPrem')]
-    procedure GetGuidPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Guid): Boolean
+    local procedure GetGuidPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Guid): Boolean
     var
         StringValue: Text;
     begin
@@ -328,8 +322,7 @@ codeunit 5461 "Json Impl."
         exit(false);
     end;
 
-    [Scope('OnPrem')]
-    procedure GetStringPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Text): Boolean
+    local procedure GetStringPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Text): Boolean
     var
         VariantValue: Variant;
     begin
@@ -341,8 +334,7 @@ codeunit 5461 "Json Impl."
         exit(false);
     end;
 
-    [Scope('OnPrem')]
-    procedure GetPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Variant): Boolean
+    local procedure GetPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Variant): Boolean
     var
         JProperty: DotNet JProperty;
         JToken: DotNet JToken;
