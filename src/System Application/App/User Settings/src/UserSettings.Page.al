@@ -121,12 +121,6 @@ page 9204 "User Settings"
 #pragma warning disable AA0219
                         ToolTip = 'Revert the action bar to the legacy terms and layout. For example, the action bar won''t be pinned on pages, the Home tab is named Process, and split buttons become multiple actions, which means more clicks. Also, your options for personalization will be limited.';
 #pragma warning restore AA0219
-
-                        trigger OnValidate()
-                        begin
-                            if Rec."Legacy Action Bar" then
-                                UserSettingsImpl.ShowLegacyActionBarSurvey();
-                        end;
                     }
                 }
                 group(Security)
@@ -159,8 +153,11 @@ page 9204 "User Settings"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
-        if CloseAction = Action::OK then
+        if CloseAction = Action::OK then begin
+            if Rec."Legacy Action Bar" then
+                UserSettingsImpl.ShowLegacyActionBarSurvey();
             UserSettingsImpl.UpdateUserSettings(OldUserSettings, Rec);
+        end;
     end;
 
     var
