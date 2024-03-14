@@ -35,9 +35,28 @@ codeunit 5460 Json
     /// <summary>
     /// Returns the number of elements in the JSON array.
     /// </summary>
+    /// <returns>The number of elements in the JSON array</returns>
     procedure GetCollectionCount(): Integer
     begin
         exit(JsonImpl.GetCollectionCount());
+    end;
+
+    /// <summary>
+    /// Returns the JSON array in text format.
+    /// </summary>
+    /// <returns>The JSON array in text format</returns>
+    procedure GetCollection(): Text
+    begin
+        exit(JsonImpl.GetCollection());
+    end;
+
+    /// <summary>
+    /// Returns the JSON object in text format.
+    /// </summary>
+    /// <returns>The JSON object in text format</returns>
+    procedure GetObject(): Text
+    begin
+        exit(JsonImpl.GetObject());
     end;
 
     /// <summary>
@@ -45,6 +64,7 @@ codeunit 5460 Json
     /// </summary>
     /// <param name="Index">The index of the JSON object</param>
     /// <param name="JsonObjectTxt">The JSON object in text format</param>
+    /// <returns>True if the JSON object is returned; otherwise, false</returns>
     procedure GetObjectFromCollectionByIndex(Index: Integer; var JsonObjectTxt: Text): Boolean
     begin
         exit(JsonImpl.GetObjectFromCollectionByIndex(Index, JsonObjectTxt));
@@ -56,78 +76,133 @@ codeunit 5460 Json
     /// <param name="RecordRef">The record reference</param>
     /// <param name="PropertyPath">The property path</param>
     /// <param name="FieldNo">The field number</param>
+    /// <returns>True if the value is set to the record field; otherwise, false</returns>
+    /// <remarks>
+    /// Next type of fields are supported: Integer, Decimal, Date, Boolean, GUID, Text, Code, Option, BLOB, RecordID
+    /// Text values are trimmed to the Max Length of the field.
+    /// </remarks>
     procedure GetValueAndSetToRecFieldNo(RecordRef: RecordRef; PropertyPath: Text; FieldNo: Integer): Boolean
     begin
         exit(JsonImpl.GetValueAndSetToRecFieldNo(RecordRef, PropertyPath, FieldNo));
     end;
 
     /// <summary>
-    /// Gets the value at the specified property path in the JSON object.
+    /// Gets the value at the specified property name in the JSON object.
     /// </summary>
-    /// <param name="PropertyPath">The property path</param>
+    /// <param name="PropertyName">The property name</param>
     /// <param name="Value">The value</param>
-    procedure GetPropertyValueByName(propertyName: Text; var value: Variant): Boolean
+    /// <returns>True if the value is returned; otherwise, false</returns>
+    procedure GetPropertyValueByName(PropertyName: Text; var Value: Variant): Boolean
     begin
-        exit(JsonImpl.GetPropertyValueByName(propertyName, value));
+        exit(JsonImpl.GetPropertyValueByName(PropertyName, Value));
     end;
 
     /// <summary>
-    /// Gets the text value at the specified property path in the JSON object.
+    /// Gets the text value at the specified property name in the JSON object.
     /// </summary>
-    /// <param name="PropertyPath">The property path</param>
+    /// <param name="PropertyName">The property name</param>
     /// <param name="Value">The value</param>
-    procedure GetStringPropertyValueByName(propertyName: Text; var value: Text): Boolean
+    /// <returns>True if the value is returned; otherwise, false</returns>
+    procedure GetStringPropertyValueByName(PropertyName: Text; var Value: Text): Boolean
     begin
-        exit(JsonImpl.GetStringPropertyValueByName(propertyName, value));
+        exit(JsonImpl.GetStringPropertyValueByName(PropertyName, Value));
     end;
 
     /// <summary>
-    /// Gets the option value at the specified property path in the JSON object.
+    /// Gets the option value at the specified property name in the JSON object.
     /// </summary>
-    /// <param name="PropertyPath">The property path</param>
+    /// <param name="PropertyName">The property name</param>
     /// <param name="Value">The value</param>
-    procedure GetEnumPropertyValueFromJObjectByName(propertyName: Text; var value: Option): Boolean
+    /// <returns>True if the value is returned; otherwise, false</returns>
+    procedure GetEnumPropertyValueFromJObjectByName(PropertyName: Text; var Value: Option): Boolean
     begin
-        exit(JsonImpl.GetEnumPropertyValueFromJObjectByName(propertyName, value));
+        exit(JsonImpl.GetEnumPropertyValueFromJObjectByName(PropertyName, Value));
     end;
 
     /// <summary>
-    /// Gets the boolean value at the specified property path in the JSON object.
+    /// Gets the boolean value at the specified property name in the JSON object.
     /// </summary>
-    /// <param name="PropertyPath">The property path</param>
+    /// <param name="PropertyName">The property name</param>
     /// <param name="Value">The value</param>
-    procedure GetBoolPropertyValueFromJObjectByName(propertyName: Text; var value: Boolean): Boolean
+    /// <returns>True if the value is returned; otherwise, false</returns>
+    procedure GetBoolPropertyValueFromJObjectByName(PropertyName: Text; var Value: Boolean): Boolean
     begin
-        exit(JsonImpl.GetBoolPropertyValueFromJObjectByName(propertyName, value));
+        exit(JsonImpl.GetBoolPropertyValueFromJObjectByName(PropertyName, Value));
     end;
 
     /// <summary>
-    /// Gets the decimal value at the specified property path in the JSON object.
+    /// Gets the decimal value at the specified property name in the JSON object.
     /// </summary>
-    /// <param name="PropertyPath">The property path</param>
+    /// <param name="PropertyName">The property name</param>
     /// <param name="Value">The value</param>
-    procedure GetDecimalPropertyValueFromJObjectByName(propertyName: Text; var value: Decimal): Boolean
+    /// <returns>True if the value is returned; otherwise, false</returns>
+    procedure GetDecimalPropertyValueFromJObjectByName(PropertyName: Text; var Value: Decimal): Boolean
     begin
-        exit(JsonImpl.GetDecimalPropertyValueFromJObjectByName(propertyName, value));
+        exit(JsonImpl.GetDecimalPropertyValueFromJObjectByName(PropertyName, Value));
     end;
 
     /// <summary>
-    /// Gets the integer value at the specified property path in the JSON object.
+    /// Gets the integer value at the specified property name in the JSON object.
     /// </summary>
-    /// <param name="PropertyPath">The property path</param>
+    /// <param name="PropertyName">The property name</param>
     /// <param name="Value">The value</param>
-    procedure GetIntegerPropertyValueFromJObjectByName(propertyName: Text; var value: Integer): Boolean
+    /// <returns>True if the value is returned; otherwise, false</returns>
+    procedure GetIntegerPropertyValueFromJObjectByName(PropertyName: Text; var Value: Integer): Boolean
     begin
-        exit(JsonImpl.GetIntegerPropertyValueFromJObjectByName(propertyName, value));
+        exit(JsonImpl.GetIntegerPropertyValueFromJObjectByName(PropertyName, Value));
     end;
 
     /// <summary>
-    /// Gets the Guid value at the specified property path in the JSON object.
+    /// Gets the Guid value at the specified property name in the JSON object.
     /// </summary>
-    /// <param name="PropertyPath">The property path</param>
+    /// <param name="PropertyName">The property name</param>
     /// <param name="Value">The value</param>
-    procedure GetGuidPropertyValueFromJObjectByName(propertyName: Text; var value: Guid): Boolean
+    /// <returns>True if the value is returned; otherwise, false</returns>
+    procedure GetGuidPropertyValueFromJObjectByName(PropertyName: Text; var Value: Guid): Boolean
     begin
-        exit(JsonImpl.GetGuidPropertyValueFromJObjectByName(propertyName, value));
+        exit(JsonImpl.GetGuidPropertyValueFromJObjectByName(PropertyName, Value));
     end;
+
+    /// <summary>
+    /// Replace or add the specified property in the JSON object.
+    /// </summary>
+    /// <param name="PropertyName">The property name</param>
+    /// <param name="Value">The value</param>
+    /// <returns>True if the property is replaced or added; otherwise, false</returns>
+    procedure ReplaceOrAddJPropertyInJObject(PropertyName: Text; Value: Variant): Boolean
+    begin
+        exit(JsonImpl.ReplaceOrAddJPropertyInJObject(PropertyName, Value));
+    end;
+
+    /// <summary>
+    /// Add the the JSON object to the JSON array.
+    /// </summary>
+    /// <param name="Value">The JSON object in text format</param>
+    /// <returns>True if the JSON object is added; otherwise, false</returns>
+    procedure AddJObjectToCollection(Value: Text): Boolean
+    begin
+        exit(JsonImpl.AddJObjectToCollection(Value));
+    end;
+
+    /// <summary>
+    /// Remove the JSON object at the specified index in the JSON array.
+    /// </summary>
+    /// <param name="Index">The index of the JSON object</param>
+    /// <returns>True if the JSON object is removed; otherwise, false</returns>
+    procedure RemoveJObjectFromCollection(Index: Integer): Boolean
+    begin
+        exit(JsonImpl.RemoveJObjectFromCollection(Index));
+    end;
+
+    /// <summary>
+    /// Replace the specified JSON object in the JSON array.
+    /// </summary>
+    /// <param name="Index">The index of the JSON object</param>
+    /// <param name="Value">The JSON object in text format</param>
+    /// <returns>True if the JSON object is replaced; otherwise, false</returns>
+    procedure ReplaceJObjectInCollection(Index: Integer; Value: Text): Boolean
+    begin
+        exit(JsonImpl.ReplaceJObjectInCollection(Index, Value));
+    end;
+
 }
