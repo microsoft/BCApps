@@ -35,6 +35,22 @@ codeunit 5461 "Json Impl."
         exit(JsonArray.Count);
     end;
 
+    procedure GetCollection() Value: Text
+    var
+        JArray: JsonArray;
+    begin
+        JArray.ReadFrom(JsonArray.ToString());
+        JArray.WriteTo(Value);
+    end;
+
+    procedure GetObject() Value: Text
+    var
+        JObject: JsonObject;
+    begin
+        JObject.ReadFrom(JsonObject.ToString());
+        JObject.WriteTo(Value);
+    end;
+
     procedure GetObjectFromCollectionByIndex(Index: Integer; var JsonObjectTxt: Text): Boolean
     var
         JObject: DotNet JObject;
@@ -90,6 +106,26 @@ codeunit 5461 "Json Impl."
     procedure GetGuidPropertyValueFromJObjectByName(propertyName: Text; var value: Guid): Boolean
     begin
         exit(GetGuidPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+    end;
+
+    procedure ReplaceOrAddJPropertyInJObject(propertyName: Text; value: Variant): Boolean
+    begin
+        exit(ReplaceOrAddJPropertyInJObject(JsonObject, propertyName, value));
+    end;
+
+    procedure AddJObjectToCollection(value: Text): Boolean
+    begin
+        exit(AddJObjectToCollection(JsonArray, value));
+    end;
+
+    procedure RemoveJObjectFromCollection(Index: Integer): Boolean
+    begin
+        exit(RemoveJObjectFromCollection(JsonArray, Index));
+    end;
+
+    procedure ReplaceJObjectInCollection(Index: Integer; JSONString: Text): Boolean
+    begin
+        exit(ReplaceJObjectInCollection(JsonArray, Index, JSONString));
     end;
 
     local procedure InitializeCollectionFromString(JSONString: Text)
@@ -345,6 +381,96 @@ codeunit 5461 "Json Impl."
             value := JProperty.Value;
             exit(true);
         end;
+    end;
+
+    local procedure ReplaceOrAddJPropertyInJObject(var JObject: DotNet JObject; propertyName: Text; value: Variant): Boolean
+    var
+        JProperty: DotNet JProperty;
+        OldProperty: DotNet JProperty;
+        oldValue: Variant;
+    begin
+        JProperty := JObject.Property(propertyName);
+        if not IsNull(JProperty) then begin
+            OldProperty := JObject.Property(propertyName);
+            oldValue := OldProperty.Value;
+            JProperty.Replace(JProperty.JProperty(propertyName, value));
+            exit(Format(oldValue) <> Format(value));
+        end;
+
+        AddJPropertyToJObject(JObject, propertyName, value);
+        exit(true);
+    end;
+
+    local procedure AddJPropertyToJObject(var JObject: DotNet JObject; propertyName: Text; value: Variant)
+    var
+        JObject2: DotNet JObject;
+        JProperty: DotNet JProperty;
+        ValueText: Text;
+        IsHandled: Boolean;
+    begin
+        case true of
+            value.IsDotNet:
+                begin
+                    JObject2 := value;
+                    JObject.Add(propertyName, JObject2);
+                end;
+            value.IsInteger,
+            value.IsDecimal,
+            value.IsBoolean:
+                begin
+                    JProperty := JProperty.JProperty(propertyName, value);
+                    JObject.Add(JProperty);
+                end;
+            else begin
+                ValueText := Format(value, 0, 9);
+                JProperty := JProperty.JProperty(propertyName, ValueText);
+                JObject.Add(JProperty);
+            end;
+        end;
+    end;
+
+    local procedure ReplaceJObjectInCollection(var JArray: DotNet JArray; Index: Integer; JSONString: Text): Boolean
+    var
+        JObject: DotNet JObject;
+    begin
+        if not GetJObjectFromCollectionByIndex(JObject, Index) then
+            exit(false);
+
+        if JSONString <> '' then
+            JObject := JObject.Parse(JSONString)
+        else
+            InitializeEmptyObject();
+
+        JArray.RemoveAt(Index);
+        JArray.Insert(Index, JObject);
+        exit(true);
+    end;
+
+    local procedure AddJObjectToCollection(var JArray: DotNet JArray; JSONString: Text): Boolean
+    var
+        JObject: DotNet JObject;
+    begin
+        if JSONString <> '' then
+            JObject := JObject.Parse(JSONString)
+        else
+            InitializeEmptyObject();
+
+        AddJObjectToCollection(JObject);
+        exit(true);
+    end;
+
+    local procedure AddJObjectToCollection(JObject: DotNet JObject)
+    begin
+        JsonArray.Add(JObject.DeepClone());
+    end;
+
+    local procedure RemoveJObjectFromCollection(var JArray: DotNet JArray; Index: Integer): Boolean
+    begin
+        if (GetCollectionCount() = 0) or (GetCollectionCount() <= Index) then
+            exit(false);
+
+        JArray.RemoveAt(Index);
+        exit(true);
     end;
 
     local procedure InitializeEmptyCollection()

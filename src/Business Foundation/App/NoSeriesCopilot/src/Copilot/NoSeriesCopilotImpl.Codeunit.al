@@ -530,6 +530,8 @@ codeunit 324 "No. Series Copilot Impl."
         i: Integer;
     begin
         ReadGeneratedNumberSeriesJArray(Completion).WriteTo(NoSeriesArrText);
+        ReAssambleDuplicates(NoSeriesArrText);
+
         Json.InitializeCollection(NoSeriesArrText);
 
         for i := 0 to Json.GetCollectionCount() - 1 do begin
@@ -538,6 +540,54 @@ codeunit 324 "No. Series Copilot Impl."
             InsertNoSeriesGenerated(NoSeriesGenerated, NoSeriesObj, NoSeriesProposal."No.");
         end;
     end;
+
+    local procedure ReAssambleDuplicates(var NoSeriesArrText: Text)
+    var
+        i: Integer;
+        NoSeriesObj: Text;
+        NoSeriesCodes: List of [Text];
+        NoSeriesCode: Text;
+        Json: Codeunit Json;
+    begin
+        Json.InitializeCollection(NoSeriesArrText);
+
+        for i := 0 to Json.GetCollectionCount() - 1 do begin
+            Json.GetObjectFromCollectionByIndex(i, NoSeriesObj);
+            Json.InitializeObject(NoSeriesObj);
+            Json.GetStringPropertyValueByName('seriesCode', NoSeriesCode);
+            if NoSeriesCodes.Contains(NoSeriesCode) then begin
+                Json.ReplaceOrAddJPropertyInJObject('seriesCode', GenerateNewSeriesCodeValue(NoSeriesCodes, NoSeriesCode));
+                NoSeriesObj := Json.GetObject();
+                Json.ReplaceJObjectInCollection(i, NoSeriesObj);
+            end;
+            NoSeriesCodes.Add(NoSeriesCode);
+        end;
+
+        NoSeriesArrText := Json.GetCollection()
+    end;
+
+    local procedure GenerateNewSeriesCodeValue(var NoSeriesCodes: List of [Text]; var NoSeriesCode: Text): Text
+    var
+        NewNoSeriesCode: Text;
+    begin
+        repeat
+            NewNoSeriesCode := CopyStr(NoSeriesCode, 1, 18) + '-' + RandomCharacter();
+        until not NoSeriesCodes.Contains(NewNoSeriesCode);
+
+        NoSeriesCode := NewNoSeriesCode;
+        exit(NewNoSeriesCode);
+    end;
+
+    local procedure RandomCharacter(): Char
+    begin
+        exit(RandIntInRange(33, 126)); // ASCII: ! (33) to ~ (126)
+    end;
+
+    local procedure RandIntInRange("Min": Integer; "Max": Integer): Integer
+    begin
+        exit(Min - 1 + Random(Max - Min + 1));
+    end;
+
 
     local procedure InsertNoSeriesGenerated(var NoSeriesGenerated: Record "No. Series Proposal Line"; var NoSeriesObj: Text; ProposalNo: Integer)
     var
