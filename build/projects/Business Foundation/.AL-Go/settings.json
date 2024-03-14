@@ -7,6 +7,9 @@
         "..\\..\\..\\src\\Business Foundation\\Test",
         "..\\..\\..\\src\\Business Foundation\\Test Library"
     ],
+    "bcptTestFolders":  [
+        "..\\..\\..\\src\\Business Foundation\\Performance Tests"
+    ],
     "buildModes": [
         "Translated"
     ],
