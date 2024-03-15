@@ -1,5 +1,6 @@
 namespace Microsoft.Foundation;
 
+using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
 
 permissionset 1 "Bus. Found. - Obj."
@@ -8,5 +9,6 @@ permissionset 1 "Bus. Found. - Obj."
     Assignable = true;
     Caption = 'Business Foundation - Objects';
 
-    IncludedPermissionSets = "No. Series - Objects";
+    IncludedPermissionSets = "Audit Codes - Objects",
+                            "No. Series - Objects";
 }
