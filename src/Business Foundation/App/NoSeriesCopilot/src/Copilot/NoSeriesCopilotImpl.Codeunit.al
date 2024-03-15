@@ -3,6 +3,8 @@ codeunit 324 "No. Series Copilot Impl."
     var
         IncorrectCompletionErr: Label 'Incorrect completion. The property %1 is empty';
 
+        TextLengthIsOverMaxLimitErr: Label 'The property %1 exceeds the maximum length of %2';
+
     procedure Generate(var NoSeriesProposal: Record "No. Series Proposal"; var ResponseText: text; var NoSeriesGenerated: Record "No. Series Proposal Line"; InputText: Text)
     var
         SystemPromptTxt: SecretText;
@@ -73,13 +75,43 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
     [NonDebuggable]
-    local procedure GetTool1Patterns(): Text
+    local procedure GetTool1Limitations(): Text
     var
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
-        // This is a temporary solution to get the tool 1 patterns. The tool 1 patterns should be retrieved from the Azure Key Vault.
+        // This is a temporary solution to get the tool 1 limitations. The tool 1 limitations should be retrieved from the Azure Key Vault.
         NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool1PatternPromptFromIsolatedStorage())
+        exit(NoSeriesCopilotSetup.GetTool1LimitationsPromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool1CodeGuidelines(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 1 code guidelines. The tool 1 code guidelines should be retrieved from the Azure Key Vault.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool1CodeGuidelinePromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool1DescrGuidelines(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 1 description guidelines. The tool 1 description guidelines should be retrieved from the Azure Key Vault.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool1DescrGuidelinePromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool1NumberGuideline(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 1 number guideline. The tool 1 number guideline should be retrieved from the Azure Key Vault.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool1NumberGuidelinePromptFromIsolatedStorage())
     end;
 
     [NonDebuggable]
@@ -89,7 +121,7 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         // This is a temporary solution to get the tool 1 output examples. The tool 1 output examples should be retrieved from the Azure Key Vault.
         NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool1ExamplesPromptFromIsolatedStorage())
+        exit(NoSeriesCopilotSetup.GetTool1OutputExamplesPromptFromIsolatedStorage())
     end;
 
     [NonDebuggable]
@@ -97,12 +129,10 @@ codeunit 324 "No. Series Copilot Impl."
     var
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
-        // This is a temporary solution to get the tool 1 output format definition. The tool 1 output format definition should be retrieved from the Azure Key Vault.
-        // TODO: Retrieve the tool 1 output format definition from the Azure Key Vault, when passed all tests.
+        // This is a temporary solution to get the tool 1 output format. The tool 1 output format should be retrieved from the Azure Key Vault.
         NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool1OutputFormatFromIsolatedStorage())
+        exit(NoSeriesCopilotSetup.GetTool1OutputFormatPromptFromIsolatedStorage())
     end;
-
 
     [NonDebuggable]
     internal procedure GenerateNoSeries(SystemPromptTxt: SecretText; InputText: Text): Text
@@ -121,7 +151,6 @@ codeunit 324 "No. Series Copilot Impl."
         AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", GetEndpoint(), GetDeployment(), GetSecret());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"No. Series Copilot");
         AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
-        AOAIChatCompletionParams.SetTemperature(0);
         AOAIChatMessages.AddSystemMessage(SystemPromptTxt.Unwrap());
 
         foreach ToolJson in GetTools() do
@@ -199,30 +228,21 @@ codeunit 324 "No. Series Copilot Impl."
     var
         NewNoSeriesPrompt, TablesPromptList, PatternsPromptList : List of [Text];
         TablesBlockLbl: Label 'Tables:', Locked = true;
-        PatternsBlockLbl: Label 'Pattern Guidelines:', Locked = true;
-        OutputExamplesBlockLbl: Label 'Output Examples:', Locked = true;
-        OutputFormatBlockLbl: Label 'Output Format:', Locked = true;
-        SeparatorLbl: Label '------------', Locked = true;
         NumberOfToolResponses, MaxTablesPromptListTokensLength, i, ActualTablesChunkSize : Integer;
         TokenCountImpl: Codeunit "AOAI Token";
     begin
         GetTablesPrompt(FunctionArguments, TablesPromptList);
-        GetPatternsPrompt(FunctionArguments, PatternsPromptList);
+        // GetPatternsPrompt(FunctionArguments, PatternsPromptList); //TODO: implement when other scenarios be implemented
 
         MaxTablesPromptListTokensLength := MaxToolResultsTokensLength -
                                             TokenCountImpl.GetGPT4TokenCount(GetTool1GeneralInstructions()) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(PatternsBlockLbl)) -
-                                            TokenCountImpl.GetGPT4TokenCount(ConvertListToText(PatternsPromptList)) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(OutputExamplesBlockLbl)) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool1Limitations()) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool1CodeGuidelines()) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool1DescrGuidelines()) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool1NumberGuideline()) -
                                             TokenCountImpl.GetGPT4TokenCount(GetTool1OutputExamples()) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
                                             TokenCountImpl.GetGPT4TokenCount(Format(TablesBlockLbl)) -
                                             // we skip the token count of the tables, as that's what we are trying to calculate
-                                            TokenCountImpl.GetGPT4TokenCount(Format(SeparatorLbl)) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(OutputFormatBlockLbl)) -
                                             TokenCountImpl.GetGPT4TokenCount(GetTool1OutputFormat());
 
         NumberOfToolResponses := Round(TablesPromptList.Count / GetTablesChunkSize(), 1, '>'); // we add tables by small chunks, as more tables can lead to hallucinations
@@ -232,17 +252,13 @@ codeunit 324 "No. Series Copilot Impl."
                 Clear(NewNoSeriesPrompt);
                 Clear(ActualTablesChunkSize);
                 NewNoSeriesPrompt.Add(GetTool1GeneralInstructions());
-                NewNoSeriesPrompt.Add(SeparatorLbl);
-                NewNoSeriesPrompt.Add(PatternsBlockLbl);
-                NewNoSeriesPrompt.Add(ConvertListToText(PatternsPromptList));
-                NewNoSeriesPrompt.Add(SeparatorLbl);
-                NewNoSeriesPrompt.Add(OutputExamplesBlockLbl);
+                NewNoSeriesPrompt.Add(GetTool1Limitations());
+                NewNoSeriesPrompt.Add(GetTool1CodeGuidelines());
+                NewNoSeriesPrompt.Add(GetTool1DescrGuidelines());
+                NewNoSeriesPrompt.Add(GetTool1NumberGuideline());
                 NewNoSeriesPrompt.Add(GetTool1OutputExamples());
-                NewNoSeriesPrompt.Add(SeparatorLbl);
                 NewNoSeriesPrompt.Add(TablesBlockLbl);
                 BuildTablesPrompt(NewNoSeriesPrompt, TablesPromptList, MaxTablesPromptListTokensLength, ActualTablesChunkSize);
-                NewNoSeriesPrompt.Add(SeparatorLbl);
-                NewNoSeriesPrompt.Add(OutputFormatBlockLbl);
                 NewNoSeriesPrompt.Add(GetTool1OutputFormat());
                 ToolResults.Add(ConvertListToText(NewNoSeriesPrompt), ActualTablesChunkSize);
             end
@@ -305,11 +321,16 @@ codeunit 324 "No. Series Copilot Impl."
         Field.SetFilter(ObsoleteState, '<>%1', Field.ObsoleteState::Removed);
         Field.SetRange(Type, Field.Type::Code);
         Field.SetRange(Len, 20);
-        Field.SetFilter(FieldName, '*Nos.'); //TODO: Check if this is the correct filter
+        Field.SetFilter(FieldName, '* Nos.');
         if Field.FindSet() then
             repeat
-                TablesPromptList.Add('Area: ' + TableMetadata.Caption + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + Field.FieldName);
+                TablesPromptList.Add('Area: ' + RemoveTextPart(TableMetadata.Caption, ' Setup') + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + RemoveTextPart(Field.FieldName, ' Nos.'));
             until Field.Next() = 0;
+    end;
+
+    local procedure RemoveTextPart(Text: Text; PartToRemove: Text): Text
+    begin
+        exit(DelStr(Text, StrPos(Text, PartToRemove), StrLen(PartToRemove)));
     end;
 
     local procedure BuildTablesPrompt(var FinalPrompt: List of [Text]; var TablesPromptList: List of [Text]; MaxTokensLength: Integer; var AddedCount: Integer)
@@ -320,7 +341,7 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         // we add by chunks of 10 tables, not to exceed the token limit, as more than 10 tables can lead to hallucinations
         foreach TablePrompt in TablesPromptList do
-            if (AddedCount <= GetTablesChunkSize()) and (TokenCountImpl.GetGPT4TokenCount(ConvertListToText(IncludedTablePrompts)) + TokenCountImpl.GetGPT4TokenCount(TablePrompt) < MaxTokensLength) then begin
+            if (AddedCount < GetTablesChunkSize()) and (TokenCountImpl.GetGPT4TokenCount(ConvertListToText(IncludedTablePrompts)) + TokenCountImpl.GetGPT4TokenCount(TablePrompt) < MaxTokensLength) then begin
                 IncludedTablePrompts.Add(TablePrompt);
                 AddedCount += 1;
             end;
@@ -394,7 +415,7 @@ codeunit 324 "No. Series Copilot Impl."
 
     local procedure AddDefaultPattern(var PatternsPromptList: List of [Text])
     begin
-        PatternsPromptList.Add(GetTool1Patterns());
+        // PatternsPromptList.Add(GetTool1Patterns()); //TODO: implement when other scenarios be implemented
     end;
 
     local procedure BuildModifyExistingNumbersSeriesPrompt(var FunctionCallParams: Text; MaxToolResultsTokensLength: Integer): Dictionary of [Text, Integer]
@@ -419,8 +440,8 @@ codeunit 324 "No. Series Copilot Impl."
         MaxAttempts: Integer;
         Attempt: Integer;
     begin
-        MaxAttempts := 5;
-        for Attempt := 0 to MaxAttempts do begin
+        MaxAttempts := 3;
+        for Attempt := 1 to MaxAttempts do begin
             AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
             if not AOAIOperationResponse.IsSuccess() then
                 Error(AOAIOperationResponse.GetError());
@@ -428,6 +449,7 @@ codeunit 324 "No. Series Copilot Impl."
             if IsExpectedNoSeriesCount(AOAIChatMessages.GetLastMessage(), ExpectedNoSeriesCount) and CheckIfValidCompletion(AOAIChatMessages.GetLastMessage()) then
                 exit(true);
 
+            AOAIChatMessages.DeleteMessage(AOAIChatMessages.GetHistory().Count); // remove the last message with wrong assistant response, as we need to regenerate the completion
             Sleep(500);
         end;
     end;
@@ -476,10 +498,14 @@ codeunit 324 "No. Series Copilot Impl."
             Json.GetObjectFromCollectionByIndex(i, NoSeriesObj);
             Json.InitializeObject(NoSeriesObj);
             CheckTextPropertyExistAndCheckIfNotEmpty('seriesCode', Json);
+            CheckMaximumLengthOfPropertyValue('seriesCode', Json, 20);
             CheckTextPropertyExistAndCheckIfNotEmpty('description', Json);
             CheckTextPropertyExistAndCheckIfNotEmpty('startingNo', Json);
+            CheckMaximumLengthOfPropertyValue('startingNo', Json, 20);
             CheckTextPropertyExistAndCheckIfNotEmpty('endingNo', Json);
+            CheckMaximumLengthOfPropertyValue('endingNo', Json, 20);
             CheckTextPropertyExistAndCheckIfNotEmpty('warningNo', Json);
+            CheckMaximumLengthOfPropertyValue('warningNo', Json, 20);
             CheckIntegerPropertyExistAndCheckIfNotEmpty('incrementByNo', Json);
             CheckIntegerPropertyExistAndCheckIfNotEmpty('tableId', Json);
             CheckIntegerPropertyExistAndCheckIfNotEmpty('fieldId', Json);
@@ -502,6 +528,15 @@ codeunit 324 "No. Series Copilot Impl."
         Json.GetIntegerPropertyValueFromJObjectByName(propertyName, value);
         if value = 0 then
             Error(StrSubstNo(IncorrectCompletionErr, propertyName));
+    end;
+
+    local procedure CheckMaximumLengthOfPropertyValue(propertyName: Text; var Json: Codeunit Json; maxLength: Integer)
+    var
+        value: Text;
+    begin
+        Json.GetStringPropertyValueByName(propertyName, value);
+        if StrLen(value) > maxLength then
+            Error(StrSubstNo(TextLengthIsOverMaxLimitErr, propertyName, maxLength));
     end;
 
     local procedure ReadGeneratedNumberSeriesJArray(Completion: Text): JsonArray
