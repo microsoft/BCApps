@@ -416,7 +416,6 @@ codeunit 5461 "Json Impl."
         JObject2: DotNet JObject;
         JProperty: DotNet JProperty;
         ValueText: Text;
-        IsHandled: Boolean;
     begin
         case true of
             value.IsDotNet:
@@ -465,11 +464,11 @@ codeunit 5461 "Json Impl."
         else
             InitializeEmptyObject();
 
-        AddJObjectToCollection(JObject);
+        AddJObjectToCollection(JArray, JObject);
         exit(true);
     end;
 
-    local procedure AddJObjectToCollection(JObject: DotNet JObject)
+    local procedure AddJObjectToCollection(var JArray: DotNet JArray; JObject: DotNet JObject)
     begin
         JsonArray.Add(JObject.DeepClone());
     end;
