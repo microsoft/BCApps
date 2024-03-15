@@ -70,6 +70,7 @@ codeunit 324 "No. Series Copilot Impl."
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
         // This is a temporary solution to get the tool 1 general instructions. The tool 1 general instructions should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
         NoSeriesCopilotSetup.Get();
         exit(NoSeriesCopilotSetup.GetTool1GeneralInstructionsPromptFromIsolatedStorage())
     end;
@@ -80,6 +81,7 @@ codeunit 324 "No. Series Copilot Impl."
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
         // This is a temporary solution to get the tool 1 limitations. The tool 1 limitations should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
         NoSeriesCopilotSetup.Get();
         exit(NoSeriesCopilotSetup.GetTool1LimitationsPromptFromIsolatedStorage())
     end;
@@ -90,6 +92,7 @@ codeunit 324 "No. Series Copilot Impl."
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
         // This is a temporary solution to get the tool 1 code guidelines. The tool 1 code guidelines should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
         NoSeriesCopilotSetup.Get();
         exit(NoSeriesCopilotSetup.GetTool1CodeGuidelinePromptFromIsolatedStorage())
     end;
@@ -100,6 +103,7 @@ codeunit 324 "No. Series Copilot Impl."
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
         // This is a temporary solution to get the tool 1 description guidelines. The tool 1 description guidelines should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
         NoSeriesCopilotSetup.Get();
         exit(NoSeriesCopilotSetup.GetTool1DescrGuidelinePromptFromIsolatedStorage())
     end;
@@ -110,6 +114,7 @@ codeunit 324 "No. Series Copilot Impl."
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
         // This is a temporary solution to get the tool 1 number guideline. The tool 1 number guideline should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
         NoSeriesCopilotSetup.Get();
         exit(NoSeriesCopilotSetup.GetTool1NumberGuidelinePromptFromIsolatedStorage())
     end;
@@ -120,6 +125,7 @@ codeunit 324 "No. Series Copilot Impl."
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
         // This is a temporary solution to get the tool 1 output examples. The tool 1 output examples should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
         NoSeriesCopilotSetup.Get();
         exit(NoSeriesCopilotSetup.GetTool1OutputExamplesPromptFromIsolatedStorage())
     end;
@@ -130,6 +136,7 @@ codeunit 324 "No. Series Copilot Impl."
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
         // This is a temporary solution to get the tool 1 output format. The tool 1 output format should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
         NoSeriesCopilotSetup.Get();
         exit(NoSeriesCopilotSetup.GetTool1OutputFormatPromptFromIsolatedStorage())
     end;
@@ -226,13 +233,13 @@ codeunit 324 "No. Series Copilot Impl."
     /// <remarks> This function is used to build the prompts for generating new number series. The prompts are built based on the tables and patterns specified in the input. If no tables are specified, all tables with number series are used. If no patterns are specified, default patterns are used. In case number of tables can't be pasted in one prompt, due to token limits, function chunk result into several messages, that need to be called separately</remarks>
     local procedure BuildGenerateNewNumbersSeriesPrompts(var FunctionArguments: Text; MaxToolResultsTokensLength: Integer) ToolResults: Dictionary of [Text, Integer]
     var
-        NewNoSeriesPrompt, TablesPromptList, PatternsPromptList : List of [Text];
+        NewNoSeriesPrompt, TablesPromptList, CustomPatternsPromptList : List of [Text];
         TablesBlockLbl: Label 'Tables:', Locked = true;
         NumberOfToolResponses, MaxTablesPromptListTokensLength, i, ActualTablesChunkSize : Integer;
         TokenCountImpl: Codeunit "AOAI Token";
     begin
         GetTablesPrompt(FunctionArguments, TablesPromptList);
-        // GetPatternsPrompt(FunctionArguments, PatternsPromptList); //TODO: implement when other scenarios be implemented
+        GetUserSpecifiedOrExistingNumberPatternsGuidelines(FunctionArguments, CustomPatternsPromptList);
 
         MaxTablesPromptListTokensLength := MaxToolResultsTokensLength -
                                             TokenCountImpl.GetGPT4TokenCount(GetTool1GeneralInstructions()) -
@@ -240,6 +247,7 @@ codeunit 324 "No. Series Copilot Impl."
                                             TokenCountImpl.GetGPT4TokenCount(GetTool1CodeGuidelines()) -
                                             TokenCountImpl.GetGPT4TokenCount(GetTool1DescrGuidelines()) -
                                             TokenCountImpl.GetGPT4TokenCount(GetTool1NumberGuideline()) -
+                                            TokenCountImpl.GetGPT4TokenCount(ConvertListToText(CustomPatternsPromptList)) -
                                             TokenCountImpl.GetGPT4TokenCount(GetTool1OutputExamples()) -
                                             TokenCountImpl.GetGPT4TokenCount(Format(TablesBlockLbl)) -
                                             // we skip the token count of the tables, as that's what we are trying to calculate
@@ -256,9 +264,10 @@ codeunit 324 "No. Series Copilot Impl."
                 NewNoSeriesPrompt.Add(GetTool1CodeGuidelines());
                 NewNoSeriesPrompt.Add(GetTool1DescrGuidelines());
                 NewNoSeriesPrompt.Add(GetTool1NumberGuideline());
+                NewNoSeriesPrompt.Add(ConvertListToText(CustomPatternsPromptList));
                 NewNoSeriesPrompt.Add(GetTool1OutputExamples());
                 NewNoSeriesPrompt.Add(TablesBlockLbl);
-                BuildTablesPrompt(NewNoSeriesPrompt, TablesPromptList, MaxTablesPromptListTokensLength, ActualTablesChunkSize);
+                AddChunkedTablesPrompt(NewNoSeriesPrompt, TablesPromptList, MaxTablesPromptListTokensLength, ActualTablesChunkSize);
                 NewNoSeriesPrompt.Add(GetTool1OutputFormat());
                 ToolResults.Add(ConvertListToText(NewNoSeriesPrompt), ActualTablesChunkSize);
             end
@@ -333,7 +342,7 @@ codeunit 324 "No. Series Copilot Impl."
         exit(DelStr(Text, StrPos(Text, PartToRemove), StrLen(PartToRemove)));
     end;
 
-    local procedure BuildTablesPrompt(var FinalPrompt: List of [Text]; var TablesPromptList: List of [Text]; MaxTokensLength: Integer; var AddedCount: Integer)
+    local procedure AddChunkedTablesPrompt(var FinalPrompt: List of [Text]; var TablesPromptList: List of [Text]; MaxTokensLength: Integer; var AddedCount: Integer)
     var
         TokenCountImpl: Codeunit "AOAI Token";
         TablePrompt: Text;
@@ -352,12 +361,12 @@ codeunit 324 "No. Series Copilot Impl."
         end;
     end;
 
-    local procedure GetPatternsPrompt(var FunctionArguments: Text; var PatternsPromptList: List of [Text])
+    local procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var FunctionArguments: Text; var CustomPatternsPromptList: List of [Text])
     begin
         if CheckIfPatternSpecified(FunctionArguments) then
-            PatternsPromptList.Add(GetPattern(FunctionArguments))
+            CustomPatternsPromptList.Add(GetPattern(FunctionArguments))
         else
-            AddDefaultOrExistingPattern(PatternsPromptList);
+            AddExistingPatternIfExist(CustomPatternsPromptList);
     end;
 
     local procedure CheckIfPatternSpecified(var FunctionArguments: Text): Boolean
@@ -381,12 +390,12 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
 
-    local procedure AddDefaultOrExistingPattern(var PatternsPromptList: List of [Text]): Text
+    local procedure AddExistingPatternIfExist(var CustomPatternsPromptList: List of [Text]): Text
     begin
-        if CheckIfNumberSeriesExists() then
-            AddExistingPattern(PatternsPromptList)
-        else
-            AddDefaultPattern(PatternsPromptList);
+        if not CheckIfNumberSeriesExists() then
+            exit;
+
+        AddExistingPattern(CustomPatternsPromptList)
     end;
 
     local procedure CheckIfNumberSeriesExists(): Boolean
@@ -411,11 +420,6 @@ codeunit 324 "No. Series Copilot Impl."
                     break;
                 i += 1;
             until NoSeries.Next() = 0;
-    end;
-
-    local procedure AddDefaultPattern(var PatternsPromptList: List of [Text])
-    begin
-        // PatternsPromptList.Add(GetTool1Patterns()); //TODO: implement when other scenarios be implemented
     end;
 
     local procedure BuildModifyExistingNumbersSeriesPrompt(var FunctionCallParams: Text; MaxToolResultsTokensLength: Integer): Dictionary of [Text, Integer]
