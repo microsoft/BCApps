@@ -362,7 +362,11 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
     local procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var FunctionArguments: Text; var CustomPatternsPromptList: List of [Text])
+    var
+        CustomGuidelinesPrefixLbl: label 'Custom Guidelines:', Locked = true;
     begin
+        CustomPatternsPromptList.Add(CustomGuidelinesPrefixLbl);
+        //TODO: Not Tested. Need to test if the custom patterns are added to the prompt and how they influence the completion
         if CheckIfPatternSpecified(FunctionArguments) then
             CustomPatternsPromptList.Add(GetPattern(FunctionArguments))
         else
