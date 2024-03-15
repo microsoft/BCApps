@@ -592,13 +592,13 @@ codeunit 324 "No. Series Copilot Impl."
             Json.GetStringPropertyValueByName('seriesCode', NoSeriesCode);
             if NoSeriesCodes.Contains(NoSeriesCode) then begin
                 Json.ReplaceOrAddJPropertyInJObject('seriesCode', GenerateNewSeriesCodeValue(NoSeriesCodes, NoSeriesCode));
-                NoSeriesObj := Json.GetObject();
+                NoSeriesObj := Json.GetObjectAsText();
                 Json.ReplaceJObjectInCollection(i, NoSeriesObj);
             end;
             NoSeriesCodes.Add(NoSeriesCode);
         end;
 
-        NoSeriesArrText := Json.GetCollection()
+        NoSeriesArrText := Json.GetCollectionAsText()
     end;
 
     local procedure GenerateNewSeriesCodeValue(var NoSeriesCodes: List of [Text]; var NoSeriesCode: Text): Text

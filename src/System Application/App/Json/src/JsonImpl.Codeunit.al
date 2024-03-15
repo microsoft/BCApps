@@ -35,20 +35,30 @@ codeunit 5461 "Json Impl."
         exit(JsonArray.Count);
     end;
 
-    procedure GetCollection() Value: Text
+    procedure GetCollectionAsText() Value: Text
+    begin
+        GetCollection().WriteTo(Value);
+    end;
+
+    procedure GetCollection(): JsonArray
     var
         JArray: JsonArray;
     begin
         JArray.ReadFrom(JsonArray.ToString());
-        JArray.WriteTo(Value);
+        exit(JArray);
     end;
 
-    procedure GetObject() Value: Text
+    procedure GetObjectAsText() Value: Text
+    begin
+        GetObject().WriteTo(Value);
+    end;
+
+    procedure GetObject(): JsonObject
     var
         JObject: JsonObject;
     begin
         JObject.ReadFrom(JsonObject.ToString());
-        JObject.WriteTo(Value);
+        exit(JObject);
     end;
 
     procedure GetObjectFromCollectionByIndex(Index: Integer; var JsonObjectTxt: Text): Boolean
@@ -406,7 +416,6 @@ codeunit 5461 "Json Impl."
         JObject2: DotNet JObject;
         JProperty: DotNet JProperty;
         ValueText: Text;
-        IsHandled: Boolean;
     begin
         case true of
             value.IsDotNet:
@@ -455,11 +464,11 @@ codeunit 5461 "Json Impl."
         else
             InitializeEmptyObject();
 
-        AddJObjectToCollection(JObject);
+        AddJObjectToCollection(JArray, JObject);
         exit(true);
     end;
 
-    local procedure AddJObjectToCollection(JObject: DotNet JObject)
+    local procedure AddJObjectToCollection(var JArray: DotNet JArray; JObject: DotNet JObject)
     begin
         JsonArray.Add(JObject.DeepClone());
     end;
