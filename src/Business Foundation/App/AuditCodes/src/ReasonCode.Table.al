@@ -35,7 +35,7 @@ table 231 "Reason Code"
 
     fieldgroups
     {
-        fieldgroup(Brick; "Code", Description, "Date Filter")
+        fieldgroup(Brick; "Code", Description)
         {
         }
     }
