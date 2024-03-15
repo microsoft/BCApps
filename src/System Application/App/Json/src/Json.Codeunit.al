@@ -45,7 +45,16 @@ codeunit 5460 Json
     /// Returns the JSON array in text format.
     /// </summary>
     /// <returns>The JSON array in text format</returns>
-    procedure GetCollection(): Text
+    procedure GetCollectionAsText(): Text
+    begin
+        exit(JsonImpl.GetCollectionAsText());
+    end;
+
+    /// <summary>
+    /// Returns the JSON array.
+    /// </summary>
+    /// <returns>The JSON array</returns>
+    procedure GetCollection(): JsonArray
     begin
         exit(JsonImpl.GetCollection());
     end;
@@ -54,7 +63,16 @@ codeunit 5460 Json
     /// Returns the JSON object in text format.
     /// </summary>
     /// <returns>The JSON object in text format</returns>
-    procedure GetObject(): Text
+    procedure GetObjectAsText(): Text
+    begin
+        exit(JsonImpl.GetObjectAsText());
+    end;
+
+    /// <summary>
+    /// Returns the JSON object.
+    /// </summary>
+    /// <returns>The JSON object</returns>
+    procedure GetObject(): JsonObject
     begin
         exit(JsonImpl.GetObject());
     end;

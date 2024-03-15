@@ -222,7 +222,7 @@ codeunit 139910 "Json Test"
     end;
 
     [Test]
-    procedure TestGetCollection()
+    procedure TestGetCollectionAsText()
     var
         Json: Codeunit "Json";
         JsonArrayText: Text;
@@ -232,14 +232,32 @@ codeunit 139910 "Json Test"
         Json.InitializeCollection('[{"id":"ABC123"},{"id":"XYZ789"}]');
 
         // [WHEN] Retrieve JSON array
-        JsonArrayText := Json.GetCollection();
+        JsonArrayText := Json.GetCollectionAsText();
 
         // [THEN] The retrieved value matches the expected value
         Assert.AreEqual('[{"id":"ABC123"},{"id":"XYZ789"}]', JsonArrayText, 'The retrieved value does not match the expected value.');
     end;
 
     [Test]
-    procedure TestGetObject()
+    procedure TestGetCollection()
+    var
+        Json: Codeunit "Json";
+        JsonArray: JsonArray;
+        JsonArrayText: Text;
+    begin
+        // [GIVEN] A JSON array with a known value
+        Json.InitializeCollection('[{"id":"ABC123"},{"id":"XYZ789"}]');
+
+        // [WHEN] Retrieve JSON array
+        JsonArray := Json.GetCollection();
+        JsonArray.WriteTo(JsonArrayText);
+
+        // [THEN] The retrieved value matches the expected value
+        Assert.AreEqual('[{"id":"ABC123"},{"id":"XYZ789"}]', JsonArrayText, 'The retrieved value does not match the expected value.');
+    end;
+
+    [Test]
+    procedure TestGetObjectAsText()
     var
         Json: Codeunit "Json";
         JsonObjectText: Text;
@@ -248,7 +266,25 @@ codeunit 139910 "Json Test"
         Json.InitializeObject('{"id":"ABC123","name":"Test Name"}');
 
         // [WHEN] Retrieve JSON object
-        JsonObjectText := Json.GetObject();
+        JsonObjectText := Json.GetObjectAsText();
+
+        // [THEN] The retrieved value matches the expected value
+        Assert.AreEqual('{"id":"ABC123","name":"Test Name"}', JsonObjectText, 'The retrieved value does not match the expected value.');
+    end;
+
+    [Test]
+    procedure TestGetObject()
+    var
+        Json: Codeunit "Json";
+        JsonObject: JsonObject;
+        JsonObjectText: Text;
+    begin
+        // [GIVEN] A JSON object with a known value
+        Json.InitializeObject('{"id":"ABC123","name":"Test Name"}');
+
+        // [WHEN] Retrieve JSON object
+        JsonObject := Json.GetObject();
+        JsonObject.WriteTo(JsonObjectText);
 
         // [THEN] The retrieved value matches the expected value
         Assert.AreEqual('{"id":"ABC123","name":"Test Name"}', JsonObjectText, 'The retrieved value does not match the expected value.');
@@ -266,14 +302,14 @@ codeunit 139910 "Json Test"
 
         // [WHEN] Replace a property in the JSON object
         Json.ReplaceOrAddJPropertyInJObject('id', 'XYZ987');
-        JsonObjectText := Json.GetObject();
+        JsonObjectText := Json.GetObjectAsText();
 
         // [THEN] The replaced value matches the expected value
         Assert.AreEqual('{"id":"XYZ987","name":"Test Name"}', JsonObjectText, 'The replaced value does not match the expected value.');
 
         // [WHEN] Add a new property to the JSON object
         Json.ReplaceOrAddJPropertyInJObject('newProperty', 'New Property Value');
-        NewJsonObjectText := Json.GetObject();
+        NewJsonObjectText := Json.GetObjectAsText();
 
         // [THEN] The added value matches the expected value
         Assert.AreEqual('{"id":"XYZ987","name":"Test Name","newProperty":"New Property Value"}', NewJsonObjectText, 'The added value does not match the expected value.');
@@ -292,14 +328,14 @@ codeunit 139910 "Json Test"
 
         // [WHEN] Replace JSON object in the JSON array
         Json.ReplaceJObjectInCollection(0, '{"id":"DYK484"}');
-        JsonArrayText := Json.GetCollection();
+        JsonArrayText := Json.GetCollectionAsText();
 
         // [THEN] The replaced value matches the expected value
         Assert.AreEqual('[{"id":"DYK484"},{"id":"XYZ789"}]', JsonArrayText, 'The replaced value does not match the expected value.');
 
         // [WHEN] Replace JSON object in the JSON array
         Json.ReplaceJObjectInCollection(1, '{"id":"ZXY987"}');
-        NewJsonArrayText := Json.GetCollection();
+        NewJsonArrayText := Json.GetCollectionAsText();
 
         // [THEN] The replaced value matches the expected value
         Assert.AreEqual('[{"id":"DYK484"},{"id":"ZXY987"}]', NewJsonArrayText, 'The replaced value does not match the expected value.');
@@ -316,7 +352,7 @@ codeunit 139910 "Json Test"
 
         // [WHEN] Add JSON object to the JSON array
         Json.AddJObjectToCollection('{"id":"DYK484"}');
-        JsonArrayText := Json.GetCollection();
+        JsonArrayText := Json.GetCollectionAsText();
 
         // [THEN] The added value matches the expected value
         Assert.AreEqual('[{"id":"ABC123"},{"id":"XYZ789"},{"id":"DYK484"}]', JsonArrayText, 'The added value does not match the expected value.');
@@ -333,7 +369,7 @@ codeunit 139910 "Json Test"
 
         // [WHEN] Remove JSON object from the JSON array
         Json.RemoveJObjectFromCollection(1);
-        JsonArrayText := Json.GetCollection();
+        JsonArrayText := Json.GetCollectionAsText();
 
         // [THEN] The removed value matches the expected value
         Assert.AreEqual('[{"id":"ABC123"},{"id":"DYK484"}]', JsonArrayText, 'The removed value does not match the expected value.');

@@ -35,20 +35,30 @@ codeunit 5461 "Json Impl."
         exit(JsonArray.Count);
     end;
 
-    procedure GetCollection() Value: Text
+    procedure GetCollectionAsText() Value: Text
+    begin
+        GetCollection().WriteTo(Value);
+    end;
+
+    procedure GetCollection(): JsonArray
     var
         JArray: JsonArray;
     begin
         JArray.ReadFrom(JsonArray.ToString());
-        JArray.WriteTo(Value);
+        exit(JArray);
     end;
 
-    procedure GetObject() Value: Text
+    procedure GetObjectAsText() Value: Text
+    begin
+        GetObject().WriteTo(Value);
+    end;
+
+    procedure GetObject(): JsonObject
     var
         JObject: JsonObject;
     begin
         JObject.ReadFrom(JsonObject.ToString());
-        JObject.WriteTo(Value);
+        exit(JObject);
     end;
 
     procedure GetObjectFromCollectionByIndex(Index: Integer; var JsonObjectTxt: Text): Boolean
