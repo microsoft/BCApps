@@ -153,8 +153,12 @@ page 9204 "User Settings"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
-        if CloseAction = Action::OK then
+        if CloseAction = Action::OK then begin
+            if OldUserSettings."Legacy Action Bar" <> Rec."Legacy Action Bar" then
+                if Rec."Legacy Action Bar" then
+                    UserSettingsImpl.ShowLegacyActionBarSurvey();
             UserSettingsImpl.UpdateUserSettings(OldUserSettings, Rec);
+        end;
     end;
 
     var
