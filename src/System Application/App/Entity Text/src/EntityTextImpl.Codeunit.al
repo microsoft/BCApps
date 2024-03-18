@@ -337,7 +337,6 @@ codeunit 2012 "Entity Text Impl."
         FactKey: Text;
         FactValue: Text;
         CandidateNumber: Text;
-        MinParagraphWords: Integer;
         FoundNumber: Boolean;
         FormatValid: Boolean;
     begin
@@ -350,9 +349,6 @@ codeunit 2012 "Entity Text Impl."
             Session.LogMessage('0000JYD', TelemetryTaglineCleanedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
             Completion := CopyStr(Completion, 9).Trim();
         end;
-
-        MinParagraphWords := 50;
-
         FormatValid := true;
         case TextFormat of
             TextFormat::TaglineParagraph:
@@ -361,7 +357,7 @@ codeunit 2012 "Entity Text Impl."
                     FormatValid := SplitCompletion.Count() = 2; // a tagline + paragraph must contain an empty line
                 end;
             TextFormat::Paragraph:
-                FormatValid := (not Completion.Contains(EncodedNewlineTok + EncodedNewlineTok)) and (Completion.Split(' ').Count() >= MinParagraphWords); // multiple paragraphs should be avoided, and must have more than MinParagraphWords words
+                FormatValid := (not Completion.Contains(EncodedNewlineTok + EncodedNewlineTok)); // multiple paragraphs should be avoided
             TextFormat::Tagline:
                 FormatValid := not Completion.Contains(EncodedNewlineTok); // a tagline should not have any newline
             TextFormat::Brief:
