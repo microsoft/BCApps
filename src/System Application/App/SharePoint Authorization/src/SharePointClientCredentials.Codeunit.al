@@ -7,6 +7,7 @@ namespace System.Integration.Sharepoint;
 codeunit 9145 "SharePoint Client Credentials" implements "SharePoint Authorization"
 {
     Access = Internal;
+    InherentEntitlements = X;
     InherentPermissions = X;
 
     var
