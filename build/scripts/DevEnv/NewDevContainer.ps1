@@ -3,11 +3,12 @@ param(
     [Parameter(Mandatory = $false)]
     [string] $ContainerName = "BC-$(Get-Date -Format 'yyyyMMdd')",
     [Parameter(Mandatory = $false)]
-    [ValidateSet('Windows', 'NavUserPassword')]
+    [ValidateSet('Windows', 'UserPassword')]
     [string] $Authentification = "Windows"
 )
 
 Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot\ALDev.psm1" -DisableNameChecking
 
 $containerExists = Get-BcContainers | Where-Object { $_ -eq $ContainerName }
 
@@ -18,7 +19,7 @@ if (-not $containerExists)
 
     # Create a new container with a single tenant
     $bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
-    New-BcContainer -artifactUrl $artifactUrl -accept_eula -accept_insiderEula -containerName $ContainerName -auth $Authentification
+    New-BcContainer -artifactUrl $artifactUrl -accept_eula -accept_insiderEula -containerName $ContainerName -auth $Authentification -includeAL
 } else {
     Write-Host "Container $ContainerName already exists. Skipping creation." -ForegroundColor Yellow
 }
@@ -53,9 +54,7 @@ Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
     }
 
     Start-NAVServerInstance -ServerInstance $server.ServerInstance
-} -argumentList $NewDevContainerModule
+} -argumentList $NewDevContainerModule -usePwsh $false
 
-
-# Generate launch settings for the container
-
-# Generate settings json
+# Set up the .vscode folder in all modules with the latest settings for development
+Setup-ModulesSettings -ContainerName $ContainerName -Authentication $Authentification

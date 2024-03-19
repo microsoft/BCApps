@@ -1,0 +1,15 @@
+{
+    "type":  "al",
+    "request":  "launch",
+    "name":  "Your own server",
+    "server":  "http://localhost",
+    "serverInstance":  "BC",
+    "authentication":  "Windows",
+    "startupObjectId":  22,
+    "startupObjectType":  "Page",
+    "breakOnError":  true,
+    "launchBrowser":  true,
+    "enableSqlInformationDebugger":  true,
+    "enableLongRunningSqlStatements":  true,
+    "dependencyPublishingOption":  "Ignore"
+}

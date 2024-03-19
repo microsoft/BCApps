@@ -123,4 +123,34 @@ function Move-ExtensionIntoDevScope([string]$Name, [string]$DatabaseName, [strin
     SetExtensionVersion -Name $Name -DatabaseName $DatabaseName -Publisher $Publisher -TenantId $TenantId -DatabaseServer $DatabaseServer
 }
 
+function Get-AppFolders() {
+    Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+    $appFolders = Get-ChildItem (Get-BaseFolder) -Directory -Recurse | Where-Object { Test-Path (Join-Path $_.FullName app.json) } | ForEach-Object { return $_.FullName }
+    return $appFolders
+}
+
+function Configure-ALProject(
+    [Parameter(Mandatory = $true)]
+    [string]$ProjectFolder,
+    [Parameter(Mandatory = $true)]
+    [string]$CountryCode,
+    [hashtable]$LaunchSettings = @{ },
+    [hashtable]$ProjectSettings = @{ }
+)
+{
+    if (!(Test-Path (Join-Path $ProjectFolder "app.json")))
+    {
+        throw "Could not find an 'app.json' file in $ProjectFolder. Are you sure this is an AL project?"
+    }
+
+    $vsCodeFolder = Join-Path $ProjectFolder ".vscode"
+    if (!(Test-Path $vsCodeFolder))
+    {
+        New-Item -ItemType Directory -Path $vsCodeFolder | Out-Null
+    }
+
+    SetupProjectSettings $vsCodeFolder -CountryCode $CountryCode -ProjectSettings $ProjectSettings -ResetConfiguration:$ResetConfiguration
+    SetupLaunchSettings $vsCodeFolder -CountryCode $CountryCode -LaunchSettings $LaunchSettings -ResetConfiguration:$ResetConfiguration
+}
+
 Export-ModuleMember -Function *-*
