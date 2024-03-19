@@ -37,7 +37,7 @@ codeunit 1996 "Checklist Banner Impl."
         SkippedStepLbl: Label 'You skipped this step';
         BannerTitleLbl: Label 'Get started', MaxLength = 50, Comment = '*Onboarding Checklist*';
         CollapsedBannerTitleLbl: Label 'Get started:', MaxLength = 50, Comment = '*Onboarding Checklist*';
-        BannerHeaderWelcomeLbl: Label 'Hi, ready to set up your business from BCApps?', MaxLength = 50, Comment = '*Onboarding Checklist* %1 = The user''s name';
+        BannerHeaderWelcomeLbl: Label 'Hi, ready to set up your business?', MaxLength = 50, Comment = '*Onboarding Checklist* %1 = The user''s name';
         BannerHeaderWelcomeEvaluationLbl: Label 'Hi, meet Business Central!', MaxLength = 50, Comment = '*Onboarding Checklist* %1 = The user''s name';
         BannerHeader0To50CompletedLbl: Label 'Here are a few steps that make you ready for business', MaxLength = 60, Comment = '*Onboarding Checklist*';
         BannerHeaderInProgressEvaluationLbl: Label 'Here are a few things you can try out', MaxLength = 60, Comment = '*Onboarding Checklist*';

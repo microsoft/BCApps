@@ -17,12 +17,12 @@ codeunit 1470 "Headlines Impl."
     Permissions = tabledata User = r;
 
     var
-        MorningGreetingWithUsernameTxt: Label 'Good morning from BCApps TEST, %1!', Comment = 'Displayed between 00:00 and 10:59. %1 is the user name.';
+        MorningGreetingWithUsernameTxt: Label 'Good morning, %1!', Comment = 'Displayed between 00:00 and 10:59. %1 is the user name.';
         NoonGreetingWithUsernameTxt: Label 'Hi, %1!', Comment = 'Displayed between 11:00 and 13:59. %1 is the user name.';
         AfternoonGreetingWithUsernameTxt: Label 'Good afternoon, %1!', Comment = 'Displayed between 14:00 and 18:59. %1 is the user name.';
         EveningGreetingWithUsernameTxt: Label 'Good evening, %1!', Comment = 'Displayed between 19:00 and 23:59. %1 is the user name.';
 
-        MorningGreetingWithoutUsernameTxt: Label 'Good morning from BCApps TEST!', Comment = 'Displayed between 00:00 and 10:59.';
+        MorningGreetingWithoutUsernameTxt: Label 'Good morning!', Comment = 'Displayed between 00:00 and 10:59.';
         NoonGreetingWithoutUsernameTxt: Label 'Hi!', Comment = 'Displayed between 11:00 and 13:59.';
         AfternoonGreetingWithoutUsernameTxt: Label 'Good afternoon!', Comment = 'Displayed between 14:00 and 18:59.';
         EveningGreetingWithoutUsernameTxt: Label 'Good evening!', Comment = 'Displayed between 19:00 and 23:59.';
