@@ -49,9 +49,7 @@ codeunit 9145 "SharePoint Client Credentials" implements "SharePoint Authorizati
     var
         OAuth2: Codeunit System.Security.Authentication.OAuth2;
         FailedErr: Label 'Failed to retrieve an access token.';
-        //TODO: Check Authority Url
         ClientCredentialsTokenAuthorityUrlTxt: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/token', Comment = '%1 = AAD tenant ID', Locked = true;
-        // AuthorityTxt: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/authorize', Comment = '%1 = AAD tenant ID', Locked = true;
         IsSuccess: Boolean;
         AuthorityUrl: Text;
         IdToken: Text;
