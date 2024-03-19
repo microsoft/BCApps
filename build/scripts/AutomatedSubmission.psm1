@@ -115,7 +115,7 @@ function New-GitHubPullRequest
         [Parameter(Mandatory=$true)]
         [string] $TargetBranch,
         [Parameter(Mandatory=$false)]
-        [string] $label = "automation",
+        [string] $label = "Automation",
         [Parameter(Mandatory=$false)]
         [string] $PullRequestDescription
     )
@@ -133,7 +133,7 @@ function New-GitHubPullRequest
 
     if ($label) {
         $availableLabels = gh label list --json name | ConvertFrom-Json
-        if ($label -in $availableLabels.name) {
+        if ($label -cin $availableLabels.name) {
             $params += "--label '$($label)'"
         }
     }
