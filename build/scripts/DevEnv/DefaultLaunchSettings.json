@@ -5,7 +5,6 @@
     "server":  "http://localhost",
     "serverInstance":  "BC",
     "authentication":  "Windows",
-    "startupObjectId":  22,
     "startupObjectType":  "Page",
     "breakOnError":  true,
     "launchBrowser":  true,
