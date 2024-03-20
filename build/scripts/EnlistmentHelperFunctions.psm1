@@ -12,6 +12,10 @@ function Get-BaseFolderForPath($Path) {
     return $baseFolder
 }
 
+function Get-ArtifactsCacheFolder() {
+    return Join-Path (Get-BaseFolder) "artifacts"
+}
+
 function Get-BuildMode() {
     if ($ENV:BuildMode) {
         return $ENV:BuildMode

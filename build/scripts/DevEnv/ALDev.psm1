@@ -1,11 +1,13 @@
-function GetDefaultProjectSettings()
+function GetDefaultProjectSettings($ContainerName)
 {
-    # These settings must be kept in sync with GetAssemblyProbingFolders from ALDev.psm1 until
-    # we find a better solution
-    $packageCachePath = "C:\Users\aholstrup\Documents\GitHub\Microsoft\BCApps\.artifactsCache" #Get-AllExtensionsFolder -CountryCode $CountryCode
-    $assemblyProbingPaths = @("C:\\ProgramData\\BcContainerHelper\\Extensions\\Test\\.netPackages\\Shared",
-                            "C:\\ProgramData\\BcContainerHelper\\Extensions\\Test\\.netPackages\\Service",
-                            "C:\\ProgramData\\BcContainerHelper\\Extensions\\Test\\.netPackages") | ForEach-Object { return ($_ -replace '\\', '/') }
+    Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+
+    $packageCachePath = Get-ArtifactsCacheFolder
+
+    $assemblyProbingPaths = @("$($bcContainerHelperConfig.containerHelperFolder)\\Extensions\\$ContainerName\\.netPackages\\Shared\\Microsoft.AspNetCore.App\\8.0.2", #TODO: Fix
+                            "$($bcContainerHelperConfig.containerHelperFolder)\\Extensions\\$ContainerName\\.netPackages\\Shared\\Microsoft.NETCore.App\\8.0.2",
+                            "$($bcContainerHelperConfig.containerHelperFolder)\\Extensions\\$ContainerName\\.netPackages\\Service",
+                            "$($bcContainerHelperConfig.containerHelperFolder)\\Extensions\\$ContainerName\\.netPackages") | ForEach-Object { return ($_ -replace '\\', '/') }
 
     return @{
         "editor.codeLens"         = $false
@@ -25,7 +27,9 @@ function GetDefaultProjectSettings()
 function SetupProjectSettings(
     [string]$VSCodeSettingsFolder,
     [switch]$ResetConfiguration,
-    [hashtable]$ProjectSettings = @{ })
+    [hashtable]$ProjectSettings = @{ },
+    [string]$ContainerName
+    )
 {
     $projectSettingsPath = Join-Path $VSCodeSettingsFolder "settings.json"
     if ((Test-Path $projectSettingsPath) -and !$ResetConfiguration)
@@ -41,7 +45,7 @@ function SetupProjectSettings(
     }
     else 
     {
-        [hashtable]$defaultSettings = GetDefaultProjectSettings
+        [hashtable]$defaultSettings = GetDefaultProjectSettings -ContainerName $ContainerName
         foreach ($propertyName in $defaultSettings.Keys)
         {
             if (!$ProjectSettings.ContainsKey($propertyName))
@@ -143,7 +147,8 @@ function Configure-ALProject(
     [string]$ProjectFolder,
     [switch]$ResetConfiguration,
     [hashtable]$LaunchSettings = @{ },
-    [hashtable]$ProjectSettings = @{ }
+    [hashtable]$ProjectSettings = @{ },
+    [string]$ContainerName
 )
 {
     if (!(Test-Path (Join-Path $ProjectFolder "app.json")))
@@ -158,7 +163,7 @@ function Configure-ALProject(
         New-Item -Path $vsCodeFolder -ItemType Directory | Out-Null
     }
 
-    SetupProjectSettings $vsCodeFolder -ProjectSettings $ProjectSettings -ResetConfiguration:$ResetConfiguration
+    SetupProjectSettings $vsCodeFolder -ProjectSettings $ProjectSettings -ResetConfiguration:$ResetConfiguration -ContainerName $ContainerName
     SetupLaunchSettings $vsCodeFolder -LaunchSettings $LaunchSettings -ResetConfiguration:$ResetConfiguration
 }
 
@@ -166,11 +171,17 @@ function Get-AppFolders($Path) {
     return Get-ChildItem $Path -Directory -Recurse | Where-Object { Test-Path (Join-Path $_.FullName app.json) } | ForEach-Object { return $_.FullName }
 }
 
+function Get-Ruleset($Name = "ruleset.json") {
+    Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+    $rulesetPath = Join-Path (Get-BaseFolder) "src\rulesets\$Name" -Resolve
+    return $rulesetPath
+}
+
 <#
 .SYNOPSIS
 Sets up the .vscode folder in all modules with the latest settings for development.
 #>
-function Setup-ModulesSettings([string] $AppRootFolder = (Get-BaseFolder), [string] $RulesetPath, [string] $ContainerName, [string] $Authentication)
+function Setup-ModulesSettings([string] $AppRootFolder = (Get-BaseFolder), [string] $RulesetPath = (Get-Ruleset), [string] $ContainerName, [string] $Authentication)
 {
     $RulesetPath = $RulesetPath -replace '\\', '/'
 
@@ -188,7 +199,7 @@ function Setup-ModulesSettings([string] $AppRootFolder = (Get-BaseFolder), [stri
     }
 
     $appFolders | ForEach-Object {
-        Configure-ALProject -ProjectFolder $_ -ResetConfiguration -ProjectSettings $Settings -LaunchSettings $LaunchSettings
+        Configure-ALProject -ProjectFolder $_ -ResetConfiguration -ProjectSettings $Settings -LaunchSettings $LaunchSettings -ContainerName $ContainerName
     }
 }
 

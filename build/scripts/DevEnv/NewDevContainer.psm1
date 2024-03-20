@@ -4,20 +4,6 @@
 # []System.String. Output of SQL command
 function RunSqlCommandWithOutput([string]$Server, [string]$Command, [int] $CommandTimeout = 0)
 {
-    # Wait for SQL Service Running
-    <#$SQLService = Get-Service "MSSQLSERVER"
-
-    if (!$SQLService)
-    {
-        throw "No MSSQLSERVER service found"
-    }
-    if ($SQLService.Status -notin 'Running', 'StartPending')
-    {
-        Write-Host "WARNING: SQL server is not running. Start MSSQLSERVER service"
-        $SQLService.Start()
-    }
-    $SQLService.WaitForStatus('Running', '00:05:00')#>
-
     $Options = @{}
     if ($CommandTimeout)
     {
@@ -52,14 +38,12 @@ function Test-NavDatabase(# Name of the database to check
     return ((RunSqlCommandWithOutput -Server $DatabaseServer -Command $sqlCommandText) -ne $null)
 }
 
-function SetExtensionVersion([string]$Name, [string]$DatabaseName, [string]$Publisher = 'Microsoft', [string]$TenantId = 'default', [string]$DatabaseServer = '.')
+function Set-ExtensionVersion([string]$Name, [string]$DatabaseName, [string]$Major, [string]$Minor, [string]$Publisher = 'Microsoft', [string]$TenantId = 'default', [string]$DatabaseServer = '.')
 {
-    $Major = "25" #$env:BUILDVERSION;
     if (!$Major)
     {
         throw "The `$env:BUILDVERSION is 0. Check if the environment has been configured correctly."
     }
-    $Minor = "0" #$env:BUILDVERSIONMINOR;
 
     Write-Host "Set version $Major.$Minor.0.0 for extension $Name published by $Publisher."
 
@@ -119,8 +103,6 @@ function Move-ExtensionIntoDevScope([string]$Name, [string]$DatabaseName, [strin
     SET [Published As] = 2, [Tenant ID] = '$TenantId'
 "@
     RunSqlCommandWithOutput -Command $command -Server $DatabaseServer
-
-    SetExtensionVersion -Name $Name -DatabaseName $DatabaseName -Publisher $Publisher -TenantId $TenantId -DatabaseServer $DatabaseServer
 }
 
 function Get-AppFolders() {

@@ -10,6 +10,7 @@ param(
 Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\ALDev.psm1" -DisableNameChecking
 
+# Step 1: Create a container if it does not exist
 $containerExists = Get-BcContainers | Where-Object { $_ -eq $ContainerName }
 
 if (-not $containerExists)
@@ -24,37 +25,46 @@ if (-not $containerExists)
     Write-Host "Container $ContainerName already exists. Skipping creation." -ForegroundColor Yellow
 }
 
-# Move all installed apps into dev scope
+# Step 2: Move all installed apps to the dev scope
+# By default, the container is created with the global scope. We need to move all installed apps to the dev scope.
 $NewDevContainerModule = "$PSScriptRoot\NewDevContainer.psm1"
+$repoVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
 
 Copy-FileToBcContainer -containerName $ContainerName -localpath $NewDevContainerModule
 Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { 
-    param($DevContainerModule) 
-    Import-Module $DevContainerModule -DisableNameChecking
+    param([string] $DevContainerModule, [System.Version] $RepoVersion, [string] $DatabaseName = "CRONUS") 
+    
+    Import-Module $DevContainerModule -DisableNameChecking -Force
 
-    $DatabaseName = "CRONUS"
     $server = Get-NAVServerInstance
-
     Write-Host "Server: $($server.ServerInstance)" -ForegroundColor Green
 
-    Test-NavDatabase -DatabaseName $DatabaseName
+    if (-not(Test-NavDatabase -DatabaseName $DatabaseName)) {
+        throw "Database $DatabaseName does not exist"
+    }
 
-    $installedApps = @(Get-NAVAppInfo -ServerInstance $server.ServerInstance |
-            Where-Object { $_.Scope -eq 'Global' })
-
-
-    Write-Host "Installed apps: $installedApps" -ForegroundColor Green
+    $installedApps = @(Get-NAVAppInfo -ServerInstance $server.ServerInstance)
 
     Write-Host "Stopping server instance $($server.ServerInstance)" -ForegroundColor Green
     Stop-NAVServerInstance -ServerInstance $server.ServerInstance
 
-    $installedApps | ForEach-Object {
-        Write-Host "Updating $($_.Name)"
-        Move-ExtensionIntoDevScope -Name ($_.Name) -DatabaseName $DatabaseName
+    try {
+        $installedApps | ForEach-Object {
+            if ($_.Scope -eq 'Global') {
+                Write-Host "Moving $($_.Name) to Dev Scope"
+                Move-ExtensionIntoDevScope -Name ($_.Name) -DatabaseName $DatabaseName
+            }
+            if ($_.Version -ne "$($RepoVersion.Major).$($RepoVersion.Minor).0.0") {
+                Set-ExtensionVersion -Name ($_.Name) -DatabaseName $DatabaseName -Major $RepoVersion.Major -Minor $RepoVersion.Minor
+            }
+        }
+    } finally {
+        Write-Host "Starting server instance $($server.ServerInstance)" -ForegroundColor Green
+        Start-NAVServerInstance -ServerInstance $server.ServerInstance
     }
 
-    Start-NAVServerInstance -ServerInstance $server.ServerInstance
-} -argumentList $NewDevContainerModule -usePwsh $false
+    
+} -argumentList $NewDevContainerModule,$repoVersion -usePwsh $false
 
-# Set up the .vscode folder in all modules with the latest settings for development
+# Step 3: Set up vscode for development against the container (i.e. set up launch.json and settings.json)
 Setup-ModulesSettings -ContainerName $ContainerName -Authentication $Authentification
