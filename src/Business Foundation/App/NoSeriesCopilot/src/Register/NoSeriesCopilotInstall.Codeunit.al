@@ -1,5 +1,3 @@
-namespace Microsoft.Bank.Reconciliation;
-
 codeunit 290 "No. Series Copilot Install"
 {
     Subtype = Install;
