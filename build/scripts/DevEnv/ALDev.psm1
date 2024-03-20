@@ -4,10 +4,13 @@ function GetDefaultProjectSettings($ContainerName)
 
     $packageCachePath = Get-ArtifactsCacheFolder
 
-    $assemblyProbingPaths = @("$($bcContainerHelperConfig.containerHelperFolder)\\Extensions\\$ContainerName\\.netPackages\\Shared\\Microsoft.AspNetCore.App\\8.0.2", #TODO: Fix
-                            "$($bcContainerHelperConfig.containerHelperFolder)\\Extensions\\$ContainerName\\.netPackages\\Shared\\Microsoft.NETCore.App\\8.0.2",
-                            "$($bcContainerHelperConfig.containerHelperFolder)\\Extensions\\$ContainerName\\.netPackages\\Service",
-                            "$($bcContainerHelperConfig.containerHelperFolder)\\Extensions\\$ContainerName\\.netPackages") | ForEach-Object { return ($_ -replace '\\', '/') }
+    $netPackages = @()
+    $netPackages += @(Get-ChildItem -Path "$($bcContainerHelperConfig.containerHelperFolder)\\Extensions\\$ContainerName\\.netPackages\\Shared\\Microsoft.AspNetCore.App" | Sort-Object -Descending | Select-Object -ExpandProperty FullName)
+    $netPackages += @(Get-ChildItem -Path "$($bcContainerHelperConfig.containerHelperFolder)\\Extensions\\$ContainerName\\.netPackages\\Shared\\Microsoft.NETCore.App" | Sort-Object -Descending | Select-Object -ExpandProperty FullName)
+    $netPackages += "$($bcContainerHelperConfig.containerHelperFolder)\\Extensions\\$ContainerName\\.netPackages\\Service"
+    $netPackages += "$($bcContainerHelperConfig.containerHelperFolder)\\Extensions\\$ContainerName\\.netPackages"
+
+    $assemblyProbingPaths = $netPackages | ForEach-Object { return ($_ -replace '\\', '/') }
 
     return @{
         "editor.codeLens"         = $false
@@ -212,3 +215,4 @@ function Get-DefaultLaunchSettings
 }
 
 Export-ModuleMember -Function *-*
+Export-ModuleMember -Function GetDefaultProjectSettings
