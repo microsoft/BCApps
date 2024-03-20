@@ -4,7 +4,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-
+#pragma warning disable AA0247
 controladdin "Microsoft.Dynamics.Nav.Client.BusinessChart"
 {
     ObsoleteState = Pending;
@@ -56,4 +56,5 @@ controladdin "Microsoft.Dynamics.Nav.Client.BusinessChart"
     /// <param name="ChartData">The full set of data needed for initializing the chart.</param>
     procedure Update(ChartData: JsonObject);
 }
+#pragma warning restore AA0247
 #endif
