@@ -78,7 +78,8 @@ function OpenPR {
 }
 
 $automationsFolder = $PSScriptRoot
-$automationNames = Get-ChildItem -Path $automationsFolder -Directory | ForEach-Object { $_.Name }
+# An automation is a folder with a run.ps1 file
+$automationNames = Get-ChildItem -Path $automationsFolder -Directory | Where-Object { Test-Path (Join-Path $_.FullName 'run.ps1') } | ForEach-Object { $_.Name }
 
 # Filter out the automations that are not included
 if($Include) {
