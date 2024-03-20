@@ -40,6 +40,11 @@ function RunAutomation {
     $automationPath = Join-Path $PSScriptRoot $AutomationName
     try {
         $automationResult = $null
+
+        # Run the automation
+        # The automation is a script that returns an object with the following properties:
+        # - Files: The files changed by the automation
+        # - Message: The message to be used for the commit
         $automationResult = . (Join-Path $automationPath 'run.ps1') -Repository $Repository -TargetBranch $TargetBranch
 
         $automationStatus = "No update available"
