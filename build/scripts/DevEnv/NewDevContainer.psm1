@@ -105,34 +105,61 @@ function Move-ExtensionIntoDevScope([string]$Name, [string]$DatabaseName, [strin
     RunSqlCommandWithOutput -Command $command -Server $DatabaseServer
 }
 
-function Get-AppFolders() {
-    Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
-    $appFolders = Get-ChildItem (Get-BaseFolder) -Directory -Recurse | Where-Object { Test-Path (Join-Path $_.FullName app.json) } | ForEach-Object { return $_.FullName }
-    return $appFolders
-}
+<#
+    .SYNOPSIS
+    Setup the container for development
+    .DESCRIPTION
+    This function moves all installed apps to the dev scope and sets the version of the apps to the version of the repo.
+    .PARAMETER ContainerName
+    The name of the container to setup
+    .PARAMETER RepoVersion
+    The version of the repo
+    .EXAMPLE
+    Setup-ContainerForDevelopment -ContainerName "BC-20210101" -RepoVersion 25.0
+#>
+function Setup-ContainerForDevelopment() {
+    param(
+        [string] $ContainerName,
+        [System.Version] $RepoVersion
+    ) 
 
-function Configure-ALProject(
-    [Parameter(Mandatory = $true)]
-    [string]$ProjectFolder,
-    [Parameter(Mandatory = $true)]
-    [string]$CountryCode,
-    [hashtable]$LaunchSettings = @{ },
-    [hashtable]$ProjectSettings = @{ }
-)
-{
-    if (!(Test-Path (Join-Path $ProjectFolder "app.json")))
-    {
-        throw "Could not find an 'app.json' file in $ProjectFolder. Are you sure this is an AL project?"
-    }
+    $NewDevContainerModule = "$PSScriptRoot\NewDevContainer.psm1"
+    Copy-FileToBcContainer -containerName $ContainerName -localpath $NewDevContainerModule
 
-    $vsCodeFolder = Join-Path $ProjectFolder ".vscode"
-    if (!(Test-Path $vsCodeFolder))
-    {
-        New-Item -ItemType Directory -Path $vsCodeFolder | Out-Null
-    }
+    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { 
+        param([string] $DevContainerModule, [System.Version] $RepoVersion, [string] $DatabaseName = "CRONUS") 
+        
+        Import-Module $DevContainerModule -DisableNameChecking -Force
 
-    SetupProjectSettings $vsCodeFolder -CountryCode $CountryCode -ProjectSettings $ProjectSettings -ResetConfiguration:$ResetConfiguration
-    SetupLaunchSettings $vsCodeFolder -CountryCode $CountryCode -LaunchSettings $LaunchSettings -ResetConfiguration:$ResetConfiguration
+        $server = Get-NAVServerInstance
+        Write-Host "Server: $($server.ServerInstance)" -ForegroundColor Green
+
+        if (-not(Test-NavDatabase -DatabaseName $DatabaseName)) {
+            throw "Database $DatabaseName does not exist"
+        }
+
+        $installedApps = @(Get-NAVAppInfo -ServerInstance $server.ServerInstance)
+
+        Write-Host "Stopping server instance $($server.ServerInstance)" -ForegroundColor Green
+        Stop-NAVServerInstance -ServerInstance $server.ServerInstance
+
+        try {
+            $installedApps | ForEach-Object {
+                if ($_.Scope -eq 'Global') {
+                    Write-Host "Moving $($_.Name) to Dev Scope"
+                    Move-ExtensionIntoDevScope -Name ($_.Name) -DatabaseName $DatabaseName
+                }
+                if ($_.Version -ne "$($RepoVersion.Major).$($RepoVersion.Minor).0.0") {
+                    Set-ExtensionVersion -Name ($_.Name) -DatabaseName $DatabaseName -Major $RepoVersion.Major -Minor $RepoVersion.Minor
+                }
+            }
+        } finally {
+            Write-Host "Starting server instance $($server.ServerInstance)" -ForegroundColor Green
+            Start-NAVServerInstance -ServerInstance $server.ServerInstance
+        }
+
+        
+    } -argumentList $NewDevContainerModule,$RepoVersion -usePwsh $false
 }
 
 Export-ModuleMember -Function *-*
