@@ -169,7 +169,6 @@ codeunit 502 OAuth2Impl
         PermissionGrantError := OAuth2ControlAddIn.GetAuthError();
     end;
 
-#if not CLEAN24
     [NonDebuggable]
     [TryFunction]
     [Obsolete('Use AcquireTokenByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
@@ -478,9 +477,7 @@ codeunit 502 OAuth2Impl
         AcquireTokenWithClientCredentials(ClientId, ClientSecret, OAuthAuthorityUrl, RedirectURL, Scopes, SecretAccessToken);
         AccessToken := SecretAccessToken.Unwrap();
     end;
-#endif
 
-#if not CLEAN25
     [TryFunction]
     [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceUrl: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
@@ -845,7 +842,6 @@ codeunit 502 OAuth2Impl
         AccessToken := CompoundToken.AccessToken;
         IdToken := CompoundToken.IdToken;
     end;
-#endif
 
     [TryFunction]
     procedure AcquireTokenByAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceUrl: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
