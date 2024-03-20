@@ -186,10 +186,10 @@ codeunit 502 OAuth2Impl
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceUrl: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var AuthCodeErr: Text)
     var
         SecretAccessToken: SecretText;
+        CertificateSecret: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, ResourceUrl, PromptInteraction, SecretAccessToken, AuthCodeErr);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, OAuthAuthorityUrl, RedirectURL, ResourceUrl, PromptInteraction, SecretAccessToken, AuthCodeErr);
         AccessToken := SecretAccessToken.Unwrap();
     end;
 
@@ -209,11 +209,11 @@ codeunit 502 OAuth2Impl
     [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var AuthCodeErr: Text)
     var
+        CertificateSecret: SecretText;
         SecretAccessToken: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, AuthCodeErr);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, AuthCodeErr);
         AccessToken := SecretAccessToken.Unwrap();
     end;
 
@@ -233,11 +233,11 @@ codeunit 502 OAuth2Impl
     [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var AuthCodeErr: Text)
     var
+        CertificateSecret: SecretText;
         SecretAccessToken: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokensByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, IdToken, AuthCodeErr);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokensByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, IdToken, AuthCodeErr);
         AccessToken := SecretAccessToken.Unwrap();
     end;
 
@@ -257,11 +257,11 @@ codeunit 502 OAuth2Impl
     [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var TokenCache: Text; var Error: Text)
     var
+        CertificateSecret: SecretText;
         SecretAccessToken: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, TokenCache, Error);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, TokenCache, Error);
         AccessToken := SecretAccessToken.Unwrap();
     end;
 
@@ -281,11 +281,11 @@ codeunit 502 OAuth2Impl
     [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: Text; var IdToken: Text; var TokenCache: Text; var Error: Text)
     var
+        CertificateSecret: SecretText;
         SecretAccessToken: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, IdToken, TokenCache, Error);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, SecretAccessToken, IdToken, TokenCache, Error);
         AccessToken := SecretAccessToken.Unwrap();
     end;
 
@@ -387,11 +387,11 @@ codeunit 502 OAuth2Impl
     [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: Text)
     var
+        CertificateSecret: SecretText;
         SecretAccessToken: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, ResourceURL, SecretAccessToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, CertificateSecret, OAuthAuthorityUrl, ResourceURL, SecretAccessToken);
         AccessToken := SecretAccessToken.Unwrap();
     end;
 
@@ -411,11 +411,11 @@ codeunit 502 OAuth2Impl
     [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text)
     var
+        CertificateSecret: SecretText;
         SecretAccessToken: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, Scopes, SecretAccessToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, CertificateSecret, OAuthAuthorityUrl, Scopes, SecretAccessToken);
         AccessToken := SecretAccessToken.Unwrap();
     end;
 
@@ -435,11 +435,11 @@ codeunit 502 OAuth2Impl
     [Obsolete('Use AcquireTokensFromCacheWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokensFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
     var
+        CertificateSecret: SecretText;
         SecretAccessToken: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokensFromCacheWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, Scopes, SecretAccessToken, IdToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokensFromCacheWithCertificate(RedirectURL, ClientId, CertificateSecret, OAuthAuthorityUrl, Scopes, SecretAccessToken, IdToken);
         AccessToken := SecretAccessToken.Unwrap();
     end;
 
@@ -448,11 +448,11 @@ codeunit 502 OAuth2Impl
     [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken.', '24.0')]
     procedure AcquireTokensWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: Text; var IdToken: Text)
     var
+        CertificateSecret: SecretText;
         SecretAccessToken: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokensWithCertificate(RedirectURL, ClientId, Certificate, OAuthAuthorityUrl, Scopes, SecretAccessToken, IdToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokensWithCertificate(RedirectURL, ClientId, CertificateSecret, OAuthAuthorityUrl, Scopes, SecretAccessToken, IdToken);
         AccessToken := SecretAccessToken.Unwrap();
     end;
 
@@ -482,268 +482,201 @@ codeunit 502 OAuth2Impl
     [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceUrl: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, RedirectURL, ResourceUrl, PromptInteraction, AccessToken, AuthCodeErr);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, RedirectURL, ResourceUrl, PromptInteraction, AccessToken, AuthCodeErr);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceUrl: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     var
-        AuthRequestUrl: Text;
-        AuthCode: Text;
-        State: Text;
+        CertificateSecret: SecretText;
     begin
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-
-        AuthRequestUrl := GetAuthRequestUrl(ClientId, OAuthAuthorityUrl, RedirectURL, State, ResourceUrl, PromptInteraction);
-
-        SetPropertiesBasedOnAuthRequestUrlAndRunOAuth2ControlAddIn(AuthRequestUrl, State, AuthCode, AuthCodeErr);
-
-        if AuthCode = '' then
-            exit;
-
-#pragma warning disable AL0432
-        AcquireTokenByAuthorizationCodeWithCertificate(AuthCode, ClientId, Certificate, CertificatePassword, RedirectURL, OAuthAuthorityUrl, ResourceUrl, AccessToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, RedirectURL, ResourceUrl, PromptInteraction, AccessToken, AuthCodeErr);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, AuthCodeErr);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, AuthCodeErr);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     var
-        AuthRequestUrl: Text;
-        AuthCode: Text;
-        State: Text;
+        CertificateSecret: SecretText;
     begin
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-
-        AuthRequestUrl := GetAuthRequestUrl(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, State, Scopes, PromptInteraction);
-
-        SetPropertiesBasedOnAuthRequestUrlAndRunOAuth2ControlAddIn(AuthRequestUrl, State, AuthCode, AuthCodeErr);
-
-        if AuthCode = '' then
-            exit;
-
-#pragma warning disable AL0432
-        AcquireTokenByAuthorizationCodeWithCertificate(AuthCode, ClientId, Certificate, CertificatePassword, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, AuthCodeErr);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var AuthCodeErr: Text)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokensByAuthorizationCodeWithCertificate(ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, IdToken, AuthCodeErr);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokensByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, IdToken, AuthCodeErr);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var AuthCodeErr: Text)
     var
-        AuthRequestUrl: Text;
-        AuthCode: Text;
-        State: Text;
+        CertificateSecret: SecretText;
     begin
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-
-        AuthRequestUrl := GetAuthRequestUrl(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, State, Scopes, PromptInteraction);
-
-        SetPropertiesBasedOnAuthRequestUrlAndRunOAuth2ControlAddIn(AuthRequestUrl, State, AuthCode, AuthCodeErr);
-
-        if AuthCode = '' then
-            exit;
-
-#pragma warning disable AL0432
-        AcquireTokensByAuthorizationCodeWithCertificate(AuthCode, ClientId, Certificate, CertificatePassword, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokensByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, IdToken, AuthCodeErr);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var TokenCache: Text; var Error: Text)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, TokenCache, Error);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, TokenCache, Error);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var TokenCache: Text; var Error: Text)
     var
-        AuthRequestUrl: Text;
-        AuthCode: Text;
-        State: Text;
+        CertificateSecret: SecretText;
     begin
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-
-        AuthRequestUrl := GetAuthRequestUrl(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, State, Scopes, PromptInteraction);
-
-        SetPropertiesBasedOnAuthRequestUrlAndRunOAuth2ControlAddIn(AuthRequestUrl, State, AuthCode, Error);
-
-        if AuthCode = '' then
-            exit;
-
-#pragma warning disable AL0432
-        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(AuthCode, ClientId, Certificate, CertificatePassword, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken, TokenCache);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, TokenCache, Error);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text; var Error: Text)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, IdToken, TokenCache, Error);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, IdToken, TokenCache, Error);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text; var Error: Text)
     var
-        AuthRequestUrl: Text;
-        AuthCode: Text;
-        State: Text;
+        CertificateSecret: SecretText;
     begin
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-
-        AuthRequestUrl := GetAuthRequestUrl(ClientId, Certificate, OAuthAuthorityUrl, RedirectURL, State, Scopes, PromptInteraction);
-
-        SetPropertiesBasedOnAuthRequestUrlAndRunOAuth2ControlAddIn(AuthRequestUrl, State, AuthCode, Error);
-
-        if AuthCode = '' then
-            exit;
-
-#pragma warning disable AL0432
-        AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(AuthCode, ClientId, Certificate, CertificatePassword, RedirectURL, OAuthAuthorityUrl, Scopes, AccessToken, IdToken, TokenCache);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, RedirectURL, Scopes, PromptInteraction, AccessToken, IdToken, TokenCache, Error);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, ResourceURL, AccessToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, ResourceURL, AccessToken);
     end;
 
     [NonDebuggable]
     [TryFunction]
     [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
+    var
+        CertificateSecret: SecretText;
     begin
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-        AccessToken := AuthFlow.ALAcquireTokenFromCacheWithCertificate(ClientId, Certificate, CertificatePassword, ResourceURL);
+        CertificateSecret := Certificate;
+        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, ResourceURL, AccessToken);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, Scopes, AccessToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, Scopes, AccessToken);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     var
-        ScopesArray: DotNet StringArray;
+        CertificateSecret: SecretText;
     begin
-        FillScopesArray(Scopes, ScopesArray);
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-        AccessToken := AuthFlow.ALAcquireTokenFromCacheWithCertificate(ClientId, Certificate, CertificatePassword, ScopesArray);
+        CertificateSecret := Certificate;
+        AcquireTokenFromCacheWithCertificate(RedirectURL, ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, Scopes, AccessToken);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokensFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokensFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokensFromCacheWithCertificate(RedirectURL, ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokensFromCacheWithCertificate(RedirectURL, ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokensFromCacheWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
     procedure AcquireTokensFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
-        ScopesArray: DotNet StringArray;
-        CompoundToken: DotNet CompoundTokenInfo;
+        CertificateSecret: SecretText;
     begin
-        FillScopesArray(Scopes, ScopesArray);
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-        CompoundToken := AuthFlow.ALAcquireTokensFromCacheWithCertificate(ClientId, Certificate, CertificatePassword, ScopesArray);
-        AccessToken := CompoundToken.AccessToken;
-        IdToken := CompoundToken.IdToken;
+        CertificateSecret := Certificate;
+        AcquireTokensFromCacheWithCertificate(RedirectURL, ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokensWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokensWithCertificate(RedirectURL, ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokensWithCertificate(RedirectURL, ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
     procedure AcquireTokensWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
-        ScopesArray: DotNet StringArray;
-        CompoundToken: DotNet CompoundTokenInfo;
+        CertificateSecret: SecretText;
     begin
-        FillScopesArray(Scopes, ScopesArray);
-        Initialize(OAuthAuthorityUrl, RedirectURL);
-        CompoundToken := AuthFlow.ALAcquireApplicationTokensWithCertificate(ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, ScopesArray);
-        AccessToken := CompoundToken.AccessToken;
-        IdToken := CompoundToken.IdToken;
+        CertificateSecret := Certificate;
+        AcquireTokensWithCertificate(RedirectURL, ClientId, CertificateSecret, CertificatePassword, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, ResourceURL, AccessToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, CertificateSecret, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, ResourceURL, AccessToken);
     end;
 
     [TryFunction]
@@ -757,90 +690,84 @@ codeunit 502 OAuth2Impl
     [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, CertificateSecret, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     var
-        ScopesArray: DotNet StringArray;
+        CertificateSecret: SecretText;
     begin
-        FillScopesArray(Scopes, ScopesArray);
-        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, ScopesArray);
+        CertificateSecret := Certificate;
+        AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, CertificateSecret, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, CertificateSecret, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
-        ScopesArray: DotNet StringArray;
-        CompoundToken: DotNet CompoundTokenInfo;
+        CertificateSecret: SecretText;
     begin
-        FillScopesArray(Scopes, ScopesArray);
-        CompoundToken := AuthFlow.ALAcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, ScopesArray);
-        AccessToken := CompoundToken.AccessToken;
-        IdToken := CompoundToken.IdToken;
+        CertificateSecret := Certificate;
+        AcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, CertificateSecret, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var TokenCache: Text)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken, TokenCache);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, CertificateSecret, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken, TokenCache);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var TokenCache: Text)
     var
-        ScopesArray: DotNet StringArray;
+        CertificateSecret: SecretText;
     begin
-        FillScopesArray(Scopes, ScopesArray);
-        AccessToken := AuthFlow.ALAcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, ScopesArray, TokenCache);
+        CertificateSecret := Certificate;
+        AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, CertificateSecret, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken, TokenCache);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text)
     var
+        CertificateSecret: SecretText;
         CertificatePassword: SecretText;
     begin
-#pragma warning disable AL0432
-        AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken, IdToken, TokenCache);
-#pragma warning restore AL0432
+        CertificateSecret := Certificate;
+        AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, CertificateSecret, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken, IdToken, TokenCache);
     end;
 
     [TryFunction]
     [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text)
     var
-        ScopesArray: DotNet StringArray;
-        CompoundToken: DotNet CompoundTokenInfo;
+        CertificateSecret: SecretText;
     begin
-        FillScopesArray(Scopes, ScopesArray);
-        CompoundToken := AuthFlow.ALAcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, Certificate, CertificatePassword, ScopesArray, TokenCache);
-        AccessToken := CompoundToken.AccessToken;
-        IdToken := CompoundToken.IdToken;
+        CertificateSecret := Certificate;
+        AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, CertificateSecret, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken, IdToken, TokenCache);
     end;
 
     [TryFunction]
