@@ -1,3 +1,21 @@
+<#
+.Synopsis
+    Run automations and open a PR with the updates.
+    The script is to be run in a GitHub Actions workflow.
+.Description
+    This script runs all the automations in the folder and opens a PR with the updates.
+    The automations are currently run consecutively and the PR is opened if there are updates available.
+    The PR is opened with a commit for each update (from an automation).
+    The script fails if any automation fails.
+.Parameter Include
+    The list of automation names to include. If not provided, all automations in the folder are included.
+.Parameter Repository
+    The repository to open the PR in.
+.Parameter TargetBranch
+    The target branch for the PR.
+.Parameter Actor
+    The actor to use for the commits.
+#>
 param(
     [Parameter(Mandatory=$true)]
     [string[]] $Include,
@@ -14,13 +32,15 @@ function RunAutomation {
         [Parameter(Mandatory=$true)]
         [string] $AutomationName,
         [Parameter(Mandatory=$true)]
-        [string] $Repository
+        [string] $Repository,
+        [Parameter(Mandatory=$true)]
+        [string] $TargetBranch
     )
 
     $automationPath = Join-Path $PSScriptRoot $AutomationName
     try {
         $automationResult = $null
-        $automationResult = . (Join-Path $automationPath 'run.ps1') -Repository $Repository
+        $automationResult = . (Join-Path $automationPath 'run.ps1') -Repository $Repository -TargetBranch $TargetBranch
 
         $automationStatus = "No update available"
         if ($automationResult.Files -and $automationResult.Message) {
@@ -95,7 +115,7 @@ $automationRuns = @()
 foreach ($automationName in $automationNames) {
     Write-Host "::group::Run automation: $automationName"
 
-    $automationRun = RunAutomation -AutomationName $automationName -Repository $Repository
+    $automationRun = RunAutomation -AutomationName $automationName -Repository $Repository -TargetBranch $TargetBranch
     Write-Host "::Notice::Automation $($automationRun.Name) completed. Status: $($automationRun.Status). Message: $($automationRun.Result.Message)"
 
     $automationRuns += $automationRun

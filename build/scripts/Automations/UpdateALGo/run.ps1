@@ -1,11 +1,12 @@
 param (
     [Parameter(Mandatory=$true)]
-    [string] $Repository
+    [string] $Repository,
+    [Parameter(Mandatory=$true)]
+    [string] $TargetBranch
 )
 
 Import-Module $PSScriptRoot\..\..\EnlistmentHelperFunctions.psm1
 
-$TargetBranch = Get-CurrentBranch
 Write-Host "Running the workflow Update AL-Go System Files on branch $TargetBranch"
 
 $workflowName = " Update AL-Go System Files"
