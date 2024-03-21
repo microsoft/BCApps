@@ -12,12 +12,14 @@ codeunit 9145 "SharePoint Client Credentials" implements "SharePoint Authorizati
 
     var
         ClientId: Text;
-        Certificate: Text;
+        Certificate: SecretText;
+
         AadTenantId: Text;
         Scopes: List of [Text];
         CertificatePassword: SecretText;
 
-    procedure SetParameters(NewAadTenantId: Text; NewClientId: Text; NewCertificate: Text; NewCertificatePassword: SecretText; NewScopes: List of [Text])
+    procedure SetParameters(NewAadTenantId: Text; NewClientId: Text; NewCertificate: SecretText; NewCertificatePassword: SecretText; NewScopes: List of [Text])
+
     begin
         AadTenantId := NewAadTenantId;
         ClientId := NewClientId;

@@ -19,7 +19,7 @@ codeunit 9143 "SharePoint Auth. - Impl."
         exit(SharePointAuthorizationCode);
     end;
 
-    procedure CreateClientCredentials(AadTenantId: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; Scopes: List of [Text]): Interface "SharePoint Authorization";
+    procedure CreateClientCredentials(AadTenantId: Text; ClientId: Text; Certificate: SecretText; CertificatePassword: SecretText; Scopes: List of [Text]): Interface "SharePoint Authorization";
     var
         SharePointClientCredentials: Codeunit "SharePoint Client Credentials";
     begin
