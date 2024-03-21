@@ -7,6 +7,9 @@
 #pragma warning disable AA0247
 controladdin "Microsoft.Dynamics.Nav.Client.WelcomeWizard"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '24.0';
+    ObsoleteReason = 'Replaced with PowerBIManagement addin.';
     RequestedHeight = 379;
     MinimumHeight = 550;
     RequestedWidth = 300;
