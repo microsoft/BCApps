@@ -609,6 +609,10 @@ codeunit 9988 "Word Template Impl."
         TempDocumentSharing.Insert();
 
         DocumentSharing.Share(TempDocumentSharing);
+
+        if TempDocumentSharing.Cancelled then
+            Error('');
+
         ResultTempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
         TempDocumentSharing.Data.CreateInStream(InStream, TextEncoding::UTF8);
         CopyStream(OutStream, InStream);
