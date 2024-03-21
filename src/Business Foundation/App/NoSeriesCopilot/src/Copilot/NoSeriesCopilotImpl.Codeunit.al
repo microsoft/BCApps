@@ -213,7 +213,9 @@ codeunit 324 "No. Series Copilot Impl."
 
             // call the API again to get the final response from the model
             ToolResponses.Get(ToolResponse, ExpectedNoSeriesCount);
-            GenerateAndReviewToolCompletion(AzureOpenAI, AOAIChatMessages, AOAIChatCompletionParams, ExpectedNoSeriesCount);
+            if not GenerateAndReviewToolCompletion(AzureOpenAI, AOAIChatMessages, AOAIChatCompletionParams, ExpectedNoSeriesCount) then
+                Error(GetLastErrorText());
+
             FinalResults.Add(AOAIChatMessages.GetLastMessage());
 
             AOAIChatMessages.DeleteMessage(AOAIChatMessages.GetHistory().Count); // remove the last message, as it is not needed anymore
@@ -526,7 +528,8 @@ codeunit 324 "No. Series Copilot Impl."
 
     local procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var FunctionArguments: Text; var CustomPatternsPromptList: List of [Text])
     var
-        CustomGuidelinesPrefixLbl: label 'Custom Guidelines:', Locked = true;
+        CustomGuidelinesPrefixLbl: label 'Custom Guidelines as specified by the user:', Locked = true;
+        CustomGuidelinesPostfixLbl: label 'Apply these guidelines where relevant to ensure compliance with user requests.', Locked = true;
     begin
         CustomPatternsPromptList.Add(CustomGuidelinesPrefixLbl);
         //TODO: Not Tested. Need to test if the custom patterns are added to the prompt and how they influence the completion
@@ -534,6 +537,7 @@ codeunit 324 "No. Series Copilot Impl."
             CustomPatternsPromptList.Add(GetPattern(FunctionArguments))
         else
             AddExistingPatternIfExist(CustomPatternsPromptList);
+        CustomPatternsPromptList.Add(CustomGuidelinesPostfixLbl);
     end;
 
     local procedure CheckIfPatternSpecified(var FunctionArguments: Text): Boolean
@@ -575,18 +579,38 @@ codeunit 324 "No. Series Copilot Impl."
     local procedure AddExistingPattern(var PatternsPromptList: List of [Text])
     var
         NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
         NoSeriesManagement: Codeunit "No. Series";
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
+        TextValue: Text;
         i: Integer;
     begin
         // show first 5 existing number series as example
         // TODO: Probably there is better way to show the existing number series, maybe by showing the most used ones, or the ones that are used in the same tables as the ones that are specified in the input
         if NoSeries.FindSet() then
             repeat
-                PatternsPromptList.Add('Code: ' + NoSeries.Code + ', Description: ' + NoSeries.Description + ', Pattern: ' + NoSeriesManagement.GetLastNoUsed(NoSeries.Code)); //TODO: Replace `GetLastNoUsed` with `GetStartingNo`
+                NoSeriesManagement.GetNoSeriesLine(NoSeriesLine, NoSeries.Code, Today(), false);
+                JsonObj.Add('seriesCode', NoSeries.Code);
+                JsonObj.Add('description', NoSeries.Description);
+                JsonObj.Add('startingNo', NoSeriesLine."Starting No.");
+                JsonObj.Add('endingNo', NoSeriesLine."Ending No.");
+                JsonObj.Add('warningNo', NoSeriesLine."Warning No.");
+                JsonObj.Add('incrementByNo', NoSeriesLine."Increment-by No.");
+                JsonArr.Add(JsonObj);
                 if i > 5 then
                     break;
                 i += 1;
             until NoSeries.Next() = 0;
+
+        if JsonArr.Count = 0 then
+            exit;
+
+        Clear(JsonObj);
+        JsonObj.Add('noSeries', JsonArr);
+        JsonObj.WriteTo(TextValue);
+
+        PatternsPromptList.Add(TextValue);
     end;
 
     local procedure BuildModifyExistingNumbersSeriesPrompt(var FunctionCallParams: Text; MaxToolResultsTokensLength: Integer): Dictionary of [Text, Integer]
@@ -623,6 +647,8 @@ codeunit 324 "No. Series Copilot Impl."
             AOAIChatMessages.DeleteMessage(AOAIChatMessages.GetHistory().Count); // remove the last message with wrong assistant response, as we need to regenerate the completion
             Sleep(500);
         end;
+
+        exit(false);
     end;
 
     local procedure IsExpectedNoSeriesCount(Completion: Text; ExpectedNoSeriesCount: Integer): Boolean
