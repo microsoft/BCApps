@@ -1,2 +1,0 @@
-DrawPage();
-DrawFeatureContent();
