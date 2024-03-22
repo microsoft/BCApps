@@ -34,7 +34,7 @@ codeunit 9353 "Graph Optional Parameters"
     end;
 
     /// <summary>
-    /// Sets the value for 'If-None-Match' HttpHeader for a request.
+    /// Sets the value for 'Prefer' HttpHeader for a request.
     /// </summary>
     /// <param name="Value">Text value specifying the HttpHeader value</param>
     procedure SetPreferRequestHeader("Value": Text)
