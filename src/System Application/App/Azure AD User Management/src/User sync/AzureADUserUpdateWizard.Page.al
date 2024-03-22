@@ -363,7 +363,7 @@ page 9515 "Azure AD User Update Wizard"
     var
         UserPermissions: Codeunit "User Permissions";
     begin
-        if not UserPermissions.CanManageUsersOnTenant(UserSecurityId()) then
+        if not (UserPermissions.CanManageUsersOnTenant(UserSecurityId()) and UserPermissions.IsSuper(UserSecurityId())) then
             Error(CannotUpdateUsersFromOfficeErr);
 
         MakeAllGroupsInvisible();

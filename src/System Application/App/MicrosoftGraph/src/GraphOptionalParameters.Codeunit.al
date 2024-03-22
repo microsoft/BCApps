@@ -24,6 +24,33 @@ codeunit 9353 "Graph Optional Parameters"
         SetRequestHeader('IF-Match', "Value");
     end;
 
+    /// <summary>
+    /// Sets the value for 'If-None-Match' HttpHeader for a request.
+    /// </summary>
+    /// <param name="Value">Text value specifying the HttpHeader value</param>
+    procedure SetIfNoneMatchRequestHeader("Value": Text)
+    begin
+        SetRequestHeader('If-None-Match', "Value");
+    end;
+
+    /// <summary>
+    /// Sets the value for 'Prefer' HttpHeader for a request.
+    /// </summary>
+    /// <param name="Value">Text value specifying the HttpHeader value</param>
+    procedure SetPreferRequestHeader("Value": Text)
+    begin
+        SetRequestHeader('Prefer', "Value");
+    end;
+
+    /// <summary>
+    /// Sets the value for 'ConsistencyLevel' HttpHeader for a request.
+    /// </summary>
+    /// <param name="Value">Text value specifying the HttpHeader value</param>
+    procedure SetConsistencyLevelRequestHeader("Value": Text)
+    begin
+        SetRequestHeader('ConsistencyLevel', "Value");
+    end;
+
     local procedure SetRequestHeader(Header: Text; HeaderValue: Text)
     begin
         RequestHeaders.Remove(Header);

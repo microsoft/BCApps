@@ -27,11 +27,11 @@ Write-Host -ForegroundColor Yellow @'
 $webClient = New-Object System.Net.WebClient
 $webClient.CachePolicy = New-Object System.Net.Cache.RequestCachePolicy -argumentList ([System.Net.Cache.RequestCacheLevel]::NoCacheNoStore)
 $webClient.Encoding = [System.Text.Encoding]::UTF8
-$GitHubHelperUrl = 'https://raw.githubusercontent.com/microsoft/AL-Go/e9f4cc63d149d341172cebfc8112e825123683d8/Actions/Github-Helper.psm1'
+$GitHubHelperUrl = 'https://raw.githubusercontent.com/microsoft/AL-Go/8dfde66bdf7b91d0d56d9a97f6f1688e444e067d/Actions/Github-Helper.psm1'
 Write-Host "Downloading GitHub Helper module from $GitHubHelperUrl"
 $GitHubHelperPath = "$([System.IO.Path]::GetTempFileName()).psm1"
 $webClient.DownloadFile($GitHubHelperUrl, $GitHubHelperPath)
-$ALGoHelperUrl = 'https://raw.githubusercontent.com/microsoft/AL-Go/e9f4cc63d149d341172cebfc8112e825123683d8/Actions/AL-Go-Helper.ps1'
+$ALGoHelperUrl = 'https://raw.githubusercontent.com/microsoft/AL-Go/8dfde66bdf7b91d0d56d9a97f6f1688e444e067d/Actions/AL-Go-Helper.ps1'
 Write-Host "Downloading AL-Go Helper script from $ALGoHelperUrl"
 $ALGoHelperPath = "$([System.IO.Path]::GetTempFileName()).ps1"
 $webClient.DownloadFile($ALGoHelperUrl, $ALGoHelperPath)

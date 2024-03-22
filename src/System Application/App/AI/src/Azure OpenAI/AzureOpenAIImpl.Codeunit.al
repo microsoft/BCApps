@@ -559,12 +559,11 @@ codeunit 7772 "Azure OpenAI Impl"
     end;
 #endif
 
-    [NonDebuggable]
     procedure GetTokenCount(Input: SecretText; Encoding: Text) TokenCount: Integer
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin
-        TokenCount := ALCopilotFunctions.GptTokenCount(Input.Unwrap(), Encoding);
+        TokenCount := ALCopilotFunctions.GptTokenCount(Input, Encoding);
     end;
 
 }
