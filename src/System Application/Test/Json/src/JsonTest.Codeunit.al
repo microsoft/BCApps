@@ -5,7 +5,7 @@
 
 namespace System.Test.Text.Json;
 
-using System.Json;
+using System.Text.Json;
 using System.Device;
 using System.TestLibraries.Utilities;
 
