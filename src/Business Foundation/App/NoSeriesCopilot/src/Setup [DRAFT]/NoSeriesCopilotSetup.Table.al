@@ -82,6 +82,41 @@ table 9200 "No. Series Copilot Setup"
             DataClassification = CustomerContent;
             Caption = 'Tool 1 Output Format Prompt';
         }
+        field(20; "Tool 2 General Instr. Prompt"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 2 General Instructions Prompt';
+        }
+        field(21; "Tool 2 Limitations Prompt"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 2 Limitations Prompt';
+        }
+        field(22; "Tool 2 Code Guideline Prompt"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 2 Series Code Guideline Prompt';
+        }
+        field(23; "Tool 2 Descr. Guideline Prompt"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 2 Series Description Guideline Prompt';
+        }
+        field(24; "Tool 2 Number Guideline Prompt"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 2 Series Numbering Guideline Prompt';
+        }
+        field(25; "Tool 2 Output Examples Prompt"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 2 Output Examples Prompt';
+        }
+        field(26; "Tool 2 Output Format Prompt"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 2 Output Format Prompt';
+        }
     }
 
     keys
@@ -349,5 +384,173 @@ table 9200 "No. Series Copilot Setup"
         IsolatedStorage.Set(NewTool1OutputFormatPromptGuid, Tool1OutputFormatPrompt, DataScope::Module);
 
         Rec."Tool 1 Output Format Prompt" := NewTool1OutputFormatPromptGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetTool2GeneralInstructionsPromptFromIsolatedStorage() Tool2GeneralInstrPrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tool 2 General Instr. Prompt") then
+            if not IsolatedStorage.Get(Rec."Tool 2 General Instr. Prompt", DataScope::Module, Tool2GeneralInstrPrompt) then;
+
+        exit(Tool2GeneralInstrPrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool2GeneralInstructionsPromptToIsolatedStorage(Tool2GeneralInstrPrompt: Text)
+    var
+        NewTool2GeneralInstrPromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 2 General Instr. Prompt") then
+            if not IsolatedStorage.Delete(Rec."Tool 2 General Instr. Prompt", DataScope::Module) then;
+
+        NewTool2GeneralInstrPromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewTool2GeneralInstrPromptGuid, Tool2GeneralInstrPrompt, DataScope::Module);
+
+        Rec."Tool 2 General Instr. Prompt" := NewTool2GeneralInstrPromptGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetTool2LimitationsPromptFromIsolatedStorage() Tool2LimitationsPrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tool 2 Limitations Prompt") then
+            if not IsolatedStorage.Get(Rec."Tool 2 Limitations Prompt", DataScope::Module, Tool2LimitationsPrompt) then;
+
+        exit(Tool2LimitationsPrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool2LimitationsPromptToIsolatedStorage(Tool2LimitationsPrompt: Text)
+    var
+        NewTool2LimitationsPromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 2 Limitations Prompt") then
+            if not IsolatedStorage.Delete(Rec."Tool 2 Limitations Prompt", DataScope::Module) then;
+
+        NewTool2LimitationsPromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewTool2LimitationsPromptGuid, Tool2LimitationsPrompt, DataScope::Module);
+
+        Rec."Tool 2 Limitations Prompt" := NewTool2LimitationsPromptGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetTool2CodeGuidelinePromptFromIsolatedStorage() Tool2CodeGuidelinePrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tool 2 Code Guideline Prompt") then
+            if not IsolatedStorage.Get(Rec."Tool 2 Code Guideline Prompt", DataScope::Module, Tool2CodeGuidelinePrompt) then;
+
+        exit(Tool2CodeGuidelinePrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool2CodeGuidelinePromptToIsolatedStorage(Tool2CodeGuidelinePrompt: Text)
+    var
+        NewTool2CodeGuidelinePromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 2 Code Guideline Prompt") then
+            if not IsolatedStorage.Delete(Rec."Tool 2 Code Guideline Prompt", DataScope::Module) then;
+
+        NewTool2CodeGuidelinePromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewTool2CodeGuidelinePromptGuid, Tool2CodeGuidelinePrompt, DataScope::Module);
+
+        Rec."Tool 2 Code Guideline Prompt" := NewTool2CodeGuidelinePromptGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetTool2DescrGuidelinePromptFromIsolatedStorage() Tool2DescrGuidelinePrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tool 2 Descr. Guideline Prompt") then
+            if not IsolatedStorage.Get(Rec."Tool 2 Descr. Guideline Prompt", DataScope::Module, Tool2DescrGuidelinePrompt) then;
+
+        exit(Tool2DescrGuidelinePrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool2DescrGuidelinePromptToIsolatedStorage(Tool2DescrGuidelinePrompt: Text)
+    var
+        NewTool2DescrGuidelinePromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 2 Descr. Guideline Prompt") then
+            if not IsolatedStorage.Delete(Rec."Tool 2 Descr. Guideline Prompt", DataScope::Module) then;
+
+        NewTool2DescrGuidelinePromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewTool2DescrGuidelinePromptGuid, Tool2DescrGuidelinePrompt, DataScope::Module);
+
+        Rec."Tool 2 Descr. Guideline Prompt" := NewTool2DescrGuidelinePromptGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetTool2NumberGuidelinePromptFromIsolatedStorage() Tool2NumberGuidelinePrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tool 2 Number Guideline Prompt") then
+            if not IsolatedStorage.Get(Rec."Tool 2 Number Guideline Prompt", DataScope::Module, Tool2NumberGuidelinePrompt) then;
+
+        exit(Tool2NumberGuidelinePrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool2NumberGuidelinePromptToIsolatedStorage(Tool2NumberGuidelinePrompt: Text)
+    var
+        NewTool2NumberGuidelinePromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 2 Number Guideline Prompt") then
+            if not IsolatedStorage.Delete(Rec."Tool 2 Number Guideline Prompt", DataScope::Module) then;
+
+        NewTool2NumberGuidelinePromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewTool2NumberGuidelinePromptGuid, Tool2NumberGuidelinePrompt, DataScope::Module);
+
+        Rec."Tool 2 Number Guideline Prompt" := NewTool2NumberGuidelinePromptGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetTool2OutputExamplesPromptFromIsolatedStorage() Tool2OutputExamplesPrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tool 2 Output Examples Prompt") then
+            if not IsolatedStorage.Get(Rec."Tool 2 Output Examples Prompt", DataScope::Module, Tool2OutputExamplesPrompt) then;
+
+        exit(Tool2OutputExamplesPrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool2OutputExamplesPromptToIsolatedStorage(Tool2OutputExamplesPrompt: Text)
+    var
+        NewTool2OutputExamplesPromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 2 Output Examples Prompt") then
+            if not IsolatedStorage.Delete(Rec."Tool 2 Output Examples Prompt", DataScope::Module) then;
+
+        NewTool2OutputExamplesPromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewTool2OutputExamplesPromptGuid, Tool2OutputExamplesPrompt, DataScope::Module);
+
+        Rec."Tool 2 Output Examples Prompt" := NewTool2OutputExamplesPromptGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetTool2OutputFormatPromptFromIsolatedStorage() Tool2OutputFormatPrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tool 2 Output Format Prompt") then
+            if not IsolatedStorage.Get(Rec."Tool 2 Output Format Prompt", DataScope::Module, Tool2OutputFormatPrompt) then;
+
+        exit(Tool2OutputFormatPrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool2OutputFormatPromptToIsolatedStorage(Tool2OutputFormatPrompt: Text)
+    var
+        NewTool2OutputFormatPromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 2 Output Format Prompt") then
+            if not IsolatedStorage.Delete(Rec."Tool 2 Output Format Prompt", DataScope::Module) then;
+
+        NewTool2OutputFormatPromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewTool2OutputFormatPromptGuid, Tool2OutputFormatPrompt, DataScope::Module);
+
+        Rec."Tool 2 Output Format Prompt" := NewTool2OutputFormatPromptGuid;
     end;
 }

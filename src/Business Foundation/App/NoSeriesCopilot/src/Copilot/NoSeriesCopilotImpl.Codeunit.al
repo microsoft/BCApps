@@ -4,6 +4,7 @@ codeunit 324 "No. Series Copilot Impl."
         IncorrectCompletionErr: Label 'Incorrect completion. The property %1 is empty';
         TextLengthIsOverMaxLimitErr: Label 'The property %1 exceeds the maximum length of %2';
         DateSpecificPromptLbl: label 'Today''s date is %1, which should be used for understanding the context of period-specific requests.', Locked = true;
+        SpecifyTablesErr: Label 'Please specify the tables for which you want to modify the number series.';
 
     procedure Generate(var NoSeriesProposal: Record "No. Series Proposal"; var ResponseText: text; var NoSeriesGenerated: Record "No. Series Proposal Line"; InputText: Text)
     var
@@ -143,6 +144,83 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
     [NonDebuggable]
+    local procedure GetTool2GeneralInstructions(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 2 general instructions. The tool 2 general instructions should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool2GeneralInstructionsPromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool2Limitations(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 2 limitations. The tool 2 limitations should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool2LimitationsPromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool2CodeGuidelines(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 2 code guidelines. The tool 2 code guidelines should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool2CodeGuidelinePromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool2DescrGuidelines(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 2 description guidelines. The tool 2 description guidelines should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool2DescrGuidelinePromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool2NumberGuideline(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 2 number guideline. The tool 2 number guideline should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool2NumberGuidelinePromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool2OutputExamples(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 2 output examples. The tool 2 output examples should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool2OutputExamplesPromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool2OutputFormat(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 2 output format. The tool 2 output format should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool2OutputFormatPromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
     internal procedure GenerateNoSeries(SystemPromptTxt: SecretText; InputText: Text): Text
     var
         AzureOpenAI: Codeunit "Azure OpenAi";
@@ -241,7 +319,7 @@ codeunit 324 "No. Series Copilot Impl."
         NumberOfToolResponses, MaxTablesPromptListTokensLength, i, ActualTablesChunkSize : Integer;
         TokenCountImpl: Codeunit "AOAI Token";
     begin
-        GetTablesPrompt(FunctionArguments, TablesPromptList);
+        GetNewNumberSeriesTablesPrompt(FunctionArguments, TablesPromptList);
         GetUserSpecifiedOrExistingNumberPatternsGuidelines(FunctionArguments, CustomPatternsPromptList);
 
         MaxTablesPromptListTokensLength := MaxToolResultsTokensLength -
@@ -277,12 +355,20 @@ codeunit 324 "No. Series Copilot Impl."
         end;
     end;
 
-    local procedure GetTablesPrompt(var FunctionArguments: Text; var TablesPromptList: List of [Text])
+    local procedure GetNewNumberSeriesTablesPrompt(var FunctionArguments: Text; var TablesPromptList: List of [Text])
     begin
         if CheckIfTablesSpecified(FunctionArguments) then
             ListOnlySpecifiedTables(TablesPromptList, GetEntities(FunctionArguments))
         else
             ListAllTablesWithNumberSeries(TablesPromptList);
+    end;
+
+    local procedure GetChangeNumberSeriesTablesPrompt(var FunctionArguments: Text; var TablesPromptList: List of [Text])
+    begin
+        if not CheckIfTablesSpecified(FunctionArguments) then
+            Error(SpecifyTablesErr);
+
+        ListOnlySpecifiedTablesWithExistingNumberSeries(TablesPromptList, GetEntities(FunctionArguments));
     end;
 
     local procedure CheckIfTablesSpecified(var FunctionArguments: Text): Boolean
@@ -317,6 +403,18 @@ codeunit 324 "No. Series Copilot Impl."
             until TableMetadata.Next() = 0;
     end;
 
+    local procedure ListOnlySpecifiedTablesWithExistingNumberSeries(var TablesPromptList: List of [Text]; Entities: List of [Text])
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        // Looping trhough all Setup tables
+        SetFilterOnSetupTables(TableMetadata);
+        if TableMetadata.FindSet() then
+            repeat
+                ListOnlyRelevantNoSeriesFieldsWithExistingNumberSeries(TablesPromptList, TableMetadata, Entities);
+            until TableMetadata.Next() = 0;
+    end;
+
     local procedure ListOnlyRelevantNoSeriesFields(var TablesPromptList: List of [Text]; var TableMetadata: Record "Table Metadata"; Entities: List of [Text])
     var
         Field: Record "Field";
@@ -325,7 +423,20 @@ codeunit 324 "No. Series Copilot Impl."
         if Field.FindSet() then
             repeat
                 if IsRelevant(TableMetadata, Field, Entities) then
-                    AddNoSeriesFieldToTablesPrompt(TablesPromptList, TableMetadata, Field);
+                    AddNewNoSeriesFieldToTablesPrompt(TablesPromptList, TableMetadata, Field);
+            until Field.Next() = 0;
+    end;
+
+    local procedure ListOnlyRelevantNoSeriesFieldsWithExistingNumberSeries(var TablesPromptList: List of [Text]; var TableMetadata: Record "Table Metadata"; Entities: List of [Text])
+    var
+        Field: Record "Field";
+        NoSeries: Record "No. Series";
+    begin
+        SetFilterOnNoSeriesFields(TableMetadata, Field);
+        if Field.FindSet() then
+            repeat
+                if IsRelevant(TableMetadata, Field, Entities) then
+                    AddChangeNoSeriesFieldToTablesPrompt(TablesPromptList, TableMetadata, Field);
             until Field.Next() = 0;
     end;
 
@@ -484,13 +595,34 @@ codeunit 324 "No. Series Copilot Impl."
         SetFilterOnNoSeriesFields(TableMetadata, Field);
         if Field.FindSet() then
             repeat
-                AddNoSeriesFieldToTablesPrompt(TablesPromptList, TableMetadata, Field);
+                AddNewNoSeriesFieldToTablesPrompt(TablesPromptList, TableMetadata, Field);
             until Field.Next() = 0;
     end;
 
-    local procedure AddNoSeriesFieldToTablesPrompt(var TablesPromptList: List of [Text]; TableMetadata: Record "Table Metadata"; Field: Record "Field")
+    local procedure AddNewNoSeriesFieldToTablesPrompt(var TablesPromptList: List of [Text]; TableMetadata: Record "Table Metadata"; Field: Record "Field")
     begin
         TablesPromptList.Add('Area: ' + RemoveTextPart(TableMetadata.Caption, ' Setup') + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + RemoveTextPart(Field.FieldName, ' Nos.'));
+    end;
+
+    local procedure AddChangeNoSeriesFieldToTablesPrompt(var TablesPromptList: List of [Text]; TableMetadata: Record "Table Metadata"; Field: Record "Field")
+    var
+        RecRef: RecordRef;
+        FieldRef: FieldRef;
+        NoSeries: Record "No. Series";
+    begin
+        //TODO: Check if we need to check if the requested change no. series exists: should we give error or do nothing
+        RecRef.OPEN(TableMetadata.ID);
+        if not RecRef.FindFirst() then
+            exit;
+
+        FieldRef := RecRef.FIELD(Field."No.");
+        if Format(FieldRef.Value) = '' then
+            exit;
+
+        if not NoSeries.Get(Format(FieldRef.Value)) then
+            exit;
+
+        TablesPromptList.Add('Area: ' + RemoveTextPart(TableMetadata.Caption, ' Setup') + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + RemoveTextPart(Field.FieldName, ' Nos.') + ', seriesCode: ' + NoSeries.Code + ', description: ' + NoSeries.Description);
     end;
 
     local procedure SetFilterOnNoSeriesFields(var TableMetadata: Record "Table Metadata"; var Field: Record "Field")
@@ -613,9 +745,47 @@ codeunit 324 "No. Series Copilot Impl."
         PatternsPromptList.Add(TextValue);
     end;
 
-    local procedure BuildModifyExistingNumbersSeriesPrompt(var FunctionCallParams: Text; MaxToolResultsTokensLength: Integer): Dictionary of [Text, Integer]
+    local procedure BuildModifyExistingNumbersSeriesPrompt(var FunctionArguments: Text; MaxToolResultsTokensLength: Integer) ToolResults: Dictionary of [Text, Integer]
+    var
+        ChangeNoSeriesPrompt, TablesPromptList, CustomPatternsPromptList : List of [Text];
+        TablesBlockLbl: Label 'Tables:', Locked = true;
+        NumberOfToolResponses, MaxTablesPromptListTokensLength, i, ActualTablesChunkSize : Integer;
+        TokenCountImpl: Codeunit "AOAI Token";
     begin
-        Error('Not implemented');
+        GetChangeNumberSeriesTablesPrompt(FunctionArguments, TablesPromptList);
+        GetUserSpecifiedOrExistingNumberPatternsGuidelines(FunctionArguments, CustomPatternsPromptList);
+
+        MaxTablesPromptListTokensLength := MaxToolResultsTokensLength -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool2GeneralInstructions()) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool2Limitations()) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool2CodeGuidelines()) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool2DescrGuidelines()) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool2NumberGuideline()) -
+                                            TokenCountImpl.GetGPT4TokenCount(ConvertListToText(CustomPatternsPromptList)) -
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool2OutputExamples()) -
+                                            TokenCountImpl.GetGPT4TokenCount(Format(TablesBlockLbl)) -
+                                            // we skip the token count of the tables, as that's what we are trying to calculate
+                                            TokenCountImpl.GetGPT4TokenCount(GetTool2OutputFormat());
+
+        NumberOfToolResponses := Round(TablesPromptList.Count / GetTablesChunkSize(), 1, '>'); // we add tables by small chunks, as more tables can lead to hallucinations
+
+        for i := 1 to NumberOfToolResponses do begin
+            if TablesPromptList.Count > 0 then begin
+                Clear(ChangeNoSeriesPrompt);
+                Clear(ActualTablesChunkSize);
+                ChangeNoSeriesPrompt.Add(GetTool2GeneralInstructions());
+                ChangeNoSeriesPrompt.Add(GetTool2Limitations());
+                ChangeNoSeriesPrompt.Add(GetTool2CodeGuidelines());
+                ChangeNoSeriesPrompt.Add(GetTool2DescrGuidelines());
+                ChangeNoSeriesPrompt.Add(GetTool2NumberGuideline());
+                ChangeNoSeriesPrompt.Add(ConvertListToText(CustomPatternsPromptList));
+                ChangeNoSeriesPrompt.Add(GetTool2OutputExamples());
+                ChangeNoSeriesPrompt.Add(TablesBlockLbl);
+                AddChunkedTablesPrompt(ChangeNoSeriesPrompt, TablesPromptList, MaxTablesPromptListTokensLength, ActualTablesChunkSize);
+                ChangeNoSeriesPrompt.Add(GetTool2OutputFormat());
+                ToolResults.Add(ConvertListToText(ChangeNoSeriesPrompt), ActualTablesChunkSize);
+            end
+        end;
     end;
 
     local procedure ConvertListToText(MyList: List of [Text]): Text

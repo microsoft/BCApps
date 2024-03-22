@@ -176,6 +176,106 @@ page 9245 "No. Series Copilot Setup"
                         end;
                     }
                 }
+                group(Tool2)
+                {
+                    field(Tool2GeneralInstructionsPrompt; Tool2GeneralInstructionsPrompt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Tool 2 General Instructions Prompt';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool2GeneralInstructionsPromptToIsolatedStorage(Tool2GeneralInstructionsPrompt);
+                        end;
+                    }
+
+                    field(Tool2LimitationsPrompt; Tool2LimitationsPrompt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Tool 2 Limitations Prompt';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool2LimitationsPromptToIsolatedStorage(Tool2LimitationsPrompt);
+                        end;
+                    }
+
+                    field(Tool2CodeGuidelinesPrompt; Tool2CodeGuidelinesPrompt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Tool 2 Code Guidelines Prompt';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool2CodeGuidelinePromptToIsolatedStorage(Tool2CodeGuidelinesPrompt);
+                        end;
+                    }
+
+                    field(Tool2DescriptionGuidelinesPrompt; Tool2DescriptionGuidelinesPrompt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Tool 2 Description Guidelines Prompt';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool2DescrGuidelinePromptToIsolatedStorage(Tool2DescriptionGuidelinesPrompt);
+                        end;
+                    }
+
+                    field(Tool2NumberGuidelinesPrompt; Tool2NumberGuidelinesPrompt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Tool 2 Number Guidelines Prompt';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool2NumberGuidelinePromptToIsolatedStorage(Tool2NumberGuidelinesPrompt);
+                        end;
+                    }
+
+                    field(Tool2OutputExamplesPrompt; Tool2OutputExamplesPrompt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Tool 2 Output Examples Prompt';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool2OutputExamplesPromptToIsolatedStorage(Tool2OutputExamplesPrompt);
+                        end;
+                    }
+
+                    field(Tool2OutputFormatPrompt; Tool2OutputFormatPrompt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Tool 2 Output Format Prompt';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool2OutputFormatPromptToIsolatedStorage(Tool2OutputFormatPrompt);
+                        end;
+                    }
+                }
             }
         }
     }
@@ -192,8 +292,13 @@ page 9245 "No. Series Copilot Setup"
         ToolNumberGuidelinesPrompt: Text;
         Tool1OutputExamplesPrompt: Text;
         Tool1OutputFormatPrompt: Text;
-
-
+        Tool2GeneralInstructionsPrompt: Text;
+        Tool2LimitationsPrompt: Text;
+        Tool2CodeGuidelinesPrompt: Text;
+        Tool2DescriptionGuidelinesPrompt: Text;
+        Tool2NumberGuidelinesPrompt: Text;
+        Tool2OutputExamplesPrompt: Text;
+        Tool2OutputFormatPrompt: Text;
 
     trigger OnOpenPage()
     begin
@@ -213,6 +318,13 @@ page 9245 "No. Series Copilot Setup"
         ToolNumberGuidelinesPrompt := Rec.GetTool1NumberGuidelinePromptFromIsolatedStorage();
         Tool1OutputExamplesPrompt := Rec.GetTool1OutputExamplesPromptFromIsolatedStorage();
         Tool1OutputFormatPrompt := Rec.GetTool1OutputExamplesPromptFromIsolatedStorage();
+        Tool2GeneralInstructionsPrompt := Rec.GetTool2GeneralInstructionsPromptFromIsolatedStorage();
+        Tool2LimitationsPrompt := Rec.GetTool2LimitationsPromptFromIsolatedStorage();
+        Tool2CodeGuidelinesPrompt := Rec.GetTool2CodeGuidelinePromptFromIsolatedStorage();
+        Tool2DescriptionGuidelinesPrompt := Rec.GetTool2DescrGuidelinePromptFromIsolatedStorage();
+        Tool2NumberGuidelinesPrompt := Rec.GetTool2NumberGuidelinePromptFromIsolatedStorage();
+        Tool2OutputExamplesPrompt := Rec.GetTool2OutputExamplesPromptFromIsolatedStorage();
+        Tool2OutputFormatPrompt := Rec.GetTool2OutputExamplesPromptFromIsolatedStorage();
     end;
 
 }
