@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Test.Json;
+namespace System.Test.Text.Json;
 
 using System.Json;
 using System.Device;
