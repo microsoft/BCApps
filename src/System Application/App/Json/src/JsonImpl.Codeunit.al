@@ -167,14 +167,14 @@ codeunit 5461 "Json Impl."
     var
         JPropertyDotNet: DotNet JProperty;
         OldPropertyDotNet: DotNet JProperty;
-        oldValue: Variant;
+        OldValue: Variant;
     begin
         JPropertyDotNet := JsonObjectDotNet.Property(propertyName);
         if not IsNull(JPropertyDotNet) then begin
             OldPropertyDotNet := JsonObjectDotNet.Property(propertyName);
-            oldValue := OldPropertyDotNet.Value;
+            OldValue := OldPropertyDotNet.Value;
             JPropertyDotNet.Replace(JPropertyDotNet.JProperty(propertyName, value));
-            exit(Format(oldValue) <> Format(value));
+            exit(Format(OldValue) <> Format(value));
         end;
 
         AddJPropertyToJObject(propertyName, value);
