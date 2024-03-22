@@ -16,23 +16,30 @@ codeunit 5461 "Json Impl."
     InherentPermissions = X;
 
     var
-        JsonArray: DotNet JArray;
-        JsonObject: DotNet JObject;
+        JsonArrayDotNet: DotNet JArray;
+        JsonObjectDotNet: DotNet JObject;
 
-
-    procedure InitializeCollection(JSONString: Text)
+    procedure InitializeCollectionFromString(JSONString: Text)
     begin
-        InitializeCollectionFromString(JSONString);
+        Clear(JsonArrayDotNet);
+        if JSONString <> '' then
+            JsonArrayDotNet := JsonArrayDotNet.Parse(JSONString)
+        else
+            InitializeEmptyCollection();
     end;
 
-    procedure InitializeObject(JSONString: Text)
+    procedure InitializeObjectFromString(JSONString: Text)
     begin
-        InitializeObjectFromString(JSONString);
+        Clear(JsonObjectDotNet);
+        if JSONString <> '' then
+            JsonObjectDotNet := JsonObjectDotNet.Parse(JSONString)
+        else
+            InitializeEmptyObject();
     end;
 
     procedure GetCollectionCount(): Integer
     begin
-        exit(JsonArray.Count);
+        exit(JsonArrayDotNet.Count);
     end;
 
     procedure GetCollectionAsText() Value: Text
@@ -40,12 +47,9 @@ codeunit 5461 "Json Impl."
         GetCollection().WriteTo(Value);
     end;
 
-    procedure GetCollection(): JsonArray
-    var
-        JArray: JsonArray;
+    procedure GetCollection() JArray: JsonArray
     begin
-        JArray.ReadFrom(JsonArray.ToString());
-        exit(JArray);
+        JArray.ReadFrom(JsonArrayDotNet.ToString());
     end;
 
     procedure GetObjectAsText() Value: Text
@@ -53,22 +57,17 @@ codeunit 5461 "Json Impl."
         GetObject().WriteTo(Value);
     end;
 
-    procedure GetObject(): JsonObject
-    var
-        JObject: JsonObject;
+    procedure GetObject() JObject: JsonObject
     begin
-        JObject.ReadFrom(JsonObject.ToString());
-        exit(JObject);
+        JObject.ReadFrom(JsonObjectDotNet.ToString());
     end;
 
     procedure GetObjectFromCollectionByIndex(Index: Integer; var JsonObjectTxt: Text): Boolean
-    var
-        JObject: DotNet JObject;
     begin
-        if not GetJObjectFromCollectionByIndex(JObject, Index) then
+        if not GetJObjectFromCollectionByIndex(Index) then
             exit(false);
 
-        JsonObjectTxt := JObject.ToString();
+        JsonObjectTxt := JsonObjectDotNet.ToString();
         exit(true);
     end;
 
@@ -76,96 +75,157 @@ codeunit 5461 "Json Impl."
     var
         FieldRef: FieldRef;
     begin
-        if IsNull(JsonObject) then
+        if IsNull(JsonObjectDotNet) then
             exit(false);
 
         FieldRef := RecordRef.Field(FieldNo);
-        exit(GetPropertyValueFromJObjectByPathSetToFieldRef(JsonObject, PropertyPath, FieldRef));
+        exit(GetPropertyValueFromJObjectByPathSetToFieldRef(PropertyPath, FieldRef));
     end;
 
-    procedure GetPropertyValueByName(propertyName: Text; var value: Variant): Boolean
+    procedure GetPropertyValueFromJObjectByName(propertyName: Text; var value: Variant): Boolean
+    var
+        JPropertyDotNet: DotNet JProperty;
+        JTokenDotNet: DotNet JToken;
     begin
-        exit(GetPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+        Clear(value);
+        if JsonObjectDotNet.TryGetValue(propertyName, JTokenDotNet) then begin
+            JPropertyDotNet := JsonObjectDotNet.Property(propertyName);
+            value := JPropertyDotNet.Value;
+            exit(true);
+        end;
+        exit(false);
     end;
 
-    procedure GetStringPropertyValueByName(propertyName: Text; var value: Text): Boolean
+    procedure GetStringPropertyValueFromJObjectByName(propertyName: Text; var value: Text): Boolean
+    var
+        VariantValue: Variant;
     begin
-        exit(GetStringPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+        Clear(value);
+        if GetPropertyValueFromJObjectByName(propertyName, VariantValue) then begin
+            value := Format(VariantValue);
+            exit(true);
+        end;
+        exit(false);
     end;
 
     procedure GetEnumPropertyValueFromJObjectByName(propertyName: Text; var value: Option): Boolean
+    var
+        StringValue: Text;
     begin
-        exit(GetEnumPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+        if GetStringPropertyValueFromJObjectByName(propertyName, StringValue) then begin
+            Evaluate(value, StringValue, 0);
+            exit(true);
+        end;
+        exit(false);
     end;
 
     procedure GetBoolPropertyValueFromJObjectByName(propertyName: Text; var value: Boolean): Boolean
+    var
+        StringValue: Text;
     begin
-        exit(GetBoolPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+        if GetStringPropertyValueFromJObjectByName(propertyName, StringValue) then begin
+            Evaluate(value, StringValue, 2);
+            exit(true);
+        end;
+        exit(false);
     end;
 
     procedure GetDecimalPropertyValueFromJObjectByName(propertyName: Text; var value: Decimal): Boolean
+    var
+        StringValue: Text;
     begin
-        exit(GetDecimalPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+        if GetStringPropertyValueFromJObjectByName(propertyName, StringValue) then begin
+            Evaluate(value, StringValue);
+            exit(true);
+        end;
+        exit(false);
     end;
 
     procedure GetIntegerPropertyValueFromJObjectByName(propertyName: Text; var value: Integer): Boolean
+    var
+        StringValue: Text;
     begin
-        exit(GetIntegerPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+        if GetStringPropertyValueFromJObjectByName(propertyName, StringValue) then begin
+            Evaluate(value, StringValue);
+            exit(true);
+        end;
+        exit(false);
     end;
 
     procedure GetGuidPropertyValueFromJObjectByName(propertyName: Text; var value: Guid): Boolean
+    var
+        StringValue: Text;
     begin
-        exit(GetGuidPropertyValueFromJObjectByName(JsonObject, propertyName, value));
+        if GetStringPropertyValueFromJObjectByName(propertyName, StringValue) then begin
+            Evaluate(value, StringValue);
+            exit(true);
+        end;
+        exit(false);
     end;
 
     procedure ReplaceOrAddJPropertyInJObject(propertyName: Text; value: Variant): Boolean
+    var
+        JPropertyDotNet: DotNet JProperty;
+        OldPropertyDotNet: DotNet JProperty;
+        oldValue: Variant;
     begin
-        exit(ReplaceOrAddJPropertyInJObject(JsonObject, propertyName, value));
+        JPropertyDotNet := JsonObjectDotNet.Property(propertyName);
+        if not IsNull(JPropertyDotNet) then begin
+            OldPropertyDotNet := JsonObjectDotNet.Property(propertyName);
+            oldValue := OldPropertyDotNet.Value;
+            JPropertyDotNet.Replace(JPropertyDotNet.JProperty(propertyName, value));
+            exit(Format(oldValue) <> Format(value));
+        end;
+
+        AddJPropertyToJObject(propertyName, value);
+        exit(true);
     end;
 
-    procedure AddJObjectToCollection(value: Text): Boolean
+    procedure AddJObjectToCollection(JSONString: Text): Boolean
     begin
-        exit(AddJObjectToCollection(JsonArray, value));
+        if JSONString <> '' then
+            JsonObjectDotNet := JsonObjectDotNet.Parse(JSONString)
+        else
+            InitializeEmptyObject();
+
+        AddJObjectToCollection();
+        exit(true);
     end;
 
     procedure RemoveJObjectFromCollection(Index: Integer): Boolean
     begin
-        exit(RemoveJObjectFromCollection(JsonArray, Index));
+        if (GetCollectionCount() = 0) or (GetCollectionCount() <= Index) then
+            exit(false);
+
+        JsonArrayDotNet.RemoveAt(Index);
+        exit(true);
     end;
 
     procedure ReplaceJObjectInCollection(Index: Integer; JSONString: Text): Boolean
     begin
-        exit(ReplaceJObjectInCollection(JsonArray, Index, JSONString));
-    end;
+        if not GetJObjectFromCollectionByIndex(Index) then
+            exit(false);
 
-    local procedure InitializeCollectionFromString(JSONString: Text)
-    begin
-        Clear(JsonArray);
         if JSONString <> '' then
-            JsonArray := JsonArray.Parse(JSONString)
-        else
-            InitializeEmptyCollection();
-    end;
-
-    local procedure InitializeObjectFromString(JSONString: Text)
-    begin
-        Clear(JsonObject);
-        if JSONString <> '' then
-            JsonObject := JsonObject.Parse(JSONString)
+            JsonObjectDotNet := JsonObjectDotNet.Parse(JSONString)
         else
             InitializeEmptyObject();
+
+        JsonArrayDotNet.RemoveAt(Index);
+        JsonArrayDotNet.Insert(Index, JsonObjectDotNet);
+        exit(true);
     end;
 
-    local procedure GetJObjectFromCollectionByIndex(var JObject: DotNet JObject; Index: Integer): Boolean
+    local procedure GetJObjectFromCollectionByIndex(Index: Integer): Boolean
     begin
         if (GetCollectionCount() = 0) or (GetCollectionCount() <= Index) then
             exit(false);
 
-        JObject := JsonArray.Item(Index);
-        exit(not IsNull(JObject))
+        JsonObjectDotNet := JsonArrayDotNet.Item(Index);
+        exit(not IsNull(JsonObjectDotNet))
     end;
 
-    local procedure GetPropertyValueFromJObjectByPathSetToFieldRef(JObject: DotNet JObject; propertyPath: Text; var FieldRef: FieldRef): Boolean
+    local procedure GetPropertyValueFromJObjectByPathSetToFieldRef(propertyPath: Text; var FieldRef: FieldRef): Boolean
     var
         RecID: RecordID;
         Value: Variant;
@@ -174,15 +234,15 @@ codeunit 5461 "Json Impl."
         GuidVal: Guid;
         DateVal: Date;
         BoolVal, Success : Boolean;
-        JProperty: DotNet JProperty;
+        JPropertyDotNet: DotNet JProperty;
     begin
         Success := false;
-        JProperty := JObject.SelectToken(propertyPath);
+        JPropertyDotNet := JsonObjectDotNet.SelectToken(propertyPath);
 
-        if IsNull(JProperty) then
+        if IsNull(JPropertyDotNet) then
             exit(false);
 
-        Value := Format(JProperty.Value, 0, 9);
+        Value := Format(JPropertyDotNet.Value, 0, 9);
 
         case FieldRef.Type of
             FieldType::Integer,
@@ -313,182 +373,45 @@ codeunit 5461 "Json Impl."
         until Counter = Number;
     end;
 
-    local procedure GetEnumPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Option): Boolean
+    local procedure AddJPropertyToJObject(propertyName: Text; value: Variant)
     var
-        StringValue: Text;
-    begin
-        if GetStringPropertyValueFromJObjectByName(JObject, propertyName, StringValue) then begin
-            Evaluate(value, StringValue, 0);
-            exit(true);
-        end;
-        exit(false);
-    end;
-
-    local procedure GetBoolPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Boolean): Boolean
-    var
-        StringValue: Text;
-    begin
-        if GetStringPropertyValueFromJObjectByName(JObject, propertyName, StringValue) then begin
-            Evaluate(value, StringValue, 2);
-            exit(true);
-        end;
-        exit(false);
-    end;
-
-    local procedure GetDecimalPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Decimal): Boolean
-    var
-        StringValue: Text;
-    begin
-        if GetStringPropertyValueFromJObjectByName(JObject, propertyName, StringValue) then begin
-            Evaluate(value, StringValue);
-            exit(true);
-        end;
-        exit(false);
-    end;
-
-    local procedure GetIntegerPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Integer): Boolean
-    var
-        StringValue: Text;
-    begin
-        if GetStringPropertyValueFromJObjectByName(JObject, propertyName, StringValue) then begin
-            Evaluate(value, StringValue);
-            exit(true);
-        end;
-        exit(false);
-    end;
-
-    local procedure GetGuidPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Guid): Boolean
-    var
-        StringValue: Text;
-    begin
-        if GetStringPropertyValueFromJObjectByName(JObject, propertyName, StringValue) then begin
-            Evaluate(value, StringValue);
-            exit(true);
-        end;
-        exit(false);
-    end;
-
-    local procedure GetStringPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Text): Boolean
-    var
-        VariantValue: Variant;
-    begin
-        Clear(value);
-        if GetPropertyValueFromJObjectByName(JObject, propertyName, VariantValue) then begin
-            value := Format(VariantValue);
-            exit(true);
-        end;
-        exit(false);
-    end;
-
-    local procedure GetPropertyValueFromJObjectByName(JObject: DotNet JObject; propertyName: Text; var value: Variant): Boolean
-    var
-        JProperty: DotNet JProperty;
-        JToken: DotNet JToken;
-    begin
-        Clear(value);
-        if JObject.TryGetValue(propertyName, JToken) then begin
-            JProperty := JObject.Property(propertyName);
-            value := JProperty.Value;
-            exit(true);
-        end;
-    end;
-
-    local procedure ReplaceOrAddJPropertyInJObject(var JObject: DotNet JObject; propertyName: Text; value: Variant): Boolean
-    var
-        JProperty: DotNet JProperty;
-        OldProperty: DotNet JProperty;
-        oldValue: Variant;
-    begin
-        JProperty := JObject.Property(propertyName);
-        if not IsNull(JProperty) then begin
-            OldProperty := JObject.Property(propertyName);
-            oldValue := OldProperty.Value;
-            JProperty.Replace(JProperty.JProperty(propertyName, value));
-            exit(Format(oldValue) <> Format(value));
-        end;
-
-        AddJPropertyToJObject(JObject, propertyName, value);
-        exit(true);
-    end;
-
-    local procedure AddJPropertyToJObject(var JObject: DotNet JObject; propertyName: Text; value: Variant)
-    var
-        JObject2: DotNet JObject;
-        JProperty: DotNet JProperty;
+        JObjectDotNet: DotNet JObject;
+        JPropertyDotNet: DotNet JProperty;
         ValueText: Text;
     begin
         case true of
             value.IsDotNet:
                 begin
-                    JObject2 := value;
-                    JObject.Add(propertyName, JObject2);
+                    JObjectDotNet := value;
+                    JsonObjectDotNet.Add(propertyName, JObjectDotNet);
                 end;
             value.IsInteger,
             value.IsDecimal,
             value.IsBoolean:
                 begin
-                    JProperty := JProperty.JProperty(propertyName, value);
-                    JObject.Add(JProperty);
+                    JPropertyDotNet := JPropertyDotNet.JProperty(propertyName, value);
+                    JsonObjectDotNet.Add(JPropertyDotNet);
                 end;
             else begin
                 ValueText := Format(value, 0, 9);
-                JProperty := JProperty.JProperty(propertyName, ValueText);
-                JObject.Add(JProperty);
+                JPropertyDotNet := JPropertyDotNet.JProperty(propertyName, ValueText);
+                JsonObjectDotNet.Add(JPropertyDotNet);
             end;
         end;
     end;
 
-    local procedure ReplaceJObjectInCollection(var JArray: DotNet JArray; Index: Integer; JSONString: Text): Boolean
-    var
-        JObject: DotNet JObject;
+    local procedure AddJObjectToCollection()
     begin
-        if not GetJObjectFromCollectionByIndex(JObject, Index) then
-            exit(false);
-
-        if JSONString <> '' then
-            JObject := JObject.Parse(JSONString)
-        else
-            InitializeEmptyObject();
-
-        JArray.RemoveAt(Index);
-        JArray.Insert(Index, JObject);
-        exit(true);
-    end;
-
-    local procedure AddJObjectToCollection(var JArray: DotNet JArray; JSONString: Text): Boolean
-    var
-        JObject: DotNet JObject;
-    begin
-        if JSONString <> '' then
-            JObject := JObject.Parse(JSONString)
-        else
-            InitializeEmptyObject();
-
-        AddJObjectToCollection(JArray, JObject);
-        exit(true);
-    end;
-
-    local procedure AddJObjectToCollection(var JArray: DotNet JArray; JObject: DotNet JObject)
-    begin
-        JsonArray.Add(JObject.DeepClone());
-    end;
-
-    local procedure RemoveJObjectFromCollection(var JArray: DotNet JArray; Index: Integer): Boolean
-    begin
-        if (GetCollectionCount() = 0) or (GetCollectionCount() <= Index) then
-            exit(false);
-
-        JArray.RemoveAt(Index);
-        exit(true);
+        JsonArrayDotNet.Add(JsonObjectDotNet.DeepClone());
     end;
 
     local procedure InitializeEmptyCollection()
     begin
-        JsonArray := JsonArray.JArray();
+        JsonArrayDotNet := JsonArrayDotNet.JArray();
     end;
 
     local procedure InitializeEmptyObject()
     begin
-        JsonObject := JsonObject.JObject();
+        JsonObjectDotNet := JsonObjectDotNet.JObject();
     end;
 }

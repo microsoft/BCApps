@@ -20,7 +20,7 @@ codeunit 5460 Json
     /// <param name="JSONString">The Json string</param>
     procedure InitializeCollection(JSONString: Text)
     begin
-        JsonImpl.InitializeCollection(JSONString);
+        JsonImpl.InitializeCollectionFromString(JSONString);
     end;
 
     /// <summary>
@@ -29,7 +29,7 @@ codeunit 5460 Json
     /// <param name="JSONString">The Json string</param>
     procedure InitializeObject(JSONString: Text)
     begin
-        JsonImpl.InitializeObject(JSONString);
+        JsonImpl.InitializeObjectFromString(JSONString);
     end;
 
     /// <summary>
@@ -112,7 +112,7 @@ codeunit 5460 Json
     /// <returns>True if the value is returned; otherwise, false</returns>
     procedure GetPropertyValueByName(PropertyName: Text; var Value: Variant): Boolean
     begin
-        exit(JsonImpl.GetPropertyValueByName(PropertyName, Value));
+        exit(JsonImpl.GetPropertyValueFromJObjectByName(PropertyName, Value));
     end;
 
     /// <summary>
@@ -123,7 +123,7 @@ codeunit 5460 Json
     /// <returns>True if the value is returned; otherwise, false</returns>
     procedure GetStringPropertyValueByName(PropertyName: Text; var Value: Text): Boolean
     begin
-        exit(JsonImpl.GetStringPropertyValueByName(PropertyName, Value));
+        exit(JsonImpl.GetStringPropertyValueFromJObjectByName(PropertyName, Value));
     end;
 
     /// <summary>
