@@ -87,8 +87,8 @@ codeunit 139910 "Json Test"
     [Test]
     procedure TestGetValueAndSetToRecFieldNo()
     var
-        Json: Codeunit "Json";
         Printer: Record Printer;
+        Json: Codeunit "Json";
         RecRef: RecordRef;
         JsonObjectText: Text;
     begin
@@ -321,7 +321,6 @@ codeunit 139910 "Json Test"
         Json: Codeunit "Json";
         JsonArrayText: Text;
         NewJsonArrayText: Text;
-        JsonObjectText: Text;
     begin
         // [GIVEN] A JSON array with a known value
         Json.InitializeCollection('[{"id":"ABC123"},{"id":"XYZ789"}]');
