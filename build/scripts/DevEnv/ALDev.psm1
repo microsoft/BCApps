@@ -107,14 +107,14 @@ A hash table containing the settings that should be set in the project settings.
 function Configure-ALProject(
     [Parameter(Mandatory = $true)]
     [string]$ProjectFolder,
-    [Parameter(ParameterSetName='DefaultSettings', Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [string] $ContainerName,
-    [Parameter(ParameterSetName='DefaultSettings', Mandatory = $true)]
+    [Parameter(Mandatory = $false)]
     [string] $Authentication,
-    [Parameter(ParameterSetName='CustomSettings', Mandatory = $true)]
-    [hashtable] $LaunchSettings,
-    [Parameter(ParameterSetName='CustomSettings', Mandatory = $true)]
-    [hashtable] $ProjectSettings
+    [Parameter(Mandatory = $false)]
+    [hashtable] $LaunchSettings = (Get-LaunchSettings -ContainerName $ContainerName -Authentication $Authentication),
+    [Parameter(Mandatory = $false)]
+    [hashtable] $ProjectSettings = (Get-ProjectSettings -ContainerName $ContainerName)
 )
 {
     if (!(Test-Path (Join-Path $ProjectFolder "app.json")))
@@ -167,27 +167,18 @@ function Configure-ALProjectsInPath()
     param(
         [Parameter(Mandatory = $false)]
         [string] $Path = (Get-BaseFolder),
-        [Parameter(ParameterSetName='DefaultSettings', Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string] $ContainerName,
-        [Parameter(ParameterSetName='DefaultSettings', Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [string] $Authentication,
-        [Parameter(ParameterSetName='CustomSettings', Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [hashtable] $LaunchSettings = (Get-LaunchSettings -ContainerName $ContainerName -Authentication $Authentication),
-        [Parameter(ParameterSetName='CustomSettings', Mandatory = $true)]
+        [Parameter(Mandatory = $false)]
         [hashtable] $ProjectSettings = (Get-ProjectSettings -ContainerName $ContainerName)
     )
 
     # Get all module folder paths
     $appFolders = Get-ChildItem $Path -Directory -Recurse | Where-Object { Test-Path (Join-Path $_.FullName app.json) } | ForEach-Object { return $_.FullName }
-
-    if ($PSCmdlet.ParameterSetName -eq 'DefaultSettings')
-    {
-        # Get configuration for launch.json
-        $LaunchSettings = Get-LaunchSettings -ContainerName $ContainerName -Authentication $Authentication
-
-        # Get settings for setting.json
-        $ProjectSettings = Get-ProjectSettings -ContainerName $ContainerName
-    }
 
     $appFolders | ForEach-Object {
         Configure-ALProject -ProjectFolder $_ -ProjectSettings $ProjectSettings -LaunchSettings $LaunchSettings
