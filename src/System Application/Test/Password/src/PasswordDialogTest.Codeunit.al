@@ -225,13 +225,13 @@ codeunit 135033 "Password Dialog Test"
     end;
 
     [Test]
-    [HandlerFunctions('ChangePasswordDialogWitldOldPasswordModalPageHandler')]
+    [HandlerFunctions('ChangePasswordDialogWithOldPasswordModalPageHandler')]
     procedure OpenChangePasswordDialogWithOldPasswordTest();
     var
         Password: SecretText;
         OldPassword: SecretText;
     begin
-        // [SCENARIO] Open Password dialog in change password mode. Old password
+        // [SCENARIO] Open Password dialog in change password mode.
         // The old password has been passed on.
         PermissionsMock.Set('All Objects');
 
@@ -278,7 +278,7 @@ codeunit 135033 "Password Dialog Test"
     end;
 
     [ModalPageHandler]
-    procedure ChangePasswordDialogWitldOldPasswordModalPageHandler(var PasswordDialog: TestPage "Password Dialog");
+    procedure ChangePasswordDialogWithOldPasswordModalPageHandler(var PasswordDialog: TestPage "Password Dialog");
     begin
         Assert.IsTrue(PasswordDialog.OldPassword.Visible(), 'Old Password Field should be visible.');
         Assert.IsTrue(PasswordDialog.ConfirmPassword.Visible(), 'Confirm Password Field should be visible.');
