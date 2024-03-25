@@ -185,6 +185,16 @@ function Configure-ALProjectsInPath()
     }
 }
 
+<#
+    .SYNOPSIS
+    Get the launch settings for the given container.
+
+    .PARAMETER ContainerName
+    The name of the container to get the launch settings for.
+
+    .PARAMETER Authentication
+    The authentication method to use when connecting to the container.
+#>
 function Get-LaunchSettings([string] $ContainerName, [string] $Authentication)
 {
     $LaunchSettings = @{
@@ -196,6 +206,13 @@ function Get-LaunchSettings([string] $ContainerName, [string] $Authentication)
     return MergeSettings -CustomLaunchSettings $LaunchSettings -DefaultLaunchSettings (GetDefaultSettings -LaunchJson)
 }
 
+<#
+    .SYNOPSIS
+    Get the project settings for the given container.
+
+    .PARAMETER ContainerName
+    The name of the container to get the project settings for.
+#>
 function Get-ProjectSettings([string] $ContainerName)
 {
     $Settings = @{

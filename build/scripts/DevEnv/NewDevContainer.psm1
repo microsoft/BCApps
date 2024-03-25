@@ -1,9 +1,26 @@
-#.DESCRIPTION
-# Local helper function to execute a sql command and return the output as a string array
-#.OUTPUTS
-# []System.String. Output of SQL command
-function RunSqlCommand([string]$Server, [string]$Command, [int] $CommandTimeout = 0)
+<#
+    .SYNOPSIS
+    Run a SQL command on the specified server
+    .DESCRIPTION
+    This function runs a SQL command on the specified server
+    .PARAMETER Server
+    The hostname of the SQL server
+    .PARAMETER Command
+    The SQL command to run
+    .PARAMETER CommandTimeout
+    The timeout for the command
+#>
+function RunSqlCommand()
 {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Server,
+        [Parameter(Mandatory = $true)]
+        [string]$Command,
+        [Parameter(Mandatory = $false)]
+        [int] $CommandTimeout = 0
+    ) 
+
     $Options = @{}
     if ($CommandTimeout)
     {
@@ -15,20 +32,26 @@ function RunSqlCommand([string]$Server, [string]$Command, [int] $CommandTimeout 
 }
 
 <#
-.SYNOPSIS
-Checks existance of database
-.DESCRIPTION
-Checks if the specified database exists on the SQL server
-.OUTPUTS
-Returns $true if database exists otherwise $false
+    .SYNOPSIS
+    Checks existance of database
+    .DESCRIPTION
+    Checks if the specified database exists on the SQL server
+    .PARAMETER DatabaseName
+    The name of the database to check
+    .PARAMETER DatabaseServer
+    The hostname of the SQL server
+    .OUTPUTS
+    Returns true if database exists otherwise false
 #>
-function Test-NavDatabase(# Name of the database to check
-    [Parameter(Mandatory = $true)]
-    [string]$DatabaseName,
-    # Hostname of SQL server
-    [string]$DatabaseServer = '.'
-)
+function Test-NavDatabase()
 {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$DatabaseName,
+        [Parameter(Mandatory = $false)]
+        [string]$DatabaseServer = '.'
+    )
+
     $sqlCommandText = @"
         USE MASTER
         SELECT '1' FROM SYS.DATABASES WHERE NAME = '$DatabaseName'
@@ -38,8 +61,45 @@ function Test-NavDatabase(# Name of the database to check
     return ((RunSqlCommand -Server $DatabaseServer -Command $sqlCommandText) -ne $null)
 }
 
-function Set-ExtensionVersion([string]$Name, [string]$DatabaseName, [string]$Major, [string]$Minor, [string]$Publisher = 'Microsoft', [string]$TenantId = 'default', [string]$DatabaseServer = '.')
+<#
+    .SYNOPSIS
+    Set the version of an extension in the specified database
+    .DESCRIPTION
+    This function sets the version of an extension in the specified database
+    .PARAMETER Name
+    The name of the extension
+    .PARAMETER DatabaseName
+    The name of the database
+    .PARAMETER Major
+    The major version number
+    .PARAMETER Minor
+    The minor version number
+    .PARAMETER Publisher
+    The publisher of the extension
+    .PARAMETER TenantId
+    The tenant id
+    .PARAMETER DatabaseServer
+    The hostname of the SQL server
+#>
+function Set-ExtensionVersion()
 {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+        [Parameter(Mandatory = $true)]
+        [string]$DatabaseName,
+        [Parameter(Mandatory = $true)]
+        [string]$Major,
+        [Parameter(Mandatory = $true)]
+        [string]$Minor,
+        [Parameter(Mandatory = $false)]
+        [string]$Publisher = 'Microsoft',
+        [Parameter(Mandatory = $false)]
+        [string]$TenantId = 'default',
+        [Parameter(Mandatory = $false)]
+        [string]$DatabaseServer = '.'
+    )
+
     if (!$Major)
     {
         throw "The `$env:BUILDVERSION is 0. Check if the environment has been configured correctly."
@@ -70,27 +130,38 @@ function Set-ExtensionVersion([string]$Name, [string]$DatabaseName, [string]$Maj
 }
 
 <#
-.SYNOPSIS
-Move the extension identified by the given name and publisher from the global scope to the tenant scope
+    .SYNOPSIS
+    Move the extension identified by the given name and publisher from the global scope to the tenant scope
 
-.PARAMETER Name
-The extension's name, as defined in the extension's manifest.
+    .PARAMETER Name
+    The extension's name, as defined in the extension's manifest.
 
-.PARAMETER DatabaseName
-The database on which to execute the query.
+    .PARAMETER DatabaseName
+    The database on which to execute the query.
 
-.PARAMETER Publisher
-The extension's publisher, as defined in the extension's manifest.
+    .PARAMETER Publisher
+    The extension's publisher, as defined in the extension's manifest.
 
-.PARAMETER TenantId
-The tenant in whose scope the extension should be moved.
+    .PARAMETER TenantId
+    The tenant in whose scope the extension should be moved.
 
-.PARAMETER DatabaseServer
-The database server on which to run the query.
-
+    .PARAMETER DatabaseServer
+    The database server on which to run the query.
 #>
-function Move-ExtensionIntoDevScope([string]$Name, [string]$DatabaseName, [string]$Publisher = 'Microsoft', [string]$TenantId = 'default', [string]$DatabaseServer = '.')
+function Move-ExtensionIntoDevScope()
 {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Name,
+        [Parameter(Mandatory = $true)]
+        [string]$DatabaseName,
+        [Parameter(Mandatory = $false)]
+        [string]$Publisher = 'Microsoft',
+        [Parameter(Mandatory = $false)]
+        [string]$TenantId = 'default',
+        [Parameter(Mandatory = $false)]
+        [string]$DatabaseServer = '.'
+    )
     Write-Host "Move extension $Name published by $Publisher to the DEV scope."
 
     if (!$TenantId)

@@ -4,7 +4,7 @@ param(
     [string] $ContainerName = "BC-$(Get-Date -Format 'yyyyMMdd')",
     [Parameter(Mandatory = $false)]
     [ValidateSet('Windows', 'UserPassword')]
-    [string] $Authentification = "Windows"
+    [string] $Authentification = "UserPassword"
 )
 
 Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking

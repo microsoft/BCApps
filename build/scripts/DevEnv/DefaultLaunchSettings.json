@@ -1,11 +1,7 @@
 {
     "type":  "al",
     "request":  "launch",
-    "name":  "Your own server",
-    "server":  "http://localhost",
     "serverInstance":  "BC",
-    "authentication":  "Windows",
-    "startupObjectType":  "Page",
     "breakOnError":  true,
     "launchBrowser":  true,
     "enableSqlInformationDebugger":  true,
