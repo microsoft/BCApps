@@ -47,6 +47,11 @@ codeunit 7778 "AOAI Tools Impl"
         Tools.RemoveAt(Id);
     end;
 
+    procedure ClearTools()
+    begin
+        Clear(Tools);
+    end;
+
     [NonDebuggable]
     procedure GetTools(): List of [JsonObject]
     begin
