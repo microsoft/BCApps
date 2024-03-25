@@ -126,8 +126,7 @@ page 332 "No. Series Proposal"
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
         NoSeriesGenerated: Record "No. Series Proposal Line";
     begin
-        Error('Not implemented');
-        // CurrPage.ProposalDetails.Page.GetTempRecord(Rec."No.", NoSeriesGenerated);
-        // NoSeriesCopilotImpl.ApplyProposedNoSeries(NoSeriesGenerated);
+        CurrPage.ProposalDetails.Page.GetTempRecord(Rec."No.", NoSeriesGenerated);
+        NoSeriesCopilotImpl.ApplyProposedNoSeries(NoSeriesGenerated);
     end;
 }

@@ -28,6 +28,11 @@ codeunit 324 "No. Series Copilot Impl."
         end;
     end;
 
+    procedure ApplyProposedNoSeries(var NoSeriesGenerated: Record "No. Series Proposal Line")
+    begin
+        //TODO: Implement the logic for applying the proposed number series
+    end;
+
     [NonDebuggable]
     local procedure GetSystemPrompt() SystemPrompt: Text
     var
@@ -264,8 +269,7 @@ codeunit 324 "No. Series Copilot Impl."
         MaxToolResponseTokenLength, ExpectedNoSeriesCount, i : Integer;
     begin
         // remove the tools from the chat messages, as they are not needed anymore
-        for i := 1 to AOAIChatMessages.GetTools().Count do
-            AOAIChatMessages.DeleteTool(1); //when the tool is removed the index of the next tool is i-1, so the next tool should be removed with index 1
+        AOAIChatMessages.ClearTools();
 
         MaxToolResponseTokenLength := MaxInputTokens() - AOAIChatMessages.GetHistoryTokenCount();
 
@@ -631,7 +635,7 @@ codeunit 324 "No. Series Copilot Impl."
         Field.SetFilter(ObsoleteState, '<>%1', Field.ObsoleteState::Removed);
         Field.SetRange(Type, Field.Type::Code);
         Field.SetRange(Len, 20);
-        Field.SetFilter(FieldName, '* Nos.');
+        Field.SetRange(RelationTableNo, Database::"No. Series");
     end;
 
     local procedure RemoveTextPart(Text: Text; PartToRemove: Text): Text
