@@ -1,0 +1,24 @@
+name: Get Official Branches
+author: Microsoft Corporation
+description: Get the official branches in the repository
+outputs:
+  OfficialBranches:
+    description: The official branches in the repository
+    value:  ${{ steps.GetBranches.outputs.OfficialBranches }}
+runs:
+  using: composite
+  steps:
+    - name: run
+      shell: powershell
+      id: GetBranches
+      run: |
+        git fetch
+        $branches = @(git for-each-ref --format="'%(refname:short)'" refs/remotes/origin/releases/ | % { $_ -replace 'origin/', '' })
+        $branches += "'main'"
+        Write-Host "Official branches: $branches"
+
+        $branchMatrix = "[$($branches -join ',')]"
+        Add-Content -Path $env:GITHUB_OUTPUT -Value "OfficialBranches=$branchMatrix"
+branding:
+  icon: terminal
+  color: blue

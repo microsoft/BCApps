@@ -1,9 +1,9 @@
-name: Update Package Versions
+name: Update AL-Go On Official Branches
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "55 03 * * 2" # Run at 03:55 UTC on Tuesday
+    - cron: "55 08 * * 3" # Run at 08:55 UTC on Wednesday
 
 defaults:
   run:
@@ -23,10 +23,11 @@ jobs:
         id: OfficialBranches
         uses: ./.github/actions/GetOfficialBranches
 
-  UpdatePackageVersions:
-    name: "[${{ matrix.branch }}] Update Package Versions"
+  UpdateALGo:
+    name: "[${{ matrix.branch }}] Update AL-Go"
     permissions:
       contents: write
+      actions: write
     runs-on: windows-latest
     environment: Official-Build
     needs: GetBranches
@@ -40,11 +41,11 @@ jobs:
         with:
           ref: ${{ matrix.branch }}
 
-      - name: Update Package Versions
+      - name: Update AL-Go System Files
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
         run: |
-          build/scripts/Automations/run.ps1 -Include 'UpdateAppBaselines','UpdateAppTranslations' -Repository $ENV:GITHUB_REPOSITORY -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
+          build/scripts/Automations/run.ps1 -Include 'UpdateALGo' -Repository $ENV:GITHUB_REPOSITORY -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
 
 
 
