@@ -24,6 +24,7 @@ page 8889 "Email Attachments"
         {
             repeater(GroupName)
             {
+                FileUploadAction = UploadMultiple;
                 field(FileName; Rec."Attachment Name")
                 {
                     ApplicationArea = All;
@@ -53,6 +54,35 @@ page 8889 "Email Attachments"
     {
         area(Processing)
         {
+            fileuploadaction(UploadMultiple)
+            {
+                ApplicationArea = All;
+                Image = Attach;
+                Caption = 'Add files';
+                ToolTip = 'Attach files, such as documents or images, to the email.';
+                Scope = Page;
+                Visible = IsEmailEditable;
+
+                trigger OnAction(files: List of [FileUpload])
+                var
+                    TempInStream: InStream;
+                    AttachmentName, ContentType : Text[250];
+                    AttachmentSize: Integer;
+                    SingleFile: FileUpload;
+                begin
+                    foreach SingleFile in files do begin
+                        if SingleFile.FileName = '' then
+                            Error(FileNameEmptyErr);
+                        SingleFile.CreateInStream(TempInStream, TextEncoding::UTF8);
+                        AttachmentName := CopyStr(SingleFile.FileName, 1, 250);
+                        ContentType := EmailMessageImpl.GetContentTypeFromFilename(SingleFile.FileName);
+                        AttachmentSize := EmailMessageImpl.AddAttachmentInternal(AttachmentName, ContentType, TempInStream);
+
+                        Session.LogMessage('0000CTX', StrSubstNo(UploadingAttachmentMsg, AttachmentSize, ContentType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
+                    end;
+                    UpdateDeleteActionEnablement();
+                end;
+            }
 
             action(Upload)
             {
@@ -61,7 +91,7 @@ page 8889 "Email Attachments"
                 Caption = 'Add file';
                 ToolTip = 'Attach files, such as documents or images, to the email.';
                 Scope = Page;
-                Visible = IsEmailEditable;
+                Visible = false;
 
                 trigger OnAction()
                 var
@@ -257,4 +287,7 @@ page 8889 "Email Attachments"
     var
         EmailMessageImpl: Codeunit "Email Message Impl.";
         DeleteQst: Label 'Go ahead and delete?';
+        UploadingAttachmentMsg: Label 'Attached file with size: %1, Content type: %2', Comment = '%1 - File size, %2 - Content type', Locked = true;
+        EmailCategoryLbl: Label 'Email', Locked = true;
+        FileNameEmptyErr: Label 'You cannot upload a file with empty name!', Locked = true;
 }
