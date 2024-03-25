@@ -45,6 +45,7 @@ codeunit 9352 "Graph Uri Builder"
             UriBuilder.AddQueryParameter(QueryParameterKey, QueryParameters.Get(QueryParameterKey));
         foreach QueryParameterKey in ODataQueryParameters.Keys() do
             UriBuilder.AddODataQueryParameter(QueryParameterKey, ODataQueryParameters.Get(QueryParameterKey));
+        UriBuilder.GetUri(Uri);
     end;
 
     procedure GetUri(): Text
