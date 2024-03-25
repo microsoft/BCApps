@@ -80,6 +80,11 @@ codeunit 9353 "Graph Optional Parameters"
 
     #region ODataQueryParameters
 
+
+    /// <summary>
+    /// Sets the value for the OData Query Parameter '$count'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#count-parameter
+    /// </summary>
     procedure SetODataQueryParameterCount()
     begin
         GraphOptionalParametersImpl.SetODataQueryParameterCount(true);
@@ -87,6 +92,7 @@ codeunit 9353 "Graph Optional Parameters"
 
     /// <summary>
     /// Sets the value for the OData Query Parameter '$expand'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#expand-parameter
     /// </summary>
     /// <param name="Value">Text value specifying the query parameter</param>
     procedure SetODataQueryParameterExpand("Value": Text)
@@ -96,6 +102,7 @@ codeunit 9353 "Graph Optional Parameters"
 
     /// <summary>
     /// Sets the value for the OData Query Parameter '$filter'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#filter-parameter
     /// </summary>
     /// <param name="Value">Text value specifying the query parameter</param>
     procedure SetODataQueryParameterFilter("Value": Text)
@@ -105,6 +112,7 @@ codeunit 9353 "Graph Optional Parameters"
 
     /// <summary>
     /// Sets the value for the OData Query Parameter '$format'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#format-parameter
     /// </summary>
     /// <param name="Value">Text value specifying the query parameter</param>
     procedure SetODataQueryParameterFormat("Value": Text)
@@ -114,6 +122,7 @@ codeunit 9353 "Graph Optional Parameters"
 
     /// <summary>
     /// Sets the value for the OData Query Parameter '$orderBy'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#orderby-parameter
     /// </summary>
     /// <param name="Value">Text value specifying the query parameter</param>
     procedure SetODataQueryParameterOrderBy("Value": Text)
@@ -123,6 +132,7 @@ codeunit 9353 "Graph Optional Parameters"
 
     /// <summary>
     /// Sets the value for the OData Query Parameter '$search'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#search-parameter
     /// </summary>
     /// <param name="Value">Text value specifying the query parameter</param>
     procedure SetODataQueryParameterSearch("Value": Text)
@@ -132,6 +142,7 @@ codeunit 9353 "Graph Optional Parameters"
 
     /// <summary>
     /// Sets the value for the OData Query Parameter '$select'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#select-parameter
     /// </summary>
     /// <param name="Value">Text value specifying the query parameter</param>
     procedure SetODataQueryParameterSelect("Value": Text)
@@ -141,6 +152,7 @@ codeunit 9353 "Graph Optional Parameters"
 
     /// <summary>
     /// Sets the value for the OData Query Parameter '$skip'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#skip-parameter
     /// </summary>
     /// <param name="Value">Text value specifying the query parameter</param>
     procedure SetODataQueryParameterSkip("Value": Integer)
@@ -150,6 +162,7 @@ codeunit 9353 "Graph Optional Parameters"
 
     /// <summary>
     /// Sets the value for the OData Query Parameter '$skipToken'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#skiptoken-parameter
     /// </summary>
     /// <param name="Value">Text value specifying the query parameter</param>
     procedure SetODataQueryParameterSkipToken("Value": Text)
@@ -159,6 +172,7 @@ codeunit 9353 "Graph Optional Parameters"
 
     /// <summary>
     /// Sets the value for the OData Query Parameter '$top'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#top-parameter
     /// </summary>
     /// <param name="Value">Text value specifying the query parameter</param>
     procedure SetODataQueryParameterTop("Value": Integer)
