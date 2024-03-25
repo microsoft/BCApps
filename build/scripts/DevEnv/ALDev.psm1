@@ -51,7 +51,7 @@ function GetDefaultSettings([switch]$LaunchJson, [switch]$SettingsJson)
 
 function SetupProjectSettings(
     [string]$VSCodeSettingsFolder,
-    [hashtable]$ProjectSettings = @{ },
+    [hashtable]$ProjectSettings = @{ }
     )
 {
     $projectSettingsPath = Join-Path $VSCodeSettingsFolder "settings.json"
@@ -88,7 +88,6 @@ function SetupLaunchSettings(
     Set-Content -Path $launchSettingsPath -Value ($launchConfigurations | ConvertTo-Json)
 }
 
-
 <#
 .SYNOPSIS
 Configure the project and launch settings for the given project.
@@ -108,8 +107,14 @@ A hash table containing the settings that should be set in the project settings.
 function Configure-ALProject(
     [Parameter(Mandatory = $true)]
     [string]$ProjectFolder,
-    [hashtable]$LaunchSettings = @{ },
-    [hashtable]$ProjectSettings = @{ }
+    [Parameter(ParameterSetName='DefaultSettings', Mandatory = $true)]
+    [string] $ContainerName,
+    [Parameter(ParameterSetName='DefaultSettings', Mandatory = $true)]
+    [string] $Authentication,
+    [Parameter(ParameterSetName='CustomSettings', Mandatory = $true)]
+    [hashtable] $LaunchSettings,
+    [Parameter(ParameterSetName='CustomSettings', Mandatory = $true)]
+    [hashtable] $ProjectSettings
 )
 {
     if (!(Test-Path (Join-Path $ProjectFolder "app.json")))
@@ -124,48 +129,92 @@ function Configure-ALProject(
         New-Item -Path $vsCodeFolder -ItemType Directory | Out-Null
     }
 
+    if ($PSCmdlet.ParameterSetName -eq 'DefaultSettings')
+    {
+        # Get configuration for launch.json
+        $LaunchSettings = Get-LaunchSettings -ContainerName $ContainerName -Authentication $Authentication
+
+        # Get settings for setting.json
+        $Settings = Get-ProjectSettings -ContainerName $ContainerName
+    }
+
     SetupProjectSettings -VSCodeSettingsFolder $vsCodeFolder -ProjectSettings $ProjectSettings
     SetupLaunchSettings -VSCodeSettingsFolder $vsCodeFolder -LaunchSettings $LaunchSettings
 }
 
 <#
     .SYNOPSIS
-    Sets up the .vscode folder in all modules with the latest settings for development.
+    Configures all AL projects in the given path with the given settings.
     .DESCRIPTION
-    This function will go through all modules in the given folder and set up the .vscode folder with the latest settings for development.
-    .PARAMETER AppRootFolder
-    The root folder of the app.
-    .PARAMETER RulesetPath
-    The path to the ruleset file.
+    This function will search for all AL projects in the given path and configure them with the given settings.
+    .PARAMETER Path
+    The path to the root folder of the projects.
     .PARAMETER ContainerName
-    The name of the container to use for the development.
+    The name of the container to configure the projects for.
     .PARAMETER Authentication
-    The authentication method to use for the development.
+    The authentication method to use when connecting to the container.
+    .PARAMETER LaunchSettings
+    A hash table containing the settings that should be set in the default launch configuration.
+    .PARAMETER ProjectSettings
+    A hash table containing the settings that should be set in the project settings.
+    .EXAMPLE
+    Configure-ALProjectsInPath -Path "C:\Projects" -ContainerName "BC-20210101" -Authentication "Windows"
+    .EXAMPLE
+    Configure-ALProjectsInPath -Path "C:\Projects" -LaunchSettings @{ "name" = "BC-20210101" } -ProjectSettings @{ "al.ruleSetPath" = "C:\Projects\Ruleset.ruleset" }
 #>
-function Setup-ModulesSettings([string] $AppRootFolder = (Get-BaseFolder), [string] $RulesetPath = (Get-RulesetPath), [string] $ContainerName, [string] $Authentication)
+function Configure-ALProjectsInPath()
 {
+    param(
+        [Parameter(Mandatory = $false)]
+        [string] $Path = (Get-BaseFolder),
+        [Parameter(ParameterSetName='DefaultSettings', Mandatory = $true)]
+        [string] $ContainerName,
+        [Parameter(ParameterSetName='DefaultSettings', Mandatory = $true)]
+        [string] $Authentication,
+        [Parameter(ParameterSetName='CustomSettings', Mandatory = $true)]
+        [hashtable] $LaunchSettings = (Get-LaunchSettings -ContainerName $ContainerName -Authentication $Authentication),
+        [Parameter(ParameterSetName='CustomSettings', Mandatory = $true)]
+        [hashtable] $ProjectSettings = (Get-ProjectSettings -ContainerName $ContainerName)
+    )
+
     # Get all module folder paths
     $appFolders = Get-ChildItem $Path -Directory -Recurse | Where-Object { Test-Path (Join-Path $_.FullName app.json) } | ForEach-Object { return $_.FullName }
 
-    $Settings = @{
-        "al.ruleSetPath"        = $RulesetPath
+    if ($PSCmdlet.ParameterSetName -eq 'DefaultSettings')
+    {
+        # Get configuration for launch.json
+        $LaunchSettings = Get-LaunchSettings -ContainerName $ContainerName -Authentication $Authentication
+
+        # Get settings for setting.json
+        $ProjectSettings = Get-ProjectSettings -ContainerName $ContainerName
     }
 
+    $appFolders | ForEach-Object {
+        Configure-ALProject -ProjectFolder $_ -ProjectSettings $ProjectSettings -LaunchSettings $LaunchSettings
+    }
+}
+
+function Get-LaunchSettings([string] $ContainerName, [string] $Authentication)
+{
     $LaunchSettings = @{
         "name"                           = "$ContainerName"
         "server"                         = "http://$ContainerName/BC"
         "authentication"                 = "$Authentication"
     }
 
-    # Get configuration for launch.json
-    $LaunchSettings = MergeSettings -CustomLaunchSettings $LaunchSettings -DefaultLaunchSettings (GetDefaultSettings -LaunchJson)
-
-    # Get settings for setting.json
-    $Settings = MergeSettings -CustomLaunchSettings $Settings -DefaultLaunchSettings (GetDefaultProjectSettings -ContainerName $ContainerName)
-
-    $appFolders | ForEach-Object {
-        Configure-ALProject -ProjectFolder $_ -ProjectSettings $Settings -LaunchSettings $LaunchSettings
-    }
+    return MergeSettings -CustomLaunchSettings $LaunchSettings -DefaultLaunchSettings (GetDefaultSettings -LaunchJson)
 }
 
-Export-ModuleMember -Function *-*
+function Get-ProjectSettings([string] $ContainerName)
+{
+    $Settings = @{
+        "al.ruleSetPath"        = (Get-RulesetPath)
+    }
+
+    return MergeSettings -CustomLaunchSettings $Settings -DefaultLaunchSettings (GetDefaultProjectSettings -ContainerName $ContainerName)
+}
+
+Export-ModuleMember -Function Configure-ALProjectsInPath
+Export-ModuleMember -Function Configure-ALProject
+Export-ModuleMember -Function Get-LaunchSettings
+Export-ModuleMember -Function Get-ProjectSettings

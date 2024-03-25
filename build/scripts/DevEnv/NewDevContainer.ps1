@@ -31,4 +31,4 @@ if (-not $containerExists)
 Setup-ContainerForDevelopment -ContainerName $ContainerName -RepoVersion (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go)
 
 # Step 3: Set up vscode for development against the container (i.e. set up launch.json and settings.json)
-Setup-ModulesSettings -ContainerName $ContainerName -Authentication $Authentification
+Configure-ALProjectsInPath -ContainerName $ContainerName -Authentication $Authentification
