@@ -2,7 +2,7 @@
 # Local helper function to execute a sql command and return the output as a string array
 #.OUTPUTS
 # []System.String. Output of SQL command
-function RunSqlCommandWithOutput([string]$Server, [string]$Command, [int] $CommandTimeout = 0)
+function RunSqlCommand([string]$Server, [string]$Command, [int] $CommandTimeout = 0)
 {
     $Options = @{}
     if ($CommandTimeout)
@@ -10,7 +10,7 @@ function RunSqlCommandWithOutput([string]$Server, [string]$Command, [int] $Comma
         $Options["QueryTimeout"] = $CommandTimeout
     }
 
-    Write-Host "Executing SQL query ($Server): ""$Command""" -Debug
+    Write-Verbose "Executing SQL query ($Server): ""$Command"""
     Invoke-Sqlcmd -Query $Command @Options
 }
 
@@ -35,7 +35,7 @@ function Test-NavDatabase(# Name of the database to check
         GO
 "@
 
-    return ((RunSqlCommandWithOutput -Server $DatabaseServer -Command $sqlCommandText) -ne $null)
+    return ((RunSqlCommand -Server $DatabaseServer -Command $sqlCommandText) -ne $null)
 }
 
 function Set-ExtensionVersion([string]$Name, [string]$DatabaseName, [string]$Major, [string]$Minor, [string]$Publisher = 'Microsoft', [string]$TenantId = 'default', [string]$DatabaseServer = '.')
@@ -66,7 +66,7 @@ function Set-ExtensionVersion([string]$Name, [string]$DatabaseName, [string]$Maj
 "@
     
 
-    RunSqlCommandWithOutput -Command $command -Server $DatabaseServer
+    RunSqlCommand -Command $command -Server $DatabaseServer
 }
 
 <#
@@ -102,7 +102,7 @@ function Move-ExtensionIntoDevScope([string]$Name, [string]$DatabaseName, [strin
     UPDATE [$DatabaseName].[dbo].[Published Application]
     SET [Published As] = 2, [Tenant ID] = '$TenantId'
 "@
-    RunSqlCommandWithOutput -Command $command -Server $DatabaseServer
+    RunSqlCommand -Command $command -Server $DatabaseServer
 }
 
 <#
@@ -139,6 +139,16 @@ function Setup-ContainerForDevelopment() {
         }
 
         $installedApps = @(Get-NAVAppInfo -ServerInstance $server.ServerInstance)
+
+        # Check that all apps are moved to the dev scope and that the version is reset to the repo version
+        # If they are, we can skip the rest of the script
+        if (-not ($installedApps | Where-Object { $_.Scope -eq 'Global' })) {
+            Write-Host "All apps are already in the Dev Scope" -ForegroundColor Yellow
+            if (-not ($installedApps | Where-Object { $_.Version -notmatch "\d+\.\d+\.0\.0" })) {
+                Write-Host "All apps are already at version $($RepoVersion).0.0" -ForegroundColor Yellow
+                return
+            }
+        }
 
         Write-Host "Stopping server instance $($server.ServerInstance)" -ForegroundColor Green
         Stop-NAVServerInstance -ServerInstance $server.ServerInstance
