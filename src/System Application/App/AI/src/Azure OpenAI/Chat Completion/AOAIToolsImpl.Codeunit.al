@@ -95,6 +95,18 @@ codeunit 7778 "AOAI Tools Impl"
     end;
 
     [NonDebuggable]
+    procedure SetFunctionAsToolChoice(FunctionName: Text)
+    var
+        ToolChoiceObject: JsonObject;
+        FunctionObject: JsonObject;
+    begin
+        ToolChoiceObject.add('type', 'function');
+        FunctionObject.add('name', FunctionName);
+        ToolChoiceObject.add('function', FunctionObject);
+        ToolChoiceObject.WriteTo(ToolChoice);
+    end;
+
+    [NonDebuggable]
     procedure GetToolChoice(): Text
     begin
         exit(ToolChoice);

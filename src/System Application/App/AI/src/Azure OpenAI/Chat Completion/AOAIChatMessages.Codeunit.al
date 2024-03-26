@@ -262,6 +262,17 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Sets the function as the tool choice to be called.
+    /// </summary>
+    /// <param name="FunctionName">The function name parameter. </param>
+    /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
+    [NonDebuggable]
+    procedure SetFunctionAsToolChoice(FunctionName: Text)
+    begin
+        AOAIToolsImpl.SetFunctionAsToolChoice(FunctionName);
+    end;
+
+    /// <summary>
     /// Gets the Tool choice parameter.
     /// </summary>
     /// <returns>The Tool choice parameter.</returns>
