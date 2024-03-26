@@ -19,7 +19,7 @@ function RunSqlCommand()
         [string]$Command,
         [Parameter(Mandatory = $false)]
         [int] $CommandTimeout = 0
-    ) 
+    )
 
     $Options = @{}
     if ($CommandTimeout)
@@ -58,7 +58,7 @@ function Test-NavDatabase()
         GO
 "@
 
-    return ((RunSqlCommand -Server $DatabaseServer -Command $sqlCommandText) -ne $null)
+    return ($null -ne (RunSqlCommand -Server $DatabaseServer -Command $sqlCommandText))
 }
 
 <#
@@ -76,8 +76,6 @@ function Test-NavDatabase()
     The minor version number
     .PARAMETER Publisher
     The publisher of the extension
-    .PARAMETER TenantId
-    The tenant id
     .PARAMETER DatabaseServer
     The hostname of the SQL server
 #>
@@ -95,8 +93,6 @@ function Set-ExtensionVersion()
         [Parameter(Mandatory = $false)]
         [string]$Publisher = 'Microsoft',
         [Parameter(Mandatory = $false)]
-        [string]$TenantId = 'default',
-        [Parameter(Mandatory = $false)]
         [string]$DatabaseServer = '.'
     )
 
@@ -111,7 +107,7 @@ function Set-ExtensionVersion()
     UPDATE [$DatabaseName].[dbo].[Published Application]
     SET [Version Major] = $Major, [Version Minor] = $Minor, [Version Build] = 0, [Version Revision] = 0
     WHERE Name = '$Name' and Publisher = '$Publisher';
-    
+
     UPDATE [$DatabaseName].[dbo].[Application Dependency]
     SET [Dependency Version Major] = $Major, [Dependency Version Minor] = $Minor, [Dependency Version Build] = 0, [Dependency Version Revision] = 0
     WHERE [Dependency Name] = '$Name' and [Dependency Publisher] = '$Publisher';
@@ -124,7 +120,7 @@ function Set-ExtensionVersion()
     SET [version] = '$Major.$Minor.0.0', [baselineversion] = '$Major.$Minor.0.0'
     WHERE [name] = '$Name' and [publisher] = '$Publisher';
 "@
-    
+
 
     RunSqlCommand -Command $command -Server $DatabaseServer
 }
@@ -166,7 +162,7 @@ function Move-ExtensionIntoDevScope()
 
     if (!$TenantId)
     {
-        $TenantId = 'default' 
+        $TenantId = 'default'
     }
 
     $command = @"
@@ -192,14 +188,14 @@ function Setup-ContainerForDevelopment() {
     param(
         [string] $ContainerName,
         [System.Version] $RepoVersion
-    ) 
+    )
 
     $NewDevContainerModule = "$PSScriptRoot\NewDevContainer.psm1"
     Copy-FileToBcContainer -containerName $ContainerName -localpath $NewDevContainerModule
 
-    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { 
-        param([string] $DevContainerModule, [System.Version] $RepoVersion, [string] $DatabaseName = "CRONUS") 
-        
+    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
+        param([string] $DevContainerModule, [System.Version] $RepoVersion, [string] $DatabaseName = "CRONUS")
+
         Import-Module $DevContainerModule -DisableNameChecking -Force
 
         $server = Get-NAVServerInstance
@@ -239,7 +235,7 @@ function Setup-ContainerForDevelopment() {
             Start-NAVServerInstance -ServerInstance $server.ServerInstance
         }
 
-        
+
     } -argumentList $NewDevContainerModule,$RepoVersion -usePwsh $false
 }
 

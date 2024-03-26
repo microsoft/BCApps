@@ -70,7 +70,7 @@ function SetupLaunchSettings(
             $launchConfigurations = @"
 {
     "version": "0.2.0",
-    "configurations": []   
+    "configurations": []
 }
 "@ | ConvertFrom-Json
     }
@@ -80,7 +80,7 @@ function SetupLaunchSettings(
         $configurationIndex = $launchConfigurations.configurations.name.IndexOf($LaunchSettings.name)
         $launchConfigurations.configurations[$configurationIndex] = $LaunchSettings
     }
-    else 
+    else
     {
         $launchConfigurations.configurations += @($LaunchSettings)
     }
@@ -127,15 +127,6 @@ function Configure-ALProject(
     if (!(Test-Path $vsCodeFolder))
     {
         New-Item -Path $vsCodeFolder -ItemType Directory | Out-Null
-    }
-
-    if ($PSCmdlet.ParameterSetName -eq 'DefaultSettings')
-    {
-        # Get configuration for launch.json
-        $LaunchSettings = Get-LaunchSettings -ContainerName $ContainerName -Authentication $Authentication
-
-        # Get settings for setting.json
-        $Settings = Get-ProjectSettings -ContainerName $ContainerName
     }
 
     SetupProjectSettings -VSCodeSettingsFolder $vsCodeFolder -ProjectSettings $ProjectSettings
