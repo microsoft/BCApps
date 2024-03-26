@@ -37,7 +37,8 @@ codeunit 8900 "Email Impl"
         EmailViewPolicyDefaultTxt: Label 'Falling back to default email view policy: %1', Locked = true;
         EmailModifiedByEventTxt: Label 'Email has been modified by event', Locked = true;
         AdminViewPolicyInEffectNotificationIdTok: Label '0ee5d5db-5763-4acf-9808-10905a8997d5', Locked = true;
-        AdminViewPolicyInEffectNotificationMsg: Label 'Your email view policy limits the emails visible. Please update your view policy to see all emails.';
+        AdminViewPolicyInEffectNotificationMsg: Label 'Your email view policy limits the emails visible. You can update your view policy to see all emails.';
+        AdminViewPolicyUpdatePolicyNotificationActionLbl: Label 'Update policy';
 
     #region API
 
@@ -657,13 +658,16 @@ codeunit 8900 "Email Impl"
         EmailAccountImpl: Codeunit "Email Account Impl.";
         AdminViewPolicyInEffectNotification: Notification;
     begin
-        if (not EmailAccountImpl.IsUserEmailAdmin()) or (GetUserEmailViewPolicy() = Enum::"Email View Policy"::AllEmails) then
+        if not EmailAccountImpl.IsUserEmailAdmin() then
+            exit;
+
+        if GetUserEmailViewPolicy() = Enum::"Email View Policy"::AllEmails then
             exit;
 
         AdminViewPolicyInEffectNotification.Id := AdminViewPolicyInEffectNotificationIdTok;
         AdminViewPolicyInEffectNotification.Message(AdminViewPolicyInEffectNotificationMsg);
         AdminViewPolicyInEffectNotification.Scope := NotificationScope::LocalScope;
-        AdminViewPolicyInEffectNotification.AddAction('Update policy', Codeunit::"Email Impl", 'OpenEmailViewPoliciesPage');
+        AdminViewPolicyInEffectNotification.AddAction(AdminViewPolicyUpdatePolicyNotificationActionLbl, Codeunit::"Email Impl", 'OpenEmailViewPoliciesPage');
         AdminViewPolicyInEffectNotification.Send();
     end;
 
