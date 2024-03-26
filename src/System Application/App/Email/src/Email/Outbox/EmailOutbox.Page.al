@@ -252,7 +252,7 @@ page 8882 "Email Outbox"
         RecallThrottledEmailNotification();
         if ExistThrottledEmail(Rec) then
             ShowThrottledEmailInformation();
-        ShowAdminViewPolicyInEffectNotification();
+        EmailImpl.ShowAdminViewPolicyInEffectNotification();
     end;
 
     local procedure ExistThrottledEmail(EmailOutbox: Record "Email Outbox"): Boolean
@@ -271,20 +271,6 @@ page 8882 "Email Outbox"
                 end;
             until EmailOutbox.Next() = 0;
         exit(false);
-    end;
-
-    local procedure ShowAdminViewPolicyInEffectNotification()
-    var
-        EmailAccountImpl: Codeunit "Email Account Impl.";
-        AdminViewPolicyInEffectNotification: Notification;
-    begin
-        if not EmailAccountImpl.IsUserEmailAdmin() or (EmailImpl.GetUserEmailViewPolicy() = Enum::"Email View Policy"::AllEmails) then
-            exit;
-
-        AdminViewPolicyInEffectNotification.Id := AdminViewPolicyInEffectNotificationIdTok;
-        AdminViewPolicyInEffectNotification.Message(AdminViewPolicyInEffectNotificationMsg);
-        AdminViewPolicyInEffectNotification.Scope := NotificationScope::LocalScope;
-        AdminViewPolicyInEffectNotification.Send();
     end;
 
     local procedure RecallThrottledEmailNotification()
@@ -338,6 +324,4 @@ page 8882 "Email Outbox"
         EmailConnectorHasBeenUninstalledMsg: Label 'The email extension that was used to send this email has been uninstalled. To view information about the email account, you must reinstall the extension.';
         EmailThrottledMsg: Label 'Your emails are being throttled due to the rate limit set on an account.';
         EmailThrottledMsgIdTok: Label '025cd7b4-9a12-44de-af35-d84f5e360438', Locked = true;
-        AdminViewPolicyInEffectNotificationIdTok: Label '0ee5d5db-5763-4acf-9808-10905a8997d5', Locked = true;
-        AdminViewPolicyInEffectNotificationMsg: Label 'Your email view policy limits the emails visible. Please update your view policy to see all emails.';
 }
