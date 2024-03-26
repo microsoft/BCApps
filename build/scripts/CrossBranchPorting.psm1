@@ -118,7 +118,9 @@ function PrecheckBackport($TargetBranches, $PullRequestNumber) {
 
     # Check that there are no uncommitted changes
     if (RunAndCheck git diff --name-only) {
-        throw "You have uncommitted changes. Please commit, revert or stash your changes before running this command."
+        Write-Warning "You have uncommitted changes. Please commit, revert or stash your changes before running this command."
+        GetConfirmation -Message "Do you want to stash your changes and continue?"
+        RunAndCheck git stash
     }
 
     # Validate Target Branches exist

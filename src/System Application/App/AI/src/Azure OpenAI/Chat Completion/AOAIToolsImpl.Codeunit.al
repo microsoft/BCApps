@@ -21,12 +21,10 @@ codeunit 7778 "AOAI Tools Impl"
         ToolIdDoesNotExistErr: Label 'Tool id does not exist.';
         ToolObjectInvalidErr: Label '%1 object does not contain %2 property.', Comment = '%1 is the object name and %2 is the property that is missing.';
         ToolTypeErr: Label 'Tool type must be of function type.';
-        CapabilityBlockedErr: Label 'Tools capability is currently blocked for non Microsoft features.';
 
     [NonDebuggable]
     procedure AddTool(NewTool: JsonObject; CallerModuleInfo: ModuleInfo)
     begin
-        CapabilityBlocked(CallerModuleInfo);
         Initialize();
         if ValidateTool(NewTool) then
             Tools.Add(NewTool);
@@ -47,6 +45,11 @@ codeunit 7778 "AOAI Tools Impl"
             Error(ToolIdDoesNotExistErr);
 
         Tools.RemoveAt(Id);
+    end;
+
+    procedure ClearTools()
+    begin
+        Clear(Tools);
     end;
 
     [NonDebuggable]
@@ -146,16 +149,5 @@ codeunit 7778 "AOAI Tools Impl"
             Error(ErrorMessage);
         end;
         exit(true);
-    end;
-
-    [NonDebuggable]
-    local procedure CapabilityBlocked(CallerModuleInfo: ModuleInfo)
-    var
-        CurrentModuleInfo: ModuleInfo;
-    begin
-        NavApp.GetCallerModuleInfo(CurrentModuleInfo);
-
-        if CallerModuleInfo.Publisher <> CurrentModuleInfo.Publisher then
-            Error(CapabilityBlockedErr);
     end;
 }
