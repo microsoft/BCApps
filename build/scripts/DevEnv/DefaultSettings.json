@@ -1,0 +1,16 @@
+{
+    "al.codeAnalyzers":  [
+        "${CodeCop}",
+        "${AppSourceCop}",
+        "${PerTenantExtensionCop}",
+        "${UICop}"
+    ],
+    "al.enableCodeActions":  false,
+    "al.enableCodeAnalysis":  true,
+    "al.incrementalBuild":  true,
+    "[al]":  {
+                 "editor.semanticHighlighting.enabled":  true
+             },
+    "editor.codeLens":  false,
+    "editor.formatOnSave":  true
+}
