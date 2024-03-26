@@ -663,7 +663,13 @@ codeunit 8900 "Email Impl"
         AdminViewPolicyInEffectNotification.Id := AdminViewPolicyInEffectNotificationIdTok;
         AdminViewPolicyInEffectNotification.Message(AdminViewPolicyInEffectNotificationMsg);
         AdminViewPolicyInEffectNotification.Scope := NotificationScope::LocalScope;
+        AdminViewPolicyInEffectNotification.AddAction('Update policy', Codeunit::"Email Impl", 'OpenEmailViewPoliciesPage');
         AdminViewPolicyInEffectNotification.Send();
+    end;
+
+    procedure OpenEmailViewPoliciesPage(AdminViewPolicyInEffectNotification: Notification)
+    begin
+        Page.Run(Page::"Email View Policy List");
     end;
 
     #region Telemetry
