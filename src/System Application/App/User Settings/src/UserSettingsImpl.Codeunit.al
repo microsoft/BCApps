@@ -177,6 +177,7 @@ codeunit 9175 "User Settings Impl."
 
         GetAppSettings(NewUserSettings."User Security ID", ApplicationUserSettings);
         ApplicationUserSettings."Teaching Tips" := NewUserSettings."Teaching Tips";
+        ApplicationUserSettings."Legacy Action Bar" := NewUserSettings."Legacy Action Bar";
         ApplicationUserSettings.Modify();
     end;
 
@@ -398,15 +399,20 @@ codeunit 9175 "User Settings Impl."
     procedure EnableLegacyActionBar(UserSecurityID: Guid)
     var
         ApplicationUserSettings: Record "Application User Settings";
+    begin
+        ShowLegacyActionBarSurvey();
+        GetAppSettings(UserSecurityID, ApplicationUserSettings);
+        ApplicationUserSettings."Legacy Action Bar" := true;
+        ApplicationUserSettings.Modify();
+    end;
+
+    procedure ShowLegacyActionBarSurvey()
+    var
         CustomerExperienceSurvey: Codeunit "Customer Experience Survey";
         FormsProId: Text;
         FormsProEligibilityId: Text;
         IsEligible: Boolean;
     begin
-        GetAppSettings(UserSecurityID, ApplicationUserSettings);
-        ApplicationUserSettings."Legacy Action Bar" := true;
-        ApplicationUserSettings.Modify();
-
         if CustomerExperienceSurvey.RegisterEventAndGetEligibility('modernactionbar_event', 'modernactionbar', FormsProId, FormsProEligibilityId, IsEligible) then
             if IsEligible then
                 CustomerExperienceSurvey.RenderSurvey('modernactionbar', FormsProId, FormsProEligibilityId);

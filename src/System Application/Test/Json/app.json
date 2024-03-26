@@ -1,0 +1,35 @@
+{
+    "id":  "4b948e84-8ef6-4317-95c1-ad9e29f02c79",
+    "name":  "Json Test",
+    "publisher":  "Microsoft",
+    "brief":  "",
+    "description":  "Tests for the Json module",
+    "version":  "25.0.0.0",
+    "privacyStatement":  "",
+    "EULA":  "",
+    "help":  "",
+    "url":  "",
+    "logo":  "",
+    "dependencies":  [
+                         {
+                             "id":  "645965f7-95bf-4ee9-bf97-84e45dc6c6d1",
+                             "name":  "Json",
+                             "publisher":  "Microsoft",
+                             "version":  "25.0.0.0"
+                         },
+                         {
+                             "id":  "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+                             "name":  "Library Assert",
+                             "publisher":  "Microsoft",
+                             "version":  "25.0.0.0"
+                         }
+                     ],
+    "platform":  "24.0.0.0",
+    "target":  "OnPrem",
+    "idRanges":  [
+                     {
+                         "from":  139910,
+                         "to":  139910
+                     }
+                 ]
+}
