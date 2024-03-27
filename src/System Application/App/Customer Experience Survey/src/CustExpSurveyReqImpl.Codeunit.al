@@ -195,7 +195,7 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
         OAuth2: Codeunit OAuth2;
         Scopes: List of [Text];
         ClientId: Text;
-        ClientCertificate: Text;
+        ClientCertificate: SecretText;
         AccessToken: SecretText;
         IdToken: Text;
     begin
@@ -203,7 +203,7 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
         ClientCertificate := GetClientCertificate();
         Scopes.Add(GetScope());
 
-        if (ClientId <> '') and (ClientCertificate <> '') then
+        if (ClientId <> '') and (not ClientCertificate.IsEmpty()) then
             if OAuth2.AcquireTokensWithCertificate(ClientId, ClientCertificate, GetRedirectURL(), AuthorityLbl, Scopes, AccessToken, IdToken) then begin
                 Session.LogMessage('0000J9B', AcquiredCESTokenLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
                 exit(AccessToken);
@@ -255,10 +255,10 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
     end;
 
     [NonDebuggable]
-    local procedure GetClientCertificate(): Text
+    local procedure GetClientCertificate(): SecretText
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
-        Certificate: Text;
+        Certificate: SecretText;
         CertificateName: Text;
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret(ClientCertificateAKVSecretNameLbl, CertificateName) then begin
