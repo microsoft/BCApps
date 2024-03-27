@@ -14,6 +14,7 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         Initialized: Boolean;
         Temperature: Decimal;
         MaxTokens: Integer;
+        JsonMode: Boolean;
         MaxHistory: Integer;
         PresencePenalty: Decimal;
         FrequencyPenalty: Decimal;
@@ -36,6 +37,14 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
             InitializeDefaults();
 
         exit(MaxTokens);
+    end;
+
+    procedure IsJsonMode(): Boolean
+    begin
+        if not Initialized then
+            InitializeDefaults();
+
+        exit(JsonMode);
     end;
 
     procedure GetMaxHistory(): Integer
@@ -81,6 +90,14 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         MaxTokens := NewMaxTokens;
     end;
 
+    procedure SetJsonMode(NewJsonMode: Boolean)
+    begin
+        if not Initialized then
+            InitializeDefaults();
+
+        JsonMode := NewJsonMode;
+    end;
+
     procedure SetMaxHistory(NewMaxHistory: Integer)
     begin
         if not Initialized then
@@ -121,6 +138,14 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         Payload.Add('temperature', GetTemperature());
         Payload.Add('presence_penalty', GetPresencePenalty());
         Payload.Add('frequency_penalty', GetFrequencyPenalty());
+
+        if IsJsonMode() then
+            Payload.Add('response_format', GetJsonResponseFormat());
+    end;
+
+    local procedure GetJsonResponseFormat() ResponseFormat: JsonObject
+    begin
+        ResponseFormat.Add('type', 'json_object');
     end;
 
     local procedure InitializeDefaults()
@@ -132,5 +157,6 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         SetFrequencyPenalty(0);
         SetMaxTokens(0);
         SetMaxHistory(10);
+        SetJsonMode(false);
     end;
 }

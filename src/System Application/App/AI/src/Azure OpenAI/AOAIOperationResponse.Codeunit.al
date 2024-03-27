@@ -20,6 +20,7 @@ codeunit 7770 "AOAI Operation Response"
         Success: Boolean;
         Result: Text;
         Error: Text;
+    // FinishReason: Text; //TODO: Enable this when FinishReason is added to ALCopilotOperationResponse dotnet class
 
     /// <summary>
     /// Check whether the operation was successful.
@@ -57,12 +58,23 @@ codeunit 7770 "AOAI Operation Response"
         exit(Error);
     end;
 
+    /// <summary>
+    /// Gets the finish reason of last response.
+    /// </summary>
+    /// <returns></returns>
+    // TODO: Enable this when FinishReason is added to ALCopilotOperationResponse dotnet class
+    // procedure GetFinishReason(): Text
+    // begin
+    //     exit(FinishReason);
+    // end;
+
     internal procedure SetOperationResponse(var ALCopilotOperationResponse: DotNet ALCopilotOperationResponse)
     begin
         Success := ALCopilotOperationResponse.IsSuccess();
         StatusCode := ALCopilotOperationResponse.StatusCode;
         Result := ALCopilotOperationResponse.Result();
         Error := ALCopilotOperationResponse.ErrorText();
+        // FinishReason := ALCopilotOperationResponse.FinishReason; //TODO: Add FinishReason to ALCopilotOperationResponse dotnet class
 
         if Error = '' then
             Error := GetLastErrorText();
