@@ -947,12 +947,8 @@ dotnet
         }
     }
 
-    assembly("Microsoft.Dynamics.Platform.Integration.Office")
+    assembly("Microsoft.Dynamics.Platform.BC.Integration.Office")
     {
-        Version = '7.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = '31bf3856ad364e35';
-
         type("Microsoft.Dynamics.Platform.Integration.Office.AuthenticationOverrides"; "AuthenticationOverrides")
         {
         }
