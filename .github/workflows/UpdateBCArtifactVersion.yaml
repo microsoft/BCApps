@@ -9,6 +9,8 @@ defaults:
   run:
     shell: powershell
 
+permissions: read-all
+
 jobs:
   GetBranches:
     name: Get Branches
@@ -28,6 +30,7 @@ jobs:
           $branchMatrix = "[$($branches -join ',')]"
           Write-Host "Updating branches: $branchMatrix"
           Add-Content -Path $env:GITHUB_OUTPUT -Value "UpdateBranches=$branchMatrix"
+  
   UpdateBCArtifactVersion:
     name: "[${{ matrix.branch }}] Update BC Artifact Version"
     permissions:

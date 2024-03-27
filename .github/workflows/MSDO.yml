@@ -6,14 +6,15 @@ on:
   pull_request:
     branches: [ "main", "releases/*" ]
 
-permissions:
-  id-token: write # This is required for federation to Defender for DevOps
-  security-events: write # This is required to upload SARIF files
+permissions: read-all
 
 jobs:
   MSDO:
     name: Run Microsoft Security DevOps Analysis
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # This is required for federation to Defender for DevOps
+      security-events: write # This is required to upload SARIF files
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
