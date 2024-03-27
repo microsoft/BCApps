@@ -13,6 +13,9 @@ codeunit 9353 "Graph Optional Parameters"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    var
+        GraphOptionalParametersImpl: Codeunit "Graph Optional Parameters Impl";
+
     #region Headers
 
     /// <summary>
@@ -21,7 +24,7 @@ codeunit 9353 "Graph Optional Parameters"
     /// <param name="Value">Text value specifying the HttpHeader value</param>
     procedure SetIfMatch("Value": Text)
     begin
-        SetRequestHeader('IF-Match', "Value");
+        GraphOptionalParametersImpl.SetIfMatch("Value");
     end;
 
     /// <summary>
@@ -30,7 +33,7 @@ codeunit 9353 "Graph Optional Parameters"
     /// <param name="Value">Text value specifying the HttpHeader value</param>
     procedure SetIfNoneMatchRequestHeader("Value": Text)
     begin
-        SetRequestHeader('If-None-Match', "Value");
+        GraphOptionalParametersImpl.SetIfNoneMatchRequestHeader("Value");
     end;
 
     /// <summary>
@@ -39,7 +42,7 @@ codeunit 9353 "Graph Optional Parameters"
     /// <param name="Value">Text value specifying the HttpHeader value</param>
     procedure SetPreferRequestHeader("Value": Text)
     begin
-        SetRequestHeader('Prefer', "Value");
+        GraphOptionalParametersImpl.SetPreferRequestHeader("Value");
     end;
 
     /// <summary>
@@ -48,18 +51,12 @@ codeunit 9353 "Graph Optional Parameters"
     /// <param name="Value">Text value specifying the HttpHeader value</param>
     procedure SetConsistencyLevelRequestHeader("Value": Text)
     begin
-        SetRequestHeader('ConsistencyLevel', "Value");
-    end;
-
-    local procedure SetRequestHeader(Header: Text; HeaderValue: Text)
-    begin
-        RequestHeaders.Remove(Header);
-        RequestHeaders.Add(Header, HeaderValue);
+        GraphOptionalParametersImpl.SetConsistencyLevelRequestHeader("Value");
     end;
 
     internal procedure GetRequestHeaders(): Dictionary of [Text, Text]
     begin
-        exit(RequestHeaders);
+        exit(GraphOptionalParametersImpl.GetRequestHeaders());
     end;
 
     #endregion
@@ -72,23 +69,120 @@ codeunit 9353 "Graph Optional Parameters"
     /// <param name="GraphConflictBehavior">Enum "Graph ConflictBehavior" value specifying the HttpHeader value</param>
     procedure SetMicrosftGraphConflictBehavior(GraphConflictBehavior: Enum "Graph ConflictBehavior")
     begin
-        SetQueryParameter('@microsoft.graph.conflictBehavior', Format(GraphConflictBehavior));
-    end;
-
-
-    local procedure SetQueryParameter(Header: Text; HeaderValue: Text)
-    begin
-        QueryParameters.Remove(Header);
-        QueryParameters.Add(Header, HeaderValue);
+        GraphOptionalParametersImpl.SetMicrosftGraphConflictBehavior(GraphConflictBehavior);
     end;
 
     internal procedure GetQueryParameters(): Dictionary of [Text, Text]
     begin
-        exit(QueryParameters);
+        exit(GraphOptionalParametersImpl.GetQueryParameters());
     end;
     #endregion
 
-    var
-        QueryParameters: Dictionary of [Text, Text];
-        RequestHeaders: Dictionary of [Text, Text];
+    #region ODataQueryParameters
+
+
+    /// <summary>
+    /// Sets the value for the OData Query Parameter '$count'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#count-parameter
+    /// </summary>
+    procedure SetODataQueryParameterCount()
+    begin
+        GraphOptionalParametersImpl.SetODataQueryParameterCount(true);
+    end;
+
+    /// <summary>
+    /// Sets the value for the OData Query Parameter '$expand'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#expand-parameter
+    /// </summary>
+    /// <param name="Value">Text value specifying the query parameter</param>
+    procedure SetODataQueryParameterExpand("Value": Text)
+    begin
+        GraphOptionalParametersImpl.SetODataQueryParameterExpand("Value");
+    end;
+
+    /// <summary>
+    /// Sets the value for the OData Query Parameter '$filter'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#filter-parameter
+    /// </summary>
+    /// <param name="Value">Text value specifying the query parameter</param>
+    procedure SetODataQueryParameterFilter("Value": Text)
+    begin
+        GraphOptionalParametersImpl.SetODataQueryParameterFilter("Value");
+    end;
+
+    /// <summary>
+    /// Sets the value for the OData Query Parameter '$format'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#format-parameter
+    /// </summary>
+    /// <param name="Value">Text value specifying the query parameter</param>
+    procedure SetODataQueryParameterFormat("Value": Text)
+    begin
+        GraphOptionalParametersImpl.SetODataQueryParameterFormat("Value");
+    end;
+
+    /// <summary>
+    /// Sets the value for the OData Query Parameter '$orderBy'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#orderby-parameter
+    /// </summary>
+    /// <param name="Value">Text value specifying the query parameter</param>
+    procedure SetODataQueryParameterOrderBy("Value": Text)
+    begin
+        GraphOptionalParametersImpl.SetODataQueryParameterOrderBy("Value");
+    end;
+
+    /// <summary>
+    /// Sets the value for the OData Query Parameter '$search'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#search-parameter
+    /// </summary>
+    /// <param name="Value">Text value specifying the query parameter</param>
+    procedure SetODataQueryParameterSearch("Value": Text)
+    begin
+        GraphOptionalParametersImpl.SetODataQueryParameterSearch("Value");
+    end;
+
+    /// <summary>
+    /// Sets the value for the OData Query Parameter '$select'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#select-parameter
+    /// </summary>
+    /// <param name="Value">Text value specifying the query parameter</param>
+    procedure SetODataQueryParameterSelect("Value": Text)
+    begin
+        GraphOptionalParametersImpl.SetODataQueryParameterSelect("Value");
+    end;
+
+    /// <summary>
+    /// Sets the value for the OData Query Parameter '$skip'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#skip-parameter
+    /// </summary>
+    /// <param name="Value">Text value specifying the query parameter</param>
+    procedure SetODataQueryParameterSkip("Value": Integer)
+    begin
+        GraphOptionalParametersImpl.SetODataQueryParameterSkip("Value");
+    end;
+
+    /// <summary>
+    /// Sets the value for the OData Query Parameter '$skipToken'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#skiptoken-parameter
+    /// </summary>
+    /// <param name="Value">Text value specifying the query parameter</param>
+    procedure SetODataQueryParameterSkipToken("Value": Text)
+    begin
+        GraphOptionalParametersImpl.SetODataQueryParameterSkipToken("Value");
+    end;
+
+    /// <summary>
+    /// Sets the value for the OData Query Parameter '$top'.
+    /// see: https://learn.microsoft.com/en-us/graph/query-parameters?tabs=http#top-parameter
+    /// </summary>
+    /// <param name="Value">Text value specifying the query parameter</param>
+    procedure SetODataQueryParameterTop("Value": Integer)
+    begin
+        GraphOptionalParametersImpl.SetODataQueryParameterTop("Value");
+    end;
+
+    internal procedure GetODataQueryParameters(): Dictionary of [Text, Text]
+    begin
+        exit(GraphOptionalParametersImpl.GetODataQueryParameters());
+    end;
+    #endregion
 }

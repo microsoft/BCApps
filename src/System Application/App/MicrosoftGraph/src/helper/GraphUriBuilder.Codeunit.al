@@ -21,11 +21,12 @@ codeunit 9352 "Graph Uri Builder"
     procedure Initialize(MicrosoftGraphBaseUrl: Text; NewGraphAPIVersion: Enum "Graph API Version"; RelativeUriToResource: Text)
     var
         QueryParameters: Dictionary of [Text, Text];
+        ODataQueryParameters: Dictionary of [Text, Text];
     begin
-        Initialize(MicrosoftGraphBaseUrl, NewGraphAPIVersion, RelativeUriToResource, QueryParameters);
+        Initialize(MicrosoftGraphBaseUrl, NewGraphAPIVersion, RelativeUriToResource, QueryParameters, ODataQueryParameters);
     end;
 
-    procedure Initialize(MicrosoftGraphBaseUrl: Text; NewGraphAPIVersion: Enum "Graph API Version"; RelativeUriToResource: Text; QueryParameters: Dictionary of [Text, Text])
+    procedure Initialize(MicrosoftGraphBaseUrl: Text; NewGraphAPIVersion: Enum "Graph API Version"; RelativeUriToResource: Text; QueryParameters: Dictionary of [Text, Text]; ODataQueryParameters: Dictionary of [Text, Text])
     var
         UriBuilder: Codeunit "Uri Builder";
         BaseUri: Text;
@@ -42,6 +43,9 @@ codeunit 9352 "Graph Uri Builder"
         UriBuilder.Init(Uri.GetAbsoluteUri());
         foreach QueryParameterKey in QueryParameters.Keys() do
             UriBuilder.AddQueryParameter(QueryParameterKey, QueryParameters.Get(QueryParameterKey));
+        foreach QueryParameterKey in ODataQueryParameters.Keys() do
+            UriBuilder.AddODataQueryParameter(QueryParameterKey, ODataQueryParameters.Get(QueryParameterKey));
+        UriBuilder.GetUri(Uri);
     end;
 
     procedure GetUri(): Text
