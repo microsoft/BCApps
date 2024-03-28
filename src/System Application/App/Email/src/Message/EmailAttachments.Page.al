@@ -24,6 +24,7 @@ page 8889 "Email Attachments"
         {
             repeater(GroupName)
             {
+                FileUploadAction = UploadMultiple;
                 field(FileName; Rec."Attachment Name")
                 {
                     ApplicationArea = All;
@@ -53,15 +54,40 @@ page 8889 "Email Attachments"
     {
         area(Processing)
         {
+            fileuploadaction(UploadMultiple)
+            {
+                ApplicationArea = All;
+                Image = Attach;
+                Caption = 'Add files';
+                ToolTip = 'Attach files, such as documents or images, to the email.';
+                Scope = Page;
+                Visible = IsEmailEditable;
 
+                trigger OnAction(files: List of [FileUpload])
+                var
+                    EmailEditor: Codeunit "Email Editor";
+                    TempInStream: InStream;
+                    SingleFile: FileUpload;
+                begin
+                    foreach SingleFile in files do begin
+                        SingleFile.CreateInStream(TempInStream, TextEncoding::UTF8);
+                        EmailEditor.UploadAttachmentFromStream(EmailMessageImpl, SingleFile.FileName, TempInStream);
+                    end;
+                    UpdateDeleteActionEnablement();
+                end;
+            }
+#if not CLEAN27
             action(Upload)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Action Upload is replaced by action UploadMultiple. Action Upload will be removed in version 27.0';
+                ObsoleteTag = '27.0';
                 ApplicationArea = All;
                 Image = Attach;
                 Caption = 'Add file';
                 ToolTip = 'Attach files, such as documents or images, to the email.';
                 Scope = Page;
-                Visible = IsEmailEditable;
+                Visible = false;
 
                 trigger OnAction()
                 var
@@ -71,7 +97,7 @@ page 8889 "Email Attachments"
                     UpdateDeleteActionEnablement();
                 end;
             }
-
+#endif
             action(UploadFromScenario)
             {
                 ApplicationArea = All;

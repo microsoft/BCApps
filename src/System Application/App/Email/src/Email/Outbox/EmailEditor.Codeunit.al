@@ -162,18 +162,24 @@ codeunit 8906 "Email Editor"
     var
         FileName: Text;
         Instream: InStream;
-        AttachmentName, ContentType : Text[250];
-        AttachamentSize: Integer;
     begin
         UploadIntoStream('', '', '', FileName, Instream);
+        UploadAttachmentFromStream(EmailMessageImpl, FileName, Instream);
+    end;
+
+    internal procedure UploadAttachmentFromStream(EmailMessageImpl: Codeunit "Email Message Impl."; FileName: Text; Instream: InStream)
+    var
+        AttachmentName, ContentType : Text[250];
+        AttachmentSize: Integer;
+    begin
         if FileName = '' then
             exit;
 
         AttachmentName := CopyStr(FileName, 1, 250);
         ContentType := EmailMessageImpl.GetContentTypeFromFilename(FileName);
-        AttachamentSize := EmailMessageImpl.AddAttachmentInternal(AttachmentName, ContentType, Instream);
+        AttachmentSize := EmailMessageImpl.AddAttachmentInternal(AttachmentName, ContentType, Instream);
 
-        Session.LogMessage('0000CTX', StrSubstNo(UploadingAttachmentMsg, AttachamentSize, ContentType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
+        Session.LogMessage('0000CTX', StrSubstNo(UploadingAttachmentMsg, AttachmentSize, ContentType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
     end;
 
     procedure DownloadAttachment(MediaID: Guid; FileName: Text)
