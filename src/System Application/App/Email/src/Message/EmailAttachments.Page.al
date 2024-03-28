@@ -81,7 +81,7 @@ page 8889 "Email Attachments"
             {
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Action Upload is replaced by action UploadMultiple. Action Upload will be removed in version 27.0';
-                ObsoleteTag = '27.0';
+                ObsoleteTag = '24.0';
                 ApplicationArea = All;
                 Image = Attach;
                 Caption = 'Add file';
