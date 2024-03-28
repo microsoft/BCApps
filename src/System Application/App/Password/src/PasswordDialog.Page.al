@@ -27,6 +27,10 @@ page 9810 "Password Dialog"
                 ExtendedDatatype = Masked;
                 ToolTip = 'Specifies the current password, before the user defines a new one.';
                 Visible = ShowOldPassword;
+                trigger OnValidate()
+                begin
+                    PasswordDialogImpl.ValidateOldPasswordMatch(OldPasswordToCompare, OldPasswordValue);
+                end;
             }
             field(Password; PasswordValue)
             {
@@ -39,6 +43,8 @@ page 9810 "Password Dialog"
                 begin
                     if RequiresPasswordValidation then
                         PasswordDialogImpl.ValidatePasswordStrength(PasswordValue);
+
+                    PasswordDialogImpl.ValidateNewPasswordUniqueness(OldPasswordToCompare, PasswordValue);
                 end;
             }
             field(ConfirmPassword; ConfirmPasswordValue)
@@ -91,6 +97,7 @@ page 9810 "Password Dialog"
         ConfirmPasswordValue: Text;
         [NonDebuggable]
         OldPasswordValue: Text;
+        OldPasswordToCompare: SecretText;
         ShowOldPassword: Boolean;
         ValidPassword: Boolean;
         RequiresPasswordValidation: Boolean;
@@ -148,6 +155,16 @@ page 9810 "Password Dialog"
     begin
         if ValidPassword then
             Password := OldPasswordValue;
+    end;
+
+    /// <summary>
+    /// Set the old password value to compare with typed on the page.
+    /// </summary>
+    /// <param name="OldPasswordSecret">Old password to compare.</param>
+    [Scope('OnPrem')]
+    procedure SetOldPasswordToCompareSecretValue(OldPasswordSecret: SecretText)
+    begin
+        OldPasswordToCompare := OldPasswordSecret;
     end;
 
     /// <summary>
