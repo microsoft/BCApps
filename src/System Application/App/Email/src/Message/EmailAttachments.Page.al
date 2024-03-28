@@ -76,9 +76,12 @@ page 8889 "Email Attachments"
                     UpdateDeleteActionEnablement();
                 end;
             }
-
+#if not CLEAN27
             action(Upload)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Action Upload is replaced by action UploadMultiple. Action Upload will be removed in version 27.0';
+                ObsoleteTag = '27.0';
                 ApplicationArea = All;
                 Image = Attach;
                 Caption = 'Add file';
@@ -94,7 +97,7 @@ page 8889 "Email Attachments"
                     UpdateDeleteActionEnablement();
                 end;
             }
-
+#endif
             action(UploadFromScenario)
             {
                 ApplicationArea = All;
