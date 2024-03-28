@@ -76,7 +76,7 @@ page 8889 "Email Attachments"
                     UpdateDeleteActionEnablement();
                 end;
             }
-#if not CLEAN27
+#if not CLEAN24
             action(Upload)
             {
                 ObsoleteState = Pending;
