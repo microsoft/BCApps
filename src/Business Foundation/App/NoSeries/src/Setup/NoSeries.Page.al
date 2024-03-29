@@ -238,6 +238,20 @@ page 456 "No. Series"
                     ToolTip = 'View or edit relationships between number series.';
                     Scope = Repeater;
                 }
+                action("Where-Used List")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Where-Used List';
+                    Image = Track;
+                    ToolTip = 'View setup tables where a number series is used.';
+
+                    trigger OnAction()
+                    var
+                        CalcNoSeriesWhereUsed: Codeunit "Calc. No. Series Where-Used";
+                    begin
+                        CalcNoSeriesWhereUsed.CheckNoSeriesCode(Rec.Code);
+                    end;
+                }
             }
         }
         area(Processing)
