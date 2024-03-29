@@ -71,17 +71,18 @@ page 8889 "Email Attachments"
                 begin
                     foreach SingleFile in files do begin
                         SingleFile.CreateInStream(TempInStream, TextEncoding::UTF8);
-                        EmailEditor.UploadAttachmentFromStream(EmailMessageImpl, SingleFile.FileName, TempInStream);
+                        if FileName <> '' then
+                            EmailEditor.UploadAttachmentFromStream(EmailMessageImpl, SingleFile.FileName, TempInStream);
                     end;
                     UpdateDeleteActionEnablement();
                 end;
             }
-#if not CLEAN25
+#if not CLEAN24
             action(Upload)
             {
                 ObsoleteState = Pending;
                 ObsoleteReason = 'The action Upload is replaced by the new action UploadMultiple.';
-                ObsoleteTag = '25.0';
+                ObsoleteTag = '24.0';
                 ApplicationArea = All;
                 Image = Attach;
                 Caption = 'Add file';
@@ -93,7 +94,9 @@ page 8889 "Email Attachments"
                 var
                     EmailEditor: Codeunit "Email Editor";
                 begin
-                    EmailEditor.UploadAttachment(EmailMessageImpl);
+                    if FileName <> '' then begin
+                        EmailEditor.UploadAttachment(EmailMessageImpl);
+                    end;
                     UpdateDeleteActionEnablement();
                 end;
             }

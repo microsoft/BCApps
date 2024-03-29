@@ -172,9 +172,6 @@ codeunit 8906 "Email Editor"
         AttachmentName, ContentType : Text[250];
         AttachmentSize: Integer;
     begin
-        if FileName = '' then
-            exit;
-
         AttachmentName := CopyStr(FileName, 1, 250);
         ContentType := EmailMessageImpl.GetContentTypeFromFilename(FileName);
         AttachmentSize := EmailMessageImpl.AddAttachmentInternal(AttachmentName, ContentType, Instream);
