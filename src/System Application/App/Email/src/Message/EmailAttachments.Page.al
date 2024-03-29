@@ -71,7 +71,7 @@ page 8889 "Email Attachments"
                 begin
                     foreach SingleFile in files do begin
                         SingleFile.CreateInStream(TempInStream, TextEncoding::UTF8);
-                        if FileName <> '' then
+                        if SingleFile.FileName <> '' then
                             EmailEditor.UploadAttachmentFromStream(EmailMessageImpl, SingleFile.FileName, TempInStream);
                     end;
                     UpdateDeleteActionEnablement();
@@ -94,9 +94,7 @@ page 8889 "Email Attachments"
                 var
                     EmailEditor: Codeunit "Email Editor";
                 begin
-                    if FileName <> '' then begin
-                        EmailEditor.UploadAttachment(EmailMessageImpl);
-                    end;
+                    EmailEditor.UploadAttachment(EmailMessageImpl);
                     UpdateDeleteActionEnablement();
                 end;
             }
