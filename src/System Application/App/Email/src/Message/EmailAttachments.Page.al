@@ -77,12 +77,12 @@ page 8889 "Email Attachments"
                     UpdateDeleteActionEnablement();
                 end;
             }
-#if not CLEAN24
+#if not CLEAN25
             action(Upload)
             {
                 ObsoleteState = Pending;
                 ObsoleteReason = 'The action Upload is replaced by the new action UploadMultiple.';
-                ObsoleteTag = '24.0';
+                ObsoleteTag = '25.0';
                 ApplicationArea = All;
                 Image = Attach;
                 Caption = 'Add file';
