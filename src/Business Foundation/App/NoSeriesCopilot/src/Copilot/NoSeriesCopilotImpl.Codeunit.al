@@ -2,9 +2,11 @@ codeunit 324 "No. Series Copilot Impl."
 {
     var
         IncorrectCompletionErr: Label 'Incorrect completion. The property %1 is empty';
+        IncorrectCompletionNumberOfGeneratedNoSeriesErr: Label 'Incorrect completion. The number of generated number series is incorrect. Expected %1, but got %2';
         TextLengthIsOverMaxLimitErr: Label 'The property %1 exceeds the maximum length of %2';
         DateSpecificPlaceholderLbl: label '{current_date}', Locked = true;
         SpecifyTablesErr: Label 'Please specify the tables for which you want to modify the number series.';
+        NotAbleToGenerateNumberSeriesTryToRephraseErr: Label 'Sorry, I am not able to generate the number series. Try to rephrase your request or provide more details.';
 
     procedure Generate(var NoSeriesProposal: Record "No. Series Proposal"; var ResponseText: text; var NoSeriesGenerated: Record "No. Series Proposal Line"; InputText: Text)
     var
@@ -389,11 +391,11 @@ codeunit 324 "No. Series Copilot Impl."
             'get_existing_tables_and_patterns':
                 ToolResponses := BuildModifyExistingNumbersSeriesPrompt(FunctionArguments, MaxToolResponseTokenLength);
             else
-                Error('Function call not supported');
+                Error(NotAbleToGenerateNumberSeriesTryToRephraseErr);
         end;
 
         if ToolResponses.Count = 0 then
-            Error('Function call failed');
+            Error(NotAbleToGenerateNumberSeriesTryToRephraseErr);
 
         AOAIChatMessages.SetPrimarySystemMessage(GetNoSeriesGenerationSystemPrompt());
         AOAIChatCompletionParams.SetJsonMode(true);
@@ -427,13 +429,13 @@ codeunit 324 "No. Series Copilot Impl."
     /// <remarks> This function is used to build the prompts for generating new number series. The prompts are built based on the tables and patterns specified in the input. If no tables are specified, all tables with number series are used. If no patterns are specified, default patterns are used. In case number of tables can't be pasted in one prompt, due to token limits, function chunk result into several messages, that need to be called separately</remarks>
     local procedure BuildGenerateNewNumbersSeriesPrompts(var FunctionArguments: Text; MaxToolResultsTokensLength: Integer) ToolResults: Dictionary of [Text, Integer]
     var
-        NewNoSeriesPrompt, TablesPromptList, CustomPatternsPromptList : List of [Text];
+        NewNoSeriesPrompt, TablesPromptList, CustomPatternsPromptList, EmptyList : List of [Text];
         TablesBlockLbl: Label 'Tables:', Locked = true;
         NumberOfToolResponses, MaxTablesPromptListTokensLength, i, ActualTablesChunkSize : Integer;
         TokenCountImpl: Codeunit "AOAI Token";
     begin
         GetNewNumberSeriesTablesPrompt(FunctionArguments, TablesPromptList);
-        GetUserSpecifiedOrExistingNumberPatternsGuidelines(FunctionArguments, CustomPatternsPromptList);
+        GetUserSpecifiedOrExistingNumberPatternsGuidelines(FunctionArguments, CustomPatternsPromptList, EmptyList);
 
         MaxTablesPromptListTokensLength := MaxToolResultsTokensLength -
                                             TokenCountImpl.GetGPT4TokenCount(GetTool1GeneralInstructions()) -
@@ -476,12 +478,12 @@ codeunit 324 "No. Series Copilot Impl."
             ListAllTablesWithNumberSeries(TablesPromptList);
     end;
 
-    local procedure GetChangeNumberSeriesTablesPrompt(var FunctionArguments: Text; var TablesPromptList: List of [Text])
+    local procedure GetChangeNumberSeriesTablesPrompt(var FunctionArguments: Text; var TablesPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text])
     begin
         if not CheckIfTablesSpecified(FunctionArguments) then
             Error(SpecifyTablesErr);
 
-        ListOnlySpecifiedTablesWithExistingNumberSeries(TablesPromptList, GetEntities(FunctionArguments));
+        ListOnlySpecifiedTablesWithExistingNumberSeries(TablesPromptList, ExistingNoSeriesToChangeList, GetEntities(FunctionArguments));
     end;
 
     local procedure CheckIfTablesSpecified(var FunctionArguments: Text): Boolean
@@ -516,7 +518,7 @@ codeunit 324 "No. Series Copilot Impl."
             until TableMetadata.Next() = 0;
     end;
 
-    local procedure ListOnlySpecifiedTablesWithExistingNumberSeries(var TablesPromptList: List of [Text]; Entities: List of [Text])
+    local procedure ListOnlySpecifiedTablesWithExistingNumberSeries(var TablesPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]; Entities: List of [Text])
     var
         TableMetadata: Record "Table Metadata";
     begin
@@ -524,7 +526,7 @@ codeunit 324 "No. Series Copilot Impl."
         SetFilterOnSetupTables(TableMetadata);
         if TableMetadata.FindSet() then
             repeat
-                ListOnlyRelevantNoSeriesFieldsWithExistingNumberSeries(TablesPromptList, TableMetadata, Entities);
+                ListOnlyRelevantNoSeriesFieldsWithExistingNumberSeries(TablesPromptList, ExistingNoSeriesToChangeList, TableMetadata, Entities);
             until TableMetadata.Next() = 0;
     end;
 
@@ -540,7 +542,7 @@ codeunit 324 "No. Series Copilot Impl."
             until Field.Next() = 0;
     end;
 
-    local procedure ListOnlyRelevantNoSeriesFieldsWithExistingNumberSeries(var TablesPromptList: List of [Text]; var TableMetadata: Record "Table Metadata"; Entities: List of [Text])
+    local procedure ListOnlyRelevantNoSeriesFieldsWithExistingNumberSeries(var TablesPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]; var TableMetadata: Record "Table Metadata"; Entities: List of [Text])
     var
         Field: Record "Field";
         NoSeries: Record "No. Series";
@@ -549,7 +551,7 @@ codeunit 324 "No. Series Copilot Impl."
         if Field.FindSet() then
             repeat
                 if IsRelevant(TableMetadata, Field, Entities) then
-                    AddChangeNoSeriesFieldToTablesPrompt(TablesPromptList, TableMetadata, Field);
+                    AddChangeNoSeriesFieldToTablesPrompt(TablesPromptList, ExistingNoSeriesToChangeList, TableMetadata, Field);
             until Field.Next() = 0;
     end;
 
@@ -717,7 +719,7 @@ codeunit 324 "No. Series Copilot Impl."
         TablesPromptList.Add('Area: ' + RemoveTextPart(TableMetadata.Caption, ' Setup') + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + RemoveTextPart(Field.FieldName, ' Nos.'));
     end;
 
-    local procedure AddChangeNoSeriesFieldToTablesPrompt(var TablesPromptList: List of [Text]; TableMetadata: Record "Table Metadata"; Field: Record "Field")
+    local procedure AddChangeNoSeriesFieldToTablesPrompt(var TablesPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]; TableMetadata: Record "Table Metadata"; Field: Record "Field")
     var
         RecRef: RecordRef;
         FieldRef: FieldRef;
@@ -736,6 +738,7 @@ codeunit 324 "No. Series Copilot Impl."
             exit;
 
         TablesPromptList.Add('Area: ' + RemoveTextPart(TableMetadata.Caption, ' Setup') + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + RemoveTextPart(Field.FieldName, ' Nos.') + ', seriesCode: ' + NoSeries.Code + ', description: ' + NoSeries.Description);
+        ExistingNoSeriesToChangeList.Add(NoSeries.Code);
     end;
 
     local procedure SetFilterOnNoSeriesFields(var TableMetadata: Record "Table Metadata"; var Field: Record "Field")
@@ -775,7 +778,7 @@ codeunit 324 "No. Series Copilot Impl."
         end;
     end;
 
-    local procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var FunctionArguments: Text; var CustomPatternsPromptList: List of [Text])
+    local procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var FunctionArguments: Text; var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text])
     var
         CustomGuidelinesPrefixLbl: label 'Custom Guidelines as specified by the user:', Locked = true;
         CustomGuidelinesPostfixLbl: label 'Apply these guidelines where relevant to ensure compliance with user requests.', Locked = true;
@@ -785,7 +788,7 @@ codeunit 324 "No. Series Copilot Impl."
         if CheckIfPatternSpecified(FunctionArguments) then
             CustomPatternsPromptList.Add(GetPattern(FunctionArguments))
         else
-            AddExistingPatternIfExist(CustomPatternsPromptList);
+            AddExistingPatternIfExist(CustomPatternsPromptList, ExistingNoSeriesToChangeList);
         CustomPatternsPromptList.Add(CustomGuidelinesPostfixLbl);
     end;
 
@@ -810,12 +813,42 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
 
-    local procedure AddExistingPatternIfExist(var CustomPatternsPromptList: List of [Text]): Text
+    local procedure AddExistingPatternIfExist(var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]): Text
     begin
-        if not CheckIfNumberSeriesExists() then
+        if AddExistingPatternFromNoSeriesToChangeList(CustomPatternsPromptList, ExistingNoSeriesToChangeList) then
             exit;
 
-        AddExistingPattern(CustomPatternsPromptList)
+        if AddExistingPatternFromNoSeries(CustomPatternsPromptList) then
+            exit;
+    end;
+
+    local procedure AddExistingPatternFromNoSeriesToChangeList(var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]): Boolean
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesCode: Text;
+        NoSeriesCodeFilter: Text;
+    begin
+        if ExistingNoSeriesToChangeList.Count = 0 then
+            exit(false);
+
+        foreach NoSeriesCode in ExistingNoSeriesToChangeList do
+            NoSeriesCodeFilter += NoSeriesCode + '|';
+
+        NoSeriesCodeFilter := DelStr(NoSeriesCodeFilter, StrLen(NoSeriesCodeFilter), 1); // remove the last '|'
+        NoSeries.SetFilter(Code, NoSeriesCodeFilter);
+        AddExistingPattern(CustomPatternsPromptList, NoSeries);
+        exit(true);
+    end;
+
+    local procedure AddExistingPatternFromNoSeries(var CustomPatternsPromptList: List of [Text]): Boolean
+    var
+        NoSeries: Record "No. Series";
+    begin
+        if not CheckIfNumberSeriesExists() then
+            exit(false);
+
+        AddExistingPattern(CustomPatternsPromptList, NoSeries);
+        exit(true);
     end;
 
     local procedure CheckIfNumberSeriesExists(): Boolean
@@ -825,11 +858,8 @@ codeunit 324 "No. Series Copilot Impl."
         exit(not NoSeries.IsEmpty);
     end;
 
-    local procedure AddExistingPattern(var PatternsPromptList: List of [Text])
+    local procedure AddExistingPattern(var PatternsPromptList: List of [Text]; var NoSeries: Record "No. Series")
     var
-        NoSeries: Record "No. Series";
-        NoSeriesLine: Record "No. Series Line";
-        NoSeriesManagement: Codeunit "No. Series";
         JsonObj: JsonObject;
         JsonArr: JsonArray;
         TextValue: Text;
@@ -839,14 +869,7 @@ codeunit 324 "No. Series Copilot Impl."
         // TODO: Probably there is better way to show the existing number series, maybe by showing the most used ones, or the ones that are used in the same tables as the ones that are specified in the input
         if NoSeries.FindSet() then
             repeat
-                NoSeriesManagement.GetNoSeriesLine(NoSeriesLine, NoSeries.Code, Today(), false);
-                JsonObj.Add('seriesCode', NoSeries.Code);
-                JsonObj.Add('description', NoSeries.Description);
-                JsonObj.Add('startingNo', NoSeriesLine."Starting No.");
-                JsonObj.Add('endingNo', NoSeriesLine."Ending No.");
-                JsonObj.Add('warningNo', NoSeriesLine."Warning No.");
-                JsonObj.Add('incrementByNo', NoSeriesLine."Increment-by No.");
-                JsonArr.Add(JsonObj);
+                JsonArr.Add(BuildNoSeriesLineJson(NoSeries));
                 if i > 5 then
                     break;
                 i += 1;
@@ -855,22 +878,35 @@ codeunit 324 "No. Series Copilot Impl."
         if JsonArr.Count = 0 then
             exit;
 
-        Clear(JsonObj);
         JsonObj.Add('noSeries', JsonArr);
         JsonObj.WriteTo(TextValue);
 
         PatternsPromptList.Add(TextValue);
     end;
 
+    local procedure BuildNoSeriesLineJson(var NoSeries: Record "No. Series") JsonObj: JsonObject
+    var
+        NoSeriesLine: Record "No. Series Line";
+        NoSeriesManagement: Codeunit "No. Series";
+    begin
+        NoSeriesManagement.GetNoSeriesLine(NoSeriesLine, NoSeries.Code, Today(), false);
+        JsonObj.Add('seriesCode', NoSeries.Code);
+        JsonObj.Add('description', NoSeries.Description);
+        JsonObj.Add('startingNo', NoSeriesLine."Starting No.");
+        JsonObj.Add('endingNo', NoSeriesLine."Ending No.");
+        JsonObj.Add('warningNo', NoSeriesLine."Warning No.");
+        JsonObj.Add('incrementByNo', NoSeriesLine."Increment-by No.");
+    end;
+
     local procedure BuildModifyExistingNumbersSeriesPrompt(var FunctionArguments: Text; MaxToolResultsTokensLength: Integer) ToolResults: Dictionary of [Text, Integer]
     var
-        ChangeNoSeriesPrompt, TablesPromptList, CustomPatternsPromptList : List of [Text];
+        ChangeNoSeriesPrompt, TablesPromptList, CustomPatternsPromptList, ExistingNoSeriesToChangeList : List of [Text];
         TablesBlockLbl: Label 'Tables:', Locked = true;
         NumberOfToolResponses, MaxTablesPromptListTokensLength, i, ActualTablesChunkSize : Integer;
         TokenCountImpl: Codeunit "AOAI Token";
     begin
-        GetChangeNumberSeriesTablesPrompt(FunctionArguments, TablesPromptList);
-        GetUserSpecifiedOrExistingNumberPatternsGuidelines(FunctionArguments, CustomPatternsPromptList);
+        GetChangeNumberSeriesTablesPrompt(FunctionArguments, TablesPromptList, ExistingNoSeriesToChangeList);
+        GetUserSpecifiedOrExistingNumberPatternsGuidelines(FunctionArguments, CustomPatternsPromptList, ExistingNoSeriesToChangeList);
 
         MaxTablesPromptListTokensLength := MaxToolResultsTokensLength -
                                             TokenCountImpl.GetGPT4TokenCount(GetTool2GeneralInstructions()) -
@@ -928,7 +964,7 @@ codeunit 324 "No. Series Copilot Impl."
             if not AOAIOperationResponse.IsSuccess() then
                 Error(AOAIOperationResponse.GetError());
 
-            if IsExpectedNoSeriesCount(AOAIChatMessages.GetLastMessage(), ExpectedNoSeriesCount) and CheckIfValidCompletion(AOAIChatMessages.GetLastMessage()) then
+            if CheckIfExpectedNoSeriesCount(AOAIChatMessages.GetLastMessage(), ExpectedNoSeriesCount) and CheckIfValidCompletion(AOAIChatMessages.GetLastMessage()) then
                 exit(true);
 
             AOAIChatMessages.DeleteMessage(AOAIChatMessages.GetHistory().Count); // remove the last message with wrong assistant response, as we need to regenerate the completion
@@ -938,12 +974,14 @@ codeunit 324 "No. Series Copilot Impl."
         exit(false);
     end;
 
-    local procedure IsExpectedNoSeriesCount(Completion: Text; ExpectedNoSeriesCount: Integer): Boolean
+    [TryFunction]
+    local procedure CheckIfExpectedNoSeriesCount(Completion: Text; ExpectedNoSeriesCount: Integer)
     var
         ResultJArray: JsonArray;
     begin
         ResultJArray := ReadGeneratedNumberSeriesJArray(Completion);
-        exit(ResultJArray.Count = ExpectedNoSeriesCount);
+        if ResultJArray.Count <> ExpectedNoSeriesCount then
+            Error(StrSubstNo(IncorrectCompletionNumberOfGeneratedNoSeriesErr, ExpectedNoSeriesCount, ResultJArray.Count));
     end;
 
     local procedure ConcatenateToolResponse(var FinalResults: List of [Text]) ConcatenatedResponse: Text
