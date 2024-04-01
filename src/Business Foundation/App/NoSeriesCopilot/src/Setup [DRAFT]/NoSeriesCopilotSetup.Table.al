@@ -33,10 +33,10 @@ table 9200 "No. Series Copilot Setup"
             Caption = 'Secret';
         }
 
-        field(5; "System Prompt"; Guid)
+        field(5; "Tools System Prompt"; Guid)
         {
             DataClassification = CustomerContent;
-            Caption = 'System Prompt';
+            Caption = 'Tools System Prompt';
         }
         field(6; "Tools Definition"; Guid)
         {
@@ -117,6 +117,11 @@ table 9200 "No. Series Copilot Setup"
             DataClassification = CustomerContent;
             Caption = 'Tool 2 Output Format Prompt';
         }
+        field(100; "No. Series Gen. System Prompt"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'No. Series Generation System Prompt';
+        }
     }
 
     keys
@@ -171,27 +176,51 @@ table 9200 "No. Series Copilot Setup"
     end;
 
     [NonDebuggable]
-    procedure GetSystemPromptFromIsolatedStorage() SystemPrompt: Text
+    procedure GetNoSeriesGenerationSystemPromptFromIsolatedStorage() NoSeriesGenerationSystemPrompt: Text
     begin
-        if not IsNullGuid(Rec."System Prompt") then
-            if not IsolatedStorage.Get(Rec."System Prompt", DataScope::Module, SystemPrompt) then;
+        if not IsNullGuid(Rec."No. Series Gen. System Prompt") then
+            if not IsolatedStorage.Get(Rec."No. Series Gen. System Prompt", DataScope::Module, NoSeriesGenerationSystemPrompt) then;
 
-        exit(SystemPrompt);
+        exit(NoSeriesGenerationSystemPrompt);
     end;
 
     [NonDebuggable]
-    procedure SetSystemPromptToIsolatedStorage(SystemPrompt: Text)
+    procedure SetNoSeriesGenerationSystemPromptToIsolatedStorage(NoSeriesGenSystemPrompt: Text)
     var
-        NewSystemPromptGuid: Guid;
+        NewNoSeriesGenSystemPromptGuid: Guid;
     begin
-        if not IsNullGuid(Rec."System Prompt") then
-            if not IsolatedStorage.Delete(Rec."System Prompt", DataScope::Module) then;
+        if not IsNullGuid(Rec."No. Series Gen. System Prompt") then
+            if not IsolatedStorage.Delete(Rec."No. Series Gen. System Prompt", DataScope::Module) then;
 
-        NewSystemPromptGuid := CreateGuid();
+        NewNoSeriesGenSystemPromptGuid := CreateGuid();
 
-        IsolatedStorage.Set(NewSystemPromptGuid, SystemPrompt, DataScope::Module);
+        IsolatedStorage.Set(NewNoSeriesGenSystemPromptGuid, NoSeriesGenSystemPrompt, DataScope::Module);
 
-        Rec."System Prompt" := NewSystemPromptGuid;
+        Rec."No. Series Gen. System Prompt" := NewNoSeriesGenSystemPromptGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetToolsSystemPromptFromIsolatedStorage() ToolsSystemPrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tools System Prompt") then
+            if not IsolatedStorage.Get(Rec."Tools System Prompt", DataScope::Module, ToolsSystemPrompt) then;
+
+        exit(ToolsSystemPrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetToolsSystemPromptToIsolatedStorage(SystemPrompt: Text)
+    var
+        NewToolsSystemPromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tools System Prompt") then
+            if not IsolatedStorage.Delete(Rec."Tools System Prompt", DataScope::Module) then;
+
+        NewToolsSystemPromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewToolsSystemPromptGuid, SystemPrompt, DataScope::Module);
+
+        Rec."Tools System Prompt" := NewToolsSystemPromptGuid;
     end;
 
     [NonDebuggable]

@@ -57,24 +57,42 @@ page 9245 "No. Series Copilot Setup"
                     MultiLine = true;
                     trigger OnValidate()
                     begin
-                        Rec.SetSystemPromptToIsolatedStorage(SystemPrompt);
+                        Rec.SetNoSeriesGenerationSystemPromptToIsolatedStorage(SystemPrompt);
                     end;
                 }
             }
             group(Tools)
             {
-                field(ToolsDefinition; ToolsDefinition)
+                group(ToolsGeneral)
                 {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Tools Definition';
-                    NotBlank = true;
-                    ShowMandatory = true;
-                    ExtendedDatatype = Masked;
-                    MultiLine = true;
-                    trigger OnValidate()
-                    begin
-                        Rec.SetToolsDefinitionToIsolatedStorage(ToolsDefinition);
-                    end;
+                    ShowCaption = false;
+
+                    field(ToolsSystemPrompt; ToolsSystemPrompt)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Tools Selection System Prompt';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetToolsSystemPromptToIsolatedStorage(ToolsSystemPrompt);
+                        end;
+                    }
+                    field(ToolsDefinition; ToolsDefinition)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Tools Definition';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetToolsDefinitionToIsolatedStorage(ToolsDefinition);
+                        end;
+                    }
                 }
                 group(Tool1)
                 {
@@ -284,6 +302,7 @@ page 9245 "No. Series Copilot Setup"
         [NonDebuggable]
         SecretKey: Text;
         SystemPrompt: Text;
+        ToolsSystemPrompt: Text;
         ToolsDefinition: Text;
         Tool1GeneralInstructionsPrompt: Text;
         Tool1LimitationsPrompt: Text;
@@ -309,7 +328,8 @@ page 9245 "No. Series Copilot Setup"
     trigger OnAfterGetCurrRecord()
     begin
         SecretKey := Rec.GetSecretKeyFromIsolatedStorage();
-        SystemPrompt := Rec.GetSystemPromptFromIsolatedStorage();
+        SystemPrompt := Rec.GetNoSeriesGenerationSystemPromptFromIsolatedStorage();
+        ToolsSystemPrompt := Rec.GetToolsSystemPromptFromIsolatedStorage();
         ToolsDefinition := Rec.GetToolsDefinitionFromIsolatedStorage();
         Tool1GeneralInstructionsPrompt := Rec.GetTool1GeneralInstructionsPromptFromIsolatedStorage();
         Tool1LimitationsPrompt := Rec.GetTool1LimitationsPromptFromIsolatedStorage();
