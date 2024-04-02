@@ -66,12 +66,21 @@ page 332 "No. Series Proposal"
     {
         area(PromptGuide)
         {
-            action(NewNumberSeriesForModuleWithPattern)
+            action(NewNumberSeriesForPurchaseOrder)
             {
-                Caption = 'Set up No. Series for the purchase module, using pattern';
+                Caption = 'Set up No. Series for purchase orders';
                 trigger OnAction()
                 begin
-                    InputText := NewNoSeriesForPurchaseModuleWithPatternLbl;
+                    InputText := NewNoSeriesForPurchaseOrderLbl;
+                    CurrPage.Update();
+                end;
+            }
+            action(NewNumberSeriesForSalesModuleWithPattern)
+            {
+                Caption = 'Set up No. Series for the sales module, using pattern';
+                trigger OnAction()
+                begin
+                    InputText := NewNoSeriesForSalesModuleWithPatternLbl;
                     CurrPage.Update();
                 end;
             }
@@ -89,7 +98,7 @@ page 332 "No. Series Proposal"
                 Caption = 'Change the starting number of the sales order';
                 trigger OnAction()
                 begin
-                    InputText := ChangeStartingNumberLbl;
+                    InputText := ChangeSalesOrderStartingNumberLbl;
                     CurrPage.Update();
                 end;
             }
@@ -132,9 +141,10 @@ page 332 "No. Series Proposal"
         PageCaptionLbl: text;
         IsResponseTextVisible: Boolean;
         IsProposalDetailsVisible: Boolean;
-        NewNoSeriesForPurchaseModuleWithPatternLbl: Label 'Set up number series for purchase module in the format @@-#####';
+        NewNoSeriesForPurchaseOrderLbl: Label 'Set up number series for purchase orders';
+        NewNoSeriesForSalesModuleWithPatternLbl: Label 'Set up number series for sales module in the format @@-#####';
         NewNoSeriesForCompanyLbl: Label 'Set up number series for the whole company';
-        ChangeStartingNumberLbl: Label 'Change the starting number of the sales order to 1000';
+        ChangeSalesOrderStartingNumberLbl: Label 'Change the starting number of the sales order to 1000';
 
     trigger OnAfterGetCurrRecord()
     begin
