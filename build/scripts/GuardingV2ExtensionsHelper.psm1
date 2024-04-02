@@ -252,6 +252,7 @@ function Test-IsStrictModeEnabled
 }
 
 function GetCurrentBuildVersionFromMain() {
+    git fetch origin main
     $alGoSettings = $(git show main:.github/AL-Go-Settings.json) | ConvertFrom-Json
     if (-not $alGoSettings.repoVersion) {
         throw "Unable to find repoVersion in AL-Go-Settings.json"
