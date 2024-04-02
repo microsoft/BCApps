@@ -222,7 +222,7 @@ function Get-PackageLatestVersion() {
 .Returns
     The current version of the package
 #>
-function Get-PackageCurrentVersion {
+function Get-CurrentPackageVersion {
     param(
         [Parameter(Mandatory=$true)]
         [string] $PackageName
@@ -251,7 +251,7 @@ function Update-PackageVersion {
     )
 
     $updatesAvailable = $false
-    $currentVersion = Get-PackageCurrentVersion -PackageName $PackageName
+    $currentVersion = Get-CurrentPackageVersion -PackageName $PackageName
     $latestVersion = Get-PackageLatestVersion -PackageName $PackageName
 
     if ([System.Version] $latestVersion -gt [System.Version] $currentVersion) {
