@@ -4,20 +4,15 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Foundation.NoSeries;
-
-codeunit 332 "No. Series Upgrade Tags"
+codeunit 328 "No. Series Upgrade"
 {
     Access = Internal;
-    InherentEntitlements = X;
-    InherentPermissions = X;
+    Subtype = Upgrade;
 
-    procedure GetImplementationUpgradeTag(): Code[250]
+    trigger OnUpgradePerCompany()
+    var
+        NoSeriesInstaller: Codeunit "No. Series Installer";
     begin
-        exit('MS-471519-AddImplementationExtensibility-20231206 ');
-    end;
-
-    procedure GetMovedTableSchemaSanityCheckUpgradeTag(): Code[250]
-    begin
-        exit('MS-523755-AddMovedTableSchemaSanityCheck-20240402');
+        NoSeriesInstaller.TriggerMovedTableSchemaSanityCheck();
     end;
 }
