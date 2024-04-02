@@ -23,6 +23,7 @@ page 332 "No. Series Proposal"
             field(InputText; InputText)
             {
                 Caption = 'Request';
+                InstructionalText = 'Describe the number series you want to set up or change. For example, "Set up number series for sales module in the format @@-#####". You can omit the pattern, in this case, the system will suggest one for you.';
                 ShowCaption = false;
                 MultiLine = true;
                 ApplicationArea = All;
@@ -35,15 +36,19 @@ page 332 "No. Series Proposal"
         }
         area(Content)
         {
-            field(ResponseText; ResponseText)
+            group(AIResponse)
             {
-                Caption = 'AI Response';
-                MultiLine = true;
-                ApplicationArea = All;
                 ShowCaption = false;
                 Visible = IsResponseTextVisible;
-                Editable = false;
-                Enabled = false;
+                field(ResponseText; ResponseText)
+                {
+                    Caption = 'AI Response';
+                    MultiLine = true;
+                    ApplicationArea = All;
+                    ShowCaption = false;
+                    Editable = false;
+                    Enabled = false;
+                }
             }
             part(ProposalDetails; "No. Series Proposal Sub")
             {
@@ -59,6 +64,36 @@ page 332 "No. Series Proposal"
     }
     actions
     {
+        area(PromptGuide)
+        {
+            action(NewNumberSeriesForModuleWithPattern)
+            {
+                Caption = 'Set up No. Series for the purchase module, using pattern';
+                trigger OnAction()
+                begin
+                    InputText := NewNoSeriesForPurchaseModuleWithPatternLbl;
+                    CurrPage.Update();
+                end;
+            }
+            action(NewNumberSeriesForCompany)
+            {
+                Caption = 'Set up No. Series for the whole company';
+                trigger OnAction()
+                begin
+                    InputText := NewNoSeriesForCompanyLbl;
+                    CurrPage.Update();
+                end;
+            }
+            action(ChangeNoSeries)
+            {
+                Caption = 'Change the starting number of the sales order';
+                trigger OnAction()
+                begin
+                    InputText := ChangeStartingNumberLbl;
+                    CurrPage.Update();
+                end;
+            }
+        }
         area(SystemActions)
         {
             systemaction(Generate)
@@ -97,6 +132,9 @@ page 332 "No. Series Proposal"
         PageCaptionLbl: text;
         IsResponseTextVisible: Boolean;
         IsProposalDetailsVisible: Boolean;
+        NewNoSeriesForPurchaseModuleWithPatternLbl: Label 'Set up number series for purchase module in the format @@-#####';
+        NewNoSeriesForCompanyLbl: Label 'Set up number series for the whole company';
+        ChangeStartingNumberLbl: Label 'Change the starting number of the sales order to 1000';
 
     trigger OnAfterGetCurrRecord()
     begin

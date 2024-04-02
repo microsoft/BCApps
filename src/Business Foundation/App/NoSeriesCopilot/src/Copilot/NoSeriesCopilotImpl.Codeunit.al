@@ -784,10 +784,7 @@ codeunit 324 "No. Series Copilot Impl."
         CustomGuidelinesPostfixLbl: label 'Apply these guidelines where relevant to ensure compliance with user requests.', Locked = true;
     begin
         CustomPatternsPromptList.Add(CustomGuidelinesPrefixLbl);
-        //TODO: Not Tested. Need to test if the custom patterns are added to the prompt and how they influence the completion
-        if CheckIfPatternSpecified(FunctionArguments) then
-            CustomPatternsPromptList.Add(GetPattern(FunctionArguments))
-        else
+        if not CheckIfPatternSpecified(FunctionArguments) then
             AddExistingPatternIfExist(CustomPatternsPromptList, ExistingNoSeriesToChangeList);
         CustomPatternsPromptList.Add(CustomGuidelinesPostfixLbl);
     end;
