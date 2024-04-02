@@ -45,6 +45,3 @@ jobs:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
         run: |
           build/scripts/Automations/run.ps1 -Include 'UpdateAppBaselines','UpdateAppTranslations' -Repository $ENV:GITHUB_REPOSITORY -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
-
-
-
