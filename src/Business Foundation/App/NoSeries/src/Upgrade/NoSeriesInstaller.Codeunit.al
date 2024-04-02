@@ -48,13 +48,13 @@ codeunit 329 "No. Series Installer"
 #endif
     begin
 #pragma warning disable AA0175
-        NoSeries.FindFirst();
-        NoSeriesLine.FindFirst();
-        NoSeriesRelationship.FindFirst();
-        NoSeriesTenant.FindFirst();
+        if NoSeries.FindFirst() then;
+        if NoSeriesLine.FindFirst() then;
+        if NoSeriesRelationship.FindFirst() then;
+        if NoSeriesTenant.FindFirst() then;
 #if not CLEAN24
-        NoSeriesLineSales.FindFirst();
-        NoSeriesLinePurchase.FindFirst();
+        if NoSeriesLineSales.FindFirst() then;
+        if NoSeriesLinePurchase.FindFirst() then;
 #endif
 #pragma warning restore AA0175
     end;
