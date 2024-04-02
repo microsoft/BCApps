@@ -8,6 +8,8 @@ codeunit 328 "No. Series Upgrade"
 {
     Access = Internal;
     Subtype = Upgrade;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     trigger OnUpgradePerCompany()
     var
