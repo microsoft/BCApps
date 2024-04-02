@@ -48,6 +48,39 @@ codeunit 132686 "Azure OpenAI Tools Test"
     end;
 
     [Test]
+    procedure TestDeleteToolInChatMessages()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        Tools: List of [JsonObject];
+        ToolObject: JsonObject;
+        Payload: Text;
+    begin
+        LibraryAssert.IsFalse(AOAIChatMessages.ToolsExists(), 'Tool should not exist');
+        AOAIChatMessages.AddTool(GetTestFunction1Tool());
+        AOAIChatMessages.AddTool(GetTestFunction2Tool());
+        LibraryAssert.IsTrue(AOAIChatMessages.ToolsExists(), 'Tool should exist');
+        AOAIChatMessages.DeleteTool(1);
+        LibraryAssert.IsTrue(AOAIChatMessages.ToolsExists(), 'Tool should exist');
+        Tools := AOAIChatMessages.GetTools();
+        Tools.Get(1, ToolObject);
+        ToolObject.WriteTo(Payload);
+        LibraryAssert.AreEqual(Format(GetTestFunction2Tool()), Payload, 'Tool should have same value.');
+    end;
+
+    [Test]
+    procedure TestClearToolsInChatMessages()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+    begin
+        LibraryAssert.IsFalse(AOAIChatMessages.ToolsExists(), 'Tool should not exist');
+        AOAIChatMessages.AddTool(GetTestFunction1Tool());
+        AOAIChatMessages.AddTool(GetTestFunction2Tool());
+        LibraryAssert.IsTrue(AOAIChatMessages.ToolsExists(), 'Tool should exist');
+        AOAIChatMessages.ClearTools();
+        LibraryAssert.IsFalse(AOAIChatMessages.ToolsExists(), 'No tool should exist');
+    end;
+
+    [Test]
     procedure TestSetAddToolsToChatMessages()
     var
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
