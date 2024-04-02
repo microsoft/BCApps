@@ -479,7 +479,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceUrl: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     var
         CertificateSecret: SecretText;
@@ -490,7 +490,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceUrl: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     var
         CertificateSecret: SecretText;
@@ -500,7 +500,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     var
         CertificateSecret: SecretText;
@@ -511,7 +511,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     var
         CertificateSecret: SecretText;
@@ -521,7 +521,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var AuthCodeErr: Text)
     var
         CertificateSecret: SecretText;
@@ -532,7 +532,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var AuthCodeErr: Text)
     var
         CertificateSecret: SecretText;
@@ -542,7 +542,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var TokenCache: Text; var Error: Text)
     var
         CertificateSecret: SecretText;
@@ -553,7 +553,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var TokenCache: Text; var Error: Text)
     var
         CertificateSecret: SecretText;
@@ -563,7 +563,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text; var Error: Text)
     var
         CertificateSecret: SecretText;
@@ -574,7 +574,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text; var Error: Text)
     var
         CertificateSecret: SecretText;
@@ -584,7 +584,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
     var
         CertificateSecret: SecretText;
@@ -596,7 +596,7 @@ codeunit 502 OAuth2Impl
 
     [NonDebuggable]
     [TryFunction]
-    [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
     var
         CertificateSecret: SecretText;
@@ -606,7 +606,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     var
         CertificateSecret: SecretText;
@@ -617,7 +617,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokenFromCacheWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokenFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     var
         CertificateSecret: SecretText;
@@ -627,7 +627,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokensFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokensFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokensFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
         CertificateSecret: SecretText;
@@ -638,7 +638,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokensFromCacheWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokensFromCacheWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokensFromCacheWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
         CertificateSecret: SecretText;
@@ -648,7 +648,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokensWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
         CertificateSecret: SecretText;
@@ -659,7 +659,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokensWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
         CertificateSecret: SecretText;
@@ -669,7 +669,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
     var
         CertificateSecret: SecretText;
@@ -680,7 +680,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectUrl: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
     var
         CertificateSecret: SecretText;
@@ -690,7 +690,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     var
         CertificateSecret: SecretText;
@@ -701,7 +701,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     var
         CertificateSecret: SecretText;
@@ -711,7 +711,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
         CertificateSecret: SecretText;
@@ -722,7 +722,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     var
         CertificateSecret: SecretText;
@@ -732,7 +732,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var TokenCache: Text)
     var
         CertificateSecret: SecretText;
@@ -743,7 +743,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var TokenCache: Text)
     var
         CertificateSecret: SecretText;
@@ -753,7 +753,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text)
     var
         CertificateSecret: SecretText;
@@ -764,7 +764,7 @@ codeunit 502 OAuth2Impl
     end;
 
     [TryFunction]
-    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode: Text; ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectUrl: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text)
     var
         CertificateSecret: SecretText;
