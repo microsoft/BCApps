@@ -535,7 +535,7 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the AuthCodeErr for a description of the error.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     begin
 #pragma warning disable AL0432
@@ -573,7 +573,7 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the AuthCodeErr for a description of the error.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceURL: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     begin
 #pragma warning disable AL0432
@@ -628,7 +628,7 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the AuthCodeErr for a description of the error.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     begin
 #pragma warning disable AL0432
@@ -666,7 +666,7 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token. When this parameter is empty, check the AuthCodeErr for a description of the error.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokenByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokenByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
     begin
 #pragma warning disable AL0432
@@ -723,7 +723,7 @@ codeunit 501 OAuth2
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var AuthCodeErr: Text)
     begin
 #pragma warning disable AL0432
@@ -763,7 +763,7 @@ codeunit 501 OAuth2
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     /// <param name="AuthCodeErr">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokensByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokensByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var AuthCodeErr: Text)
     begin
 #pragma warning disable AL0432
@@ -821,7 +821,7 @@ codeunit 501 OAuth2
     /// <param name="TokenCache">Exit parameter containing the token cache acquired when the access token was requested.</param>
     /// <param name="Error">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var TokenCache: Text; var Error: Text)
     begin
 #pragma warning disable AL0432
@@ -861,7 +861,7 @@ codeunit 501 OAuth2
     /// <param name="TokenCache">Exit parameter containing the token cache acquired when the access token was requested.</param>
     /// <param name="Error">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokenAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var TokenCache: Text; var Error: Text)
     begin
 #pragma warning disable AL0432
@@ -921,7 +921,7 @@ codeunit 501 OAuth2
     /// <param name="TokenCache">Exit parameter containing the token cache acquired when the access token was requested.</param>
     /// <param name="Error">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text; var Error: Text)
     begin
 #pragma warning disable AL0432
@@ -963,7 +963,7 @@ codeunit 501 OAuth2
     /// <param name="TokenCache">Exit parameter containing the token cache acquired when the access token was requested.</param>
     /// <param name="Error">Exit parameter containing the encountered error in the authorization code grant flow. This parameter will be empty in case the token is aquired successfuly.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scopes: List of [Text]; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var IdToken: Text; var TokenCache: Text; var Error: Text)
     begin
 #pragma warning disable AL0432
@@ -1072,7 +1072,7 @@ codeunit 501 OAuth2
     /// <param name="ResourceURL">The Application ID of the resource the application is requesting access to. This parameter can be empty.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     [TryFunction]
-    [Obsolete('Use AcquireAuthorizationCodeTokenFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireAuthorizationCodeTokenFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireAuthorizationCodeTokenFromCacheWithCertificate(ClientId: Text; Certificate: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
     begin
 #pragma warning disable AL0432
@@ -1106,7 +1106,7 @@ codeunit 501 OAuth2
     /// <param name="ResourceURL">The Application ID of the resource the application is requesting access to. This parameter can be empty.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     [TryFunction]
-    [Obsolete('Use AcquireAuthorizationCodeTokenFromCacheWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireAuthorizationCodeTokenFromCacheWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireAuthorizationCodeTokenFromCacheWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectURL: Text; OAuthAuthorityUrl: Text; ResourceURL: Text; var AccessToken: SecretText)
     begin
 #pragma warning disable AL0432
@@ -1168,7 +1168,7 @@ codeunit 501 OAuth2
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     [TryFunction]
-    [Obsolete('Use AcquireAuthorizationCodeTokenFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireAuthorizationCodeTokenFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireAuthorizationCodeTokenFromCacheWithCertificate(ClientId: Text; Certificate: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     begin
 #pragma warning disable AL0432
@@ -1200,7 +1200,7 @@ codeunit 501 OAuth2
     /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     [TryFunction]
-    [Obsolete('Use AcquireAuthorizationCodeTokenFromCacheWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireAuthorizationCodeTokenFromCacheWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireAuthorizationCodeTokenFromCacheWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText)
     begin
 #pragma warning disable AL0432
@@ -1234,7 +1234,7 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokensFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokensFromCacheWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokensFromCacheWithCertificate(ClientId: Text; Certificate: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     begin
 #pragma warning disable AL0432
@@ -1270,7 +1270,7 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokensFromCacheWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     begin
 #pragma warning disable AL0432
@@ -1306,7 +1306,7 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken and Certificate.', '25.0')]
+    [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken and Certificate.', '24.1')]
     procedure AcquireTokensWithCertificate(ClientId: Text; Certificate: Text; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     begin
 #pragma warning disable AL0432
@@ -1342,7 +1342,7 @@ codeunit 501 OAuth2
     /// <param name="AccessToken">Exit parameter containing the access token.</param>
     /// <param name="IdToken">Exit parameter containing the id token.</param>
     [TryFunction]
-    [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '25.0')]
+    [Obsolete('Use AcquireTokensWithCertificate with SecretText data type for AccessToken, Certificate and CertificatePassword.', '24.1')]
     procedure AcquireTokensWithCertificate(ClientId: Text; Certificate: Text; CertificatePassword: SecretText; RedirectURL: Text; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
     begin
 #pragma warning disable AL0432
