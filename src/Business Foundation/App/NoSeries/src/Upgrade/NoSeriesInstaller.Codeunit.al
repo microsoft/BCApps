@@ -15,6 +15,7 @@ codeunit 329 "No. Series Installer"
 
     trigger OnInstallAppPerCompany()
     begin
+        TriggerMovedTableSchemaCheck();
         SetupNoSeriesImplementation();
     end;
 
@@ -33,5 +34,28 @@ codeunit 329 "No. Series Installer"
         NoSeriesLine.ModifyAll(Implementation, "No. Series Implementation"::Normal, false);
 
         UpgradeTag.SetUpgradeTag(NoSeriesUpgradeTags.GetImplementationUpgradeTag());
+    end;
+
+    local procedure TriggerMovedTableSchemaCheck()
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        NoSeriesRelationship: Record "No. Series Relationship";
+        NoSeriesTenant: Record "No. Series Tenant";
+#if not CLEAN24
+        NoSeriesLineSales: Record "No. Series Line Sales";
+        NoSeriesLinePurchase: Record "No. Series Line Purchase";
+#endif
+    begin
+#pragma warning disable AA0175
+        NoSeries.FindFirst();
+        NoSeriesLine.FindFirst();
+        NoSeriesRelationship.FindFirst();
+        NoSeriesTenant.FindFirst();
+#if not CLEAN24
+        NoSeriesLineSales.FindFirst();
+        NoSeriesLinePurchase.FindFirst();
+#endif
+#pragma warning restore AA0175
     end;
 }
