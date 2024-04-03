@@ -7,7 +7,7 @@ page 333 "No. Series Proposal Sub"
     SourceTableTemporary = true;
     DeleteAllowed = true;
     InsertAllowed = false;
-    ModifyAllowed = false;
+    ModifyAllowed = true;
     InherentPermissions = X;
     InherentEntitlements = X;
 

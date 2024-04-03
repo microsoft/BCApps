@@ -55,7 +55,7 @@ page 332 "No. Series Proposal"
                 Caption = 'No. Series proposals';
                 ShowFilter = false;
                 ApplicationArea = All;
-                Editable = false;
+                Editable = true;
                 Enabled = true;
                 Visible = IsProposalDetailsVisible;
                 SubPageLink = "Proposal No." = field("No.");

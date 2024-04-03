@@ -17,6 +17,7 @@ codeunit 324 "No. Series Copilot Impl."
         Completion: Text;
         TokenCountImpl: Codeunit "AOAI Token";
     begin
+        Clear(ResponseText);
         SystemPromptTxt := GetToolsSystemPrompt();
         ToolsTxt := GetToolsText();
 
