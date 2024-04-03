@@ -199,7 +199,7 @@ function Update-AppSourceCopVersion
 
     # All major versions greater than current but less or equal to main should be allowed
     $currentBuildVersion = [int] $buildVersion.Split('.')[0]
-    $maxAllowedObsoleteVersion = [int] (Get-ConfigValue -ConfigType BuildConfig -Key "MaxAllowedObsoleteVersion")
+    $maxAllowedObsoleteVersion = [int] (GetMaxAllowedObsoleteVersion)
     $obsoleteTagAllowedVersions = @()
 
     # Add 3 versions for tasks built with CLEANpreProcessorSymbols
@@ -249,6 +249,15 @@ function Test-IsStrictModeEnabled
     }
 
     return $false
+}
+
+function GetMaxAllowedObsoleteVersion() {
+    git fetch origin main
+    $alGoSettings = $(git show origin/main:.github/AL-Go-Settings.json) | ConvertFrom-Json
+    if (-not $alGoSettings.repoVersion) {
+        throw "Unable to find repoVersion in AL-Go-Settings.json"
+    }
+    return [System.Version]::Parse($alGoSettings.repoVersion).Major
 }
 
 Export-ModuleMember -Function *-*
