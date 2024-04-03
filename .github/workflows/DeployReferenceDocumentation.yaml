@@ -52,7 +52,7 @@ jobs:
             
       - name: Setup Pages
         if: steps.DetermineDeploymentEnvironments.outputs.deployALDocArtifact == 1
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v5
         
       - name: Build Reference Documentation
         uses: microsoft/AL-Go/Actions/BuildReferenceDocumentation@8dfde66bdf7b91d0d56d9a97f6f1688e444e067d
