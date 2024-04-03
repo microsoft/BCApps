@@ -152,7 +152,7 @@ page 9245 "No. Series Copilot Setup"
                         end;
                     }
 
-                    field(ToolNumberGuidelinesPrompt; ToolNumberGuidelinesPrompt)
+                    field(Tool1NumberGuidelinesPrompt; Tool1NumberGuidelinesPrompt)
                     {
                         ApplicationArea = All;
                         Caption = 'Tool 1 Number Guidelines Prompt';
@@ -162,7 +162,21 @@ page 9245 "No. Series Copilot Setup"
                         MultiLine = true;
                         trigger OnValidate()
                         begin
-                            Rec.SetTool1NumberGuidelinePromptToIsolatedStorage(ToolNumberGuidelinesPrompt);
+                            Rec.SetTool1NumberGuidelinePromptToIsolatedStorage(Tool1NumberGuidelinesPrompt);
+                        end;
+                    }
+
+                    field(Tool1CustomPatternsPrompt; Tool1CustomPatternsPrompt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Tool 1 Custom Patterns Prompt';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool1CustomPatternsPromptToIsolatedStorage(Tool1CustomPatternsPrompt);
                         end;
                     }
 
@@ -266,6 +280,20 @@ page 9245 "No. Series Copilot Setup"
                         end;
                     }
 
+                    field(Tool2CustomPatternsPrompt; Tool2CustomPatternsPrompt)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'Tool 2 Custom Patterns Prompt';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool2CustomPatternsPromptToIsolatedStorage(Tool2CustomPatternsPrompt);
+                        end;
+                    }
+
                     field(Tool2OutputExamplesPrompt; Tool2OutputExamplesPrompt)
                     {
                         ApplicationArea = All;
@@ -308,7 +336,8 @@ page 9245 "No. Series Copilot Setup"
         Tool1LimitationsPrompt: Text;
         Tool1CodeGuidelinesPrompt: Text;
         Tool1DescriptionGuidelinesPrompt: Text;
-        ToolNumberGuidelinesPrompt: Text;
+        Tool1NumberGuidelinesPrompt: Text;
+        Tool1CustomPatternsPrompt: Text;
         Tool1OutputExamplesPrompt: Text;
         Tool1OutputFormatPrompt: Text;
         Tool2GeneralInstructionsPrompt: Text;
@@ -316,6 +345,7 @@ page 9245 "No. Series Copilot Setup"
         Tool2CodeGuidelinesPrompt: Text;
         Tool2DescriptionGuidelinesPrompt: Text;
         Tool2NumberGuidelinesPrompt: Text;
+        Tool2CustomPatternsPrompt: Text;
         Tool2OutputExamplesPrompt: Text;
         Tool2OutputFormatPrompt: Text;
 
@@ -335,7 +365,8 @@ page 9245 "No. Series Copilot Setup"
         Tool1LimitationsPrompt := Rec.GetTool1LimitationsPromptFromIsolatedStorage();
         Tool1CodeGuidelinesPrompt := Rec.GetTool1CodeGuidelinePromptFromIsolatedStorage();
         Tool1DescriptionGuidelinesPrompt := Rec.GetTool1DescrGuidelinePromptFromIsolatedStorage();
-        ToolNumberGuidelinesPrompt := Rec.GetTool1NumberGuidelinePromptFromIsolatedStorage();
+        Tool1NumberGuidelinesPrompt := Rec.GetTool1NumberGuidelinePromptFromIsolatedStorage();
+        Tool1CustomPatternsPrompt := Rec.GetTool1CustomPatternsPromptFromIsolatedStorage();
         Tool1OutputExamplesPrompt := Rec.GetTool1OutputExamplesPromptFromIsolatedStorage();
         Tool1OutputFormatPrompt := Rec.GetTool1OutputExamplesPromptFromIsolatedStorage();
         Tool2GeneralInstructionsPrompt := Rec.GetTool2GeneralInstructionsPromptFromIsolatedStorage();
@@ -343,6 +374,7 @@ page 9245 "No. Series Copilot Setup"
         Tool2CodeGuidelinesPrompt := Rec.GetTool2CodeGuidelinePromptFromIsolatedStorage();
         Tool2DescriptionGuidelinesPrompt := Rec.GetTool2DescrGuidelinePromptFromIsolatedStorage();
         Tool2NumberGuidelinesPrompt := Rec.GetTool2NumberGuidelinePromptFromIsolatedStorage();
+        Tool2CustomPatternsPrompt := Rec.GetTool2CustomPatternsPromptFromIsolatedStorage();
         Tool2OutputExamplesPrompt := Rec.GetTool2OutputExamplesPromptFromIsolatedStorage();
         Tool2OutputFormatPrompt := Rec.GetTool2OutputExamplesPromptFromIsolatedStorage();
     end;

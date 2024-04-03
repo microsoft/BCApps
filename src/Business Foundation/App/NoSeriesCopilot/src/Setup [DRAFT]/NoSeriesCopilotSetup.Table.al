@@ -82,6 +82,12 @@ table 9200 "No. Series Copilot Setup"
             DataClassification = CustomerContent;
             Caption = 'Tool 1 Output Format Prompt';
         }
+        field(17; "Tool 1 Custom Patterns Prompt"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 1 Custom Patterns Prompt';
+        }
+
         field(20; "Tool 2 General Instr. Prompt"; Guid)
         {
             DataClassification = CustomerContent;
@@ -116,6 +122,11 @@ table 9200 "No. Series Copilot Setup"
         {
             DataClassification = CustomerContent;
             Caption = 'Tool 2 Output Format Prompt';
+        }
+        field(27; "Tool 2 Custom Patterns Prompt"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 2 Custom Patterns Prompt';
         }
         field(100; "No. Series Gen. System Prompt"; Guid)
         {
@@ -416,6 +427,30 @@ table 9200 "No. Series Copilot Setup"
     end;
 
     [NonDebuggable]
+    procedure GetTool1CustomPatternsPromptFromIsolatedStorage() Tool1CustomPatternsPrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tool 1 Custom Patterns Prompt") then
+            if not IsolatedStorage.Get(Rec."Tool 1 Custom Patterns Prompt", DataScope::Module, Tool1CustomPatternsPrompt) then;
+
+        exit(Tool1CustomPatternsPrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool1CustomPatternsPromptToIsolatedStorage(Tool1CustomPatternsPrompt: Text)
+    var
+        NewTool1CustomPatternsPromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 1 Custom Patterns Prompt") then
+            if not IsolatedStorage.Delete(Rec."Tool 1 Custom Patterns Prompt", DataScope::Module) then;
+
+        NewTool1CustomPatternsPromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewTool1CustomPatternsPromptGuid, Tool1CustomPatternsPrompt, DataScope::Module);
+
+        Rec."Tool 1 Custom Patterns Prompt" := NewTool1CustomPatternsPromptGuid;
+    end;
+
+    [NonDebuggable]
     procedure GetTool2GeneralInstructionsPromptFromIsolatedStorage() Tool2GeneralInstrPrompt: Text
     begin
         if not IsNullGuid(Rec."Tool 2 General Instr. Prompt") then
@@ -581,5 +616,29 @@ table 9200 "No. Series Copilot Setup"
         IsolatedStorage.Set(NewTool2OutputFormatPromptGuid, Tool2OutputFormatPrompt, DataScope::Module);
 
         Rec."Tool 2 Output Format Prompt" := NewTool2OutputFormatPromptGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetTool2CustomPatternsPromptFromIsolatedStorage() Tool2CustomPatternsPrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tool 2 Custom Patterns Prompt") then
+            if not IsolatedStorage.Get(Rec."Tool 2 Custom Patterns Prompt", DataScope::Module, Tool2CustomPatternsPrompt) then;
+
+        exit(Tool2CustomPatternsPrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool2CustomPatternsPromptToIsolatedStorage(Tool2CustomPatternsPrompt: Text)
+    var
+        NewTool2CustomPatternsPromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 2 Custom Patterns Prompt") then
+            if not IsolatedStorage.Delete(Rec."Tool 2 Custom Patterns Prompt", DataScope::Module) then;
+
+        NewTool2CustomPatternsPromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewTool2CustomPatternsPromptGuid, Tool2CustomPatternsPrompt, DataScope::Module);
+
+        Rec."Tool 2 Custom Patterns Prompt" := NewTool2CustomPatternsPromptGuid;
     end;
 }

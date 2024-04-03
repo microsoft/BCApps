@@ -5,6 +5,7 @@ codeunit 324 "No. Series Copilot Impl."
         IncorrectCompletionNumberOfGeneratedNoSeriesErr: Label 'Incorrect completion. The number of generated number series is incorrect. Expected %1, but got %2';
         TextLengthIsOverMaxLimitErr: Label 'The property %1 exceeds the maximum length of %2';
         DateSpecificPlaceholderLbl: label '{current_date}', Locked = true;
+        CustomPatternsPlaceholderLbl: label '{custom_patterns}', Locked = true;
         SpecifyTablesErr: Label 'Please specify the tables for which you want to modify the number series.';
         NotAbleToGenerateNumberSeriesTryToRephraseErr: Label 'Sorry, I am not able to generate the number series. Try to rephrase your request or provide more details.';
 
@@ -204,6 +205,17 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
     [NonDebuggable]
+    local procedure GetTool1CustomPatternsGuidelines(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 1 custom patterns guidelines. The tool 1 custom patterns guidelines should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool1CustomPatternsPromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
     local procedure GetTool1OutputExamples(): Text
     var
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
@@ -278,6 +290,17 @@ codeunit 324 "No. Series Copilot Impl."
         // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
         NoSeriesCopilotSetup.Get();
         exit(NoSeriesCopilotSetup.GetTool2NumberGuidelinePromptFromIsolatedStorage())
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool2CustomPatternsGuidelines(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool 2 custom patterns guidelines. The tool 2 custom patterns guidelines should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool2CustomPatternsPromptFromIsolatedStorage())
     end;
 
     [NonDebuggable]
@@ -435,7 +458,7 @@ codeunit 324 "No. Series Copilot Impl."
         TokenCountImpl: Codeunit "AOAI Token";
     begin
         GetNewNumberSeriesTablesPrompt(FunctionArguments, TablesPromptList);
-        GetUserSpecifiedOrExistingNumberPatternsGuidelines(FunctionArguments, CustomPatternsPromptList, EmptyList);
+        GetUserSpecifiedOrExistingNumberPatternsGuidelines(FunctionArguments, CustomPatternsPromptList, EmptyList, GetTool1CustomPatternsGuidelines());
 
         MaxTablesPromptListTokensLength := MaxToolResultsTokensLength -
                                             TokenCountImpl.GetGPT4TokenCount(GetTool1GeneralInstructions()) -
@@ -778,15 +801,12 @@ codeunit 324 "No. Series Copilot Impl."
         end;
     end;
 
-    local procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var FunctionArguments: Text; var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text])
-    var
-        CustomGuidelinesPrefixLbl: label 'Custom Guidelines as specified by the user:', Locked = true;
-        CustomGuidelinesPostfixLbl: label 'Apply these guidelines where relevant to ensure compliance with user requests.', Locked = true;
+    local procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var FunctionArguments: Text; var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]; CustomGuidelinesPrompt: Text)
     begin
-        CustomPatternsPromptList.Add(CustomGuidelinesPrefixLbl);
-        if not CheckIfPatternSpecified(FunctionArguments) then
-            AddExistingPatternIfExist(CustomPatternsPromptList, ExistingNoSeriesToChangeList);
-        CustomPatternsPromptList.Add(CustomGuidelinesPostfixLbl);
+        if CheckIfPatternSpecified(FunctionArguments) then
+            CustomPatternsPromptList.Add(CustomGuidelinesPrompt.Replace(CustomPatternsPlaceholderLbl, ''))
+        else
+            CustomPatternsPromptList.Add(CustomGuidelinesPrompt.Replace(CustomPatternsPlaceholderLbl, BuildExistingPatternIfExist(ExistingNoSeriesToChangeList)));
     end;
 
     local procedure CheckIfPatternSpecified(var FunctionArguments: Text): Boolean
@@ -810,16 +830,16 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
 
-    local procedure AddExistingPatternIfExist(var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]): Text
+    local procedure BuildExistingPatternIfExist(var ExistingNoSeriesToChangeList: List of [Text]) CustomPatterns: Text
     begin
-        if AddExistingPatternFromNoSeriesToChangeList(CustomPatternsPromptList, ExistingNoSeriesToChangeList) then
+        if BuildExistingPatternFromNoSeriesToChangeList(CustomPatterns, ExistingNoSeriesToChangeList) then
             exit;
 
-        if AddExistingPatternFromNoSeries(CustomPatternsPromptList) then
+        if BuildExistingPatternFromNoSeries(CustomPatterns) then
             exit;
     end;
 
-    local procedure AddExistingPatternFromNoSeriesToChangeList(var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]): Boolean
+    local procedure BuildExistingPatternFromNoSeriesToChangeList(var CustomPatterns: text; var ExistingNoSeriesToChangeList: List of [Text]): Boolean
     var
         NoSeries: Record "No. Series";
         NoSeriesCode: Text;
@@ -833,18 +853,18 @@ codeunit 324 "No. Series Copilot Impl."
 
         NoSeriesCodeFilter := DelStr(NoSeriesCodeFilter, StrLen(NoSeriesCodeFilter), 1); // remove the last '|'
         NoSeries.SetFilter(Code, NoSeriesCodeFilter);
-        AddExistingPattern(CustomPatternsPromptList, NoSeries);
+        BuildExistingPattern(CustomPatterns, NoSeries);
         exit(true);
     end;
 
-    local procedure AddExistingPatternFromNoSeries(var CustomPatternsPromptList: List of [Text]): Boolean
+    local procedure BuildExistingPatternFromNoSeries(var CustomPatterns: text): Boolean
     var
         NoSeries: Record "No. Series";
     begin
         if not CheckIfNumberSeriesExists() then
             exit(false);
 
-        AddExistingPattern(CustomPatternsPromptList, NoSeries);
+        BuildExistingPattern(CustomPatterns, NoSeries);
         exit(true);
     end;
 
@@ -855,15 +875,13 @@ codeunit 324 "No. Series Copilot Impl."
         exit(not NoSeries.IsEmpty);
     end;
 
-    local procedure AddExistingPattern(var PatternsPromptList: List of [Text]; var NoSeries: Record "No. Series")
+    local procedure BuildExistingPattern(var CustomPatterns: Text; var NoSeries: Record "No. Series")
     var
         JsonObj: JsonObject;
         JsonArr: JsonArray;
-        TextValue: Text;
         i: Integer;
     begin
         // show first 5 existing number series as example
-        // TODO: Probably there is better way to show the existing number series, maybe by showing the most used ones, or the ones that are used in the same tables as the ones that are specified in the input
         if NoSeries.FindSet() then
             repeat
                 JsonArr.Add(BuildNoSeriesLineJson(NoSeries));
@@ -876,9 +894,7 @@ codeunit 324 "No. Series Copilot Impl."
             exit;
 
         JsonObj.Add('noSeries', JsonArr);
-        JsonObj.WriteTo(TextValue);
-
-        PatternsPromptList.Add(TextValue);
+        JsonObj.WriteTo(CustomPatterns);
     end;
 
     local procedure BuildNoSeriesLineJson(var NoSeries: Record "No. Series") JsonObj: JsonObject
@@ -903,7 +919,7 @@ codeunit 324 "No. Series Copilot Impl."
         TokenCountImpl: Codeunit "AOAI Token";
     begin
         GetChangeNumberSeriesTablesPrompt(FunctionArguments, TablesPromptList, ExistingNoSeriesToChangeList);
-        GetUserSpecifiedOrExistingNumberPatternsGuidelines(FunctionArguments, CustomPatternsPromptList, ExistingNoSeriesToChangeList);
+        GetUserSpecifiedOrExistingNumberPatternsGuidelines(FunctionArguments, CustomPatternsPromptList, ExistingNoSeriesToChangeList, GetTool2CustomPatternsGuidelines());
 
         MaxTablesPromptListTokensLength := MaxToolResultsTokensLength -
                                             TokenCountImpl.GetGPT4TokenCount(GetTool2GeneralInstructions()) -
