@@ -8,13 +8,14 @@ on:
 
 run-name: "[${{ github.ref_name }}] Create build tag"
 
-permissions:
-  contents: write
+permissions: read-all
 
 jobs:
   CreateTag:
     if: github.event.workflow_run.conclusion == 'success'
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
