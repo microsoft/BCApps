@@ -8,7 +8,8 @@ namespace System.TestTools.TestRunner;
 codeunit 130455 "Test Runner - Progress Dialog"
 {
     EventSubscriberInstance = Manual;
-    Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;
+    Permissions = tabledata "AL Test Suite" = rimd,
+                  tabledata "Test Method Line" = rimd;
 
     trigger OnRun()
     begin

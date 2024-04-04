@@ -14,7 +14,7 @@ using System.TestLibraries.Security.AccessControl;
 codeunit 134692 "Email E2E Tests"
 {
     EventSubscriberInstance = Manual;
-    SubType = Test;
+    Subtype = Test;
     Permissions = tabledata "Email Message" = rid,
                   tabledata "Email Message Attachment" = r,
                   tabledata "Email Recipient" = r,
