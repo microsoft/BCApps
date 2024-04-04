@@ -301,7 +301,9 @@ codeunit 134685 "Email Test"
         Assert.IsFalse(EmailEditor.SubjectField.Editable(), 'Subject field was editable');
         Assert.IsFalse(EmailEditor.BodyField.Editable(), 'Body field was editable');
 #if not CLEAN25
+#pragma warning disable AL0432
         Assert.IsFalse(EmailEditor.Attachments.Upload.Visible(), 'Upload Action is visible.');
+#pragma warning restore
 #endif
         Assert.IsFalse(EmailEditor.Send.Enabled(), 'Send Action was not disabled.');
 
@@ -320,7 +322,9 @@ codeunit 134685 "Email Test"
         Assert.IsFalse(EmailEditor.SubjectField.Editable(), 'Subject field was editable');
         Assert.IsFalse(EmailEditor.BodyField.Editable(), 'Body field was editable');
 #if not CLEAN25
+#pragma warning disable AL0432
         Assert.IsFalse(EmailEditor.Attachments.Upload.Visible(), 'Upload Action is visible.');
+#pragma warning restore
 #endif
         Assert.IsFalse(EmailEditor.Send.Enabled(), 'Send Action was not disabled.');
         EmailMessageAttachment.SetRange("Email Message Id", EmailMessage.GetId());
@@ -1459,7 +1463,9 @@ codeunit 134685 "Email Test"
         Assert.IsTrue(EmailEditor.SubjectField.Editable(), 'Subject field was not editable');
         Assert.IsTrue(EmailEditor.BodyField.Editable(), 'Body field was not editable');
 #if not CLEAN25
+#pragma warning disable AL0432
         Assert.IsTrue(EmailEditor.Attachments.Upload.Visible(), 'Upload Action is not visible.');
+#pragma warning restore
 #endif
         Assert.IsTrue(EmailEditor.Send.Enabled(), 'Send Action was not enabled.');
     end;
