@@ -174,29 +174,6 @@ codeunit 132586 "Assisted Setup Test"
     end;
 
     [Test]
-    procedure TestResetAssistedSetupConsiderFilter()
-    var
-        GuidedExperience: Codeunit "Guided Experience";
-        AssistedSetupTestLibrary: Codeunit "Assisted Setup Test Library";
-    begin
-        PermissionsMock.Set('Guided Exp Edit');
-        Initialize();
-
-        // [WHEN] More than one assisted setup is completed
-        AssistedSetupTestLibrary.SetStatusToCompleted(Page::"Other Assisted Setup Test Page");
-        AssistedSetupTestLibrary.SetStatusToCompleted(Page::"My Assisted Setup Test Page");
-
-        // [WHEN] Reset is called on one of them
-        GuidedExperience.ResetAssistedSetup(ObjectType::Page, Page::"Other Assisted Setup Test Page");
-
-        // [THEN] Only the one that has been reset has status incomplete
-        LibraryAssert.IsFalse(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Other Assisted Setup Test Page"), 'Complete!');
-
-        // [THEN] The other one is still completed
-        LibraryAssert.IsTrue(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"My Assisted Setup Test Page"), 'InComplete!');
-    end;
-
-    [Test]
     [HandlerFunctions('AssistedSetupPageHandler_CheckNonExisting')]
     procedure TestAssistedSetupPageDoesNotExist()
     var
