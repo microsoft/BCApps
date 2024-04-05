@@ -26,25 +26,18 @@ Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\AutomatedSubmission.psm1
 
 function UpdateBCArtifactVersion() {
-    $artifactValue = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
-    if ($artifactValue -and ($artifactValue -match "\d+\.\d+\.\d+\.\d+")) {
-        $currentArtifactVersion = $Matches[0]
-    } else {
-        throw "Could not find BCArtifact version: $artifactValue"
-    }
+    $currentArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
 
-    Write-Host "Current BCArtifact version: $currentArtifactVersion"
+    Write-Host "Current BCArtifact URL: $currentArtifactUrl"
 
     $currentVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
-    $latestArtifactVersion = Get-LatestBCArtifactVersion -minimumVersion $currentVersion
+    $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $currentVersion
 
-    Write-Host "Latest BCArtifact version: $latestArtifactVersion"
+    Write-Host "Latest BCArtifact URL: $latestArtifactUrl"
 
-    if($latestArtifactVersion -gt $currentArtifactVersion) {
-        Write-Host "Updating BCArtifact version from $currentArtifactVersion to $latestArtifactVersion"
-
-        $artifactValue = $artifactValue -replace $currentArtifactVersion, $latestArtifactVersion
-        Set-ConfigValue -Key "artifact" -Value $artifactValue -ConfigType AL-Go
+    if($latestArtifactUrl -ne $currentArtifactUrl) {
+        Write-Host "Updating BCArtifact version from $currentArtifactUrl to $latestArtifactUrl"
+        Set-ConfigValue -Key "artifact" -Value $latestArtifactUrl -ConfigType AL-Go
 
         return $true
     }
