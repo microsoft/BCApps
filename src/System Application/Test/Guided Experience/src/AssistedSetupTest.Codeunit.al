@@ -163,12 +163,16 @@ codeunit 132586 "Assisted Setup Test"
 
         // [WHEN] Setup is set to be Completed 
         AssistedSetupTestLibrary.SetStatusToCompleted(Page::"Other Assisted Setup Test Page");
+        AssistedSetupTestLibrary.SetStatusToCompleted(Page::"My Assisted Setup Test Page 2");
 
         // [WHEN] Reset is called
         GuidedExperience.ResetAssistedSetup(ObjectType::Page, Page::"Other Assisted Setup Test Page");
 
         // [THEN] Status is incomplete
         LibraryAssert.IsFalse(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Other Assisted Setup Test Page"), 'Complete!');
+
+        // [THEN] Status is still set to be Completed
+        LibraryAssert.IsTrue(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"My Assisted Setup Test Page 2"), 'InComplete!');
 
         UnbindSubscription(AssistedSetupTest);
     end;
@@ -225,6 +229,9 @@ codeunit 132586 "Assisted Setup Test"
 
         GuidedExperience.InsertAssistedSetup('Other Assisted Setup Test Page', 'Other Assisted Setup Test Page', '', 0, ObjectType::Page,
             Page::"Other Assisted Setup Test Page", AssistedSetupGroup::WithoutLinks, '', "Video Category"::Uncategorized, '');
+
+        GuidedExperience.InsertAssistedSetup('My Assisted Setup Test Page 2', 'My Assisted Setup Test Page 2', '', 0, ObjectType::Page,
+            Page::"My Assisted Setup Test Page 2", AssistedSetupGroup::WithoutLinks, '', "Video Category"::Uncategorized, '');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", 'OnAfterRunAssistedSetup', '', true, true)]
