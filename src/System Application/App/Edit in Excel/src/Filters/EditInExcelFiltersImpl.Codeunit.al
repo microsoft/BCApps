@@ -39,7 +39,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
         exit(Get(ODataFieldName));
     end;
 
-    procedure AddField(ODataFieldName: Text; EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text; EditInExcelEdmType: Enum "Edit in Excel Edm Type") EditinExcelFieldFilter: Interface "Edit in Excel Field Filter"
+    procedure AddField(ODataFieldName: Text; EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text; EditInExcelEdmType: Enum "Edit in Excel Edm Type") EditinExcelFieldFilter: Codeunit "Edit in Excel Fld Filter Impl."
     begin
         EditinExcelFieldFilter := AddField(ODataFieldName, "Edit in Excel Filter Collection Type"::"and", EditInExcelEdmType);
         Get(ODataFieldName).AddFilterValue(EditInExcelFilterType, FilterValue);
