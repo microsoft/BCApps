@@ -70,6 +70,7 @@ codeunit 1490 "Edit in Excel Filters"
         exit(EditinExcelFiltersImpl.AddField(ODataFieldName, EditInExcelFilterOperatorType, EditInExcelEdmType));
     end;
 
+#if not CLEAN25
     /// <summary>
     /// Add the specified field with an initial value using 'and' collection type.
     /// This is mainly intended for fields that only filter on a single value.
@@ -79,6 +80,20 @@ codeunit 1490 "Edit in Excel Filters"
     /// <param name="FilterValue">The value which the field should be Equal to, Greater than etc.</param>
     /// <param name="EditInExcelEdmType">The Edm type of the OData field as specified in the $metadata document.</param>
     procedure AddField(ODataFieldName: Text; EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text; EditInExcelEdmType: Enum "Edit in Excel Edm Type")
+    begin
+        EditinExcelFiltersImpl.AddField(ODataFieldName, EditInExcelFilterType, FilterValue, EditInExcelEdmType);
+    end;
+#endif
+
+    /// <summary>
+    /// Add the specified field with an initial value using 'and' collection type.
+    /// This is mainly intended for fields that only filter on a single value.
+    /// </summary>
+    /// <param name="ODataFieldName">The OData name of the field referenced.</param>
+    /// <param name="EditInExcelFilterType">The filter type, such as Equal, Greater than etc.</param>
+    /// <param name="FilterValue">The value which the field should be Equal to, Greater than etc.</param>
+    /// <param name="EditInExcelEdmType">The Edm type of the OData field as specified in the $metadata document.</param>
+    procedure AddFieldV2(ODataFieldName: Text; EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text; EditInExcelEdmType: Enum "Edit in Excel Edm Type")
     begin
         EditinExcelFiltersImpl.AddField(ODataFieldName, EditInExcelFilterType, FilterValue, EditInExcelEdmType);
     end;
