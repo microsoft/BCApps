@@ -17,7 +17,7 @@ interface "Edit in Excel Field Filter v2"
     /// </summary>
     /// <param name="EditInExcelFilterType">The filter type, such as Equal, Greater than.</param>
     /// <param name="FilterValue">The value which the field should be Equal to, Greater than etc.</param>
-    procedure AddFilterValue(EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text): Interface "Edit in Excel Field Filter"
+    procedure AddFilterValueV2(EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text): Interface "Edit in Excel Field Filter v2"
 
     /// <summary>
     /// Get a specific filter

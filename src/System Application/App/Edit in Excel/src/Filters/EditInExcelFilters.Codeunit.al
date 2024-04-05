@@ -29,6 +29,11 @@ codeunit 1490 "Edit in Excel Filters"
         exit(EditinExcelFiltersImpl.AddField(ODataFieldName, "Edit in Excel Filter Collection Type"::"and", EditInExcelEdmType));
     end;
 
+    procedure AddFieldV2(ODataFieldName: Text; EditInExcelEdmType: Enum "Edit in Excel Edm Type"): Interface "Edit in Excel Field Filter v2"
+    begin
+        exit(EditinExcelFiltersImpl.AddField(ODataFieldName, "Edit in Excel Filter Collection Type"::"and", EditInExcelEdmType));
+    end;
+
     /// <summary>
     /// Add the specified field with a specified collection type.
     /// </summary>
@@ -36,6 +41,11 @@ codeunit 1490 "Edit in Excel Filters"
     /// <param name="EditInExcelFilterOperatorType">Specifies whether filters for this field have 'and' or 'or', such as Field1 = a|b|c (or operator) or Field1 = &lt;a&amp;>b&gt;amp;>c (and operator). Both operators for the same field is currently not supported.</param>
     /// <param name="EditInExcelEdmType">The Edm type of the OData field as specified in the $metadata document.</param>
     procedure AddField(ODataFieldName: Text; EditInExcelFilterOperatorType: Enum "Edit in Excel Filter Collection Type"; EditInExcelEdmType: Enum "Edit in Excel Edm Type"): Interface "Edit in Excel Field Filter"
+    begin
+        exit(EditinExcelFiltersImpl.AddField(ODataFieldName, EditInExcelFilterOperatorType, EditInExcelEdmType));
+    end;
+
+    procedure AddFieldV2(ODataFieldName: Text; EditInExcelFilterOperatorType: Enum "Edit in Excel Filter Collection Type"; EditInExcelEdmType: Enum "Edit in Excel Edm Type"): Interface "Edit in Excel Field Filter V2"
     begin
         exit(EditinExcelFiltersImpl.AddField(ODataFieldName, EditInExcelFilterOperatorType, EditInExcelEdmType));
     end;
@@ -53,12 +63,22 @@ codeunit 1490 "Edit in Excel Filters"
         EditinExcelFiltersImpl.AddField(ODataFieldName, EditInExcelFilterType, FilterValue, EditInExcelEdmType);
     end;
 
+    procedure AddFieldV2(ODataFieldName: Text; EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text; EditInExcelEdmType: Enum "Edit in Excel Edm Type")
+    begin
+        EditinExcelFiltersImpl.AddField(ODataFieldName, EditInExcelFilterType, FilterValue, EditInExcelEdmType);
+    end;
+
     /// <summary>
     /// Get the field filters for the specified field.
     /// </summary>
     /// <param name="ODataFieldName">The OData name of the field referenced.</param>
     /// <returns></returns>
     procedure Get(ODataFieldName: Text): Interface "Edit in Excel Field Filter"
+    begin
+        exit(EditinExcelFiltersImpl.Get(ODataFieldName));
+    end;
+
+    procedure GetV2(ODataFieldName: Text): Interface "Edit in Excel Field Filter V2"
     begin
         exit(EditinExcelFiltersImpl.Get(ODataFieldName));
     end;

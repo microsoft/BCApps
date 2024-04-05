@@ -28,12 +28,6 @@ interface "Edit in Excel Field Filter"
     procedure Get(Index: Integer; var EditinExcelFilterType: Enum "Edit in Excel Filter Type"; var FilterValue: Text)
 
     /// <summary>
-    /// Get the filter collection type
-    /// </summary>
-    /// <returns>The collection type of the filter</returns>
-    procedure GetCollectionType(): Enum "Edit in Excel Filter Collection Type"
-
-    /// <summary>
     /// Remove a specific filter
     /// </summary>
     /// <param name="Index">The index of the filter.</param>

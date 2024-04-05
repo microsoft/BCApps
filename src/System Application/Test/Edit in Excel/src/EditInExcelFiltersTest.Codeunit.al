@@ -21,7 +21,7 @@ codeunit 132526 "Edit in Excel Filters Test"
     procedure TestEditInExcelFieldFilterGetCollectionTypeReturnsCorrectAndOperator()
     var
         EditinExcelFilters: Codeunit "Edit in Excel Filters";
-        EditInExcelFilter: Interface "Edit in Excel Field Filter";
+        EditInExcelFilter: Interface "Edit in Excel Field Filter v2";
         FieldName: Text;
         EditInExcelFilterCollectionType: Enum "Edit in Excel Filter Collection Type";
     begin
@@ -31,7 +31,7 @@ codeunit 132526 "Edit in Excel Filters Test"
         EditinExcelFilters.Get(FieldName).AddFilterValue(Enum::"Edit in Excel Filter Type"::Equal, '10000');
         EditinExcelFilters.Get(FieldName).AddFilterValue(Enum::"Edit in Excel Filter Type"::Equal, '10001');
 
-        EditInExcelFilter := EditinExcelFilters.Get(FieldName);
+        EditInExcelFilter := EditinExcelFilters.GetV2(FieldName);
         EditInExcelFilterCollectionType := EditInExcelFilter.GetCollectionType();
         LibraryAssert.AreEqual("Edit in Excel Filter Collection Type"::"and", EditInExcelFilterCollectionType, 'Field filter created with an AND operator should have a collection type of AND.')
     end;
@@ -40,7 +40,7 @@ codeunit 132526 "Edit in Excel Filters Test"
     procedure TestEditInExcelFieldFilterGetCollectionTypeReturnsCorrectOrOperator()
     var
         EditinExcelFilters: Codeunit "Edit in Excel Filters";
-        EditInExcelFilter: Interface "Edit in Excel Field Filter";
+        EditInExcelFilter: Interface "Edit in Excel Field Filter v2";
         FieldName: Text;
         EditInExcelFilterCollectionType: Enum "Edit in Excel Filter Collection Type";
     begin
@@ -50,7 +50,7 @@ codeunit 132526 "Edit in Excel Filters Test"
         EditinExcelFilters.Get(FieldName).AddFilterValue(Enum::"Edit in Excel Filter Type"::Equal, '10000');
         EditinExcelFilters.Get(FieldName).AddFilterValue(Enum::"Edit in Excel Filter Type"::Equal, '10001');
 
-        EditInExcelFilter := EditinExcelFilters.Get(FieldName);
+        EditInExcelFilter := EditinExcelFilters.GetV2(FieldName);
         EditInExcelFilterCollectionType := EditInExcelFilter.GetCollectionType();
         LibraryAssert.AreEqual("Edit in Excel Filter Collection Type"::"or", EditInExcelFilterCollectionType, 'Field filter created with an OR operator should have a collection type of OR.')
     end;
