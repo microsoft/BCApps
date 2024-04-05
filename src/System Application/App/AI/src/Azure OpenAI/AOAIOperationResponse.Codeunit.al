@@ -20,6 +20,10 @@ codeunit 7770 "AOAI Operation Response"
         Success: Boolean;
         Result: Text;
         Error: Text;
+        FunctionCallSuccess: Boolean;
+        FunctionCallingName: Text;
+        FunctionResult: Variant;
+        FunctionError: Text;
 
     /// <summary>
     /// Check whether the operation was successful.
@@ -57,6 +61,51 @@ codeunit 7770 "AOAI Operation Response"
         exit(Error);
     end;
 
+    /// <summary>
+    /// Get whether the operation was a function call.
+    /// </summary>
+    /// <returns>True if it was a function call, false otherwise.</returns>
+    procedure IsFunctionCall(): Boolean
+    begin
+        exit(FunctionCallingName <> '');
+    end;
+
+    /// <summary>
+    /// Get whether the function call was successful.
+    /// </summary>
+    /// <returns>True if the call was successful, false otherwise.</returns>
+    procedure IsFunctionCallSuccess(): Boolean
+    begin
+        exit(FunctionCallSuccess);
+    end;
+
+    /// <summary>
+    /// Get the name of the function that was called.
+    /// </summary>
+    /// <returns>The name of the function that was called.</returns>
+    procedure GetFunctionName(): Text
+    begin
+        exit(FunctionCallingName);
+    end;
+
+    /// <summary>
+    /// Get the return value of the function that was called.
+    /// </summary>
+    /// <returns>The return value from the function</returns>
+    procedure GetFunctionResult(): Variant
+    begin
+        exit(FunctionResult);
+    end;
+
+    /// <summary>
+    /// Get the error message from the function that was called.
+    /// </summary>
+    /// <returns>The error message from the function.</returns>
+    procedure GetFunctionError(): Text
+    begin
+        exit(FunctionError);
+    end;
+
     internal procedure SetOperationResponse(var ALCopilotOperationResponse: DotNet ALCopilotOperationResponse)
     begin
         Success := ALCopilotOperationResponse.IsSuccess();
@@ -66,5 +115,13 @@ codeunit 7770 "AOAI Operation Response"
 
         if Error = '' then
             Error := GetLastErrorText();
+    end;
+
+    internal procedure SetFunctionCallingResponse(NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionResult: Variant; NewFunctionError: Text)
+    begin
+        FunctionCallSuccess := NewFunctionCallSuccess;
+        FunctionCallingName := NewFunctionCalled;
+        FunctionResult := NewFunctionResult;
+        FunctionError := NewFunctionError;
     end;
 }

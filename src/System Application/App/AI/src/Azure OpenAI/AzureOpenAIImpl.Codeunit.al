@@ -339,14 +339,14 @@ codeunit 7772 "Azure OpenAI Impl"
             exit;
         end;
 
-        ProcessChatCompletionResponse(AOAIOperationResponse.GetResult(), ChatMessages, CallerModuleInfo);
+        ProcessChatCompletionResponse(AOAIOperationResponse.GetResult(), ChatMessages, AOAIOperationResponse, CallerModuleInfo);
 
         FeatureTelemetry.LogUsage('0000KVN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, CustomDimensions);
     end;
 
     [NonDebuggable]
     [TryFunction]
-    local procedure ProcessChatCompletionResponse(ResponseText: Text; var ChatMessages: Codeunit "AOAI Chat Messages"; CallerModuleInfo: ModuleInfo)
+    local procedure ProcessChatCompletionResponse(ResponseText: Text; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
         CustomDimensions: Dictionary of [Text, Text];
         ToolsCall: Text;
@@ -363,9 +363,54 @@ codeunit 7772 "Azure OpenAI Impl"
             CompletionToken.AsArray().WriteTo(ToolsCall);
             ChatMessages.AddAssistantMessage(ToolsCall);
 
+            ProcessFunctionCall(CompletionToken.AsArray(), ChatMessages, AOAIOperationResponse);
+
             AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
             FeatureTelemetry.LogUsage('0000MFH', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryChatCompletionToolCallLbl, CustomDimensions);
         end;
+    end;
+
+    local procedure ProcessFunctionCall(Functions: JsonArray; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response")
+    var
+        Function: JsonObject;
+        Arguments: JsonObject;
+        Token: JsonToken;
+        FunctionName: Text;
+        AOAIFunction: Interface "AOAI Function";
+        FunctionResult: Variant;
+    begin
+        if Functions.Count = 0 then
+            exit;
+
+        Functions.Get(0, Token);
+        Function := Token.AsObject();
+
+        Function.Get('type', Token);
+
+        if Token.AsValue().AsText() <> 'function' then
+            exit;
+
+        Function.Get('function', Token);
+        Function := Token.AsObject();
+
+        Function.Get('name', Token);
+        FunctionName := Token.AsValue().AsText();
+        Function.Get('arguments', Token);
+
+        // Arguments are stored as a string in the JSON
+        Arguments.ReadFrom(Token.AsValue().AsText());
+
+        AOAIFunction := ChatMessages.GetFunctionTool(FunctionName);
+        if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then
+            AOAIOperationResponse.SetFunctionCallingResponse(true, AOAIFunction.GetName(), FunctionResult, '')
+        else
+            AOAIOperationResponse.SetFunctionCallingResponse(false, AOAIFunction.GetName(), '', GetLastErrorText());
+    end;
+
+    [TryFunction]
+    local procedure TryExecuteFunction(AOAIFunction: Interface "AOAI Function"; Arguments: JsonObject; var Result: Variant)
+    begin
+        Result := AOAIFunction.Execute(Arguments);
     end;
 
     [TryFunction]

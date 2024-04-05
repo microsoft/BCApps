@@ -16,14 +16,49 @@ codeunit 7778 "AOAI Tools Impl"
         AddToolToPayload: Boolean;
         [NonDebuggable]
         ToolChoice: Text;
+#if not CLEAN25
         [NonDebuggable]
         Tools: List of [JsonObject];
+#endif
         ToolIdDoesNotExistErr: Label 'Tool id does not exist.';
         ToolObjectInvalidErr: Label '%1 object does not contain %2 property.', Comment = '%1 is the object name and %2 is the property that is missing.';
         ToolTypeErr: Label 'Tool type must be of function type.';
+        Functions: array[20] of Interface "AOAI Function";
+        FunctionNames: Dictionary of [Text, Integer];
 
+    procedure AddTool(Tool: Interface "AOAI Function")
+    var
+        Index: Integer;
+    begin
+        Initialize();
+        Index := FunctionNames.Count() + 1;
+
+        if Index > ArrayLen(Functions) then
+            Error('Too many tools added. Maximum number of tools is %1', ArrayLen(Functions));
+
+        ValidateTool(Tool.GetPrompt());
+
+        Functions[Index] := Tool;
+        FunctionNames.Add(Tool.GetName(), Index);
+    end;
+
+    procedure GetTool(Name: Text): Interface "AOAI Function"
+    begin
+        if FunctionNames.ContainsKey(Name) then
+            exit(Functions[FunctionNames.get(Name)]);
+
+        Error('Tool not found');
+    end;
+
+    procedure GetFunctionTools(): List of [Text]
+    begin
+        exit(FunctionNames.Keys());
+    end;
+
+#if not CLEAN25
     [NonDebuggable]
-    procedure AddTool(NewTool: JsonObject; CallerModuleInfo: ModuleInfo)
+    [Obsolete('Use AddTool that takes in an AOAI Function interface instead.', '25.0')]
+    procedure AddTool(NewTool: JsonObject)
     begin
         Initialize();
         if ValidateTool(NewTool) then
@@ -31,6 +66,7 @@ codeunit 7778 "AOAI Tools Impl"
     end;
 
     [NonDebuggable]
+    [Obsolete('Use ModifyTool that takes in an AOAI Function interface instead.', '25.0')]
     procedure ModifyTool(Id: Integer; NewTool: JsonObject)
     begin
         if (Id < 1) or (Id > Tools.Count) then
@@ -39,6 +75,7 @@ codeunit 7778 "AOAI Tools Impl"
             Tools.Set(Id, NewTool);
     end;
 
+    [Obsolete('Use DeleteTool that takes in a function name instead.', '25.0')]
     procedure DeleteTool(Id: Integer)
     begin
         if (Id < 1) or (Id > Tools.Count) then
@@ -46,10 +83,32 @@ codeunit 7778 "AOAI Tools Impl"
 
         Tools.RemoveAt(Id);
     end;
+#endif
+
+    procedure DeleteTool(Name: Text)
+    var
+        Index: Integer;
+    begin
+        if not FunctionNames.ContainsKey(Name) then
+            exit;
+
+        Index := FunctionNames.get(Name);
+        FunctionNames.Remove(Name);
+
+        for Index := Index to FunctionNames.Count() do begin
+            Functions[Index] := Functions[Index + 1];
+            FunctionNames.Set(Functions[Index].GetName(), Index);
+        end;
+        Clear(Functions[Index + 1]);
+    end;
 
     procedure ClearTools()
     begin
+#if not CLEAN25
         Clear(Tools);
+#endif
+        Clear(Functions);
+        Clear(FunctionNames);
     end;
 
     [NonDebuggable]
@@ -62,25 +121,44 @@ codeunit 7778 "AOAI Tools Impl"
     procedure PrepareTools() ToolsResult: JsonArray
     var
         Counter: Integer;
+#if not CLEAN25
         Tool: JsonObject;
+#endif
     begin
-        if Tools.Count = 0 then
-            exit;
-
         Initialize();
         Counter := 1;
 
-        repeat
-            Clear(Tool);
-            Tools.Get(Counter, Tool);
-            ToolsResult.Add(Tool);
-            Counter += 1;
-        until Counter > Tools.Count;
+        if FunctionNames.Count <> 0 then
+            repeat
+                ToolsResult.Add(Functions[Counter].GetPrompt());
+                Counter += 1;
+            until Counter > FunctionNames.Count();
+
+#if not CLEAN25
+        Counter := 1;
+        if Tools.Count <> 0 then
+            repeat
+                Clear(Tool);
+                Tools.Get(Counter, Tool);
+                ToolsResult.Add(Tool);
+                Counter += 1;
+            until Counter > Tools.Count;
+#endif
     end;
 
     procedure ToolsExists(): Boolean
     begin
-        exit(AddToolToPayload and (Tools.Count > 0));
+        if not AddToolToPayload then
+            exit(false);
+
+#if not CLEAN25
+        if (FunctionNames.Count() = 0) and (Tools.Count = 0) then
+#else
+        if (FunctionNames.Count() = 0) then
+#endif
+            exit(false);
+
+        exit(true);
     end;
 
     procedure SetAddToolToPayload(AddToolsToPayload: Boolean)
