@@ -73,6 +73,14 @@ codeunit 2202 "Azure Key Vault Impl."
     end;
 
     [NonDebuggable]
+    procedure GetAzureKeyVaultCertificate(CertificateName: Text; var Certificate: SecretText)
+    begin
+        // Gets the certificate as a base 64 encoded string from the key vault, given a CertificateName.
+
+        Certificate := GetCertificateFromClient(CertificateName);
+    end;
+
+    [NonDebuggable]
     procedure SetAzureKeyVaultSecretProvider(NewAzureKeyVaultSecretProvider: DotNet IAzureKeyVaultSecretProvider)
     begin
         // Sets the secret provider to simulate the vault. Used for testing.
@@ -123,6 +131,7 @@ codeunit 2202 "Azure Key Vault Impl."
         X509Certificate2: Codeunit X509Certificate2;
         EnvironmentInformation: Codeunit "Environment Information";
         CertificateThumbprint: Text;
+        EmptySecretText: SecretText;
     begin
         if CachedCertificatesDictionary.ContainsKey(CertificateName) then begin
             Certificate := CachedCertificatesDictionary.Get(CertificateName);
@@ -136,7 +145,7 @@ codeunit 2202 "Azure Key Vault Impl."
         end;
         Certificate := NavAzureKeyVaultClient.GetAzureKeyVaultCertificate(CertificateName);
         if EnvironmentInformation.IsSaaS() then begin
-            X509Certificate2.GetCertificateThumbprint(Certificate, '', CertificateThumbprint);
+            X509Certificate2.GetCertificateThumbprint(Certificate, EmptySecretText, CertificateThumbprint);
             if CertificateThumbprint <> '' then
                 Session.LogMessage('0000C17', StrSubstNo(CertificateInfoTxt, CertificateName, CertificateThumbprint), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', AzureKeyVaultTxt);
         end;

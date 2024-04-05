@@ -12,7 +12,7 @@ using System.TestLibraries.Security.AccessControl;
 
 codeunit 134699 "Email Address Lookup Tests"
 {
-    SubType = Test;
+    Subtype = Test;
     Permissions = tabledata "Email Outbox" = rd,
                   tabledata "Sent Email" = rd,
                   tabledata "Email Address Lookup" = rimd;

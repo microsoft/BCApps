@@ -14,10 +14,14 @@ codeunit 309 "No. Series - Batch Impl."
 
     var
         TempGlobalNoSeriesLine: Record "No. Series Line" temporary;
-        LockedNoSeriesLine: Record "No. Series Line";
         SimulationMode: Boolean;
         CannotSaveNonExistingNoSeriesErr: Label 'Cannot save No. Series Line that does not exist: %1, %2', Comment = '%1 = No. Series Code, %2 = Line No.';
         CannotSaveWhileSimulatingNumbersErr: Label 'No. Series state cannot be saved while simulating numbers.';
+        NoSeriesBatchTxt: Label 'No. Series - Batch', Locked = true;
+        SimulationModeStartedTxt: Label 'No. Series simulation mode started.', Locked = true;
+        SavingSingleNoSeriesStateTxt: Label 'Saving single No. Series state.', Locked = true;
+        SavingAllNoSeriesStatesTxt: Label 'Saving all No. Series states.', Locked = true;
+        UpdatingNoSeriesLinesFromDbTxt: Label 'Updating No. Series lines from database.', Locked = true;
 
     procedure SetInitialState(TempNoSeriesLine: Record "No. Series Line" temporary)
     begin
@@ -59,7 +63,7 @@ codeunit 309 "No. Series - Batch Impl."
     var
         NoSeries: Codeunit "No. Series";
     begin
-        SetInitialState(TempNoSeriesLine);
+        SyncGlobalLineWithProvidedLine(TempNoSeriesLine, UsageDate);
         exit(NoSeries.PeekNextNo(TempGlobalNoSeriesLine, UsageDate));
     end;
 
@@ -77,7 +81,6 @@ codeunit 309 "No. Series - Batch Impl."
         NextNo: Code[20];
     begin
         SyncGlobalLineWithProvidedLine(TempNoSeriesLine, UsageDate);
-        LockedNoSeriesLine.ReadIsolation(IsolationLevel::UpdLock);
         NextNo := NoSeries.GetNextNo(TempGlobalNoSeriesLine, UsageDate, HideErrorsAndWarnings);
         TempNoSeriesLine := TempGlobalNoSeriesLine;
         exit(NextNo);
@@ -126,6 +129,10 @@ codeunit 309 "No. Series - Batch Impl."
 
     procedure SetSimulationMode()
     begin
+        if SimulationMode then
+            exit;
+
+        Session.LogMessage('0000MI2', SimulationModeStartedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesBatchTxt);
         SimulationMode := true;
     end;
 
@@ -135,6 +142,7 @@ codeunit 309 "No. Series - Batch Impl."
             Error(CannotSaveWhileSimulatingNumbersErr);
         if not TempGlobalNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.") then
             Error(CannotSaveNonExistingNoSeriesErr, TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
+        Session.LogMessage('0000MI3', SavingSingleNoSeriesStateTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesBatchTxt);
         UpdateNoSeriesLine(TempGlobalNoSeriesLine);
     end;
 
@@ -142,6 +150,7 @@ codeunit 309 "No. Series - Batch Impl."
     begin
         if SimulationMode then
             Error(CannotSaveWhileSimulatingNumbersErr);
+        Session.LogMessage('0000MI4', SavingAllNoSeriesStatesTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesBatchTxt);
         TempGlobalNoSeriesLine.Reset();
         if TempGlobalNoSeriesLine.FindSet() then
             repeat
@@ -151,11 +160,14 @@ codeunit 309 "No. Series - Batch Impl."
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"No. Series Line", 'm')]
     local procedure UpdateNoSeriesLine(var TempNoSeriesLine: Record "No. Series Line" temporary)
+    var
+        NoSeriesLine: Record "No. Series Line";
     begin
-        LockedNoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
-        LockedNoSeriesLine.TransferFields(TempNoSeriesLine);
-        LockedNoSeriesLine.Modify(true);
-        TempNoSeriesLine := LockedNoSeriesLine;
+        Session.LogMessage('0000MI5', UpdatingNoSeriesLinesFromDbTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesBatchTxt);
+        NoSeriesLine.Get(TempNoSeriesLine."Series Code", TempNoSeriesLine."Line No.");
+        NoSeriesLine.TransferFields(TempNoSeriesLine);
+        NoSeriesLine.Modify(true);
+        TempNoSeriesLine := NoSeriesLine;
         TempNoSeriesLine.Modify();
     end;
 

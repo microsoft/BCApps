@@ -16,8 +16,7 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
     var
         [NonDebuggable]
         ClientId: Text;
-        [NonDebuggable]
-        ClientSecret: Text;
+        ClientSecret: SecretText;
         [NonDebuggable]
         AuthCodeErr: Text;
         [NonDebuggable]
@@ -27,8 +26,7 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
         AuthorityTxt: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/authorize', Comment = '%1 = Microsoft Entra tenant ID', Locked = true;
         BearerTxt: Label 'Bearer %1', Comment = '%1 - Token', Locked = true;
 
-    [NonDebuggable]
-    procedure SetParameters(NewEntraTenantId: Text; NewClientId: Text; NewClientSecret: Text; NewScopes: List of [Text])
+    procedure SetParameters(NewEntraTenantId: Text; NewClientId: Text; NewClientSecret: SecretText; NewScopes: List of [Text])
     begin
         EntraTenantId := NewEntraTenantId;
         ClientId := NewClientId;
@@ -36,40 +34,41 @@ codeunit 9144 "SharePoint Authorization Code" implements "SharePoint Authorizati
         Scopes := NewScopes;
     end;
 
-    [NonDebuggable]
     procedure Authorize(var HttpRequestMessage: HttpRequestMessage);
     var
         Headers: HttpHeaders;
     begin
         HttpRequestMessage.GetHeaders(Headers);
-        Headers.Add('Authorization', StrSubstNo(BearerTxt, GetToken()));
+        Headers.Add('Authorization', SecretStrSubstNo(BearerTxt, GetToken()));
     end;
 
-    [NonDebuggable]
-    local procedure GetToken(): Text
+    local procedure GetToken(): SecretText
     var
         ErrorText: Text;
-        [NonDebuggable]
-        AccessToken: Text;
+        AccessToken: SecretText;
     begin
         if not AcquireToken(AccessToken, ErrorText) then
             Error(ErrorText);
         exit(AccessToken);
     end;
 
-    [NonDebuggable]
-    local procedure AcquireToken(var AccessToken: Text; var ErrorText: Text): Boolean
+    local procedure AcquireToken(var AccessToken: SecretText; var ErrorText: Text): Boolean
     var
         OAuth2: Codeunit OAuth2;
         IsHandled, IsSuccess : Boolean;
+        EventAccessToken: Text;
     begin
-        OnBeforeGetToken(IsHandled, IsSuccess, ErrorText, AccessToken);
+        if not IsHandled then begin
+            OnBeforeGetToken(IsHandled, IsSuccess, ErrorText, EventAccessToken);
+            if IsHandled then
+                AccessToken := EventAccessToken;
+        end;
 
         if not IsHandled then begin
-            if (not OAuth2.AcquireAuthorizationCodeTokenFromCache(ClientId, ClientSecret, '', StrSubstNo(AuthorityTxt, EntraTenantId), Scopes, AccessToken)) or (AccessToken = '') then
+            if (not OAuth2.AcquireAuthorizationCodeTokenFromCache(ClientId, ClientSecret, '', StrSubstNo(AuthorityTxt, EntraTenantId), Scopes, AccessToken)) or (AccessToken.IsEmpty()) then
                 OAuth2.AcquireTokenByAuthorizationCode(ClientId, ClientSecret, StrSubstNo(AuthorityTxt, EntraTenantId), '', Scopes, "Prompt Interaction"::None, AccessToken, AuthCodeErr);
 
-            IsSuccess := AccessToken <> '';
+            IsSuccess := not AccessToken.IsEmpty();
 
             if AuthCodeErr <> '' then
                 ErrorText := AuthCodeErr

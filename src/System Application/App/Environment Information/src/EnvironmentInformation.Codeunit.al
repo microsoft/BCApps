@@ -118,4 +118,13 @@ codeunit 457 "Environment Information"
         EnvironmentInformationImpl.EnableM365Collaboration();
     end;
 
+    /// <summary>
+    /// Gets the linked Power Platform environment id.
+    /// </summary>
+    /// <returns>The linked Power Platform environment id, if set.</returns>
+    procedure GetLinkedPowerPlatformEnvironmentId(): Text
+    begin
+        exit(EnvironmentInformationImpl.GetLinkedPowerPlatformEnvironmentId());
+    end;
+
 }

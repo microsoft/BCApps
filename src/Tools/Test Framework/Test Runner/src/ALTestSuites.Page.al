@@ -10,7 +10,8 @@ page 130450 "AL Test Suites"
     PageType = List;
     SaveValues = true;
     SourceTable = "AL Test Suite";
-    Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;
+    Permissions = tabledata "AL Test Suite" = rimd,
+                  tabledata "Test Method Line" = rimd;
 
     layout
     {
@@ -27,7 +28,7 @@ page 130450 "AL Test Suites"
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the description of the test suite.';
+                    ToolTip = 'Specifies the description of the test suite.';
                 }
                 field("Tests to Execute"; Rec."Tests to Execute")
                 {
@@ -37,7 +38,7 @@ page 130450 "AL Test Suites"
                 field(Failures; Rec.Failures)
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the number fo failures.';
+                    ToolTip = 'Specifies the number fo failures.';
                 }
                 field("Tests not Executed"; Rec."Tests not Executed")
                 {

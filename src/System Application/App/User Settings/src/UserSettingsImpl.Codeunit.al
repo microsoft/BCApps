@@ -6,11 +6,12 @@
 namespace System.Environment.Configuration;
 
 using System;
-using System.Security.User;
-using System.Environment;
 using System.Azure.Identity;
+using System.Environment;
+using System.Feedback;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Security.User;
 
 codeunit 9175 "User Settings Impl."
 {
@@ -135,6 +136,7 @@ codeunit 9175 "User Settings Impl."
 
         GetAppSettings(UserSecurityID, ApplicationUserSettings);
         UserSettingsRec."Teaching Tips" := ApplicationUserSettings."Teaching Tips";
+        UserSettingsRec."Legacy Action Bar" := ApplicationUserSettings."Legacy Action Bar";
 
         if not UserSettingsRec.Insert() then
             UserSettingsRec.Modify();
@@ -175,6 +177,7 @@ codeunit 9175 "User Settings Impl."
 
         GetAppSettings(NewUserSettings."User Security ID", ApplicationUserSettings);
         ApplicationUserSettings."Teaching Tips" := NewUserSettings."Teaching Tips";
+        ApplicationUserSettings."Legacy Action Bar" := NewUserSettings."Legacy Action Bar";
         ApplicationUserSettings.Modify();
     end;
 
@@ -228,6 +231,13 @@ codeunit 9175 "User Settings Impl."
             GetAppSettings(UserSecurityId(), ApplicationUserSettings);
             ApplicationUserSettings."Teaching Tips" := NewUserSettings."Teaching Tips";
             ApplicationUserSettings.Modify();
+        end;
+
+        if OldUserSettings."Legacy Action Bar" <> NewUserSettings."Legacy Action Bar" then begin
+            GetAppSettings(UserSecurityId(), ApplicationUserSettings);
+            ApplicationUserSettings."Legacy Action Bar" := NewUserSettings."Legacy Action Bar";
+            ApplicationUserSettings.Modify();
+            ShouldRefreshSession := true;
         end;
 
         if ShouldRefreshSession then
@@ -319,6 +329,7 @@ codeunit 9175 "User Settings Impl."
     begin
         ApplicationUserSettings."User Security ID" := UserSecurityID;
         ApplicationUserSettings."Teaching Tips" := true;
+        ApplicationUserSettings."Legacy Action Bar" := false;
         ApplicationUserSettings.Insert();
     end;
 
@@ -334,38 +345,77 @@ codeunit 9175 "User Settings Impl."
             InitializePlatformSettings(UserSecurityID, UserPersonalization);
     end;
 
-    procedure GetUsersFullName(UserSecurityId: Guid): Text
+    procedure GetUsersFullName(UserSecurityID: Guid): Text
     var
         User: Record User;
     begin
-        if User.Get(UserSecurityId) then
+        if User.Get(UserSecurityID) then
             exit(User."Full Name");
     end;
 
-    procedure TeachingTipsEnabled(UserSecurityId: Guid): Boolean
+    procedure TeachingTipsEnabled(UserSecurityID: Guid): Boolean
     var
         ApplicationUserSettings: Record "Application User Settings";
     begin
-        GetAppSettings(UserSecurityId, ApplicationUserSettings);
+        GetAppSettings(UserSecurityID, ApplicationUserSettings);
         exit(ApplicationUserSettings."Teaching Tips");
     end;
 
-    procedure DisableTeachingTips(UserSecurityId: Guid)
+    procedure DisableTeachingTips(UserSecurityID: Guid)
     var
         ApplicationUserSettings: Record "Application User Settings";
     begin
-        GetAppSettings(UserSecurityId, ApplicationUserSettings);
+        GetAppSettings(UserSecurityID, ApplicationUserSettings);
         ApplicationUserSettings."Teaching Tips" := false;
         ApplicationUserSettings.Modify();
     end;
 
-    procedure EnableTeachingTips(UserSecurityId: Guid)
+    procedure EnableTeachingTips(UserSecurityID: Guid)
     var
         ApplicationUserSettings: Record "Application User Settings";
     begin
-        GetAppSettings(UserSecurityId, ApplicationUserSettings);
+        GetAppSettings(UserSecurityID, ApplicationUserSettings);
         ApplicationUserSettings."Teaching Tips" := true;
         ApplicationUserSettings.Modify();
+    end;
+
+    procedure IsLegacyActionBarEnabled(UserSecurityID: Guid): Boolean
+    var
+        ApplicationUserSettings: Record "Application User Settings";
+    begin
+        GetAppSettings(UserSecurityID, ApplicationUserSettings);
+        exit(ApplicationUserSettings."Legacy Action Bar");
+    end;
+
+    procedure DisableLegacyActionBar(UserSecurityID: Guid)
+    var
+        ApplicationUserSettings: Record "Application User Settings";
+    begin
+        GetAppSettings(UserSecurityID, ApplicationUserSettings);
+        ApplicationUserSettings."Legacy Action Bar" := false;
+        ApplicationUserSettings.Modify();
+    end;
+
+    procedure EnableLegacyActionBar(UserSecurityID: Guid)
+    var
+        ApplicationUserSettings: Record "Application User Settings";
+    begin
+        ShowLegacyActionBarSurvey();
+        GetAppSettings(UserSecurityID, ApplicationUserSettings);
+        ApplicationUserSettings."Legacy Action Bar" := true;
+        ApplicationUserSettings.Modify();
+    end;
+
+    procedure ShowLegacyActionBarSurvey()
+    var
+        CustomerExperienceSurvey: Codeunit "Customer Experience Survey";
+        FormsProId: Text;
+        FormsProEligibilityId: Text;
+        IsEligible: Boolean;
+    begin
+        if CustomerExperienceSurvey.RegisterEventAndGetEligibility('modernactionbar_event', 'modernactionbar', FormsProId, FormsProEligibilityId, IsEligible) then
+            if IsEligible then
+                CustomerExperienceSurvey.RenderSurvey('modernactionbar', FormsProId, FormsProEligibilityId);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAutoStartTours, '', false, false)]
@@ -495,5 +545,11 @@ codeunit 9175 "User Settings Impl."
             UserPersonalization.Scope := TempAllProfile.Scope;
             UserPersonalization.CalcFields("Role");
         end;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetIsLegacyActionBarEnabled', '', false, false)]
+    local procedure GetIsLegacyActionBarEnabled(var IsEnabled: Boolean)
+    begin
+        IsEnabled := IsLegacyActionBarEnabled(UserSecurityId());
     end;
 }

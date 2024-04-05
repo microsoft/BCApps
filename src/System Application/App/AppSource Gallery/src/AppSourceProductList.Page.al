@@ -62,18 +62,17 @@ page 2515 "AppSource Product List"
                     Caption = 'Installed';
                     ToolTip = 'Specifies whether this app is installed.';
                 }
-                field(RatingAverage; Rec.RatingAverage)
-                {
-                    ToolTip = 'Specifies a value from 0-5 indicating the average user rating.';
-                }
                 field(Popularity; Rec.Popularity)
                 {
                     ToolTip = 'Specifies a value from 0-10 indicating the popularity of the offer.';
                 }
+                field(RatingAverage; Rec.RatingAverage)
+                {
+                    ToolTip = 'Specifies a value from 0-5 indicating the average user rating.';
+                }
                 field(RatingCount; Rec.RatingCount)
                 {
                     ToolTip = 'Specifies the number of users that have rated the offer.';
-                    Visible = false;
                 }
                 field(LastModifiedDateTime; Rec.LastModifiedDateTime)
                 {
@@ -87,6 +86,7 @@ page 2515 "AppSource Product List"
                 field(PublisherType; Rec.PublisherType)
                 {
                     ToolTip = 'Specifies whether the offer is a Microsoft or third party product.';
+                    Visible = false;
                 }
             }
         }
@@ -107,7 +107,7 @@ page 2515 "AppSource Product List"
             action(OpenAppSource)
             {
                 Caption = 'View AppSource';
-                Scope = Repeater;
+                Scope = Page;
                 Image = OpenWorksheet;
                 ToolTip = 'View all apps in AppSource';
 
@@ -125,23 +125,15 @@ page 2515 "AppSource Product List"
                 ToolTip = 'View selected app in AppSource';
 
                 trigger OnAction()
-                var
-                    SelectedRec: Record "AppSource Product";
                 begin
-                    CurrPage.SetSelectionFilter(SelectedRec);
-                    SelectedRec.Next();
-
-                    if (SelectedRec.Count() = 1) then
-                        AppSourceProductManager.OpenInAppSource(SelectedRec.UniqueProductID)
-                    else
-                        Error(SelectOneRowErrLbl);
+                    AppSourceProductManager.OpenAppInAppSource(Rec.UniqueProductID)
                 end;
             }
 
             action(ShowSettings)
             {
                 Caption = 'Edit User Settings';
-                RunObject = Page "User Settings";
+                RunObject = page "User Settings";
                 Image = UserSetup;
                 ToolTip = 'Locale will be used to determine the market and language will be used to determine the language of the app details listed here.';
             }
@@ -158,8 +150,7 @@ page 2515 "AppSource Product List"
 
                 trigger OnAction()
                 begin
-                    Rec.ReloadAllProducts();
-                    CurrPage.Update();
+                    ReloadAllProducts();
                 end;
 
             }
@@ -192,17 +183,27 @@ page 2515 "AppSource Product List"
         ExtensionManagement: Codeunit "Extension Management";
         AppSourceProductManager: Codeunit "AppSource Product Manager";
         CurrentRecordCanBeUninstalled: Boolean;
-        SelectOneRowErrLbl: Label 'Action requires exactly one row to be selected.';
 
     trigger OnOpenPage()
     begin
-        Rec.ReloadAllProducts();
+        Rec.SetCurrentKey(DisplayName);
+        ReloadAllProducts();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
         CurrentRecordCanBeUninstalled := false;
-        if (Rec.AppID <> '') then
+        if (not IsNullGuid(Rec.AppID)) then
             CurrentRecordCanBeUninstalled := ExtensionManagement.IsInstalledByAppID(Rec.AppID);
+    end;
+
+    local procedure ReloadAllProducts()
+    var
+        AppSourceProductTemp: Record "AppSource Product";
+    begin
+        AppSourceProductTemp.Copy(Rec);
+        AppSourceProductManager.GetProductsAndPopulateRecord(AppSourceProductTemp);
+        Rec.Copy(AppSourceProductTemp, true);
+        Rec.FindFirst();
     end;
 }

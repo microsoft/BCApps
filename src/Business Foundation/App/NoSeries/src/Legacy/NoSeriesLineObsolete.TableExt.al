@@ -138,12 +138,32 @@ tableextension 309 NoSeriesLineObsolete extends "No. Series Line"
     [Obsolete('Use GetNextNo in No. Series codeunit instead.', '24.0')]
     procedure GetNextSequenceNo(ModifySeries: Boolean): Code[20]
     var
-        NoSeries: Interface "No. Series - Single";
+        NoSeriesSequenceImpl: Codeunit "No. Series - Sequence Impl.";
+        NewNo: BigInteger;
     begin
-        NoSeries := Enum::"No. Series Implementation"::Sequence;
-        if ModifySeries then
-            exit(NoSeries.GetNextNo(Rec, WorkDate(), false));
-        exit(NoSeries.PeekNextNo(Rec, WorkDate()));
+        TestField("Allow Gaps in Nos.");
+        TestField("Sequence Name");
+        if not TryGetNextSequenceNo(ModifySeries, NewNo) then begin
+            if not NumberSequence.Exists("Sequence Name") then
+                NoSeriesSequenceImpl.CreateNewSequence(Rec);
+            TryGetNextSequenceNo(ModifySeries, NewNo);
+        end;
+#pragma warning disable AL0432
+        exit(GetFormattedNo(NewNo));
+#pragma warning restore AL0432
+    end;
+
+    [TryFunction]
+    local procedure TryGetNextSequenceNo(ModifySeries: Boolean; var NewNo: BigInteger)
+    begin
+        if ModifySeries then begin
+            NewNo := NumberSequence.Next("Sequence Name");
+            if NewNo < "Starting Sequence No." then  // first no. ?
+                NewNo := NumberSequence.Next("Sequence Name");
+        end else begin
+            NewNo := NumberSequence.Current("Sequence Name");
+            NewNo += "Increment-by No.";
+        end;
     end;
 
     [Obsolete('This functionality will be removed without public replacement.', '24.0')]
@@ -151,7 +171,7 @@ tableextension 309 NoSeriesLineObsolete extends "No. Series Line"
     var
         NoSeriesSequenceImpl: Codeunit "No. Series - Sequence Impl.";
     begin
-        exit(NoSeriesSequenceImpl.ExtractNoFromCode(NumberCode));
+        exit(NoSeriesSequenceImpl.ExtractNoFromCode(NumberCode, Rec."Series Code"));
     end;
 
     [Obsolete('This functionality will be removed without public replacement.', '24.0')]

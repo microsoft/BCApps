@@ -24,6 +24,8 @@ codeunit 132917 "Stor. Serv. Shared Key Test"
         StorageAccount: Text;
         Uri: Text;
         AuthorizationValue: array[10] of Text;
+        SharedKey: Text;
+        SecretSharedKey: SecretText;
     begin
         // [Given] A storage account and an HTTP request with random URI
         StorageAccount := Any.AlphabeticText(5);
@@ -32,7 +34,9 @@ codeunit 132917 "Stor. Serv. Shared Key Test"
         HttpRequest.Method('GET');
 
         // [When] Authorizing the HTTP request using Shared Key authorization
-        SharedKeyAuthorization := StorageServiceAuthorization.CreateSharedKey('8jOLRYYU9UOaxhW1yeVUbA==');
+        SharedKey := '8jOLRYYU9UOaxhW1yeVUbA==';
+        SecretSharedKey := SharedKey;
+        SharedKeyAuthorization := StorageServiceAuthorization.CreateSharedKey(SecretSharedKey);
         SharedKeyAuthorization.Authorize(HttpRequest, StorageAccount);
 
         // [Then] The Authorization header is present on the HTTP request and nothing else has changed

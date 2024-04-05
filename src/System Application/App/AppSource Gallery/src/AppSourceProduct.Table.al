@@ -44,13 +44,13 @@ table 2515 "AppSource Product"
         }
         field(9; RatingCount; Integer)
         {
-            Caption = '# Ratings';
+            Caption = 'No. Of Ratings';
         }
         field(10; ProductType; Text[200])
         {
             Caption = 'Product Type';
         }
-        field(11; AppID; Text[36])
+        field(11; AppID; Guid)
         {
             Caption = 'Application Identifier';
         }
@@ -98,14 +98,4 @@ table 2515 "AppSource Product"
         {
         }
     }
-
-    procedure ReloadAllProducts()
-    var
-        AppSourceProductManager: Codeunit "AppSource Product Manager";
-    begin
-        Clear(Rec);
-        Rec.DeleteAll();
-        AppSourceProductManager.GetProductsAndPopulateRecord(Rec);
-        Rec.SetCurrentKey(Rec.DisplayName);
-    end;
 }

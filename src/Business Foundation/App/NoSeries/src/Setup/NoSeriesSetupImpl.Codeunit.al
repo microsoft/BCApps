@@ -63,6 +63,31 @@ codeunit 305 "No. Series - Setup Impl."
         Implementation := NoSeriesLine.Implementation;
     end;
 
+    procedure ShowNoSeriesWithWarningsOnly(var NoSeries: Record "No. Series")
+    var
+        NoSeriesLine: Record "No. Series Line";
+        NoSeriesCodeunit: Codeunit "No. Series";
+        LastNoUsedForLine: Code[20];
+    begin
+        if NoSeries.FindSet() then
+            repeat
+                NoSeriesLine.SetRange("Series Code", NoSeries.Code);
+                if NoSeriesLine.FindSet() then
+                    repeat
+                        if (NoSeriesLine."Warning No." <> '') and NoSeriesLine.Open then begin
+                            LastNoUsedForLine := NoSeriesCodeunit.GetLastNoUsed(NoSeriesLine);
+                            if (LastNoUsedForLine <> '') and (LastNoUsedForLine >= NoSeriesLine."Warning No.") then begin
+                                NoSeries.Mark(true);
+                                break;
+                            end;
+                        end;
+                    until NoSeriesLine.Next() = 0
+                else
+                    NoSeries.Mark(true);
+            until NoSeries.Next() = 0;
+        NoSeries.MarkedOnly(true);
+    end;
+
     local procedure SetNoSeriesCurrentLineFilters(var NoSeriesRec: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; ResetForDrillDown: Boolean)
     var
         NoSeries: Codeunit "No. Series";
@@ -195,6 +220,11 @@ codeunit 305 "No. Series - Setup Impl."
 #if not CLEAN24
 #pragma warning disable AL0432
         NoSeriesManagement: Codeunit NoSeriesManagement;
+#pragma warning restore AL0432
+#endif
+        NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
+#if not CLEAN24
+#pragma warning disable AL0432
         IsHandled: Boolean;
 #pragma warning restore AL0432
 #endif
@@ -210,7 +240,7 @@ codeunit 305 "No. Series - Setup Impl."
 #endif
         if NewNo <> '' then begin
             if IncStr(NewNo) = '' then
-                Error(UnIncrementableStringErr, NewFieldCaption);
+                NoSeriesErrorsImpl.Throw(StrSubstNo(UnIncrementableStringErr, NewFieldCaption), NoSeriesLine, NoSeriesErrorsImpl.OpenNoSeriesLinesAction());
             NoSeriesLine2 := NoSeriesLine;
             if NewNo = GetNoText(NewNo) then
                 Length := 0
@@ -228,9 +258,7 @@ codeunit 305 "No. Series - Setup Impl."
             if (NewFieldCaption <> NoSeriesLine.FieldCaption("Last No. Used")) and
                (NoSeriesLine."Last No. Used" <> NoSeriesLine2."Last No. Used")
             then
-                Error(
-                  NumberFormatErr,
-                  NewFieldCaption, NoSeriesLine.FieldCaption("Last No. Used"));
+                NoSeriesErrorsImpl.Throw(StrSubstNo(NumberFormatErr, NewFieldCaption, NoSeriesLine.FieldCaption("Last No. Used")), NoSeriesLine, NoSeriesErrorsImpl.OpenNoSeriesLinesAction());
         end;
     end;
 
