@@ -37,11 +37,16 @@ codeunit 1492 "Edit in Excel Fld Filter Impl." implements "Edit in Excel Field F
         EdmType := NewEdmType;
     end;
 
+#if not CLEAN25
+#pragma warning disable AL0432
+    [Obsolete('Use AddFilterValueV2 instead, returns interface "Edit in Excel Field Filter" instead which supports getting filter collection type', '25.0')]
     procedure AddFilterValue(EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text): Interface "Edit in Excel Field Filter"
+#pragma warning restore AL0432
     begin
         AddFieldFilterValue(EditInExcelFilterType, FilterValue);
         exit(EditInExcelFieldFilter); // Reference back to self to allow builder pattern
     end;
+#endif
 
     procedure AddFilterValueV2(EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text): Interface "Edit in Excel Field Filter V2"
     begin

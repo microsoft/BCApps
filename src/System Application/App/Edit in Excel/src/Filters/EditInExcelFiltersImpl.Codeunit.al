@@ -42,7 +42,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
     procedure AddField(ODataFieldName: Text; EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text; EditInExcelEdmType: Enum "Edit in Excel Edm Type") EditinExcelFieldFilter: Codeunit "Edit in Excel Fld Filter Impl."
     begin
         EditinExcelFieldFilter := AddField(ODataFieldName, "Edit in Excel Filter Collection Type"::"and", EditInExcelEdmType);
-        Get(ODataFieldName).AddFilterValue(EditInExcelFilterType, FilterValue);
+        Get(ODataFieldName).AddFilterValueV2(EditInExcelFilterType, FilterValue);
     end;
 
     procedure Get(ODataFieldName: Text): Codeunit "Edit in Excel Fld Filter Impl."
@@ -137,7 +137,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
                             Session.LogMessage('0000I3X', FilterContainsMultipleOperatorsTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
                             exit; // OData does not support filtering on a field with both 'and' and 'or' hence if we see both, ignore the second type
                         end;
-                    Get(ODataFieldName).AddFilterValue(EditinExcelFilterType, FilterValue);
+                    Get(ODataFieldName).AddFilterValueV2(EditinExcelFilterType, FilterValue);
                 end;
         end;
     end;
