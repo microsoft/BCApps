@@ -892,10 +892,10 @@ codeunit 132594 "Guided Experience Test"
         GuidedExperience.ResetAssistedSetup(ObjectType::Page, Page::"Other Assisted Setup Test Page");
 
         // [THEN] Only the one that has been reset has status incomplete
-        Assert.IsFalse(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Other Assisted Setup Test Page"), 'Complete!');
+        Assert.IsFalse(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Other Assisted Setup Test Page"), 'The assisted setup that has been reset should be incomplete.');
 
         // [THEN] The other one is still completed
-        Assert.IsTrue(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"My Assisted Setup Test Page"), 'InComplete!');
+        Assert.IsTrue(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"My Assisted Setup Test Page"), 'The assisted setup that has not been reset should still be completed.');
     end;
 
     local procedure VerifyGuidedExperienceItemFields(GuidedExperienceItem: Record "Guided Experience Item"; Code: Code[300]; Version: Integer; ObjectTypeToRun: Enum "Guided Experience Object Type"; ObjectID: Integer; Link: Text[250]; Title: Text[2048]; ShortTitle: Text[2048]; Description: Text[1024]; ExpectedDuration: Integer; Completed: Boolean; GuidedExperienceType: Enum "Guided Experience Type"; AssistedSetupGroup: Enum "Assisted Setup Group"; HelpUrl: Text[250]; VideoUrl: Text[250]; VideoCategory: Enum "Video Category"; ManualSetupCategory: Enum "Manual Setup Category"; Keywords: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type"; SpotlightTourTexts: Dictionary of [Enum "Spotlight Tour Text", Text])
