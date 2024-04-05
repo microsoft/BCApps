@@ -10,7 +10,13 @@ using System;
 /// <summary>
 /// This codeunit provides an interface to running Edit in Excel for a specific page.
 /// </summary>
-codeunit 1492 "Edit in Excel Fld Filter Impl." implements "Edit in Excel Field Filter"
+#if not CLEAN25/// 
+#pragma warning disable AL0432
+codeunit 1492 "Edit in Excel Fld Filter Impl." implements "Edit in Excel Field Filter", "Edit in Excel Field Filter v2"
+#pragma warning restore AL0432
+#else
+codeunit 1492 "Edit in Excel Fld Filter Impl." implements "Edit in Excel Field Filter v2"
+#endif
 {
     Access = Internal;
     InherentEntitlements = X;
