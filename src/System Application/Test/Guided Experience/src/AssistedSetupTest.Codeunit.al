@@ -163,7 +163,6 @@ codeunit 132586 "Assisted Setup Test"
 
         // [WHEN] Setup is set to be Completed 
         AssistedSetupTestLibrary.SetStatusToCompleted(Page::"Other Assisted Setup Test Page");
-        AssistedSetupTestLibrary.SetStatusToCompleted(Page::"My Assisted Setup Test Page 2");
 
         // [WHEN] Reset is called
         GuidedExperience.ResetAssistedSetup(ObjectType::Page, Page::"Other Assisted Setup Test Page");
@@ -171,10 +170,30 @@ codeunit 132586 "Assisted Setup Test"
         // [THEN] Status is incomplete
         LibraryAssert.IsFalse(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Other Assisted Setup Test Page"), 'Complete!');
 
-        // [THEN] Status is still set to be Completed
-        LibraryAssert.IsTrue(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"My Assisted Setup Test Page 2"), 'InComplete!');
-
         UnbindSubscription(AssistedSetupTest);
+    end;
+
+    [Test]
+    procedure TestResetAssistedSetupConsiderFilter()
+    var
+        GuidedExperience: Codeunit "Guided Experience";
+        AssistedSetupTestLibrary: Codeunit "Assisted Setup Test Library";
+    begin
+        PermissionsMock.Set('Guided Exp Edit');
+        Initialize();
+
+        // [WHEN] More than one assisted setup is completed
+        AssistedSetupTestLibrary.SetStatusToCompleted(Page::"Other Assisted Setup Test Page");
+        AssistedSetupTestLibrary.SetStatusToCompleted(Page::"My Assisted Setup Test Page");
+
+        // [WHEN] Reset is called on one of them
+        GuidedExperience.ResetAssistedSetup(ObjectType::Page, Page::"Other Assisted Setup Test Page");
+
+        // [THEN] Only the one that has been reset has status incomplete
+        LibraryAssert.IsFalse(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Other Assisted Setup Test Page"), 'Complete!');
+
+        // [THEN] The other one is still completed
+        LibraryAssert.IsTrue(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"My Assisted Setup Test Page"), 'InComplete!');
     end;
 
     [Test]
@@ -229,9 +248,6 @@ codeunit 132586 "Assisted Setup Test"
 
         GuidedExperience.InsertAssistedSetup('Other Assisted Setup Test Page', 'Other Assisted Setup Test Page', '', 0, ObjectType::Page,
             Page::"Other Assisted Setup Test Page", AssistedSetupGroup::WithoutLinks, '', "Video Category"::Uncategorized, '');
-
-        GuidedExperience.InsertAssistedSetup('My Assisted Setup Test Page 2', 'My Assisted Setup Test Page 2', '', 0, ObjectType::Page,
-            Page::"My Assisted Setup Test Page 2", AssistedSetupGroup::WithoutLinks, '', "Video Category"::Uncategorized, '');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", 'OnAfterRunAssistedSetup', '', true, true)]
