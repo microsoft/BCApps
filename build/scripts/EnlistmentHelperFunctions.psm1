@@ -213,8 +213,15 @@ function Get-PackageLatestVersion() {
                 $storageAccountOrder = @("bcinsider")
             }
 
+            $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $minimumVersion -storageAccountOrder $storageAccountOrder
 
-            return Get-LatestBCArtifactVersion -minimumVersion $minimumVersion -storageAccountOrder $storageAccountOrder
+            if ($latestArtifactUrl -and ($latestArtifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
+                $latestVersion = $Matches[0]
+            } else {
+                throw "Could not find BCArtifact version (for min version: $minimumVersion)"
+            }
+
+            return $latestVersion
         }
         default {
             throw "Unknown package source: $($package.Source)"
@@ -227,8 +234,10 @@ function Get-PackageLatestVersion() {
     Gets the latest version of a BC artifact
 .Parameter MinimumVersion
     The minimum version of the artifact to look for
+.Parameter StorageAccountOrder
+    The order of storage accounts to look for the artifact in
 #>
-function Get-LatestBCArtifactVersion
+function Get-LatestBCArtifactUrl
 (
     [Parameter(Mandatory=$true)]
     $minimumVersion,
@@ -243,13 +252,11 @@ function Get-LatestBCArtifactVersion
         $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount $storageAccountOrder[1] -accept_insiderEula
     }
 
-    if ($artifactUrl -and ($artifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
-        $latestVersion = $Matches[0]
-    } else {
-        throw "Could not find BCArtifact version (for min version: $minimumVersion)"
+    if(-not $artifactUrl) {
+        throw "No artifact found for version $minimumVersion"
     }
 
-    return $latestVersion
+    return $artifactUrl
 }
 
 <#
