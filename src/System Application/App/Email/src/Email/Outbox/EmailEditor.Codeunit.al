@@ -164,11 +164,13 @@ codeunit 8906 "Email Editor"
         Instream: InStream;
     begin
         UploadIntoStream('', '', '', FileName, Instream);
-        if FileName <> '' then
-            UploadAttachmentFromStream(EmailMessageImpl, FileName, Instream);
+        if FileName = '' then
+            exit;
+
+        UploadAttachment(EmailMessageImpl, FileName, Instream);
     end;
 
-    internal procedure UploadAttachmentFromStream(EmailMessageImpl: Codeunit "Email Message Impl."; FileName: Text; Instream: InStream)
+    procedure UploadAttachment(EmailMessageImpl: Codeunit "Email Message Impl."; FileName: Text; Instream: InStream)
     var
         AttachmentName, ContentType : Text[250];
         AttachmentSize: Integer;
