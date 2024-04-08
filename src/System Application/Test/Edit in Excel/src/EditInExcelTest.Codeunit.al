@@ -36,7 +36,7 @@ codeunit 132525 "Edit in Excel Test"
         TenantWebService.SetRange("Object ID", Page::"Edit in Excel List");
         TenantWebService.DeleteAll();
 
-        EditinExcelFilters.AddField('Id', Enum::"Edit in Excel Filter Type"::Equal, 'test', Enum::"Edit in Excel Edm Type"::"Edm.String");
+        EditinExcelFilters.AddFieldV2('Id', Enum::"Edit in Excel Filter Type"::Equal, 'test', Enum::"Edit in Excel Edm Type"::"Edm.String");
 
         EditInExcel.EditPageInExcel(CopyStr(EditInExcelList.Caption, 1, 240), Page::"Edit in Excel List", EditinExcelFilters);
 

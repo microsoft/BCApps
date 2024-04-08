@@ -27,9 +27,9 @@ codeunit 132526 "Edit in Excel Filters Test"
     begin
         FieldName := 'No_';
 
-        EditinExcelFilters.AddField(FieldName, "Edit in Excel Filter Collection Type"::"and", Enum::"Edit in Excel Edm Type"::"Edm.String");
-        EditinExcelFilters.Get(FieldName).AddFilterValue(Enum::"Edit in Excel Filter Type"::Equal, '10000');
-        EditinExcelFilters.Get(FieldName).AddFilterValue(Enum::"Edit in Excel Filter Type"::Equal, '10001');
+        EditinExcelFilters.AddFieldV2(FieldName, "Edit in Excel Filter Collection Type"::"and", Enum::"Edit in Excel Edm Type"::"Edm.String");
+        EditinExcelFilters.GetV2(FieldName).AddFilterValueV2(Enum::"Edit in Excel Filter Type"::Equal, '10000');
+        EditinExcelFilters.GetV2(FieldName).AddFilterValueV2(Enum::"Edit in Excel Filter Type"::Equal, '10001');
 
         EditInExcelFilter := EditinExcelFilters.GetV2(FieldName);
         EditInExcelFilterCollectionType := EditInExcelFilter.GetCollectionType();
@@ -46,9 +46,9 @@ codeunit 132526 "Edit in Excel Filters Test"
     begin
         FieldName := 'No_';
 
-        EditinExcelFilters.AddField(FieldName, "Edit in Excel Filter Collection Type"::"or", Enum::"Edit in Excel Edm Type"::"Edm.String");
-        EditinExcelFilters.Get(FieldName).AddFilterValue(Enum::"Edit in Excel Filter Type"::Equal, '10000');
-        EditinExcelFilters.Get(FieldName).AddFilterValue(Enum::"Edit in Excel Filter Type"::Equal, '10001');
+        EditinExcelFilters.AddFieldV2(FieldName, "Edit in Excel Filter Collection Type"::"or", Enum::"Edit in Excel Edm Type"::"Edm.String");
+        EditinExcelFilters.GetV2(FieldName).AddFilterValueV2(Enum::"Edit in Excel Filter Type"::Equal, '10000');
+        EditinExcelFilters.GetV2(FieldName).AddFilterValueV2(Enum::"Edit in Excel Filter Type"::Equal, '10001');
 
         EditInExcelFilter := EditinExcelFilters.GetV2(FieldName);
         EditInExcelFilterCollectionType := EditInExcelFilter.GetCollectionType();
