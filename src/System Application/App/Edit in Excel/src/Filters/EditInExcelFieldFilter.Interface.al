@@ -12,13 +12,9 @@ namespace System.Integration.Excel;
 interface "Edit in Excel Field Filter"
 {
     Access = Public;
-#if not CLEAN25
+
     ObsoleteState = Pending;
     ObsoleteTag = '25.0';
-#else
-    ObsoleteState = Removed;
-    ObsoleteTag = '28.0';
-#endif
     ObsoleteReason = 'Replaced by "Edit in Excel Field Filter v2" with support for getting the collection type of the filter.';
 
     /// <summary>
