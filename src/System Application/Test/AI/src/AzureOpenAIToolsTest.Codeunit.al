@@ -49,9 +49,9 @@ codeunit 132686 "Azure OpenAI Tools Test"
         Function2Tool := GetTestFunction2Tool();
 #pragma warning disable AL0432
         AOAIChatMessages.AddTool(Function1Tool);
-#pragma warning restore AL0432
 
         Tools := AOAIChatMessages.GetTools();
+#pragma warning restore AL0432
 
         LibraryAssert.AreEqual(1, Tools.Count, 'Tool should exist');
         LibraryAssert.AreEqual(Format(Function1Tool), Format(Tools.Get(1)), 'Tool should have same value.');
@@ -83,7 +83,9 @@ codeunit 132686 "Azure OpenAI Tools Test"
         AOAIChatMessages.DeleteTool(1);
 #pragma warning restore AL0432
         LibraryAssert.IsTrue(AOAIChatMessages.ToolsExists(), 'Tool should exist');
+#pragma warning disable AL0432
         Tools := AOAIChatMessages.GetTools();
+#pragma warning restore AL0432
         Tools.Get(1, ToolObject);
         ToolObject.WriteTo(Payload);
         LibraryAssert.AreEqual(Format(GetTestFunction2Tool()), Payload, 'Tool should have same value.');

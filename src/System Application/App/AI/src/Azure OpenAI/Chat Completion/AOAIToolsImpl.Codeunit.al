@@ -83,6 +83,13 @@ codeunit 7778 "AOAI Tools Impl"
 
         Tools.RemoveAt(Id);
     end;
+
+    [NonDebuggable]
+    [Obsolete('Use GetTool() that takes in a function name and returns the interface.', '25.0')]
+    procedure GetTools(): List of [JsonObject]
+    begin
+        exit(Tools);
+    end;
 #endif
 
     procedure DeleteTool(Name: Text)
@@ -109,12 +116,6 @@ codeunit 7778 "AOAI Tools Impl"
 #endif
         Clear(Functions);
         Clear(FunctionNames);
-    end;
-
-    [NonDebuggable]
-    procedure GetTools(): List of [JsonObject]
-    begin
-        exit(Tools);
     end;
 
     [NonDebuggable]

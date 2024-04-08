@@ -269,15 +269,20 @@ codeunit 7763 "AOAI Chat Messages"
         exit(AOAIToolsImpl.GetFunctionTools());
     end;
 
+#if not CLEAN25
     /// <summary>
     /// Gets the list of Tools.
     /// </summary>
     /// <returns>List of Tools.</returns>
     [NonDebuggable]
+    [Obsolete('Use GetFunctionTool() that takes in a function name and returns the interface.', '25.0')]
     procedure GetTools(): List of [JsonObject]
     begin
+#pragma warning disable AL0432
         exit(AOAIToolsImpl.GetTools());
+#pragma warning restore AL0432
     end;
+#endif
 
     /// <summary>
     /// Checks if at least one Tools exists in the list.
