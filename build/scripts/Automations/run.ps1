@@ -27,6 +27,8 @@ param(
     [string] $Actor
 )
 
+$ErrorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
+
 function RunAutomation {
     param(
         [Parameter(Mandatory=$true)]
