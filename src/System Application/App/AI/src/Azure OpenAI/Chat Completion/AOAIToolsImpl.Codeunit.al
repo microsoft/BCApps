@@ -19,8 +19,8 @@ codeunit 7778 "AOAI Tools Impl"
 #if not CLEAN25
         [NonDebuggable]
         Tools: List of [JsonObject];
-#endif
         ToolIdDoesNotExistErr: Label 'Tool id does not exist.';
+#endif
         ToolObjectInvalidErr: Label '%1 object does not contain %2 property.', Comment = '%1 is the object name and %2 is the property that is missing.';
         ToolTypeErr: Label 'Tool type must be of function type.';
         Functions: array[20] of Interface "AOAI Function";
