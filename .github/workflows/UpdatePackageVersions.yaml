@@ -23,7 +23,7 @@ jobs:
 
       - name: Get Official Branches
         id: OfficialBranches
-        uses: ./.github/actions/GetOfficialBranches
+        uses: microsoft/BCApps/.github/actions/GetOfficialBranches@mazhelez/restructure-automations
 
   UpdatePackageVersions:
     name: "[${{ matrix.branch }}] Update Package Versions"
@@ -45,5 +45,7 @@ jobs:
       - name: Update Package Versions
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
-        run: |
-          build/scripts/Automations/run.ps1 -Include 'UpdateAppBaselines','UpdateAppTranslations' -Repository $ENV:GITHUB_REPOSITORY -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
+        uses: microsoft/BCApps/.github/actions/RunAutomation@mazhelez/restructure-automations
+        with:
+          automations: 'UpdatePackageVersions'
+          targetBranch: ${{ matrix.branch }}
