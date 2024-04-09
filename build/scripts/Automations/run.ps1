@@ -54,7 +54,7 @@ function RunAutomation {
         }
         $automationResult = . (Join-Path $automationPath 'run.ps1') -runParameters $runParameters
 
-        if ($automationResult -and ($automationResult.Keys -ccontains 'Files') -and ($automationResult.Keys -ccontains 'Message')) {
+        if ($automationResult -and ($automationResult.Files) -and ($automationResult.Message)) {
             $automationStatus = "Update available"
         }
     } catch {
@@ -128,7 +128,7 @@ foreach ($automationName in $automationNames) {
     Write-Host "::group::Run automation: $automationName"
 
     $automationRun = RunAutomation -AutomationName $automationName -Repository $Repository -TargetBranch $TargetBranch
-    Write-Host "::Notice::Automation $($automationRun.Name) completed. Status: $($automationRun.Status). Message: $($automationRun.Result.Message)"
+    Write-Host "::Notice::Automation $($automationRun.Name) completed. Status: $($automationRun.Status)."
 
     $automationRuns += $automationRun
     Write-Host "::endgroup::"
