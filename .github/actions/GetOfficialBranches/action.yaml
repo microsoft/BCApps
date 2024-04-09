@@ -29,7 +29,7 @@ runs:
         }
         Write-Host "Official branches: $($brancheNames -join ', ')"
 
-        $branchMatrix = "[$($brancheNames -join ',')]"
+        $branchMatrix = ConvertTo-Json $brancheNames -Compress
         Add-Content -Path $env:GITHUB_OUTPUT -Value "OfficialBranches=$branchMatrix"
 branding:
   icon: terminal
