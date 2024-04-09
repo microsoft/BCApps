@@ -9,7 +9,7 @@ runs:
   using: composite
   steps:
     - name: run
-      shell: powershell
+      shell: pwsh
       id: GetBranches
       run: |
         git fetch
