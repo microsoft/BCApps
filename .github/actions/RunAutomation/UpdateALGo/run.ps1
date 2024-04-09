@@ -15,13 +15,12 @@ gh workflow run --repo $repository --ref $targetBranch $workflowName
 # Get the workflow run URL to display in the message
 
 while((Get-Date) -lt $workflowRunTime.AddMinutes(1)) {
+    Start-Sleep -Seconds 5 # wait for 5 seconds for the workflow to start
     $workflowRun = gh run list --branch $targetBranch --event workflow_dispatch --workflow $workflowName --repo $repository --json createdAt,url --limit 1 | ConvertFrom-Json
 
-    if ($workflowRun.createdAt -gt $workflowRunTime) {
+    if ($workflowRun -and ($workflowRun.createdAt -gt $workflowRunTime)) {
         break
     }
-
-    Start-Sleep -Seconds 5
 }
 
 $message = ""
