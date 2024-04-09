@@ -236,9 +236,9 @@ codeunit 7763 "AOAI Chat Messages"
     /// </summary>
     /// <param name="Name">Name of the Function.</param>
     /// <error>Message id does not exist.</error>
-    procedure DeleteFunctionTool(Name: Text)
+    procedure DeleteFunctionTool(Name: Text): Boolean
     begin
-        AOAIToolsImpl.DeleteTool(Name);
+        exit(AOAIToolsImpl.DeleteTool(Name));
     end;
 
     /// <summary>
@@ -255,9 +255,9 @@ codeunit 7763 "AOAI Chat Messages"
     /// <param name="Name">Name of the function to get.</param>
     /// <returns>The function codeunit.</returns>
     /// <error>Tool not found.</error>
-    procedure GetFunctionTool(Name: Text): Interface "AOAI Function"
+    procedure GetFunctionTool(Name: Text; Function: Interface "AOAI Function"): Boolean
     begin
-        exit(AOAIToolsImpl.GetTool(Name));
+        exit(AOAIToolsImpl.GetTool(Name, Function));
     end;
 
     /// <summary>
@@ -322,6 +322,17 @@ codeunit 7763 "AOAI Chat Messages"
     procedure SetFunctionAsToolChoice(FunctionName: Text)
     begin
         AOAIToolsImpl.SetFunctionAsToolChoice(FunctionName);
+    end;
+
+    /// <summary>
+    /// Sets the function as the tool choice to be called.
+    /// </summary>
+    /// <param name="FunctionName">The function name parameter. </param>
+    /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
+    [NonDebuggable]
+    procedure SetFunctionAsToolChoice(Function: Interface "AOAI Function")
+    begin
+        AOAIToolsImpl.SetFunctionAsToolChoice(Function);
     end;
 
     /// <summary>

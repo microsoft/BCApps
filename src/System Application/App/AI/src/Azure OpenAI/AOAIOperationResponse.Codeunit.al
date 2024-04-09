@@ -24,6 +24,7 @@ codeunit 7770 "AOAI Operation Response"
         FunctionCallingName: Text;
         FunctionResult: Variant;
         FunctionError: Text;
+        FunctionErrorCallStack: Text;
 
     /// <summary>
     /// Check whether the operation was successful.
@@ -106,6 +107,15 @@ codeunit 7770 "AOAI Operation Response"
         exit(FunctionError);
     end;
 
+    /// <summary>
+    /// Get the error call stack from the function that was called.
+    /// </summary>
+    /// <returns>The error call stack from the function.</returns>
+    procedure GetFunctionErrorCallStack(): Text
+    begin
+        exit(FunctionErrorCallStack);
+    end;
+
     internal procedure SetOperationResponse(var ALCopilotOperationResponse: DotNet ALCopilotOperationResponse)
     begin
         Success := ALCopilotOperationResponse.IsSuccess();
@@ -117,11 +127,24 @@ codeunit 7770 "AOAI Operation Response"
             Error := GetLastErrorText();
     end;
 
-    internal procedure SetFunctionCallingResponse(NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionResult: Variant; NewFunctionError: Text)
+    internal procedure SetFunctionCallingResponse(NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
+    var
+        EmptyVariant: Variant;
+    begin
+        SetFunctionCallingResponse(NewFunctionCallSuccess, NewFunctionCalled, EmptyVariant, NewFunctionError, NewFunctionErrorCallStack);
+    end;
+
+    internal procedure SetFunctionCallingResponse(NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionResult: Variant)
+    begin
+        SetFunctionCallingResponse(NewFunctionCallSuccess, NewFunctionCalled, NewFunctionResult, '', '');
+    end;
+
+    local procedure SetFunctionCallingResponse(NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
     begin
         FunctionCallSuccess := NewFunctionCallSuccess;
         FunctionCallingName := NewFunctionCalled;
         FunctionResult := NewFunctionResult;
         FunctionError := NewFunctionError;
+        FunctionErrorCallStack := NewFunctionErrorCallStack;
     end;
 }

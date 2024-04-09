@@ -57,6 +57,7 @@ codeunit 7772 "Azure OpenAI Impl"
         TelemetryProhibitedCharactersTxt: Label 'Prohibited characters were removed from the prompt.', Locked = true;
         TelemetryTokenCountLbl: Label 'Metaprompt token count: %1, Prompt token count: %2, Total token count: %3', Comment = '%1 is the number of tokens in the metaprompt, %2 is the number of tokens in the prompt, %3 is the total number of tokens', Locked = true;
         TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
+        TelemetryFunctionCallingFailedErr: Label 'Function calling failed for function: %1', Comment = '%1 is the name of the function', Locked = true;
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
@@ -366,6 +367,9 @@ codeunit 7772 "Azure OpenAI Impl"
             ProcessFunctionCall(CompletionToken.AsArray(), ChatMessages, AOAIOperationResponse);
 
             AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+            if not AOAIOperationResponse.IsFunctionCallSuccess() then
+                FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIOperationResponse.GetFunctionName()), AOAIOperationResponse.GetFunctionError(), AOAIOperationResponse.GetFunctionErrorCallStack(), CustomDimensions);
+
             FeatureTelemetry.LogUsage('0000MFH', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryChatCompletionToolCallLbl, CustomDimensions);
         end;
     end;
@@ -400,11 +404,11 @@ codeunit 7772 "Azure OpenAI Impl"
         // Arguments are stored as a string in the JSON
         Arguments.ReadFrom(Token.AsValue().AsText());
 
-        AOAIFunction := ChatMessages.GetFunctionTool(FunctionName);
-        if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then
-            AOAIOperationResponse.SetFunctionCallingResponse(true, AOAIFunction.GetName(), FunctionResult, '')
-        else
-            AOAIOperationResponse.SetFunctionCallingResponse(false, AOAIFunction.GetName(), '', GetLastErrorText());
+        if ChatMessages.GetFunctionTool(FunctionName, AOAIFunction) then
+            if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then
+                AOAIOperationResponse.SetFunctionCallingResponse(true, AOAIFunction.GetName(), FunctionResult)
+            else
+                AOAIOperationResponse.SetFunctionCallingResponse(false, AOAIFunction.GetName(), GetLastErrorText(), GetLastErrorCallStack());
     end;
 
     [TryFunction]

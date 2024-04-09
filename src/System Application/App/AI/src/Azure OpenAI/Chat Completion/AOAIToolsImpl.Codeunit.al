@@ -12,6 +12,8 @@ codeunit 7778 "AOAI Tools Impl"
     InherentPermissions = X;
 
     var
+        Functions: array[20] of Interface "AOAI Function";
+        FunctionNames: Dictionary of [Text, Integer];
         Initialized: Boolean;
         AddToolToPayload: Boolean;
         [NonDebuggable]
@@ -23,8 +25,7 @@ codeunit 7778 "AOAI Tools Impl"
 #endif
         ToolObjectInvalidErr: Label '%1 object does not contain %2 property.', Comment = '%1 is the object name and %2 is the property that is missing.';
         ToolTypeErr: Label 'Tool type must be of function type.';
-        Functions: array[20] of Interface "AOAI Function";
-        FunctionNames: Dictionary of [Text, Integer];
+        TooManyToolsAddedErr: Label 'Too many tools have been added. Maximum number of tools is %1', Comment = '%1 is the maximum number of tools that can be added.';
 
     procedure AddTool(Tool: Interface "AOAI Function")
     var
@@ -34,7 +35,7 @@ codeunit 7778 "AOAI Tools Impl"
         Index := FunctionNames.Count() + 1;
 
         if Index > ArrayLen(Functions) then
-            Error('Too many tools added. Maximum number of tools is %1', ArrayLen(Functions));
+            Error(TooManyToolsAddedErr, ArrayLen(Functions));
 
         ValidateTool(Tool.GetPrompt());
 
@@ -42,12 +43,13 @@ codeunit 7778 "AOAI Tools Impl"
         FunctionNames.Add(Tool.GetName(), Index);
     end;
 
-    procedure GetTool(Name: Text): Interface "AOAI Function"
+    procedure GetTool(Name: Text; var Function: Interface "AOAI Function"): Boolean
     begin
-        if FunctionNames.ContainsKey(Name) then
-            exit(Functions[FunctionNames.get(Name)]);
-
-        Error('Tool not found');
+        if FunctionNames.ContainsKey(Name) then begin
+            Function := Functions[FunctionNames.get(Name)];
+            exit(true);
+        end else
+            exit(false);
     end;
 
     procedure GetFunctionTools(): List of [Text]
@@ -85,19 +87,19 @@ codeunit 7778 "AOAI Tools Impl"
     end;
 
     [NonDebuggable]
-    [Obsolete('Use GetTool() that takes in a function name and returns the interface.', '25.0')]
+    [Obsolete('Use GetTool() that takes in a function name and var for AOAI Function interface.', '25.0')]
     procedure GetTools(): List of [JsonObject]
     begin
         exit(Tools);
     end;
 #endif
 
-    procedure DeleteTool(Name: Text)
+    procedure DeleteTool(Name: Text): Boolean
     var
         Index: Integer;
     begin
         if not FunctionNames.ContainsKey(Name) then
-            exit;
+            exit(false);
 
         Index := FunctionNames.get(Name);
         FunctionNames.Remove(Name);
@@ -107,6 +109,7 @@ codeunit 7778 "AOAI Tools Impl"
             FunctionNames.Set(Functions[Index].GetName(), Index);
         end;
         Clear(Functions[Index + 1]);
+        exit(true);
     end;
 
     procedure ClearTools()
@@ -173,7 +176,11 @@ codeunit 7778 "AOAI Tools Impl"
         ToolChoice := NewToolChoice;
     end;
 
-    [NonDebuggable]
+    procedure SetFunctionAsToolChoice(Function: Interface "AOAI Function")
+    begin
+        SetFunctionAsToolChoice(Function.GetName());
+    end;
+
     procedure SetFunctionAsToolChoice(FunctionName: Text)
     var
         ToolChoiceObject: JsonObject;
