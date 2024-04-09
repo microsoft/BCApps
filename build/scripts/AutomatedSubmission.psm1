@@ -1,4 +1,4 @@
-using module ..\GitHub\GitHubPullRequest.class.psm1
+using module .\GitHub\GitHubPullRequest.class.psm1
 
 <#
 .Synopsis
