@@ -10,7 +10,6 @@ using System.Reflection;
 using System.Integration;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
-using System.Environment.Configuration;
 
 codeunit 135150 "Data Classification Mgt. Tests"
 {
@@ -84,7 +83,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         LibraryAssert.IsTrue(DataClassificationMgt.IsSupportedTable(Database::"Data Sensitivity"), 'Data Sensitivity is a supported table');
 
         // Verify a temporary table is not supported
-        LibraryAssert.IsFalse(DataClassificationMgt.IsSupportedTable(Database::"Checklist Item Buffer"), 'Checklist Item Buffer is not a supported table because it is temporary');
+        LibraryAssert.IsFalse(DataClassificationMgt.IsSupportedTable(Database::"Field Content Buffer"), 'Field Content Buffer is not a supported table because it is temporary');
     end;
 
     [Test]
