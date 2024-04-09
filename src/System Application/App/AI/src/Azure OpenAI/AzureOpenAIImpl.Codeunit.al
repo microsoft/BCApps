@@ -372,26 +372,25 @@ codeunit 7772 "Azure OpenAI Impl"
     [NonDebuggable]
     local procedure SendRequest(ModelType: Enum "AOAI Model Type"; AOAIAuthorization: Codeunit "AOAI Authorization"; Payload: Text; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
+        ALCopilotCapability: DotNet ALCopilotCapability;
         ALCopilotAuthorization: DotNet ALCopilotAuthorization;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         ALCopilotOperationResponse: DotNet ALCopilotOperationResponse;
         CapabilityName: Text;
-        CapabilityIndex: Integer;
     begin
         ClearLastError();
         ALCopilotAuthorization := ALCopilotAuthorization.Create(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
 
-        CheckCapabilitySet();
-        CapabilityIndex := CopilotSettings.Capability.Ordinals.IndexOf(CopilotSettings.Capability.AsInteger());
-        CapabilityName := CopilotSettings.Capability.Names.Get(CapabilityIndex);
+        CapabilityName := GetCapabilityName();
+        ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CapabilityName);
 
         case ModelType of
             Enum::"AOAI Model Type"::"Text Completions":
-                ALCopilotOperationResponse := ALCopilotFunctions.GenerateTextCompletion(Payload, ALCopilotAuthorization, CallerModuleInfo, CapabilityName);
+                ALCopilotOperationResponse := ALCopilotFunctions.GenerateTextCompletion(Payload, ALCopilotAuthorization, ALCopilotCapability);
             Enum::"AOAI Model Type"::Embeddings:
-                ALCopilotOperationResponse := ALCopilotFunctions.GenerateEmbedding(Payload, ALCopilotAuthorization, CallerModuleInfo, CapabilityName);
+                ALCopilotOperationResponse := ALCopilotFunctions.GenerateEmbedding(Payload, ALCopilotAuthorization, ALCopilotCapability);
             Enum::"AOAI Model Type"::"Chat Completions":
-                ALCopilotOperationResponse := ALCopilotFunctions.GenerateChatCompletion(Payload, ALCopilotAuthorization, CallerModuleInfo, CapabilityName);
+                ALCopilotOperationResponse := ALCopilotFunctions.GenerateChatCompletion(Payload, ALCopilotAuthorization, ALCopilotCapability);
             else
                 Error(InvalidModelTypeErr)
         end;
@@ -400,6 +399,24 @@ codeunit 7772 "Azure OpenAI Impl"
 
         if not ALCopilotOperationResponse.IsSuccess() then
             Error(GenerateRequestFailedErr);
+    end;
+
+    local procedure GetCapabilityName(): Text
+    var
+        CapabilityIndex: Integer;
+        CapabilityName: Text;
+    begin
+        CheckCapabilitySet();
+        CapabilityIndex := CopilotSettings.Capability.Ordinals.IndexOf(CopilotSettings.Capability.AsInteger());
+        if CapabilityIndex < 1 then
+            exit(Format(CopilotSettings.Capability, 0, 9));
+
+        CapabilityName := CopilotSettings.Capability.Names.Get(CapabilityIndex);
+
+        if CapabilityName = '' then
+            exit(Format(CopilotSettings.Capability, 0, 9));
+
+        exit(CapabilityName);
     end;
 
     [NonDebuggable]
