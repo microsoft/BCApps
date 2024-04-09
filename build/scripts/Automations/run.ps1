@@ -101,7 +101,7 @@ function OpenPR {
         $commitMessage = "$($automationResult.Message)"
         $commitFiles = $automationResult.Files
 
-        $prDescription += "`n`n$($automationResult.Message)"
+        $prDescription += "`n- $($automationResult.Message)" # Add message to PR description for each update as a list item
 
         git add $commitFiles | Out-Null
         git commit -m $commitMessage | Out-Null
