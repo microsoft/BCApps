@@ -16,12 +16,9 @@ jobs:
     outputs:
       UpdateBranches: ${{ steps.OfficialBranches.outputs.OfficialBranches }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Get Official Branches
         id: OfficialBranches
-        uses: ./.github/actions/GetOfficialBranches
+        uses: microsoft/BCApps/.github/actions/GetOfficialBranches@mazhelez/restructure-automations
 
   UpdateALGo:
     name: "[${{ matrix.branch }}] Update AL-Go"
@@ -41,5 +38,7 @@ jobs:
       - name: Update AL-Go System Files
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
-        run: |
-          build/scripts/Automations/run.ps1 -Include 'UpdateALGo' -Repository $ENV:GITHUB_REPOSITORY -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
+        uses: microsoft/BCApps/.github/actions/RunAutomation@mazhelez/restructure-automations
+        with:
+          automations: UpdateALGo
+          targetBranch: ${{ matrix.branch }}

@@ -18,12 +18,9 @@ jobs:
     outputs:
       UpdateBranches: ${{ steps.OfficialBranches.outputs.OfficialBranches }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Get Official Branches
         id: OfficialBranches
-        uses: ./.github/actions/GetOfficialBranches
+        uses: microsoft/BCApps/.github/actions/GetOfficialBranches@mazhelez/restructure-automations
 
   UpdateBCArtifactVersion:
     name: "[${{ matrix.branch }}] Update BC Artifact Version"
@@ -45,5 +42,7 @@ jobs:
       - name: Update BC Artifact Version
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
-        run: |
-            build/scripts/Automations/run.ps1 -Include 'UpdateBCArtifact' -Repository $ENV:GITHUB_REPOSITORY -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
+        uses: microsoft/BCApps/.github/actions/RunAutomation@mazhelez/restructure-automations
+        with:
+          automations: UpdateBCArtifact
+          targetBranch: ${{ matrix.branch }}
