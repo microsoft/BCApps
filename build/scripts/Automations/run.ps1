@@ -42,6 +42,7 @@ function RunAutomation {
     $automationPath = Join-Path $PSScriptRoot $AutomationName
     try {
         $automationResult = $null
+        $automationStatus = "No update available"
 
         # Run the automation
         # The automation is a script that returns an object with the following properties:
@@ -53,10 +54,7 @@ function RunAutomation {
         }
         $automationResult = . (Join-Path $automationPath 'run.ps1') -runParameters $runParameters
 
-        Write-Host "Automation result: $automationResult"
-
-        $automationStatus = "No update available"
-        if ($automationResult -and ($automationResult.Files) -and ($automationResult.Message)) {
+        if ($automationResult -and ($automationResult.Keys -ccontains 'Files') -and ($automationResult.Keys -ccontains 'Message')) {
             $automationStatus = "Update available"
         }
     } catch {
@@ -71,6 +69,7 @@ function RunAutomation {
         }
     }
 
+    Write-Host "Automation run: $automationRun"
     return $automationRun
 }
 
