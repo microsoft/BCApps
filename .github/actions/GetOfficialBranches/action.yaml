@@ -1,6 +1,11 @@
 name: Get Official Branches
 author: Microsoft Corporation
-description: Get the official branches in the repository
+description: Get the official branches in a repository
+inputs:
+  repository:
+    description: The repository to get the official branches from
+    required: true
+    default: ${{ github.repository }}
 outputs:
   OfficialBranches:
     description: The official branches in the repository
@@ -11,13 +16,14 @@ runs:
     - name: run
       shell: pwsh
       id: GetBranches
+      env:
+        _repository: ${{ inputs.repository }}
       run: |
-        git fetch
-        $branches = @(git for-each-ref --format="'%(refname:short)'" refs/remotes/origin/releases/ | % { $_ -replace 'origin/', '' })
-        $branches += "'main'"
-        Write-Host "Official branches: $branches"
+        $branches = gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" "/repos/$($env:_repository)/branches?protected=true&per_page=100" | ConvertFrom-Json
+        $brancheNames = $branches.name
+        Write-Host "Official branches: $brancheNames"
 
-        $branchMatrix = "[$($branches -join ',')]"
+        $branchMatrix = "[$($brancheNames -join ',')]"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "OfficialBranches=$branchMatrix"
 branding:
   icon: terminal
