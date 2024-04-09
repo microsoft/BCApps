@@ -69,7 +69,7 @@ function RunAutomation {
         }
     }
 
-    Write-Host "Automation run: $automationRun"
+    Write-Host "Automation run: $(ConvertTo-Json $automationRun)"
     return $automationRun
 }
 
