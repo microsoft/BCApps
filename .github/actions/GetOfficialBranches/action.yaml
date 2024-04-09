@@ -21,8 +21,13 @@ runs:
         _repository: ${{ inputs.repository }}
       run: |
         $branches = gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" "/repos/$($env:_repository)/branches?protected=true&per_page=100" | ConvertFrom-Json
-        $brancheNames = $branches.name
-        Write-Host "Official branches: $brancheNames"
+        $brancheNames = @($branches.name)
+
+        if (-not $brancheNames) {
+            Write-Host "No official branches found, using main as default"
+            $brancheNames += "main"
+        }
+        Write-Host "Official branches: $($brancheNames -join ', ')"
 
         $branchMatrix = "[$($brancheNames -join ',')]"
         Add-Content -Path $env:GITHUB_OUTPUT -Value "OfficialBranches=$branchMatrix"
