@@ -34,10 +34,15 @@ codeunit 7778 "AOAI Tools Impl"
         Initialize();
         Index := FunctionNames.Count() + 1;
 
+        ValidateTool(Tool.GetPrompt());
+
+        if FunctionNames.Get(Tool.GetName(), Index) then begin
+            Functions[Index] := Tool;
+            exit;
+        end;
+
         if Index > ArrayLen(Functions) then
             Error(TooManyToolsAddedErr, ArrayLen(Functions));
-
-        ValidateTool(Tool.GetPrompt());
 
         Functions[Index] := Tool;
         FunctionNames.Add(Tool.GetName(), Index);
