@@ -25,7 +25,8 @@ codeunit 7778 "AOAI Tools Impl"
 #endif
         ToolObjectInvalidErr: Label '%1 object does not contain %2 property.', Comment = '%1 is the object name and %2 is the property that is missing.';
         ToolTypeErr: Label 'Tool type must be of function type.';
-        TooManyToolsAddedErr: Label 'Too many tools have been added. Maximum number of tools is %1', Comment = '%1 is the maximum number of tools that can be added.';
+        TooManyFunctionsAddedErr: Label 'Too many functions have been added. Maximum number of functions is %1', Comment = '%1 is the maximum number of tools that can be added.';
+        FunctionAlreadyExistsErr: Label 'Function with the name, %1, already exists.', Comment = '%1 is the function name.';
 
     procedure AddTool(Tool: Interface "AOAI Function")
     var
@@ -36,13 +37,11 @@ codeunit 7778 "AOAI Tools Impl"
 
         ValidateTool(Tool.GetPrompt());
 
-        if FunctionNames.Get(Tool.GetName(), Index) then begin
-            Functions[Index] := Tool;
-            exit;
-        end;
+        if FunctionNames.ContainsKey(Tool.GetName()) then
+            Error(FunctionAlreadyExistsErr, Tool.GetName());
 
         if Index > ArrayLen(Functions) then
-            Error(TooManyToolsAddedErr, ArrayLen(Functions));
+            Error(TooManyFunctionsAddedErr, ArrayLen(Functions));
 
         Functions[Index] := Tool;
         FunctionNames.Add(Tool.GetName(), Index);
