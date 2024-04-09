@@ -25,9 +25,6 @@ jobs:
 
   UpdateALGo:
     name: "[${{ matrix.branch }}] Update AL-Go"
-    permissions:
-      contents: write
-      actions: write
     runs-on: windows-latest
     environment: Official-Build
     needs: GetBranches
