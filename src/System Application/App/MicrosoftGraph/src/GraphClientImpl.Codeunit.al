@@ -79,6 +79,16 @@ codeunit 9351 "Graph Client Impl."
         exit(HttpResponseMessage.GetIsSuccessStatusCode());
     end;
 
+    procedure Put(RelativeUriToResource: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; RequestHttpContent: Codeunit "Http Content"; var HttpResponseMessage: Codeunit "Http Response Message"): Boolean
+    var
+        GraphUriBuilder: Codeunit "Graph Uri Builder";
+    begin
+        GraphUriBuilder.Initialize(MicrosoftGraphBaseUrl, GraphAPIVersion, RelativeUriToResource, GraphOptionalParameters.GetQueryParameters());
+        GraphRequestHelper.SetRestClient(RestClient);
+        HttpResponseMessage := GraphRequestHelper.Put(GraphUriBuilder, GraphOptionalParameters, RequestHttpContent);
+        exit(HttpResponseMessage.GetIsSuccessStatusCode());
+    end;
+
     procedure Delete(RelativeUriToResource: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; var HttpResponseMessage: Codeunit "Http Response Message"): Boolean
     var
         GraphUriBuilder: Codeunit "Graph Uri Builder";

@@ -33,7 +33,7 @@ controladdin VideoPlayer
     /// <param name="AttributeValue">
     /// Value of the attribute
     /// </param>
-    procedure SetFrameAttribute(AttributeName: text; AttributeValue: Text);
+    procedure SetFrameAttribute(AttributeName: Text; AttributeValue: Text);
 
     /// <summary>
     /// Removes specified attribute

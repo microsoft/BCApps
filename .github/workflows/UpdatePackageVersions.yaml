@@ -9,6 +9,8 @@ defaults:
   run:
     shell: powershell
 
+permissions: read-all
+
 jobs:
   GetBranches:
     name: Get Branches
