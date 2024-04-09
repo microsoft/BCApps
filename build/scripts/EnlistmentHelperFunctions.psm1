@@ -169,6 +169,8 @@ function Set-ConfigValue() {
     For example, if the repo version is 1.2, the function will look for the latest version of the package that has major.minor = 1.2.
 .Parameter PackageName
     The name of the package
+.Returns
+    The latest version of the package
 #>
 function Get-PackageLatestVersion() {
     param(
@@ -285,6 +287,47 @@ function Update-BCArtifactVersion {
     }
 
     return $false
+}
+
+<#
+.Synopsis
+    Updates the version of a package in the Packages config file to the latest version available.
+.Parameter PackageName
+    The name of the package to update
+.Returns
+    The new version of the package, if it was updated
+#>
+function Update-PackageVersion
+(
+    [Parameter(Mandatory=$true)]
+    [string] $PackageName
+)
+{
+    $currentPackage = Get-ConfigValue -Key $PackageName -ConfigType Packages
+    # Defensively check if the package is not found in the config
+    if(!$currentPackage) {
+        throw "Package $PackageName not found in Packages config"
+    }
+
+    $currentVersion = $currentPackage.Version
+    Write-Host "Current $PackageName version: $currentVersion"
+
+    $latestVersion = Get-PackageLatestVersion -PackageName $PackageName
+    Write-Host "Latest $PackageName version found: $latestVersion"
+
+    $result = $null
+    if ([System.Version] $latestVersion -gt [System.Version] $currentVersion) {
+        Write-Host "Updating $PackageName version from $currentVersion to $latestVersion"
+
+        $currentPackage.Version = $latestVersion
+        Set-ConfigValue -Key $PackageName -Value $currentPackage -ConfigType Packages
+
+        $result = $latestVersion
+    } else {
+        Write-Host "$PackageName is already up to date."
+    }
+
+    return $result
 }
 
 <#
