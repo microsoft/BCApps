@@ -113,7 +113,9 @@ function OpenPR {
     return New-GitHubPullRequest -Repository $Repository -BranchName $branch -TargetBranch $TargetBranch -PullRequestDescription $prDescription
 }
 
-$automationsFolder = $PSScriptRoot
+$automationsFolder = (Get-Location).Path
+Write-Host "Automations folder: $automationsFolder"
+
 # An automation is a folder with a run.ps1 file
 $automationNames = Get-ChildItem -Path $automationsFolder -Directory | Where-Object { Test-Path (Join-Path $_.FullName 'run.ps1') } | ForEach-Object { $_.Name }
 
