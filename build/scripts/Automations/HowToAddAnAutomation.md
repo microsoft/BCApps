@@ -37,7 +37,7 @@
     ```yaml
       GetBranches:
         name: Get Official Branches
-        runs-on: windows-latest
+        runs-on: ubuntu-latest
         outputs:
             UpdateBranches: ${{ steps.OfficialBranches.outputs.OfficialBranches }}
         steps:
