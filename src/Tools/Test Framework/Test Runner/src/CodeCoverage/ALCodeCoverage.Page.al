@@ -226,7 +226,7 @@ page 130460 "AL Code Coverage"
 
                 trigger OnAction()
                 var
-                    CodeCoverageDetailed: XMLport "Code Coverage Detailed";
+                    CodeCoverageDetailed: XmlPort "Code Coverage Detailed";
                 begin
                     CodeCoverageDetailed.Run();
                 end;

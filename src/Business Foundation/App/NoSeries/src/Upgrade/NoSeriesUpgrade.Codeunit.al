@@ -3,19 +3,18 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Test.Environment.Configuration;
-
-report 132610 "Checklist Test Report"
+namespace Microsoft.Foundation.NoSeries;
+codeunit 328 "No. Series Upgrade"
 {
-    ProcessingOnly = true;
+    Access = Internal;
+    Subtype = Upgrade;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
-    trigger OnPostReport()
+    trigger OnUpgradePerCompany()
+    var
+        NoSeriesInstaller: Codeunit "No. Series Installer";
     begin
-        OnChecklistTestReportPostRun();
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnChecklistTestReportPostRun()
-    begin
+        NoSeriesInstaller.TriggerMovedTableSchemaSanityCheck();
     end;
 }
