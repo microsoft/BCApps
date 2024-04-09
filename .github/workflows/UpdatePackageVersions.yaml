@@ -45,4 +45,3 @@ jobs:
         uses: microsoft/BCApps/.github/actions/RunAutomation@mazhelez/restructure-automations
         with:
           automations: UpdateAppBaselines,UpdateAppTranslations
-          targetBranch: ${{ matrix.branch }}

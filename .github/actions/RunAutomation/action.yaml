@@ -1,11 +1,9 @@
 name: Run Automation
 author: Microsoft Corporation
-description: Get the official branches in the repository
+description: Run a list of automations on a target branch
 inputs:
   automations:
     description: Comma-separated list of automations to run
-  targetBranch:
-    description: The target branch to run the automations on
 runs:
   using: composite
   steps:
@@ -14,9 +12,9 @@ runs:
       id: runAutomation
       env:
         _repository: ${{ github.repository }}
+        _targetBranch: ${{ github.ref_name }}
         _actor: ${{ github.actor }}
         _automations: ${{ inputs.automations }}
-        _targetBranch: ${{ inputs.targetBranch }}
       run: |
         ${{ github.action_path }}/run.ps1 -Include "$env:_automations".Split(',').Trim()  -Repository $env:_repository -TargetBranch $env:_targetBranch -Actor $env:_actor
 branding:
