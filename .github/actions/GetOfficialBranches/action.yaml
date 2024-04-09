@@ -17,6 +17,7 @@ runs:
       shell: pwsh
       id: GetBranches
       env:
+        GH_TOKEN: ${{ github.token }}
         _repository: ${{ inputs.repository }}
       run: |
         $branches = gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" "/repos/$($env:_repository)/branches?protected=true&per_page=100" | ConvertFrom-Json
