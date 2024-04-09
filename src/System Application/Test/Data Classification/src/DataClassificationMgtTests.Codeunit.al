@@ -8,6 +8,7 @@ namespace System.Test.Privacy;
 using System.Privacy;
 using System.Reflection;
 using System.Integration;
+using System.TestLibraries.Privacy;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
 
@@ -26,6 +27,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
     var
         DataClassificationMgt: Codeunit "Data Classification Mgt.";
         LibraryAssert: Codeunit "Library Assert";
+        LibraryDataClassification: Codeunit "Library - Data Classification";
         PermissionsMock: Codeunit "Permissions Mock";
 
     [Test]
@@ -621,7 +623,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         DataSensitivity.DeleteAll();
 
         // [GIVEN] The number of enabled, sensitive fields
-        FieldCount := GetNumberOfEnabledSensitiveFieldsForAllSupportedTables();
+        FieldCount := LibraryDataClassification.GetNumberOfEnabledSensitiveFieldsForAllSupportedTables();
 
         // [WHEN] Synchronizing the Field and Data Sensitivity table
         DataClassificationMgt.SyncAllFields();
@@ -663,7 +665,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         DataClassificationMgt.InsertDataSensitivityForField(TableNo, UnclassifiedFieldNo, DataSensitivity."Data Sensitivity"::Unclassified);
 
         // [GIVEN] The number of enabled, sensitive, normal fields
-        FieldCount := GetNumberOfEnabledSensitiveFieldsForAllSupportedTables();
+        FieldCount := LibraryDataClassification.GetNumberOfEnabledSensitiveFieldsForAllSupportedTables();
 
         // [WHEN] Synchronizing the Field and Data Sensitivity table
         DataClassificationMgt.SyncAllFields();
@@ -861,23 +863,6 @@ codeunit 135150 "Data Classification Mgt. Tests"
             FieldsSyncStatus.Insert();
 
         DataClassificationMgt.InsertDataPrivacyEntity(DataPrivacyEntities, Database::"Fields Sync Status", Page::"Field Content Buffer", 1, '', 1);
-    end;
-
-    local procedure GetNumberOfEnabledSensitiveFieldsForAllSupportedTables() FieldCount: Integer
-    var
-        TableMetaData: Record "Table Metadata";
-        Field: Record Field;
-        DataClassificationMgtImpl: Codeunit "Data Classification Mgt. Impl.";
-    begin
-        FieldCount := 0;
-        if TableMetaData.FindSet() then
-            repeat
-                if DataClassificationMgt.IsSupportedTable(TableMetaData.ID) then begin
-                    Field.SetRange(TableNo, TableMetaData.ID);
-                    DataClassificationMgtImpl.GetEnabledSensitiveFields(Field);
-                    FieldCount := FieldCount + Field.Count();
-                end;
-            until TableMetaData.Next() = 0;
     end;
 }
 
