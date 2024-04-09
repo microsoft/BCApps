@@ -1,22 +1,23 @@
 param (
     [Parameter(Mandatory=$true)]
-    [string] $Repository,
-    [Parameter(Mandatory=$true)]
-    [string] $TargetBranch
+    $runParameters
 )
 
 Import-Module $PSScriptRoot\..\..\EnlistmentHelperFunctions.psm1
 
-Write-Host "Running the workflow Update AL-Go System Files on branch $TargetBranch"
+$repository = $runParameters.Repository
+$targetBranch = $runParameters.TargetBranch
+
+Write-Host "Running the workflow Update AL-Go System Files on branch $targetBranch"
 
 $workflowName = " Update AL-Go System Files"
 $workflowRunTime = Get-Date
-gh workflow run --repo $Repository --ref $TargetBranch $workflowName
+gh workflow run --repo $repository --ref $targetBranch $workflowName
 
 # Get the workflow run URL to display in the message
 
 while((Get-Date) -lt $workflowRunTime.AddMinutes(1)) {
-    $workflowRun = gh run list --branch $TargetBranch --event workflow_dispatch --workflow $workflowName --repo $Repository --json createdAt,url --limit 1 | ConvertFrom-Json
+    $workflowRun = gh run list --branch $targetBranch --event workflow_dispatch --workflow $workflowName --repo $repository --json createdAt,url --limit 1 | ConvertFrom-Json
 
     if ($workflowRun.createdAt -gt $workflowRunTime) {
         break

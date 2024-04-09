@@ -47,7 +47,11 @@ function RunAutomation {
         # The automation is a script that returns an object with the following properties:
         # - Files: The files changed by the automation
         # - Message: The message to be used for the commit
-        $automationResult = . (Join-Path $automationPath 'run.ps1') -Repository $Repository -TargetBranch $TargetBranch
+        $runParameters = @{
+            'Repository' = $Repository
+            'TargetBranch' = $TargetBranch
+        }
+        $automationResult = . (Join-Path $automationPath 'run.ps1') -runParameters $runParameters
 
         $automationStatus = "No update available"
         if ($automationResult.Files -and $automationResult.Message) {
