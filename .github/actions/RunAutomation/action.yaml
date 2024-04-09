@@ -18,7 +18,7 @@ runs:
         _automations: ${{ inputs.automations }}
         _targetBranch: ${{ inputs.targetBranch }}
       run: |
-        ${{ github.action_path }}/build/scripts/Automations/run.ps1 -Include $env:_automations  -Repository $env:_repository -TargetBranch $env:_targetBranch -Actor $env:_actor
+        ${{ github.action_path }}/../../../build/scripts/Automations/run.ps1 -Include $env:_automations  -Repository $env:_repository -TargetBranch $env:_targetBranch -Actor $env:_actor
 branding:
   icon: terminal
   color: blue
