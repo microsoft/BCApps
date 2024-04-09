@@ -7,9 +7,9 @@ param (
 
 # BC Container Helper is needed to fetch the latest artifact version
 Install-Module -Name BcContainerHelper -AllowPrerelease -Force
-Import-Module BcContainerHelper
+Import-Module BcContainerHelper -DisableNameChecking
 
-Import-Module $PSScriptRoot\..\..\EnlistmentHelperFunctions.psm1
+Import-Module $PSScriptRoot\..\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1
 
 $newVersion = Update-BCArtifactVersion
 

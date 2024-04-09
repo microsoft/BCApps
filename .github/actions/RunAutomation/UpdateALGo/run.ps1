@@ -3,8 +3,6 @@ param (
     $runParameters
 )
 
-Import-Module $PSScriptRoot\..\..\EnlistmentHelperFunctions.psm1
-
 $repository = $runParameters.Repository
 $targetBranch = $runParameters.TargetBranch
 
