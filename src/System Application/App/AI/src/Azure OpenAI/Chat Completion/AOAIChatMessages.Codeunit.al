@@ -255,7 +255,7 @@ codeunit 7763 "AOAI Chat Messages"
     /// <param name="Name">Name of the function to get.</param>
     /// <returns>The function codeunit.</returns>
     /// <error>Tool not found.</error>
-    procedure GetFunctionTool(Name: Text; Function: Interface "AOAI Function"): Boolean
+    procedure GetFunctionTool(Name: Text; var Function: Interface "AOAI Function"): Boolean
     begin
         exit(AOAIToolsImpl.GetTool(Name, Function));
     end;
