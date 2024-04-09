@@ -94,11 +94,14 @@ function OpenPR {
     $branch = New-TopicBranch -Category "updates/$TargetBranch"
 
     # Open PR with a commit for each update
+    $prDescription = "This PR contains the following changes:"
     $AvailableUpdates | ForEach-Object {
         $automationResult = $_.Result
 
         $commitMessage = "$($automationResult.Message)"
         $commitFiles = $automationResult.Files
+
+        $prDescription += "`n`n$($automationResult.Message)"
 
         git add $commitFiles | Out-Null
         git commit -m $commitMessage | Out-Null
@@ -106,7 +109,8 @@ function OpenPR {
 
     git push -u origin $branch | Out-Null
 
-    return New-GitHubPullRequest -Repository $Repository -BranchName $branch -TargetBranch $TargetBranch
+    $prDescription += "`n`nFixes AB#420000." # Add link to a work item
+    return New-GitHubPullRequest -Repository $Repository -BranchName $branch -TargetBranch $TargetBranch -PullRequestDescription $prDescription
 }
 
 $automationsFolder = $PSScriptRoot
