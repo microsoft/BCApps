@@ -1,14 +1,14 @@
 # How to add a new automation
 
-1. Create a folder in `build\scripts\Automations`. The name of the folder is the name of the automation, e.g. "_UpdateAppBaselines_".
-1. Create a `run.ps1` file in the new folder. It should contain the script with the automation's logic.
+1. Create a folder in `.github\actions\RunAutomations`. The name of the folder is the name of the automation, e.g. "_UpdateAppBaselines_".
+2. Create a `run.ps1` file in the new folder. It should contain the script with the automation's logic.
    - The script can accept the following parameters:
      - `Repository`: the repository the automation is running on. Use the parameter in case the automation should behave differently on forks.
      - `TargetBranch`: the branch the automation is running on. Use this parameter to alter logic between branches.
    - The script may optionally return an object with the following properties. The information from this object will be used to create an automation pull request.
      - `Files`: Files changed by the automation that will be included in the pull request.
      - `Message`: Message to use as commit message an pull request description.
-2. Create a new workflow in `.github\workflows` to run your new automation.
+3. Create a new workflow in `.github\workflows` to run your new automation.
     - Add a job to run the script:
     ```yaml
     AutomationJob:
@@ -27,11 +27,11 @@
             with:
             ref: ${{ matrix.branch }}
 
-        - name: Update BC Artifact Version
-            env:
-            GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
-            run: |
-                build/scripts/Automations/run.ps1 -Include '<automation name>' -Repository $ENV:GITHUB_REPOSITORY -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
+        - name:<automation name>
+            uses: microsoft/BCApps/.github/actions/RunAutomation@main
+            with:
+                automations: <automation name>
+                targetBranch: ${{ matrix.branch }}
     ```
     - In case the automation needs to run on all official branches, use `GetOfficialBranches` action by adding another job:
     ```yaml
@@ -46,7 +46,7 @@
 
         - name: Get Official Branches
             id: OfficialBranches
-            uses: ./.github/actions/GetOfficialBranches
+            uses: microsoft/BCApps/.github/actions/GetOfficialBranches@main
     ```
     Don't forget to add `needs: GetBranches` in `AutomationJob` job properties and change `matrix` to `branch: ${{ fromJson(needs.GetBranches.outputs.UpdateBranches) }}`.
 
