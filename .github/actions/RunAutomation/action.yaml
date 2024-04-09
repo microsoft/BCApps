@@ -10,6 +10,7 @@ runs:
   using: composite
   steps:
     - name: run
+      shell: powershell
       id: runAutomation
       env:
         _repository: ${{ github.repository }}
