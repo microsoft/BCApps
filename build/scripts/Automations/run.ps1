@@ -113,7 +113,7 @@ function OpenPR {
     return New-GitHubPullRequest -Repository $Repository -BranchName $branch -TargetBranch $TargetBranch -PullRequestDescription $prDescription
 }
 
-$automationsFolder = (Get-Location).Path
+$automationsFolder = Join-Path (Get-Location).Path "build/scripts/Automations"
 Write-Host "Automations folder: $automationsFolder"
 
 # An automation is a folder with a run.ps1 file
