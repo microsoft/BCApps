@@ -4,6 +4,10 @@ description: Run a list of automations on a target branch
 inputs:
   automations:
     description: Comma-separated list of automations to run
+  targetBranch:
+    description: The target branch to run the automations on
+    required: true
+    default: ${{ github.ref_name }}
 runs:
   using: composite
   steps:
@@ -12,7 +16,7 @@ runs:
       id: runAutomation
       env:
         _repository: ${{ github.repository }}
-        _targetBranch: ${{ github.ref_name }}
+        _targetBranch: ${{ inputs.targetBranch }}
         _actor: ${{ github.actor }}
         _automations: ${{ inputs.automations }}
       run: |

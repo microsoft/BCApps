@@ -41,3 +41,4 @@ jobs:
         uses: microsoft/BCApps/.github/actions/RunAutomation@mazhelez/restructure-automations
         with:
           automations: UpdateALGo
+          targetBranch: ${{ matrix.branch }}
