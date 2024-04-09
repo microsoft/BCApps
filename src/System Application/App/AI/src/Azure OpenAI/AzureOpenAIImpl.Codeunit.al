@@ -44,6 +44,7 @@ codeunit 7772 "Azure OpenAI Impl"
         EmptyMetapromptErr: Label 'The metaprompt has not been set, please provide a metaprompt.';
         MetapromptLoadingErr: Label 'Metaprompt not found.';
         EnabledKeyTok: Label 'AOAI-Enabled', Locked = true;
+        FunctionCallingFunctionNotFoundErr: Label 'Function call, %1, not found.', Comment = '%1 is the name of the function';
         TelemetryGenerateTextCompletionLbl: Label 'Generate Text Completion', Locked = true;
         TelemetryGenerateEmbeddingLbl: Label 'Generate Embedding', Locked = true;
         TelemetryGenerateChatCompletionLbl: Label 'Generate Chat Completion', Locked = true;
@@ -349,6 +350,7 @@ codeunit 7772 "Azure OpenAI Impl"
     [TryFunction]
     local procedure ProcessChatCompletionResponse(ResponseText: Text; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
         CustomDimensions: Dictionary of [Text, Text];
         ToolsCall: Text;
         Response: JsonObject;
@@ -367,14 +369,15 @@ codeunit 7772 "Azure OpenAI Impl"
             ProcessFunctionCall(CompletionToken.AsArray(), ChatMessages, AOAIOperationResponse);
 
             AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
-            if not AOAIOperationResponse.IsFunctionCallSuccess() then
-                FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIOperationResponse.GetFunctionName()), AOAIOperationResponse.GetFunctionError(), AOAIOperationResponse.GetFunctionErrorCallStack(), CustomDimensions);
+            AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
+            if not AOAIFunctionResponse.IsFunctionCall() then
+                FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), CustomDimensions);
 
             FeatureTelemetry.LogUsage('0000MFH', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryChatCompletionToolCallLbl, CustomDimensions);
         end;
     end;
 
-    local procedure ProcessFunctionCall(Functions: JsonArray; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response")
+    local procedure ProcessFunctionCall(Functions: JsonArray; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Boolean
     var
         Function: JsonObject;
         Arguments: JsonObject;
@@ -389,26 +392,33 @@ codeunit 7772 "Azure OpenAI Impl"
         Functions.Get(0, Token);
         Function := Token.AsObject();
 
-        Function.Get('type', Token);
-
-        if Token.AsValue().AsText() <> 'function' then
+        if Function.Get('type', Token) then begin
+            if Token.AsValue().AsText() <> 'function' then
+                exit;
+        end else
             exit;
 
-        Function.Get('function', Token);
-        Function := Token.AsObject();
+        if Function.Get('function', Token) then
+            Function := Token.AsObject()
+        else
+            exit;
 
-        Function.Get('name', Token);
-        FunctionName := Token.AsValue().AsText();
-        Function.Get('arguments', Token);
+        if Function.Get('name', Token) then
+            FunctionName := Token.AsValue().AsText()
+        else
+            exit;
 
-        // Arguments are stored as a string in the JSON
-        Arguments.ReadFrom(Token.AsValue().AsText());
+        if Function.Get('arguments', Token) then
+            // Arguments are stored as a string in the JSON
+            Arguments.ReadFrom(Token.AsValue().AsText());
 
         if ChatMessages.GetFunctionTool(FunctionName, AOAIFunction) then
             if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then
                 AOAIOperationResponse.SetFunctionCallingResponse(true, AOAIFunction.GetName(), FunctionResult)
             else
-                AOAIOperationResponse.SetFunctionCallingResponse(false, AOAIFunction.GetName(), GetLastErrorText(), GetLastErrorCallStack());
+                AOAIOperationResponse.SetFunctionCallingResponse(false, AOAIFunction.GetName(), GetLastErrorText(), GetLastErrorCallStack())
+        else
+            AOAIOperationResponse.SetFunctionCallingResponse(false, FunctionName, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
     end;
 
     [TryFunction]

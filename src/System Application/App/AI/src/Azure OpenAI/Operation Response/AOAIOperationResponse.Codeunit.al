@@ -16,15 +16,11 @@ codeunit 7770 "AOAI Operation Response"
     InherentPermissions = X;
 
     var
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
         StatusCode: Integer;
         Success: Boolean;
         Result: Text;
         Error: Text;
-        FunctionCallSuccess: Boolean;
-        FunctionCallingName: Text;
-        FunctionResult: Variant;
-        FunctionError: Text;
-        FunctionErrorCallStack: Text;
 
     /// <summary>
     /// Check whether the operation was successful.
@@ -68,52 +64,16 @@ codeunit 7770 "AOAI Operation Response"
     /// <returns>True if it was a function call, false otherwise.</returns>
     procedure IsFunctionCall(): Boolean
     begin
-        exit(FunctionCallingName <> '');
+        exit(AOAIFunctionResponse.IsFunctionCall());
     end;
 
     /// <summary>
-    /// Get whether the function call was successful.
+    /// Get the function response codeunit which contains the response details.
     /// </summary>
-    /// <returns>True if the call was successful, false otherwise.</returns>
-    procedure IsFunctionCallSuccess(): Boolean
+    /// <returns>The codeunit which contains response details for the function call.</returns>
+    procedure GetFunctionResponse(): Codeunit "AOAI Function Response"
     begin
-        exit(FunctionCallSuccess);
-    end;
-
-    /// <summary>
-    /// Get the name of the function that was called.
-    /// </summary>
-    /// <returns>The name of the function that was called.</returns>
-    procedure GetFunctionName(): Text
-    begin
-        exit(FunctionCallingName);
-    end;
-
-    /// <summary>
-    /// Get the return value of the function that was called.
-    /// </summary>
-    /// <returns>The return value from the function</returns>
-    procedure GetFunctionResult(): Variant
-    begin
-        exit(FunctionResult);
-    end;
-
-    /// <summary>
-    /// Get the error message from the function that was called.
-    /// </summary>
-    /// <returns>The error message from the function.</returns>
-    procedure GetFunctionError(): Text
-    begin
-        exit(FunctionError);
-    end;
-
-    /// <summary>
-    /// Get the error call stack from the function that was called.
-    /// </summary>
-    /// <returns>The error call stack from the function.</returns>
-    procedure GetFunctionErrorCallStack(): Text
-    begin
-        exit(FunctionErrorCallStack);
+        exit(AOAIFunctionResponse);
     end;
 
     internal procedure SetOperationResponse(var ALCopilotOperationResponse: DotNet ALCopilotOperationResponse)
@@ -141,10 +101,6 @@ codeunit 7770 "AOAI Operation Response"
 
     local procedure SetFunctionCallingResponse(NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
     begin
-        FunctionCallSuccess := NewFunctionCallSuccess;
-        FunctionCallingName := NewFunctionCalled;
-        FunctionResult := NewFunctionResult;
-        FunctionError := NewFunctionError;
-        FunctionErrorCallStack := NewFunctionErrorCallStack;
+        AOAIFunctionResponse.SetFunctionCallingResponse(NewFunctionCallSuccess, NewFunctionCalled, NewFunctionResult, NewFunctionError, NewFunctionErrorCallStack);
     end;
 }
