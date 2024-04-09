@@ -279,14 +279,15 @@ function Update-BCArtifactVersion {
 
     Write-Host "Latest BCArtifact URL: $latestArtifactUrl"
 
+    $result = $null
     if($latestArtifactUrl -ne $currentArtifactUrl) {
         Write-Host "Updating BCArtifact version from $currentArtifactUrl to $latestArtifactUrl"
         Set-ConfigValue -Key "artifact" -Value $latestArtifactUrl -ConfigType AL-Go
 
-        return $true
+        $result = $latestArtifactUrl # only return the new version if it was updated
     }
 
-    return $false
+    return $result
 }
 
 <#
