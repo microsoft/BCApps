@@ -35,7 +35,6 @@ codeunit 135150 "Data Classification Mgt. Tests"
         DataSensitivity: Record "Data Sensitivity";
         "Field": Record "Field";
         FieldsSyncStatus: Record "Fields Sync Status";
-        DataClassificationMgtImpl: Codeunit "Data Classification Mgt. Impl.";
         DataSensitivityCount: Integer;
         FieldCount: Integer;
     begin
@@ -50,11 +49,9 @@ codeunit 135150 "Data Classification Mgt. Tests"
         // [WHEN] The data sensitivity table is populated
         DataClassificationMgt.PopulateDataSensitivityTable();
 
-        // [WHEN] The Field table is filtered to the potentially data sensitive entries
-        DataClassificationMgtImpl.GetEnabledSensitiveFields(Field);
-
         DataSensitivityCount := DataSensitivity.Count();
-        FieldCount := Field.Count();
+
+        FieldCount := GetNumberOfEnabledSensitiveFieldsForAllSupportedTables();
 
         // [WHEN] There exist entries in the Field table
         if not Field.IsEmpty() then
@@ -613,8 +610,6 @@ codeunit 135150 "Data Classification Mgt. Tests"
     var
         DataSensitivity: Record "Data Sensitivity";
         FieldsSyncStatus: Record "Fields Sync Status";
-        Field: Record Field;
-        DataClassificationMgtImpl: Codeunit "Data Classification Mgt. Impl.";
         FieldCount: Integer;
     begin
         // [SCENARIO] Synchronizing the Field and Data Sensitivity table when the Data Sensitivity table is empty
@@ -626,8 +621,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         DataSensitivity.DeleteAll();
 
         // [GIVEN] The number of enabled, sensitive fields
-        DataClassificationMgtImpl.GetEnabledSensitiveFields(Field);
-        FieldCount := Field.Count();
+        FieldCount := GetNumberOfEnabledSensitiveFieldsForAllSupportedTables();
 
         // [WHEN] Synchronizing the Field and Data Sensitivity table
         DataClassificationMgt.SyncAllFields();
@@ -649,8 +643,6 @@ codeunit 135150 "Data Classification Mgt. Tests"
     var
         DataSensitivity: Record "Data Sensitivity";
         FieldsSyncStatus: Record "Fields Sync Status";
-        Field: Record Field;
-        DataClassificationMgtImpl: Codeunit "Data Classification Mgt. Impl.";
         FieldCount: Integer;
         TableNo: Integer;
         SensitiveFieldNo: Integer;
@@ -671,9 +663,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         DataClassificationMgt.InsertDataSensitivityForField(TableNo, UnclassifiedFieldNo, DataSensitivity."Data Sensitivity"::Unclassified);
 
         // [GIVEN] The number of enabled, sensitive, normal fields
-        Field.SetRange(Class, Field.Class::Normal);
-        DataClassificationMgtImpl.GetEnabledSensitiveFields(Field);
-        FieldCount := Field.Count();
+        FieldCount := GetNumberOfEnabledSensitiveFieldsForAllSupportedTables();
 
         // [WHEN] Synchronizing the Field and Data Sensitivity table
         DataClassificationMgt.SyncAllFields();
@@ -871,6 +861,23 @@ codeunit 135150 "Data Classification Mgt. Tests"
             FieldsSyncStatus.Insert();
 
         DataClassificationMgt.InsertDataPrivacyEntity(DataPrivacyEntities, Database::"Fields Sync Status", Page::"Field Content Buffer", 1, '', 1);
+    end;
+
+    local procedure GetNumberOfEnabledSensitiveFieldsForAllSupportedTables() FieldCount: Integer
+    var
+        TableMetaData: Record "Table Metadata";
+        Field: Record Field;
+        DataClassificationMgtImpl: Codeunit "Data Classification Mgt. Impl.";
+    begin
+        FieldCount := 0;
+        if TableMetaData.FindSet() then
+            repeat
+                if DataClassificationMgt.IsSupportedTable(TableMetaData.ID) then begin
+                    Field.SetRange(TableNo, TableMetaData.ID);
+                    DataClassificationMgtImpl.GetEnabledSensitiveFields(Field);
+                    FieldCount := FieldCount + Field.Count();
+                end;
+            until TableMetaData.Next() = 0;
     end;
 }
 
