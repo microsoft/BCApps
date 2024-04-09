@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Integration;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
+using System.Environment.Configuration;
 
 codeunit 135150 "Data Classification Mgt. Tests"
 {
@@ -72,6 +73,18 @@ codeunit 135150 "Data Classification Mgt. Tests"
 
         // [THEN] The Fields Sync Status table is not empty
         LibraryAssert.AreNotEqual(0, FieldsSyncStatus.Count(), 'The Fields Sync Status table cannot be empty');
+    end;
+
+    [Test]
+    procedure TestIsSupportedTable()
+    begin
+        // [SCENARIO] Test if IsSupportedTable works as expected
+
+        // Verify a Normal and non-obsoleted table is supported
+        LibraryAssert.IsTrue(DataClassificationMgt.IsSupportedTable(Database::"Data Sensitivity"), 'Data Sensitivity is a supported table');
+
+        // Verify a temporary table is not supported
+        LibraryAssert.IsFalse(DataClassificationMgt.IsSupportedTable(Database::"Checklist Item Buffer"), 'Checklist Item Buffer is not a supported table because it is temporary');
     end;
 
     [Test]
