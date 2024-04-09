@@ -47,5 +47,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
         uses: microsoft/BCApps/.github/actions/RunAutomation@mazhelez/restructure-automations
         with:
-          automations: 'UpdatePackageVersions'
+          automations: 'UpdateAppBaselines,UpdateAppTranslations'
           targetBranch: ${{ matrix.branch }}
