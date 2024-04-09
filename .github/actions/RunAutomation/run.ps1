@@ -142,7 +142,7 @@ foreach ($automationName in $automationNames) {
 $availableUpdates = $automationRuns | Where-Object { $_.Status -eq "Update available" }
 if($availableUpdates) { # Only open PR if there are updates
     Write-Host "::group::Create PR for available updates"
-    Import-Module $PSScriptRoot\AutomatedSubmission.psm1 -DisableNameChecking
+    Import-Module $PSScriptRoot\..\..\..\..\build\scripts\AutomatedSubmission.psm1 -DisableNameChecking
 
     $prLink = OpenPR -AvailableUpdates $availableUpdates -Repository $Repository -TargetBranch $TargetBranch -Actor $Actor
 
