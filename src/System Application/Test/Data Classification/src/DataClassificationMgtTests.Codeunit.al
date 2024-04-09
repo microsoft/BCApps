@@ -104,7 +104,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         DataSensitivity.DeleteAll();
 
         // [GIVEN] A table number, a field number and a data sensitivity
-        TableNo := 18;
+        TableNo := Database::"Data Sensitivity";
         FieldNo := 3;
         DataSensitivityOption := DataSensitivity."Data Sensitivity"::Sensitive;
 
@@ -145,8 +145,8 @@ codeunit 135150 "Data Classification Mgt. Tests"
         DataPrivacyEntities.DeleteAll();
         DataSensitivity.DeleteAll();
 
-        // [GIVEN] A fictive table number and an entry in the Data Privacy Entities corresponding to this table number
-        TableNo := 50001;
+        // [GIVEN] A random table number and an entry in the Data Privacy Entities corresponding to this table number
+        TableNo := Database::"Data Sensitivity";
         DataClassificationMgt.InsertDataPrivacyEntity(DataPrivacyEntities, TableNo, 0, 0, '', 0);
 
         // [GIVEN] A company confidential entry in the data sensitivity corresponding to the aforementioned table number
@@ -183,10 +183,8 @@ codeunit 135150 "Data Classification Mgt. Tests"
 
         // [GIVEN] The Data Sensitivity table contains two entries with different data sensitivities
         DataSensitivity.DeleteAll();
-        DataClassificationMgt.InsertDataSensitivityForField(
-          18, 4, DataSensitivity."Data Sensitivity"::"Company Confidential");
-        DataClassificationMgt.InsertDataSensitivityForField(
-          18, 5, DataSensitivity."Data Sensitivity"::Personal);
+        DataClassificationMgt.InsertDataSensitivityForField(Database::"Data Sensitivity", 4, DataSensitivity."Data Sensitivity"::"Company Confidential");
+        DataClassificationMgt.InsertDataSensitivityForField(Database::"Data Sensitivity", 5, DataSensitivity."Data Sensitivity"::Personal);
 
         // [WHEN] Setting the sensitivity for the filtered Data Sensitivity table to Normal
         DataClassificationMgt.SetSensitivities(DataSensitivity, DataSensitivity."Data Sensitivity"::Normal);
@@ -241,7 +239,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
 
         // [GIVEN] A single entry in the Data Sensitivity table that is unclassified
         DataSensitivity.DeleteAll();
-        DataClassificationMgt.InsertDataSensitivityForField(18, 3, DataSensitivity."Data Sensitivity"::Unclassified);
+        DataClassificationMgt.InsertDataSensitivityForField(Database::"Data Sensitivity", 3, DataSensitivity."Data Sensitivity"::Unclassified);
 
         // [WHEN] Querying whether all the fields are classified
         AreAllFieldsClassified := DataClassificationMgt.AreAllFieldsClassified();
@@ -262,7 +260,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         LibraryAssert.IsTrue(AreAllFieldsClassified, 'All the fields are classified');
 
         // [GIVEN] There are two entries in the Data Sensitivity table - a classified and an unclassified one
-        DataClassificationMgt.InsertDataSensitivityForField(27, 3, DataSensitivity."Data Sensitivity"::Unclassified);
+        DataClassificationMgt.InsertDataSensitivityForField(Database::"Fields Sync Status", 3, DataSensitivity."Data Sensitivity"::Unclassified);
 
         // [WHEN] Querying whether all the fields are classified
         AreAllFieldsClassified := DataClassificationMgt.AreAllFieldsClassified();
@@ -289,7 +287,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         // [GIVEN] The Data Sensitivity table contains two entries - one of them Normal, the other one Company Confidential
         DataSensitivity.DeleteAll();
 
-        TableNo := 18;
+        TableNo := Database::"Data Sensitivity";
         NormalFieldNo := 3;
         CompanyConfidentialFieldNo := 4;
 
@@ -354,7 +352,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         // [GIVEN] The Data Sensitivity table contains two entries - one of them Normal, the other one Company Confidential
         DataSensitivity.DeleteAll();
 
-        TableNo := 18;
+        TableNo := Database::"Data Sensitivity";
         NormalFieldNo := 3;
         CompanyConfidentialFieldNo := 4;
 
@@ -419,7 +417,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         // [GIVEN] The Data Sensitivity table contains two entries - one of them Normal, the other one Sensitive
         DataSensitivity.DeleteAll();
 
-        TableNo := 18;
+        TableNo := Database::"Data Sensitivity";
         NormalFieldNo := 3;
         SensitiveFieldNo := 4;
 
@@ -484,7 +482,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         // [GIVEN] The Data Sensitivity table contains two entries - one of them Personal, the other one Sensitive
         DataSensitivity.DeleteAll();
 
-        TableNo := 18;
+        TableNo := Database::"Data Sensitivity";
         PersonalFieldNo := 3;
         SensitiveFieldNo := 4;
 
@@ -549,7 +547,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         DataSensitivity.DeleteAll();
 
         // [GIVEN] A table number
-        TableNo := 1180;
+        TableNo := Database::"Data Sensitivity";
 
         // [GIVEN] The Field table is filtered to include only the enabled, sensitive fields in this table
         Field.SetRange(TableNo, TableNo);
@@ -601,7 +599,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
           'The data sensitivity table is empty');
 
         // [GIVEN] The Data Sensitivity table contains one entry
-        DataClassificationMgt.InsertDataSensitivityForField(18, 3, DataSensitivity."Data Sensitivity"::Personal);
+        DataClassificationMgt.InsertDataSensitivityForField(Database::"Data Sensitivity", 3, DataSensitivity."Data Sensitivity"::Personal);
 
         // [WHEN] Querying whether it is empty
         // [THEN] The result should be false
@@ -666,7 +664,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         // [GIVEN] The Data Sensitivity table is not empty - it contains a classified and an unclassifed entry
         DataSensitivity.DeleteAll();
 
-        TableNo := 50000;
+        TableNo := Database::"Data Sensitivity";
         SensitiveFieldNo := 1;
         UnclassifiedFieldNo := 2;
         DataClassificationMgt.InsertDataSensitivityForField(TableNo, SensitiveFieldNo, DataSensitivity."Data Sensitivity"::Personal);
@@ -767,7 +765,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         DataPrivacyEntities.DeleteAll();
 
         // [WHEN] Inserting a Data Privacy Entities entry
-        TableNo := 50000;
+        TableNo := Database::"Data Sensitivity";
         PageNo := 7;
         KeyFieldNo := 13;
         EntityFilter := 'filter filter filter';
@@ -872,8 +870,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
         if FieldsSyncStatus.IsEmpty() then
             FieldsSyncStatus.Insert();
 
-        DataClassificationMgt.InsertDataPrivacyEntity(DataPrivacyEntities, Database::"Fields Sync Status",
-          Page::"Field Content Buffer", 1, '', 1);
+        DataClassificationMgt.InsertDataPrivacyEntity(DataPrivacyEntities, Database::"Fields Sync Status", Page::"Field Content Buffer", 1, '', 1);
     end;
 }
 
