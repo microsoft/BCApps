@@ -53,6 +53,8 @@ function RunAutomation {
         }
         $automationResult = . (Join-Path $automationPath 'run.ps1') -runParameters $runParameters
 
+        Write-Host "Automation result: $automationResult"
+
         $automationStatus = "No update available"
         if ($automationResult -and ($automationResult.Files) -and ($automationResult.Message)) {
             $automationStatus = "Update available"
