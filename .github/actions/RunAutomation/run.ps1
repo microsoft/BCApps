@@ -54,7 +54,8 @@ function RunAutomation {
         }
         $automationResult = . (Join-Path $automationPath 'run.ps1') -runParameters $runParameters
 
-        if ($automationResult -and ($automationResult.Files) -and ($automationResult.Message)) {
+        if ($automationResult -and ($automationResult.Files)) {
+            # If the automation returns files, there is an update available
             $automationStatus = "Update available"
         }
     } catch {
@@ -69,7 +70,6 @@ function RunAutomation {
         }
     }
 
-    Write-Host "Automation run: $(ConvertTo-Json $automationRun)"
     return $automationRun
 }
 
@@ -133,7 +133,7 @@ foreach ($automationName in $automationNames) {
     Write-Host "::group::Run automation: $automationName"
 
     $automationRun = RunAutomation -AutomationName $automationName -Repository $Repository -TargetBranch $TargetBranch
-    Write-Host "::Notice::Automation $($automationRun.Name) completed. Status: $($automationRun.Status)."
+    Write-Host "::Notice::Automation $($automationRun.Name) completed. Status: $($automationRun.Status). Message: $($automationRun.Result.Message)"
 
     $automationRuns += $automationRun
     Write-Host "::endgroup::"

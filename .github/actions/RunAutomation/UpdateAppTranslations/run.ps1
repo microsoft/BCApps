@@ -8,9 +8,14 @@ Import-Module $PSScriptRoot\..\..\..\..\build\scripts\EnlistmentHelperFunctions.
 
 $newVersion = Update-PackageVersion -PackageName "Microsoft.Dynamics.BusinessCentral.Translations"
 
-if ($newVersion) {
-    return @{
-        'Files' = @("build/Packages.json")
-        'Message' = "Update translation package version. New value: $newVersion"
-    }
+$result = @{
+    'Files' = @()
+    'Message' = "No update available"
 }
+
+if ($newVersion) {
+    $result.Files = @("build/Packages.json")
+    $result.Message = "Update translation package version. New value: $newVersion"
+}
+
+return $result

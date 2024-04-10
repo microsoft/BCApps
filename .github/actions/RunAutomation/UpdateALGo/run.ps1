@@ -23,12 +23,14 @@ while((Get-Date) -lt $workflowRunTime.AddMinutes(1)) {
     }
 }
 
-$message = ""
-if ($workflowRun.createdAt -gt $workflowRunTime) {
-    $message = "Update AL-Go System Files workflow stared: $($workflowRun.url)"
+
+$result = @{
+    'Files' = @()
+    'Message' = "Could not start the Update AL-Go System Files workflow. Please check the workflow status."
 }
 
-return @{
-    'Files' = @()
-    'Message' = $message
+if ($workflowRun.createdAt -gt $workflowRunTime) {
+    $result.Message = "Update AL-Go System Files workflow stared: $($workflowRun.url)"
 }
+
+return $result

@@ -11,9 +11,14 @@ Import-Module $PSScriptRoot\..\..\..\..\build\scripts\EnlistmentHelperFunctions.
 
 $newVersion = Update-PackageVersion -PackageName "AppBaselines-BCArtifacts"
 
-if ($newVersion) {
-    return @{
-        'Files' = @("build/Packages.json")
-        'Message' = "Update app baselines package version. New value: $newVersion"
-    }
+$result = @{
+    'Files' = @()
+    'Message' = "No update available"
 }
+
+if ($newVersion) {
+    $result.Files = @("build/Packages.json")
+    $result.Message = "Update app baselines package version. New value: $newVersion"
+}
+
+return $result

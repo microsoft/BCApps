@@ -13,9 +13,14 @@ Import-Module $PSScriptRoot\..\..\..\..\build\scripts\EnlistmentHelperFunctions.
 
 $newVersion = Update-BCArtifactVersion
 
-if ($newVersion) {
-    return @{
-        'Files' = @(".github/AL-Go-Settings.json")
-        'Message' = "Update BCArtifact version. New value: $newVersion"
-    }
+$result = @{
+    'Files' = @()
+    'Message' = "No update available"
 }
+
+if ($newVersion) {
+    $result.Files = @(".github/AL-Go-Settings.json")
+    $result.Message = "Update BCArtifact version. New value: $newVersion"
+}
+
+return $result
