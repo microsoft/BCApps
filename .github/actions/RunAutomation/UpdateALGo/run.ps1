@@ -30,7 +30,7 @@ $result = @{
 }
 
 if ($workflowRun.createdAt -gt $workflowRunTime) {
-    $result.Message = "Update AL-Go System Files workflow stared: $($workflowRun.url)"
+    $result.Message = "'Update AL-Go System Files' workflow started: $($workflowRun.url)"
 }
 
 return $result
