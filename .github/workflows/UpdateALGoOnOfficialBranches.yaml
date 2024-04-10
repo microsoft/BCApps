@@ -5,10 +5,6 @@ on:
   schedule:
     - cron: "55 08 * * 3" # Run at 08:55 UTC on Wednesday
 
-defaults:
-  run:
-    shell: powershell
-
 jobs:
   GetBranches:
     name: Get Official Branches
@@ -22,7 +18,7 @@ jobs:
 
   UpdateALGo:
     name: "[${{ matrix.branch }}] Update AL-Go"
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     environment: Official-Build
     needs: GetBranches
     strategy:
