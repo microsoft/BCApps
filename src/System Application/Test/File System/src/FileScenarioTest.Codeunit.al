@@ -235,7 +235,7 @@ codeunit 134752 "File Scenario Test"
         // [Then] The scenario exists and is as expected
         Assert.IsTrue(FileSystemTestLib.GetFileScenarioAccountIdAndFileConnector(Scenario, AccountId, FileSystemConnector), 'The File scenario should exist');
         Assert.AreEqual(AccountId, FileAccount."Account Id", 'Wrong accound ID');
-        Assert.AreEqual(FileSystemConnector, FileAccount.Connector, 'Wrong connector');
+        Assert.AreEqual(Enum::"File System Connector"::"Test File System Connector", FileAccount.Connector, 'Wrong connector');
 
         AnotherAccount."Account Id" := Any.GuidValue();
         AnotherAccount.Connector := Enum::"File System Connector"::"Test File System Connector";
@@ -246,7 +246,7 @@ codeunit 134752 "File Scenario Test"
         // [Then] The scenario still exists and is as expected
         Assert.IsTrue(FileSystemTestLib.GetFileScenarioAccountIdAndFileConnector(Scenario, AccountId, FileSystemConnector), 'The File scenario should exist');
         Assert.AreEqual(AccountId, AnotherAccount."Account Id", 'Wrong accound ID');
-        Assert.AreEqual(FileSystemConnector, AnotherAccount.Connector, 'Wrong connector');
+        Assert.AreEqual(Enum::"File System Connector"::"Test File System Connector", AnotherAccount.Connector, 'Wrong connector');
     end;
 
     [Test]
