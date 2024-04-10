@@ -110,7 +110,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
         LibraryAssert.IsTrue(AOAIChatMessages.ToolsExists(), 'Tool should exist');
 
         FunctionNames := AOAIChatMessages.GetFunctionTools();
-        Function := AOAIChatMessages.GetFunctionTool(FunctionNames.Get(1));
+        LibraryAssert.IsTrue(AOAIChatMessages.GetFunctionTool(FunctionNames.Get(1), Function), 'Function does not exist.');
         Function.GetPrompt().WriteTo(Payload);
         LibraryAssert.AreEqual(Format(TestFunction2.GetPrompt()), Payload, 'Tool should have same value.');
     end;
