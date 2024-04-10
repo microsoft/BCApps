@@ -18,7 +18,7 @@ enum 9452 "File Type"
     /// </summary>
     value(0; Directory)
     {
-        Caption = 'Directory', Locked = true;
+        Caption = 'Directory';
     }
 
     /// <summary>
@@ -26,6 +26,6 @@ enum 9452 "File Type"
     /// </summary>
     value(1; File)
     {
-        Caption = 'File', Locked = true;
+        Caption = 'File';
     }
 }
