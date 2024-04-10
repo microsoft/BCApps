@@ -8,7 +8,7 @@ namespace System.TestLibraries.FileSystem;
 using System.FileSystem;
 using System.TestLibraries.Utilities;
 
-codeunit 80200 "Connector Mock"
+codeunit 134760 "File Connector Mock"
 {
     var
         Any: Codeunit Any;

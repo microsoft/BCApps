@@ -10,7 +10,7 @@ using System.TestLibraries.FileSystem;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
 
-codeunit 134686 "File Accounts Test"
+codeunit 134750 "File Accounts Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -27,14 +27,14 @@ codeunit 134686 "File Accounts Test"
     procedure AccountsAppearOnThePageTest()
     var
         FileAccount: Record "File Account";
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         AccountsPage: TestPage "File Accounts";
     begin
         // [Scenario] When there's a File account for a connector, it appears on the accounts page
 
         // [Given] A File account
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FileAccount);
+        FileConnectorMock.Initialize();
+        FileConnectorMock.AddAccount(FileAccount);
 
         PermissionsMock.Set('File System Edit');
 
@@ -53,15 +53,15 @@ codeunit 134686 "File Accounts Test"
     procedure TwoAccountsAppearOnThePageTest()
     var
         FirstFileAccount, SecondFileAccount : Record "File Account";
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         AccountsPage: TestPage "File Accounts";
     begin
         // [Scenario] When there's a File account for a connector, it appears on the accounts page
 
         // [Given] Two File accounts
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FirstFileAccount);
-        ConnectorMock.AddAccount(SecondFileAccount);
+        FileConnectorMock.Initialize();
+        FileConnectorMock.AddAccount(FirstFileAccount);
+        FileConnectorMock.AddAccount(SecondFileAccount);
 
         PermissionsMock.Set('File System Edit');
 
@@ -81,13 +81,13 @@ codeunit 134686 "File Accounts Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure AddNewAccountTest()
     var
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         AccountWizardPage: TestPage "File Account Wizard";
     begin
         // [SCENARIO] A new Account can be added through the Account Wizard
         PermissionsMock.Set('File System Admin');
 
-        ConnectorMock.Initialize();
+        FileConnectorMock.Initialize();
 
         // [WHEN] The AddAccount action is invoked
         AccountWizardPage.Trap();
@@ -133,13 +133,13 @@ codeunit 134686 "File Accounts Test"
     procedure GetAllAccountsTest()
     var
         FileAccountBuffer, FileAccounts : Record "File Account";
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         FileAccount: Codeunit "File Account";
     begin
         // [SCENARIO] GetAllAccounts retrieves all the registered accounts
 
         // [GIVEN] A connector is installed and no account is added
-        ConnectorMock.Initialize();
+        FileConnectorMock.Initialize();
 
         PermissionsMock.Set('File System Edit');
 
@@ -150,7 +150,7 @@ codeunit 134686 "File Accounts Test"
         Assert.IsTrue(FileAccounts.IsEmpty(), 'Record should be empty');
 
         // [GIVEN] An account is added to the connector
-        ConnectorMock.AddAccount(FileAccountBuffer);
+        FileConnectorMock.AddAccount(FileAccountBuffer);
 
         // [WHEN] GetAllAccounts is called
         FileAccount.GetAllAccounts(FileAccounts);
@@ -166,14 +166,14 @@ codeunit 134686 "File Accounts Test"
     [Test]
     procedure IsAnyAccountRegisteredTest()
     var
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         FileAccount: Codeunit "File Account";
         AccountId: Guid;
     begin
         // [SCENARIO] File Account Exists works as expected
 
         // [GIVEN] A connector is installed and no account is added
-        ConnectorMock.Initialize();
+        FileConnectorMock.Initialize();
 
         PermissionsMock.Set('File System Edit');
 
@@ -182,7 +182,7 @@ codeunit 134686 "File Accounts Test"
         Assert.IsFalse(FileAccount.IsAnyAccountRegistered(), 'There should be no registered accounts');
 
         // [WHEN] An File account is added
-        ConnectorMock.AddAccount(AccountId);
+        FileConnectorMock.AddAccount(AccountId);
 
         // [WHEN] Calling IsAnyAccountRegistered
         // [THEN] it evaluates to true
@@ -193,7 +193,7 @@ codeunit 134686 "File Accounts Test"
     [HandlerFunctions('ConfirmYesHandler')]
     procedure DeleteAllAccountsTest()
     var
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
         FirstAccountId, SecondAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
@@ -202,10 +202,10 @@ codeunit 134686 "File Accounts Test"
         PermissionsMock.Set('File System Admin');
 
         // [GIVEN] A connector is installed and three account are added
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FirstAccountId);
-        ConnectorMock.AddAccount(SecondAccountId);
-        ConnectorMock.AddAccount(ThirdAccountId);
+        FileConnectorMock.Initialize();
+        FileConnectorMock.AddAccount(FirstAccountId);
+        FileConnectorMock.AddAccount(SecondAccountId);
+        FileConnectorMock.AddAccount(ThirdAccountId);
 
         // [WHEN] Open the File Accounts page
         FileAccountsTestPage.OpenView();
@@ -227,7 +227,7 @@ codeunit 134686 "File Accounts Test"
     [HandlerFunctions('ConfirmNoHandler')]
     procedure DeleteAllAccountsCancelTest()
     var
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
         FirstAccountId, SecondAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
@@ -236,10 +236,10 @@ codeunit 134686 "File Accounts Test"
         PermissionsMock.Set('File System Admin');
 
         // [GIVEN] A connector is installed and three account are added
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FirstAccountId);
-        ConnectorMock.AddAccount(SecondAccountId);
-        ConnectorMock.AddAccount(ThirdAccountId);
+        FileConnectorMock.Initialize();
+        FileConnectorMock.AddAccount(FirstAccountId);
+        FileConnectorMock.AddAccount(SecondAccountId);
+        FileConnectorMock.AddAccount(ThirdAccountId);
 
         // [WHEN] Open the File Accounts page
         FileAccountsTestPage.OpenView();
@@ -263,7 +263,7 @@ codeunit 134686 "File Accounts Test"
     [HandlerFunctions('ConfirmYesHandler')]
     procedure DeleteSomeAccountsTest()
     var
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
         FirstAccountId, SecondAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
@@ -272,10 +272,10 @@ codeunit 134686 "File Accounts Test"
         PermissionsMock.Set('File System Admin');
 
         // [GIVEN] A connector is installed and three account are added
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FirstAccountId);
-        ConnectorMock.AddAccount(SecondAccountId);
-        ConnectorMock.AddAccount(ThirdAccountId);
+        FileConnectorMock.Initialize();
+        FileConnectorMock.AddAccount(FirstAccountId);
+        FileConnectorMock.AddAccount(SecondAccountId);
+        FileConnectorMock.AddAccount(ThirdAccountId);
 
         // [WHEN] Open the File Accounts page
         FileAccountsTestPage.OpenView();
@@ -299,7 +299,7 @@ codeunit 134686 "File Accounts Test"
     procedure DeleteNonDefaultAccountTest()
     var
         SecondAccount: Record "File Account";
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
         FileScenario: Codeunit "File Scenario";
         FirstAccountId, ThirdAccountId : Guid;
@@ -309,10 +309,10 @@ codeunit 134686 "File Accounts Test"
         PermissionsMock.Set('File System Admin');
 
         // [GIVEN] A connector is installed and three account are added
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FirstAccountId);
-        ConnectorMock.AddAccount(SecondAccount);
-        ConnectorMock.AddAccount(ThirdAccountId);
+        FileConnectorMock.Initialize();
+        FileConnectorMock.AddAccount(FirstAccountId);
+        FileConnectorMock.AddAccount(SecondAccount);
+        FileConnectorMock.AddAccount(ThirdAccountId);
 
         // [GIVEN] The second account is set as default
         FileScenario.SetDefaultFileAccount(SecondAccount);
@@ -342,7 +342,7 @@ codeunit 134686 "File Accounts Test"
     procedure DeleteDefaultAccountTest()
     var
         SecondAccount: Record "File Account";
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
         FileScenario: Codeunit "File Scenario";
         FirstAccountId, ThirdAccountId : Guid;
@@ -352,10 +352,10 @@ codeunit 134686 "File Accounts Test"
         PermissionsMock.Set('File System Admin');
 
         // [GIVEN] A connector is installed and three account are added
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FirstAccountId);
-        ConnectorMock.AddAccount(SecondAccount);
-        ConnectorMock.AddAccount(ThirdAccountId);
+        FileConnectorMock.Initialize();
+        FileConnectorMock.AddAccount(FirstAccountId);
+        FileConnectorMock.AddAccount(SecondAccount);
+        FileConnectorMock.AddAccount(ThirdAccountId);
 
         // [GIVEN] The second account is set as default
         FileScenario.SetDefaultFileAccount(SecondAccount);
@@ -384,7 +384,7 @@ codeunit 134686 "File Accounts Test"
     procedure DeleteDefaultAccountPromptNewAccountCancelTest()
     var
         SecondAccount: Record "File Account";
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
         FileScenario: Codeunit "File Scenario";
         FirstAccountId, ThirdAccountId : Guid;
@@ -394,10 +394,10 @@ codeunit 134686 "File Accounts Test"
         PermissionsMock.Set('File System Admin');
 
         // [GIVEN] A connector is installed and three account are added
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FirstAccountId);
-        ConnectorMock.AddAccount(SecondAccount);
-        ConnectorMock.AddAccount(ThirdAccountId);
+        FileConnectorMock.Initialize();
+        FileConnectorMock.AddAccount(FirstAccountId);
+        FileConnectorMock.AddAccount(SecondAccount);
+        FileConnectorMock.AddAccount(ThirdAccountId);
 
         // [GIVEN] The second account is set as default
         FileScenario.SetDefaultFileAccount(SecondAccount);
@@ -428,7 +428,7 @@ codeunit 134686 "File Accounts Test"
     procedure DeleteDefaultAccountPromptNewAccountTest()
     var
         SecondAccount: Record "File Account";
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
         FileScenario: Codeunit "File Scenario";
         FirstAccountId, ThirdAccountId : Guid;
@@ -438,10 +438,10 @@ codeunit 134686 "File Accounts Test"
         PermissionsMock.Set('File System Admin');
 
         // [GIVEN] A connector is installed and three account are added
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FirstAccountId);
-        ConnectorMock.AddAccount(SecondAccount);
-        ConnectorMock.AddAccount(ThirdAccountId);
+        FileConnectorMock.Initialize();
+        FileConnectorMock.AddAccount(FirstAccountId);
+        FileConnectorMock.AddAccount(SecondAccount);
+        FileConnectorMock.AddAccount(ThirdAccountId);
 
         // [GIVEN] The second account is set as default
         FileScenario.SetDefaultFileAccount(SecondAccount);

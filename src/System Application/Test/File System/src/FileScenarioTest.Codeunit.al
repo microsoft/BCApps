@@ -10,14 +10,14 @@ using System.TestLibraries.FileSystem;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
 
-codeunit 134693 "File Scenario Test"
+codeunit 134752 "File Scenario Test"
 {
     Subtype = Test;
 
     var
         Assert: Codeunit "Library Assert";
         Any: Codeunit Any;
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         FileScenarioMock: Codeunit "File Scenario Mock";
         FileScenario: Codeunit "File Scenario";
         PermissionsMock: Codeunit "Permissions Mock";
@@ -91,7 +91,7 @@ codeunit 134693 "File Scenario Test"
 
         // [Given] An File scenario isn't mapped to an account and the default scenario is mapped to an existing account
         Initialize();
-        ConnectorMock.AddAccount(AccountId);
+        FileConnectorMock.AddAccount(AccountId);
         FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, AccountId, Enum::"File System Connector"::"Test File System Connector");
 
         // [When] calling GetFileAccount
@@ -113,7 +113,7 @@ codeunit 134693 "File Scenario Test"
 
         // [Given] An File scenario is mapped to an account
         Initialize();
-        ConnectorMock.AddAccount(AccountId);
+        FileConnectorMock.AddAccount(AccountId);
         FileScenarioMock.AddMapping(Enum::"File Scenario"::"Test File Scenario", AccountId, Enum::"File System Connector"::"Test File System Connector");
 
         // [When] calling GetFileAccount
@@ -136,8 +136,8 @@ codeunit 134693 "File Scenario Test"
 
         // [Given] An File scenario is mapped to an account, the default scenarion is mapped to another account
         Initialize();
-        ConnectorMock.AddAccount(AccountId);
-        ConnectorMock.AddAccount(DefaultAccountId);
+        FileConnectorMock.AddAccount(AccountId);
+        FileConnectorMock.AddAccount(DefaultAccountId);
         FileScenarioMock.AddMapping(Enum::"File Scenario"::"Test File Scenario", AccountId, Enum::"File System Connector"::"Test File System Connector");
         FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, DefaultAccountId, Enum::"File System Connector"::"Test File System Connector");
 
@@ -165,7 +165,7 @@ codeunit 134693 "File Scenario Test"
 
         // [Given] An File scenario is mapped to a non-exisitng account, the default scenarion is mapped to an existing account
         Initialize();
-        ConnectorMock.AddAccount(DefaultAccountId);
+        FileConnectorMock.AddAccount(DefaultAccountId);
         NonExistingAccountId := Any.GuidValue();
         FileScenarioMock.AddMapping(Enum::"File Scenario"::"Test File Scenario", NonExistingAccountId, Enum::"File System Connector"::"Test File System Connector");
         FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, DefaultAccountId, Enum::"File System Connector"::"Test File System Connector");
@@ -194,7 +194,7 @@ codeunit 134693 "File Scenario Test"
 
         // [Given] An File scenario is mapped to an exisitng account, the default scenarion is mapped to a non-existing account
         Initialize();
-        ConnectorMock.AddAccount(AccountId);
+        FileConnectorMock.AddAccount(AccountId);
         DefaultAccountId := Any.GuidValue();
         FileScenarioMock.AddMapping(Enum::"File Scenario"::"Test File Scenario", AccountId, Enum::"File System Connector"::"Test File System Connector");
         FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, DefaultAccountId, Enum::"File System Connector"::"Test File System Connector");
@@ -262,8 +262,8 @@ codeunit 134693 "File Scenario Test"
 
         // [Given] Two accounts, one default and one not 
         Initialize();
-        ConnectorMock.AddAccount(FileAccount);
-        ConnectorMock.AddAccount(DefaultAccount);
+        FileConnectorMock.AddAccount(FileAccount);
+        FileConnectorMock.AddAccount(DefaultAccount);
         FileScenario.SetDefaultFileAccount(DefaultAccount);
         FileScenario.SetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount);
 

@@ -10,7 +10,7 @@ using System.FileSystem;
 /// <summary>
 /// Used to mock selected file accounts on File Accounts page.
 /// </summary>
-codeunit 80203 "File System Acc Selection Mock"
+codeunit 134762 "File System Acc Selection Mock"
 {
     EventSubscriberInstance = Manual;
 

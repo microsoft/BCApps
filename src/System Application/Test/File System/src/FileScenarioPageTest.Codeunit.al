@@ -10,13 +10,13 @@ using System.FileSystem;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
 
-codeunit 134695 "File Scenario Page Test"
+codeunit 134751 "File Scenario Page Test"
 {
     Subtype = Test;
 
     var
         Assert: Codeunit "Library Assert";
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
         FileScenarioMock: Codeunit "File Scenario Mock";
         PermissionsMock: Codeunit "Permissions Mock";
         DisplayNameTxt: Label '%1', Locked = true;
@@ -33,7 +33,7 @@ codeunit 134695 "File Scenario Page Test"
         PermissionsMock.Set('File System Admin');
 
         // [Given] No file account is registered.
-        ConnectorMock.Initialize();
+        FileConnectorMock.Initialize();
 
         // [When] Opening the the page
         FileScenarioPage.Trap();
@@ -55,8 +55,8 @@ codeunit 134695 "File Scenario Page Test"
         PermissionsMock.Set('File System Admin');
 
         // [Given] One file account is registered.
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FileAccount);
+        FileConnectorMock.Initialize();
+        FileConnectorMock.AddAccount(FileAccount);
 
         // [When] Opening the the page
         FileScenarioPage.Trap();
@@ -88,8 +88,8 @@ codeunit 134695 "File Scenario Page Test"
         PermissionsMock.Set('File System Admin');
 
         // [Given] One file account is registered and it's set as default.
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FileAccount);
+        FileConnectorMock.Initialize();
+        FileConnectorMock.AddAccount(FileAccount);
 
         FileScenarioMock.DeleteAllMappings();
         FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, FileAccount."Account Id", FileAccount.Connector);
@@ -126,8 +126,8 @@ codeunit 134695 "File Scenario Page Test"
         PermissionsMock.Set('File System Admin');
 
         // [Given] One file account is registered and it's set as default.
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FileAccount);
+        FileConnectorMock.Initialize();
+        FileConnectorMock.AddAccount(FileAccount);
 
         FileScenarioMock.DeleteAllMappings();
         FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, FileAccount."Account Id", FileAccount.Connector);
@@ -174,9 +174,9 @@ codeunit 134695 "File Scenario Page Test"
         PermissionsMock.Set('File System Admin');
 
         // [Given] Two file accounts are registered. One is set as default.
-        ConnectorMock.Initialize();
-        ConnectorMock.AddAccount(FirstFileAccount);
-        ConnectorMock.AddAccount(SecondFileAccount);
+        FileConnectorMock.Initialize();
+        FileConnectorMock.AddAccount(FirstFileAccount);
+        FileConnectorMock.AddAccount(SecondFileAccount);
 
         FileScenarioMock.DeleteAllMappings();
         FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, FirstFileAccount."Account Id", FirstFileAccount.Connector);

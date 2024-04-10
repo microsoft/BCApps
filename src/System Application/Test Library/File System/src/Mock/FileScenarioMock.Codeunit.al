@@ -7,7 +7,7 @@ namespace System.TestLibraries.FileSystem;
 
 using System.FileSystem;
 
-codeunit 80201 "File Scenario Mock"
+codeunit 134761 "File Scenario Mock"
 {
     Permissions = tabledata "File Scenario" = rid;
 

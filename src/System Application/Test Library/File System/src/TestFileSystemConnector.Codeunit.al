@@ -74,7 +74,7 @@ codeunit 80202 "Test File System Connector" implements "File System Connector"
 
     procedure GetAccounts(var Accounts: Record "File Account")
     begin
-        ConnectorMock.GetAccounts(Accounts);
+        FileConnectorMock.GetAccounts(Accounts);
     end;
 
     procedure ShowAccountInformation(AccountId: Guid)
@@ -85,10 +85,10 @@ codeunit 80202 "Test File System Connector" implements "File System Connector"
     procedure RegisterAccount(var FileAccount: Record "File Account"): Boolean
     var
     begin
-        if ConnectorMock.FailOnRegisterAccount() then
+        if FileConnectorMock.FailOnRegisterAccount() then
             Error('Failed to register account');
 
-        if ConnectorMock.UnsuccessfulRegister() then
+        if FileConnectorMock.UnsuccessfulRegister() then
             exit(false);
 
         FileAccount."Account Id" := CreateGuid();
@@ -117,5 +117,5 @@ codeunit 80202 "Test File System Connector" implements "File System Connector"
     end;
 
     var
-        ConnectorMock: Codeunit "Connector Mock";
+        FileConnectorMock: Codeunit "File Connector Mock";
 }
