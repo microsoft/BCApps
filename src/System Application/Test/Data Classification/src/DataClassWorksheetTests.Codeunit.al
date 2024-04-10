@@ -6,7 +6,6 @@
 namespace System.Test.Privacy;
 
 using System.Privacy;
-using System.Reflection;
 using System.TestLibraries.Privacy;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;

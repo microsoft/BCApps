@@ -53,7 +53,7 @@ codeunit 135150 "Data Classification Mgt. Tests"
 
         DataSensitivityCount := DataSensitivity.Count();
 
-        FieldCount := GetNumberOfEnabledSensitiveFieldsForAllSupportedTables();
+        FieldCount := LibraryDataClassification.GetNumberOfEnabledSensitiveFieldsForAllSupportedTables();
 
         // [WHEN] There exist entries in the Field table
         if not Field.IsEmpty() then
