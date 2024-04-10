@@ -170,6 +170,18 @@ codeunit 8906 "Email Editor"
         UploadAttachment(EmailMessageImpl, FileName, Instream);
     end;
 
+    procedure UploadMultipleAttachments(EmailMessageImpl: Codeunit "Email Message Impl."; files: List of [FileUpload])
+    var
+        TempInStream: InStream;
+        SingleFile: FileUpload;
+    begin
+        foreach SingleFile in files do begin
+            SingleFile.CreateInStream(TempInStream, TextEncoding::UTF8);
+            if SingleFile.FileName <> '' then
+                UploadAttachment(EmailMessageImpl, SingleFile.FileName, TempInStream);
+        end;
+    end;
+
     procedure UploadAttachment(EmailMessageImpl: Codeunit "Email Message Impl."; FileName: Text; Instream: InStream)
     var
         AttachmentName, ContentType : Text[250];
