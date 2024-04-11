@@ -43,7 +43,7 @@ function RunSqlCommand()
     .OUTPUTS
     Returns true if database exists otherwise false
 #>
-function Test-NavDatabase()
+function Test-Database()
 {
     param(
         [Parameter(Mandatory = $true)]
@@ -63,11 +63,11 @@ function Test-NavDatabase()
 
 <#
     .SYNOPSIS
-    Set the version of an extension in the specified database
+    Set the version of an app in the specified database
     .DESCRIPTION
-    This function sets the version of an extension in the specified database
+    This function sets the version of an app in the specified database
     .PARAMETER Name
-    The name of the extension
+    The name of the app
     .PARAMETER DatabaseName
     The name of the database
     .PARAMETER Major
@@ -75,11 +75,11 @@ function Test-NavDatabase()
     .PARAMETER Minor
     The minor version number
     .PARAMETER Publisher
-    The publisher of the extension
+    The publisher of the app
     .PARAMETER DatabaseServer
     The hostname of the SQL server
 #>
-function Set-ExtensionVersion()
+function Set-AppVersion()
 {
     param(
         [Parameter(Mandatory = $true)]
@@ -96,12 +96,7 @@ function Set-ExtensionVersion()
         [string]$DatabaseServer = '.'
     )
 
-    if (!$Major)
-    {
-        throw "The `$env:BUILDVERSION is 0. Check if the environment has been configured correctly."
-    }
-
-    Write-Host "Set version $Major.$Minor.0.0 for extension $Name published by $Publisher."
+    Write-Host "Set version $Major.$Minor.0.0 for app $Name published by $Publisher."
 
     $command = @"
     UPDATE [$DatabaseName].[dbo].[Published Application]
@@ -121,30 +116,29 @@ function Set-ExtensionVersion()
     WHERE [name] = '$Name' and [publisher] = '$Publisher';
 "@
 
-
     RunSqlCommand -Command $command -Server $DatabaseServer
 }
 
 <#
     .SYNOPSIS
-    Move the extension identified by the given name and publisher from the global scope to the tenant scope
+    Move the app identified by the given name and publisher from the global scope to the tenant scope
 
     .PARAMETER Name
-    The extension's name, as defined in the extension's manifest.
+    The app's name, as defined in the app's manifest.
 
     .PARAMETER DatabaseName
     The database on which to execute the query.
 
     .PARAMETER Publisher
-    The extension's publisher, as defined in the extension's manifest.
+    The app's publisher, as defined in the app's manifest.
 
     .PARAMETER TenantId
-    The tenant in whose scope the extension should be moved.
+    The tenant in whose scope the app should be moved.
 
     .PARAMETER DatabaseServer
     The database server on which to run the query.
 #>
-function Move-ExtensionIntoDevScope()
+function Move-AppIntoDevScope()
 {
     param(
         [Parameter(Mandatory = $true)]
@@ -158,7 +152,7 @@ function Move-ExtensionIntoDevScope()
         [Parameter(Mandatory = $false)]
         [string]$DatabaseServer = '.'
     )
-    Write-Host "Move extension $Name published by $Publisher to the DEV scope."
+    Write-Host "Move app $Name published by $Publisher to the DEV scope."
 
     if (!$TenantId)
     {
@@ -201,7 +195,7 @@ function Setup-ContainerForDevelopment() {
         $server = Get-NAVServerInstance
         Write-Host "Server: $($server.ServerInstance)" -ForegroundColor Green
 
-        if (-not(Test-NavDatabase -DatabaseName $DatabaseName)) {
+        if (-not(Test-Database -DatabaseName $DatabaseName)) {
             throw "Database $DatabaseName does not exist"
         }
 
@@ -224,10 +218,10 @@ function Setup-ContainerForDevelopment() {
             $installedApps | ForEach-Object {
                 if ($_.Scope -eq 'Global') {
                     Write-Host "Moving $($_.Name) to Dev Scope"
-                    Move-ExtensionIntoDevScope -Name ($_.Name) -DatabaseName $DatabaseName
+                    Move-AppIntoDevScope -Name ($_.Name) -DatabaseName $DatabaseName
                 }
                 if ($_.Version -ne "$($RepoVersion.Major).$($RepoVersion.Minor).0.0") {
-                    Set-ExtensionVersion -Name ($_.Name) -DatabaseName $DatabaseName -Major $RepoVersion.Major -Minor $RepoVersion.Minor
+                    Set-AppVersion -Name ($_.Name) -DatabaseName $DatabaseName -Major $RepoVersion.Major -Minor $RepoVersion.Minor
                 }
             }
         } finally {
@@ -239,4 +233,7 @@ function Setup-ContainerForDevelopment() {
     } -argumentList $NewDevContainerModule,$RepoVersion -usePwsh $false
 }
 
-Export-ModuleMember -Function *-*
+Export-ModuleMember -Function Setup-ContainerForDevelopment
+Export-ModuleMember -Function Test-Database
+Export-ModuleMember -Function Set-AppVersion
+Export-ModuleMember -Function Move-AppIntoDevScope

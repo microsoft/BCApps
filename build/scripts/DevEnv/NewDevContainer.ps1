@@ -4,7 +4,7 @@ param(
     [string] $ContainerName = "BC-$(Get-Date -Format 'yyyyMMdd')",
     [Parameter(Mandatory = $false)]
     [ValidateSet('Windows', 'UserPassword')]
-    [string] $Authentification = "UserPassword"
+    [string] $Authentication = "UserPassword"
 )
 
 Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
@@ -21,7 +21,7 @@ if (-not $containerExists)
 
     # Create a new container with a single tenant
     $bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
-    New-BcContainer -artifactUrl $artifactUrl -accept_eula -accept_insiderEula -containerName $ContainerName -auth $Authentification -includeAL
+    New-BcContainer -artifactUrl $artifactUrl -accept_eula -accept_insiderEula -containerName $ContainerName -auth $Authentication -includeAL
 } else {
     Write-Host "Container $ContainerName already exists. Skipping creation." -ForegroundColor Yellow
 }
@@ -31,4 +31,4 @@ if (-not $containerExists)
 Setup-ContainerForDevelopment -ContainerName $ContainerName -RepoVersion (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go)
 
 # Step 3: Set up vscode for development against the container (i.e. set up launch.json and settings.json)
-Configure-ALProjectsInPath -ContainerName $ContainerName -Authentication $Authentification
+Configure-ALProjectsInPath -ContainerName $ContainerName -Authentication $Authentication
