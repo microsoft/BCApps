@@ -372,17 +372,15 @@ codeunit 7772 "Azure OpenAI Impl"
     [NonDebuggable]
     local procedure SendRequest(ModelType: Enum "AOAI Model Type"; AOAIAuthorization: Codeunit "AOAI Authorization"; Payload: Text; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
-        ALCopilotCapability: DotNet ALCopilotCapability;
         ALCopilotAuthorization: DotNet ALCopilotAuthorization;
+        ALCopilotCapability: DotNet ALCopilotCapability;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         ALCopilotOperationResponse: DotNet ALCopilotOperationResponse;
-        CapabilityName: Text;
     begin
         ClearLastError();
         ALCopilotAuthorization := ALCopilotAuthorization.Create(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
 
-        CapabilityName := GetCapabilityName();
-        ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), CapabilityName);
+        ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), GetCapabilityName());
 
         case ModelType of
             Enum::"AOAI Model Type"::"Text Completions":
@@ -407,13 +405,11 @@ codeunit 7772 "Azure OpenAI Impl"
         CapabilityName: Text;
     begin
         CheckCapabilitySet();
-        CapabilityIndex := CopilotSettings.Capability.Ordinals.IndexOf(CopilotSettings.Capability.AsInteger());
-        if CapabilityIndex < 1 then
-            exit(Format(CopilotSettings.Capability, 0, 9));
 
+        CapabilityIndex := CopilotSettings.Capability.Ordinals.IndexOf(CopilotSettings.Capability.AsInteger());
         CapabilityName := CopilotSettings.Capability.Names.Get(CapabilityIndex);
 
-        if CapabilityName = '' then
+        if CapabilityName.Trim() = '' then
             exit(Format(CopilotSettings.Capability, 0, 9));
 
         exit(CapabilityName);
