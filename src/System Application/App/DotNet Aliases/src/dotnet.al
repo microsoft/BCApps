@@ -7,16 +7,8 @@ namespace System;
 
 dotnet
 {
-    assembly("DocumentFormat.OpenXml.Framework")
-    {
-        type("DocumentFormat.OpenXml.OpenXmlUnknownElement"; "OpenXmlUnknownElement")
-        {
-        }
-    }
-
     assembly("DocumentFormat.OpenXml")
     {
-
         type("DocumentFormat.OpenXml.BooleanValue"; "BooleanValue")
         {
         }
