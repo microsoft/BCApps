@@ -7,6 +7,13 @@ namespace System;
 
 dotnet
 {
+    assembly("DocumentFormat.OpenXml.Framework")
+    {
+        type("DocumentFormat.OpenXml.OpenXmlUnknownElement"; "OpenXmlUnknownElement")
+        {
+        }
+    }
+
     assembly("DocumentFormat.OpenXml")
     {
 
@@ -35,10 +42,6 @@ dotnet
         }
 
         type("DocumentFormat.OpenXml.OpenXmlElement"; "OpenXmlElement")
-        {
-        }
-
-        type("DocumentFormat.OpenXml.OpenXmlUnknownElement"; "OpenXmlUnknownElement")
         {
         }
 
