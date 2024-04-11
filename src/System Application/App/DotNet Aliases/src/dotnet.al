@@ -531,42 +531,6 @@ dotnet
         }
     }
 
-    assembly("Microsoft.Dynamics.Nav.Integration.Office")
-    {
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Outlook.IOutlookMessage"; "IOutlookMessage")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Outlook.IOutlookMessageFactory"; "IOutlookMessageFactory")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Outlook.OutlookHelper"; "OutlookHelper")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Outlook.OutlookMessageFactory"; "OutlookMessageFactory")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Outlook.OutlookStatusCode"; "OutlookStatusCode")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Word.MergeHandler"; "MergeHandler")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Word.WordHandler"; "WordHandler")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Word.WordHelper"; "WordHelper")
-        {
-        }
-    }
-
     assembly("Microsoft.Dynamics.Nav.LicensingService.Model")
     {
         Culture = 'neutral';
