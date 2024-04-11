@@ -44,7 +44,7 @@ codeunit 7772 "Azure OpenAI Impl"
         EmptyMetapromptErr: Label 'The metaprompt has not been set, please provide a metaprompt.';
         MetapromptLoadingErr: Label 'Metaprompt not found.';
         EnabledKeyTok: Label 'AOAI-Enabled', Locked = true;
-        FunctionCallingFunctionNotFoundErr: Label 'Function call, %1, not found.', Comment = '%1 is the name of the function';
+        FunctionCallingFunctionNotFoundErr: Label 'Function call not found, %1.', Comment = '%1 is the name of the function';
         TelemetryGenerateTextCompletionLbl: Label 'Generate Text Completion', Locked = true;
         TelemetryGenerateEmbeddingLbl: Label 'Generate Embedding', Locked = true;
         TelemetryGenerateChatCompletionLbl: Label 'Generate Chat Completion', Locked = true;
@@ -341,14 +341,14 @@ codeunit 7772 "Azure OpenAI Impl"
             exit;
         end;
 
-        ProcessChatCompletionResponse(AOAIOperationResponse.GetResult(), ChatMessages, AOAIOperationResponse, CallerModuleInfo);
+        ProcessChatCompletionResponse(ChatMessages, AOAIOperationResponse, CallerModuleInfo);
 
         FeatureTelemetry.LogUsage('0000KVN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, CustomDimensions);
     end;
 
     [NonDebuggable]
     [TryFunction]
-    local procedure ProcessChatCompletionResponse(ResponseText: Text; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
+    local procedure ProcessChatCompletionResponse(var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
         CustomDimensions: Dictionary of [Text, Text];
@@ -358,7 +358,7 @@ codeunit 7772 "Azure OpenAI Impl"
         XPathLbl: Label '$.content', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
         XPathToolCallsLbl: Label '$.tool_calls', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
     begin
-        Response.ReadFrom(ResponseText);
+        Response.ReadFrom(AOAIOperationResponse.GetResult());
         if Response.SelectToken(XPathLbl, CompletionToken) then
             if not CompletionToken.AsValue().IsNull() then
                 ChatMessages.AddAssistantMessage(CompletionToken.AsValue().AsText());
