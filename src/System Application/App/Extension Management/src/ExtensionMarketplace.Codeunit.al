@@ -193,6 +193,7 @@ codeunit 2501 "Extension Marketplace"
         if PreviewKey <> '' then begin
             // Preview keys are not saved on the data plane and we must then trigger the full deploy operation.
             ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true, PreviewKey);
+            RunSetupForExtension(ApplicationId);
             exit;
         end;
 
@@ -201,6 +202,7 @@ codeunit 2501 "Extension Marketplace"
         if not PublishedApplication.FindFirst() then begin
             // If the extension is not found, send the request to the regional service.
             ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true, '');
+            RunSetupForExtension(ApplicationId);
             exit;
         end;
 
@@ -213,9 +215,11 @@ codeunit 2501 "Extension Marketplace"
         // If it is a first party extension, install it locally
         if IsFirstPartyExtension(PublishedApplication) then
             InstallApp(PublishedApplication."Package ID", PublishedApplication.ID, ResponseURL, lcid)
-        else
+        else begin
             // If the extension is found and it's from a third party, then send the request to regional service.
             ExtensionOperationImpl.DeployExtension(ApplicationId, lcid, true, '');
+            RunSetupForExtension(ApplicationId);
+        end;
     end;
 
     [TryFunction]
