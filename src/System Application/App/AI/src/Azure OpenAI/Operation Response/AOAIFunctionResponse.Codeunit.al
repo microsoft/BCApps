@@ -15,6 +15,7 @@ codeunit 7758 "AOAI Function Response"
 
     var
         Success: Boolean;
+        FunctionCall: Boolean;
         FunctionName: Text;
         Result: Variant;
         Error: Text;
@@ -53,7 +54,7 @@ codeunit 7758 "AOAI Function Response"
     /// <returns>True if it was a function call, false otherwise.</returns>
     procedure IsFunctionCall(): Boolean
     begin
-        exit(FunctionName <> '');
+        exit(FunctionCall);
     end;
 
     /// <summary>
@@ -72,6 +73,11 @@ codeunit 7758 "AOAI Function Response"
     procedure GetErrorCallstack(): Text
     begin
         exit(ErrorCallStack);
+    end;
+
+    internal procedure SetIsFunctionCall(NewIsFunctionCall: Boolean)
+    begin
+        FunctionCall := NewIsFunctionCall;
     end;
 
     internal procedure SetFunctionCallingResponse(NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)

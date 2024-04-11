@@ -370,7 +370,8 @@ codeunit 7772 "Azure OpenAI Impl"
 
             AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
             AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
-            if not AOAIFunctionResponse.IsFunctionCall() then
+            AOAIFunctionResponse.SetIsFunctionCall(true);
+            if not AOAIFunctionResponse.IsSuccess() then
                 FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), CustomDimensions);
 
             FeatureTelemetry.LogUsage('0000MFH', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryChatCompletionToolCallLbl, CustomDimensions);
