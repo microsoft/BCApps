@@ -13,6 +13,9 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
     - name: run
       shell: pwsh
       id: GetBranches
@@ -20,17 +23,13 @@ runs:
         GH_TOKEN: ${{ github.token }}
         _repository: ${{ inputs.repository }}
       run: |
-        $branches = gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" "/repos/$($env:_repository)/branches?protected=true&per_page=100" | ConvertFrom-Json
-        $branchNames = @($branches.name)
+          git fetch
+          $branches = @(git for-each-ref --format="'%(refname:short)'" refs/remotes/origin/releases/ | % { $_ -replace 'origin/', '' })
+          $branches += "'main'"
+          $branchMatrix = "[$($branches -join ',')]"
 
-        if (-not $branchNames) {
-            Write-Host "No official branches found, using main as default"
-            $branchNames += "main"
-        }
-        Write-Host "Official branches: $($branchNames -join ', ')"
-
-        $branchMatrix = ConvertTo-Json $branchNames -Compress
-        Add-Content -Path $env:GITHUB_OUTPUT -Value "OfficialBranches=$branchMatrix"
+          Write-Host "Official branches: $branchMatrix"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "OfficialBranches=$branchMatrix"
 branding:
   icon: terminal
   color: blue
