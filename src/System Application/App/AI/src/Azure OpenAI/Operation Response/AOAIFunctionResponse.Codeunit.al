@@ -49,15 +49,6 @@ codeunit 7758 "AOAI Function Response"
     end;
 
     /// <summary>
-    /// Get whether the operation was a function call.
-    /// </summary>
-    /// <returns>True if it was a function call, false otherwise.</returns>
-    procedure IsFunctionCall(): Boolean
-    begin
-        exit(FunctionCall);
-    end;
-
-    /// <summary>
     /// Get the name of the function that was called.
     /// </summary>
     /// <returns>The name of the function that was called.</returns>
@@ -73,6 +64,15 @@ codeunit 7758 "AOAI Function Response"
     procedure GetErrorCallstack(): Text
     begin
         exit(ErrorCallStack);
+    end;
+
+    /// <summary>
+    /// Get whether the operation was a function call.
+    /// </summary>
+    /// <returns>True if it was a function call, false otherwise.</returns>
+    internal procedure IsFunctionCall(): Boolean
+    begin
+        exit(FunctionCall);
     end;
 
     internal procedure SetIsFunctionCall(NewIsFunctionCall: Boolean)
