@@ -66,22 +66,14 @@ codeunit 7758 "AOAI Function Response"
         exit(ErrorCallStack);
     end;
 
-    /// <summary>
-    /// Get whether the operation was a function call.
-    /// </summary>
-    /// <returns>True if it was a function call, false otherwise.</returns>
     internal procedure IsFunctionCall(): Boolean
     begin
         exit(FunctionCall);
     end;
 
-    internal procedure SetIsFunctionCall(NewIsFunctionCall: Boolean)
+    internal procedure SetFunctionCallingResponse(NewIsFunctionCall: Boolean; NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
     begin
         FunctionCall := NewIsFunctionCall;
-    end;
-
-    internal procedure SetFunctionCallingResponse(NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
-    begin
         Success := NewFunctionCallSuccess;
         FunctionName := NewFunctionCalled;
         Result := NewFunctionResult;
