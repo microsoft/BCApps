@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Get Official Branches
         id: OfficialBranches
-        uses: microsoft/BCApps/.github/actions/GetOfficialBranches@mazhelez/restructure-automations
+        uses: microsoft/BCApps/.github/actions/GetOfficialBranches@main
 
   UpdatePackageVersions:
     name: "[${{ matrix.branch }}] Update Package Versions"
@@ -42,7 +42,7 @@ jobs:
       - name: Update Package Versions
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
-        uses: microsoft/BCApps/.github/actions/RunAutomation@mazhelez/restructure-automations
+        uses: microsoft/BCApps/.github/actions/RunAutomation@main
         with:
           automations: UpdateAppBaselines,UpdateAppTranslations
           targetBranch: ${{ matrix.branch }}
