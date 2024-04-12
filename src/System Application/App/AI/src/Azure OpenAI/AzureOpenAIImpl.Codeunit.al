@@ -44,6 +44,7 @@ codeunit 7772 "Azure OpenAI Impl"
         EmptyMetapromptErr: Label 'The metaprompt has not been set, please provide a metaprompt.';
         MetapromptLoadingErr: Label 'Metaprompt not found.';
         EnabledKeyTok: Label 'AOAI-Enabled', Locked = true;
+        FunctionCallingFunctionNotFoundErr: Label 'Function call not found, %1.', Comment = '%1 is the name of the function';
         TelemetryGenerateTextCompletionLbl: Label 'Generate Text Completion', Locked = true;
         TelemetryGenerateEmbeddingLbl: Label 'Generate Embedding', Locked = true;
         TelemetryGenerateChatCompletionLbl: Label 'Generate Chat Completion', Locked = true;
@@ -57,6 +58,7 @@ codeunit 7772 "Azure OpenAI Impl"
         TelemetryProhibitedCharactersTxt: Label 'Prohibited characters were removed from the prompt.', Locked = true;
         TelemetryTokenCountLbl: Label 'Metaprompt token count: %1, Prompt token count: %2, Total token count: %3', Comment = '%1 is the number of tokens in the metaprompt, %2 is the number of tokens in the prompt, %3 is the total number of tokens', Locked = true;
         TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
+        TelemetryFunctionCallingFailedErr: Label 'Function calling failed for function: %1', Comment = '%1 is the name of the function', Locked = true;
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
@@ -339,15 +341,16 @@ codeunit 7772 "Azure OpenAI Impl"
             exit;
         end;
 
-        ProcessChatCompletionResponse(AOAIOperationResponse.GetResult(), ChatMessages, CallerModuleInfo);
+        ProcessChatCompletionResponse(ChatMessages, AOAIOperationResponse, CallerModuleInfo);
 
         FeatureTelemetry.LogUsage('0000KVN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, CustomDimensions);
     end;
 
     [NonDebuggable]
     [TryFunction]
-    local procedure ProcessChatCompletionResponse(ResponseText: Text; var ChatMessages: Codeunit "AOAI Chat Messages"; CallerModuleInfo: ModuleInfo)
+    local procedure ProcessChatCompletionResponse(var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
         CustomDimensions: Dictionary of [Text, Text];
         ToolsCall: Text;
         Response: JsonObject;
@@ -355,7 +358,7 @@ codeunit 7772 "Azure OpenAI Impl"
         XPathLbl: Label '$.content', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
         XPathToolCallsLbl: Label '$.tool_calls', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
     begin
-        Response.ReadFrom(ResponseText);
+        Response.ReadFrom(AOAIOperationResponse.GetResult());
         if Response.SelectToken(XPathLbl, CompletionToken) then
             if not CompletionToken.AsValue().IsNull() then
                 ChatMessages.AddAssistantMessage(CompletionToken.AsValue().AsText());
@@ -363,9 +366,66 @@ codeunit 7772 "Azure OpenAI Impl"
             CompletionToken.AsArray().WriteTo(ToolsCall);
             ChatMessages.AddAssistantMessage(ToolsCall);
 
+            ProcessFunctionCall(CompletionToken.AsArray(), ChatMessages, AOAIOperationResponse);
+
             AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+            AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
+            AOAIFunctionResponse.SetIsFunctionCall(true);
+            if not AOAIFunctionResponse.IsSuccess() then
+                FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), CustomDimensions);
+
             FeatureTelemetry.LogUsage('0000MFH', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryChatCompletionToolCallLbl, CustomDimensions);
         end;
+    end;
+
+    local procedure ProcessFunctionCall(Functions: JsonArray; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Boolean
+    var
+        Function: JsonObject;
+        Arguments: JsonObject;
+        Token: JsonToken;
+        FunctionName: Text;
+        AOAIFunction: Interface "AOAI Function";
+        FunctionResult: Variant;
+    begin
+        if Functions.Count = 0 then
+            exit;
+
+        Functions.Get(0, Token);
+        Function := Token.AsObject();
+
+        if Function.Get('type', Token) then begin
+            if Token.AsValue().AsText() <> 'function' then
+                exit;
+        end else
+            exit;
+
+        if Function.Get('function', Token) then
+            Function := Token.AsObject()
+        else
+            exit;
+
+        if Function.Get('name', Token) then
+            FunctionName := Token.AsValue().AsText()
+        else
+            exit;
+
+        if Function.Get('arguments', Token) then
+            // Arguments are stored as a string in the JSON
+            Arguments.ReadFrom(Token.AsValue().AsText());
+
+        if ChatMessages.GetFunctionTool(FunctionName, AOAIFunction) then
+            if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then
+                AOAIOperationResponse.SetFunctionCallingResponse(true, AOAIFunction.GetName(), FunctionResult)
+            else
+                AOAIOperationResponse.SetFunctionCallingResponse(false, AOAIFunction.GetName(), GetLastErrorText(), GetLastErrorCallStack())
+        else
+            AOAIOperationResponse.SetFunctionCallingResponse(false, FunctionName, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
+    end;
+
+    [TryFunction]
+    local procedure TryExecuteFunction(AOAIFunction: Interface "AOAI Function"; Arguments: JsonObject; var Result: Variant)
+    begin
+        Result := AOAIFunction.Execute(Arguments);
     end;
 
     [TryFunction]
