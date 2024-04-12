@@ -369,11 +369,11 @@ codeunit 7772 "Azure OpenAI Impl"
             CompletionToken.AsArray().WriteTo(ToolsCall);
             ChatMessages.AddAssistantMessage(ToolsCall);
 
-            ProcessFunctionCall(CompletionToken.AsArray(), ChatMessages, AOAIOperationResponse);
+            AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
+            if not ProcessFunctionCall(CompletionToken.AsArray(), ChatMessages, AOAIFunctionResponse) then
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, '', '', '', '');
 
             AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
-            AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
-            AOAIFunctionResponse.SetIsFunctionCall(true);
             if not AOAIFunctionResponse.IsSuccess() then
                 FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), CustomDimensions);
 
@@ -381,7 +381,7 @@ codeunit 7772 "Azure OpenAI Impl"
         end;
     end;
 
-    local procedure ProcessFunctionCall(Functions: JsonArray; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Boolean
+    local procedure ProcessFunctionCall(Functions: JsonArray; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIFunctionResponse: Codeunit "AOAI Function Response"): Boolean
     var
         Function: JsonObject;
         Arguments: JsonObject;
@@ -418,11 +418,11 @@ codeunit 7772 "Azure OpenAI Impl"
 
         if ChatMessages.GetFunctionTool(FunctionName, AOAIFunction) then
             if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then
-                AOAIOperationResponse.SetFunctionCallingResponse(true, AOAIFunction.GetName(), FunctionResult)
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, true, AOAIFunction.GetName(), FunctionResult, '', '')
             else
-                AOAIOperationResponse.SetFunctionCallingResponse(false, AOAIFunction.GetName(), GetLastErrorText(), GetLastErrorCallStack())
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionResult, GetLastErrorText(), GetLastErrorCallStack())
         else
-            AOAIOperationResponse.SetFunctionCallingResponse(false, FunctionName, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
+            AOAIFunctionResponse.SetFunctionCallingResponse(true, false, FunctionName, FunctionResult, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
     end;
 
     [TryFunction]
@@ -438,6 +438,7 @@ codeunit 7772 "Azure OpenAI Impl"
         ALCopilotAuthorization: DotNet ALCopilotAuthorization;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         ALCopilotOperationResponse: DotNet ALCopilotOperationResponse;
+        Error: Text;
     begin
         ClearLastError();
         ALCopilotAuthorization := ALCopilotAuthorization.Create(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
@@ -453,7 +454,10 @@ codeunit 7772 "Azure OpenAI Impl"
                 Error(InvalidModelTypeErr)
         end;
 
-        AOAIOperationResponse.SetOperationResponse(ALCopilotOperationResponse);
+        Error := ALCopilotOperationResponse.ErrorText();
+        if Error = '' then
+            Error := GetLastErrorText();
+        AOAIOperationResponse.SetOperationResponse(ALCopilotOperationResponse.IsSuccess(), ALCopilotOperationResponse.StatusCode(), ALCopilotOperationResponse.Result(), Error);
 
         if not ALCopilotOperationResponse.IsSuccess() then
             Error(GenerateRequestFailedErr);
