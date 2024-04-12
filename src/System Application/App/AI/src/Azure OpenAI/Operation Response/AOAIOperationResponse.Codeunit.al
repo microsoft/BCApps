@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-using System;
-
 /// <summary>
 /// The status and result of an operation.
 /// </summary>
@@ -76,31 +74,11 @@ codeunit 7770 "AOAI Operation Response"
         exit(AOAIFunctionResponse);
     end;
 
-    internal procedure SetOperationResponse(var ALCopilotOperationResponse: DotNet ALCopilotOperationResponse)
+    internal procedure SetOperationResponse(NewSuccess: Boolean; NewStatusCode: Integer; NewResult: Text; NewError: Text)
     begin
-        Success := ALCopilotOperationResponse.IsSuccess();
-        StatusCode := ALCopilotOperationResponse.StatusCode;
-        Result := ALCopilotOperationResponse.Result();
-        Error := ALCopilotOperationResponse.ErrorText();
-
-        if Error = '' then
-            Error := GetLastErrorText();
-    end;
-
-    internal procedure SetFunctionCallingResponse(NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
-    var
-        EmptyVariant: Variant;
-    begin
-        SetFunctionCallingResponse(NewFunctionCallSuccess, NewFunctionCalled, EmptyVariant, NewFunctionError, NewFunctionErrorCallStack);
-    end;
-
-    internal procedure SetFunctionCallingResponse(NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionResult: Variant)
-    begin
-        SetFunctionCallingResponse(NewFunctionCallSuccess, NewFunctionCalled, NewFunctionResult, '', '');
-    end;
-
-    local procedure SetFunctionCallingResponse(NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
-    begin
-        AOAIFunctionResponse.SetFunctionCallingResponse(NewFunctionCallSuccess, NewFunctionCalled, NewFunctionResult, NewFunctionError, NewFunctionErrorCallStack);
+        Success := NewSuccess;
+        StatusCode := NewStatusCode;
+        Result := NewResult;
+        Error := NewError;
     end;
 }
