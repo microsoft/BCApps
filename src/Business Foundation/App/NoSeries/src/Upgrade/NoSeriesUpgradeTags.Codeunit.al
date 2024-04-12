@@ -15,4 +15,9 @@ codeunit 332 "No. Series Upgrade Tags"
     begin
         exit('MS-471519-AddImplementationExtensibility-20231206 ');
     end;
+
+    procedure GetMovedTableSchemaSanityCheckUpgradeTag(): Code[250]
+    begin
+        exit('MS-523755-AddMovedTableSchemaSanityCheck-20240402');
+    end;
 }

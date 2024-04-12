@@ -251,6 +251,14 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Remove all tools.
+    /// </summary>
+    procedure ClearTools()
+    begin
+        AOAIToolsImpl.ClearTools();
+    end;
+
+    /// <summary>
     /// Gets the list of Tools.
     /// </summary>
     /// <returns>List of Tools.</returns>

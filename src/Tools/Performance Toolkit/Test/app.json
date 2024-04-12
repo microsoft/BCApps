@@ -34,7 +34,7 @@
                          "to":  144759
                      }
                  ],
-    "platform":  "24.0.0.0",
+    "platform":  "25.0.0.0",
     "features":  [
                      "TranslationFile",
                      "GenerateCaptions"

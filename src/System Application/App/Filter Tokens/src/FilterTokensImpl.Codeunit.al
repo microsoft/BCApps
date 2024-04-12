@@ -397,7 +397,7 @@ codeunit 58 "Filter Tokens Impl."
             else
                 FilterTokens.OnResolveTimeFilterToken(TimeToken, TimeFilter, Handled);
         end;
-        
+
         if not Handled then
             Handled := Evaluate(TimeFilter, TimeToken);
     end;

@@ -123,19 +123,19 @@ page 2516 "AppSource Product Details"
                 {
                     Caption = 'Legal Terms Uri';
                     ToolTip = 'Specifies the legal terms of the offer.';
-                    ExtendedDatatype = Url;
+                    ExtendedDatatype = URL;
                 }
                 field(Links_PrivacyPolicyUri; AppSourceJsonUtilities.GetStringValue(ProductObject, 'privacyPolicyUri'))
                 {
                     Caption = 'Privacy Policy Uri';
                     ToolTip = 'Specifies the privacy policy of the offer.';
-                    ExtendedDatatype = Url;
+                    ExtendedDatatype = URL;
                 }
                 field(Links_SupportUri; AppSourceJsonUtilities.GetStringValue(ProductObject, 'supportUri'))
                 {
                     Caption = 'Support Uri';
                     ToolTip = 'Specifies the support Uri of the offer.';
-                    ExtendedDatatype = Url;
+                    ExtendedDatatype = URL;
                 }
             }
         }
@@ -147,6 +147,7 @@ page 2516 "AppSource Product Details"
         {
             actionref(Open_Promoted; OpenInAppSource) { }
             actionref(Install_Promoted; Install) { }
+            actionref(InstallFromAppSource_Promoted; InstallFromAppSource) { }
             actionref(Uninstall_Promoted; Uninstall) { }
         }
 
@@ -169,7 +170,8 @@ page 2516 "AppSource Product Details"
             {
                 Caption = 'Install App';
                 Scope = Page;
-                Enabled = CurrentRecordCanBeInstalled;
+                Enabled = (not CurrentRecordCanBeUninstalled) and CurrentRecordCanBeInstalled;
+                Visible = (not CurrentRecordCanBeUninstalled) and CurrentRecordCanBeInstalled;
                 Image = Insert;
                 ToolTip = 'Installs the app.';
 
@@ -184,6 +186,21 @@ page 2516 "AppSource Product Details"
                 end;
             }
 
+            action(InstallFromAppSource)
+            {
+                Caption = 'Install From AppSource';
+                Scope = Page;
+                Image = Insert;
+                ToolTip = 'Installs the app from Microsoft AppSource.';
+                Enabled = (not CurrentRecordCanBeUninstalled) and (not CurrentRecordCanBeInstalled);
+                Visible = (not CurrentRecordCanBeUninstalled) and (not CurrentRecordCanBeInstalled);
+
+                trigger OnAction()
+                begin
+                    AppSourceProductManager.OpenAppInAppSource(UniqueProductID);
+                end;
+            }
+
             action(Uninstall)
             {
                 Caption = 'Uninstall App';
@@ -191,7 +208,7 @@ page 2516 "AppSource Product Details"
                 Enabled = CurrentRecordCanBeUninstalled;
                 Image = Delete;
                 ToolTip = 'Uninstalls the app.';
-                AccessByPermission = TableData "Installed Application" = d;
+                AccessByPermission = tabledata "Installed Application" = d;
 
                 trigger OnAction()
                 begin
@@ -296,9 +313,9 @@ page 2516 "AppSource Product Details"
         AvailabilityObject: JsonObject;
         TermItem: JsonToken;
         ArrayItem: JsonArray;
-        i: integer;
-        Currency: text;
-        Monthly, Yearly : decimal;
+        i: Integer;
+        Currency: Text;
+        Monthly, Yearly : Decimal;
         FreeTrial: Boolean;
         PriceText: Text;
     begin
@@ -346,13 +363,13 @@ page 2516 "AppSource Product Details"
         exit(true);
     end;
 
-    local procedure GetTerms(Terms: JsonArray; var Monthly: decimal; var Yearly: decimal; var Currency: Text)
+    local procedure GetTerms(Terms: JsonArray; var Monthly: Decimal; var Yearly: Decimal; var Currency: Text)
     var
         Item: JsonToken;
         PriceToken: JsonToken;
         Price: JsonObject;
         PriceValue: Decimal;
-        i: integer;
+        i: Integer;
     begin
         for i := 0 to Terms.Count() do
             if (Terms.Get(i, Item)) then begin

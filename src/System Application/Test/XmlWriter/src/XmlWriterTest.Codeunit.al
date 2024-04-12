@@ -27,6 +27,8 @@ codeunit 139911 "Xml Writer Test"
         XmlWriter.WriteStartElement('meta');
         XmlWriter.WriteAttributeString('mt', 'type', '', 'test');
         XmlWriter.WriteElementString('tableno', '5200');
+        XmlWriter.WriteElementString('metadata', 'info', 'NS');
+        XmlWriter.WriteElementString('metadata2', 'info', 'NS', 'Pre');
         XmlWriter.WriteEndElement();
         XmlWriter.WriteStartElement('employees');
         XmlWriter.WriteStartElement('employee');
@@ -73,13 +75,17 @@ codeunit 139911 "Xml Writer Test"
         // [GIVEN] Initialized XmlWriter with root element
         XmlWriter.WriteStartDocument();
 
-        // [WHEN] Write an element and end document
+        // [WHEN] Write elements and end document in root node
+        XmlWriter.WriteStartElement('root');
         XmlWriter.WriteElementString('TestEle', 'Test element value');
+        XmlWriter.WriteElementString('TestEle2', 'Test element value', 'NS');
+        XmlWriter.WriteElementString('TestEle3', 'Test element value', 'NS', 'Pre');
+        XmlWriter.WriteEndElement();
         XmlWriter.WriteEndDocument();
 
         // [THEN] Get XmlDocument to text
         XmlWriter.ToBigText(XmlBigText);
-        Assert.AreEqual('<?xml version="1.0" encoding="utf-16"?><TestEle>Test element value</TestEle>', Format(XmlBigText), 'Unexpected text when creating a Xml Document with XmlWriter');
+        Assert.AreEqual('<?xml version="1.0" encoding="utf-16"?><root><TestEle>Test element value</TestEle><TestEle2 xmlns="NS">Test element value</TestEle2><Pre:TestEle3 xmlns:Pre="NS">Test element value</Pre:TestEle3></root>', Format(XmlBigText), 'Unexpected text when creating a Xml Document with XmlWriter');
     end;
 
     [Test]
@@ -193,7 +199,8 @@ codeunit 139911 "Xml Writer Test"
 
     local procedure GetXmlText(): Text;
     begin
-        exit('<?xml version="1.0" encoding="utf-16"?><export><meta type="test"><tableno>5200</tableno></meta>' +
+        exit('<?xml version="1.0" encoding="utf-16"?><export><meta type="test"><tableno>5200</tableno>' +
+        '<metadata xmlns="NS">info</metadata><Pre:metadata2 xmlns:Pre="NS">info</Pre:metadata2></meta>' +
         '<employees><employee no="123" name="Angela"><details><company>Mercash</company><city>Hoorn</city><occupation>Software Developer</occupation></details></employee></employees>' +
         '<!--This is an awesome module--></export>')
     end;
