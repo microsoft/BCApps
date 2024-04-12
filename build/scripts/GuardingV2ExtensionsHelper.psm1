@@ -198,7 +198,7 @@ function Update-AppSourceCopVersion
     $appSourceJson["obsoleteTagVersion"] = $buildVersion
 
     if ($BuildMode -eq "Clean")
-    {       
+    {
         $appSourceJson["obsoleteTagMinAllowedMajorMinor"] = "99.9"
         $appSourceJson["ObsoleteTagMinAllowedMajorMinorOnSourceSymbols"] = $true
     }
