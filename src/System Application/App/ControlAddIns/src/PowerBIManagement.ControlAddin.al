@@ -59,11 +59,13 @@ controladdin PowerBIManagement
     /// </summary>
     event ReportVisualLoaded(CorrelationId: Text);
 
+#pragma warning disable AS0105
     /// <summary>
     /// Initializes the Power BI Embed into the page
     /// </summary>
     [Obsolete('This method is deprecated. Please use EmbedReport instead.', '24.0')]
     procedure InitializeReport(ReportLink: Text; ReportId: Text; AuthToken: Text; PowerBIApi: Text);
+#pragma warning restore AS0105
 
     /// <summary>
     /// Initializes the Power BI embed Report into the page
