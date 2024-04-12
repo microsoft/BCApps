@@ -71,7 +71,7 @@ page 332 "No. Series Proposal"
                 Caption = 'Create new';
                 action(NewNumberSeriesFor)
                 {
-                    Caption = 'Set up number series for [purchase orders]';
+                    Caption = 'Create number series for [purchase orders]';
                     trigger OnAction()
                     begin
                         InputText := NewNoSeriesForPurchaseOrderLbl;
@@ -80,7 +80,7 @@ page 332 "No. Series Proposal"
                 }
                 action(NewNumberSeriesForModuleWithPattern)
                 {
-                    Caption = 'Set up numbers for the [sales] module, using pattern [@@-#####]';
+                    Caption = 'Create numbers for the [sales] module, using pattern [@@-#####]';
                     trigger OnAction()
                     begin
                         InputText := NewNoSeriesForSalesModuleWithPatternLbl;
@@ -89,7 +89,7 @@ page 332 "No. Series Proposal"
                 }
                 action(NewNumberSeriesForCompany)
                 {
-                    Caption = 'Set up numbers series for the new companyy';
+                    Caption = 'Create numbers series for the new companyy';
                     trigger OnAction()
                     begin
                         InputText := NewNoSeriesForCompanyLbl;
@@ -150,9 +150,9 @@ page 332 "No. Series Proposal"
         PageCaptionLbl: text;
         IsResponseTextVisible: Boolean;
         IsProposalDetailsVisible: Boolean;
-        NewNoSeriesForPurchaseOrderLbl: Label 'Set up number series for';
-        NewNoSeriesForSalesModuleWithPatternLbl: Label 'Set up number series for [specify here] module in the format ';
-        NewNoSeriesForCompanyLbl: Label 'Set up numbers series for the new company';
+        NewNoSeriesForPurchaseOrderLbl: Label 'Create number series for';
+        NewNoSeriesForSalesModuleWithPatternLbl: Label 'Create number series for [specify here] module in the format ';
+        NewNoSeriesForCompanyLbl: Label 'Create numbers series for the new company';
         ChangeSalesOrderNumberLbl: Label 'Change the [specify here] number to ';
 
     trigger OnAfterGetCurrRecord()
