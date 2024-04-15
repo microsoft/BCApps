@@ -86,6 +86,16 @@ page 3901 "Retention Policy Setup Card"
                     ToolTip = 'Specifies the number of expired records.';
                     Editable = false;
                     StyleExpr = ExpiredRecordCountStyleTxt;
+                    Visible = not ShowExpiredRecordExpirationDate;
+                }
+                field("Records To Delete"; ExpiredRecordCount)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Records to delete';
+                    ToolTip = 'Specifies the number of expired records the retention policy will delete the next time it runs.';
+                    Editable = false;
+                    StyleExpr = ExpiredRecordCountStyleTxt;
+                    Visible = ShowExpiredRecordExpirationDate;
                 }
                 field("Expired Record Expiration Date"; ExpiredRecordExpirationDate)
                 {
@@ -122,7 +132,7 @@ page 3901 "Retention Policy Setup Card"
                 ApplicationArea = All;
                 Caption = 'Record Retention Policy', Comment = 'Record as in ''a record in a table''.';
                 SubPageLink = "Table ID" = field("Table Id");
-                Visible = not Rec."Apply to all records";
+                Visible = ShowExpiredRecordExpirationDate;
             }
         }
     }

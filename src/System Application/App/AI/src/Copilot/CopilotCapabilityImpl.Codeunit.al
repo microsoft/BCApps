@@ -4,12 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-using System.Globalization;
-using System.Telemetry;
-using System.Security.User;
+using System;
 using System.Azure.Identity;
 using System.Environment;
+using System.Environment.Configuration;
+using System.Globalization;
 using System.Privacy;
+using System.Security.User;
+using System.Telemetry;
 
 codeunit 7774 "Copilot Capability Impl"
 {
@@ -26,7 +28,7 @@ codeunit 7774 "Copilot Capability Impl"
         NotRegisteredErr: Label 'Copilot capability has not been registered by the module.';
         ReviewPrivacyNoticeLbl: Label 'Review the privacy notice';
         PrivacyNoticeDisagreedNotificationMessageLbl: Label 'To enable Copilot, please review and accept the privacy notice.';
-        CapabilitiesNotAvailableOnPremNotificationMessageLbl: Label 'Note that copilot and AI capabilities published by Microsoft are not available on-premises.';
+        CapabilitiesNotAvailableOnPremNotificationMessageLbl: Label 'Copilot capabilities published by Microsoft are not available on-premises. You can extend Copilot with custom capabilities and use them on-premises for development purposes only.';
         TelemetryRegisteredNewCopilotCapabilityLbl: Label 'New copilot capability has been registered.', Locked = true;
         TelemetryModifiedCopilotCapabilityLbl: Label 'Copilot capability has been modified.', Locked = true;
         TelemetryUnregisteredCopilotCapabilityLbl: Label 'Copilot capability has been unregistered.', Locked = true;
@@ -234,7 +236,26 @@ codeunit 7774 "Copilot Capability Impl"
         PlanIds: Codeunit "Plan Ids";
         UserPermissions: Codeunit "User Permissions";
     begin
-        IsAdmin := AzureADGraphUser.IsUserDelegatedAdmin() or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId()) or AzureADGraphUser.IsUserDelegatedHelpdesk() or UserPermissions.IsSuper(UserSecurityId());
+        IsAdmin := AzureADGraphUser.IsUserDelegatedAdmin() or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetBCAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId()) or AzureADGraphUser.IsUserDelegatedHelpdesk() or UserPermissions.IsSuper(UserSecurityId());
+    end;
+
+    [TryFunction]
+    procedure CheckGeo(var WithinGeo: Boolean; var WithinEuropeGeo: Boolean)
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+    begin
+        WithinGeo := ALCopilotFunctions.IsWithinGeo();
+        WithinEuropeGeo := ALCopilotFunctions.IsEuropeGeo();
+    end;
+
+    procedure UpdateGuidedExperience(AllowDataMovement: Boolean)
+    var
+        GuidedExperience: Codeunit "Guided Experience";
+    begin
+        if AllowDataMovement then
+            GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Copilot AI Capabilities")
+        else
+            GuidedExperience.ResetAssistedSetup(ObjectType::Page, Page::"Copilot AI Capabilities");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", 'OnRegisterPrivacyNotices', '', false, false)]
@@ -251,8 +272,13 @@ codeunit 7774 "Copilot Capability Impl"
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
         CopilotCapability: Enum "Copilot Capability";
+        Silent: Boolean;
     begin
         CopilotCapability := Enum::"Copilot Capability".FromInteger(Capability);
-        Isenabled := AzureOpenAI.IsEnabled(CopilotCapability, true);
+
+        if CopilotCapability = Enum::"Copilot Capability"::Chat then
+            Silent := true;
+
+        IsEnabled := AzureOpenAI.IsEnabled(CopilotCapability, Silent);
     end;
 }

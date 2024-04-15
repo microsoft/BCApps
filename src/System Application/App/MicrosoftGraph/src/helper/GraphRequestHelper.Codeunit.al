@@ -36,6 +36,11 @@ codeunit 9354 "Graph Request Helper"
         HttpResponseMessage := SendRequest(Enum::"Http Method"::PATCH, GraphUriBuilder, GraphOptionalParameters, HttpContent);
     end;
 
+    procedure Put(GraphUriBuilder: Codeunit "Graph Uri Builder"; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; HttpContent: Codeunit "Http Content") HttpResponseMessage: Codeunit "Http Response Message"
+    begin
+        HttpResponseMessage := SendRequest(Enum::"Http Method"::PUT, GraphUriBuilder, GraphOptionalParameters, HttpContent);
+    end;
+
     procedure Delete(GraphUriBuilder: Codeunit "Graph Uri Builder"; GraphOptionalParameters: Codeunit "Graph Optional Parameters") HttpResponseMessage: Codeunit "Http Response Message"
     begin
         PrepareRestClient(GraphOptionalParameters);

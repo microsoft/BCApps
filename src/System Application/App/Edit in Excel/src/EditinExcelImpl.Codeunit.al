@@ -46,6 +46,7 @@ codeunit 1482 "Edit in Excel Impl."
         DialogTitleTxt: Label 'Export';
         ExcelFileNameTxt: Text;
         XmlByteEncodingTok: Label '_x00%1_%2', Locked = true;
+        XmlByteEncoding2Tok: Label '%1_x00%2_%3', Locked = true;
 
     procedure EditPageInExcel(PageCaption: Text[240]; PageId: Integer; EditinExcelFilters: Codeunit "Edit in Excel Filters"; FileName: Text)
     var
@@ -704,10 +705,13 @@ codeunit 1482 "Edit in Excel Impl."
     end;
 #endif
 
+
     procedure ExternalizeODataObjectName(Name: Text) ConvertedName: Text
     var
         CurrentPosition: Integer;
         Convert: DotNet Convert;
+        StartStr: Text;
+        EndStr: Text;
         ByteValue: DotNet Byte;
     begin
         ConvertedName := Name;
@@ -729,15 +733,23 @@ codeunit 1482 "Edit in Excel Impl."
         CurrentPosition := 1;
 
         while CurrentPosition <= StrLen(ConvertedName) do begin
-            if ConvertedName[CurrentPosition] in [' ', '\', '/', '''', '"', '.', '(', ')', '-', ':'] then
-                if CurrentPosition > 1 then begin
-                    if ConvertedName[CurrentPosition - 1] = '_' then begin
-                        ConvertedName := DelStr(ConvertedName, CurrentPosition, 1);
-                        CurrentPosition -= 1;
+            if ConvertedName[CurrentPosition] in ['''', '+'] then begin
+                ByteValue := Convert.ToByte(ConvertedName[CurrentPosition]);
+                StartStr := CopyStr(ConvertedName, 1, CurrentPosition - 1);
+                EndStr := CopyStr(ConvertedName, CurrentPosition + 1);
+                ConvertedName := StrSubstNo(XmlByteEncoding2Tok, StartStr, Convert.ToString(ByteValue, 16), EndStr);
+                // length of _x00nn_ minus one that will be added later
+                CurrentPosition += 6;
+            end else
+                if ConvertedName[CurrentPosition] in [' ', '\', '/', '"', '.', '(', ')', '-', ':'] then
+                    if CurrentPosition > 1 then begin
+                        if ConvertedName[CurrentPosition - 1] = '_' then begin
+                            ConvertedName := DelStr(ConvertedName, CurrentPosition, 1);
+                            CurrentPosition -= 1;
+                        end else
+                            ConvertedName[CurrentPosition] := '_';
                     end else
                         ConvertedName[CurrentPosition] := '_';
-                end else
-                    ConvertedName[CurrentPosition] := '_';
 
             CurrentPosition += 1;
         end;

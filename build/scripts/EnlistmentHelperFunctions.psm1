@@ -5,11 +5,32 @@ function Get-BaseFolder() {
     return git rev-parse --show-toplevel
 }
 
+function Get-BaseFolderForPath($Path) {
+    Push-Location $Path
+    $baseFolder = Get-BaseFolder
+    Pop-Location
+    return $baseFolder
+}
+
 function Get-BuildMode() {
     if ($ENV:BuildMode) {
         return $ENV:BuildMode
     }
     return 'Default'
+}
+
+function Get-CurrentBranch() {
+    if ($ENV:GITHUB_REF) {
+        return $ENV:GITHUB_REF.Replace("refs/heads/", "")
+    }
+    return git rev-parse --abbrev-ref HEAD
+}
+
+function Get-PullRequestTargetBranch() {
+    if ($ENV:GITHUB_BASE_REF) {
+        return $ENV:GITHUB_BASE_REF.Replace("refs/heads/", "")
+    }
+    return $null
 }
 
 <#
@@ -71,6 +92,38 @@ function Get-ConfigValue() {
 }
 
 <#
+    .Synopsis
+        Sets the content of a file, without carriage returns at the end of each line.
+    .Description
+        This function is similar to Set-Content, but it does not add carriage returns at the end of each line.
+        AL-Go uses this function to write JSON files to ensure that the files are consistent across platforms.
+    .Parameter Path
+        The path of the file to write to
+    .Parameter Content
+        The content to write to the file
+#>
+function Set-ContentLF {
+    Param(
+        [parameter(mandatory = $true, ValueFromPipeline = $false)]
+        [string] $Path,
+        [parameter(mandatory = $true, ValueFromPipeline = $true)]
+        $Content
+    )
+
+    Process {
+        $Path = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
+        if ($Content -is [array]) {
+            $Content = $Content -join "`n"
+        }
+        else {
+            $Content = "$Content".Replace("`r", "")
+        }
+        [System.IO.File]::WriteAllText($Path, "$Content`n")
+    }
+
+}
+
+<#
 .Synopsis
     Sets a config value in a config file
 .Parameter ConfigType
@@ -105,7 +158,7 @@ function Set-ConfigValue() {
 
     $BuildConfig = Get-Content -Path $ConfigPath -Raw | ConvertFrom-Json
     $BuildConfig.$Key = $Value
-    $BuildConfig | ConvertTo-Json -Depth 100 | Set-Content -Path $ConfigPath
+    $BuildConfig | ConvertTo-Json -Depth 100 | Set-ContentLF -Path $ConfigPath
 }
 
 <#
@@ -153,7 +206,22 @@ function Get-PackageLatestVersion() {
                 }
             }
 
-            return Get-LatestBCArtifactVersion -minimumVersion $minimumVersion
+            $currentBranch = Get-CurrentBranch
+            $storageAccountOrder = @("bcartifacts", "bcinsider")
+            if($currentBranch -eq "main") {
+                # Always use bcinsider for baselines for the main branch
+                $storageAccountOrder = @("bcinsider")
+            }
+
+            $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $minimumVersion -storageAccountOrder $storageAccountOrder
+
+            if ($latestArtifactUrl -and ($latestArtifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
+                $latestVersion = $Matches[0]
+            } else {
+                throw "Could not find BCArtifact version (for min version: $minimumVersion)"
+            }
+
+            return $latestVersion
         }
         default {
             throw "Unknown package source: $($package.Source)"
@@ -166,27 +234,29 @@ function Get-PackageLatestVersion() {
     Gets the latest version of a BC artifact
 .Parameter MinimumVersion
     The minimum version of the artifact to look for
+.Parameter StorageAccountOrder
+    The order of storage accounts to look for the artifact in
 #>
-function Get-LatestBCArtifactVersion
+function Get-LatestBCArtifactUrl
 (
     [Parameter(Mandatory=$true)]
-    $minimumVersion
+    $minimumVersion,
+    [Parameter(Mandatory=$false)]
+    $storageAccountOrder = @("bcartifacts", "bcinsider")
 )
 {
-    $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest
+    $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount $storageAccountOrder[0] -accept_insiderEula
+
+    if(-not $artifactUrl -and $storageAccountOrder.Count -gt 1) {
+        #Fallback to the other storage account
+        $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount $storageAccountOrder[1] -accept_insiderEula
+    }
 
     if(-not $artifactUrl) {
-        #Fallback to bcinsider
-        $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount bcinsider -accept_insiderEula
+        throw "No artifact found for version $minimumVersion"
     }
 
-    if ($artifactUrl -and ($artifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
-        $latestVersion = $Matches[0]
-    } else {
-        throw "Could not find BCArtifact version (for min version: $minimumVersion)"
-    }
-
-    return $latestVersion
+    return $artifactUrl
 }
 
 <#

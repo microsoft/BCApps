@@ -103,6 +103,32 @@ table 149002 "BCPT Log Entry"
             DataClassification = SystemMetadata;
             Caption = 'RunID';
         }
+        field(20; "Orig. Operation"; Text[100])
+        {
+            Caption = 'Orig. Operation';
+        }
+        /// <summary>
+        /// Contains the original status of the test if any event subscribers modifies the status of the test
+        /// </summary>
+        field(21; "Orig. Status"; Option)
+        {
+            Caption = 'Orig. Status';
+            OptionMembers = Success,Error;
+        }
+        /// <summary>
+        /// Contains the original message of the test if any event subscribers modifies the message of the test
+        /// </summary>
+        field(22; "Orig. Message"; Text[250])
+        {
+            Caption = 'Orig. Message';
+        }
+        /// <summary>
+        /// Is true if any event subscribers has modified the log entry
+        /// </summary>
+        field(23; "Log was Modified"; Boolean)
+        {
+            Caption = 'Log was Modified';
+        }
     }
 
     keys

@@ -190,14 +190,20 @@ codeunit 132525 "Edit in Excel Test"
     procedure TestEditInExcelNumberInFieldNameReplacement()
     var
         EditinExcelTestLibrary: Codeunit "Edit in Excel Test Library";
+        ApostropheFieldName: Text;
+        PlusFieldName: Text;
         RegularFieldName: Text;
         FieldNameStartingWDigit: Text;
     begin
         Init();
         FieldNameStartingWDigit := EditinExcelTestLibrary.ExternalizeODataObjectName('3field');
         RegularFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('field');
+        ApostropheFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('new vendor''s name');
+        PlusFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('c+c field');
         LibraryAssert.AreEqual('field', RegularFieldName, 'Conversion alters name that does not begin with a string');
         LibraryAssert.AreEqual('_x0033_field', FieldNameStartingWDigit, 'Did not convert the name with number correctly');
+        LibraryAssert.AreEqual('new_vendor_x0027_s_name', ApostropheFieldName, 'Did not convert the name with an apostrophe correctly');
+        LibraryAssert.AreEqual('c_x002b_c_field', PlusFieldName, 'Did not convert the name with a plus correctly');
     end;
 
     [Test]

@@ -20,7 +20,9 @@ page 1928 "Media Cleanup FactBox"
     {
         area(Content)
         {
+#pragma warning disable AW0009
             field(MediaContent; Rec.Content)
+#pragma warning restore AW0009
             {
                 ApplicationArea = All;
                 ShowCaption = false;

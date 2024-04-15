@@ -164,7 +164,19 @@ codeunit 149005 "BCPT Line"
     var
         BCPTLogEntry: Record "BCPT Log Entry";
         BCPTRoleWrapperImpl: Codeunit "BCPT Role Wrapper"; // single instance
+        BCPTTestSuite: Codeunit "BCPT Test Suite";
+        ModifiedOperation: Text;
+        ModifiedExecutionSuccess: Boolean;
+        ModifiedMessage: Text;
+        EntryWasModified: Boolean;
     begin
+        ModifiedOperation := Operation;
+        ModifiedExecutionSuccess := ExecutionSuccess;
+        ModifiedMessage := Message;
+        BCPTTestSuite.OnBeforeBCPTLineAddLogEntry(BCPTLine."BCPT Code", BCPTLine."Codeunit ID", BCPTLine.Description, Operation, ExecutionSuccess, Message, ModifiedOperation, ModifiedExecutionSuccess, ModifiedMessage);
+        if (Operation <> ModifiedOperation) or (ExecutionSuccess <> ModifiedExecutionSuccess) or (Message <> ModifiedMessage) then
+            EntryWasModified := true;
+
         BCPTLine.Testfield("BCPT Code");
         BCPTRoleWrapperImpl.GetBCPTHeader(BCPTHeader);
         Clear(BCPTLogEntry);
@@ -173,18 +185,25 @@ codeunit 149005 "BCPT Line"
         BCPTLogEntry."BCPT Line No." := BCPTLine."Line No.";
         BCPTLogEntry.Version := BCPTHeader.Version;
         BCPTLogEntry."Codeunit ID" := BCPTLine."Codeunit ID";
-        BCPTLogEntry.Operation := copystr(Operation, 1, MaxStrLen(BCPTLogEntry.Operation));
+        BCPTLogEntry.Operation := CopyStr(ModifiedOperation, 1, MaxStrLen(BCPTLogEntry.Operation));
+        BCPTLogEntry."Orig. Operation" := CopyStr(Operation, 1, MaxStrLen(BCPTLogEntry."Orig. Operation"));
         BCPTLogEntry.Tag := BCPTRoleWrapperImpl.GetBCPTHeaderTag();
         BCPTLogEntry."Entry No." := 0;
         BCPTLogEntry."Test Company Name" := BCPTHeader."Test Company Name";
-        if ExecutionSuccess then
+        if ModifiedExecutionSuccess then
             BCPTLogEntry.Status := BCPTLogEntry.Status::Success
         else begin
             BCPTLogEntry.Status := BCPTLogEntry.Status::Error;
             BCPTLogEntry."Error Call Stack" := CopyStr(GetLastErrorCallStack, 1, MaxStrLen(BCPTLogEntry."Error Call Stack"));
         end;
+        if ExecutionSuccess then
+            BCPTLogEntry."Orig. Status" := BCPTLogEntry.Status::Success
+        else
+            BCPTLogEntry."Orig. Status" := BCPTLogEntry.Status::Error;
+        BCPTLogEntry.Message := CopyStr(ModifiedMessage, 1, MaxStrLen(BCPTLogEntry.Message));
+        BCPTLogEntry."Orig. Message" := CopyStr(Message, 1, MaxStrLen(BCPTLogEntry."Orig. Message"));
+        BCPTLogEntry."Log was Modified" := EntryWasModified;
         BCPTLogEntry."No. of SQL Statements" := NumSQLStatements;
-        BCPTLogEntry.Message := copystr(Message, 1, MaxStrLen(BCPTLogEntry.Message));
         BCPTLogEntry."End Time" := EndTime;
         BCPTLogEntry."Start Time" := StartTime;
         BCPTLogEntry."Duration (ms)" := BCPTLogEntry."End Time" - BCPTLogEntry."Start Time";

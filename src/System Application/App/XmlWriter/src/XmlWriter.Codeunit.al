@@ -67,6 +67,29 @@ codeunit 1483 XmlWriter
     end;
 
     /// <summary>
+    /// Writes an element with the specified local name, value and namespace.
+    /// </summary>
+    /// <param name="LocalName">The local name of the element.</param>
+    /// <param name="ElementValue">The value of the element.</param>
+    /// <param name="Namespace">The namespace URI of the element.</param>
+    procedure WriteElementString(LocalName: Text; ElementValue: Text; Namespace: Text)
+    begin
+        XmlWriterImpl.WriteElementString(LocalName, ElementValue, Namespace);
+    end;
+
+    /// <summary>
+    /// Writes an element with the specified local name, value, namespace and prefix.
+    /// </summary>
+    /// <param name="LocalName">The local name of the element.</param>
+    /// <param name="ElementValue">The value of the element.</param>
+    /// <param name="Namespace">The namespace URI of the element.</param>
+    /// <param name="Prefix">The prefix of the element.</param>
+    procedure WriteElementString(LocalName: Text; ElementValue: Text; Namespace: Text; Prefix: Text)
+    begin
+        XmlWriterImpl.WriteElementString(LocalName, ElementValue, Namespace, Prefix);
+    end;
+
+    /// <summary>
     /// Writes the given text content.
     /// </summary>
     /// <param name="ElementText">Text to write.</param>

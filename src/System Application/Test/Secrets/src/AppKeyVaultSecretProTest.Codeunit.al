@@ -45,4 +45,16 @@ codeunit 135213 "App Key Vault Secret Pro. Test"
         asserterror AppKeyVaultSecretProvider.GetSecret('foo', SecretValue);
         Assert.ExpectedError('Cannot get secrets because the App Key Vault Secret Provider has not been initialized.');
     end;
+
+    [Test]
+    procedure GetSecretasSecretTextbeforeInitializedGivesError()
+    var
+        AppKeyVaultSecretProvider: Codeunit "App Key Vault Secret Provider";
+        SecretValue: SecretText;
+    begin
+        // [SCENARIO] Calling GetSecret before calling TryInitializeFromCurrentApp should give error.
+
+        asserterror AppKeyVaultSecretProvider.GetSecret('foo', SecretValue);
+        Assert.ExpectedError('Cannot get secrets because the App Key Vault Secret Provider has not been initialized.');
+    end;
 }

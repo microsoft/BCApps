@@ -43,7 +43,6 @@ codeunit 132928 "Azure AD User Sync Test"
         NonBcEmailTxt: Label 'nonbc@microsoft.com';
 #pragma warning restore AA0240
         CommonLastNameTxt: Label 'User';
-        MixedPlansNonAdminErr: Label 'Before you can update user information, go to your Microsoft 365 admin center and make sure that all users are assigned to the same Business Central license, either Basic, Essential, or Premium. For example, we found that users %1 and %2 are assigned to different licenses, but there may be other mismatches.', Comment = '%1 = %2 = Authentication email.';
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -606,10 +605,9 @@ codeunit 132928 "Azure AD User Sync Test"
 
         // [WHEN] The information from M365 is fetched and applied
         AzureADUserSyncImpl.FetchUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
-        // [THEN] The error happens before any updates are applied stating that the customer cannot mix Essential and Premium plans
-        asserterror AzureADUserSyncImpl.ApplyUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
 
-        LibraryAssert.ExpectedError(StrSubstNo(MixedPlansNonAdminErr, EssentialEmailTxt, PremiumEmailTxt));
+        // [THEN] User updates can be applied
+        AzureADUserSyncImpl.ApplyUpdatesFromAzureGraph(TempAzureADUserUpdateBuffer);
 
         TearDown();
     end;

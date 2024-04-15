@@ -10,7 +10,7 @@ using System.Tooling;
 
 page 130455 "Command Line Test Tool"
 {
-    AccessByPermission = TableData "Test Method Line" = RIMD;
+    AccessByPermission = tabledata "Test Method Line" = RIMD;
     ApplicationArea = All;
     AutoSplitKey = true;
     Caption = 'Command Line Test Tool';
@@ -21,7 +21,8 @@ page 130455 "Command Line Test Tool"
     PageType = Worksheet;
     SourceTable = "Test Method Line";
     UsageCategory = Administration;
-    Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;
+    Permissions = tabledata "AL Test Suite" = rimd,
+                  tabledata "Test Method Line" = rimd;
 
     layout
     {
@@ -131,7 +132,7 @@ page 130455 "Command Line Test Tool"
             {
                 ApplicationArea = All;
                 Caption = 'Code Coverage Map';
-                Tooltip = 'Specifies the Code Coverage Map';
+                ToolTip = 'Specifies the Code Coverage Map';
                 trigger OnValidate()
                 begin
                     TestSuiteMgt.SetCCMap(GlobalALTestSuite, CCMap);
@@ -174,7 +175,7 @@ page 130455 "Command Line Test Tool"
             field(CCMapCSVText; CCMapCSVText)
             {
                 Caption = 'Code Coverage Map CSV Text';
-                Tooltip = 'Specifies the Code Coverage Map CSV Text';
+                ToolTip = 'Specifies the Code Coverage Map CSV Text';
                 ApplicationArea = All;
                 Editable = false;
                 MultiLine = true;
@@ -216,7 +217,7 @@ page 130455 "Command Line Test Tool"
                 field(TestCodeunit; Rec."Test Codeunit")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the ID the test codeunit.';
+                    ToolTip = 'Specifies the ID the test codeunit.';
                     Caption = 'Codeunit ID';
                     Editable = false;
                 }
@@ -230,7 +231,7 @@ page 130455 "Command Line Test Tool"
                 field(Run; Rec.Run)
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies wether the tests should run.';
+                    ToolTip = 'Specifies wether the tests should run.';
                     Caption = 'Run';
 
                     trigger OnValidate()
@@ -268,7 +269,7 @@ page 130455 "Command Line Test Tool"
                 field(StartTime; Rec."Start Time")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the time the test started.';
+                    ToolTip = 'Specifies the time the test started.';
                     Caption = 'Start Time';
                 }
             }
@@ -282,7 +283,7 @@ page 130455 "Command Line Test Tool"
             action(RunSelectedTests)
             {
                 ApplicationArea = All;
-                Tooltip = 'Runs the selected tests.';
+                ToolTip = 'Runs the selected tests.';
                 Caption = 'Run Se&lected Tests';
                 Image = TestFile;
                 Promoted = true;
@@ -306,7 +307,7 @@ page 130455 "Command Line Test Tool"
             action(RunNextTest)
             {
                 ApplicationArea = All;
-                Tooltip = 'Runs the next test.';
+                ToolTip = 'Runs the next test.';
                 Caption = 'Run N&ext Test';
                 Image = TestReport;
                 Promoted = true;
@@ -334,7 +335,7 @@ page 130455 "Command Line Test Tool"
             action(ClearTestResults)
             {
                 ApplicationArea = All;
-                Tooltip = 'Clear the test results.';
+                ToolTip = 'Clear the test results.';
                 Caption = 'Clear Test R&esults';
                 Image = ClearLog;
                 Promoted = true;
@@ -373,7 +374,7 @@ page 130455 "Command Line Test Tool"
             action(GetCodeCoverageMap)
             {
                 ApplicationArea = All;
-                Tooltip = 'Get Code Coverage Map';
+                ToolTip = 'Get Code Coverage Map';
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
@@ -555,7 +556,7 @@ page 130455 "Command Line Test Tool"
                 CodeunitTestMethodLine.Modify(true);
             end;
         until CodeunitTestMethodLine.Next() = 0;
-        
+
         CurrPage.Update();
     end;
 }

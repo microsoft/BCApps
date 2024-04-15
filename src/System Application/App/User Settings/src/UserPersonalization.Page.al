@@ -116,6 +116,23 @@ page 9214 "User Personalization"
                             UserSettingsImpl.DisableTeachingTips(Rec."User SID");
                     end;
                 }
+                field("Legacy Action Bar"; LegacyActionBarEnabled)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Legacy Action Bar';
+#pragma warning disable AA0219
+                    ToolTip = 'Revert the action bar to the legacy terms and layout. For example, the action bar won''t be pinned on pages, the Home tab is named Process, and split buttons become multiple actions, which means more clicks. Also, your options for personalization will be limited.';
+#pragma warning restore AA0219
+
+                    trigger OnValidate()
+                    begin
+                        if LegacyActionBarEnabled then
+                            UserSettingsImpl.EnableLegacyActionBar(Rec."User SID")
+                        else
+                            UserSettingsImpl.DisableLegacyActionBar(Rec."User SID");
+                    end;
+
+                }
             }
         }
     }
@@ -140,6 +157,7 @@ page 9214 "User Personalization"
     trigger OnAfterGetCurrRecord()
     begin
         TeachingTipsEnabled := UserSettingsImpl.TeachingTipsEnabled(Rec."User SID");
+        LegacyActionBarEnabled := UserSettingsImpl.IsLegacyActionBarEnabled(Rec."User SID");
     end;
 
     var
@@ -147,5 +165,6 @@ page 9214 "User Personalization"
         Language: Codeunit Language;
         TimeZoneSelection: Codeunit "Time Zone Selection";
         TeachingTipsEnabled: Boolean;
+        LegacyActionBarEnabled: Boolean;
         UserSettingsTok: Label 'User Settings';
 }

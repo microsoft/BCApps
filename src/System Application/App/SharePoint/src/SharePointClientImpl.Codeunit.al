@@ -483,6 +483,26 @@ codeunit 9101 "SharePoint Client Impl."
         exit(true);
     end;
 
+    procedure GetFileByServerRelativeUrl(ServerRelativeUrl: Text; var SharePointFile: Record "SharePoint File" temporary; ListAllFields: Boolean): Boolean
+    var
+        SharePointFileParser: Codeunit "SharePoint File";
+        Result: Text;
+    begin
+        SharePointUriBuilder.ResetPath();
+        SharePointUriBuilder.SetMethod('GetFileByServerRelativeUrl', ServerRelativeUrl);
+        if ListAllFields then
+            SharePointUriBuilder.AddQueryParameter('$expand', 'ListItemAllFields');
+
+        SharePointRequestHelper.SetAuthorization(Authorization);
+        SharePointOperationResponse := SharePointRequestHelper.Get(SharePointUriBuilder);
+        if not SharePointOperationResponse.GetDiagnostics().IsSuccessStatusCode() then
+            exit(false);
+
+        SharePointOperationResponse.GetResultAsText(Result);
+        SharePointFileParser.ParseSingle(Result, SharePointFile);
+        exit(true);
+    end;
+
     procedure DownloadFileContent(OdataId: Text; var FileInStream: InStream): Boolean
     begin
         //GET https://{site_url}/_api/web/GetFileByServerRelativeUrl('/Folder Name/{file_name}')/$value
@@ -742,7 +762,6 @@ codeunit 9101 "SharePoint Client Impl."
             exit(false);
 
         SharePointOperationResponse.GetResultAsText(Txt);
-        Message(Txt);
         exit(true);
     end;
 

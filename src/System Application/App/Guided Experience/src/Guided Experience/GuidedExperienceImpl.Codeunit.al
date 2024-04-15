@@ -910,7 +910,7 @@ codeunit 1991 "Guided Experience Impl."
             GuidedExperienceItem.ModifyAll(Completed, true);
     end;
 
-    local procedure Reset(GuidedExperienceItem: Record "Guided Experience Item")
+    local procedure Reset(var GuidedExperienceItem: Record "Guided Experience Item")
     begin
         if GuidedExperienceItem.FindSet() then
             repeat

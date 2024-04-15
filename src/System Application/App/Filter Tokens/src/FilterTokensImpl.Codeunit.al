@@ -386,8 +386,9 @@ codeunit 58 "Filter Tokens Impl."
 
     local procedure ResolveTimeToken(var TimeFilter: Time; TimeToken: Text) Handled: Boolean
     begin
-        TimeToken := DelChr(TimeToken); // Deletes all spaces in TimeToke
-        case TimeToken of
+        TimeToken := DelChr(TimeToken); // Deletes all spaces in TimeToken
+
+        case UpperCase(TimeToken) of
             NowTxt, 'NOW':
                 begin
                     TimeFilter := Time();
@@ -396,6 +397,7 @@ codeunit 58 "Filter Tokens Impl."
             else
                 FilterTokens.OnResolveTimeFilterToken(TimeToken, TimeFilter, Handled);
         end;
+
         if not Handled then
             Handled := Evaluate(TimeFilter, TimeToken);
     end;

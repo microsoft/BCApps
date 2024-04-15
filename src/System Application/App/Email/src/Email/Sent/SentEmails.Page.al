@@ -177,11 +177,15 @@ page 8883 "Sent Emails"
 
     trigger OnOpenPage()
     begin
-        NewerThanDate := CreateDateTime(CalcDate('<-30D>', Today()), Time());
+        if NewerThanDate = 0DT then
+            NewerThanDate := CreateDateTime(CalcDate('<-30D>', Today()), Time());
+
         EmailImpl.GetSentEmails(EmailAccountId, NewerThanDate, SourceTableID, SourceSystemID, Rec);
         Rec.SetCurrentKey("Date Time Sent");
         NoSentEmails := Rec.IsEmpty();
         Rec.Ascending(false);
+
+        EmailImpl.ShowAdminViewPolicyInEffectNotification();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -211,7 +215,11 @@ page 8883 "Sent Emails"
         EmailConnector.ShowAccountInformation(Rec."Account Id");
     end;
 
-    internal procedure SetNewerThan(NewDate: DateTime)
+    /// <summary>
+    /// Set date filter for sent emails.
+    /// </summary>
+    /// <param name="NewDate">Earliest date to include sent emails from.</param>
+    procedure SetNewerThan(NewDate: DateTime)
     begin
         NewerThanDate := NewDate;
     end;
@@ -221,7 +229,12 @@ page 8883 "Sent Emails"
         EmailAccountId := AccountId;
     end;
 
-    internal procedure SetRelatedRecord(TableID: Integer; SystemID: Guid)
+    /// <summary>
+    /// Set filter for related record on sent emails.
+    /// </summary>
+    /// <param name="TableID">The entity table.</param>
+    /// <param name="SystemID">A record to filter on.</param>
+    procedure SetRelatedRecord(TableID: Integer; SystemID: Guid)
     begin
         SourceTableID := TableID;
         SourceSystemID := SystemID;
