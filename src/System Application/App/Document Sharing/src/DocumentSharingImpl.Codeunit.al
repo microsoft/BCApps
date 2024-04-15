@@ -135,7 +135,7 @@ codeunit 9561 "Document Sharing Impl."
                         Sleep(2000); // This sleep is to ensure the OneDrive clears the lock on the file after the user saves and closes.
                         DocumentSharingCodeunit.OnGetFileContents(DocumentSharing, Handled);
                     end else
-                        DocumentSharing.Cancelled := true;
+                        DocumentSharing.State := DocumentSharing.State::Cancelled;
 
                     Handled := false;
                     DocumentSharingCodeunit.OnDeleteDocument(DocumentSharing, Handled);

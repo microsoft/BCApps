@@ -123,11 +123,12 @@ table 9560 "Document Sharing"
         }
 
         /// <summary>
-        /// Specifies whether the action was cancelled.
+        /// Specifies the state of the document sharing operation.
         /// </summary>
-        field(13; Cancelled; Boolean)
+        field(13; State; Enum "Document Sharing State")
         {
             DataClassification = SystemMetadata;
+            InitValue = Success;
         }
     }
 

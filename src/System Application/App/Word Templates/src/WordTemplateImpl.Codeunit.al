@@ -610,7 +610,7 @@ codeunit 9988 "Word Template Impl."
 
         DocumentSharing.Share(TempDocumentSharing);
 
-        if TempDocumentSharing.Cancelled then
+        if TempDocumentSharing.State = TempDocumentSharing.State::Cancelled then
             Error('');
 
         ResultTempBlob.CreateOutStream(OutStream, TextEncoding::UTF8);
