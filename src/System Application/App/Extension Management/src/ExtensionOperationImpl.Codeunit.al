@@ -46,7 +46,7 @@ codeunit 2503 "Extension Operation Impl"
         end;
     end;
 
-    procedure DeployExtension(AppId: Guid; lcid: Integer; IsUIEnabled: Boolean; PreviewKey: Text): Boolean
+    procedure DeployExtension(AppId: Guid; lcid: Integer; IsUIEnabled: Boolean; PreviewKey: Text)
     var
         NAVAppTenantOperation: Record "NAV App Tenant Operation";
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
