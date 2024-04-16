@@ -3,7 +3,7 @@ author: Microsoft Corporation
 description: Get the official branches in a repository
 outputs:
   OfficialBranches:
-    description: The official branches in the repository
+    description: The official branches in the repository (main plus all release(s)/* branches)
     value:  ${{ steps.GetBranches.outputs.OfficialBranches }}
 runs:
   using: composite
