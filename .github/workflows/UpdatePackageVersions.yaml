@@ -16,11 +16,13 @@ jobs:
     name: Get Official Branches
     runs-on: ubuntu-latest
     outputs:
-      UpdateBranches: ${{ steps.OfficialBranches.outputs.OfficialBranches }}
+      updateBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
     steps:
       - name: Get Official Branches
-        id: OfficialBranches
-        uses: microsoft/BCApps/.github/actions/GetOfficialBranches@main
+        id: getOfficialBranches
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        with:
+          include: "[main, releases/*]"
 
   UpdatePackageVersions:
     name: "[${{ matrix.branch }}] Update Package Versions"
@@ -31,7 +33,7 @@ jobs:
     needs: GetBranches
     strategy:
       matrix:
-        branch: ${{ fromJson(needs.GetBranches.outputs.UpdateBranches) }}
+        branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
       fail-fast: false
     steps:
       - name: Checkout
