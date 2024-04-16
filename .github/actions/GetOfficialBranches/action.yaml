@@ -1,11 +1,6 @@
 name: Get Official Branches
 author: Microsoft Corporation
 description: Get the official branches in a repository
-inputs:
-  repository:
-    description: The repository to get the official branches from
-    required: true
-    default: ${{ github.repository }}
 outputs:
   OfficialBranches:
     description: The official branches in the repository
@@ -19,9 +14,6 @@ runs:
     - name: run
       shell: pwsh
       id: GetBranches
-      env:
-        GH_TOKEN: ${{ github.token }}
-        _repository: ${{ inputs.repository }}
       run: |
         ${{ github.action_path }}/action.ps1
 branding:
