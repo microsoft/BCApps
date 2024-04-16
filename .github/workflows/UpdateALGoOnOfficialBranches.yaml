@@ -18,7 +18,7 @@ jobs:
         id: getOfficialBranches
         uses: mazhelez/BCApps/.github/actions/GetGitBranches@main
         with:
-          include: "['main', 'release/*']"
+          include: "['main', 'releases/*']"
 
   UpdateALGo:
     name: "[${{ matrix.branch }}] Update AL-Go"
