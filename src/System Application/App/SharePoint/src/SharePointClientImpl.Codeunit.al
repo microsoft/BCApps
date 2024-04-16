@@ -753,7 +753,7 @@ codeunit 9101 "SharePoint Client Impl."
         exit(UpdateListItemMetaDataField(ItemId, ListItemEntityTypeFullName, FieldName, FieldValue));
     end;
 
-    local procedure UpdateListItemMetaDataField(ItemId: Integer; ListItemEntityTypeFullName: Text; FieldName: Text; FieldValue: Text): Boolean
+    local procedure UpdateListItemMetaDataField(ListItemEntityTypeFullName: Text; FieldName: Text; FieldValue: Text): Boolean
     var
         SharePointHttpContent: Codeunit "SharePoint Http Content";
         Metadata, Payload : JsonObject;
