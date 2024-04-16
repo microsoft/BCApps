@@ -5,6 +5,8 @@ on:
   schedule:
     - cron: "55 08 * * 3" # Run at 08:55 UTC on Wednesday
 
+permissions: read-all
+
 jobs:
   GetBranches:
     name: Get Official Branches
