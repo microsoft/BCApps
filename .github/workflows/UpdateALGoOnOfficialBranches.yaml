@@ -18,7 +18,7 @@ jobs:
         id: getOfficialBranches
         uses: microsoft/BCApps/.github/actions/GetGitBranches@mazhelez/restructure-automations
         with:
-          include: "[main, release/*]"
+          include: "['main', 'release/*']"
 
   UpdateALGo:
     name: "[${{ matrix.branch }}] Update AL-Go"

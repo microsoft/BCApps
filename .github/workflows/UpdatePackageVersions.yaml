@@ -22,7 +22,7 @@ jobs:
         id: getOfficialBranches
         uses: microsoft/BCApps/.github/actions/GetGitBranches@mazhelez/restructure-automations
         with:
-          include: "[main, releases/*]"
+          include: "['main', 'releases/*']"
 
   UpdatePackageVersions:
     name: "[${{ matrix.branch }}] Update Package Versions"
