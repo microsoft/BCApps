@@ -378,7 +378,6 @@ codeunit 7772 "Azure OpenAI Impl"
         end;
     end;
 
-    /// <returns>True if Function Call Response is set</returns>
     local procedure ProcessFunctionCall(Functions: JsonArray; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIFunctionResponse: Codeunit "AOAI Function Response"): Boolean
     var
         Function: JsonObject;
