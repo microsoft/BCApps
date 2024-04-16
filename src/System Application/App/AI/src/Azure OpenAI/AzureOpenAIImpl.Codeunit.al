@@ -378,6 +378,7 @@ codeunit 7772 "Azure OpenAI Impl"
         end;
     end;
 
+    /// <returns>True if Function Call Response is set</returns>
     local procedure ProcessFunctionCall(Functions: JsonArray; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIFunctionResponse: Codeunit "AOAI Function Response"): Boolean
     var
         Function: JsonObject;
@@ -417,12 +418,14 @@ codeunit 7772 "Azure OpenAI Impl"
             if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then begin
                 AOAIFunctionResponse.SetFunctionCallingResponse(true, true, AOAIFunction.GetName(), FunctionResult, '', '');
                 exit(true);
-            end else
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionResult, GetLastErrorText(), GetLastErrorCallStack())
-        else
+            end else begin
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
+                exit(true);
+            end
+        else begin
             AOAIFunctionResponse.SetFunctionCallingResponse(true, false, FunctionName, FunctionResult, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
-
-        exit(false);
+            exit(true);
+        end;
     end;
 
     [TryFunction]
