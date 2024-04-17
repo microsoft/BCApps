@@ -13,9 +13,6 @@ function Get-BuildMode() {
 }
 
 function Get-CurrentBranch() {
-    if ($ENV:GITHUB_REF) {
-        return $ENV:GITHUB_REF.Replace("refs/heads/", "")
-    }
     return git rev-parse --abbrev-ref HEAD
 }
 
