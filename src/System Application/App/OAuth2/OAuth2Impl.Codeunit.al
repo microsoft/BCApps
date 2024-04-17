@@ -169,6 +169,7 @@ codeunit 502 OAuth2Impl
         PermissionGrantError := OAuth2ControlAddIn.GetAuthError();
     end;
 
+#pragma warning disable AS0105
     [NonDebuggable]
     [TryFunction]
     [Obsolete('Use AcquireTokenByAuthorizationCode with SecretText data type for AccessToken.', '24.0')]
@@ -772,6 +773,7 @@ codeunit 502 OAuth2Impl
         CertificateSecret := Certificate;
         AcquireTokensAndTokenCacheByAuthorizationCodeWithCertificate(AuthorizationCode, ClientId, CertificateSecret, CertificatePassword, RedirectUrl, OAuthAuthorityUrl, Scopes, AccessToken, IdToken, TokenCache);
     end;
+#pragma warning restore AS0105
 
     [TryFunction]
     procedure AcquireTokenByAuthorizationCode(ClientId: Text; ClientSecret: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; ResourceUrl: Text; PromptInteraction: Enum "Prompt Interaction"; var AccessToken: SecretText; var AuthCodeErr: Text)
