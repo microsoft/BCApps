@@ -388,38 +388,43 @@ codeunit 7772 "Azure OpenAI Impl"
         FunctionResult: Variant;
     begin
         if Functions.Count = 0 then
-            exit;
+            exit(false);
 
         Functions.Get(0, Token);
         Function := Token.AsObject();
 
         if Function.Get('type', Token) then begin
             if Token.AsValue().AsText() <> 'function' then
-                exit;
+                exit(false);
         end else
-            exit;
+            exit(false);
 
         if Function.Get('function', Token) then
             Function := Token.AsObject()
         else
-            exit;
+            exit(false);
 
         if Function.Get('name', Token) then
             FunctionName := Token.AsValue().AsText()
         else
-            exit;
+            exit(false);
 
         if Function.Get('arguments', Token) then
             // Arguments are stored as a string in the JSON
             Arguments.ReadFrom(Token.AsValue().AsText());
 
         if ChatMessages.GetFunctionTool(FunctionName, AOAIFunction) then
-            if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, true, AOAIFunction.GetName(), FunctionResult, '', '')
-            else
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionResult, GetLastErrorText(), GetLastErrorCallStack())
-        else
+            if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then begin
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, true, AOAIFunction.GetName(), FunctionResult, '', '');
+                exit(true);
+            end else begin
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
+                exit(true);
+            end
+        else begin
             AOAIFunctionResponse.SetFunctionCallingResponse(true, false, FunctionName, FunctionResult, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
+            exit(true);
+        end;
     end;
 
     [TryFunction]
