@@ -209,6 +209,7 @@ function Get-PackageLatestVersion() {
             }
 
             $currentBranch = Get-CurrentBranch
+            Write-Host "Current branch: $currentBranch"
             $storageAccountOrder = @("bcartifacts", "bcinsider")
             if($currentBranch -eq "main") {
                 # Always use bcinsider for baselines for the main branch
