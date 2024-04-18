@@ -1,0 +1,33 @@
+name: Scorecard analysis
+on:
+  workflow_dispatch:
+  schedule:
+    # Weekly on Monday at 08:00 UTC
+    - cron: "0 8 * * 1"
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write # Needed for Code scanning upload
+      id-token: write # Needed for GitHub OIDC token if publish_results is true
+
+    steps:
+      - name: "Checkout code"
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          persist-credentials: false
+
+      - name: "Run analysis"
+        uses: ossf/scorecard-action@0864cf19026789058feabb7e87baa5f140aac736 # v2.3.1
+        with:
+          results_file: results.sarif
+          results_format: sarif
+
+      - name: "Upload to code-scanning"
+        uses: github/codeql-action/upload-sarif@83a02f7883b12e0e4e1a146174f5e2292a01e601 # v2.16.4
+        with:
+          sarif_file: results.sarif

@@ -227,7 +227,7 @@ codeunit 5461 "Json Impl."
 
     local procedure GetPropertyValueFromJObjectByPathSetToFieldRef(propertyPath: Text; var FieldRef: FieldRef): Boolean
     var
-        RecID: RecordID;
+        RecID: RecordId;
         Value: Variant;
         IntVar: Integer;
         DecimalVal: Decimal;
