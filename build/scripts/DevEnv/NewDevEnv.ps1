@@ -1,3 +1,22 @@
+<#
+    .SYNOPSIS
+    Creates a new development environment with a new container, sets up vscode for development against the container, and optionally builds and publishes apps.
+    .DESCRIPTION
+    This script creates a new development environment with a new container, sets up vscode for development against the container, and optionally builds and publishes apps.
+    .PARAMETER ContainerName
+    The name of the container to create. The default value is "BC-$(Get-Date -Format 'yyyyMMdd')".
+    .PARAMETER Authentication
+    The authentication type to use when creating the container. The default value is "UserPassword".
+    .PARAMETER SkipVsCodeSetup
+    If specified, vscode will not be set up for development against the container.
+    .PARAMETER ProjectPaths
+    The paths to the AL projects to build and publish. This parameter is mutually exclusive with the WorkspacePath and AlGoProject parameters.
+    .PARAMETER WorkspacePath
+    The path to the workspace containing the AL projects to build and publish. This parameter is mutually exclusive with the ProjectPaths and AlGoProject parameters.
+    .PARAMETER AlGoProject
+    The name of the AL-Go project to build and publish. This parameter is mutually exclusive with the ProjectPaths and WorkspacePath parameters.
+#>
+
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $false)]
