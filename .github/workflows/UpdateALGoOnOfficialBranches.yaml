@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Get Official Branches
         id: getOfficialBranches
-        uses: mazhelez/BCApps/.github/actions/GetGitBranches@main
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
         with:
           include: "['main', 'releases/*']"
 
