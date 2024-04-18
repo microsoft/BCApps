@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-using System;
-
 /// <summary>
 /// The status and result of an operation.
 /// </summary>
@@ -16,11 +14,11 @@ codeunit 7770 "AOAI Operation Response"
     InherentPermissions = X;
 
     var
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
         StatusCode: Integer;
         Success: Boolean;
         Result: Text;
         Error: Text;
-    // FinishReason: Text; //TODO: Enable this when FinishReason is added to ALCopilotOperationResponse dotnet class
 
     /// <summary>
     /// Check whether the operation was successful.
@@ -59,24 +57,28 @@ codeunit 7770 "AOAI Operation Response"
     end;
 
     /// <summary>
-    /// Gets the finish reason of last response.
+    /// Get whether the operation was a function call.
     /// </summary>
-    /// <returns></returns>
-    // TODO: Enable this when FinishReason is added to ALCopilotOperationResponse dotnet class
-    // procedure GetFinishReason(): Text
-    // begin
-    //     exit(FinishReason);
-    // end;
-
-    internal procedure SetOperationResponse(var ALCopilotOperationResponse: DotNet ALCopilotOperationResponse)
+    /// <returns>True if it was a function call, false otherwise.</returns>
+    procedure IsFunctionCall(): Boolean
     begin
-        Success := ALCopilotOperationResponse.IsSuccess();
-        StatusCode := ALCopilotOperationResponse.StatusCode;
-        Result := ALCopilotOperationResponse.Result();
-        Error := ALCopilotOperationResponse.ErrorText();
-        // FinishReason := ALCopilotOperationResponse.FinishReason; //TODO: Add FinishReason to ALCopilotOperationResponse dotnet class
+        exit(AOAIFunctionResponse.IsFunctionCall());
+    end;
 
-        if Error = '' then
-            Error := GetLastErrorText();
+    /// <summary>
+    /// Get the function response codeunit which contains the response details.
+    /// </summary>
+    /// <returns>The codeunit which contains response details for the function call.</returns>
+    procedure GetFunctionResponse(): Codeunit "AOAI Function Response"
+    begin
+        exit(AOAIFunctionResponse);
+    end;
+
+    internal procedure SetOperationResponse(NewSuccess: Boolean; NewStatusCode: Integer; NewResult: Text; NewError: Text)
+    begin
+        Success := NewSuccess;
+        StatusCode := NewStatusCode;
+        Result := NewResult;
+        Error := NewError;
     end;
 }
