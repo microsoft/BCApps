@@ -1,4 +1,4 @@
-codeunit 328 "No. Series Copilot Upgr. Tags"
+codeunit 326 "No. Series Copilot Upgr. Tags"
 {
     Access = Internal;
     InherentEntitlements = X;

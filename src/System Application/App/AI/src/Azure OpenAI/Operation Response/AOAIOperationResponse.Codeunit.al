@@ -19,7 +19,6 @@ codeunit 7770 "AOAI Operation Response"
         Success: Boolean;
         Result: Text;
         Error: Text;
-    // FinishReason: Text; //TODO: Enable this when FinishReason is added to ALCopilotOperationResponse dotnet class
 
     /// <summary>
     /// Check whether the operation was successful.
@@ -58,14 +57,13 @@ codeunit 7770 "AOAI Operation Response"
     end;
 
     /// <summary>
-    /// Gets the finish reason of last response.
+    /// Get whether the operation was a function call.
     /// </summary>
-    /// <returns></returns>
-    // TODO: Enable this when FinishReason is added to ALCopilotOperationResponse dotnet class
-    // procedure GetFinishReason(): Text
-    // begin
-    //     exit(FinishReason);
-    // end;
+    /// <returns>True if it was a function call, false otherwise.</returns>
+    procedure IsFunctionCall(): Boolean
+    begin
+        exit(AOAIFunctionResponse.IsFunctionCall());
+    end;
 
     /// <summary>
     /// Get the function response codeunit which contains the response details.
