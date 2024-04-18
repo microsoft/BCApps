@@ -12,8 +12,8 @@ function Get-BaseFolderForPath($Path) {
     return $baseFolder
 }
 
-function Get-ArtifactsCacheFolder() {
-    return Join-Path (Get-BaseFolder) "artifacts"
+function Get-ArtifactsCacheFolder($ContainerName) {
+    return Join-Path (Get-BaseFolder) "artifacts\$ContainerName"
 }
 
 function Get-RulesetPath($Name = "ruleset.json") {

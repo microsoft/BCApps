@@ -22,87 +22,6 @@ function GetRootedFolder {
 
 <#
     .Synopsis
-    Creates a BC container from based on the specified artifact URL in the AL-Go settings.
-    If the container already exists, it will be reused.
-    .Parameter containerName
-    The name of the container.
-    .Parameter credential
-    The credential to use for the container.
-    .Parameter backgroundJob
-    If specified, the container will be created in the background.
-    .Outputs
-    The job that creates the container if the backgroundJob switch is specified.
-#>
-function Create-BCContainer {
-    param (
-        [Parameter(Mandatory = $true)]
-        [string] $containerName,
-        [Parameter(Mandatory = $true)]
-        [pscredential] $credential,
-        [switch] $backgroundJob
-    )
-
-    if(Test-ContainerExists -containerName $containerName) {
-        Write-Host "Container $containerName already exists" -ForegroundColor Yellow
-        return
-    }
-
-    $baseFolder = Get-BaseFolder
-
-    $bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
-    if($backgroundJob) {
-        [Scriptblock] $createContainerScriptblock = {
-            param(
-                [Parameter(Mandatory = $true)]
-                [string] $containerName,
-                [Parameter(Mandatory = $true)]
-                [pscredential] $credential,
-                [Parameter(Mandatory = $true)]
-                [string] $bcArtifactUrl,
-                [Parameter(Mandatory = $true)]
-                [string] $baseFolder
-            )
-            Import-Module "BCContainerHelper" -DisableNameChecking
-
-            $newContainerParams = @{
-                "accept_eula" = $true
-                "accept_insiderEula" = $true
-                "containerName" = $containerName
-                "artifactUrl" = $bcArtifactUrl
-                "Credential" = $credential
-                "auth" = "UserPassword"
-                "additionalParameters" = @("--volume ""$($baseFolder):c:\sources""")
-            }
-
-            $creatingContainerStats = Measure-Command {
-                $newBCContainerScript = Join-Path $baseFolder "build\scripts\NewBcContainer.ps1" -Resolve
-                . $newBCContainerScript -parameters $newContainerParams
-            }
-
-            Write-Host "Creating container $containerName took $($creatingContainerStats.TotalSeconds) seconds"
-        }
-
-        # Set the current location to the base folder
-        function jobInit {
-            param(
-                $baseFolder
-            )
-
-            return [ScriptBlock]::Create("Set-Location $baseFolder")
-        }
-
-        $createContainerJob = $null
-        $createContainerJob = Start-Job -InitializationScript $(jobInit -baseFolder $baseFolder) -ScriptBlock $createContainerScriptblock -ArgumentList $containerName, $credential, $bcArtifactUrl, $baseFolder | Get-Job
-        Write-Host "Creating container $containerName from artifact URL $bcArtifactUrl in the background. Job ID: $($createContainerJob.Id)" -ForegroundColor Yellow
-
-        return $createContainerJob
-    } else {
-        $createContainerScriptblock.Invoke($containerName, $credential, $bcArtifactUrl, $baseFolder)
-    }
-}
-
-<#
-    .Synopsis
     Resolves the project paths to AL app project folders.
     .Parameter projectPaths
     The project paths to resolve. May contain wildcards.
@@ -221,18 +140,19 @@ function BuildApp {
     $appFile = $appInfo.GetAppFileName()
 
     if((Test-Path (Join-Path $appOutputFolder $appFile)) -and (-not $rebuild)) {
-        Write-Host "App $appFile already exists in $appOutputFolder. Skipping..."
+        Write-Host "App $appFile already exists in $appOutputFolder. Removing..."
         $appFile = (Join-Path $appOutputFolder $appFile -Resolve)
-    } else {
-        # Create compiler folder on demand
-        if(-not $compilerFolder.Value) {
-            Write-Host "Creating compiler folder..." -ForegroundColor Yellow
-            $compilerFolder.Value = CreateCompilerFolder -packageCacheFolder $packageCacheFolder
-            Write-Host "Compiler folder: $($compilerFolder.Value)" -ForegroundColor Yellow
-        }
-
-        $appFile = Compile-AppWithBcCompilerFolder -compilerFolder $($compilerFolder.Value) -appProjectFolder "$($appInfo.AppProjectFolder)" -appOutputFolder $appOutputFolder -appSymbolsFolder $packageCacheFolder
+        Remove-Item -Path $appFile -Force
+    } 
+    
+    # Create compiler folder on demand
+    if(-not $compilerFolder.Value) {
+        Write-Host "Creating compiler folder..." -ForegroundColor Yellow
+        $compilerFolder.Value = CreateCompilerFolder -packageCacheFolder $packageCacheFolder
+        Write-Host "Compiler folder: $($compilerFolder.Value)" -ForegroundColor Yellow
     }
+
+    $appFile = Compile-AppWithBcCompilerFolder -compilerFolder $($compilerFolder.Value) -appProjectFolder "$($appInfo.AppProjectFolder)" -appOutputFolder $appOutputFolder -appSymbolsFolder $packageCacheFolder
 
     $appFiles += $appFile
 
@@ -264,19 +184,13 @@ function Build-Apps {
     try {
         foreach($currentProjectPath in $projectPaths) {
             Write-Host "Building app in $currentProjectPath" -ForegroundColor Yellow
-            $currentAppFiles = BuildApp -appProjectFolder $currentProjectPath -compilerFolder ([ref]$compilerFolder) -packageCacheFolder $packageCacheFolder -baseFolder $baseFolder
+            $currentAppFiles = BuildApp -appProjectFolder $currentProjectPath -compilerFolder ([ref]$compilerFolder) -packageCacheFolder $packageCacheFolder -baseFolder $baseFolder 
             $appFiles += @($currentAppFiles)
         }
     }
     catch {
         Write-Host "Error building apps: $_" -ForegroundColor Red
         throw $_
-    }
-    finally {
-        if ($compilerFolder) {
-            Write-Host "Removing compiler folder $compilerFolder" -ForegroundColor Yellow
-            Remove-Item -Path $compilerFolder -Recurse -Force | Out-Null
-        }
     }
 
     $appFiles = $appFiles | Select-Object -Unique
@@ -287,7 +201,6 @@ function Build-Apps {
 <#
     .Synopsis
     Creates a compiler folder.
-
     .Parameter packageCacheFolder
     The folder for the packagecache.
 #>
@@ -298,10 +211,14 @@ function CreateCompilerFolder {
     )
     $bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
 
-    if(-not (Test-Path -Path $packageCacheFolder)) {
-        Write-Host "Creating package cache folder $packageCacheFolder"
-        New-Item -Path $packageCacheFolder -ItemType Directory | Out-Null
+    Write-Host "Creating compiler folder $packageCacheFolder" -ForegroundColor Yellow
+
+    if (Test-Path $packageCacheFolder) {
+        return $packageCacheFolder
     }
+
+    Write-Host "Creating package cache folder $packageCacheFolder"
+    New-Item -Path $packageCacheFolder -ItemType Directory | Out-Null
 
     return New-BcCompilerFolder -artifactUrl $bcArtifactUrl -cacheFolder $packageCacheFolder
 }
@@ -351,7 +268,15 @@ function GetAllApps {
     return $script:allApps
 }
 
-Export-ModuleMember -Function Create-BCContainer
+function Get-CredentialForContainer($AuthenticationType) {
+    if ($AuthenticationType -eq 'Windows') {
+        return Get-Credential -Message "Please enter your Windows Credentials" -UserName $env:USERNAME
+    } else {
+        return Get-Credential -UserName 'admin' -Message "Enter the password for the admin user"
+    }
+}
+
 Export-ModuleMember -Function Resolve-ProjectPaths
 Export-ModuleMember -Function Test-ContainerExists
 Export-ModuleMember -Function Build-Apps
+Export-ModuleMember -Function Get-CredentialForContainer

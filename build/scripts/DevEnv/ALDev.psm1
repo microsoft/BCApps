@@ -15,7 +15,7 @@ function GetDefaultProjectSettings($ContainerName)
 {
     $defaultSettings = GetDefaultSettings -SettingsJson
     $defaultSettings["al.assemblyProbingPaths"] = (GetAssemblyProbingPaths -ContainerName $ContainerName)
-    $defaultSettings["al.packageCachePath"] = (Get-ArtifactsCacheFolder)
+    $defaultSettings["al.packageCachePath"] = (Get-ArtifactsCacheFolder -ContainerName $ContainerName)
 
     return $defaultSettings
 }
