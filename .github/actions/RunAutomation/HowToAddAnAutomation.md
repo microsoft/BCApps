@@ -7,7 +7,7 @@
      - `TargetBranch`: the branch the automation is running on. Use this parameter to alter logic between branches.
    - The script returns an object with the following properties. The information from this object will be used to potentially create an automation pull request.
      - `Files`: Files changed by the automation that will be included in the pull request.
-     - `Message`: Message to use as commit message an pull request description.
+     - `Message`: Message to display as an automaton result and use as commit message and pull request description.
 3. Create a new workflow in `.github\workflows` to run your new automation.
     - Add a job to run the script:
     ```yaml
@@ -33,20 +33,20 @@
                 automations: <automation name>
                 targetBranch: ${{ matrix.branch }}
     ```
-    - In case the automation needs to run on all official branches, use `GetOfficialBranches` action by adding another job:
+    - In case the automation needs to run on all official branches, use `GetGitBranches` action with by adding another job:
     ```yaml
-      GetBranches:
+    GetBranches:
         name: Get Official Branches
         runs-on: ubuntu-latest
         outputs:
-            UpdateBranches: ${{ steps.OfficialBranches.outputs.OfficialBranches }}
+          updateBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
         steps:
-        - name: Checkout
-            uses: actions/checkout@v4
-
         - name: Get Official Branches
-            id: OfficialBranches
-            uses: microsoft/BCApps/.github/actions/GetOfficialBranches@main
+            id: getOfficialBranches
+            uses: mazhelez/BCApps/.github/actions/GetGitBranches@main
+            with:
+              include: "['main', 'releases/*']"
     ```
+    Add parameter `include` with value `"['main', 'releases/*']"` if order to run the automation for `main` and all release branches. In rare cases, automation can be enabled on other branches as well.
     Don't forget to add `needs: GetBranches` in `AutomationJob` job properties and change `matrix` to `branch: ${{ fromJson(needs.GetBranches.outputs.UpdateBranches) }}`.
 
