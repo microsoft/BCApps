@@ -20,7 +20,8 @@ jobs:
     steps:
       - name: Get Official Branches
         id: getOfficialBranches
-        uses: mazhelez/BCApps/.github/actions/GetGitBranches@main
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+
         with:
           include: "['main', 'releases/*']"
 
@@ -44,7 +45,8 @@ jobs:
       - name: Update BC Artifact Version
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
-        uses: mazhelez/BCApps/.github/actions/RunAutomation@main
+        uses: microsoft/BCApps/.github/actions/RunAutomation@main
+
         with:
           automations: UpdateBCArtifact
           targetBranch: ${{ matrix.branch }}
