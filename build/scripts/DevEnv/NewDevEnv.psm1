@@ -143,8 +143,8 @@ function BuildApp {
         Write-Host "App $appFile already exists in $appOutputFolder. Removing..."
         $appFile = (Join-Path $appOutputFolder $appFile -Resolve)
         Remove-Item -Path $appFile -Force
-    } 
-    
+    }
+
     # Create compiler folder on demand
     if(-not $compilerFolder.Value) {
         Write-Host "Creating compiler folder..." -ForegroundColor Yellow
@@ -184,7 +184,7 @@ function Build-Apps {
     try {
         foreach($currentProjectPath in $projectPaths) {
             Write-Host "Building app in $currentProjectPath" -ForegroundColor Yellow
-            $currentAppFiles = BuildApp -appProjectFolder $currentProjectPath -compilerFolder ([ref]$compilerFolder) -packageCacheFolder $packageCacheFolder -baseFolder $baseFolder 
+            $currentAppFiles = BuildApp -appProjectFolder $currentProjectPath -compilerFolder ([ref]$compilerFolder) -packageCacheFolder $packageCacheFolder -baseFolder $baseFolder
             $appFiles += @($currentAppFiles)
         }
     }
@@ -268,6 +268,19 @@ function GetAllApps {
     return $script:allApps
 }
 
+<#
+    .Synopsis
+    Publishes apps to a container.
+
+    .Parameter ContainerName
+    The name of the container to publish the app to.
+
+    .Parameter AppFiles
+    The paths to the app files to publish.
+
+    .Parameter Credential
+    The credential to use when publishing the app.
+#>
 function Publish-Apps() {
     param(
         [Parameter(Mandatory = $true)]
@@ -287,11 +300,20 @@ function Publish-Apps() {
     }
 }
 
+<#
+    .Synopsis
+    Gets the credential to use for a container.
+
+    .Parameter AuthenticationType
+    The authentication type to use. Can be 'Windows' or 'NavUserPassword'.
+#>
 function Get-CredentialForContainer($AuthenticationType) {
     if ($AuthenticationType -eq 'Windows') {
         return Get-Credential -Message "Please enter your Windows Credentials" -UserName $env:USERNAME
-    } else {
+    } elseif($AuthenticationType -eq 'UserPassword') {
         return Get-Credential -UserName 'admin' -Message "Enter the password for the admin user"
+    } else {
+        throw "Invalid authentication type: $AuthenticationType"
     }
 }
 
