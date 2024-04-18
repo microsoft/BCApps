@@ -1,12 +1,15 @@
+#if not CLEAN24
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Integration.PowerBI;
-
-controladdin PowerBIManagement
+#pragma warning disable AA0247
+controladdin "Microsoft.Dynamics.Nav.Client.PowerBIManagement"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '24.0';
+    ObsoleteReason = 'Replaced with PowerBIManagement addin.';
     RequestedHeight = 320;
     MinimumHeight = 180;
     RequestedWidth = 300;
@@ -59,13 +62,11 @@ controladdin PowerBIManagement
     /// </summary>
     event ReportVisualLoaded(CorrelationId: Text);
 
-#pragma warning disable AS0105
     /// <summary>
     /// Initializes the Power BI Embed into the page
     /// </summary>
     [Obsolete('This method is deprecated. Please use EmbedReport instead.', '24.0')]
     procedure InitializeReport(ReportLink: Text; ReportId: Text; AuthToken: Text; PowerBIApi: Text);
-#pragma warning restore AS0105
 
     /// <summary>
     /// Initializes the Power BI embed Report into the page
@@ -146,3 +147,5 @@ controladdin PowerBIManagement
     /// </summary>
     procedure InitializeFrame(FullPage: Boolean; Ratio: Text);
 }
+#pragma warning restore AA0247
+#endif
