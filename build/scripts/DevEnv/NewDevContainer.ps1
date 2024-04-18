@@ -49,18 +49,12 @@ if (-not $SkipVsCodeSetup)
 if ($ProjectPaths -or $WorkspacePath -or $AlGoProject)
 {
     # Resolve AL project paths
-    $ProjectPaths = Resolve-ProjectPaths -ProjectPaths $ProjectPaths -WorkspacePath $WorkspacePath -AlGoProject $AlGoProject -baseFolder (Get-BaseFolder)
+    $ProjectPaths = Resolve-ProjectPaths -ProjectPaths $ProjectPaths -WorkspacePath $WorkspacePath -AlGoProject $AlGoProject
 
     # Build apps
     Write-Host "Building apps..." -ForegroundColor Yellow
     $appFiles = Build-Apps -ProjectPaths $ProjectPaths -packageCacheFolder (Get-ArtifactsCacheFolder -ContainerName $ContainerName)
 
     Write-Host "Publishing apps..." -ForegroundColor Yellow
-    foreach($currentAppFile in $appFiles) {
-        try {
-            Publish-BcContainerApp -containerName $ContainerName -appFile $currentAppFile -credential $credential -syncMode ForceSync -sync -skipVerification -install -useDevEndpoint -dependencyPublishingOption ignore
-        } catch {
-            Write-Error "Failed to publish app $currentAppFile : $_"
-        }
-    }
+    Publish-Apps -ContainerName $ContainerName -AppFiles $appFiles -Credential $credential
 }

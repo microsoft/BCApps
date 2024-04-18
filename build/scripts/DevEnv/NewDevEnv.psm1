@@ -45,8 +45,8 @@ function Resolve-ProjectPaths {
         [Parameter(Mandatory = $false)]
         [string] $alGoProject,
 
-        [Parameter(Mandatory = $true)]
-        [string] $baseFolder
+        [Parameter(Mandatory = $false)]
+        [string] $baseFolder = (Get-BaseFolder)
     )
 
     $result = @()
@@ -268,6 +268,25 @@ function GetAllApps {
     return $script:allApps
 }
 
+function Publish-Apps() {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $ContainerName,
+        [Parameter(Mandatory = $true)]
+        [string[]] $AppFiles,
+        [Parameter(Mandatory = $true)]
+        [PSCredential] $Credential
+    )
+
+    foreach($appFile in $AppFiles) {
+        try {
+            Publish-BcContainerApp -containerName $ContainerName -appFile $appFile -credential $Credential -syncMode ForceSync -sync -skipVerification -install -useDevEndpoint -dependencyPublishingOption ignore
+        } catch {
+            Write-Error "Failed to publish app $appFile : $_"
+        }
+    }
+}
+
 function Get-CredentialForContainer($AuthenticationType) {
     if ($AuthenticationType -eq 'Windows') {
         return Get-Credential -Message "Please enter your Windows Credentials" -UserName $env:USERNAME
@@ -279,4 +298,5 @@ function Get-CredentialForContainer($AuthenticationType) {
 Export-ModuleMember -Function Resolve-ProjectPaths
 Export-ModuleMember -Function Test-ContainerExists
 Export-ModuleMember -Function Build-Apps
+Export-ModuleMember -Function Publish-Apps
 Export-ModuleMember -Function Get-CredentialForContainer
