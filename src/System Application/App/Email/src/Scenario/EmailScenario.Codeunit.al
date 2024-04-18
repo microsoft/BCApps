@@ -33,6 +33,16 @@ codeunit 8893 "Email Scenario"
     end;
 
     /// <summary>
+    /// Check if there is an email account set for the given email scenario.
+    /// </summary>
+    /// <param name="Scenario">The scenario to look for.</param>
+    /// <returns>True if there is an account set for the specified scenario; otherwise - false.</returns>
+    procedure IsThereEmailAccountSetForScenario(Scenario: Enum "Email Scenario"): Boolean
+    begin
+        exit(EmailScenarioImpl.IsThereEmailAccountSetForScenario(Scenario));
+    end;
+
+    /// <summary>
     /// Sets a default email account.
     /// </summary>
     /// <param name="EmailAccount">The email account to use.</param>
