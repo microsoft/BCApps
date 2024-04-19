@@ -17,6 +17,12 @@ function GetDefaultProjectSettings($ContainerName)
     $defaultSettings["al.assemblyProbingPaths"] = (GetAssemblyProbingPaths -ContainerName $ContainerName)
     $defaultSettings["al.packageCachePath"] = (Get-ArtifactsCacheFolder -ContainerName $ContainerName)
 
+    # Output the compiled app files into the artifacts cache folder    
+    $compilationOptions = @{
+        "outFolder" = (Get-ArtifactsCacheFolder -ContainerName $ContainerName)
+    }
+    $defaultSettings["al.compilationOptions"] = $compilationOptions
+
     return $defaultSettings
 }
 
