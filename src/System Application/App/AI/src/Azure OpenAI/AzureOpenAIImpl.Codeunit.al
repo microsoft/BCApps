@@ -396,7 +396,7 @@ codeunit 7772 "Azure OpenAI Impl"
 
             AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
             if not ProcessFunctionCall(CompletionToken.AsArray(), ChatMessages, AOAIFunctionResponse) then
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, '', '', '', '');
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, '', '', '', '', '');
 
             AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
             if not AOAIFunctionResponse.IsSuccess() then
@@ -412,6 +412,7 @@ codeunit 7772 "Azure OpenAI Impl"
         Arguments: JsonObject;
         Token: JsonToken;
         FunctionName: Text;
+        FunctionId: Text;
         AOAIFunction: Interface "AOAI Function";
         FunctionResult: Variant;
     begin
@@ -425,6 +426,11 @@ codeunit 7772 "Azure OpenAI Impl"
             if Token.AsValue().AsText() <> 'function' then
                 exit(false);
         end else
+            exit(false);
+
+        if Function.Get('id', Token) then
+            FunctionId := Token.AsValue().AsText()
+        else
             exit(false);
 
         if Function.Get('function', Token) then
@@ -443,14 +449,14 @@ codeunit 7772 "Azure OpenAI Impl"
 
         if ChatMessages.GetFunctionTool(FunctionName, AOAIFunction) then
             if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then begin
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, true, AOAIFunction.GetName(), FunctionResult, '', '');
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, true, AOAIFunction.GetName(), FunctionId, FunctionResult, '', '');
                 exit(true);
             end else begin
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionId, FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
                 exit(true);
             end
         else begin
-            AOAIFunctionResponse.SetFunctionCallingResponse(true, false, FunctionName, FunctionResult, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
+            AOAIFunctionResponse.SetFunctionCallingResponse(true, false, FunctionName, FunctionId, FunctionResult, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
             exit(true);
         end;
     end;

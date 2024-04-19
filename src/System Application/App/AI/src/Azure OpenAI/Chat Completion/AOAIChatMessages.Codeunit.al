@@ -168,20 +168,6 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
-    /// Parses the message to get the function name, function arguments and tool call id.
-    /// </summary>
-    /// <param name="Message">The tools array returned by the Azure OpenAI</param>
-    /// <param name="FunctionName">Name of the function to call</param>
-    /// <param name="FunctionArguments">Arguments to pass to the function</param>
-    /// <param name="ToolCallId">Tool Call Id returned by Azure OpenAI</param>
-    /// <param name="Index">Index of the tool in the array, index starts from 0</param>
-    [NonDebuggable]
-    procedure ParseTool(Message: Text; var FunctionName: Text; var FunctionArguments: Text; var ToolCallId: Text; Index: Integer)
-    begin
-        AOAIToolsImpl.ParseTool(Message, FunctionName, FunctionArguments, ToolCallId, Index);
-    end;
-
-    /// <summary>
     /// Set the length of history that is used by the model.
     /// </summary>
     /// <param name="NewLength">The new length.</param>
@@ -390,14 +376,5 @@ codeunit 7763 "AOAI Chat Messages"
     internal procedure AssembleTools(): JsonArray
     begin
         exit(AOAIToolsImpl.PrepareTools());
-    end;
-
-    /// <summary>
-    /// Checks if the message is a list of tools.
-    /// </summary>
-    [NonDebuggable]
-    procedure IsToolsList(Message: Text): Boolean
-    begin
-        exit(AOAIChatMessagesImpl.IsToolsList(Message));
     end;
 }

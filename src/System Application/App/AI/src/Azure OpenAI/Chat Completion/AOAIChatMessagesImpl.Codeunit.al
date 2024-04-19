@@ -155,14 +155,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
     end;
 
     [NonDebuggable]
-    procedure IsToolsList(Message: Text): Boolean
-    var
-        AOAIToolsImpl: Codeunit "AOAI Tools Impl";
-    begin
-        exit(AOAIToolsImpl.IsToolsList(Message));
-    end;
-
-    [NonDebuggable]
     procedure SetHistoryLength(NewHistoryLength: Integer)
     begin
         if NewHistoryLength < 1 then
@@ -224,7 +216,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
                 Message := WrapUserMessages(AzureOpenAIImpl.RemoveProhibitedCharacters(Message))
             else
                 Message := AzureOpenAIImpl.RemoveProhibitedCharacters(Message);
-            if IsToolsList(Message) then
+            if AOAIToolsImpl.IsToolsList(Message) then
                 MessageJsonObject.Add('tool_calls', AOAIToolsImpl.ConvertToJsonArray(Message))
             else
                 MessageJsonObject.Add('content', Message);
