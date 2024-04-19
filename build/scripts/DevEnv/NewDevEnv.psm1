@@ -84,17 +84,6 @@ function Resolve-ProjectPaths {
 
 <#
     .Synopsis
-    Checks if a container with the specified name exists.
-#>
-function Test-ContainerExists {
-    param (
-        $containerName
-    )
-    return ($null -ne $(docker ps -q -f name="$containerName"))
-}
-
-<#
-    .Synopsis
     Builds an app.
 
     .Parameter appProjectFolder
@@ -200,6 +189,38 @@ function Build-Apps {
 
 <#
     .Synopsis
+    Publishes apps to a container.
+
+    .Parameter ContainerName
+    The name of the container to publish the app to.
+
+    .Parameter AppFiles
+    The paths to the app files to publish.
+
+    .Parameter Credential
+    The credential to use when publishing the app.
+#>
+function Publish-Apps() {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $ContainerName,
+        [Parameter(Mandatory = $true)]
+        [string[]] $AppFiles,
+        [Parameter(Mandatory = $true)]
+        [PSCredential] $Credential
+    )
+
+    foreach($appFile in $AppFiles) {
+        try {
+            Publish-BcContainerApp -containerName $ContainerName -appFile $appFile -credential $Credential -syncMode ForceSync -sync -skipVerification -install -useDevEndpoint -dependencyPublishingOption ignore
+        } catch {
+            Write-Error "Failed to publish app $appFile : $_"
+        }
+    }
+}
+
+<#
+    .Synopsis
     Creates a compiler folder.
     .Parameter packageCacheFolder
     The folder for the packagecache.
@@ -209,18 +230,22 @@ function CreateCompilerFolder {
         [Parameter(Mandatory = $true)]
         [string] $packageCacheFolder
     )
-    $bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
 
-    Write-Host "Creating compiler folder $packageCacheFolder" -ForegroundColor Yellow
-
-    if (Test-Path $packageCacheFolder) {
-        return $packageCacheFolder
+    # If the compiler folder already exists, return it
+    $compilerFolder = Join-Path $packageCacheFolder "CompilerFolder"
+    if (Test-Path $compilerFolder) {
+        return $compilerFolder
     }
 
-    Write-Host "Creating package cache folder $packageCacheFolder"
-    New-Item -Path $packageCacheFolder -ItemType Directory | Out-Null
+    # Create the package cache folder if it does not exist
+    if (-not (Test-Path $packageCacheFolder)) {
+        New-Item -Path $packageCacheFolder -ItemType Directory | Out-Null
+    }
 
-    return New-BcCompilerFolder -artifactUrl $bcArtifactUrl -cacheFolder $packageCacheFolder
+    # Create compiler folder using the AL-Go artifact URL
+    $bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+    Write-Host "Creating compiler folder $compilerFolder" -ForegroundColor Yellow
+    return New-BcCompilerFolder -artifactUrl $bcArtifactUrl -cacheFolder $compilerFolder
 }
 
 <#
@@ -270,34 +295,13 @@ function GetAllApps {
 
 <#
     .Synopsis
-    Publishes apps to a container.
-
-    .Parameter ContainerName
-    The name of the container to publish the app to.
-
-    .Parameter AppFiles
-    The paths to the app files to publish.
-
-    .Parameter Credential
-    The credential to use when publishing the app.
+    Checks if a container with the specified name exists.
 #>
-function Publish-Apps() {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $ContainerName,
-        [Parameter(Mandatory = $true)]
-        [string[]] $AppFiles,
-        [Parameter(Mandatory = $true)]
-        [PSCredential] $Credential
+function Test-ContainerExists {
+    param (
+        $containerName
     )
-
-    foreach($appFile in $AppFiles) {
-        try {
-            Publish-BcContainerApp -containerName $ContainerName -appFile $appFile -credential $Credential -syncMode ForceSync -sync -skipVerification -install -useDevEndpoint -dependencyPublishingOption ignore
-        } catch {
-            Write-Error "Failed to publish app $appFile : $_"
-        }
-    }
+    return ($null -ne $(docker ps -q -f name="$containerName"))
 }
 
 <#
@@ -318,7 +322,7 @@ function Get-CredentialForContainer($AuthenticationType) {
 }
 
 Export-ModuleMember -Function Resolve-ProjectPaths
-Export-ModuleMember -Function Test-ContainerExists
 Export-ModuleMember -Function Build-Apps
 Export-ModuleMember -Function Publish-Apps
+Export-ModuleMember -Function Test-ContainerExists
 Export-ModuleMember -Function Get-CredentialForContainer

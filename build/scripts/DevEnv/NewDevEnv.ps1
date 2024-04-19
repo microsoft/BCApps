@@ -38,6 +38,7 @@ Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChec
 Import-Module "$PSScriptRoot\ALDev.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\NewDevContainer.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\NewDevEnv.psm1" -DisableNameChecking
+Import-Module BcContainerHelper
 
 $credential = Get-CredentialForContainer -AuthenticationType $Authentication
 
@@ -74,6 +75,7 @@ if ($ProjectPaths -or $WorkspacePath -or $AlGoProject)
     Write-Host "Building apps..." -ForegroundColor Yellow
     $appFiles = Build-Apps -ProjectPaths $ProjectPaths -packageCacheFolder (Get-ArtifactsCacheFolder -ContainerName $ContainerName)
 
+    # Publish apps
     Write-Host "Publishing apps..." -ForegroundColor Yellow
     Publish-Apps -ContainerName $ContainerName -AppFiles $appFiles -Credential $credential
 }
