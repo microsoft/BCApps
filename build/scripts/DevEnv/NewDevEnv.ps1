@@ -26,11 +26,11 @@ param(
     [string] $Authentication = "UserPassword",
     [Parameter(Mandatory = $false)]
     [switch] $SkipVsCodeSetup,
-    [Parameter(Mandatory = $false, ParameterSetName = 'ProjectPaths')]
+    [Parameter(Mandatory = $false)]
     [string[]] $ProjectPaths,
-    [Parameter(Mandatory = $false, ParameterSetName = 'WorkspacePath')]
+    [Parameter(Mandatory = $false)]
     [string] $WorkspacePath,
-    [Parameter(Mandatory = $false, ParameterSetName = 'ALGoProject')]
+    [Parameter(Mandatory = $false)]
     [string] $AlGoProject
 )
 
@@ -39,6 +39,8 @@ Import-Module "$PSScriptRoot\ALDev.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\NewDevContainer.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\NewDevEnv.psm1" -DisableNameChecking
 Import-Module BcContainerHelper
+
+Push-Location (Get-BaseFolderForPath -Path $PSScriptRoot)
 
 $credential = Get-CredentialForContainer -AuthenticationType $Authentication
 
