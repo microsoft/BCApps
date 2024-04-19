@@ -1,39 +1,41 @@
-codeunit 334 "No. Series Copilot Modfy Impl."
+codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
 {
     Access = Internal;
 
     var
-        ToolsImpl: Codeunit "No. Series Copilot Tools Impl.";
+        ToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
         SpecifyTablesErr: Label 'Please specify the tables for which you want to modify the number series.';
+
+    procedure GetName(): Text
+    begin
+        exit('GetExistingTablesAndPatterns');
+    end;
+
+    procedure GetPrompt() Function: JsonObject;
+    begin
+        Function.ReadFrom(GetTool2Definition());
+    end;
+
+    procedure Execute(Arguments: JsonObject): Variant
+    begin
+        exit(Build(Arguments));
+    end;
 
     /// <summary>
     /// Build the prompts for modifying existing number series.
     /// </summary>
-    /// <param name="FunctionArguments">Function Arguments retrieved from LLM</param>
-    /// <param name="MaxToolResultsTokensLength">Maximum number of tokens can be allocated for the result</param>
+    /// <param name="Arguments">Function Arguments retrieved from LLM</param>
     /// <returns></returns>
     /// <remarks> This function is used to build the prompts for modifying existing series. The prompts are built based on the tables and patterns specified in the input. Tables should be specified. If no patterns are specified, default patterns are used. In case number of tables can't be pasted in one prompt, due to token limits, function chunk result into several messages, that need to be called separately</remarks>
-    procedure Build(var FunctionArguments: Text; MaxToolResultsTokensLength: Integer) ToolResults: Dictionary of [Text, Integer]
+    local procedure Build(var Arguments: JsonObject) ToolResults: Dictionary of [Text, Integer]
     var
         ChangeNoSeriesPrompt, TablesPromptList, CustomPatternsPromptList, ExistingNoSeriesToChangeList : List of [Text];
         TablesBlockLbl: Label 'Tables:', Locked = true;
-        NumberOfToolResponses, MaxTablesPromptListTokensLength, i, ActualTablesChunkSize : Integer;
+        NumberOfToolResponses, i, ActualTablesChunkSize : Integer;
         TokenCountImpl: Codeunit "AOAI Token";
     begin
-        GetTablesPrompt(FunctionArguments, TablesPromptList, ExistingNoSeriesToChangeList);
-        ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(FunctionArguments, CustomPatternsPromptList, ExistingNoSeriesToChangeList, GetToolCustomPatternsGuidelines());
-
-        MaxTablesPromptListTokensLength := MaxToolResultsTokensLength -
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolGeneralInstructions()) -
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolLimitations()) -
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolCodeGuidelines()) -
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolDescrGuidelines()) -
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolNumberGuideline()) -
-                                            TokenCountImpl.GetGPT4TokenCount(ToolsImpl.ConvertListToText(CustomPatternsPromptList)) -
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolOutputExamples()) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(TablesBlockLbl)) -
-                                            // we skip the token count of the tables, as that's what we are trying to calculate
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolOutputFormat());
+        GetTablesPrompt(Arguments, TablesPromptList, ExistingNoSeriesToChangeList);
+        ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(Arguments, CustomPatternsPromptList, ExistingNoSeriesToChangeList, GetToolCustomPatternsGuidelines());
 
         NumberOfToolResponses := Round(TablesPromptList.Count / ToolsImpl.GetTablesChunkSize(), 1, '>'); // we add tables by small chunks, as more tables can lead to hallucinations
 
@@ -49,19 +51,19 @@ codeunit 334 "No. Series Copilot Modfy Impl."
                 ChangeNoSeriesPrompt.Add(ToolsImpl.ConvertListToText(CustomPatternsPromptList));
                 ChangeNoSeriesPrompt.Add(GetToolOutputExamples());
                 ChangeNoSeriesPrompt.Add(TablesBlockLbl);
-                ToolsImpl.AddChunkedTablesPrompt(ChangeNoSeriesPrompt, TablesPromptList, MaxTablesPromptListTokensLength, ActualTablesChunkSize);
+                ToolsImpl.AddChunkedTablesPrompt(ChangeNoSeriesPrompt, TablesPromptList, ActualTablesChunkSize);
                 ChangeNoSeriesPrompt.Add(GetToolOutputFormat());
                 ToolResults.Add(ToolsImpl.ConvertListToText(ChangeNoSeriesPrompt), ActualTablesChunkSize);
             end
         end;
     end;
 
-    local procedure GetTablesPrompt(var FunctionArguments: Text; var TablesPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text])
+    local procedure GetTablesPrompt(var Arguments: JsonObject; var TablesPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text])
     begin
-        if not ToolsImpl.CheckIfTablesSpecified(FunctionArguments) then
+        if not ToolsImpl.CheckIfTablesSpecified(Arguments) then
             Error(SpecifyTablesErr);
 
-        ListOnlySpecifiedTablesWithExistingNumberSeries(TablesPromptList, ExistingNoSeriesToChangeList, ToolsImpl.GetEntities(FunctionArguments));
+        ListOnlySpecifiedTablesWithExistingNumberSeries(TablesPromptList, ExistingNoSeriesToChangeList, ToolsImpl.GetEntities(Arguments));
     end;
 
     local procedure ListOnlySpecifiedTablesWithExistingNumberSeries(var TablesPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]; Entities: List of [Text])
@@ -109,6 +111,17 @@ codeunit 334 "No. Series Copilot Modfy Impl."
 
         TablesPromptList.Add('Area: ' + ToolsImpl.RemoveTextPart(TableMetadata.Caption, ' Setup') + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + ToolsImpl.RemoveTextPart(Field.FieldName, ' Nos.') + ', seriesCode: ' + NoSeries.Code + ', description: ' + NoSeries.Description);
         ExistingNoSeriesToChangeList.Add(NoSeries.Code);
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool2Definition(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool definition. The tool should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool2DefinitionFromIsolatedStorage())
     end;
 
     [NonDebuggable]

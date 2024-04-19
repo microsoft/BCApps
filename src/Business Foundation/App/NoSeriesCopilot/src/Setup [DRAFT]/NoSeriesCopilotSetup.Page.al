@@ -80,22 +80,23 @@ page 9245 "No. Series Copilot Setup"
                             Rec.SetToolsSystemPromptToIsolatedStorage(ToolsSystemPrompt);
                         end;
                     }
-                    field(ToolsDefinition; ToolsDefinition)
+                }
+                group(Tool1)
+                {
+                    field(Tool1Definition; Tool1Definition)
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Tools Definition';
+                        Caption = 'Tool 1 Definition';
                         NotBlank = true;
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
                         trigger OnValidate()
                         begin
-                            Rec.SetToolsDefinitionToIsolatedStorage(ToolsDefinition);
+                            Rec.SetTool1DefinitionToIsolatedStorage(Tool1Definition);
                         end;
                     }
-                }
-                group(Tool1)
-                {
+
                     field(Tool1GeneralInstructionsPrompt; Tool1GeneralInstructionsPrompt)
                     {
                         ApplicationArea = All;
@@ -210,6 +211,20 @@ page 9245 "No. Series Copilot Setup"
                 }
                 group(Tool2)
                 {
+                    field(Tool2Definition; Tool2Definition)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Tool 2 Definition';
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        trigger OnValidate()
+                        begin
+                            Rec.SetTool2DefinitionToIsolatedStorage(Tool2Definition);
+                        end;
+                    }
+
                     field(Tool2GeneralInstructionsPrompt; Tool2GeneralInstructionsPrompt)
                     {
                         ApplicationArea = All;
@@ -331,7 +346,7 @@ page 9245 "No. Series Copilot Setup"
         SecretKey: Text;
         SystemPrompt: Text;
         ToolsSystemPrompt: Text;
-        ToolsDefinition: Text;
+        Tool1Definition: Text;
         Tool1GeneralInstructionsPrompt: Text;
         Tool1LimitationsPrompt: Text;
         Tool1CodeGuidelinesPrompt: Text;
@@ -340,6 +355,7 @@ page 9245 "No. Series Copilot Setup"
         Tool1CustomPatternsPrompt: Text;
         Tool1OutputExamplesPrompt: Text;
         Tool1OutputFormatPrompt: Text;
+        Tool2Definition: Text;
         Tool2GeneralInstructionsPrompt: Text;
         Tool2LimitationsPrompt: Text;
         Tool2CodeGuidelinesPrompt: Text;
@@ -360,7 +376,7 @@ page 9245 "No. Series Copilot Setup"
         SecretKey := Rec.GetSecretKeyFromIsolatedStorage();
         SystemPrompt := Rec.GetNoSeriesGenerationSystemPromptFromIsolatedStorage();
         ToolsSystemPrompt := Rec.GetToolsSystemPromptFromIsolatedStorage();
-        ToolsDefinition := Rec.GetToolsDefinitionFromIsolatedStorage();
+        Tool1Definition := Rec.GetTool1DefinitionFromIsolatedStorage();
         Tool1GeneralInstructionsPrompt := Rec.GetTool1GeneralInstructionsPromptFromIsolatedStorage();
         Tool1LimitationsPrompt := Rec.GetTool1LimitationsPromptFromIsolatedStorage();
         Tool1CodeGuidelinesPrompt := Rec.GetTool1CodeGuidelinePromptFromIsolatedStorage();
@@ -369,6 +385,7 @@ page 9245 "No. Series Copilot Setup"
         Tool1CustomPatternsPrompt := Rec.GetTool1CustomPatternsPromptFromIsolatedStorage();
         Tool1OutputExamplesPrompt := Rec.GetTool1OutputExamplesPromptFromIsolatedStorage();
         Tool1OutputFormatPrompt := Rec.GetTool1OutputExamplesPromptFromIsolatedStorage();
+        Tool2Definition := Rec.GetTool2DefinitionFromIsolatedStorage();
         Tool2GeneralInstructionsPrompt := Rec.GetTool2GeneralInstructionsPromptFromIsolatedStorage();
         Tool2LimitationsPrompt := Rec.GetTool2LimitationsPromptFromIsolatedStorage();
         Tool2CodeGuidelinesPrompt := Rec.GetTool2CodeGuidelinePromptFromIsolatedStorage();

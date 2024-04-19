@@ -1,52 +1,44 @@
-codeunit 336 "No. Series Copilot Tools Impl."
+codeunit 336 "No. Series Cop. Tools Impl."
 {
     Access = Internal;
 
     var
         CustomPatternsPlaceholderLbl: label '{custom_patterns}', Locked = true;
 
-    procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var FunctionArguments: Text; var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]; CustomGuidelinesPrompt: Text)
+    procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var Arguments: JsonObject; var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]; CustomGuidelinesPrompt: Text)
     begin
-        if CheckIfPatternSpecified(FunctionArguments) then
+        if CheckIfPatternSpecified(Arguments) then
             CustomPatternsPromptList.Add(CustomGuidelinesPrompt.Replace(CustomPatternsPlaceholderLbl, ''))
         else
             CustomPatternsPromptList.Add(CustomGuidelinesPrompt.Replace(CustomPatternsPlaceholderLbl, BuildExistingPatternIfExist(ExistingNoSeriesToChangeList)));
     end;
 
-    procedure CheckIfTablesSpecified(var FunctionArguments: Text): Boolean
+    procedure CheckIfTablesSpecified(var Arguments: JsonObject): Boolean
     begin
-        exit(GetEntities(FunctionArguments).Count > 0);
+        exit(GetEntities(Arguments).Count > 0);
     end;
 
-    procedure GetEntities(var FunctionArguments: Text): List of [Text]
+    procedure GetEntities(var Arguments: JsonObject): List of [Text]
     var
-        Arguments: JsonObject;
         EntitiesToken: JsonToken;
         XpathLbl: Label '$.entities', Locked = true;
     begin
-        if not Arguments.ReadFrom(FunctionArguments) then
-            exit;
-
         if not Arguments.SelectToken(XpathLbl, EntitiesToken) then
             exit;
 
         exit(EntitiesToken.AsValue().AsText().Split(',')); // split the text by commas into a list of entities
     end;
 
-    local procedure CheckIfPatternSpecified(var FunctionArguments: Text): Boolean
+    local procedure CheckIfPatternSpecified(var Arguments: JsonObject): Boolean
     begin
-        exit(GetPattern(FunctionArguments) <> '');
+        exit(GetPattern(Arguments) <> '');
     end;
 
-    local procedure GetPattern(var FunctionArguments: Text): Text
+    local procedure GetPattern(var Arguments: JsonObject): Text
     var
-        Arguments: JsonObject;
         PatternToken: JsonToken;
         XpathLbl: Label '$.pattern', Locked = true;
     begin
-        if not Arguments.ReadFrom(FunctionArguments) then
-            exit;
-
         if not Arguments.SelectToken(XpathLbl, PatternToken) then
             exit;
 
@@ -175,15 +167,14 @@ codeunit 336 "No. Series Copilot Tools Impl."
         exit(0.9)
     end;
 
-    procedure AddChunkedTablesPrompt(var FinalPrompt: List of [Text]; var TablesPromptList: List of [Text]; MaxTokensLength: Integer; var AddedCount: Integer)
+    procedure AddChunkedTablesPrompt(var FinalPrompt: List of [Text]; var TablesPromptList: List of [Text]; var AddedCount: Integer)
     var
-        TokenCountImpl: Codeunit "AOAI Token";
         TablePrompt: Text;
         IncludedTablePrompts: List of [Text];
     begin
         // we add by chunks of 10 tables, not to exceed the token limit, as more than 10 tables can lead to hallucinations
         foreach TablePrompt in TablesPromptList do
-            if (AddedCount < GetTablesChunkSize()) and (TokenCountImpl.GetGPT4TokenCount(ConvertListToText(IncludedTablePrompts)) + TokenCountImpl.GetGPT4TokenCount(TablePrompt) < MaxTokensLength) then begin
+            if (AddedCount < GetTablesChunkSize()) then begin
                 IncludedTablePrompts.Add(TablePrompt);
                 AddedCount += 1;
             end;

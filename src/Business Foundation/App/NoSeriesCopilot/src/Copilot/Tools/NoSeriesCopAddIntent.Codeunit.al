@@ -1,38 +1,40 @@
-codeunit 331 "No. Series Copilot New Impl."
+codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 {
     Access = Internal;
 
     var
-        ToolsImpl: Codeunit "No. Series Copilot Tools Impl.";
+        ToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
+
+    procedure GetName(): Text
+    begin
+        exit('GetNewTablesAndPatterns');
+    end;
+
+    procedure GetPrompt() Function: JsonObject;
+    begin
+        Function.ReadFrom(GetTool1Definition());
+    end;
+
+    procedure Execute(Arguments: JsonObject): Variant
+    begin
+        exit(Build(Arguments));
+    end;
 
     /// <summary>
     /// Build the prompts for generating new number series.
     /// </summary>
-    /// <param name="FunctionArguments">Function Arguments retrieved from LLM</param>
-    /// <param name="MaxToolResultsTokensLength">Maximum number of tokens can be allocated for the result</param>
+    /// <param name="Arguments">Function Arguments retrieved from LLM</param>
     /// <returns></returns>
     /// <remarks> This function is used to build the prompts for generating new number series. The prompts are built based on the tables and patterns specified in the input. If no tables are specified, all tables with number series are used. If no patterns are specified, default patterns are used. In case number of tables can't be pasted in one prompt, due to token limits, function chunk result into several messages, that need to be called separately</remarks>
-    procedure Build(var FunctionArguments: Text; MaxToolResultsTokensLength: Integer) ToolResults: Dictionary of [Text, Integer]
+    local procedure Build(var Arguments: JsonObject) ToolResults: Dictionary of [Text, Integer]
     var
         NewNoSeriesPrompt, TablesPromptList, CustomPatternsPromptList, EmptyList : List of [Text];
         TablesBlockLbl: Label 'Tables:', Locked = true;
-        NumberOfToolResponses, MaxTablesPromptListTokensLength, i, ActualTablesChunkSize : Integer;
+        NumberOfToolResponses, i, ActualTablesChunkSize : Integer;
         TokenCountImpl: Codeunit "AOAI Token";
     begin
-        GetTablesPrompt(FunctionArguments, TablesPromptList);
-        ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(FunctionArguments, CustomPatternsPromptList, EmptyList, GetToolCustomPatternsGuidelines());
-
-        MaxTablesPromptListTokensLength := MaxToolResultsTokensLength -
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolGeneralInstructions()) -
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolLimitations()) -
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolCodeGuidelines()) -
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolDescrGuidelines()) -
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolNumberGuideline()) -
-                                            TokenCountImpl.GetGPT4TokenCount(ToolsImpl.ConvertListToText(CustomPatternsPromptList)) -
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolOutputExamples()) -
-                                            TokenCountImpl.GetGPT4TokenCount(Format(TablesBlockLbl)) -
-                                            // we skip the token count of the tables, as that's what we are trying to calculate
-                                            TokenCountImpl.GetGPT4TokenCount(GetToolOutputFormat());
+        GetTablesPrompt(Arguments, TablesPromptList);
+        ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(Arguments, CustomPatternsPromptList, EmptyList, GetToolCustomPatternsGuidelines());
 
         NumberOfToolResponses := Round(TablesPromptList.Count / ToolsImpl.GetTablesChunkSize(), 1, '>'); // we add tables by small chunks, as more tables can lead to hallucinations
 
@@ -48,17 +50,17 @@ codeunit 331 "No. Series Copilot New Impl."
                 NewNoSeriesPrompt.Add(ToolsImpl.ConvertListToText(CustomPatternsPromptList));
                 NewNoSeriesPrompt.Add(GetToolOutputExamples());
                 NewNoSeriesPrompt.Add(TablesBlockLbl);
-                ToolsImpl.AddChunkedTablesPrompt(NewNoSeriesPrompt, TablesPromptList, MaxTablesPromptListTokensLength, ActualTablesChunkSize);
+                ToolsImpl.AddChunkedTablesPrompt(NewNoSeriesPrompt, TablesPromptList, ActualTablesChunkSize);
                 NewNoSeriesPrompt.Add(GetToolOutputFormat());
                 ToolResults.Add(ToolsImpl.ConvertListToText(NewNoSeriesPrompt), ActualTablesChunkSize);
             end
         end;
     end;
 
-    local procedure GetTablesPrompt(var FunctionArguments: Text; var TablesPromptList: List of [Text])
+    local procedure GetTablesPrompt(var Arguments: JsonObject; var TablesPromptList: List of [Text])
     begin
-        if ToolsImpl.CheckIfTablesSpecified(FunctionArguments) then
-            ListOnlySpecifiedTables(TablesPromptList, ToolsImpl.GetEntities(FunctionArguments))
+        if ToolsImpl.CheckIfTablesSpecified(Arguments) then
+            ListOnlySpecifiedTables(TablesPromptList, ToolsImpl.GetEntities(Arguments))
         else
             ListAllTablesWithNumberSeries(TablesPromptList);
     end;
@@ -113,6 +115,17 @@ codeunit 331 "No. Series Copilot New Impl."
     local procedure AddNewNoSeriesFieldToTablesPrompt(var TablesPromptList: List of [Text]; TableMetadata: Record "Table Metadata"; Field: Record "Field")
     begin
         TablesPromptList.Add('Area: ' + ToolsImpl.RemoveTextPart(TableMetadata.Caption, ' Setup') + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + ToolsImpl.RemoveTextPart(Field.FieldName, ' Nos.'));
+    end;
+
+    [NonDebuggable]
+    local procedure GetTool1Definition(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool definition. The tool should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool1DefinitionFromIsolatedStorage())
     end;
 
     [NonDebuggable]
