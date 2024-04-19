@@ -15,7 +15,7 @@ In order to create it, simply run `.\build\scripts\DevEnv\NewDevEnv.ps1` with th
 
 ### Example - Set up a container and VSCode
 ```
-.\build\scripts\DevEnv\NewDevEnv.ps1 -containerName 'BCApps-Dev'
+.\build\scripts\DevEnv\NewDevEnv.ps1 -ContainerName 'BCApps-Dev'
 ```
 
 Running the above will
@@ -25,7 +25,7 @@ Running the above will
 
 ### Example - Set up a container, VSCode and publish a new system app
 ```
-.\build\scripts\DevEnv\NewDevEnv.ps1 -ProjectPaths '.\src\System Application\App'
+.\build\scripts\DevEnv\NewDevEnv.ps1 -ContainerName 'BCApps-Dev' -ProjectPaths '.\src\System Application\App'
 ```
 Running the above will
 * Create a new container (if one doesn't already exist)
@@ -34,7 +34,7 @@ Running the above will
 
 ### Example - Set up a container, VSCode and publish a new system app and tests
 ```
-.\build\scripts\DevEnv\NewDevEnv.ps1 -ProjectPaths '.\src\System Application\*'
+.\build\scripts\DevEnv\NewDevEnv.ps1 -ContainerName 'BCApps-Dev' -ProjectPaths '.\src\System Application\*'
 ```
 Running the above will
 * Create a new container (if one doesn't already exist)
