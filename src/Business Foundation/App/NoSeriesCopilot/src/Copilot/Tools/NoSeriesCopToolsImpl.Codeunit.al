@@ -153,7 +153,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
     begin
         //TODO: Replace this with embeddings, when Business Central supports it
         foreach Entity in Entities do begin
-            String1 := RecordMatchMgtCopy.RemoveShortWords(RemoveTextPart(TableMetadata.Caption, ' Setup') + ' ' + RemoveTextPart(Field.FieldName, ' Nos.'));
+            String1 := RecordMatchMgtCopy.RemoveShortWords(RemoveTextPart(TableMetadata.Caption, ' Setup') + ' ' + RemoveTextParts(Field.FieldName, GetNoSeriesAbbreviations()));
             String2 := RecordMatchMgtCopy.RemoveShortWords(Entity);
             Score := RecordMatchMgtCopy.CalculateStringNearness(String1, String2, 1, 100) / 100;
             if Score >= RequiredNearness() then
@@ -185,12 +185,21 @@ codeunit 336 "No. Series Cop. Tools Impl."
         end;
     end;
 
-    procedure RemoveTextPart(Text: Text; PartToRemove: Text): Text
+    procedure RemoveTextParts(Text: Text; PartsToRemove: List of [Text]): Text
+    var
+        Part: Text;
     begin
-        if StrPos(Text, PartToRemove) = 0 then
+        foreach Part in PartsToRemove do
+            Text := RemoveTextPart(Text, Part);
+        exit(Text);
+    end;
+
+    procedure RemoveTextPart(Text: Text; Part: Text): Text
+    begin
+        if StrPos(Text, Part) = 0 then
             exit(Text);
 
-        exit(DelStr(Text, StrPos(Text, PartToRemove), StrLen(PartToRemove)));
+        exit(DelStr(Text, StrPos(Text, Part), StrLen(Part)));
     end;
 
     procedure ExtractAreaWithPrefix(Text: Text): Text
@@ -208,6 +217,12 @@ codeunit 336 "No. Series Cop. Tools Impl."
 
         Text := CopyStr(Text, 1, StrPos(Text, ',') - 1);
         exit(PrefixLbl + Text);
+    end;
+
+    procedure GetNoSeriesAbbreviations() NoSeriesAbbreviations: List of [Text]
+    begin
+        NoSeriesAbbreviations.Add('Nos.');
+        NoSeriesAbbreviations.Add('No. Series');
     end;
 
     procedure ConvertListToText(MyList: List of [Text]): Text

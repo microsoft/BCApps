@@ -114,7 +114,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 
     local procedure AddNewNoSeriesFieldToTablesPrompt(var TablesPromptList: List of [Text]; TableMetadata: Record "Table Metadata"; Field: Record "Field")
     begin
-        TablesPromptList.Add('Area: ' + ToolsImpl.RemoveTextPart(TableMetadata.Caption, ' Setup') + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + ToolsImpl.RemoveTextPart(Field.FieldName, ' Nos.'));
+        TablesPromptList.Add('Area: ' + ToolsImpl.RemoveTextPart(TableMetadata.Caption, ' Setup') + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + ToolsImpl.RemoveTextParts(Field.FieldName, ToolsImpl.GetNoSeriesAbbreviations()));
     end;
 
     [NonDebuggable]

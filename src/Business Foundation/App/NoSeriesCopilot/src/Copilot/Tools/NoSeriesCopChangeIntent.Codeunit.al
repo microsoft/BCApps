@@ -109,7 +109,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         if not NoSeries.Get(Format(FieldRef.Value)) then
             exit;
 
-        TablesPromptList.Add('Area: ' + ToolsImpl.RemoveTextPart(TableMetadata.Caption, ' Setup') + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + ToolsImpl.RemoveTextPart(Field.FieldName, ' Nos.') + ', seriesCode: ' + NoSeries.Code + ', description: ' + NoSeries.Description);
+        TablesPromptList.Add('Area: ' + ToolsImpl.RemoveTextPart(TableMetadata.Caption, ' Setup') + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + ToolsImpl.RemoveTextParts(Field.FieldName, ToolsImpl.GetNoSeriesAbbreviations()) + ', seriesCode: ' + NoSeries.Code + ', description: ' + NoSeries.Description);
         ExistingNoSeriesToChangeList.Add(NoSeries.Code);
     end;
 
