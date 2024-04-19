@@ -14,7 +14,7 @@ $result = @{
 }
 
 if ($newVersion) {
-    $result.Files = @("build/Packages.json")
+    $result.Files = @(Get-PackagesFilePath -Relative)
     $result.Message = "Update translation package version. New value: $newVersion"
 }
 

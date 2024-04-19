@@ -17,7 +17,7 @@ $result = @{
 }
 
 if ($newVersion) {
-    $result.Files = @("build/Packages.json")
+    $result.Files = @(Get=PackagesFilePath -Relative)
     $result.Message = "Update app baselines package version. New value: $newVersion"
 }
 

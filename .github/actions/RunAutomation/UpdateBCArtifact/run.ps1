@@ -19,7 +19,7 @@ $result = @{
 }
 
 if ($newVersion) {
-    $result.Files = @(".github/AL-Go-Settings.json")
+    $result.Files = @(Get-ALGoSettingsPath -Relative)
     $result.Message = "Update BCArtifact version. New value: $newVersion"
 }
 

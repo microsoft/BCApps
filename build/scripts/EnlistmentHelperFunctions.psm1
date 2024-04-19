@@ -54,6 +54,38 @@ function New-Directory()
     }
 }
 
+function GetPath($Path, $Relative) {
+    if ($Relative) {
+        return $Path
+    }
+
+    return Join-Path (Get-BaseFolder) $Path -Resolve
+}
+
+<#
+.Synopsis
+    Gets the path to the AL-Go settings file
+.Parameter Relative
+    If specified, the path will be relative to the base folder
+.Outputs
+    System.String - The path to the AL-Go settings file
+#>
+function Get-ALGoSettingsPath([switch] $Relative) {
+    return GetPath ".github/AL-Go-Settings.json" $Relative
+}
+
+<#
+.Synopsis
+    Gets the path to the Packages file
+.Parameter Relative
+    If specified, the path will be relative to the base folder
+.Outputs
+    System.String - The path to the Packages file
+#>
+function Get-PackagesFilePath([switch] $Relative) {
+    return GetPath "build/Packages.json" $Relative
+}
+
 <#
 .Synopsis
     Get the value of a key from a config file
@@ -72,14 +104,11 @@ function Get-ConfigValue() {
     )
 
     switch ($ConfigType) {
-        "BuildConfig" {
-            $ConfigPath = Join-Path (Get-BaseFolder) "build/BuildConfig.json" -Resolve
-        }
         "AL-GO" {
-            $ConfigPath = Join-Path (Get-BaseFolder) ".github/AL-Go-Settings.json" -Resolve
+            $ConfigPath = Get-ALGoSettingsPath
         }
         "Packages" {
-            $ConfigPath = Join-Path (Get-BaseFolder) "build/Packages.json" -Resolve
+            $ConfigPath = Get-PackagesFilePath
         }
     }
 
