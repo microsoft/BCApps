@@ -193,6 +193,23 @@ codeunit 336 "No. Series Cop. Tools Impl."
         exit(DelStr(Text, StrPos(Text, PartToRemove), StrLen(PartToRemove)));
     end;
 
+    procedure ExtractAreaWithPrefix(Text: Text): Text
+    var
+        AreaLbl: Label 'Area: ', Locked = true;
+        PrefixLbl: Label 'for ';
+    begin
+        if StrPos(Text, AreaLbl) = 0 then
+            exit('');
+
+        Text := CopyStr(Text, StrPos(Text, AreaLbl) + StrLen(AreaLbl));
+
+        if StrPos(Text, ',') = 0 then
+            exit('');
+
+        Text := CopyStr(Text, 1, StrPos(Text, ',') - 1);
+        exit(PrefixLbl + Text);
+    end;
+
     procedure ConvertListToText(MyList: List of [Text]): Text
     var
         Element: Text;

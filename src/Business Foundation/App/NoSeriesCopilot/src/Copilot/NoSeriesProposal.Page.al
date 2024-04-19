@@ -16,14 +16,13 @@ page 332 "No. Series Proposal"
     {
         area(PromptOptions)
         {
-
         }
         area(Prompt)
         {
             field(InputText; InputText)
             {
                 Caption = 'Request';
-                InstructionalText = 'Describe the number series you want to set up or change. For example, "Set up number series for sales module in the format @@-#####". You can omit the pattern, in this case, the system will suggest one for you.';
+                InstructionalText = 'Describe the number series you want to create or change.';
                 ShowCaption = false;
                 MultiLine = true;
                 ApplicationArea = All;
@@ -74,7 +73,7 @@ page 332 "No. Series Proposal"
                     Caption = 'Create number series for [purchase orders]';
                     trigger OnAction()
                     begin
-                        InputText := NewNoSeriesForPurchaseOrderLbl;
+                        InputText := CreateNoSeriesForLbl;
                         CurrPage.Update();
                     end;
                 }
@@ -83,16 +82,16 @@ page 332 "No. Series Proposal"
                     Caption = 'Create numbers for the [sales] module, using pattern [@@-#####]';
                     trigger OnAction()
                     begin
-                        InputText := NewNoSeriesForSalesModuleWithPatternLbl;
+                        InputText := CreateNoSeriesForModuleWithPatternLbl;
                         CurrPage.Update();
                     end;
                 }
                 action(NewNumberSeriesForCompany)
                 {
-                    Caption = 'Create numbers series for the new companyy';
+                    Caption = 'Create numbers series for the new company';
                     trigger OnAction()
                     begin
-                        InputText := NewNoSeriesForCompanyLbl;
+                        InputText := CreateNoSeriesForCompanyLbl;
                         CurrPage.Update();
                     end;
                 }
@@ -106,12 +105,13 @@ page 332 "No. Series Proposal"
                     Caption = 'Change the [sales order] number to [SO-10001]';
                     trigger OnAction()
                     begin
-                        InputText := ChangeSalesOrderNumberLbl;
+                        InputText := ChangeNumberLbl;
                         CurrPage.Update();
                     end;
                 }
             }
         }
+
         area(SystemActions)
         {
             systemaction(Generate)
@@ -150,10 +150,10 @@ page 332 "No. Series Proposal"
         PageCaptionLbl: text;
         IsResponseTextVisible: Boolean;
         IsProposalDetailsVisible: Boolean;
-        NewNoSeriesForPurchaseOrderLbl: Label 'Create number series for';
-        NewNoSeriesForSalesModuleWithPatternLbl: Label 'Create number series for [specify here] module in the format ';
-        NewNoSeriesForCompanyLbl: Label 'Create numbers series for the new company';
-        ChangeSalesOrderNumberLbl: Label 'Change the [specify here] number to ';
+        CreateNoSeriesForLbl: Label 'Create number series for ';
+        CreateNoSeriesForModuleWithPatternLbl: Label 'Create number series for [specify here] module in the format ';
+        CreateNoSeriesForCompanyLbl: Label 'Create numbers series for the new company';
+        ChangeNumberLbl: Label 'Change the [specify here] number to ';
 
     trigger OnAfterGetCurrRecord()
     begin

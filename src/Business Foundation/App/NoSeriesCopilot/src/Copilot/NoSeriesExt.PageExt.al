@@ -2,11 +2,26 @@ pageextension 324 "No. Series Ext" extends "No. Series"
 {
     actions
     {
-        addfirst(Promoted)
-        {
-            actionref("Generate_Promoted"; "Generate With Copilot") { }
-        }
         addfirst(Prompting)
+        {
+            action("Generate With Copilot Prompting")
+            {
+                Caption = 'Generate';
+                ToolTip = 'Generate No. Series using Copilot';
+                Image = Sparkle;
+                ApplicationArea = All;
+                Visible = CopilotActionsVisible;
+
+                trigger OnAction()
+                var
+                    NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
+                begin
+                    NoSeriesCopilotImpl.GetNoSeriesSuggestions();
+                end;
+            }
+        }
+
+        addlast(Processing)
         {
             action("Generate With Copilot")
             {
@@ -18,21 +33,9 @@ pageextension 324 "No. Series Ext" extends "No. Series"
 
                 trigger OnAction()
                 var
-                    FeatureTelemetry: Codeunit "Feature Telemetry";
-                    NoSeriesCopilotRegister: Codeunit "No. Series Copilot Register";
                     NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
-                    AzureOpenAI: Codeunit "Azure OpenAI";
-                    NoSeriesCopilot: Page "No. Series Proposal";
                 begin
-                    NoSeriesCopilotRegister.RegisterCapability();
-                    if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"No. Series Copilot") then
-                        exit;
-
-                    FeatureTelemetry.LogUptake('0000LF4', NoSeriesCopilotImpl.FeatureName(), Enum::"Feature Uptake Status"::Discovered); //TODO: Update signal id
-
-                    NoSeriesCopilot.LookupMode := true;
-                    if NoSeriesCopilot.RunModal = Action::LookupOK then
-                        CurrPage.Update();
+                    NoSeriesCopilotImpl.GetNoSeriesSuggestions();
                 end;
             }
         }

@@ -7,6 +7,24 @@ codeunit 324 "No. Series Copilot Impl."
         DateSpecificPlaceholderLbl: label '{current_date}', Locked = true;
         NotAbleToGenerateNumberSeriesTryToRephraseErr: Label 'Sorry, I am not able to generate the number series. Try to rephrase your request or provide more details.';
 
+    internal procedure GetNoSeriesSuggestions()
+    var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        NoSeriesCopilotRegister: Codeunit "No. Series Copilot Register";
+        NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
+        AzureOpenAI: Codeunit "Azure OpenAI";
+        NoSeriesCopilot: Page "No. Series Proposal";
+    begin
+        NoSeriesCopilotRegister.RegisterCapability();
+        if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"No. Series Copilot") then
+            exit;
+
+        FeatureTelemetry.LogUptake('0000LF4', NoSeriesCopilotImpl.FeatureName(), Enum::"Feature Uptake Status"::Discovered); //TODO: Update signal id
+
+        NoSeriesCopilot.LookupMode := true;
+        NoSeriesCopilot.Run();
+    end;
+
     procedure Generate(var NoSeriesProposal: Record "No. Series Proposal"; var ResponseText: text; var NoSeriesGenerated: Record "No. Series Proposal Line"; InputText: Text)
     var
         SystemPromptTxt: SecretText;
@@ -121,7 +139,7 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
     [NonDebuggable]
-    internal procedure GenerateNoSeries(SystemPromptTxt: SecretText; InputText: Text): Text
+    local procedure GenerateNoSeries(SystemPromptTxt: SecretText; InputText: Text): Text
     var
         AzureOpenAI: Codeunit "Azure OpenAi";
         AOAIDeployments: Codeunit "AOAI Deployments";
@@ -145,8 +163,9 @@ codeunit 324 "No. Series Copilot Impl."
         AOAIChatMessages.AddTool(AddNoSeriesIntent);
         AOAIChatMessages.AddTool(ChangeNoSeriesIntent);
 
-        if not SelectAndExecuteToolOrGenerateAIAnswerWithRetry(AzureOpenAI, AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse) then
-            Error(GetLastErrorText());
+        AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
+        if not AOAIOperationResponse.IsSuccess() then
+            Error(AOAIOperationResponse.GetError());
 
         CompletionAnswerTxt := AOAIChatMessages.GetLastMessage();
 
@@ -156,38 +175,6 @@ codeunit 324 "No. Series Copilot Impl."
         exit(CompletionAnswerTxt);
     end;
 
-    local procedure SelectAndExecuteToolOrGenerateAIAnswerWithRetry(var AzureOpenAI: Codeunit "Azure OpenAi"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Boolean
-    var
-        MaxAttempts: Integer;
-        Attempt: Integer;
-    begin
-        MaxAttempts := 3;
-        for Attempt := 1 to MaxAttempts do begin
-            AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
-            if not AOAIOperationResponse.IsSuccess() then
-                Error(AOAIOperationResponse.GetError());
-
-            if not AOAIOperationResponse.IsFunctionCall() then // AI provided the answer, no tools where called
-                exit(true);
-
-            if IsExpectedToolsCount(AOAIChatMessages.GetLastMessage(), 1) then
-                exit(true);
-
-            AOAIChatMessages.DeleteMessage(AOAIChatMessages.GetHistory().Count); // remove the last message with wrong assistant response, as we need to regenerate the completion
-            Sleep(500);
-        end;
-
-        exit(false);
-    end;
-
-    local procedure IsExpectedToolsCount(CompletionAnswerTxt: Text; ExpectedCount: Integer): Boolean
-    var
-        ToolsJArray: JsonArray;
-    begin
-        ToolsJArray.ReadFrom(CompletionAnswerTxt);
-        exit(ToolsJArray.Count = ExpectedCount);
-    end;
-
     local procedure GenerateNoSeriesUsingToolResult(var AzureOpenAI: Codeunit "Azure OpenAi"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
         ToolResponse: Text;
@@ -195,6 +182,9 @@ codeunit 324 "No. Series Copilot Impl."
         FinalResults: List of [Text]; // The final response will be the concatenation of all the LLM responses (final results).
         ExpectedNoSeriesCount, i : Integer;
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        Progress: Dialog;
+        GeneratingNoSeriesForLbl: Label 'Generating number series %1';
+        NoSeriesCopToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
     begin
         // remove the tools from the chat messages, as they are not needed anymore
         AOAIChatMessages.ClearTools();
@@ -212,6 +202,7 @@ codeunit 324 "No. Series Copilot Impl."
         AOAIChatCompletionParams.SetJsonMode(true);
 
         foreach ToolResponse in ToolResponses.Keys() do begin
+            Progress.Open(StrSubstNo(GeneratingNoSeriesForLbl, NoSeriesCopToolsImpl.ExtractAreaWithPrefix(ToolResponse)));
             // adding function response to messages
             AOAIChatMessages.AddToolMessage(AOAIFunctionResponse.GetFunctionId(), AOAIFunctionResponse.GetFunctionName(), ToolResponse);
 
@@ -226,6 +217,7 @@ codeunit 324 "No. Series Copilot Impl."
             AOAIChatMessages.DeleteMessage(AOAIChatMessages.GetHistory().Count); // remove the tools message, as it is not needed anymore
 
             Sleep(1000); // sleep for 1000ms, as the model can be called only limited number of times per second
+            Progress.Close();
         end;
 
         exit(ConcatenateToolResponse(FinalResults));
