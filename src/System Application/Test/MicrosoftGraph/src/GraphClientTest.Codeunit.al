@@ -80,7 +80,7 @@ codeunit 135140 "Graph Client Test"
         ResponseInStream := TempBlob.CreateInStream();
 
         // [GIVEN] Optional Parameters with OData Query Parameter set
-        GraphOptionalParameters.SetODataQueryParameterFormat('json');
+        GraphOptionalParameters.SetODataQueryParameter(Enum::"Graph OData Query Parameter"::format, 'json');
 
         // [WHEN] When Get Method is called  
         GraphClient.Get('groups', GraphOptionalParameters, HttpResponseMessage);

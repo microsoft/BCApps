@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Integration.Graph;
 
+using System.Integration.Graph;
+
 codeunit 9358 "Graph Optional Parameters Impl"
 {
     Access = Internal;
@@ -11,24 +13,14 @@ codeunit 9358 "Graph Optional Parameters Impl"
     InherentPermissions = X;
 
     #region Headers
-    procedure SetIfMatch("Value": Text)
+    procedure SetIfMatch(HeaderValue: Text)
     begin
-        SetRequestHeader('IF-Match', "Value");
+        SetRequestHeader(Enum::"Graph Request Header"::"If-Match", HeaderValue);
     end;
 
-    procedure SetIfNoneMatchRequestHeader("Value": Text)
+    procedure SetRequestHeader(GraphRequestHeader: Enum "Graph Request Header"; HeaderValue: Text)
     begin
-        SetRequestHeader('If-None-Match', "Value");
-    end;
-
-    procedure SetPreferRequestHeader("Value": Text)
-    begin
-        SetRequestHeader('Prefer', "Value");
-    end;
-
-    procedure SetConsistencyLevelRequestHeader("Value": Text)
-    begin
-        SetRequestHeader('ConsistencyLevel', "Value");
+        SetRequestHeader(Format(GraphRequestHeader), HeaderValue);
     end;
 
     local procedure SetRequestHeader(Header: Text; HeaderValue: Text)
@@ -66,55 +58,9 @@ codeunit 9358 "Graph Optional Parameters Impl"
 
     #region ODataQueryParameters
 
-    procedure SetODataQueryParameterCount(RetrieveCount: Boolean)
+    procedure SetODataQueryParameter(GraphODataQueryParameter: Enum "Graph OData Query Parameter"; ODataQueryParameterValue: Text)
     begin
-        if RetrieveCount then
-            SetODataQueryParameter('$count', 'true');
-    end;
-
-    procedure SetODataQueryParameterExpand("Value": Text)
-    begin
-        SetODataQueryParameter('$expand', "Value");
-    end;
-
-    procedure SetODataQueryParameterFilter("Value": Text)
-    begin
-        SetODataQueryParameter('$filter', "Value");
-    end;
-
-    procedure SetODataQueryParameterFormat("Value": Text)
-    begin
-        SetODataQueryParameter('$format', "Value");
-    end;
-
-    procedure SetODataQueryParameterOrderBy("Value": Text)
-    begin
-        SetODataQueryParameter('$orderby ', "Value");
-    end;
-
-    procedure SetODataQueryParameterSearch("Value": Text)
-    begin
-        SetODataQueryParameter('$search ', "Value");
-    end;
-
-    procedure SetODataQueryParameterSelect("Value": Text)
-    begin
-        SetODataQueryParameter('$select', "Value");
-    end;
-
-    procedure SetODataQueryParameterSkip("Value": Integer)
-    begin
-        SetODataQueryParameter('$skip', Format("Value", 0, 9));
-    end;
-
-    procedure SetODataQueryParameterSkipToken("Value": Text)
-    begin
-        SetODataQueryParameter('$skipToken', "Value");
-    end;
-
-    procedure SetODataQueryParameterTop("Value": Integer)
-    begin
-        SetODataQueryParameter('$top', Format("Value", 0, 9));
+        SetODataQueryParameter(Format(GraphODataQueryParameter), ODataQueryParameterValue);
     end;
 
     local procedure SetODataQueryParameter(ODataQueryParameterKey: Text; ODataQueryParameterValue: Text)
