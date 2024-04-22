@@ -93,6 +93,25 @@ codeunit 9050 "ABS Operation Response"
         exit(Values[1]);
     end;
 
+    [NonDebuggable]
+    procedure GetMataDataValueFromResponseHeaders(): Dictionary of [Text, Text]
+    var
+        MetaData: Dictionary of [Text, Text];
+        Headers: HttpHeaders;
+        HeaderKeys: List of [Text];
+        HeaderKey: Text;
+        Values: array[100] of Text;
+    begin
+        Headers := HttpResponseMessage.Headers();
+        HeaderKeys := Headers.Keys();
+        foreach HeaderKey in HeaderKeys do
+            if HeaderKey.StartsWith('x-ms-meta-') then
+                if Headers.GetValues(HeaderKey, Values) then
+                    MetaData.Add(DelStr(HeaderKey, 1, 10), Values[1]);
+        exit(MetaData);
+    end;
+
+
     var
         [NonDebuggable]
         HttpResponseMessage: HttpResponseMessage;

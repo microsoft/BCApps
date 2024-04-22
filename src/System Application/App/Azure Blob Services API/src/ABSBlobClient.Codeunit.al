@@ -1114,4 +1114,43 @@ codeunit 9053 "ABS Blob Client"
 
     var
         ABSClientImpl: Codeunit "ABS Client Impl.";
+
+    /// <summary>
+    /// The Get Blob MetaData operation gets user-defined MetaDatas for the specified blob as one or more key-value pairs.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-metadata?tabs=microsoft-entra-id
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="MetaData">The result Dictionary of [Text, Text] with blob metadatas.</param>
+    /// <returns>An operation response object</returns>
+    procedure GetBlobMetaData(BlobName: Text; var MetaData: Dictionary of [Text, Text]): Codeunit "ABS Operation Response"
+    var
+        OptionalParameters: Codeunit "ABS Optional Parameters";
+    begin
+        exit(ABSClientImpl.GetBlobMetaData(BlobName, MetaData, OptionalParameters))
+    end;
+
+    /// <summary>
+    /// The Get Blob MetaData operation gets user-defined MetaDatas for the specified blob as one or more key-value pairs.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-metadata?tabs=microsoft-entra-id
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="MetaData">The result Dictionary of [Text, Text] with blob metadatas.</param>
+    /// <param name="OptionalParameters">Optional parameters to pass.</param>
+    /// <returns>An operation response object</returns>
+    procedure GetBlobMetaData(BlobName: Text; var MetaData: Dictionary of [Text, Text]; OptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.GetBlobMetaData(BlobName, MetaData, OptionalParameters))
+    end;
+
+    /// <summary>
+    /// The Set Blob MetaData operation sets user-defined MetaDatas for the specified blob as one or more key-value pairs.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/set-blob-metadata?tabs=microsoft-entra-id
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="MetaData">The result Dictionary of [Text, Text] with blob metadatas.</param>
+    /// <returns>An operation response object</returns>
+    procedure SetBlobMetaData(BlobName: Text; MetaData: Dictionary of [Text, Text]): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.SetBlobMetaData(BlobName, MetaData));
+    end;
 }
