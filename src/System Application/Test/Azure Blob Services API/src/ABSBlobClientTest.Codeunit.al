@@ -736,7 +736,7 @@ codeunit 132920 "ABS Blob Client Test"
 
     [Test]
     procedure ParseResponseWithHierarchicalBlobName()
-     var
+    var
         ABSContainerContent: Record "ABS Container Content";
         ABSHelperLibrary: Codeunit "ABS Helper Library";
         NodeList: XmlNodeList;
