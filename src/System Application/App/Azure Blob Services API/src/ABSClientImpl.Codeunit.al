@@ -47,7 +47,7 @@ codeunit 9051 "ABS Client Impl."
         BlobLbl: Label 'Blob';
         ContainerLbl: Label 'Container';
 
-    #endregion 
+    #endregion
 
     [NonDebuggable]
     procedure Initialize(StorageAccountName: Text; ContainerName: Text; BlobName: Text; Authorization: Interface "Storage Service Authorization"; ApiVersion: Enum "Storage Service API Version")
@@ -206,7 +206,7 @@ codeunit 9051 "ABS Client Impl."
         Filename: Text;
         SourceInStream: InStream;
     begin
-        if UploadIntoStream('', '', '', FileName, SourceInStream) then
+        if UploadIntoStream('', '', '', Filename, SourceInStream) then
             ABSOperationResponse := PutBlobBlockBlobStream(Filename, SourceInStream, '', ABSOptionalParameters);
 
         exit(ABSOperationResponse);
@@ -641,15 +641,15 @@ codeunit 9051 "ABS Client Impl."
         exit(ABSOperationResponse);
     end;
 
-    procedure PutBlock(SourceContentVariant: Variant): Codeunit "ABS Operation Response"
+    procedure PutBlock(BlobName: Text; SourceContentVariant: Variant): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
     begin
-        ABSOperationResponse := PutBlock(SourceContentVariant, ABSFormatHelper.GetBase64BlockId());
+        ABSOperationResponse := PutBlock(BlobName, SourceContentVariant, ABSFormatHelper.GetBase64BlockId());
         exit(ABSOperationResponse);
     end;
 
-    procedure PutBlock(SourceContentVariant: Variant; BlockId: Text): Codeunit "ABS Operation Response"
+    procedure PutBlock(BlobName: Text; SourceContentVariant: Variant; BlockId: Text): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
         Operation: Enum "ABS Operation";
@@ -658,6 +658,7 @@ codeunit 9051 "ABS Client Impl."
         SourceText: Text;
     begin
         ABSOperationPayload.SetOperation(Operation::PutBlock);
+        ABSOperationPayload.SetBlobName(BlobName);
         ABSOperationPayload.AddUriParameter('blockid', BlockId);
 
         case true of
@@ -693,7 +694,7 @@ codeunit 9051 "ABS Client Impl."
         ABSOperationResponse: Codeunit "ABS Operation Response";
         BlockListType: Enum "ABS Block List Type";
     begin
-        ABSOperationResponse := GetBlockList(BlockListType::committed, BlockList); // default API value is "committed"
+        ABSOperationResponse := GetBlockList(BlockListType::Committed, BlockList); // default API value is "committed"
         exit(ABSOperationResponse);
     end;
 
@@ -710,7 +711,7 @@ codeunit 9051 "ABS Client Impl."
         exit(ABSOperationResponse);
     end;
 
-    procedure PutBlockList(CommitedBlocks: Dictionary of [Text, Integer]; UncommitedBlocks: Dictionary of [Text, Integer]): Codeunit "ABS Operation Response"
+    procedure PutBlockList(BlobName: Text; CommitedBlocks: Dictionary of [Text, Integer]; UncommitedBlocks: Dictionary of [Text, Integer]): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
         BlockList: Dictionary of [Text, Text];
@@ -718,17 +719,19 @@ codeunit 9051 "ABS Client Impl."
     begin
         ABSFormatHelper.BlockDictionariesToBlockListDictionary(CommitedBlocks, UncommitedBlocks, BlockList, false);
         BlockListAsXml := ABSFormatHelper.BlockListDictionaryToXmlDocument(BlockList);
-        ABSOperationResponse := PutBlockList(BlockListAsXml);
+        ABSOperationResponse := PutBlockList(BlobName, BlockListAsXml);
         exit(ABSOperationResponse);
     end;
 
-    procedure PutBlockList(BlockList: XmlDocument): Codeunit "ABS Operation Response"
+    procedure PutBlockList(BlobName: Text; BlockList: XmlDocument): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
         Operation: Enum "ABS Operation";
         HttpContent: HttpContent;
     begin
         ABSOperationPayload.SetOperation(Operation::PutBlockList);
+        ABSOperationPayload.SetBlobName(BlobName);
+
         ABSHttpContentHelper.AddBlockListContent(HttpContent, ABSOperationPayload, BlockList);
         ABSOperationResponse := ABSWebRequestHelper.PutOperation(ABSOperationPayload, HttpContent, StrSubstNo(BlockListOperationNotSuccessfulErr, ABSOperationPayload.GetBlobName(), 'put'));
         exit(ABSOperationResponse);

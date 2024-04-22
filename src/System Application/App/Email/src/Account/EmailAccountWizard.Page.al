@@ -129,7 +129,9 @@ page 8886 "Email Account Wizard"
                     FreezeColumn = Name;
                     Editable = false;
 
+#pragma warning disable AW0009
                     field(Logo; Rec.Logo)
+#pragma warning restore AW0009
                     {
                         ApplicationArea = All;
                         Caption = ' ';
@@ -440,7 +442,7 @@ page 8886 "Email Account Wizard"
                 ShowChooseConnectorStep();
             Step::"Register Account":
                 ShowRegisterAccountStep();
-            Step::"Done":
+            Step::Done:
                 ShowDoneStep();
         end;
     end;

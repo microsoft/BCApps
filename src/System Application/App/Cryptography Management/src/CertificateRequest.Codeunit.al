@@ -5,7 +5,7 @@
 
 namespace System.Security.Encryption;
 
-/// <summary> 
+/// <summary>
 /// Provides helper functionality for creating Certificate Signing Requests (CSR:s) and Self Signed Certificates.
 /// </summary>
 codeunit 1463 CertificateRequest
@@ -18,12 +18,24 @@ codeunit 1463 CertificateRequest
         CertSigningRequestImpl: Codeunit "CertificateRequest Impl.";
 
     /// <summary>
-    /// Initializes a new instance of RSACryptoServiceProvider with the specified key size and returns the key as an XML string. 
+    /// Initializes a new instance of RSACryptoServiceProvider with the specified key size and returns the key as an XML string.
     /// </summary>
     /// <param name="KeySize">The size of the key in bits.</param>
-    /// <param name="IncludePrivateParameters">True to include a public and private RSA key in KeyAsXmlString. False to include only the public key.</param>  
+    /// <param name="IncludePrivateParameters">True to include a public and private RSA key in KeyAsXmlString. False to include only the public key.</param>
     /// <param name="KeyAsXmlString">Returns an XML string that contains the key of the RSA object that was created.</param>
+    [NonDebuggable]
     procedure InitializeRSA(KeySize: Integer; IncludePrivateParameters: Boolean; var KeyAsXmlString: Text)
+    begin
+        CertSigningRequestImpl.InitializeRSA(KeySize, IncludePrivateParameters, KeyAsXmlString);
+    end;
+
+    /// <summary>
+    /// Initializes a new instance of RSACryptoServiceProvider with the specified key size and returns the key as an XML string.
+    /// </summary>
+    /// <param name="KeySize">The size of the key in bits.</param>
+    /// <param name="IncludePrivateParameters">True to include a public and private RSA key in KeyAsXmlString. False to include only the public key.</param>
+    /// <param name="KeyAsXmlString">Returns an XML string that contains the key of the RSA object that was created.</param>
+    procedure InitializeRSA(KeySize: Integer; IncludePrivateParameters: Boolean; var KeyAsXmlString: SecretText)
     begin
         CertSigningRequestImpl.InitializeRSA(KeySize, IncludePrivateParameters, KeyAsXmlString);
     end;
@@ -39,7 +51,7 @@ codeunit 1463 CertificateRequest
         CertSigningRequestImpl.InitializeCertificateRequestUsingRSA(SubjectName, HashAlgorithm, RSASignaturePaddingMode);
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Adds a X509BasicConstraint to the Certificate Request. See https://learn.microsoft.com/dotnet/api/system.security.cryptography.x509certificates.x509basicconstraintsextension
     /// </summary>
     /// <param name="CertificateAuthority">True if the certificate is from a certificate authority (CA). Otherwise, false.</param>
@@ -51,7 +63,7 @@ codeunit 1463 CertificateRequest
         CertSigningRequestImpl.AddX509BasicConstraintToCertificateRequest(CertificateAuthority, HasPathLengthConstraint, PathLengthConstraint, Critical);
     end;
 
-    /// <summary> 
+    /// <summary>
     /// Adds a X509EnhancedKeyUsage to the Certificate Request. See https://learn.microsoft.com/dotnet/api/system.security.cryptography.x509certificates.x509enhancedkeyusageextension
     /// </summary>
     /// <param name="OidValues">List of Oid values (for example '1.3.6.1.5.5.7.3.2') to add.</param>

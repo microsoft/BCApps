@@ -20,6 +20,6 @@ permissionset 1993 "Guided Experience - Edit"
                   tabledata "Checklist Item Role" = IMD, // the modify permissions are necessary for the Checklist Item Roles page to work correctly
                   tabledata "Checklist Item User" = IMD,
                   tabledata "Checklist Setup" = IMd,
-                  tabledata "Spotlight Tour Text" = imd,
-                  tabledata "Published Application" = imd;
+                  tabledata "Published Application" = imd,
+                  tabledata "Spotlight Tour Text" = imd;
 }

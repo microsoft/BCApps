@@ -1,0 +1,53 @@
+{
+    "id":  "f7277dc2-cc73-4b81-b7c6-4a58bfb33806",
+    "name":  "No. Series Test Library",
+    "publisher":  "Microsoft",
+    "brief":  "Test library that provide basic test setup for the No. Series tests.",
+    "description":  "Contains an expansive set of library methods to be used exclusively in tests.",
+    "version":  "25.0.0.0",
+    "privacyStatement":  "https://go.microsoft.com/fwlink/?linkid=724009",
+    "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help":  "https://go.microsoft.com/fwlink/?linkid=2131960",
+    "url":  "https://go.microsoft.com/fwlink/?linkid=724011",
+    "logo":  "",
+    "dependencies":  [
+                         {
+                             "id":  "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+                             "name":  "System Application",
+                             "publisher":  "Microsoft",
+                             "version":  "25.0.0.0"
+                         },
+                         {
+                             "id":  "d098b816-22fd-477f-9602-9122f5465527",
+                             "name":  "No. Series",
+                             "publisher":  "Microsoft",
+                             "version":  "25.0.0.0"
+                         }
+                     ],
+    "internalsVisibleTo":  [
+
+                           ],
+    "screenshots":  [
+
+                    ],
+    "platform":  "25.0.0.0",
+    "target":  "OnPrem",
+    "idRanges":  [
+                     {
+                         "from":  134510,
+                         "to":  134510
+                     }
+                 ],
+    "features":  [
+                     "TranslationFile",
+                     "GenerateCaptions",
+                     "NoImplicitWith",
+                     "NoPromotedActionProperties"
+                 ],
+    "resourceExposurePolicy":  {
+                                   "allowDebugging":  true,
+                                   "allowDownloadingSource":  true,
+                                   "includeSourceInSymbolFile":  true
+                               },
+    "contextSensitiveHelpUrl":  "https://learn.microsoft.com/dynamics365/business-central/"
+}

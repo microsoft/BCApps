@@ -15,7 +15,7 @@ codeunit 9056 "Plan Installer"
     Subtype = Install;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Plan" = ri;
+    Permissions = tabledata Plan = ri;
 
     trigger OnInstallAppPerDatabase()
     var
@@ -32,6 +32,8 @@ codeunit 9056 "Plan Installer"
         UpgradeTag: Codeunit "Upgrade Tag";
         PlanUpgradeTag: Codeunit "Plan Upgrade Tag";
     begin
+        CreatePlan(PlanIds.GetDelegatedBCAdminPlanId(), 'Delegated BC Admin agent - Partner', 9022, 'FFF16A30-3B0B-47CB-9751-54A5C8F634ED');
+        CreatePlan(PlanIds.GetBCAdminPlanId(), 'Internal BC Administrator', 9022, 'A2BB1194-FC0B-4C6B-840F-963851B783C9');
         CreatePlan(PlanIds.GetDelegatedAdminPlanId(), 'Delegated Admin agent - Partner', 9022, '7584DDCA-27B8-E911-BB26-000D3A2B005C');
         CreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk agent - Partner', 9022, '8884DDCA-27B8-E911-BB26-000D3A2B005C');
         CreatePlan(PlanIds.GetGlobalAdminPlanId(), 'Internal Administrator', 9022, '9B84DDCA-27B8-E911-BB26-000D3A2B005C'); // Global admin

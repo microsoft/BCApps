@@ -871,31 +871,31 @@ codeunit 132594 "Guided Experience Test"
     end;
 
     [Test]
-    procedure TestCleanUpOldGuidedExperienceItems()
+    procedure TestResetAssistedSetupConsiderFilter()
     var
-        GuidedExperienceItem: Record "Guided Experience Item";
         GuidedExperience: Codeunit "Guided Experience";
-        Limit, Counter : Integer;
     begin
-        // [SCENARIO] Clean up old Guided Experience Items with too many versions
-        PermissionsMock.Set('Guided Exp Edit');
+        // [SCENARIO] When more than one assisted setup is completed and reset is called on one of them, only the one that has been reset has status incomplete.
 
-        GuidedExperienceItem.DeleteAll();
+        // [GIVEN] The Guided Experience Item table contains 2 assisted setups
+        GuidedExperience.InsertAssistedSetup('My Assisted Setup Test Page', 'My Assisted Setup Test Page', 'Description of Setup Page', 0, ObjectType::Page,
+            Page::"My Assisted Setup Test Page", Enum::"Assisted Setup Group"::WithLinks, 'http://youtube.com', "Video Category"::Uncategorized, 'https://docs.microsoft.com/');
 
-        Assert.AreEqual(0, GuidedExperienceItem.Count(), 'No records should exists in the Guided Experience Item table before the test starts.');
+        GuidedExperience.InsertAssistedSetup('Other Assisted Setup Test Page', 'Other Assisted Setup Test Page', '', 0, ObjectType::Page,
+            Page::"Other Assisted Setup Test Page", Enum::"Assisted Setup Group"::WithoutLinks, '', "Video Category"::Uncategorized, '');
 
-        // [GIVEN] lots of Guided Experience Items with too many versions
-        Limit := 1000;
-        for Counter := 1 to Limit do
-            GuidedExperience.InsertManualSetup('Title', Format(Counter), '', 0, ObjectType::Page, Page::"Assisted Setup Wizard", Enum::"Manual Setup Category"::Uncategorized, '');
+        // [WHEN] Both assisted setups are completed
+        GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"My Assisted Setup Test Page");
+        GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Other Assisted Setup Test Page");
 
-        Assert.AreEqual(Limit, GuidedExperienceItem.Count(), 'The Guided Experience Item table should contain exactly inserted record.');
+        // [WHEN] Reset is called on one of them
+        GuidedExperience.ResetAssistedSetup(ObjectType::Page, Page::"Other Assisted Setup Test Page");
 
-        // [WHEN] Clean up old Guided Experience Items
-        GuidedExperience.CleanupOldGuidedExperienceItems(true, 100);
+        // [THEN] Only the one that has been reset has status incomplete
+        Assert.IsFalse(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Other Assisted Setup Test Page"), 'The assisted setup that has been reset should be incomplete.');
 
-        // [Then] Only 1 Guided Experience Items should be left
-        Assert.AreEqual(1, GuidedExperienceItem.Count(), 'The Guided Experience Item table should contain exactly 1 record.');
+        // [THEN] The other one is still completed
+        Assert.IsTrue(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"My Assisted Setup Test Page"), 'The assisted setup that has not been reset should still be completed.');
     end;
 
     local procedure VerifyGuidedExperienceItemFields(GuidedExperienceItem: Record "Guided Experience Item"; Code: Code[300]; Version: Integer; ObjectTypeToRun: Enum "Guided Experience Object Type"; ObjectID: Integer; Link: Text[250]; Title: Text[2048]; ShortTitle: Text[2048]; Description: Text[1024]; ExpectedDuration: Integer; Completed: Boolean; GuidedExperienceType: Enum "Guided Experience Type"; AssistedSetupGroup: Enum "Assisted Setup Group"; HelpUrl: Text[250]; VideoUrl: Text[250]; VideoCategory: Enum "Video Category"; ManualSetupCategory: Enum "Manual Setup Category"; Keywords: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type"; SpotlightTourTexts: Dictionary of [Enum "Spotlight Tour Text", Text])

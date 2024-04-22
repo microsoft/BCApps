@@ -41,7 +41,7 @@ codeunit 3904 "Apply Retention Policy Impl."
         ConfirmApplyRetentionPolicyLbl: Label 'Do you want to delete expired data, as defined in the selected retention policy?';
         RetentionPolicySetupRecordNotTempErr: Label 'The retention policy setup record instance must be temporary. Contact your Microsoft Partner for assistance.';
         UserDidNotConfirmErr: Label 'The operation was cancelled.';
-        NoFiltersReturnedErr: Label 'No filters were found in the record to apply for table %1, %2. No records will be deleted.', comment = '%1 = table number, %2 = table caption';
+        NoFiltersReturnedErr: Label 'No filters were found in the record to apply for table %1, %2. No records will be deleted.', Comment = '%1 = table number, %2 = table caption';
         IndirectPermissionsRequiredErr: Label 'A subscriber with indirect permissions is required to delete expired records from table %1, %2. Contact your Microsoft Partner for assistance.', Comment = '%1 = table number, %2 = table caption';
         EndCurrentRunLbl: Label 'Deleted the maximum number of records allowed. We have stopped deleting records in this table.';
         ConfirmRerunMsg: Label 'Reached the maximum number of records that can be deleted at the same time. The maximum number allowed is %1.\\Do you want to delete more records?', Comment = '%1 = integer';
@@ -65,7 +65,7 @@ codeunit 3904 "Apply Retention Policy Impl."
         else begin
             // run one
             if not Rec.IsTemporary() then
-                error(RetentionPolicySetupRecordNotTempErr);
+                Error(RetentionPolicySetupRecordNotTempErr);
             RetentionPolicySetup.GetBySystemId(Rec.SystemId); // let the error bubble up
             TotalNumberOfRecordsDeleted := Rec."Number Of Records Deleted";
             ApplyRetentionPolicy(RetentionPolicySetup, false, false);
@@ -121,7 +121,7 @@ codeunit 3904 "Apply Retention Policy Impl."
         IsUserInvokedRun := UserInvokedRun;
 
         if not IsSystemEnabledPolicy(RetentionPolicySetup) then
-            FeatureTelemetry.LogUptake('0000FVU', 'Retention policies', Enum::"Feature Uptake Status"::"Used");
+            FeatureTelemetry.LogUptake('0000FVU', 'Retention policies', Enum::"Feature Uptake Status"::Used);
         if not CanApplyRetentionPolicy(RetentionPolicySetup, Manual) then
             exit;
 
@@ -277,6 +277,7 @@ codeunit 3904 "Apply Retention Policy Impl."
         ApplyRetentionPolicyFacade: Codeunit "Apply Retention Policy";
         Handled: Boolean;
     begin
+        EndCurrentRun := true;
         RetentionPolicyLog.LogWarning(LogCategory(), EndCurrentRunLbl);
         ApplyRetentionPolicyFacade.OnApplyRetentionPolicyRecordLimitExceeded(RecordRefDuplicate.Number, Count(RecordRefDuplicate), ApplyAllRetentionPolicies, IsUserInvokedRun, Handled);
         if IsUserInvokedRun and (not Handled) and GuiAllowed() then begin
@@ -299,7 +300,7 @@ codeunit 3904 "Apply Retention Policy Impl."
     begin
         RetentionPolicySetup.Validate(Enabled, false);
         RetentionPolicySetup.Modify(true);
-        RetentionPolicyLog.LogInfo(LogCategory(), StrsUbstNo(DisabledRetentionPolicyOnMissingTableLbl, RetentionPolicySetup."Table Id"));
+        RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(DisabledRetentionPolicyOnMissingTableLbl, RetentionPolicySetup."Table Id"));
     end;
 
     local procedure ConfirmApplyRetentionPolicies(): Boolean
@@ -374,9 +375,9 @@ codeunit 3904 "Apply Retention Policy Impl."
         RecordRef.FilterGroup := FilterGroup;
 
         if (ExpirationDate >= NullDateReplacementValue) and (DateFieldNo in [RecordRef.SystemCreatedAtNo, RecordRef.SystemModifiedAtNo]) then
-            FilterView := STRSUBSTNO(WhereOlderFilterExclWithNullTxt, DateFieldNo, '''''', CalcDate('<-1D>', ExpirationDate))
+            FilterView := StrSubstNo(WhereOlderFilterExclWithNullTxt, DateFieldNo, '''''', CalcDate('<-1D>', ExpirationDate))
         else
-            FilterView := STRSUBSTNO(WhereOlderFilterExclTxt, DateFieldNo, '''''', CalcDate('<-1D>', ExpirationDate));
+            FilterView := StrSubstNo(WhereOlderFilterExclTxt, DateFieldNo, '''''', CalcDate('<-1D>', ExpirationDate));
 
         RecordRef.SetView(FilterView);
     end;
@@ -392,9 +393,9 @@ codeunit 3904 "Apply Retention Policy Impl."
         RecordRef.FilterGroup := FilterGroup;
 
         if (ExpirationDate <= NullDateReplacementValue) and (DateFieldNo in [RecordRef.SystemCreatedAtNo, RecordRef.SystemModifiedAtNo]) then
-            FilterView := STRSUBSTNO(WhereNewerFilterExclWithNullTxt, DateFieldNo, '''''', ExpirationDate)
+            FilterView := StrSubstNo(WhereNewerFilterExclWithNullTxt, DateFieldNo, '''''', ExpirationDate)
         else
-            FilterView := STRSUBSTNO(WhereNewerFilterExclTxt, DateFieldNo, '''''', ExpirationDate);
+            FilterView := StrSubstNo(WhereNewerFilterExclTxt, DateFieldNo, '''''', ExpirationDate);
 
         RecordRef.SetView(FilterView);
     end;
@@ -439,7 +440,7 @@ codeunit 3904 "Apply Retention Policy Impl."
     local procedure AppendStartedByUserMessage(Message: Text[2048]; UserInvokedRun: Boolean): Text[2048];
     begin
         if UserInvokedRun then
-            exit(CopyStr(message + ' ' + StartedByUserLbl, 1, 2048));
+            exit(CopyStr(Message + ' ' + StartedByUserLbl, 1, 2048));
         exit(Message)
     end;
 

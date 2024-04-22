@@ -111,7 +111,7 @@ codeunit 3702 "Environment Information Impl."
     var
         AppInfo: ModuleInfo;
     begin
-        NavApp.GetModuleInfo(AppId, AppInfo);
+        NavApp.GetModuleInfo(AppID, AppInfo);
         exit(AppInfo.DataVersion.Major());
     end;
 
@@ -141,6 +141,11 @@ codeunit 3702 "Environment Information Impl."
         OnBeforeGetApplicationIdentifier(AppId);
         if AppId = '' then
             AppId := ApplicationIdentifier();
+    end;
+
+    procedure GetLinkedPowerPlatformEnvironmentId(): Text
+    begin
+        exit(NavTenantSettingsHelper.GetLinkedPowerPlatformEnvironmentId());
     end;
 
     [InternalEvent(false)]

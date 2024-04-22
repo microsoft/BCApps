@@ -68,10 +68,10 @@ codeunit 1439 Headlines
     /// 11:00-13:59     Hi, John Doe!
     /// 14:00-18:59     Good afternoon, John Doe!
     /// 19:00-23:59     Good evening, John Doe!
-    /// if the user name is blank for the current user, simplified version 
+    /// if the user name is blank for the current user, simplified version
     /// is used (for example, "Good afternoon!").
     /// </summary>
-    /// <returns>The greeting text.</returns> 
+    /// <returns>The greeting text.</returns>
     procedure GetUserGreetingText(): Text;
     begin
         exit(HeadlinesImpl.GetUserGreetingText());
@@ -89,7 +89,7 @@ codeunit 1439 Headlines
     /// <summary>
     /// The accepted maximum length of a qualifier.
     /// </summary>
-    /// <returns>The number of characters, 50.</returns>    
+    /// <returns>The number of characters, 50.</returns>
     procedure GetMaxQualifierLength(): Integer;
     begin
         exit(HeadlinesImpl.GetMaxQualifierLength());
@@ -98,7 +98,7 @@ codeunit 1439 Headlines
     /// <summary>
     /// The accepted maximum length of a payload.
     /// </summary>
-    /// <returns>The number of characters, 75.</returns>    
+    /// <returns>The number of characters, 75.</returns>
     procedure GetMaxPayloadLength(): Integer;
     begin
         exit(HeadlinesImpl.GetMaxPayloadLength());

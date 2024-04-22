@@ -19,9 +19,9 @@ page 1433 "Satisfaction Survey"
 
     layout
     {
-        area(content)
+        area(Content)
         {
-            usercontrol(SatisfactionSurvey; "Microsoft.Dynamics.Nav.Client.SatisfactionSurvey")
+            usercontrol(SatisfactionSurvey; SatisfactionSurvey)
             {
                 ApplicationArea = All;
 
@@ -44,9 +44,6 @@ page 1433 "Satisfaction Survey"
         }
     }
 
-    actions
-    {
-    }
 
     var
         SatisfactionSurveyImpl: Codeunit "Satisfaction Survey Impl.";

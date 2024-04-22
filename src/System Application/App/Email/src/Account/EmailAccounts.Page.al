@@ -36,7 +36,9 @@ page 8887 "Email Accounts"
             {
                 Visible = ShowLogo;
                 FreezeColumn = NameField;
+#pragma warning disable AW0009
                 field(LogoField; Rec.LogoBlob)
+#pragma warning restore AW0009
                 {
                     ApplicationArea = All;
                     ShowCaption = false;
@@ -114,7 +116,7 @@ page 8887 "Email Accounts"
             }
         }
 
-        area(factboxes)
+        area(FactBoxes)
         {
             part(Scenarios; "Email Scenarios FactBox")
             {
@@ -179,7 +181,7 @@ page 8887 "Email Accounts"
 
                 trigger OnAction()
                 var
-                    Email: Codeunit "Email";
+                    Email: Codeunit Email;
                     EmailMessage: Codeunit "Email Message";
                 begin
                     EmailMessage.Create('', '', '', true);

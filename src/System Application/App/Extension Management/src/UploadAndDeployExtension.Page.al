@@ -20,7 +20,7 @@ page 2507 "Upload And Deploy Extension"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             label("Upload Extension")
             {
@@ -85,13 +85,13 @@ page 2507 "Upload And Deploy Extension"
             field(Accepted; IsAccepted)
             {
                 ApplicationArea = All;
-                Caption = 'Accept the privacy policy and the disclaimer';
+                Caption = 'By deploying this extension you acknowledge that your data may be sent outside the compliance boundary of Business Central. Each per-tenant extension is subject to its own third party terms and conditions and privacy policies.';
                 ToolTip = 'Specifies that you accept the privacy policy and the disclaimer.';
             }
             field(Disclaimer; DisclaimerLbl)
             {
                 ApplicationArea = All;
-                Caption = 'Microsft Business Central Disclaimer';
+                Caption = 'Per-Tenant Extension (PTE) Disclaimer';
                 ToolTip = 'View the disclaimer.';
                 Editable = false;
                 ShowCaption = false;
@@ -100,20 +100,6 @@ page 2507 "Upload And Deploy Extension"
                 trigger OnDrillDown()
                 begin
                     Hyperlink(ExtensionInstallationImpl.GetDisclaimerURL());
-                end;
-            }
-            field(PrivacyAndCookies; PrivacyAndCookiesLbl)
-            {
-                ApplicationArea = All;
-                Caption = 'Privacy and Cookies';
-                ToolTip = 'View the privacy and cookies.';
-                Editable = false;
-                ShowCaption = false;
-                Style = None;
-
-                trigger OnDrillDown()
-                begin
-                    Hyperlink(ExtensionInstallationImpl.GetPrivacyAndCookeisURL());
                 end;
             }
             field(BestPractices; 'Read more about the best practices for installing and publishing extensions')
@@ -133,7 +119,7 @@ page 2507 "Upload And Deploy Extension"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action(Deploy)
             {
@@ -194,8 +180,7 @@ page 2507 "Upload And Deploy Extension"
         DialogTitleTxt: Label 'Select .APP';
         AppFileFilterTxt: Label 'Extension Files|*.app', Locked = true;
         ExtensionNotUploadedMsg: Label 'Please upload an extension file before clicking "Deploy" button.';
-        DisclaimerLbl: Label 'Microsoft Business Central PTE Disclaimer';
-        PrivacyAndCookiesLbl: Label 'Privacy and Cookies';
+        DisclaimerLbl: Label 'Per-Tenant Extension (PTE) Disclaimer';
         IsAccepted: Boolean;
 }
 

@@ -25,7 +25,7 @@ page 9992 "Word Templates Field Selection"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Tables)
             {

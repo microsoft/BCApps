@@ -28,7 +28,7 @@ page 9260 "Customer Experience Survey"
 
                 trigger ControlReady()
                 begin
-                    CurrPage.Survey.renderSurvey(SurveyDivLbl, SurveyId, TenantId, FormsProEligibilityId, Locale);
+                    CurrPage.Survey.RenderSurvey(SurveyDivLbl, SurveyId, TenantId, FormsProEligibilityId, Locale);
                 end;
             }
         }

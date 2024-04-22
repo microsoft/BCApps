@@ -264,7 +264,7 @@ codeunit 2350 "Rest Client"
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send as a JsonToken.</param>
     /// <returns>The response content as JsonToken</returns>
-    procedure PatchAsJson(RequestUri: Text; Content: JSonToken) Response: JsonToken
+    procedure PatchAsJson(RequestUri: Text; Content: JsonToken) Response: JsonToken
     begin
         Response := RestClientImpl.PatchAsJson(RequestUri, Content);
     end;
@@ -297,7 +297,7 @@ codeunit 2350 "Rest Client"
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send as a JsonToken.</param>
     /// <returns>The response content as JsonToken</returns>
-    procedure PutAsJson(RequestUri: Text; Content: JSonToken) Response: JsonToken
+    procedure PutAsJson(RequestUri: Text; Content: JsonToken) Response: JsonToken
     begin
         Response := RestClientImpl.PutAsJson(RequestUri, Content);
     end;

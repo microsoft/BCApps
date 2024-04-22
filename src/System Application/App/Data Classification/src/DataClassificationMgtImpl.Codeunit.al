@@ -40,12 +40,14 @@ codeunit 1753 "Data Classification Mgt. Impl."
     var
         DataSensitivity: Record "Data Sensitivity";
     begin
-        DataSensitivity.Init();
-        DataSensitivity."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(DataSensitivity."Company Name"));
-        DataSensitivity."Table No" := TableNo;
-        DataSensitivity."Field No" := FieldNo;
-        DataSensitivity."Data Sensitivity" := DataSensitivityOption;
-        DataSensitivity.Insert();
+        if IsSupportedTable(TableNo) then begin
+            DataSensitivity.Init();
+            DataSensitivity."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(DataSensitivity."Company Name"));
+            DataSensitivity."Table No" := TableNo;
+            DataSensitivity."Field No" := FieldNo;
+            DataSensitivity."Data Sensitivity" := DataSensitivityOption;
+            DataSensitivity.Insert();
+        end;
     end;
 
     procedure SetSensitivities(var DataSensitivity: Record "Data Sensitivity"; Sensitivity: Option)
@@ -370,7 +372,7 @@ codeunit 1753 "Data Classification Mgt. Impl."
     begin
         DataSensitivity.SetRange("Company Name", CompanyName());
         DataSensitivity.SetFilter("Table No", DataClassificationMgtImpl.GetTableNoFilterForTablesWhoseNameContains(TableNoFilter));
-        PAGE.Run(PAGE::"Data Classification Worksheet", DataSensitivity);
+        Page.Run(Page::"Data Classification Worksheet", DataSensitivity);
     end;
 
     procedure RunDataClassificationWorksheetForPersonalAndSensitiveDataInTable(TableNo: Integer)
@@ -385,7 +387,7 @@ codeunit 1753 "Data Classification Mgt. Impl."
             DataSensitivity."Data Sensitivity"::Personal,
             DataSensitivity."Data Sensitivity"::Sensitive));
         DataClassificationMgtImpl.FindSimilarFieldsInRelatedTables(DataSensitivity);
-        PAGE.RunModal(PAGE::"Data Classification Worksheet", DataSensitivity);
+        Page.RunModal(Page::"Data Classification Worksheet", DataSensitivity);
     end;
 
     procedure RunDataClassificationWorksheetForTable(TableNo: Integer)
@@ -395,7 +397,20 @@ codeunit 1753 "Data Classification Mgt. Impl."
         DataSensitivity.SetRange("Company Name", CompanyName());
         DataSensitivity.FilterGroup(2);
         DataSensitivity.SetRange("Table No", TableNo);
-        PAGE.RunModal(PAGE::"Data Classification Worksheet", DataSensitivity);
+        Page.RunModal(Page::"Data Classification Worksheet", DataSensitivity);
+    end;
+
+    procedure IsSupportedTable(TableNo: Integer): Boolean
+    var
+        TableMetadata: Record "Table Metadata";
+    begin
+        if TableMetadata.Get(TableNo) then
+            if (TableMetadata.ObsoleteState = TableMetadata.ObsoleteState::Removed) or (TableMetadata.TableType <> TableMetadata.TableType::Normal) then
+                exit(false)
+            else
+                exit(true);
+
+        exit(false);
     end;
 }
 

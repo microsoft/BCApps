@@ -1,0 +1,42 @@
+{
+    "id": "c1830429-77f6-4469-837a-7bfd4705ff41",
+    "name": "AppSource Product Gallery Test",
+    "publisher": "Microsoft",
+    "brief": "",
+    "description": "Tests for the AppSource Gallery module",
+    "version": "25.0.0.0",
+    "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+    "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help": "",
+    "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+    "logo": "",
+    "dependencies": [
+        {
+            "id":  "ba17b564-d600-44d5-be0b-ca7ff7ac28fc",
+            "name":  "AppSource Gallery Test Library",
+            "publisher":  "Microsoft",
+            "version": "25.0.0.0"
+        },
+        {
+            "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+            "name": "Library Assert",
+            "publisher": "Microsoft",
+            "version": "25.0.0.0"
+        },
+        {
+            "id":  "5095f467-0a01-4b99-99d1-9ff1237d286f",
+            "name":  "Library Variable Storage",
+            "publisher":  "Microsoft",
+            "version": "25.0.0.0"
+        }
+    ],
+    "screenshots": [],
+    "platform": "25.0.0.0",
+    "idRanges": [
+        {
+            "from": 135074,
+            "to": 135074
+        }
+    ],
+    "target": "OnPrem"
+}

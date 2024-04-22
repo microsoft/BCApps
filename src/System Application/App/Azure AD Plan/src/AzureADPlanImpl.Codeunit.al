@@ -17,11 +17,11 @@ codeunit 9018 "Azure AD Plan Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    Permissions = TableData Company = r,
-                  TableData Plan = rimd,
-                  TableData "User Plan" = rimd,
-                  TableData User = r,
-                  TableData "User Personalization" = rm;
+    Permissions = tabledata Company = r,
+                  tabledata Plan = rimd,
+                  tabledata User = r,
+                  tabledata "User Personalization" = rm,
+                  tabledata "User Plan" = rimd;
 
     var
         UserLoginTimeTracker: Codeunit "User Login Time Tracker";
@@ -31,9 +31,6 @@ codeunit 9018 "Azure AD Plan Impl."
         DeviceGroupNameTxt: Label 'Dynamics 365 Business Central Device Users', Locked = true;
         DevicePlanFoundMsg: Label 'Device plan %1 found for user with authentication object ID %2', Locked = true;
         NotBCUserMsg: Label 'User with authentication object ID %1 is not a Business Central user', Locked = true;
-        MixedPlansNonAdminErr: Label 'All users must be assigned to the same license, either Basic, Essential, or Premium. %1 and %2 are assigned to different licenses, for example, but there may be other mismatches. Your system administrator or Microsoft partner can verify license assignments in your Microsoft 365 admin portal.\\We will sign you out when you choose the OK button.', Comment = '%1 = %2 = Authentication email.';
-        MixedPlansAdminErr: Label 'Before you can update user information, go to your Microsoft 365 admin center and make sure that all users are assigned to the same Business Central license, either Basic, Essential, or Premium. For example, we found that users %1 and %2 are assigned to different licenses, but there may be other mismatches.', Comment = '%1 = %2 = Authentication email.';
-        MixedPlansMsg: Label 'One or more users are not assigned to the same Business Central license. For example, we found that users %1 and %2 are assigned to different licenses, but there may be other mismatches. In your Microsoft 365 admin center, make sure that all users are assigned to the same Business Central license, either Basic, Essential, or Premium.  Afterward, update Business Central by opening the Users page and using the ''Update Users from Office 365'' action.', Comment = '%1 = %2 = Authentication email.';
         UserPlanAssignedMsg: Label 'User with authentication object ID %1 is assigned plan %2', Locked = true;
         PlanNotEnabledMsg: Label 'Plan is assigned to user but it is not enabled. Plan ID: %1', Locked = true;
         NotBCPlanAssignedMsg: Label 'Plan is assigned to user but it is not recognized as a BC plan. Plan ID: %1', Locked = true;
@@ -133,7 +130,7 @@ codeunit 9018 "Azure AD Plan Impl."
         TempDummyPlan: Record Plan temporary;
         GraphUserInfo: DotNet UserInfo;
     begin
-        if AzureADGraphUser.GetGraphUser(UserSecurityID, true, GraphUserInfo) then
+        if AzureADGraphUser.GetGraphUser(UserSecurityId, true, GraphUserInfo) then
             UpdateUserPlans(UserSecurityId, GraphUserInfo, AppendPermissionsOnNewPlan, RemovePermissionsOnDeletePlan)
         else
             if RemovePlansOnDeleteUser then
@@ -245,82 +242,64 @@ codeunit 9018 "Azure AD Plan Impl."
         exit(PlanIDs);
     end;
 
-    [NonDebuggable]
-    procedure CheckMixedPlans()
+    procedure GetUserPlanExperience(): Enum "User Plan Experience"
+    var
+        PlanIds: Codeunit "Plan Ids";
+        UserPlanExperience: Enum "User Plan Experience";
+    begin
+        if UserHasPlan(UserSecurityId(), PlanIds.GetPremiumPlanId()) then
+            exit(UserPlanExperience::Premium);
+
+        if UserHasPlan(UserSecurityId(), PlanIds.GetEssentialPlanId()) then
+            exit(UserPlanExperience::Essentials);
+
+        if UserHasPlan(UserSecurityId(), PlanIds.GetBasicPlanId()) then
+            exit(UserPlanExperience::Basic);
+
+        exit(UserPlanExperience::Other);
+    end;
+
+    procedure CheckMixedPlansExist(): Boolean
     var
         DummyDictionary: Dictionary of [Text, List of [Text]];
     begin
-        CheckMixedPlans(DummyDictionary, false);
+        exit(CheckMixedPlansExist(DummyDictionary));
     end;
 
-    [NonDebuggable]
-    procedure CheckMixedPlans(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]; ErrorOutForAdmin: Boolean)
-    var
-        Company: Record Company;
-        AccessControl: Record "Access Control";
-        EnvironmentInformation: Codeunit "Environment Information";
-        CanManageUsers: Boolean;
-        UserAuthenticationEmailFirst: Text;
-        UserAuthenticationEmailSecond: Text;
-        FirstConflictingPlanName: Text;
-        SecondConflictingPlanName: Text;
+    procedure CheckMixedPlansExist(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]): Boolean
     begin
-        if not EnvironmentInformation.IsSaaS() then
-            exit;
+        if not ShouldCheckMixedPlans() then
+            exit(false);
 
-        if not GuiAllowed() then
-            exit;
-
-        if Company.Get(CompanyName()) then
-            if Company."Evaluation Company" then
-                exit;
-
-        if not DoPlansExist() then
-            exit;
-
-        if not DoUserPlansExist() then
-            exit;
-
-        Session.LogMessage('0000BPB', CheckingForMixedPlansTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
-        if not MixedPlansExist(PlanNamesPerUserFromGraph, UserAuthenticationEmailFirst, UserAuthenticationEmailSecond, FirstConflictingPlanName, SecondConflictingPlanName) then
-            exit;
-
-        CanManageUsers := AccessControl.WritePermission();
-        if not CanManageUsers then
-            Error(MixedPlansNonAdminErr, UserAuthenticationEmailFirst, UserAuthenticationEmailSecond);
-
-        if ErrorOutForAdmin then
-            Error(MixedPlansAdminErr, UserAuthenticationEmailFirst, UserAuthenticationEmailSecond);
-
-        Message(MixedPlansMsg, UserAuthenticationEmailFirst, UserAuthenticationEmailSecond);
+        exit(MixedPlansExist(PlanNamesPerUserFromGraph));
     end;
 
-    [NonDebuggable]
     procedure MixedPlansExist(): Boolean
     var
         EmptyDictionary: Dictionary of [Text, List of [Text]];
-        FirstConflictingID: Text;
-        SecondConflictingID: Text;
-        FirstConflictingPlanName: Text;
-        SecondConflictingPlanName: Text;
     begin
-        exit(MixedPlansExist(EmptyDictionary, FirstConflictingID, SecondConflictingID, FirstConflictingPlanName, SecondConflictingPlanName));
+        exit(MixedPlansExist(EmptyDictionary));
     end;
 
-    [NonDebuggable]
-    procedure MixedPlansExist(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]; var UserAuthenticationEmailFirstConflicting: Text; var UserAuthenticationEmailSecondConflicting: Text; var FirstConflictingPlanName: Text; var SecondConflictingPlanName: Text): Boolean
+    procedure MixedPlansExist(PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]]): Boolean
     var
         PlanIds: Codeunit "Plan Ids";
         UsersInPlans: Query "Users in Plans";
         PlanNamesPerUser: Dictionary of [Text, List of [Text]];
         AuthenticationObjectIDs: List of [Text];
-        BasicPlanExists: Boolean;
-        EssentialsPlanExists: Boolean;
-        PremiumPlanExists: Boolean;
         PlanNames: List of [Text];
         UserAuthenticationObjectId: Text;
         CurrentUserPlanList: List of [Text];
+        UserAuthenticationEmailFirstConflicting: Text;
+        UserAuthenticationEmailSecondConflicting: Text;
+        FirstConflictingPlanName: Text;
+        SecondConflictingPlanName: Text;
+        BasicPlanExists: Boolean;
+        EssentialsPlanExists: Boolean;
+        PremiumPlanExists: Boolean;
     begin
+        Session.LogMessage('0000BPB', CheckingForMixedPlansTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+
         // Get content of the User plan table into a new Dictionary
         UsersInPlans.SetRange(User_State, UsersInPlans.User_State::Enabled);
         if UsersInPlans.Open() then
@@ -356,6 +335,30 @@ codeunit 9018 "Azure AD Plan Impl."
         end;
     end;
 
+    local procedure ShouldCheckMixedPlans(): Boolean
+    var
+        Company: Record Company;
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        if not EnvironmentInformation.IsSaaS() then
+            exit(false);
+
+        if not GuiAllowed() then
+            exit(false);
+
+        if Company.Get(CompanyName()) then
+            if Company."Evaluation Company" then
+                exit(false);
+
+        if not DoPlansExist() then
+            exit(false);
+
+        if not DoUserPlansExist() then
+            exit(false);
+
+        exit(true);
+    end;
+
     [NonDebuggable]
     local procedure GetAuthenticationEmailFromAuthenticationObjectID(UserAuthenticationObjectID: Text): Text
     var
@@ -383,6 +386,15 @@ codeunit 9018 "Azure AD Plan Impl."
             PlanIds.GetPremiumPlanId():
                 PlanName := PremiumPlanNameTxt;
         end;
+    end;
+
+    local procedure UserHasPlan(UserSecurityId: Guid; PlanId: Guid): Boolean
+    var
+        UserPlan: Record "User Plan";
+    begin
+        UserPlan.SetRange("User Security ID", UserSecurityId);
+        UserPlan.SetRange("Plan ID", PlanId);
+        exit(not UserPlan.IsEmpty());
     end;
 
     [NonDebuggable]
@@ -426,7 +438,7 @@ codeunit 9018 "Azure AD Plan Impl."
             exit;
 
         repeat
-            TempNavUserPlan.COPY(NavUserPlan, false);
+            TempNavUserPlan.Copy(NavUserPlan, false);
             TempNavUserPlan.Insert();
         until NavUserPlan.Next() = 0;
 
@@ -466,7 +478,7 @@ codeunit 9018 "Azure AD Plan Impl."
     end;
 
     [NonDebuggable]
-    local procedure GetGraphUserPlans(var TempPlan: Record "Plan" temporary; var GraphUserInfo: DotNet UserInfo)
+    local procedure GetGraphUserPlans(var TempPlan: Record Plan temporary; var GraphUserInfo: DotNet UserInfo)
     var
         PlanIds: Codeunit "Plan Ids";
         AssignedPlan: DotNet ServicePlanInfo;
@@ -510,7 +522,7 @@ codeunit 9018 "Azure AD Plan Impl."
         // Check if the user is a member of the Device group
         if IsDeviceRole(GraphUserInfo) then begin
             // Only assign the device plan if the user doesn't have any other plans (except possibly Internal Admin or M365 Collaboration)
-            TempPlan.SetFilter("Plan ID", '<>%1&<>%2&<>%3', PlanIDs.GetGlobalAdminPlanId(), PlanIds.GetD365AdminPlanId(), PlanIDs.GetMicrosoft365PlanId());
+            TempPlan.SetFilter("Plan ID", '<>%1&<>%2&<>%3&<>%4', PlanIds.GetGlobalAdminPlanId(), PlanIds.GetD365AdminPlanId(), PlanIds.GetBCAdminPlanId(), PlanIds.GetMicrosoft365PlanId());
 
             if TempPlan.IsEmpty() then begin
                 // Remove the Internal Admin and M365 Collaboration plans, if assigned
@@ -539,14 +551,14 @@ codeunit 9018 "Azure AD Plan Impl."
     [NonDebuggable]
     local procedure IsInternalAdmin(var GraphUserInfo: DotNet UserInfo): Boolean
     var
-        PlanIds: Codeunit "Plan IDs";
+        PlanIds: Codeunit "Plan Ids";
         DirectoryRole: DotNet RoleInfo;
         RoleId: Guid;
     begin
         if not IsNull(GraphUserInfo.Roles()) then
             foreach DirectoryRole in GraphUserInfo.Roles() do begin
                 RoleId := DirectoryRole.RoleTemplateId();
-                if RoleId in [PlanIds.GetGlobalAdminPlanId(), PlanIds.GetD365AdminPlanId()] then
+                if RoleId in [PlanIds.GetGlobalAdminPlanId(), PlanIds.GetD365AdminPlanId(), PlanIds.GetBCAdminPlanId()] then
                     exit(true);
             end;
 
@@ -588,8 +600,8 @@ codeunit 9018 "Azure AD Plan Impl."
     [NonDebuggable]
     procedure IsBCServicePlan(ServicePlanId: Guid): Boolean
     var
-        Plan: Record "Plan";
-        PlanIds: Codeunit "Plan IDs";
+        Plan: Record Plan;
+        PlanIds: Codeunit "Plan Ids";
         Skip: Boolean;
         IsPlanFound: Boolean;
     begin
@@ -611,17 +623,17 @@ codeunit 9018 "Azure AD Plan Impl."
     [NonDebuggable]
     local procedure GetAzureUserPlanRoleCenterId(UserSecurityID: Guid): Integer
     var
-        TempPlan: Record "Plan" temporary;
+        TempPlan: Record Plan temporary;
         User: Record User;
         GraphUserInfo: DotNet UserInfo;
     begin
         if not User.Get(UserSecurityID) then begin
-            Session.LogMessage('0000DUD', StrSubstNo(UserNotInUserTableTxt, UserSecurityID()), Verbosity::Warning, DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+            Session.LogMessage('0000DUD', StrSubstNo(UserNotInUserTableTxt, UserSecurityId()), Verbosity::Warning, DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
             exit(0);
         end;
 
         if not AzureADGraphUser.GetGraphUser(UserSecurityID, GraphUserInfo) then begin
-            Session.LogMessage('0000DUE', StrSubstNo(AzureGraphUserNotFoundTxt, UserSecurityID()), Verbosity::Warning, DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+            Session.LogMessage('0000DUE', StrSubstNo(AzureGraphUserNotFoundTxt, UserSecurityId()), Verbosity::Warning, DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
             exit(0);
         end;
 
@@ -634,7 +646,7 @@ codeunit 9018 "Azure AD Plan Impl."
             exit(0);
         end;
 
-        Session.LogMessage('0000DUC', StrSubstNo(AzurePlanRoleCenterFoundTxt, TempPlan."Role Center ID", UserSecurityID()), Verbosity::Normal,
+        Session.LogMessage('0000DUC', StrSubstNo(AzurePlanRoleCenterFoundTxt, TempPlan."Role Center ID", UserSecurityId()), Verbosity::Normal,
             DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
 
         exit(TempPlan."Role Center ID");
@@ -721,7 +733,7 @@ codeunit 9018 "Azure AD Plan Impl."
         // Only remove SUPER if other permissions are granted (to avoid user lockout)
         if UserGroupsAdded and (not UserHadBeenSetupBefore) then begin
             if IsPlanConfigurationCustomized then begin
-                // For newly-created users clear the company in case they are logged in to a company they don't have permissions for. 
+                // For newly-created users clear the company in case they are logged in to a company they don't have permissions for.
                 // Clearing the company in user personalization will make platform pick the right company on next login.
                 UserPersonalization.LockTable();
                 if UserPersonalization.Get(UserSecurityID) and (UserPersonalization.Company <> '') then begin
@@ -743,15 +755,15 @@ codeunit 9018 "Azure AD Plan Impl."
     end;
 
     [NonDebuggable]
-    local procedure AddToTempPlan(ServicePlanId: Guid; ServicePlanName: Text; var TempPlan: Record "Plan" temporary)
+    local procedure AddToTempPlan(ServicePlanId: Guid; ServicePlanName: Text; var TempPlan: Record Plan temporary)
     var
-        Plan: Record "Plan";
+        Plan: Record Plan;
         Handled: Boolean;
     begin
-        if TempPlan.GET(ServicePlanId) then
+        if TempPlan.Get(ServicePlanId) then
             exit;
 
-        if Plan.GET(ServicePlanId) then;
+        if Plan.Get(ServicePlanId) then;
 
         TempPlan.Init();
         TempPlan."Plan ID" := ServicePlanId;

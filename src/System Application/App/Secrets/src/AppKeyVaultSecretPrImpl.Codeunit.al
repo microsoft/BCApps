@@ -13,7 +13,7 @@ codeunit 3801 "App Key Vault Secret Pr. Impl."
 
     var
         [NonDebuggable]
-        NavAzureKeyVaultAppSecretProvider: dotnet AzureKeyVaultAppSecretProvider;
+        NavAzureKeyVaultAppSecretProvider: DotNet AzureKeyVaultAppSecretProvider;
         IsInitialized: Boolean;
         CannotInitializeErr: Label 'Couldn''t initialize the App Key Vault Secret Provider.\\Common reasons include:\- The extension doesn''t specify a key vault in its app.json file.\- The extension wasn''t published with a PublisherAzureActiveDirectoryTenantId and the server requires it\- The server''s Azure Key Vault settings are incorrect\- The server lacks permission to the private key of Azure Key Vault client certificate\\Please check the Event Log or Application Insights for more details.';
         NotInitializedErr: Label 'Cannot get secrets because the App Key Vault Secret Provider has not been initialized.';
@@ -65,5 +65,16 @@ codeunit 3801 "App Key Vault Secret Pr. Impl."
         // The .NET class will catch all user errors, e.g., secret not found, key vault not found, no access to key vault.
         // It will return false in these cases, and set SecretValue=''.
         exit(NavAzureKeyVaultAppSecretProvider.TryGetAzureKeyVaultSecret(SecretName, SecretValue));
+    end;
+
+    [NonDebuggable]
+    procedure GetSecret(SecretName: Text; var SecretValue: SecretText): Boolean
+    var
+        SecretValueText: Text;
+    begin
+        if not GetSecret(SecretName, SecretValueText) then
+            exit(false);
+        SecretValue := SecretValueText;
+        exit(true);
     end;
 }

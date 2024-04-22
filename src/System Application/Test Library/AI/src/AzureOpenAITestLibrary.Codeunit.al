@@ -10,9 +10,17 @@ codeunit 132933 "Azure OpenAI Test Library"
 {
 
     procedure GetAOAIHistory(HistoryLength: Integer; var AOAIChatMessages: Codeunit "AOAI Chat Messages"): JsonArray
+    var
+        SystemMessageTokenCount: Integer;
+        MessagesTokenCount: Integer;
     begin
         AOAIChatMessages.SetHistoryLength(HistoryLength);
-        exit(AOAIChatMessages.AssembleHistory());
+        exit(AOAIChatMessages.AssembleHistory(SystemMessageTokenCount, MessagesTokenCount));
+    end;
+
+    procedure GetAOAIAssembleTools(var AOAIChatMessages: Codeunit "AOAI Chat Messages"): JsonArray
+    begin
+        exit(AOAIChatMessages.AssembleTools());
     end;
 
 }

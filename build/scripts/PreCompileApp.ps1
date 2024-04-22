@@ -1,6 +1,4 @@
 Param(
-    [Parameter(Mandatory=$true)]
-    [string] $currentProjectFolder,
     [ValidateSet('app', 'testApp', 'bcptApp')]
     [string] $appType = 'app',
     [ref] $parameters
@@ -55,6 +53,11 @@ if($appType -eq 'app')
                 else {
                     Compile-AppInBcContainer @tempParameters | Out-Null
                 }
+            }
+
+            if(($appBuildMode -eq 'Strict') -and !(Test-IsStrictModeEnabled)) {
+                Write-Host "::Warning:: Strict mode is not enabled for this branch. Exiting without enabling the strict mode breaking changes check."
+                return
             }
 
             Enable-BreakingChangesCheck -AppSymbolsFolder $parameters.Value["appSymbolsFolder"] -AppProjectFolder $parameters.Value["appProjectFolder"] -BuildMode $appBuildMode | Out-Null

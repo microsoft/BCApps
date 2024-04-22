@@ -86,7 +86,7 @@ codeunit 9012 "Azure AD Graph"
     /// </summary>
     /// <param name="UserInfo">The user.</param>
     /// <param name="UserAssignedPlans">The assigned plans for the user.</param>
-    /// <remarks>If the provided user is null, the output parameter holding the assigned plans remains unchanged.</remarks> 
+    /// <remarks>If the provided user is null, the output parameter holding the assigned plans remains unchanged.</remarks>
     [Scope('OnPrem')]
     [NonDebuggable]
     procedure GetUserAssignedPlans(UserInfo: DotNet UserInfo; var UserAssignedPlans: DotNet GenericList1)

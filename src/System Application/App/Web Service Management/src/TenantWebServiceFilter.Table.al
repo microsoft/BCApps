@@ -24,12 +24,12 @@ table 6712 "Tenant Web Service Filter"
             AutoIncrement = true;
             Caption = 'Entry ID';
         }
-        field(2; "Filter"; BLOB)
+        field(2; "Filter"; Blob)
         {
             DataClassification = CustomerContent;
             Caption = 'Filter';
         }
-        field(3; TenantWebServiceID; RecordID)
+        field(3; TenantWebServiceID; RecordId)
         {
             Caption = 'Tenant Web Service ID';
             DataClassification = CustomerContent;
@@ -49,8 +49,5 @@ table 6712 "Tenant Web Service Filter"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

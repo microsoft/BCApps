@@ -28,7 +28,7 @@ page 2506 "Extension Logo Part"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(Control4)
             {
@@ -46,9 +46,6 @@ page 2506 "Extension Logo Part"
         }
     }
 
-    actions
-    {
-    }
 }
 
 

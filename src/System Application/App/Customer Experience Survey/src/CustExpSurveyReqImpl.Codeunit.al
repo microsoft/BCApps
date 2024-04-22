@@ -169,18 +169,17 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
         ErrorMessage := JToken.AsValue().AsText();
     end;
 
-    [NonDebuggable]
     local procedure Authorize(var HttpHeaders: HttpHeaders; var ErrorMessage: Text; IsGraph: Boolean): Boolean
     var
-        AccessToken: Text;
+        AccessToken: SecretText;
     begin
         if IsGraph then
             AccessToken := AcquireGraphToken(ErrorMessage)
         else
             AccessToken := AcquireToken(ErrorMessage);
 
-        if AccessToken <> '' then begin
-            HttpHeaders.Add('Authorization', StrSubstNo(BearerLbl, AccessToken));
+        if not AccessToken.IsEmpty() then begin
+            HttpHeaders.Add('Authorization', SecretStrSubstNo(BearerLbl, AccessToken));
             exit(true);
         end;
 
@@ -191,21 +190,20 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
         exit(false);
     end;
 
-    [NonDebuggable]
-    local procedure AcquireToken(var ErrorMessage: Text): Text
+    local procedure AcquireToken(var ErrorMessage: Text): SecretText
     var
         OAuth2: Codeunit OAuth2;
         Scopes: List of [Text];
         ClientId: Text;
-        ClientCertificate: Text;
-        AccessToken: Text;
+        ClientCertificate: SecretText;
+        AccessToken: SecretText;
         IdToken: Text;
     begin
         ClientId := GetClientId();
         ClientCertificate := GetClientCertificate();
         Scopes.Add(GetScope());
 
-        if (ClientId <> '') and (ClientCertificate <> '') then
+        if (ClientId <> '') and (not ClientCertificate.IsEmpty()) then
             if OAuth2.AcquireTokensWithCertificate(ClientId, ClientCertificate, GetRedirectURL(), AuthorityLbl, Scopes, AccessToken, IdToken) then begin
                 Session.LogMessage('0000J9B', AcquiredCESTokenLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
                 exit(AccessToken);
@@ -215,12 +213,12 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
     end;
 
     [NonDebuggable]
-    local procedure AcquireGraphToken(var ErrorMessage: Text): Text
+    local procedure AcquireGraphToken(var ErrorMessage: Text): SecretText
     var
         OAuth2: Codeunit OAuth2;
         CustomerExpSurveyImpl: Codeunit "Customer Exp. Survey Impl.";
         Scopes: List of [Text];
-        AccessToken: Text;
+        AccessToken: SecretText;
     begin
         if not CustomerExpSurveyImpl.IsPPE() then
             Scopes.Add(GraphScopesLbl)
@@ -240,7 +238,7 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
         OAuth2: Codeunit OAuth2;
         RedirectURL: Text;
     begin
-        OAuth2.GetDefaultRedirectUrl(RedirectUrl);
+        OAuth2.GetDefaultRedirectURL(RedirectURL);
         exit(RedirectURL)
     end;
 
@@ -257,10 +255,10 @@ codeunit 9263 "Cust. Exp. Survey Req. Impl."
     end;
 
     [NonDebuggable]
-    local procedure GetClientCertificate(): Text
+    local procedure GetClientCertificate(): SecretText
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
-        Certificate: Text;
+        Certificate: SecretText;
         CertificateName: Text;
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret(ClientCertificateAKVSecretNameLbl, CertificateName) then begin

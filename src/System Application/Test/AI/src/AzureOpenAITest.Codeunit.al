@@ -8,6 +8,7 @@ namespace System.Test.AI;
 using System.AI;
 using System.Privacy;
 using System.TestLibraries.AI;
+using System.TestLibraries.Environment;
 using System.TestLibraries.Utilities;
 
 codeunit 132684 "Azure OpenAI Test"
@@ -16,8 +17,9 @@ codeunit 132684 "Azure OpenAI Test"
 
     var
         CopilotTestLibrary: Codeunit "Copilot Test Library";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         LibraryAssert: Codeunit "Library Assert";
-        Any: codeunit Any;
+        Any: Codeunit Any;
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
         EndpointTxt: Label 'https://resourcename.openai.azure.com/', Locked = true;
         DeploymentTxt: Label 'deploymentid', Locked = true;
@@ -179,6 +181,7 @@ codeunit 132684 "Azure OpenAI Test"
 
         // [GIVEN] The authorization key is not set
         PrivacyNotice.SetApprovalState(AzureOpenAITxt, "Privacy Notice Approval State"::Agreed);
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
 
         // [WHEN] GenerateTextCompletion is called
         asserterror AzureOpenAI.GenerateTextCompletion(Any.AlphanumericText(10), AOAIOperationResponse);
@@ -198,6 +201,7 @@ codeunit 132684 "Azure OpenAI Test"
 
         // [GIVEN] The privacy notice is agreed to
         PrivacyNotice.SetApprovalState(AzureOpenAITxt, "Privacy Notice Approval State"::Agreed);
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
 
         // [GIVEN] Capability is set
         RegisterCapability(Enum::"Copilot Capability"::"Text Capability");
@@ -222,6 +226,7 @@ codeunit 132684 "Azure OpenAI Test"
 
         // [GIVEN] The privacy notice is agreed to
         PrivacyNotice.SetApprovalState(AzureOpenAITxt, "Privacy Notice Approval State"::Agreed);
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
 
         // [GIVEN] Capability is set
         RegisterCapability(Enum::"Copilot Capability"::"Text Capability");
@@ -299,7 +304,7 @@ codeunit 132684 "Azure OpenAI Test"
         PrivacyNotice.SetApprovalState(AzureOpenAITxt, "Privacy Notice Approval State"::Agreed);
 
         // [WHEN] GenerateTextCompletion is called
-        asserterror AzureOpenAI.GenerateTextCompletion(Any.AlphanumericText(10), AOAIOperationResponse);
+        asserterror AzureOpenAI.GenerateEmbeddings(Any.AlphanumericText(10), AOAIOperationResponse);
 
         // [THEN] GenerateTextCompletion returns an error
         LibraryAssert.ExpectedError('Copilot capability has not been set.');
@@ -483,6 +488,7 @@ codeunit 132684 "Azure OpenAI Test"
         // [SCENARIO] Prepare history gets the proper length of history to send to the model and the last message is the actual last message
 
         // [GIVEN] A history length of 10 messages and one specific last message
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(false);
         InitializeChatHistory(AOAIChatMessages, 10);
         AOAIChatMessages.AddUserMessage('Last message');
 

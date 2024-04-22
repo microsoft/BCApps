@@ -73,7 +73,7 @@ codeunit 457 "Environment Information"
     end;
 
     /// <summary>
-    /// Checks if the deployment infrastucture is SaaS (Software as a Service). 
+    /// Checks if the deployment infrastucture is SaaS (Software as a Service).
     /// Note: This function will return false in a Docker container.
     /// </summary>
     /// <returns>True if the deployment infrastructure type is a SaaS, false otherwise.</returns>
@@ -116,6 +116,15 @@ codeunit 457 "Environment Information"
     procedure EnableM365Collaboration()
     begin
         EnvironmentInformationImpl.EnableM365Collaboration();
+    end;
+
+    /// <summary>
+    /// Gets the linked Power Platform environment id.
+    /// </summary>
+    /// <returns>The linked Power Platform environment id, if set.</returns>
+    procedure GetLinkedPowerPlatformEnvironmentId(): Text
+    begin
+        exit(EnvironmentInformationImpl.GetLinkedPowerPlatformEnvironmentId());
     end;
 
 }

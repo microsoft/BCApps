@@ -22,7 +22,7 @@ codeunit 8902 "Email Scenario Attach Impl."
     procedure GetEmailAttachmentsByEmailScenarios(var Result: Record "Email Attachments"; EmailScenario: Integer)
     var
         EmailScenarioAttachments: Record "Email Scenario Attachments";
-        Email: Codeunit "Email";
+        Email: Codeunit Email;
     begin
         Email.OnBeforeGetEmailAttachmentsByEmailScenarios(EmailScenarioAttachments);
         if EmailScenario <> 0 then
@@ -107,7 +107,7 @@ codeunit 8902 "Email Scenario Attach Impl."
     var
         EmailScenario: Integer;
         FileName: Text;
-        Instream: Instream;
+        Instream: InStream;
     begin
         if not SelectedScenarios.FindSet() then
             exit;
@@ -135,7 +135,7 @@ codeunit 8902 "Email Scenario Attach Impl."
     procedure AddAttachment(var EmailScenarioAttachments: Record "Email Scenario Attachments"; var EmailAttachments: Record "Email Attachments"; EmailScenario: Integer)
     var
         FileName: Text;
-        Instream: Instream;
+        Instream: InStream;
     begin
         ClearLastError();
         if not UploadIntoStream(AddFileToCurrentScenarioMsg, '', '', FileName, Instream) then

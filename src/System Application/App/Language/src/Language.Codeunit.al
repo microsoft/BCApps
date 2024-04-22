@@ -43,7 +43,7 @@ codeunit 43 Language
 
 
     /// <summary>
-    /// Returns format region for a given language. If format region is provided it itself will be returned. If format region is empty the region is taken from UserSessionSettings. 
+    /// Returns format region for a given language. If format region is provided it itself will be returned. If format region is empty the region is taken from UserSessionSettings.
     /// If no valid tag is found, the default 'en-US' tag is returned.
     /// </summary>
     /// <param name="FormatRegion">The variable for the format region id.</param>
@@ -65,6 +65,55 @@ codeunit 43 Language
         LanguageImpl: Codeunit "Language Impl.";
     begin
         exit(LanguageImpl.GetLanguageId(LanguageCode));
+    end;
+
+    /// <summary>  
+    /// Overrides the language ID returned by the GetLanguageIdOrDefault function. 
+    /// </summary>  
+    /// <param name="LanguageId">The ID of the language to use. This must be a valid language ID.</param>  
+    /// <remarks>  
+    /// This override will be reset after it's used once in the GetLanguageIdOrDefault function. To keep the override throughout the application, use SetOverrideLanguageId(LanguageId: Integer; ResetOverride: Boolean) method.  
+    /// </remarks>  
+    procedure SetOverrideLanguageId(LanguageId: Integer)
+    begin
+        SetOverrideLanguageId(LanguageId, true);
+    end;
+
+    /// <summary>  
+    /// Overrides the language ID returned by the GetLanguageIdOrDefault function.  
+    /// </summary>  
+    /// <param name="LanguageId">The ID of the language to use. This must be a valid language ID.</param>  
+    /// <param name="ResetOverride">A boolean value indicating whether the override should be reset after use in the GetLanguageIdOrDefault function. If set to true, the override is reset after it's used once. If set to false, the override remains until it's manually reset or the session is restarted.</param>  
+
+    procedure SetOverrideLanguageId(LanguageId: Integer; ResetOverride: Boolean)
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        LanguageImpl.SetOverrideLanguageId(LanguageId, ResetOverride);
+    end;
+
+    /// <summary>  
+    /// Overrides the format region returned by the GetFormatRegionOrDefault function.  
+    /// </summary>  
+    /// <param name="FormatRegion">The region to use for formatting purposes. This must be a valid region code.</param>  
+    /// <remarks>  
+    /// This override will be reset after it's used once in the GetFormatRegionOrDefault function. To keep the override throughout the session, use SetOverrideFormatRegion(FormatRegion: Text[80]; ResetOverride: Boolean) method.  
+    /// </remarks>  
+    procedure SetOverrideFormatRegion(FormatRegion: Text[80])
+    begin
+        SetOverrideFormatRegion(FormatRegion, true);
+    end;
+
+    /// <summary>  
+    /// Overrides the format region returned by the GetFormatRegionOrDefault function.
+    /// </summary>  
+    /// <param name="FormatRegion">The region to use for formatting purposes. This must be a valid region code.</param>  
+    /// <param name="ResetOverride">A boolean value indicating whether the override should be reset after use in the GetFormatRegionOrDefault function. If set to true, the override is reset after it's used once. If set to false, the override remains until it's manually reset or the session is restarted.</param>  
+    procedure SetOverrideFormatRegion(FormatRegion: Text[80]; ResetOverride: Boolean)
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        LanguageImpl.SetOverrideFormatRegion(FormatRegion, ResetOverride);
     end;
 
     /// <summary>
@@ -215,6 +264,48 @@ codeunit 43 Language
         LanguageImpl: Codeunit "Language Impl.";
     begin
         LanguageImpl.SetPreferredLanguageID(UserSecID, NewLanguageID);
+    end;
+
+    /// <summary>
+    /// Retrieves the two-letter ISO language name for the specified language ID.
+    /// </summary>
+    /// <param name="LanguageID">The language ID.</param>
+    /// <returns>The two-letter ISO language name. For example, "en" or "es"</returns>
+    procedure GetTwoLetterISOLanguageName(LanguageID: Integer): Text[2]
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        exit(LanguageImpl.GetTwoLetterISOLanguageName(LanguageID));
+    end;
+
+    /// <summary>
+    /// Retrieves the language ID for the specified culture name.
+    /// </summary>
+    /// <param name="CultureName">The Culture name.</param>
+    /// <returns>The language ID. See https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/a29e5c28-9fb9-4c49-8e43-4b9b8e733a05.</returns>
+    /// <example>
+    /// <code>
+    /// Language.GetLanguageIdFromLanguageName('en-US');
+    /// Language.GetLanguageIdFromLanguageName('en');
+    /// </code>
+    /// </example>
+    procedure GetLanguageIdFromCultureName(CultureName: Text): Integer
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        exit(LanguageImpl.GetLanguageIdFromCultureName(CultureName));
+    end;
+
+    /// <summary>
+    /// Retrieves the culture name for the specified language ID.
+    /// </summary>
+    /// <param name="LanguageID">The language ID. See https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-adts/a29e5c28-9fb9-4c49-8e43-4b9b8e733a05.</param>
+    /// <returns>The culture name. For example, 'en-US'.</returns>
+    procedure GetCultureName(LanguageID: Integer): Text
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        exit(LanguageImpl.GetCultureName(LanguageID));
     end;
 
     /// <summary>

@@ -69,7 +69,7 @@ page 2505 "Extn. Installation Progress"
         NavAppTenantOperation: Record "NAV App Tenant Operation";
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
     begin
-        if CloseAction in [ACTION::OK, ACTION::LookupOK] then begin
+        if CloseAction in [Action::OK, Action::LookupOK] then begin
             ExtensionOperationImpl.RefreshStatus(OperationIdToMonitor);
             if NavAppTenantOperation.Get(OperationIdToMonitor) then
                 if NavAppTenantOperation.Status = NavAppTenantOperation.Status::InProgress then

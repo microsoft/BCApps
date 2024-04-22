@@ -107,20 +107,20 @@ page 9515 "Azure AD User Update Wizard"
                     {
                         field(DisplayName; Rec."Display Name")
                         {
-                            Tooltip = 'Specifies the display name';
+                            ToolTip = 'Specifies the display name';
                             ApplicationArea = All;
                         }
                         field(CurrentLicense; Rec."Current Value")
                         {
                             Caption = 'Current plan';
-                            Tooltip = 'Specifies the current of user entity';
+                            ToolTip = 'Specifies the current of user entity';
                             Editable = false;
                             ApplicationArea = All;
                         }
                         field(NewLicense; Rec."New Value")
                         {
                             Caption = 'New plan';
-                            Tooltip = 'Specifies the new value of user entity';
+                            ToolTip = 'Specifies the new value of user entity';
                             Editable = false;
                             ApplicationArea = All;
                         }
@@ -363,8 +363,8 @@ page 9515 "Azure AD User Update Wizard"
     var
         UserPermissions: Codeunit "User Permissions";
     begin
-        if not UserPermissions.CanManageUsersOnTenant(UserSecurityId()) then
-            error(CannotUpdateUsersFromOfficeErr);
+        if not (UserPermissions.CanManageUsersOnTenant(UserSecurityId()) and UserPermissions.IsSuper(UserSecurityId())) then
+            Error(CannotUpdateUsersFromOfficeErr);
 
         MakeAllGroupsInvisible();
         WelcomeVisible := true;

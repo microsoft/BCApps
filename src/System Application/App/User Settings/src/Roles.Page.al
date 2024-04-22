@@ -25,7 +25,7 @@ page 9212 Roles
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {

@@ -13,6 +13,6 @@ interface "SharePoint Authorization"
     /// <summary>
     /// Authorizes an HTTP request by providing the needed authorization information to it.
     /// </summary>
-    /// <param name="HttpRequest">The HTTP request to authorize.</param>    
+    /// <param name="HttpRequest">The HTTP request to authorize.</param>
     procedure Authorize(var HttpRequestMessage: HttpRequestMessage);
 }

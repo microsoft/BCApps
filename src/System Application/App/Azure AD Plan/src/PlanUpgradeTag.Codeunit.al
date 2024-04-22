@@ -16,9 +16,6 @@ codeunit 9058 "Plan Upgrade Tag"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    trigger OnRun()
-    begin
-    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
     local procedure RegisterPerDatabaseTags(var PerDatabaseUpgradeTags: List of [Code[250]])
@@ -30,6 +27,7 @@ codeunit 9058 "Plan Upgrade Tag"
         PerDatabaseUpgradeTags.Add(GetMicrosoft365UpgradeTag());
         PerDatabaseUpgradeTags.Add(GetEssentialAttachUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetMD365AdminUpgradeTag());
+        PerDatabaseUpgradeTags.Add(GetBCAdminUpgradeTag());
     end;
 
     /// <summary>
@@ -102,6 +100,15 @@ codeunit 9058 "Plan Upgrade Tag"
     internal procedure GetMD365AdminUpgradeTag(): Code[250]
     begin
         exit('MS-465490-AddD365Admin-20230103');
+    end;
+
+    /// <summary>
+    /// Returns the BC Administrator upgrade tag.
+    /// </summary>
+    /// <returns>The BC Administrator upgrade tag.</returns>
+    internal procedure GetBCAdminUpgradeTag(): Code[250]
+    begin
+        exit('MS-498639-AddBCAdmin-20240205');
     end;
 
     internal procedure GetPlanfigurationsUpgradeTag(): Code[250]

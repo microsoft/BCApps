@@ -28,7 +28,7 @@ page 9987 "Word Templates Related Part"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Tables)
             {
@@ -288,7 +288,7 @@ page 9987 "Word Templates Related Part"
     internal procedure GetRelatedTables(var RelatedTableIds: List of [Integer]; var RelatedTableCodes: List of [Code[5]])
     begin
         Rec.Reset();
-        Rec.SetFilter("Related Table ID", '<>%1', SourceTableId); // Exclude source record 
+        Rec.SetFilter("Related Table ID", '<>%1', SourceTableId); // Exclude source record
         if Rec.FindSet() then
             repeat
                 RelatedTableIds.Add(Rec."Related Table ID");
@@ -304,7 +304,7 @@ page 9987 "Word Templates Related Part"
     internal procedure GetRelatedTables(var WordTemplatesRelatedTable: Record "Word Templates Related Table" temporary)
     begin
         Rec.Reset();
-        Rec.SetFilter("Related Table ID", '<>%1', SourceTableId); // Exclude source record 
+        Rec.SetFilter("Related Table ID", '<>%1', SourceTableId); // Exclude source record
         if Rec.FindSet() then
             repeat
                 WordTemplatesRelatedTable.TransferFields(Rec);

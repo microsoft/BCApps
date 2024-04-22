@@ -200,15 +200,44 @@ codeunit 1460 SignedXml
         exit(SignedXmlImpl.CheckSignature());
     end;
 
+#if not CLEAN24
     /// <summary>
     /// Determines whether the Signature property verifies for the specified key.
     /// </summary>
     /// <param name="XmlString">The XML string containing key information.</param>
     /// <returns>true if the signature verifies; otherwise, false.</returns>
+    [Obsolete('Replaced with CheckSignature which takes in a SecretText', '24.0')]
     procedure CheckSignature(XmlString: Text): Boolean
     begin
         exit(SignedXmlImpl.CheckSignature(XmlString));
     end;
+#endif
+
+    /// <summary>
+    /// Determines whether the Signature property verifies for the specified key.
+    /// </summary>
+    /// <param name="XmlString">The XML string containing key information.</param>
+    /// <returns>true if the signature verifies; otherwise, false.</returns>
+    procedure CheckSignature(XmlString: SecretText): Boolean
+    begin
+        exit(SignedXmlImpl.CheckSignature(XmlString));
+    end;
+
+#if not CLEAN24
+    /// <summary>
+    /// Determines whether the signature verifies for the specified X509Certificate2 and, optionally, whether the certificate is valid.
+    /// </summary>
+    /// <param name="X509CertBase64Value">The X509Certificate2 in Base64 format to use to verify the signature.</param>
+    /// <param name="X509CertPassword">The password to the X509Certificate2.</param>
+    /// <param name="VerifySignatureOnly">true to verify the signature only; false to verify both the signature and certificate.</param>
+    /// <returns>true if the signature verifies; otherwise, false.</returns>
+    [Obsolete('Replaced with CheckSignature which takes in a SecretText', '24.0')]
+    [NonDebuggable]
+    procedure CheckSignature(X509CertBase64Value: Text; X509CertPassword: Text; VerifySignatureOnly: Boolean): Boolean
+    begin
+        exit(SignedXmlImpl.CheckSignature(X509CertBase64Value, X509CertPassword, VerifySignatureOnly));
+    end;
+#endif
 
     /// <summary>
     /// Determines whether the signature verifies for the specified X509Certificate2 and, optionally, whether the certificate is valid.
@@ -217,7 +246,7 @@ codeunit 1460 SignedXml
     /// <param name="X509CertPassword">The password to the X509Certificate2.</param>
     /// <param name="VerifySignatureOnly">true to verify the signature only; false to verify both the signature and certificate.</param>
     /// <returns>true if the signature verifies; otherwise, false.</returns>
-    procedure CheckSignature(X509CertBase64Value: Text; X509CertPassword: Text; VerifySignatureOnly: Boolean): Boolean
+    procedure CheckSignature(X509CertBase64Value: Text; X509CertPassword: SecretText; VerifySignatureOnly: Boolean): Boolean
     begin
         exit(SignedXmlImpl.CheckSignature(X509CertBase64Value, X509CertPassword, VerifySignatureOnly));
     end;
@@ -332,7 +361,7 @@ codeunit 1460 SignedXml
     end;
 
     /// <summary>
-    /// Represents the Uniform Resource Identifier (URI) for the standard SHA512 digest method for XML digital signatures. 
+    /// Represents the Uniform Resource Identifier (URI) for the standard SHA512 digest method for XML digital signatures.
     /// </summary>
     /// <returns>The value http://www.w3.org/2001/04/xmlenc#sha512.</returns>
     /// <see cref="https://www.w3.org/2001/04/xmlenc#sha512"/>

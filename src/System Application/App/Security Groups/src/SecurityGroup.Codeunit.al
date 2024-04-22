@@ -57,7 +57,7 @@ codeunit 9031 "Security Group"
     end;
 
     /// <summary>
-    /// Adds a permission set to a security group. 
+    /// Adds a permission set to a security group.
     /// </summary>
     /// <param name="GroupCode">The code of the security group to add a permission set to.</param>
     /// <param name="RoleId">The ID of the role (permission set).</param>
@@ -89,7 +89,17 @@ codeunit 9031 "Security Group"
     /// <param name="SecurityGroupBuffer">The resulting list of security groups.</param>
     procedure GetGroups(var SecurityGroupBuffer: Record "Security Group Buffer")
     begin
-        SecurityGroupImpl.GetGroups(SecurityGroupBuffer);
+        SecurityGroupImpl.GetGroups(SecurityGroupBuffer, true);
+    end;
+
+    /// <summary>
+    /// Gets all the defined security groups.
+    /// </summary>
+    /// <param name="SecurityGroupBuffer">The resulting list of security groups.</param>
+    /// <param name="FetchGroupNames">Specifies if group names should be fetched, as loading them can take some time.</param>
+    procedure GetGroups(var SecurityGroupBuffer: Record "Security Group Buffer"; FetchGroupNames: Boolean)
+    begin
+        SecurityGroupImpl.GetGroups(SecurityGroupBuffer, FetchGroupNames);
     end;
 
     /// <summary>
@@ -140,6 +150,17 @@ codeunit 9031 "Security Group"
     procedure GetId(GroupCode: Code[20]): Text[250]
     begin
         exit(SecurityGroupImpl.GetId(GroupCode));
+    end;
+
+    /// <summary>
+    /// Gets the code of the security group by its ID.
+    /// </summary>
+    /// <param name="GroupId">The SID of a Windows group or an object ID of a Microsoft Entra security group.</param>
+    /// <param name="GroupCode">The code of the security group.</param>
+    /// <returns>True, if the code was found successfully, false otherwise.</returns>
+    procedure GetCode(GroupId: Text[250]; var GroupCode: Code[20]): Boolean
+    begin
+        exit(SecurityGroupImpl.GetCode(GroupId, GroupCode));
     end;
 
     /// <summary>

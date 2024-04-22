@@ -17,7 +17,7 @@ codeunit 9029 "Azure AD User Sync Impl."
 
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = TableData User = rm,
+    Permissions = tabledata User = rm,
                   tabledata "User Personalization" = r;
 
     var
@@ -67,7 +67,7 @@ codeunit 9029 "Azure AD User Sync Impl."
     var
         PlanIds: Codeunit "Plan Ids";
         GraphUserInfo: DotNet UserInfo;
-        GraphUserInfoPage: Dotnet UserInfoPage;
+        GraphUserInfoPage: DotNet UserInfoPage;
         AssignedPlansList: DotNet StringArray;
         AllPlanIds: List of [Guid];
         UsersPerPage: Integer;
@@ -78,6 +78,7 @@ codeunit 9029 "Azure AD User Sync Impl."
         AllPlanIds.Remove(PlanIds.GetMicrosoft365PlanId());
         AllPlanIds.Remove(PlanIds.GetGlobalAdminPlanId());
         AllPlanIds.Remove(PlanIds.GetD365AdminPlanId());
+        AllPlanIds.Remove(PlanIds.GetBCAdminPlanId());
         ConvertList(AllPlanIds, AssignedPlansList);
 
         AzureADGraph.GetLicensedUsersPage(AssignedPlansList, UsersPerPage, GraphUserInfoPage);
@@ -109,7 +110,7 @@ codeunit 9029 "Azure AD User Sync Impl."
     [NonDebuggable]
     local procedure FetchUpdatesFromEnvironmentDirectoryGroup(var AzureADUserUpdate: Record "Azure AD User Update Buffer"; OfficeUsersInBC: List of [Guid])
     var
-        GraphUserInfoPage: Dotnet UserInfoPage;
+        GraphUserInfoPage: DotNet UserInfoPage;
         GraphUserInfo: DotNet UserInfo;
         CurrUserPlanIDs: List of [Guid];
     begin
@@ -156,6 +157,7 @@ codeunit 9029 "Azure AD User Sync Impl."
                             AzureADPlan.GetPlanIDs(GraphUserInfo, UserPlanIds);
                             if UserPlanIds.Contains(PlanIds.GetGlobalAdminPlanId()) or // global admins are not affected by the environment security group
                                 UserPlanIds.Contains(PlanIds.GetD365AdminPlanId()) or // dynamics 365 admins are not affected by the environment security group
+                                UserPlanIds.Contains(PlanIds.GetBCAdminPlanId()) or // BC admins are not affected by the environment security group
                                 ((not AzureADGraph.IsEnvironmentSecurityGroupDefined()) and UserPlanIds.Contains(PlanIds.GetMicrosoft365PlanId()))
                             then
                                 GetUpdatesFromGraphUserInfo(GraphUserInfo, AzureADUserUpdate, OfficeUsersInBC);
@@ -213,7 +215,7 @@ codeunit 9029 "Azure AD User Sync Impl."
     end;
 
     // If the user's plans are any of the following:
-    // - Internal Administrator (Global Administrator or Dynamics 365 Administrator)
+    // - Internal Administrator (Global Administrator or Dynamics 365 Administrator or BC Administrator)
     // - Microsoft 365
     // - Internal Administrator + Microsoft 365
     // and there is no environment security group defined,
@@ -227,7 +229,7 @@ codeunit 9029 "Azure AD User Sync Impl."
             exit(false);
 
         foreach PlanID in UserPlanIDs do
-            if not (PlanID in [PlanIDs.GetGlobalAdminPlanId(), PlanIDs.GetD365AdminPlanId(), PlanIDs.GetMicrosoft365PlanId()]) then
+            if not (PlanID in [PlanIDs.GetGlobalAdminPlanId(), PlanIDs.GetD365AdminPlanId(), PlanIDs.GetBCAdminPlanId(), PlanIDs.GetMicrosoft365PlanId()]) then
                 exit(false);
 
         exit(true);
@@ -426,7 +428,6 @@ codeunit 9029 "Azure AD User Sync Impl."
         PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]];
     begin
         ConsolidatePlansNamesFromGraph(AzureADUserUpdate, PlanNamesPerUserFromGraph);
-        AzureADPlan.CheckMixedPlans(PlanNamesPerUserFromGraph, true);
 
         // The updates are stored in the table as [all the changes for the first user], [all the changes for the next user] etc.
         AzureADUserUpdate.SetCurrentKey("Authentication Object ID", "Update Entity");

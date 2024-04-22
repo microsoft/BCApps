@@ -10,10 +10,6 @@ page 132617 "Home Items Page Action Test"
     Caption = 'Role Center';
     PageType = RoleCenter;
 
-    layout
-    {
-    }
-
     actions
     {
         area(embedding)
@@ -22,24 +18,24 @@ page 132617 "Home Items Page Action Test"
             {
                 ApplicationArea = All;
                 Caption = 'Page with views';
-                RunObject = Page "Views Page Action Test";
+                RunObject = page "Views Page Action Test";
                 ToolTip = 'Test page with views';
             }
             action(EmptyPage)
             {
                 ApplicationArea = All;
                 Caption = 'Empty card page';
-                RunObject = Page "Empty Card Page Action Test";
+                RunObject = page "Empty Card Page Action Test";
                 ToolTip = 'Test empty card page';
             }
         }
-        area(processing)
+        area(Processing)
         {
             action(PageWithViewsInProcesing)
             {
                 ApplicationArea = All;
                 Caption = 'Page with views';
-                RunObject = Page "Views Page Action Test";
+                RunObject = page "Views Page Action Test";
                 ToolTip = 'Test page with views';
             }
         }

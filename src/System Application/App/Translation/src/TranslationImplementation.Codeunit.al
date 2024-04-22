@@ -113,7 +113,7 @@ codeunit 3712 "Translation Implementation"
         GetRecordRefFromVariant(ToRecVariant, ToRecordRef);
         if FromRecordRef.Number() <> ToRecordRef.Number() then
             Error(DifferentTableErr);
-        Translation.SetRange("System Id", GetSystemIdFromRecordRef(FromRecordRef));
+        Translation.SetRange("System ID", GetSystemIdFromRecordRef(FromRecordRef));
         Translation.SetRange("Table ID", FromRecordRef.Number());
         if FieldId <> 0 then
             Translation.SetRange("Field ID", FieldId);
@@ -129,7 +129,7 @@ codeunit 3712 "Translation Implementation"
         FromRecordRef: RecordRef;
     begin
         GetRecordRefFromVariant(FromRecVariant, FromRecordRef);
-        Translation.SetRange("System Id", GetSystemIdFromRecordRef(FromRecordRef));
+        Translation.SetRange("System ID", GetSystemIdFromRecordRef(FromRecordRef));
         Translation.SetRange("Field ID", FromFieldId);
         if Translation.FindSet() then
             repeat
@@ -171,7 +171,7 @@ codeunit 3712 "Translation Implementation"
     begin
         Translation.SetRange("Table ID", TableId);
         Translation.SetRange("Field ID", FieldId);
-        PAGE.Run(PAGE::Translation, Translation);
+        Page.Run(Page::Translation, Translation);
     end;
 
     procedure CheckLengthOfTranslationValue(var Translation: Record Translation)

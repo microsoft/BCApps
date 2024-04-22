@@ -19,13 +19,13 @@ codeunit 2610 "Feature Management Impl."
     InherentPermissions = X;
     Permissions = tabledata "Active Session" = r,
                   tabledata Company = r,
-                  tabledata "Feature Key" = rimd,
                   tabledata "Feature Data Update Status" = rimd,
-                  tabledata "Session Event" = r,
-                  tabledata "Scheduled Task" = r;
+                  tabledata "Feature Key" = rimd,
+                  tabledata "Scheduled Task" = r,
+                  tabledata "Session Event" = r;
 
     var
-        FeatureDataUpdate: interface "Feature Data Update";
+        FeatureDataUpdate: Interface "Feature Data Update";
         ImplementedId: Text[50];
         SignInAgainMsg: Label 'You must sign out and then sign in again to make the changes take effect.', Comment = '"sign out" and "sign in" are the same terms as shown in the Business Central client.';
         SignInAgainNotificationGuidTok: Label '63b6f5ec-6db4-4e87-b103-c4bcb539f09e', Locked = true;
@@ -74,7 +74,7 @@ codeunit 2610 "Feature Management Impl."
     begin
         SignInAgainNotification.Id := SignInAgainNotificationGuidTok;
         SignInAgainNotification.Message := SignInAgainMsg;
-        SignInAgainNotification.Scope := NOTIFICATIONSCOPE::LocalScope;
+        SignInAgainNotification.Scope := NotificationScope::LocalScope;
         SignInAgainNotification.Send();
     end;
 
@@ -104,14 +104,14 @@ codeunit 2610 "Feature Management Impl."
                     else
                         FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Enabled;
             end;
-        // If the table extension is not in sync during upgrade then Get() always returns False, 
+        // If the table extension is not in sync during upgrade then Get() always returns False,
         // so the following insert will fail if the record does exist.
         if FeatureDataUpdateStatus.Insert() then;
     end;
 
     /// <summary>
     /// Updates the status in "Feature Data Update Status" records related to all companies.
-    /// Also sends the notification reminding user to sign in again after feature is enabled/disabled. 
+    /// Also sends the notification reminding user to sign in again after feature is enabled/disabled.
     /// </summary>
     /// <param name="FeatureKey">the current "Feature Key" record</param>
     procedure AfterValidateEnabled(FeatureKey: Record "Feature Key")
@@ -273,8 +273,8 @@ codeunit 2610 "Feature Management Impl."
         then
             exit;
         FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Incomplete;
-        FeatureDataUpdateStatus."Session ID" := -1;
-        FeatureDataUpdateStatus."Server Instance ID" := -1;
+        FeatureDataUpdateStatus."Session Id" := -1;
+        FeatureDataUpdateStatus."Server Instance Id" := -1;
         FeatureDataUpdateStatus.Modify();
 
         SendTraceTagOnError(FeatureDataUpdateStatus);
@@ -411,12 +411,12 @@ codeunit 2610 "Feature Management Impl."
 
         FeatureManagementFacade.OnBeforeScheduleTask(FeatureDataUpdateStatus, DoNotScheduleTask, TaskID);
         if DoNotScheduleTask then
-            FeatureDataUpdateStatus."Task ID" := TaskID
+            FeatureDataUpdateStatus."Task Id" := TaskID
         else
-            FeatureDataUpdateStatus."Task ID" :=
+            FeatureDataUpdateStatus."Task Id" :=
                 CreateTask(FeatureDataUpdateStatus);
 
-        if IsNullGuid(FeatureDataUpdateStatus."Task ID") then begin
+        if IsNullGuid(FeatureDataUpdateStatus."Task Id") then begin
             FeatureDataUpdateStatus."Feature Status" := FeatureDataUpdateStatus."Feature Status"::Pending;
             FeatureDataUpdateStatus."Start Date/Time" := 0DT;
         end else
@@ -451,7 +451,7 @@ codeunit 2610 "Feature Management Impl."
     begin
         NewDateTime := InitDateTime;
         DateTimeDialog.SetDateTime(RoundDateTime(InitDateTime, 1000));
-        if DateTimeDialog.RunModal() = ACTION::OK then
+        if DateTimeDialog.RunModal() = Action::OK then
             NewDateTime := DateTimeDialog.GetDateTime();
         exit(NewDateTime);
     end;
@@ -559,5 +559,20 @@ codeunit 2610 "Feature Management Impl."
             RenameFeatureDataUpdateStatus.GetBySystemId(FeatureDataUpdateStatus.SystemId);
             RenameFeatureDataUpdateStatus.Rename(RenameFeatureDataUpdateStatus."Feature Key", Rec.Name);
         until FeatureDataUpdateStatus.Next() = 0;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Feature Management Triggers", OpenFeatureManagement, '', false, false)]
+    local procedure DefaultOpenFeatureManagement()
+    var
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+        IsHandled: Boolean;
+        FeatureManagementPageID: Integer;
+    begin
+        FeatureManagementPageID := Page::"Feature Management";
+        FeatureManagementFacade.OnBeforeOpenFeatureManagement(FeatureManagementPageID, IsHandled);
+        if not IsHandled then
+            Page.Run(Page::"Feature Management")
+        else
+            Page.Run(FeatureManagementPageID);
     end;
 }

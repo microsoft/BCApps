@@ -10,12 +10,12 @@ permissionset 9988 "Word Templates - Objects"
     Access = Internal;
     Assignable = false;
 
-    Permissions = Codeunit "Word Template" = X,
-                  Codeunit "Word Template Custom Field" = X,
-                  Codeunit "Word Template Field Value" = X,
-                  Page "Word Templates" = X,
-                  Page "Word Template Creation Wizard" = X,
-                  Page "Word Template Selection Wizard" = X,
-                  Page "Word Template To Text Wizard" = X,
-                  Table "Word Template" = X;
+    Permissions = codeunit "Word Template" = X,
+                  codeunit "Word Template Custom Field" = X,
+                  codeunit "Word Template Field Value" = X,
+                  page "Word Templates" = X,
+                  page "Word Template Creation Wizard" = X,
+                  page "Word Template Selection Wizard" = X,
+                  page "Word Template To Text Wizard" = X,
+                  table "Word Template" = X;
 }

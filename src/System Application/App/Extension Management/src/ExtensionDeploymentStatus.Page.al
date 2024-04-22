@@ -23,7 +23,7 @@ page 2508 "Extension Deployment Status"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
@@ -78,7 +78,7 @@ page 2508 "Extension Deployment Status"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             action(View)
             {
@@ -86,7 +86,7 @@ page 2508 "Extension Deployment Status"
                 ToolTip = 'Specifies the status of the deployment.';
                 Image = View;
                 Scope = Repeater;
-                ShortCutKey = 'Return';
+                ShortcutKey = 'Return';
                 Visible = false;
 
                 trigger OnAction()

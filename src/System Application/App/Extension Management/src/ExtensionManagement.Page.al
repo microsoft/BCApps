@@ -21,7 +21,6 @@ page 2500 "Extension Management"
     InsertAllowed = false;
     ModifyAllowed = false;
     PageType = List;
-    PromotedActionCategories = 'New,Process,Report,Details,Manage';
     RefreshOnActivate = true;
     SourceTable = "Published Application";
     SourceTableView = sorting(Name)
@@ -35,36 +34,31 @@ page 2500 "Extension Management"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {
                 Editable = false;
                 field(Logo; Rec.Logo)
                 {
-                    ApplicationArea = All;
                     Caption = 'Logo';
                     ToolTip = 'Specifies the logo of the extension, such as the logo of the service provider.';
                 }
                 field(Name; Rec.Name)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the name of the extension.';
                 }
                 field(Publisher; Rec.Publisher)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the publisher of the extension.';
                 }
                 field(Version; VersionDisplay)
                 {
-                    ApplicationArea = All;
                     Caption = 'Version';
                     ToolTip = 'Specifies the version of the extension.';
                 }
                 field("Is Installed"; IsInstalled)
                 {
-                    ApplicationArea = All;
                     Caption = 'Is Installed';
                     Style = Favorable;
                     StyleExpr = InfoStyle;
@@ -72,14 +66,12 @@ page 2500 "Extension Management"
                 }
                 field("Published As"; Rec."Published As")
                 {
-                    ApplicationArea = All;
                     Caption = 'Published As';
                     ToolTip = 'Specifies whether the extension is published as a per-tenant, development, or a global extension.';
                 }
 
                 label(Control18)
                 {
-                    ApplicationArea = All;
                     Enabled = IsSaaS;
                     HideValue = true;
                     ShowCaption = false;
@@ -95,71 +87,55 @@ page 2500 "Extension Management"
 
     actions
     {
-        area(processing)
+        area(Processing)
         {
             group(ActionGroup13)
             {
                 Caption = 'Process';
                 action(View)
                 {
-                    ApplicationArea = All;
                     Caption = 'View';
                     Enabled = ActionsEnabled;
                     Image = View;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Category5;
-                    ShortCutKey = 'Return';
+                    ShortcutKey = 'Return';
                     ToolTip = 'View extension details.';
-                    RunObject = Page "Extension Settings";
+                    RunObject = page "Extension Settings";
                     RunPageLink = "App ID" = field(ID);
                     Scope = Repeater;
                 }
                 action(Install)
                 {
-                    ApplicationArea = All;
                     Caption = 'Install';
                     Enabled = ActionsEnabled and (not IsInstalled);
                     Image = NewRow;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Category5;
                     Scope = Repeater;
                     ToolTip = 'Install the extension for the current tenant.';
 
                     trigger OnAction()
                     begin
                         if ExtensionInstallationImpl.RunExtensionInstallation(Rec) then
-                            CurrPage.Update();
+                            CurrPage.Update(false);
                     end;
                 }
                 action(Uninstall)
                 {
-                    ApplicationArea = All;
                     Caption = 'Uninstall';
                     Enabled = ActionsEnabled and IsInstalled;
                     Image = RemoveLine;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Category5;
                     Scope = Repeater;
                     ToolTip = 'Remove the extension from the current tenant.';
 
                     trigger OnAction()
                     begin
                         if ExtensionInstallationImpl.RunExtensionInstallation(Rec) then
-                            CurrPage.Update();
+                            CurrPage.Update(false);
                     end;
                 }
                 action(Unpublish)
                 {
-                    ApplicationArea = All;
                     Caption = 'Unpublish';
                     Enabled = ActionsEnabled and IsTenantExtension and (not IsInstalled);
                     Image = RemoveLine;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Category5;
                     Scope = Repeater;
                     ToolTip = 'Unpublish the extension from the tenant.';
 
@@ -175,13 +151,9 @@ page 2500 "Extension Management"
                 }
                 action(SetupApp)
                 {
-                    ApplicationArea = All;
                     Caption = 'Set up';
                     Image = SetupList;
                     Enabled = ActionsEnabled and IsInstalled;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Category5;
                     Scope = Repeater;
                     ToolTip = 'Runs the setup page that has been marked as primary for the selected app.';
 
@@ -199,13 +171,9 @@ page 2500 "Extension Management"
                 }
                 action("Download Source")
                 {
-                    ApplicationArea = All;
                     Caption = 'Download Source';
                     Enabled = IsTenantExtension;
                     Image = ExportFile;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Category5;
                     Scope = Repeater;
                     ToolTip = 'Download the source code for the extension.';
 
@@ -216,14 +184,10 @@ page 2500 "Extension Management"
                 }
                 action("Learn More")
                 {
-                    ApplicationArea = All;
                     Caption = 'Learn More';
                     Visible = HelpActionVisible;
                     Enabled = ActionsEnabled;
                     Image = Info;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Category5;
                     Scope = Repeater;
                     ToolTip = 'View information from the extension provider.';
 
@@ -234,11 +198,8 @@ page 2500 "Extension Management"
                 }
                 action(Refresh)
                 {
-                    ApplicationArea = All;
                     Caption = 'Refresh';
                     Image = Refresh;
-                    Promoted = true;
-                    PromotedCategory = Category5;
                     ToolTip = 'Refresh the list of extensions.';
 
                     trigger OnAction()
@@ -249,53 +210,80 @@ page 2500 "Extension Management"
                 }
                 action("Extension Marketplace")
                 {
-                    ApplicationArea = All;
                     Caption = 'Extension Marketplace';
                     Enabled = IsSaaS;
                     Image = NewItem;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Category5;
-                    PromotedIsBig = true;
                     ToolTip = 'Browse the extension marketplace for new extensions to install.';
                     Visible = not IsOnPremDisplay;
+#if not CLEAN24                    
+#pragma warning disable AL0432
                     RunObject = page "Extension Marketplace";
+#pragma warning restore AL0432
+#else                    
+                    trigger OnAction()
+                    begin
+                        Hyperlink('https://aka.ms/bcappsource');
+                    end;
+#endif
+                }
+                action("Microsoft AppSource Gallery")
+                {
+                    Caption = 'AppSource Gallery';
+                    Enabled = IsSaaS;
+                    Image = NewItem;
+                    ToolTip = 'Browse the Microsoft AppSource Gallery for new extensions to install.';
+                    Visible = not IsOnPremDisplay;
+                    RunPageMode = View;
+
+                    trigger OnAction()
+                    begin
+                        Page.Run(2515);
+                    end;
                 }
                 action("Upload Extension")
                 {
-                    ApplicationArea = All;
                     Caption = 'Upload Extension';
                     Image = Import;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Category5;
-                    PromotedIsBig = true;
-                    RunObject = Page "Upload And Deploy Extension";
+                    RunObject = page "Upload And Deploy Extension";
                     ToolTip = 'Upload an extension to your application.';
                     Ellipsis = true;
                     Visible = IsSaaS;
                 }
                 action("Deployment Status")
                 {
-                    ApplicationArea = All;
                     Caption = 'Installation Status';
                     Image = Status;
-                    Promoted = true;
-                    PromotedOnly = true;
-                    PromotedCategory = Category5;
-                    PromotedIsBig = true;
-                    RunObject = Page "Extension Deployment Status";
+                    RunObject = page "Extension Deployment Status";
                     ToolTip = 'Check status for upload process for extensions.';
                     Visible = IsSaaS;
                 }
                 action("Delete Orphaned Extension Data")
                 {
-                    ApplicationArea = All;
+
                     Caption = 'Delete Orphaned Extension Data';
                     Image = Delete;
-                    RunObject = Page "Delete Orphaned Extension Data";
+                    RunObject = page "Delete Orphaned Extension Data";
                     ToolTip = 'Delete the data of orphaned extensions.';
                 }
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Category5)
+            {
+                Caption = 'Manage', Comment = 'Generated from the PromotedActionCategories property index 4.';
+
+                actionref("Extension Marketplace_Promoted"; "Extension Marketplace") { }
+                actionref("Upload Extension_Promoted"; "Upload Extension") { }
+                actionref("Deployment Status_Promoted"; "Deployment Status") { }
+                actionref(View_Promoted; View) { }
+                actionref(Install_Promoted; Install) { }
+                actionref(Uninstall_Promoted; Uninstall) { }
+                actionref(Unpublish_Promoted; Unpublish) { }
+                actionref(SetupApp_Promoted; SetupApp) { }
+                actionref("Download Source_Promoted"; "Download Source") { }
+                actionref("Learn More_Promoted"; "Learn More") { }
+                actionref(Refresh_Promoted; Refresh) { }
             }
         }
     }
@@ -390,5 +378,3 @@ page 2500 "Extension Management"
         InfoStyle := IsInstalled and IsInstallAllowed;
     end;
 }
-
-

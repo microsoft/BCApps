@@ -10,6 +10,6 @@ permissionset 9704 "Cues and KPIs - Objects"
     Access = Internal;
     Assignable = false;
 
-    Permissions = Page "Cue Setup Administrator" = X,
-                  Page "Cue Setup End User" = X;
+    Permissions = page "Cue Setup Administrator" = X,
+                  page "Cue Setup End User" = X;
 }

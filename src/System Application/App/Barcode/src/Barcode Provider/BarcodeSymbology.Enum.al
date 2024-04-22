@@ -5,7 +5,7 @@
 
 namespace System.Text;
 
-/// <summary> 
+/// <summary>
 /// The available barcode symbologies.
 /// </summary>
 enum 9204 "Barcode Symbology"
@@ -54,7 +54,7 @@ enum 9204 "Barcode Symbology"
     }
 
     /// <summary>
-    /// Postenet - The Intelligent Mail customer barcode combines the information of both the POSTNET and PLANET symbologies, and additional information, into a single barcode that is about the same size as the traditional POSTNET symbol. 
+    /// Postenet - The Intelligent Mail customer barcode combines the information of both the POSTNET and PLANET symbologies, and additional information, into a single barcode that is about the same size as the traditional POSTNET symbol.
     /// </summary>
     value(125; Postnet)
     {
@@ -62,7 +62,7 @@ enum 9204 "Barcode Symbology"
     }
 
     /// <summary>
-    /// MIS - The MSI Plessey barcode symbology was designed in the 1970s by the Plessey Company in England and has practiced primarily in libraries and retail applications. 
+    /// MIS - The MSI Plessey barcode symbology was designed in the 1970s by the Plessey Company in England and has practiced primarily in libraries and retail applications.
     /// </summary>
     value(130; MSI)
     {
@@ -70,7 +70,7 @@ enum 9204 "Barcode Symbology"
     }
 
     /// <summary>
-    /// EAN-8 - The MSI Plessey barcode symbology was designed in the 1970s by the Plessey Company in England and has practiced primarily in libraries and retail applications. 
+    /// EAN-8 - The MSI Plessey barcode symbology was designed in the 1970s by the Plessey Company in England and has practiced primarily in libraries and retail applications.
     /// </summary>
     value(200; "EAN-8")
     {
@@ -78,7 +78,7 @@ enum 9204 "Barcode Symbology"
     }
 
     /// <summary>
-    /// EAN-13 - The EAN-13 was developed as a superset of UPC-A, adding an extra digit to the beginning of every UPC-A number. 
+    /// EAN-13 - The EAN-13 was developed as a superset of UPC-A, adding an extra digit to the beginning of every UPC-A number.
     /// </summary>
     value(201; "EAN-13")
     {

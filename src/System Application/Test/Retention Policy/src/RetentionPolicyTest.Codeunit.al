@@ -1431,6 +1431,46 @@ codeunit 138702 "Retention Policy Test"
         Assert.RecordIsNotEmpty(RetentionPolicyTestData);
     end;
 
+    [Test]
+    procedure TestApplyRetentionPolicyTooManyLinesToDeleteTwoTableReschedule()
+    var
+        RetentionPeriod: Record "Retention Period";
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        RetentionPolicyTestData: Record "Retention Policy Test Data";
+        RetentionPolicyTestData3: Record "Retention Policy Test Data 3";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+        RetentionPolicyTestLibrary: Codeunit "Retention Policy Test Library";
+        RecordsTableOne: Integer;
+        RecordsTableThree: Integer;
+        i: Integer;
+    begin
+        PermissionsMock.Set('Retention Pol. Admin');
+        // Setup
+        RecordsTableOne := 50000;
+        RecordsTableThree := 60000;
+        ClearTestData();
+        InsertOneMonthRetentionPeriod(RetentionPeriod);
+        InsertEnabledRetentionPolicySetupForAllRecords(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData.FieldNo("Date Field"));
+        InsertRetentionPolicySetupTable3(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData3.FieldNo("Datetime Field"));
+
+        for i := 1 to (RecordsTableOne) do
+            InsertRetentionPolicyTestData('<-2M>');
+        for i := 1 to (RecordsTableThree) do
+            InsertRetentionPolicyTestData3('<-2M>');
+
+        Assert.AreEqual(RecordsTableOne, RetentionPolicyTestData.Count(), 'Incorrect number of records before applying retention policy');
+        Assert.AreEqual(RecordsTableThree, RetentionPolicyTestData3.Count(), 'Incorrect number of records before applying retention policy');
+
+        // Exercise
+        BindSubscription(RetentionPolicyTestLibrary);
+        ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, false);
+        UnbindSubscription(RetentionPolicyTestLibrary);
+
+        // Verify
+        Assert.RecordIsNotEmpty(RetentionPolicyTestData);
+        Assert.AreEqual(1, RetentionPolicyTestLibrary.GetRecordLimitExceededSubscriberCount(), 'OnApplyRetentionPolicyRecordLimitExceeded event called more than once.');
+    end;
+
     [HandlerFunctions('RetentionPolicyFilterPageHandler')]
     [Test]
     procedure TestApplyRetentionPolicyConflictWithBlankFilter()

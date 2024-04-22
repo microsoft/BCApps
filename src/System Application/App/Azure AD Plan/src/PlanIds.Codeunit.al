@@ -14,10 +14,6 @@ codeunit 9027 "Plan Ids"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    trigger OnRun()
-    begin
-    end;
-
     var
         Microsoft365PlanGUIDTxt: Label '{57ff2da0-773e-42df-b2af-ffb7a2317929}', Locked = true;
         TeamMemberPlanGUIDTxt: Label '{d9a6391b-8970-4976-bd94-5f205007c8d8}', Locked = true;
@@ -36,11 +32,13 @@ codeunit 9027 "Plan Ids"
         InfrastructurePlanGuidTxt: Label '{996DEF3D-B36C-4153-8607-A6FD3C01B89F}', Locked = true;
         PremiumPartnerSandboxPlanGuidTxt: Label '{37b1c04b-a429-4139-a15e-067784a80a55}', Locked = true;
         D365AdminGUIDTxt: Label '{44367163-eba1-44c3-98af-f5787879f96a}', Locked = true;
+        BCAdminGuidTxt: Label '{963797fb-eb3b-4cde-8ce3-5878b3f32a3f}', Locked = true;
 #pragma warning disable AA0240
         DelegatedAdminGUIDTxt: Label '{00000000-0000-0000-0000-000000000007}', Locked = true;
         GlobalAdminGUIDTxt: Label '{62e90394-69f5-4237-9190-012177145e10}', Locked = true;
         HelpDeskPlanGuidTxt: Label '{00000000-0000-0000-0000-000000000008}', Locked = true;
         D365AdminPartnerGUIDTxt: Label '{00000000-0000-0000-0000-000000000009}', Locked = true;
+        BCAdminPartnerGUIDTxt: Label '{00000000-0000-0000-0000-000000000010}', Locked = true;
 #pragma warning restore AA0240
 
     /// <summary>
@@ -128,6 +126,24 @@ codeunit 9027 "Plan Ids"
     end;
 
     /// <summary>
+    /// Returns the ID for the Delegated BC Admin agent - Partner plan.
+    /// </summary>
+    /// <returns>The ID for the Delegated BC Admin agent - Partner plan.</returns>
+    procedure GetDelegatedBCAdminPlanId(): Guid
+    begin
+        exit(BCAdminPartnerGUIDTxt);
+    end;
+
+    /// <summary>
+    /// Returns the ID for the Internal BC Administrator plan.
+    /// </summary>
+    /// <returns>The ID for the Internal BC Administrator plan.</returns>
+    procedure GetBCAdminPlanId(): Guid
+    begin
+        exit(BCAdminGUIDTxt);
+    end;
+
+    /// <summary>
     /// Returns the ID for the Dynamics 365 Admin - Partner plan.
     /// </summary>
     /// <returns>The ID for the Dynamics 365 Admin - Partner plan.</returns>
@@ -139,7 +155,7 @@ codeunit 9027 "Plan Ids"
     /// <summary>
     /// Returns the ID for the Dynamics 365 Administrator plan.
     /// </summary>
-    /// <returns>The ID for the Internal Administrator plan.</returns>
+    /// <returns>The ID for the Dynamics 365 Administrator plan.</returns>
     procedure GetD365AdminPlanId(): Guid
     begin
         exit(D365AdminGUIDTxt);

@@ -106,7 +106,7 @@ codeunit 1928 "Media Cleanup Impl."
                 FileName += '.png';
         end;
 
-        DownloadFromStream(MediaInStream, '', '', '', Filename);
+        DownloadFromStream(MediaInStream, '', '', '', FileName);
         exit(true);
     end;
 
@@ -189,6 +189,7 @@ codeunit 1928 "Media Cleanup Impl."
         foreach MediaOrphanSubList in SplitList do begin
             TenantMedia.SetFilter(ID, CreateOrFilter(MediaOrphanSubList));
             TenantMedia.DeleteAll();
+            Commit(); // Ensure we keep the progress even on timeout (in case of large amounts of detached media).
         end;
     end;
 

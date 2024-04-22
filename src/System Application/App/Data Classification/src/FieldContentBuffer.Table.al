@@ -8,9 +8,7 @@ namespace System.Privacy;
 table 1754 "Field Content Buffer"
 {
     Access = Internal;
-#pragma warning disable AS0034
     TableType = Temporary;
-#pragma warning restore AS0034
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -32,8 +30,5 @@ table 1754 "Field Content Buffer"
         }
     }
 
-    fieldgroups
-    {
-    }
 }
 

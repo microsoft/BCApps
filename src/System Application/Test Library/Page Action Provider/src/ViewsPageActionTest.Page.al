@@ -12,7 +12,7 @@ page 132618 "Views Page Action Test"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Group)
             {

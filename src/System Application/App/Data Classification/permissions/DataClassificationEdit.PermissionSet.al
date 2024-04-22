@@ -13,6 +13,6 @@ permissionset 1751 "Data Classification - Edit"
     IncludedPermissionSets = "Data Classification - Read";
 
     Permissions = tabledata "Data Privacy Entities" = IMD,
-                  tabledata "Fields Sync Status" = imd,
-                  tabledata "Data Sensitivity" = imd;
+                  tabledata "Data Sensitivity" = imd,
+                  tabledata "Fields Sync Status" = imd;
 }

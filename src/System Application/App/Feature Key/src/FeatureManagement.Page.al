@@ -23,8 +23,8 @@ page 2610 "Feature Management"
     DeleteAllowed = false;
     LinksAllowed = false;
     Extensible = false;
-    Permissions = tabledata "Feature Key" = rm,
-                  tabledata "Feature Data Update Status" = r;
+    Permissions = tabledata "Feature Data Update Status" = r,
+                  tabledata "Feature Key" = rm;
 
     layout
     {
@@ -35,7 +35,7 @@ page 2610 "Feature Management"
                 field(FeatureDescription; Rec.Description)
                 {
                     Caption = 'Feature';
-                    Tooltip = 'Specifies the name of the new capability or change in design.';
+                    ToolTip = 'Specifies the name of the new capability or change in design.';
                     ApplicationArea = All;
                     Editable = false;
                     Width = 60;
@@ -57,6 +57,13 @@ page 2610 "Feature Management"
                 {
                     Caption = 'Automatically enabled from';
                     ToolTip = 'Specifies a future software version and approximate date when this feature is automatically enabled for all users and cannot be disabled. Until this future version, the feature is optional.';
+                    ApplicationArea = All;
+                    Editable = false;
+                }
+                field("Mandatory By Version"; Rec."Mandatory By Version")
+                {
+                    Caption = 'Automatically enabled from version';
+                    ToolTip = 'Specifies a future software version when this feature is automatically enabled for all users and cannot be disabled. Until this future version, the feature is optional.';
                     ApplicationArea = All;
                     Editable = false;
                 }
@@ -110,7 +117,7 @@ page 2610 "Feature Management"
                     trigger OnDrillDown()
                     begin
                         if Rec."Can Try" then begin
-                            HyperLink(FeatureManagementFacade.GetFeatureKeyUrlForWeb(Rec.ID));
+                            Hyperlink(FeatureManagementFacade.GetFeatureKeyUrlForWeb(Rec.ID));
                             Message(TryItOutStartedMsg);
                         end;
                     end;
@@ -130,21 +137,21 @@ page 2610 "Feature Management"
                     Editable = false;
                     ToolTip = 'Specifies the earliest date and time when the data update task should be run.';
                 }
-                field("Task Id"; FeatureDataUpdateStatus."Task ID")
+                field("Task Id"; FeatureDataUpdateStatus."Task Id")
                 {
                     ApplicationArea = All;
                     Visible = false;
                     Editable = false;
                     ToolTip = 'Specifies the id of the scheduled task.';
                 }
-                field("Session Id"; FeatureDataUpdateStatus."Session ID")
+                field("Session Id"; FeatureDataUpdateStatus."Session Id")
                 {
                     ApplicationArea = All;
                     Visible = false;
                     Editable = false;
                     ToolTip = 'Specifies the session id where the task is being ran.';
                 }
-                field("Server Instance ID"; FeatureDataUpdateStatus."Server Instance ID")
+                field("Server Instance ID"; FeatureDataUpdateStatus."Server Instance Id")
                 {
                     ApplicationArea = All;
                     Visible = false;
@@ -154,7 +161,7 @@ page 2610 "Feature Management"
             }
         }
 #if not CLEAN23
-        area(factboxes)
+        area(FactBoxes)
         {
             part("Upcoming Changes FactBox"; "Upcoming Changes Factbox")
             {
@@ -223,6 +230,15 @@ page 2610 "Feature Management"
                     end;
                 }
             }
+        }
+    }
+
+    views
+    {
+        view("Try it out now")
+        {
+            Caption = 'Try it out now';
+            Filters = where("Can Try" = const(true));
         }
     }
 

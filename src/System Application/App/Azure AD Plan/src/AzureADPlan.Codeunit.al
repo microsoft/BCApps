@@ -254,13 +254,25 @@ codeunit 9016 "Azure AD Plan"
     end;
 
     /// <summary>
+    /// Returns the user plan experience of the user. Either Basic, Essentials, Premium or Other.
+    /// </summary>
+    /// <returns>The the user plan experience.</returns>
+    [Scope('OnPrem')]
+    procedure GetUserPlanExperience(): Enum "User Plan Experience"
+    begin
+        exit(AzureAdPlanImpl.GetUserPlanExperience());
+    end;
+
+#if not CLEAN24
+    /// <summary>
     /// Checks whether the plan configuration mixes different plans.
     /// </summary>
     [Scope('OnPrem')]
     [NonDebuggable]
+    [Obsolete('Replaced with CheckMixedPlansExist', '24.0')]
     procedure CheckMixedPlans()
     begin
-        AzureAdPlanImpl.CheckMixedPlans();
+        AzureAdPlanImpl.CheckMixedPlansExist();
     end;
 
     /// <summary>
@@ -270,17 +282,41 @@ codeunit 9016 "Azure AD Plan"
     /// <param name="ErrorOutForAdmin">Specifies if an error (instead of a message) should be shown for an admin when this function is called.</param>
     [Scope('OnPrem')]
     [NonDebuggable]
+    [Obsolete('Replaced with CheckMixedPlansExist', '24.0')]
     procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]]; ErrorOutForAdmin: Boolean)
     begin
-        AzureAdPlanImpl.CheckMixedPlans(PlanNamesPerUser, ErrorOutForAdmin);
+        AzureAdPlanImpl.CheckMixedPlansExist(PlanNamesPerUser);
     end;
 
     /// <summary>
-    /// Returns true if there are incompatible plans in the system. 
+    /// Checks whether the plan configuration mixes different plans.
+    /// </summary>
+    /// <param name="PlanNamesPerUser">A mapping of new plans for user identifiers.</param>
+    [Scope('OnPrem')]
+    [NonDebuggable]
+    [Obsolete('Replaced with CheckMixedPlansExist', '24.0')]
+    procedure CheckMixedPlans(PlanNamesPerUser: Dictionary of [Text, List of [Text]])
+    begin
+        AzureAdPlanImpl.CheckMixedPlansExist(PlanNamesPerUser);
+    end;
+#endif
+
+    /// <summary>
+    /// Checks whether the plan configuration mixes different plans.
+    /// Returns true if there are incompatible plans in the system. Only checks when conditions for plan check is met, otherwise returns false.
+    /// </summary>
+    /// <returns>Returns true if there are incompatible plans in the system.</returns>
+    [Scope('OnPrem')]
+    procedure CheckMixedPlansExist(): Boolean
+    begin
+        exit(AzureAdPlanImpl.CheckMixedPlansExist());
+    end;
+
+    /// <summary>
+    /// Returns true if there are incompatible plans in the system.
     /// </summary>
     /// <returns>Returns true if there are incompatible plans in the system. </returns>
     [Scope('OnPrem')]
-    [NonDebuggable]
     procedure MixedPlansExist(): Boolean
     begin
         exit(AzureAdPlanImpl.MixedPlansExist());

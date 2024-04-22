@@ -161,19 +161,25 @@ codeunit 8906 "Email Editor"
     procedure UploadAttachment(EmailMessageImpl: Codeunit "Email Message Impl.")
     var
         FileName: Text;
-        Instream: Instream;
-        AttachmentName, ContentType : Text[250];
-        AttachamentSize: Integer;
+        Instream: InStream;
     begin
         UploadIntoStream('', '', '', FileName, Instream);
         if FileName = '' then
             exit;
 
-        AttachmentName := CopyStr(FileName, 1, 250);
-        ContentType := EmailMessageImpl.GetContentTypeFromFilename(Filename);
-        AttachamentSize := EmailMessageImpl.AddAttachmentInternal(AttachmentName, ContentType, Instream);
+        UploadAttachment(EmailMessageImpl, FileName, Instream);
+    end;
 
-        Session.LogMessage('0000CTX', StrSubstNo(UploadingAttachmentMsg, AttachamentSize, ContentType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
+    procedure UploadAttachment(EmailMessageImpl: Codeunit "Email Message Impl."; FileName: Text; Instream: InStream)
+    var
+        AttachmentName, ContentType : Text[250];
+        AttachmentSize: Integer;
+    begin
+        AttachmentName := CopyStr(FileName, 1, 250);
+        ContentType := EmailMessageImpl.GetContentTypeFromFilename(FileName);
+        AttachmentSize := EmailMessageImpl.AddAttachmentInternal(AttachmentName, ContentType, Instream);
+
+        Session.LogMessage('0000CTX', StrSubstNo(UploadingAttachmentMsg, AttachmentSize, ContentType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
     end;
 
     procedure DownloadAttachment(MediaID: Guid; FileName: Text)
@@ -261,7 +267,7 @@ codeunit 8906 "Email Editor"
     procedure AttachFromRelatedRecords(EmailMessageID: Guid);
     var
         EmailRelatedAttachment: Record "Email Related Attachment";
-        Email: Codeunit "Email";
+        Email: Codeunit Email;
         EmailRelatedAttachmentsPage: Page "Email Related Attachments";
     begin
         EmailRelatedAttachmentsPage.LookupMode(true);
@@ -378,7 +384,7 @@ codeunit 8906 "Email Editor"
 
             Filename := WordTemplateRecord.Name + '.' + WordTemplateSelectionWizard.GetDocumentFormat();
             ContentType := EmailMessageImpl.GetContentTypeFromFilename(Filename);
-            FileSize := EmailMessageImpl.AddAttachmentInternal(CopyStr(Filename, 1, 250), ContentType, Instream);
+            FileSize := EmailMessageImpl.AddAttachmentInternal(CopyStr(Filename, 1, 250), ContentType, InStream);
 
             Session.LogMessage('0000FL4', StrSubstNo(UploadingTemplateAttachmentMsg, FileSize, ContentType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
         end else
@@ -446,7 +452,7 @@ codeunit 8906 "Email Editor"
             TempCache.Add(RelatedRecordsCache.Keys.Get(Count), TempGuid);
         end;
 
-        // Remove related records that is To, Cc, Bcc 
+        // Remove related records that is To, Cc, Bcc
         EmailMessage.Get(MessageID);
         RemoveFromCacheIfExists(TempCache, EmailMessage, Enum::"Email Recipient Type"::"To");
         RemoveFromCacheIfExists(TempCache, EmailMessage, Enum::"Email Recipient Type"::Cc);

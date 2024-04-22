@@ -127,7 +127,7 @@ codeunit 3711 Translation
     /// <param name="ToRecVariant">The record to which the translations are copied.</param>
     /// <error>If the RecVariant parameter is of type Record, and it is temporary.</error>
     /// <error>If the RecVariant parameter is of type Record, and the table number is 0.</error>
-    /// <error>If the FromRecVariant parameter is of type Record, the ToRecVariant parameter is of type Record and they are different.</error> 
+    /// <error>If the FromRecVariant parameter is of type Record, the ToRecVariant parameter is of type Record and they are different.</error>
     procedure Copy(FromRecVariant: Variant; ToRecVariant: Variant)
     begin
         TranslationImplementation.Copy(FromRecVariant, ToRecVariant, 0);
@@ -141,7 +141,7 @@ codeunit 3711 Translation
     /// <param name="FieldId">Id of the field for which the translation will be copied.</param>
     /// <error>If the RecVariant parameter is of type Record, and it is temporary.</error>
     /// <error>If the RecVariant parameter is of type Record, and the table number is 0.</error>
-    /// <error>If the FromRecVariant parameter is of type Record, the ToRecVariant parameter is of type Record and they are different.</error> 
+    /// <error>If the FromRecVariant parameter is of type Record, the ToRecVariant parameter is of type Record and they are different.</error>
     /// <error>If RecVariant passed is not of type Record.</error>
     /// <error>If the FieldId is 0.</error>
     procedure Copy(FromRecVariant: Variant; ToRecVariant: Variant; FieldId: Integer)

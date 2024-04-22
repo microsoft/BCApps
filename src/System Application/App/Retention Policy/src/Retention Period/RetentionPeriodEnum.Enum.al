@@ -18,13 +18,15 @@ enum 3900 "Retention Period Enum" implements "Retention Period"
     value(0; "Never Delete")
     {
         Implementation = "Retention Period" = "Retention Period Impl.";
+        Caption = 'Never Delete';
     }
     /// <Summary>
     /// The Custom value can be used to create user defined retention periods.
     /// </Summary>
-    value(1; "Custom")
+    value(1; Custom)
     {
         Implementation = "Retention Period" = "Retention Period Custom Impl.";
+        Caption = 'Custom';
     }
     /// <Summary>
     /// The "1 Week" value results in a retention period where records that are older than seven days are deleted.
@@ -32,6 +34,7 @@ enum 3900 "Retention Period Enum" implements "Retention Period"
     value(2; "1 Week")
     {
         Implementation = "Retention Period" = "Retention Period Impl.";
+        Caption = '1 Week';
     }
     /// <Summary>
     /// The "28 Days" value results in a retention period where records that are older than twenty-eight days are deleted.
@@ -39,6 +42,7 @@ enum 3900 "Retention Period Enum" implements "Retention Period"
     value(8; "28 Days")
     {
         Implementation = "Retention Period" = "Retention Period Impl.";
+        Caption = '28 Days';
     }
     /// <Summary>
     /// The "1 Month" value results in a retention period where records that are older than one month are deleted.
@@ -46,6 +50,7 @@ enum 3900 "Retention Period Enum" implements "Retention Period"
     value(3; "1 Month")
     {
         Implementation = "Retention Period" = "Retention Period Impl.";
+        Caption = '1 Month';
     }
     /// <Summary>
     /// The "3 Months" value results in a retention period where records that are older than three months are deleted.
@@ -53,6 +58,7 @@ enum 3900 "Retention Period Enum" implements "Retention Period"
     value(4; "3 Months")
     {
         Implementation = "Retention Period" = "Retention Period Impl.";
+        Caption = '3 Months';
     }
     /// <Summary>
     /// The "6 Months" value results in a retention period where records that are older than six months are deleted.
@@ -60,6 +66,7 @@ enum 3900 "Retention Period Enum" implements "Retention Period"
     value(5; "6 Months")
     {
         Implementation = "Retention Period" = "Retention Period Impl.";
+        Caption = '6 Months';
     }
     /// <Summary>
     /// The "1 Year" value results in a retention period where records that are older than one year are deleted.
@@ -67,6 +74,7 @@ enum 3900 "Retention Period Enum" implements "Retention Period"
     value(6; "1 Year")
     {
         Implementation = "Retention Period" = "Retention Period Impl.";
+        Caption = '1 Year';
     }
     /// <Summary>
     /// The "3 Years" value results in a retention period where records that are older than three years are deleted.
@@ -74,6 +82,7 @@ enum 3900 "Retention Period Enum" implements "Retention Period"
     value(9; "3 Years")
     {
         Implementation = "Retention Period" = "Retention Period Impl.";
+        Caption = '3 Years';
     }
     /// <Summary>
     /// The "5 Years" value results in a retention period where records that are older than five years are deleted.
@@ -81,5 +90,6 @@ enum 3900 "Retention Period Enum" implements "Retention Period"
     value(7; "5 Years")
     {
         Implementation = "Retention Period" = "Retention Period Impl.";
+        Caption = '5 Years';
     }
 }

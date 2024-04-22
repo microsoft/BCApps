@@ -22,14 +22,14 @@ page 1990 "Checklist Banner"
     // ---------------------IMPORTANT---------------------------
     // ---------------------------------------------------------
     // DO NOT CHANGE THE NAMES OF ANY OF THE FIELDS ON THIS PAGE.
-    // THE CLIENT WILL NOT BE ABLE TO RENDER THE PAGE PROPERLY 
+    // THE CLIENT WILL NOT BE ABLE TO RENDER THE PAGE PROPERLY
     // OTHERWISE.
     // ---------------------------------------------------------
     // ---------------------IMPORTANT---------------------------
 
     layout
     {
-        area(content)
+        area(Content)
         {
             field(Title; TitleTxt)
             {
@@ -121,7 +121,7 @@ page 1990 "Checklist Banner"
                 {
                     ApplicationArea = All;
                     Caption = 'Mark as completed';
-                    Tooltip = 'Specifies the task as completed.';
+                    ToolTip = 'Specifies the task as completed.';
                     Visible = IsChecklistItemStarted;
 
                     trigger OnValidate()

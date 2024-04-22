@@ -15,7 +15,7 @@ codeunit 132513 "Confirm Test Library"
         GuiAllowed: Boolean;
 
     /// <summary>
-    /// Sets the value of GUI allowed. This value will be used to determine if the confirm dialog should be shown in 
+    /// Sets the value of GUI allowed. This value will be used to determine if the confirm dialog should be shown in
     /// GetResponse and GetResponseOrDefault functions when the subscription is bound.
     /// Uses <see cref="OnBeforeGuiAllowed"/> event.
     /// </summary>

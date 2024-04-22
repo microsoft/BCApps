@@ -1,0 +1,37 @@
+# https://github.com/microsoft/action-psscriptanalyzer
+# For more information on PSScriptAnalyzer in general, see
+# https://github.com/PowerShell/PSScriptAnalyzer
+
+name: PSScriptAnalyzer
+
+on:
+  push:
+    branches: [ "main", "releases/*" ]
+  pull_request:
+    branches: [ "main", "releases/*" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: PSScriptAnalyzer
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run PSScriptAnalyzer
+        uses: microsoft/psscriptanalyzer-action@v1.1
+        with:
+          path: .\
+          recurse: true
+          excludeRule: '"PSAvoidUsingInvokeExpression", "PSUseShouldProcessForStateChangingFunctions", "PSAvoidUsingWriteHost", "PSAvoidUsingCmdletAliases", "PSUseSingularNouns", "PSUseApprovedVerbs"'
+          output: results.sarif
+
+      # Upload the SARIF file generated in the previous step
+      - name: Upload SARIF results file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif

@@ -8,8 +8,8 @@ namespace System.Apps;
 /// The table containing information about an extension install.
 /// </summary>
 /// <remarks>
-/// The casing of the fields is expected to match the casing in the URL filter used when calling the installation page 2503: 
-/// 'ID' IS '[AppID]' AND 'PREVIEWKEY' IS '[PreviewKey]'
+/// The casing of the fields is expected to match the casing in the URL filter used when calling the installation page 2503:
+/// 'ID' IS '[AppID]' AND 'PreviewKey' IS '[PreviewKey]'
 /// </remarks>
 table 2503 "Extension Installation"
 {
@@ -22,16 +22,23 @@ table 2503 "Extension Installation"
         /// <summary>
         /// The app identifier. Should uniquely identify the application and remains static across versions.
         /// </summary>
-        field(1; "ID"; Guid)
+        field(1; ID; Guid)
         {
             Caption = 'ID';
         }
         /// <summary>
         /// The preview key to be used when installing a preview version of an AppSource app.
         /// </summary>
-        field(2; PREVIEWKEY; Text[2048])
+        field(2; PreviewKey; Text[2048])
         {
             Caption = 'Preview Key';
+        }
+        /// <summary>
+        /// The Response URL for the Partner Center ingestion call back to be used when installing a version of an AppSource app.
+        /// </summary>
+        field(3; ResponseUrl; Text[2048])
+        {
+            Caption = 'Response URL';
         }
     }
 }

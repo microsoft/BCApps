@@ -8,8 +8,6 @@ namespace System.Azure.Identity;
 using System;
 using System.Security.User;
 using System.Environment;
-using System.Telemetry;
-using System.Globalization;
 using System.Security.AccessControl;
 using System.Environment.Configuration;
 
@@ -19,13 +17,13 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    Permissions = TableData User = rm,
-                  TableData "User Property" = r,
-                  tabledata "User Personalization" = r;
+    Permissions = tabledata User = rm,
+                  tabledata "User Personalization" = r,
+                  tabledata "User Property" = r;
 
     trigger OnRun()
     begin
-        if ClientTypeManagement.GetCurrentClientType() = CLIENTTYPE::Background then
+        if ClientTypeManagement.GetCurrentClientType() = ClientType::Background then
             exit;
 
         Run(UserSecurityId());
@@ -87,7 +85,7 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
     var
         User: Record User;
         GraphUserInfo: DotNet UserInfo;
-        GraphUserInfoPage: Dotnet UserInfoPage;
+        GraphUserInfoPage: DotNet UserInfoPage;
         WindowDialog: Dialog;
         i: Integer;
         UsersPerPage: Integer;
@@ -208,7 +206,8 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
     begin
         exit(AzureADPlan.IsPlanAssignedToUser(PlanIds.GetDelegatedAdminPlanId(), UserSecID) or
             AzureADPlan.IsPlanAssignedToUser(PlanIds.GetHelpDeskPlanId(), UserSecID) or
-            AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPartnerPlanId(), UserSecID))
+            AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPartnerPlanId(), UserSecID) or
+            AzureADPlan.IsPlanAssignedToUser(PlanIds.GetDelegatedBCAdminPlanId(), UserSecID))
     end;
 
     [NonDebuggable]
@@ -309,37 +308,6 @@ codeunit 9017 "Azure AD User Mgmt. Impl."
         AccessControl.SetRange("User Security ID", UserSecId);
         // if the user has more permissions than specified by the plan configuration, then the permissions are customized
         exit(AccessControl.Count() > TempAccessControlWithDefaultPermissions.Count());
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Telemetry Custom Dimensions", OnAddCommonCustomDimensions, '', true, true)]
-    local procedure OnAddCommonCustomDimensions(var Sender: Codeunit "Telemetry Custom Dimensions")
-    var
-        Language: Codeunit Language;
-        PlanIds: Codeunit "Plan Ids";
-        UserAccountHelper: DotNet NavUserAccountHelper;
-        IsAdmin: Boolean;
-        CountryCode: Text;
-    begin
-        if not UserAccountHelper.IsAzure() then
-            exit;
-
-        // Add IsAdmin
-        IsAdmin := AzureADGraphUser.IsUserDelegatedAdmin() or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId());
-        Sender.AddCommonCustomDimension('IsAdmin', Language.ToDefaultLanguage(IsAdmin));
-
-        // Add CountryCode
-        if TryGetCountryCode(CountryCode) then
-            Sender.AddCommonCustomDimension('CountryCode', CountryCode);
-    end;
-
-    [TryFunction]
-    local procedure TryGetCountryCode(var CountryCode: Text)
-    var
-        TenantInfo: DotNet TenantInfo;
-    begin
-        AzureADGraph.GetTenantDetail(TenantInfo);
-        if not IsNull(TenantInfo) then
-            CountryCode := TenantInfo.CountryLetterCode();
     end;
 
     [InternalEvent(false)]

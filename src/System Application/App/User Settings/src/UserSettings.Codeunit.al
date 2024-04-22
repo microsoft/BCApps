@@ -9,7 +9,7 @@ using System.Environment;
 using System.Reflection;
 
 /// <summary>
-/// Provides basic functionality for user settings. 
+/// Provides basic functionality for user settings.
 /// </summary>
 codeunit 9176 "User Settings"
 {
@@ -56,6 +56,28 @@ codeunit 9176 "User Settings"
         UserSettingsImpl: Codeunit "User Settings Impl.";
     begin
         UserSettingsImpl.EnableTeachingTips(UserSecurityId);
+    end;
+
+    /// <summary>
+    /// Disables the legacy action bar for a given user.
+    /// </summary>
+    /// <param name="UserSecurityID">The user security id of the user.</param>
+    procedure DisableLegacyActionBar(UserSecurityId: Guid)
+    var
+        UserSettingsImpl: Codeunit "User Settings Impl.";
+    begin
+        UserSettingsImpl.DisableLegacyActionBar(UserSecurityId);
+    end;
+
+    /// <summary>
+    /// Enables the legacy action bar for a given user.
+    /// </summary>
+    /// <param name="UserSecurityID">The user security id of the user.</param>
+    procedure EnableLegacyActionBar(UserSecurityId: Guid)
+    var
+        UserSettingsImpl: Codeunit "User Settings Impl.";
+    begin
+        UserSettingsImpl.EnableLegacyActionBar(UserSecurityId);
     end;
 
     /// <summary>

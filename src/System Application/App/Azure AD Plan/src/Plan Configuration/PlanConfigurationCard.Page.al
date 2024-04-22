@@ -24,7 +24,7 @@ page 9069 "Plan Configuration Card"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             grid(GeneralGrid)
             {

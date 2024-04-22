@@ -24,7 +24,7 @@ page 3901 "Retention Policy Setup Card"
         {
             group(General)
             {
-                field(TableID; Rec."Table ID")
+                field(TableID; Rec."Table Id")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the ID of the table to which the retention policy applies.';
@@ -86,6 +86,16 @@ page 3901 "Retention Policy Setup Card"
                     ToolTip = 'Specifies the number of expired records.';
                     Editable = false;
                     StyleExpr = ExpiredRecordCountStyleTxt;
+                    Visible = not ShowExpiredRecordExpirationDate;
+                }
+                field("Records To Delete"; ExpiredRecordCount)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Records to delete';
+                    ToolTip = 'Specifies the number of expired records the retention policy will delete the next time it runs.';
+                    Editable = false;
+                    StyleExpr = ExpiredRecordCountStyleTxt;
+                    Visible = ShowExpiredRecordExpirationDate;
                 }
                 field("Expired Record Expiration Date"; ExpiredRecordExpirationDate)
                 {
@@ -121,8 +131,8 @@ page 3901 "Retention Policy Setup Card"
             {
                 ApplicationArea = All;
                 Caption = 'Record Retention Policy', Comment = 'Record as in ''a record in a table''.';
-                SubPageLink = "Table ID" = field("Table ID");
-                Visible = not Rec."Apply to all records";
+                SubPageLink = "Table ID" = field("Table Id");
+                Visible = ShowExpiredRecordExpirationDate;
             }
         }
     }
@@ -141,8 +151,8 @@ page 3901 "Retention Policy Setup Card"
                 PromotedCategory = Category4;
 
                 Image = CalendarMachine;
-                Tooltip = 'Set up retention periods.';
-                RunObject = Page "Retention Periods";
+                ToolTip = 'Set up retention periods.';
+                RunObject = page "Retention Periods";
             }
             action(RetentionPolicyLog)
             {
@@ -153,8 +163,8 @@ page 3901 "Retention Policy Setup Card"
                 PromotedCategory = Category4;
 
                 Image = Log;
-                Tooltip = 'View activity related to retention policies.';
-                RunObject = Page "Retention Policy Log Entries";
+                ToolTip = 'View activity related to retention policies.';
+                RunObject = page "Retention Policy Log Entries";
             }
         }
         area(Processing)

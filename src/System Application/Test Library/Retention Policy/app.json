@@ -4,7 +4,7 @@
     "publisher":  "Microsoft",
     "brief":  "Library with Test tables for the Retencion Policy module",
     "description":  "Library with Test tables for the Retencion Policy module",
-    "version":  "24.0.0.0",
+    "version":  "25.0.0.0",
     "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
     "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
     "help":  "",
@@ -15,17 +15,21 @@
                              "id":  "a8177fd4-0adb-4482-889c-2e123a13b50a",
                              "name":  "Retention Policy",
                              "publisher":  "Microsoft",
-                             "version":  "24.0.0.0"
+                             "version":  "25.0.0.0"
                          }
                      ],
     "screenshots":  [
 
                     ],
-    "platform":  "24.0.0.0",
+    "platform":  "25.0.0.0",
     "idRanges":  [
                      {
                          "from":  138700,
                          "to":  138704
+                     },
+                     {
+                         "from":  138709,
+                         "to":  139709
                      }
                  ],
     "target":  "OnPrem"

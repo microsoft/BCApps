@@ -16,7 +16,6 @@ table 9106 "SharePoint Folder"
     DataClassification = SystemMetadata; // Data classification is SystemMetadata as the table is temporary
     Caption = 'SharePoint Folder';
     TableType = Temporary;
-    Extensible = false;
 
     fields
     {
@@ -40,7 +39,7 @@ table 9106 "SharePoint Folder"
             Caption = 'Item Count';
         }
 
-        field(5; "Exists"; Boolean)
+        field(5; Exists; Boolean)
         {
             Caption = 'Exists';
         }

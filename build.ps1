@@ -11,6 +11,7 @@
         .\build.ps1 -ALGoProject "System Application"
         .\build.ps1 -ALGoProject "Test Stability Tools" -AutoFill
 #>
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'local build')]
 param
 (
     [Parameter(Mandatory=$true)]
@@ -28,7 +29,8 @@ if (-not (Get-Module -ListAvailable -Name "BCContainerHelper")) {
 if ($AutoFill) {
     Add-Type -AssemblyName System.Web
 
-    $credential = New-Object pscredential admin, (ConvertTo-SecureString -String ([System.Web.Security.Membership]::GeneratePassword(20, 5)) -AsPlainText -Force)
+    [securestring] $securePassword = ConvertTo-SecureString -String $([System.Web.Security.Membership]::GeneratePassword(20, 5)) -AsPlainText -Force
+    $credential = New-Object -TypeName pscredential -ArgumentList admin, $securePassword
     $licenseFileUrl = 'none'
     $containerName = "bcserver"
     $auth = "UserPassword"

@@ -24,7 +24,7 @@ page 2010 "Azure OpenAi Settings"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(settings)
             {
@@ -62,9 +62,6 @@ page 2010 "Azure OpenAi Settings"
         }
     }
 
-    actions
-    {
-    }
 
     trigger OnInit()
     begin
@@ -87,6 +84,7 @@ page 2010 "Azure OpenAi Settings"
     end;
 
     var
+        [NonDebuggable]
         Secret: Text;
         SecretPlaceholderLbl: Label '***', Locked = true;
 }

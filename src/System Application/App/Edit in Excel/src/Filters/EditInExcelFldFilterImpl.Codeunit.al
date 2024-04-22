@@ -10,19 +10,26 @@ using System;
 /// <summary>
 /// This codeunit provides an interface to running Edit in Excel for a specific page.
 /// </summary>
-codeunit 1492 "Edit in Excel Fld Filter Impl." implements "Edit in Excel Field Filter"
+
+#if not CLEAN25
+#pragma warning disable AL0432
+codeunit 1492 "Edit in Excel Fld Filter Impl." implements "Edit in Excel Field Filter", "Edit in Excel Field Filter v2"
+#pragma warning restore AL0432
+#else
+codeunit 1492 "Edit in Excel Fld Filter Impl." implements "Edit in Excel Field Filter v2"
+#endif
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
     var
-        EditInExcelFieldFilter: Interface "Edit in Excel Field Filter";
+        EditInExcelFieldFilter: Codeunit "Edit in Excel Fld Filter Impl.";
         FilterCollectionNode: DotNet FilterCollectionNode;
         ODataFieldName: Text;
         EdmType: Text;
 
-    internal procedure Initialize(NewODataFieldName: Text; NewEdmType: Text; NewFilterCollectionNode: DotNet FilterCollectionNode; NewEditInExcelFieldFilter: Interface "Edit in Excel Field Filter")
+    internal procedure Initialize(NewODataFieldName: Text; NewEdmType: Text; NewFilterCollectionNode: DotNet FilterCollectionNode; NewEditInExcelFieldFilter: Codeunit "Edit in Excel Fld Filter Impl.")
     begin
         FilterCollectionNode := NewFilterCollectionNode;
         EditInExcelFieldFilter := NewEditInExcelFieldFilter;
@@ -30,7 +37,18 @@ codeunit 1492 "Edit in Excel Fld Filter Impl." implements "Edit in Excel Field F
         EdmType := NewEdmType;
     end;
 
+#if not CLEAN25
+#pragma warning disable AL0432
+    [Obsolete('Use AddFilterValueV2 instead, returns interface "Edit in Excel Field Filter" instead which supports getting filter collection type', '25.0')]
     procedure AddFilterValue(EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text): Interface "Edit in Excel Field Filter"
+#pragma warning restore AL0432
+    begin
+        AddFieldFilterValue(EditInExcelFilterType, FilterValue);
+        exit(EditInExcelFieldFilter); // Reference back to self to allow builder pattern
+    end;
+#endif
+
+    procedure AddFilterValueV2(EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text): Interface "Edit in Excel Field Filter V2"
     begin
         AddFieldFilterValue(EditInExcelFilterType, FilterValue);
         exit(EditInExcelFieldFilter); // Reference back to self to allow builder pattern
@@ -52,6 +70,16 @@ codeunit 1492 "Edit in Excel Fld Filter Impl." implements "Edit in Excel Field F
         FilterCollectionNode.Collection.RemoveAt(Index);
     end;
 
+    procedure GetCollectionType(): Enum "Edit in Excel Filter Collection Type"
+    var
+        TempString: DotNet String;
+    begin
+        TempString := FilterCollectionNode.Operator();
+        if TempString = 'or' then
+            exit("Edit in Excel Filter Collection Type"::"or");
+        exit("Edit in Excel Filter Collection Type"::"and")
+    end;
+
     procedure Count(): Integer
     begin
         exit(FilterCollectionNode.Collection.Count());
@@ -70,7 +98,7 @@ codeunit 1492 "Edit in Excel Fld Filter Impl." implements "Edit in Excel Field F
         ExcelFilterNodeType := "Excel Filter Node Type".FromInteger(EditInExcelFilterType.AsInteger()); // Convert from readable "Less Than" to OData "lt"
         FilterBinaryNode := FilterBinaryNode.FilterBinaryNode();
         FilterBinaryNode.Left := FilterLeftOperand;
-        FilterBinaryNode.Operator := format(ExcelFilterNodeType);
+        FilterBinaryNode.Operator := Format(ExcelFilterNodeType);
         FilterBinaryNode.Right := FilterValue;
 
         FilterCollectionNode.Collection.Add(FilterBinaryNode);

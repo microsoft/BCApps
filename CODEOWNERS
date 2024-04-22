@@ -1,24 +1,31 @@
+# Each line is a file pattern followed by one or more owners.
+# Order is important; the last matching pattern takes the most precedence.
+# CODEOWNERS paths are case sensitive, because GitHub uses a case sensitive file system
+
 # Default owners
 * @microsoft/dynamics-365-business-central
 
+# Default owners for all app code
 /src @microsoft/d365-bc-app-required
-
-# App Permissions
-*.permissionset.al @microsoft/d365-bc-app-permissions
-*.permissionsetext.al @microsoft/d365-bc-app-permissions
-*.entitlement.al @microsoft/d365-bc-app-permissions
 
 # App Rulesets
 /src/rulesets/ @microsoft/d365-bc-app-rulesets
 
+# Developer Tools
+/src/System\ Application/App/Extension\ Management @microsoft/dynamics-smb-developertools
+
+# App Foundation
+/src/System\ Application/App/AI @microsoft/d365-bc-copilot-toolkit
+
 # App Security
 dotnet.al @microsoft/d365-bc-app-security
 
-# Developer Tools
-**/Extension\ Management @microsoft/dynamics-smb-developertools
-
-# App Foundation
-/src/System\ Application/App/AI @microsoft/d365-bc-app-foundation
+# App Permissions
+/src/**/Permissions/ @microsoft/d365-bc-app-permissions
+/src/**/permissions/ @microsoft/d365-bc-app-permissions
+*.Permissionset.al @microsoft/d365-bc-app-permissions
+*.Permissionsetext.al @microsoft/d365-bc-app-permissions
+*.Entitlement.al @microsoft/d365-bc-app-permissions
 
 # AL-Go files and build scripts are owned by Engineering Systems
 .AL-Go/ @microsoft/d365-bc-engineering-systems
@@ -27,5 +34,3 @@ dotnet.al @microsoft/d365-bc-app-security
 /.github @microsoft/d365-bc-engineering-systems
 /build @microsoft/d365-bc-engineering-systems
 /CODEOWNERS @microsoft/d365-bc-engineering-systems
-
-

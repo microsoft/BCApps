@@ -25,12 +25,12 @@ page 130453 "Select Tests"
                 field("Object ID"; Rec."Object ID")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the Object ID';
+                    ToolTip = 'Specifies the Object ID';
                 }
                 field("Object Name"; Rec."Object Name")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the Object Name';
+                    ToolTip = 'Specifies the Object Name';
                 }
             }
         }

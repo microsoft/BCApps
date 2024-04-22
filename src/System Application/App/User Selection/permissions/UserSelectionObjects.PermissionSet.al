@@ -10,6 +10,6 @@ permissionset 9844 "User Selection - Objects"
     Access = Internal;
     Assignable = false;
 
-    Permissions = Codeunit "User Selection" = X,
-                  Page "User Lookup" = X;
+    Permissions = codeunit "User Selection" = X,
+                  page "User Lookup" = X;
 }

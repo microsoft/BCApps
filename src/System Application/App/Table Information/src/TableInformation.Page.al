@@ -88,7 +88,7 @@ page 8700 "Table Information"
                     ToolTip = 'Specifies how much space the table indexes (keys) occupy in the database (in kilobytes).';
                 }
 
-                field("Compression"; Rec."Compression")
+                field(Compression; Rec."Compression")
                 {
                     ApplicationArea = All;
                     OptionCaption = 'None,Row,Page,,';
@@ -100,7 +100,7 @@ page 8700 "Table Information"
 
     trigger OnInit()
     var
-        UserPermissions: codeunit "User Permissions";
+        UserPermissions: Codeunit "User Permissions";
     begin
         Rec.FilterGroup(2);
         if UserPermissions.IsSuper(UserSecurityId()) then

@@ -20,8 +20,7 @@ codeunit 1466 "EncryptedXml Impl."
         XmlEncRSA15UrlTok: Label 'http://www.w3.org/2001/04/xmlenc#rsa-1_5', Locked = true;
         XmlEncUrlTok: Label 'http://www.w3.org/2001/04/xmlenc#', Locked = true;
 
-    [NonDebuggable]
-    procedure Encrypt(var XmlDocument: XmlDocument; ElementToEncrypt: Text; X509CertBase64Value: Text; X509CertPassword: Text)
+    procedure Encrypt(var XmlDocument: XmlDocument; ElementToEncrypt: Text; X509CertBase64Value: Text; X509CertPassword: SecretText)
     var
         XmlDotNetConvert: Codeunit "Xml DotNet Convert";
         X509Certificate2Impl: Codeunit "X509Certificate2 Impl.";
@@ -53,8 +52,7 @@ codeunit 1466 "EncryptedXml Impl."
         XmlDotNetConvert.FromDotNet(DotNetXmlDocument, XmlDocument);
     end;
 
-    [NonDebuggable]
-    procedure Encrypt(var XmlDocument: XmlDocument; ElementToEncrypt: Text; X509CertBase64Value: Text; X509CertPassword: Text; SymmetricAlgorithm: Enum SymmetricAlgorithm)
+    procedure Encrypt(var XmlDocument: XmlDocument; ElementToEncrypt: Text; X509CertBase64Value: Text; X509CertPassword: SecretText; SymmetricAlgorithm: Enum SymmetricAlgorithm)
     var
         XmlDotNetConvert: Codeunit "Xml DotNet Convert";
         X509Certificate2Impl: Codeunit "X509Certificate2 Impl.";
@@ -69,7 +67,7 @@ codeunit 1466 "EncryptedXml Impl."
         DotNetSymmetricAlgorithm: DotNet "Cryptography.SymmetricAlgorithm";
         DotNetX509Certificate2: DotNet X509Certificate2;
         DotNetCipherData: DotNet CipherData;
-        DotNetRSA: Dotnet RSA;
+        DotNetRSA: DotNet RSA;
         DotNetKeyInfo: DotNet KeyInfo;
         DotNetKeyInfoX509Data: DotNet KeyInfoX509Data;
         DotNetKeyInfoEncryptedKey: DotNet KeyInfoEncryptedKey;
@@ -125,8 +123,7 @@ codeunit 1466 "EncryptedXml Impl."
         XmlDotNetConvert.FromDotNet(DotNetXmlDocument, XmlDocument);
     end;
 
-    [NonDebuggable]
-    procedure DecryptDocument(var EncryptedDocument: XmlDocument; EncryptionKey: Text; SignatureAlgorithm: Enum SignatureAlgorithm): Boolean
+    procedure DecryptDocument(var EncryptedDocument: XmlDocument; EncryptionKey: SecretText; SignatureAlgorithm: Enum SignatureAlgorithm): Boolean
     var
         XmlDotNetConvert: Codeunit "Xml DotNet Convert";
         DotNetXmlNamespaceManager: DotNet XmlNamespaceManager;
@@ -134,14 +131,14 @@ codeunit 1466 "EncryptedXml Impl."
         DotNetEncryptedNodes: DotNet XmlNodeList;
         DotNetEncryptedNode: DotNet XmlNode;
         DotNetAsymmetricAlgorithm: DotNet AsymmetricAlgorithm;
-        SignatureAlgorithmInterface: Interface SignatureAlgorithm;
+        SignatureAlgorithmInterface: Interface "Signature Algorithm v2";
     begin
         //Convert the XmlDocument to a DotNet XmlDocument
         XmlDotNetConvert.ToDotNet(EncryptedDocument, DotNetXmlDocument, true);
 
         //Get the asymmetric algorithm instance to be used for decrypting the symmetric session key
         SignatureAlgorithmInterface := SignatureAlgorithm;
-        SignatureAlgorithmInterface.FromXmlString(EncryptionKey);
+        SignatureAlgorithmInterface.FromSecretXmlString(EncryptionKey);
         SignatureAlgorithmInterface.GetInstance(DotNetAsymmetricAlgorithm);
 
         //Find all encrypted data elements and decrypt them
@@ -157,7 +154,6 @@ codeunit 1466 "EncryptedXml Impl."
         exit(true);
     end;
 
-    [NonDebuggable]
     local procedure DecryptDataElement(DotNetXmlElement: DotNet XmlElement; DotNetAsymmetricAlgorithm: DotNet AsymmetricAlgorithm): Boolean
     var
         SymmetricAlgorithmInterface: Interface SymmetricAlgorithm;
@@ -209,21 +205,20 @@ codeunit 1466 "EncryptedXml Impl."
         exit(true);
     end;
 
-    [NonDebuggable]
-    procedure DecryptKey(EncryptedKey: XmlElement; EncryptionKey: Text; UseOAEP: Boolean; var KeyBase64Value: Text; SignatureAlgorithm: ENum SignatureAlgorithm): Boolean
+    procedure DecryptKey(EncryptedKey: XmlElement; EncryptionKey: SecretText; UseOAEP: Boolean; var KeyBase64Value: Text; SignatureAlgorithm: Enum SignatureAlgorithm): Boolean
     var
         XmlDocument: XmlDocument;
         XmlNamespaceManager: XmlNamespaceManager;
         CipherValue: XmlNode;
         DotNetEncryptedXml: DotNet EncryptedXml;
         DotNetCipherBytes, DotNetKeyBytes : DotNet Array;
-        DotNetConvert: Dotnet Convert;
+        DotNetConvert: DotNet Convert;
         DotNetAsymmetricAlgorithm: DotNet AsymmetricAlgorithm;
-        SignatureAlgorithmInterface: Interface SignatureAlgorithm;
+        SignatureAlgorithmInterface: Interface "Signature Algorithm v2";
     begin
         //Get the asymmetric algorithm instance to be used for decrypting the key
         SignatureAlgorithmInterface := SignatureAlgorithm;
-        SignatureAlgorithmInterface.FromXmlString(EncryptionKey);
+        SignatureAlgorithmInterface.FromSecretXmlString(EncryptionKey);
         SignatureAlgorithmInterface.GetInstance(DotNetAsymmetricAlgorithm);
 
         //Get the XML document of the XML element

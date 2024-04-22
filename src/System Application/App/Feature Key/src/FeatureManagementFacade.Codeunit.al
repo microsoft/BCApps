@@ -27,7 +27,7 @@ codeunit 2611 "Feature Management Facade"
 
     /// <summary>
     /// Updates the status in "Feature Data Update Status" records related to all companies.
-    /// Also sends the notification reminding user to sign in again after feature is enabled/disabled. 
+    /// Also sends the notification reminding user to sign in again after feature is enabled/disabled.
     /// </summary>
     /// <param name="FeatureKey">the current "Feature Key" record</param>
     procedure AfterValidateEnabled(FeatureKey: Record "Feature Key")
@@ -115,7 +115,7 @@ codeunit 2611 "Feature Management Facade"
     end;
 
     [IntegrationEvent(false, false)]
-    internal procedure OnGetImplementation(FeatureDataUpdateStatus: Record "Feature Data Update Status"; var FeatureDataUpdate: interface "Feature Data Update"; var ImplementedId: Text[50])
+    internal procedure OnGetImplementation(FeatureDataUpdateStatus: Record "Feature Data Update Status"; var FeatureDataUpdate: Interface "Feature Data Update"; var ImplementedId: Text[50])
     begin
     end;
 
@@ -143,4 +143,10 @@ codeunit 2611 "Feature Management Facade"
     internal procedure OnBeforeSetFeatureStatusForOtherCompanies(var FeatureDataUpdateStatus: Record "Feature Data Update Status"; var IsHandled: Boolean)
     begin
     end;
+
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeOpenFeatureManagement(var FeatureManagementPageID: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
 }

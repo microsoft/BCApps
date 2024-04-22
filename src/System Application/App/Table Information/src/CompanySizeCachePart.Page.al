@@ -23,14 +23,14 @@ page 8702 "Company Size Cache Part"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(general)
             {
                 field(CompanyName; Rec."Company Name")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the name of the company.';
+                    ToolTip = 'Specifies the name of the company.';
                 }
                 field(SizeKB; Rec."Size (KB)")
                 {

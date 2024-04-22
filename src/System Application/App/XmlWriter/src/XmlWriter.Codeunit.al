@@ -8,7 +8,7 @@ namespace System.Xml;
 /// <summary>
 /// Provides helper functions for System.Xml.XmlWriter
 /// </summary>
-codeunit 1483 "XmlWriter"
+codeunit 1483 XmlWriter
 {
     Access = Public;
     InherentEntitlements = X;
@@ -64,6 +64,29 @@ codeunit 1483 "XmlWriter"
     procedure WriteElementString(LocalName: Text; ElementValue: Text)
     begin
         XmlWriterImpl.WriteElementString(LocalName, ElementValue);
+    end;
+
+    /// <summary>
+    /// Writes an element with the specified local name, value and namespace.
+    /// </summary>
+    /// <param name="LocalName">The local name of the element.</param>
+    /// <param name="ElementValue">The value of the element.</param>
+    /// <param name="Namespace">The namespace URI of the element.</param>
+    procedure WriteElementString(LocalName: Text; ElementValue: Text; Namespace: Text)
+    begin
+        XmlWriterImpl.WriteElementString(LocalName, ElementValue, Namespace);
+    end;
+
+    /// <summary>
+    /// Writes an element with the specified local name, value, namespace and prefix.
+    /// </summary>
+    /// <param name="LocalName">The local name of the element.</param>
+    /// <param name="ElementValue">The value of the element.</param>
+    /// <param name="Namespace">The namespace URI of the element.</param>
+    /// <param name="Prefix">The prefix of the element.</param>
+    procedure WriteElementString(LocalName: Text; ElementValue: Text; Namespace: Text; Prefix: Text)
+    begin
+        XmlWriterImpl.WriteElementString(LocalName, ElementValue, Namespace, Prefix);
     end;
 
     /// <summary>
@@ -123,7 +146,7 @@ codeunit 1483 "XmlWriter"
     end;
 
     /// <summary>
-    /// Writes the text within Xml Writer to the BigText variable. 
+    /// Writes the text within Xml Writer to the BigText variable.
     /// </summary>
     /// <param name="XmlBigText">The BigText the Xml Writer has to be write to.</param>
     procedure ToBigText(var XmlBigText: BigText)

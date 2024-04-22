@@ -1,3 +1,4 @@
+#if not CLEAN24
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -7,6 +8,7 @@ namespace System.Apps;
 
 using System;
 using System.Utilities;
+using System.Integration;
 
 /// <summary>
 /// Shows the Extension Marketplace.
@@ -14,16 +16,20 @@ using System.Utilities;
 page 2502 "Extension Marketplace"
 {
     Caption = 'Extension Marketplace';
+    AdditionalSearchTerms = 'app,add-in,customize,plug-in,appsource';
     PageType = Card;
     ApplicationArea = All;
     UsageCategory = Administration;
     Editable = false;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This page will be obsoleted. Microsoft AppSource apps feature will replace the Extension Marketplace.';
+    ObsoleteTag = '24.0';
 
     layout
     {
         area(Content)
         {
-            usercontrol(Marketplace; WebPageViewerExtMgmt)
+            usercontrol(Marketplace; WebPageViewer)
             {
                 ApplicationArea = Basic, Suite;
                 trigger ControlAddInReady(callbackUrl: Text)
@@ -49,9 +55,6 @@ page 2502 "Extension Marketplace"
                     CurrPage.Marketplace.Navigate(MarketplaceUrl);
                 end;
 
-                trigger DocumentReady()
-                begin
-                end;
 
                 trigger Callback(data: Text);
                 begin
@@ -87,7 +90,7 @@ page 2502 "Extension Marketplace"
         applicationId: Text;
         ActionOption: Option acquireApp;
     begin
-        if EVALUATE(ActionOption, ActionName) then
+        if Evaluate(ActionOption, ActionName) then
             if ActionOption = ActionOption::acquireApp then begin
                 TelemetryUrl := ExtensionMarketplace.GetTelementryUrlFromData(JObject);
                 applicationId := ExtensionMarketplace.GetApplicationIdFromData(JObject);
@@ -110,4 +113,4 @@ page 2502 "Extension Marketplace"
         TelemetryUrl: Text;
         AppsourceUrl: Text;
 }
-
+#endif

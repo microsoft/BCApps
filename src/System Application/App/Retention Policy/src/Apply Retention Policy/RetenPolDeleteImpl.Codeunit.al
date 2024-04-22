@@ -23,7 +23,7 @@ codeunit 3916 "Reten. Pol. Delete. Impl." implements "Reten. Pol. Deleting"
         RecordReference: Codeunit "Record Reference";
         RecordReferenceIndirectPermission: Interface "Record Reference";
     begin
-        if RetenPolDeletingParam."Max. Number of Rec. To Delete" < 0 then begin
+        if RetenPolDeletingParam."Max. Number of Rec. to Delete" < 0 then begin
             RetentionPolicyLog.LogWarning(LogCategory(), MaxNumberofRecToDeleteNegLbl);
             exit;
         end;

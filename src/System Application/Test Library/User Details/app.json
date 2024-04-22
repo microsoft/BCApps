@@ -1,0 +1,38 @@
+{
+    "id":  "9beafef7-a2fc-491c-85bd-8cd5c4650f2b",
+    "name":  "User Details Test Library",
+    "publisher":  "Microsoft",
+    "brief":  "Test objects for the User Details module.",
+    "description":  "Test objects for User Details module.",
+    "version":  "25.0.0.0",
+    "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
+    "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help":  "",
+    "url":  "https://go.microsoft.com/fwlink/?LinkId=724011",
+    "logo":  "",
+    "dependencies":  [
+                         {
+                             "id":  "0e4ed208-7f60-4bad-a881-eeb03e09d832",
+                             "name":  "User Details",
+                             "publisher":  "Microsoft",
+                             "version":  "25.0.0.0"
+                         },
+                         {
+                             "id":  "c1d53fcd-ec4f-4ac5-ba49-af91a1dea38c",
+                             "name":  "Azure AD Plan",
+                             "publisher":  "Microsoft",
+                             "version":  "25.0.0.0"
+                         }
+                     ],
+    "screenshots":  [
+
+                    ],
+    "idRanges":  [
+                     {
+                         "from":  132001,
+                         "to":  132001
+                     }
+                 ],
+    "platform":  "25.0.0.0",
+    "target":  "OnPrem"
+}

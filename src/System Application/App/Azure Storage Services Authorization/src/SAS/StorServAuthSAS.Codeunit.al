@@ -46,7 +46,7 @@ codeunit 9061 "Stor. Serv. Auth. SAS" implements "Storage Service Authorization"
     end;
 
     [NonDebuggable]
-    procedure SetSigningKey(NewSigningKey: Text)
+    procedure SetSigningKey(NewSigningKey: SecretText)
     begin
         SigningKey := NewSigningKey;
     end;
@@ -94,7 +94,7 @@ codeunit 9061 "Stor. Serv. Auth. SAS" implements "Storage Service Authorization"
         Permissions := SignedPermissions;
     end;
 
-    procedure SetProtocol(SignedProtocol: Option "https&http","https")
+    procedure SetProtocol(SignedProtocol: Option "https&http",https)
     begin
         Clear(Protocols);
         Protocols.Add('https');
@@ -241,8 +241,7 @@ codeunit 9061 "Stor. Serv. Auth. SAS" implements "Storage Service Authorization"
         AuthFormatHelper: Codeunit "Auth. Format Helper";
         [NonDebuggable]
         StorageAccountName: Text;
-        [NonDebuggable]
-        SigningKey: Text;
+        SigningKey: SecretText;
         SignedEncryptionScope: Text;
         StartDate: DateTime;
         EndDate: DateTime;

@@ -7,7 +7,7 @@ This project primarily welcomes contributions of two types:
 - Pull Requests for pre-approved features, which are based on BC Ideas (http://aka.ms/bcideas) that have been picked as candidates for code contribution projects.
 - Pull Requests with fixes and improvements addressing pre-approved issues, which are non-customer reported.
 
-In either case, **an approved GitHub issue in state "approved", must exist, before a Pull Request can be created**. Once a Pull Request is created it **must** be linked to a GitHub issue. 
+In either case, **an approved GitHub issue in state "approved", must exist, before a Pull Request can be created**. Once a Pull Request is created it **must** be linked to a GitHub issue.
 
 **⚠IMPORTANT⚠:** This is not the right place to report product defects with customer impact to Microsoft! Issues created in this repository won't get picked up by the Microsoft engineering team and issues reported in this repository do not fall under SLAs (Service Level Agreements) and hence have no guaranteed time to mitigation, just as provided fixes won't get backported to all supported versions of the product.
 
@@ -28,16 +28,18 @@ Let's take a look at what it takes to contribute with **A)**:
 
     Before a Pull Request can be created, it is required to have an issue registered, which has been approved for development by Microsoft. This is done to ensure that community members aren't wasting their time on writing code, which later cannot be accepted.
 
-2. **Wait for approval** 
+2. **Wait for approval**
 
     Now that your issue is registered, Microsoft will triage your issue and either approve or reject it. An approved issue will have a label "approved".
 
-3. **Create a Pull Request** 
+3. **Create a Pull Request**
 
-    Now a Pull Request can be created. It is important that the Pull Request is linked to an approved issue. **Pull Requests which aren't linked to approved issues will get rejected.** 
-    
+    Now a Pull Request can be created. It is important that the Pull Request is linked to an approved issue. In order to link a issue to a PR, please add "Fixes #" followed by the issue ID. E.g. "Fixes #123". **Pull Requests which aren't linked to approved issues will get rejected.**
+
    If it is your first contribution, you are required to agree to a Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us the rights to use your contribution. For details, visit https://cla.microsoft.com. When you submit a pull request, a CLA-bot will automatically determine whether you need
     to provide a CLA and decorate the Pull Request appropriately (e.g., label, comment). Simply follow the instructions provided by the bot. You will only need to do this once across all repositories using our CLA.
+
+    Before creating a Pull Request, you might want to verify your changes work as expected. Refer to [Local Development Environment guidelines](LOCAL_DEV_ENV.md) for more info.
 
 
 4. **Get a succesful build and code review approval**
@@ -63,6 +65,17 @@ If you would like to add new capabilities to the product as described in **B)**,
 2. **Get the issue into "approved" state**
 
     Once the issue is created on GitHub, it still needs to be approved. Once approved, the rest of the process is identical to the process described in **A)**.
+
+## Get to Know the System App
+
+Before updating the System Application, familiarize yourself with the following sites on Microsoft Learn:
+
+- [Module architecture](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
+- [Get started with modules](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-blueprint)
+- [Set up your development environment](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-set-up-an-environment)
+- [Create a new module](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-new-module)
+- [Create a .NET wrapper module](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-create-a-wrapper-module)
+- [Change a module](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-change-a-module)
 
 ## More Resources
 * This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).

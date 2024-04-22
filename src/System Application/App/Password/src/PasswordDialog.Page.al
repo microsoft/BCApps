@@ -18,7 +18,7 @@ page 9810 "Password Dialog"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             field(OldPassword; OldPasswordValue)
             {
@@ -58,9 +58,6 @@ page 9810 "Password Dialog"
         }
     }
 
-    actions
-    {
-    }
 
     trigger OnInit()
     begin
@@ -75,7 +72,7 @@ page 9810 "Password Dialog"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     begin
-        if CloseAction = ACTION::OK then begin
+        if CloseAction = Action::OK then begin
             ValidPassword := PasswordDialogImpl.ValidatePassword(
                 RequiresPasswordConfirmation,
                 RequiresPasswordValidation,
@@ -88,19 +85,25 @@ page 9810 "Password Dialog"
     var
         PasswordDialogImpl: Codeunit "Password Dialog Impl.";
         PasswordMismatchErr: Label 'The passwords that you entered do not match.';
+        [NonDebuggable]
         PasswordValue: Text;
+        [NonDebuggable]
         ConfirmPasswordValue: Text;
+        [NonDebuggable]
         OldPasswordValue: Text;
         ShowOldPassword: Boolean;
         ValidPassword: Boolean;
         RequiresPasswordValidation: Boolean;
         RequiresPasswordConfirmation: Boolean;
 
+#if not CLEAN24
     /// <summary>
     /// Gets the password value typed on the page.
     /// </summary>
     /// <returns>The password value typed on the page.</returns>
     [Scope('OnPrem')]
+    [NonDebuggable]
+    [Obsolete('Replaced by GetPasswordSecretValue', '24.0')]
     procedure GetPasswordValue(): Text
     begin
         if ValidPassword then
@@ -114,12 +117,37 @@ page 9810 "Password Dialog"
     /// </summary>
     /// <returns>The old password typed on the page.</returns>
     [Scope('OnPrem')]
+    [NonDebuggable]
+    [Obsolete('Replaced by GetOldPasswordSecretValue', '24.0')]
     procedure GetOldPasswordValue(): Text
     begin
         if ValidPassword then
             exit(OldPasswordValue);
 
         exit('');
+    end;
+#endif
+
+    /// <summary>
+    /// Gets the password value typed on the page.
+    /// </summary>
+    /// <returns>The password value typed on the page.</returns>
+    [Scope('OnPrem')]
+    procedure GetPasswordSecretValue() Password: SecretText
+    begin
+        if ValidPassword then
+            Password := PasswordValue;
+    end;
+
+    /// <summary>
+    /// Gets the old password value typed on the page.
+    /// </summary>
+    /// <returns>The old password typed on the page.</returns>
+    [Scope('OnPrem')]
+    procedure GetOldPasswordSecretValue() Password: SecretText
+    begin
+        if ValidPassword then
+            Password := OldPasswordValue;
     end;
 
     /// <summary>
