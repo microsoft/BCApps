@@ -736,7 +736,7 @@ codeunit 132920 "ABS Blob Client Test"
 
     [Test]
     procedure ParseResponseWithHierarchicalBlobName()
-    var
+     var
         ABSContainerContent: Record "ABS Container Content";
         ABSHelperLibrary: Codeunit "ABS Helper Library";
         NodeList: XmlNodeList;
@@ -785,6 +785,52 @@ codeunit 132920 "ABS Blob Client Test"
         VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseRootDirName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::Directory);
         VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseSubdirName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::Directory);
         VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseFileName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::File);
+    end;
+
+    [Test] // Failing if ran against azurite, as BLOB MetaData are not supported there
+    procedure GetBlockBlobMetaDataTest()
+    var
+        ABSOperationResponse: Codeunit "ABS Operation Response";
+        BlobMetaData, MetaData : Dictionary of [Text, Text];
+        BlobContent, BlobName, ContainerName : Text;
+    begin
+        // [SCENARIO] Given a storage account and a container, PutBlobBlockBlob operation succeeds and GetBlobAsText returns the content
+        // [GIVEN] Shared Key Authorization
+        SharedKeyAuthorization := StorageServiceAuthorization.CreateSharedKey(AzuriteTestLibrary.GetAccessKey());
+
+        // [GIVEN] ABS Container 
+        ContainerName := ABSTestLibrary.GetContainerName();
+        ABSContainerClient.Initialize(AzuriteTestLibrary.GetStorageAccountName(), SharedKeyAuthorization);
+        ABSContainerClient.SetBaseUrl(AzuriteTestLibrary.GetBlobStorageBaseUrl());
+
+        ABSOperationResponse := ABSContainerClient.CreateContainer(ContainerName);
+        Assert.IsTrue(ABSOperationResponse.IsSuccessful(), 'Operation CreateContainer failed');
+
+        // [GIVEN] Block Blob
+        BlobName := ABSTestLibrary.GetBlobName();
+        BlobContent := ABSTestLibrary.GetSampleTextBlobContent();
+        ABSBlobClient.Initialize(AzuriteTestLibrary.GetStorageAccountName(), ContainerName, SharedKeyAuthorization);
+        ABSBlobClient.SetBaseUrl(AzuriteTestLibrary.GetBlobStorageBaseUrl());
+
+        ABSOperationResponse := ABSBlobClient.PutBlobBlockBlobText(BlobName, BlobContent);
+        Assert.IsTrue(ABSOperationResponse.IsSuccessful(), 'Operation PutBlobBlockBlob failed');
+
+        // [GIVEN] Blob MetaData
+        MetaData := ABSTestLibrary.GetBlobMetaData();
+
+        // [WHEN] MetaData are Set
+        ABSOperationResponse := ABSBlobClient.SetBlobMetaData(BlobName, MetaData);
+        Assert.IsTrue(ABSOperationResponse.IsSuccessful(), 'Operation SetBlobMetaData failed: ' + ABSOperationResponse.GetError());
+
+        // [WHEN] MetaData are Get
+        ABSOperationResponse := ABSBlobClient.GetBlobMetaData(BlobName, BlobMetaData);
+        Assert.IsTrue(ABSOperationResponse.IsSuccessful(), 'Operation GetBlobMetaData failed: ' + ABSOperationResponse.GetError());
+
+        // [THEN] The get MetaData are equal to set MetaData 
+        Assert.AreEqual(MetaData, BlobMetaData);
+
+        // Clean-up
+        ABSContainerClient.DeleteContainer(ContainerName);
     end;
 
     local procedure VerifyContainerContentType(var ABSContainerContent: Record "ABS Container Content"; BlobName: Text[2048]; ExpectedResourceType: Enum "ABS Blob Resource Type")
