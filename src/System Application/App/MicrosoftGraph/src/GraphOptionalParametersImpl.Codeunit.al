@@ -13,11 +13,6 @@ codeunit 9358 "Graph Optional Parameters Impl"
     InherentPermissions = X;
 
     #region Headers
-    procedure SetIfMatch(HeaderValue: Text)
-    begin
-        SetRequestHeader(Enum::"Graph Request Header"::"If-Match", HeaderValue);
-    end;
-
     procedure SetRequestHeader(GraphRequestHeader: Enum "Graph Request Header"; HeaderValue: Text)
     begin
         SetRequestHeader(Format(GraphRequestHeader), HeaderValue);

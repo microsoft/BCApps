@@ -24,7 +24,34 @@ codeunit 9353 "Graph Optional Parameters"
     /// <param name="Value">Text value specifying the HttpHeader value</param>
     procedure SetIfMatch("Value": Text)
     begin
-        GraphOptionalParametersImpl.SetIfMatch("Value");
+        SetRequestHeader(Enum::"Graph Request Header"::"If-Match", "Value");
+    end;
+
+    /// <summary>
+    /// Sets the value for 'If-None-Match' HttpHeader for a request.
+    /// </summary>
+    /// <param name="Value">Text value specifying the HttpHeader value</param>
+    procedure SetIfNoneMatchRequestHeader("Value": Text)
+    begin
+        SetRequestHeader(Enum::"Graph Request Header"::"If-None-Match", "Value");
+    end;
+
+    /// <summary>
+    /// Sets the value for 'Prefer' HttpHeader for a request.
+    /// </summary>
+    /// <param name="Value">Text value specifying the HttpHeader value</param>
+    procedure SetPreferRequestHeader("Value": Text)
+    begin
+        SetRequestHeader(Enum::"Graph Request Header"::Prefer, "Value");
+    end;
+
+    /// <summary>
+    /// Sets the value for 'ConsistencyLevel' HttpHeader for a request.
+    /// </summary>
+    /// <param name="Value">Text value specifying the HttpHeader value</param>
+    procedure SetConsistencyLevelRequestHeader("Value": Text)
+    begin
+        SetRequestHeader(Enum::"Graph Request Header"::ConsistencyLevel, "Value");
     end;
 
     /// <summary>
