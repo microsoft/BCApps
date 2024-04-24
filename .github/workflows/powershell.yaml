@@ -12,12 +12,13 @@ on:
 
 permissions:
   contents: read
-  security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
 
 jobs:
   build:
     name: PSScriptAnalyzer
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
     steps:
       - uses: actions/checkout@v4
 

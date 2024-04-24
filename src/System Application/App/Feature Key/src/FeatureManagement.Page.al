@@ -237,7 +237,7 @@ page 2610 "Feature Management"
     {
         view("Try it out now")
         {
-            caption = 'Try it out now';
+            Caption = 'Try it out now';
             Filters = where("Can Try" = const(true));
         }
     }

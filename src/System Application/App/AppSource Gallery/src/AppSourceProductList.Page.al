@@ -133,7 +133,7 @@ page 2515 "AppSource Product List"
             action(ShowSettings)
             {
                 Caption = 'Edit User Settings';
-                RunObject = Page "User Settings";
+                RunObject = page "User Settings";
                 Image = UserSetup;
                 ToolTip = 'Locale will be used to determine the market and language will be used to determine the language of the app details listed here.';
             }
@@ -186,8 +186,8 @@ page 2515 "AppSource Product List"
 
     trigger OnOpenPage()
     begin
-        ReloadAllProducts();
         Rec.SetCurrentKey(DisplayName);
+        ReloadAllProducts();
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -201,8 +201,9 @@ page 2515 "AppSource Product List"
     var
         AppSourceProductTemp: Record "AppSource Product";
     begin
+        AppSourceProductTemp.Copy(Rec);
         AppSourceProductManager.GetProductsAndPopulateRecord(AppSourceProductTemp);
-        AppSourceProductTemp.CopyFilters(Rec);
         Rec.Copy(AppSourceProductTemp, true);
+        Rec.FindFirst();
     end;
 }

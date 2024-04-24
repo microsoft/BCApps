@@ -47,7 +47,7 @@ codeunit 132603 "GenerateBase64KeyedHash Test"
         LibraryAssert.AreEqual(ExpectedSignature, xlSignature, 'Failed to sing text with GenerateBase64KeyedHash');
     end;
 
-    local procedure signature(stringtosign: Text; lSecret: Text; lDate: Text; Region: Text; Service: Text; aws4_request: Text): text
+    local procedure signature(stringtosign: Text; lSecret: Text; lDate: Text; Region: Text; Service: Text; aws4_request: Text): Text
     var
         CryptographyManagement: Codeunit "Cryptography Management";
         HashBytes: Text;
