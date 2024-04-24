@@ -994,7 +994,7 @@
                   {
                       "id":  "AA0248",
                       "action":  "None",
-                      "justification": "New rule for missing this. qualification on members. Turned off globally."
+                      "justification": "Rule for missing 'this.' qualification on members. Not an error, rule turned off globally."
                   },
                   {
                       "id":  "AA0249",
