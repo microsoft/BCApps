@@ -18,9 +18,6 @@ codeunit 1999 "Guided Experience Upgrade"
                     tabledata "Checklist Item Role" = rimd,
                     tabledata "Checklist Item User" = rimd;
 
-    var
-        CodeFormatLbl: Label '%1_%2', Locked = true;
-
     trigger OnUpgradePerCompany()
     begin
         InsertSpotlightTour();
@@ -88,20 +85,17 @@ codeunit 1999 "Guided Experience Upgrade"
         GuidedExperienceItem.SetRange(SystemCreatedAt, 0DT, CurrentDateTime());
         if GuidedExperienceItem.FindSet() then
             repeat
-                NewCode := GetCodeThatAccountsForSpotlightTourType(GuidedExperienceItem.Code);
+                NewCode := GuidedExperienceImpl.GetCode(GuidedExperienceItem."Guided Experience Type", GuidedExperienceItem."Object Type to Run", GuidedExperienceItem."Object ID to Run", GuidedExperienceItem.Link, GuidedExperienceItem."Video Url", GuidedExperienceItem."Spotlight Tour Type");
 
-                InsertRecordCopyWithModifiedCode(GuidedExperienceItem,
-                    GuidedExperienceItem.FieldNo(Code), NewCode);
-
-                if NewGuidedExperienceItem.Get(NewCode, GuidedExperienceItem.Version) then
-                    GuidedExperienceImpl.InsertTranslations(NewGuidedExperienceItem,
-                        GuidedExperienceItem.Title, GuidedExperienceItem."Short Title",
-                        GuidedExperienceItem.Description, GuidedExperienceItem.Keywords);
+                InsertRecordCopyWithModifiedCode(GuidedExperienceItem, GuidedExperienceItem.FieldNo(Code), NewCode);
 
                 UpdateChecklistItems(GuidedExperienceItem.Code, NewCode);
-            until GuidedExperienceItem.Next() = 0;
 
-        GuidedExperienceItem.DeleteAll();
+                if NewGuidedExperienceItem.Get(NewCode, GuidedExperienceItem.Version) then begin
+                    GuidedExperienceImpl.InsertTranslations(NewGuidedExperienceItem, GuidedExperienceItem.Title, GuidedExperienceItem."Short Title", GuidedExperienceItem.Description, GuidedExperienceItem.Keywords);
+                    GuidedExperienceItem.Delete();
+                end;
+            until GuidedExperienceItem.Next() = 0;
     end;
 
     local procedure UpdateChecklistItems(OldCode: Code[300]; NewCode: Code[300])
@@ -158,13 +152,6 @@ codeunit 1999 "Guided Experience Upgrade"
         RecordRef2.Copy(RecordRef);
         RecordRef2.Field(FieldNo).Value(Code);
         if RecordRef2.Insert() then;
-    end;
-
-    local procedure GetCodeThatAccountsForSpotlightTourType(Code: Code[300]): Code[300]
-    var
-        SpotlightTourType: Enum "Spotlight Tour Type";
-    begin
-        exit(StrSubstNo(CodeFormatLbl, Code, SpotlightTourType::None.AsInteger()));
     end;
 
     local procedure UpdateTranslations()
