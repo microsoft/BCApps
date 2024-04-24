@@ -19,6 +19,13 @@ codeunit 222 "Audit Code"
         exit(AuditCodeImpl.LookupReasonCode(ReasonCode, Description))
     end;
 
+    procedure LookupReasonCode(var ReasonCodeText: Text): Boolean
+    var
+        AuditCodeImpl: Codeunit "Audit Code Impl.";
+    begin
+        exit(AuditCodeImpl.LookupReasonCode(ReasonCodeText))
+    end;
+
     procedure LookupReasonCode(var ReasonCode: Code[10]): Boolean
     var
         AuditCodeImpl: Codeunit "Audit Code Impl.";

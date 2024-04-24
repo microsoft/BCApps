@@ -17,6 +17,18 @@ codeunit 223 "Audit Code Impl."
         exit(LookupReasonCode(ReasonCode, Description))
     end;
 
+    procedure LookupReasonCode(var ReasonCodeText: Text): Boolean
+    var
+        ReasonCode: Code[10];
+        Description: Text[100];
+        LookupOK: Boolean;
+    begin
+        ReasonCode := CopyStr(ReasonCodeText, 1, MaxStrLen(ReasonCode));
+        LookupOK := LookupReasonCode(ReasonCode, Description);
+        ReasonCodeText := ReasonCode;
+        exit(LookupOK);
+    end;
+
     procedure LookupReasonCode(var ReasonCode: Code[10]; var Description: Text[100]): Boolean
     var
         ReasonCodeRec: Record "Reason Code";
