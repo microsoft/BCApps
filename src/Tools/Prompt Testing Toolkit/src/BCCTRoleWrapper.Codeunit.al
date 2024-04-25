@@ -71,7 +71,6 @@ codeunit 149042 "BCCT Role Wrapper"
                 GetAndClearAccumulatedWaitTimeMs();
                 GetAndClearNoOfLogEntriesInserted();
 
-                // BCCTLineCU.StartScenario(ScenarioLbl);
                 SetBCCTDatasetLine(BCCTDatasetLine);
                 OnBeforeExecuteIteration(BCCTHeader, BCCTLine, BCCTDatasetLine);
                 ExecuteIteration(BCCTLine, BCCTDatasetLine);
@@ -111,14 +110,8 @@ codeunit 149042 "BCCT Role Wrapper"
         //TODO: Set input
         if BCCTDatasetLine.Input <> '' then;
         //TestMethodLine."Input Data" := BCCTDatasetLine.Input;
-        // WasSuccess := true; // init in case the event subscriber is not called
-        TestRunnerIsolDisabled.Run(TestMethodLine);  // WasSuccess is set in an eventsubscriber
+        TestRunnerIsolDisabled.Run(TestMethodLine);
     end;
-
-    // internal procedure GetScenarioLbl(): Text[100]
-    // begin
-    //     exit(ScenarioLbl);
-    // end;
 
     internal procedure GetBCCTHeaderTag(): Text[20]
     begin

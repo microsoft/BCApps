@@ -126,27 +126,6 @@ codeunit 149046 "BCCT Test Suite"
         exit(true);
     end;
 
-    // procedure SetTestSuiteDuration(SuiteCode: Code[10]; DurationInMinutes: Integer)
-    // var
-    //     BCCTHeader: Record "BCCT Header";
-    // begin
-    //     if not BCCTHeader.Get(SuiteCode) then
-    //         Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
-
-    //     //BCCTHeader."Duration (minutes)" := DurationInMinutes;
-    //     BCCTHeader.Modify(true);
-    // end;
-
-    // procedure GetTestSuiteDuration(SuiteCode: Code[10]): Integer
-    // var
-    //     BCCTHeader: Record "BCCT Header";
-    // begin
-    //     if not BCCTHeader.Get(SuiteCode) then
-    //         Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
-
-    //     exit(BCCTHeader."Duration (minutes)");
-    // end;
-
     procedure SetTestSuiteDefaultMinUserDelay(SuiteCode: Code[10]; DelayInMs: Integer)
     var
         BCCTHeader: Record "BCCT Header";
@@ -310,27 +289,27 @@ codeunit 149046 "BCCT Test Suite"
         BCCTLine.Modify(true);
     end;
 
-    // procedure SetTestSuiteLineMinUserDelay(SuiteCode: Code[10]; LineNo: Integer; DelayInMs: Integer)
-    // var
-    //     BCCTLine: Record "BCCT Line";
-    // begin
-    //     if not BCCTLine.Get(SuiteCode, LineNo) then
-    //         Error(TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
+    procedure SetTestSuiteLineMinUserDelay(SuiteCode: Code[10]; LineNo: Integer; DelayInMs: Integer)
+    var
+        BCCTLine: Record "BCCT Line";
+    begin
+        if not BCCTLine.Get(SuiteCode, LineNo) then
+            Error(TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
 
-    //     BCCTLine."Min. User Delay (ms)" := DelayInMs;
-    //     BCCTLine.Modify(true);
-    // end;
+        BCCTLine."Min. User Delay (ms)" := DelayInMs;
+        BCCTLine.Modify(true);
+    end;
 
-    // procedure SetTestSuiteLineMaxUserDelay(SuiteCode: Code[10]; LineNo: Integer; DelayInMs: Integer)
-    // var
-    //     BCCTLine: Record "BCCT Line";
-    // begin
-    //     if not BCCTLine.Get(SuiteCode, LineNo) then
-    //         Error(TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
+    procedure SetTestSuiteLineMaxUserDelay(SuiteCode: Code[10]; LineNo: Integer; DelayInMs: Integer)
+    var
+        BCCTLine: Record "BCCT Line";
+    begin
+        if not BCCTLine.Get(SuiteCode, LineNo) then
+            Error(TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
 
-    //     BCCTLine."Max. User Delay (ms)" := DelayInMs;
-    //     BCCTLine.Modify(true);
-    // end;
+        BCCTLine."Max. User Delay (ms)" := DelayInMs;
+        BCCTLine.Modify(true);
+    end;
 
     procedure SetTestSuiteLineDelayBtwnIter(SuiteCode: Code[10]; LineNo: Integer; DelayInSecs: Integer)
     var

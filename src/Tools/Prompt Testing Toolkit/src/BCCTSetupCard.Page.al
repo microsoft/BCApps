@@ -150,27 +150,6 @@ page 149031 "BCCT Setup Card"
                     CurrPage.Update(false);
                 end;
             }
-            // action(StartPRT)
-            // {
-            //     Enabled = (EnableActions and (Rec.Status <> Rec.Status::Running));
-            //     ApplicationArea = All;
-            //     Caption = 'Start in Single Run mode';
-            //     Image = Start;
-            //     Promoted = true;
-            //     PromotedOnly = true;
-            //     PromotedCategory = Process;
-            //     ToolTip = 'Starts and run the tests in the suite for only one iteration.';
-
-            //     trigger OnAction()
-            //     begin
-            //         CurrPage.Update(false);
-            //         Rec.Find();
-            //         //Rec.CurrentRunType := Rec.CurrentRunType::PRT;
-            //         Rec.Modify();
-            //         BCCTStartTests.StartBCCTSuite(Rec);
-            //         CurrPage.Update(false);
-            //     end;
-            // }
             action(Stop)
             {
                 Enabled = Rec.Status = Rec.Status::Running;

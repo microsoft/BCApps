@@ -58,8 +58,6 @@ codeunit 149043 "BCCT Test Context"
     /// This method simulates a users delay between operations. This method is called by the BCCT test to represent a realistic scenario.
     /// The calculation of the length of the wait is done usign the parameters defined on the BCCT suite.
     /// </summary>
-    /// <param name="ScenarioOperation">Label of the scenario.</param>
-    /// <param name="ExecutionSuccess">Result of the test execution.</param>
     procedure UserWait()
     var
         BCCTHeader: Record "BCCT Header";
@@ -67,9 +65,6 @@ codeunit 149043 "BCCT Test Context"
 
     begin
         GetBCCTHeader(BCCTHeader);
-        // if BCCTHeader.CurrentRunType = BCCTHeader.CurrentRunType::PRT then
-        //     exit;
-
         GetBCCTLine(BCCTLine);
         BCCTLineCU.UserWait(BCCTLine);
     end;

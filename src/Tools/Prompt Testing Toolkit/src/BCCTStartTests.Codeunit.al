@@ -85,7 +85,7 @@ codeunit 149036 "BCCT Start Tests"
         BCCTHeaderCU.SetRunStatus(BCCTHeader, BCCTHeader.Status::Cancelled);
     end;
 
-    internal procedure StartNextBenchmarkTests(BCCTHeader: Record "BCCT Header")
+    internal procedure StartNextTestSuite(BCCTHeader: Record "BCCT Header")
     var
         BCCTHeader2: Record "BCCT Header";
         BCCTLine: Record "BCCT Line";
@@ -114,8 +114,6 @@ codeunit 149036 "BCCT Start Tests"
                     BCCTLine.Status := BCCTLine.Status::" ";
                     BCCTLine."Total Duration (ms)" := 0;
                     BCCTLine."No. of Iterations" := 0;
-                    // BCCTLine."No. of Running Sessions" := 0;
-                    // BCCTLine."No. of SQL Statements" := 0;
                     BCCTLine.SetRange("Version Filter", BCCTHeader.Version);
                     BCCTLine.Modify(true);
                 until BCCTLine.Next() = 0;
@@ -126,17 +124,8 @@ codeunit 149036 "BCCT Start Tests"
         BCCTLine.SetFilter("Codeunit ID", '<>0');
         BCCTLine.SetFilter(Status, '%1 | %2', BCCTLine.Status::" ", BCCTLine.Status::Starting);
         if BCCTLine.FindFirst() then begin
-            // if BCCTLine."No. of Running Sessions" < BCCTLine."No. of Sessions" then begin
-            //     BCCTHeader."No. of tests running" += 1;
-            //     BCCTLine."No. of Running Sessions" += 1;
-
-            // if BCCTLine."No. of Running Sessions" < BCCTLine."No. of Sessions" then begin
-            //     if BCCTHeader.CurrentRunType = BCCTHeader.CurrentRunType::PRT then
-            //         BCCTLine.Status := BCCTLine.Status::Running
-            //     else
-            //         BCCTLine.Status := BCCTLine.Status::Starting;
-            // end else
-            //     BCCTLine.Status := BCCTLine.Status::Running;
+            BCCTHeader."No. of tests running" += 1;
+            BCCTLine.Status := BCCTLine.Status::Running;
             BCCTHeader.Modify();
             BCCTLine.Modify();
             Commit();
@@ -145,12 +134,10 @@ codeunit 149036 "BCCT Start Tests"
             Codeunit.Run(Codeunit::"BCCT Role Wrapper", BCCTLine);
 
             BCCTLine.LockTable();
-            // if BCCTLine.Get(BCCTLine."BCCT Code", BCCTLine."Line No.") then
-            //     if BCCTLine."No. of Running Sessions" = BCCTLine."No. of Sessions" then begin
-            //         BCCTLine.Status := BCCTLine.Status::Completed;
-            //         BCCTLine.Modify();
-            //     end;
-            //end;
+            if BCCTLine.Get(BCCTLine."BCCT Code", BCCTLine."Line No.") then begin
+                BCCTLine.Status := BCCTLine.Status::Completed;
+                BCCTLine.Modify();
+            end;
             Commit();
         end else
             Error(NothingToRunErr);

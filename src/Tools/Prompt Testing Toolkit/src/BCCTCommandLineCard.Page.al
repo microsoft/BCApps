@@ -85,22 +85,6 @@ page 149042 "BCCT CommandLine Card"
                     StartNextBCCT();
                 end;
             }
-            // action(StartNextPRT)
-            // {
-            //     Enabled = EnableActions;
-            //     ApplicationArea = All;
-            //     Caption = 'Start Next in Single Run mode', Locked = true;
-            //     Image = Start;
-            //     Promoted = true;
-            //     PromotedOnly = true;
-            //     PromotedCategory = Process;
-            //     ToolTip = 'Starts the next available test in PRT mode.';
-
-            //     trigger OnAction()
-            //     begin
-            //         StartNextBCCTAsPRT();
-            //     end;
-            // }
         }
     }
 
@@ -124,23 +108,7 @@ page 149042 "BCCT CommandLine Card"
     var
         BCCTStartTests: Codeunit "BCCT Start Tests";
     begin
-        // if CurrentBCCTHeader.CurrentRunType <> CurrentBCCTHeader.CurrentRunType::BCCT then begin
-        //     CurrentBCCTHeader.LockTable();
-        //     CurrentBCCTHeader.Find();
-        //     CurrentBCCTHeader.CurrentRunType := CurrentBCCTHeader.CurrentRunType::BCCT;
-        //     CurrentBCCTHeader.Modify();
-        //     Commit();
-        // end;
-        BCCTStartTests.StartNextBenchmarkTests(CurrentBCCTHeader);
+        BCCTStartTests.StartNextTestSuite(CurrentBCCTHeader);
         CurrentBCCTHeader.Find();
     end;
-
-    // local procedure StartNextBCCTAsPRT()
-    // var
-    //     BCCTStartTests: Codeunit "BCCT Start Tests";
-    // begin
-    //     //CurrentBCCTHeader.CurrentRunType := CurrentBCCTHeader.CurrentRunType::PRT;
-    //     CurrentBCCTHeader.Modify();
-    //     BCCTStartTests.StartNextBenchmarkTests(CurrentBCCTHeader);
-    // end;
 }

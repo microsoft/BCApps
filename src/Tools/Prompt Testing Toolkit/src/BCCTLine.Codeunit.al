@@ -45,19 +45,6 @@ codeunit 149035 "BCCT Line"
         BCCTLogEntry.DeleteAll(true);
     end;
 
-    // [EventSubscriber(ObjectType::Table, Database::"BCCT Line", 'OnBeforeModifyEvent', '', false, false)]
-    // local procedure CheckNoOfSessionsOnModifyBCCTLine(var Rec: Record "BCCT Line"; var xRec: Record "BCCT Line"; RunTrigger: Boolean)
-    // var
-    //     NewNoOfSessions: Integer;
-    // begin
-    //     if Rec.IsTemporary() then
-    //         exit;
-
-    //     NewNoOfSessions := GetCurrentTotalNoOfSessions(Rec) + Rec."No. of Sessions" - xRec."No. of Sessions";
-    //     if NewNoOfSessions > MaxNoOfSessions() then
-    //         error(MaxNoOfSessionsErr, MaxNoOfSessions(), NewNoOfSessions);
-    // end;
-
     [EventSubscriber(ObjectType::Page, Page::"BCCT Lines", 'OnInsertRecordEvent', '', false, false)]
     local procedure OnInsertRecordEvent(var Rec: Record "BCCT Line"; BelowxRec: Boolean; var xRec: Record "BCCT Line"; var AllowInsert: Boolean)
     begin
