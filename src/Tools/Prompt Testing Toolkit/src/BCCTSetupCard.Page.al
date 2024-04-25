@@ -289,7 +289,10 @@ page 149031 "BCCT Setup Card"
     begin
         TestPassedMsg := StrSubstNo(TestPassedLbl, Rec."No. of tests in the last run");
         Rec.CalcFields("Total Duration (ms)");
-        AvgTimeMsg := Rec."Total Duration (ms)" div Rec."No. of tests in the last run"; //TODO: Fix duration calculation
+        if Rec."No. of tests in the last run" > 0 then
+            AvgTimeMsg := Rec."Total Duration (ms)" div Rec."No. of tests in the last run"
+        else
+            AvgTimeMsg := 0; //TODO: Fix duration calculation
 
     end;
 }

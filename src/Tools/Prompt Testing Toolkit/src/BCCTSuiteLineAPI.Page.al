@@ -47,10 +47,6 @@ page 149037 "BCCT Suite Line API"
                 {
                     Caption = 'Codeunit ID';
                 }
-                // field("numberOfSessions"; Rec."No. of Sessions")
-                // {
-                //     Caption = 'No. of Sessions';
-                // }
                 field(description; Rec.Description)
                 {
                     Caption = 'Description';

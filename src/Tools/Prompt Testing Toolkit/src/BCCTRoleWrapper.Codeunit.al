@@ -20,8 +20,6 @@ codeunit 149042 "BCCT Role Wrapper"
         GlobalBCCTDatasetLine: Record "BCCT Dataset Line";
         NoOfInsertedLogEntries: Integer;
         AccumulatedWaitTimeMs: Integer;
-        WasSuccess: Boolean;
-        ScenarioLbl: Label 'Scenario';
 
     trigger OnRun();
     //var
@@ -65,11 +63,9 @@ codeunit 149042 "BCCT Role Wrapper"
     local procedure ExecuteBCCTLine(var BCCTLine: Record "BCCT Line"; var BCCTHeader: Record "BCCT Header")
     var
         BCCTDatasetLine: Record "BCCT Dataset Line";
-        BCCTLineCU: Codeunit "BCCT Line";
         BCCTHeaderCU: Codeunit "BCCT Header";
         //BCCTRunType: Enum "BCCT Run Type";
         DoRun: Boolean;
-        ExecutionSuccess: Boolean;
         ExecuteNextIteration: Boolean;
     begin
         DoRun := true; //decide if we want different type of runs
@@ -87,12 +83,10 @@ codeunit 149042 "BCCT Role Wrapper"
                 GetAndClearAccumulatedWaitTimeMs();
                 GetAndClearNoOfLogEntriesInserted();
 
-                BCCTLineCU.StartScenario(ScenarioLbl);
+                // BCCTLineCU.StartScenario(ScenarioLbl);
                 SetBCCTDatasetLine(BCCTDatasetLine);
                 OnBeforeExecuteIteration(BCCTHeader, BCCTLine, BCCTDatasetLine);
-                ExecutionSuccess := ExecuteIteration(BCCTLine, BCCTDatasetLine);
-                Commit();
-                BCCTLineCU.EndScenario(BCCTLine, ScenarioLbl, ExecutionSuccess, BCCTDatasetLine);
+                ExecuteIteration(BCCTLine, BCCTDatasetLine);
                 Commit();
             end;
 
@@ -117,7 +111,7 @@ codeunit 149042 "BCCT Role Wrapper"
         BCCTHeaderCU.DecreaseNoOfTestsRunningNow(BCCTHeader);
     end;
 
-    local procedure ExecuteIteration(var BCCTLine: Record "BCCT Line"; BCCTDatasetLine: Record "BCCT Dataset Line"): boolean
+    local procedure ExecuteIteration(var BCCTLine: Record "BCCT Line"; BCCTDatasetLine: Record "BCCT Dataset Line")
     var
         TestMethodLine: Record "Test Method Line";
         TestRunnerIsolDisabled: Codeunit "Test Runner - Isol. Disabled";
@@ -129,14 +123,14 @@ codeunit 149042 "BCCT Role Wrapper"
         //TODO: Set input
         if BCCTDatasetLine.Input <> '' then;
         //TestMethodLine."Input Data" := BCCTDatasetLine.Input;
-        WasSuccess := true; // init in case the event subscriber is not called
-        exit(TestRunnerIsolDisabled.Run(TestMethodLine) and WasSuccess);  // WasSuccess is set in an eventsubscriber
+        // WasSuccess := true; // init in case the event subscriber is not called
+        TestRunnerIsolDisabled.Run(TestMethodLine);  // WasSuccess is set in an eventsubscriber
     end;
 
-    internal procedure GetScenarioLbl(): Text[100]
-    begin
-        exit(ScenarioLbl);
-    end;
+    // internal procedure GetScenarioLbl(): Text[100]
+    // begin
+    //     exit(ScenarioLbl);
+    // end;
 
     internal procedure GetBCCTHeaderTag(): Text[20]
     begin
@@ -222,7 +216,23 @@ codeunit 149042 "BCCT Role Wrapper"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterTestMethodRun', '', false, false)]
     local procedure OnAfterTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
+    var
+        BCCTContextCU: Codeunit "BCCT Test Context";
     begin
-        WasSuccess := IsSuccess;
+        Commit();
+        if FunctionName = '' then
+            exit;
+        BCCTContextCU.EndScenario(FunctionName, IsSuccess); //TODO is the context codeunit used correctly?
+        Commit();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeTestMethodRun', '', false, false)]
+    local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions)
+    var
+        BCCTContextCU: Codeunit "BCCT Test Context";
+    begin
+        if FunctionName = '' then
+            exit;
+        BCCTContextCU.StartScenario(FunctionName);
     end;
 }

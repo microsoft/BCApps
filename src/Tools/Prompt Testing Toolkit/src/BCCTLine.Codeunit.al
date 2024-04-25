@@ -14,9 +14,7 @@ codeunit 149035 "BCCT Line"
     var
         BCCTHeader: Record "BCCT Header";
         ScenarioStarted: Dictionary of [Text, DateTime];
-        NoOfSQLStatements: Dictionary of [Text, Integer];
     //ScenarioNotStartedErr: Label 'Scenario %1 was not started.', Comment = '%1 = codeunit name';
-    //MaxNoOfSessionsErr: Label 'The total number of sessions must be at most %1. Current attempted value is %2.', Comment = '%1 = Max number of sessions allowed %2 = codeunit name';
 
     [EventSubscriber(ObjectType::Table, Database::"BCCT Line", 'OnBeforeInsertEvent', '', false, false)]
     local procedure SetNoOfSessionsOnBeforeInsertBCCTLine(var Rec: Record "BCCT Line"; RunTrigger: Boolean)
@@ -112,16 +110,11 @@ codeunit 149035 "BCCT Line"
     procedure StartScenario(ScenarioOperation: Text)
     var
         OldStartTime: DateTime;
-        OldSQLCount: Integer;
     begin
         if ScenarioStarted.Get(ScenarioOperation, OldStartTime) then
             ScenarioStarted.Set(ScenarioOperation, CurrentDateTime())
         else
             ScenarioStarted.Add(ScenarioOperation, CurrentDateTime());
-        if NoOfSQLStatements.Get(ScenarioOperation, OldSQLCount) then
-            NoOfSQLStatements.Set(ScenarioOperation, SessionInformation.SqlStatementsExecuted)
-        else
-            NoOfSQLStatements.Add(ScenarioOperation, SessionInformation.SqlStatementsExecuted);
     end;
 
     procedure EndScenario(BCCTLine: Record "BCCT Line"; ScenarioOperation: Text; BCCTDatasetLine: Record "BCCT Dataset Line")
@@ -206,7 +199,7 @@ codeunit 149035 "BCCT Line"
 
     local procedure AddLogAppInsights(var BCCTLogEntry: Record "BCCT Log Entry")
     var
-        BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper"; // single instance
+        // BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper"; // single instance
         Dimensions: Dictionary of [Text, Text];
         TelemetryLogLbl: Label 'Performance Toolkit - %1 - %2 - %3', Locked = true;
     begin
@@ -230,7 +223,7 @@ codeunit 149035 "BCCT Line"
         //Dimensions.Add('SessionNo', Format(BCCTLogEntry."Session No."));
         Session.LogMessage(
             '0000DGF',
-            StrSubstNo(TelemetryLogLbl, BCCTLogEntry."BCCT Code", BCCTRoleWrapperImpl.GetScenarioLbl(), BCCTLogEntry.Status),
+            StrSubstNo(TelemetryLogLbl, BCCTLogEntry."BCCT Code", BCCTLogEntry.Operation, BCCTLogEntry.Status),
             Verbosity::Normal,
             DataClassification::SystemMetadata,
             TelemetryScope::All,
