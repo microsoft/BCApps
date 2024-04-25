@@ -39,6 +39,13 @@ codeunit 8892 "Email Scenario Impl."
         exit(false);
     end;
 
+    procedure IsThereEmailAccountSetForScenario(Scenario: Enum "Email Scenario"): Boolean
+    var
+        EmailScenario: Record "Email Scenario";
+    begin
+        exit(EmailScenario.Get(Scenario));
+    end;
+
     procedure SetEmailAccount(Scenario: Enum "Email Scenario"; EmailAccount: Record "Email Account")
     var
         EmailScenario: Record "Email Scenario";
