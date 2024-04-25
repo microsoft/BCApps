@@ -11,12 +11,14 @@ codeunit 149046 "BCCT Test Suite"
         TestSuiteAlreadyExistsErr: Label 'Test suite with %1 %2 already exists.', Comment = '%1 - field caption, %2 - field value';
         TestSuiteNotFoundErr: Label 'Test suite with %1 %2 does not exist.', Comment = '%1 - field caption, %2 - field value';
         TestSuiteLineNotFoundErr: Label 'Test suite line with %1 %2 and %3 %4 does not exist.', Comment = '%1 - field caption, %2 - field value, %3 - field caption, %4 - field value';
+        DatasetNotFoundErr: Label 'Dataset %1 does not exist.', Comment = '%1 - field value';
 
-    procedure CreateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[50]; DurationInMinutes: Integer;
+    procedure CreateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[50]; Dataset: Code[50];
                               DefaultMinUserDelayInMs: Integer; DefaultMaxUserDelayInMs: Integer;
-                              OneDayCorrespondsToMinutes: Integer; Tag: Text[20])
+                              Tag: Text[20])
     var
         BCCTHeader: Record "BCCT Header";
+        BCCTDataset: Record "BCCT Dataset";
     begin
         if BCCTHeader.Get(SuiteCode) then
             Error(TestSuiteAlreadyExistsErr, BCCTHeader.FieldCaption(Code), SuiteCode);
@@ -25,17 +27,14 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader.Code := SuiteCode;
         BCCTHeader.Description := SuiteDescription;
 
-        // if DurationInMinutes <> 0 then
-        //     BCCTHeader."Duration (minutes)" := DurationInMinutes;
+        if BCCTDataset.Get(Dataset) then
+            BCCTHeader.Dataset := Dataset; //TODO: Should not finding a dataset error?
 
-        // if DefaultMinUserDelayInMs <> 0 then
-        //     BCCTHeader."Default Min. User Delay (ms)" := DefaultMinUserDelayInMs;
+        if DefaultMinUserDelayInMs <> 0 then
+            BCCTHeader."Default Min. User Delay (ms)" := DefaultMinUserDelayInMs;
 
-        // if DefaultMaxUserDelayInMs <> 0 then
-        //     BCCTHeader."Default Max. User Delay (ms)" := DefaultMaxUserDelayInMs;
-
-        // if OneDayCorrespondsToMinutes <> 0 then
-        //     BCCTHeader."1 Day Corresponds to (minutes)" := OneDayCorrespondsToMinutes;
+        if DefaultMaxUserDelayInMs <> 0 then
+            BCCTHeader."Default Max. User Delay (ms)" := DefaultMaxUserDelayInMs;
 
         BCCTHeader.Tag := Tag;
         BCCTHeader.Insert(true);
@@ -54,11 +53,12 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader.Insert(true);
     end;
 
-    procedure CreateUpdateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[50]; DurationInMinutes: Integer;
+    procedure CreateUpdateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[50]; Dataset: Code[50];
                               DefaultMinUserDelayInMs: Integer; DefaultMaxUserDelayInMs: Integer;
-                              OneDayCorrespondsToMinutes: Integer; Tag: Text[20])
+                              Tag: Text[20])
     var
         BCCTHeader: Record "BCCT Header";
+        BCCTDataset: Record "BCCT Dataset";
         SuiteExists: Boolean;
     begin
         if BCCTHeader.Get(SuiteCode) then
@@ -69,19 +69,16 @@ codeunit 149046 "BCCT Test Suite"
             BCCTHeader.Code := SuiteCode;
         end;
 
+        if BCCTDataset.Get(Dataset) then
+            BCCTheader.Dataset := Dataset; //TODO: Should not finding a dataset error?
+
         BCCTHeader.Description := SuiteDescription;
 
-        // if DurationInMinutes <> 0 then
-        //     BCCTHeader."Duration (minutes)" := DurationInMinutes;
+        if DefaultMinUserDelayInMs <> 0 then
+            BCCTHeader."Default Min. User Delay (ms)" := DefaultMinUserDelayInMs;
 
-        // if DefaultMinUserDelayInMs <> 0 then
-        //     BCCTHeader."Default Min. User Delay (ms)" := DefaultMinUserDelayInMs;
-
-        // if DefaultMaxUserDelayInMs <> 0 then
-        //     BCCTHeader."Default Max. User Delay (ms)" := DefaultMaxUserDelayInMs;
-
-        // if OneDayCorrespondsToMinutes <> 0 then
-        //     BCCTHeader."1 Day Corresponds to (minutes)" := OneDayCorrespondsToMinutes;
+        if DefaultMaxUserDelayInMs <> 0 then
+            BCCTHeader."Default Max. User Delay (ms)" := DefaultMaxUserDelayInMs;
 
         BCCTHeader.Tag := Tag;
 
@@ -150,68 +147,72 @@ codeunit 149046 "BCCT Test Suite"
     //     exit(BCCTHeader."Duration (minutes)");
     // end;
 
-    // procedure SetTestSuiteDefaultMinUserDelay(SuiteCode: Code[10]; DelayInMs: Integer)
-    // var
-    //     BCCTHeader: Record "BCCT Header";
-    // begin
-    //     if not BCCTHeader.Get(SuiteCode) then
-    //         Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+    procedure SetTestSuiteDefaultMinUserDelay(SuiteCode: Code[10]; DelayInMs: Integer)
+    var
+        BCCTHeader: Record "BCCT Header";
+    begin
+        if not BCCTHeader.Get(SuiteCode) then
+            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
-    //     BCCTHeader."Default Min. User Delay (ms)" := DelayInMs;
-    //     BCCTHeader.Modify(true);
-    // end;
+        BCCTHeader."Default Min. User Delay (ms)" := DelayInMs;
+        BCCTHeader.Modify(true);
+    end;
 
-    // procedure GetTestSuiteDefaultMinUserDelay(SuiteCode: Code[10]): Integer
-    // var
-    //     BCCTHeader: Record "BCCT Header";
-    // begin
-    //     if not BCCTHeader.Get(SuiteCode) then
-    //         Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+    procedure GetTestSuiteDefaultMinUserDelay(SuiteCode: Code[10]): Integer
+    var
+        BCCTHeader: Record "BCCT Header";
+    begin
+        if not BCCTHeader.Get(SuiteCode) then
+            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
-    //     exit(BCCTHeader."Default Min. User Delay (ms)");
-    // end;
+        exit(BCCTHeader."Default Min. User Delay (ms)");
+    end;
 
-    // procedure SetTestSuiteDefaultMaxUserDelay(SuiteCode: Code[10]; DelayInMs: Integer)
-    // var
-    //     BCCTHeader: Record "BCCT Header";
-    // begin
-    //     if not BCCTHeader.Get(SuiteCode) then
-    //         Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+    procedure SetTestSuiteDefaultMaxUserDelay(SuiteCode: Code[10]; DelayInMs: Integer)
+    var
+        BCCTHeader: Record "BCCT Header";
+    begin
+        if not BCCTHeader.Get(SuiteCode) then
+            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
-    //     BCCTHeader."Default Max. User Delay (ms)" := DelayInMs;
-    //     BCCTHeader.Modify(true);
-    // end;
+        BCCTHeader."Default Max. User Delay (ms)" := DelayInMs;
+        BCCTHeader.Modify(true);
+    end;
 
-    // procedure GetTestSuiteDefaultMaxUserDelay(SuiteCode: Code[10]): Integer
-    // var
-    //     BCCTHeader: Record "BCCT Header";
-    // begin
-    //     if not BCCTHeader.Get(SuiteCode) then
-    //         Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+    procedure GetTestSuiteDefaultMaxUserDelay(SuiteCode: Code[10]): Integer
+    var
+        BCCTHeader: Record "BCCT Header";
+    begin
+        if not BCCTHeader.Get(SuiteCode) then
+            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
-    //     exit(BCCTHeader."Default Max. User Delay (ms)");
-    // end;
+        exit(BCCTHeader."Default Max. User Delay (ms)");
+    end;
 
-    // procedure SetTestSuite1DayCorresponds(SuiteCode: Code[10]; DurationInMinutes: Integer)
-    // var
-    //     BCCTHeader: Record "BCCT Header";
-    // begin
-    //     if not BCCTHeader.Get(SuiteCode) then
-    //         Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+    procedure SetTestSuiteDataset(SuiteCode: Code[10]; Dataset: Code[50])
+    var
+        BCCTHeader: Record "BCCT Header";
+        BCCTDataset: Record "BCCT Dataset";
+    begin
+        if not BCCTHeader.Get(SuiteCode) then
+            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
-    //     BCCTHeader."1 Day Corresponds to (minutes)" := DurationInMinutes;
-    //     BCCTHeader.Modify(true);
-    // end;
+        if not BCCTDataset.Get(Dataset) then
+            Error(DatasetNotFoundErr, Dataset);
 
-    // procedure GetTestSuite1DayCorresponds(SuiteCode: Code[10]): Integer
-    // var
-    //     BCCTHeader: Record "BCCT Header";
-    // begin
-    //     if not BCCTHeader.Get(SuiteCode) then
-    //         Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+        BCCTHeader.Dataset := Dataset;
+        BCCTHeader.Modify(true);
+    end;
 
-    //     exit(BCCTHeader."1 Day Corresponds to (minutes)");
-    // end;
+    procedure GetTestSuiteDataset(SuiteCode: Code[10]): Code[50]
+    var
+        BCCTHeader: Record "BCCT Header";
+    begin
+        if not BCCTHeader.Get(SuiteCode) then
+            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+
+        exit(BCCTHeader.Dataset);
+    end;
 
     procedure SetTestSuiteTag(SuiteCode: Code[10]; Tag: Text[20])
     var
@@ -255,8 +256,8 @@ codeunit 149046 "BCCT Test Suite"
         exit(BCCTLine."Line No.");
     end;
 
-    procedure AddLineToTestSuiteHeader(SuiteCode: Code[10]; CodeunitId: Integer; NoOfSessions: Integer; Description: Text[50];
-                               MinUserDelayInMs: Integer; MaxUserDelayInMs: Integer; DelayBtwnIterInSecs: Integer; RunInForeground: Boolean;
+    procedure AddLineToTestSuiteHeader(SuiteCode: Code[10]; CodeunitId: Integer; Description: Text[50];
+                               MinUserDelayInMs: Integer; MaxUserDelayInMs: Integer; DelayBtwnIterInMs: Integer; RunInForeground: Boolean;
                                Parameters: Text[1000]): Integer
     var
         BCCTHeader: Record "BCCT Header";
@@ -274,45 +275,29 @@ codeunit 149046 "BCCT Test Suite"
         BCCTLine."Line No." := LastBCCTLine."Line No." + 1000;
         BCCTLine."Codeunit ID" := CodeunitId;
 
-        // if NoOfSessions <> 0 then
-        //     BCCTLine."No. of Sessions" := NoOfSessions;
+        BCCTLine.Description := Description;
 
-        // BCCTLine.Description := Description;
+        if MinUserDelayInMs <> 0 then
+            BCCTLine."Min. User Delay (ms)" := MinUserDelayInMs
+        else
+            BCCTLine."Min. User Delay (ms)" := BCCTHeader."Default Min. User Delay (ms)";
 
-        // if MinUserDelayInMs <> 0 then
-        //     BCCTLine."Min. User Delay (ms)" := MinUserDelayInMs
-        // else
-        //     BCCTLine."Min. User Delay (ms)" := BCCTHeader."Default Min. User Delay (ms)";
+        if MaxUserDelayInMs <> 0 then
+            BCCTLine."Max. User Delay (ms)" := MaxUserDelayInMs
+        else
+            BCCTLine."Max. User Delay (ms)" := BCCTHeader."Default Max. User Delay (ms)";
 
-        // if MaxUserDelayInMs <> 0 then
-        //     BCCTLine."Max. User Delay (ms)" := MaxUserDelayInMs
-        // else
-        //     BCCTLine."Max. User Delay (ms)" := BCCTHeader."Default Max. User Delay (ms)";
-
-        // if DelayBtwnIterInSecs <> 0 then
-        //     BCCTLine."Delay (sec. btwn. iter.)" := DelayBtwnIterInSecs;
+        if DelayBtwnIterInMs <> 0 then
+            BCCTLine."Delay (ms btwn. iter.)" := DelayBtwnIterInMs;
 
         BCCTLine."Run in Foreground" := RunInForeground;
 
         BCCTLine.Parameters := Parameters;
 
-        // BCCTLine."Delay Type" := DelayType;
-
         BCCTLine.Insert(true);
 
         exit(BCCTLine."Line No.");
     end;
-
-    // procedure SetTestSuiteLineNoOfSessions(SuiteCode: Code[10]; LineNo: Integer; NoOfSessions: Integer)
-    // var
-    //     BCCTLine: Record "BCCT Line";
-    // begin
-    //     if not BCCTLine.Get(SuiteCode, LineNo) then
-    //         Error(TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
-
-    //     BCCTLine."No. of Sessions" := NoOfSessions;
-    //     BCCTLine.Modify(true);
-    // end;
 
     procedure SetTestSuiteLineDescription(SuiteCode: Code[10]; LineNo: Integer; Description: Text[50])
     var

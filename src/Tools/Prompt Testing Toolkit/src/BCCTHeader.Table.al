@@ -110,6 +110,26 @@ table 149030 "BCCT Header"
             Editable = false;
             DataClassification = SystemMetadata;
         }
+        field(14; "Default Min. User Delay (ms)"; Integer)
+        {
+            Caption = 'Default Min. User Delay (ms)';
+            InitValue = 100;
+            MinValue = 100;
+            MaxValue = 10000;
+        }
+        field(15; "Default Max. User Delay (ms)"; Integer)
+        {
+            Caption = 'Default Max. User Delay (ms)';
+            InitValue = 1000;
+            MinValue = 100;
+            MaxValue = 30000;
+
+            trigger OnValidate()
+            begin
+                if "Default Max. User Delay (ms)" < "Default Min. User Delay (ms)" then
+                    "Default Max. User Delay (ms)" := "Default Min. User Delay (ms)";
+            end;
+        }
         field(16; "Base Version"; Integer)
         {
             Caption = 'Base Version';

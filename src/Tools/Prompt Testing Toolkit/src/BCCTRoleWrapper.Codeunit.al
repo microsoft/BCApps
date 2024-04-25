@@ -22,10 +22,6 @@ codeunit 149042 "BCCT Role Wrapper"
         AccumulatedWaitTimeMs: Integer;
 
     trigger OnRun();
-    //var
-    // PoissonLimit: Integer;
-    //StartTime: DateTime;
-    //CurrentWorkDate: Date;
     begin
         if Rec."Codeunit ID" = 0 then
             exit;
@@ -33,7 +29,7 @@ codeunit 149042 "BCCT Role Wrapper"
 
         NoOfInsertedLogEntries := 0;
         AccumulatedWaitTimeMs := 0;
-        //PoissonLimit := 0;
+
         InitializeBCCTLineForRun(Rec, ActiveBCCTHeader);
         SetBCCTHeader(ActiveBCCTHeader);
 
@@ -45,26 +41,18 @@ codeunit 149042 "BCCT Role Wrapper"
         BCCTHeader.Get(BCCTLine."BCCT Code");
         if BCCTHeader."Started at" < CurrentDateTime() then
             BCCTHeader."Started at" := CurrentDateTime();
-        // if BCCTHeader."Work date starts at" = 0D then
-        //     BCCTHeader."Work date starts at" := Today;
+
         if BCCTLine.Dataset = '' then
             BCCTLine.Dataset := (BCCTHeader.Dataset);
 
         if BCCTLine."Delay (ms btwn. iter.)" < 1 then
             BCCTLine."Delay (ms btwn. iter.)" := BCCTHeader." Default Delay (ms)";
-
-        // if BCCTLine."Delay Type" = BCCTLine."Delay Type"::Random then
-        //     if BCCTLine."Delay (sec. btwn. iter.)" = 0 then
-        //         PoissonLimit := 0
-        //     else // This was based on heuristics and does not behave as a true Poisson process, but only a rough approximation.
-        //         PoissonLimit := 1000000 - 1000000 div BCCTLine."Delay (sec. btwn. iter.)";
     end;
 
     local procedure ExecuteBCCTLine(var BCCTLine: Record "BCCT Line"; var BCCTHeader: Record "BCCT Header")
     var
         BCCTDatasetLine: Record "BCCT Dataset Line";
         BCCTHeaderCU: Codeunit "BCCT Header";
-        //BCCTRunType: Enum "BCCT Run Type";
         DoRun: Boolean;
         ExecuteNextIteration: Boolean;
     begin
@@ -222,7 +210,7 @@ codeunit 149042 "BCCT Role Wrapper"
         Commit();
         if FunctionName = '' then
             exit;
-        BCCTContextCU.EndScenario(FunctionName, IsSuccess); //TODO is the context codeunit used correctly?
+        BCCTContextCU.EndScenario(FunctionName, IsSuccess);
         Commit();
     end;
 

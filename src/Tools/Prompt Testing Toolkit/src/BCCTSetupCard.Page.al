@@ -70,16 +70,16 @@ page 149031 "BCCT Setup Card"
                     ToolTip = 'Specifies when the test was started.';
                     ApplicationArea = All;
                 }
-                // field(TotalNoOfSessions; Rec."Total No. of Sessions")
-                // {
-                //     ToolTip = 'Specifies the total number of sessions defined in the lines. Click the number to refresh.';
-                //     ApplicationArea = All;
-                //     Editable = false;
-                //     trigger OnDrillDown()
-                //     begin
-                //         CurrPage.Update(false);
-                //     end;
-                // }
+                field(MinDelay; Rec."Default Min. User Delay (ms)")
+                {
+                    ToolTip = 'Specifies the fastest user input.';
+                    ApplicationArea = All;
+                }
+                field(MaxDelay; Rec."Default Max. User Delay (ms)")
+                {
+                    ToolTip = 'Specifies the slowest user input.';
+                    ApplicationArea = All;
+                }
             }
             part(BCCTLines; "BCCT Lines")
             {

@@ -34,6 +34,14 @@ xmlport 149031 "BCCT Import/Export"
                 {
                     Occurrence = Optional;
                 }
+                fieldattribute(DefaultMinDelay; "BCCTSuite"."Default Min. User Delay (ms)")
+                {
+                    Occurrence = Optional;
+                }
+                fieldattribute(DefaultMaxDelay; "BCCTSuite"."Default Max. User Delay (ms)")
+                {
+                    Occurrence = Optional;
+                }
                 fieldattribute(ModelVersion; "BCCTSuite"."ModelVersion")
                 {
                     Occurrence = Optional;
@@ -66,6 +74,14 @@ xmlport 149031 "BCCT Import/Export"
                         Occurrence = Optional;
                     }
                     fieldattribute(Dataset; BCCTSuiteLine.Dataset)
+                    {
+                        Occurrence = Optional;
+                    }
+                    fieldattribute(MinDelay; BCCTSuiteLine."Min. User Delay (ms)")
+                    {
+                        Occurrence = Optional;
+                    }
+                    fieldattribute(MaxDelay; BCCTSuiteLine."Max. User Delay (ms)")
                     {
                         Occurrence = Optional;
                     }

@@ -92,6 +92,32 @@ table 149032 "BCCT Line"
             Editable = false;
             DataClassification = CustomerContent;
         }
+        field(10; "Min. User Delay (ms)"; Integer)
+        {
+            Caption = 'Min. User Delay (ms)';
+            MinValue = 100;
+            MaxValue = 10000;
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            begin
+                if "Max. User Delay (ms)" < "Min. User Delay (ms)" then
+                    "Max. User Delay (ms)" := "Min. User Delay (ms)";
+            end;
+        }
+        field(11; "Max. User Delay (ms)"; Integer)
+        {
+            Caption = 'Max. User Delay (ms)';
+            MinValue = 1000;
+            MaxValue = 30000;
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            begin
+                if "Max. User Delay (ms)" < "Min. User Delay (ms)" then
+                    "Max. User Delay (ms)" := "Min. User Delay (ms)";
+            end;
+        }
         field(12; "Delay (ms btwn. iter.)"; Integer)
         {
             Caption = 'Delay between iterations (ms)';

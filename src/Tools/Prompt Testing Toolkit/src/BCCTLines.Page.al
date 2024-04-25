@@ -77,6 +77,16 @@ page 149034 "BCCT Lines"
                     ToolTip = 'Specifies the status of the BCCT.';
                     ApplicationArea = All;
                 }
+                field(MinDelay; Rec."Min. User Delay (ms)")
+                {
+                    ToolTip = 'Specifies the min. user delay in ms of the BCCT.';
+                    ApplicationArea = All;
+                }
+                field(MaxDelay; Rec."Max. User Delay (ms)")
+                {
+                    ToolTip = 'Specifies the max. user delay in ms of the BCCT.';
+                    ApplicationArea = All;
+                }
                 field(NoOfIterations; Rec."No. of Iterations")
                 {
                     ToolTip = 'Specifies the number of iterations of the BCCT for this role.';
@@ -190,6 +200,12 @@ page 149034 "BCCT Lines"
     var
         BCCTHeader: Record "BCCT Header";
         BCCTLineCU: Codeunit "BCCT Line";
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Rec."Min. User Delay (ms)" := BCCTHeader."Default Min. User Delay (ms)";
+        Rec."Max. User Delay (ms)" := BCCTHeader."Default Max. User Delay (ms)";
+    end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin

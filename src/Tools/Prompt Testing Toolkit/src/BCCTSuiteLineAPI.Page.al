@@ -63,6 +63,14 @@ page 149037 "BCCT Suite Line API"
                 {
                     Caption = 'Parameters';
                 }
+                field("minimumUserDelay"; Rec."Min. User Delay (ms)")
+                {
+                    Caption = 'Min. User Delay (ms)';
+                }
+                field("maximumUserDelay"; Rec."Max. User Delay (ms)")
+                {
+                    Caption = 'Max. User Delay (ms)';
+                }
             }
         }
     }

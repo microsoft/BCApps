@@ -66,6 +66,11 @@ codeunit 149035 "BCCT Line"
             exit;
         end;
 
+        if Rec."Min. User Delay (ms)" = 0 then
+            Rec."Min. User Delay (ms)" := BCCTHeader."Default Min. User Delay (ms)";
+        if Rec."Max. User Delay (ms)" = 0 then
+            Rec."Max. User Delay (ms)" := BCCTHeader."Default Max. User Delay (ms)";
+
         if Rec."BCCT Code" <> BCCTHeader.Code then
             if BCCTHeader.Get(Rec."BCCT Code") then;
     end;
@@ -212,13 +217,13 @@ codeunit 149035 "BCCT Line"
 
     procedure UserWait(var BCCTLine: Record "BCCT Line")
     var
-    // BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper"; // single instance
-    // NapTime: Integer;
+        BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper"; // single instance
+        NapTime: Integer;
     begin
         Commit();
-        // NapTime := BCCTLine."Min. User Delay (ms)" + Random(BCCTLine."Max. User Delay (ms)" - BCCTLine."Min. User Delay (ms)");
-        // BCCTRoleWrapperImpl.AddToAccumulatedWaitTimeMs(NapTime);
-        // Sleep(NapTime);
+        NapTime := BCCTLine."Min. User Delay (ms)" + Random(BCCTLine."Max. User Delay (ms)" - BCCTLine."Min. User Delay (ms)");
+        BCCTRoleWrapperImpl.AddToAccumulatedWaitTimeMs(NapTime);
+        Sleep(NapTime);
     end;
 
     procedure GetAvgDuration(BCCTLine: Record "BCCT Line"): Integer
