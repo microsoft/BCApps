@@ -149,7 +149,6 @@ table 149034 "BCCT Log Entry"
         }
         key(Key4; "BCCT Code", Version, Operation, "Duration (ms)")
         {
-            // TODO: Is dataset line no unique enough
             // Instead of a SIFT index. This will make both inserts and calculations faster - and non-blocking
         }
         key(Key3; "Duration (ms)")

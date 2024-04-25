@@ -29,20 +29,12 @@ codeunit 149034 "BCCT Header"
         if Confirm(ConfirmResetStatusQst) then begin
             BCCTLine.SetRange("BCCT Code", BCCTHeader."Code");
             BCCTLine.ModifyAll(Status, BCCTLine.Status::Completed);
-            //BCCTLine.ModifyAll("No. of Running Sessions", 0);
-
             BCCTHeader.Status := BCCTHeader.Status::Completed;
             BCCTHeader."No. of tests running" := 0;
             BCCTHeader."Ended at" := CurrentDateTime();
             BCCTHeader.Duration := BCCTHeader."Ended at" - BCCTHeader."Started at";
             BCCTHeader.Modify(true);
         end;
-    end;
-
-    [EventSubscriber(ObjectType::Table, Database::"BCCT Header", 'OnBeforeInsertEvent', '', false, false)]
-    local procedure SetDefaultWorkdateOnAfterInsertBCCTHeader(var Rec: Record "BCCT Header"; RunTrigger: Boolean)
-    begin
-        //Rec."Work date starts at" := WorkDate();
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"BCCT Header", 'OnBeforeDeleteEvent', '', false, false)]
@@ -70,13 +62,12 @@ codeunit 149034 "BCCT Header"
     begin
         TelemetryCustomDimensions.Add('RunID', Format(BCCTHeader.RunID));
         TelemetryCustomDimensions.Add('Code', BCCTHeader.Code);
-        // if BCCTHeaderStatus = BCCTheaderstatus::Completed then
-        //     TelemetryCustomDimensions.Add('DurationInMinutes', Format(BCCTHeader."Duration (minutes)"));
-        // TelemetryCustomDimensions.Add('CurrentRunType', Format(BCCTHeader.CurrentRunType));
+        if BCCTHeaderStatus <> BCCTHeaderStatus::Running then begin
+            BCCTHeader."Ended at" := CurrentDateTime();
+            BCCTHeader.Duration := BCCTHeader."Ended at" - BCCTHeader."Started at";
+            TelemetryCustomDimensions.Add('DurationInMiliseconds', Format(BCCTHeader.Duration));
+        end;
         TelemetryCustomDimensions.Add('Version', Format(BCCTHeader.Version));
-        // BCCTHeader.CalcFields("Total No. of Sessions");
-        // TelemetryCustomDimensions.Add('SessionCount', Format(BCCTHeader."Total No. of Sessions"));
-        // TelemetryCustomDimensions.Add('Test Company Name', Format(BCCTHeader."Test Company Name"));
 
         BCCTHeader.Status := BCCTHeaderStatus;
         BCCTHeader.CalcFields("No. of tests in the last run", "Total Duration (ms)");
@@ -85,17 +76,9 @@ codeunit 149034 "BCCT Header"
             BCCTHeaderStatus::Running:
                 Session.LogMessage('0000DHR', PerformanceRunStartedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
             BCCTHeaderStatus::Completed:
-                begin
-                    BCCTHeader."Ended at" := CurrentDateTime();
-                    BCCTHeader.Duration := BCCTHeader."Ended at" - BCCTHeader."Started at";
-                    Session.LogMessage('0000DHS', PerformanceRunFinishedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
-                end;
+                Session.LogMessage('0000DHS', PerformanceRunFinishedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
             BCCTHeaderStatus::Cancelled:
-                begin
-                    BCCTHeader."Ended at" := CurrentDateTime();
-                    BCCTHeader.Duration := BCCTHeader."Ended at" - BCCTHeader."Started at";
-                    Session.LogMessage('0000DHT', PerformanceRunCancelledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
-                end;
+                Session.LogMessage('0000DHT', PerformanceRunCancelledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
         end;
         BCCTHeader.Modify();
         Commit();

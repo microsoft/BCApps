@@ -96,7 +96,6 @@ table 149032 "BCCT Line"
         {
             Caption = 'Delay between iterations (ms)';
             DataClassification = CustomerContent;
-            //InitValue = 5;
             MinValue = 0;
         }
         field(14; "Version Filter"; Integer)
@@ -120,7 +119,6 @@ table 149032 "BCCT Line"
             FieldClass = FlowField;
             CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter")));
         }
-#pragma warning disable AA0232
         field(18; "Run in Foreground"; Boolean)
         {
             Caption = 'Run in Foreground';
@@ -190,13 +188,6 @@ table 149032 "BCCT Line"
             FieldClass = FlowField;
             CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Scenario')));
         }
-#pragma warning disable AS0080
-        field(29; "Company Name"; Code[30])
-        {
-            Caption = 'Specify the test company';
-            DataClassification = CustomerContent;
-        }
-#pragma warning restore AS0080
     }
 
     keys
@@ -211,7 +202,7 @@ table 149032 "BCCT Line"
     }
 
     var
-        NotSupportedCodeunitErr: Label 'Codeunit %1 can not be used for benchmark testing.', Comment = '%1 = codeunit name';
+        NotSupportedCodeunitErr: Label 'Codeunit %1 can not be used for testing.', Comment = '%1 = codeunit name';
         ParameterNotSupportedErr: Label 'Parameter is not supported for the selected codeunit. You can only set parameters on codeunit that implemented "BCCT Test Param. Provider" interface.';
         RunInBackgroundNotSupportedErr: Label 'Codeunit with SubType "Test" cannot be executed in background.';
         BCCTTestParamProvider: Interface "BCCT Test Param. Provider";

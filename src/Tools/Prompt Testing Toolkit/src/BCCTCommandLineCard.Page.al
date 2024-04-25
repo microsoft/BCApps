@@ -36,8 +36,6 @@ page 149042 "BCCT CommandLine Card"
 
                         //BCCTHeader.CalcFields("Total No. of Sessions");
                         CurrentBCCTHeader := BCCTHeader;
-                        //DurationInMins := BCCTHeader."Duration (minutes)";
-                        //NoOfInstances := BCCTHeader."Total No. of Sessions";
                         BCCTLine.SetRange("BCCT Code", BCCTCode);
                         NoOfTests := BCCTLine.Count();
                     end;

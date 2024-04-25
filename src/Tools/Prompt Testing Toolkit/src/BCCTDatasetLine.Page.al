@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.Tooling;
 
 page 149032 "BCCT Dataset Line"
@@ -17,7 +22,7 @@ page 149032 "BCCT Dataset Line"
                 field(Id; Rec.Id)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the ID of the input.';
+                    ToolTip = 'Specifies the ID of the line.';
                 }
                 field(Input; Rec.Input)
                 {

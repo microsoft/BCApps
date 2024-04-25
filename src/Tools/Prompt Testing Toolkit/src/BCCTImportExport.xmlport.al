@@ -30,26 +30,18 @@ xmlport 149031 "BCCT Import/Export"
                 {
                     Occurrence = Optional;
                 }
-                // fieldattribute(Duration; "BCCTSuite"."Duration (minutes)")
-                // {
-                //     Occurrence = Optional;
-                // }
-                // fieldattribute(DefaultMinDelay; "BCCTSuite"."Default Min. User Delay (ms)")
-                // {
-                //     Occurrence = Optional;
-                // }
-                // fieldattribute(DefaultMaxDelay; "BCCTSuite"."Default Max. User Delay (ms)")
-                // {
-                //     Occurrence = Optional;
-                // }
-                // fieldattribute(WorkDateStarts; "BCCTSuite"."Work date starts at")
-                // {
-                //     Occurrence = Optional;
-                // }
-                // fieldattribute(DayCorrespondsTo; "BCCTSuite"."1 Day Corresponds to (minutes)")
-                // {
-                //     Occurrence = Optional;
-                // }
+                fieldattribute(Duration; "BCCTSuite".Duration)
+                {
+                    Occurrence = Optional;
+                }
+                fieldattribute(ModelVersion; "BCCTSuite"."ModelVersion")
+                {
+                    Occurrence = Optional;
+                }
+                fieldattribute(Dataset; "BCCTSuite".Dataset)
+                {
+                    Occurrence = Optional;
+                }
                 tableelement(BCCTSuiteLine; "BCCT Line")
                 {
                     LinkFields = "BCCT Code" = field("Code");
@@ -73,18 +65,10 @@ xmlport 149031 "BCCT Import/Export"
                     {
                         Occurrence = Optional;
                     }
-                    // fieldattribute(MinDelay; BCCTSuiteLine."Min. User Delay (ms)")
-                    // {
-                    //     Occurrence = Optional;
-                    // }
-                    // fieldattribute(MaxDelay; BCCTSuiteLine."Max. User Delay (ms)")
-                    // {
-                    //     Occurrence = Optional;
-                    // }
-                    // fieldattribute(NoOfSessions; BCCTSuiteLine."No. of Sessions")
-                    // {
-                    //     Occurrence = Optional;
-                    // }
+                    fieldattribute(Dataset; BCCTSuiteLine.Dataset)
+                    {
+                        Occurrence = Optional;
+                    }
                     fieldattribute(RunInForeground; BCCTSuiteLine."Run in Foreground")
                     {
                         Occurrence = Optional;

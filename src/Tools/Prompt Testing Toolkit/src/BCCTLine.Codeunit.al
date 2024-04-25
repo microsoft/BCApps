@@ -14,7 +14,7 @@ codeunit 149035 "BCCT Line"
     var
         BCCTHeader: Record "BCCT Header";
         ScenarioStarted: Dictionary of [Text, DateTime];
-    //ScenarioNotStartedErr: Label 'Scenario %1 was not started.', Comment = '%1 = codeunit name';
+        ScenarioNotStartedErr: Label 'Scenario %1 in codeunit %2 was not started.', Comment = '%1 = method name, %2 = codeunit name';
 
     [EventSubscriber(ObjectType::Table, Database::"BCCT Line", 'OnBeforeInsertEvent', '', false, false)]
     local procedure SetNoOfSessionsOnBeforeInsertBCCTLine(var Rec: Record "BCCT Line"; RunTrigger: Boolean)
@@ -70,20 +70,6 @@ codeunit 149035 "BCCT Line"
             if BCCTHeader.Get(Rec."BCCT Code") then;
     end;
 
-    // local procedure GetCurrentTotalNoOfSessions(var BCCTLine: Record "BCCT Line"): Integer
-    // var
-    //     BCCTLine2: Record "BCCT Line";
-    // begin
-    //     BCCTLine2.SetRange("BCCT Code", BCCTLine."BCCT Code");
-    //     BCCTLine2.CalcSums("No. of Sessions");
-    //     exit(BCCTLine2."No. of Sessions");
-    // end;
-
-    // local procedure MaxNoOfSessions(): Integer
-    // begin
-    //     exit(500);
-    // end;
-
     procedure Indent(var BCCTLine: Record "BCCT Line")
     var
         ParentBCCTLine: Record "BCCT Line";
@@ -119,6 +105,8 @@ codeunit 149035 "BCCT Line"
 
     procedure EndScenario(BCCTLine: Record "BCCT Line"; ScenarioOperation: Text; BCCTDatasetLine: Record "BCCT Dataset Line")
     begin
+        if not ScenarioStarted.ContainsKey(ScenarioOperation) then
+            error(ScenarioNotStartedErr, ScenarioOperation, BCCTLine."Codeunit Name");
         EndScenario(BCCTLine, ScenarioOperation, true, BCCTDatasetLine);
     end;
 
@@ -134,7 +122,6 @@ codeunit 149035 "BCCT Line"
         if ScenarioStarted.Get(ScenarioOperation, StartTime) then
             if ScenarioStarted.Remove(ScenarioOperation) then;
         //TODO: Add bcctDatasetLine input and outputs to AddLogEntry
-        // TODO: Add as many logs as in result json
         AddLogEntry(BCCTLine, ScenarioOperation, ExecutionSuccess, ErrorMessage, StartTime, EndTime, BCCTDatasetLine);
     end;
 
@@ -180,17 +167,12 @@ codeunit 149035 "BCCT Line"
         BCCTLogEntry.Message := CopyStr(ModifiedMessage, 1, MaxStrLen(BCCTLogEntry.Message));
         BCCTLogEntry."Orig. Message" := CopyStr(Message, 1, MaxStrLen(BCCTLogEntry."Orig. Message"));
         BCCTLogEntry."Log was Modified" := EntryWasModified;
-        //BCCTLogEntry."No. of SQL Statements" := NumSQLStatements;
         BCCTLogEntry."End Time" := EndTime;
         BCCTLogEntry."Start Time" := StartTime;
         BCCTLogEntry."Duration (ms)" := BCCTLogEntry."End Time" - BCCTLogEntry."Start Time";
         BCCTLogEntry.Dataset := BCCTDatasetLine."Dataset Name";
         BCCTLogEntry."Dataset Line No." := BCCTDatasetLine.Id;
         BCCTLogEntry.CalcFields("Input Text");
-        // if Operation = BCCTRoleWrapperImpl.GetScenarioLbl() then begin
-        //     BCCTLogEntry."Duration (ms)" -= BCCTRoleWrapperImpl.GetAndClearAccumulatedWaitTimeMs();
-        //     BCCTLogEntry."No. of SQL Statements" -= BCCTRoleWrapperImpl.GetAndClearNoOfLogEntriesInserted();
-        //end;
         BCCTLogEntry.Insert(true);
         Commit();
         AddLogAppInsights(BCCTLogEntry);
@@ -215,12 +197,10 @@ codeunit 149035 "BCCT Line"
         Dimensions.Add('Status', Format(BCCTLogEntry.Status));
         if BCCTLogEntry.Status = BCCTLogEntry.Status::Error then
             Dimensions.Add('StackTrace', BCCTLogEntry."Error Call Stack");
-        //Dimensions.Add('NoOfSqlStatements', Format(BCCTLogEntry."No. of SQL Statements"));
         Dimensions.Add('Message', BCCTLogEntry.Message);
         Dimensions.Add('StartTime', Format(BCCTLogEntry."Start Time"));
         Dimensions.Add('EndTime', Format(BCCTLogEntry."End Time"));
         Dimensions.Add('DurationInMs', Format(BCCTLogEntry."Duration (ms)"));
-        //Dimensions.Add('SessionNo', Format(BCCTLogEntry."Session No."));
         Session.LogMessage(
             '0000DGF',
             StrSubstNo(TelemetryLogLbl, BCCTLogEntry."BCCT Code", BCCTLogEntry.Operation, BCCTLogEntry.Status),

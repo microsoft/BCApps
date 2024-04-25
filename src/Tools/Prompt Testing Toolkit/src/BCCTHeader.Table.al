@@ -121,14 +121,6 @@ table 149030 "BCCT Header"
                     Error(BaseVersionMustBeLessThanVersionErr)
             end;
         }
-        // #pragma warning disable AA0232
-        //         field(17; "Total No. of Sessions"; Integer)
-        // #pragma warning restore AA0232
-        //         {
-        //             Caption = 'Total No. of Sessions';
-        //             FieldClass = FlowField;
-        //             CalcFormula = sum("BCCT Line"."No. of Sessions" where("BCCT Code" = field("Code")));
-        //         }
         field(19; RunID; Guid)
         {
             Caption = 'Unique RunID';

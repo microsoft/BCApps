@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.Tooling;
 page 149041 "BCCT Dataset"
 {
@@ -34,7 +39,7 @@ page 149041 "BCCT Dataset"
                             until DatasetLine.Next() = 0;
                     end;
                 }
-                field(Count; Rec."Input Count")
+                field(Count; Rec."Line Count")
                 {
                     ApplicationArea = All;
                     Caption = 'Input Count';

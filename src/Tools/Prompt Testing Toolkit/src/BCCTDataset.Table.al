@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.Tooling;
 table 149031 "BCCT Dataset"
 {
@@ -19,17 +24,11 @@ table 149031 "BCCT Dataset"
                 BCTTDatasetLinePage.Run();
             end;
         }
-        field(2; "Input Count"; Integer)
+        field(2; "Line Count"; Integer)
         {
             FieldClass = FlowField;
             CalcFormula = count("BCCT Dataset Line" where("Dataset Name" = field("Dataset Name")));
         }
-
-        // field(4; "Dataset Type"; Option)
-        // {
-        //     DataClassification = CustomerContent;
-        //     OptionMembers = Accuracy,"Harms Mitigation",Custom;
-        // }
     }
 
     keys
@@ -42,17 +41,17 @@ table 149031 "BCCT Dataset"
 
     fieldgroups
     {
-        fieldgroup(DropDown; "Dataset Name", "Input Count")
+        fieldgroup(DropDown; "Dataset Name", "Line Count")
         {
         }
     }
 
     trigger OnDelete()
     var
-        PTFDatasetPrompts: Record "BCCT Dataset Line";
+        BCCTDatasetLines: Record "BCCT Dataset Line";
     begin
-        PTFDatasetPrompts.SetRange("Dataset Name", "Dataset Name");
-        PTFDatasetPrompts.DeleteAll();
+        BCCTDatasetLines.SetRange("Dataset Name", "Dataset Name");
+        BCCTDatasetLines.DeleteAll();
     end;
 
 }
