@@ -78,10 +78,8 @@ codeunit 130454 "Test Runner - Mgt"
         TestMethodLineFunction: Record "Test Method Line";
         CodeunitTestMethodLine: Record "Test Method Line";
     begin
-        if SkipLoggingResults then begin
-            OnBeforeTestMethodRun(TestMethodLineFunction, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions);
+        if SkipLoggingResults then
             exit(true);
-        end;
 
         // Invoked by the platform before any codeunit is run
         if (FunctionName = '') or (FunctionName = 'OnRun') then begin
