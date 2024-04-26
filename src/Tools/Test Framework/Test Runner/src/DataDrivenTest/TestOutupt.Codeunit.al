@@ -1,3 +1,5 @@
+namespace System.TestTools.TestRunner;
+
 codeunit 130461 "Test Output"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeCodeunitRun', '', false, false)]

@@ -1,3 +1,5 @@
+namespace System.TestTools.TestRunner;
+
 table 130453 "Test Output"
 {
     DataClassification = CustomerContent;

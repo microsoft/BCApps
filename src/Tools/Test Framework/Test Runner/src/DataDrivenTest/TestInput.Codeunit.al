@@ -1,3 +1,5 @@
+namespace System.TestTools.TestRunner;
+
 codeunit 130460 "Test Input"
 {
     procedure test()
@@ -16,7 +18,7 @@ codeunit 130460 "Test Input"
         CurrentTestMethodLine: Record "Test Method Line";
         CurrentTestMethodTestInput: Record "Test Input";
     begin
-        if TestMethodLine."Data Input" = '' then
+        if not TestMethodLine."Data Input".HasValue() then
             exit;
 
         CurrentTestMethodLine.Copy(TestMethodLine);

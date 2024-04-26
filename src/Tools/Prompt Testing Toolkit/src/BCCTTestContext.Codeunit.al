@@ -84,7 +84,7 @@ codeunit 149043 "BCCT Test Context"
     /// Returns the BCCTDatasetLine associated with the tests.
     /// </summary>
     /// <param name="BCCTDatasetLine">BCCTLine associated with the session.</param>
-    local procedure GetBCCTDatasetLine(var BCCTDatasetLine: Record "BCCT Dataset Line")
+    procedure GetBCCTDatasetLine(var BCCTDatasetLine: Record "BCCT Dataset Line")
     var
         BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper";
     begin

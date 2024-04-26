@@ -1,3 +1,5 @@
+namespace System.TestTools.TestRunner;
+
 page 130459 "Test Inputs"
 {
     PageType = List;

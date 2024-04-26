@@ -1,3 +1,5 @@
+namespace System.TestTools.TestRunner;
+
 codeunit 130459 "Expand Data Driven Tests"
 {
     EventSubscriberInstance = Manual;

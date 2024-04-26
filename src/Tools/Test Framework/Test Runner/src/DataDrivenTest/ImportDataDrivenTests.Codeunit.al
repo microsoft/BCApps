@@ -1,3 +1,5 @@
+namespace System.TestTools.TestRunner;
+
 codeunit 130458 "Import Data Driven Test"
 {
     EventSubscriberInstance = Manual;
@@ -86,6 +88,7 @@ codeunit 130458 "Import Data Driven Test"
         I: Integer;
         TestMethods: List of [Text];
         DataInputs: List of [Text];
+        OutStream: OutStream;
     begin
         if TempTestMethodLine.FindLast() then
             NewTempTestMethodLine."Line No." := TempTestMethodLine."Line No." + GetIncrement()
@@ -127,7 +130,8 @@ codeunit 130458 "Import Data Driven Test"
                 end else
                     NewTempTestMethodLine."Line Type" := NewTempTestMethodLine."Line Type"::Codeunit;
 
-                NewTempTestMethodLine."Data Input" := DataInputName;
+                NewTempTestMethodLine."Data Input".CreateOutStream(OutStream, TextEncoding::UTF8);
+                OutStream.Write(DataInputName);
                 TempTestMethodLine.TransferFields(NewTempTestMethodLine);
                 TempTestMethodLine.Insert();
             end;

@@ -1,3 +1,5 @@
+namespace System.TestTools.TestRunner;
+
 pageextension 130451 MyExtension extends "AL Test Tool"
 {
     layout
