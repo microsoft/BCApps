@@ -1,24 +1,27 @@
 {
-    "projectName": "Business Foundation",
-    "appFolders":  [
-        "..\\..\\..\\src\\Business Foundation\\App"
-    ],
-    "testFolders":  [
-        "..\\..\\..\\src\\Business Foundation\\Test",
-        "..\\..\\..\\src\\Business Foundation\\Test Library"
-    ],
-    "buildModes": [
-        "Translated"
-    ],
-    "installOnlyReferencedApps": false,
-    "ConditionalSettings": [
-        {
-            "branches": [
-                "releases/*.[0-5]"
-            ],
-            "settings": {
-                "buildModes": [ "Strict" ]
-            }
-        }
-    ]
+  "projectName": "Business Foundation",
+  "appFolders": [
+    "..\\..\\..\\src\\Business Foundation\\App"
+  ],
+  "testFolders": [
+    "..\\..\\..\\src\\Business Foundation\\Test",
+    "..\\..\\..\\src\\Business Foundation\\Test Library"
+  ],
+  "buildModes": [
+    "Translated"
+  ],
+  "installOnlyReferencedApps": false,
+  "ConditionalSettings": [
+    {
+      "branches": [
+        "releases/*.[0-5]"
+      ],
+      "settings": {
+        "buildModes": [
+          "Strict"
+        ]
+      }
+    }
+  ],
+  "repoVersion": "24.2"
 }

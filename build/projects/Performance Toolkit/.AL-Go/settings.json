@@ -1,20 +1,23 @@
 {
-    "projectName": "Performance Toolkit",
-    "appFolders":  [
-        "..\\..\\..\\src\\Tools\\Performance Toolkit\\App"
-    ],
-    "testFolders":  [
-        "..\\..\\..\\src\\Tools\\Performance Toolkit\\Test"
-    ],
-    "installOnlyReferencedApps": false,
-    "ConditionalSettings": [
-        {
-            "branches": [
-                "releases/*.[0-5]"
-            ],
-            "settings": {
-                "buildModes": [ "Strict" ]
-            }
-        }
-    ]
+  "projectName": "Performance Toolkit",
+  "appFolders": [
+    "..\\..\\..\\src\\Tools\\Performance Toolkit\\App"
+  ],
+  "testFolders": [
+    "..\\..\\..\\src\\Tools\\Performance Toolkit\\Test"
+  ],
+  "installOnlyReferencedApps": false,
+  "ConditionalSettings": [
+    {
+      "branches": [
+        "releases/*.[0-5]"
+      ],
+      "settings": {
+        "buildModes": [
+          "Strict"
+        ]
+      }
+    }
+  ],
+  "repoVersion": "24.2"
 }

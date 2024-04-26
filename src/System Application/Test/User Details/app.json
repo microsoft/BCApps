@@ -1,56 +1,54 @@
 {
-    "id":  "e59f3a46-985c-4fe4-9ee4-7b53792763ca",
-    "name":  "User Details Test",
-    "publisher":  "Microsoft",
-    "brief":  "Tests for the User Details module",
-    "description":  "Tests for the User Details module.",
-    "version":  "24.1.0.0",
-    "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
-    "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
-    "help":  "",
-    "url":  "https://go.microsoft.com/fwlink/?LinkId=724011",
-    "logo":  "",
-    "dependencies":  [
-                         {
-                             "id":  "0e4ed208-7f60-4bad-a881-eeb03e09d832",
-                             "name":  "User Details",
-                             "publisher":  "Microsoft",
-                             "version":  "24.1.0.0"
-                         },
-                         {
-                             "id":  "9beafef7-a2fc-491c-85bd-8cd5c4650f2b",
-                             "name":  "User Details Test Library",
-                             "publisher":  "Microsoft",
-                             "version":  "24.1.0.0"
-                         },
-                         {
-                             "id":  "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
-                             "name":  "Library Assert",
-                             "publisher":  "Microsoft",
-                             "version":  "24.1.0.0"
-                         },
-                         {
-                             "id":  "c1d53fcd-ec4f-4ac5-ba49-af91a1dea38c",
-                             "name":  "Azure AD Plan",
-                             "publisher":  "Microsoft",
-                             "version":  "24.1.0.0"
-                         },
-                         {
-                             "id":  "e63749f1-a7a5-4557-a943-0ae4745616bd",
-                             "name":  "Azure AD Plan Test Library",
-                             "publisher":  "Microsoft",
-                             "version":  "24.1.0.0"
-                         }
-                     ],
-    "screenshots":  [
-
-                    ],
-    "platform":  "24.0.0.0",
-    "idRanges":  [
-                     {
-                         "from":  132908,
-                         "to":  132908
-                     }
-                 ],
-    "target":  "OnPrem"
+  "id": "e59f3a46-985c-4fe4-9ee4-7b53792763ca",
+  "name": "User Details Test",
+  "publisher": "Microsoft",
+  "brief": "Tests for the User Details module",
+  "description": "Tests for the User Details module.",
+  "version": "24.2.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "logo": "",
+  "dependencies": [
+    {
+      "id": "0e4ed208-7f60-4bad-a881-eeb03e09d832",
+      "name": "User Details",
+      "publisher": "Microsoft",
+      "version": "24.2.0.0"
+    },
+    {
+      "id": "9beafef7-a2fc-491c-85bd-8cd5c4650f2b",
+      "name": "User Details Test Library",
+      "publisher": "Microsoft",
+      "version": "24.2.0.0"
+    },
+    {
+      "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+      "name": "Library Assert",
+      "publisher": "Microsoft",
+      "version": "24.2.0.0"
+    },
+    {
+      "id": "c1d53fcd-ec4f-4ac5-ba49-af91a1dea38c",
+      "name": "Azure AD Plan",
+      "publisher": "Microsoft",
+      "version": "24.2.0.0"
+    },
+    {
+      "id": "e63749f1-a7a5-4557-a943-0ae4745616bd",
+      "name": "Azure AD Plan Test Library",
+      "publisher": "Microsoft",
+      "version": "24.2.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "24.0.0.0",
+  "idRanges": [
+    {
+      "from": 132908,
+      "to": 132908
+    }
+  ],
+  "target": "OnPrem"
 }

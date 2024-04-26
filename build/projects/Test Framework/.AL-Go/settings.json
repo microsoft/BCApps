@@ -1,21 +1,27 @@
 {
-    "projectName": "Test Framework",
-    "appFolders":  [
-        "..\\..\\..\\src\\Tools\\Test Framework\\Test Libraries\\*",
-        "..\\..\\..\\src\\Tools\\Test Framework\\Test Runner"
-    ],
-    "buildModes": [ "Translated" ],
-    "doNotRunTests": true,
-    "useCompilerFolder": true,
-    "doNotPublishApps": true,
-    "ConditionalSettings": [
-        {
-            "branches": [
-                "releases/*.[0-5]"
-            ],
-            "settings": {
-                "buildModes": [ "Translated", "Strict"]
-            }
-        }
-    ]
+  "projectName": "Test Framework",
+  "appFolders": [
+    "..\\..\\..\\src\\Tools\\Test Framework\\Test Libraries\\*",
+    "..\\..\\..\\src\\Tools\\Test Framework\\Test Runner"
+  ],
+  "buildModes": [
+    "Translated"
+  ],
+  "doNotRunTests": true,
+  "useCompilerFolder": true,
+  "doNotPublishApps": true,
+  "ConditionalSettings": [
+    {
+      "branches": [
+        "releases/*.[0-5]"
+      ],
+      "settings": {
+        "buildModes": [
+          "Translated",
+          "Strict"
+        ]
+      }
+    }
+  ],
+  "repoVersion": "24.2"
 }
