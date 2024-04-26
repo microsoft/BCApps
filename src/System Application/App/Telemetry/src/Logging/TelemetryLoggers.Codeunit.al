@@ -47,9 +47,19 @@ codeunit 8708 "Telemetry Loggers"
     begin
     end;
 
-    internal procedure GetTelemetryLogger(var TelemetryLogger: Interface "Telemetry Logger"): Boolean
+    internal procedure GetTelemetryLoggerFromCurrentPublisher(var TelemetryLogger: Interface "Telemetry Logger"): Boolean
     begin
-        exit(TelemetryLoggersImpl.GetTelemetryLogger(TelemetryLogger));
+        exit(TelemetryLoggersImpl.GetTelemetryLoggerFromCurrentPublisher(TelemetryLogger));
+    end;
+
+    internal procedure GetRegisteredTelemetryLoggers(): List of [Interface "Telemetry Logger"]
+    begin
+        exit(TelemetryLoggersImpl.GetRegisteredTelemetryLoggers());
+    end;
+
+    internal procedure GetFirstPartyTelemetryLogger(var TelemetryLogger: Interface "Telemetry Logger"): Boolean
+    begin
+        exit(TelemetryLoggersImpl.GetFirstPartyTelemetryLogger(TelemetryLogger));
     end;
 
     internal procedure SetCurrentPublisher(Publisher: Text)

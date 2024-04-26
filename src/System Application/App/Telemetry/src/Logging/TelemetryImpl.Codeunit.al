@@ -33,7 +33,8 @@ codeunit 8712 "Telemetry Impl."
     procedure LogMessageInternal(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; TelemetryScope: TelemetryScope; CustomDimensions: Dictionary of [Text, Text]; CallerCustomDimensions: Dictionary of [Text, Text]; Publisher: Text)
     var
         TelemetryLoggers: Codeunit "Telemetry Loggers";
-        TelemetryLogger: Interface "Telemetry Logger";
+        TelemetryLogger, MicrosoftTelemetryLogger : Interface "Telemetry Logger";
+        RegisteredTelemetryLoggers: List of [Interface "Telemetry Logger"];
     begin
         AddCustomDimensionsFromSubscribers(CustomDimensions, Publisher);
         AddCustomDimensionsSafely(CustomDimensions, CallerCustomDimensions);
@@ -41,8 +42,22 @@ codeunit 8712 "Telemetry Impl."
         TelemetryLoggers.SetCurrentPublisher(Publisher);
         TelemetryLoggers.OnRegisterTelemetryLogger();
 
-        if TelemetryLoggers.GetTelemetryLogger(TelemetryLogger) then
-            TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope, CustomDimensions);
+        if TelemetryScope = TelemetryScope::ExtensionPublisher then begin
+            // When Scope is ExtensionPublisher, only the current publisher gets a copy of Telemetry.
+            if TelemetryLoggers.GetTelemetryLoggerFromCurrentPublisher(TelemetryLogger) then
+                TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::ExtensionPublisher, CustomDimensions);
+        end else begin
+            // When Scope is All, all publishers get a copy of Telemetry (should be 3rd-party).
+            RegisteredTelemetryLoggers := TelemetryLoggers.GetRegisteredTelemetryLoggers();
+            foreach TelemetryLogger in RegisteredTelemetryLoggers do
+                // we set the scope to ExtensionPublisher for 3rd-party loggers to avoid multiple logging into environment telemetry.
+                // todo: need to filter out first-party loggers from RegisteredTelemetryLoggers
+                TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::ExtensionPublisher, CustomDimensions);
+
+            if TelemetryLoggers.GetFirstPartyTelemetryLogger(MicrosoftTelemetryLogger) then
+                // Then we use first-party logger to log telemetry to All only once.
+                MicrosoftTelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::All, CustomDimensions);
+        end;
     end;
 
     local procedure AddCommonCustomDimensions(CustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
