@@ -98,6 +98,17 @@ codeunit 1445 RSACryptoServiceProvider
 #endif
 
     /// <summary>
+    /// Creates an instance of RSACryptoServiceProvider from the specified encrypted PKCS#8 private key.
+    /// </summary>
+    /// <param name="EncryptedKeyInStream">The input stream containig ecrypted PKCS#8 private key.</param>
+    /// <param name="Password">Password to decrypt the private key.</param>
+    [NonDebuggable]
+    procedure ImportEncryptedPkcs8PrivateKey(EncryptedKeyInStream: InStream; Password: Text)
+    begin
+        RSACryptoServiceProviderImpl.ImportEncryptedPkcs8PrivateKey(EncryptedKeyInStream, Password);
+    end;
+
+    /// <summary>
     /// Creates and returns an XML string containing the key of the current RSA object.
     /// </summary>
     /// <param name="IncludePrivateParameters">true to include a public and private RSA key; false to include only the public key.</param>

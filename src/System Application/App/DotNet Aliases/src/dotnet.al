@@ -1403,6 +1403,10 @@ dotnet
         {
         }
 
+        type("System.ReadOnlySpan`1"; "ReadOnlySpan1")
+        {
+        }
+
         type("System.Collections.ArrayList"; "ArrayList")
         {
         }

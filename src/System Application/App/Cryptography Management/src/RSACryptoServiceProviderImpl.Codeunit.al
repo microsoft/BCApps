@@ -172,6 +172,24 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements "Signature Algorithm v
     end;
     #endregion
 
+    #region Pkcs8
+    [NonDebuggable]
+    procedure ImportEncryptedPkcs8PrivateKey(EncryptedKeyInStream: InStream; Password: Text)
+    var
+        EncryptedKeyBytes: DotNet Array;
+        PasswordChars: DotNet Array;
+        DotNetString: DotNet String;
+        ReadOnlySpan: DotNet ReadOnlySpan1;
+        BytesRead: Integer;
+    begin
+        InStreamToArray(EncryptedKeyInStream, EncryptedKeyBytes);
+        DotNetString := Password;
+        PasswordChars := DotNetString.ToCharArray();
+        RSACryptoServiceProvider();
+        DotNetRSACryptoServiceProvider.ImportEncryptedPkcs8PrivateKey(ReadOnlySpan.ReadOnlySpan(PasswordChars), ReadOnlySpan.ReadOnlySpan(EncryptedKeyBytes), BytesRead);
+    end;
+    #endregion
+
     local procedure RSACryptoServiceProvider()
     begin
         DotNetRSACryptoServiceProvider := DotNetRSACryptoServiceProvider.RSACryptoServiceProvider();
