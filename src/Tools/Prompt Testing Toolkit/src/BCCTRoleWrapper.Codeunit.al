@@ -53,10 +53,8 @@ codeunit 149042 "BCCT Role Wrapper"
     var
         BCCTDatasetLine: Record "BCCT Dataset Line";
         BCCTHeaderCU: Codeunit "BCCT Header";
-        DoRun: Boolean;
         ExecuteNextIteration: Boolean;
     begin
-        DoRun := true; //decide if we want different type of runs
         ExecuteNextIteration := true;
         Randomize();
 
@@ -66,16 +64,13 @@ codeunit 149042 "BCCT Role Wrapper"
             exit;
 
         repeat
-            if DoRun then begin
+            GetAndClearAccumulatedWaitTimeMs();
+            // TODO: substract wait time from operations?
 
-                GetAndClearAccumulatedWaitTimeMs();
-                GetAndClearNoOfLogEntriesInserted();
-
-                SetBCCTDatasetLine(BCCTDatasetLine);
-                OnBeforeExecuteIteration(BCCTHeader, BCCTLine, BCCTDatasetLine);
-                ExecuteIteration(BCCTLine, BCCTDatasetLine);
-                Commit();
-            end;
+            SetBCCTDatasetLine(BCCTDatasetLine);
+            OnBeforeExecuteIteration(BCCTHeader, BCCTLine, BCCTDatasetLine);
+            ExecuteIteration(BCCTLine, BCCTDatasetLine);
+            Commit();
 
             BCCTHeader.Find();
             if BCCTHeader.Status = BCCTHeader.Status::Cancelled then
@@ -93,9 +88,19 @@ codeunit 149042 "BCCT Role Wrapper"
 
         //TODO override delay from line / default delay
 
-
         until (ExecuteNextIteration = false);
-        BCCTHeaderCU.DecreaseNoOfTestsRunningNow(BCCTHeader);
+        BCCTLine.LockTable(true);
+        if not BCCTLine."Run in Foreground" then begin
+            BCCTHeaderCU.DecreaseNoOfTestsRunningNow(BCCTHeader);
+            CompleteBCCTLine(BCCTLine);
+        end
+        else begin
+            Bcctline.FindSet();
+            repeat
+                CompleteBCCTLine(BCCTLine);
+            until BCCTLine.Next() = 0;
+        end;
+        Commit();
     end;
 
     local procedure ExecuteIteration(var BCCTLine: Record "BCCT Line"; BCCTDatasetLine: Record "BCCT Dataset Line")
@@ -105,12 +110,19 @@ codeunit 149042 "BCCT Role Wrapper"
     begin
         SetBCCTLine(BCCTLine);
         TestMethodLine."Line Type" := TestMethodLine."Line Type"::Codeunit;
-        TestMethodLine."Skip Logging Results" := false;
+        TestMethodLine."Skip Logging Results" := true;
         TestMethodLine."Test Codeunit" := BCCTLine."Codeunit ID";
         //TODO: Set input
         if BCCTDatasetLine.Input <> '' then;
         //TestMethodLine."Input Data" := BCCTDatasetLine.Input;
         TestRunnerIsolDisabled.Run(TestMethodLine);
+    end;
+
+    local procedure CompleteBCCTLine(var BCCTLine: Record "BCCT Line")
+    begin
+        BCCTLine.Status := BCCTLine.Status::Completed;
+        BCCTLine.Modify();
+        Commit();
     end;
 
     internal procedure GetBCCTHeaderTag(): Text[20]
@@ -164,15 +176,6 @@ codeunit 149042 "BCCT Role Wrapper"
         ReturnValue: Integer;
     begin
         ReturnValue := NoOfInsertedLogEntries;
-        exit(ReturnValue);
-    end;
-
-    internal procedure GetAndClearNoOfLogEntriesInserted(): Integer
-    var
-        ReturnValue: Integer;
-    begin
-        ReturnValue := NoOfInsertedLogEntries;
-        NoOfInsertedLogEntries := 0;
         exit(ReturnValue);
     end;
 

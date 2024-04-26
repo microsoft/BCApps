@@ -132,13 +132,6 @@ codeunit 149036 "BCCT Start Tests"
             BCCTLine.SetRange("Line No.", BCCTLine."Line No.");
             BCCTLine.SetRange(Status);
             Codeunit.Run(Codeunit::"BCCT Role Wrapper", BCCTLine);
-
-            BCCTLine.LockTable();
-            if BCCTLine.Get(BCCTLine."BCCT Code", BCCTLine."Line No.") then begin
-                BCCTLine.Status := BCCTLine.Status::Completed;
-                BCCTLine.Modify();
-            end;
-            Commit();
         end else
             Error(NothingToRunErr);
     end;
