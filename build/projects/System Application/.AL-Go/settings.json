@@ -1,20 +1,26 @@
 {
-    "projectName": "System Application",
-    "appFolders":  [
-        "..\\..\\..\\src\\System Application\\App"
-    ],
-    "buildModes": [ "Translated" ],
-    "doNotRunTests": true,
-    "useCompilerFolder": true,
-    "doNotPublishApps": true,
-    "ConditionalSettings": [
-        {
-            "branches": [
-                "releases/*.[0-5]"
-            ],
-            "settings": {
-                "buildModes": [ "Translated", "Strict"]
-            }
-        }
-    ]
+  "projectName": "System Application",
+  "appFolders": [
+    "..\\..\\..\\src\\System Application\\App"
+  ],
+  "buildModes": [
+    "Translated"
+  ],
+  "doNotRunTests": true,
+  "useCompilerFolder": true,
+  "doNotPublishApps": true,
+  "ConditionalSettings": [
+    {
+      "branches": [
+        "releases/*.[0-5]"
+      ],
+      "settings": {
+        "buildModes": [
+          "Translated",
+          "Strict"
+        ]
+      }
+    }
+  ],
+  "repoVersion": "24.2"
 }
