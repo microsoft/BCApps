@@ -233,6 +233,12 @@ codeunit 1279 "Cryptography Management Impl."
         exit(EncryptionIsNotActivatedQst);
     end;
 
+    [NonDebuggable]
+    procedure GenerateHash(InputString: SecretText; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
+    begin
+        exit(GenerateHash(InputString.Unwrap(), HashAlgorithmType));
+    end;
+
     procedure GenerateHash(InputString: Text; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
     var
         HashBytes: DotNet Array;
@@ -242,6 +248,13 @@ codeunit 1279 "Cryptography Management Impl."
         exit(ConvertByteHashToString(HashBytes));
     end;
 
+    [NonDebuggable]
+    procedure GenerateHashAsBase64String(InputString: SecretText; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
+    begin
+        exit(GenerateHashAsBase64String(InputString.Unwrap(), HashAlgorithmType));
+    end;
+
+    [NonDebuggable]
     procedure GenerateHashAsBase64String(InputString: Text; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
     var
         HashBytes: DotNet Array;
@@ -271,6 +284,12 @@ codeunit 1279 "Cryptography Management Impl."
     end;
 
     [NonDebuggable]
+    procedure GenerateHash(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    begin
+        exit(GenerateHash(InputString.Unwrap(), Key, HashAlgorithmType));
+    end;
+
+    [NonDebuggable]
     procedure GenerateHash(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     var
         HashBytes: DotNet Array;
@@ -282,6 +301,12 @@ codeunit 1279 "Cryptography Management Impl."
     end;
 
     [NonDebuggable]
+    procedure GenerateHashAsBase64String(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    begin
+        exit(GenerateHashAsBase64String(InputString.Unwrap(), Key, HashAlgorithmType));
+    end;
+
+    [NonDebuggable]
     procedure GenerateHashAsBase64String(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     var
         HashBytes: DotNet Array;
@@ -290,6 +315,12 @@ codeunit 1279 "Cryptography Management Impl."
         if not GenerateKeyedHashBytes(HashBytes, InputString, Encoding.UTF8().GetBytes(Key.Unwrap()), HashAlgorithmType) then
             exit('');
         exit(ConvertByteHashToBase64String(HashBytes));
+    end;
+
+    [NonDebuggable]
+    procedure GenerateBase64KeyedHashAsBase64String(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    begin
+        exit(GenerateBase64KeyedHashAsBase64String(InputString.Unwrap(), Key, HashAlgorithmType));
     end;
 
     [NonDebuggable]
@@ -360,6 +391,12 @@ codeunit 1279 "Cryptography Management Impl."
     end;
 
     [NonDebuggable]
+    procedure GenerateBase64KeyedHash(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    begin
+        exit(GenerateBase64KeyedHash(InputString.Unwrap(), Key, HashAlgorithmType));
+    end;
+
+    [NonDebuggable]
     procedure GenerateBase64KeyedHash(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     var
         HashBytes: DotNet Array;
@@ -368,6 +405,26 @@ codeunit 1279 "Cryptography Management Impl."
         if not GenerateKeyedHashBytes(HashBytes, InputString, Convert.FromBase64String(Key.Unwrap()), HashAlgorithmType) then
             exit('');
         exit(ConvertByteHashToString(HashBytes));
+    end;
+
+    [NonDebuggable]
+    procedure SignData(InputString: SecretText; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        DataOutStream: OutStream;
+        DataInStream: InStream;
+    begin
+        if InputString.IsEmpty() then
+            exit;
+        TempBlob.CreateOutStream(DataOutStream, TextEncoding::UTF8);
+        TempBlob.CreateInStream(DataInStream, TextEncoding::UTF8);
+        DataOutStream.WriteText(InputString.Unwrap());
+        SignData(DataInStream, XmlString, HashAlgorithm, SignatureOutStream);
+    end;
+
+    procedure SignData(InputString: SecretText; SignatureKey: Codeunit "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    begin
+        SignData(InputString, SignatureKey.ToXmlString(), HashAlgorithm, SignatureOutStream);
     end;
 
     procedure SignData(InputString: Text; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
@@ -404,6 +461,26 @@ codeunit 1279 "Cryptography Management Impl."
     procedure SignData(DataInStream: InStream; SignatureKey: Codeunit "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
     begin
         SignData(DataInStream, SignatureKey.ToXmlString(), HashAlgorithm, SignatureOutStream);
+    end;
+
+    [NonDebuggable]
+    procedure VerifyData(InputString: SecretText; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    var
+        TempBlob: Codeunit "Temp Blob";
+        DataOutStream: OutStream;
+        DataInStream: InStream;
+    begin
+        if InputString.IsEmpty() then
+            exit(false);
+        TempBlob.CreateOutStream(DataOutStream, TextEncoding::UTF8);
+        TempBlob.CreateInStream(DataInStream, TextEncoding::UTF8);
+        DataOutStream.WriteText(InputString.Unwrap());
+        exit(VerifyData(DataInStream, XmlString, HashAlgorithm, SignatureInStream));
+    end;
+
+    procedure VerifyData(InputString: SecretText; SignatureKey: Codeunit "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    begin
+        exit(VerifyData(InputString, SignatureKey.ToXmlString(), HashAlgorithm, SignatureInStream));
     end;
 
     procedure VerifyData(InputString: Text; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
