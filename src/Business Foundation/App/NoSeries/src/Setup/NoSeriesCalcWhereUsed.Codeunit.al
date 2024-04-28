@@ -11,10 +11,6 @@ using System.Utilities;
 codeunit 1 "Calc. No. Series Where-Used"
 {
 
-    trigger OnRun()
-    begin
-    end;
-
     var
         TempNoSeriesWhereUsed: Record "No. Series Where-Used" temporary;
         NextEntryNo: Integer;
@@ -80,7 +76,7 @@ codeunit 1 "Calc. No. Series Where-Used"
         TableRelationsMetadata: Record "Table Relations Metadata";
     begin
         TableRelationsMetadata.SetLoadFields("Related Table ID", "Related Field No.");
-        TableRelationsMetadata.SetRange("Related Table ID", DATABASE::"No. Series");
+        TableRelationsMetadata.SetRange("Related Table ID", Database::"No. Series");
         TableRelationsMetadata.SetRange("Related Field No.", NoSeries.FieldNo(Code));
         if TableRelationsMetadata.FindSet() then
             repeat
@@ -106,7 +102,7 @@ codeunit 1 "Calc. No. Series Where-Used"
     local procedure CheckTable(NoSeriesCode: Code[20]; TableID: Integer)
     var
         TableRelationsMetadata: Record "Table Relations Metadata";
-        "Field": Record "Field";
+        Field: Record Field;
         RecRef: RecordRef;
     begin
         RecRef.Open(TableID);
@@ -115,7 +111,7 @@ codeunit 1 "Calc. No. Series Where-Used"
         TempNoSeriesWhereUsed."Table Name" := RecRef.Caption;
 
         TableRelationsMetadata.SetRange("Table ID", TableID);
-        TableRelationsMetadata.SetRange("Related Table ID", DATABASE::"No. Series");
+        TableRelationsMetadata.SetRange("Related Table ID", Database::"No. Series");
         if TableRelationsMetadata.FindSet() then
             repeat
                 Field.Get(TableRelationsMetadata."Table ID", TableRelationsMetadata."Field No.");
@@ -169,7 +165,7 @@ codeunit 1 "Calc. No. Series Where-Used"
                 TempNoSeriesWhereUsed.Line := CopyStr(FieldCaptionAndValue, 1, MaxStrLen(TempNoSeriesWhereUsed.Line))
             else
                 TempNoSeriesWhereUsed.Line :=
-                  CopyStr(TempNoSeriesWhereUsed.Line + ', ' + FieldCaptionAndValue, 1, MaxStrLen(TempNoSeriesWhereUsed.Line));
+                    CopyStr(TempNoSeriesWhereUsed.Line + ', ' + FieldCaptionAndValue, 1, MaxStrLen(TempNoSeriesWhereUsed.Line));
 
             case KeyFieldCount of
                 1:
@@ -182,7 +178,7 @@ codeunit 1 "Calc. No. Series Where-Used"
                     TempNoSeriesWhereUsed."Key 4" := CopyStr(Format(FieldRef.Value), 1, MaxStrLen(TempNoSeriesWhereUsed."Key 4"));
             end;
         end;
-        NextEntryNo := NextEntryNo + 1;
+        NextEntryNo += 1;
         TempNoSeriesWhereUsed.Insert();
     end;
 
