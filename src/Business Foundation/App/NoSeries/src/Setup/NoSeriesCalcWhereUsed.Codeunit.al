@@ -51,7 +51,7 @@ codeunit 1 "Calc. No. Series Where-Used"
         OnBeforeShowNoSeriesWhereUsed(TempNoSeriesWhereUsed);
 
         TempNoSeriesWhereUsed.SetCurrentKey("Table Name");
-        PAGE.RunModal(0, TempNoSeriesWhereUsed);
+        Page.RunModal(0, TempNoSeriesWhereUsed);
     end;
 
     procedure CheckNoSeries(NoSeriesCode: Code[20])
