@@ -59,6 +59,31 @@ pageextension 130451 MyExtension extends "AL Test Tool"
                     Page.Run(Page::"Test Inputs", TestInput);
                 end;
             }
+            action(DataOutput)
+            {
+                ApplicationArea = All;
+                Caption = 'Data output';
+                Image = Export;
+                trigger OnAction()
+                var
+                    TestOutput: Codeunit "Test Output";
+                begin
+                    Message(TestOutput.GetAllTestOutput().ToText());
+                end;
+            }
+            action(ClearDataOutput)
+            {
+                ApplicationArea = All;
+                Caption = 'Clear data output';
+                Image = ClearLog;
+
+                trigger OnAction()
+                var
+                    TestOutput: Codeunit "Test Output";
+                begin
+                    Clear(TestOutput);
+                end;
+            }
         }
 
         addlast(Category_Process)
@@ -75,6 +100,12 @@ pageextension 130451 MyExtension extends "AL Test Tool"
                 {
                 }
                 actionref(DataInputs_Promoted; DataInputs)
+                {
+                }
+                actionref(DataOutput_Promoted; DataOutput)
+                {
+                }
+                actionref(ClearDataOutput_Promoted; ClearDataOutput)
                 {
                 }
             }
