@@ -94,7 +94,7 @@ codeunit 9050 "ABS Operation Response"
     end;
 
     [NonDebuggable]
-    procedure GetMataDataValueFromResponseHeaders(): Dictionary of [Text, Text]
+    procedure GetMetaDataValueFromResponseHeaders(): Dictionary of [Text, Text]
     var
         MetaData: Dictionary of [Text, Text];
         Headers: HttpHeaders;
