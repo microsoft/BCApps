@@ -579,7 +579,6 @@ codeunit 9051 "ABS Client Impl."
         ABSOperationPayload.SetBlobName(BlobName);
         AddMetaDataHeaders(MetaData);
 
-
         ABSOperationResponse := ABSWebRequestHelper.PutOperation(ABSOperationPayload, HTTPContent, StrSubstNo(MetaDataOperationNotSuccessfulErr, 'set', BlobLbl));
         exit(ABSOperationResponse);
     end;
