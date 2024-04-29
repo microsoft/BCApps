@@ -99,6 +99,7 @@ page 149033 "BCCT Log Entries"
                 }
                 field("Procedure Name"; Rec."Procedure Name")
                 {
+                    ToolTip = 'Specifies the name of the procedure being executed';
                     ApplicationArea = All;
                 }
                 field("Orig. Operation"; Rec."Orig. Operation")

@@ -66,7 +66,6 @@ codeunit 149042 "BCCT Role Wrapper"
 
         repeat
             GetAndClearAccumulatedWaitTimeMs();
-            // TODO: substract wait time from operations?
 
             SetBCCTDatasetLine(BCCTDatasetLine);
             OnBeforeExecuteIteration(BCCTHeader, BCCTLine, BCCTDatasetLine);
