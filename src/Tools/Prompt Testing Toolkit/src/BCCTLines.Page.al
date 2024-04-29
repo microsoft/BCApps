@@ -167,6 +167,10 @@ page 149034 "BCCT Lines"
 
                 trigger OnAction()
                 begin
+                    BCCTHeader.Get(Rec."BCCT Code");
+                    BCCTHeader.Version += 1;
+                    BCCTHeader.Modify();
+                    Commit();
                     Codeunit.Run(codeunit::"BCCT Role Wrapper", Rec);
                 end;
             }
