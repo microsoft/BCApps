@@ -144,8 +144,9 @@ page 149031 "BCCT Setup Card"
                 begin
                     CurrPage.Update(false);
                     Rec.Find();
-                    //Rec.CurrentRunType := Rec.CurrentRunType::BCCT;
-                    Rec.Modify();
+                    if Rec.Dataset = '' then
+                        Error('Please specify a dataset before starting the suite.');
+                    BCCTHeaderCU.ValidateDatasets(Rec);
                     BCCTStartTests.StartBCCTSuite(Rec);
                     CurrPage.Update(false);
                 end;

@@ -48,7 +48,7 @@ xmlport 149031 "BCCT Import/Export"
                 }
                 fieldattribute(Dataset; "BCCTSuite".Dataset)
                 {
-                    Occurrence = Optional;
+                    Occurrence = Required;
                 }
                 tableelement(BCCTSuiteLine; "BCCT Line")
                 {

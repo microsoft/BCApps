@@ -37,6 +37,34 @@ codeunit 149034 "BCCT Header"
         end;
     end;
 
+    procedure ValidateDatasets(var BCCTHeader: Record "BCCT Header")
+    var
+        BCCTLine: Record "BCCT Line";
+        BCCTDataset: Record "BCCT Dataset";
+        BCCTDatasetLine: Record "BCCT Dataset Line";
+        NoInputsErr: Label 'The dataset %1 specified for BCCT Suite line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the BCCT Line No.';
+        NoDatasetErr: Label 'The dataset %1 specified for BCCT Line %2 does not exist', Comment = '%1 is the Dataset name, %2 is BCCT Line No.';
+        NoSuiteDatasetErr: Label 'The dataset %1 specified for BCCT Suite %2 does not exist', Comment = '%1 is the Dataset name, %2 is the BCCT Suite code';
+    begin
+        BCCTHeader.SetRange(BCCTHeader.Dataset);
+        if BCCTHeader.IsEmpty() then
+            Error(NoSuiteDatasetErr, BCCTHeader.Dataset, BCCTHeader."Code");
+        BCCTLine.SetRange("BCCT Code", BCCTHeader."Code");
+        if BCCTLine.FindSet() then
+            repeat
+                BCCTDataset.Reset();
+                BCCTDataset.SetRange("Dataset Name", BCCTLine.Dataset);
+                if BCCTDataset.IsEmpty() then
+                    Error(NoDatasetErr, BCCTLine.Dataset, BCCTLine."Line No.");
+                BCCTDatasetLine.Reset();
+                if BCCTDatasetLine."Dataset Name" <> '' then begin
+                    BCCTDatasetLine.SetRange("Dataset Name", BCCTLine.Dataset);
+                    if BCCTDatasetLine.IsEmpty() then
+                        Error(NoInputsErr, BCCTLine.Dataset, BCCTLine."Line No.");
+                end;
+            until BCCTLine.Next() = 0;
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"BCCT Header", 'OnBeforeDeleteEvent', '', false, false)]
     local procedure DeleteLinesOnDeleteBCCTHeader(var Rec: Record "BCCT Header"; RunTrigger: Boolean)
     var

@@ -79,9 +79,20 @@ codeunit 149042 "BCCT Role Wrapper"
 
             if ExecuteNextIteration then
                 if BCCTLine."Run in Foreground" then begin // rotate between foreground scenarios in this thread
-                    if BCCTLine.Next() = 0 then
-                        if BCCTLine.FindSet() then ExecuteNextIteration := BCCTDatasetLine.Next() <> 0;
-                    Sleep(BCCTLine."Delay (ms btwn. iter.)");
+                    if BCCTDatasetLine.Next() = 0 then begin
+                        if BCCTLine.Next() = 0 then
+                            ExecuteNextIteration := false
+                        else
+                            if BCCTLine.Dataset <> BCCTDatasetLine."Dataset Name" then begin
+                                BCCTDatasetLine.Reset();
+                                if BCCTLine.Dataset = '' then
+                                    BCCTDatasetLine.SetRange("Dataset Name", BCCTHeader.Dataset)
+                                else
+                                    BCCTDatasetLine.SetRange("Dataset Name", BCCTLine.Dataset);
+                                if not BCCTDatasetLine.FindSet() then;
+                            end;
+                        Sleep(BCCTLine."Delay (ms btwn. iter.)");
+                    end
                 end
                 else
                     ExecuteNextIteration := BCCTDatasetLine.Next() <> 0;

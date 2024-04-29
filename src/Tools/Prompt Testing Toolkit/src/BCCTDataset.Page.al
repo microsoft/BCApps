@@ -58,10 +58,7 @@ page 149041 "BCCT Dataset"
             {
                 ShowAs = SplitButton;
 
-                actionref(SplitUpload1; UploadDataset)
-                {
-                }
-                actionref(SplitUpload2; UploadDataset2)
+                actionref(SplitUpload1; UploadDataset2)
                 {
                 }
                 actionref(SplitUpload3; UploadDataset3)
@@ -74,62 +71,12 @@ page 149041 "BCCT Dataset"
         }
         area(Processing)
         {
-            action(UploadDataset)
-            {
-                Image = Attach;
-                ApplicationArea = All;
-                Caption = 'Upload Dataset';
-                ToolTip = 'Upload the dataset.';
-
-                trigger OnAction()
-                var
-                    PromptRec: Record "BCCT Dataset Line";
-                    PromptInStream: InStream;
-                    FromFilter: Text;
-                    CsvLine: Text;
-                    Lines: List of [Text];
-                    Line: Text;
-                    LineList: List of [Text];
-                    FragmentToAdd: Integer;
-                    UploadedFileName: Text;
-                begin
-                    FromFilter := 'All Files (*.*)|*.*';
-                    UploadIntoStream(DialogTitleLbl, '', FromFilter, UploadedFileName, PromptInStream);
-                    while PromptInStream.ReadText(CsvLine) > 1 do begin
-                        CsvLine := CsvLine.Replace('""', '''');
-                        Lines.Add(CsvLine);
-                    end;
-
-                    Rec.Init();
-                    Rec."Dataset Name" := CopyStr(UploadedFileName, 1, MaxStrLen(Rec."Dataset Name"));
-
-                    if Lines.Count > 0 then begin
-                        Lines.RemoveAt(1);
-                        foreach Line in Lines do begin
-                            LineList := Line.Split('"');
-                            FragmentToAdd := LineList.Count;
-                            if (LineList.Get(FragmentToAdd) = '') and (FragmentToAdd > 1) then
-                                FragmentToAdd := FragmentToAdd - 1;
-                            PromptRec.Init();
-                            PromptRec.Id := 0;
-                            PromptRec."Dataset Name" := Rec."Dataset Name";
-                            PromptRec.Input := CopyStr(LineList.Get(FragmentToAdd).Trim(), 1, MaxStrLen(PromptRec.Input));
-                            PromptRec.SetInputBlob(LineList.Get(FragmentToAdd).Trim());
-                            PromptRec.Insert();
-                        end;
-                        Clear(LineList);
-                    end;
-                    Rec.Insert();
-                    CurrPage.Update();
-                end;
-            }
-
             action(UploadDataset2)
             {
                 Image = Attach;
                 ApplicationArea = All;
-                Caption = 'Upload without processing lines';
-                Tooltip = 'Loads csv file';
+                Caption = 'Upload dataset';
+                Tooltip = 'Loads a file and converts the lines to inputs for the dataset';
                 trigger OnAction()
                 var
                     PromptRec: Record "BCCT Dataset Line";
@@ -142,16 +89,18 @@ page 149041 "BCCT Dataset"
                     UploadedFileName: Text;
                 begin
                     FromFilter := 'All Files (*.*)|*.*';
-                    UploadIntoStream(DialogTitleLbl, '', FromFilter, UploadedFileName, PromptInStream);
+                    if not UploadIntoStream(DialogTitleLbl, '', FromFilter, UploadedFileName, PromptInStream) then exit;
 
                     Rec.Init();
                     Rec."Dataset Name" := CopyStr(UploadedFileName, 1, MaxStrLen(Rec."Dataset Name"));
+                    Rec.Insert();
 
                     while PromptInStream.ReadText(CsvLine) > 1 do
                         Lines.Add(CsvLine);
 
                     if Lines.Count > 0 then begin
-                        Lines.RemoveAt(1);
+                        if UploadedFileName.EndsWith('.csv') then
+                            Lines.RemoveAt(1);
                         foreach Line in Lines do begin
                             PromptRec.Init();
                             PromptRec.Id := 0;
@@ -162,9 +111,7 @@ page 149041 "BCCT Dataset"
                         end;
                         Clear(LineList);
                     end;
-
-                    Rec.Insert();
-                    CurrPage.Update();
+                    CurrPage.Update(false);
                 end;
             }
 
