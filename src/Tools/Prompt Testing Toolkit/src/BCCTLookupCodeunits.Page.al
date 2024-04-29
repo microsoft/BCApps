@@ -67,7 +67,7 @@ page 149035 "BCCT Lookup Codeunits"
         Rec.SetFilter(ID, '49000..99999|149100..149999');
         Rec.FilterGroup(2);
         Rec.SetFilter(ID, '>=50000&<>%1', Codeunit::"BCCT Role Wrapper");
-        Rec.SetFilter(SubType, '%1|%2', Rec.SubType::Normal, Rec.SubType::Test);
+        Rec.SetFilter(SubType, '%1', Rec.SubType::Test);
         Rec.FilterGroup(0);
     end;
 
