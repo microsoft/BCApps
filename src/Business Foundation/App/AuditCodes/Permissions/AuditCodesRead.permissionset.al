@@ -9,9 +9,10 @@ permissionset 231 "Audit Codes - Read"
 {
     Assignable = false;
     Access = Internal;
+    IncludedPermissionSets = "Audit Codes - Objects";
 
-    Permissions = tabledata "Reason Code" = r,
-                tabledata "Return Reason" = r,
-                tabledata "Source Code" = r,
-                tabledata "Source Code Setup" = r;
+    Permissions = tabledata "Reason Code" = R,
+                tabledata "Return Reason" = R,
+                tabledata "Source Code" = R,
+                tabledata "Source Code Setup" = R;
 }

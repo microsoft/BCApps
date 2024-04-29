@@ -5,6 +5,9 @@
 
 namespace Microsoft.Foundation.AuditCodes;
 
+/// <summary>
+/// Source codes are used to categorize the source of a transaction.
+/// </summary>
 page 257 "Source Codes"
 {
     ApplicationArea = All;
@@ -20,11 +23,17 @@ page 257 "Source Codes"
             repeater(Control1)
             {
                 ShowCaption = false;
+                /// <summary>
+                /// Specifies the source code. 
+                /// </summary>
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the source code.';
                 }
+                /// <summary>
+                /// Specifies a description of what the code stands for.
+                /// </summary>
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;

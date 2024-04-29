@@ -5,6 +5,9 @@
 
 namespace Microsoft.Foundation.AuditCodes;
 
+/// <summary>
+/// Reason codes supplement the source codes and are used to indicate why an entry was created.
+/// </summary>
 page 259 "Reason Codes"
 {
     ApplicationArea = All;
@@ -20,11 +23,17 @@ page 259 "Reason Codes"
             repeater(Control1)
             {
                 ShowCaption = false;
+                /// <summary>
+                /// Specifies a reason code to attach to the entry.
+                /// </summary>
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies a reason code to attach to the entry.';
                 }
+                /// <summary>
+                /// Specifies a description of what the code stands for.
+                /// </summary>
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;

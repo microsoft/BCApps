@@ -5,6 +5,14 @@
 
 namespace Microsoft.Foundation.AuditCodes;
 
+/// <summary>
+/// Source codes are used to categorize the source of a transaction.
+/// </summary>
+/// <remarks>
+/// https://learn.microsoft.com/en-us/dynamics365/business-central/finance-setup-trail-codes
+/// This page is used to set up source codes that are used to categorize the source of a transaction. 
+/// Each feature that introduces a new transaction source should add a field to set up a default source code.
+/// </remarks>
 table 242 "Source Code Setup"
 {
     Caption = 'Source Code Setup';
@@ -13,6 +21,9 @@ table 242 "Source Code Setup"
 
     fields
     {
+        /// <summary>
+        /// The source code. Use codes that are easy to remember and descriptive.
+        /// </summary>
         field(1; "Primary Key"; Code[10])
         {
             Caption = 'Primary Key';

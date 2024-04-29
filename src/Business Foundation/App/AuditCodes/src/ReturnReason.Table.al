@@ -5,6 +5,9 @@
 
 namespace Microsoft.Foundation.AuditCodes;
 
+/// <summary>
+/// Return reason codes indicate why a product was returned.
+/// </summary>
 table 6635 "Return Reason"
 {
     Caption = 'Return Reason';
@@ -13,11 +16,17 @@ table 6635 "Return Reason"
 
     fields
     {
+        /// <summary>
+        /// The return reason code. Use codes that are easy to remember and descriptive.
+        /// </summary>
         field(1; "Code"; Code[10])
         {
             Caption = 'Code';
             NotBlank = true;
         }
+        /// <summary>
+        /// The description field. Enter an explanatory text for the code.
+        /// </summary>
         field(2; Description; Text[100])
         {
             Caption = 'Description';
