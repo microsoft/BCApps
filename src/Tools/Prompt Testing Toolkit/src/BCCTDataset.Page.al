@@ -11,6 +11,7 @@ page 149041 "BCCT Dataset"
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "BCCT Dataset";
+    RefreshOnActivate = true;
 
     layout
     {
