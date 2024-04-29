@@ -111,7 +111,6 @@ codeunit 9050 "ABS Operation Response"
         exit(MetaData);
     end;
 
-
     var
         [NonDebuggable]
         HttpResponseMessage: HttpResponseMessage;
