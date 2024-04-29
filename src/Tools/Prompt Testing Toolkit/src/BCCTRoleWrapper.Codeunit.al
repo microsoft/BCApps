@@ -197,25 +197,27 @@ codeunit 149042 "BCCT Role Wrapper"
     begin
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterTestMethodRun', '', false, false)]
-    local procedure OnAfterTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
-    var
-        BCCTContextCU: Codeunit "BCCT Test Context";
-    begin
-        Commit();
-        if FunctionName = '' then
-            exit;
-        BCCTContextCU.EndScenario(FunctionName, IsSuccess);
-        Commit();
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeTestMethodRun', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnBeforeTestMethodRun, '', false, false)]
     local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions)
     var
         BCCTContextCU: Codeunit "BCCT Test Context";
+        BCCTLineCU: Codeunit "BCCT Line";
     begin
         if FunctionName = '' then
             exit;
-        BCCTContextCU.StartScenario(FunctionName);
+        BCCTContextCU.StartScenario(BCCTLineCU.GetDefaultExecuteProcedureOperationLbl());
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnAfterTestMethodRun, '', false, false)]
+    local procedure OnAfterTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
+    var
+        BCCTContextCU: Codeunit "BCCT Test Context";
+        BCCTLineCU: Codeunit "BCCT Line";
+    begin
+        Commit(); //TODO: Do we need these commits?
+        if FunctionName = '' then
+            exit;
+        BCCTContextCU.EndScenario(BCCTLineCU.GetDefaultExecuteProcedureOperationLbl(), FunctionName, IsSuccess);
+        Commit();
     end;
 }

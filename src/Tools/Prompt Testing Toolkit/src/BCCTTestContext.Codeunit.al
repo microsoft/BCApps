@@ -36,7 +36,7 @@ codeunit 149043 "BCCT Test Context"
     begin
         GetBCCTLine(BCCTLine);
         GetBCCTDatasetLine(BCCTDatasetLine);
-        BCCTLineCU.EndScenario(BCCTLine, ScenarioOperation, true, BCCTDatasetLine);
+        BCCTLineCU.EndScenario(BCCTLine, ScenarioOperation, '', true, BCCTDatasetLine);
     end;
 
     /// <summary>
@@ -51,7 +51,23 @@ codeunit 149043 "BCCT Test Context"
     begin
         GetBCCTLine(BCCTLine);
         GetBCCTDatasetLine(BCCTDatasetLine);
-        BCCTLineCU.EndScenario(BCCTLine, ScenarioOperation, ExecutionSuccess, BCCTDatasetLine);
+        BCCTLineCU.EndScenario(BCCTLine, ScenarioOperation, '', ExecutionSuccess, BCCTDatasetLine);
+    end;
+
+    /// <summary>
+    /// This method ends the scope of a test session where the performance numbers are collected.
+    /// </summary>
+    /// <param name="ScenarioOperation">Label of the scenario.</param>
+    /// <param name="ExecutionSuccess">Result of the test execution.</param>
+    /// <param name="ProcedureName">Name of the procedure being executed</param>
+    internal procedure EndScenario(ScenarioOperation: Text; ProcedureName: Text[128]; ExecutionSuccess: Boolean)
+    var
+        BCCTLine: Record "BCCT Line";
+        BCCTDatasetLine: Record "BCCT Dataset Line";
+    begin
+        GetBCCTLine(BCCTLine);
+        GetBCCTDatasetLine(BCCTDatasetLine);
+        BCCTLineCU.EndScenario(BCCTLine, ScenarioOperation, ProcedureName, ExecutionSuccess, BCCTDatasetLine);
     end;
 
     /// <summary>

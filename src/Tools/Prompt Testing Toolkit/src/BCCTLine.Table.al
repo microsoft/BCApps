@@ -205,14 +205,14 @@ table 149032 "BCCT Line"
             Caption = 'No. of Iterations - Base';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Scenario')));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter")));
         }
         field(27; "Total Duration - Base (ms)"; Integer)
         {
             Caption = 'Total Duration - Base (ms)';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Scenario')));
+            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter")));
         }
     }
 

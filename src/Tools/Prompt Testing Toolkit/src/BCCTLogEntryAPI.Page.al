@@ -75,7 +75,7 @@ page 149038 "BCCT Log Entry API"
                 {
                     Caption = 'Codeunit Name';
                 }
-                field("functionName"; Rec."Function Name")
+                field("procedureName"; Rec."Procedure Name")
                 {
                     Caption = 'Function Name';
                 }

@@ -97,6 +97,10 @@ page 149033 "BCCT Log Entries"
                     ToolTip = 'Specifies the single operation of the BCCT.';
                     ApplicationArea = All;
                 }
+                field("Procedure Name"; Rec."Procedure Name")
+                {
+                    ApplicationArea = All;
+                }
                 field("Orig. Operation"; Rec."Orig. Operation")
                 {
                     ToolTip = 'Specifies the original operation of the BCCT.';

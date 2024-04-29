@@ -15,6 +15,7 @@ codeunit 149035 "BCCT Line"
         BCCTHeader: Record "BCCT Header";
         ScenarioStarted: Dictionary of [Text, DateTime];
         ScenarioNotStartedErr: Label 'Scenario %1 in codeunit %2 was not started.', Comment = '%1 = method name, %2 = codeunit name';
+        ExecuteProcedureOperationLbl: Label 'Execute Procedure', Locked = true;
 
     [EventSubscriber(ObjectType::Table, Database::"BCCT Line", 'OnBeforeInsertEvent', '', false, false)]
     local procedure SetNoOfSessionsOnBeforeInsertBCCTLine(var Rec: Record "BCCT Line"; RunTrigger: Boolean)
@@ -95,14 +96,14 @@ codeunit 149035 "BCCT Line"
             ScenarioStarted.Add(ScenarioOperation, CurrentDateTime());
     end;
 
-    procedure EndScenario(BCCTLine: Record "BCCT Line"; ScenarioOperation: Text; BCCTDatasetLine: Record "BCCT Dataset Line")
+    procedure EndScenario(BCCTLine: Record "BCCT Line"; ScenarioOperation: Text; BCCTDatasetLine: Record "BCCT Dataset Line") //TODO: seems to be dead code. Remove?
     begin
         if not ScenarioStarted.ContainsKey(ScenarioOperation) then
             error(ScenarioNotStartedErr, ScenarioOperation, BCCTLine."Codeunit Name");
-        EndScenario(BCCTLine, ScenarioOperation, true, BCCTDatasetLine);
+        EndScenario(BCCTLine, ScenarioOperation, '', true, BCCTDatasetLine);
     end;
 
-    procedure EndScenario(BCCTLine: Record "BCCT Line"; ScenarioOperation: Text; ExecutionSuccess: Boolean; BCCTDatasetLine: Record "BCCT Dataset Line")
+    internal procedure EndScenario(BCCTLine: Record "BCCT Line"; ScenarioOperation: Text; ProcedureName: Text[128]; ExecutionSuccess: Boolean; BCCTDatasetLine: Record "BCCT Dataset Line")
     var
         ErrorMessage: Text;
         StartTime: DateTime;
@@ -114,10 +115,10 @@ codeunit 149035 "BCCT Line"
         if ScenarioStarted.Get(ScenarioOperation, StartTime) then
             if ScenarioStarted.Remove(ScenarioOperation) then;
         //TODO: Add bcctDatasetLine input and outputs to AddLogEntry
-        AddLogEntry(BCCTLine, ScenarioOperation, ExecutionSuccess, ErrorMessage, StartTime, EndTime, BCCTDatasetLine);
+        AddLogEntry(BCCTLine, ScenarioOperation, ProcedureName, ExecutionSuccess, ErrorMessage, StartTime, EndTime, BCCTDatasetLine);
     end;
 
-    internal procedure AddLogEntry(var BCCTLine: Record "BCCT Line"; Operation: Text; ExecutionSuccess: Boolean; Message: Text; StartTime: DateTime; EndTime: Datetime; BCCTDatasetLine: Record "BCCT Dataset Line")
+    local procedure AddLogEntry(var BCCTLine: Record "BCCT Line"; Operation: Text; ProcedureName: Text[128]; ExecutionSuccess: Boolean; Message: Text; StartTime: DateTime; EndTime: Datetime; BCCTDatasetLine: Record "BCCT Dataset Line")
     var
         BCCTLogEntry: Record "BCCT Log Entry";
         BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper"; // single instance
@@ -127,6 +128,10 @@ codeunit 149035 "BCCT Line"
         ModifiedMessage: Text;
         EntryWasModified: Boolean;
     begin
+        // Skip the OnRun entry if not implemented TODO: It does not work correctly with EndTime - StartTime = 0. We can always remove the OnRun entry as it skews the time and average calculations
+        if (Operation = GetDefaultExecuteProcedureOperationLbl()) and (ProcedureName = 'OnRun') and (ExecutionSuccess = true) and (Message = '') then
+            exit;
+
         ModifiedOperation := Operation;
         ModifiedExecutionSuccess := ExecutionSuccess;
         ModifiedMessage := Message;
@@ -161,10 +166,11 @@ codeunit 149035 "BCCT Line"
         BCCTLogEntry."Log was Modified" := EntryWasModified;
         BCCTLogEntry."End Time" := EndTime;
         BCCTLogEntry."Start Time" := StartTime;
-        BCCTLogEntry."Duration (ms)" := BCCTLogEntry."End Time" - BCCTLogEntry."Start Time";
+        BCCTLogEntry."Duration (ms)" := BCCTLogEntry."End Time" - BCCTLogEntry."Start Time"; //TODO: We will need this to remove user wait times (GetAndClearAccumulatedWaitTimeMs) similar to BCPT
         BCCTLogEntry.Dataset := BCCTDatasetLine."Dataset Name";
         BCCTLogEntry."Dataset Line No." := BCCTDatasetLine.Id;
         BCCTLogEntry.CalcFields("Input Text");
+        BCCTLogEntry."Procedure Name" := ProcedureName;
         BCCTLogEntry.Insert(true);
         Commit();
         AddLogAppInsights(BCCTLogEntry);
@@ -309,5 +315,10 @@ codeunit 149035 "BCCT Line"
             exit(false);
         Parm := format(FldRef.Value, 0, 9);
         exit(true);
+    end;
+
+    internal procedure GetDefaultExecuteProcedureOperationLbl(): Text
+    begin
+        exit(ExecuteProcedureOperationLbl);
     end;
 }

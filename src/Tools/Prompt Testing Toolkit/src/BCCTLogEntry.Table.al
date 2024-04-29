@@ -82,9 +82,10 @@ table 149034 "BCCT Log Entry"
             DataClassification = CustomerContent;
             Caption = 'Error Call Stack';
         }
-        field(17; "Function Name"; Text[128])
+        field(17; "Procedure Name"; Text[128])
         {
-            Caption = 'Function Name';
+            Caption = 'Procedure Name';
+            ToolTip = 'Name of the procedure being executed';
             DataClassification = CustomerContent;
         }
         field(18; RunID; Guid)
