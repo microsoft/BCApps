@@ -8,22 +8,25 @@ codeunit 130461 "Test Output"
         TestInput: Codeunit "Test Input";
     begin
         Clear(CurrentTestJson);
-        InitializeBeforeTestRun(CodeunitID, FunctionName, TestInput.GetTestDataDescription(), CurrentTestMethodLine."Data Input");
+        InitializeBeforeTestRun(CodeunitID, FunctionName, TestInput.GetTestDataDescription());
     end;
 
-    local procedure InitializeBeforeTestRun(CodeunitID: Integer; TestName: Text; Description: Text; DataInput: Text)
+    local procedure InitializeBeforeTestRun(CodeunitID: Integer; TestName: Text; Description: Text)
     var
         TestJsonCodeunit: Codeunit "Test Json";
+        CurrentTestOutputJson: Interface "Test Json";
     begin
         if not TestJsonInitialized then begin
             GlobalTestJson := TestJsonCodeunit;
             GlobalTestJson.Initialize();
+            TestJsonInitialized := true;
         end;
 
-        CurrentTestJson := GlobalTestJson.ReplaceElement(GetUniqueTestName(CodeunitID, TestName, DataInput), '{}');
-        CurrentTestJson.Add(TestNameLbl, TestName);
-        CurrentTestJson.Add(DescriptionLbl, Description);
-        CurrentTestJson.Add(TestOutputLbl, '');
+        CurrentTestOutputJson := GlobalTestJson.ReplaceElement(GetUniqueTestName(CodeunitID, TestName, Description), '{}');
+        CurrentTestOutputJson.Add(TestNameLbl, TestName);
+        if Description <> '' then
+            CurrentTestOutputJson.Add(DescriptionLbl, Description);
+        CurrentTestJson := CurrentTestOutputJson.Add(TestOutputLbl, '');
     end;
 
     procedure TestData(): Interface "Test Json"
