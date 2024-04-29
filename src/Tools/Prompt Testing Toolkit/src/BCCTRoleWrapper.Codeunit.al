@@ -59,8 +59,7 @@ codeunit 149042 "BCCT Role Wrapper"
         ExecuteNextIteration := true;
         Randomize();
 
-        BCCTDatasetLine.Reset();
-        BCCTDatasetLine.SetRange(BCCTDatasetLine."Dataset Name", BCCTLine.Dataset);
+        SetDatasetFilter(BCCTDatasetLine, BCCTLine, BCCTHeader);
         if not BCCTDatasetLine.FindSet() then
             exit;
 
@@ -82,15 +81,11 @@ codeunit 149042 "BCCT Role Wrapper"
                     if BCCTDatasetLine.Next() = 0 then begin
                         if BCCTLine.Next() = 0 then
                             ExecuteNextIteration := false
-                        else
-                            if BCCTLine.Dataset <> BCCTDatasetLine."Dataset Name" then begin
-                                BCCTDatasetLine.Reset();
-                                if BCCTLine.Dataset = '' then
-                                    BCCTDatasetLine.SetRange("Dataset Name", BCCTHeader.Dataset)
-                                else
-                                    BCCTDatasetLine.SetRange("Dataset Name", BCCTLine.Dataset);
-                                if not BCCTDatasetLine.FindSet() then;
-                            end;
+                        else begin
+                            BCCTDatasetLine.Reset();
+                            SetDatasetFilter(BCCTDatasetLine, BCCTLine, BCCTHeader);
+                            if BCCTDatasetLine.FindSet() then;
+                        end;
                         Sleep(BCCTLine."Delay (ms btwn. iter.)");
                     end
                 end
@@ -101,19 +96,15 @@ codeunit 149042 "BCCT Role Wrapper"
 
         until (ExecuteNextIteration = false);
         BCCTHeaderCU.DecreaseNoOfTestsRunningNow(BCCTHeader);
-        // TODO: Remove this if not needed
-        // BCCTLine.LockTable(true);
-        // if not BCCTLine."Run in Foreground" then begin
-        //     BCCTHeaderCU.DecreaseNoOfTestsRunningNow(BCCTHeader);
-        //     CompleteBCCTLine(BCCTLine);
-        // end
-        // else begin
-        //     Bcctline.FindSet();
-        //     repeat
-        //         CompleteBCCTLine(BCCTLine);
-        //     until BCCTLine.Next() = 0;
-        // end;
-        // Commit();
+    end;
+
+    local procedure SetDatasetFilter(var BCCTDatasetLine: Record "BCCT Dataset Line"; BCCTLine: Record "BCCT Line"; BCCTHeader: Record "BCCT Header")
+    begin
+        // Select the correct dataset
+        if BCCTLine.Dataset = '' then
+            BCCTDatasetLine.SetRange(BCCTDatasetLine."Dataset Name", BCCTHeader.Dataset)
+        else
+            BCCTDatasetLine.SetRange(BCCTDatasetLine."Dataset Name", BCCTLine.Dataset);
     end;
 
     local procedure ExecuteIteration(var BCCTLine: Record "BCCT Line"; BCCTDatasetLine: Record "BCCT Dataset Line")
