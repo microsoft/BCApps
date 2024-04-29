@@ -224,7 +224,9 @@ table 149032 "BCCT Line"
         }
 
         key(Key3; "BCCT Code", "Codeunit ID", Parameters)
-        { }
+        {
+            IncludedFields = Dataset;
+        }
     }
 
     var

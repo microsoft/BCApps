@@ -43,6 +43,8 @@ page 149031 "BCCT Setup Card"
                 {
                     ToolTip = 'Specifies the dataset to be used by the tests.';
                     ApplicationArea = All;
+                    ShowMandatory = true;
+                    NotBlank = true;
                 }
                 field("Model Version"; Rec."ModelVersion")
                 {

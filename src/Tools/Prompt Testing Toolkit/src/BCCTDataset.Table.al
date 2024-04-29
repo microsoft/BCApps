@@ -49,7 +49,20 @@ table 149031 "BCCT Dataset"
     trigger OnDelete()
     var
         BCCTDatasetLines: Record "BCCT Dataset Line";
+        BCCTHeader: Record "BCCT Header";
+        BCCTLines: Record "BCCT Line";
+        DatasetBeingUsedInHeaderErr: Label 'The dataset is being used in BCCT Header(s). Please remove the dataset from the BCCT Header(s) before deleting it.';
+        DatasetBeingUsedInLineErr: Label 'The dataset is being used in BCCT Line(s). Please remove the dataset from the BCCT Line(s) before deleting it.';
     begin
+        // Throw an error if the dataset is being used somewhere
+        BCCTHeader.SetRange("Dataset", Rec."Dataset Name");
+        if not BCCTHeader.IsEmpty() then
+            Error(DatasetBeingUsedInHeaderErr);
+
+        BCCTLines.SetRange("Dataset", Rec."Dataset Name");
+        if not BCCTLines.IsEmpty() then
+            Error(DatasetBeingUsedInLineErr);
+
         BCCTDatasetLines.SetRange("Dataset Name", "Dataset Name");
         BCCTDatasetLines.DeleteAll();
     end;

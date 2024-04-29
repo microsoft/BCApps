@@ -147,7 +147,7 @@ table 149030 "BCCT Header"
             Editable = false;
             DataClassification = SystemMetadata;
         }
-        field(20; ModelVersion; Option)
+        field(20; ModelVersion; Option) //TODO: Change this enum
         {
             Caption = 'Model Version';
             OptionMembers = Latest,Preview;
@@ -174,6 +174,9 @@ table 149030 "BCCT Header"
         key(Key1; "Code")
         {
             Clustered = true;
+        }
+        key(Dataset; Dataset)
+        {
         }
     }
 

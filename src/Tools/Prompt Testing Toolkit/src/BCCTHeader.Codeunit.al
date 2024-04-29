@@ -40,29 +40,58 @@ codeunit 149034 "BCCT Header"
     procedure ValidateDatasets(var BCCTHeader: Record "BCCT Header")
     var
         BCCTLine: Record "BCCT Line";
-        BCCTDataset: Record "BCCT Dataset";
-        BCCTDatasetLine: Record "BCCT Dataset Line";
-        NoInputsErr: Label 'The dataset %1 specified for BCCT Suite line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the BCCT Line No.';
-        NoDatasetErr: Label 'The dataset %1 specified for BCCT Line %2 does not exist', Comment = '%1 is the Dataset name, %2 is BCCT Line No.';
-        NoSuiteDatasetErr: Label 'The dataset %1 specified for BCCT Suite %2 does not exist', Comment = '%1 is the Dataset name, %2 is the BCCT Suite code';
+        EmptyDatasetSuiteErr: Label 'Please provide a dataset for the BCCT Suite %1.', Comment = '%1 is the BCCT Suite code';
+        NoDatasetInSuiteErr: Label 'The dataset %1 specified for BCCT Suite %2 does not exist.', Comment = '%1 is the Dataset name, %2 is the BCCT Suite code';
+        NoInputsInSuiteErr: Label 'The dataset %1 specified for BCCT Suite %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the BCCT Suite code.';
+        NoDatasetInLineErr: Label 'The dataset %1 specified for BCCT Line %2 does not exist.', Comment = '%1 is the Dataset name, %2 is BCCT Line No.';
+        NoInputsInLineErr: Label 'The dataset %1 specified for BCCT line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the BCCT Line No.';
+        DatasetsToValidate: List of [Code[50]];
+        DatasetName: Code[50];
     begin
-        BCCTHeader.SetRange(BCCTHeader.Dataset);
-        if BCCTHeader.IsEmpty() then
-            Error(NoSuiteDatasetErr, BCCTHeader.Dataset, BCCTHeader."Code");
+        // Validate header
+        if BCCTHeader.Dataset = '' then
+            Error(EmptyDatasetSuiteErr, BCCTHeader."Code");
+
+        if not DatasetExists(BCCTHeader.Dataset) then
+            Error(NoDatasetInSuiteErr, BCCTHeader.Dataset, BCCTHeader."Code");
+
+        if not InputDataLinesExists(BCCTHeader.Dataset) then
+            Error(NoInputsInSuiteErr, BCCTHeader.Dataset, BCCTHeader."Code");
+
+        // Validate lines
         BCCTLine.SetRange("BCCT Code", BCCTHeader."Code");
+        BCCTLine.SetFilter(Dataset, '<>%1', '');
+        BCCTLine.SetLoadFields(Dataset);
         if BCCTLine.FindSet() then
             repeat
-                BCCTDataset.Reset();
-                BCCTDataset.SetRange("Dataset Name", BCCTLine.Dataset);
-                if BCCTDataset.IsEmpty() then
-                    Error(NoDatasetErr, BCCTLine.Dataset, BCCTLine."Line No.");
-                BCCTDatasetLine.Reset();
-                if BCCTDatasetLine."Dataset Name" <> '' then begin
-                    BCCTDatasetLine.SetRange("Dataset Name", BCCTLine.Dataset);
-                    if BCCTDatasetLine.IsEmpty() then
-                        Error(NoInputsErr, BCCTLine.Dataset, BCCTLine."Line No.");
-                end;
+                if BCCTLine.Dataset <> BCCTHeader.Dataset then
+                    if not DatasetsToValidate.Contains(BCCTLine.Dataset) then
+                        DatasetsToValidate.Add(BCCTLine.Dataset);
             until BCCTLine.Next() = 0;
+
+        foreach DatasetName in DatasetsToValidate do begin
+            if not DatasetExists(DatasetName) then
+                Error(NoDatasetInLineErr, DatasetName, BCCTLine."Line No.");
+            if not InputDataLinesExists(DatasetName) then
+                Error(NoInputsInLineErr, DatasetName, BCCTLine."Line No.");
+        end;
+    end;
+
+    local procedure DatasetExists(DatasetName: Code[50]): Boolean
+    var
+        BCCTDataset: Record "BCCT Dataset";
+    begin
+        BCCTDataset.SetRange("Dataset Name", DatasetName);
+        exit(not BCCTDataset.IsEmpty());
+    end;
+
+    local procedure InputDataLinesExists(DatasetName: Code[50]): Boolean
+    var
+        BCCTDatasetLine: Record "BCCT Dataset Line";
+    begin
+        BCCTDatasetLine.Reset();
+        BCCTDatasetLine.SetRange("Dataset Name", DatasetName);
+        exit(not BCCTDatasetLine.IsEmpty());
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"BCCT Header", 'OnBeforeDeleteEvent', '', false, false)]

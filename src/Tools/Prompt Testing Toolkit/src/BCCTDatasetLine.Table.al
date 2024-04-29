@@ -43,6 +43,9 @@ table 149033 "BCCT Dataset Line"
         {
             Clustered = true;
         }
+        key(DatasetName; "Dataset Name")
+        {
+        }
     }
 
     procedure SetInputBlob(P: Text)
