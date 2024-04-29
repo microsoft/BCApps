@@ -29,6 +29,15 @@ codeunit 132518 "AFS Get Test Storage Auth."
         exit(GetDefaultAccountSAS(AccountKey, StorageServiceAuthorization.GetDefaultAPIVersion()));
     end;
 
+    procedure GetSharedKeyAuthorization(AccountKey: Text): Interface "Storage Service Authorization"
+    var
+        StorageServiceAuthorization: Codeunit "Storage Service Authorization";
+        SecretAccountKey: SecretText;
+    begin
+        SecretAccountKey := AccountKey;
+        exit(StorageServiceAuthorization.CreateSharedKey(SecretAccountKey));
+    end;
+
     procedure GetDefaultAccountSAS(AccountKey: Text; APIVersion: Enum "Storage Service API Version"): Interface "Storage Service Authorization"
     var
         StorageServiceAuthorization: Codeunit "Storage Service Authorization";
