@@ -1,4 +1,8 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿
+Can we do an orchestrator with an interface and then have baseapp modules have the impl's ? 
+
+
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
