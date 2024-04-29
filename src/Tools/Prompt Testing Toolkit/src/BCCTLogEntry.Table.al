@@ -85,7 +85,6 @@ table 149034 "BCCT Log Entry"
         field(17; "Procedure Name"; Text[128])
         {
             Caption = 'Procedure Name';
-            ToolTip = 'Name of the procedure being executed';
             DataClassification = CustomerContent;
         }
         field(18; RunID; Guid)
@@ -145,7 +144,6 @@ table 149034 "BCCT Log Entry"
         }
         key(Key2; "BCCT Code", Version, "BCCT Line No.", Operation, "Duration (ms)", "Dataset Line No.")
         {
-            // TODO: Is dataset line no unique enough
             // Instead of a SIFT index. This will make both inserts and calculations faster - and non-blocking
         }
         key(Key4; "BCCT Code", Version, Operation, "Duration (ms)")
