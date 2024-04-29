@@ -101,18 +101,20 @@ codeunit 149042 "BCCT Role Wrapper"
         //TODO override delay from line / default delay
 
         until (ExecuteNextIteration = false);
-        BCCTLine.LockTable(true);
-        if not BCCTLine."Run in Foreground" then begin
-            BCCTHeaderCU.DecreaseNoOfTestsRunningNow(BCCTHeader);
-            CompleteBCCTLine(BCCTLine);
-        end
-        else begin
-            Bcctline.FindSet();
-            repeat
-                CompleteBCCTLine(BCCTLine);
-            until BCCTLine.Next() = 0;
-        end;
-        Commit();
+        BCCTHeaderCU.DecreaseNoOfTestsRunningNow(BCCTHeader);
+        // TODO: Remove this if not needed
+        // BCCTLine.LockTable(true);
+        // if not BCCTLine."Run in Foreground" then begin
+        //     BCCTHeaderCU.DecreaseNoOfTestsRunningNow(BCCTHeader);
+        //     CompleteBCCTLine(BCCTLine);
+        // end
+        // else begin
+        //     Bcctline.FindSet();
+        //     repeat
+        //         CompleteBCCTLine(BCCTLine);
+        //     until BCCTLine.Next() = 0;
+        // end;
+        // Commit();
     end;
 
     local procedure ExecuteIteration(var BCCTLine: Record "BCCT Line"; BCCTDatasetLine: Record "BCCT Dataset Line")
