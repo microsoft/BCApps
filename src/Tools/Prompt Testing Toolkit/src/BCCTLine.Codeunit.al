@@ -15,7 +15,6 @@ codeunit 149035 "BCCT Line"
         BCCTHeader: Record "BCCT Header";
         ScenarioStarted: Dictionary of [Text, DateTime];
         ScenarioNotStartedErr: Label 'Scenario %1 in codeunit %2 was not started.', Comment = '%1 = method name, %2 = codeunit name';
-        ExecuteProcedureOperationLbl: Label 'Execute Procedure', Locked = true;
 
     [EventSubscriber(ObjectType::Table, Database::"BCCT Line", 'OnBeforeInsertEvent', '', false, false)]
     local procedure SetNoOfSessionsOnBeforeInsertBCCTLine(var Rec: Record "BCCT Line"; RunTrigger: Boolean)
@@ -129,7 +128,7 @@ codeunit 149035 "BCCT Line"
         EntryWasModified: Boolean;
     begin
         // Skip the OnRun entry if not implemented TODO: It does not work correctly with EndTime - StartTime = 0. We can always remove the OnRun entry as it skews the time and average calculations
-        if (Operation = GetDefaultExecuteProcedureOperationLbl()) and (ProcedureName = 'OnRun') and (ExecutionSuccess = true) and (Message = '') then
+        if (Operation = BCCTRoleWrapperImpl.GetDefaultExecuteProcedureOperationLbl()) and (ProcedureName = 'OnRun') and (ExecutionSuccess = true) and (Message = '') then
             exit;
 
         ModifiedOperation := Operation;
@@ -171,6 +170,8 @@ codeunit 149035 "BCCT Line"
         BCCTLogEntry."Dataset Line No." := BCCTDatasetLine.Id;
         BCCTLogEntry.CalcFields("Input Text");
         BCCTLogEntry."Procedure Name" := ProcedureName;
+        if Operation = BCCTRoleWrapperImpl.GetDefaultExecuteProcedureOperationLbl() then
+            BCCTLogEntry."Duration (ms)" -= BCCTRoleWrapperImpl.GetAndClearAccumulatedWaitTimeMs();
         BCCTLogEntry.Insert(true);
         Commit();
         AddLogAppInsights(BCCTLogEntry);
@@ -315,10 +316,5 @@ codeunit 149035 "BCCT Line"
             exit(false);
         Parm := format(FldRef.Value, 0, 9);
         exit(true);
-    end;
-
-    internal procedure GetDefaultExecuteProcedureOperationLbl(): Text
-    begin
-        exit(ExecuteProcedureOperationLbl);
     end;
 }

@@ -20,6 +20,7 @@ codeunit 149042 "BCCT Role Wrapper"
         GlobalBCCTDatasetLine: Record "BCCT Dataset Line";
         NoOfInsertedLogEntries: Integer;
         AccumulatedWaitTimeMs: Integer;
+        ExecuteProcedureOperationLbl: Label 'Execute Procedure', Locked = true;
 
     trigger OnRun();
     begin
@@ -203,6 +204,11 @@ codeunit 149042 "BCCT Role Wrapper"
         exit(ReturnValue);
     end;
 
+    internal procedure GetDefaultExecuteProcedureOperationLbl(): Text
+    begin
+        exit(ExecuteProcedureOperationLbl);
+    end;
+
     [InternalEvent(false)]
     procedure OnBeforeExecuteIteration(var BCCTHeader: Record "BCCT Header"; var BCCTLine: Record "BCCT Line"; var BCCTDatasetLine: Record "BCCT Dataset Line")
     begin
@@ -212,23 +218,21 @@ codeunit 149042 "BCCT Role Wrapper"
     local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions)
     var
         BCCTContextCU: Codeunit "BCCT Test Context";
-        BCCTLineCU: Codeunit "BCCT Line";
     begin
         if FunctionName = '' then
             exit;
-        BCCTContextCU.StartScenario(BCCTLineCU.GetDefaultExecuteProcedureOperationLbl());
+        BCCTContextCU.StartScenario(GetDefaultExecuteProcedureOperationLbl());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnAfterTestMethodRun, '', false, false)]
     local procedure OnAfterTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
     var
         BCCTContextCU: Codeunit "BCCT Test Context";
-        BCCTLineCU: Codeunit "BCCT Line";
     begin
         Commit(); //TODO: Do we need these commits?
         if FunctionName = '' then
             exit;
-        BCCTContextCU.EndScenario(BCCTLineCU.GetDefaultExecuteProcedureOperationLbl(), FunctionName, IsSuccess);
+        BCCTContextCU.EndScenario(GetDefaultExecuteProcedureOperationLbl(), FunctionName, IsSuccess);
         Commit();
     end;
 }
