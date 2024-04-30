@@ -29,7 +29,8 @@ codeunit 9051 "ABS Client Impl."
         AppendBlockFromUrlOperationNotSuccessfulErr: Label 'Could not append block from URL %1 on %2.', Comment = '%1 = Source URI; %2 = Blob';
         GetPropertiesOperationNotSuccessfulErr: Label 'Could not get properties for %1.', Comment = '%1 = Blob';
         TagsOperationNotSuccessfulErr: Label 'Could not %1 %2 Tags.', Comment = '%1 = Get/Set, %2 = Service/Blob, ';
-        MetadataOperationNotSuccessfulErr: Label 'Could not %1 %2 MetaData.', Comment = '%1 = Get/Set, %2 = Service/Blob, ';
+        MetadataGetOperationNotSuccessfulErr: Label 'Could not get Blob Metadata.';
+        MetadataSetOperationNotSuccessfulErr: Label 'Could not set Blob Metadata.';
         FindBlobsByTagsOperationNotSuccessfulErr: Label 'Could not find Blobs by Tags.';
         PutBlockOperationNotSuccessfulErr: Label 'Could not put block on %1.', Comment = '%1 = Blob';
         GetBlobOperationNotSuccessfulErr: Label 'Could not get Blob %1.', Comment = '%1 = Blob';
@@ -564,7 +565,7 @@ codeunit 9051 "ABS Client Impl."
         ABSOperationPayload.SetOptionalParameters(OptionalParameters);
         ABSOperationPayload.SetBlobName(BlobName);
 
-        ABSOperationResponse := ABSWebRequestHelper.GetOperation(ABSOperationPayload, StrSubstNo(MetadataOperationNotSuccessfulErr, 'get', BlobLbl));
+        ABSOperationResponse := ABSWebRequestHelper.GetOperation(ABSOperationPayload, MetadataGetOperationNotSuccessfulErr);
         Metadata := ABSOperationResponse.GetMetaDataValueFromResponseHeaders();
         exit(ABSOperationResponse);
     end;
@@ -579,7 +580,7 @@ codeunit 9051 "ABS Client Impl."
         ABSOperationPayload.SetBlobName(BlobName);
         AddMetadataHeaders(Metadata);
 
-        ABSOperationResponse := ABSWebRequestHelper.PutOperation(ABSOperationPayload, HTTPContent, StrSubstNo(MetadataOperationNotSuccessfulErr, 'set', BlobLbl));
+        ABSOperationResponse := ABSWebRequestHelper.PutOperation(ABSOperationPayload, HTTPContent, MetadataSetOperationNotSuccessfulErr);
         exit(ABSOperationResponse);
     end;
 
