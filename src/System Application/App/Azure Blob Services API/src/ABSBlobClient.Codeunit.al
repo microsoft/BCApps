@@ -1126,7 +1126,7 @@ codeunit 9053 "ABS Blob Client"
     var
         OptionalParameters: Codeunit "ABS Optional Parameters";
     begin
-        exit(ABSClientImpl.GetBlobMetaData(BlobName, MetaData, OptionalParameters))
+        exit(ABSClientImpl.GetBlobMetadata(BlobName, Metadata, OptionalParameters))
     end;
 
     /// <summary>
