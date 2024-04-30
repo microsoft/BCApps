@@ -1120,7 +1120,7 @@ codeunit 9053 "ABS Blob Client"
     /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-metadata?tabs=microsoft-entra-id
     /// </summary>
     /// <param name="BlobName">The name of the blob.</param>
-    /// <param name="MetaData">The result Dictionary of [Text, Text] with blob metadatas.</param>
+    /// <param name="Metadata">The result Dictionary of [Text, Text] with blob metadata.</param>
     /// <returns>An operation response object</returns>
     procedure GetBlobMetadata(BlobName: Text; var Metadata: Dictionary of [Text, Text]): Codeunit "ABS Operation Response"
     var
