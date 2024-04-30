@@ -741,7 +741,7 @@ codeunit 9101 "SharePoint Client Impl."
         SharePointUriBuilder.SetMethod('GetByTitle', ListTitle);
         SharePointUriBuilder.SetMethod('items', ItemId);
 
-        exit(UpdateListItemMetaDataField(ItemId, ListItemEntityTypeFullName, FieldName, FieldValue));
+        exit(UpdateListItemMetaDataField(ListItemEntityTypeFullName, FieldName, FieldValue));
     end;
 
     procedure UpdateListItemMetaDataField(ListId: Guid; ItemId: Integer; ListItemEntityTypeFullName: Text; FieldName: Text; FieldValue: Text): Boolean
@@ -750,7 +750,7 @@ codeunit 9101 "SharePoint Client Impl."
         SharePointUriBuilder.SetMethod('Lists', ListId);
         SharePointUriBuilder.SetMethod('items', ItemId);
 
-        exit(UpdateListItemMetaDataField(ItemId, ListItemEntityTypeFullName, FieldName, FieldValue));
+        exit(UpdateListItemMetaDataField(ListItemEntityTypeFullName, FieldName, FieldValue));
     end;
 
     local procedure UpdateListItemMetaDataField(ListItemEntityTypeFullName: Text; FieldName: Text; FieldValue: Text): Boolean
