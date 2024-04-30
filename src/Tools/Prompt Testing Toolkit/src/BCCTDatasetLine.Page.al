@@ -24,14 +24,14 @@ page 149032 "BCCT Dataset Line"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the ID of the line.';
                 }
-                field(Input; Rec.Input)
+                field(Input; Rec."Input Text")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the test input.';
 
                     trigger OnValidate()
                     begin
-                        Rec.SetInputBlob(Rec.Input);
+                        Rec.SetInputBlob(Rec."Input Text");
                     end;
                 }
                 field(Output; Rec."Expected Output")

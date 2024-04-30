@@ -86,11 +86,6 @@ page 149033 "BCCT Log Entries"
                     ToolTip = 'Specifies the Line No. of the dataset.';
                     ApplicationArea = All;
                 }
-                field("Input Text"; Rec."Input Text")
-                {
-                    ToolTip = 'Specifies the input text of the BCCT.';
-                    ApplicationArea = All;
-                }
                 // TODO the rest of the fields
                 field(Operation; Rec.Operation)
                 {
@@ -107,6 +102,28 @@ page 149033 "BCCT Log Entries"
                     ToolTip = 'Specifies the original operation of the BCCT.';
                     Visible = false;
                     ApplicationArea = All;
+                }
+                field("Input Text"; Rec."Input Text")
+                {
+                    Caption = 'Input';
+                    ToolTip = 'Specifies the test input of the BCCT.';
+                    ApplicationArea = All;
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(Rec.GetInputBlob());
+                    end;
+                }
+                field("Output Text"; Rec."Output Text")
+                {
+                    Caption = 'Test Output';
+                    ToolTip = 'Specifies the test output of the BCCT.';
+                    ApplicationArea = All;
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(Rec.GetOutputBlob());
+                    end;
                 }
                 field(Message; Rec.Message)
                 {

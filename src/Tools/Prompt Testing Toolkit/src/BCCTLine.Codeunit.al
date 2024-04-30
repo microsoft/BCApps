@@ -113,7 +113,7 @@ codeunit 149035 "BCCT Line"
             ErrorMessage := CopyStr(GetLastErrorText(), 1, MaxStrLen(ErrorMessage));
         if ScenarioStarted.Get(ScenarioOperation, StartTime) then
             if ScenarioStarted.Remove(ScenarioOperation) then;
-        //TODO: Add bcctDatasetLine input and outputs to AddLogEntry
+        //TODO: Add outputs to AddLogEntry
         AddLogEntry(BCCTLine, ScenarioOperation, ProcedureName, ExecutionSuccess, ErrorMessage, StartTime, EndTime, BCCTDatasetLine);
     end;
 
@@ -127,7 +127,7 @@ codeunit 149035 "BCCT Line"
         ModifiedMessage: Text;
         EntryWasModified: Boolean;
     begin
-        // Skip the OnRun entry if not implemented TODO: It does not work correctly with EndTime - StartTime = 0. We can always remove the OnRun entry as it skews the time and average calculations
+        // Skip the OnRun entry if not implemented
         if (Operation = BCCTRoleWrapperImpl.GetDefaultExecuteProcedureOperationLbl()) and (ProcedureName = 'OnRun') and (ExecutionSuccess = true) and (Message = '') then
             exit;
 
@@ -165,10 +165,12 @@ codeunit 149035 "BCCT Line"
         BCCTLogEntry."Log was Modified" := EntryWasModified;
         BCCTLogEntry."End Time" := EndTime;
         BCCTLogEntry."Start Time" := StartTime;
-        BCCTLogEntry."Duration (ms)" := BCCTLogEntry."End Time" - BCCTLogEntry."Start Time"; //TODO: We will need this to remove user wait times (GetAndClearAccumulatedWaitTimeMs) similar to BCPT
+        BCCTLogEntry."Duration (ms)" := BCCTLogEntry."End Time" - BCCTLogEntry."Start Time";
         BCCTLogEntry.Dataset := BCCTDatasetLine."Dataset Name";
         BCCTLogEntry."Dataset Line No." := BCCTDatasetLine.Id;
-        BCCTLogEntry.CalcFields("Input Text");
+        BCCTDatasetLine.CalcFields("Input Data");
+        BCCTLogEntry."Input Data" := BCCTDatasetLine."Input Data";
+        BCCTLogEntry."Input Text" := BCCTDatasetLine."Input Text";
         BCCTLogEntry."Procedure Name" := ProcedureName;
         if Operation = BCCTRoleWrapperImpl.GetDefaultExecuteProcedureOperationLbl() then
             BCCTLogEntry."Duration (ms)" -= BCCTRoleWrapperImpl.GetAndClearAccumulatedWaitTimeMs();
