@@ -74,11 +74,11 @@ codeunit 7763 "AOAI Chat Messages"
     /// </summary>
     /// <param name="ToolCallId">The id of the tool call.</param>
     /// <param name="FunctionName">The name of the called function.</param>
-    /// <param name="Result">The result of the tool call.</param>
+    /// <param name="FunctionResult">The result of the tool call.</param>
     [NonDebuggable]
-    procedure AddToolMessage(ToolCallId: Text; ToolName: Text; ToolResult: Text)
+    procedure AddToolMessage(ToolCallId: Text; FunctionName: Text; FunctionResult: Text)
     begin
-        AOAIChatMessagesImpl.AddToolMessage(ToolCallId, ToolName, ToolResult);
+        AOAIChatMessagesImpl.AddToolMessage(ToolCallId, FunctionName, FunctionResult);
     end;
 
     /// <summary>
@@ -88,12 +88,11 @@ codeunit 7763 "AOAI Chat Messages"
     /// <param name="NewMessage">The new message.</param>
     /// <param name="NewRole">The new role.</param>
     /// <param name="NewName">The new name.</param>
-    /// <param name="NewToolCallId">The new tool call id.</param>
     /// <error>Message id does not exist.</error>
     [NonDebuggable]
-    procedure ModifyMessage(Id: Integer; NewMessage: Text; NewRole: Enum "AOAI Chat Roles"; NewName: Text[2048]; NewToolCallId: Text)
+    procedure ModifyMessage(Id: Integer; NewMessage: Text; NewRole: Enum "AOAI Chat Roles"; NewName: Text[2048])
     begin
-        AOAIChatMessagesImpl.ModifyMessage(Id, NewMessage, NewRole, NewName, NewToolCallId);
+        AOAIChatMessagesImpl.ModifyMessage(Id, NewMessage, NewRole, NewName);
     end;
 
     /// <summary>

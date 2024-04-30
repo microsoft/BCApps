@@ -50,40 +50,43 @@ codeunit 7764 "AOAI Chat Messages Impl"
     procedure AddSystemMessage(NewMessage: Text)
     begin
         Initialize();
-        AddMessage(NewMessage, '', '', Enum::"AOAI Chat Roles"::System);
+        AddMessage(NewMessage, '', Enum::"AOAI Chat Roles"::System);
     end;
 
     [NonDebuggable]
     procedure AddUserMessage(NewMessage: Text)
     begin
         Initialize();
-        AddMessage(NewMessage, '', '', Enum::"AOAI Chat Roles"::User);
+        AddMessage(NewMessage, '', Enum::"AOAI Chat Roles"::User);
     end;
 
     [NonDebuggable]
     procedure AddUserMessage(NewMessage: Text; NewName: Text[2048])
     begin
         Initialize();
-        AddMessage(NewMessage, NewName, '', Enum::"AOAI Chat Roles"::User);
+        AddMessage(NewMessage, NewName, Enum::"AOAI Chat Roles"::User);
     end;
 
     [NonDebuggable]
     procedure AddAssistantMessage(NewMessage: Text)
     begin
         Initialize();
-        AddMessage(NewMessage, '', '', Enum::"AOAI Chat Roles"::Assistant);
+        AddMessage(NewMessage, '', Enum::"AOAI Chat Roles"::Assistant);
     end;
 
     [NonDebuggable]
-    procedure AddToolMessage(ToolCallId: Text; ToolName: Text; ToolResult: Text)
+    procedure AddToolMessage(ToolCallId: Text; FunctionName: Text; FunctionResult: Text)
+    var
+        FunctionNameTruncated: Text[2048];
     begin
         Initialize();
-        AddMessage(ToolResult, ToolName, ToolCallId, Enum::"AOAI Chat Roles"::Tool);
+        FunctionNameTruncated := CopyStr(FunctionName, 1, MaxStrLen(FunctionNameTruncated));
+        AddMessage(FunctionResult, FunctionNameTruncated, ToolCallId, Enum::"AOAI Chat Roles"::Tool);
     end;
 
 
     [NonDebuggable]
-    procedure ModifyMessage(Id: Integer; NewMessage: Text; NewRole: Enum "AOAI Chat Roles"; NewName: Text[2048]; NewToolCallId: Text)
+    procedure ModifyMessage(Id: Integer; NewMessage: Text; NewRole: Enum "AOAI Chat Roles"; NewName: Text[2048])
     begin
         if (Id < 1) or (Id > History.Count) then
             Error(MessageIdDoesNotExistErr);
@@ -91,7 +94,6 @@ codeunit 7764 "AOAI Chat Messages Impl"
         History.Set(Id, NewMessage);
         HistoryRoles.Set(Id, NewRole);
         HistoryNames.Set(Id, NewName);
-        HistoryToolCallIds.Set(Id, NewToolCallId);
     end;
 
     [NonDebuggable]
@@ -243,6 +245,15 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryLength := 10;
 
         Initialized := true;
+    end;
+
+    [NonDebuggable]
+    local procedure AddMessage(NewMessage: Text; NewName: Text[2048]; NewRole: Enum "AOAI Chat Roles")
+    begin
+        History.Add(NewMessage);
+        HistoryRoles.Add(NewRole);
+        HistoryNames.Add(NewName);
+        HistoryToolCallIds.Add('');
     end;
 
     [NonDebuggable]
