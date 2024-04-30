@@ -47,7 +47,7 @@ codeunit 149042 "BCCT Role Wrapper"
             BCCTLine.Dataset := (BCCTHeader.Dataset);
 
         if BCCTLine."Delay (ms btwn. iter.)" < 1 then
-            BCCTLine."Delay (ms btwn. iter.)" := BCCTHeader." Default Delay (ms)";
+            BCCTLine."Delay (ms btwn. iter.)" := BCCTHeader."Default Delay (ms)";
     end;
 
     local procedure ExecuteBCCTLine(var BCCTLine: Record "BCCT Line"; var BCCTHeader: Record "BCCT Header")

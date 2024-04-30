@@ -34,7 +34,7 @@ table 149030 "BCCT Header"
             Caption = 'Started at';
             Editable = false;
         }
-        field(6; " Default Delay (ms)"; Integer)
+        field(6; "Default Delay (ms)"; Integer)
         {
             Caption = 'Default Delay (ms) between tests';
             InitValue = 100;
@@ -95,14 +95,13 @@ table 149030 "BCCT Header"
             Caption = 'Tag';
             DataClassification = CustomerContent;
         }
-#pragma warning disable AA0232
         field(12; "Total Duration (ms)"; Integer)
-#pragma warning restore AA0232
         {
             Caption = 'Total Duration (ms)';
+            ToolTip = 'Specifies the Total Duration (ms) for executing all the tests in the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Version"), Operation = const('Scenario')));
+            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(13; Version; Integer)
         {
@@ -153,19 +152,29 @@ table 149030 "BCCT Header"
             OptionMembers = Latest,Preview;
             DataClassification = SystemMetadata;
         }
-        field(21; "No. of tests in the last run"; Integer)
+        field(21; "No. of Tests Executed"; Integer)
         {
-            Caption = 'No. of tests in the last run';
+            Caption = 'No. of Tests Executed';
+            ToolTip = 'Specifies the number of tests executed in the current version.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+        }
+        field(22; "No. of Tests Passed"; Integer)
+        {
+            Caption = 'No. of Tests Passed';
+            ToolTip = 'Specifies the number of tests passed in the current version.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+        }
+        field(23; "No. of Operations"; Integer) //TODO: Change the name to No. of Scenarios? 
+        {
+            Caption = 'No. of Operations';
+            ToolTip = 'Specifies the number of operations executed including "Execute Procedure" operation for the current version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version")));
-        }
-        field(22; "No. of passed tests last run"; Integer)
-        {
-            Caption = 'No. of passed tests in the last run';
-            Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version"))); // TODO: Can I filter on option of the status?
         }
     }
 

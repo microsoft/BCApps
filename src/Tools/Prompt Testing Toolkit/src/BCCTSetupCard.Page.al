@@ -66,6 +66,11 @@ page 149031 "BCCT Setup Card"
                 {
                     ToolTip = 'Specifies the status of the test.';
                     ApplicationArea = All;
+
+                    trigger OnValidate()
+                    begin
+                        UpdateAverageExecutionTime();
+                    end;
                 }
                 field(Started; Rec."Started at")
                 {
@@ -93,35 +98,56 @@ page 149031 "BCCT Setup Card"
             group(LastRunSummary)
             {
                 Caption = 'Last Run Summary';
-                field(TestRanCount; TestPassedMsg)
+                field("No. of Tests Executed"; Rec."No. of Tests Executed")
                 {
                     Editable = false;
                     ApplicationArea = All;
-                    Caption = 'Test Passed';
-                    ToolTip = 'Specifies the number of tests that passed in the last run.';
+                }
+                field("No. of Tests Passed"; Rec."No. of Tests Passed") // TODO: this should be filtered on not empty output
+                {
+                    Editable = false;
+                    ApplicationArea = All;
+                    Style = Favorable;
+                    DrillDownPageId = "BCCT Log Entries";
+                }
+                field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
+                {
+                    Editable = false;
+                    ApplicationArea = All;
+                    Caption = 'No. of Tests Failed';
+                    ToolTip = 'Specifies the number of tests that failed in the current Version.';
+                    Style = Unfavorable;
+
+                    trigger OnDrillDown()
+                    var
+                        BCCTLogEntries: Record "BCCT Log Entry";
+                        BCCTRoleWrapper: Codeunit "BCCT Role Wrapper";
+                        BCCTLogEntry: Page "BCCT Log Entries";
+                    begin
+                        BCCTLogEntries.SetRange("BCCT Code", Rec.Code);
+                        BCCTLogEntries.SetRange(Version, Rec.Version);
+                        BCCTLogEntries.SetRange(Operation, BCCTRoleWrapper.GetDefaultExecuteProcedureOperationLbl());
+                        BCCTLogEntries.SetFilter("Procedure Name", '<> %1', '');
+                        BCCTLogEntries.SetRange(Status, BCCTLogEntries.Status::Error);
+                        BCCTLogEntry.SetTableView(BCCTLogEntries);
+                        BCCTLogEntry.Run();
+                    end;
+                }
+                field("No. of Operations"; Rec."No. of Operations")
+                {
+                    ApplicationArea = All;
                 }
 
-                field(GeneratedResCount; Rec."No. of tests in the last run") // TODO: this should be filtered on not empty output
+                field("Total Duration (ms)"; Rec."Total Duration (ms)")
                 {
-                    Editable = false;
                     ApplicationArea = All;
-                    Caption = 'Generated Entries';
-                    ToolTip = 'Specifies number of generated responses.';
                 }
-
-                field(Duration; Rec.Duration)
+                field("Average Duration (ms)"; AvgTime)
                 {
                     Editable = false;
                     ApplicationArea = All;
-                    Caption = 'Duration';
-                    ToolTip = 'Specifies the time taken by the tests in the last run';
-                }
-                field(AvgTime; AvgTimeMsg)
-                {
-                    Editable = false;
-                    ApplicationArea = All;
-                    Caption = 'Average Test Duration';
-                    ToolTip = 'Specifies the average time taken by the tests in the last run.';
+                    Caption = 'Average Test Duration (ms)';
+                    ToolTip = 'Specifies the average time (ms) taken by the tests in the last run.';
                 }
             }
 
@@ -255,9 +281,7 @@ page 149031 "BCCT Setup Card"
         BCCTStartTests: Codeunit "BCCT Start Tests";
         BCCTHeaderCU: Codeunit "BCCT Header";
         EnableActions: Boolean;
-        TestPassedLbl: Label '123 out of %1', Comment = '%1 is the total number of tests';
-        TestPassedMsg: Text;
-        AvgTimeMsg: Decimal;
+        AvgTime: Decimal;
         PageCaptionLbl: Label 'BC Copilot Test';
 
     trigger OnOpenPage()
@@ -265,16 +289,15 @@ page 149031 "BCCT Setup Card"
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         EnableActions := (EnvironmentInformation.IsSaas() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
+        UpdateAverageExecutionTime();
     end;
 
-    trigger OnAfterGetCurrRecord()
+    local procedure UpdateAverageExecutionTime()
     begin
-        TestPassedMsg := StrSubstNo(TestPassedLbl, Rec."No. of tests in the last run");
-        Rec.CalcFields("Total Duration (ms)");
-        if Rec."No. of tests in the last run" > 0 then
-            AvgTimeMsg := Rec."Total Duration (ms)" div Rec."No. of tests in the last run"
+        Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)");
+        if Rec."No. of Tests Executed" > 0 then
+            AvgTime := Rec."Total Duration (ms)" / Rec."No. of Tests Executed"
         else
-            AvgTimeMsg := 0; //TODO: Fix duration calculation
-
+            AvgTime := 0;
     end;
 }
