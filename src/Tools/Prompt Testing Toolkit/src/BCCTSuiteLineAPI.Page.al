@@ -9,7 +9,7 @@ page 149037 "BCCT Suite Line API"
 {
     PageType = API;
     APIPublisher = 'microsoft';
-    APIGroup = 'performancToolkit';
+    APIGroup = 'copilotTestToolkit';
     APIVersion = 'v1.0';
 
     Caption = 'BCCT Suite Lines API';
@@ -54,6 +54,11 @@ page 149037 "BCCT Suite Line API"
                 field("delayBetweenIterations"; Rec."Delay (ms btwn. iter.)")
                 {
                     Caption = 'Delay between iterations (ms.)';
+                }
+                field(dataset; Rec.Dataset)
+                {
+                    Caption = 'Override the suite dataset';
+                    TableRelation = "BCCT Dataset"."Dataset Name";
                 }
                 field("runInForeground"; Rec."Run in Foreground")
                 {
