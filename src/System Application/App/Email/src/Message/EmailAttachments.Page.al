@@ -24,7 +24,6 @@ page 8889 "Email Attachments"
         {
             repeater(GroupName)
             {
-                FileUploadAction = UploadMultiple;
                 field(FileName; Rec."Attachment Name")
                 {
                     ApplicationArea = All;
