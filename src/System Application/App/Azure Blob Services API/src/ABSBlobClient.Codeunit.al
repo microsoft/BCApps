@@ -1116,7 +1116,7 @@ codeunit 9053 "ABS Blob Client"
         ABSClientImpl: Codeunit "ABS Client Impl.";
 
     /// <summary>
-    /// The Get Blob MetaData operation gets user-defined MetaDatas for the specified blob as one or more key-value pairs.
+    /// The GetBlobMetadata operation gets user-defined Metadata for the specified blob as one or more key-value pairs.
     /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-metadata?tabs=microsoft-entra-id
     /// </summary>
     /// <param name="BlobName">The name of the blob.</param>
