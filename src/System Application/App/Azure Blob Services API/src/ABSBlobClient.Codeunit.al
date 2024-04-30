@@ -1122,7 +1122,7 @@ codeunit 9053 "ABS Blob Client"
     /// <param name="BlobName">The name of the blob.</param>
     /// <param name="MetaData">The result Dictionary of [Text, Text] with blob metadatas.</param>
     /// <returns>An operation response object</returns>
-    procedure GetBlobMetaData(BlobName: Text; var MetaData: Dictionary of [Text, Text]): Codeunit "ABS Operation Response"
+    procedure GetBlobMetadata(BlobName: Text; var Metadata: Dictionary of [Text, Text]): Codeunit "ABS Operation Response"
     var
         OptionalParameters: Codeunit "ABS Optional Parameters";
     begin
