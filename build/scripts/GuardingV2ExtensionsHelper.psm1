@@ -197,6 +197,12 @@ function Update-AppSourceCopVersion
     Write-Host "Setting 'obsoleteTagVersion:$buildVersion' value in AppSourceCop.json" -ForegroundColor Yellow
     $appSourceJson["obsoleteTagVersion"] = $buildVersion
 
+    if ($BuildMode -eq "Clean")
+    {
+        $appSourceJson["obsoleteTagMinAllowedMajorMinor"] = "99.9"
+        $appSourceJson["ObsoleteTagMinAllowedMajorMinorOnSourceSymbols"] = $true
+    }
+
     # All major versions greater than current but less or equal to main should be allowed
     $currentBuildVersion = [int] $buildVersion.Split('.')[0]
     $maxAllowedObsoleteVersion = [int] (GetMaxAllowedObsoleteVersion)
