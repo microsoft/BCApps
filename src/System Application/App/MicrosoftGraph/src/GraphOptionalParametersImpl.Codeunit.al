@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Integration.Graph;
 
-using System.Integration.Graph;
 
 codeunit 9358 "Graph Optional Parameters Impl"
 {
