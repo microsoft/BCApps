@@ -19,6 +19,30 @@ codeunit 130458 "Import Data Driven Test"
         ParseDataInputs(InputText, ALTestSuite);
     end;
 
+    procedure ImportDataInputsFromText(ALTestSuite: Record "AL Test Suite"; DataInputText: Text)
+    var
+        DummyTestInput: Record "Test Input" temporary;
+        TestInputInStream: InStream;
+        InputText: Text;
+    begin
+        DummyTestInput."Test Input".CreateInStream(TestInputInStream);
+        TestInputInStream.Read(InputText);
+        ParseDataInputs(InputText, ALTestSuite);
+    end;
+
+    procedure ImportTestDefinitions(var ALTestSuite: Record "AL Test Suite"; TestDefinitionsText: Text)
+    var
+        DummyTestInput: Record "Test Input" temporary;
+        TempTestMethodLine: Record "Test Method Line" temporary;
+        TestInputInStream: InStream;
+        InputText: Text;
+    begin
+        DummyTestInput."Test Input".CreateInStream(TestInputInStream);
+        TestInputInStream.Read(InputText);
+        ParseDataDrivenTestDefinition(InputText, TempTestMethodLine, ALTestSuite);
+        InsertTestMethodLines(TempTestMethodLine, ALTestSuite);
+    end;
+
     procedure UploadAndImportTestDefinitions(var ALTestSuite: Record "AL Test Suite")
     var
         DummyTestInput: Record "Test Input" temporary;

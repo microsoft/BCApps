@@ -106,7 +106,7 @@ page 149041 "BCCT Dataset"
                             PromptRec.Init();
                             PromptRec.Id := 0;
                             PromptRec."Dataset Name" := Rec."Dataset Name";
-                            PromptRec.Input := CopyStr(Line.Trim(), 1, MaxStrLen(PromptRec.Input));
+                            PromptRec."Input Text" := CopyStr(Line.Trim(), 1, MaxStrLen(PromptRec."Input Text"));
                             PromptRec.SetInputBlob(Line.Trim());
                             PromptRec.Insert();
                         end;
@@ -154,7 +154,7 @@ page 149041 "BCCT Dataset"
                             PromptRec.Id := 0;
                             PromptRec."Dataset Name" := Rec."Dataset Name";
                             if LineList.Count > 0 then begin
-                                PromptRec.Input := CopyStr(LineList.Get(1).Trim(), 1, MaxStrLen(PromptRec.Input));
+                                PromptRec."Input Text" := CopyStr(LineList.Get(1).Trim(), 1, MaxStrLen(PromptRec."Input Text"));
                                 PromptRec.SetInputBlob(LineList.Get(1).Trim());
                             end;
                             if LineList.Count > 1 then begin

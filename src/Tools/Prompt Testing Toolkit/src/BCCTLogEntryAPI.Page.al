@@ -9,7 +9,7 @@ page 149038 "BCCT Log Entry API"
 {
     PageType = API;
     APIPublisher = 'microsoft';
-    APIGroup = 'performancToolkit';
+    APIGroup = 'copilotTestToolkit';
     APIVersion = 'v1.0';
 
     Caption = 'BCCT Logs Entry API';
@@ -107,7 +107,11 @@ page 149038 "BCCT Log Entry API"
                 {
                     Caption = 'Input Text';
                 }
-                // TODO the rest of the fields
+                field("inputData"; Rec."Input Data")
+                {
+                    Caption = 'Input Data';
+                }
+                // TODO the output + metrics fields
             }
         }
     }

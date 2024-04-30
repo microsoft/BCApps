@@ -10,4 +10,16 @@ tableextension 130458 "Data Driven Test Method Line" extends "Test Method Line"
             DataClassification = CustomerContent;
         }
     }
+
+    procedure GetDataInput(): Text
+    var
+        InStream: InStream;
+        P: Text;
+    begin
+        CalcFields("Data Input");
+        "Data Input".CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.Read(P);
+        exit(P);
+    end;
+
 }

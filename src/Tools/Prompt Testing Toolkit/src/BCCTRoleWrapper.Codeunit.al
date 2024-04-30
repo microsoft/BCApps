@@ -116,17 +116,17 @@ codeunit 149042 "BCCT Role Wrapper"
         TestMethodLine."Line Type" := TestMethodLine."Line Type"::Codeunit;
         TestMethodLine."Skip Logging Results" := true;
         TestMethodLine."Test Codeunit" := BCCTLine."Codeunit ID";
-        if BCCTDatasetLine.Input <> '' then;
-        TestMethodLine."Data Input" := BCCTDatasetLine."Input Data";
+        if BCCTDatasetLine."Input Text" <> '' then; //TODO: remove this if we figure out that we need test method line
+        //TestMethodLine."Data Input" := BCCTDatasetLine."Input Data";
         TestRunnerIsolDisabled.Run(TestMethodLine);
     end;
 
-    local procedure CompleteBCCTLine(var BCCTLine: Record "BCCT Line")
-    begin
-        BCCTLine.Status := BCCTLine.Status::Completed;
-        BCCTLine.Modify();
-        Commit();
-    end;
+    // local procedure CompleteBCCTLine(var BCCTLine: Record "BCCT Line")
+    // begin
+    //     BCCTLine.Status := BCCTLine.Status::Completed;
+    //     BCCTLine.Modify();
+    //     Commit();
+    // end;
 
     internal procedure GetBCCTHeaderTag(): Text[20]
     begin

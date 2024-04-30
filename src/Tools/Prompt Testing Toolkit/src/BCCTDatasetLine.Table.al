@@ -19,7 +19,7 @@ table 149033 "BCCT Dataset Line"
         {
             DataClassification = CustomerContent;
         }
-        field(3; Input; Text[2048])
+        field(3; "Input Text"; Text[2048])
         {
             DataClassification = CustomerContent;
         }

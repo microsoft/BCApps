@@ -131,8 +131,18 @@ table 149034 "BCCT Log Entry"
         field(26; "Input Text"; Text[2048])
         {
             Caption = 'Input Text';
-            FieldClass = FlowField;
-            CalcFormula = lookup("BCCT Dataset Line".Input where(Id = field("Dataset Line No.")));
+        }
+        field(27; "Output Text"; Text[2048])
+        {
+            Caption = 'Output Text';
+        }
+        field(28; "Input Data"; Blob)
+        {
+            Caption = 'Input Data';
+        }
+        field(29; "Output Data"; Blob)
+        {
+            Caption = 'Output Data';
         }
     }
 
@@ -156,6 +166,45 @@ table 149034 "BCCT Log Entry"
             SumIndexFields = "Duration (ms)";
         }
     }
+
+
+    procedure SetInputBlob(P: Text)
+    var
+        OutStream: OutStream;
+    begin
+        "Input Data".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.Write(P);
+    end;
+
+    procedure GetInputBlob(): Text
+    var
+        InStream: InStream;
+        P: Text;
+    begin
+        CalcFields("Input Data");
+        "Input Data".CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.Read(P);
+        exit(P);
+    end;
+
+    procedure SetOutputBlob(P: Text)
+    var
+        OutStream: OutStream;
+    begin
+        "Output Data".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.Write(P);
+    end;
+
+    procedure GetOutputBlob(): Text
+    var
+        InStream: InStream;
+        P: Text;
+    begin
+        CalcFields("Output Data");
+        "Output Data".CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.Read(P);
+        exit(P);
+    end;
 
     trigger OnInsert()
     begin

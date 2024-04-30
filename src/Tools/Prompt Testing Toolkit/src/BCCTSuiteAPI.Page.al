@@ -10,7 +10,7 @@ page 149046 "BCCT Suite API"
     PageType = API;
 
     APIPublisher = 'microsoft';
-    APIGroup = 'performancToolkit';
+    APIGroup = 'copilotTestToolkit';
     APIVersion = 'v1.0';
     Caption = 'BCCT Suite API';
 

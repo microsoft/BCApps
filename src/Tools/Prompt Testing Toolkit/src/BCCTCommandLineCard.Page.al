@@ -41,20 +41,7 @@ page 149042 "BCCT CommandLine Card"
                     end;
                 }
 
-                field("Duration (minutes)"; DurationInMins)
-                {
-                    Caption = 'Duration (minutes)', Locked = true;
-                    ToolTip = 'Specifies the duration the suite will be run.';
-                    ApplicationArea = All;
-                    Editable = false;
-                }
-                field("No. of Instances"; NoOfInstances)
-                {
-                    Caption = 'No. of Instances', Locked = true;
-                    ToolTip = 'Specifies the number of instances that will be created.';
-                    ApplicationArea = All;
-                    Editable = false;
-                }
+
                 field("No. of Tests"; NoOfTests)
                 {
                     Caption = 'No. of Tests', Locked = true;
@@ -93,8 +80,6 @@ page 149042 "BCCT CommandLine Card"
         CannotFindBCCTSuiteErr: Label 'The specified BCCT Suite with code %1 cannot be found.', Comment = '%1 = BCCT Suite id.';
         EnableActions: Boolean;
         BCCTCode: Code[10];
-        DurationInMins: Integer;
-        NoOfInstances: Integer;
         NoOfTests: Integer;
 
     trigger OnOpenPage()
