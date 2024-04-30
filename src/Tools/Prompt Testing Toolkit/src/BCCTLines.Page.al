@@ -87,9 +87,8 @@ page 149034 "BCCT Lines"
                     ToolTip = 'Specifies the max. user delay in ms of the BCCT.';
                     ApplicationArea = All;
                 }
-                field(NoOfIterations; Rec."No. of Iterations")
+                field("No. of Tests"; Rec."No. of Tests")
                 {
-                    ToolTip = 'Specifies the number of iterations of the BCCT for this role.';
                     ApplicationArea = All;
                 }
                 field(Duration; Rec."Total Duration (ms)")
@@ -103,10 +102,8 @@ page 149034 "BCCT Lines"
                     Caption = 'Average Duration (ms)';
                     ApplicationArea = All;
                 }
-                field(NoOfIterationsBase; Rec."No. of Iterations - Base")
+                field("No. of Tests - Base"; Rec."No. of Tests - Base")
                 {
-                    ToolTip = 'Specifies the number of iterations of the BCCT for this role for the base version.';
-                    Caption = 'No. of Iterations Base';
                     ApplicationArea = All;
                 }
                 field(DurationBase; Rec."Total Duration - Base (ms)")
@@ -115,13 +112,13 @@ page 149034 "BCCT Lines"
                     Caption = 'Total Duration Base (ms)';
                     ApplicationArea = All;
                 }
-                field(AvgDurationBase; GetAvg(Rec."No. of Iterations - Base", Rec."Total Duration - Base (ms)"))
+                field(AvgDurationBase; GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"))
                 {
                     ToolTip = 'Specifies average duration of the BCCT for this role for the base version.';
                     Caption = 'Average Duration Base (ms)';
                     ApplicationArea = All;
                 }
-                field(AvgDurationDeltaPct; GetDiffPct(GetAvg(Rec."No. of Iterations - Base", Rec."Total Duration - Base (ms)"), GetAvg(Rec."No. of Iterations", Rec."Total Duration (ms)")))
+                field(AvgDurationDeltaPct; GetDiffPct(GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"), GetAvg(Rec."No. of Tests", Rec."Total Duration (ms)")))
                 {
                     ToolTip = 'Specifies difference in duration of the BCCT for this role compared to the base version.';
                     Caption = 'Change in Duration (%)';
@@ -198,6 +195,15 @@ page 149034 "BCCT Lines"
                 begin
                     BCCTLineCU.Outdent(Rec);
                 end;
+            }
+            action(LogEntries)
+            {
+                ApplicationArea = All;
+                Caption = 'Log Entries';
+                Image = Entries;
+                ToolTip = 'Open log entries for the line.';
+                RunObject = page "BCCT Log Entries";
+                RunPageLink = "BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter");
             }
         }
     }

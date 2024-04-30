@@ -129,21 +129,20 @@ table 149032 "BCCT Line"
             Caption = 'Version Filter';
             FieldClass = FlowFilter;
         }
-        field(15; "No. of Iterations"; Integer)
+        field(15; "No. of Tests"; Integer)
         {
-            Caption = 'No. of Iterations';
+            Caption = 'No. of Tests';
+            ToolTip = 'Specifies the number of tests executed for this BCCT line.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter")));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
         }
-#pragma warning disable AA0232
         field(16; "Total Duration (ms)"; Integer)
-#pragma warning restore AA0232
         {
             Caption = 'Total Duration (ms)';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter")));
+            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(18; "Run in Foreground"; Boolean)
         {
@@ -200,19 +199,20 @@ table 149032 "BCCT Line"
             Caption = 'Base Version Filter';
             FieldClass = FlowFilter;
         }
-        field(26; "No. of Iterations - Base"; Integer)
+        field(26; "No. of Tests - Base"; Integer)
         {
-            Caption = 'No. of Iterations - Base';
+            Caption = 'No. of Tests - Base';
+            ToolTip = 'Specifies the number of tests executed for this BCCT line for the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter")));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(27; "Total Duration - Base (ms)"; Integer)
         {
             Caption = 'Total Duration - Base (ms)';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter")));
+            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
         }
     }
 

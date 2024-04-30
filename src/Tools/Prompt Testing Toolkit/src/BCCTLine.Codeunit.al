@@ -222,9 +222,9 @@ codeunit 149035 "BCCT Line"
 
     procedure GetAvgDuration(BCCTLine: Record "BCCT Line"): Integer
     begin
-        if BCCTLine."No. of Iterations" = 0 then
+        if BCCTLine."No. of Tests" = 0 then
             exit(0);
-        exit(BCCTLine."Total Duration (ms)" div BCCTLine."No. of Iterations");
+        exit(BCCTLine."Total Duration (ms)" div BCCTLine."No. of Tests");
     end;
 
     procedure GetParam(var BCCTLine: Record "BCCT Line"; ParamName: Text): Text

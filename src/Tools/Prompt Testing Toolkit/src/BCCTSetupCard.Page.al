@@ -66,11 +66,6 @@ page 149031 "BCCT Setup Card"
                 {
                     ToolTip = 'Specifies the status of the test.';
                     ApplicationArea = All;
-
-                    trigger OnValidate()
-                    begin
-                        UpdateAverageExecutionTime();
-                    end;
                 }
                 field(Started; Rec."Started at")
                 {
@@ -289,6 +284,10 @@ page 149031 "BCCT Setup Card"
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         EnableActions := (EnvironmentInformation.IsSaas() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
         UpdateAverageExecutionTime();
     end;
 
