@@ -819,6 +819,375 @@ tableextension 242 ObsoleteSourceCodeSetupExt extends "Source Code Setup"
             ObsoleteTag = '25.0';
             MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
         }
+        field(10002; "Bank Rec. Adjustment"; Code[10])
+        {
+            Caption = 'Bank Rec. Adjustment';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(10003; Deposits; Code[10])
+        {
+            Caption = 'Deposits';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(11200; "Inward Registration"; Code[10])
+        {
+            Caption = 'Inward Registration';
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Replaced by extension';
+            ObsoleteState = Removed;
+            ObsoleteTag = '15.0';
+        }
+        field(11307; "Financial Journal"; Code[10])
+        {
+            Caption = 'Financial Journal';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(11400; "Cash Journal"; Code[10])
+        {
+            Caption = 'Cash Journal';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(11401; "Bank Journal"; Code[10])
+        {
+            Caption = 'Bank Journal';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(11760; "Purchase VAT Delay"; Code[10])
+        {
+            Caption = 'Purchase VAT Delay';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteState = Removed;
+            ObsoleteReason = 'Moved to Core Localization Pack for Czech.';
+            ObsoleteTag = '20.0';
+        }
+        field(11761; "Sales VAT Delay"; Code[10])
+        {
+            Caption = 'Sales VAT Delay';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteState = Removed;
+            ObsoleteReason = 'Moved to Core Localization Pack for Czech.';
+            ObsoleteTag = '20.0';
+        }
+        field(11762; "VAT Coefficient"; Code[10])
+        {
+            Caption = 'VAT Coefficient';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteState = Removed;
+            ObsoleteReason = 'The functionality of Non-deductible VAT has been removed and this field should not be used.';
+            ObsoleteTag = '18.0';
+        }
+        field(11764; "Close Balance Sheet"; Code[10])
+        {
+            Caption = 'Close Balance Sheet';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteState = Removed;
+            ObsoleteReason = 'Moved to Core Localization Pack for Czech.';
+            ObsoleteTag = '22.0';
+        }
+        field(11765; "Open Balance Sheet"; Code[10])
+        {
+            Caption = 'Open Balance Sheet';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteState = Removed;
+            ObsoleteReason = 'Moved to Core Localization Pack for Czech.';
+            ObsoleteTag = '22.0';
+        }
+        field(11766; "Cash Desk"; Code[10])
+        {
+            Caption = 'Cash Desk';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteState = Removed;
+            ObsoleteReason = 'Moved to Cash Desk Localization for Czech.';
+            ObsoleteTag = '20.0';
+        }
+        field(12400; "Advance Statements"; Code[10])
+        {
+            Caption = 'Advance Statements';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12401; "Deferred VAT Settlement"; Code[10])
+        {
+            Caption = 'Deferred VAT Settlement';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12402; "Deferred Expenses"; Code[10])
+        {
+            Caption = 'Deferred Expenses';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12403; "Customer Prepayments"; Code[10])
+        {
+            Caption = 'Customer Prepayments';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12404; "Vendor Prepayments"; Code[10])
+        {
+            Caption = 'Vendor Prepayments';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12405; "Bank Payments"; Code[10])
+        {
+            Caption = 'Bank Payments';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12406; "Bank Reconciliations"; Code[10])
+        {
+            Caption = 'Bank Reconciliations';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12407; "Cash Order Payments"; Code[10])
+        {
+            Caption = 'Cash Order Payments';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12408; "VAT Reinstatement"; Code[10])
+        {
+            Caption = 'VAT Reinstatement';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12409; "VAT for Customer Adjustment"; Code[10])
+        {
+            Caption = 'VAT for Customer Adjustment';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12410; "VAT for Vendor Adjustment"; Code[10])
+        {
+            Caption = 'VAT for Vendor Adjustment';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12411; "VAT Allocation on Cost"; Code[10])
+        {
+            Caption = 'VAT Allocation on Cost';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12450; "Item Receipt"; Code[10])
+        {
+            Caption = 'Item Receipt';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Replaced by Inventory Documents feature.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '21.0';
+        }
+        field(12451; "Item Shipment"; Code[10])
+        {
+            Caption = 'Item Shipment';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'Replaced by Inventory Documents feature.';
+            ObsoleteState = Removed;
+            ObsoleteTag = '21.0';
+        }
+        field(12470; "FA Release"; Code[10])
+        {
+            Caption = 'FA Release';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12471; "FA Movement"; Code[10])
+        {
+            Caption = 'FA Movement';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(12472; "FA Writeoff"; Code[10])
+        {
+            Caption = 'FA Writeoff';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(28040; "WHT Settlement"; Code[10])
+        {
+            Caption = 'WHT Settlement';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(13400; "Depr. Difference"; Code[10])
+        {
+            Caption = 'Depr. Difference';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(17301; "Tax Difference Journal"; Code[10])
+        {
+            Caption = 'Tax Difference Journal';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(31041; "Maintenance Adjustment"; Code[10])
+        {
+            Caption = 'Maintenance Adjustment';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteState = Removed;
+            ObsoleteReason = 'The functionality of Item consumption for FA maintenance will be removed and this field should not be used. (Obsolete::Removed in release 01.2021)';
+            ObsoleteTag = '18.0';
+        }
+        field(31050; Credit; Code[10])
+        {
+            Caption = 'Credit';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteState = Removed;
+            ObsoleteReason = 'Moved to Compensation Localization Pack for Czech.';
+            ObsoleteTag = '21.0';
+        }
+#pragma warning disable AS0013
+        field(2000020; "Domiciliation Journal"; Code[10])
+        {
+            Caption = 'Domiciliation Journal';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(5005270; "Delivery Reminder"; Code[10])
+        {
+            Caption = 'Delivery Reminder';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+        field(5005350; "Phys. Invt. Order"; Code[10])
+        {
+            Caption = 'Phys. Invt. Order';
+            ObsoleteReason = 'Merged to W1';
+            DataClassification = CustomerContent;
+            ObsoleteState = Removed;
+            TableRelation = "Source Code";
+            ObsoleteTag = '24.0';
+        }
+        field(7000000; "Cartera Journal"; Code[10])
+        {
+            Caption = 'Cartera Journal';
+            TableRelation = "Source Code";
+            DataClassification = CustomerContent;
+            ObsoleteReason = 'The Audit Codes module cannot reference Base Application features.';
+            ObsoleteState = Moved;
+            ObsoleteTag = '25.0';
+            MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
+        }
+#pragma warning restore AS0013
     }
 }
 
