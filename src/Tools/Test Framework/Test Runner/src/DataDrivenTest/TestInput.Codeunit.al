@@ -19,10 +19,10 @@ codeunit 130460 "Test Input"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeTestMethodRun', '', false, false)]
     local procedure InitializeTestInputsBeforeTestMethodRun(CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var CurrentTestMethodLine: Record "Test Method Line")
     begin
-        if CurrentTestMethodLine."Data Input" = '' then
+        if not CurrentTestMethodLine."Data Input".HasValue() then
             exit;
 
-        if CurrentTestMethodLine."Data Input" = DataPerTest.Name then
+        if CurrentTestMethodLine.GetDataInput() = DataPerTest.Name then
             exit;
 
         DataPerTest.Get(CurrentTestMethodLine."Test Suite", CurrentTestMethodLine."Data Input");
