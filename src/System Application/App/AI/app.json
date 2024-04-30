@@ -88,9 +88,9 @@
                                    "publisher":  "Microsoft"
                                },
                                {
-                                "id":  "81848664-2a4b-4f1d-af93-7173c12be82f",
-                                "name":  "AI Test",
-                                "publisher":  "Microsoft"                                 
+                                    "id":  "81848664-2a4b-4f1d-af93-7173c12be82f",
+                                    "name":  "AI Test",
+                                    "publisher":  "Microsoft"                                 
                                }
                            ],
     "platform":  "25.0.0.0",
