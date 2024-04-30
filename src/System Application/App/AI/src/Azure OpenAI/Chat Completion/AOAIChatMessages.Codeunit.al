@@ -190,7 +190,6 @@ codeunit 7763 "AOAI Chat Messages"
         exit(AOAIChatMessagesImpl.PrepareHistory(SystemMessageTokenCount, MessagesTokenCount));
     end;
 
-#if not CLEAN25
     /// <summary>
     /// Gets the number of tokens used by the primary system messages and all other messages.
     /// </summary>
@@ -200,6 +199,7 @@ codeunit 7763 "AOAI Chat Messages"
         exit(AOAIChatMessagesImpl.GetHistoryTokenCount());
     end;
 
+#if not CLEAN25
     /// <summary>
     /// Appends a Tool to the payload.
     /// </summary>
