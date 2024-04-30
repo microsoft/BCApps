@@ -2,29 +2,46 @@ namespace System.TestTools.TestRunner;
 
 codeunit 130460 "Test Input"
 {
-    procedure test()
-    var
-        TestInput: Codeunit "Test Input";
-        AccountNameText: Text;
-        HarmsInputText: Text;
-    begin
-        AccountNameText := TestInput.GetTestInput('AccountName');
-        HarmsInputText := TestInput.GetTestInput('HarmsInput');
-    end;
+    SingleInstance = true;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeCodeunitRun', '', false, false)]
-    local procedure InitializeTestInputsBeforeTestRun(var TestMethodLine: Record "Test Method Line")
-    var
-        CurrentTestMethodLine: Record "Test Method Line";
-        CurrentTestMethodTestInput: Record "Test Input";
+    local procedure InitializeTestInputsBeforeSuiteRun(var TestMethodLine: Record "Test Method Line")
     begin
+        ClearGlobals();
         if not TestMethodLine."Data Input".HasValue() then
             exit;
 
-        CurrentTestMethodLine.Copy(TestMethodLine);
-        CurrentTestMethodTestInput.Get(TestMethodLine."Data Input");
+        DataPerSuite.Get(TestMethodLine."Test Suite", TestMethodLine."Data Input");
 
-        CurrentTestInput.ReadFrom(CurrentTestMethodTestInput.GetInput(CurrentTestMethodTestInput));
+        DataPerSuiteTestInput.ReadFrom(DataPerSuite.GetInput(DataPerSuite));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeTestMethodRun', '', false, false)]
+    local procedure InitializeTestInputsBeforeTestMethodRun(CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var CurrentTestMethodLine: Record "Test Method Line")
+    begin
+        if CurrentTestMethodLine."Data Input" = '' then
+            exit;
+
+        if CurrentTestMethodLine."Data Input" = DataPerTest.Name then
+            exit;
+
+        DataPerTest.Get(CurrentTestMethodLine."Test Suite", CurrentTestMethodLine."Data Input");
+
+        DataPerTestTestInput.ReadFrom(DataPerTest.GetInput(DataPerTest));
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterRunTestSuite', '', false, false)]
+    local procedure AfterTestSuite()
+    begin
+        ClearGlobals();
+    end;
+
+    local procedure ClearGlobals()
+    begin
+        Clear(DataPerSuite);
+        Clear(DataPerSuiteTestInput);
+        Clear(DataPerTest);
+        Clear(DataPerTestTestInput);
     end;
 
     procedure GetTestInput(TestInputName: Text): Variant
@@ -32,7 +49,7 @@ codeunit 130460 "Test Input"
         TestInputValueJsonToken: JsonToken;
         TestInputValue: Variant;
     begin
-        CurrentTestInput.Get(TestInputName, TestInputValueJsonToken);
+        DataPerSuiteTestInput.Get(TestInputName, TestInputValueJsonToken);
         TestInputValue := TestInputValueJsonToken.AsValue();
         exit(TestInputValue);
     end;
@@ -42,7 +59,7 @@ codeunit 130460 "Test Input"
         TestInputJsonbOject: JsonObject;
         TestInputValueJsonToken: JsonToken;
     begin
-        CurrentTestInput.Get(TestInputName, TestInputValueJsonToken);
+        DataPerSuiteTestInput.Get(TestInputName, TestInputValueJsonToken);
         exit(TestInputValueJsonToken.AsObject());
     end;
 
@@ -51,10 +68,22 @@ codeunit 130460 "Test Input"
         TestInputJsonbOject: JsonObject;
         TestInputValueJsonToken: JsonToken;
     begin
-        CurrentTestInput.Get(TestInputName, TestInputValueJsonToken);
+        DataPerSuiteTestInput.Get(TestInputName, TestInputValueJsonToken);
         exit(TestInputValueJsonToken.AsArray());
     end;
 
+    procedure GetTestDataDescription(): Text
+    begin
+        if DataPerTest.Name <> '' then
+            exit(DataPerTest.Name);
+
+        exit(DataPerSuite.Name);
+    end;
+
     var
-        CurrentTestInput: JsonObject;
+        DataPerSuite: Record "Test Input";
+        DataPerSuiteTestInput: JsonObject;
+
+        DataPerTest: Record "Test Input";
+        DataPerTestTestInput: JsonObject;
 }
