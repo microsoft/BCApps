@@ -6,6 +6,7 @@
 namespace System.Azure.Storage.Files;
 
 using System.Azure.Storage;
+using System;
 
 codeunit 8952 "AFS Operation Payload Impl."
 {
@@ -115,12 +116,16 @@ codeunit 8952 "AFS Operation Payload Impl."
     [NonDebuggable]
     procedure GetRequestHeaders(): Dictionary of [Text, Text]
     begin
+        SortHeaders(RequestHeaders);
+
         exit(RequestHeaders);
     end;
 
     [NonDebuggable]
     procedure GetContentHeaders(): Dictionary of [Text, Text]
     begin
+        SortHeaders(ContentHeaders);
+
         exit(ContentHeaders);
     end;
 
@@ -189,5 +194,23 @@ codeunit 8952 "AFS Operation Payload Impl."
         Optionals := AFSOptionalParameters.GetParameters();
         foreach OptionalParameterKey in Optionals.Keys() do
             AddUriParameter(OptionalParameterKey, Optionals.Get(OptionalParameterKey));
+    end;
+
+    [NonDebuggable]
+    local procedure SortHeaders(var Headers: Dictionary of [Text, Text])
+    var
+        SortedDictionary: DotNet GenericSortedDictionary2;
+        SortedDictionaryEntry: DotNet GenericKeyValuePair2;
+        HeaderKey: Text;
+    begin
+        SortedDictionary := SortedDictionary.SortedDictionary();
+
+        foreach HeaderKey in Headers.Keys() do
+            SortedDictionary.Add(HeaderKey, Headers.Get(HeaderKey));
+
+        Clear(Headers);
+
+        foreach SortedDictionaryEntry in SortedDictionary do
+            Headers.Add(SortedDictionaryEntry."Key"(), SortedDictionaryEntry.Value());
     end;
 }

@@ -22,9 +22,17 @@ codeunit 3705 "Azure AD Tenant Impl."
         CountryLetterCodeErr: Label 'Failed to retrieve the Microsoft Entra tenant country letter code.';
         PreferredLanguageErr: Label 'Failed to retrieve the Microsoft Entra tenant preferred language code.';
 
-    procedure GetAadTenantId() TenantIdValue: Text
+    procedure GetAadTenantId(): Text
+    var
+        TenantIdValue: Text;
+        EntraTenantIdAsGuid: Guid;
     begin
         NavTenantSettingsHelper.TryGetStringTenantSetting('AADTENANTID', TenantIdValue);
+
+        if Evaluate(EntraTenantIdAsGuid, TenantIdValue) then
+            exit(LowerCase(Format(EntraTenantIdAsGuid, 0, 4)));
+
+        exit(TenantIdValue);
     end;
 
     procedure GetAadTenantDomainName(): Text;

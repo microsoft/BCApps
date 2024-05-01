@@ -580,7 +580,7 @@ codeunit 1991 "Guided Experience Impl."
         end;
     end;
 
-    local procedure GetCode(Type: Enum "Guided Experience Type"; ObjectType: Enum "Guided Experience Object Type"; ObjectID: Integer; Link: Text[250]; VideoUrl: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type"): Code[300]
+    internal procedure GetCode(Type: Enum "Guided Experience Type"; ObjectType: Enum "Guided Experience Object Type"; ObjectID: Integer; Link: Text[250]; VideoUrl: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type"): Code[300]
     var
         Url: Text[250];
     begin
