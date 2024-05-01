@@ -107,13 +107,17 @@ function BuildApp {
         [Parameter(Mandatory = $true)]
         [string] $packageCacheFolder,
         [Parameter(Mandatory = $true)]
-        [string] $baseFolder
+        [string] $baseFolder,
+        [Parameter(Mandatory = $false)]
+        [switch] $rebuild
     )
 
     $appFiles = @()
     $allAppInfos = GetAllApps -baseFolder $baseFolder
     $appOutputFolder = $packageCacheFolder
     $appInfo = [AppProjectInfo]::Get($appProjectFolder)
+    $appFileName = $appInfo.GetAppFileName()
+    $appFilePath = Join-Path $appOutputFolder $appFileName
 
     # Build dependencies
     foreach($dependency in $appInfo.AppJson.dependencies) {
@@ -125,25 +129,26 @@ function BuildApp {
     }
 
     $appProjectFolder = GetRootedFolder -folder $appProjectFolder -baseFolder $baseFolder
-
-    $appFile = $appInfo.GetAppFileName()
-
-    if((Test-Path (Join-Path $appOutputFolder $appFile)) -and (-not $rebuild)) {
-        Write-Host "App $appFile already exists in $appOutputFolder. Removing..."
-        $appFile = (Join-Path $appOutputFolder $appFile -Resolve)
-        Remove-Item -Path $appFile -Force
+    
+    # If we are rebuilding, remove the app file if it already exists
+    if ($rebuild -and (Test-Path $appFilePath)) {
+        Write-Host "App $appFileName already exists in $appOutputFolder. Removing and rebuilding..." -ForegroundColor Yellow
+        Remove-Item -Path $appFilePath -Force
     }
 
-    # Create compiler folder on demand
-    if(-not $compilerFolder.Value) {
-        Write-Host "Creating compiler folder..." -ForegroundColor Yellow
-        $compilerFolder.Value = CreateCompilerFolder -packageCacheFolder $packageCacheFolder
-        Write-Host "Compiler folder: $($compilerFolder.Value)" -ForegroundColor Yellow
+    if(Test-Path $appFilePath) {
+        Write-Host "App $appFile already exists in $appOutputFolder. Skipping..."
+    } else {
+        # Create compiler folder on demand
+        if(-not $compilerFolder.Value) {
+            Write-Host "Creating compiler folder..." -ForegroundColor Yellow
+            $compilerFolder.Value = CreateCompilerFolder -packageCacheFolder $packageCacheFolder
+            Write-Host "Compiler folder: $($compilerFolder.Value)" -ForegroundColor Yellow
+        }
+
+        $appFile = Compile-AppWithBcCompilerFolder -compilerFolder $($compilerFolder.Value) -appProjectFolder "$($appInfo.AppProjectFolder)" -appOutputFolder $appOutputFolder -appSymbolsFolder $packageCacheFolder
+        $appFiles += $appFile
     }
-
-    $appFile = Compile-AppWithBcCompilerFolder -compilerFolder $($compilerFolder.Value) -appProjectFolder "$($appInfo.AppProjectFolder)" -appOutputFolder $appOutputFolder -appSymbolsFolder $packageCacheFolder
-
-    $appFiles += $appFile
 
     return $appFiles
 }
@@ -161,7 +166,8 @@ function BuildApp {
 function Build-Apps {
     param (
         $projectPaths,
-        $packageCacheFolder
+        $packageCacheFolder,
+        [switch] $rebuild
     )
     $appFiles = @()
     $baseFolder = Get-BaseFolder
@@ -173,7 +179,7 @@ function Build-Apps {
     try {
         foreach($currentProjectPath in $projectPaths) {
             Write-Host "Building app in $currentProjectPath" -ForegroundColor Yellow
-            $currentAppFiles = BuildApp -appProjectFolder $currentProjectPath -compilerFolder ([ref]$compilerFolder) -packageCacheFolder $packageCacheFolder -baseFolder $baseFolder
+            $currentAppFiles = BuildApp -appProjectFolder $currentProjectPath -compilerFolder ([ref]$compilerFolder) -packageCacheFolder $packageCacheFolder -baseFolder $baseFolder -rebuild:$rebuild
             $appFiles += @($currentAppFiles)
         }
     }

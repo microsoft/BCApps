@@ -31,7 +31,9 @@ param(
     [Parameter(Mandatory = $false)]
     [string] $WorkspacePath,
     [Parameter(Mandatory = $false)]
-    [string] $AlGoProject
+    [string] $AlGoProject,
+    [Parameter(Mandatory = $false)]
+    [switch] $RebuildApps
 )
 
 Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
@@ -75,9 +77,11 @@ if ($ProjectPaths -or $WorkspacePath -or $AlGoProject)
 
     # Build apps
     Write-Host "Building apps..." -ForegroundColor Yellow
-    $appFiles = Build-Apps -ProjectPaths $ProjectPaths -packageCacheFolder (Get-ArtifactsCacheFolder -ContainerName $ContainerName)
+    $appFiles = Build-Apps -ProjectPaths $ProjectPaths -packageCacheFolder (Get-ArtifactsCacheFolder -ContainerName $ContainerName) -rebuild:$RebuildApps
 
     # Publish apps
-    Write-Host "Publishing apps..." -ForegroundColor Yellow
-    Publish-Apps -ContainerName $ContainerName -AppFiles $appFiles -Credential $credential
+    if ($appFiles) {
+        Write-Host "Publishing apps..." -ForegroundColor Yellow
+        Publish-Apps -ContainerName $ContainerName -AppFiles $appFiles -Credential $credential
+    }
 }
