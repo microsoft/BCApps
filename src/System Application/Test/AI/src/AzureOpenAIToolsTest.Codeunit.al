@@ -303,6 +303,262 @@ codeunit 132686 "Azure OpenAI Tools Test"
         LibraryAssert.AreEqual(Format(Function2Tool), Format(Tool2), 'Tool should have same value.');
     end;
 
+    [Test]
+    procedure TestJsonModeInParameters()
+    var
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+        Payload: JsonObject;
+        ResponseFormatJTok: JsonToken;
+        TypeJTok: JsonToken;
+    begin
+        AOAIChatCompletionParams.SetJsonMode(true);
+        AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
+
+        Payload.Get('response_format', ResponseFormatJtok);
+        ResponseFormatJTok.AsObject().Get('type', TypeJTok);
+
+        LibraryAssert.AreEqual(TypeJTok.AsValue().AsText(), 'json_object', 'Response format should be json_object');
+    end;
+
+    [Test]
+    procedure TestNoJsonModeInParameters()
+    var
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+        Payload: JsonObject;
+    begin
+        AOAIChatCompletionParams.SetJsonMode(false);
+        AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
+
+        LibraryAssert.IsFalse(Payload.Contains('response_format'), 'Response format should not exist');
+    end;
+
+    [Test]
+    procedure TestNoJsonModeInParametersByDefault()
+    var
+        AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
+        Payload: JsonObject;
+    begin
+        AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
+
+        LibraryAssert.IsFalse(Payload.Contains('response_format'), 'Response format should not exist');
+    end;
+
+    [Test]
+    procedure TestToolRegistrationAndVerification()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        TestFunction1: Codeunit "Test Function 1";
+        TestFunction2: Codeunit "Test Function 2";
+    begin
+        AOAIChatMessages.AddTool(TestFunction1);
+        AOAIChatMessages.AddTool(TestFunction2);
+
+        AOAIChatMessages.AddSystemMessage('test system message');
+        AOAIChatMessages.AddUserMessage('test user message');
+
+        LibraryAssert.IsTrue(AOAIChatMessages.ToolsExists(), 'Tool should exist');
+    end;
+
+    [Test]
+    procedure TestToolSelection()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        TestFunction1: Codeunit "Test Function 1";
+        TestFunction2: Codeunit "Test Function 2";
+        ToolCallId: Text;
+        ToolSelectionResponseLbl: Label '[{"id":"%1","type":"function","function":{"name":"%2","arguments":"{}"}}]', Locked = true;
+    begin
+        AOAIChatMessages.AddTool(TestFunction1);
+        AOAIChatMessages.AddTool(TestFunction2);
+
+        AOAIChatMessages.AddSystemMessage('test system message');
+        AOAIChatMessages.AddUserMessage('test user message');
+
+        // Function is been selected by LLM
+        ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
+        AOAIChatMessages.AddAssistantMessage(StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()));
+
+        LibraryAssert.AreEqual(AOAIChatMessages.GetLastMessage(), StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()), 'Last message should be the tool selection response.');
+    end;
+
+    [Test]
+    procedure TestFunctionCallResult()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        TestFunction1: Codeunit "Test Function 1";
+        TestFunction2: Codeunit "Test Function 2";
+        ToolCallId: Text;
+        ToolSelectionResponseLbl: Label '[{"id":"%1","type":"function","function":{"name":"%2","arguments":"{}"}}]', Locked = true;
+        FunctionExecutionResult: Text;
+    begin
+        AOAIChatMessages.AddTool(TestFunction1);
+        AOAIChatMessages.AddTool(TestFunction2);
+
+        AOAIChatMessages.AddSystemMessage('test system message');
+        AOAIChatMessages.AddUserMessage('test user message');
+
+        // Function is been selected by LLM
+        ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
+        AOAIChatMessages.AddAssistantMessage(StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()));
+
+        // Selected function was executed by system
+        FunctionExecutionResult := 'test function execution result';
+        AOAIFunctionResponse.SetFunctionCallingResponse(true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+
+        LibraryAssert.IsTrue(AOAIFunctionResponse.IsFunctionCall(), 'Function call should be true.');
+        LibraryAssert.AreEqual(AOAIFunctionResponse.GetFunctionName(), TestFunction1.GetName(), 'Function name should be the same as the value set.');
+        LibraryAssert.AreEqual(AOAIFunctionResponse.GetFunctionId(), ToolCallId, 'Function id should be the same as the value set.');
+        LibraryAssert.AreEqual(AOAIFunctionResponse.GetResult(), FunctionExecutionResult, 'Function response should be the same as the value set.');
+    end;
+
+    [Test]
+    procedure TestAddFunctionResultToChatMessages()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        TestFunction1: Codeunit "Test Function 1";
+        TestFunction2: Codeunit "Test Function 2";
+        ToolCallId: Text;
+        ToolSelectionResponseLbl: Label '[{"id":"%1","type":"function","function":{"name":"%2","arguments":"{}"}}]', Locked = true;
+        FunctionExecutionResult: Text;
+    begin
+        AOAIChatMessages.AddTool(TestFunction1);
+        AOAIChatMessages.AddTool(TestFunction2);
+
+        AOAIChatMessages.AddSystemMessage('test system message');
+        AOAIChatMessages.AddUserMessage('test user message');
+
+        // Function is been selected by LLM
+        ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
+        AOAIChatMessages.AddAssistantMessage(StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()));
+
+        // Selected function was executed by system
+        FunctionExecutionResult := 'test function execution result';
+        AOAIFunctionResponse.SetFunctionCallingResponse(true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+
+        // Save the function execution result to the chat messages
+        AOAIChatMessages.AddToolMessage(AOAIFunctionResponse.GetFunctionId(), AOAIFunctionResponse.GetFunctionName(), AOAIFunctionResponse.GetResult());
+
+        LibraryAssert.AreEqual(Enum::"AOAI Chat Roles"::Tool, AOAIChatMessages.GetLastRole(), 'The message should be a tool message');
+        LibraryAssert.AreEqual(AOAIChatMessages.GetLastMessage(), FunctionExecutionResult, 'Last message should be the function execution result.');
+    end;
+
+    [Test]
+    procedure TestToolCleanup()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        TestFunction1: Codeunit "Test Function 1";
+        TestFunction2: Codeunit "Test Function 2";
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        ToolCallId: Text;
+        ToolSelectionResponseLbl: Label '[{"id":"%1","type":"function","function":{"name":"%2","arguments":"{}"}}]', Locked = true;
+        FunctionExecutionResult: Text;
+    begin
+        AOAIChatMessages.AddTool(TestFunction1);
+        AOAIChatMessages.AddTool(TestFunction2);
+
+        AOAIChatMessages.AddSystemMessage('test system message');
+        AOAIChatMessages.AddUserMessage('test user message');
+
+        // Function is been selected by LLM
+        ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
+        AOAIChatMessages.AddAssistantMessage(StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()));
+
+        // Selected function was executed by system
+        FunctionExecutionResult := 'test function execution result';
+        AOAIFunctionResponse.SetFunctionCallingResponse(true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+
+        // Save the function execution result to the chat messages
+        AOAIChatMessages.AddToolMessage(AOAIFunctionResponse.GetFunctionId(), AOAIFunctionResponse.GetFunctionName(), AOAIFunctionResponse.GetResult());
+
+        // Remove the functions from the tool list
+        AOAIChatMessages.ClearTools();
+
+        LibraryAssert.IsFalse(AOAIChatMessages.ToolsExists(), 'Tool should not exist');
+    end;
+
+    [Test]
+    procedure TestJsonRepresentationOfChatMessagesHistory()
+    var
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        TestFunction1: Codeunit "Test Function 1";
+        TestFunction2: Codeunit "Test Function 2";
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        ToolCallId: Text;
+        ToolSelectionResponseLbl: Label '[{"id":"%1","type":"function","function":{"name":"%2","arguments":"{}"}}]', Locked = true;
+        FunctionExecutionResult: Text;
+        HistoryJsonArray: JsonArray;
+        MessageJsonTok: JsonToken;
+        JsonTok: JsonToken;
+        TextValue: Text;
+    begin
+        AOAIChatMessages.AddTool(TestFunction1);
+        AOAIChatMessages.AddTool(TestFunction2);
+
+        AOAIChatMessages.AddSystemMessage('test system message');
+        AOAIChatMessages.AddUserMessage('test user message');
+
+        // Function is been selected by LLM
+        ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
+        AOAIChatMessages.AddAssistantMessage(StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()));
+
+        // Selected function was executed by system
+        FunctionExecutionResult := 'test function execution result';
+        AOAIFunctionResponse.SetFunctionCallingResponse(true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+
+        // Save the function execution result to the chat messages
+        AOAIChatMessages.AddToolMessage(AOAIFunctionResponse.GetFunctionId(), AOAIFunctionResponse.GetFunctionName(), AOAIFunctionResponse.GetResult());
+
+        // Remove the functions from the tool list
+        AOAIChatMessages.ClearTools();
+
+        // Check Json representation of the chat messages history
+        HistoryJsonArray := AzureOpenAITestLibrary.GetAOAIHistory(5, AOAIChatMessages);
+        LibraryAssert.AreEqual(4, HistoryJsonArray.Count, 'History should have 4 items.');
+
+        // Check system message
+        HistoryJsonArray.Get(0, MessageJsonTok);
+        MessageJsonTok.AsObject().Get('role', JsonTok);
+        LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), 'system', 'Role should be system');
+
+        MessageJsonTok.AsObject().Get('content', JsonTok);
+        LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), 'test system message', 'Content should be test system message');
+
+        // Check user message
+        HistoryJsonArray.Get(1, MessageJsonTok);
+        MessageJsonTok.AsObject().Get('role', JsonTok);
+        LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), 'user', 'Role should be user');
+
+        MessageJsonTok.AsObject().Get('content', JsonTok);
+        LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), 'test user message', 'Content should be test user message');
+
+        // Check assistant message
+        HistoryJsonArray.Get(2, MessageJsonTok);
+        MessageJsonTok.AsObject().Get('role', JsonTok);
+        LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), 'assistant', 'Role should be assistant');
+
+        MessageJsonTok.AsObject().Get('tool_calls', JsonTok);
+        JsonTok.WriteTo(TextValue);
+        LibraryAssert.AreEqual(TextValue, StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()), 'Tool call should be the same as the value set.');
+
+        // Check tool message
+        HistoryJsonArray.Get(3, MessageJsonTok);
+        MessageJsonTok.AsObject().Get('role', JsonTok);
+        LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), 'tool', 'Role should be tool');
+
+        MessageJsonTok.AsObject().Get('content', JsonTok);
+        LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), FunctionExecutionResult, 'Content should be the function execution result');
+
+        MessageJsonTok.AsObject().Get('name', JsonTok);
+        LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), TestFunction1.GetName(), 'Function name should be the same as the value set.');
+
+        MessageJsonTok.AsObject().Get('tool_call_id', JsonTok);
+        LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), ToolCallId, 'Tool call id should be the same as the value set.');
+    end;
+
+
     local procedure GetTestFunction1Tool(): JsonObject
     var
         TestTool: Text;

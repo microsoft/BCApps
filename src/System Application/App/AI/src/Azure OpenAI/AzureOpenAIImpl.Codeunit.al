@@ -41,6 +41,7 @@ codeunit 7772 "Azure OpenAI Impl"
         CopilotDisabledForTenantErr: Label 'Copilot is not enabled for the tenant. Please contact your system administrator.';
         CapabilityNotRegisteredErr: Label 'Copilot capability ''%1'' has not been registered by the module.', Comment = '%1 is the name of the Copilot Capability';
         CapabilityNotEnabledErr: Label 'Copilot capability ''%1'' has not been enabled. Please contact your system administrator.', Comment = '%1 is the name of the Copilot Capability';
+        MessagesMustContainJsonWordWhenResponseFormatIsJsonErr: Label 'The messages must contain the word ''json'' in some form, to use ''response format'' of type ''json_object''.';
         EmptyMetapromptErr: Label 'The metaprompt has not been set, please provide a metaprompt.';
         MetapromptLoadingErr: Label 'Metaprompt not found.';
         EnabledKeyTok: Label 'AOAI-Enabled', Locked = true;
@@ -333,6 +334,8 @@ codeunit 7772 "Azure OpenAI Impl"
             FeatureTelemetry.LogUsage('0000MFG', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryChatCompletionToolUsedLbl, CustomDimensions);
         end;
 
+        CheckJsonModeCompatibility(Payload);
+
         Payload.WriteTo(PayloadText);
 
         SendTokenCountTelemetry(MetapromptTokenCount, PromptTokenCount, CustomDimensions);
@@ -344,6 +347,31 @@ codeunit 7772 "Azure OpenAI Impl"
         ProcessChatCompletionResponse(ChatMessages, AOAIOperationResponse, CallerModuleInfo);
 
         FeatureTelemetry.LogUsage('0000KVN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, CustomDimensions);
+    end;
+
+    local procedure CheckJsonModeCompatibility(Payload: JsonObject)
+    var
+        ResponseFormatToken: JsonToken;
+        MessagesToken: JsonToken;
+        Messages: Text;
+        TypeToken: JsonToken;
+        XPathLbl: Label '$.type', Locked = true;
+    begin
+        if not Payload.Get('response_format', ResponseFormatToken) then
+            exit;
+
+        if not Payload.Get('messages', MessagesToken) then
+            exit;
+
+        if not ResponseFormatToken.SelectToken(XPathLbl, TypeToken) then
+            exit;
+
+        if TypeToken.AsValue().AsText() <> 'json_object' then
+            exit;
+
+        MessagesToken.WriteTo(Messages);
+        if not LowerCase(Messages).Contains('json') then
+            Error(MessagesMustContainJsonWordWhenResponseFormatIsJsonErr);
     end;
 
     [NonDebuggable]
@@ -368,7 +396,7 @@ codeunit 7772 "Azure OpenAI Impl"
 
             AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
             if not ProcessFunctionCall(CompletionToken.AsArray(), ChatMessages, AOAIFunctionResponse) then
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, '', '', '', '');
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, '', '', '', '', '');
 
             AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
             if not AOAIFunctionResponse.IsSuccess() then
@@ -384,6 +412,7 @@ codeunit 7772 "Azure OpenAI Impl"
         Arguments: JsonObject;
         Token: JsonToken;
         FunctionName: Text;
+        FunctionId: Text;
         AOAIFunction: Interface "AOAI Function";
         FunctionResult: Variant;
     begin
@@ -397,6 +426,11 @@ codeunit 7772 "Azure OpenAI Impl"
             if Token.AsValue().AsText() <> 'function' then
                 exit(false);
         end else
+            exit(false);
+
+        if Function.Get('id', Token) then
+            FunctionId := Token.AsValue().AsText()
+        else
             exit(false);
 
         if Function.Get('function', Token) then
@@ -415,14 +449,14 @@ codeunit 7772 "Azure OpenAI Impl"
 
         if ChatMessages.GetFunctionTool(FunctionName, AOAIFunction) then
             if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then begin
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, true, AOAIFunction.GetName(), FunctionResult, '', '');
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, true, AOAIFunction.GetName(), FunctionId, FunctionResult, '', '');
                 exit(true);
             end else begin
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionId, FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
                 exit(true);
             end
         else begin
-            AOAIFunctionResponse.SetFunctionCallingResponse(true, false, FunctionName, FunctionResult, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
+            AOAIFunctionResponse.SetFunctionCallingResponse(true, false, FunctionName, FunctionId, FunctionResult, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
             exit(true);
         end;
     end;
