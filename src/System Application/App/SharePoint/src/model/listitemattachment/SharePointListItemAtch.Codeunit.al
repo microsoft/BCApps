@@ -11,7 +11,6 @@ codeunit 9102 "SharePoint List Item Atch."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    [NonDebuggable]
     procedure Parse(Payload: Text; var SharePointListItemAtch: Record "SharePoint List Item Atch" temporary)
     var
         JObject: JsonObject;
@@ -20,7 +19,6 @@ codeunit 9102 "SharePoint List Item Atch."
             Parse(JObject, SharePointListItemAtch);
     end;
 
-    [NonDebuggable]
     procedure Parse(Payload: JsonObject; var SharePointListItemAtch: Record "SharePoint List Item Atch" temporary)
     var
         JToken: JsonToken;
@@ -32,7 +30,6 @@ codeunit 9102 "SharePoint List Item Atch."
             end;
     end;
 
-    [NonDebuggable]
     procedure ParseSingleReturnValue(Payload: Text; var SharePointListItemAtch: Record "SharePoint List Item Atch" temporary)
     var
         JObject: JsonObject;
@@ -46,7 +43,6 @@ codeunit 9102 "SharePoint List Item Atch."
             end;
     end;
 
-    [NonDebuggable]
     procedure ParseSingle(Payload: Text; var SharePointListItemAtch: Record "SharePoint List Item Atch" temporary)
     var
         JObject: JsonObject;
@@ -55,7 +51,6 @@ codeunit 9102 "SharePoint List Item Atch."
             SharePointListItemAtch := ParseSingle(JObject);
     end;
 
-    [NonDebuggable]
     local procedure ParseSingle(Payload: JsonObject) SharePointListItemAttachment: Record "SharePoint List Item Atch" temporary
     var
         SharePointUriBuilder: Codeunit "SharePoint Uri Builder";

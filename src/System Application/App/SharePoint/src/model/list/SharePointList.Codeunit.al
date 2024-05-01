@@ -11,7 +11,6 @@ codeunit 9104 "SharePoint List"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    [NonDebuggable]
     procedure Parse(Payload: Text; var SharePointList: Record "SharePoint List" temporary)
     var
         JObject: JsonObject;
@@ -20,7 +19,6 @@ codeunit 9104 "SharePoint List"
             Parse(JObject, SharePointList);
     end;
 
-    [NonDebuggable]
     procedure Parse(Payload: JsonObject; var SharePointList: Record "SharePoint List" temporary)
     var
         JToken: JsonToken;
@@ -32,7 +30,6 @@ codeunit 9104 "SharePoint List"
             end;
     end;
 
-    [NonDebuggable]
     procedure ParseSingleReturnValue(Payload: Text; var SharePointList: Record "SharePoint List" temporary)
     var
         JObject: JsonObject;
@@ -46,7 +43,6 @@ codeunit 9104 "SharePoint List"
             end;
     end;
 
-    [NonDebuggable]
     local procedure ParseSingle(Payload: JsonObject) SharePointList: Record "SharePoint List" temporary
     var
         JToken: JsonToken;
