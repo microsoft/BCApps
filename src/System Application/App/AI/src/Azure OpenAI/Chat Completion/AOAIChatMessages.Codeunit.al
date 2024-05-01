@@ -70,6 +70,18 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Adds a tool result to the chat messages history.
+    /// </summary>
+    /// <param name="ToolCallId">The id of the tool call.</param>
+    /// <param name="FunctionName">The name of the called function.</param>
+    /// <param name="FunctionResult">The result of the tool call.</param>
+    [NonDebuggable]
+    procedure AddToolMessage(ToolCallId: Text; FunctionName: Text; FunctionResult: Text)
+    begin
+        AOAIChatMessagesImpl.AddToolMessage(ToolCallId, FunctionName, FunctionResult);
+    end;
+
+    /// <summary>
     /// Modifies a message in the chat messages history.
     /// </summary>
     /// <param name="Id">Id of the message.</param>
@@ -176,6 +188,15 @@ codeunit 7763 "AOAI Chat Messages"
     internal procedure AssembleHistory(var SystemMessageTokenCount: Integer; var MessagesTokenCount: Integer): JsonArray
     begin
         exit(AOAIChatMessagesImpl.PrepareHistory(SystemMessageTokenCount, MessagesTokenCount));
+    end;
+
+    /// <summary>
+    /// Gets the number of tokens used by the primary system messages and all other messages.
+    /// </summary>
+    [NonDebuggable]
+    procedure GetHistoryTokenCount(): Integer
+    begin
+        exit(AOAIChatMessagesImpl.GetHistoryTokenCount());
     end;
 
 #if not CLEAN25
