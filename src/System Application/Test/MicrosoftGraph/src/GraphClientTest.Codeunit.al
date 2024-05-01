@@ -24,9 +24,9 @@ codeunit 135140 "Graph Client Test"
     [Test]
     procedure AuthTriggeredTest()
     var
-        HttpResponseMessage: Codeunit "Http Response Message";
         GraphAuthSpy: Codeunit "Graph Auth. Spy";
         GraphClient: Codeunit "Graph Client";
+        HttpResponseMessage: Codeunit "Http Response Message";
         MockHttpClientHandler: Codeunit "Mock Http Client Handler";
         TempBlob: Codeunit "Temp Blob";
         ResponseInStream: InStream;
@@ -44,10 +44,10 @@ codeunit 135140 "Graph Client Test"
     [Test]
     procedure RequestUriTest()
     var
-        HttpRequestMessage: Codeunit "Http Request Message";
-        HttpResponseMessage: Codeunit "Http Response Message";
         GraphAuthSpy: Codeunit "Graph Auth. Spy";
         GraphClient: Codeunit "Graph Client";
+        HttpRequestMessage: Codeunit "Http Request Message";
+        HttpResponseMessage: Codeunit "Http Response Message";
         MockHttpClientHandler: Codeunit "Mock Http Client Handler";
         TempBlob: Codeunit "Temp Blob";
         ResponseInStream: InStream;
@@ -60,18 +60,46 @@ codeunit 135140 "Graph Client Test"
 
         // [THEN] Verify request uri is build correct
         MockHttpClientHandler.GetHttpRequestMessage(HttpRequestMessage);
-        LibraryAssert.AreEqual(HttpRequestMessage.GetRequestUri(), 'https://graph.microsoft.com/v1.0/groups', 'Incorrect Request URI.');
+        LibraryAssert.AreEqual('https://graph.microsoft.com/v1.0/groups', HttpRequestMessage.GetRequestUri(), 'Incorrect Request URI.');
+    end;
+
+    [Test]
+    procedure RequestUriWithODataQueryParameterTest()
+    var
+        GraphAuthSpy: Codeunit "Graph Auth. Spy";
+        GraphClient: Codeunit "Graph Client";
+        GraphOptionalParameters: Codeunit "Graph Optional Parameters";
+        HttpRequestMessage: Codeunit "Http Request Message";
+        HttpResponseMessage: Codeunit "Http Response Message";
+        MockHttpClientHandler: Codeunit "Mock Http Client Handler";
+        TempBlob: Codeunit "Temp Blob";
+        Uri: Codeunit Uri;
+        ResponseInStream: InStream;
+    begin
+        GraphClient.Initialize(Enum::"Graph API Version"::"v1.0", GraphAuthSpy, MockHttpClientHandler);
+        ResponseInStream := TempBlob.CreateInStream();
+
+        // [GIVEN] Optional Parameters with OData Query Parameter set
+        GraphOptionalParameters.SetODataQueryParameter(Enum::"Graph OData Query Parameter"::format, 'json');
+
+        // [WHEN] When Get Method is called  
+        GraphClient.Get('groups', GraphOptionalParameters, HttpResponseMessage);
+
+        // [THEN] Verify request uri is build correct
+        MockHttpClientHandler.GetHttpRequestMessage(HttpRequestMessage);
+        Uri.Init(HttpRequestMessage.GetRequestUri());
+        LibraryAssert.AreEqual('?$format=json', Uri.GetQuery(), 'Incorrect query string.');
     end;
 
     [Test]
     procedure ResponseBodyTest()
     var
+        GraphAuthSpy: Codeunit "Graph Auth. Spy";
+        GraphClient: Codeunit "Graph Client";
         HttpContent: Codeunit "Http Content";
         MockHttpContent: Codeunit "Http Content";
         HttpResponseMessage: Codeunit "Http Response Message";
         MockHttpResponseMessage: Codeunit "Http Response Message";
-        GraphAuthSpy: Codeunit "Graph Auth. Spy";
-        GraphClient: Codeunit "Graph Client";
         MockHttpClientHandler: Codeunit "Mock Http Client Handler";
         TempBlob: Codeunit "Temp Blob";
         ResponseInStream: InStream;
