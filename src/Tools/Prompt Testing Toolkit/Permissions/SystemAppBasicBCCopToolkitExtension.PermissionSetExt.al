@@ -7,7 +7,7 @@ namespace System.Tooling;
 
 using System.Security.AccessControl;
 
-permissionsetextension 149032 "D365 Basic BC Cop. Toolkit Extension" extends "System App - Basic"
+permissionsetextension 149032 "System App Basic BC Cop. Toolkit Extension" extends "System App - Basic"
 {
     IncludedPermissionSets = "BC Cop. Toolkit";
 }
