@@ -1,3 +1,5 @@
+namespace System.TestTools.TestRunner;
+
 interface "Test Json"
 {
     procedure Initialize();

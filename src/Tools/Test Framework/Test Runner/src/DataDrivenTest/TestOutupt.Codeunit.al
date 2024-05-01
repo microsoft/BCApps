@@ -10,6 +10,8 @@ codeunit 130461 "Test Output"
         TestInput: Codeunit "Test Input";
     begin
         Clear(CurrentTestJson);
+        if not CurrentTestMethodLine."Data Input".HasValue() then
+            exit;
         InitializeBeforeTestRun(CodeunitID, FunctionName, TestInput.GetTestDataDescription());
     end;
 

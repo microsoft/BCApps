@@ -1,3 +1,5 @@
+namespace System.TestTools.TestRunner;
+
 codeunit 130462 "Test Json" implements "Test Json"
 {
     procedure Initialize()
