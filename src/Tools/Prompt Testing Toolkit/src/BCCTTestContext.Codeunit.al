@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Tooling;
+using System.TestTools.TestRunner;
 
 /// <summary>
 /// Exposes functions that can be used by the BCCT tests.
@@ -149,6 +150,28 @@ codeunit 149043 "BCCT Test Context"
         if not dict.ContainsKey(ParameterName) then
             exit('');
         exit(dict.Get(ParameterName));
+    end;
+
+    procedure SetTestOutput(TestOutput: Interface "Test Json")
+    begin
+        SetTestOutput(TestOutput.ToText());
+    end;
+
+    procedure SetTestOutput(TestOutput: Text)
+    var
+        BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper";
+    begin
+        BCCTLineCU.SetTestOutput(BCCTRoleWrapperImpl.GetDefaultExecuteProcedureOperationLbl(), TestOutput);
+    end;
+
+    procedure SetTestOutput(Scenario: Text; TestOutput: Interface "Test Json")
+    begin
+        SetTestOutput(Scenario, TestOutput.ToText());
+    end;
+
+    procedure SetTestOutput(Scenario: Text; TestOutput: Text)
+    begin
+        BCCTLineCU.SetTestOutput(Scenario, TestOutput);
     end;
 
 }

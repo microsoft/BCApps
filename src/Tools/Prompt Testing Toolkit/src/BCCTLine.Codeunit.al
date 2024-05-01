@@ -14,6 +14,7 @@ codeunit 149035 "BCCT Line"
     var
         BCCTHeader: Record "BCCT Header";
         ScenarioStarted: Dictionary of [Text, DateTime];
+        ScenarioOutput: Dictionary of [Text, Text];
         ScenarioNotStartedErr: Label 'Scenario %1 in codeunit %2 was not started.', Comment = '%1 = method name, %2 = codeunit name';
 
     [EventSubscriber(ObjectType::Table, Database::"BCCT Line", 'OnBeforeInsertEvent', '', false, false)]
@@ -113,7 +114,7 @@ codeunit 149035 "BCCT Line"
             ErrorMessage := CopyStr(GetLastErrorText(), 1, MaxStrLen(ErrorMessage));
         if ScenarioStarted.Get(ScenarioOperation, StartTime) then
             if ScenarioStarted.Remove(ScenarioOperation) then;
-        //TODO: Add outputs to AddLogEntry
+        
         AddLogEntry(BCCTLine, ScenarioOperation, ProcedureName, ExecutionSuccess, ErrorMessage, StartTime, EndTime, BCCTDatasetLine);
     end;
 
@@ -125,6 +126,7 @@ codeunit 149035 "BCCT Line"
         ModifiedOperation: Text;
         ModifiedExecutionSuccess: Boolean;
         ModifiedMessage: Text;
+        TestOutput: Text;
         EntryWasModified: Boolean;
     begin
         // Skip the OnRun entry if not implemented
@@ -171,6 +173,11 @@ codeunit 149035 "BCCT Line"
         BCCTDatasetLine.CalcFields("Input Data");
         BCCTLogEntry."Input Data" := BCCTDatasetLine."Input Data";
         BCCTLogEntry."Input Text" := BCCTDatasetLine."Input Text";
+        TestOutput := GetTestOutput(Operation);
+        if TestOutput <> '' then begin
+            BCCTLogEntry."Output Text" := CopyStr(TestOutput, 1, MaxStrLen(BCCTLogEntry."Output Text"));
+            BCCTLogEntry.SetOutputBlob(TestOutput);
+        end;
         BCCTLogEntry."Procedure Name" := ProcedureName;
         if Operation = BCCTRoleWrapperImpl.GetDefaultExecuteProcedureOperationLbl() then
             BCCTLogEntry."Duration (ms)" -= BCCTRoleWrapperImpl.GetAndClearAccumulatedWaitTimeMs();
@@ -318,5 +325,25 @@ codeunit 149035 "BCCT Line"
             exit(false);
         Parm := format(FldRef.Value, 0, 9);
         exit(true);
+    end;
+
+    procedure SetTestOutput(Scenario: Text; OutputValue: Text)
+    begin
+        if ScenarioOutput.ContainsKey(Scenario) then
+            ScenarioOutput.Set(Scenario, OutputValue)
+        else
+            ScenarioOutput.Add(Scenario, OutputValue);
+    end;
+
+    procedure GetTestOutput(Scenario: Text): Text
+    var
+        OutputValue: Text;
+    begin
+        if ScenarioOutput.ContainsKey(Scenario) then begin
+            OutputValue := ScenarioOutput.Get(Scenario);
+            ScenarioOutput.Remove(Scenario);
+            exit(OutputValue);
+        end else
+            exit('');
     end;
 }
