@@ -50,6 +50,7 @@ jobs:
           build/scripts/PullRequestValidation/ValidateInternalWorkItemForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
 
       - name: Add Linked label to PR
+        if: github.event.pull_request.head.repo.full_name != github.repository
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
