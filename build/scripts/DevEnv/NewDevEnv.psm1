@@ -187,6 +187,12 @@ function Build-Apps {
         Write-Host "Error building apps: $_" -ForegroundColor Red
         throw $_
     }
+    finally {
+        if ($compilerFolder) {
+            Write-Host "Removing compiler folder $compilerFolder" -ForegroundColor Yellow
+            Remove-Item -Path $compilerFolder -Recurse -Force | Out-Null
+        }
+    }
 
     $appFiles = $appFiles | Select-Object -Unique
 
