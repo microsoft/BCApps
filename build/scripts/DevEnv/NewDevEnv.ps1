@@ -44,7 +44,8 @@ Import-Module "$PSScriptRoot\NewDevContainer.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\NewDevEnv.psm1" -DisableNameChecking
 Import-Module BcContainerHelper
 
-Push-Location (Get-BaseFolderForPath -Path $PSScriptRoot)
+$baseFolder = (Get-BaseFolderForPath -Path $PSScriptRoot)
+Push-Location $baseFolder
 
 $credential = Get-CredentialForContainer -AuthenticationType $Authentication
 
@@ -56,7 +57,7 @@ if (-not (Test-ContainerExists -ContainerName $ContainerName))
 
     # Create a new container with a single tenant
     $bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
-    New-BcContainer -artifactUrl $artifactUrl -accept_eula -accept_insiderEula -containerName $ContainerName -auth $Authentication -Credential $credential -includeAL
+    New-BcContainer -artifactUrl $artifactUrl -accept_eula -accept_insiderEula -containerName $ContainerName -auth $Authentication -Credential $credential -includeAL -additionalParameters @("--volume ""$($baseFolder):c:\sources""")
 } else {
     Write-Host "Container $ContainerName already exists. Skipping creation." -ForegroundColor Yellow
 }
