@@ -127,7 +127,7 @@ codeunit 149034 "BCCT Header"
         TelemetryCustomDimensions.Add('Version', Format(BCCTHeader.Version));
 
         BCCTHeader.Status := BCCTHeaderStatus;
-        BCCTHeader.CalcFields("No. of tests in the last run", "Total Duration (ms)");
+        BCCTHeader.CalcFields("No. of Tests Executed", "Total Duration (ms)"); //TODO: add this to custom dimensions or remove it
 
         case BCCTHeaderStatus of
             BCCTHeaderStatus::Running:

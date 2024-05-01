@@ -63,7 +63,7 @@ table 149034 "BCCT Log Entry"
             Caption = 'Status';
             OptionMembers = Success,Error;
         }
-        field(11; Operation; Text[100])
+        field(11; Operation; Text[100]) //TODO: Change the name to No. of Scenarios?
         {
             Caption = 'Operation';
         }
@@ -155,6 +155,7 @@ table 149034 "BCCT Log Entry"
         key(Key2; "BCCT Code", Version, "BCCT Line No.", Operation, "Duration (ms)", "Dataset Line No.")
         {
             // Instead of a SIFT index. This will make both inserts and calculations faster - and non-blocking
+            IncludedFields = "Procedure Name", Status;
         }
         key(Key4; "BCCT Code", Version, Operation, "Duration (ms)")
         {

@@ -113,7 +113,7 @@ codeunit 149036 "BCCT Start Tests"
                 repeat
                     BCCTLine.Status := BCCTLine.Status::" ";
                     BCCTLine."Total Duration (ms)" := 0;
-                    BCCTLine."No. of Iterations" := 0;
+                    BCCTLine."No. of Tests" := 0;
                     BCCTLine.SetRange("Version Filter", BCCTHeader.Version);
                     BCCTLine.Modify(true);
                 until BCCTLine.Next() = 0;
