@@ -15,6 +15,8 @@
     The path to the workspace containing the AL projects to build and publish. This parameter is mutually exclusive with the ProjectPaths and AlGoProject parameters.
     .PARAMETER AlGoProject
     The name of the AL-Go project to build and publish. This parameter is mutually exclusive with the ProjectPaths and WorkspacePath parameters.
+    .PARAMETER RebuildApps
+    If specified, the apps will be force rebuilt before publishing even if they exist.
 #>
 
 [CmdletBinding()]
