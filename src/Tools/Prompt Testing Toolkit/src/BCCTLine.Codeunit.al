@@ -114,7 +114,7 @@ codeunit 149035 "BCCT Line"
             ErrorMessage := CopyStr(GetLastErrorText(), 1, MaxStrLen(ErrorMessage));
         if ScenarioStarted.Get(ScenarioOperation, StartTime) then
             if ScenarioStarted.Remove(ScenarioOperation) then;
-        
+
         AddLogEntry(BCCTLine, ScenarioOperation, ProcedureName, ExecutionSuccess, ErrorMessage, StartTime, EndTime, BCCTDatasetLine);
     end;
 

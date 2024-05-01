@@ -95,7 +95,10 @@ table 149030 "BCCT Header"
             Caption = 'Tag';
             DataClassification = CustomerContent;
         }
+#pragma warning disable AA0232
+        // TODO: Remove pragma and add to SIFT
         field(12; "Total Duration (ms)"; Integer)
+#pragma warning restore AA0232
         {
             Caption = 'Total Duration (ms)';
             ToolTip = 'Specifies the Total Duration (ms) for executing all the tests in the current version.';

@@ -137,7 +137,10 @@ table 149032 "BCCT Line"
             FieldClass = FlowField;
             CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
         }
+#pragma warning disable AA0232
+        // TODO: Remove warning, add SIFT key
         field(16; "Total Duration (ms)"; Integer)
+#pragma warning restore AA0232
         {
             Caption = 'Total Duration (ms)';
             Editable = false;

@@ -97,10 +97,12 @@ page 149031 "BCCT Setup Card"
                 {
                     Editable = false;
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the number of tests executed in the current version.';
                 }
                 field("No. of Tests Passed"; Rec."No. of Tests Passed") // TODO: this should be filtered on not empty output
                 {
                     Editable = false;
+                    ToolTip = 'Specifies the number of tests that passed in the current Version.';
                     ApplicationArea = All;
                     Style = Favorable;
                     DrillDownPageId = "BCCT Log Entries";
@@ -130,11 +132,13 @@ page 149031 "BCCT Setup Card"
                 }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
+                    ToolTip = 'Specifies the number of operations executed in the current version.';
                     ApplicationArea = All;
                 }
 
                 field("Total Duration (ms)"; Rec."Total Duration (ms)")
                 {
+                    ToolTip = 'Specifies the total time (ms) taken by the tests in the last run.';
                     ApplicationArea = All;
                 }
                 field("Average Duration (ms)"; AvgTime)

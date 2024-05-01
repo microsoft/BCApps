@@ -89,6 +89,7 @@ page 149034 "BCCT Lines"
                 }
                 field("No. of Tests"; Rec."No. of Tests")
                 {
+                    Tooltip = 'Specifies the number of tests in this Line';
                     ApplicationArea = All;
                 }
                 field(Duration; Rec."Total Duration (ms)")
@@ -104,6 +105,7 @@ page 149034 "BCCT Lines"
                 }
                 field("No. of Tests - Base"; Rec."No. of Tests - Base")
                 {
+                    Tooltip = 'Specifies the number of tests in this Line for the base version.';
                     ApplicationArea = All;
                 }
                 field(DurationBase; Rec."Total Duration - Base (ms)")
