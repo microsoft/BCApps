@@ -606,6 +606,7 @@ codeunit 8905 "Email Message Impl."
         MessageNo: Integer;
     begin
         EmailMessage.SetLoadFields(Id);
+        EmailMessage.ReadIsolation(IsolationLevel::ReadCommitted);
         EmailMessage.SetFilter(Id, '>=%1', StartMessageId);
         if not EmailMessage.FindSet() then
             exit(EmptyGuid);
