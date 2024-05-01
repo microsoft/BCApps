@@ -621,20 +621,20 @@ codeunit 8905 "Email Message Impl."
         exit(EmailMessage.Id);
     end;
 
-    local procedure DeleteIfOrphaned(var EmailMessage: Record "Email Message"): Boolean
+    local procedure DeleteIfOrphaned(var EmailMessage: Record "Email Message")
     var
         EmailOutbox: Record "Email Outbox";
         SentEmail: Record "Sent Email";
     begin
         EmailOutbox.SetRange("Message Id", EmailMessage.Id);
         if not EmailOutbox.IsEmpty() then
-            exit(false);
+            exit;
 
         SentEmail.SetRange("Message Id", EmailMessage.Id);
         if not SentEmail.IsEmpty() then
-            exit(false);
+            exit;
 
-        exit(EmailMessage.Delete());
+        EmailMessage.Delete();
     end;
 
     procedure ValidateRecipients()
