@@ -86,6 +86,11 @@
                                    "id":  "f2d92a20-33a7-4174-a82f-666e8e2ad69e",
                                    "name":  "AI Test Library",
                                    "publisher":  "Microsoft"
+                               },
+                               {
+                                    "id":  "81848664-2a4b-4f1d-af93-7173c12be82f",
+                                    "name":  "AI Test",
+                                    "publisher":  "Microsoft"                                 
                                }
                            ],
     "platform":  "25.0.0.0",
