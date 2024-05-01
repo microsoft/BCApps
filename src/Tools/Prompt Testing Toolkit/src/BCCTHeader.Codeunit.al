@@ -94,7 +94,7 @@ codeunit 149034 "BCCT Header"
         exit(not BCCTDatasetLine.IsEmpty());
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"BCCT Header", 'OnBeforeDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BCCT Header", OnBeforeDeleteEvent, '', false, false)]
     local procedure DeleteLinesOnDeleteBCCTHeader(var Rec: Record "BCCT Header"; RunTrigger: Boolean)
     var
         BCCTLine: Record "BCCT Line";

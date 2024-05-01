@@ -17,7 +17,7 @@ codeunit 149035 "BCCT Line"
         ScenarioOutput: Dictionary of [Text, Text];
         ScenarioNotStartedErr: Label 'Scenario %1 in codeunit %2 was not started.', Comment = '%1 = method name, %2 = codeunit name';
 
-    [EventSubscriber(ObjectType::Table, Database::"BCCT Line", 'OnBeforeInsertEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BCCT Line", OnBeforeInsertEvent, '', false, false)]
     local procedure SetNoOfSessionsOnBeforeInsertBCCTLine(var Rec: Record "BCCT Line"; RunTrigger: Boolean)
     var
         BCCTLine: Record "BCCT Line";
@@ -33,7 +33,7 @@ codeunit 149035 "BCCT Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"BCCT Line", 'OnBeforeDeleteEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"BCCT Line", OnBeforeDeleteEvent, '', false, false)]
     local procedure DeleteLogEntriesOnDeleteBCCTLine(var Rec: Record "BCCT Line"; RunTrigger: Boolean)
     var
         BCCTLogEntry: Record "BCCT Log Entry";
@@ -46,7 +46,7 @@ codeunit 149035 "BCCT Line"
         BCCTLogEntry.DeleteAll(true);
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"BCCT Lines", 'OnInsertRecordEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"BCCT Lines", OnInsertRecordEvent, '', false, false)]
     local procedure OnInsertRecordEvent(var Rec: Record "BCCT Line"; BelowxRec: Boolean; var xRec: Record "BCCT Line"; var AllowInsert: Boolean)
     begin
         if Rec."BCCT Code" = '' then begin

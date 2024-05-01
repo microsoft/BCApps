@@ -211,6 +211,8 @@ codeunit 149042 "BCCT Role Wrapper"
     var
         BCCTContextCU: Codeunit "BCCT Test Context";
     begin
+        if ActiveBCCTHeader.Code = '' then // exit the code if not triggered by BCCT 
+            exit;
         if FunctionName = '' then
             exit;
         BCCTContextCU.StartScenario(GetDefaultExecuteProcedureOperationLbl());
@@ -221,6 +223,8 @@ codeunit 149042 "BCCT Role Wrapper"
     var
         BCCTContextCU: Codeunit "BCCT Test Context";
     begin
+        if ActiveBCCTHeader.Code = '' then // exit the code if not triggered by BCCT 
+            exit;
         Commit(); //TODO: Do we need these commits?
         if FunctionName = '' then
             exit;
