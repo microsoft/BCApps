@@ -170,7 +170,10 @@ page 149034 "BCCT Lines"
                     BCCTHeader.Version += 1;
                     BCCTHeader.Modify();
                     Commit();
+                    // If no range is set, all following foreground lines will be run
+                    Rec.SetRange("Codeunit ID", Rec."Codeunit ID");
                     Codeunit.Run(codeunit::"BCCT Role Wrapper", Rec);
+                    Rec.Reset();
                 end;
             }
             action(Indent)
