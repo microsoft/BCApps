@@ -217,6 +217,38 @@ table 149032 "BCCT Line"
             FieldClass = FlowField;
             CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
         }
+        field(22; "No. of Tests Passed"; Integer)
+        {
+            Caption = 'No. of Tests Passed';
+            ToolTip = 'Specifies the number of tests passed in the current version.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+        }
+        field(23; "No. of Operations"; Integer) //TODO: Change the name to No. of Scenarios? 
+        {
+            Caption = 'No. of Operations';
+            ToolTip = 'Specifies the number of operations executed including "Execute Procedure" operation for the current version.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter")));
+        }
+        field(30; "No. of Tests Passed - Base"; Integer)
+        {
+            Caption = 'No. of Tests Passed - Base';
+            ToolTip = 'Specifies the number of tests passed in the base version.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+        }
+        field(31; "No. of Operations - Base"; Integer) //TODO: Change the name to No. of Scenarios? 
+        {
+            Caption = 'No. of Operations - Base';
+            ToolTip = 'Specifies the number of operations executed including "Execute Procedure" operation for the base version.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter")));
+        }
     }
 
     keys

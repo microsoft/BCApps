@@ -209,4 +209,13 @@ table 149034 "BCCT Log Entry"
         if "Duration (ms)" = 0 then
             "Duration (ms)" := "End Time" - "Start Time";
     end;
+
+    internal procedure SetFilterForFailedTestProcedures()
+    var
+        BCCTRoleWrapper: Codeunit "BCCT Role Wrapper";
+    begin
+        Rec.SetRange(Operation, BCCTRoleWrapper.GetDefaultExecuteProcedureOperationLbl());
+        Rec.SetFilter("Procedure Name", '<> %1', '');
+        Rec.SetRange(Status, Rec.Status::Error);
+    end;
 }

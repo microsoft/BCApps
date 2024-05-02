@@ -105,7 +105,6 @@ page 149031 "BCCT Setup Card"
                     ToolTip = 'Specifies the number of tests that passed in the current Version.';
                     ApplicationArea = All;
                     Style = Favorable;
-                    DrillDownPageId = "BCCT Log Entries";
                 }
                 field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
                 {
@@ -118,14 +117,11 @@ page 149031 "BCCT Setup Card"
                     trigger OnDrillDown()
                     var
                         BCCTLogEntries: Record "BCCT Log Entry";
-                        BCCTRoleWrapper: Codeunit "BCCT Role Wrapper";
                         BCCTLogEntry: Page "BCCT Log Entries";
                     begin
+                        BCCTLogEntries.SetFilterForFailedTestProcedures();
                         BCCTLogEntries.SetRange("BCCT Code", Rec.Code);
                         BCCTLogEntries.SetRange(Version, Rec.Version);
-                        BCCTLogEntries.SetRange(Operation, BCCTRoleWrapper.GetDefaultExecuteProcedureOperationLbl());
-                        BCCTLogEntries.SetFilter("Procedure Name", '<> %1', '');
-                        BCCTLogEntries.SetRange(Status, BCCTLogEntries.Status::Error);
                         BCCTLogEntry.SetTableView(BCCTLogEntries);
                         BCCTLogEntry.Run();
                     end;

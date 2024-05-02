@@ -92,6 +92,34 @@ page 149034 "BCCT Lines"
                     Tooltip = 'Specifies the number of tests in this Line';
                     ApplicationArea = All;
                 }
+                field("No. of Tests Passed"; Rec."No. of Tests Passed")
+                {
+                    ApplicationArea = All;
+                    Style = Favorable;
+                    // Visible = false;
+                }
+                field("No. of Operations"; Rec."No. of Operations")
+                {
+                    ApplicationArea = All;
+                    // Visible = false;
+                }
+                field("No. of Tests Failed"; Rec."No. of Tests" - Rec."No. of Tests Passed")
+                {
+                    Editable = false;
+                    ApplicationArea = All;
+                    Caption = 'No. of Tests Failed';
+                    ToolTip = 'Specifies the number of tests that failed in the current Version.';
+                    Style = Unfavorable;
+
+                    trigger OnDrillDown()
+                    var
+                        BCCTHeaderRec: Record "BCCT Header";
+                    begin
+                        BCCTHeaderRec.SetLoadFields(Version); // TODO: See if  there is a better way to do this
+                        BCCTHeaderRec.Get(Rec."BCCT Code");
+                        FailedTestsBCCTLogEntryDrillDown(BCCTHeaderRec.Version);
+                    end;
+                }
                 field(Duration; Rec."Total Duration (ms)")
                 {
                     ToolTip = 'Specifies Total Duration of the BCCT for this role.';
@@ -107,6 +135,34 @@ page 149034 "BCCT Lines"
                 {
                     Tooltip = 'Specifies the number of tests in this Line for the base version.';
                     ApplicationArea = All;
+                }
+                field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base")
+                {
+                    ApplicationArea = All;
+                    Style = Favorable;
+                    // Visible = false;
+                }
+                field("No. of Operations - Base"; Rec."No. of Operations - Base")
+                {
+                    ApplicationArea = All;
+                    // Visible = false;
+                }
+                field("No. of Tests Failed - Base"; Rec."No. of Tests - Base" - Rec."No. of Tests Passed - Base")
+                {
+                    Editable = false;
+                    ApplicationArea = All;
+                    Caption = 'No. of Tests Failed - Base';
+                    ToolTip = 'Specifies the number of tests that failed in the base Version.';
+                    Style = Unfavorable;
+
+                    trigger OnDrillDown()
+                    var
+                        BCCTHeaderRec: Record "BCCT Header";
+                    begin
+                        BCCTHeaderRec.SetLoadFields("Base Version"); // TODO: See if  there is a better way to do this
+                        BCCTHeaderRec.Get(Rec."BCCT Code");
+                        FailedTestsBCCTLogEntryDrillDown(BCCTHeaderRec."Base Version");
+                    end;
                 }
                 field(DurationBase; Rec."Total Duration - Base (ms)")
                 {
@@ -248,5 +304,18 @@ page 149034 "BCCT Lines"
     begin
         CurrPage.Update(false);
         if Rec.Find() then;
+    end;
+
+    local procedure FailedTestsBCCTLogEntryDrillDown(VersionNo: Integer)
+    var
+        BCCTLogEntries: Record "BCCT Log Entry";
+        BCCTLogEntry: Page "BCCT Log Entries";
+    begin
+        BCCTLogEntries.SetFilterForFailedTestProcedures();
+        BCCTLogEntries.SetRange("BCCT Code", Rec."BCCT Code");
+        BCCTLogEntries.SetRange(Version, VersionNo);
+        BCCTLogEntries.SetRange("BCCT Line No.", Rec."Line No.");
+        BCCTLogEntry.SetTableView(BCCTLogEntries);
+        BCCTLogEntry.Run();
     end;
 }
