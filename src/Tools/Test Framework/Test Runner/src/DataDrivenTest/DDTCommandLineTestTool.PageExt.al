@@ -51,10 +51,10 @@ pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Too
                 trigger OnAction()
                 var
                     TestOutput: Codeunit "Test Output";
-                    TestJson: Interface "Test Json";
+                    TestOutputJson: Codeunit "Test Output Json";
                 begin
-                    TestJson := TestOutput.GetAllTestOutput();
-                    DataOutputTxt := TestJson.ToText();
+                    TestOutputJson := TestOutput.GetAllTestOutput();
+                    DataOutputTxt := TestOutputJson.ToText();
                 end;
             }
             action(ClearDataOuput)

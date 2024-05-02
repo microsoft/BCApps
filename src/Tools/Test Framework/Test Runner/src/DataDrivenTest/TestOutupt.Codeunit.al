@@ -1,6 +1,7 @@
 codeunit 130461 "Test Output"
 {
     SingleInstance = true;
+    Permissions = tabledata "Test Output" = RMID;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeTestMethodRun', '', false, false)]
     local procedure UpdateTestDataBeforeTestMethodRun(CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var CurrentTestMethodLine: Record "Test Method Line")
@@ -13,8 +14,8 @@ codeunit 130461 "Test Output"
 
     local procedure InitializeBeforeTestRun(CodeunitID: Integer; TestName: Text; Description: Text)
     var
-        TestJsonCodeunit: Codeunit "Test Json";
-        CurrentTestOutputJson: Interface "Test Json";
+        TestJsonCodeunit: Codeunit "Test Output Json";
+        CurrentTestOutputJson: Codeunit "Test Output Json";
     begin
         if not TestJsonInitialized then begin
             GlobalTestJson := TestJsonCodeunit;
@@ -29,12 +30,12 @@ codeunit 130461 "Test Output"
         CurrentTestJson := CurrentTestOutputJson.Add(TestOutputLbl, '');
     end;
 
-    procedure TestData(): Interface "Test Json"
+    procedure TestData(): Codeunit "Test Output Json"
     begin
         exit(CurrentTestJson);
     end;
 
-    procedure GetAllTestOutput(): Interface "Test Json"
+    procedure GetAllTestOutput(): Codeunit "Test Output Json"
     begin
         exit(GlobalTestJson);
     end;
@@ -62,8 +63,8 @@ codeunit 130461 "Test Output"
 
     var
         TestJsonInitialized: Boolean;
-        CurrentTestJson: Interface "Test Json";
-        GlobalTestJson: Interface "Test Json";
+        CurrentTestJson: Codeunit "Test Output Json";
+        GlobalTestJson: Codeunit "Test Output Json";
         TestNameLbl: Label 'testName';
         DescriptionLbl: Label 'description', Locked = true;
         TestOutputLbl: Label 'testOutput', Locked = true;

@@ -1,0 +1,25 @@
+{
+    "dataDrivenTests": [
+        {
+            "dataInputs": ["Harms Data 1", "Harms Data 2"],
+            "codeunitId": 134140,
+            "codeunitName": "ERM Bank Acc Ledger Reversal",
+            "testMethods": ["BankLedgerEntryWithCustomer","BankLedgerEntryWithVendor","BankLedgerEntryWithGLAccount"]
+        },
+        {
+            "dataInputs": ["Harms Data 1", "Harms Data 2"],
+            "codeunitId": 132907,
+            "codeunitName":  "AzureADUserMgtTest"
+        },
+        {
+            "dataInputs": ["Harms Data 1"],
+            "codeunitId": 132910,
+            "codeunitName": "System Information Test"
+        },
+        {
+            "dataInputs": ["Harms Data 2"],
+            "codeunitId": 134140,
+            "codeunitName": "ERM Bank Acc Ledger Reversal"
+        }
+    ]
+}

@@ -1,4 +1,4 @@
-codeunit 130462 "Test Json" implements "Test Json"
+codeunit 130462 "Test Output Json"
 {
     procedure Initialize()
     begin
@@ -15,7 +15,7 @@ codeunit 130462 "Test Json" implements "Test Json"
         TestJson := TestJsonObject;
     end;
 
-    procedure Add(NewValue: Text): Interface "Test Json"
+    procedure Add(NewValue: Text): Codeunit "Test Output Json"
     var
         NewJsonToken: JsonToken;
     begin
@@ -23,9 +23,9 @@ codeunit 130462 "Test Json" implements "Test Json"
         exit(Add(NewJsonToken));
     end;
 
-    procedure Add(NewJsonToken: JsonToken): Interface "Test Json"
+    procedure Add(NewJsonToken: JsonToken): Codeunit "Test Output Json"
     var
-        NewTestJson: Codeunit "Test Json";
+        NewTestJson: Codeunit "Test Output Json";
     begin
         if not TestJson.IsArray() then
             Error(TheElementIsNotAnArrayErr);
@@ -35,7 +35,7 @@ codeunit 130462 "Test Json" implements "Test Json"
         exit(NewTestJson);
     end;
 
-    procedure Add(Name: Text; NewValue: Text): Interface "Test Json"
+    procedure Add(Name: Text; NewValue: Text): Codeunit "Test Output Json"
     var
         NewJsonObject: JsonObject;
         NewJsonArray: JsonArray;
@@ -55,9 +55,9 @@ codeunit 130462 "Test Json" implements "Test Json"
         exit(Add(Name, NewJsonValue.AsToken()));
     end;
 
-    procedure Add(Name: Text; ValueVariant: JsonToken): Interface "Test Json"
+    procedure Add(Name: Text; ValueVariant: JsonToken): Codeunit "Test Output Json"
     var
-        NewTestJson: Codeunit "Test Json";
+        NewTestJson: Codeunit "Test Output Json";
     begin
         if TestJson.IsObject() then begin
             TestJson.AsObject().Add(Name, ValueVariant);
@@ -72,14 +72,14 @@ codeunit 130462 "Test Json" implements "Test Json"
         end;
     end;
 
-    procedure AddArray(Name: Text): Interface "Test Json"
+    procedure AddArray(Name: Text): Codeunit "Test Output Json"
     begin
         exit(Add(Name, '[]'));
     end;
 
-    procedure Element(ElementName: Text): Interface "Test Json"
+    procedure Element(ElementName: Text): Codeunit "Test Output Json"
     var
-        NewTestJson: Codeunit "Test Json";
+        NewTestJson: Codeunit "Test Output Json";
         ElementJsonToken: JsonToken;
     begin
         if not TestJson.IsObject() then
@@ -90,9 +90,9 @@ codeunit 130462 "Test Json" implements "Test Json"
         exit(NewTestJson);
     end;
 
-    procedure ElementAt(ElementIndex: Integer): Interface "Test Json"
+    procedure ElementAt(ElementIndex: Integer): Codeunit "Test Output Json"
     var
-        NewTestJson: Codeunit "Test Json";
+        NewTestJson: Codeunit "Test Output Json";
         JsonElementToken: JsonToken;
     begin
         if not TestJson.IsArray() then
@@ -110,25 +110,23 @@ codeunit 130462 "Test Json" implements "Test Json"
         exit(TextOutput);
     end;
 
-    procedure ReplaceElement(ElementName: Text; NewValue: Text): Interface "Test Json"
+    procedure ReplaceElement(ElementName: Text; NewValue: Text): Codeunit "Test Output Json"
     var
         ElementJsonToken: JsonToken;
-        NewTestJson: Codeunit "Test Json";
+        NewTestJson: Codeunit "Test Output Json";
     begin
-        ElementJsonToken.ReadFrom(NewValue);
-
         if not TestJson.AsObject().Get(ElementName, ElementJsonToken) then
             TestJson.AsObject().Add(ElementName, ElementJsonToken);
 
+        ElementJsonToken.ReadFrom(NewValue);
         NewTestJson.Initialize(ElementJsonToken);
-        exit(NewTestJson);
         exit(NewTestJson);
     end;
 
-    procedure ReplaceElement(ElementName: Text; NewJsonToken: JsonToken): Interface "Test Json";
+    procedure ReplaceElement(ElementName: Text; NewJsonToken: JsonToken): Codeunit "Test Output Json"
     var
         ElementJsonToken: JsonToken;
-        NewTestJson: Codeunit "Test Json";
+        NewTestJson: Codeunit "Test Output Json";
     begin
         TestJson.AsObject().Get(ElementName, ElementJsonToken);
         ElementJsonToken := NewJsonToken;
@@ -138,7 +136,7 @@ codeunit 130462 "Test Json" implements "Test Json"
     end;
 
     var
-        TheElementIsNotAnObjectErr: Label 'The element is not an object, use a different method.';
-        TheElementIsNotAnArrayErr: Label 'The element is not an array, use a different method.';
+        TheElementIsNotAnObjectErr: Label 'DataOutput - The element is not an object, use a different method.';
+        TheElementIsNotAnArrayErr: Label 'DataOutput - The element is not an array, use a different method.';
         TestJson: JsonToken;
 }

@@ -1,0 +1,30 @@
+{
+    "dataDrivenTestData": [
+      {
+        "name": "Harms Data 1",
+        "testInput": {
+          "harms": ["bunnies", "rabbits"],
+          "accounts": ["10011","12311"],
+          "statementLines": ["Test Harms Bunnies","Test Harms Rabbits"],
+          "firstLineAmount": 1012.11,
+          "secondLineAmount": 1233.12
+        }
+      },
+      {
+        "name": "Harms Data 2",
+        "testInput": {
+          "harms": ["kittens","cats"],
+          "accounts": ["20011","22311"],
+          "statementLines": ["Test Harms Kittens","Test Harms Cats"],
+          "firstLineAmount": 3212.11,
+          "secondLineAmount": 2333.12
+        }
+      },
+      {
+        "name": "Helper Data",
+        "testInput": {
+          "helperDataNames": ["Bob","Mike","Allan"]
+        }
+      }
+    ]
+}
