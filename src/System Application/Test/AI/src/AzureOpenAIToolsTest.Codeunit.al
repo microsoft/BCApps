@@ -389,6 +389,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
     var
         AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
         TestFunction1: Codeunit "Test Function 1";
         TestFunction2: Codeunit "Test Function 2";
@@ -404,13 +405,14 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Function is been selected by LLM
         ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
+        AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
         AOAIChatMessages.AddAssistantMessage(StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()));
 
         // Selected function was executed by system
         FunctionExecutionResult := 'test function execution result';
         AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
 
-        LibraryAssert.IsTrue(AOAIFunctionResponse.IsFunctionCall(), 'Function call should be true.');
+        LibraryAssert.IsTrue(AOAIOperationResponse.IsFunctionCall(), 'Function call should be true.');
         LibraryAssert.AreEqual(AOAIFunctionResponse.GetFunctionName(), TestFunction1.GetName(), 'Function name should be the same as the value set.');
         LibraryAssert.AreEqual(AOAIFunctionResponse.GetFunctionId(), ToolCallId, 'Function id should be the same as the value set.');
         LibraryAssert.AreEqual(AOAIFunctionResponse.GetResult(), FunctionExecutionResult, 'Function response should be the same as the value set.');
