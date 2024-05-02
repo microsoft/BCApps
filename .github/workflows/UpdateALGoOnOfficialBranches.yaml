@@ -1,13 +1,9 @@
-name: Update Package Versions
+name: Update AL-Go On Official Branches
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "55 03 * * 2" # Run at 03:55 UTC on Tuesday
-
-defaults:
-  run:
-    shell: powershell
+    - cron: "55 08 * * 3" # Run at 08:55 UTC on Wednesday
 
 permissions: read-all
 
@@ -24,11 +20,9 @@ jobs:
         with:
           include: "['main', 'releases/*']"
 
-  UpdatePackageVersions:
-    name: "[${{ matrix.branch }}] Update Package Versions"
-    permissions:
-      contents: write
-    runs-on: windows-latest
+  UpdateALGo:
+    name: "[${{ matrix.branch }}] Update AL-Go"
+    runs-on: ubuntu-latest
     environment: Official-Build
     needs: GetBranches
     strategy:
@@ -36,15 +30,10 @@ jobs:
         branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
       fail-fast: false
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ matrix.branch }}
-
-      - name: Update Package Versions
+      - name: Update AL-Go System Files
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
         uses: microsoft/BCApps/.github/actions/RunAutomation@main
         with:
-          automations: UpdateAppBaselines,UpdateAppTranslations
+          automations: UpdateALGo
           targetBranch: ${{ matrix.branch }}
