@@ -101,11 +101,35 @@ codeunit 149043 "BCCT Test Context"
     /// Returns the BCCTDatasetLine associated with the tests.
     /// </summary>
     /// <param name="BCCTDatasetLine">BCCTLine associated with the session.</param>
-    procedure GetBCCTDatasetLine(var BCCTDatasetLine: Record "BCCT Dataset Line")
+    local procedure GetBCCTDatasetLine(var BCCTDatasetLine: Record "BCCT Dataset Line") //TODO: Consider exposing the Get input/output procedures from inside the record instead of sending the entire record
     var
         BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper";
     begin
         BCCTRoleWrapperImpl.GetBCCTDatasetLine(BCCTDatasetLine);
+    end;
+
+    /// <summary>
+    /// Returns the Input line from the dataset for the current iteration.
+    /// </summary>
+    procedure GetInput(): Text
+    var
+        BCCTDatasetLine: Record "BCCT Dataset Line";
+        BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper";
+    begin
+        BCCTRoleWrapperImpl.GetBCCTDatasetLine(BCCTDatasetLine);
+        exit(BCCTDatasetLine.GetInputBlobAsText());
+    end;
+
+    /// <summary>
+    /// Returns the Expected Output line from the dataset for the current iteration.
+    /// </summary>
+    procedure GetExpectedOutput(): Text
+    var
+        BCCTDatasetLine: Record "BCCT Dataset Line";
+        BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper";
+    begin
+        BCCTRoleWrapperImpl.GetBCCTDatasetLine(BCCTDatasetLine);
+        exit(BCCTDatasetLine.GetExpectedOutputBlobAsText());
     end;
 
     /// <summary>
