@@ -306,13 +306,14 @@ codeunit 132686 "Azure OpenAI Tools Test"
     [Test]
     procedure TestJsonModeInParameters()
     var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         Payload: JsonObject;
         ResponseFormatJTok: JsonToken;
         TypeJTok: JsonToken;
     begin
         AOAIChatCompletionParams.SetJsonMode(true);
-        AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
+        AzureOpenAITestLibrary.GetAOAIChatCompletionParametersPayload(AOAIChatCompletionParams, Payload);
 
         Payload.Get('response_format', ResponseFormatJtok);
         ResponseFormatJTok.AsObject().Get('type', TypeJTok);
@@ -323,11 +324,12 @@ codeunit 132686 "Azure OpenAI Tools Test"
     [Test]
     procedure TestNoJsonModeInParameters()
     var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         Payload: JsonObject;
     begin
         AOAIChatCompletionParams.SetJsonMode(false);
-        AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
+        AzureOpenAITestLibrary.GetAOAIChatCompletionParametersPayload(AOAIChatCompletionParams, Payload);
 
         LibraryAssert.IsFalse(Payload.Contains('response_format'), 'Response format should not exist');
     end;
@@ -335,10 +337,11 @@ codeunit 132686 "Azure OpenAI Tools Test"
     [Test]
     procedure TestNoJsonModeInParametersByDefault()
     var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         Payload: JsonObject;
     begin
-        AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
+        AzureOpenAITestLibrary.GetAOAIChatCompletionParametersPayload(AOAIChatCompletionParams, Payload);
 
         LibraryAssert.IsFalse(Payload.Contains('response_format'), 'Response format should not exist');
     end;
