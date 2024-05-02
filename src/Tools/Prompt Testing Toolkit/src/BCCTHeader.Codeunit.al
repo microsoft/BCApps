@@ -45,8 +45,8 @@ codeunit 149034 "BCCT Header"
         NoInputsInSuiteErr: Label 'The dataset %1 specified for BCCT Suite %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the BCCT Suite code.';
         NoDatasetInLineErr: Label 'The dataset %1 specified for BCCT Line %2 does not exist.', Comment = '%1 is the Dataset name, %2 is BCCT Line No.';
         NoInputsInLineErr: Label 'The dataset %1 specified for BCCT line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the BCCT Line No.';
-        DatasetsToValidate: List of [Code[50]];
-        DatasetName: Code[50];
+        DatasetsToValidate: List of [Text[100]];
+        DatasetName: Text[100];
     begin
         // Validate header
         if BCCTHeader.Dataset = '' then
@@ -77,7 +77,7 @@ codeunit 149034 "BCCT Header"
         end;
     end;
 
-    local procedure DatasetExists(DatasetName: Code[50]): Boolean
+    local procedure DatasetExists(DatasetName: Text[100]): Boolean
     var
         BCCTDataset: Record "BCCT Dataset";
     begin
@@ -85,7 +85,7 @@ codeunit 149034 "BCCT Header"
         exit(not BCCTDataset.IsEmpty());
     end;
 
-    local procedure InputDataLinesExists(DatasetName: Code[50]): Boolean
+    local procedure InputDataLinesExists(DatasetName: Text[100]): Boolean
     var
         BCCTDatasetLine: Record "BCCT Dataset Line";
     begin

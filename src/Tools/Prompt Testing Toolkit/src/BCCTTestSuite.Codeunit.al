@@ -13,7 +13,7 @@ codeunit 149046 "BCCT Test Suite"
         TestSuiteLineNotFoundErr: Label 'Test suite line with %1 %2 and %3 %4 does not exist.', Comment = '%1 - field caption, %2 - field value, %3 - field caption, %4 - field value';
         DatasetNotFoundErr: Label 'Dataset %1 does not exist.', Comment = '%1 - field value';
 
-    procedure CreateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[50]; Dataset: Code[50];
+    procedure CreateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[50]; Dataset: Text[100];
                               DefaultMinUserDelayInMs: Integer; DefaultMaxUserDelayInMs: Integer;
                               Tag: Text[20])
     var
@@ -53,7 +53,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader.Insert(true);
     end;
 
-    procedure CreateUpdateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[50]; Dataset: Code[50];
+    procedure CreateUpdateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[50]; Dataset: Text[100];
                               DefaultMinUserDelayInMs: Integer; DefaultMaxUserDelayInMs: Integer;
                               Tag: Text[20])
     var
@@ -168,7 +168,7 @@ codeunit 149046 "BCCT Test Suite"
         exit(BCCTHeader."Default Max. User Delay (ms)");
     end;
 
-    procedure SetTestSuiteDataset(SuiteCode: Code[10]; Dataset: Code[50])
+    procedure SetTestSuiteDataset(SuiteCode: Code[10]; Dataset: Text[100])
     var
         BCCTHeader: Record "BCCT Header";
         BCCTDataset: Record "BCCT Dataset";
@@ -183,7 +183,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader.Modify(true);
     end;
 
-    procedure GetTestSuiteDataset(SuiteCode: Code[10]): Code[50]
+    procedure GetTestSuiteDataset(SuiteCode: Code[10]): Text[100]
     var
         BCCTHeader: Record "BCCT Header";
     begin

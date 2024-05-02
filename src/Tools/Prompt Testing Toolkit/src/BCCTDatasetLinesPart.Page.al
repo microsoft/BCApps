@@ -5,13 +5,15 @@
 
 namespace System.Tooling;
 
-page 149032 "BCCT Dataset Line"
+page 149036 "BCCT Dataset Lines Part"
 {
-    PageType = List;
+    PageType = ListPart;
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "BCCT Dataset Line";
-    InsertAllowed = false;
+    Caption = 'Dataset Lines';
+    PopulateAllFields = true;
+    DelayedInsert = true;
 
     layout
     {
@@ -23,43 +25,49 @@ page 149032 "BCCT Dataset Line"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the ID of the line.';
+                    Visible = false;
                 }
-                field(Input; Rec."Input Text")
+                field(InputText; InputText)
                 {
                     ApplicationArea = All;
+                    Caption = 'Input Text';
                     ToolTip = 'Specifies the test input.';
 
                     trigger OnValidate()
                     begin
-                        Rec.SetInputBlob(Rec."Input Text");
+                        Rec.SetInputTextAsBlob(InputText);
                     end;
                 }
-                field(Output; Rec."Expected Output")
+                field(ExpectedOutputText; ExpectedOutputText)
                 {
                     ApplicationArea = All;
-                    Caption = 'Expected Response';
+                    Caption = 'Expected Output Response';
                     ToolTip = 'Specifies the response for measuring accuracy.';
 
                     trigger OnValidate()
                     begin
-                        Rec.SetExpOutputBlob(Rec."Expected Output");
+                        Rec.SetExpectedOutputTextAsBlob(ExpectedOutputText);
                     end;
                 }
             }
         }
     }
 
-
-    trigger OnOpenPage()
+    trigger OnAfterGetRecord()
     begin
-        Rec.SetRange("Dataset Name", DatasetName);
+        InputText := Rec.GetInputBlobAsText();
+        ExpectedOutputText := Rec.GetExpectedOutputBlobAsText();
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        if Rec.Id = 0 then begin
+            InputText := '';
+            ExpectedOutputText := '';
+        end;
     end;
 
     var
-        DatasetName: Code[50];
-
-    internal procedure SetDatasetName(Name: Code[50])
-    begin
-        DatasetName := Name;
-    end;
+        InputText: Text;
+        ExpectedOutputText: Text;
 }

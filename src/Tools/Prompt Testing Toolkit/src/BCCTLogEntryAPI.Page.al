@@ -103,11 +103,7 @@ page 149038 "BCCT Log Entry API"
                 {
                     Caption = 'Dataset Line No.';
                 }
-                field("inputText"; Rec."Input Text")
-                {
-                    Caption = 'Input Text';
-                }
-                field("inputData"; Rec."Input Data")
+                field("inputData"; Rec."Input Data") //TODO: might need to return Text
                 {
                     Caption = 'Input Data';
                 }

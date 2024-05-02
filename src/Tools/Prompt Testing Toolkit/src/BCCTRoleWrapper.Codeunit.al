@@ -116,7 +116,8 @@ codeunit 149042 "BCCT Role Wrapper"
         TestMethodLine."Line Type" := TestMethodLine."Line Type"::Codeunit;
         TestMethodLine."Skip Logging Results" := true;
         TestMethodLine."Test Codeunit" := BCCTLine."Codeunit ID";
-        if BCCTDatasetLine."Input Text" <> '' then; //TODO: remove this if we figure out that we need test method line
+        // if BCCTDatasetLine."Input Text" <> '' then; //TODO: remove this if we figure out that we need test method line.
+        // TODO: remove BCCTDatasetLine if not needed
         //TestMethodLine."Data Input" := BCCTDatasetLine."Input Data";
         TestRunnerIsolDisabled.Run(TestMethodLine);
     end;

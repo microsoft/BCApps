@@ -118,7 +118,7 @@ table 149034 "BCCT Log Entry"
         {
             Caption = 'Log was Modified';
         }
-        field(24; "Dataset"; Code[50])
+        field(24; "Dataset"; Text[100])
         {
             Caption = 'Dataset';
             TableRelation = "BCCT Dataset"."Dataset Name";
@@ -126,15 +126,7 @@ table 149034 "BCCT Log Entry"
         field(25; "Dataset Line No."; Integer)
         {
             Caption = 'Dataset Line No.';
-            TableRelation = "BCCT Dataset Line".Id;
-        }
-        field(26; "Input Text"; Text[2048])
-        {
-            Caption = 'Input Text';
-        }
-        field(27; "Output Text"; Text[2048])
-        {
-            Caption = 'Output Text';
+            TableRelation = "BCCT Dataset Line".Id where("Dataset Name" = field("Dataset"));
         }
         field(28; "Input Data"; Blob)
         {
@@ -172,6 +164,7 @@ table 149034 "BCCT Log Entry"
     var
         OutStream: OutStream;
     begin
+        Clear("Input Data");
         "Input Data".CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.Write(P);
     end;
@@ -191,6 +184,7 @@ table 149034 "BCCT Log Entry"
     var
         OutStream: OutStream;
     begin
+        Clear("Output Data");
         "Output Data".CreateOutStream(OutStream, TextEncoding::UTF8);
         OutStream.Write(P);
     end;

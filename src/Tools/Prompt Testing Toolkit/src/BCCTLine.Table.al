@@ -80,7 +80,7 @@ table 149032 "BCCT Line"
             Caption = 'Description';
             DataClassification = CustomerContent;
         }
-        field(7; Dataset; Code[50])
+        field(7; Dataset; Text[100])
         {
             Caption = 'Override the suite dataset';
             DataClassification = CustomerContent;

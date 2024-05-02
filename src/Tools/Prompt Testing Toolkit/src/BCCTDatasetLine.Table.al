@@ -8,6 +8,9 @@ namespace System.Tooling;
 table 149033 "BCCT Dataset Line"
 {
     DataCaptionFields = "Dataset Name";
+    LookupPageId = "BCCT Dataset Lines Part";
+    DrillDownPageId = "BCCT Dataset Lines Part";
+
     fields
     {
         field(1; Id; Integer)
@@ -15,15 +18,11 @@ table 149033 "BCCT Dataset Line"
             AutoIncrement = true;
             DataClassification = SystemMetadata;
         }
-        field(2; "Dataset Name"; Text[50])
+        field(2; "Dataset Name"; Text[100])
         {
             DataClassification = CustomerContent;
         }
-        field(3; "Input Text"; Text[2048])
-        {
-            DataClassification = CustomerContent;
-        }
-        field(4; "Input Data"; Blob)
+        field(4; "Input Blob"; Blob)
         {
             DataClassification = CustomerContent;
         }
@@ -31,61 +30,53 @@ table 149033 "BCCT Dataset Line"
         {
             DataClassification = CustomerContent;
         }
-        field(6; "Expected Output"; Text[2048])
-        {
-            DataClassification = CustomerContent;
-        }
     }
 
     keys
     {
-        key(PK; Id)
+        key(PK; Id, "Dataset Name")
         {
             Clustered = true;
         }
-        key(DatasetName; "Dataset Name")
-        {
-        }
     }
 
-    procedure SetInputBlob(P: Text)
+    procedure SetInputTextAsBlob(InputText: Text)
     var
         OutStream: OutStream;
     begin
-        "Input Data".CreateOutStream(OutStream, TextEncoding::UTF8);
-        OutStream.Write(P);
+        Clear("Input Blob");
+        "Input Blob".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.Write(InputText);
     end;
 
-    procedure GetInputBlob(): Text
+    procedure GetInputBlobAsText(): Text
     var
         InStream: InStream;
-        P: Text;
+        InputText: Text;
     begin
-        CalcFields("Input Data");
-        "Input Data".CreateInStream(InStream, TextEncoding::UTF8);
-        InStream.Read(P);
-        exit(P);
+        CalcFields("Input Blob");
+        "Input Blob".CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.ReadText(InputText);
+        exit(InputText);
     end;
 
-    procedure SetExpOutputBlob(P: Text)
+    procedure SetExpectedOutputTextAsBlob(OutputText: Text)
     var
         OutStream: OutStream;
     begin
+        Clear("Expected Output Blob");
         "Expected Output Blob".CreateOutStream(OutStream, TextEncoding::UTF8);
-        OutStream.Write(P);
+        OutStream.Write(OutputText);
     end;
 
-    procedure GetExpResultBlob(): Text
+    procedure GetExpectedOutputBlobAsText(): Text
     var
         InStream: InStream;
-        P: Text;
+        OutputText: Text;
     begin
         CalcFields("Expected Output Blob");
         "Expected Output Blob".CreateInStream(InStream, TextEncoding::UTF8);
-        InStream.Read(P);
-        exit(P);
+        InStream.ReadText(OutputText);
+        exit(OutputText);
     end;
-
-
-
 }

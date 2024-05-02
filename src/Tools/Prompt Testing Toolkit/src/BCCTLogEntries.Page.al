@@ -103,7 +103,7 @@ page 149033 "BCCT Log Entries"
                     Visible = false;
                     ApplicationArea = All;
                 }
-                field("Input Text"; Rec."Input Text")
+                field("Input Text"; InputText)
                 {
                     Caption = 'Input';
                     ToolTip = 'Specifies the test input of the BCCT.';
@@ -114,7 +114,7 @@ page 149033 "BCCT Log Entries"
                         Message(Rec.GetInputBlob());
                     end;
                 }
-                field("Output Text"; Rec."Output Text")
+                field("Output Text"; OutputText)
                 {
                     Caption = 'Test Output';
                     ToolTip = 'Specifies the test output of the BCCT.';
@@ -277,8 +277,16 @@ page 149033 "BCCT Log Entries"
         }
     }
 
+    trigger OnAfterGetRecord()
+    begin
+        InputText := Rec.GetInputBlob();
+        OutputText := Rec.GetOutputBlob();
+    end;
+
     var
         DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
         IsFilteredToThisLine: Boolean;
         IsFilteredToErrors: Boolean;
+        InputText: Text;
+        OutputText: Text;
 }

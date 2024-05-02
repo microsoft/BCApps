@@ -6,22 +6,32 @@
 namespace System.Tooling;
 table 149031 "BCCT Dataset"
 {
-    DataClassification = ToBeClassified;
+    DataClassification = CustomerContent;
+    LookupPageId = "BCCT Datasets";
+    DrillDownPageId = "BCCT Dataset";
+
 
     fields
     {
-        field(1; "Dataset Name"; Code[50])
+        field(1; "Dataset Name"; Text[100])
         {
-            DataClassification = CustomerContent;
-            trigger OnLookup()
+            NotBlank = true;
+            Caption = 'Dataset Name';
+            ToolTip = 'Specifies the name of the dataset.';
+
+            trigger OnValidate()
             var
-                BCTTDatasetLineRec: Record "BCCT Dataset Line";
-                BCTTDatasetLinePage: Page "BCCT Dataset Line";
+                DatasetLine: Record "BCCT Dataset Line";
+                DatasetNameEmptyErr: Label 'Dataset Name cannot be empty.';
             begin
-                BCTTDatasetLineRec.SetFilter("Dataset Name", Rec."Dataset Name");
-                BCTTDatasetLinePage.SetDatasetName(Rec."Dataset Name");
-                BCTTDatasetLinePage.SetRecord(BCTTDatasetLineRec);
-                BCTTDatasetLinePage.Run();
+                if Rec."Dataset Name" = '' then
+                    Error(DatasetNameEmptyErr);
+                DatasetLine.SetRange("Dataset Name", xRec."Dataset Name"); //TODO: this will not work when renaming a dataset from API because of xRec usage
+                DatasetLine.SetLoadFields(Id);
+                if DatasetLine.FindSet(true) then
+                    repeat
+                        DatasetLine.Rename(DatasetLine.Id, Rec."Dataset Name");
+                    until DatasetLine.Next() = 0;
             end;
         }
         field(2; "Line Count"; Integer)
@@ -55,7 +65,7 @@ table 149031 "BCCT Dataset"
         DatasetBeingUsedInLineErr: Label 'The dataset is being used in BCCT Line(s). Please remove the dataset from the BCCT Line(s) before deleting it.';
     begin
         // Throw an error if the dataset is being used somewhere
-        BCCTHeader.SetRange("Dataset", Rec."Dataset Name");
+        BCCTHeader.SetRange(Dataset, Rec."Dataset Name");
         if not BCCTHeader.IsEmpty() then
             Error(DatasetBeingUsedInHeaderErr);
 

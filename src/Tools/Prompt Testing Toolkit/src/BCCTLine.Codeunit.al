@@ -170,14 +170,11 @@ codeunit 149035 "BCCT Line"
         BCCTLogEntry."Duration (ms)" := BCCTLogEntry."End Time" - BCCTLogEntry."Start Time";
         BCCTLogEntry.Dataset := BCCTDatasetLine."Dataset Name";
         BCCTLogEntry."Dataset Line No." := BCCTDatasetLine.Id;
-        BCCTDatasetLine.CalcFields("Input Data");
-        BCCTLogEntry."Input Data" := BCCTDatasetLine."Input Data";
-        BCCTLogEntry."Input Text" := BCCTDatasetLine."Input Text";
+        BCCTDatasetLine.CalcFields("Input Blob");
+        BCCTLogEntry."Input Data" := BCCTDatasetLine."Input Blob";
         TestOutput := GetTestOutput(Operation);
-        if TestOutput <> '' then begin
-            BCCTLogEntry."Output Text" := CopyStr(TestOutput, 1, MaxStrLen(BCCTLogEntry."Output Text"));
+        if TestOutput <> '' then
             BCCTLogEntry.SetOutputBlob(TestOutput);
-        end;
         BCCTLogEntry."Procedure Name" := ProcedureName;
         if Operation = BCCTRoleWrapperImpl.GetDefaultExecuteProcedureOperationLbl() then
             BCCTLogEntry."Duration (ms)" -= BCCTRoleWrapperImpl.GetAndClearAccumulatedWaitTimeMs();

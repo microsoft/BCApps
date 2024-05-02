@@ -41,7 +41,7 @@ table 149030 "BCCT Header"
             MinValue = 1;
             MaxValue = 10000;
         }
-        field(7; "Dataset"; Code[50])
+        field(7; Dataset; Text[100])
         {
             Caption = 'Dataset';
             TableRelation = "BCCT Dataset"."Dataset Name";

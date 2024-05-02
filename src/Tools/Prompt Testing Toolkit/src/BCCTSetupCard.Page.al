@@ -271,7 +271,7 @@ page 149031 "BCCT Setup Card"
                 PromotedOnly = true;
                 PromotedCategory = Process;
                 ToolTip = 'Open datasets.';
-                RunObject = page "BCCT Dataset";
+                RunObject = page "BCCT Datasets";
             }
         }
     }

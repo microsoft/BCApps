@@ -43,11 +43,7 @@ page 149047 "BCCT Dataset Line API"
                     NotBlank = true;
                     TableRelation = "BCCT Dataset"."Dataset Name";
                 }
-                field(inputText; Rec."Input Text")
-                {
-                    Caption = 'Input Text';
-                }
-                field(inputData; Rec."Input Data")
+                field(inputData; Rec."Input Blob") //TODO: consider converting this to text
                 {
                     Caption = 'Input Data';
                 }
