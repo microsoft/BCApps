@@ -47,6 +47,9 @@ page 149041 "BCCT Datasets"
             {
                 ShowAs = SplitButton;
 
+                actionref(UploadMultipleRef; UploadDatasets)
+                {
+                }
                 actionref(SplitUpload1; UploadDataset2)
                 {
                 }
@@ -58,6 +61,36 @@ page 149041 "BCCT Datasets"
         }
         area(Processing)
         {
+            fileuploadaction(UploadDatasets)
+            {
+                Caption = 'Upload Datasets';
+                AllowMultipleFiles = true;
+                AllowedFileExtensions = '.jsonl';
+                Image = Attach;
+
+                trigger OnAction(Files: List of [FileUpload])
+                var
+                    DatasetLine: Record "BCCT Dataset Line";
+                    CurrentFile: FileUpload;
+                    DataInStream: InStream;
+                    JsonLine: Text; //TODO: consider adding validation
+                begin
+                    foreach CurrentFile in files do begin
+                        CurrentFile.CreateInStream(DataInStream, TextEncoding::UTF8);
+                        Rec.Init();
+                        Rec."Dataset Name" := CopyStr(CurrentFile.FileName, 1, MaxStrLen(Rec."Dataset Name"));
+                        Rec.Insert();
+
+                        while DataInStream.ReadText(JsonLine) > 0 do begin
+                            DatasetLine.Init();
+                            DatasetLine.Id := 0;
+                            DatasetLine."Dataset Name" := Rec."Dataset Name";
+                            DatasetLine.SetInputTextAsBlob(JsonLine.Trim());
+                            DatasetLine.Insert();
+                        end
+                    end;
+                end;
+            }
             action(UploadDataset2)
             {
                 Image = Attach;
