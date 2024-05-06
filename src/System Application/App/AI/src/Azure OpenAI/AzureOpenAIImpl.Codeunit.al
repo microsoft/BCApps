@@ -41,9 +41,11 @@ codeunit 7772 "Azure OpenAI Impl"
         CopilotDisabledForTenantErr: Label 'Copilot is not enabled for the tenant. Please contact your system administrator.';
         CapabilityNotRegisteredErr: Label 'Copilot capability ''%1'' has not been registered by the module.', Comment = '%1 is the name of the Copilot Capability';
         CapabilityNotEnabledErr: Label 'Copilot capability ''%1'' has not been enabled. Please contact your system administrator.', Comment = '%1 is the name of the Copilot Capability';
+        MessagesMustContainJsonWordWhenResponseFormatIsJsonErr: Label 'The messages must contain the word ''json'' in some form, to use ''response format'' of type ''json_object''.';
         EmptyMetapromptErr: Label 'The metaprompt has not been set, please provide a metaprompt.';
         MetapromptLoadingErr: Label 'Metaprompt not found.';
         EnabledKeyTok: Label 'AOAI-Enabled', Locked = true;
+        FunctionCallingFunctionNotFoundErr: Label 'Function call not found, %1.', Comment = '%1 is the name of the function';
         AllowlistedTenantsAkvKeyTok: Label 'AOAI-Allow-1P-Auth', Locked = true;
         TelemetryGenerateTextCompletionLbl: Label 'Generate Text Completion', Locked = true;
         TelemetryGenerateEmbeddingLbl: Label 'Generate Embedding', Locked = true;
@@ -58,6 +60,7 @@ codeunit 7772 "Azure OpenAI Impl"
         TelemetryProhibitedCharactersTxt: Label 'Prohibited characters were removed from the prompt.', Locked = true;
         TelemetryTokenCountLbl: Label 'Metaprompt token count: %1, Prompt token count: %2, Total token count: %3', Comment = '%1 is the number of tokens in the metaprompt, %2 is the number of tokens in the prompt, %3 is the total number of tokens', Locked = true;
         TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
+        TelemetryFunctionCallingFailedErr: Label 'Function calling failed for function: %1', Comment = '%1 is the name of the function', Locked = true;
         TelemetryEmptyTenantIdErr: Label 'Empty or malformed tenant ID.', Locked = true;
         TelemetryTenantAllowlistedMsg: Label 'The current tenant is allowlisted for first party auth.', Locked = true;
 
@@ -334,6 +337,8 @@ codeunit 7772 "Azure OpenAI Impl"
             FeatureTelemetry.LogUsage('0000MFG', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryChatCompletionToolUsedLbl, CustomDimensions);
         end;
 
+        CheckJsonModeCompatibility(Payload);
+
         Payload.WriteTo(PayloadText);
 
         SendTokenCountTelemetry(MetapromptTokenCount, PromptTokenCount, CustomDimensions);
@@ -342,15 +347,41 @@ codeunit 7772 "Azure OpenAI Impl"
             exit;
         end;
 
-        ProcessChatCompletionResponse(AOAIOperationResponse.GetResult(), ChatMessages, CallerModuleInfo);
+        ProcessChatCompletionResponse(ChatMessages, AOAIOperationResponse, CallerModuleInfo);
 
         FeatureTelemetry.LogUsage('0000KVN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, CustomDimensions);
     end;
 
+    local procedure CheckJsonModeCompatibility(Payload: JsonObject)
+    var
+        ResponseFormatToken: JsonToken;
+        MessagesToken: JsonToken;
+        Messages: Text;
+        TypeToken: JsonToken;
+        XPathLbl: Label '$.type', Locked = true;
+    begin
+        if not Payload.Get('response_format', ResponseFormatToken) then
+            exit;
+
+        if not Payload.Get('messages', MessagesToken) then
+            exit;
+
+        if not ResponseFormatToken.SelectToken(XPathLbl, TypeToken) then
+            exit;
+
+        if TypeToken.AsValue().AsText() <> 'json_object' then
+            exit;
+
+        MessagesToken.WriteTo(Messages);
+        if not LowerCase(Messages).Contains('json') then
+            Error(MessagesMustContainJsonWordWhenResponseFormatIsJsonErr);
+    end;
+
     [NonDebuggable]
     [TryFunction]
-    local procedure ProcessChatCompletionResponse(ResponseText: Text; var ChatMessages: Codeunit "AOAI Chat Messages"; CallerModuleInfo: ModuleInfo)
+    local procedure ProcessChatCompletionResponse(var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo)
     var
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
         CustomDimensions: Dictionary of [Text, Text];
         ToolsCall: Text;
         Response: JsonObject;
@@ -358,7 +389,7 @@ codeunit 7772 "Azure OpenAI Impl"
         XPathLbl: Label '$.content', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
         XPathToolCallsLbl: Label '$.tool_calls', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
     begin
-        Response.ReadFrom(ResponseText);
+        Response.ReadFrom(AOAIOperationResponse.GetResult());
         if Response.SelectToken(XPathLbl, CompletionToken) then
             if not CompletionToken.AsValue().IsNull() then
                 ChatMessages.AddAssistantMessage(CompletionToken.AsValue().AsText());
@@ -366,9 +397,77 @@ codeunit 7772 "Azure OpenAI Impl"
             CompletionToken.AsArray().WriteTo(ToolsCall);
             ChatMessages.AddAssistantMessage(ToolsCall);
 
+            AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
+            if not ProcessFunctionCall(CompletionToken.AsArray(), ChatMessages, AOAIFunctionResponse) then
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, '', '', '', '', '');
+
             AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+            if not AOAIFunctionResponse.IsSuccess() then
+                FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), CustomDimensions);
+
             FeatureTelemetry.LogUsage('0000MFH', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryChatCompletionToolCallLbl, CustomDimensions);
         end;
+    end;
+
+    local procedure ProcessFunctionCall(Functions: JsonArray; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIFunctionResponse: Codeunit "AOAI Function Response"): Boolean
+    var
+        Function: JsonObject;
+        Arguments: JsonObject;
+        Token: JsonToken;
+        FunctionName: Text;
+        FunctionId: Text;
+        AOAIFunction: Interface "AOAI Function";
+        FunctionResult: Variant;
+    begin
+        if Functions.Count = 0 then
+            exit(false);
+
+        Functions.Get(0, Token);
+        Function := Token.AsObject();
+
+        if Function.Get('type', Token) then begin
+            if Token.AsValue().AsText() <> 'function' then
+                exit(false);
+        end else
+            exit(false);
+
+        if Function.Get('id', Token) then
+            FunctionId := Token.AsValue().AsText()
+        else
+            exit(false);
+
+        if Function.Get('function', Token) then
+            Function := Token.AsObject()
+        else
+            exit(false);
+
+        if Function.Get('name', Token) then
+            FunctionName := Token.AsValue().AsText()
+        else
+            exit(false);
+
+        if Function.Get('arguments', Token) then
+            // Arguments are stored as a string in the JSON
+            Arguments.ReadFrom(Token.AsValue().AsText());
+
+        if ChatMessages.GetFunctionTool(FunctionName, AOAIFunction) then
+            if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then begin
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, true, AOAIFunction.GetName(), FunctionId, FunctionResult, '', '');
+                exit(true);
+            end else begin
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionId, FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
+                exit(true);
+            end
+        else begin
+            AOAIFunctionResponse.SetFunctionCallingResponse(true, false, FunctionName, FunctionId, FunctionResult, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
+            exit(true);
+        end;
+    end;
+
+    [TryFunction]
+    local procedure TryExecuteFunction(AOAIFunction: Interface "AOAI Function"; Arguments: JsonObject; var Result: Variant)
+    begin
+        Result := AOAIFunction.Execute(Arguments);
     end;
 
     [TryFunction]
@@ -378,6 +477,7 @@ codeunit 7772 "Azure OpenAI Impl"
         ALCopilotAuthorization: DotNet ALCopilotAuthorization;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         ALCopilotOperationResponse: DotNet ALCopilotOperationResponse;
+        Error: Text;
     begin
         ClearLastError();
         ALCopilotAuthorization := ALCopilotAuthorization.Create(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
@@ -393,7 +493,10 @@ codeunit 7772 "Azure OpenAI Impl"
                 Error(InvalidModelTypeErr)
         end;
 
-        AOAIOperationResponse.SetOperationResponse(ALCopilotOperationResponse);
+        Error := ALCopilotOperationResponse.ErrorText();
+        if Error = '' then
+            Error := GetLastErrorText();
+        AOAIOperationResponse.SetOperationResponse(ALCopilotOperationResponse.IsSuccess(), ALCopilotOperationResponse.StatusCode(), ALCopilotOperationResponse.Result(), Error);
 
         if not ALCopilotOperationResponse.IsSuccess() then
             Error(GenerateRequestFailedErr);
