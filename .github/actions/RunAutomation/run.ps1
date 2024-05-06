@@ -107,10 +107,18 @@ function OpenPR {
         git commit -m $commitMessage | Out-Null
     }
 
+    # The PR title is the first update message. Include the target branch in the title for visibility.
+    $prTitle = "[$($TargetBranch -replace 'releases/','')] $($AvailableUpdates[0].Result.Message)"
+
+    # If there are more than one update, add a count to the PR title
+    if($AvailableUpdates.Count -gt 1) {
+        $prTitle += " (+ $($AvailableUpdates.Count - 1) more update(s))"
+    }
+
     git push -u origin $branch | Out-Null
 
     $prDescription += "`n`nFixes AB#420000." # Add link to a work item
-    return New-GitHubPullRequest -Repository $Repository -BranchName $branch -TargetBranch $TargetBranch -PullRequestDescription $prDescription
+    return New-GitHubPullRequest -Repository $Repository -BranchName $branch -TargetBranch $TargetBranch -Title $prTitle -Description $prDescription
 }
 
 $automationsFolder = $PSScriptRoot
