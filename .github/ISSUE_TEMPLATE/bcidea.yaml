@@ -9,12 +9,12 @@ body:
         Thanks for taking the time to create a BC Idea issue!
 
         ⚠️⚠️ BEFORE WE GET STARTED ⚠️⚠️
-        Please do not create an issue for a BC Idea unless you intend to implement it yourself. If you are not planning to implement the BC Idea yourself, please go to aka.ms/bcideas and upvote the feature on BC Ideas instead. 
+        Please do not create an issue for a BC Idea unless you intend to implement it yourself. If you are not planning to implement the BC Idea yourself, please go to aka.ms/bcideas and upvote the feature on BC Ideas instead.
 
         Before you create a new issue please:
         🔎 Search existing issues to avoid creating duplicates.
 
-        Read more about what and how to contribute in the CONTRIBUTIONS document of this repository: https://github.com/microsoft/BCApps/blob/main/CONTRIBUTING.md.
+        Read more about what and how to contribute in the CONTRIBUTIONS document of this repository: https://github.com/mazhelez/BCApps/blob/main/CONTRIBUTING.md.
 
   - type: input
     id: bcidea
@@ -36,8 +36,8 @@ body:
     id: terms
     attributes:
       label: I will provide the implementation for this BC Idea
-      description: | 
-        To provide the implementation for a BC idea, select this checkbox and then Get started. Thanks for contributing. 
+      description: |
+        To provide the implementation for a BC idea, select this checkbox and then Get started. Thanks for contributing.
       options:
         - label: I will provide the implementation for this BC Idea
           required: true
