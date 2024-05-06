@@ -51,6 +51,12 @@ codeunit 9088 "Stor. Serv. Auth. Ready SAS" implements "Storage Service Authoriz
             SharedAccessSignature := DelChr(SharedAccessSignature, '<', '?');
     end;
 
+    [NonDebuggable]
+    procedure SetSharedAccessSignature(NewSharedAccessSignature: SecretText)
+    begin
+        SetSharedAccessSignature(NewSharedAccessSignature.Unwrap())
+    end;
+
     var
         SharedAccessSignature: Text;
 }
