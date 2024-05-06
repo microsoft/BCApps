@@ -306,13 +306,14 @@ codeunit 132686 "Azure OpenAI Tools Test"
     [Test]
     procedure TestJsonModeInParameters()
     var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         Payload: JsonObject;
         ResponseFormatJTok: JsonToken;
         TypeJTok: JsonToken;
     begin
         AOAIChatCompletionParams.SetJsonMode(true);
-        AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
+        AzureOpenAITestLibrary.GetAOAIChatCompletionParametersPayload(AOAIChatCompletionParams, Payload);
 
         Payload.Get('response_format', ResponseFormatJtok);
         ResponseFormatJTok.AsObject().Get('type', TypeJTok);
@@ -323,11 +324,12 @@ codeunit 132686 "Azure OpenAI Tools Test"
     [Test]
     procedure TestNoJsonModeInParameters()
     var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         Payload: JsonObject;
     begin
         AOAIChatCompletionParams.SetJsonMode(false);
-        AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
+        AzureOpenAITestLibrary.GetAOAIChatCompletionParametersPayload(AOAIChatCompletionParams, Payload);
 
         LibraryAssert.IsFalse(Payload.Contains('response_format'), 'Response format should not exist');
     end;
@@ -335,10 +337,11 @@ codeunit 132686 "Azure OpenAI Tools Test"
     [Test]
     procedure TestNoJsonModeInParametersByDefault()
     var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         Payload: JsonObject;
     begin
-        AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
+        AzureOpenAITestLibrary.GetAOAIChatCompletionParametersPayload(AOAIChatCompletionParams, Payload);
 
         LibraryAssert.IsFalse(Payload.Contains('response_format'), 'Response format should not exist');
     end;
@@ -384,7 +387,9 @@ codeunit 132686 "Azure OpenAI Tools Test"
     [Test]
     procedure TestFunctionCallResult()
     var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
         TestFunction1: Codeunit "Test Function 1";
         TestFunction2: Codeunit "Test Function 2";
@@ -400,13 +405,14 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Function is been selected by LLM
         ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
+        AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
         AOAIChatMessages.AddAssistantMessage(StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()));
 
         // Selected function was executed by system
         FunctionExecutionResult := 'test function execution result';
-        AOAIFunctionResponse.SetFunctionCallingResponse(true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+        AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
 
-        LibraryAssert.IsTrue(AOAIFunctionResponse.IsFunctionCall(), 'Function call should be true.');
+        LibraryAssert.IsTrue(AOAIOperationResponse.IsFunctionCall(), 'Function call should be true.');
         LibraryAssert.AreEqual(AOAIFunctionResponse.GetFunctionName(), TestFunction1.GetName(), 'Function name should be the same as the value set.');
         LibraryAssert.AreEqual(AOAIFunctionResponse.GetFunctionId(), ToolCallId, 'Function id should be the same as the value set.');
         LibraryAssert.AreEqual(AOAIFunctionResponse.GetResult(), FunctionExecutionResult, 'Function response should be the same as the value set.');
@@ -415,6 +421,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
     [Test]
     procedure TestAddFunctionResultToChatMessages()
     var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
         TestFunction1: Codeunit "Test Function 1";
@@ -435,7 +442,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Selected function was executed by system
         FunctionExecutionResult := 'test function execution result';
-        AOAIFunctionResponse.SetFunctionCallingResponse(true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+        AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
 
         // Save the function execution result to the chat messages
         AOAIChatMessages.AddToolMessage(AOAIFunctionResponse.GetFunctionId(), AOAIFunctionResponse.GetFunctionName(), AOAIFunctionResponse.GetResult());
@@ -447,6 +454,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
     [Test]
     procedure TestToolCleanup()
     var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
         TestFunction1: Codeunit "Test Function 1";
         TestFunction2: Codeunit "Test Function 2";
@@ -467,7 +475,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Selected function was executed by system
         FunctionExecutionResult := 'test function execution result';
-        AOAIFunctionResponse.SetFunctionCallingResponse(true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+        AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
 
         // Save the function execution result to the chat messages
         AOAIChatMessages.AddToolMessage(AOAIFunctionResponse.GetFunctionId(), AOAIFunctionResponse.GetFunctionName(), AOAIFunctionResponse.GetResult());
@@ -506,7 +514,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Selected function was executed by system
         FunctionExecutionResult := 'test function execution result';
-        AOAIFunctionResponse.SetFunctionCallingResponse(true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+        AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
 
         // Save the function execution result to the chat messages
         AOAIChatMessages.AddToolMessage(AOAIFunctionResponse.GetFunctionId(), AOAIFunctionResponse.GetFunctionName(), AOAIFunctionResponse.GetResult());
