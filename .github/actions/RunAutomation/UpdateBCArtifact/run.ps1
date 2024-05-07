@@ -22,7 +22,7 @@ if ($newArtifactUrl) {
     $result.Files = @(Get-ALGoSettingsPath -Relative)
 
     if ($newArtifactUrl -match "\d+\.\d+\.\d+\.\d+") {
-        $result.Message = "Update BCArtifact version. New value: $Matches[0]"
+        $result.Message = "Update BCArtifact version. New value: $($Matches[0])"
     } else {
         $result.Message = "Update BCArtifact version. New value: $newArtifactUrl"
     }
