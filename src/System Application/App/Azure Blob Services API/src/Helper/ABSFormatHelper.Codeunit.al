@@ -165,7 +165,7 @@ codeunit 9044 "ABS Format Helper"
         "Key": Text;
         SingleQuoteChar: Char;
         Expression: Text;
-        ExpressionPartLbl: Label '"%1" %2 %3%4%5', Comment = '%1 = Tag, %2 = Operator, %3 = Single Quote, %4 = Value, %5 = Single Quote';
+        ExpressionPartLbl: Label '"%1" %2 %3%4%5', Comment = '%1 = Tag, %2 = Operator, %3 = Single Quote, %4 = Value, %5 = Single Quote', Locked = true;
     begin
         SingleQuoteChar := 39;
         Keys := Tags.Keys;
