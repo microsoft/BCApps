@@ -11,16 +11,21 @@ Import-Module BcContainerHelper -DisableNameChecking
 
 Import-Module $PSScriptRoot\..\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1
 
-$newVersion = Update-BCArtifactVersion
+$newArtifactUrl = Update-BCArtifactVersion
 
 $result = @{
     'Files' = @()
     'Message' = "No update available"
 }
 
-if ($newVersion) {
+if ($newArtifactUrl) {
     $result.Files = @(Get-ALGoSettingsPath -Relative)
-    $result.Message = "Update BCArtifact version. New value: $newVersion"
+
+    if ($newArtifactUrl -match "\d+\.\d+\.\d+\.\d+") {
+        $result.Message = "Update BCArtifact version. New value: $Matches[0]"
+    } else {
+        $result.Message = "Update BCArtifact version. New value: $newArtifactUrl"
+    }
 }
 
 return $result

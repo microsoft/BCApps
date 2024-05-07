@@ -78,6 +78,8 @@ function OpenPR {
         [Parameter(Mandatory=$true)]
         [array] $AvailableUpdates,
         [Parameter(Mandatory=$true)]
+        [string] $Category,
+        [Parameter(Mandatory=$true)]
         [string] $Repository,
         [Parameter(Mandatory=$true)]
         [string] $TargetBranch,
@@ -91,7 +93,10 @@ function OpenPR {
     }
 
     Set-GitConfig -Actor $Actor
-    $branch = New-TopicBranch -Category "updates/$TargetBranch"
+
+    $shortTargetBranch = $TargetBranch -replace 'releases/',''
+    $Category = "$shortTargetBranch/$Category".ToLower().Replace(' ', '_')
+    $branch = New-TopicBranchIfNeeded -Category "$shortTargetBranch/$Category"
 
     # Open PR with a commit for each update
     $prDescription = "This PR contains the following changes:"
@@ -107,20 +112,28 @@ function OpenPR {
         git commit -m $commitMessage | Out-Null
     }
 
+    # The PR title is the first update message. Include the target branch in the title for visibility.
+    $prTitle = "[$shortTargetBranch] $($AvailableUpdates[0].Result.Message)"
+
+    # If there are more than one update, add a count to the PR title
+    if($AvailableUpdates.Count -gt 1) {
+        $prTitle += " (+ $($AvailableUpdates.Count - 1) more update(s))"
+    }
+
     git push -u origin $branch | Out-Null
 
     $prDescription += "`n`nFixes AB#420000." # Add link to a work item
-    return New-GitHubPullRequest -Repository $Repository -BranchName $branch -TargetBranch $TargetBranch -PullRequestDescription $prDescription
+    return New-GitHubPullRequest -Repository $Repository -BranchName $branch -TargetBranch $TargetBranch -Title $prTitle -Description $prDescription
 }
 
 $automationsFolder = $PSScriptRoot
 
 # An automation is a folder with a run.ps1 file
-$automationNames = Get-ChildItem -Path $automationsFolder -Directory | Where-Object { Test-Path (Join-Path $_.FullName 'run.ps1') } | ForEach-Object { $_.Name }
+$automationNames = @(Get-ChildItem -Path $automationsFolder -Directory | Where-Object { Test-Path (Join-Path $_.FullName 'run.ps1') } | ForEach-Object { $_.Name })
 
 # Filter out the automations that are not included
 if($Include) {
-    $automationNames = $automationNames | Where-Object { $Include -contains $_ }
+    $automationNames = @($automationNames | Where-Object { $Include -contains $_ })
 }
 
 if(-not $automationNames) {
@@ -144,7 +157,7 @@ if($availableUpdates) { # Only open PR if there are updates
     Write-Host "::group::Create PR for available updates"
     Import-Module $PSScriptRoot\..\..\..\build\scripts\AutomatedSubmission.psm1 -DisableNameChecking
 
-    $prLink = OpenPR -AvailableUpdates $availableUpdates -Repository $Repository -TargetBranch $TargetBranch -Actor $Actor
+    $prLink = OpenPR -AvailableUpdates $availableUpdates -Category $automationNames[0] -Repository $Repository -TargetBranch $TargetBranch -Actor $Actor
 
     Write-Host "::Notice::PR created: $prLink"
     Write-Host "::endgroup::"
