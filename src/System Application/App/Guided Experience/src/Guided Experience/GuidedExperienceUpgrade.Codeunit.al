@@ -85,6 +85,13 @@ codeunit 1999 "Guided Experience Upgrade"
         GuidedExperienceImpl: Codeunit "Guided Experience Impl.";
         NewCode: Code[300];
     begin
+        // Skip upgrade if the current Code is already considering SpotlightTourType, we have seen this happening during migration.
+        if GuidedExperienceItem.FindFirst() then
+            if GuidedExperienceItem.Code = GuidedExperienceImpl.GetCode(GuidedExperienceItem."Guided Experience Type", GuidedExperienceItem."Object Type to Run", GuidedExperienceItem."Object ID to Run", GuidedExperienceItem.Link, GuidedExperienceItem."Video Url", GuidedExperienceItem."Spotlight Tour Type") then
+                exit;
+
+        GuidedExperienceItem.Reset();
+
         GuidedExperienceItem.SetRange(SystemCreatedAt, 0DT, CurrentDateTime());
         if GuidedExperienceItem.FindSet() then
             repeat

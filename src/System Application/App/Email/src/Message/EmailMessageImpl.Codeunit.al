@@ -599,6 +599,44 @@ codeunit 8905 "Email Message Impl."
         exit(GlobalEmailMessage.Get(MessageId));
     end;
 
+    procedure DeleteOrphanedMessages(StartMessageId: Guid; MessagesToIterate: Integer) NextMessageId: Guid
+    var
+        EmailMessage: Record "Email Message";
+        EmptyGuid: Guid;
+        MessageNo: Integer;
+    begin
+        EmailMessage.SetLoadFields(Id);
+        EmailMessage.ReadIsolation(IsolationLevel::ReadCommitted);
+        EmailMessage.SetFilter(Id, '>=%1', StartMessageId);
+        if not EmailMessage.FindSet() then
+            exit(EmptyGuid);
+
+        for MessageNo := 1 to MessagesToIterate do begin
+            DeleteIfOrphaned(EmailMessage);
+
+            if EmailMessage.Next() = 0 then
+                exit(EmptyGuid);
+        end;
+
+        exit(EmailMessage.Id);
+    end;
+
+    local procedure DeleteIfOrphaned(var EmailMessage: Record "Email Message")
+    var
+        EmailOutbox: Record "Email Outbox";
+        SentEmail: Record "Sent Email";
+    begin
+        EmailOutbox.SetRange("Message Id", EmailMessage.Id);
+        if not EmailOutbox.IsEmpty() then
+            exit;
+
+        SentEmail.SetRange("Message Id", EmailMessage.Id);
+        if not SentEmail.IsEmpty() then
+            exit;
+
+        EmailMessage.Delete();
+    end;
+
     procedure ValidateRecipients()
     var
         EmailAccount: Codeunit "Email Account";

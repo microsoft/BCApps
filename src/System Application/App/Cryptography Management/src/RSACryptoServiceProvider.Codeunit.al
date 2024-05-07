@@ -32,7 +32,7 @@ codeunit 1445 RSACryptoServiceProvider
     /// </summary>
     /// <param name="IncludePrivateParameters">true to include a public and private RSA key; false to include only the public key.</param>
     /// <returns>An XML string containing the key of the current RSA object.</returns>
-    [Obsolete('Use ToSecretXmlString with SecretText data type for XmlString.', '24.0')]
+    [Obsolete('Use ToSecretXmlString with SecretText data type for XmlString or use PublicKeyToXmlString to retrieve the public key as Text.', '24.0')]
     procedure ToXmlString(IncludePrivateParameters: Boolean): Text
     begin
 #pragma warning disable AL0432
@@ -96,6 +96,15 @@ codeunit 1445 RSACryptoServiceProvider
         RSACryptoServiceProviderImpl.Decrypt(XmlString, EncryptedTextInStream, OaepPadding, DecryptedTextOutStream);
     end;
 #endif
+
+    /// <summary>
+    /// Creates and returns an XML string containing the public key of the current RSA object.
+    /// </summary>
+    /// <returns>An XML string containing the public key of the current RSA object.</returns>
+    procedure PublicKeyToXmlString(): Text
+    begin
+        exit(RSACryptoServiceProviderImpl.PublicKeyToXmlString());
+    end;
 
     /// <summary>
     /// Creates and returns an XML string containing the key of the current RSA object.
