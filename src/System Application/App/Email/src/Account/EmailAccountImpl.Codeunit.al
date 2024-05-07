@@ -198,6 +198,7 @@ codeunit 8889 "Email Account Impl."
 
     internal procedure IsUserEmailAdmin(): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         EmailScenario: Record "Email Scenario";
     begin
         exit(EmailScenario.WritePermission());
@@ -301,7 +302,8 @@ codeunit 8889 "Email Account Impl."
     var
         MailAddress: DotNet MailAddress;
     begin
-        // throws an exception if the address is invalid
+    
+    // throws an exception if the address is invalid
         MailAddress := MailAddress.MailAddress(EmailAddress);
 
         EmailAddress := MailAddress.Address;

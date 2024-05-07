@@ -55,6 +55,7 @@ codeunit 1991 "Guided Experience Impl."
     procedure Insert(Title: Text[2048]; ShortTitle: Text[50]; Description: Text[1024]; ExpectedDuration: Integer; ExtensionId: Guid; GuidedExperienceType: Enum "Guided Experience Type"; ObjectTypeToRun: ObjectType; ObjectIDToRun: Integer; Link: Text[250]; AssistedSetupGroup: Enum "Assisted Setup Group"; VideoUrl: Text[250]; VideoCategory: Enum "Video Category"; HelpUrl: Text[250]; ManualSetupCategory: Enum "Manual Setup Category"; Keywords: Text[250]; SpotlighTourType: Enum "Spotlight Tour Type"; SpotlightTourTexts: Dictionary of [Enum "Spotlight Tour Text", Text]; CheckObjectValidity: Boolean; IsPrimarySetup: Boolean)
     var
         PrevGuidedExperienceItem: Record "Guided Experience Item";
+        [SecurityFiltering(SecurityFilter::Ignored)]
         GuidedExperienceItem: Record "Guided Experience Item";
         PrimaryGuidedExperienceItem: Record "Primary Guided Experience Item";
         ChecklistImplementation: Codeunit "Checklist Implementation";
@@ -297,6 +298,7 @@ codeunit 1991 "Guided Experience Impl."
 
     procedure CompleteAssistedSetup(ObjectType: ObjectType; ObjectID: Integer)
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         GuidedExperienceItem: Record "Guided Experience Item";
         GuidedExperienceObjectType: Enum "Guided Experience Object Type";
     begin
@@ -314,6 +316,7 @@ codeunit 1991 "Guided Experience Impl."
 
     procedure ResetAssistedSetup(ObjectType: ObjectType; ObjectID: Integer)
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         GuidedExperienceItem: Record "Guided Experience Item";
         GuidedExperienceObjectType: Enum "Guided Experience Object Type";
     begin
@@ -329,7 +332,8 @@ codeunit 1991 "Guided Experience Impl."
         Reset(GuidedExperienceItem);
     end;
 
-    procedure Run(GuidedExperienceType: Enum "Guided Experience Type"; ObjectType: ObjectType; ObjectID: Integer)
+    procedure Run(GuidedExperienceType: Enum "Guided Experience Type"; ObjectType: ObjectType;
+                                            ObjectID: Integer)
     var
         GuidedExperienceItem: Record "Guided Experience Item";
         GuidedExperienceObjectType: Enum "Guided Experience Object Type";
@@ -367,8 +371,10 @@ codeunit 1991 "Guided Experience Impl."
         AssistedSetup.RunModal();
     end;
 
-    procedure Remove(GuidedExperienceType: Enum "Guided Experience Type"; ObjectType: ObjectType; ObjectID: Integer)
+    procedure Remove(GuidedExperienceType: Enum "Guided Experience Type"; ObjectType: ObjectType;
+                                               ObjectID: Integer)
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         GuidedExperienceItem: Record "Guided Experience Item";
         GuidedExperienceObjectType: Enum "Guided Experience Object Type";
         SpotlightTourType: Enum "Spotlight Tour Type";
@@ -383,8 +389,11 @@ codeunit 1991 "Guided Experience Impl."
         Delete(GuidedExperienceItem);
     end;
 
-    procedure Remove(GuidedExperienceType: Enum "Guided Experience Type"; ObjectType: ObjectType; ObjectID: Integer; SpotlightTourType: Enum "Spotlight Tour Type")
+    procedure Remove(GuidedExperienceType: Enum "Guided Experience Type"; ObjectType: ObjectType;
+                                               ObjectID: Integer;
+                                               SpotlightTourType: Enum "Spotlight Tour Type")
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         GuidedExperienceItem: Record "Guided Experience Item";
         GuidedExperienceObjectType: Enum "Guided Experience Object Type";
     begin
@@ -399,6 +408,7 @@ codeunit 1991 "Guided Experience Impl."
 
     procedure Remove(GuidedExperienceType: Enum "Guided Experience Type"; Link: Text[250])
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         GuidedExperienceItem: Record "Guided Experience Item";
     begin
         if not GuidedExperienceItem.WritePermission() then
@@ -434,7 +444,12 @@ codeunit 1991 "Guided Experience Impl."
             GuidedExperienceItem."Object ID to Run", GuidedExperienceItem.Link, GuidedExperienceItem."Video Url", GuidedExperienceItem."Spotlight Tour Type", FieldNo));
     end;
 
-    procedure GetTranslationForField(GuidedExperienceType: Enum "Guided Experience Type"; ObjectTypeToRun: Enum "Guided Experience Object Type"; ObjectIDToRun: Integer; Link: Text[250]; VideoUrl: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type"; FieldNo: Integer): Text
+    procedure GetTranslationForField(GuidedExperienceType: Enum "Guided Experience Type"; ObjectTypeToRun: Enum "Guided Experience Object Type";
+                                                               ObjectIDToRun: Integer;
+                                                               Link: Text[250];
+                                                               VideoUrl: Text[250];
+                                                               SpotlightTourType: Enum "Spotlight Tour Type";
+                                                               FieldNo: Integer): Text
     var
         GuidedExperienceItem: Record "Guided Experience Item";
         Translation: Codeunit Translation;
@@ -580,7 +595,11 @@ codeunit 1991 "Guided Experience Impl."
         end;
     end;
 
-    internal procedure GetCode(Type: Enum "Guided Experience Type"; ObjectType: Enum "Guided Experience Object Type"; ObjectID: Integer; Link: Text[250]; VideoUrl: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type"): Code[300]
+    internal procedure GetCode(Type: Enum "Guided Experience Type"; ObjectType: Enum "Guided Experience Object Type";
+                                         ObjectID: Integer;
+                                         Link: Text[250];
+                                         VideoUrl: Text[250];
+                                         SpotlightTourType: Enum "Spotlight Tour Type"): Code[300]
     var
         Url: Text[250];
     begin
@@ -592,21 +611,43 @@ codeunit 1991 "Guided Experience Impl."
         exit(StrSubstNo(CodeFormatLbl, Type, ObjectType, ObjectID, Url, SpotlightTourType.AsInteger()));
     end;
 
-    local procedure GetVersion(var GuidedExperienceItem: Record "Guided Experience Item"; Code: Code[300]; Title: Text[2048]; ShortTitle: Text[50]; Description: Text[1024]; ExpectedDuration: Integer; ExtensionId: Guid; GuidedExperienceType: Enum "Guided Experience Type"; ObjectTypeToRun: Enum "Guided Experience Object Type"; ObjectIDToRun: Integer; Link: Text[250]; AssistedSetupGroup: Enum "Assisted Setup Group"; VideoUrl: Text[250]; VideoCategory: Enum "Video Category"; HelpUrl: Text[250]; ManualSetupCategory: Enum "Manual Setup Category"; Keywords: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type"; SpotlightTourTexts: Dictionary of [Enum "Spotlight Tour Text", Text]; IsPrimary: Boolean): Integer
+    local procedure GetVersion(var GuidedExperienceItem: Record "Guided Experience Item"; Code: Code[300]; Title: Text[2048]; ShortTitle: Text[50]; Description: Text[1024]; ExpectedDuration: Integer; ExtensionId: Guid; GuidedExperienceType: Enum "Guided Experience Type"; ObjectTypeToRun: Enum "Guided Experience Object Type";
+                                                                                                                                                                                                                                                     ObjectIDToRun: Integer;
+                                                                                                                                                                                                                                                     Link: Text[
+                                                                                                                                                                                                                                                    250]; AssistedSetupGroup: Enum "Assisted Setup Group";
+                                                                                                                                                                                                                                                     VideoUrl: Text[250];
+                                                                                                                                                                                                                                                     VideoCategory: Enum "Video Category";
+                                                                                                                                                                                                                                                     HelpUrl: Text[250];
+                                                                                                                                                                                                                                                     ManualSetupCategory: Enum "Manual Setup Category";
+                                                                                                                                                                                                                                                     Keywords: Text[250];
+                                                                                                                                                                                                                                                     SpotlightTourType: Enum "Spotlight Tour Type";
+                                                                                                                                                                                                                                                     SpotlightTourTexts: Dictionary of [Enum "Spotlight Tour Text", Text];
+                                                                                                                                                                                                                                                     IsPrimary: Boolean): Integer
     begin
         GuidedExperienceItem.SetRange(Code, Code);
         if not GuidedExperienceItem.FindLast() then
             exit(0);
 
         if HasTheRecordChanged(GuidedExperienceItem, Title, ShortTitle, Description, ExpectedDuration, ExtensionId, GuidedExperienceType, ObjectTypeToRun,
-            ObjectIDToRun, Link, AssistedSetupGroup, VideoUrl, VideoCategory, HelpUrl, ManualSetupCategory, Keywords, SpotlightTourType, SpotlightTourTexts, IsPrimary)
-        then
+ObjectIDToRun, Link, AssistedSetupGroup, VideoUrl, VideoCategory, HelpUrl, ManualSetupCategory, Keywords, SpotlightTourType, SpotlightTourTexts, IsPrimary)
+then
             exit(GuidedExperienceItem.Version + 1);
 
         exit(-1);
     end;
 
-    local procedure HasTheRecordChanged(GuidedExperienceItem: Record "Guided Experience Item"; Title: Text[2048]; ShortTitle: Text[50]; Description: Text[1024]; ExpectedDuration: Integer; ExtensionId: Guid; GuidedExperienceType: Enum "Guided Experience Type"; ObjectTypeToRun: Enum "Guided Experience Object Type"; ObjectIDToRun: Integer; Link: Text[250]; AssistedSetupGroup: Enum "Assisted Setup Group"; VideoUrl: Text[250]; VideoCategory: Enum "Video Category"; HelpUrl: Text[250]; ManualSetupCategory: Enum "Manual Setup Category"; Keywords: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type"; SpotlightTourTexts: Dictionary of [Enum "Spotlight Tour Text", Text]; IsPrimary: Boolean): Boolean
+    local procedure HasTheRecordChanged(GuidedExperienceItem: Record "Guided Experience Item"; Title: Text[2048]; ShortTitle: Text[50]; Description: Text[1024]; ExpectedDuration: Integer; ExtensionId: Guid; GuidedExperienceType: Enum "Guided Experience Type"; ObjectTypeToRun: Enum "Guided Experience Object Type";
+                                                                                                                                                                                                                                         ObjectIDToRun: Integer;
+                                                                                                                                                                                                                                         Link: Text[
+                                                                                                                                                                                                                                        250]; AssistedSetupGroup: Enum "Assisted Setup Group";
+                                                                                                                                                                                                                                         VideoUrl: Text[250];
+                                                                                                                                                                                                                                         VideoCategory: Enum "Video Category";
+                                                                                                                                                                                                                                         HelpUrl: Text[250];
+                                                                                                                                                                                                                                         ManualSetupCategory: Enum "Manual Setup Category";
+                                                                                                                                                                                                                                         Keywords: Text[250];
+                                                                                                                                                                                                                                         SpotlightTourType: Enum "Spotlight Tour Type";
+                                                                                                                                                                                                                                         SpotlightTourTexts: Dictionary of [Enum "Spotlight Tour Text", Text];
+                                                                                                                                                                                                                                         IsPrimary: Boolean): Boolean
     var
         PrimaryGuidedExperienceItem: Record "Primary Guided Experience Item";
     begin
@@ -719,7 +760,16 @@ codeunit 1991 "Guided Experience Impl."
         exit(false);
     end;
 
-    local procedure InsertGuidedExperienceItem(var GuidedExperienceItem: Record "Guided Experience Item"; Code: Code[300]; Version: Integer; PreviousVersion: Integer; Title: Text[2048]; ShortTitle: Text[50]; Description: Text[1024]; ExpectedDuration: Integer; ExtensionId: Guid; Completed: Boolean; GuidedExperienceType: Enum "Guided Experience Type"; ObjectTypeToRun: Enum "Guided Experience Object Type"; ObjectIDToRun: Integer; Link: Text[250]; AssistedSetupGroup: Enum "Assisted Setup Group"; VideoUrl: Text[250]; VideoCategory: Enum "Video Category"; HelpUrl: Text[250]; ManualSetupCategory: Enum "Manual Setup Category"; Keywords: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type")
+    local procedure InsertGuidedExperienceItem(var GuidedExperienceItem: Record "Guided Experience Item"; Code: Code[300]; Version: Integer; PreviousVersion: Integer; Title: Text[2048]; ShortTitle: Text[50]; Description: Text[1024]; ExpectedDuration: Integer; ExtensionId: Guid; Completed: Boolean; GuidedExperienceType: Enum "Guided Experience Type"; ObjectTypeToRun: Enum "Guided Experience Object Type";
+                                                                                                                                                                                                                                                                                                                                     ObjectIDToRun: Integer;
+                                                                                                                                                                                                                                                                                                                                     Link: Text[
+                                                                                                                                                                                                                                                                                                                                    250]; AssistedSetupGroup: Enum "Assisted Setup Group";
+                                                                                                                                                                                                                                                                                                                                     VideoUrl: Text[250];
+                                                                                                                                                                                                                                                                                                                                     VideoCategory: Enum "Video Category";
+                                                                                                                                                                                                                                                                                                                                     HelpUrl: Text[250];
+                                                                                                                                                                                                                                                                                                                                     ManualSetupCategory: Enum "Manual Setup Category";
+                                                                                                                                                                                                                                                                                                                                     Keywords: Text[250];
+                                                                                                                                                                                                                                                                                                                                     SpotlightTourType: Enum "Spotlight Tour Type")
     var
         IconInStream: InStream;
         Exist: Boolean;
@@ -882,7 +932,11 @@ codeunit 1991 "Guided Experience Impl."
         end
     end;
 
-    procedure FilterGuidedExperienceItem(var GuidedExperienceItem: Record "Guided Experience Item"; GuidedExperienceType: Enum "Guided Experience Type"; ObjectType: ObjectType; ObjectID: Integer; Link: Text[250]; VideoUrl: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type")
+    procedure FilterGuidedExperienceItem(var GuidedExperienceItem: Record "Guided Experience Item"; GuidedExperienceType: Enum "Guided Experience Type"; ObjectType: ObjectType;
+                                                                                                                              ObjectID: Integer;
+                                                                                                                              Link: Text[250];
+                                                                                                                              VideoUrl: Text[250];
+                                                                                                                              SpotlightTourType: Enum "Spotlight Tour Type")
     var
         ObjectTypeToRun: Enum "Guided Experience Object Type";
     begin
@@ -891,7 +945,11 @@ codeunit 1991 "Guided Experience Impl."
         FilterGuidedExperienceItem(GuidedExperienceItem, GuidedExperienceType, ObjectTypeToRun, ObjectID, Link, VideoUrl, SpotlightTourType);
     end;
 
-    procedure FilterGuidedExperienceItem(var GuidedExperienceItem: Record "Guided Experience Item"; GuidedExperienceType: Enum "Guided Experience Type"; ObjectType: Enum "Guided Experience Object Type"; ObjectID: Integer; Link: Text[250]; VideoUrl: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type")
+    procedure FilterGuidedExperienceItem(var GuidedExperienceItem: Record "Guided Experience Item"; GuidedExperienceType: Enum "Guided Experience Type"; ObjectType: Enum "Guided Experience Object Type";
+                                                                                                                              ObjectID: Integer;
+                                                                                                                              Link: Text[250];
+                                                                                                                              VideoUrl: Text[250];
+                                                                                                                              SpotlightTourType: Enum "Spotlight Tour Type")
     begin
         GuidedExperienceItem.SetCurrentKey("Guided Experience Type", "Object Type to Run", "Object ID to Run", Link, Version);
         GuidedExperienceItem.SetRange("Guided Experience Type", GuidedExperienceType);
