@@ -70,21 +70,53 @@ page 149041 "BCCT Datasets"
 
                 trigger OnAction(Files: List of [FileUpload])
                 var
+                    ExistingDatasets: Record "BCCT Dataset";
                     DatasetLine: Record "BCCT Dataset Line";
                     CurrentFile: FileUpload;
                     DataInStream: InStream;
                     JsonLine: Text; //TODO: consider adding validation
+                    DatasetName: Text[100];
+                    Options: Text;
+                    Selected: Integer;
+                    StrMenuLbl: Label 'Overwrite,Rename and Upload,Exit';
+                    DialogTitleLbl: Label 'Dataset with name %1 already exists. Choose one of the following options:', Comment = '%1=Dataset Name';
                 begin
                     foreach CurrentFile in files do begin
                         CurrentFile.CreateInStream(DataInStream, TextEncoding::UTF8);
-                        Rec.Init();
-                        Rec."Dataset Name" := CopyStr(CurrentFile.FileName, 1, MaxStrLen(Rec."Dataset Name"));
-                        Rec.Insert();
+                        DatasetName := CopyStr(CurrentFile.FileName, 1, MaxStrLen(Rec."Dataset Name"));
+                        ExistingDatasets.SetLoadFields("Dataset Name");
+                        ExistingDatasets.SetRange("Dataset Name", DatasetName);
+                        if not ExistingDatasets.IsEmpty() then begin
+                            // Show menu dialog dialog
+                            Options := StrMenuLbl;
+                            Selected := Dialog.StrMenu(Options, 3, StrSubstNo(DialogTitleLbl, DatasetName));
+                            case Selected of
+                                1:
+                                    begin
+                                        DatasetLine.SetRange("Dataset Name", DatasetName);
+                                        DatasetLine.DeleteAll();
+                                    end;
+                                2:
+                                    begin
+                                        DatasetName := DatasetName + ' - ' + CreateGuid();
+                                        Rec.Init();
+                                        Rec."Dataset Name" := DatasetName;
+                                        Rec.Insert();
+                                    end;
+                                3:
+                                    exit;
+                            end;
+                        end
+                        else begin
+                            Rec.Init();
+                            Rec."Dataset Name" := DatasetName;
+                            Rec.Insert();
+                        end;
 
                         while DataInStream.ReadText(JsonLine) > 0 do begin
                             DatasetLine.Init();
                             DatasetLine.Id := 0;
-                            DatasetLine."Dataset Name" := Rec."Dataset Name";
+                            DatasetLine."Dataset Name" := DatasetName;
                             DatasetLine.SetInputTextAsBlob(JsonLine.Trim());
                             DatasetLine.Insert();
                         end
