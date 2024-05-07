@@ -17,7 +17,7 @@ table 149031 "BCCT Dataset"
         {
             NotBlank = true;
             Caption = 'Dataset Name';
-            ToolTip = 'Specifies the name of the dataset.';
+            // ToolTip ='Specifies the name of the dataset.';
 
             trigger OnValidate()
             var
