@@ -34,7 +34,7 @@ codeunit 9088 "Stor. Serv. Auth. Ready SAS" implements "Storage Service Authoriz
 
         UriBuilder.GetUri(Uri);
 
-        HttpRequestMessage.SetRequestUri(Uri.GetAbsoluteUri());
+        HttpRequestMessage.SetSecretRequestUri(Uri.GetAbsoluteUri());
     end;
 
     procedure GetSharedAccessSignature(): SecretText
@@ -45,7 +45,7 @@ codeunit 9088 "Stor. Serv. Auth. Ready SAS" implements "Storage Service Authoriz
     [NonDebuggable]
     procedure SetSharedAccessSignature(NewSharedAccessSignature: Text)
     begin
-        SetSharedAccessSignature(SecretStrSubstNo(NewSharedAccessSignature));
+        SetSharedAccessSignature(NewSharedAccessSignature);
     end;
 
     [NonDebuggable]
@@ -56,7 +56,7 @@ codeunit 9088 "Stor. Serv. Auth. Ready SAS" implements "Storage Service Authoriz
         UnsecureSharedAccessSignature := NewSharedAccessSignature.Unwrap();
         if UnsecureSharedAccessSignature.StartsWith('?') then
             UnsecureSharedAccessSignature := DelChr(UnsecureSharedAccessSignature, '<', '?');
-        SharedAccessSignature := SecretStrSubstNo(UnsecureSharedAccessSignature);
+        SharedAccessSignature := UnsecureSharedAccessSignature;
     end;
 
     var
