@@ -65,6 +65,7 @@ page 149041 "BCCT Datasets"
             {
                 Caption = 'Upload Datasets';
                 AllowMultipleFiles = true;
+                ToolTip = 'Uploads datasets from files';
                 AllowedFileExtensions = '.jsonl';
                 Image = Attach;
 
