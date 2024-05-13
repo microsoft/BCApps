@@ -13,7 +13,7 @@ codeunit 149046 "BCCT Test Suite"
         TestSuiteLineNotFoundErr: Label 'Test suite line with %1 %2 and %3 %4 does not exist.', Comment = '%1 - field caption, %2 - field value, %3 - field caption, %4 - field value';
         DatasetNotFoundErr: Label 'Dataset %1 does not exist.', Comment = '%1 - field value';
 
-    procedure CreateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[50]; Dataset: Text[100];
+    procedure CreateTestSuiteHeader(SuiteCode: Code[100]; SuiteDescription: Text[250]; Dataset: Text[100];
                               DefaultMinUserDelayInMs: Integer; DefaultMaxUserDelayInMs: Integer;
                               Tag: Text[20])
     var
@@ -40,7 +40,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader.Insert(true);
     end;
 
-    procedure CreateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[50])
+    procedure CreateTestSuiteHeader(SuiteCode: Code[100]; SuiteDescription: Text[250])
     var
         BCCTHeader: Record "BCCT Header";
     begin
@@ -53,7 +53,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader.Insert(true);
     end;
 
-    procedure CreateUpdateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[50]; Dataset: Text[100];
+    procedure CreateUpdateTestSuiteHeader(SuiteCode: Code[100]; SuiteDescription: Text[250]; Dataset: Text[100];
                               DefaultMinUserDelayInMs: Integer; DefaultMaxUserDelayInMs: Integer;
                               Tag: Text[20])
     var
@@ -88,14 +88,14 @@ codeunit 149046 "BCCT Test Suite"
             BCCTHeader.Insert(true);
     end;
 
-    procedure TestSuiteExists(SuiteCode: Code[10]): Boolean
+    procedure TestSuiteExists(SuiteCode: Code[100]): Boolean
     var
         BCCTHeader: Record "BCCT Header";
     begin
         exit(BCCTHeader.Get(SuiteCode));
     end;
 
-    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer): Boolean
+    procedure TestSuiteLineExists(SuiteCode: Code[100]; CodeunitID: Integer): Boolean
     var
         BCCTLine: Record "BCCT Line";
     begin
@@ -103,7 +103,7 @@ codeunit 149046 "BCCT Test Suite"
         exit(not BCCTLine.IsEmpty());
     end;
 
-    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer; var LineNo: Integer): Boolean
+    procedure TestSuiteLineExists(SuiteCode: Code[100]; CodeunitID: Integer; var LineNo: Integer): Boolean
     var
         BCCTLine: Record "BCCT Line";
     begin
@@ -114,7 +114,7 @@ codeunit 149046 "BCCT Test Suite"
         exit(true);
     end;
 
-    procedure TestSuiteLineExists(SuiteCode: Code[10]; CodeunitID: Integer; ParameterFilterStr: Text; var LineNo: Integer): Boolean
+    procedure TestSuiteLineExists(SuiteCode: Code[100]; CodeunitID: Integer; ParameterFilterStr: Text; var LineNo: Integer): Boolean
     var
         BCCTLine: Record "BCCT Line";
     begin
@@ -126,7 +126,7 @@ codeunit 149046 "BCCT Test Suite"
         exit(true);
     end;
 
-    procedure SetTestSuiteDefaultMinUserDelay(SuiteCode: Code[10]; DelayInMs: Integer)
+    procedure SetTestSuiteDefaultMinUserDelay(SuiteCode: Code[100]; DelayInMs: Integer)
     var
         BCCTHeader: Record "BCCT Header";
     begin
@@ -137,7 +137,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader.Modify(true);
     end;
 
-    procedure GetTestSuiteDefaultMinUserDelay(SuiteCode: Code[10]): Integer
+    procedure GetTestSuiteDefaultMinUserDelay(SuiteCode: Code[100]): Integer
     var
         BCCTHeader: Record "BCCT Header";
     begin
@@ -147,7 +147,7 @@ codeunit 149046 "BCCT Test Suite"
         exit(BCCTHeader."Default Min. User Delay (ms)");
     end;
 
-    procedure SetTestSuiteDefaultMaxUserDelay(SuiteCode: Code[10]; DelayInMs: Integer)
+    procedure SetTestSuiteDefaultMaxUserDelay(SuiteCode: Code[100]; DelayInMs: Integer)
     var
         BCCTHeader: Record "BCCT Header";
     begin
@@ -158,7 +158,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader.Modify(true);
     end;
 
-    procedure GetTestSuiteDefaultMaxUserDelay(SuiteCode: Code[10]): Integer
+    procedure GetTestSuiteDefaultMaxUserDelay(SuiteCode: Code[100]): Integer
     var
         BCCTHeader: Record "BCCT Header";
     begin
@@ -168,7 +168,7 @@ codeunit 149046 "BCCT Test Suite"
         exit(BCCTHeader."Default Max. User Delay (ms)");
     end;
 
-    procedure SetTestSuiteDataset(SuiteCode: Code[10]; Dataset: Text[100])
+    procedure SetTestSuiteDataset(SuiteCode: Code[100]; Dataset: Text[100])
     var
         BCCTHeader: Record "BCCT Header";
         BCCTDataset: Record "BCCT Dataset";
@@ -183,7 +183,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader.Modify(true);
     end;
 
-    procedure GetTestSuiteDataset(SuiteCode: Code[10]): Text[100]
+    procedure GetTestSuiteDataset(SuiteCode: Code[100]): Text[100]
     var
         BCCTHeader: Record "BCCT Header";
     begin
@@ -193,7 +193,7 @@ codeunit 149046 "BCCT Test Suite"
         exit(BCCTHeader.Dataset);
     end;
 
-    procedure SetTestSuiteTag(SuiteCode: Code[10]; Tag: Text[20])
+    procedure SetTestSuiteTag(SuiteCode: Code[100]; Tag: Text[20])
     var
         BCCTHeader: Record "BCCT Header";
     begin
@@ -204,7 +204,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader.Modify(true);
     end;
 
-    procedure GetTestSuiteTag(SuiteCode: Code[10]): Text[20]
+    procedure GetTestSuiteTag(SuiteCode: Code[100]): Text[20]
     var
         BCCTHeader: Record "BCCT Header";
     begin
@@ -214,7 +214,7 @@ codeunit 149046 "BCCT Test Suite"
         exit(BCCTHeader.Tag);
     end;
 
-    procedure AddLineToTestSuiteHeader(SuiteCode: Code[10]; CodeunitId: Integer): Integer
+    procedure AddLineToTestSuiteHeader(SuiteCode: Code[100]; CodeunitId: Integer): Integer
     var
         BCCTHeader: Record "BCCT Header";
         BCCTLine: Record "BCCT Line";
@@ -235,7 +235,7 @@ codeunit 149046 "BCCT Test Suite"
         exit(BCCTLine."Line No.");
     end;
 
-    procedure AddLineToTestSuiteHeader(SuiteCode: Code[10]; CodeunitId: Integer; Description: Text[50];
+    procedure AddLineToTestSuiteHeader(SuiteCode: Code[100]; CodeunitId: Integer; Description: Text[250];
                                MinUserDelayInMs: Integer; MaxUserDelayInMs: Integer; DelayBtwnIterInMs: Integer; RunInForeground: Boolean;
                                Parameters: Text[1000]): Integer
     var
@@ -278,7 +278,7 @@ codeunit 149046 "BCCT Test Suite"
         exit(BCCTLine."Line No.");
     end;
 
-    procedure SetTestSuiteLineDescription(SuiteCode: Code[10]; LineNo: Integer; Description: Text[50])
+    procedure SetTestSuiteLineDescription(SuiteCode: Code[100]; LineNo: Integer; Description: Text[250])
     var
         BCCTLine: Record "BCCT Line";
     begin
@@ -289,7 +289,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTLine.Modify(true);
     end;
 
-    procedure SetTestSuiteLineMinUserDelay(SuiteCode: Code[10]; LineNo: Integer; DelayInMs: Integer)
+    procedure SetTestSuiteLineMinUserDelay(SuiteCode: Code[100]; LineNo: Integer; DelayInMs: Integer)
     var
         BCCTLine: Record "BCCT Line";
     begin
@@ -300,7 +300,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTLine.Modify(true);
     end;
 
-    procedure SetTestSuiteLineMaxUserDelay(SuiteCode: Code[10]; LineNo: Integer; DelayInMs: Integer)
+    procedure SetTestSuiteLineMaxUserDelay(SuiteCode: Code[100]; LineNo: Integer; DelayInMs: Integer)
     var
         BCCTLine: Record "BCCT Line";
     begin
@@ -311,7 +311,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTLine.Modify(true);
     end;
 
-    procedure SetTestSuiteLineDelayBtwnIter(SuiteCode: Code[10]; LineNo: Integer; DelayInSecs: Integer)
+    procedure SetTestSuiteLineDelayBtwnIter(SuiteCode: Code[100]; LineNo: Integer; DelayInSecs: Integer)
     var
         BCCTLine: Record "BCCT Line";
     begin
@@ -322,7 +322,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTLine.Modify(true);
     end;
 
-    procedure SetTestSuiteLineRunInForeground(SuiteCode: Code[10]; LineNo: Integer; RunInForeground: Boolean)
+    procedure SetTestSuiteLineRunInForeground(SuiteCode: Code[100]; LineNo: Integer; RunInForeground: Boolean)
     var
         BCCTLine: Record "BCCT Line";
     begin
@@ -333,7 +333,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTLine.Modify(true);
     end;
 
-    procedure SetTestSuiteLineParameters(SuiteCode: Code[10]; LineNo: Integer; Parameters: Text[1000])
+    procedure SetTestSuiteLineParameters(SuiteCode: Code[100]; LineNo: Integer; Parameters: Text[1000])
     var
         BCCTLine: Record "BCCT Line";
     begin
@@ -352,7 +352,7 @@ codeunit 149046 "BCCT Test Suite"
         exit(not BCCTHeader2.IsEmpty());
     end;
 
-    procedure IsTestRunInProgress(SuiteCode: Code[10]): Boolean
+    procedure IsTestRunInProgress(SuiteCode: Code[100]): Boolean
     var
         BCCTHeader2: Record "BCCT Header";
     begin
@@ -361,7 +361,7 @@ codeunit 149046 "BCCT Test Suite"
         exit(not BCCTHeader2.IsEmpty());
     end;
 
-    local procedure SetBCCTLineCodeunitFilter(SuiteCode: Code[10]; CodeunitID: Integer; var BCCTLine: Record "BCCT Line")
+    local procedure SetBCCTLineCodeunitFilter(SuiteCode: Code[100]; CodeunitID: Integer; var BCCTLine: Record "BCCT Line")
     begin
         BCCTLine.SetRange("BCCT Code", SuiteCode);
         BCCTLine.SetRange("Codeunit ID", CodeunitID);
@@ -378,10 +378,10 @@ codeunit 149046 "BCCT Test Suite"
     /// <param name="Orig. ExecutionSuccess">The original ExecutionSuccess</param>
     /// <param name="Orig. Message">The original message</param>
     /// <param name="Operation">Replacement operation that is currently executed</param>
-    /// <param name="ExecutionSuccess">Replacement ExcecutionSuccess</param>
+    /// <param name="ExecutionSuccess">Replacement ExecutionSuccess</param>
     /// <param name="Message">Replacement Message</param>
     [IntegrationEvent(false, false)]
-    procedure OnBeforeBCCTLineAddLogEntry(SuiteCode: Code[10]; CodeunitId: Integer; Description: Text; "Orig. Operation": Text; "Orig. ExecutionSuccess": Boolean; "Orig. Message": Text; var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text)
+    procedure OnBeforeBCCTLineAddLogEntry(SuiteCode: Code[100]; CodeunitId: Integer; Description: Text[250]; "Orig. Operation": Text; "Orig. ExecutionSuccess": Boolean; "Orig. Message": Text; var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text)
     begin
     end;
 }

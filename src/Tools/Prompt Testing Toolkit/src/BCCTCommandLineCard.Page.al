@@ -79,7 +79,7 @@ page 149042 "BCCT CommandLine Card"
         CurrentBCCTHeader: Record "BCCT Header";
         CannotFindBCCTSuiteErr: Label 'The specified BCCT Suite with code %1 cannot be found.', Comment = '%1 = BCCT Suite id.';
         EnableActions: Boolean;
-        BCCTCode: Code[10];
+        BCCTCode: Code[100];
         NoOfTests: Integer;
 
     trigger OnOpenPage()

@@ -22,7 +22,7 @@ table 149034 "BCCT Log Entry"
             Caption = 'Entry No.';
             AutoIncrement = true;
         }
-        field(2; "BCCT Code"; Code[10])
+        field(2; "BCCT Code"; Code[100])
         {
             Caption = 'BCCT Code';
             NotBlank = true;

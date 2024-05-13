@@ -15,12 +15,12 @@ table 149030 "BCCT Header"
 
     fields
     {
-        field(1; "Code"; Code[10])
+        field(1; "Code"; Code[100])
         {
             Caption = 'Code';
             NotBlank = true;
         }
-        field(2; "Description"; Text[50])
+        field(2; "Description"; Text[250])
         {
             Caption = 'Description';
         }

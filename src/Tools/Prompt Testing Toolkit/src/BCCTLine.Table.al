@@ -16,7 +16,7 @@ table 149032 "BCCT Line"
 
     fields
     {
-        field(1; "BCCT Code"; Code[10])
+        field(1; "BCCT Code"; Code[100])
         {
             Caption = 'BCCT Code';
             Editable = false;
@@ -75,7 +75,7 @@ table 149032 "BCCT Line"
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit), "Object ID" = field("Codeunit ID")));
         }
 
-        field(6; "Description"; Text[50])
+        field(6; "Description"; Text[250])
         {
             Caption = 'Description';
             DataClassification = CustomerContent;
