@@ -44,6 +44,35 @@ codeunit 132520 "AFS File Client Test"
     end;
 
     [Test]
+    procedure CreateTextFileStorageAccountKeyTest()
+    var
+        AFSFileClient: Codeunit "AFS File Client";
+        AFSOperationResponse: Codeunit "AFS Operation Response";
+        FileContentLbl: Label 'Hello World!', Locked = true;
+        FilePathLbl: Label 'test.txt', Locked = true;
+        FileContentReturn: Text;
+    begin
+        // [SCENARIO] User wants to send a text file to azure file share using shared key authorization.
+
+        // [GIVEN] A storage account with shared key authorization
+        AFSInitTestStorage.ClearFileShare();
+        SharedKeyAuthorization := AFSGetTestStorageAuth.GetSharedKeyAuthorization(AFSInitTestStorage.GetAccessKey());
+
+        // [WHEN] The programmer creates a text file in the file share and puts the content in it
+        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+
+        AFSOperationResponse := AFSFileClient.CreateFile(FilePathLbl, StrLen(FileContentLbl));
+        LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
+        AFSOperationResponse := AFSFileClient.PutFileText(FilePathLbl, FileContentLbl);
+        LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
+
+        // [THEN] The file is created and the content is correct
+        AFSOperationResponse := AFSFileClient.GetFileAsText(FilePathLbl, FileContentReturn);
+        LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
+        LibraryAssert.AreEqual(FileContentLbl, FileContentReturn, 'File content mismatch.');
+    end;
+
+    [Test]
     procedure CreateTextFileNoParentDirectoryTest()
     var
         AFSFileClient: Codeunit "AFS File Client";
@@ -65,6 +94,60 @@ codeunit 132520 "AFS File Client Test"
 
         // [THEN] An error is returned
         LibraryAssert.AreEqual(StrSubstNo(ExpectedErrorLbl, FilePathLbl, AFSInitTestStorage.GetFileShareName()), AFSOperationResponse.GetError(), 'Error message mismatch.');
+    end;
+
+    [Test]
+    procedure MaxResultsAndMarkerTest()
+    var
+        AFSDirectoryContent: Record "AFS Directory Content";
+        AFSFileClient: Codeunit "AFS File Client";
+        AFSOperationResponse: Codeunit "AFS Operation Response";
+        AFSOptionalParameters: Codeunit "AFS Optional Parameters";
+    begin
+        // [SCENARIO] User wants to read directory entries with paging
+
+        // [GIVEN] A storage account with a file share and a preset file structure
+        // -- parentdir
+        //    -- test.txt
+        //    -- test2.txt
+        //    -- deeperdir
+        //       -- test3.txt
+        //       -- test4.txt
+        // -- anotherdir
+        //    -- image.jpg
+        //    -- document.pdf
+        //    -- spreadsheet.xlsx
+        //    -- emptydir
+        AFSInitTestStorage.ClearFileShare();
+        SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
+        InitializeFileShareStructure();
+
+        // [GIVEN] Parameter to limit the number of results to 1 (paging)
+        AFSOptionalParameters.MaxResults(1);
+
+        // [WHEN] The programmer runs a list operation on the root directory
+        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSOperationResponse := AFSFileClient.ListDirectory('', AFSDirectoryContent, AFSOptionalParameters);
+        LibraryAssert.IsTrue(AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
+
+        // [THEN] Only the first entry parentdir must be returned and a marker must be set
+        LibraryAssert.AreEqual(1, AFSDirectoryContent.Count(), 'Wrong number of files and/or directories returned with MaxResults set.');
+        LibraryAssert.AreNotEqual('', AFSDirectoryContent."Next Marker", 'Next Marker must not be empty.');
+
+        AFSDirectoryContent.SetRange("Full Name", 'parentdir');
+        LibraryAssert.RecordIsNotEmpty(AFSDirectoryContent);
+
+        // [WHEN] The programmer runs a further list operation on the root directory with the returned marker set
+        AFSOptionalParameters.Marker(AFSDirectoryContent."Next Marker");
+        AFSOperationResponse := AFSFileClient.ListDirectory('', AFSDirectoryContent, AFSOptionalParameters);
+        LibraryAssert.IsTrue(AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
+
+        // [THEN] The second entry anotherdir must be returned and the marker must be cleared
+        LibraryAssert.AreEqual(1, AFSDirectoryContent.Count(), 'Wrong number of files and/or directories returned with MaxResults set.');
+        LibraryAssert.AreEqual('', AFSDirectoryContent."Next Marker", 'Next Marker must be empty.');
+
+        AFSDirectoryContent.SetRange("Full Name", 'anotherdir');
+        LibraryAssert.RecordIsNotEmpty(AFSDirectoryContent);
     end;
 
     [Test]

@@ -55,6 +55,22 @@ codeunit 1484 "XmlWriter Impl."
         XmlTextWriter.WriteElementString(LocalName, ElementValue);
     end;
 
+    procedure WriteElementString(LocalName: Text; ElementValue: Text; Namespace: Text)
+    begin
+        if not Initialized then
+            Initialize();
+
+        XmlTextWriter.WriteElementString(LocalName, Namespace, ElementValue);
+    end;
+
+    procedure WriteElementString(LocalName: Text; ElementValue: Text; Namespace: Text; Prefix: Text)
+    begin
+        if not Initialized then
+            Initialize();
+
+        XmlTextWriter.WriteElementString(Prefix, LocalName, Namespace, ElementValue);
+    end;
+
     procedure WriteString(ElementText: Text)
     begin
         if not Initialized then

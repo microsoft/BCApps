@@ -28,7 +28,7 @@ codeunit 7774 "Copilot Capability Impl"
         NotRegisteredErr: Label 'Copilot capability has not been registered by the module.';
         ReviewPrivacyNoticeLbl: Label 'Review the privacy notice';
         PrivacyNoticeDisagreedNotificationMessageLbl: Label 'To enable Copilot, please review and accept the privacy notice.';
-        CapabilitiesNotAvailableOnPremNotificationMessageLbl: Label 'Note that copilot and AI capabilities published by Microsoft are not available on-premises.';
+        CapabilitiesNotAvailableOnPremNotificationMessageLbl: Label 'Copilot capabilities published by Microsoft are not available on-premises. You can extend Copilot with custom capabilities and use them on-premises for development purposes only.';
         TelemetryRegisteredNewCopilotCapabilityLbl: Label 'New copilot capability has been registered.', Locked = true;
         TelemetryModifiedCopilotCapabilityLbl: Label 'Copilot capability has been modified.', Locked = true;
         TelemetryUnregisteredCopilotCapabilityLbl: Label 'Copilot capability has been unregistered.', Locked = true;
@@ -239,7 +239,7 @@ codeunit 7774 "Copilot Capability Impl"
         IsAdmin := AzureADGraphUser.IsUserDelegatedAdmin() or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetBCAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId()) or AzureADGraphUser.IsUserDelegatedHelpdesk() or UserPermissions.IsSuper(UserSecurityId());
     end;
 
-    [Tryfunction]
+    [TryFunction]
     procedure CheckGeo(var WithinGeo: Boolean; var WithinEuropeGeo: Boolean)
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;

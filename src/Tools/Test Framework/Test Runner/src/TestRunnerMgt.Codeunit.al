@@ -10,7 +10,8 @@ using System.Reflection;
 
 codeunit 130454 "Test Runner - Mgt"
 {
-    Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;
+    Permissions = tabledata "AL Test Suite" = rimd,
+                  tabledata "Test Method Line" = rimd;
 
     var
         ALTestRunnerResetEnvironment: Codeunit "ALTestRunner Reset Environment";

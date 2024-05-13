@@ -115,7 +115,7 @@ codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
         AllowedTablesFilter: Text;
         AllowedTablesCommaSep: Text;
         TableId: Integer;
-        i: integer;
+        i: Integer;
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         // setup

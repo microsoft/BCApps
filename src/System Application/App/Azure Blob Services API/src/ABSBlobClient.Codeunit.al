@@ -577,8 +577,23 @@ codeunit 9053 "ABS Blob Client"
     /// <param name="FoundBlobs">An XmlDocument containing the results of the identified blobs.</param>
     /// <returns>An operation response object</returns>
     procedure FindBlobsByTags(SearchTags: Dictionary of [Text, Text]; var FoundBlobs: XmlDocument): Codeunit "ABS Operation Response"
+    var
+        OptionalParameters: Codeunit "ABS Optional Parameters";
     begin
-        exit(ABSClientImpl.FindBlobsByTags(SearchTags, FoundBlobs));
+        exit(ABSClientImpl.FindBlobsByTags(SearchTags, FoundBlobs, OptionalParameters));
+    end;
+
+    /// <summary>
+    /// The Find Blobs By Tags operation retrieves blobs based on user-defined tags for the specified blob, represented as one or more key-value pairs.
+    /// see: https://learn.microsoft.com/rest/api/storageservices/find-blobs-by-tags?tabs=azure-ad
+    /// </summary>
+    /// <param name="SearchTags">A Dictionary of [Text, Text] with tags to search on.</param>
+    /// <param name="FoundBlobs">An XmlDocument containing the results of the identified blobs.</param>
+    /// <param name="OptionalParameters">Optional parameters to pass.</param>
+    /// <returns>An operation response object</returns>
+    procedure FindBlobsByTags(SearchTags: Dictionary of [Text, Text]; var FoundBlobs: XmlDocument; OptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.FindBlobsByTags(SearchTags, FoundBlobs, OptionalParameters));
     end;
 
     /// <summary>
@@ -771,7 +786,70 @@ codeunit 9053 "ABS Blob Client"
     /// <returns>An operation response object</returns>
     procedure PutBlockList(CommitedBlocks: Dictionary of [Text, Integer]; UncommitedBlocks: Dictionary of [Text, Integer]): Codeunit "ABS Operation Response"
     begin
-        exit(ABSClientImpl.PutBlockList(CommitedBlocks, UncommitedBlocks));
+        exit(ABSClientImpl.PutBlockList('', CommitedBlocks, UncommitedBlocks));
+    end;
+
+    /// <summary>
+    /// The Put Block List operation writes a blob by specifying the list of block IDs that make up the blob.
+    /// see: https://go.microsoft.com/fwlink/?linkid=2210392
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="CommitedBlocks">Dictionary of [Text, Integer] containing the list of commited blocks that should be put to the Blob</param>
+    /// <param name="UncommitedBlocks">Dictionary of [Text, Integer] containing the list of uncommited blocks that should be put to the Blob</param>
+    /// <returns>An operation response object</returns>
+    procedure PutBlockList(BlobName: Text; CommitedBlocks: Dictionary of [Text, Integer]; UncommitedBlocks: Dictionary of [Text, Integer]): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.PutBlockList(BlobName, CommitedBlocks, UncommitedBlocks));
+    end;
+
+    /// <summary>
+    /// The Put Block operation creates a new block to be committed as part of a blob.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="SourceText">The Content of the Block as Text.</param>
+    /// <param name="BlockId">Specifies the BlockId that should be put.</param>
+    /// <returns>An operation response object</returns>
+    procedure PutBlockText(BlobName: Text; SourceText: Text; BlockId: Text): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.PutBlock(BlobName, SourceText, BlockId));
+    end;
+
+    /// <summary>
+    /// The Put Block operation creates a new block to be committed as part of a blob.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="SourceText">The Content of the Block as Text.</param>
+    /// <returns>An operation response object</returns>
+    procedure PutBlockText(BlobName: Text; SourceText: Text): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.PutBlock(BlobName, SourceText));
+    end;
+
+    /// <summary>
+    /// The Put Block operation creates a new block to be committed as part of a blob.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="SourceInStream">The Content of the Block as InStream.</param>
+    /// <returns>An operation response object</returns>
+    procedure PutBlockStream(BlobName: Text; SourceInStream: InStream): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.PutBlock(BlobName, SourceInStream));
+    end;
+
+    /// <summary>
+    /// The Put Block operation creates a new block to be committed as part of a blob.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="SourceInStream">The Content of the Block as InStream.</param>
+    /// <param name="BlockId">Specifies the BlockId that should be put.</param>
+    /// <returns>An operation response object</returns>
+    procedure PutBlockStream(BlobName: Text; SourceInStream: InStream; BlockId: Text): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.PutBlock(BlobName, SourceInStream, BlockId));
     end;
 
     /// <summary>

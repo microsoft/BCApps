@@ -40,7 +40,7 @@ codeunit 2518 "AppSrc Product Deps. Provider" implements "AppSource Product Mana
         exit(EnvironmentInformation.GetApplicationFamily());
     end;
 
-    procedure IsSaas(): boolean
+    procedure IsSaas(): Boolean
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
@@ -59,7 +59,7 @@ codeunit 2518 "AppSrc Product Deps. Provider" implements "AppSource Product Mana
         exit(RestClient.GetAsJSon(RequestUri));
     end;
 
-    procedure GetUserSettings(UserSecurityId: Guid; var TempUserSettingsRecord: record "User Settings" temporary)
+    procedure GetUserSettings(UserSecurityId: Guid; var TempUserSettingsRecord: Record "User Settings" temporary)
     var
         UserSettings: Codeunit "User Settings";
     begin
