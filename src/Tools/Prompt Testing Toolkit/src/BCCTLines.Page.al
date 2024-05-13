@@ -96,11 +96,13 @@ page 149034 "BCCT Lines"
                 {
                     ApplicationArea = All;
                     Style = Favorable;
+                    ToolTip = 'Specifies the number of tests passed in the current Version.';
                     // Visible = false;
                 }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the number of operations in the current Version.';
                     // Visible = false;
                 }
                 field("No. of Tests Failed"; Rec."No. of Tests" - Rec."No. of Tests Passed")
@@ -139,12 +141,14 @@ page 149034 "BCCT Lines"
                 field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the number of tests passed in the base Version.';
                     Style = Favorable;
                     // Visible = false;
                 }
                 field("No. of Operations - Base"; Rec."No. of Operations - Base")
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the number of operations in the base Version.';
                     // Visible = false;
                 }
                 field("No. of Tests Failed - Base"; Rec."No. of Tests - Base" - Rec."No. of Tests Passed - Base")

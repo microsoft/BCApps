@@ -22,6 +22,7 @@ page 149032 "BCCT Dataset"
             {
                 field("Dataset Name"; Rec."Dataset Name")
                 {
+                    ToolTip = 'Specifies Dataset Name';
                 }
             }
             part("BCCT Dataset Lines Part"; "BCCT Dataset Lines Part")
