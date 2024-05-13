@@ -103,12 +103,26 @@ page 149038 "BCCT Log Entry API"
                 {
                     Caption = 'Dataset Line No.';
                 }
-                field("inputData"; Rec."Input Data") //TODO: might need to return Text
+                field("inputData"; this.InputText)
                 {
                     Caption = 'Input Data';
                 }
-                // TODO the output + metrics fields
+                field("outputData"; this.OutputText)
+                {
+                    Caption = 'Output Data';
+                }
+                // TODO metrics fields
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    begin
+        InputText := Rec.GetInputBlob();
+        OutputText := Rec.GetOutputBlob();
+    end;
+
+    var
+        InputText: Text;
+        OutputText: Text;
 }

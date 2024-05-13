@@ -179,6 +179,38 @@ table 149030 "BCCT Header"
             FieldClass = FlowField;
             CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version")));
         }
+        field(31; "No. of Tests Executed - Base"; Integer)
+        {
+            Caption = 'No. of Tests Executed';
+            // ToolTip ='Specifies the number of tests executed in the base version.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+        }
+        field(32; "No. of Tests Passed - Base"; Integer)
+        {
+            Caption = 'No. of Tests Passed';
+            // ToolTip ='Specifies the number of tests passed in the base version.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+        }
+        field(33; "No. of Operations - Base"; Integer) //TODO: Change the name to No. of Scenarios? 
+        {
+            Caption = 'No. of Operations';
+            // ToolTip ='Specifies the number of operations executed including "Execute Procedure" operation for the base version.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version")));
+        }
+        field(34; "Total Duration (ms) - Base"; Integer)
+        {
+            Caption = 'Total Duration (ms) - Base';
+            // ToolTip ='Specifies the Total Duration (ms) for executing all the tests in the base version.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Base Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+        }
     }
 
     keys
