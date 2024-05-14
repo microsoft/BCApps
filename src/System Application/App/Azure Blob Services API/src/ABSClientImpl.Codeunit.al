@@ -554,21 +554,22 @@ codeunit 9051 "ABS Client Impl."
         exit(ABSOperationResponse);
     end;
 
-    procedure FindBlobsByTags(SearchTags: Dictionary of [Text, Text]; var FoundBlobs: XmlDocument): Codeunit "ABS Operation Response"
+    procedure FindBlobsByTags(SearchTags: Dictionary of [Text, Text]; var FoundBlobs: XmlDocument; OptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
     begin
-        ABSOperationResponse := FindBlobsByTags(ABSFormatHelper.TagsDictionaryToSearchExpression(SearchTags), FoundBlobs);
+        ABSOperationResponse := FindBlobsByTags(ABSFormatHelper.TagsDictionaryToSearchExpression(SearchTags), FoundBlobs, OptionalParameters);
         exit(ABSOperationResponse);
     end;
 
-    procedure FindBlobsByTags(SearchExpression: Text; var FoundBlobs: XmlDocument): Codeunit "ABS Operation Response"
+    procedure FindBlobsByTags(SearchExpression: Text; var FoundBlobs: XmlDocument; OptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
         Operation: Enum "ABS Operation";
         ResponseText: Text;
     begin
         ABSOperationPayload.SetOperation(Operation::FindBlobByTags);
+        ABSOperationPayload.SetOptionalParameters(OptionalParameters);
         ABSOperationPayload.AddUriParameter('where', SearchExpression);
 
         ABSOperationResponse := ABSWebRequestHelper.GetOperationAsText(ABSOperationPayload, ResponseText, FindBlobsByTagsOperationNotSuccessfulErr);
@@ -641,15 +642,15 @@ codeunit 9051 "ABS Client Impl."
         exit(ABSOperationResponse);
     end;
 
-    procedure PutBlock(SourceContentVariant: Variant): Codeunit "ABS Operation Response"
+    procedure PutBlock(BlobName: Text; SourceContentVariant: Variant): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
     begin
-        ABSOperationResponse := PutBlock(SourceContentVariant, ABSFormatHelper.GetBase64BlockId());
+        ABSOperationResponse := PutBlock(BlobName, SourceContentVariant, ABSFormatHelper.GetBase64BlockId());
         exit(ABSOperationResponse);
     end;
 
-    procedure PutBlock(SourceContentVariant: Variant; BlockId: Text): Codeunit "ABS Operation Response"
+    procedure PutBlock(BlobName: Text; SourceContentVariant: Variant; BlockId: Text): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
         Operation: Enum "ABS Operation";
@@ -658,6 +659,7 @@ codeunit 9051 "ABS Client Impl."
         SourceText: Text;
     begin
         ABSOperationPayload.SetOperation(Operation::PutBlock);
+        ABSOperationPayload.SetBlobName(BlobName);
         ABSOperationPayload.AddUriParameter('blockid', BlockId);
 
         case true of
@@ -710,7 +712,7 @@ codeunit 9051 "ABS Client Impl."
         exit(ABSOperationResponse);
     end;
 
-    procedure PutBlockList(CommitedBlocks: Dictionary of [Text, Integer]; UncommitedBlocks: Dictionary of [Text, Integer]): Codeunit "ABS Operation Response"
+    procedure PutBlockList(BlobName: Text; CommitedBlocks: Dictionary of [Text, Integer]; UncommitedBlocks: Dictionary of [Text, Integer]): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
         BlockList: Dictionary of [Text, Text];
@@ -718,17 +720,19 @@ codeunit 9051 "ABS Client Impl."
     begin
         ABSFormatHelper.BlockDictionariesToBlockListDictionary(CommitedBlocks, UncommitedBlocks, BlockList, false);
         BlockListAsXml := ABSFormatHelper.BlockListDictionaryToXmlDocument(BlockList);
-        ABSOperationResponse := PutBlockList(BlockListAsXml);
+        ABSOperationResponse := PutBlockList(BlobName, BlockListAsXml);
         exit(ABSOperationResponse);
     end;
 
-    procedure PutBlockList(BlockList: XmlDocument): Codeunit "ABS Operation Response"
+    procedure PutBlockList(BlobName: Text; BlockList: XmlDocument): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
         Operation: Enum "ABS Operation";
         HttpContent: HttpContent;
     begin
         ABSOperationPayload.SetOperation(Operation::PutBlockList);
+        ABSOperationPayload.SetBlobName(BlobName);
+
         ABSHttpContentHelper.AddBlockListContent(HttpContent, ABSOperationPayload, BlockList);
         ABSOperationResponse := ABSWebRequestHelper.PutOperation(ABSOperationPayload, HttpContent, StrSubstNo(BlockListOperationNotSuccessfulErr, ABSOperationPayload.GetBlobName(), 'put'));
         exit(ABSOperationResponse);

@@ -9,7 +9,8 @@ using System.Reflection;
 
 codeunit 130456 "Test Suite Mgt."
 {
-    Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;
+    Permissions = tabledata "AL Test Suite" = rimd,
+                  tabledata "Test Method Line" = rimd;
 
     trigger OnRun()
     begin
@@ -365,7 +366,7 @@ codeunit 130456 "Test Suite Mgt."
         NewALTestSuite.Copy(ALTestSuite);
     end;
 
-    procedure UpdateTestMethods(var TestMethodLine: record "Test Method Line")
+    procedure UpdateTestMethods(var TestMethodLine: Record "Test Method Line")
     var
         BackupTestMethodLine: Record "Test Method Line";
         TestRunnerGetMethods: Codeunit "Test Runner - Get Methods";

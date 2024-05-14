@@ -673,5 +673,4 @@ codeunit 7772 "Azure OpenAI Impl"
         Session.LogMessage('0000MLE', TelemetryTenantAllowlistedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
         exit(true);
     end;
-
 }

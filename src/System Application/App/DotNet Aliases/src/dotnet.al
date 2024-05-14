@@ -9,7 +9,6 @@ dotnet
 {
     assembly("DocumentFormat.OpenXml")
     {
-
         type("DocumentFormat.OpenXml.BooleanValue"; "BooleanValue")
         {
         }
@@ -2238,4 +2237,3 @@ dotnet
         }
     }
 }
-

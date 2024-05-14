@@ -865,3 +865,4 @@ codeunit 135150 "Data Classification Mgt. Tests"
         DataClassificationMgt.InsertDataPrivacyEntity(DataPrivacyEntities, Database::"Fields Sync Status", Page::"Field Content Buffer", 1, '', 1);
     end;
 }
+

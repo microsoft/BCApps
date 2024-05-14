@@ -411,4 +411,22 @@ codeunit 149006 "BCPT Test Suite"
         BCPTLine.SetRange("BCPT Code", SuiteCode);
         BCPTLine.SetRange("Codeunit ID", CodeunitID);
     end;
+
+    /// <summary>
+    /// This event is raised before a log entry is added to the BCPT Line table.
+    /// It can be used to skip errors which are not relevant for the test suite. Like unused handler functions.
+    /// </summary>
+    /// <param name="SuiteCode">The test suite code</param>
+    /// <param name="CodeunitId">The id of the test codunit that is being run</param>
+    /// <param name="Description">Description of the test on the "BCPT Line"</param>
+    /// <param name="Orig. Operation">Original operation that is currently executed</param>
+    /// <param name="Orig. ExecutionSuccess">The original ExecutionSuccess</param>
+    /// <param name="Orig. Message">The original message</param>
+    /// <param name="Operation">Replacement operation that is currently executed</param>
+    /// <param name="ExecutionSuccess">Replacement ExcecutionSuccess</param>
+    /// <param name="Message">Replacement Message</param>
+    [IntegrationEvent(false, false)]
+    procedure OnBeforeBCPTLineAddLogEntry(SuiteCode: Code[10]; CodeunitId: Integer; Description: Text; "Orig. Operation": Text; "Orig. ExecutionSuccess": Boolean; "Orig. Message": Text; var Operation: Text; var ExecutionSuccess: Boolean; var Message: Text)
+    begin
+    end;
 }

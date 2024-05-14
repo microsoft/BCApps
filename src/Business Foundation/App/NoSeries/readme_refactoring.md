@@ -55,7 +55,7 @@ if "No." = '' then begin
     GLSetup.TestField("Bank Account Nos.");
     "No. Series" := GLSetup."Bank Account Nos.";
     if NoSeries.AreRelated(GLSetup."Bank Account Nos.", xRec."No. Series") then
-        "No. Series" := xRec."No. Series"
+        "No. Series" := xRec."No. Series";
     "No." := NoSeries.GetNextNo("No. Series");
 end;
 ```
@@ -70,7 +70,7 @@ if "No." = '' then begin
     if not IsHandled then begin
         "No. Series" := GLSetup."Bank Account Nos.";
         if NoSeries.AreRelated(GLSetup."Bank Account Nos.", xRec."No. Series") then
-            "No. Series" := xRec."No. Series"
+            "No. Series" := xRec."No. Series";
         "No." := NoSeries.GetNextNo("No. Series");
         NoSeriesManagement.RaiseObsoleteOnAfterInitSeries("No. Series", GLSetup."Bank Account Nos.", 0D, "No.");
     end;
@@ -132,7 +132,7 @@ end;
 ```
 New:
 ```
-"Document No." := NoSeriesBatch.SimulateGetNextNo(GenJnlBatch."No. Series", Rec."Posting Date", "Document No.")
+"Document No." := NoSeriesBatch.SimulateGetNextNo(GenJnlBatch."No. Series", Rec."Posting Date", "Document No.");
 ```
 
 This new function uses the details of the given number series to increment the document number. If the number series doesn't exist, the document number increases by one.
