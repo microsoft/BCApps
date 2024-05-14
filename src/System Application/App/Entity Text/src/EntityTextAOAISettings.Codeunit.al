@@ -91,12 +91,13 @@ codeunit 2011 "Entity Text AOAI Settings"
 
     local procedure IsSupportedLanguage(): Boolean
     var
-        SupportedLanguages: Enum "Entity Text Languages";
+        NonSupportedLanguage: Text;
         LanguageName: Text;
     begin
+        NonSupportedLanguage := 'portuguese';
         LanguageName := LowerCase(GetLanguageName()).Split(' ').Get(1);
 
-        exit(SupportedLanguages.Names.Contains(LanguageName));
+        exit(NonSupportedLanguage <> LanguageName);
     end;
 
     procedure GetLanguageName(): Text
