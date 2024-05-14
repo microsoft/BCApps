@@ -22,6 +22,7 @@ codeunit 2011 "Entity Text AOAI Settings"
 
     procedure IsEnabled(Silent: Boolean): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         EntityText: Record "Entity Text";
         AzureOpenAI: Codeunit "Azure OpenAI";
         CopilotCapability: Codeunit "Copilot Capability";
