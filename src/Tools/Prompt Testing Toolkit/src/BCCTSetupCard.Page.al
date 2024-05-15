@@ -61,6 +61,11 @@ page 149031 "BCCT Setup Card"
                 {
                     ToolTip = 'Specifies the Base version of the test run. Used for comparisons in the lines.';
                     ApplicationArea = All;
+
+                    trigger OnValidate()
+                    begin
+                        UpdateAverageExecutionTimeBase();
+                    end;
                 }
                 field(Status; Rec.Status)
                 {
@@ -380,16 +385,21 @@ page 149031 "BCCT Setup Card"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateAverageExecutionTime();
+        UpdateAverageExecutionTimeBase();
     end;
 
     local procedure UpdateAverageExecutionTime()
     begin
-        Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)");
+        Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)", "No. of Tests Executed - Base", "Total Duration (ms) - Base");
         if Rec."No. of Tests Executed" > 0 then
             AvgTime := Rec."Total Duration (ms)" / Rec."No. of Tests Executed"
         else
             AvgTime := 0;
+    end;
 
+    local procedure UpdateAverageExecutionTimeBase()
+    begin
+        Rec.CalcFields("No. of Tests Executed - Base", "Total Duration (ms) - Base");
         if Rec."No. of Tests Executed - Base" > 0 then
             AvgTimeBase := Rec."Total Duration (ms) - Base" / Rec."No. of Tests Executed - Base"
         else
