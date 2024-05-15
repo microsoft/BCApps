@@ -643,7 +643,9 @@ codeunit 8900 "Email Impl"
 
     local procedure CheckRequiredPermissions()
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         SentEmail: Record "Sent Email";
+        [SecurityFiltering(SecurityFilter::Ignored)]
         EmailOutBox: Record "Email Outbox";
     begin
         if not SentEmail.ReadPermission() or
