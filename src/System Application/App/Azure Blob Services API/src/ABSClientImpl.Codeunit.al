@@ -49,7 +49,6 @@ codeunit 9051 "ABS Client Impl."
 
     #endregion
 
-    [NonDebuggable]
     procedure Initialize(StorageAccountName: Text; ContainerName: Text; BlobName: Text; Authorization: Interface "Storage Service Authorization"; ApiVersion: Enum "Storage Service API Version")
     begin
         ABSOperationPayload.Initialize(StorageAccountName, ContainerName, BlobName, Authorization, ApiVersion);
@@ -60,7 +59,6 @@ codeunit 9051 "ABS Client Impl."
         ABSOperationPayload.SetBaseUrl(BaseUrl);
     end;
 
-    [NonDebuggable]
     procedure ListContainers(var ABSContainer: Record "ABS Container"; ABSOptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
@@ -108,7 +106,6 @@ codeunit 9051 "ABS Client Impl."
         exit(ABSOperationResponse);
     end;
 
-    [NonDebuggable]
     procedure ListBlobs(var ABSContainerContent: Record "ABS Container Content"; ABSOptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
     var
         ABSHelperLibrary: Codeunit "ABS Helper Library";
@@ -130,7 +127,6 @@ codeunit 9051 "ABS Client Impl."
         exit(ABSOperationResponse);
     end;
 
-    [NonDebuggable]
     procedure ListBlobs(var BlobList: Dictionary of [Text, XmlNode]; ABSOptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
     var
         ABSHelperLibrary: Codeunit "ABS Helper Library";

@@ -5,7 +5,7 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/25.0.19293.0/base",
+  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/25.0.19593.0/base",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "25.0",
@@ -73,5 +73,5 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "a301f48233c44284b81a2a7af34679b17958c3d8"
+  "templateSha": "23c7498153e4087d447cbc1dac955586af473430"
 }

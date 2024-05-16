@@ -50,6 +50,8 @@ codeunit 9871 "Security Group Impl."
     procedure Create(GroupCode: Code[20]; GroupId: Text)
     var
         SecurityGroup: Record "Security Group";
+        [SecurityFiltering(SecurityFilter::Ignored)]
+        SecurityGroup2: Record "Security Group";
         SecurityGroupUser: Record User;
         FeatureTelemetry: Codeunit "Feature Telemetry";
         NavUserAccountHelper: DotNet NavUserAccountHelper;
@@ -58,7 +60,7 @@ codeunit 9871 "Security Group Impl."
     begin
         // CreateUserFromAAdGroupObjectId will commit the changes to the User table, so we need to
         // make sure there will not be a permission error when inserting a security group record.
-        if not SecurityGroup.WritePermission() then
+        if not SecurityGroup2.WritePermission() then
             Error(NoPermissionsErr);
 
         if SecurityGroup.Get(GroupCode) then
@@ -199,6 +201,7 @@ codeunit 9871 "Security Group Impl."
     var
         User: Record User;
         UserProperty: Record "User Property";
+        [SecurityFiltering(SecurityFilter::Ignored)]
         DummySecurityGroup: Record "Security Group";
         LocalSecurityGroupBuffer: Record "Security Group Buffer";
         EntraGroupId: Text;

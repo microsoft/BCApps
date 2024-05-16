@@ -14,17 +14,11 @@ codeunit 9357 "Graph Auth. Client Credentials" implements "Graph Authorization"
 
     var
         ClientCredentialsTokenAuthorityUrlTxt: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/token', Comment = '%1 = AAD tenant ID', Locked = true;
-        [NonDebuggable]
         Scopes: List of [Text];
-        [NonDebuggable]
         ClientSecret: SecretText;
-        [NonDebuggable]
         AadTenantId: Text;
-        [NonDebuggable]
-        [NonDebuggable]
         ClientId: Text;
 
-    [NonDebuggable]
     procedure SetParameters(NewAadTenantId: Text; NewClientId: Text; NewClientSecret: SecretText; NewScopes: List of [Text])
     begin
         AadTenantId := NewAadTenantId;
