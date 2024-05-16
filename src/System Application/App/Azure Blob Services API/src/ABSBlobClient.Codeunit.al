@@ -1127,9 +1127,6 @@ codeunit 9053 "ABS Blob Client"
         exit(ABSClientImpl.BlobChangeLease(BlobName, ABSOptionalParameters, LeaseId, ProposedLeaseId));
     end;
 
-    var
-        ABSClientImpl: Codeunit "ABS Client Impl.";
-
     /// <summary>
     /// The GetBlobMetadata operation gets user-defined Metadata for the specified blob as one or more key-value pairs.
     /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-metadata?tabs=microsoft-entra-id
@@ -1168,4 +1165,7 @@ codeunit 9053 "ABS Blob Client"
     begin
         exit(ABSClientImpl.SetBlobMetadata(BlobName, MetaData));
     end;
+
+    var
+        ABSClientImpl: Codeunit "ABS Client Impl.";
 }
