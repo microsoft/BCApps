@@ -24,6 +24,9 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         exit(GetNextNoInternal(NoSeriesLine, false, UsageDate, false));
     end;
 
+    /// <remarks>
+    /// Whenever the Last Date Used Changes, the No. Series Line will be modified. The UpdateLock is only set in cases where the No. Series Line will be modified. 
+    /// </remarks>
     procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     begin
         if (not NoSeriesLine.IsTemporary()) and (NoSeriesLine."Last Date Used" <> UsageDate) then begin
@@ -102,7 +105,7 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         if not NoSeriesStatelessImpl.EnsureLastNoUsedIsWithinValidRange(NoSeriesLine2, HideErrorsAndWarnings) then
             exit('');
 
-        if ModifySeries and ((NoSeriesLine."Last Date Used" <> UsageDate) or (NoSeriesLine.Open <> NoSeriesLine2.Open) or NoSeriesLine.IsTemporary()) then begin
+        if ModifySeries and ((NoSeriesLine."Last Date Used" <> UsageDate) or (NoSeriesLine.Open <> NoSeriesLine2.Open) or NoSeriesLine.IsTemporary()) then begin // Only modify the series if either the date or the open status has changed. Otherwise avoid locking the record.
             NoSeriesLine."Last Date Used" := UsageDate;
             NoSeriesLine.Open := NoSeriesLine2.Open;
 #if not CLEAN24
