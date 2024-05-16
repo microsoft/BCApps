@@ -20,7 +20,6 @@ codeunit 9053 "ABS Blob Client"
     /// <param name="StorageAccount">The name of Storage Account to use.</param>
     /// <param name="Container">The name of the container to use.</param>
     /// <param name="Authorization">The authorization to use.</param>
-    [NonDebuggable]
     procedure Initialize(StorageAccount: Text; Container: Text; Authorization: Interface "Storage Service Authorization")
     var
         StorageServiceAuthorization: Codeunit "Storage Service Authorization";
@@ -35,7 +34,6 @@ codeunit 9053 "ABS Blob Client"
     /// <param name="Container">The name of the container to use.</param>
     /// <param name="Authorization">The authorization to use.</param>
     /// <param name="APIVersion">The used API version to use.</param>
-    [NonDebuggable]
     procedure Initialize(StorageAccount: Text; Container: Text; Authorization: Interface "Storage Service Authorization"; APIVersion: Enum "Storage Service API Version")
     begin
         ABSClientImpl.Initialize(StorageAccount, Container, '', Authorization, APIVersion);
