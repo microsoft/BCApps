@@ -598,17 +598,18 @@ codeunit 9051 "ABS Client Impl."
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
     begin
-        ABSOperationResponse := FindBlobsByTags(ABSFormatHelper.TagsDictionaryToSearchExpression(SearchTags), FoundBlobs);
+        ABSOperationResponse := FindBlobsByTags(ABSFormatHelper.TagsDictionaryToSearchExpression(SearchTags), FoundBlobs, OptionalParameters);
         exit(ABSOperationResponse);
     end;
 
-    procedure FindBlobsByTags(SearchExpression: Text; var FoundBlobs: XmlDocument): Codeunit "ABS Operation Response"
+    procedure FindBlobsByTags(SearchExpression: Text; var FoundBlobs: XmlDocument; OptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
         Operation: Enum "ABS Operation";
         ResponseText: Text;
     begin
         ABSOperationPayload.SetOperation(Operation::FindBlobByTags);
+        ABSOperationPayload.SetOptionalParameters(OptionalParameters);
         ABSOperationPayload.AddUriParameter('where', SearchExpression);
 
         ABSOperationResponse := ABSWebRequestHelper.GetOperationAsText(ABSOperationPayload, ResponseText, FindBlobsByTagsOperationNotSuccessfulErr);

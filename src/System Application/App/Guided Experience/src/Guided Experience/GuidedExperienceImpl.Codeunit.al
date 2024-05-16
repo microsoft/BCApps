@@ -55,6 +55,7 @@ codeunit 1991 "Guided Experience Impl."
     procedure Insert(Title: Text[2048]; ShortTitle: Text[50]; Description: Text[1024]; ExpectedDuration: Integer; ExtensionId: Guid; GuidedExperienceType: Enum "Guided Experience Type"; ObjectTypeToRun: ObjectType; ObjectIDToRun: Integer; Link: Text[250]; AssistedSetupGroup: Enum "Assisted Setup Group"; VideoUrl: Text[250]; VideoCategory: Enum "Video Category"; HelpUrl: Text[250]; ManualSetupCategory: Enum "Manual Setup Category"; Keywords: Text[250]; SpotlighTourType: Enum "Spotlight Tour Type"; SpotlightTourTexts: Dictionary of [Enum "Spotlight Tour Text", Text]; CheckObjectValidity: Boolean; IsPrimarySetup: Boolean)
     var
         PrevGuidedExperienceItem: Record "Guided Experience Item";
+        [SecurityFiltering(SecurityFilter::Ignored)]
         GuidedExperienceItem: Record "Guided Experience Item";
         PrimaryGuidedExperienceItem: Record "Primary Guided Experience Item";
         ChecklistImplementation: Codeunit "Checklist Implementation";
@@ -297,6 +298,7 @@ codeunit 1991 "Guided Experience Impl."
 
     procedure CompleteAssistedSetup(ObjectType: ObjectType; ObjectID: Integer)
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         GuidedExperienceItem: Record "Guided Experience Item";
         GuidedExperienceObjectType: Enum "Guided Experience Object Type";
     begin
@@ -314,6 +316,7 @@ codeunit 1991 "Guided Experience Impl."
 
     procedure ResetAssistedSetup(ObjectType: ObjectType; ObjectID: Integer)
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         GuidedExperienceItem: Record "Guided Experience Item";
         GuidedExperienceObjectType: Enum "Guided Experience Object Type";
     begin
@@ -369,6 +372,7 @@ codeunit 1991 "Guided Experience Impl."
 
     procedure Remove(GuidedExperienceType: Enum "Guided Experience Type"; ObjectType: ObjectType; ObjectID: Integer)
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         GuidedExperienceItem: Record "Guided Experience Item";
         GuidedExperienceObjectType: Enum "Guided Experience Object Type";
         SpotlightTourType: Enum "Spotlight Tour Type";
@@ -385,6 +389,7 @@ codeunit 1991 "Guided Experience Impl."
 
     procedure Remove(GuidedExperienceType: Enum "Guided Experience Type"; ObjectType: ObjectType; ObjectID: Integer; SpotlightTourType: Enum "Spotlight Tour Type")
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         GuidedExperienceItem: Record "Guided Experience Item";
         GuidedExperienceObjectType: Enum "Guided Experience Object Type";
     begin
@@ -399,6 +404,7 @@ codeunit 1991 "Guided Experience Impl."
 
     procedure Remove(GuidedExperienceType: Enum "Guided Experience Type"; Link: Text[250])
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         GuidedExperienceItem: Record "Guided Experience Item";
     begin
         if not GuidedExperienceItem.WritePermission() then
@@ -580,7 +586,7 @@ codeunit 1991 "Guided Experience Impl."
         end;
     end;
 
-    local procedure GetCode(Type: Enum "Guided Experience Type"; ObjectType: Enum "Guided Experience Object Type"; ObjectID: Integer; Link: Text[250]; VideoUrl: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type"): Code[300]
+    internal procedure GetCode(Type: Enum "Guided Experience Type"; ObjectType: Enum "Guided Experience Object Type"; ObjectID: Integer; Link: Text[250]; VideoUrl: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type"): Code[300]
     var
         Url: Text[250];
     begin
@@ -598,9 +604,7 @@ codeunit 1991 "Guided Experience Impl."
         if not GuidedExperienceItem.FindLast() then
             exit(0);
 
-        if HasTheRecordChanged(GuidedExperienceItem, Title, ShortTitle, Description, ExpectedDuration, ExtensionId, GuidedExperienceType, ObjectTypeToRun,
-            ObjectIDToRun, Link, AssistedSetupGroup, VideoUrl, VideoCategory, HelpUrl, ManualSetupCategory, Keywords, SpotlightTourType, SpotlightTourTexts, IsPrimary)
-        then
+        if HasTheRecordChanged(GuidedExperienceItem, Title, ShortTitle, Description, ExpectedDuration, ExtensionId, GuidedExperienceType, ObjectTypeToRun, ObjectIDToRun, Link, AssistedSetupGroup, VideoUrl, VideoCategory, HelpUrl, ManualSetupCategory, Keywords, SpotlightTourType, SpotlightTourTexts, IsPrimary) then
             exit(GuidedExperienceItem.Version + 1);
 
         exit(-1);

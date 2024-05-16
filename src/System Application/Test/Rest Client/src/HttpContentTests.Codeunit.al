@@ -172,6 +172,27 @@ codeunit 134970 "Http Content Tests"
     end;
 
     [Test]
+    procedure TestAsJsonWithNoContent()
+    var
+        ALHttpContent: Codeunit "Http Content";
+        JsonToken: JsonToken;
+        Json: Text;
+    begin
+        // [SCENARIO] Retrieve Json from AL Http Content with no content
+
+        // [GIVEN] AL Http Content created with no content
+        ALHttpContent := ALHttpContent.Create('');
+
+        // [WHEN] Json is retrieved
+        JsonToken := ALHttpContent.AsJson();
+        JsonToken.WriteTo(Json);        
+
+        // [THEN] JsonToken is type Value and has content 'null'
+        Assert.IsTrue(JsonToken.IsValue, 'The json token must be a value');
+        Assert.AreEqual('null', Json, 'The json must be null');
+    end;
+
+    [Test]
     procedure TestCreateWithXmlDocument()
     var
         ALHttpContent: Codeunit "Http Content";

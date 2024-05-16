@@ -226,7 +226,8 @@ codeunit 2354 "Http Content"
 
     /// <summary>Gets the content of the HTTP response message as a JsonToken.</summary>
     /// <returns>The content of the HTTP response message as a JsonToken.</returns>
-    /// <remarks>Fails in case the content is not a valid JSON document.</remarks>
+    /// <remarks>Returns an empty JsonToken in case there is no content. 
+    /// Fails in case the content is not a valid JSON document.</remarks>
     procedure AsJson() JsonToken: JsonToken
     begin
         JsonToken := HttpContentImpl.AsJson();
