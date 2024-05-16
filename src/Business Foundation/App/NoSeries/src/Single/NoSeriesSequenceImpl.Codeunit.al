@@ -24,8 +24,16 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         exit(GetNextNoInternal(NoSeriesLine, false, UsageDate, false));
     end;
 
+    /// <remarks>
+    /// Whenever the Last Date Used Changes, the No. Series Line will be modified. The UpdateLock is only set in cases where the No. Series Line will be modified. 
+    /// </remarks>
     procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     begin
+        if (not NoSeriesLine.IsTemporary()) and (NoSeriesLine."Last Date Used" <> UsageDate) then begin
+            NoSeriesLine.ReadIsolation(IsolationLevel::UpdLock);
+            NoSeriesLine.Find();
+        end;
+
         exit(GetNextNoInternal(NoSeriesLine, true, UsageDate, HideErrorsAndWarnings));
     end;
 
