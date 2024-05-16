@@ -87,11 +87,7 @@ codeunit 9062 "Storage Service Authorization"
     /// <param name="SignedExpiry">The time at which the shared access signature becomes invalid.</param>
     /// <param name="OptionalSASParameters">See table "Stor. Serv. SAS Parameters".</param>
     /// <returns>An account SAS authorization.</returns>
-    procedure CreateAccountSAS(SigningKey: SecretText; SignedVersion: Enum "Storage Service API Version"; SignedServices: List of [Enum "SAS Service Type"];
-                                                                    SignedResources: List of [Enum "SAS Resource Type"];
-                                                                    SignedPermissions: List of [Enum "SAS Permission"];
-                                                                    SignedExpiry: DateTime;
-                                                                    OptionalSASParameters: Record "SAS Parameters"): Interface "Storage Service Authorization"
+    procedure CreateAccountSAS(SigningKey: SecretText; SignedVersion: Enum "Storage Service API Version"; SignedServices: List of [Enum "SAS Service Type"]; SignedResources: List of [Enum "SAS Resource Type"]; SignedPermissions: List of [Enum "SAS Permission"]; SignedExpiry: DateTime; OptionalSASParameters: Record "SAS Parameters"): Interface "Storage Service Authorization"
     var
         StorServAuthImpl: Codeunit "Stor. Serv. Auth. Impl.";
     begin
