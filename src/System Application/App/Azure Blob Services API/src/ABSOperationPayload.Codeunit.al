@@ -17,7 +17,6 @@ codeunit 9042 "ABS Operation Payload"
         ContentHeaders: Dictionary of [Text, Text];
         RequestHeaders: Dictionary of [Text, Text];
         UriParameters: Dictionary of [Text, Text];
-
         Authorization: Interface "Storage Service Authorization";
         ApiVersion: Enum "Storage Service API Version";
         StorageBaseUrl: Text;
