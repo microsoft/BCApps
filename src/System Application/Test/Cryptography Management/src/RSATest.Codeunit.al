@@ -10,7 +10,7 @@ using System.Text;
 using System.Utilities;
 using System.TestLibraries.Utilities;
 
-codeunit 139999 "RSA Test"
+codeunit 132617 "RSA Test"
 {
     Subtype = Test;
 
