@@ -34,8 +34,6 @@ page 149042 "BCCT CommandLine Card"
                         if not BCCTHeader.Get(BCCTCode) then
                             Error(CannotFindBCCTSuiteErr, BCCTCode);
 
-                        //BCCTHeader.CalcFields("Total No. of Sessions");
-                        CurrentBCCTHeader := BCCTHeader;
                         BCCTLine.SetRange("BCCT Code", BCCTCode);
                         NoOfTests := BCCTLine.Count();
                     end;
@@ -76,7 +74,6 @@ page 149042 "BCCT CommandLine Card"
     }
 
     var
-        CurrentBCCTHeader: Record "BCCT Header";
         CannotFindBCCTSuiteErr: Label 'The specified BCCT Suite with code %1 cannot be found.', Comment = '%1 = BCCT Suite id.';
         EnableActions: Boolean;
         BCCTCode: Code[100];
@@ -91,9 +88,13 @@ page 149042 "BCCT CommandLine Card"
 
     local procedure StartNextBCCT()
     var
+        BCCTHeader: Record "BCCT Header";
         BCCTStartTests: Codeunit "BCCT Start Tests";
+        BCCTHeaderCU: Codeunit "BCCT Header";
     begin
-        BCCTStartTests.StartNextTestSuite(CurrentBCCTHeader);
-        CurrentBCCTHeader.Find();
+        if BCCTHeader.Get(BCCTCode) then begin
+            BCCTHeaderCU.ValidateDatasets(BCCTHeader);
+            BCCTStartTests.StartBCCTSuite(BCCTHeader);
+        end;
     end;
 }
