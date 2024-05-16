@@ -222,22 +222,18 @@ page 149034 "BCCT Lines"
                 ApplicationArea = All;
                 Caption = 'Run';
                 Image = Start;
-                Tooltip = 'Starts running the BCCT Suite.';
+                Tooltip = 'Starts running the BCCT Line.';
 
                 trigger OnAction()
-                var
-                    BCCTLineRec: Record "BCCT Line";
                 begin
                     BCCTHeader.Get(Rec."BCCT Code");
                     BCCTHeader.Version += 1;
                     BCCTHeader.Modify();
                     Commit();
                     // If no range is set, all following foreground lines will be run
-                    BCCTLineRec.CopyFilters(Rec);
                     Rec.SetRange("Codeunit ID", Rec."Codeunit ID");
                     Codeunit.Run(codeunit::"BCCT Role Wrapper", Rec);
-                    Rec.Reset();
-                    Rec.CopyFilters(BCCTLineRec);
+                    Rec.SetRange("Codeunit ID"); // reset filter
                 end;
             }
             action(Indent)
