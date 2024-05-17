@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
+#if not CLEAN25
 using System.Environment;
+#endif
 
 codeunit 7769 "AOAI Deployments Impl"
 {
