@@ -39,13 +39,11 @@ codeunit 9061 "Stor. Serv. Auth. SAS" implements "Storage Service Authorization"
         HttpRequestMessage.SetRequestUri(Uri.GetAbsoluteUri());
     end;
 
-    [NonDebuggable]
     procedure SetStorageAccountName(NewStorageAccountName: Text)
     begin
         StorageAccountName := NewStorageAccountName;
     end;
 
-    [NonDebuggable]
     procedure SetSigningKey(NewSigningKey: SecretText)
     begin
         SigningKey := NewSigningKey;
