@@ -14,7 +14,7 @@ using System.TestLibraries.Security.AccessControl;
 codeunit 134692 "Email E2E Tests"
 {
     EventSubscriberInstance = Manual;
-    SubType = Test;
+    Subtype = Test;
     Permissions = tabledata "Email Message" = rid,
                   tabledata "Email Message Attachment" = r,
                   tabledata "Email Recipient" = r,
@@ -529,8 +529,11 @@ codeunit 134692 "Email E2E Tests"
         Assert.AreEqual(Body, EmailViewer.BodyField.Value(), 'Body field value is incorrect');
 
         Assert.IsFalse(EmailViewer.Attachments.Delete.Visible(), 'Delete attachment is visible');
+#if not CLEAN25
+#pragma warning disable AL0432
         Assert.IsFalse(EmailViewer.Attachments.Upload.Visible(), 'Visible attachment is visible');
-
+#pragma warning restore
+#endif
         Assert.IsTrue(EmailViewer.Resend.Visible(), 'Resend action should be visible');
         Assert.IsTrue(EmailViewer.Resend.Enabled(), 'Resend action should be enabled');
 

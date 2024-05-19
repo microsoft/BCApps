@@ -143,4 +143,10 @@ codeunit 2611 "Feature Management Facade"
     internal procedure OnBeforeSetFeatureStatusForOtherCompanies(var FeatureDataUpdateStatus: Record "Feature Data Update Status"; var IsHandled: Boolean)
     begin
     end;
+
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeOpenFeatureManagement(var FeatureManagementPageID: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
 }

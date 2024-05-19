@@ -23,13 +23,13 @@ codeunit 2515 "AppSource Product Manager"
     var
         AppSourceJsonUtilities: Codeunit "AppSource Json Utilities";
         AppSourceProductManagerDependencies: Interface "AppSource Product Manager Dependencies";
-        IsDependenciesInterfaceSet: boolean;
-        CatalogProductsUriLbl: label 'https://catalogapi.azure.com/products', Locked = true;
-        CatalogApiVersionQueryParamNameLbl: label 'api-version', Locked = true;
-        CatalogApiVersionQueryParamValueLbl: label '2023-05-01-preview', Locked = true;
-        CatalogApiOrderByQueryParamNameLbl: label '$orderby', Locked = true;
-        CatalogMarketQueryParamNameLbl: label 'market', Locked = true;
-        CatalogLanguageQueryParamNameLbl: label 'language', Locked = true;
+        IsDependenciesInterfaceSet: Boolean;
+        CatalogProductsUriLbl: Label 'https://catalogapi.azure.com/products', Locked = true;
+        CatalogApiVersionQueryParamNameLbl: Label 'api-version', Locked = true;
+        CatalogApiVersionQueryParamValueLbl: Label '2023-05-01-preview', Locked = true;
+        CatalogApiOrderByQueryParamNameLbl: Label '$orderby', Locked = true;
+        CatalogMarketQueryParamNameLbl: Label 'market', Locked = true;
+        CatalogLanguageQueryParamNameLbl: Label 'language', Locked = true;
         CatalogApiFilterQueryParamNameLbl: Label '$filter', Locked = true;
         CatalogApiSelectQueryParamNameLbl: Label '$select', Locked = true;
         AppSourceListingUriLbl: Label 'https://appsource.microsoft.com/%1/product/dynamics-365-business-central/%2', Comment = '%1=Language ID, such as en-US, %2=Url Query Content', Locked = true;
@@ -137,7 +137,7 @@ codeunit 2515 "AppSource Product Manager"
     procedure ResolveMarketAndLanguage(var Market: Code[2]; var LanguageName: Text)
     var
         Language: Codeunit Language;
-        LanguageID, LocalID : integer;
+        LanguageID, LocalID : Integer;
     begin
         GetCurrentUserLanguageAndLocaleID(LanguageID, LocalID);
 
@@ -264,10 +264,10 @@ codeunit 2515 "AppSource Product Manager"
     /// <summary>
     /// Get all products from a remote server and adds them to the AppSource Product table.
     /// </summary>
-    internal procedure GetProductsAndPopulateRecord(var AppSourceProductRec: record "AppSource Product"): Text
+    internal procedure GetProductsAndPopulateRecord(var AppSourceProductRec: Record "AppSource Product"): Text
     var
         RestClient: Codeunit "Rest Client";
-        NextPageLink: text;
+        NextPageLink: Text;
     begin
         Init();
         NextPageLink := ConstructProductListUri();
@@ -313,7 +313,7 @@ codeunit 2515 "AppSource Product Manager"
         exit(AppSourceProductManagerDependencies.GetAsJSon(RestClient, RequestUri).AsObject());
     end;
 
-    local procedure DownloadAndAddNextPageProducts(NextPageLink: Text; var AppSourceProductRec: record "AppSource Product"; var RestClient: Codeunit "Rest Client"): Text
+    local procedure DownloadAndAddNextPageProducts(NextPageLink: Text; var AppSourceProductRec: Record "AppSource Product"; var RestClient: Codeunit "Rest Client"): Text
     var
         ResponseObject: JsonObject;
         ProductArray: JsonArray;
@@ -392,7 +392,7 @@ codeunit 2515 "AppSource Product Manager"
     end;
 
     #region Telemetry helpers
-    local procedure PopulateTelemetryDictionary(RequestID: Text; UniqueIdentifier: text; Uri: Text; var TelemetryDictionary: Dictionary of [Text, Text])
+    local procedure PopulateTelemetryDictionary(RequestID: Text; UniqueIdentifier: Text; Uri: Text; var TelemetryDictionary: Dictionary of [Text, Text])
     begin
         PopulateTelemetryDictionary(RequestID, telemetryDictionary);
         TelemetryDictionary.Add('UniqueIdentifier', UniqueIdentifier);

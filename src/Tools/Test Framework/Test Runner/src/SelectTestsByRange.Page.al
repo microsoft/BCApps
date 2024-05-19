@@ -19,7 +19,7 @@ page 130452 "Select Tests By Range"
                 field("Selection Filter"; SelectionFilter)
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the selection filter.';
+                    ToolTip = 'Specifies the selection filter.';
                     Caption = 'Selection Filter';
                 }
             }

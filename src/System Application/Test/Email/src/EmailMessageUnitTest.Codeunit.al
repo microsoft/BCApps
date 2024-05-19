@@ -952,7 +952,7 @@ codeunit 134689 "Email Message Unit Test"
     procedure TestEmailOnBeforeOpenEditorEventChangeSubject()
     var
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         EmailEditor: TestPage "Email Editor";
         LastModifiedNo: Integer;
     begin
@@ -983,7 +983,7 @@ codeunit 134689 "Email Message Unit Test"
     procedure TestEmailOnBeforeOpenEditorEventChangeBody()
     var
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         EmailEditor: TestPage "Email Editor";
         LastModifiedNo: Integer;
     begin
@@ -1014,7 +1014,7 @@ codeunit 134689 "Email Message Unit Test"
     procedure TestEmailOnBeforeOpenEditorEventChangeRecipient()
     var
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         EmailEditor: TestPage "Email Editor";
         LastModifiedNo: Integer;
         Recipients: List of [Text];
@@ -1099,7 +1099,7 @@ codeunit 134689 "Email Message Unit Test"
     var
         TempAccount: Record "Email Account" temporary;
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         ConnectorMock: Codeunit "Connector Mock";
         LastModifiedNo: Integer;
     begin
@@ -1133,7 +1133,7 @@ codeunit 134689 "Email Message Unit Test"
     var
         TempAccount: Record "Email Account" temporary;
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         ConnectorMock: Codeunit "Connector Mock";
         LastModifiedNo: Integer;
     begin
@@ -1167,7 +1167,7 @@ codeunit 134689 "Email Message Unit Test"
     var
         TempAccount: Record "Email Account" temporary;
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         ConnectorMock: Codeunit "Connector Mock";
         LastModifiedNo: Integer;
         Recipients: List of [Text];
@@ -1207,7 +1207,7 @@ codeunit 134689 "Email Message Unit Test"
         TempAccount: Record "Email Account" temporary;
         TempBlob: Codeunit "Temp Blob";
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         ConnectorMock: Codeunit "Connector Mock";
         LastModifiedNo: Integer;
         OutStream: OutStream;

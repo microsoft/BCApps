@@ -239,7 +239,7 @@ codeunit 7774 "Copilot Capability Impl"
         IsAdmin := AzureADGraphUser.IsUserDelegatedAdmin() or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetBCAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId()) or AzureADGraphUser.IsUserDelegatedHelpdesk() or UserPermissions.IsSuper(UserSecurityId());
     end;
 
-    [Tryfunction]
+    [TryFunction]
     procedure CheckGeo(var WithinGeo: Boolean; var WithinEuropeGeo: Boolean)
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;

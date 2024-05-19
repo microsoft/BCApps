@@ -362,6 +362,7 @@ page 2718 "Page Summary Settings"
 
     local procedure ShowIntroStep()
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         PageSummaryProviderSettings: Record "Page Summary Settings";
     begin
         if IsSaaS then begin
