@@ -25,6 +25,7 @@ tableextension 230 ObsoleteSourceCodeExt extends "Source Code"
             ObsoleteState = Removed;
             ObsoleteTag = '15.0';
         }
+        /* As this field has the same name and type as field 10810 Simulation, it cannot be added. The platform will map by name so the values will be preserved.
         field(28160; Simulation; Boolean)
         {
             Caption = 'Simulation';
@@ -33,5 +34,6 @@ tableextension 230 ObsoleteSourceCodeExt extends "Source Code"
             ObsoleteState = Removed;
             ObsoleteTag = '15.0';
         }
+        */
     }
 }
