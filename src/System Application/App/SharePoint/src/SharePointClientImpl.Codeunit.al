@@ -735,46 +735,30 @@ codeunit 9101 "SharePoint Client Impl."
     end;
 
     procedure UpdateListItemMetaDataField(ListTitle: Text; ItemId: Integer; ListItemEntityTypeFullName: Text; FieldName: Text; FieldValue: Text): Boolean
-    var
-        SharePointHttpContent: Codeunit "SharePoint Http Content";
-        Metadata, Payload : JsonObject;
-        Txt: Text;
     begin
         SharePointUriBuilder.ResetPath();
         SharePointUriBuilder.SetObject('lists');
         SharePointUriBuilder.SetMethod('GetByTitle', ListTitle);
         SharePointUriBuilder.SetMethod('items', ItemId);
 
-        Metadata.Add('type', ListItemEntityTypeFullName);
-        Payload.Add('__metadata', Metadata);
-        Payload.Add(FieldName, FieldValue);
-
-        SharePointHttpContent.FromJson(Payload);
-
-        SharePointHttpContent.GetContent().ReadAs(Txt);
-
-        SharePointHttpContent.SetRequestDigest(GetRequestDigest(SharePointUriBuilder.GetHost()));
-        SharePointHttpContent.SetXHttpMethod('MERGE');
-        SharePointHttpContent.SetIfMatch('*');
-
-        SharePointOperationResponse := SharePointRequestHelper.Patch(SharePointUriBuilder, SharePointHttpContent);
-        if not SharePointOperationResponse.GetDiagnostics().IsSuccessStatusCode() then
-            exit(false);
-
-        SharePointOperationResponse.GetResultAsText(Txt);
-        exit(true);
+        exit(UpdateListItemMetaDataField(ListItemEntityTypeFullName, FieldName, FieldValue));
     end;
 
     procedure UpdateListItemMetaDataField(ListId: Guid; ItemId: Integer; ListItemEntityTypeFullName: Text; FieldName: Text; FieldValue: Text): Boolean
-    var
-        SharePointHttpContent: Codeunit "SharePoint Http Content";
-        Metadata, Payload : JsonObject;
-        Txt: Text;
     begin
         SharePointUriBuilder.ResetPath();
         SharePointUriBuilder.SetMethod('Lists', ListId);
         SharePointUriBuilder.SetMethod('items', ItemId);
 
+        exit(UpdateListItemMetaDataField(ListItemEntityTypeFullName, FieldName, FieldValue));
+    end;
+
+    local procedure UpdateListItemMetaDataField(ListItemEntityTypeFullName: Text; FieldName: Text; FieldValue: Text): Boolean
+    var
+        SharePointHttpContent: Codeunit "SharePoint Http Content";
+        Metadata, Payload : JsonObject;
+        Txt: Text;
+    begin
         Metadata.Add('type', ListItemEntityTypeFullName);
         Payload.Add('__metadata', Metadata);
         Payload.Add(FieldName, FieldValue);
