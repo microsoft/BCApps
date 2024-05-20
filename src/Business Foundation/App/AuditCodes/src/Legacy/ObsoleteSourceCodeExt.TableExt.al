@@ -15,7 +15,9 @@ tableextension 230 ObsoleteSourceCodeExt extends "Source Code"
             DataClassification = CustomerContent;
             ObsoleteReason = 'Discontinued feature';
             ObsoleteState = Removed;
+#pragma warning disable AS0072
             ObsoleteTag = '15.0';
+#pragma warning restore AS0072
         }
         field(10620; "SAFT Source Code"; Code[9])
         {
@@ -23,7 +25,9 @@ tableextension 230 ObsoleteSourceCodeExt extends "Source Code"
             DataClassification = CustomerContent;
             ObsoleteReason = 'Moved to extension';
             ObsoleteState = Removed;
+#pragma warning disable AS0072
             ObsoleteTag = '15.0';
+#pragma warning restore AS0072
         }
         /* As this field has the same name and type as field 10810 Simulation, it cannot be added. The platform will map by name so the values will be preserved.
         field(28160; Simulation; Boolean)
