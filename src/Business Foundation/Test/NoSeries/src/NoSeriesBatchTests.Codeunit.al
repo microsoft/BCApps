@@ -880,8 +880,6 @@ codeunit 134531 "No. Series Batch Tests"
         NoSeriesBatch: Codeunit "No. Series - Batch";
         NoSeriesBatch2: Codeunit "No. Series - Batch";
         PermissionsMock: Codeunit "Permissions Mock";
-        RecordRef: RecordRef;
-        TempCurrentSequenceNoField: FieldRef;
         NoSeriesCode: Code[20];
     begin
         // [Scenario] Make sure the Temp Current Sequence No. field cannot be abused and is always set to 0 upon database modify
@@ -901,10 +899,7 @@ codeunit 134531 "No. Series Batch Tests"
 
         // [GIVEN] A No. Series Line and Temporary No. Series Line with Current Sequence No. set to 5
         PermissionsMock.SetExactPermissionSet('No. Series Test');
-        RecordRef.GetTable(NoSeriesLine);
-        TempCurrentSequenceNoField := RecordRef.Field(15); // Field "Temp Current Sequence No."
-        TempCurrentSequenceNoField.Value := 5;
-        RecordRef.SetTable(NoSeriesLine);
+        LibraryNoSeries.SetTempCurrentSequenceNo(NoSeriesLine, 5);
         TempNoSeriesLine := NoSeriesLine;
 
         // [WHEN] Fetching the Last No. Used, both implementations return blank (batch will fetch the correct line from the database which does not contain the Temp Current Sequence No.)
