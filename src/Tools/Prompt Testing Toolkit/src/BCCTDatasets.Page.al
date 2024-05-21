@@ -75,7 +75,8 @@ page 149041 "BCCT Datasets"
                     DatasetLine: Record "BCCT Dataset Line";
                     CurrentFile: FileUpload;
                     DataInStream: InStream;
-                    JsonLine: Text; //TODO: consider adding validation
+                    JsonLine: Text;
+                    JsonLineObj: JsonObject;
                     DatasetName: Text[100];
                     Options: Text;
                     Selected: Integer;
@@ -118,6 +119,7 @@ page 149041 "BCCT Datasets"
                             DatasetLine.Init();
                             DatasetLine.Id := 0;
                             DatasetLine."Dataset Name" := DatasetName;
+                            JsonLineObj.ReadFrom(JsonLine.Trim()); //Validate the JSON line
                             DatasetLine.SetInputTextAsBlob(JsonLine.Trim());
                             DatasetLine.Insert();
                         end
