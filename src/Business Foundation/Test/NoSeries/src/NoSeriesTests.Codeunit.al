@@ -743,8 +743,6 @@ codeunit 134530 "No. Series Tests"
         TempNoSeriesLine: Record "No. Series Line" temporary;
         NoSeries: Codeunit "No. Series";
         PermissionsMock: Codeunit "Permissions Mock";
-        RecordRef: RecordRef;
-        TempCurrentSequenceNoField: FieldRef;
         NoSeriesCode: Code[20];
     begin
         // [Scenario] Make sure the Temp Current Sequence No. field cannot be abused and is always set to 0 upon database modify
@@ -764,10 +762,7 @@ codeunit 134530 "No. Series Tests"
 
         // [GIVEN] A No. Series Line and Temporary No. Series Line with Current Sequence No. set to 5
         PermissionsMock.SetExactPermissionSet('No. Series Test');
-        RecordRef.GetTable(NoSeriesLine);
-        TempCurrentSequenceNoField := RecordRef.Field(15); // Field "Temp Current Sequence No."
-        TempCurrentSequenceNoField.Value := 5;
-        RecordRef.SetTable(NoSeriesLine);
+        LibraryNoSeries.SetTempCurrentSequenceNo(NoSeriesLine, 5);
         TempNoSeriesLine := NoSeriesLine;
 
         // [WHEN] Fetching the Last No. Used, both implementations return 5
@@ -781,9 +776,7 @@ codeunit 134530 "No. Series Tests"
         // [WHEN] We get the next number from both No. Series, they both return 6 since that's the number set to be next number based on Temp Current Sequence No., furthermore the Temp Current Sequence No. in the normal No. Series has been saved into the sequence due to modify on Get
         LibraryAssert.AreEqual('6', NoSeries.GetNextNo(NoSeriesLine, WorkDate()), 'GetNextNo returned wrong value');
         LibraryAssert.AreEqual('6', NoSeries.GetNextNo(TempNoSeriesLine, WorkDate()), 'GetNextNo with temporary record returned wrong value');
-        RecordRef.GetTable(NoSeriesLine);
-        TempCurrentSequenceNoField := RecordRef.Field(15); // Field "Temp Current Sequence No."
-        LibraryAssert.AreEqual(0, TempCurrentSequenceNoField.Value, 'Temp Current Sequence No. was not as expected');
+        LibraryAssert.AreEqual(0, LibraryNoSeries.GetTempCurrentSequenceNo(NoSeriesLine), 'Temp Current Sequence No. was not as expected');
 
         // [THEN] Getting the next number, they again both return 7
         LibraryAssert.AreEqual('7', NoSeries.GetNextNo(NoSeriesLine, WorkDate()), 'GetNextNo returned wrong value');
