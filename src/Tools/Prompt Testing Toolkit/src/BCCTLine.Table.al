@@ -60,9 +60,6 @@ table 149032 "BCCT Line"
                     if not (CodeunitMetadata.SubType = CodeunitMetadata.SubType::Test) then
                         Error(NotSupportedCodeunitErr, "Codeunit Name");
                 "Run in Foreground" := CodeunitMetadata.SubType = CodeunitMetadata.SubType::Test;
-
-                BCCTTestParamProviderInitialized := false;
-                Parameters := GetDefaultParametersIfAvailable();
             end;
         }
 #pragma warning disable AS0086
@@ -173,30 +170,6 @@ table 149032 "BCCT Line"
             Editable = false;
             DataClassification = CustomerContent;
         }
-        field(24; Parameters; Text[1000])
-        {
-            Caption = 'Parameters';
-            DataClassification = CustomerContent;
-
-            trigger OnValidate()
-            begin
-                if Rec."Codeunit ID" = 0 then
-                    exit;
-
-                ValidateParameters(Parameters);
-            end;
-
-            trigger OnLookup()
-            var
-                BCCTParameterLines: Page "BCCT Parameters";
-            begin
-                BCCTParameterLines.SetParamTable(Rec.Parameters);
-                BCCTParameterLines.LookupMode := true;
-                BCCTParameterLines.Editable := true;
-                if BCCTParameterLines.RunModal() = Action::LookupOK then
-                    Rec.Parameters := CopyStr(BCCTParameterLines.GetParameterString(), 1, MaxStrLen(rec.Parameters));
-            end;
-        }
         field(25; "Base Version Filter"; Integer)
         {
             Caption = 'Base Version Filter';
@@ -258,7 +231,7 @@ table 149032 "BCCT Line"
             Clustered = true;
         }
 
-        key(Key3; "BCCT Code", "Codeunit ID", Parameters)
+        key(Key3; "BCCT Code", "Codeunit ID")
         {
             IncludedFields = Dataset;
         }
@@ -266,35 +239,6 @@ table 149032 "BCCT Line"
 
     var
         NotSupportedCodeunitErr: Label 'Codeunit %1 can not be used for testing.', Comment = '%1 = codeunit name';
-        ParameterNotSupportedErr: Label 'Parameter is not supported for the selected codeunit. You can only set parameters on codeunit that implemented "BCCT Test Param. Provider" interface.';
         RunInBackgroundNotSupportedErr: Label 'Codeunit with SubType "Test" cannot be executed in background.';
-        BCCTTestParamProvider: Interface "BCCT Test Param. Provider";
-        BCCTTestParamProviderInitialized: Boolean;
 
-    [TryFunction]
-    local procedure SetParametersProvider()
-    var
-        BCCTTestParamEnum: Enum "BCCT Test Param. Enum";
-    begin
-        if BCCTTestParamProviderInitialized then
-            exit;
-        BCCTTestParamEnum := "BCCT Test Param. Enum".FromInteger("Codeunit ID");
-        BCCTTestParamProvider := BCCTTestParamEnum;
-        BCCTTestParamProviderInitialized := true;
-    end;
-
-    local procedure GetDefaultParametersIfAvailable(): Text[1000]
-    begin
-        if SetParametersProvider() then
-            exit(BCCTTestParamProvider.GetDefaultParameters());
-    end;
-
-    local procedure ValidateParameters(Params: Text[1000])
-    begin
-        if SetParametersProvider() then
-            BCCTTestParamProvider.ValidateParameters(Params)
-        else
-            if Params <> '' then
-                Error(ParameterNotSupportedErr);
-    end;
 }

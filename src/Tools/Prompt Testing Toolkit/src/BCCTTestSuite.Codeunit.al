@@ -114,18 +114,6 @@ codeunit 149046 "BCCT Test Suite"
         exit(true);
     end;
 
-    procedure TestSuiteLineExists(SuiteCode: Code[100]; CodeunitID: Integer; ParameterFilterStr: Text; var LineNo: Integer): Boolean
-    var
-        BCCTLine: Record "BCCT Line";
-    begin
-        SetBCCTLineCodeunitFilter(SuiteCode, CodeunitID, BCCTLine);
-        BCCTLine.SetFilter(Parameters, ParameterFilterStr);
-        if not BCCTLine.FindFirst() then
-            exit(false);
-        LineNo := BCCTLine."Line No.";
-        exit(true);
-    end;
-
     procedure SetTestSuiteDefaultMinUserDelay(SuiteCode: Code[100]; DelayInMs: Integer)
     var
         BCCTHeader: Record "BCCT Header";
@@ -236,8 +224,7 @@ codeunit 149046 "BCCT Test Suite"
     end;
 
     procedure AddLineToTestSuiteHeader(SuiteCode: Code[100]; CodeunitId: Integer; Description: Text[250];
-                               MinUserDelayInMs: Integer; MaxUserDelayInMs: Integer; DelayBtwnIterInMs: Integer; RunInForeground: Boolean;
-                               Parameters: Text[1000]): Integer
+                               MinUserDelayInMs: Integer; MaxUserDelayInMs: Integer; DelayBtwnIterInMs: Integer; RunInForeground: Boolean): Integer
     var
         BCCTHeader: Record "BCCT Header";
         BCCTLine: Record "BCCT Line";
@@ -270,8 +257,6 @@ codeunit 149046 "BCCT Test Suite"
             BCCTLine."Delay (ms btwn. iter.)" := DelayBtwnIterInMs;
 
         BCCTLine."Run in Foreground" := RunInForeground;
-
-        BCCTLine.Parameters := Parameters;
 
         BCCTLine.Insert(true);
 
@@ -330,17 +315,6 @@ codeunit 149046 "BCCT Test Suite"
             Error(TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
 
         BCCTLine."Run in Foreground" := RunInForeground;
-        BCCTLine.Modify(true);
-    end;
-
-    procedure SetTestSuiteLineParameters(SuiteCode: Code[100]; LineNo: Integer; Parameters: Text[1000])
-    var
-        BCCTLine: Record "BCCT Line";
-    begin
-        if not BCCTLine.Get(SuiteCode, LineNo) then
-            Error(TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
-
-        BCCTLine.Parameters := Parameters;
         BCCTLine.Modify(true);
     end;
 

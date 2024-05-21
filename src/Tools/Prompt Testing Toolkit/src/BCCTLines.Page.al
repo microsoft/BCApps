@@ -47,11 +47,6 @@ page 149034 "BCCT Lines"
                     ToolTip = 'Specifies the name of the codeunit.';
                     ApplicationArea = All;
                 }
-                field(Parameters; Rec.Parameters)
-                {
-                    ToolTip = 'Specifies a list of parameters for the codeunit in the form of parameter1=a, parameter2=b, ...';
-                    ApplicationArea = All;
-                }
                 field(Dataset; Rec.Dataset)
                 {
                     ToolTip = 'Specifies a dataset that overrides the default dataset for the suite.';

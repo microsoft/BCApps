@@ -233,57 +233,6 @@ codeunit 149035 "BCCT Line"
         exit(BCCTLine."Total Duration (ms)" div BCCTLine."No. of Tests");
     end;
 
-    procedure GetParam(var BCCTLine: Record "BCCT Line"; ParamName: Text): Text
-    var
-        dict: Dictionary of [Text, Text];
-    begin
-        if ParamName = '' then
-            exit('');
-        if BCCTLine.Parameters = '' then
-            exit('');
-        ParameterStringToDictionary(BCCTLine.Parameters, dict);
-        if dict.Count = 0 then
-            exit('');
-        exit(dict.Get(ParamName));
-    end;
-
-    procedure ParameterStringToDictionary(Params: Text; var dict: Dictionary of [Text, Text])
-    var
-        i: Integer;
-        p: Integer;
-        KeyVal: Text;
-        NoOfParams: Integer;
-    begin
-        clear(dict);
-        if Params = '' then
-            exit;
-
-        NoOfParams := StrLen(Params) - strlen(DelChr(Params, '=', ',')) + 1;
-
-        for i := 1 to NoOfParams do begin
-            if NoOfParams = 1 then
-                KeyVal := Params
-            else
-                KeyVal := SelectStr(i, Params);
-            p := StrPos(KeyVal, '=');
-            if p > 0 then
-                dict.Add(DelChr(CopyStr(KeyVal, 1, p - 1), '<>', ' '), DelChr(CopyStr(KeyVal, p + 1), '<>', ' '))
-            else
-                dict.Add(DelChr(KeyVal, '<>', ' '), '');
-        end;
-    end;
-
-    procedure EvaluateParameter(var Parm: Text; var ParmVal: Integer): Boolean
-    var
-        x: Integer;
-    begin
-        if not Evaluate(x, Parm) then
-            exit(false);
-        ParmVal := x;
-        Parm := format(ParmVal, 0, 9);
-        exit(true);
-    end;
-
     procedure EvaluateDecimal(var Parm: Text; var ParmVal: Decimal): Boolean
     var
         x: Decimal;

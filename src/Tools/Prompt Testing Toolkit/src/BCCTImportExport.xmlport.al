@@ -61,10 +61,6 @@ xmlport 149031 "BCCT Import/Export"
                     {
                         Occurrence = Required;
                     }
-                    fieldattribute(Parameters; BCCTSuiteLine.Parameters)
-                    {
-                        Occurrence = Optional;
-                    }
                     fieldattribute(DelayBetwnItr; BCCTSuiteLine."Delay (ms btwn. iter.)")
                     {
                         Occurrence = Optional;

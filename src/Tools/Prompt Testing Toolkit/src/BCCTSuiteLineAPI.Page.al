@@ -64,10 +64,6 @@ page 149037 "BCCT Suite Line API"
                 {
                     Caption = 'Run in Foreground';
                 }
-                field(parameters; Rec.Parameters)
-                {
-                    Caption = 'Parameters';
-                }
                 field("minimumUserDelay"; Rec."Min. User Delay (ms)")
                 {
                     Caption = 'Min. User Delay (ms)';

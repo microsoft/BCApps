@@ -143,39 +143,6 @@ codeunit 149043 "BCCT Test Context"
         BCCTRoleWrapperImpl.GetBCCTHeader(BCCTHeader);
     end;
 
-    /// <summary>
-    /// Returns the paramater list associated with the sessions.
-    /// </summary>
-    procedure GetParameters(): Text
-    var
-        BCCTLine: Record "BCCT Line";
-    begin
-        GetBCCTLine(BCCTLine);
-        exit(BCCTLine.Parameters);
-    end;
-
-    /// <summary>
-    /// Returns the requested paramater value associated with the session.
-    /// </summary>
-    /// <param name="ParameterName">Name of the parameter.</param>
-    procedure GetParameter(ParameterName: Text): Text
-    var
-        BCCTLine: Record "BCCT Line";
-        dict: Dictionary of [Text, Text];
-    begin
-        GetBCCTLine(BCCTLine);
-        if ParameterName = '' then
-            exit('');
-        if BCCTLine.Parameters = '' then
-            exit('');
-        BCCTLineCU.ParameterStringToDictionary(BCCTLine.Parameters, dict);
-        if dict.Count = 0 then
-            exit('');
-        if not dict.ContainsKey(ParameterName) then
-            exit('');
-        exit(dict.Get(ParameterName));
-    end;
-
     procedure SetTestOutput(TestOutput: Interface "Test Json")
     begin
         SetTestOutput(TestOutput.ToText());
