@@ -67,4 +67,14 @@ codeunit 134510 "Library - No. Series"
         NoSeriesLine.Validate(Implementation, Implementation);
         NoSeriesLine.Insert(true);
     end;
+
+    procedure GetTempCurrentSequenceNo(NoSeriesLine: Record "No. Series Line"): integer
+    begin
+        exit(NoSeriesLine."Temp Current Sequence No.")
+    end;
+
+    procedure SetTempCurrentSequenceNo(var NoSeriesLine: Record "No. Series Line"; TempCurrSeqNo: Integer)
+    begin
+        NoSeriesLine."Temp Current Sequence No." := TempCurrSeqNo
+    end;
 }
