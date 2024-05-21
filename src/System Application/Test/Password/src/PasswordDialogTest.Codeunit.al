@@ -210,7 +210,7 @@ codeunit 135033 "Password Dialog Test"
     [HandlerFunctions('ChangePasswordDialogModalPageHandler')]
     procedure OpenChangePasswordDialogTest();
     var
-        PasswordDialogImpl: Codeunit "Password Dialog Impl.";
+        LibraryPassword: Codeunit "Library - Password";
         Password: SecretText;
         OldPassword: SecretText;
     begin
@@ -220,7 +220,7 @@ codeunit 135033 "Password Dialog Test"
         PermissionsMock.Set('All Objects');
 
         // [WHEN] The password dialog is opened in change password mode.
-        PasswordDialogImpl.OpenChangePasswordDialog(OldPassword, Password);
+        LibraryPassword.OpenChangePasswordDialog(OldPassword, Password);
 
         // [THEN] The Old and New passwords are retrieved.
         Assert.AreEqual(InValidPasswordTxt, GetPasswordValue(OldPassword), 'A diferrent password was expected.');
