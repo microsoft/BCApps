@@ -18,7 +18,7 @@ codeunit 329 "No. Series Installer"
         SetupNoSeriesImplementation();
     end;
 
-    local procedure SetupNoSeriesImplementation()
+    internal procedure SetupNoSeriesImplementation()
     var
         NoSeriesLine: Record "No. Series Line";
         UpgradeTag: Codeunit "Upgrade Tag";
