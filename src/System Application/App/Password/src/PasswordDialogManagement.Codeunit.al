@@ -84,7 +84,7 @@ codeunit 9810 "Password Dialog Management"
     /// </summary>
     /// <param name="OldPassword">Out parameter, the old password user typed on the dialog.</param>
     /// <param name="Password">Out parameter, the new password user typed on the dialog.</param>
-    [Obsolete('Replaced by OpenPasswordChangeDialog without out OldPassword param', '24.0')]
+    [Obsolete('Replaced by OpenPasswordChangeDialog without out OldPassword param', '25.0')]
     procedure OpenChangePasswordDialog(var OldPassword: SecretText; var Password: SecretText)
     begin
         PasswordDialogImpl.OpenChangePasswordDialog(OldPassword, Password);
