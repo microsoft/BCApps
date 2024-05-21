@@ -17,7 +17,7 @@ codeunit 9058 "Plan Upgrade Tag"
     InherentPermissions = X;
 
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
     local procedure RegisterPerDatabaseTags(var PerDatabaseUpgradeTags: List of [Code[250]])
     begin
         PerDatabaseUpgradeTags.Add(GetAddDeviceISVEmbUpgradeTag());
