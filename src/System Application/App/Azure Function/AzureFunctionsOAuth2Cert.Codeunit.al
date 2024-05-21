@@ -27,7 +27,6 @@ codeunit 7807 "Azure Functions OAuth2 Cert" implements "Azure Functions Authenti
         FailedToGetTokenErr: Label 'Authorization failed to Azure function: %1', Locked = true;
         AzureFunctionCategoryLbl: Label 'Connect to Azure Functions', Locked = true;
 
-    [NonDebuggable]
     procedure Authenticate(var RequestMessage: HttpRequestMessage): Boolean
     var
         Uri: Codeunit Uri;
