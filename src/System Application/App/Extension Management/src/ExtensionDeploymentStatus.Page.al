@@ -115,7 +115,7 @@ page 2508 "Extension Deployment Status"
                     if NavAppTenantOperationTable.FindSet() then
                         repeat
                             ExtensionOperationImpl.RefreshStatus(NavAppTenantOperationTable."Operation ID");
-                        until NavAppTenantOperationTable.Next = 0;
+                        until NavAppTenantOperationTable.Next() = 0;
                 end;
             }
             action("Upload Extension")
@@ -172,8 +172,6 @@ page 2508 "Extension Deployment Status"
     local procedure DetermineEnvironmentConfigurations()
     var
         EnvironmentInformation: Codeunit "Environment Information";
-        ExtensionMarketplace: Codeunit "Extension Marketplace";
-        IsSaaSInstallAllowed: Boolean;
     begin
         IsSaaS := EnvironmentInformation.IsSaaS();
     end;
