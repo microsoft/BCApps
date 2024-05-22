@@ -1,0 +1,108 @@
+name: ' Pull Power Platform changes'
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to pull changes from
+        required: true
+      solutionFolder:
+        description: Folder name of the Power Platform solution (leave empty to use AL-Go setting)
+        required: false
+      directCommit:
+        description: Direct Commit?
+        type: boolean
+        default: false
+      useGhTokenWorkflow:
+        description: Use GhTokenWorkflow for PR/Commit?
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+defaults:
+  run:
+    shell: powershell
+
+jobs:
+  PullChanges:
+    runs-on: [windows-latest]
+    name: Pull changes from ${{ inputs.environment }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize the workflow
+        id: init
+        uses: microsoft/AL-Go/Actions/WorkflowInitialize@6a9ef0c91e5b54d0fd3abb3d4495417a1db28f17
+        with:
+          shell: powershell
+          eventId: "DO0103"
+
+      - name: EnvName
+        env:
+          _environment: ${{ inputs.environment }}
+        run: |
+          $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
+          $envName = "$env:_environment".Split(' ')[0]
+          Add-Content -encoding utf8 -Path $env:GITHUB_ENV -Value "envName=$envName"
+
+      - name: Read settings
+        uses: microsoft/AL-Go/Actions/ReadSettings@6a9ef0c91e5b54d0fd3abb3d4495417a1db28f17
+        with:
+          shell: powershell
+          get: powerPlatformSolutionFolder
+
+      - name: Read secrets
+        id: ReadSecrets
+        uses: microsoft/AL-Go/Actions/ReadSecrets@6a9ef0c91e5b54d0fd3abb3d4495417a1db28f17
+        with:
+          shell: powershell
+          gitHubSecrets: ${{ toJson(secrets) }}
+          getSecrets: '${{ env.envName }}-AuthContext,${{ env.envName }}_AuthContext,AuthContext,TokenForPush'
+          useGhTokenWorkflowForPush: '${{ github.event.inputs.useGhTokenWorkflow }}'
+
+      - name: Determine Deployment Environments
+        id: DetermineDeploymentEnvironments
+        uses: microsoft/AL-Go/Actions/DetermineDeploymentEnvironments@6a9ef0c91e5b54d0fd3abb3d4495417a1db28f17
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          shell: powershell
+          getEnvironments: ${{ inputs.environment }}
+          type: 'All'
+
+      - name: Set Power Platform solution folder
+        env:
+          _solutionFolder: ${{ inputs.solutionFolder }}
+        run: |
+          $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
+          $solutionFolder = $env:_solutionFolder
+          if ($solutionFolder -eq '') {
+            Write-Host "Solution folder is not provided. Taking the folder from AL-Go settings"
+            $solutionFolder = $env:powerPlatformSolutionFolder
+          }
+          Write-Host "Solution folder: $solutionFolder"
+          Add-Content -encoding utf8 -Path $env:GITHUB_ENV -Value "solutionFolder=$solutionFolder"
+
+      - name: Pull changes from Power Platform environment
+        uses: microsoft/AL-Go/Actions/PullPowerPlatformChanges@6a9ef0c91e5b54d0fd3abb3d4495417a1db28f17
+        env:
+          Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
+        with:
+          shell: powershell
+          token: ${{ steps.ReadSecrets.outputs.TokenForPush }}
+          directCommit: ${{ inputs.directCommit }}
+          environmentName: ${{ inputs.environment }}
+          solutionFolder: ${{ env.solutionFolder }}
+          deploymentEnvironmentsJson: ${{ steps.DetermineDeploymentEnvironments.outputs.deploymentEnvironmentsJson }}
+
+      - name: Finalize the workflow
+        if: always()
+        uses: microsoft/AL-Go/Actions/WorkflowPostProcess@6a9ef0c91e5b54d0fd3abb3d4495417a1db28f17
+        with:
+          shell: powershell
+          eventId: "DO0103"
+          telemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
