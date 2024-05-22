@@ -57,11 +57,6 @@ page 149034 "BCCT Lines"
                     ToolTip = 'Specifies the delay between iterations.';
                     ApplicationArea = All;
                 }
-                field(RunInForeground; Rec."Run in Foreground")
-                {
-                    ToolTip = 'Specifies whether the scenarios will be executed in foreground or background.';
-                    ApplicationArea = All;
-                }
                 field(Description; Rec.Description)
                 {
                     ToolTip = 'Specifies the description of the BCCT line.';

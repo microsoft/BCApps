@@ -77,20 +77,16 @@ codeunit 149042 "BCCT Role Wrapper"
 
 
             if ExecuteNextIteration then
-                if BCCTLine."Run in Foreground" then begin // rotate between foreground scenarios in this thread
-                    if BCCTDatasetLine.Next() = 0 then begin
-                        if BCCTLine.Next() = 0 then
-                            ExecuteNextIteration := false
-                        else begin
-                            BCCTDatasetLine.Reset();
-                            SetDatasetFilter(BCCTDatasetLine, BCCTLine, BCCTHeader);
-                            if BCCTDatasetLine.FindSet() then;
-                        end;
-                        Sleep(BCCTLine."Delay (ms btwn. iter.)");
-                    end
-                end
-                else
-                    ExecuteNextIteration := BCCTDatasetLine.Next() <> 0;
+                if BCCTDatasetLine.Next() = 0 then begin
+                    if BCCTLine.Next() = 0 then
+                        ExecuteNextIteration := false
+                    else begin
+                        BCCTDatasetLine.Reset();
+                        SetDatasetFilter(BCCTDatasetLine, BCCTLine, BCCTHeader);
+                        if BCCTDatasetLine.FindSet() then;
+                    end;
+                    Sleep(BCCTLine."Delay (ms btwn. iter.)");
+                end;
 
         //TODO override delay from line / default delay
 

@@ -60,10 +60,6 @@ page 149037 "BCCT Suite Line API"
                     Caption = 'Override the suite dataset';
                     TableRelation = "BCCT Dataset"."Dataset Name";
                 }
-                field("runInForeground"; Rec."Run in Foreground")
-                {
-                    Caption = 'Run in Foreground';
-                }
                 field("minimumUserDelay"; Rec."Min. User Delay (ms)")
                 {
                     Caption = 'Min. User Delay (ms)';

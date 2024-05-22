@@ -81,10 +81,6 @@ xmlport 149031 "BCCT Import/Export"
                     {
                         Occurrence = Optional;
                     }
-                    fieldattribute(RunInForeground; BCCTSuiteLine."Run in Foreground")
-                    {
-                        Occurrence = Optional;
-                    }
                     trigger OnBeforeInsertRecord()
                     var
                         BCCTLine: Record "BCCT Line";

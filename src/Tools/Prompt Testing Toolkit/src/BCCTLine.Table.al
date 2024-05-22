@@ -59,7 +59,6 @@ table 149032 "BCCT Line"
                 if ("Codeunit ID" = Codeunit::"BCCT Role Wrapper") or not (CodeunitMetadata.TableNo in [0, Database::"BCCT Line"]) then
                     if not (CodeunitMetadata.SubType = CodeunitMetadata.SubType::Test) then
                         Error(NotSupportedCodeunitErr, "Codeunit Name");
-                "Run in Foreground" := CodeunitMetadata.SubType = CodeunitMetadata.SubType::Test;
             end;
         }
 #pragma warning disable AS0086
@@ -144,20 +143,6 @@ table 149032 "BCCT Line"
             FieldClass = FlowField;
             CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
         }
-        field(18; "Run in Foreground"; Boolean)
-        {
-            Caption = 'Run in Foreground';
-            DataClassification = CustomerContent;
-
-            trigger OnValidate()
-            var
-                CodeunitMetadata: Record "CodeUnit Metadata";
-            begin
-                CodeunitMetadata.Get(Rec."Codeunit ID");
-                if (CodeunitMetadata.SubType = CodeunitMetadata.SubType::Test) and (not Rec."Run in Foreground") then
-                    Error(RunInBackgroundNotSupportedErr);
-            end;
-        }
         field(19; Sequence; Option)
         {
             Caption = 'Sequence';
@@ -239,6 +224,5 @@ table 149032 "BCCT Line"
 
     var
         NotSupportedCodeunitErr: Label 'Codeunit %1 can not be used for testing.', Comment = '%1 = codeunit name';
-        RunInBackgroundNotSupportedErr: Label 'Codeunit with SubType "Test" cannot be executed in background.';
 
 }

@@ -224,7 +224,7 @@ codeunit 149046 "BCCT Test Suite"
     end;
 
     procedure AddLineToTestSuiteHeader(SuiteCode: Code[100]; CodeunitId: Integer; Description: Text[250];
-                               MinUserDelayInMs: Integer; MaxUserDelayInMs: Integer; DelayBtwnIterInMs: Integer; RunInForeground: Boolean): Integer
+                               MinUserDelayInMs: Integer; MaxUserDelayInMs: Integer; DelayBtwnIterInMs: Integer): Integer
     var
         BCCTHeader: Record "BCCT Header";
         BCCTLine: Record "BCCT Line";
@@ -255,8 +255,6 @@ codeunit 149046 "BCCT Test Suite"
 
         if DelayBtwnIterInMs <> 0 then
             BCCTLine."Delay (ms btwn. iter.)" := DelayBtwnIterInMs;
-
-        BCCTLine."Run in Foreground" := RunInForeground;
 
         BCCTLine.Insert(true);
 
@@ -304,17 +302,6 @@ codeunit 149046 "BCCT Test Suite"
             Error(TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
 
         BCCTLine."Delay (ms btwn. iter.)" := DelayInSecs;
-        BCCTLine.Modify(true);
-    end;
-
-    procedure SetTestSuiteLineRunInForeground(SuiteCode: Code[100]; LineNo: Integer; RunInForeground: Boolean)
-    var
-        BCCTLine: Record "BCCT Line";
-    begin
-        if not BCCTLine.Get(SuiteCode, LineNo) then
-            Error(TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
-
-        BCCTLine."Run in Foreground" := RunInForeground;
         BCCTLine.Modify(true);
     end;
 

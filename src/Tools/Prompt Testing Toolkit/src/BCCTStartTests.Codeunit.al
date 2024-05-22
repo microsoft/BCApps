@@ -20,12 +20,12 @@ codeunit 149036 "BCCT Start Tests"
     var
         NothingToRunErr: Label 'There is nothing to run.';
         CannotRunMultipleSuitesInParallelErr: Label 'There is already test run in progress. Start this operaiton after that finishes.';
+        RunningTestsMsg: Label 'Running tests...';
 
     local procedure StartBenchmarkTests(BCCTHeader: Record "BCCT Header")
     var
         BCCTLine: Record "BCCT Line";
         BCCTHeaderCU: Codeunit "BCCT Header";
-        s: Integer;
     begin
         ValidateLines(BCCTHeader);
         BCCTHeader.RunID := CreateGuid();
@@ -40,20 +40,6 @@ codeunit 149036 "BCCT Start Tests"
         BCCTLine.SetRange("BCCT Code", BCCTHeader.Code);
         BCCTLine.SetFilter("Codeunit ID", '<>0');
         BCCTLine.SetRange("Version Filter", BCCTHeader.Version);
-        BCCTLine.SetRange("Run in Foreground", false);
-        BCCTLine.Locktable();
-        if BCCTLine.FindSet() then
-            repeat
-
-                StartSession(s, Codeunit::"BCCT Role Wrapper", CompanyName, BCCTLine);
-                BCCTHeader."No. of tests running" += 1;
-
-                BCCTLine.Status := BCCTLine.Status::Running;
-                BCCTLine.Modify();
-            until BCCTLine.Next() = 0;
-        BCCTHeader.Modify();
-        Commit();
-        BCCTLine.SetRange("Run in Foreground", true);
         if BCCTLine.FindSet() then begin
             BCCTLine.ModifyAll(Status, BCCTLine.Status::Running);
             Commit();
@@ -72,7 +58,7 @@ codeunit 149036 "BCCT Start Tests"
             Error(CannotRunMultipleSuitesInParallelErr);
         Commit();
 
-        StatusDialog.Open('Starting background tasks and running any foreground tasks...');
+        StatusDialog.Open(RunningTestsMsg);
         Codeunit.Run(Codeunit::"BCCT Start Tests", BCCTHeader);
         StatusDialog.Close();
         if BCCTHeader.Find() then;
