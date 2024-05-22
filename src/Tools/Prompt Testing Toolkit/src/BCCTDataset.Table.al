@@ -77,4 +77,58 @@ table 149031 "BCCT Dataset"
         BCCTDatasetLines.DeleteAll();
     end;
 
+    internal procedure UploadDataset(var FileDataInStream: InStream; DatasetName: Text[100])
+    var
+        ExistingDatasets: Record "BCCT Dataset";
+        DatasetLine: Record "BCCT Dataset Line";
+        JsonLine: Text;
+        JsonLineObj: JsonObject;
+        Options: Text;
+        Selected: Integer;
+        StrMenuLbl: Label 'Overwrite,Rename and Upload,Exit';
+        DialogTitleLbl: Label 'Dataset with name %1 already exists. Choose one of the following options:', Comment = '%1=Dataset Name';
+    begin
+        ExistingDatasets.SetLoadFields("Dataset Name");
+        ExistingDatasets.SetRange("Dataset Name", DatasetName);
+        if not ExistingDatasets.IsEmpty() then begin
+            // Show menu dialog dialog
+            if GuiAllowed then begin
+                Options := StrMenuLbl;
+                Selected := Dialog.StrMenu(Options, 3, StrSubstNo(DialogTitleLbl, DatasetName));
+            end
+            else
+                Selected := 1; //Overwrite
+            case Selected of
+                1:
+                    begin
+                        DatasetLine.SetRange("Dataset Name", DatasetName);
+                        DatasetLine.DeleteAll();
+                    end;
+                2:
+                    begin
+                        DatasetName := DatasetName + ' - ' + CreateGuid();
+                        Rec.Init();
+                        Rec."Dataset Name" := DatasetName;
+                        Rec.Insert();
+                    end;
+                3:
+                    exit;
+            end;
+        end
+        else begin
+            Rec.Init();
+            Rec."Dataset Name" := DatasetName;
+            Rec.Insert();
+        end;
+
+        while FileDataInStream.ReadText(JsonLine) > 0 do begin
+            DatasetLine.Init();
+            DatasetLine.Id := 0;
+            DatasetLine."Dataset Name" := DatasetName;
+            JsonLineObj.ReadFrom(JsonLine.Trim()); //Validate the JSON line
+            DatasetLine.SetInputTextAsBlob(JsonLine.Trim());
+            DatasetLine.Insert();
+        end
+    end;
+
 }
