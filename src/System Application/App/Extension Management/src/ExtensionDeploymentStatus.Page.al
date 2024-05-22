@@ -111,7 +111,8 @@ page 2508 "Extension Deployment Status"
                     NavAppTenantOperationTable: Record "NAV App Tenant Operation";
                     ExtensionOperationImpl: Codeunit "Extension Operation Impl";
                 begin
-                    NavAppTenantOperationTable.CopyFilters(Rec);
+                    NavAppTenantOperationTable.Copy(Rec);
+                    NavAppTenantOperationTable.SetFilter(Status, '%1|%2|%3', NavAppTenantOperationTable.Status::Unknown, NavAppTenantOperationTable.Status::NotFound, NavAppTenantOperationTable.Status::InProgress);
                     if NavAppTenantOperationTable.FindSet() then
                         repeat
                             ExtensionOperationImpl.RefreshStatus(NavAppTenantOperationTable."Operation ID");
@@ -120,6 +121,7 @@ page 2508 "Extension Deployment Status"
             }
             action("Upload Extension")
             {
+                ApplicationArea = All;
                 Caption = 'Upload Extension';
                 Image = Import;
                 RunObject = page "Upload And Deploy Extension";
