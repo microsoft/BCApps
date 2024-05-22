@@ -109,13 +109,10 @@ codeunit 2361 "HttpAuthOAuthClientCredentials" implements "Http Authentication"
     local procedure AcquireTokenWithCertificate(var AccessToken: SecretText; var ErrorText: Text): Boolean
     var
         OAuth2: Codeunit System.Security.Authentication.OAuth2;
-        // ClientCredentialsTokenAuthorityUrlTxt: Label 'https://login.microsoftonline.com/%1/oauth2/v2.0/token', Comment = '%1 = AAD tenant ID', Locked = true;
         IsSuccess: Boolean;
-        // AuthorityUrl: Text;
-        AquireTokenWithCertificateFailedErr: Label 'Acquire of token with Client Credentials failed.';
         IdToken: Text;
+        AquireTokenWithCertificateFailedErr: Label 'Acquire of token with Certificate failed.';
     begin
-        // AuthorityUrl := StrSubstNo(ClientCredentialsTokenAuthorityUrlTxt, AadTenantId);
         ClearLastError();
         if (not OAuth2.AcquireTokensFromCacheWithCertificate(ClientIdGlobal, CertificateGlobal, CertificatePasswordGlobal, '', OAuthAuthorityUrlGlobal, ScopesGlobal, AccessToken, IdToken)) or (AccessToken.IsEmpty()) then
             OAuth2.AcquireTokensWithCertificate(ClientIdGlobal, CertificateGlobal, CertificatePasswordGlobal, '', OAuthAuthorityUrlGlobal, ScopesGlobal, AccessToken, IdToken);
