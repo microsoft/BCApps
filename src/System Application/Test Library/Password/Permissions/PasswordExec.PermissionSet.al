@@ -6,7 +6,7 @@
 
 namespace System.TestLibraries.Security.AccessControl;
 
-permissionset 132528 "Password Exec"
+permissionset 135033 "Password Exec"
 {
     Assignable = true;
     ObsoleteState = Pending;
