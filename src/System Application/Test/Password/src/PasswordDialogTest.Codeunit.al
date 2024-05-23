@@ -238,10 +238,10 @@ codeunit 135033 "Password Dialog Test"
         PermissionsMock.Set('All Objects');
 
         // [WHEN] The password dialog is opened in change password mode.
-        PasswordDialogManagement.OpenChangePasswordDialog(CurrentPassword, Password);
+        PasswordDialogManagement.OpenPasswordChangeDialog(CurrentPassword, Password);
 
-        // [THEN] The Old and New passwords are retrieved.
-        Assert.AreEqual(InValidPasswordTxt, GetPasswordValue(CurrentPassword), 'A diferrent password was expected.');
+        // [THEN] The New passwords was retrieved.
+        Assert.AreEqual('', GetPasswordValue(CurrentPassword), 'A diferrent password was expected.');
         Assert.AreEqual(ValidPasswordTxt, GetPasswordValue(Password), 'A diferrent password was expected.')
     end;
 
