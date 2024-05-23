@@ -11,7 +11,7 @@ page 149036 "BCCT Dataset Lines Part"
     ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "BCCT Dataset Line";
-    Caption = 'Dataset Lines';
+    Caption = 'Lines';
     PopulateAllFields = true;
     DelayedInsert = true;
 
@@ -27,26 +27,15 @@ page 149036 "BCCT Dataset Lines Part"
                     ToolTip = 'Specifies the ID of the line.';
                     Visible = false;
                 }
-                field(InputText; InputText)
+                field(InputText; TestInputText)
                 {
                     ApplicationArea = All;
-                    Caption = 'Input Text';
+                    Caption = 'Test Input Text';
                     ToolTip = 'Specifies the test input.';
 
                     trigger OnValidate()
                     begin
-                        Rec.SetInputTextAsBlob(InputText);
-                    end;
-                }
-                field(ExpectedOutputText; ExpectedOutputText)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Expected Output Response';
-                    ToolTip = 'Specifies the response for measuring accuracy.';
-
-                    trigger OnValidate()
-                    begin
-                        Rec.SetExpectedOutputTextAsBlob(ExpectedOutputText);
+                        Rec.SetInputTextAsBlob(TestInputText);
                     end;
                 }
             }
@@ -55,19 +44,15 @@ page 149036 "BCCT Dataset Lines Part"
 
     trigger OnAfterGetRecord()
     begin
-        InputText := Rec.GetInputBlobAsText();
-        ExpectedOutputText := Rec.GetExpectedOutputBlobAsText();
+        TestInputText := Rec.GetInputBlobAsText();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
-        if Rec.Id = 0 then begin
-            InputText := '';
-            ExpectedOutputText := '';
-        end;
+        if Rec.Id = 0 then
+            TestInputText := '';
     end;
 
     var
-        InputText: Text;
-        ExpectedOutputText: Text;
+        TestInputText: Text;
 }

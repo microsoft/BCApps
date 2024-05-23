@@ -18,9 +18,10 @@ page 149032 "BCCT Dataset"
     {
         area(Content)
         {
-            group(Details)
+            group(Dataset)
             {
-                field("Dataset Name"; Rec."Dataset Name")
+                Caption = 'Dataset';
+                field("Name"; Rec."Dataset Name")
                 {
                     ToolTip = 'Specifies Dataset Name';
                 }

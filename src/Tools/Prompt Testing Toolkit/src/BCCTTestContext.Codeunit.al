@@ -119,17 +119,6 @@ codeunit 149043 "BCCT Test Context"
         exit(BCCTDatasetLine.GetInputBlobAsText());
     end;
 
-    /// <summary>
-    /// Returns the Expected Output line from the dataset for the current iteration.
-    /// </summary>
-    procedure GetExpectedOutput(): Text
-    var
-        BCCTDatasetLine: Record "BCCT Dataset Line";
-        BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper";
-    begin
-        BCCTRoleWrapperImpl.GetBCCTDatasetLine(BCCTDatasetLine);
-        exit(BCCTDatasetLine.GetExpectedOutputBlobAsText());
-    end;
 
     /// <summary>
     /// Returns the BCCTHeader associated with the sessions.
