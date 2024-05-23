@@ -438,6 +438,27 @@ codeunit 502 OAuth2Impl
         AccessToken := SecretAccessToken.Unwrap();
     end;
 
+    [TryFunction]
+    procedure AcquireTokensWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: SecretText; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
+    var
+        CertificatePassword: SecretText;
+    begin
+        AcquireTokensWithCertificate(RedirectURL, ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, Scopes, AccessToken, IdToken);
+    end;
+
+    [TryFunction]
+    procedure AcquireTokensWithCertificate(RedirectURL: Text; ClientId: Text; Certificate: SecretText; CertificatePassword: SecretText; OAuthAuthorityUrl: Text; Scopes: List of [Text]; var AccessToken: SecretText; var IdToken: Text)
+    var
+        ScopesArray: DotNet StringArray;
+        CompoundToken: DotNet CompoundTokenInfo;
+    begin
+        FillScopesArray(Scopes, ScopesArray);
+        Initialize(OAuthAuthorityUrl, RedirectURL);
+        CompoundToken := AuthFlow.ALAcquireApplicationTokensWithCertificate(ClientId, Certificate, CertificatePassword, OAuthAuthorityUrl, ScopesArray);
+        AccessToken := CompoundToken.AccessToken;
+        IdToken := CompoundToken.IdToken;
+    end;
+
     [NonDebuggable]
     [TryFunction]
     [Obsolete('Use AcquireTokenWithClientCredentials with SecretText data type for AccessToken.', '24.0')]
