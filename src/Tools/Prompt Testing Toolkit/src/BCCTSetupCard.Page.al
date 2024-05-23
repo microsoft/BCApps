@@ -34,11 +34,6 @@ page 149031 "BCCT Setup Card"
                     ToolTip = 'Specifies the description of the test suite.';
                     ApplicationArea = All;
                 }
-                field(Tag; Rec.Tag)
-                {
-                    ToolTip = 'Specifies a version or scenario the test is being run for. The Tag will be transferred to the log entries and enables comparison between scenarios.';
-                    ApplicationArea = All;
-                }
                 field(Dataset; Rec.Dataset)
                 {
                     ToolTip = 'Specifies the dataset to be used by the tests.';
@@ -51,32 +46,6 @@ page 149031 "BCCT Setup Card"
                     ToolTip = 'Specifies the model version to be used by the tests.';
                     ApplicationArea = All;
                 }
-                field(Version; Rec.Version)
-                {
-                    ToolTip = 'Specifies the current version of the test run. Log entries will get this version no.';
-                    ApplicationArea = All;
-                    Editable = false;
-                }
-                field(BaseVersion; Rec."Base Version")
-                {
-                    ToolTip = 'Specifies the Base version of the test run. Used for comparisons in the lines.';
-                    ApplicationArea = All;
-
-                    trigger OnValidate()
-                    begin
-                        UpdateAverageExecutionTimeBase();
-                    end;
-                }
-                field(Status; Rec.Status)
-                {
-                    ToolTip = 'Specifies the status of the test.';
-                    ApplicationArea = All;
-                }
-                field(Started; Rec."Started at")
-                {
-                    ToolTip = 'Specifies when the test was started.';
-                    ApplicationArea = All;
-                }
                 field(MinDelay; Rec."Default Min. User Delay (ms)")
                 {
                     ToolTip = 'Specifies the fastest user input.';
@@ -86,6 +55,42 @@ page 149031 "BCCT Setup Card"
                 {
                     ToolTip = 'Specifies the slowest user input.';
                     ApplicationArea = All;
+                }
+                group(StatusGroup)
+                {
+                    Caption = 'Suite Status';
+                    field(Status; Rec.Status)
+                    {
+                        ToolTip = 'Specifies the status of the test.';
+                        ApplicationArea = All;
+                    }
+                    field(Started; Rec."Started at")
+                    {
+                        ToolTip = 'Specifies when the test was started.';
+                        ApplicationArea = All;
+                    }
+                    field(BaseVersion; Rec."Base Version")
+                    {
+                        ToolTip = 'Specifies the Base version of the test run. Used for comparisons in the lines.';
+                        ApplicationArea = All;
+
+                        trigger OnValidate()
+                        begin
+                            UpdateAverageExecutionTimeBase();
+                        end;
+                    }
+                    field(Version; Rec.Version)
+                    {
+                        ToolTip = 'Specifies the current version of the test run. Log entries will get this version no.';
+                        ApplicationArea = All;
+                        Editable = false;
+                    }
+
+                    field(Tag; Rec.Tag)
+                    {
+                        ToolTip = 'Specifies a version or scenario the test is being run for. The Tag will be transferred to the log entries and enables comparison between scenarios.';
+                        ApplicationArea = All;
+                    }
                 }
             }
             part(BCCTLines; "BCCT Lines")
@@ -107,26 +112,32 @@ page 149031 "BCCT Setup Card"
                         label(NoOfTests)
                         {
                             Caption = 'No. of Tests';
+                            ApplicationArea = All;
                         }
                         label(NoOfTestsPassed)
                         {
                             Caption = 'No. of Tests Passed';
+                            ApplicationArea = All;
                         }
                         label(NoOfTestsFailed)
                         {
                             Caption = 'No. of Tests Failed';
+                            ApplicationArea = All;
                         }
                         label(NoOfOperations)
                         {
                             Caption = 'No. of Operations';
+                            ApplicationArea = All;
                         }
                         label(TotalDuration)
                         {
                             Caption = 'Total Duration (ms)';
+                            ApplicationArea = All;
                         }
                         label(AvgDuration)
                         {
                             Caption = 'Average Duration (ms)';
+                            ApplicationArea = All;
                         }
                     }
                     group("Latest Version")

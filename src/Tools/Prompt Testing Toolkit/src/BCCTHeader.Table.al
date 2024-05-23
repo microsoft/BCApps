@@ -151,7 +151,7 @@ table 149030 "BCCT Header"
         }
         field(20; ModelVersion; Option) //TODO: Change this enum
         {
-            Caption = 'Model Version';
+            Caption = 'AOAI Model Version';
             OptionMembers = Latest,Preview;
             DataClassification = SystemMetadata;
         }

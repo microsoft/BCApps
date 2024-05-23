@@ -26,10 +26,6 @@ table 149033 "BCCT Dataset Line"
         {
             DataClassification = CustomerContent;
         }
-        field(5; "Expected Output Blob"; Blob)
-        {
-            DataClassification = CustomerContent;
-        }
     }
 
     keys
@@ -58,25 +54,5 @@ table 149033 "BCCT Dataset Line"
         "Input Blob".CreateInStream(InStream, TextEncoding::UTF8);
         InStream.ReadText(InputText);
         exit(InputText);
-    end;
-
-    procedure SetExpectedOutputTextAsBlob(OutputText: Text)
-    var
-        OutStream: OutStream;
-    begin
-        Clear("Expected Output Blob");
-        "Expected Output Blob".CreateOutStream(OutStream, TextEncoding::UTF8);
-        OutStream.Write(OutputText);
-    end;
-
-    procedure GetExpectedOutputBlobAsText(): Text
-    var
-        InStream: InStream;
-        OutputText: Text;
-    begin
-        CalcFields("Expected Output Blob");
-        "Expected Output Blob".CreateInStream(InStream, TextEncoding::UTF8);
-        InStream.ReadText(OutputText);
-        exit(OutputText);
     end;
 }

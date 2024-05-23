@@ -54,17 +54,32 @@ page 149033 "BCCT Log Entries"
                     Visible = false;
                     ApplicationArea = All;
                 }
+                field(Status; Rec.Status)
+                {
+                    Caption = 'Status';
+                    ToolTip = 'Specifies the status of the iteration.';
+                    ApplicationArea = All;
+                }
+                field("Orig. Status"; Rec."Orig. Status")
+                {
+                    Caption = 'Orig. Status';
+                    Visible = false;
+                    ToolTip = 'Specifies the original status of the iteration.';
+                    ApplicationArea = All;
+                }
                 field(StartTime; Format(Rec."Start Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'Start Time';
                     ToolTip = 'Specifies the start time of the BCCT scenario.';
                     ApplicationArea = All;
+                    Visible = false;
                 }
                 field(EndTime; Format(Rec."End Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'End Time';
                     ToolTip = 'Specifies the end time of the BCCT scenario.';
                     ApplicationArea = All;
+                    Visible = false;
                 }
                 field(CodeunitID; Rec."Codeunit ID")
                 {
@@ -142,19 +157,6 @@ page 149033 "BCCT Log Entries"
                 {
                     Caption = 'Duration (ms)';
                     ToolTip = 'Specifies the duration of the iteration.';
-                    ApplicationArea = All;
-                }
-                field(Status; Rec.Status)
-                {
-                    Caption = 'Status';
-                    ToolTip = 'Specifies the status of the iteration.';
-                    ApplicationArea = All;
-                }
-                field("Orig. Status"; Rec."Orig. Status")
-                {
-                    Caption = 'Orig. Status';
-                    Visible = false;
-                    ToolTip = 'Specifies the original status of the iteration.';
                     ApplicationArea = All;
                 }
                 field("Error Call Stack"; Rec."Error Call Stack")
@@ -236,44 +238,6 @@ page 149033 "BCCT Log Entries"
                     CurrPage.Update(false);
                 end;
             }
-            action(ShowSimultaneous)
-            {
-                ApplicationArea = All;
-                Visible = not IsFilteredToThisLine;
-                Caption = 'Show sessions running at the same time as this';
-                Image = FilterLines;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
-                ToolTip = 'Shows all the sessions that are running at the same time.';
-
-                trigger OnAction()
-                begin
-                    Rec.SetRange("Start Time", 0DT, Rec."End Time");
-                    Rec.SetFilter("End Time", '>=%1', Rec."Start Time");
-                    IsFilteredToThisLine := true;
-                    CurrPage.Update(false);
-                end;
-            }
-            action(ClearShowSimultaneous)
-            {
-                ApplicationArea = All;
-                Visible = IsFilteredToThisLine;
-                Caption = 'Show sessions for all times';
-                Image = RemoveFilterLines;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
-                ToolTip = 'Show all sessions.';
-
-                trigger OnAction()
-                begin
-                    Rec.SetRange("Start Time");
-                    Rec.SetRange("End Time");
-                    IsFilteredToThisLine := false;
-                    CurrPage.Update(false);
-                end;
-            }
         }
     }
 
@@ -285,7 +249,6 @@ page 149033 "BCCT Log Entries"
 
     var
         DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
-        IsFilteredToThisLine: Boolean;
         IsFilteredToErrors: Boolean;
         InputText: Text;
         OutputText: Text;

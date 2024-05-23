@@ -1,3 +1,4 @@
+namespace System.Tooling;
 codeunit 149031 SentenceValidator
 {
     Access = Internal;
