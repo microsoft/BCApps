@@ -154,6 +154,23 @@ codeunit 9062 "Storage Service Authorization"
         exit(StorServAuthImpl.SharedKey(SharedKey, ApiVersion));
     end;
 
+#if not CLEAN25
+    /// <summary>
+    /// Uses a pre-generated account SAS (Shared Access Signature) for authorizing HTTP request to Azure Storage Services.
+    /// see: https://go.microsoft.com/fwlink/?linkid=2210398
+    /// </summary>
+    /// <param name="SASToken">A pre-generated SAS token.</param>
+    /// <returns>An account SAS authorization.</returns>
+    [Obsolete('Use UseReadySAS with SecretText data type for SASToken.', '25.0')]
+    [NonDebuggable]
+    procedure UseReadySAS(SASToken: Text): Interface "Storage Service Authorization"
+    var
+        StorServAuthImpl: Codeunit "Stor. Serv. Auth. Impl.";
+    begin
+        exit(StorServAuthImpl.ReadySAS(SASToken));
+    end;
+#endif
+
     /// <summary>
     /// Uses a pre-generated account SAS (Shared Access Signature) for authorizing HTTP request to Azure Storage Services.
     /// see: https://go.microsoft.com/fwlink/?linkid=2210398
@@ -161,7 +178,7 @@ codeunit 9062 "Storage Service Authorization"
     /// <param name="SASToken">A pre-generated SAS token.</param>
     /// <returns>An account SAS authorization.</returns>
     [NonDebuggable]
-    procedure UseReadySAS(SASToken: Text): Interface "Storage Service Authorization"
+    procedure UseReadySAS(SASToken: SecretText): Interface "Storage Service Authorization"
     var
         StorServAuthImpl: Codeunit "Stor. Serv. Auth. Impl.";
     begin
