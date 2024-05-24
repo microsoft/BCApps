@@ -46,7 +46,6 @@ codeunit 9357 "Graph Auth. Client Credentials" implements "Graph Authorization"
         HttpAuthOAuthClientCredentials: Codeunit HttpAuthOAuthClientCredentials;
         OAuthAuthorityUrl: Text;
     begin
-
         OAuthAuthorityUrl := StrSubstNo(ClientCredentialsTokenAuthorityUrlTxt, AadTenantId);
         case ClientCredentialsType of
             ClientCredentialsType::ClientSecret:

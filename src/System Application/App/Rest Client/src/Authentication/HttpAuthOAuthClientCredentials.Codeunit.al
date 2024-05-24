@@ -111,7 +111,7 @@ codeunit 2361 "HttpAuthOAuthClientCredentials" implements "Http Authentication"
         OAuth2: Codeunit System.Security.Authentication.OAuth2;
         IsSuccess: Boolean;
         IdToken: Text;
-        AquireTokenWithCertificateFailedErr: Label 'Acquire of token with Certificate failed.';
+        AcquireTokenWithCertificateFailedErr: Label 'Acquire of token with Certificate failed.';
     begin
         ClearLastError();
         if (not OAuth2.AcquireTokensFromCacheWithCertificate(ClientIdGlobal, CertificateGlobal, CertificatePasswordGlobal, '', OAuthAuthorityUrlGlobal, ScopesGlobal, AccessToken, IdToken)) or (AccessToken.IsEmpty()) then
@@ -122,7 +122,7 @@ codeunit 2361 "HttpAuthOAuthClientCredentials" implements "Http Authentication"
         if not IsSuccess then begin
             ErrorText := GetLastErrorText();
             if ErrorText = '' then
-                ErrorText := AquireTokenWithCertificateFailedErr;
+                ErrorText := AcquireTokenWithCertificateFailedErr;
         end;
 
         exit(IsSuccess);
