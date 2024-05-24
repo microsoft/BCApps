@@ -46,6 +46,8 @@ codeunit 9051 "ABS Client Impl."
         LeaseRenewLbl: Label 'renew';
         BlobLbl: Label 'Blob';
         ContainerLbl: Label 'Container';
+        MetadataGetOperationNotSuccessfulErr: Label 'Could not get Blob Metadata.';
+        MetadataSetOperationNotSuccessfulErr: Label 'Could not set Blob Metadata.';
 
     #endregion
 
@@ -199,8 +201,8 @@ codeunit 9051 "ABS Client Impl."
     procedure PutBlobBlockBlobUI(ABSOptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
-        Filename: Text;
         SourceInStream: InStream;
+        Filename: Text;
     begin
         if UploadIntoStream('', '', '', Filename, SourceInStream) then
             ABSOperationResponse := PutBlobBlockBlobStream(Filename, SourceInStream, '', ABSOptionalParameters);
@@ -677,8 +679,8 @@ codeunit 9051 "ABS Client Impl."
 
     procedure GetBlockList(BlockListType: Enum "ABS Block List Type"; var CommitedBlocks: Dictionary of [Text, Integer]; var UncommitedBlocks: Dictionary of [Text, Integer]): Codeunit "ABS Operation Response"
     var
-        ABSOperationResponse: Codeunit "ABS Operation Response";
         ABSHelperLibrary: Codeunit "ABS Helper Library";
+        ABSOperationResponse: Codeunit "ABS Operation Response";
         Document: XmlDocument;
     begin
         ABSOperationResponse := GetBlockList(BlockListType, Document);
@@ -795,6 +797,44 @@ codeunit 9051 "ABS Client Impl."
         ABSOperationPayload.SetOperation(Operation::LeaseBlob);
         ABSOperationPayload.SetBlobName(BlobName);
         exit(ChangeLease(ABSOptionalParameters, LeaseId, ProposedLeaseId, StrSubstNo(LeaseOperationNotSuccessfulErr, LeaseChangeLbl, BlobLbl, ABSOperationPayload.GetBlobName())));
+    end;
+
+    procedure GetBlobMetadata(BlobName: Text; var Metadata: Dictionary of [Text, Text]; OptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
+    var
+        ABSOperationResponse: Codeunit "ABS Operation Response";
+        Operation: Enum "ABS Operation";
+    begin
+        ABSOperationPayload.SetOperation(Operation::GetBlobMetadata);
+        ABSOperationPayload.SetOptionalParameters(OptionalParameters);
+        ABSOperationPayload.SetBlobName(BlobName);
+
+        ABSOperationResponse := ABSWebRequestHelper.GetOperation(ABSOperationPayload, MetadataGetOperationNotSuccessfulErr);
+        Metadata := ABSOperationResponse.GetMetaDataValueFromResponseHeaders();
+        exit(ABSOperationResponse);
+    end;
+
+    procedure SetBlobMetadata(BlobName: Text; Metadata: Dictionary of [Text, Text]): Codeunit "ABS Operation Response"
+    var
+        ABSOperationResponse: Codeunit "ABS Operation Response";
+        HTTPContent: HttpContent;
+        Operation: Enum "ABS Operation";
+    begin
+        ABSOperationPayload.SetOperation(Operation::SetBlobMetadata);
+        ABSOperationPayload.SetBlobName(BlobName);
+        AddMetadataHeaders(Metadata);
+
+        ABSOperationResponse := ABSWebRequestHelper.PutOperation(ABSOperationPayload, HTTPContent, MetadataSetOperationNotSuccessfulErr);
+        exit(ABSOperationResponse);
+    end;
+
+    local procedure AddMetadataHeaders(Metadata: Dictionary of [Text, Text])
+    var
+        MetadataKeys: List of [Text];
+        MetadataKey: Text;
+    begin
+        MetadataKeys := Metadata.Keys();
+        foreach MetadataKey in MetadataKeys do
+            ABSOperationPayload.AddRequestHeader('x-ms-meta-' + MetadataKey, Metadata.Get(MetadataKey));
     end;
     #endregion
 
