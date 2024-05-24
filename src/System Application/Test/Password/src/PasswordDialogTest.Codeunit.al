@@ -26,8 +26,11 @@ codeunit 135033 "Password Dialog Test"
         DisablePasswordValidation: Boolean;
         PasswordMissmatch: Boolean;
         ValidPasswordTxt: Label 'Some Password 2!';
+        AnotherValidPasswordTxt: Label 'Some Password 3!';
         InValidPasswordTxt: Label 'Some Password';
         AnotherPasswordTxt: Label 'Another Password';
+        PasswordSameAsNewErr: Label 'The new password cannot be the same as the current password.';
+        CurrentPasswordMismatchErr: Label 'The current password does not match the entered password.';
 
     [Test]
     [HandlerFunctions('PasswordDialogModalPageHandler')]
@@ -207,18 +210,62 @@ codeunit 135033 "Password Dialog Test"
     [HandlerFunctions('ChangePasswordDialogModalPageHandler')]
     procedure OpenChangePasswordDialogTest();
     var
+        LibraryPassword: Codeunit "Library - Password";
         Password: SecretText;
         OldPassword: SecretText;
+    begin
+        // [SCENARIO] Open Password dialog in change password mode.
+        // Used for "Change Password" OnPrem report.
+        // Internal implementation to support OnPrem Database.ChangeUserPassword
+        PermissionsMock.Set('All Objects');
+
+        // [WHEN] The password dialog is opened in change password mode.
+        LibraryPassword.OpenChangePasswordDialog(OldPassword, Password);
+
+        // [THEN] The Old and New passwords are retrieved.
+        Assert.AreEqual(InValidPasswordTxt, GetPasswordValue(OldPassword), 'A diferrent password was expected.');
+        Assert.AreEqual(ValidPasswordTxt, GetPasswordValue(Password), 'A diferrent password was expected.')
+    end;
+
+    [Test]
+    [HandlerFunctions('ChangePasswordDialogModalPageHandler')]
+    procedure OpenPasswordChangeDialogTest();
+    var
+        Password: SecretText;
+        CurrentPassword: SecretText;
     begin
         // [SCENARIO] Open Password dialog in change password mode.
         PermissionsMock.Set('All Objects');
 
         // [WHEN] The password dialog is opened in change password mode.
-        PasswordDialogManagement.OpenChangePasswordDialog(OldPassword, Password);
+        PasswordDialogManagement.OpenPasswordChangeDialog(CurrentPassword, Password);
+
+        // [THEN] The New passwords was retrieved.
+        Assert.AreEqual('', GetPasswordValue(CurrentPassword), 'A diferrent password was expected.');
+        Assert.AreEqual(ValidPasswordTxt, GetPasswordValue(Password), 'A diferrent password was expected.')
+    end;
+
+    [Test]
+    [HandlerFunctions('ChangePasswordDialogWithCurrentPasswordModalPageHandler')]
+    procedure OpenPasswordChangeDialogWithCurrentPasswordTest();
+    var
+        Password: SecretText;
+        CurrentPassword: SecretText;
+    begin
+        // [SCENARIO] Open Password dialog in change password mode.
+        // The old password has been passed on.
+        PermissionsMock.Set('All Objects');
+
+        // [GIVEN] The old password is for comparison that the old password matches the entered user and 
+        // the new password does not match the old password.
+        CurrentPassword := SecretStrSubstNo(ValidPasswordTxt);
+
+        // [WHEN] The password dialog is opened in change password mode.
+        PasswordDialogManagement.OpenPasswordChangeDialog(CurrentPassword, Password);
 
         // [THEN] The Old and New passwords are retrieved.
-        Assert.AreEqual(InValidPasswordTxt, GetPasswordValue(OldPassword), 'A diferrent password was expected.');
-        Assert.AreEqual(ValidPasswordTxt, GetPasswordValue(Password), 'A diferrent password was expected.')
+        Assert.AreEqual(ValidPasswordTxt, GetPasswordValue(CurrentPassword), 'A diferrent password was expected.');
+        Assert.AreEqual(AnotherValidPasswordTxt, GetPasswordValue(Password), 'A diferrent password was expected.')
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Password Dialog Management", 'OnSetMinPasswordLength', '', true, true)]
@@ -243,11 +290,26 @@ codeunit 135033 "Password Dialog Test"
     [ModalPageHandler]
     procedure ChangePasswordDialogModalPageHandler(var PasswordDialog: TestPage "Password Dialog");
     begin
-        Assert.IsTrue(PasswordDialog.OldPassword.Visible(), 'Old Password Field should not be visible.');
-        Assert.IsTrue(PasswordDialog.ConfirmPassword.Visible(), 'Confirm Password Field should not be visible.');
+        Assert.IsTrue(PasswordDialog.OldPassword.Visible(), 'Old Password Field should be visible.');
+        Assert.IsTrue(PasswordDialog.ConfirmPassword.Visible(), 'Confirm Password Field should be visible.');
         PasswordDialog.OldPassword.SetValue(InValidPasswordTxt);
         PasswordDialog.Password.SetValue(ValidPasswordTxt);
         PasswordDialog.ConfirmPassword.SetValue(ValidPasswordTxt);
+        PasswordDialog.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure ChangePasswordDialogWithCurrentPasswordModalPageHandler(var PasswordDialog: TestPage "Password Dialog");
+    begin
+        Assert.IsTrue(PasswordDialog.OldPassword.Visible(), 'Old Password Field should be visible.');
+        Assert.IsTrue(PasswordDialog.ConfirmPassword.Visible(), 'Confirm Password Field should be visible.');
+        asserterror PasswordDialog.OldPassword.SetValue(InValidPasswordTxt);
+        Assert.ExpectedError(CurrentPasswordMismatchErr);
+        PasswordDialog.OldPassword.SetValue(ValidPasswordTxt);
+        asserterror PasswordDialog.Password.SetValue(ValidPasswordTxt);
+        Assert.ExpectedError(PasswordSameAsNewErr);
+        PasswordDialog.Password.SetValue(AnotherValidPasswordTxt);
+        PasswordDialog.ConfirmPassword.SetValue(AnotherValidPasswordTxt);
         PasswordDialog.OK().Invoke();
     end;
 

@@ -1125,6 +1125,45 @@ codeunit 9053 "ABS Blob Client"
         exit(ABSClientImpl.BlobChangeLease(BlobName, ABSOptionalParameters, LeaseId, ProposedLeaseId));
     end;
 
+    /// <summary>
+    /// The GetBlobMetadata operation gets user-defined Metadata for the specified blob as one or more key-value pairs.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-metadata?tabs=microsoft-entra-id
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="Metadata">The result Dictionary of [Text, Text] with blob metadata.</param>
+    /// <returns>An operation response object</returns>
+    procedure GetBlobMetadata(BlobName: Text; var Metadata: Dictionary of [Text, Text]): Codeunit "ABS Operation Response"
+    var
+        OptionalParameters: Codeunit "ABS Optional Parameters";
+    begin
+        exit(ABSClientImpl.GetBlobMetadata(BlobName, Metadata, OptionalParameters))
+    end;
+
+    /// <summary>
+    /// The GetBlobMetadata operation gets user-defined Metadata for the specified blob as one or more key-value pairs.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-metadata?tabs=microsoft-entra-id
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="Metadata">The result Dictionary of [Text, Text] with blob metadata.</param>
+    /// <param name="OptionalParameters">Optional parameters to pass.</param>
+    /// <returns>An operation response object</returns>
+    procedure GetBlobMetaData(BlobName: Text; var Metadata: Dictionary of [Text, Text]; OptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.GetBlobMetadata(BlobName, MetaData, OptionalParameters))
+    end;
+
+    /// <summary>
+    /// The SetBlobMetadata operation sets user-defined Metadata for the specified blob as one or more key-value pairs.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/set-blob-metadata?tabs=microsoft-entra-id
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="Metadata">The result Dictionary of [Text, Text] with blob metadata.</param>
+    /// <returns>An operation response object</returns>
+    procedure SetBlobMetadata(BlobName: Text; Metadata: Dictionary of [Text, Text]): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.SetBlobMetadata(BlobName, MetaData));
+    end;
+
     var
         ABSClientImpl: Codeunit "ABS Client Impl.";
 }

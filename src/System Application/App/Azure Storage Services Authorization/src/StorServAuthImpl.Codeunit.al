@@ -49,8 +49,7 @@ codeunit 9063 "Stor. Serv. Auth. Impl."
         exit(StorServAuthSharedKey);
     end;
 
-    [NonDebuggable]
-    procedure ReadySAS(SASToken: Text): Interface "Storage Service Authorization"
+    procedure ReadySAS(SASToken: SecretText): Interface "Storage Service Authorization"
     var
         StorServAuthReadySAS: Codeunit "Stor. Serv. Auth. Ready SAS";
     begin
