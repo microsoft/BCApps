@@ -7,7 +7,12 @@
             "testMethods": ["BankLedgerEntryWithCustomer","BankLedgerEntryWithVendor","BankLedgerEntryWithGLAccount"]
         },
         {
-            "dataInputs": ["Harms Data 1", "Harms Data 2"],
+            "dataInputs": ["Harms Data 1"],
+            "codeunitId": 132907,
+            "codeunitName":  "AzureADUserMgtTest"
+        },
+        {
+            "dataInputs": ["Harms Data 2"],
             "codeunitId": 132907,
             "codeunitName":  "AzureADUserMgtTest"
         },
