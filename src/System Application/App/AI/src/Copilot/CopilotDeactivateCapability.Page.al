@@ -28,7 +28,7 @@ page 7772 "Copilot Deactivate Capability"
                     ApplicationArea = All;
                     Caption = 'Reason for deactivating';
                     ToolTip = 'Specifies the reason for deactivating the capability.';
-                    OptionCaption = ',Not relevant to our business,Users are not ready for it yet,Performance is not good enough,There are privacy concerns,Suggestions not accurate enough,Suggestions are not helpful,Suggestions are offensive or inappropriate,Prefer not to give a reason,Our reason is not listed here';
+                    OptionCaption = ',Not relevant to our business,Users are not ready for it yet,Performance is not good enough,There are privacy concerns,Suggestions not accurate enough,Suggestions are not helpful,Suggestions are offensive or inappropriate,Prefer not to give a reason,Our reason is not listed here,Doesn''t work with my customizations';
                 }
             }
         }

@@ -314,15 +314,91 @@ codeunit 135072 "Uri Builder Query Test"
         // [When] Adding a query parameter that needs encoding
         UriBuilder.AddQueryParameter('è', 'éAddedNotEncoded', Enum::"Uri Query Duplicate Behaviour"::"Keep All");
         UriBuilder.AddQueryParameter('%C3%A8', '%C3%A9AddedEncoded', Enum::"Uri Query Duplicate Behaviour"::"Keep All");
-        UriBuilder.AddQueryParameter('moreGarbledStuff', '&/\''"???%20', Enum::"Uri Query Duplicate Behaviour"::"Keep All");
+        UriBuilder.AddQueryParameter('moreGarbledStuff', '&/\''"*!???%20', Enum::"Uri Query Duplicate Behaviour"::"Keep All");
         UriBuilder.AddQueryParameter('고양이', ':30&고양이', Enum::"Uri Query Duplicate Behaviour"::"Throw Error");
 
         // [Then] The resulting URI has encoded query parameters
         UriBuilder.GetUri(Uri);
         Assert.AreEqual('https://microsoft.com/?%C3%A8=%C3%A9NotEncoded&%C3%A8=%C3%A9Encoded' // Initial parameters
             + '&%C3%A8=%C3%A9AddedNotEncoded&%25C3%25A8=%25C3%25A9AddedEncoded' // Added parameters (the one that was already encoded should be double encoded)
+            + '&moreGarbledStuff=%26%2F%5C%27%22%2A%21%3F%3F%3F%2520' // Ensure escape and special characters are encoded
+            + '&%EA%B3%A0%EC%96%91%EC%9D%B4=%3A30%26%EA%B3%A0%EC%96%91%EC%9D%B4', // Ensure character that use 3 bytes are also correctly encoded
+            Uri.GetAbsoluteUri(), 'Unexpected URL.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestExpectedODataEncoding_NonODataParameters()
+    var
+        Uri: Codeunit Uri;
+    begin
+        // [Given] A Url
+        UriBuilder.Init('https://microsoft.com?è=éNotEncoded&%C3%A8=%C3%A9Encoded');
+
+        // [When] Adding OData parameters that don't include the $ sign
+        UriBuilder.AddODataQueryParameter('è', 'éAddedNotEncoded');
+        UriBuilder.AddODataQueryParameter('%C3%A8', '%C3%A9AddedEncoded');
+        UriBuilder.AddODataQueryParameter('moreGarbledStuff', '&/\''"???%20');
+        UriBuilder.AddODataQueryParameter('고양이', ':30&고양이');
+
+        // [Then] The resulting URI has encoded query parameters (same as if using the regular non-OData function)
+        UriBuilder.GetUri(Uri);
+        Assert.AreEqual('https://microsoft.com/' // Initial parameters are overwritten
+            + '?%C3%A8=%C3%A9AddedNotEncoded&%25C3%25A8=%25C3%25A9AddedEncoded' // Added parameters (the one that was already encoded should be double encoded)
             + '&moreGarbledStuff=%26%2F%5C%27%22%3F%3F%3F%2520' // Ensure escape and special characters are encoded
             + '&%EA%B3%A0%EC%96%91%EC%9D%B4=%3A30%26%EA%B3%A0%EC%96%91%EC%9D%B4', // Ensure character that use 3 bytes are also correctly encoded
+            Uri.GetAbsoluteUri(), 'Unexpected URL.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestExpectedODataEncoding_ODataParameters()
+    var
+        Uri: Codeunit Uri;
+    begin
+        // [Given] A Url
+        UriBuilder.Init('https://microsoft.com?$top=33&%24skip=41&$filter=nothing&è=éNotEncoded&%C3%A8=%C3%A9Encoded');
+
+        // [When] Adding OData parameters that include the $ sign
+        UriBuilder.AddODataQueryParameter('$filter', 'Name eq ''&Contoso''');
+        UriBuilder.AddODataQueryParameter('$expand', 'Products($filter=DiscontinuedDate eq null)');
+        UriBuilder.AddODataQueryParameter('moreGarbledStuff😊', '&/\''"*!???%20');
+
+        // [Then] The resulting URI has encoded query parameters, except the $ sign in the parameter name
+        UriBuilder.GetUri(Uri);
+        Assert.AreEqual('https://microsoft.com/?$top=33&$skip=41' // Initial parameters
+            + '&$filter=Name%20eq%20%27%26Contoso%27' // Filter
+            + '&%C3%A8=%C3%A9NotEncoded&%C3%A8=%C3%A9Encoded' // Other initial parameters
+            + '&$expand=Products%28%24filter%3DDiscontinuedDate%20eq%20null%29' // $ is encoded in the value
+            + '&moreGarbledStuff%F0%9F%98%8A=%26%2F%5C%27%22%2A%21%3F%3F%3F%2520', // Non-OData parameter
+            Uri.GetAbsoluteUri(), 'Unexpected URL.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestExpectedODataEncoding_ODataParametersThenFlag()
+    var
+        Uri: Codeunit Uri;
+    begin
+        // [Given] A Url
+        UriBuilder.Init('https://microsoft.com?$top=33&%24skip=41&$filter=nothing&è=éNotEncoded&%C3%A8=%C3%A9Encoded');
+
+        // [When] Adding OData parameters that include the $ sign
+        UriBuilder.AddODataQueryParameter('$filter', 'Name eq ''&Contoso''');
+        UriBuilder.AddODataQueryParameter('$expand', 'Products($filter=DiscontinuedDate eq null)');
+        UriBuilder.AddODataQueryParameter('moreGarbledStuff😊', '&/\''"*!???%20');
+
+        // [When] Adding a flag afterwards that does not require OData encoding
+        UriBuilder.AddQueryFlag('$newschemaversion');
+
+        // [Then] The library honours the encoding of the last parameter or flag added, and hence the resulting URI has encoded query parameters, including the $ sign in the parameter name.
+        UriBuilder.GetUri(Uri);
+        Assert.AreEqual('https://microsoft.com/?%24top=33&%24skip=41' // Initial parameters
+            + '&%24filter=Name%20eq%20%27%26Contoso%27' // Filter
+            + '&%C3%A8=%C3%A9NotEncoded&%C3%A8=%C3%A9Encoded' // Other initial parameters
+            + '&%24expand=Products%28%24filter%3DDiscontinuedDate%20eq%20null%29' // $ is encoded in the value
+            + '&moreGarbledStuff%F0%9F%98%8A=%26%2F%5C%27%22%2A%21%3F%3F%3F%2520' // Non-OData parameter
+            + '&%24newschemaversion', // Flag
             Uri.GetAbsoluteUri(), 'Unexpected URL.');
     end;
 

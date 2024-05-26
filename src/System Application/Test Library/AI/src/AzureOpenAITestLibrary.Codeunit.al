@@ -18,4 +18,19 @@ codeunit 132933 "Azure OpenAI Test Library"
         exit(AOAIChatMessages.AssembleHistory(SystemMessageTokenCount, MessagesTokenCount));
     end;
 
+    procedure GetAOAIAssembleTools(var AOAIChatMessages: Codeunit "AOAI Chat Messages"): JsonArray
+    begin
+        exit(AOAIChatMessages.AssembleTools());
+    end;
+
+    procedure GetAOAIChatCompletionParametersPayload(AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var Payload: JsonObject)
+    begin
+        AOAIChatCompletionParams.AddChatCompletionsParametersToPayload(Payload);
+    end;
+
+    procedure SetAOAIFunctionResponse(var AOAIFunctionResponse: Codeunit "AOAI Function Response"; NewIsFunctionCall: Boolean; NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionId: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
+    begin
+        AOAIFunctionResponse.SetFunctionCallingResponse(NewIsFunctionCall, NewFunctionCallSuccess, NewFunctionCalled, NewFunctionId, NewFunctionResult, NewFunctionError, NewFunctionErrorCallStack);
+    end;
+
 }

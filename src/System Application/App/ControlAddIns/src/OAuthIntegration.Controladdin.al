@@ -7,14 +7,14 @@ namespace System.Security.Authentication;
 
 controladdin OAuthIntegration
 {
-    RequestedWidth = 30;
-    RequestedHeight = 200;
+    RequestedHeight = 30;
+    RequestedWidth = 200;
     MinimumHeight = 20;
     MinimumWidth = 200;
-    HorizontalStretch = false;
-    VerticalStretch = false;
-    HorizontalShrink = true;
+    VerticalStretch = true;
     VerticalShrink = true;
+    HorizontalStretch = true;
+    HorizontalShrink = true;
 
     Scripts = 'Resources\OAuthIntegration\js\OAuthIntegration.js';
     StyleSheets = 'Resources\OAuthIntegration\stylesheets\OAuthIntegration.css';

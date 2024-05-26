@@ -28,8 +28,7 @@ codeunit 9064 "Stor. Serv. Auth. Shared Key" implements "Storage Service Authori
         Headers.Add('Authorization', GetSharedKeySignature(HttpRequest, StorageAccount));
     end;
 
-    [NonDebuggable]
-    procedure SetSharedKey(SharedKey: Text)
+    procedure SetSharedKey(SharedKey: SecretText)
     begin
         Secret := SharedKey;
     end;
@@ -39,7 +38,6 @@ codeunit 9064 "Stor. Serv. Auth. Shared Key" implements "Storage Service Authori
         ApiVersion := NewApiVersion;
     end;
 
-    [NonDebuggable]
     local procedure GetSharedKeySignature(HttpRequestMessage: HttpRequestMessage; StorageAccount: Text): Text
     var
         StringToSign: Text;
@@ -47,7 +45,7 @@ codeunit 9064 "Stor. Serv. Auth. Shared Key" implements "Storage Service Authori
         SignaturePlaceHolderLbl: Label 'SharedKey %1:%2', Comment = '%1 = Account Name; %2 = Calculated Signature', Locked = true;
         SecretCanNotBeEmptyErr: Label 'Secret (Access Key) must be provided';
     begin
-        if Secret = '' then
+        if Secret.IsEmpty() then
             Error(SecretCanNotBeEmptyErr);
 
         StringToSign := CreateSharedKeyStringToSign(HttpRequestMessage, StorageAccount);
@@ -86,7 +84,6 @@ codeunit 9064 "Stor. Serv. Auth. Shared Key" implements "Storage Service Authori
     end;
 
     [TryFunction]
-    [NonDebuggable]
     local procedure TryGetContentHeaders(var HttpRequestMessage: HttpRequestMessage; var RequestHttpHeaders: HttpHeaders)
     begin
         HttpRequestMessage.Content.GetHeaders(RequestHttpHeaders);
@@ -209,6 +206,5 @@ codeunit 9064 "Stor. Serv. Auth. Shared Key" implements "Storage Service Authori
     var
         AuthFormatHelper: Codeunit "Auth. Format Helper";
         ApiVersion: Enum "Storage Service API Version";
-        [NonDebuggable]
-        Secret: Text;
+        Secret: SecretText;
 }

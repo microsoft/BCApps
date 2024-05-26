@@ -8,7 +8,13 @@ namespace System.Security.Encryption;
 /// <summary>
 /// Specifies the types of asymmetric algorithms.
 /// </summary>
-enum 1446 SignatureAlgorithm implements SignatureAlgorithm
+#if not CLEAN24
+#pragma warning disable AL0432
+enum 1446 SignatureAlgorithm implements SignatureAlgorithm, "Signature Algorithm v2"
+#pragma warning restore AL0432
+#else
+enum 1446 SignatureAlgorithm implements "Signature Algorithm v2"
+#endif
 {
     Extensible = false;
 
@@ -17,7 +23,12 @@ enum 1446 SignatureAlgorithm implements SignatureAlgorithm
     /// </summary>
     value(0; RSA)
     {
-        Implementation = SignatureAlgorithm = "RSACryptoServiceProvider Impl.";
+#if not CLEAN24
+        Implementation = SignatureAlgorithm = "RSACryptoServiceProvider Impl.",
+                            "Signature Algorithm v2" = "RSACryptoServiceProvider Impl.";
+#else
+        Implementation = "Signature Algorithm v2" = "RSACryptoServiceProvider Impl.";
+#endif
     }
 
     /// <summary>
@@ -25,6 +36,24 @@ enum 1446 SignatureAlgorithm implements SignatureAlgorithm
     /// </summary>
     value(1; DSA)
     {
-        Implementation = SignatureAlgorithm = "DSACryptoServiceProvider Impl.";
+
+#if not CLEAN24
+        Implementation = SignatureAlgorithm = "DSACryptoServiceProvider Impl.",
+                            "Signature Algorithm v2" = "DSACryptoServiceProvider Impl.";
+#else
+        Implementation = "Signature Algorithm v2" = "DSACryptoServiceProvider Impl.";
+#endif
+    }
+    /// <summary>
+    /// Specifies the RSASSA-PSS algorithm implemented by RSA
+    /// </summary>
+    value(2; "RSASSA-PSS")
+    {
+#if not CLEAN24
+        Implementation = SignatureAlgorithm = "RSA Impl.",
+                            "Signature Algorithm v2" = "RSA Impl.";
+#else
+        Implementation = "Signature Algorithm v2" = "RSA Impl.";
+#endif
     }
 }

@@ -33,15 +33,15 @@ codeunit 130045 "System Initialization Test"
         CompanyTriggers: Codeunit "Company Triggers";
         PasswordDialogManagement: Codeunit "Password Dialog Management";
         PermissionsMock: Codeunit "Permissions Mock";
-        OldPassword: Text;
-        NewPassword: Text;
+        CurrentPassword: SecretText;
+        NewPassword: SecretText;
     begin
         PermissionsMock.Set('System Init Exec');
         // [WHEN] Calling CompanyTriggers.OnCompanyOpen()
         CompanyTriggers.OnCompanyOpenCompleted();
 
-        // [THEN] Calling PasswordDialog.OpenChangePasswordDialog should NOT results in an error
-        PasswordDialogManagement.OpenChangePasswordDialog(OldPassword, NewPassword);
+        // [THEN] Calling PasswordDialog.OpenPasswordChangeDialog should NOT results in an error
+        PasswordDialogManagement.OpenPasswordChangeDialog(CurrentPassword, NewPassword);
     end;
 
     [ModalPageHandler]

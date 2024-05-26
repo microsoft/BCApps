@@ -9,7 +9,8 @@ codeunit 130452 "Test Runner - Get Methods"
 {
     Subtype = TestRunner;
     TableNo = "Test Method Line";
-    Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;
+    Permissions = tabledata "AL Test Suite" = rimd,
+                  tabledata "Test Method Line" = rimd;
 
     trigger OnRun()
     var

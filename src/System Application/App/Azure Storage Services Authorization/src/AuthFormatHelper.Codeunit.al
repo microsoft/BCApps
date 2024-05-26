@@ -41,8 +41,7 @@ codeunit 9060 "Auth. Format Helper"
         exit(DotNetDateTime.Parse(DateTimeAsXmlString).ToUniversalTime().ToString(FormatSpecifier));
     end;
 
-    [NonDebuggable]
-    procedure GetAccessKeyHashCode(StringToSign: Text; AccessKey: Text): Text;
+    procedure GetAccessKeyHashCode(StringToSign: Text; AccessKey: SecretText): Text;
     var
         CryptographyManagement: Codeunit "Cryptography Management";
         HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512;

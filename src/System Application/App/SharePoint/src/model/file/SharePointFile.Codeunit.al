@@ -11,7 +11,6 @@ codeunit 9106 "SharePoint File"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    [NonDebuggable]
     procedure Parse(Payload: Text; var SharePointFile: Record "SharePoint File" temporary)
     var
         JObject: JsonObject;
@@ -20,7 +19,6 @@ codeunit 9106 "SharePoint File"
             Parse(JObject, SharePointFile);
     end;
 
-    [NonDebuggable]
     procedure ParseSingleReturnValue(Payload: Text; var SharePointFile: Record "SharePoint File" temporary)
     var
         JObject: JsonObject;
@@ -34,7 +32,6 @@ codeunit 9106 "SharePoint File"
             end;
     end;
 
-    [NonDebuggable]
     procedure ParseSingle(Payload: Text; var SharePointFile: Record "SharePoint File" temporary)
     var
         JObject: JsonObject;
@@ -43,7 +40,6 @@ codeunit 9106 "SharePoint File"
             SharePointFile := ParseSingle(JObject);
     end;
 
-    [NonDebuggable]
     procedure Parse(Payload: JsonObject; var SharePointFile: Record "SharePoint File" temporary)
     var
         JToken: JsonToken;
@@ -55,11 +51,11 @@ codeunit 9106 "SharePoint File"
             end;
     end;
 
-    [NonDebuggable]
     local procedure ParseSingle(Payload: JsonObject) SharePointFile: Record "SharePoint File" temporary
     var
         SharePointClient: Codeunit "SharePoint Client";
         JToken: JsonToken;
+        MetaData: JsonObject;
     begin
         SharePointFile.Init();
         if Payload.Get('UniqueId', JToken) then
@@ -94,25 +90,25 @@ codeunit 9106 "SharePoint File"
             SharePointFile.OdataEditLink := CopyStr(JToken.AsValue().AsText(), 1, MaxStrLen(SharePointFile.OdataEditLink));
 
         if Payload.Get('__metadata', JToken) then begin
-            Payload := JToken.AsObject();
+            MetaData := JToken.AsObject();
 
-            if Payload.Get('id', JToken) then
+            if MetaData.Get('id', JToken) then
                 SharePointFile.OdataId := CopyStr(JToken.AsValue().AsText(), 1, MaxStrLen(SharePointFile.OdataId));
 
-            if Payload.Get('uri', JToken) then
+            if MetaData.Get('uri', JToken) then
                 SharePointFile.OdataEditLink := CopyStr(JToken.AsValue().AsText(), JToken.AsValue().AsText().IndexOf('/_api/Web/') + 6, MaxStrLen(SharePointFile.OdataEditLink));
 
-            if Payload.Get('type', JToken) then
+            if MetaData.Get('type', JToken) then
                 SharePointFile.OdataType := CopyStr(JToken.AsValue().AsText(), 1, MaxStrLen(SharePointFile.OdataType));
         end;
 
         if Payload.Get('ListItemAllFields', JToken) then begin
-            Payload := JToken.AsObject();
+            MetaData := JToken.AsObject();
 
-            if Payload.Get('Id', JToken) then
+            if MetaData.Get('Id', JToken) then
                 SharePointFile.Id := JToken.AsValue().AsInteger();
 
-            SharePointClient.ProcessSharePointFileMetadata(JToken, SharePointFile);
         end;
+        SharePointClient.ProcessSharePointFileMetadata(Payload.AsToken(), SharePointFile);
     end;
 }

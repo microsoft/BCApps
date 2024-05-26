@@ -11,7 +11,6 @@ codeunit 9103 "SharePoint List Item"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    [NonDebuggable]
     procedure Parse(Payload: Text; var SharePointListItem: Record "SharePoint List Item" temporary)
     var
         JObject: JsonObject;
@@ -20,7 +19,6 @@ codeunit 9103 "SharePoint List Item"
             Parse(JObject, SharePointListItem);
     end;
 
-    [NonDebuggable]
     procedure Parse(Payload: JsonObject; var SharePointListItem: Record "SharePoint List Item" temporary)
     var
         JToken: JsonToken;
@@ -32,7 +30,6 @@ codeunit 9103 "SharePoint List Item"
             end;
     end;
 
-    [NonDebuggable]
     procedure ParseSingleReturnValue(Payload: Text; var SharePointListItem: Record "SharePoint List Item" temporary)
     var
         JObject: JsonObject;
@@ -46,7 +43,6 @@ codeunit 9103 "SharePoint List Item"
             end;
     end;
 
-    [NonDebuggable]
     local procedure ParseSingle(Payload: JsonObject) SharePointListItem: Record "SharePoint List Item" temporary
     var
         SharePointUriBuilder: Codeunit "SharePoint Uri Builder";
@@ -80,19 +76,16 @@ codeunit 9103 "SharePoint List Item"
         if Payload.Get('odata.editLink', JToken) then
             SharePointListItem.OdataEditLink := CopyStr(JToken.AsValue().AsText(), 1, MaxStrLen(SharePointListItem.OdataEditLink));
 
-        if Payload.Get('__metadata', JToken) then begin
-            Payload := JToken.AsObject();
-
-            if Payload.Get('uri', JToken) then
+        if Payload.Get('__metadata', JToken) then
+            if JToken.AsObject().Get('uri', JToken) then
                 SharePointListItem.OdataEditLink := CopyStr(JToken.AsValue().AsText(), JToken.AsValue().AsText().IndexOf('Web/Lists'), MaxStrLen(SharePointListItem.OdataEditLink));
-
-            SharePointClient.ProcessSharePointListItemMetadata(JToken, SharePointListItem);
-        end;
 
         if SharePointListItem.OdataEditLink <> '' then begin
             SharePointUriBuilder.SetPath(SharePointListItem.OdataEditLink);
             //guid'854d7f21-1c6a-43ab-a081-20404894b449' -> 854d7f21-1c6a-43ab-a081-20404894b449
             SharePointListItem."List Id" := SharePointUriBuilder.GetMethodParameter('Lists').Substring(6, 36);
         end;
+
+        SharePointClient.ProcessSharePointListItemMetadata(Payload.AsToken(), SharePointListItem);
     end;
 }

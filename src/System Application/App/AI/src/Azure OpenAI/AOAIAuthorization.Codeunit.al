@@ -26,6 +26,7 @@ codeunit 7767 "AOAI Authorization"
     [NonDebuggable]
     procedure IsConfigured(CallerModule: ModuleInfo): Boolean
     var
+        AzureOpenAiImpl: Codeunit "Azure OpenAI Impl";
         CurrentModule: ModuleInfo;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin
@@ -35,7 +36,8 @@ codeunit 7767 "AOAI Authorization"
             exit(false);
 
         if (Endpoint = '') and ApiKey.IsEmpty() then
-            exit(ALCopilotFunctions.IsPlatformAuthorizationConfigured(CallerModule.Publisher(), CurrentModule.Publisher()));
+            exit(AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls()
+                or ALCopilotFunctions.IsPlatformAuthorizationConfigured(CallerModule.Publisher(), CurrentModule.Publisher()));
 
         if (Endpoint = '') or ApiKey.IsEmpty() then
             exit(false);

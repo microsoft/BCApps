@@ -483,6 +483,26 @@ codeunit 9101 "SharePoint Client Impl."
         exit(true);
     end;
 
+    procedure GetFileByServerRelativeUrl(ServerRelativeUrl: Text; var SharePointFile: Record "SharePoint File" temporary; ListAllFields: Boolean): Boolean
+    var
+        SharePointFileParser: Codeunit "SharePoint File";
+        Result: Text;
+    begin
+        SharePointUriBuilder.ResetPath();
+        SharePointUriBuilder.SetMethod('GetFileByServerRelativeUrl', ServerRelativeUrl);
+        if ListAllFields then
+            SharePointUriBuilder.AddQueryParameter('$expand', 'ListItemAllFields');
+
+        SharePointRequestHelper.SetAuthorization(Authorization);
+        SharePointOperationResponse := SharePointRequestHelper.Get(SharePointUriBuilder);
+        if not SharePointOperationResponse.GetDiagnostics().IsSuccessStatusCode() then
+            exit(false);
+
+        SharePointOperationResponse.GetResultAsText(Result);
+        SharePointFileParser.ParseSingle(Result, SharePointFile);
+        exit(true);
+    end;
+
     procedure DownloadFileContent(OdataId: Text; var FileInStream: InStream): Boolean
     begin
         //GET https://{site_url}/_api/web/GetFileByServerRelativeUrl('/Folder Name/{file_name}')/$value
@@ -715,47 +735,30 @@ codeunit 9101 "SharePoint Client Impl."
     end;
 
     procedure UpdateListItemMetaDataField(ListTitle: Text; ItemId: Integer; ListItemEntityTypeFullName: Text; FieldName: Text; FieldValue: Text): Boolean
-    var
-        SharePointHttpContent: Codeunit "SharePoint Http Content";
-        Metadata, Payload : JsonObject;
-        Txt: Text;
     begin
         SharePointUriBuilder.ResetPath();
         SharePointUriBuilder.SetObject('lists');
         SharePointUriBuilder.SetMethod('GetByTitle', ListTitle);
         SharePointUriBuilder.SetMethod('items', ItemId);
 
-        Metadata.Add('type', ListItemEntityTypeFullName);
-        Payload.Add('__metadata', Metadata);
-        Payload.Add(FieldName, FieldValue);
-
-        SharePointHttpContent.FromJson(Payload);
-
-        SharePointHttpContent.GetContent().ReadAs(Txt);
-
-        SharePointHttpContent.SetRequestDigest(GetRequestDigest(SharePointUriBuilder.GetHost()));
-        SharePointHttpContent.SetXHttpMethod('MERGE');
-        SharePointHttpContent.SetIfMatch('*');
-
-        SharePointOperationResponse := SharePointRequestHelper.Patch(SharePointUriBuilder, SharePointHttpContent);
-        if not SharePointOperationResponse.GetDiagnostics().IsSuccessStatusCode() then
-            exit(false);
-
-        SharePointOperationResponse.GetResultAsText(Txt);
-        Message(Txt);
-        exit(true);
+        exit(UpdateListItemMetaDataField(ListItemEntityTypeFullName, FieldName, FieldValue));
     end;
 
     procedure UpdateListItemMetaDataField(ListId: Guid; ItemId: Integer; ListItemEntityTypeFullName: Text; FieldName: Text; FieldValue: Text): Boolean
-    var
-        SharePointHttpContent: Codeunit "SharePoint Http Content";
-        Metadata, Payload : JsonObject;
-        Txt: Text;
     begin
         SharePointUriBuilder.ResetPath();
         SharePointUriBuilder.SetMethod('Lists', ListId);
         SharePointUriBuilder.SetMethod('items', ItemId);
 
+        exit(UpdateListItemMetaDataField(ListItemEntityTypeFullName, FieldName, FieldValue));
+    end;
+
+    local procedure UpdateListItemMetaDataField(ListItemEntityTypeFullName: Text; FieldName: Text; FieldValue: Text): Boolean
+    var
+        SharePointHttpContent: Codeunit "SharePoint Http Content";
+        Metadata, Payload : JsonObject;
+        Txt: Text;
+    begin
         Metadata.Add('type', ListItemEntityTypeFullName);
         Payload.Add('__metadata', Metadata);
         Payload.Add(FieldName, FieldValue);

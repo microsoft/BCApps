@@ -195,7 +195,9 @@ codeunit 2350 "Rest Client"
     #region BasicMethodsAsJson
     /// <summary>Sends a GET request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code or a valid JSON content.</remarks>
+    /// The function also fails in case the response does not contain a success status code.
+    /// In case the response contains no content, an empty JsonToken is returned. 
+    /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <returns>The response content as JsonToken</returns>
     procedure GetAsJson(RequestUri: Text) JsonToken: JsonToken
@@ -205,7 +207,9 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a POST request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code or a valid JSON content.</remarks>
+    /// The function also fails in case the response does not contain a success status code.
+    /// In case the response contains no content, an empty JsonToken is returned. 
+    /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send as a JsonObject.</param>
     /// <returns>The response content as JsonToken</returns>
@@ -216,7 +220,9 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a POST request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code or a valid JSON content.</remarks>
+    /// The function also fails in case the response does not contain a success status code.
+    /// In case the response contains no content, an empty JsonToken is returned. 
+    /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send as a JsonArray.</param>
     /// <returns>The response content as JsonToken</returns>
@@ -227,7 +233,9 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a POST request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code or a valid JSON content.</remarks>
+    /// The function also fails in case the response does not contain a success status code.
+    /// In case the response contains no content, an empty JsonToken is returned. 
+    /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send as a JsonToken.</param>
     /// <returns>The response content as JsonToken</returns>
@@ -238,7 +246,9 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a PATCH request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code or a valid JSON content.</remarks>
+    /// The function also fails in case the response does not contain a success status code.
+    /// In case the response contains no content, an empty JsonToken is returned. 
+    /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send as a JsonObject.</param>
     /// <returns>The response content as JsonToken</returns>
@@ -249,7 +259,9 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a PATCH request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code or a valid JSON content.</remarks>
+    /// The function also fails in case the response does not contain a success status code.
+    /// In case the response contains no content, an empty JsonToken is returned. 
+    /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send as a JsonArray.</param>
     /// <returns>The response content as JsonToken</returns>
@@ -260,7 +272,9 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a PATCH request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code or a valid JSON content.</remarks>
+    /// The function also fails in case the response does not contain a success status code.
+    /// In case the response contains no content, an empty JsonToken is returned. 
+    /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send as a JsonToken.</param>
     /// <returns>The response content as JsonToken</returns>
@@ -271,7 +285,9 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a PUT request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code or a valid JSON content.</remarks>
+    /// The function also fails in case the response does not contain a success status code.
+    /// In case the response contains no content, an empty JsonToken is returned. 
+    /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send as a JsonObject.</param>
     /// <returns>The response content as JsonToken</returns>
@@ -282,7 +298,9 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a PUT request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code or a valid JSON content.</remarks>
+    /// The function also fails in case the response does not contain a success status code.
+    /// In case the response contains no content, an empty JsonToken is returned. 
+    /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send as a JsonArray.</param>
     /// <returns>The response content as JsonToken</returns>
@@ -293,7 +311,9 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a PUT request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code or a valid JSON content.</remarks>
+    /// The function also fails in case the response does not contain a success status code.
+    /// In case the response contains no content, an empty JsonToken is returned. 
+    /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send as a JsonToken.</param>
     /// <returns>The response content as JsonToken</returns>

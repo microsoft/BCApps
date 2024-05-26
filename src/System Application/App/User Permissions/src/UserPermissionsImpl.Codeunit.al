@@ -236,8 +236,17 @@ codeunit 153 "User Permissions Impl."
 
     procedure HasUserPermissionSetAssigned(UserSecurityId: Guid; Company: Text; RoleId: Code[20]; ItemScope: Option; AppId: Guid): Boolean
     var
+        User: Record User;
         NavUserAccountHelper: DotNet NavUserAccountHelper;
     begin
+        if HasUserPermissionSetDirectlyAssigned(UserSecurityId, Company, RoleId, ItemScope, AppId) then
+            exit(true);
+
+        // NavUserAccountHelper doesn't work with bulk (buffered) inserts.
+        // Calling a Get flushes the buffer.
+        if not User.Get(UserSecurityId) then
+            exit(false);
+
         if NavUserAccountHelper.IsPermissionSetAssigned(UserSecurityId, '', RoleId, AppId, ItemScope) then
             exit(true);
 
@@ -245,6 +254,19 @@ codeunit 153 "User Permissions Impl."
             exit(NavUserAccountHelper.IsPermissionSetAssigned(UserSecurityId, Company, RoleId, AppId, ItemScope));
 
         exit(false);
+    end;
+
+    procedure HasUserPermissionSetDirectlyAssigned(UserSecurityId: Guid; Company: Text; RoleId: Code[20]; ItemScope: Option; AppId: Guid): Boolean
+    var
+        AccessControl: Record "Access Control";
+    begin
+        AccessControl.SetRange("User Security ID", UserSecurityId);
+        AccessControl.SetRange("Role ID", RoleId);
+        AccessControl.SetFilter("Company Name", '%1|%2', '', Company);
+        AccessControl.SetRange(Scope, ItemScope);
+        AccessControl.SetRange("App ID", AppId);
+
+        exit(not AccessControl.IsEmpty());
     end;
 
     internal procedure GetEffectivePermission(UserSecurityIdToCheck: Guid; CompanyNameToCheck: Text; PermissionObjectType: Option "Table Data","Table",,"Report",,"Codeunit","XMLport",MenuSuite,"Page","Query","System",,,,,,,,,; ObjectId: Integer): Text
@@ -281,4 +303,3 @@ codeunit 153 "User Permissions Impl."
     begin
     end;
 }
-

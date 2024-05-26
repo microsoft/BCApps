@@ -23,7 +23,19 @@ codeunit 1463 CertificateRequest
     /// <param name="KeySize">The size of the key in bits.</param>
     /// <param name="IncludePrivateParameters">True to include a public and private RSA key in KeyAsXmlString. False to include only the public key.</param>
     /// <param name="KeyAsXmlString">Returns an XML string that contains the key of the RSA object that was created.</param>
+    [NonDebuggable]
     procedure InitializeRSA(KeySize: Integer; IncludePrivateParameters: Boolean; var KeyAsXmlString: Text)
+    begin
+        CertSigningRequestImpl.InitializeRSA(KeySize, IncludePrivateParameters, KeyAsXmlString);
+    end;
+
+    /// <summary>
+    /// Initializes a new instance of RSACryptoServiceProvider with the specified key size and returns the key as an XML string.
+    /// </summary>
+    /// <param name="KeySize">The size of the key in bits.</param>
+    /// <param name="IncludePrivateParameters">True to include a public and private RSA key in KeyAsXmlString. False to include only the public key.</param>
+    /// <param name="KeyAsXmlString">Returns an XML string that contains the key of the RSA object that was created.</param>
+    procedure InitializeRSA(KeySize: Integer; IncludePrivateParameters: Boolean; var KeyAsXmlString: SecretText)
     begin
         CertSigningRequestImpl.InitializeRSA(KeySize, IncludePrivateParameters, KeyAsXmlString);
     end;

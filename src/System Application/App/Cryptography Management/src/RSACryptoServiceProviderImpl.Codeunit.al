@@ -7,7 +7,13 @@ namespace System.Security.Encryption;
 
 using System;
 
-codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
+#if not CLEAN24
+#pragma warning disable AL0432
+codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm, "Signature Algorithm v2"
+#pragma warning restore AL0432
+#else
+codeunit 1446 "RSACryptoServiceProvider Impl." implements "Signature Algorithm v2"
+#endif
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -26,15 +32,24 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
         DotNetAsymmetricAlgorithm := DotNetRSACryptoServiceProvider;
     end;
 
-    #region SignData
     [NonDebuggable]
-    procedure SignData(XmlString: Text; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    procedure CreateRSAKeyPair(var PublicKeyInXml: Text; var PrivateKeyInXml: SecretText)
+    var
+        DotnetRSA: DotNet RSA;
     begin
-        FromXmlString(XmlString);
+        RSACryptoServiceProvider();
+        DotnetRSA := DotNetRSACryptoServiceProvider.Create();
+        PublicKeyInXml := DotnetRSA.ToXmlString(false);
+        PrivateKeyInXml := DotnetRSA.ToXmlString(true);
+    end;
+
+    #region SignData
+    procedure SignData(XmlString: SecretText; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
+    begin
+        FromSecretXmlString(XmlString);
         SignData(DataInStream, HashAlgorithm, SignatureOutStream);
     end;
 
-    [NonDebuggable]
     procedure SignData(DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
     var
         Bytes: DotNet Array;
@@ -47,7 +62,6 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
         ArrayToOutStream(Signature, SignatureOutStream);
     end;
 
-    [NonDebuggable]
     local procedure SignData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; var Signature: DotNet Array)
     begin
         if Bytes.Length() = 0 then
@@ -56,7 +70,6 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
     end;
 
     [TryFunction]
-    [NonDebuggable]
     local procedure TrySignData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; var Signature: DotNet Array)
     begin
         Signature := DotNetRSACryptoServiceProvider.SignData(Bytes, Format(HashAlgorithm));
@@ -64,14 +77,12 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
     #endregion
 
     #region VerifyData
-    [NonDebuggable]
-    procedure VerifyData(XmlString: Text; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    procedure VerifyData(XmlString: SecretText; DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
     begin
-        FromXmlString(XmlString);
+        FromSecretXmlString(XmlString);
         exit(VerifyData(DataInStream, HashAlgorithm, SignatureInStream));
     end;
 
-    [NonDebuggable]
     procedure VerifyData(DataInStream: InStream; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
     var
         Bytes: DotNet Array;
@@ -84,7 +95,6 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
         exit(VerifyData(Bytes, HashAlgorithm, Signature));
     end;
 
-    [NonDebuggable]
     local procedure VerifyData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; Signature: DotNet Array): Boolean
     var
         Verified: Boolean;
@@ -98,7 +108,6 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
     end;
 
     [TryFunction]
-    [NonDebuggable]
     local procedure TryVerifyData(Bytes: DotNet Array; HashAlgorithm: Enum "Hash Algorithm"; Signature: DotNet Array)
     begin
         if not DotNetRSACryptoServiceProvider.VerifyData(Bytes, Format(HashAlgorithm), Signature) then
@@ -108,24 +117,24 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
 
     #region Encryption & Decryption
     [NonDebuggable]
-    procedure Encrypt(XmlString: Text; PlainTextInStream: InStream; OaepPadding: Boolean; EncryptedTextOutStream: OutStream)
+    procedure Encrypt(XmlString: SecretText; PlainTextInStream: InStream; OaepPadding: Boolean; EncryptedTextOutStream: OutStream)
     var
         PlainTextBytes: DotNet Array;
         EncryptedTextBytes: DotNet Array;
     begin
-        FromXmlString(XmlString);
+        FromSecretXmlString(XmlString);
         InStreamToArray(PlainTextInStream, PlainTextBytes);
         EncryptedTextBytes := DotNetRSACryptoServiceProvider.Encrypt(PlainTextBytes, OaepPadding);
         ArrayToOutStream(EncryptedTextBytes, EncryptedTextOutStream);
     end;
 
     [NonDebuggable]
-    procedure Decrypt(XmlString: Text; EncryptedTextInStream: InStream; OaepPadding: Boolean; DecryptedTextOutStream: OutStream)
+    procedure Decrypt(XmlString: SecretText; EncryptedTextInStream: InStream; OaepPadding: Boolean; DecryptedTextOutStream: OutStream)
     var
         EncryptedTextBytes: DotNet Array;
         DecryptedTextBytes: DotNet Array;
     begin
-        FromXmlString(XmlString);
+        FromSecretXmlString(XmlString);
         InStreamToArray(EncryptedTextInStream, EncryptedTextBytes);
         DecryptedTextBytes := DotNetRSACryptoServiceProvider.Decrypt(EncryptedTextBytes, OaepPadding);
         ArrayToOutStream(DecryptedTextBytes, DecryptedTextOutStream);
@@ -133,17 +142,37 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
     #endregion
 
     #region XmlString
+#if not CLEAN24
     [NonDebuggable]
+    [Obsolete('Replaced by ToSecretXmlString with SecretText data type for XmlString.', '24.0')]
     procedure ToXmlString(IncludePrivateParameters: Boolean): Text
     begin
         exit(DotNetRSACryptoServiceProvider.ToXmlString(IncludePrivateParameters));
     end;
 
     [NonDebuggable]
+    [Obsolete('Replaced by FromSecretXmlString with SecretText data type for XmlString.', '24.0')]
     procedure FromXmlString(XmlString: Text)
     begin
         RSACryptoServiceProvider();
         DotNetRSACryptoServiceProvider.FromXmlString(XmlString);
+    end;
+#endif
+    procedure PublicKeyToXmlString(): Text
+    begin
+        exit(DotNetRSACryptoServiceProvider.ToXmlString(false));
+    end;
+
+    procedure ToSecretXmlString(IncludePrivateParameters: Boolean): SecretText
+    begin
+        exit(DotNetRSACryptoServiceProvider.ToXmlString(IncludePrivateParameters));
+    end;
+
+    [NonDebuggable]
+    procedure FromSecretXmlString(XmlString: SecretText)
+    begin
+        RSACryptoServiceProvider();
+        DotNetRSACryptoServiceProvider.FromXmlString(XmlString.Unwrap());
     end;
     #endregion
 
@@ -152,7 +181,6 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
         DotNetRSACryptoServiceProvider := DotNetRSACryptoServiceProvider.RSACryptoServiceProvider();
     end;
 
-    [NonDebuggable]
     local procedure ArrayToOutStream(Bytes: DotNet Array; OutputOutStream: OutStream)
     var
         DotNetMemoryStream: DotNet MemoryStream;
@@ -161,7 +189,6 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements SignatureAlgorithm
         CopyStream(OutputOutStream, DotNetMemoryStream);
     end;
 
-    [NonDebuggable]
     local procedure InStreamToArray(InputInStream: InStream; var Bytes: DotNet Array)
     var
         DotNetMemoryStream: DotNet MemoryStream;

@@ -32,36 +32,3 @@ end;
 ```
 
 
-# Public Objects
-## Date-Time Dialog (Page 684)
-
- Dialog for entering DataTime values.
- 
-
-### SetDateTime (Method) <a name="SetDateTime"></a> 
-
- Setter method to initialize the Date and Time fields on the page.
- 
-
-#### Syntax
-```
-procedure SetDateTime(DateTime: DateTime)
-```
-#### Parameters
-*DateTime ([DateTime](https://go.microsoft.com/fwlink/?linkid=2210239))* 
-
-The value to set.
-
-### GetDateTime (Method) <a name="GetDateTime"></a> 
-
- Getter method for the entered datatime value.
- 
-
-#### Syntax
-```
-procedure GetDateTime(): DateTime
-```
-#### Return Value
-*[DateTime](https://go.microsoft.com/fwlink/?linkid=2210239)*
-
-The value that is set on the page.

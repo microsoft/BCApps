@@ -86,7 +86,7 @@ page 3901 "Retention Policy Setup Card"
                     ToolTip = 'Specifies the number of expired records.';
                     Editable = false;
                     StyleExpr = ExpiredRecordCountStyleTxt;
-                    Visible = Rec."Apply to all records";
+                    Visible = not ShowExpiredRecordExpirationDate;
                 }
                 field("Records To Delete"; ExpiredRecordCount)
                 {
@@ -95,7 +95,7 @@ page 3901 "Retention Policy Setup Card"
                     ToolTip = 'Specifies the number of expired records the retention policy will delete the next time it runs.';
                     Editable = false;
                     StyleExpr = ExpiredRecordCountStyleTxt;
-                    Visible = not Rec."Apply to all records";
+                    Visible = ShowExpiredRecordExpirationDate;
                 }
                 field("Expired Record Expiration Date"; ExpiredRecordExpirationDate)
                 {
@@ -132,7 +132,7 @@ page 3901 "Retention Policy Setup Card"
                 ApplicationArea = All;
                 Caption = 'Record Retention Policy', Comment = 'Record as in ''a record in a table''.';
                 SubPageLink = "Table ID" = field("Table Id");
-                Visible = not Rec."Apply to all records";
+                Visible = ShowExpiredRecordExpirationDate;
             }
         }
     }
@@ -290,6 +290,8 @@ page 3901 "Retention Policy Setup Card"
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
         RetentionPolicySetup: Record "Retention Policy Setup";
+        [SecurityFiltering(SecurityFilter::Ignored)]
+        RetentionPolicySetup2: Record "Retention Policy Setup";
     begin
         if CloseAction = CloseAction::Cancel then
             exit(true);
@@ -298,7 +300,7 @@ page 3901 "Retention Policy Setup Card"
             exit(true);
 
         if (not PrevEnabledState) and (not Rec.Enabled) then
-            if Rec.WritePermission() then
+            if RetentionPolicySetup2.WritePermission() then
                 if Confirm(PolicyNotEnabledQst, false) then begin
                     Rec.Validate(Enabled, true);
                     CurrPage.SaveRecord();

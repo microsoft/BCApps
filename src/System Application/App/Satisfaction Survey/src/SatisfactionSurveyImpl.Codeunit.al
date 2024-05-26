@@ -115,6 +115,7 @@ codeunit 1432 "Satisfaction Survey Impl."
 
     procedure ResetState(): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         NetPromoterScore: Record "Net Promoter Score";
     begin
         if not NetPromoterScore.WritePermission() then
@@ -126,6 +127,7 @@ codeunit 1432 "Satisfaction Survey Impl."
 
     procedure ResetCache(): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         NetPromoterScoreSetup: Record "Net Promoter Score Setup";
     begin
         if not NetPromoterScoreSetup.WritePermission() then
@@ -137,6 +139,7 @@ codeunit 1432 "Satisfaction Survey Impl."
 
     procedure ActivateSurvey(): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         NetPromoterScore: Record "Net Promoter Score";
         EarliestActivateTime: DateTime;
         Puid: Text;
@@ -203,6 +206,7 @@ codeunit 1432 "Satisfaction Survey Impl."
 
     procedure DeactivateSurvey(): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         NetPromoterScore: Record "Net Promoter Score";
     begin
         if not IsSupported() then begin
@@ -364,7 +368,9 @@ codeunit 1432 "Satisfaction Survey Impl."
 
     local procedure HasWritePermission(): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         NetPromoterScoreSetup: Record "Net Promoter Score Setup";
+        [SecurityFiltering(SecurityFilter::Ignored)]
         NetPromoterScore: Record "Net Promoter Score";
     begin
         if not NetPromoterScoreSetup.WritePermission() then

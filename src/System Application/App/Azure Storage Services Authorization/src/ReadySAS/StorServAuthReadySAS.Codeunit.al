@@ -29,16 +29,15 @@ codeunit 9088 "Stor. Serv. Auth. Ready SAS" implements "Storage Service Authoriz
 
         if QueryText <> '' then
             QueryText += '&';
-        QueryText += GetSharedAccessSignature();
+        QueryText += GetSharedAccessSignature().Unwrap();
         UriBuilder.SetQuery(QueryText);
 
         UriBuilder.GetUri(Uri);
 
-        HttpRequestMessage.SetRequestUri(Uri.GetAbsoluteUri());
+        HttpRequestMessage.SetSecretRequestUri(Uri.GetAbsoluteUri());
     end;
 
-    [NonDebuggable]
-    procedure GetSharedAccessSignature(): Text
+    procedure GetSharedAccessSignature(): SecretText
     begin
         exit(SharedAccessSignature);
     end;
@@ -46,11 +45,20 @@ codeunit 9088 "Stor. Serv. Auth. Ready SAS" implements "Storage Service Authoriz
     [NonDebuggable]
     procedure SetSharedAccessSignature(NewSharedAccessSignature: Text)
     begin
-        SharedAccessSignature := NewSharedAccessSignature;
-        if SharedAccessSignature.StartsWith('?') then
-            SharedAccessSignature := DelChr(SharedAccessSignature, '<', '?');
+        SetSharedAccessSignature(NewSharedAccessSignature);
+    end;
+
+    [NonDebuggable]
+    procedure SetSharedAccessSignature(NewSharedAccessSignature: SecretText)
+    var
+        UnsecureSharedAccessSignature: Text;
+    begin
+        UnsecureSharedAccessSignature := NewSharedAccessSignature.Unwrap();
+        if UnsecureSharedAccessSignature.StartsWith('?') then
+            UnsecureSharedAccessSignature := DelChr(UnsecureSharedAccessSignature, '<', '?');
+        SharedAccessSignature := UnsecureSharedAccessSignature;
     end;
 
     var
-        SharedAccessSignature: Text;
+        SharedAccessSignature: SecretText;
 }

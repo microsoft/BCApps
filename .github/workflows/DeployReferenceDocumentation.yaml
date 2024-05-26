@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   actions: read
   pages: write
   id-token: write
@@ -26,23 +26,23 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Initialize the workflow
         id: init
-        uses: microsoft/AL-Go/Actions/WorkflowInitialize@e55c2d0f72a93c8ef9aac8d3180e2fffc8d5695b
+        uses: microsoft/AL-Go/Actions/WorkflowInitialize@6a9ef0c91e5b54d0fd3abb3d4495417a1db28f17
         with:
           shell: powershell
           eventId: "DO0097"
         
       - name: Read settings
-        uses: microsoft/AL-Go/Actions/ReadSettings@e55c2d0f72a93c8ef9aac8d3180e2fffc8d5695b
+        uses: microsoft/AL-Go/Actions/ReadSettings@6a9ef0c91e5b54d0fd3abb3d4495417a1db28f17
         with:
           shell: powershell
 
       - name: Determine Deployment Environments
         id: DetermineDeploymentEnvironments
-        uses: microsoft/AL-Go/Actions/DetermineDeploymentEnvironments@e55c2d0f72a93c8ef9aac8d3180e2fffc8d5695b
+        uses: microsoft/AL-Go/Actions/DetermineDeploymentEnvironments@6a9ef0c91e5b54d0fd3abb3d4495417a1db28f17
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -52,20 +52,20 @@ jobs:
             
       - name: Setup Pages
         if: steps.DetermineDeploymentEnvironments.outputs.deployALDocArtifact == 1
-        uses: actions/configure-pages@v3
+        uses: actions/configure-pages@v5
         
       - name: Build Reference Documentation
-        uses: microsoft/AL-Go/Actions/BuildReferenceDocumentation@e55c2d0f72a93c8ef9aac8d3180e2fffc8d5695b
+        uses: microsoft/AL-Go/Actions/BuildReferenceDocumentation@6a9ef0c91e5b54d0fd3abb3d4495417a1db28f17
         with:
           shell: powershell
           artifacts: 'latest'
         
       - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ".aldoc/_site/"
         
       - name: Deploy to GitHub Pages
         if: steps.DetermineDeploymentEnvironments.outputs.deployALDocArtifact == 1
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4

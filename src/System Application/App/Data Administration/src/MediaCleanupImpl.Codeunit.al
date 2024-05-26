@@ -160,6 +160,7 @@ codeunit 1928 "Media Cleanup Impl."
 
     procedure DeleteDetachedTenantMediaSet()
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         TenantMediaSet: Record "Tenant Media Set";
         MediaSetOrphans: List of [Guid];
         Orphan: Guid;
@@ -176,6 +177,7 @@ codeunit 1928 "Media Cleanup Impl."
 
     procedure DeleteDetachedTenantMedia()
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         TenantMedia: Record "Tenant Media";
         SplitList: List of [List of [Guid]];
         MediaOrphans: List of [Guid];

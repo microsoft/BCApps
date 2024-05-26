@@ -26,21 +26,24 @@ codeunit 135033 "Password Dialog Test"
         DisablePasswordValidation: Boolean;
         PasswordMissmatch: Boolean;
         ValidPasswordTxt: Label 'Some Password 2!';
+        AnotherValidPasswordTxt: Label 'Some Password 3!';
         InValidPasswordTxt: Label 'Some Password';
         AnotherPasswordTxt: Label 'Another Password';
+        PasswordSameAsNewErr: Label 'The new password cannot be the same as the current password.';
+        CurrentPasswordMismatchErr: Label 'The current password does not match the entered password.';
 
     [Test]
     [HandlerFunctions('PasswordDialogModalPageHandler')]
     procedure TestValidPassword();
     var
-        Password: Text;
+        Password: SecretText;
     begin
         // [SCENARIO] A valid password must be at least 8 characters long and contain one capital case letter,
         PermissionsMock.Set('All Objects');
         // one lower case letter and one number.
         PasswordToUse := 'Password1@';
-        Password := PasswordDialogManagement.OpenPasswordDialog();
-        Assert.AreEqual('Password1@', Password, 'A different Passwword was expected');
+        Password := PasswordDialogManagement.OpenSecretPasswordDialog();
+        Assert.AreEqual('Password1@', GetPasswordValue(Password), 'A different Passwword was expected');
     end;
 
     [Test]
@@ -50,7 +53,7 @@ codeunit 135033 "Password Dialog Test"
         // [SCENARIO] A password without a numeric character cannot be entered.
         PermissionsMock.Set('All Objects');
         PasswordToUse := 'Password';
-        asserterror PasswordDialogManagement.OpenPasswordDialog();
+        asserterror PasswordDialogManagement.OpenSecretPasswordDialog();
         Assert.ExpectedError('Validation error for Field');
     end;
 
@@ -61,11 +64,11 @@ codeunit 135033 "Password Dialog Test"
         // [SCENARIO] A password without a capital case character cannot be entered.
         PermissionsMock.Set('All Objects');
         PasswordToUse := 'password1';
-        asserterror PasswordDialogManagement.OpenPasswordDialog();
+        asserterror PasswordDialogManagement.OpenSecretPasswordDialog();
         Assert.ExpectedError('Validation error for Field');
 
         PasswordToUse := 'p@ssword1';
-        asserterror PasswordDialogManagement.OpenPasswordDialog();
+        asserterror PasswordDialogManagement.OpenSecretPasswordDialog();
         Assert.ExpectedError('Validation error for Field');
     end;
 
@@ -76,7 +79,7 @@ codeunit 135033 "Password Dialog Test"
         // [SCENARIO] A password without a lower case character cannot be entered.
         PermissionsMock.Set('All Objects');
         PasswordToUse := 'PASSWORD1';
-        asserterror PasswordDialogManagement.OpenPasswordDialog();
+        asserterror PasswordDialogManagement.OpenSecretPasswordDialog();
         Assert.ExpectedError('Validation error for Field');
     end;
 
@@ -87,7 +90,7 @@ codeunit 135033 "Password Dialog Test"
         // [SCENARIO] A password with length less than 8 characters cannot be entered.
         PermissionsMock.Set('All Objects');
         PasswordToUse := 'Pass1';
-        asserterror PasswordDialogManagement.OpenPasswordDialog();
+        asserterror PasswordDialogManagement.OpenSecretPasswordDialog();
         Assert.ExpectedError('Validation error for Field');
     end;
 
@@ -95,7 +98,7 @@ codeunit 135033 "Password Dialog Test"
     [HandlerFunctions('PasswordDialogModalPageHandler')]
     procedure IncreaseMinimumCharactersTest();
     var
-        Password: Text;
+        Password: SecretText;
     begin
         // [SCENARIO] Minimum Password Length can be increased
         PermissionsMock.Set('All Objects');
@@ -103,12 +106,12 @@ codeunit 135033 "Password Dialog Test"
 
         MinimumPasswordLength := 16;
         PasswordToUse := 'Password1@';
-        asserterror PasswordDialogManagement.OpenPasswordDialog();
+        asserterror PasswordDialogManagement.OpenSecretPasswordDialog();
         Assert.ExpectedError('Validation error for Field');
 
         PasswordToUse := 'PasswordPassword1@';
-        Password := PasswordDialogManagement.OpenPasswordDialog();
-        Assert.AreEqual('PasswordPassword1@', Password, 'A different Passwword was expected');
+        Password := PasswordDialogManagement.OpenSecretPasswordDialog();
+        Assert.AreEqual('PasswordPassword1@', GetPasswordValue(Password), 'A different Passwword was expected');
 
         if UnbindSubscription(PasswordDialogTest) then;
     end;
@@ -122,7 +125,7 @@ codeunit 135033 "Password Dialog Test"
         if BindSubscription(PasswordDialogTest) then;
         MinimumPasswordLength := 5;
         PasswordToUse := 'Pass1';
-        asserterror PasswordDialogManagement.OpenPasswordDialog();
+        asserterror PasswordDialogManagement.OpenSecretPasswordDialog();
         Assert.ExpectedError('Validation error for Field');
 
         if UnbindSubscription(PasswordDialogTest) then;
@@ -130,9 +133,9 @@ codeunit 135033 "Password Dialog Test"
 
     [Test]
     [HandlerFunctions('PasswordDialogModalPageHandler')]
-    procedure OpenPasswordDialogDefaultTest();
+    procedure OpenSecretPasswordDialogDefaultTest();
     var
-        Password: Text;
+        Password: SecretText;
     begin
         // [SCENARIO] Password Confirmation and Validation are enabled and Blank password is not allowed
         PermissionsMock.Set('All Objects');
@@ -142,29 +145,29 @@ codeunit 135033 "Password Dialog Test"
 
         // [WHEN] A valid password is given.
         PasswordToUse := ValidPasswordTxt;
-        Password := PasswordDialogManagement.OpenPasswordDialog();
+        Password := PasswordDialogManagement.OpenSecretPasswordDialog();
         // [THEN] The password is retrieved.
-        Assert.AreEqual(ValidPasswordTxt, Password, 'A diferrent password was expected.');
+        Assert.AreEqual(ValidPasswordTxt, GetPasswordValue(Password), 'A diferrent password was expected.');
 
         // [WHEN] An invalid password is given.
         PasswordToUse := InValidPasswordTxt;
         // [THEN] An error is thrown if only the password field is filled.
-        asserterror PasswordDialogManagement.OpenPasswordDialog();
+        asserterror PasswordDialogManagement.OpenSecretPasswordDialog();
         Assert.ExpectedError('Validation error for Field');
 
         // [WHEN] Password and Confirm Password miss match.
         // [THEN] An error is thrown.
         PasswordMissmatch := true;
         PasswordToUse := ValidPasswordTxt;
-        asserterror PasswordDialogManagement.OpenPasswordDialog();
+        asserterror PasswordDialogManagement.OpenSecretPasswordDialog();
         Assert.ExpectedError('Validation error for Field');
     end;
 
     [Test]
     [HandlerFunctions('PasswordDialogModalPageHandler')]
-    procedure OpenPasswordDialogDisableConfirmationTest();
+    procedure OpenSecretPasswordDialogDisableConfirmationTest();
     var
-        Password: Text;
+        Password: SecretText;
     begin
         // [SCENARIO] Password dialog can be opened and Password confirmation can be disabled.
         PermissionsMock.Set('All Objects');
@@ -175,15 +178,15 @@ codeunit 135033 "Password Dialog Test"
         DisablePasswordConfirmation := true;
         PasswordMissmatch := false;
         PasswordToUse := InValidPasswordTxt;
-        Password := PasswordDialogManagement.OpenPasswordDialog(DisablePasswordValidation, DisablePasswordConfirmation);
-        Assert.AreEqual(InValidPasswordTxt, Password, 'A diferrent password was expected.');
+        Password := PasswordDialogManagement.OpenSecretPasswordDialog(DisablePasswordValidation, DisablePasswordConfirmation);
+        Assert.AreEqual(InValidPasswordTxt, GetPasswordValue(Password), 'A diferrent password was expected.');
     end;
 
     [Test]
     [HandlerFunctions('PasswordDialogModalPageHandler,ConfirmHandler')]
-    procedure OpenPasswordDialogDisableValidationTest();
+    procedure OpenSecretPasswordDialogDisableValidationTest();
     var
-        Password: Text;
+        Password: SecretText;
     begin
         // [SCENARIO] Password dialog can be opened and Password Validation can be disabled.
         PermissionsMock.Set('All Objects');
@@ -194,31 +197,75 @@ codeunit 135033 "Password Dialog Test"
         DisablePasswordConfirmation := false;
         PasswordMissmatch := false;
         PasswordToUse := InValidPasswordTxt;
-        Password := PasswordDialogManagement.OpenPasswordDialog(DisablePasswordValidation, DisablePasswordConfirmation);
-        Assert.AreEqual(InValidPasswordTxt, Password, 'A diferrnt password was expected.');
+        Password := PasswordDialogManagement.OpenSecretPasswordDialog(DisablePasswordValidation, DisablePasswordConfirmation);
+        Assert.AreEqual(InValidPasswordTxt, GetPasswordValue(Password), 'A diferrnt password was expected.');
 
         // [THEN] An empty password can be entered
         PasswordToUse := '';
-        Password := PasswordDialogManagement.OpenPasswordDialog(DisablePasswordValidation, DisablePasswordConfirmation);
-        Assert.AreEqual('', Password, 'Blank password was expected.');
+        Password := PasswordDialogManagement.OpenSecretPasswordDialog(DisablePasswordValidation, DisablePasswordConfirmation);
+        Assert.IsTrue(Password.IsEmpty(), 'Blank password was expected.');
     end;
 
     [Test]
     [HandlerFunctions('ChangePasswordDialogModalPageHandler')]
     procedure OpenChangePasswordDialogTest();
     var
-        Password: Text;
-        OldPassword: Text;
+        LibraryPassword: Codeunit "Library - Password";
+        Password: SecretText;
+        OldPassword: SecretText;
+    begin
+        // [SCENARIO] Open Password dialog in change password mode.
+        // Used for "Change Password" OnPrem report.
+        // Internal implementation to support OnPrem Database.ChangeUserPassword
+        PermissionsMock.Set('All Objects');
+
+        // [WHEN] The password dialog is opened in change password mode.
+        LibraryPassword.OpenChangePasswordDialog(OldPassword, Password);
+
+        // [THEN] The Old and New passwords are retrieved.
+        Assert.AreEqual(InValidPasswordTxt, GetPasswordValue(OldPassword), 'A diferrent password was expected.');
+        Assert.AreEqual(ValidPasswordTxt, GetPasswordValue(Password), 'A diferrent password was expected.')
+    end;
+
+    [Test]
+    [HandlerFunctions('ChangePasswordDialogModalPageHandler')]
+    procedure OpenPasswordChangeDialogTest();
+    var
+        Password: SecretText;
+        CurrentPassword: SecretText;
     begin
         // [SCENARIO] Open Password dialog in change password mode.
         PermissionsMock.Set('All Objects');
 
         // [WHEN] The password dialog is opened in change password mode.
-        PasswordDialogManagement.OpenChangePasswordDialog(OldPassword, Password);
+        PasswordDialogManagement.OpenPasswordChangeDialog(CurrentPassword, Password);
+
+        // [THEN] The New passwords was retrieved.
+        Assert.AreEqual('', GetPasswordValue(CurrentPassword), 'A diferrent password was expected.');
+        Assert.AreEqual(ValidPasswordTxt, GetPasswordValue(Password), 'A diferrent password was expected.')
+    end;
+
+    [Test]
+    [HandlerFunctions('ChangePasswordDialogWithCurrentPasswordModalPageHandler')]
+    procedure OpenPasswordChangeDialogWithCurrentPasswordTest();
+    var
+        Password: SecretText;
+        CurrentPassword: SecretText;
+    begin
+        // [SCENARIO] Open Password dialog in change password mode.
+        // The old password has been passed on.
+        PermissionsMock.Set('All Objects');
+
+        // [GIVEN] The old password is for comparison that the old password matches the entered user and 
+        // the new password does not match the old password.
+        CurrentPassword := SecretStrSubstNo(ValidPasswordTxt);
+
+        // [WHEN] The password dialog is opened in change password mode.
+        PasswordDialogManagement.OpenPasswordChangeDialog(CurrentPassword, Password);
 
         // [THEN] The Old and New passwords are retrieved.
-        Assert.AreEqual(InValidPasswordTxt, OldPassword, 'A diferrent password was expected.');
-        Assert.AreEqual(ValidPasswordTxt, Password, 'A diferrent password was expected.')
+        Assert.AreEqual(ValidPasswordTxt, GetPasswordValue(CurrentPassword), 'A diferrent password was expected.');
+        Assert.AreEqual(AnotherValidPasswordTxt, GetPasswordValue(Password), 'A diferrent password was expected.')
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Password Dialog Management", 'OnSetMinPasswordLength', '', true, true)]
@@ -243,11 +290,26 @@ codeunit 135033 "Password Dialog Test"
     [ModalPageHandler]
     procedure ChangePasswordDialogModalPageHandler(var PasswordDialog: TestPage "Password Dialog");
     begin
-        Assert.IsTrue(PasswordDialog.OldPassword.Visible(), 'Old Password Field should not be visible.');
-        Assert.IsTrue(PasswordDialog.ConfirmPassword.Visible(), 'Confirm Password Field should not be visible.');
+        Assert.IsTrue(PasswordDialog.OldPassword.Visible(), 'Old Password Field should be visible.');
+        Assert.IsTrue(PasswordDialog.ConfirmPassword.Visible(), 'Confirm Password Field should be visible.');
         PasswordDialog.OldPassword.SetValue(InValidPasswordTxt);
         PasswordDialog.Password.SetValue(ValidPasswordTxt);
         PasswordDialog.ConfirmPassword.SetValue(ValidPasswordTxt);
+        PasswordDialog.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure ChangePasswordDialogWithCurrentPasswordModalPageHandler(var PasswordDialog: TestPage "Password Dialog");
+    begin
+        Assert.IsTrue(PasswordDialog.OldPassword.Visible(), 'Old Password Field should be visible.');
+        Assert.IsTrue(PasswordDialog.ConfirmPassword.Visible(), 'Confirm Password Field should be visible.');
+        asserterror PasswordDialog.OldPassword.SetValue(InValidPasswordTxt);
+        Assert.ExpectedError(CurrentPasswordMismatchErr);
+        PasswordDialog.OldPassword.SetValue(ValidPasswordTxt);
+        asserterror PasswordDialog.Password.SetValue(ValidPasswordTxt);
+        Assert.ExpectedError(PasswordSameAsNewErr);
+        PasswordDialog.Password.SetValue(AnotherValidPasswordTxt);
+        PasswordDialog.ConfirmPassword.SetValue(AnotherValidPasswordTxt);
         PasswordDialog.OK().Invoke();
     end;
 
@@ -255,6 +317,12 @@ codeunit 135033 "Password Dialog Test"
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean);
     begin
         Reply := true;
+    end;
+
+    [NonDebuggable]
+    local procedure GetPasswordValue(Password: SecretText): Text
+    begin
+        exit(Password.Unwrap())
     end;
 
 }

@@ -47,6 +47,75 @@ codeunit 132920 "ABS Blob Client Test"
     end;
 
     [Test]
+    procedure PutMultipleBlocksTextToSingleBlobTest()
+    var
+        Response: Codeunit "ABS Operation Response";
+        ContainerName, BlobName, BlobContent, NewBlobContent, BlockId, BlockContent : Text;
+        BlockIdBlockContentDict: Dictionary of [Text, Text];
+        BlobList: Dictionary of [Text, XmlNode];
+        CommitedBlocks: Dictionary of [Text, Integer];
+        UncommitedBlocks: Dictionary of [Text, Integer];
+    begin
+        // [Scenario] Given a storage account and a container, multiple PutBlobBlock operations succeeds
+        // multiple Blocks commited as Blob and GetBlobAsText returns the content
+
+        // [GIVEN] Shared Key Authorization
+        SharedKeyAuthorization := StorageServiceAuthorization.CreateSharedKey(AzuriteTestLibrary.GetAccessKey());
+
+        // [GIVEN] Container Name
+        ContainerName := ABSTestLibrary.GetContainerName();
+
+        // [GIVEN] Blob Name
+        BlobName := ABSTestLibrary.GetBlobName();
+
+        // [GIVEN] Sample BLOB content
+        BlobContent := ABSTestLibrary.GetSampleTextBlobContent();
+
+        // [GIVEN] Dictionary of Block Ids with Block content
+        BlockIdBlockContentDict := ABSTestLibrary.GetSampleTextBlobContentAsBlockDictionary();
+
+        // [GIVEN] Container client initialization
+        ABSContainerClient.Initialize(AzuriteTestLibrary.GetStorageAccountName(), SharedKeyAuthorization);
+        ABSContainerClient.SetBaseUrl(AzuriteTestLibrary.GetBlobStorageBaseUrl());
+
+        // [GIVEN] New Container
+        ABSContainerClient.CreateContainer(ContainerName);
+
+        // [GIVEN] Blob client initialization
+        ABSBlobClient.Initialize(AzuriteTestLibrary.GetStorageAccountName(), ContainerName, SharedKeyAuthorization);
+        ABSBlobClient.SetBaseUrl(AzuriteTestLibrary.GetBlobStorageBaseUrl());
+
+        // [WHEN] Put multiple Blocks
+        foreach BlockId in BlockIdBlockContentDict.Keys() do begin
+            BlockContent := BlockIdBlockContentDict.Get(BlockId);
+
+            Response := ABSBlobClient.PutBlockText(BlobName, BlockContent, BlockId);
+            Assert.IsTrue(Response.IsSuccessful(), 'Operation PutBlockText failed');
+
+            UncommitedBlocks.Add(BlockId, StrLen(BlockContent));
+        end;
+
+        // [THEN] Blob is not commited
+        Response := ABSBlobClient.ListBlobs(BlobList);
+        Assert.IsTrue(Response.IsSuccessful(), 'Operation ListBlobs failed');
+        Assert.AreEqual(0, BlobList.Count(), 'Blocks should''nt be commited');
+
+        // [WHEN] Commit Blocks as single Blob
+        Response := ABSBlobClient.PutBlockList(BlobName, CommitedBlocks, UncommitedBlocks);
+        Assert.IsTrue(Response.IsSuccessful(), 'Operation PutBlockList failed');
+
+        // [THEN] Blob is commited
+        Response := ABSBlobClient.GetBlobAsText(BlobName, NewBlobContent);
+        Assert.IsTrue(Response.IsSuccessful(), 'Operation GetBlobAsText failed');
+
+        // [THEN] Resulted Blob matched to original sample Blob content
+        Assert.AreEqual(BlobContent, NewBlobContent, 'Blob content mismatch');
+
+        // Clean-up
+        ABSContainerClient.DeleteContainer(ContainerName);
+    end;
+
+    [Test]
     procedure ListBlobsTest()
     var
         ABSContainerContent: Record "ABS Container Content";
@@ -716,6 +785,52 @@ codeunit 132920 "ABS Blob Client Test"
         VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseRootDirName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::Directory);
         VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseSubdirName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::Directory);
         VerifyContainerContentType(ABSContainerContent, CopyStr(ABSTestLibrary.GetSampleResponseFileName(), 1, MaxStrLen(ABSContainerContent.Name)), Enum::"ABS Blob Resource Type"::File);
+    end;
+
+    [Test] // Failing if ran against azurite, as BLOB MetaData are not supported there
+    procedure GetBlockBlobMetaDataTest()
+    var
+        ABSOperationResponse: Codeunit "ABS Operation Response";
+        BlobMetaData, MetaData : Dictionary of [Text, Text];
+        BlobContent, BlobName, ContainerName : Text;
+    begin
+        // [SCENARIO] Given a storage account and a container, PutBlobBlockBlob operation succeeds and GetBlobAsText returns the content
+        // [GIVEN] Shared Key Authorization
+        SharedKeyAuthorization := StorageServiceAuthorization.CreateSharedKey(AzuriteTestLibrary.GetAccessKey());
+
+        // [GIVEN] ABS Container 
+        ContainerName := ABSTestLibrary.GetContainerName();
+        ABSContainerClient.Initialize(AzuriteTestLibrary.GetStorageAccountName(), SharedKeyAuthorization);
+        ABSContainerClient.SetBaseUrl(AzuriteTestLibrary.GetBlobStorageBaseUrl());
+
+        ABSOperationResponse := ABSContainerClient.CreateContainer(ContainerName);
+        Assert.IsTrue(ABSOperationResponse.IsSuccessful(), 'Operation CreateContainer failed');
+
+        // [GIVEN] Block Blob
+        BlobName := ABSTestLibrary.GetBlobName();
+        BlobContent := ABSTestLibrary.GetSampleTextBlobContent();
+        ABSBlobClient.Initialize(AzuriteTestLibrary.GetStorageAccountName(), ContainerName, SharedKeyAuthorization);
+        ABSBlobClient.SetBaseUrl(AzuriteTestLibrary.GetBlobStorageBaseUrl());
+
+        ABSOperationResponse := ABSBlobClient.PutBlobBlockBlobText(BlobName, BlobContent);
+        Assert.IsTrue(ABSOperationResponse.IsSuccessful(), 'Operation PutBlobBlockBlob failed');
+
+        // [GIVEN] Blob MetaData
+        MetaData := ABSTestLibrary.GetBlobMetaData();
+
+        // [WHEN] MetaData are Set
+        ABSOperationResponse := ABSBlobClient.SetBlobMetaData(BlobName, MetaData);
+        Assert.IsTrue(ABSOperationResponse.IsSuccessful(), 'Operation SetBlobMetaData failed: ' + ABSOperationResponse.GetError());
+
+        // [WHEN] MetaData are Get
+        ABSOperationResponse := ABSBlobClient.GetBlobMetaData(BlobName, BlobMetaData);
+        Assert.IsTrue(ABSOperationResponse.IsSuccessful(), 'Operation GetBlobMetaData failed: ' + ABSOperationResponse.GetError());
+
+        // [THEN] The get MetaData are equal to set MetaData 
+        Assert.AreEqual(MetaData, BlobMetaData);
+
+        // Clean-up
+        ABSContainerClient.DeleteContainer(ContainerName);
     end;
 
     local procedure VerifyContainerContentType(var ABSContainerContent: Record "ABS Container Content"; BlobName: Text[2048]; ExpectedResourceType: Enum "ABS Blob Resource Type")

@@ -86,10 +86,23 @@ page 149003 "BCPT Log Entries"
                     ToolTip = 'Specifies the single operation of the BCPT.';
                     ApplicationArea = All;
                 }
+                field("Orig. Operation"; Rec."Orig. Operation")
+                {
+                    ToolTip = 'Specifies the original operation of the BCPT.';
+                    Visible = false;
+                    ApplicationArea = All;
+                }
                 field(Message; Rec.Message)
                 {
                     Caption = 'Message';
                     ToolTip = 'Specifies when the message from the test.';
+                    ApplicationArea = All;
+                }
+                field("Orig. Message"; Rec."Orig. Message")
+                {
+                    Caption = 'Orig. Message';
+                    Visible = false;
+                    ToolTip = 'Specifies the original message from the test.';
                     ApplicationArea = All;
                 }
                 field(DurationMin; Rec."Duration (ms)")
@@ -110,6 +123,13 @@ page 149003 "BCPT Log Entries"
                     ToolTip = 'Specifies the status of the iteration.';
                     ApplicationArea = All;
                 }
+                field("Orig. Status"; Rec."Orig. Status")
+                {
+                    Caption = 'Orig. Status';
+                    Visible = false;
+                    ToolTip = 'Specifies the original status of the iteration.';
+                    ApplicationArea = All;
+                }
                 field("Error Call Stack"; Rec."Error Call Stack")
                 {
                     Caption = 'Call stack';
@@ -121,7 +141,13 @@ page 149003 "BCPT Log Entries"
                         Message(Rec."Error Call Stack");
                     end;
                 }
-
+                field("Log was Modified"; Rec."Log was Modified")
+                {
+                    Caption = 'Log was Modified';
+                    ToolTip = 'Specifies if the log was modified by any event subscribers.';
+                    Visible = false;
+                    ApplicationArea = All;
+                }
             }
         }
     }

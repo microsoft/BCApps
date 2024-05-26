@@ -36,6 +36,9 @@ codeunit 8900 "Email Impl"
         EmailViewPolicyUsedTxt: Label 'Email View Policy is used', Locked = true;
         EmailViewPolicyDefaultTxt: Label 'Falling back to default email view policy: %1', Locked = true;
         EmailModifiedByEventTxt: Label 'Email has been modified by event', Locked = true;
+        AdminViewPolicyInEffectNotificationIdTok: Label '0ee5d5db-5763-4acf-9808-10905a8997d5', Locked = true;
+        AdminViewPolicyInEffectNotificationMsg: Label 'Your email view policy limits the emails visible. You can update your view policy to see all emails.';
+        AdminViewPolicyUpdatePolicyNotificationActionLbl: Label 'Update policy';
 
     #region API
 
@@ -587,6 +590,15 @@ codeunit 8900 "Email Impl"
         SentEmails.Run();
     end;
 
+    procedure OpenSentEmails(TableId: Integer; SystemId: Guid; NewerThanDate: DateTime)
+    var
+        SentEmails: Page "Sent Emails";
+    begin
+        SentEmails.SetRelatedRecord(TableId, SystemId);
+        SentEmails.SetNewerThan(NewerThanDate);
+        SentEmails.Run();
+    end;
+
     procedure GetEmailOutboxSentEmailWithinRateLimit(var SentEmail: Record "Sent Email"; var EmailOutbox: Record "Email Outbox"; AccountId: Guid): Duration
     var
         EmailCheckWindowTime: DateTime;
@@ -631,7 +643,9 @@ codeunit 8900 "Email Impl"
 
     local procedure CheckRequiredPermissions()
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         SentEmail: Record "Sent Email";
+        [SecurityFiltering(SecurityFilter::Ignored)]
         EmailOutBox: Record "Email Outbox";
     begin
         if not SentEmail.ReadPermission() or
@@ -639,6 +653,29 @@ codeunit 8900 "Email Impl"
                 not EmailOutBox.ReadPermission() or
                 not EmailOutBox.WritePermission() then
             Error(InsufficientPermissionsErr);
+    end;
+
+    procedure ShowAdminViewPolicyInEffectNotification()
+    var
+        EmailAccountImpl: Codeunit "Email Account Impl.";
+        AdminViewPolicyInEffectNotification: Notification;
+    begin
+        if not EmailAccountImpl.IsUserEmailAdmin() then
+            exit;
+
+        if GetUserEmailViewPolicy() = Enum::"Email View Policy"::AllEmails then
+            exit;
+
+        AdminViewPolicyInEffectNotification.Id := AdminViewPolicyInEffectNotificationIdTok;
+        AdminViewPolicyInEffectNotification.Message(AdminViewPolicyInEffectNotificationMsg);
+        AdminViewPolicyInEffectNotification.Scope := NotificationScope::LocalScope;
+        AdminViewPolicyInEffectNotification.AddAction(AdminViewPolicyUpdatePolicyNotificationActionLbl, Codeunit::"Email Impl", 'OpenEmailViewPoliciesPage');
+        AdminViewPolicyInEffectNotification.Send();
+    end;
+
+    procedure OpenEmailViewPoliciesPage(AdminViewPolicyInEffectNotification: Notification)
+    begin
+        Page.Run(Page::"Email View Policy List");
     end;
 
     #region Telemetry

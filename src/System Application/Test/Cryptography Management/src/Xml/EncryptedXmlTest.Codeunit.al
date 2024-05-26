@@ -22,7 +22,8 @@ codeunit 132614 "EncryptedXml Test"
         XmlDocumentToEncrypt: XmlDocument;
         NamespaceManager: XmlNamespaceManager;
         EncryptedKey: XmlNode;
-        EncryptionSignatureKey: Text;
+        EncryptionSignatureKey: SecretText;
+        Password: SecretText;
         SignatureAlgorithm: Enum SignatureAlgorithm;
     begin
         // [GIVEN] The XmlDocument to encrypt
@@ -32,7 +33,7 @@ codeunit 132614 "EncryptedXml Test"
         EncryptionSignatureKey := GetPrivateKey();
 
         // [WHEN] Encrypt the document
-        EncryptedXml.Encrypt(XmlDocumentToEncrypt, 'Login', GetCertificateData(), '');
+        EncryptedXml.Encrypt(XmlDocumentToEncrypt, 'Login', GetCertificateData(), Password);
 
         // [THEN] Check that there is a EncryptedKey element present in the encrypted XmlDocument
         NamespaceManager.NameTable := XmlDocumentToEncrypt.NameTable;
@@ -57,7 +58,8 @@ codeunit 132614 "EncryptedXml Test"
         EncryptedKey: XmlNode;
         SymmetricAlgorithm: Enum SymmetricAlgorithm;
         SignatureAlgorithm: Enum SignatureAlgorithm;
-        EncryptionSignatureKey: Text;
+        EncryptionSignatureKey: SecretText;
+        Password: SecretText;
     begin
         // [GIVEN] The XmlDocument to encrypt
         GetXml(XmlDocumentToEncrypt);
@@ -66,7 +68,7 @@ codeunit 132614 "EncryptedXml Test"
         EncryptionSignatureKey := GetPrivateKey();
 
         // [WHEN] Encrypt the document
-        EncryptedXml.Encrypt(XmlDocumentToEncrypt, 'Login', GetCertificateData(), '', SymmetricAlgorithm::TripleDES);
+        EncryptedXml.Encrypt(XmlDocumentToEncrypt, 'Login', GetCertificateData(), Password, SymmetricAlgorithm::TripleDES);
 
         // [THEN] Check that there is a EncryptedKey element present in the encrypted XmlDocument
         NamespaceManager.NameTable := XmlDocumentToEncrypt.NameTable;
@@ -90,7 +92,7 @@ codeunit 132614 "EncryptedXml Test"
         XmlWriteOptions: XmlWriteOptions;
         DecryptedXmlString, ExpectedXmlString : Text;
         Result: Boolean;
-        EncryptionSignatureKey: Text;
+        EncryptionSignatureKey: SecretText;
         SignatureAlgorithm: Enum SignatureAlgorithm;
     begin
         // [GIVEN] The encrypted XmlDocument to decrypt
@@ -124,7 +126,7 @@ codeunit 132614 "EncryptedXml Test"
         EncryptedKey: XmlNode;
         KeyBase64Value: Text;
         Result: Boolean;
-        EncryptionSignatureKey: Text;
+        EncryptionSignatureKey: SecretText;
         SignatureAlgorithm: Enum SignatureAlgorithm;
     begin
         // [GIVEN] The XmlDocument with the encrypted key to decrypt

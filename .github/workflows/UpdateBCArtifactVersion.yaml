@@ -3,31 +3,28 @@ name: Update BC Artifact Version
 on:
   workflow_dispatch:
   schedule:
-    - cron: "55 05 * * 0,2,4" # Run at 05:55 UTC on Sunday, Tuesday, and Thursday
+    - cron: '55 5 * * *' # Daily at 05:55 UTC
 
 defaults:
   run:
     shell: powershell
 
+permissions: read-all
+
 jobs:
   GetBranches:
-    name: Get Branches
-    runs-on: windows-latest
+    name: Get Official Branches
+    runs-on: ubuntu-latest
     outputs:
-      UpdateBranches: ${{ steps.GetBranches.outputs.UpdateBranches }}
+      updateBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Get Official Branches
+        id: getOfficialBranches
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
 
-      - name: Get Branches
-        id: GetBranches
-        run: |
-          git fetch
-          $branches = @(git for-each-ref --format="'%(refname:short)'" refs/remotes/origin/release/ | % { $_ -replace 'origin/', '' })
-          $branches += "'main'"
-          $branchMatrix = "[$($branches -join ',')]"
-          Write-Host "Updating branches: $branchMatrix"
-          Add-Content -Path $env:GITHUB_OUTPUT -Value "UpdateBranches=$branchMatrix"
+        with:
+          include: "['main', 'releases/*']"
+
   UpdateBCArtifactVersion:
     name: "[${{ matrix.branch }}] Update BC Artifact Version"
     permissions:
@@ -37,16 +34,19 @@ jobs:
     needs: GetBranches
     strategy:
       matrix:
-        branch: ${{ fromJson(needs.GetBranches.outputs.UpdateBranches) }}
+        branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
       fail-fast: false
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ matrix.branch }}
 
       - name: Update BC Artifact Version
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
-        run: |
-          build/scripts/UpdateBCArtifactVersion.ps1 -Repository $ENV:GITHUB_REPOSITORY -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
+        uses: microsoft/BCApps/.github/actions/RunAutomation@main
+
+        with:
+          automations: UpdateBCArtifact
+          targetBranch: ${{ matrix.branch }}
