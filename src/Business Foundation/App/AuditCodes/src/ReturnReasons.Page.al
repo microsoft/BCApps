@@ -20,11 +20,17 @@ page 6635 "Return Reasons"
             repeater(Control1)
             {
                 ShowCaption = false;
+                /// <summary>
+                /// The return reason code. Use codes that are easy to remember and descriptive.
+                /// </summary>
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the code of the record.';
                 }
+                /// <summary>
+                /// The description field. Enter an explanatory text for the code.
+                /// </summary>
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
