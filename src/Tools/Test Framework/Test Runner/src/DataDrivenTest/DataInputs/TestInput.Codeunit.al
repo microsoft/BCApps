@@ -1,3 +1,10 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.TestTools.TestRunner;
+
 codeunit 130460 "Test Input"
 {
     SingleInstance = true;
@@ -53,7 +60,7 @@ codeunit 130460 "Test Input"
         Clear(DataPerTestTestInput);
     end;
 
-    procedure GetTestDataDescription(): Text
+    procedure GetTestInputName(): Text
     begin
         if DataPerTest.Name <> '' then
             exit(DataPerTest.Name);

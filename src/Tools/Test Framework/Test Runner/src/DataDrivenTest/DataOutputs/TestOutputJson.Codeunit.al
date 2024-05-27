@@ -1,3 +1,10 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.TestTools.TestRunner;
+
 codeunit 130462 "Test Output Json"
 {
     procedure Initialize()
@@ -10,7 +17,7 @@ codeunit 130462 "Test Output Json"
         TestJson.ReadFrom(TestJsonValue);
     end;
 
-    procedure Initialize(TestJsonObject: JsonToken)
+    procedure Initialize(var TestJsonObject: JsonToken)
     begin
         TestJson := TestJsonObject;
     end;
@@ -23,7 +30,7 @@ codeunit 130462 "Test Output Json"
         exit(Add(NewJsonToken));
     end;
 
-    procedure Add(NewJsonToken: JsonToken): Codeunit "Test Output Json"
+    procedure Add(var NewJsonToken: JsonToken): Codeunit "Test Output Json"
     var
         NewTestJson: Codeunit "Test Output Json";
     begin
@@ -40,22 +47,26 @@ codeunit 130462 "Test Output Json"
         NewJsonObject: JsonObject;
         NewJsonArray: JsonArray;
         NewJsonValue: JsonValue;
+        NewJsonToken: JsonToken;
     begin
         if NewValue = '' then begin
             NewJsonObject.ReadFrom('{}');
-            exit(Add(Name, NewJsonObject.AsToken()));
+            NewJsonToken := NewJsonObject.AsToken();
+            exit(Add(Name, NewJsonToken));
         end;
 
         if NewValue = '[]' then begin
             NewJsonArray.ReadFrom('[]');
-            exit(Add(Name, NewJsonArray.AsToken()));
+            NewJsonToken := NewJsonArray.AsToken();
+            exit(Add(Name, NewJsonToken));
         end;
 
         NewJsonValue.ReadFrom('"' + NewValue + '"');
-        exit(Add(Name, NewJsonValue.AsToken()));
+        NewJsonToken := NewJsonValue.AsToken();
+        exit(Add(Name, NewJsonToken));
     end;
 
-    procedure Add(Name: Text; ValueVariant: JsonToken): Codeunit "Test Output Json"
+    procedure Add(Name: Text; var ValueVariant: JsonToken): Codeunit "Test Output Json"
     var
         NewTestJson: Codeunit "Test Output Json";
     begin
@@ -107,7 +118,32 @@ codeunit 130462 "Test Output Json"
         TextOutput: Text;
     begin
         TestJson.WriteTo(TextOutput);
+        if TextOutput = 'null' then
+            exit('');
+
         exit(TextOutput);
+    end;
+
+    procedure DownloadToFile()
+    var
+        DummyTemporaryTestInput: Record "Test Input" temporary;
+        JsonOutStream: OutStream;
+        TextOutput: Text;
+        FileNameTxt: Text;
+        JsonInStream: InStream;
+    begin
+        DummyTemporaryTestInput."Test Input".CreateOutStream(JsonOutStream, DummyTemporaryTestInput.GetTextEncoding());
+        TextOutput := this.ToText();
+        if TextOutput = '' then
+            Error(NoDataOutputsWereRecordedErr);
+
+        DummyTemporaryTestInput.Insert();
+        JsonOutStream.Write(TextOutput);
+        DummyTemporaryTestInput.Modify();
+        DummyTemporaryTestInput.CalcFields("Test Input");
+        DummyTemporaryTestInput."Test Input".CreateInStream(JsonInStream, DummyTemporaryTestInput.GetTextEncoding());
+        FileNameTxt := TestOutputJsonTok;
+        DownloadFromStream(JsonInStream, 'Test', '', '', FileNameTxt);
     end;
 
     procedure ReplaceElement(ElementName: Text; NewValue: Text): Codeunit "Test Output Json"
@@ -115,15 +151,17 @@ codeunit 130462 "Test Output Json"
         ElementJsonToken: JsonToken;
         NewTestJson: Codeunit "Test Output Json";
     begin
-        if not TestJson.AsObject().Get(ElementName, ElementJsonToken) then
+        if not TestJson.AsObject().Get(ElementName, ElementJsonToken) then begin
+            ElementJsonToken.ReadFrom(NewValue);
             TestJson.AsObject().Add(ElementName, ElementJsonToken);
+        end else
+            ElementJsonToken.ReadFrom(NewValue);
 
-        ElementJsonToken.ReadFrom(NewValue);
         NewTestJson.Initialize(ElementJsonToken);
         exit(NewTestJson);
     end;
 
-    procedure ReplaceElement(ElementName: Text; NewJsonToken: JsonToken): Codeunit "Test Output Json"
+    procedure ReplaceElement(ElementName: Text; var NewJsonToken: JsonToken): Codeunit "Test Output Json"
     var
         ElementJsonToken: JsonToken;
         NewTestJson: Codeunit "Test Output Json";
@@ -138,5 +176,8 @@ codeunit 130462 "Test Output Json"
     var
         TheElementIsNotAnObjectErr: Label 'DataOutput - The element is not an object, use a different method.';
         TheElementIsNotAnArrayErr: Label 'DataOutput - The element is not an array, use a different method.';
+        NoDataOutputsWereRecordedErr: Label 'No data outputs were recorded.';
         TestJson: JsonToken;
+        TestOutputJsonTok: Label 'TestOutput.json';
+        DownloadTestOutputTxt: Label 'Download test output';
 }

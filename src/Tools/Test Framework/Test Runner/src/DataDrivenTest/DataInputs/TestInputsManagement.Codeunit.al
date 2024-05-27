@@ -1,6 +1,48 @@
-codeunit 130458 "Import Data Driven Test"
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.TestTools.TestRunner;
+
+codeunit 130458 "Test Inputs Management"
 {
     EventSubscriberInstance = Manual;
+
+    procedure AssignDataDrivenTest(var TestMethodLine: Record "Test Method Line"; var DataInput: Record "Test Input")
+    var
+        ALTestSuite: Record "AL Test Suite";
+        TempTestMethodLine: Record "Test Method Line" temporary;
+        ExistingTestMethodLine: Record "Test Method Line";
+        CurrentLineNo: Integer;
+    begin
+        TestMethodLine.TestField("Line Type", TestMethodLine."Line Type"::Codeunit);
+        DataInput.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if not DataInput.FindSet() then
+            exit;
+
+        ExistingTestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
+        ExistingTestMethodLine.SetCurrentKey("Line No.");
+        ExistingTestMethodLine.Ascending(false);
+        if not ExistingTestMethodLine.FindLast() then
+            CurrentLineNo := ExistingTestMethodLine."Line No." + GetIncrement()
+        else
+            CurrentLineNo := GetIncrement();
+
+        ALTestSuite.Get(TestMethodLine."Test Suite");
+
+        repeat
+            TempTestMethodLine.TransferFields(TestMethodLine);
+            TempTestMethodLine."Line No." := CurrentLineNo;
+            CurrentLineNo += GetIncrement();
+            TempTestMethodLine."Data Input" := DataInput.Name;
+            TempTestMethodLine.Insert();
+            InsertTestMethodLines(TempTestMethodLine, ALTestSuite);
+            TempTestMethodLine.DeleteAll();
+        until DataInput.Next() = 0;
+
+        TestMethodLine.Delete(true)
+    end;
 
     procedure UploadAndImportDataInputsFromJson(var ALTestSuite: Record "AL Test Suite")
     var
@@ -18,14 +60,8 @@ codeunit 130458 "Import Data Driven Test"
     end;
 
     procedure ImportDataInputsFromText(ALTestSuite: Record "AL Test Suite"; DataInputText: Text)
-    var
-        DummyTestInput: Record "Test Input" temporary;
-        TestInputInStream: InStream;
-        InputText: Text;
     begin
-        DummyTestInput."Test Input".CreateInStream(TestInputInStream);
-        TestInputInStream.Read(InputText);
-        ParseDataInputs(InputText, ALTestSuite);
+        ParseDataInputs(DataInputText, ALTestSuite);
     end;
 
     procedure ImportTestDefinitions(var ALTestSuite: Record "AL Test Suite"; TestDefinitionsText: Text)
@@ -187,7 +223,7 @@ codeunit 130458 "Import Data Driven Test"
         end;
     end;
 
-    local procedure InsertTestMethodLines(var TempTestMethodLine: Record "Test Method Line" temporary; var ALTestSuite: Record "AL Test Suite")
+    procedure InsertTestMethodLines(var TempTestMethodLine: Record "Test Method Line" temporary; var ALTestSuite: Record "AL Test Suite")
     var
         ExpandDataDrivenTests: Codeunit "Expand Data Driven Tests";
         TestSuiteManagement: Codeunit "Test Suite Mgt.";

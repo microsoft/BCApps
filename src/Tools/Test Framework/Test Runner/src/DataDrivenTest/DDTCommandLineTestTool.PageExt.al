@@ -1,3 +1,10 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.TestTools.TestRunner;
+
 pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Tool"
 {
     layout
@@ -18,9 +25,9 @@ pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Too
 
                 trigger OnValidate()
                 var
-                    ImportDataDrivenTest: Codeunit "Import Data Driven Test";
+                    TestInputsManagement: Codeunit "Test Inputs Management";
                 begin
-                    ImportDataDrivenTest.ImportDataInputsFromText(GlobalALTestSuite, DataInputTxt);
+                    TestInputsManagement.ImportDataInputsFromText(GlobalALTestSuite, DataInputTxt);
                 end;
             }
             field(TestDefinitions; TestDefinitionsTxt)
@@ -31,9 +38,9 @@ pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Too
 
                 trigger OnValidate()
                 var
-                    ImportDataDrivenTest: Codeunit "Import Data Driven Test";
+                    DataDrivenTestInput: Codeunit "Test Inputs Management";
                 begin
-                    ImportDataDrivenTest.ImportTestDefinitions(GlobalALTestSuite, TestDefinitionsTxt);
+                    DataDrivenTestInput.ImportTestDefinitions(GlobalALTestSuite, TestDefinitionsTxt);
                 end;
             }
         }
