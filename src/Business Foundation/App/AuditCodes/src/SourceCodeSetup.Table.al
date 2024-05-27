@@ -22,7 +22,7 @@ table 242 "Source Code Setup"
     fields
     {
         /// <summary>
-        /// The source code. Use codes that are easy to remember and descriptive.
+        /// The primary key field of the setup record. A blank is used as default.
         /// </summary>
         field(1; "Primary Key"; Code[10])
         {

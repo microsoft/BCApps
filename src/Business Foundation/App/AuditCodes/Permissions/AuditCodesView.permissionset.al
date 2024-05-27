@@ -13,5 +13,6 @@ permissionset 232 "Audit Codes - View"
 
     Permissions = tabledata "Reason Code" = I,
                 tabledata "Return Reason" = I,
-                tabledata "Source Code" = I;
+                tabledata "Source Code" = I,
+                tabledata "Source Code Setup" = I;
 }
