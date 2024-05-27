@@ -16,5 +16,6 @@ permissionset 230 "Audit Codes - Objects"
                 table "Source Code Setup" = X,
                 page "Reason Codes" = X,
                 page "Source Codes" = X,
-                page "Source Code Setup" = X;
+                page "Source Code Setup" = X,
+                page "Return Reasons" = X;
 }
