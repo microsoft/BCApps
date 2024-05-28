@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.TestTools.TestRunner;
 
 page 130459 "Test Inputs"
@@ -46,7 +51,36 @@ page 130459 "Test Inputs"
             }
         }
     }
+    actions
+    {
+        area(Processing)
+        {
+            action(ImportDataInputs)
+            {
+                ApplicationArea = All;
+                Caption = 'Import';
+                Image = ImportCodes;
 
+                trigger OnAction()
+                var
+                    ALTestSuite: Record "AL Test Suite";
+                    TestInputsManagement: Codeunit "Test Inputs Management";
+                begin
+                    ALTestSuite.Get(Rec."Test Suite");
+                    TestInputsManagement.UploadAndImportDataInputsFromJson(ALTestSuite);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                actionref(ImportDataInputs_Promoted; ImportDataInputs)
+                {
+                }
+            }
+        }
+    }
     trigger OnAfterGetRecord()
     begin
         TestInputText := Rec.GetInput(Rec);

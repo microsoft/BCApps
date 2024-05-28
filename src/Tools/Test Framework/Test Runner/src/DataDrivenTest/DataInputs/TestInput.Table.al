@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.TestTools.TestRunner;
 
 table 130452 "Test Input"
@@ -52,8 +57,8 @@ table 130452 "Test Input"
         exit(TextInput);
     end;
 
-    local procedure GetTextEncoding(): TextEncoding
+    internal procedure GetTextEncoding(): TextEncoding
     begin
-        exit(TextEncoding::UTF16);
+        exit(TextEncoding::UTF8);
     end;
 }

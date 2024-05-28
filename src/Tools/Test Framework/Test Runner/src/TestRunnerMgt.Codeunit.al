@@ -16,6 +16,7 @@ codeunit 130454 "Test Runner - Mgt"
     var
         ALTestRunnerResetEnvironment: Codeunit "ALTestRunner Reset Environment";
         SkipLoggingResults: Boolean;
+        CurrentTestFilter: Text;
 
     trigger OnRun()
     begin
@@ -25,6 +26,8 @@ codeunit 130454 "Test Runner - Mgt"
     var
         TestMethodLine: Record "Test Method Line";
         ALCodeCoverageMgt: Codeunit "AL Code Coverage Mgt.";
+        TestSuiteMgt: Codeunit "Test Suite Mgt.";
+        BackupTestFilter: Text;
     begin
         ALTestRunnerResetEnvironment.Initialize();
         TestMethodLine.Copy(NewTestMethodLine);
@@ -39,10 +42,15 @@ codeunit 130454 "Test Runner - Mgt"
         ALCodeCoverageMgt.Initialize(TestMethodLine."Test Suite");
         OnRunTestSuite(TestMethodLine);
 
+        BackupTestFilter := TestMethodLine.GetFilter("Line No.");
         if TestMethodLine.FindSet() then
             repeat
                 OnBeforeCodeunitRun(TestMethodLine);
+
+                CurrentTestFilter := TestSuiteMgt.GetLineNoFilterForTestCodeunit(TestMethodLine);
+                TestMethodLine.SetFilter("Line No.", CurrentTestFilter);
                 CODEUNIT.Run(TestMethodLine."Test Codeunit");
+                TestMethodLine.SetFilter("Line No.", BackupTestFilter);
                 TestMethodLine.Find();
                 OnAfterCodeunitRun(TestMethodLine);
             until TestMethodLine.Next() = 0;
@@ -78,10 +86,8 @@ codeunit 130454 "Test Runner - Mgt"
         TestMethodLineFunction: Record "Test Method Line";
         CodeunitTestMethodLine: Record "Test Method Line";
     begin
-        if SkipLoggingResults then begin
-            OnBeforeTestMethodRun(TestMethodLineFunction, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions);
+        if SkipLoggingResults then
             exit(true);
-        end;
 
         // Invoked by the platform before any codeunit is run
         if (FunctionName = '') or (FunctionName = 'OnRun') then begin
@@ -142,10 +148,11 @@ codeunit 130454 "Test Runner - Mgt"
         DummyBlankDateTime: DateTime;
     begin
         if IsSuccess then begin
-            FunctionTestMethodLine.SETRANGE("Test Suite", CodeunitTestMethodLine."Test Suite");
-            FunctionTestMethodLine.SETRANGE("Test Codeunit", CodeunitTestMethodLine."Test Codeunit");
-            FunctionTestMethodLine.SETRANGE("Line Type", FunctionTestMethodLine."Line Type"::"Function");
-            FunctionTestMethodLine.SETRANGE(Result, FunctionTestMethodLine.Result::Failure);
+            FunctionTestMethodLine.SetRange("Test Suite", CodeunitTestMethodLine."Test Suite");
+            FunctionTestMethodLine.SetRange("Test Codeunit", CodeunitTestMethodLine."Test Codeunit");
+            FunctionTestMethodLine.SetRange("Line Type", FunctionTestMethodLine."Line Type"::"Function");
+            FunctionTestMethodLine.SetRange(Result, FunctionTestMethodLine.Result::Failure);
+            FunctionTestMethodLine.SetFilter("Line No.", CurrentTestFilter);
             if FunctionTestMethodLine.IsEmpty() then begin
                 CodeunitTestMethodLine.Result := CodeunitTestMethodLine.Result::Success;
                 TestSuiteMgt.ClearErrorOnLine(CodeunitTestMethodLine);
@@ -211,7 +218,9 @@ codeunit 130454 "Test Runner - Mgt"
         TestMethodLineFunction.SetRange("Function", FunctionName);
 
         if LineNoTestFilter <> '' then
-            TestMethodLineFunction.SetFilter("Line No.", LineNoTestFilter);
+            TestMethodLineFunction.SetFilter("Line No.", LineNoTestFilter)
+        else if CurrentTestFilter <> '' then
+            TestMethodLineFunction.SetFilter("Line No.", CurrentTestFilter);
 
         if not TestMethodLineFunction.FindFirst() then
             exit(false);
@@ -224,6 +233,7 @@ codeunit 130454 "Test Runner - Mgt"
         CodeunitTestMethodLineFunction.SetRange("Test Suite", TestSuite);
         CodeunitTestMethodLineFunction.SetRange("Test Codeunit", TestCodeunit);
         CodeunitTestMethodLineFunction.SetRange("Line Type", CodeunitTestMethodLineFunction."Line Type"::Codeunit);
+        CodeunitTestMethodLineFunction.SetFilter("Line No.", CurrentTestFilter);
 
         exit(CodeunitTestMethodLineFunction.FindFirst());
     end;
