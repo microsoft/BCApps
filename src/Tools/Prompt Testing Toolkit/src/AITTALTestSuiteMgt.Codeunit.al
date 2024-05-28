@@ -30,7 +30,7 @@ codeunit 149037 "AITT AL Test Suite Mgt"
     var
         TempTestMethodLine: Record "Test Method Line" temporary;
         ALTestSuite: Record "AL Test Suite";
-        ImportDataDriventTests: Codeunit "Import Data Driven Test";
+        TestInputsManagement: Codeunit "Test Inputs Management";
     begin
         GetOrCreateALTestSuiteExist(BCCTHeader);
 
@@ -40,7 +40,7 @@ codeunit 149037 "AITT AL Test Suite Mgt"
         TempTestMethodLine."Data Input" := DataInputName;
         TempTestMethodLine.Insert();
 
-        ImportDataDriventTests.InsertTestMethodLines(TempTestMethodLine, ALTestSuite);
+        TestInputsManagement.InsertTestMethodLines(TempTestMethodLine, ALTestSuite);
     end;
 
     internal procedure RemoveCodeunit(CodeunitID: Integer; var BCCTHeader: Record "BCCT Header")
