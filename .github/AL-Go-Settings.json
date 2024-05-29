@@ -31,6 +31,8 @@
     "NextMajor.yaml",
     "NextMinor.yaml",
     "PublishToEnvironment.yaml",
+    "PullPowerPlatformChanges.yaml",
+    "PushPowerPlatformChanges.yaml",
     "Test Current.settings.json"
   ],
   "excludeEnvironments": [
