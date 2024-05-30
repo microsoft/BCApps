@@ -6,6 +6,7 @@
 namespace System.Security.AccessControl;
 
 using System.Feedback;
+using System.PerformanceProfile;
 using System.Security.User;
 using System.Reflection;
 using System.Tooling;
@@ -66,5 +67,7 @@ permissionset 66 "System Tables - Basic"
 #pragma warning disable AL0432
                   tabledata "Tenant Profile Page Metadata" = Rimd,
 #pragma warning restore AL0432
-                  tabledata "Token Cache" = Rimd;
+                  tabledata "Token Cache" = Rimd,
+                  tabledata "Performance Profile Scheduler" = Rimd,
+                  tabledata "Performance Profiles" = R;
 }
