@@ -19,6 +19,8 @@ page 149033 "BCCT Log Entries"
         {
             repeater(Control1)
             {
+                FreezeColumn = Status;
+
                 field(RunID; Rec.RunID)
                 {
                     ToolTip = 'Specifies the BCCT RunID Guid';
@@ -37,9 +39,10 @@ page 149033 "BCCT Log Entries"
                     Visible = false;
                     ApplicationArea = All;
                 }
-                field(Tag; Rec.Tag)
+                field("Entry No."; Rec."Entry No.")
                 {
-                    ToolTip = 'Specifies the Tag that we entered in the BCCT header.';
+                    ToolTip = 'Specifies the Entry No. of the BCCT.';
+                    Visible = false;
                     ApplicationArea = All;
                 }
                 field(Version; Rec.Version)
@@ -48,38 +51,10 @@ page 149033 "BCCT Log Entries"
                     ToolTip = 'Specifies the Version No. of the BCCT execution.';
                     ApplicationArea = All;
                 }
-                field("Entry No."; Rec."Entry No.")
+                field(Tag; Rec.Tag)
                 {
-                    ToolTip = 'Specifies the Entry No. of the BCCT.';
-                    Visible = false;
+                    ToolTip = 'Specifies the Tag that we entered in the BCCT header.';
                     ApplicationArea = All;
-                }
-                field(Status; Rec.Status)
-                {
-                    Caption = 'Status';
-                    ToolTip = 'Specifies the status of the iteration.';
-                    ApplicationArea = All;
-                }
-                field("Orig. Status"; Rec."Orig. Status")
-                {
-                    Caption = 'Orig. Status';
-                    Visible = false;
-                    ToolTip = 'Specifies the original status of the iteration.';
-                    ApplicationArea = All;
-                }
-                field(StartTime; Format(Rec."Start Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
-                {
-                    Caption = 'Start Time';
-                    ToolTip = 'Specifies the start time of the BCCT scenario.';
-                    ApplicationArea = All;
-                    Visible = false;
-                }
-                field(EndTime; Format(Rec."End Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
-                {
-                    Caption = 'End Time';
-                    ToolTip = 'Specifies the end time of the BCCT scenario.';
-                    ApplicationArea = All;
-                    Visible = false;
                 }
                 field(CodeunitID; Rec."Codeunit ID")
                 {
@@ -91,17 +66,6 @@ page 149033 "BCCT Log Entries"
                     ToolTip = 'Specifies the codeunit name of the BCCT.';
                     ApplicationArea = All;
                 }
-                field(Dataset; Rec.Dataset)
-                {
-                    ToolTip = 'Specifies the dataset of the BCCT.';
-                    ApplicationArea = All;
-                }
-                field("Dataset Line No."; Rec."Dataset Line No.")
-                {
-                    ToolTip = 'Specifies the Line No. of the dataset.';
-                    ApplicationArea = All;
-                }
-                // TODO the rest of the fields
                 field(Operation; Rec.Operation)
                 {
                     ToolTip = 'Specifies the single operation of the BCCT.';
@@ -116,6 +80,30 @@ page 149033 "BCCT Log Entries"
                 {
                     ToolTip = 'Specifies the original operation of the BCCT.';
                     Visible = false;
+                    ApplicationArea = All;
+                }
+                field(Status; Rec.Status)
+                {
+                    Caption = 'Status';
+                    ToolTip = 'Specifies the status of the iteration.';
+                    ApplicationArea = All;
+                    StyleExpr = StatusStyleExpr;
+                }
+                field("Orig. Status"; Rec."Orig. Status")
+                {
+                    Caption = 'Orig. Status';
+                    Visible = false;
+                    ToolTip = 'Specifies the original status of the iteration.';
+                    ApplicationArea = All;
+                }
+                field(Dataset; Rec.Dataset)
+                {
+                    ToolTip = 'Specifies the dataset of the BCCT.';
+                    ApplicationArea = All;
+                }
+                field("Dataset Line No."; Rec."Dataset Line No.")
+                {
+                    ToolTip = 'Specifies the Line No. of the dataset.';
                     ApplicationArea = All;
                 }
                 field("Input Text"; InputText)
@@ -140,11 +128,32 @@ page 149033 "BCCT Log Entries"
                         Message(Rec.GetOutputBlob());
                     end;
                 }
+                field(TestRunDuration; TestRunDuration)
+                {
+                    Caption = 'Duration';
+                    ToolTip = 'Specifies the duration of the iteration.';
+                    ApplicationArea = All;
+                }
+                field(StartTime; Format(Rec."Start Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
+                {
+                    Caption = 'Start Time';
+                    ToolTip = 'Specifies the start time of the BCCT scenario.';
+                    ApplicationArea = All;
+                    Visible = false;
+                }
+                field(EndTime; Format(Rec."End Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
+                {
+                    Caption = 'End Time';
+                    ToolTip = 'Specifies the end time of the BCCT scenario.';
+                    ApplicationArea = All;
+                    Visible = false;
+                }
                 field(Message; Rec.Message)
                 {
-                    Caption = 'Message';
-                    ToolTip = 'Specifies when the message from the test.';
+                    Caption = 'Error Message';
+                    ToolTip = 'Specifies when the error message from the test.';
                     ApplicationArea = All;
+                    Style = Unfavorable;
                 }
                 field("Orig. Message"; Rec."Orig. Message")
                 {
@@ -153,18 +162,13 @@ page 149033 "BCCT Log Entries"
                     ToolTip = 'Specifies the original message from the test.';
                     ApplicationArea = All;
                 }
-                field(DurationMin; Rec."Duration (ms)")
-                {
-                    Caption = 'Duration (ms)';
-                    ToolTip = 'Specifies the duration of the iteration.';
-                    ApplicationArea = All;
-                }
                 field("Error Call Stack"; Rec."Error Call Stack")
                 {
                     Caption = 'Call stack';
                     Editable = false;
                     Tooltip = 'Specifies the call stack for this error';
                     ApplicationArea = All;
+
                     trigger OnDrillDown()
                     begin
                         Message(Rec."Error Call Stack");
@@ -245,6 +249,15 @@ page 149033 "BCCT Log Entries"
     begin
         InputText := Rec.GetInputBlob();
         OutputText := Rec.GetOutputBlob();
+        TestRunDuration := Rec."Duration (ms)";
+        case Rec.Status of
+            Rec.Status::Success:
+                StatusStyleExpr := 'Favorable';
+            Rec.Status::Error:
+                StatusStyleExpr := 'Unfavorable';
+            else
+                StatusStyleExpr := '';
+        end;
     end;
 
     var
@@ -252,4 +265,6 @@ page 149033 "BCCT Log Entries"
         IsFilteredToErrors: Boolean;
         InputText: Text;
         OutputText: Text;
+        TestRunDuration: Duration;
+        StatusStyleExpr: Text;
 }
