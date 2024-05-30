@@ -8,7 +8,7 @@ body:
       value: |
         Thanks for taking the time to fill out this bug report!
 
-        This bug report is intended for reporting issues in the contribution process such as: 
+        This bug report is intended for reporting issues in the contribution process such as:
         ✅ Documentation defects in this repository
         ✅ Tooling defects (e.g. Creating development environments, building apps, etc.)
         ✅ Other defects in the contribution process to this repository

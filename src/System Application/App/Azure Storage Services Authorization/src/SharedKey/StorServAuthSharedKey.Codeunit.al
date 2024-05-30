@@ -28,7 +28,6 @@ codeunit 9064 "Stor. Serv. Auth. Shared Key" implements "Storage Service Authori
         Headers.Add('Authorization', GetSharedKeySignature(HttpRequest, StorageAccount));
     end;
 
-    [NonDebuggable]
     procedure SetSharedKey(SharedKey: SecretText)
     begin
         Secret := SharedKey;
@@ -39,7 +38,6 @@ codeunit 9064 "Stor. Serv. Auth. Shared Key" implements "Storage Service Authori
         ApiVersion := NewApiVersion;
     end;
 
-    [NonDebuggable]
     local procedure GetSharedKeySignature(HttpRequestMessage: HttpRequestMessage; StorageAccount: Text): Text
     var
         StringToSign: Text;
@@ -86,7 +84,6 @@ codeunit 9064 "Stor. Serv. Auth. Shared Key" implements "Storage Service Authori
     end;
 
     [TryFunction]
-    [NonDebuggable]
     local procedure TryGetContentHeaders(var HttpRequestMessage: HttpRequestMessage; var RequestHttpHeaders: HttpHeaders)
     begin
         HttpRequestMessage.Content.GetHeaders(RequestHttpHeaders);

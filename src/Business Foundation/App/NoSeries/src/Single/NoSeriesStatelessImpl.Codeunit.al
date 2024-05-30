@@ -28,6 +28,10 @@ codeunit 306 "No. Series - Stateless Impl." implements "No. Series - Single"
 
     procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
     begin
+        if not NoSeriesLine.IsTemporary() then begin
+            NoSeriesLine.ReadIsolation(IsolationLevel::UpdLock);
+            NoSeriesLine.Find();
+        end;
         exit(GetNextNoInternal(NoSeriesLine, true, UsageDate, HideErrorsAndWarnings));
     end;
 

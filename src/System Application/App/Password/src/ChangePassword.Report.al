@@ -27,11 +27,11 @@ report 9810 "Change Password"
     trigger OnInitReport()
     var
         User: Record User;
-        PasswordDialogManagement: Codeunit "Password Dialog Management";
+        PasswordDialogImpl: Codeunit "Password Dialog Impl.";
         Password: SecretText;
         OldPassword: SecretText;
     begin
-        PasswordDialogManagement.OpenChangePasswordDialog(OldPassword, Password);
+        PasswordDialogImpl.OpenChangePasswordDialog(OldPassword, Password);
         if Password.IsEmpty() then
             exit;
 

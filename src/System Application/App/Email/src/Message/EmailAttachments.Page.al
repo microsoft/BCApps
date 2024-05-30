@@ -24,7 +24,6 @@ page 8889 "Email Attachments"
         {
             repeater(GroupName)
             {
-                FileUploadAction = UploadMultiple;
                 field(FileName; Rec."Attachment Name")
                 {
                     ApplicationArea = All;
@@ -66,14 +65,11 @@ page 8889 "Email Attachments"
                 trigger OnAction(files: List of [FileUpload])
                 var
                     EmailEditor: Codeunit "Email Editor";
-                    TempInStream: InStream;
                     SingleFile: FileUpload;
                 begin
-                    foreach SingleFile in files do begin
-                        SingleFile.CreateInStream(TempInStream, TextEncoding::UTF8);
-                        if SingleFile.FileName <> '' then
-                            EmailEditor.UploadAttachment(EmailMessageImpl, SingleFile.FileName, TempInStream);
-                    end;
+                    foreach SingleFile in files do
+                        EmailEditor.UploadAttachment(EmailMessageImpl, SingleFile);
+
                     UpdateDeleteActionEnablement();
                 end;
             }

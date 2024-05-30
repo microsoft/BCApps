@@ -42,6 +42,7 @@ codeunit 2500 "Extension Installation Impl"
 
     procedure IsInstalledByPackageId(PackageID: Guid): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         NAVAppInstalledApp: Record "NAV App Installed App";
     begin
         // Checks whether the user is entitled to make extension changes.
@@ -54,6 +55,7 @@ codeunit 2500 "Extension Installation Impl"
 
     procedure IsInstalledByAppId(AppID: Guid): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         NAVAppInstalledApp: Record "NAV App Installed App";
     begin
         // Checks whether the user is entitled to make extension changes.
