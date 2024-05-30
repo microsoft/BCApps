@@ -9,6 +9,7 @@ using System.Azure.Identity;
 using System.Environment.Configuration;
 using System.Email;
 using System.Apps;
+using System.DataAdministration;
 
 entitlement "Delegated Admin agent - Partner"
 {
@@ -23,6 +24,7 @@ entitlement "Delegated Admin agent - Partner"
                          "Security Groups - Admin",
                          "Exten. Mgt. - Admin",
                          "Email - Admin",
-                         "Feature Key - Admin";
+                         "Feature Key - Admin",
+                         "Retention Policy - Admin";
 #pragma warning restore
 }
