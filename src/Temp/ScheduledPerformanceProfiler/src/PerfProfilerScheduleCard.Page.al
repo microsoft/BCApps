@@ -75,11 +75,12 @@ page 1932 "Perf. Profiler Schedules Card"
                     Lookup = true;
                 }
 
-                field("Client Type"; Rec."Client Type")
+                field(Activity; Activity)
                 {
-                    Caption = 'Client Type';
-                    ToolTip = 'The type of client for which the schedule is created.';
-                    AboutText = 'The type of client for which the schedule is created.';
+                    Caption = 'Activity Type';
+                    OptionCaption = 'Activity in the browser, Background Tasks, Calling external components through REST calls';
+                    ToolTip = 'The type of activity for which the schedule is created.';
+                    AboutText = 'The type of activity for which the schedule is created.';
                 }
             }
 
@@ -101,6 +102,18 @@ page 1932 "Perf. Profiler Schedules Card"
                     ToolTip = 'The number of days the profile will be kept.';
                     AboutText = 'The number of days the profile will be kept.';
                 }
+
+                field("Profile Creation Threshold"; Rec."Profile Creation Threshold")
+                {
+                    Caption = 'Profile Creation Threshold (ms)';
+                    ToolTip = 'Create only profiles that are greater then the profile creation threshold';
+                    AboutText = 'Limit the amount of sampling profiles that are created by setting a millisecond threshold. Only profiles larger then the threshold will be created.';
+
+                    trigger OnValidate()
+                    begin
+                        SchedulerPage.ValidateProfileKeepTime(rec);
+                    end;
+                }
             }
         }
     }
@@ -118,4 +131,21 @@ page 1932 "Perf. Profiler Schedules Card"
             }
         }
     }
+
+    trigger OnInit()
+    begin
+        SchedulerPage.InitializeFields(rec, Activity);
+        rec."Schedule ID" := CreateGuid();
+    end;
+
+
+    trigger OnAfterGetRecord()
+    begin
+        SchedulerPage.MapActivityType(rec, Activity);
+    end;
+
+    var
+        SchedulerPage: codeunit "Scheduler Page";
+        Activity: Option WebClient,Background,WebAPIClient;
+
 }

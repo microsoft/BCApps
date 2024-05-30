@@ -10,8 +10,7 @@ page 1933 "Perf. Profiler Schedules List"
     UsageCategory = Administration;
     AboutTitle = 'About performance profile scheduling';
     AboutText = 'Schedule performance profiles to run at specific times based on different criteria to troubleshoot performance issues.';
-    DeleteAllowed = false;
-    ModifyAllowed = false;
+    InsertAllowed = false;
     CardPageID = "Perf. Profiler Schedules Card";
     SourceTable = "Performance Profile Scheduler";
 
@@ -59,11 +58,12 @@ page 1933 "Perf. Profiler Schedules List"
                     Lookup = true;
                 }
 
-                field("Client Type"; Rec."Client Type")
+                field(Activity; Activity)
                 {
-                    Caption = 'Client Type';
-                    ToolTip = 'The type of client for which the schedule is created.';
-                    AboutText = 'The type of client for which the schedule is created.';
+                    Caption = 'Activity Type';
+                    OptionCaption = 'Activity in the browser, Background Tasks, Calling external components through REST calls';
+                    ToolTip = 'The type of activity for which the schedule is created.';
+                    AboutText = 'The type of activity for which the schedule is created.';
                 }
 
                 field(Description; Rec.Description)
@@ -96,7 +96,7 @@ page 1933 "Perf. Profiler Schedules List"
 
                     trigger OnValidate()
                     begin
-                        SchedulerPageValidator.ValidateProfileKeepTime(rec);
+                        SchedulerPage.ValidateProfileKeepTime(rec);
                     end;
                 }
             }
@@ -110,7 +110,12 @@ page 1933 "Perf. Profiler Schedules List"
         }
     }
 
+    trigger OnAfterGetRecord()
+    begin
+        SchedulerPage.MapActivityType(rec, Activity);
+    end;
 
     var
-        SchedulerPageValidator: codeunit "Scheduler Page";
+        SchedulerPage: codeunit "Scheduler Page";
+        Activity: Option WebClient,Background,WebAPIClient;
 }
