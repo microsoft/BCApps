@@ -100,11 +100,7 @@ codeunit 130458 "Test Inputs Management"
         DataOnlyTestInputs: JsonToken;
         DataOnlyTestInputsArray: JsonArray;
     begin
-        DataInputJsonObject.ReadFrom(TestData);
-        if not DataInputJsonObject.Get(DataDrivenTestDataTok, DataOnlyTestInputs) then
-            exit;
-
-        DataOnlyTestInputsArray := DataOnlyTestInputs.AsArray();
+        DataOnlyTestInputsArray.ReadFrom(TestData);
         InsertDataInputsFromJsonArray(ALTestSuite, DataOnlyTestInputsArray);
     end;
 
@@ -209,18 +205,32 @@ codeunit 130458 "Test Inputs Management"
     var
         TestInput: Record "Test Input";
         DataNameJsonToken: JsonToken;
+        DescriptionJsonToken: JsonToken;
         TestInputJsonToken: JsonToken;
         TestInputText: Text;
     begin
-        TestInput."Test Suite" := ALTestSuite.Name;
-        DataOnlyTestInput.Get(DataNameTok, DataNameJsonToken);
-        TestInput.Name := CopyStr(DataNameJsonToken.AsValue().AsText(), 1, MaxStrLen(TestInput.Name));
-        TestInput.Insert();
+        TestInput."Test Input Group" := ALTestSuite.Name;
 
-        if DataOnlyTestInput.Get(TestInputTok, TestInputJsonToken) then begin
-            TestInputJsonToken.WriteTo(TestInputText);
-            TestInput.SetInput(TestInput, TestInputText);
+        if not DataOnlyTestInput.Get(TestInputTok, TestInputJsonToken) then
+            TestInputJsonToken := DataOnlyTestInput.AsToken()
+        else begin
+            if DataOnlyTestInput.Get(DataNameTok, DataNameJsonToken) then
+                TestInput.Name := CopyStr(DataNameJsonToken.AsValue().AsText(), 1, MaxStrLen(TestInput.Name));
+
+            if DataOnlyTestInput.Get(DescriptionTok, DescriptionJsonToken) then
+                TestInput.Description := CopyStr(DescriptionJsonToken.AsValue().AsText(), 1, MaxStrLen(TestInput.Description))
         end;
+
+        if TestInput.Name = '' then
+            AssingTestInputName(TestInput, ALTestSuite);
+
+        if TestInput.Description = '' then
+            TestInput.Description := TestInput.Name;
+
+        TestInput.Insert(true);
+
+        TestInputJsonToken.WriteTo(TestInputText);
+        TestInput.SetInput(TestInput, TestInputText);
     end;
 
     procedure InsertTestMethodLines(var TempTestMethodLine: Record "Test Method Line" temporary; var ALTestSuite: Record "AL Test Suite")
@@ -251,16 +261,34 @@ codeunit 130458 "Test Inputs Management"
         exit(10000);
     end;
 
+    local procedure AssingTestInputName(var TestInput: Record "Test Input"; var ALTestSuite: Record "AL Test Suite")
+    var
+        LastTestInput: Record "Test Input";
+    begin
+        LastTestInput.SetRange("Test Input Group", ALTestSuite.Name);
+        LastTestInput.SetFilter(Name, TestInputNameTok + '*');
+        LastTestInput.SetCurrentKey(Name);
+        LastTestInput.Ascending(true);
+        LastTestInput.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if not LastTestInput.FindLast() then
+            TestInput.Name := PadStr(TestInputNameTok, 12, '0')
+        else
+            TestInput.Name := LastTestInput.Name;
+
+        TestInput.Name := IncStr(TestInput.Name);
+    end;
+
     var
         CodeunitIdTok: Label 'codeunitId', Locked = true;
         TestMethodTok: Label 'method', Locked = true;
         DataNameTok: Label 'name', Locked = true;
+        DescriptionTok: Label 'description', Locked = true;
         TestInputTok: Label 'testInput', Locked = true;
-        DataDrivenTestDataTok: Label 'dataDrivenTestData', Locked = true;
         DataDrivenTestsTok: Label 'dataDrivenTests', Locked = true;
         CodeunitNameTok: Label 'codeunitName', Locked = true;
         DataInputsTok: Label 'dataInputs', Locked = true;
         ChooseFileLbl: Label 'Choose a file to import';
+        TestInputNameTok: Label 'Input-', Locked = true;
         AllTok: Label 'All', Locked = true;
         DataInputNotFoundErr: Label 'Data input not found: %1. Make sure that you import the data inputs first.';
 }

@@ -116,10 +116,6 @@ codeunit 130454 "Test Runner - Mgt"
         TestMethodLine: Record "Test Method Line";
         CodeunitTestMethodLine: Record "Test Method Line";
     begin
-        // Stop Permisson Mock if installed
-        if (FunctionName <> '') and (FunctionName <> 'OnRun') then
-            StartStopPermissionMock();
-
         if SkipLoggingResults then begin
             OnAfterTestMethodRun(TestMethodLine, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions, IsSuccess);
             exit;
@@ -128,6 +124,8 @@ codeunit 130454 "Test Runner - Mgt"
         // Invoked by platform after every test method is run
         if (FunctionName = '') or (FunctionName = 'OnRun') then
             exit;
+
+        StartStopPermissionMock();
 
         GetTestFunction(TestMethodLine, FunctionName, TestSuite, CodeunitID, LineNoTestFilter);
         UpdateTestFunctionLine(TestMethodLine, IsSuccess);

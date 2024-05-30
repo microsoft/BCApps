@@ -56,6 +56,18 @@ page 149031 "BCCT Setup Card"
                     ToolTip = 'Specifies the slowest user input.';
                     ApplicationArea = All;
                 }
+                field("Test Runner Id"; "Test Runner Id")
+                {
+                    ToolTip = 'Specifies the Test Runner to be used by the tests.';
+                    ApplicationArea = All;
+                    Editable = false;
+                    trigger OnAssistEdit()
+                    var
+                        AITALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+                    begin
+                        AITALTestSuiteMgt.AssistEditTestRunner(Rec);
+                    end;
+                }
                 group(StatusGroup)
                 {
                     Caption = 'Suite Status';

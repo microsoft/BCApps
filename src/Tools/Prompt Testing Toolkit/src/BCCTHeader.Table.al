@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Tooling;
+using System.TestTools.TestRunner;
 
 
 table 149030 "BCCT Header"
@@ -15,7 +16,7 @@ table 149030 "BCCT Header"
 
     fields
     {
-        field(1; "Code"; Code[100])
+        field(1; "Code"; Code[10])
         {
             Caption = 'Code';
             NotBlank = true;
@@ -210,6 +211,21 @@ table 149030 "BCCT Header"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Base Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+        }
+        field(50; "Test Runner Id"; Integer)
+        {
+            Caption = 'Test Runner Id';
+            Editable = false;
+
+            trigger OnValidate()
+            var
+                ALTestSuite: Record "AL Test Suite";
+            begin
+                if ALTestSuite.Get(Rec.Code) then begin
+                    ALTestSuite."Test Runner Id" := Rec."Test Runner Id";
+                    ALTestSuite.Modify(true);
+                end;
+            end;
         }
     }
 

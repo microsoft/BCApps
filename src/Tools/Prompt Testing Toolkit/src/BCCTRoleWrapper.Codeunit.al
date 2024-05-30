@@ -57,7 +57,6 @@ codeunit 149042 "BCCT Role Wrapper"
         ExecuteNextIteration: Boolean;
     begin
         ExecuteNextIteration := true;
-        Randomize();
 
         SetDatasetFilter(BCCTDatasetLine, BCCTLine, BCCTHeader);
         if not BCCTDatasetLine.FindSet() then
@@ -106,16 +105,21 @@ codeunit 149042 "BCCT Role Wrapper"
     local procedure ExecuteIteration(var BCCTLine: Record "BCCT Line"; BCCTDatasetLine: Record "BCCT Dataset Line")
     var
         TestMethodLine: Record "Test Method Line";
+        BCCTHeader: Record "BCCT Header";
         TestRunnerIsolDisabled: Codeunit "Test Runner - Isol. Disabled";
+        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+        TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
+        BCCTHeader.Get(BCCTLine."BCCT Code");
+        AITTALTestSuiteMgt.RemoveTestMethods(BCCTHeader);
+        AITTALTestSuiteMgt.ExpandCodeunit(BCCTLine);
         SetBCCTLine(BCCTLine);
-        TestMethodLine."Line Type" := TestMethodLine."Line Type"::Codeunit;
-        TestMethodLine."Skip Logging Results" := true;
-        TestMethodLine."Test Codeunit" := BCCTLine."Codeunit ID";
-        if BCCTDatasetLine.GetInputBlobAsText() <> '' then; //TODO: remove this if we figure out that we need test method line.
-        // TODO: remove BCCTDatasetLine if not needed
-        //TestMethodLine."Data Input" := BCCTDatasetLine."Input Data";
-        TestRunnerIsolDisabled.Run(TestMethodLine);
+
+        TestMethodLine.SetRange("Test Codeunit", BCCTLine."Codeunit ID");
+        TestMethodLine.SetRange("Test Suite", BCCTLine."BCCT Code");
+        TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
+        TestMethodLine.FindFirst();
+        TestSuiteMgt.RunAllTests(TestMethodLine);
     end;
 
     // local procedure CompleteBCCTLine(var BCCTLine: Record "BCCT Line")

@@ -149,6 +149,11 @@ page 149034 "BCCT Lines"
                         FailedTestsBCCTLogEntryDrillDown(BCCTHeaderRec."Base Version");
                     end;
                 }
+                field("Input Dataset"; Rec."Input Dataset")
+                {
+                    ToolTip = 'Specifies the input dataset for the BCCT line.';
+                    ApplicationArea = All;
+                }
                 field("No. of Operations - Base"; Rec."No. of Operations - Base")
                 {
                     ApplicationArea = All;

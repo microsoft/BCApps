@@ -167,7 +167,9 @@ codeunit 149035 "BCCT Line"
         BCCTLogEntry."Log was Modified" := EntryWasModified;
         BCCTLogEntry."End Time" := EndTime;
         BCCTLogEntry."Start Time" := StartTime;
-        BCCTLogEntry."Duration (ms)" := BCCTLogEntry."End Time" - BCCTLogEntry."Start Time";
+        if BCCTLogEntry."Start Time" = 0DT then
+            BCCTLogEntry."Duration (ms)" := BCCTLogEntry."End Time" - BCCTLogEntry."Start Time";
+
         BCCTLogEntry.Dataset := BCCTDatasetLine."Dataset Name";
         BCCTLogEntry."Dataset Line No." := BCCTDatasetLine.Id;
         BCCTDatasetLine.CalcFields("Input Blob");

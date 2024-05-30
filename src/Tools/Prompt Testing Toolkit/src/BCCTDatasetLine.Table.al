@@ -18,11 +18,11 @@ table 149033 "BCCT Dataset Line"
             AutoIncrement = true;
             DataClassification = SystemMetadata;
         }
-        field(2; "Dataset Name"; Text[100])
+        field(20; "Dataset Name"; Text[100])
         {
             DataClassification = CustomerContent;
         }
-        field(4; "Input Blob"; Blob)
+        field(21; "Input Blob"; Blob)
         {
             DataClassification = CustomerContent;
         }

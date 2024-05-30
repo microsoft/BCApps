@@ -207,6 +207,10 @@ table 149032 "BCCT Line"
             FieldClass = FlowField;
             CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter")));
         }
+        // TODO: Merge the AIIT Datasets with Test Tool Datasets
+        field(100; "Input Dataset"; Text[250])
+        {
+        }
     }
 
     keys
