@@ -12,6 +12,7 @@ page 1933 "Perf. Profiler Schedules List"
     AboutText = 'Schedule performance profiles to run at specific times based on different criteria to troubleshoot performance issues.';
     DeleteAllowed = false;
     ModifyAllowed = false;
+    CardPageID = "Perf. Profiler Schedules Card";
     SourceTable = "Performance Profile Scheduler";
 
     layout
@@ -95,20 +96,21 @@ page 1933 "Perf. Profiler Schedules List"
 
                     trigger OnValidate()
                     begin
-                        this.ValidateProfileKeepTime();
+                        SchedulerPageValidator.ValidateProfileKeepTime(rec);
                     end;
                 }
             }
         }
     }
+    actions
+    {
+        area(Processing)
+        {
 
-    local procedure ValidateProfileKeepTime()
-    begin
-        if (Rec."Profile Keep Time" < 1) or (Rec."Profile Keep Time" > 7) then begin
-            Error(ProfileExpirationTimeRangeErrorLbl);
-        end;
-    end;
+        }
+    }
+
 
     var
-        ProfileExpirationTimeRangeErrorLbl: Label 'The profile expiration time must be between 1 and 7 days.';
+        SchedulerPageValidator: codeunit "Scheduler Page";
 }
