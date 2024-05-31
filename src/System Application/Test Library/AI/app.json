@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Test objects for the AI.",
   "description": "Test objects for the AI.",
-  "version": "24.2.0.0",
+  "version": "24.3.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "",
@@ -15,7 +15,7 @@
       "id": "d3433b68-4901-445f-9547-fdfeca57575a",
       "name": "AI SDK",
       "publisher": "Microsoft",
-      "version": "24.2.0.0"
+      "version": "24.3.0.0"
     }
   ],
   "screenshots": [],
