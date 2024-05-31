@@ -8,7 +8,7 @@
   "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/24.2.20239.0/base",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "24.2",
+  "repoVersion": "24.3",
   "cleanModePreprocessorSymbols": [
     "CLEAN17",
     "CLEAN18",
