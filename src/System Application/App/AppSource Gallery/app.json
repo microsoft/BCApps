@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "AppSource Product Gallery app provides a Gallery for navigating Microsoft AppSource apps.",
   "description": "Using AppSource Product Gallery you can explore apps from Microsoft AppSource and choose to install them on the current environment.",
-  "version": "24.2.0.0",
+  "version": "24.3.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
@@ -16,49 +16,49 @@
       "id": "1b2efb4b-8c44-4d74-a56f-60646645bb21",
       "name": "URI",
       "publisher": "Microsoft",
-      "version": "24.2.0.0"
+      "version": "24.3.0.0"
     },
     {
       "id": "3a56c7d2-a594-4682-bd90-b10bfb177620",
       "name": "Azure Key Vault",
       "publisher": "Microsoft",
-      "version": "24.2.0.0"
+      "version": "24.3.0.0"
     },
     {
       "id": "812b339d-a9db-4a6e-84e4-fe35cbef0c44",
       "name": "Rest Client",
       "publisher": "Microsoft",
-      "version": "24.2.0.0"
+      "version": "24.3.0.0"
     },
     {
       "id": "872fe7e8-9893-40ae-ab94-c123ed30fdbd",
       "name": "Extension Management",
       "publisher": "Microsoft",
-      "version": "24.2.0.0"
+      "version": "24.3.0.0"
     },
     {
       "id": "95025170-61fc-4808-9505-4ba1fe1d05d9",
       "name": "Azure AD Tenant",
       "publisher": "Microsoft",
-      "version": "24.2.0.0"
+      "version": "24.3.0.0"
     },
     {
       "id": "5c36f279-480c-451b-b513-c1af8cfb0744",
       "name": "Language",
       "publisher": "Microsoft",
-      "version": "24.2.0.0"
+      "version": "24.3.0.0"
     },
     {
       "id": "7b9b59f5-a68d-4271-b11a-0d3b9c0938dd",
       "name": "User Settings",
       "publisher": "Microsoft",
-      "version": "24.2.0.0"
+      "version": "24.3.0.0"
     },
     {
       "id": "2673d810-273e-402f-9093-2eaef7e03b83",
       "name": "Environment Information",
       "publisher": "Microsoft",
-      "version": "24.2.0.0"
+      "version": "24.3.0.0"
     }
   ],
   "internalsVisibleTo": [
