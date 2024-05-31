@@ -93,11 +93,6 @@ page 1933 "Perf. Profiler Schedules List"
                     Caption = 'Profile Expiration Time (days)';
                     ToolTip = 'The number of days the profile will be kept.';
                     AboutText = 'The number of days the profile will be kept.';
-
-                    trigger OnValidate()
-                    begin
-                        SchedulerPage.ValidateProfileKeepTime(rec);
-                    end;
                 }
             }
         }
@@ -109,10 +104,14 @@ page 1933 "Perf. Profiler Schedules List"
 
         }
     }
+    trigger OnAfterGetCurrRecord()
+    begin
+        SchedulerPage.MapRecordToActivityType(rec, Activity);
+    end;
 
     trigger OnAfterGetRecord()
     begin
-        SchedulerPage.MapActivityType(rec, Activity);
+        SchedulerPage.MapRecordToActivityType(rec, Activity);
     end;
 
     var

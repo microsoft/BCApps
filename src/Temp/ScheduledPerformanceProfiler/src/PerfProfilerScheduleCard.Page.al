@@ -10,6 +10,7 @@ page 1932 "Perf. Profiler Schedules Card"
     UsageCategory = Administration;
     AboutTitle = 'About performance profiler schedules';
     AboutText = 'View and modify a specific profiler schedule.';
+    DataCaptionExpression = rec.Description;
     SourceTable = "Performance Profile Scheduler";
 
     layout
@@ -28,6 +29,7 @@ page 1932 "Perf. Profiler Schedules Card"
                     ToolTip = 'The ID of the schedule.';
                     AboutText = 'The ID of the schedule.';
                     Editable = false;
+                    Visible = false;
                 }
 
                 field(Enabled; Rec.Enabled)
@@ -42,6 +44,11 @@ page 1932 "Perf. Profiler Schedules Card"
                     Caption = 'Start Time';
                     ToolTip = 'The time the schedule will start.';
                     AboutText = 'The time the schedule will start.';
+
+                    trigger OnValidate()
+                    begin
+                        SchedulerPage.ValidatePerformanceProfileSchedulerDates(rec);
+                    end;
                 }
 
                 field("End Time"; Rec."Ending Date-Time")
@@ -49,6 +56,11 @@ page 1932 "Perf. Profiler Schedules Card"
                     Caption = 'End Time';
                     ToolTip = 'The time the schedule will end.';
                     AboutText = 'The time the schedule will end.';
+
+                    trigger OnValidate()
+                    begin
+                        SchedulerPage.ValidatePerformanceProfileSchedulerDates(rec);
+                    end;
                 }
 
 
@@ -81,6 +93,11 @@ page 1932 "Perf. Profiler Schedules Card"
                     OptionCaption = 'Activity in the browser, Background Tasks, Calling external components through REST calls';
                     ToolTip = 'The type of activity for which the schedule is created.';
                     AboutText = 'The type of activity for which the schedule is created.';
+
+                    trigger OnValidate()
+                    begin
+                        SchedulerPage.MapActivityTypeToRecord(rec, Activity);
+                    end;
                 }
             }
 
@@ -132,16 +149,30 @@ page 1932 "Perf. Profiler Schedules Card"
         }
     }
 
-    trigger OnInit()
+    trigger OnNewRecord(BelowxRec: Boolean)
     begin
         SchedulerPage.InitializeFields(rec, Activity);
-        rec."Schedule ID" := CreateGuid();
     end;
 
+    trigger OnOpenPage()
+    begin
+        SchedulerPage.MapRecordToActivityType(rec, Activity);
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        SchedulerPage.MapActivityTypeToRecord(rec, Activity);
+    end;
 
     trigger OnAfterGetRecord()
     begin
-        SchedulerPage.MapActivityType(rec, Activity);
+        SchedulerPage.MapActivityTypeToRecord(rec, Activity);
+    end;
+
+    trigger OnModifyRecord(): Boolean
+    begin
+        SchedulerPage.MapActivityTypeToRecord(rec, Activity);
+        SchedulerPage.ValidatePerformanceProfileSchedulerRecord(rec);
     end;
 
     var

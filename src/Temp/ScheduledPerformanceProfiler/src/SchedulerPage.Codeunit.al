@@ -1,19 +1,29 @@
 namespace System.Tooling;
 using System.PerformanceProfile;
-using System.Security.AccessControl;
 
 /// <summary>
 /// Provides implementation details for working on the Perf. Profiler Schedules" list and card pages.
 /// </summary>
 codeunit 1931 "Scheduler Page"
 {
+    Access = Public;
+
     /// <summary>
-    /// Validates the Profile Keep Time" field on the "Performance Profile Scheduler" record
+    /// Validates the "Profile Keep Time" field on the "Performance Profile Scheduler" record
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record</param>
-    procedure ValidateProfileKeepTime(var PerformanceProfileScheduler: record "Performance Profile Scheduler")
+    procedure ValidateProfileKeepTime(PerformanceProfileScheduler: record "Performance Profile Scheduler")
     begin
         SchedulerPage.ValidateProfileKeepTime(PerformanceProfileScheduler);
+    end;
+
+    /// <summary>
+    /// Validate dates for the "Performance Profile Scheduler" record
+    /// </summary>
+    /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record</param>
+    procedure ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler: record "Performance Profile Scheduler")
+    begin
+        SchedulerPage.ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler);
     end;
 
     /// <summary>
@@ -21,9 +31,19 @@ codeunit 1931 "Scheduler Page"
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
     /// <param name="ActivityType">The actvity option type</param>
-    procedure MapActivityType(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; ActivityType: Option WebClient,Background,WebAPIClient)
+    procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; ActivityType: Option WebClient,Background,WebAPIClient)
     begin
-        SchedulerPage.MapActivityType(PerformanceProfileScheduler, ActivityType);
+        SchedulerPage.MapActivityTypeToRecord(PerformanceProfileScheduler, ActivityType);
+    end;
+
+    /// <summary>
+    /// Maps a session type to an activity type.
+    /// </summary>
+    /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
+    /// <param name="ActivityType">The actvity option type</param>
+    procedure MapRecordToActivityType(PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: Option WebClient,Background,WebAPIClient)
+    begin
+        SchedulerPage.MapRecordToActivityType(PerformanceProfileScheduler, ActivityType);
     end;
 
     /// <summary>
@@ -34,6 +54,15 @@ codeunit 1931 "Scheduler Page"
     procedure InitializeFields(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: Option WebClient,Background,WebAPIClient)
     begin
         SchedulerPage.InitializeFields(PerformanceProfileScheduler, ActivityType);
+    end;
+
+    /// <summary>
+    /// Validates teh consistency of the "Performance Profile Scheduler" record
+    /// </summary>
+    /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record</param>
+    procedure ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler: record "Performance Profile Scheduler")
+    begin
+        SchedulerPage.ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler);
     end;
 
     var
