@@ -5,16 +5,20 @@
 
 namespace System.TestTools.TestRunner;
 
-pageextension 130451 MyExtension extends "AL Test Tool"
+pageextension 130451 "Data Driven Test Tool" extends "AL Test Tool"
 {
     layout
     {
         addafter(Name)
         {
+#pragma warning disable AA0248
             field("Data Input"; DataInputDisplayText)
+#pragma warning restore AA0248
             {
                 ApplicationArea = All;
+#pragma warning disable AA0248
                 Visible = DataInputVisible;
+#pragma warning restore AA0248
                 Caption = 'Data Input';
                 ToolTip = 'Data input for the test method line';
                 Editable = false;
@@ -31,6 +35,7 @@ pageextension 130451 MyExtension extends "AL Test Tool"
                 {
                     ApplicationArea = All;
                     Caption = 'Import data-driven test inputs';
+                    ToolTip = 'Import data-driven test inputs from a JSON file';
                     Image = ImportCodes;
 
                     trigger OnAction()
@@ -44,6 +49,7 @@ pageextension 130451 MyExtension extends "AL Test Tool"
                 {
                     ApplicationArea = All;
                     Caption = 'Data inputs';
+                    ToolTip = 'View and manage data inputs.';
                     Image = TestFile;
 
                     trigger OnAction()
@@ -57,6 +63,8 @@ pageextension 130451 MyExtension extends "AL Test Tool"
                     ApplicationArea = All;
                     Caption = 'Expand test line with data inputs';
                     Image = ExpandDepositLine;
+                    ToolTip = 'Expand the test line with data inputs';
+
                     trigger OnAction()
                     var
                         TestInputsManagement: Codeunit "Test Inputs Management";
@@ -70,6 +78,8 @@ pageextension 130451 MyExtension extends "AL Test Tool"
                     ApplicationArea = All;
                     Caption = 'Download';
                     Image = Export;
+                    ToolTip = 'Download data output for the current test runs.';
+
                     trigger OnAction()
                     var
                         TestOutput: Codeunit "Test Output";
@@ -82,6 +92,8 @@ pageextension 130451 MyExtension extends "AL Test Tool"
                     ApplicationArea = All;
                     Caption = 'View data outputs';
                     Image = OutputJournal;
+                    ToolTip = 'View data outputs for the current test runs.';
+
                     trigger OnAction()
                     var
                         TestOutput: Codeunit "Test Output";
@@ -94,6 +106,7 @@ pageextension 130451 MyExtension extends "AL Test Tool"
                     ApplicationArea = All;
                     Caption = 'Clear data output';
                     Image = ClearLog;
+                    ToolTip = 'Clear all data outputs.';
 
                     trigger OnAction()
                     var
@@ -148,9 +161,11 @@ pageextension 130451 MyExtension extends "AL Test Tool"
         TestInput: Record "Test Input";
     begin
         TestInput.ReadIsolation := IsolationLevel::ReadUncommitted;
+#pragma warning disable AA0248
         DataInputVisible := not TestInput.IsEmpty();
         if DataInputVisible then
             DataInputDisplayText := TestInput.GetTestInputDisplayName(Rec."Data Input Group Code", Rec."Data Input")
+#pragma warning restore AA0248
     end;
 
 

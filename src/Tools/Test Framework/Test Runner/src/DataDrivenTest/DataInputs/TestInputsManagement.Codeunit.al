@@ -14,11 +14,11 @@ codeunit 130458 "Test Inputs Management"
     var
         TestInputGroup: Record "Test Input Group";
         TestInput: Record "Test Input";
-        TestInputGroups: Page "Test Input Groups";
         TestInputsManagement: Codeunit "Test Inputs Management";
+        TestInputGroups: Page "Test Input Groups";
     begin
         if TestMethodLine."Line Type" <> TestMethodLine."Line Type"::Codeunit then
-            Error(LineTypeMustBeCodeunitErr);
+            Error(this.LineTypeMustBeCodeunitErr);
 
         TestInputGroups.LookupMode(true);
         if not (TestInputGroups.RunModal() = Action::LookupOK) then
@@ -55,16 +55,16 @@ codeunit 130458 "Test Inputs Management"
         ExistingTestMethodLine.SetCurrentKey("Line No.");
         ExistingTestMethodLine.Ascending(false);
         if not ExistingTestMethodLine.FindLast() then
-            CurrentLineNo := ExistingTestMethodLine."Line No." + GetIncrement()
+            CurrentLineNo := ExistingTestMethodLine."Line No." + this.GetIncrement()
         else
-            CurrentLineNo := GetIncrement();
+            CurrentLineNo := this.GetIncrement();
 
         ALTestSuite.Get(TestMethodLine."Test Suite");
 
         repeat
-            TransferToTemporaryTestLine(TempTestMethodLine, ExistingTestMethodLine, CurrentLineNo, TestInput);
-            InsertTestMethodLines(TempTestMethodLine, ALTestSuite);
-            UpdateCodeunitTestInputProperties(TempTestMethodLine, TestInput);
+            this.TransferToTemporaryTestLine(TempTestMethodLine, ExistingTestMethodLine, CurrentLineNo, TestInput);
+            this.InsertTestMethodLines(TempTestMethodLine, ALTestSuite);
+            this.UpdateCodeunitTestInputProperties(TempTestMethodLine, TestInput);
             TempTestMethodLine.DeleteAll();
         until TestInput.Next() = 0;
     end;
@@ -73,7 +73,7 @@ codeunit 130458 "Test Inputs Management"
     begin
         TempTestMethodLine.TransferFields(TestMethodLine);
         TempTestMethodLine."Line No." := CurrentLineNo;
-        CurrentLineNo += GetIncrement();
+        CurrentLineNo += this.GetIncrement();
         TempTestMethodLine."Data Input Group Code" := TestInput."Test Input Group Code";
         TempTestMethodLine."Data Input" := TestInput.Code;
         TempTestMethodLine.Insert();
@@ -98,66 +98,66 @@ codeunit 130458 "Test Inputs Management"
     var
         TestInputGroup: Record "Test Input Group";
     begin
-        UploadAndImportDataInputsFromJson(TestInputGroup);
+        this.UploadAndImportDataInputsFromJson(TestInputGroup);
     end;
 
     procedure UploadAndImportDataInputsFromJson(var TestInputGroup: Record "Test Input Group")
     var
-        DummyTestInput: Record "Test Input" temporary;
-        TempTestInput: Record "Test Input" temporary;
-        TempTestMethodLine: Record "Test Method Line" temporary;
+        TempDummyTestInput: Record "Test Input" temporary;
         TestInputInStream: InStream;
         FileName: Text;
         InputText: Text;
     begin
-        DummyTestInput."Test Input".CreateInStream(TestInputInStream);
-        if not UploadIntoStream(ChooseFileLbl, '', '', FileName, TestInputInStream) then
+        TempDummyTestInput."Test Input".CreateInStream(TestInputInStream);
+        if not UploadIntoStream(this.ChooseFileLbl, '', '', FileName, TestInputInStream) then
             exit;
 
         if not TestInputGroup.Find() then
-            CreateTestInputGroup(TestInputGroup, FileName);
+            this.CreateTestInputGroup(TestInputGroup, FileName);
 
-        if FileName.EndsWith(JsonFileExtensionTxt) then begin
+        if FileName.EndsWith(this.JsonFileExtensionTxt) then begin
             TestInputInStream.Read(InputText);
-            ParseDataInputs(InputText, TestInputGroup)
+            this.ParseDataInputs(InputText, TestInputGroup)
         end;
 
-        if FileName.EndsWith(JsonlFileExtensionTxt) then
-            ParseDataInputsJsonl(TestInputInStream, TestInputGroup);
+        if FileName.EndsWith(this.JsonlFileExtensionTxt) then
+            this.ParseDataInputsJsonl(TestInputInStream, TestInputGroup);
     end;
 
     procedure ImportDataInputsFromText(var TestInputGroup: Record "Test Input Group"; DataInputText: Text)
     begin
-        ParseDataInputs(DataInputText, TestInputGroup);
+        this.ParseDataInputs(DataInputText, TestInputGroup);
     end;
 
     local procedure CreateTestInputGroup(var TestInputGroup: Record "Test Input Group"; FileName: Text)
     begin
+#pragma warning disable AA0139
         TestInputGroup.Code := FileName;
         if FileName.Contains('.') then
             TestInputGroup.Code := FileName.Substring(1, FileName.IndexOf('.') - 1);
 
         TestInputGroup.Description := FileName;
+#pragma warning restore AA0139
+
         TestInputGroup.Insert();
     end;
 
     local procedure ParseDataInputs(TestData: Text; var TestInputGroup: Record "Test Input Group")
     var
         DataInputJsonObject: JsonObject;
-        DataOnlyTestInputs: JsonToken;
         DataOnlyTestInputsArray: JsonArray;
     begin
         if DataOnlyTestInputsArray.ReadFrom(TestData) then begin
-            InsertDataInputsFromJsonArray(TestInputGroup, DataOnlyTestInputsArray);
+            this.InsertDataInputsFromJsonArray(TestInputGroup, DataOnlyTestInputsArray);
             exit;
         end;
 
         if DataInputJsonObject.ReadFrom(TestData) then begin
-            InsertDataInputLine(DataInputJsonObject, TestInputGroup);
+            this.InsertDataInputLine(DataInputJsonObject, TestInputGroup);
             exit;
         end;
 
-        Error(CouldNotParseJsonlInputErr);
+        Error(this.CouldNotParseJsonlInputErr);
     end;
 
     local procedure ParseDataInputsJsonl(var TestInputInStream: InStream; var TestInputGroup: Record "Test Input Group")
@@ -167,9 +167,9 @@ codeunit 130458 "Test Inputs Management"
     begin
         while TestInputInStream.ReadText(JsonLine) > 0 do
             if TestInputJsonToken.ReadFrom(JsonLine) then
-                InsertDataInputLine(TestInputJsonToken, TestInputGroup)
+                this.InsertDataInputLine(TestInputJsonToken, TestInputGroup)
             else
-                Error(CouldNotParseJsonlInputErr);
+                Error(this.CouldNotParseJsonlInputErr);
     end;
 
     local procedure InsertDataInputsFromJsonArray(var TestInputGroup: Record "Test Input Group"; var DataOnlyTestInputsArray: JsonArray)
@@ -179,7 +179,7 @@ codeunit 130458 "Test Inputs Management"
     begin
         for I := 0 to DataOnlyTestInputsArray.Count() - 1 do begin
             DataOnlyTestInputsArray.Get(I, TestInputJsonToken);
-            InsertDataInputLine(TestInputJsonToken.AsObject(), TestInputGroup);
+            this.InsertDataInputLine(TestInputJsonToken.AsObject(), TestInputGroup);
         end;
     end;
 
@@ -193,18 +193,18 @@ codeunit 130458 "Test Inputs Management"
     begin
         TestInput."Test Input Group Code" := TestInputGroup.Code;
 
-        if not DataOnlyTestInput.Get(TestInputTok, TestInputJsonToken) then
+        if not DataOnlyTestInput.Get(this.TestInputTok, TestInputJsonToken) then
             TestInputJsonToken := DataOnlyTestInput.AsToken()
         else begin
-            if DataOnlyTestInput.Get(DataNameTok, DataNameJsonToken) then
+            if DataOnlyTestInput.Get(this.DataNameTok, DataNameJsonToken) then
                 TestInput.Code := CopyStr(DataNameJsonToken.AsValue().AsText(), 1, MaxStrLen(TestInput.Code));
 
-            if DataOnlyTestInput.Get(DescriptionTok, DescriptionJsonToken) then
+            if DataOnlyTestInput.Get(this.DescriptionTok, DescriptionJsonToken) then
                 TestInput.Description := CopyStr(DescriptionJsonToken.AsValue().AsText(), 1, MaxStrLen(TestInput.Description))
         end;
 
         if TestInput.Code = '' then
-            AssingTestInputName(TestInput, TestInputGroup);
+            this.AssingTestInputName(TestInput, TestInputGroup);
 
         if TestInput.Description = '' then
             TestInput.Description := TestInput.Code;
@@ -219,7 +219,6 @@ codeunit 130458 "Test Inputs Management"
     var
         ExpandDataDrivenTests: Codeunit "Expand Data Driven Tests";
         TestSuiteManagement: Codeunit "Test Suite Mgt.";
-        TestMethodLine: Record "Test Method Line";
         CodeunitIds: List of [Integer];
         CodeunitID: Integer;
     begin
@@ -248,12 +247,12 @@ codeunit 130458 "Test Inputs Management"
         LastTestInput: Record "Test Input";
     begin
         LastTestInput.SetRange("Test Input Group Code", TestInputGroup.Code);
-        LastTestInput.SetFilter(Code, TestInputNameTok + '*');
+        LastTestInput.SetFilter(Code, this.TestInputNameTok + '*');
         LastTestInput.SetCurrentKey(Code);
         LastTestInput.Ascending(true);
         LastTestInput.ReadIsolation := IsolationLevel::ReadUncommitted;
         if not LastTestInput.FindLast() then
-            TestInput.Code := PadStr(TestInputNameTok, 12, '0')
+            TestInput.Code := PadStr(this.TestInputNameTok, 12, '0')
         else
             TestInput.Code := LastTestInput.Code;
 
@@ -261,18 +260,11 @@ codeunit 130458 "Test Inputs Management"
     end;
 
     var
-        CodeunitIdTok: Label 'codeunitId', Locked = true;
-        TestMethodTok: Label 'method', Locked = true;
         DataNameTok: Label 'name', Locked = true;
         DescriptionTok: Label 'description', Locked = true;
         TestInputTok: Label 'testInput', Locked = true;
-        DataDrivenTestsTok: Label 'dataDrivenTests', Locked = true;
-        CodeunitNameTok: Label 'codeunitName', Locked = true;
-        DataInputsTok: Label 'dataInputs', Locked = true;
         ChooseFileLbl: Label 'Choose a file to import';
         TestInputNameTok: Label 'INPUT-', Locked = true;
-        AllTok: Label 'All', Locked = true;
-        DataInputNotFoundErr: Label 'Data input not found: %1. Make sure that you import the data inputs first.';
         CouldNotParseJsonlInputErr: Label 'Could not parse JSONL input';
         LineTypeMustBeCodeunitErr: Label 'Line type must be Codeunit.';
         JsonFileExtensionTxt: Label '.json', Locked = true;

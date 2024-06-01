@@ -27,10 +27,14 @@ page 130462 "Test Input Groups"
                 field(Code; Rec.Code)
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the code for the test input group.';
+                    Caption = 'Code';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the description of the test input group.';
+                    Caption = 'Description';
                 }
             }
         }
@@ -44,6 +48,7 @@ page 130462 "Test Input Groups"
                 ApplicationArea = All;
                 Caption = 'Import data-driven test inputs';
                 Image = ImportCodes;
+                ToolTip = 'Import data-driven test inputs from a JSON file';
 
                 trigger OnAction()
                 var
@@ -60,10 +65,4 @@ page 130462 "Test Input Groups"
             }
         }
     }
-
-    local procedure OpenTestInputCard()
-    begin
-        Page.RunModal(Page::"Test Input", Rec);
-        CurrPage.Update(false);
-    end;
 }

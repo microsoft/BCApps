@@ -32,7 +32,7 @@ page 130459 "Test Input Part"
                 {
                     ApplicationArea = All;
                 }
-                field(InputTestInputText; TestInputDisplayText)
+                field(InputTestInputText; this.TestInputDisplayText)
                 {
                     ApplicationArea = All;
                     Caption = 'Test Input';
@@ -40,7 +40,7 @@ page 130459 "Test Input Part"
 
                     trigger OnDrillDown()
                     begin
-                        Message(TestInputText);
+                        Message(this.TestInputText);
                     end;
                 }
             }
@@ -55,10 +55,10 @@ page 130459 "Test Input Part"
                 ApplicationArea = All;
                 Caption = 'Import';
                 Image = ImportCodes;
+                ToolTip = 'Import data-driven test inputs from a JSON file';
 
                 trigger OnAction()
                 var
-                    ALTestSuite: Record "AL Test Suite";
                     TestInputGroup: Record "Test Input Group";
                     TestInputsManagement: Codeunit "Test Inputs Management";
                 begin
@@ -70,11 +70,11 @@ page 130459 "Test Input Part"
     }
     trigger OnAfterGetRecord()
     begin
-        TestInputText := Rec.GetInput(Rec);
+        this.TestInputText := Rec.GetInput(Rec);
         if Rec.Sensitive then
-            TestInputDisplayText := ClickToShowLbl
+            this.TestInputDisplayText := this.ClickToShowLbl
         else
-            TestInputDisplayText := TestInputText;
+            this.TestInputDisplayText := this.TestInputText;
     end;
 
     var

@@ -24,11 +24,13 @@ page 130457 "Test Input"
                 {
                     ApplicationArea = All;
                     Caption = 'Code';
+                    ToolTip = 'Specifies the code for the test input.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
                     Caption = 'Description';
+                    ToolTip = 'Specifies the description of the test input.';
                 }
             }
             part(TestInputPart; "Test Input Part")

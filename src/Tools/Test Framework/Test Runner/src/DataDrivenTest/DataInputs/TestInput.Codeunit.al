@@ -13,13 +13,13 @@ codeunit 130460 "Test Input"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeTestMethodRun', '', false, false)]
     local procedure BeforeTestMethodRun(CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var CurrentTestMethodLine: Record "Test Method Line")
     begin
-        InitializeTestInputsBeforeTestMethodRun(CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions, CurrentTestMethodLine);
+        this.InitializeTestInputsBeforeTestMethodRun(CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions, CurrentTestMethodLine);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterRunTestSuite', '', false, false)]
     local procedure AfterTestSuite()
     begin
-        ClearGlobals();
+        this.ClearGlobals();
     end;
 
     internal procedure InitializeTestInputsBeforeTestMethodRun(CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var CurrentTestMethodLine: Record "Test Method Line")
@@ -27,23 +27,23 @@ codeunit 130460 "Test Input"
         if CurrentTestMethodLine."Data Input" = '' then
             exit;
 
-        if (CurrentTestMethodLine."Data Input" = DataPerTest.Code) and (CurrentTestMethodLine."Data Input Group Code" = DataPerTest."Test Input Group Code") then
+        if (CurrentTestMethodLine."Data Input" = this.DataPerTest.Code) and (CurrentTestMethodLine."Data Input Group Code" = this.DataPerTest."Test Input Group Code") then
             exit;
 
-        DataPerTest.Get(CurrentTestMethodLine."Data Input Group Code", CurrentTestMethodLine."Data Input");
+        this.DataPerTest.Get(CurrentTestMethodLine."Data Input Group Code", CurrentTestMethodLine."Data Input");
 
-        DataPerTestTestInput.Initialize(DataPerTest.GetInput(DataPerTest));
+        this.DataPerTestTestInput.Initialize(this.DataPerTest.GetInput(this.DataPerTest));
     end;
 
     local procedure ClearGlobals()
     begin
-        Clear(DataPerTest);
-        Clear(DataPerTestTestInput);
+        Clear(this.DataPerTest);
+        Clear(this.DataPerTestTestInput);
     end;
 
     procedure GetTestInputName(): Text
     begin
-        exit(DataPerTest.Code);
+        exit(this.DataPerTest.Code);
     end;
 
     procedure GetTestInput(ElementName: Text): Codeunit "Test Input Json"
@@ -51,7 +51,7 @@ codeunit 130460 "Test Input"
         TestInputJson: Codeunit "Test Input Json";
         ElementExists: Boolean;
     begin
-        TestInputJson := DataPerTestTestInput.ElementExists(ElementName, ElementExists);
+        TestInputJson := this.DataPerTestTestInput.ElementExists(ElementName, ElementExists);
         if ElementExists then
             exit(TestInputJson)
     end;

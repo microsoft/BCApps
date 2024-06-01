@@ -6,7 +6,7 @@
 namespace System.TestTools.TestRunner;
 
 //TODO: Delete, do not check-in
-codeunit 130478 "UTDataDrivenTests"
+codeunit 130478 "E2E Test Data Driven Output"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -44,6 +44,7 @@ codeunit 130478 "UTDataDrivenTests"
     procedure TestDataInput()
     var
         TestInput: Codeunit "Test Input";
+        TestOutput: Codeunit "Test Output";
         TextVariable: Text;
         Amount1: Decimal;
         Amount2: Decimal;
@@ -54,5 +55,7 @@ codeunit 130478 "UTDataDrivenTests"
         TextVariable := TestInput.GetTestInput('accounts').ElementAt(1).ValueAsText();
         Amount1 := TestInput.GetTestInput('firstLineAmount').ValueAsDecimal();
         Amount2 := TestInput.GetTestInput('secondLineAmount').ValueAsDecimal();
+        TestOutput.TestData().Add('Amount 1', Format(Amount1));
+        TestOutput.TestData().Add('Amount 2', Format(Amount2));
     end;
 }

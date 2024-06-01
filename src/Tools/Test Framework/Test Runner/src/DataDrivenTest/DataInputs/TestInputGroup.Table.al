@@ -52,10 +52,10 @@ table 130454 "Test Input Group"
         ExistingTestInputGroup.SetFilter("Code", ALTestSuite.Name + '-*');
 
         if not ExistingTestInputGroup.FindLast() then
-            ExistingTestInputGroup.Code := ALTestSuite.Name + ALTestSuffixTxt;
+            ExistingTestInputGroup.Code := ALTestSuite.Name + this.ALTestSuffixTxt;
 
         Rec.Code := IncStr(ExistingTestInputGroup.Code);
-        Rec.Description := ImportedAutomaticallyTxt;
+        Rec.Description := this.ImportedAutomaticallyTxt;
         Rec.Insert(true);
     end;
 

@@ -52,7 +52,7 @@ table 130453 "Test Output"
     var
         TestOutputOutStream: OutStream;
     begin
-        Rec."Test Output".CreateOutStream(TestOutputOutStream, GetTextEncoding());
+        Rec."Test Output".CreateOutStream(TestOutputOutStream, this.GetTextEncoding());
         TestOutputOutStream.Write(TextInput);
         Rec.Modify(true);
     end;
@@ -66,7 +66,7 @@ table 130453 "Test Output"
         if (not Rec."Test Output".HasValue()) then
             exit('');
 
-        Rec."Test Output".CreateInStream(TestOutputInStream, GetTextEncoding());
+        Rec."Test Output".CreateInStream(TestOutputInStream, this.GetTextEncoding());
         TestOutputInStream.Read(TextOutput);
 
         if TextOutput = '{}' then
