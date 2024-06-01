@@ -95,11 +95,6 @@ page 149031 "BCCT Setup Card"
                     {
                         ToolTip = 'Specifies the Base version of the test run. Used for comparisons in the lines.';
                         ApplicationArea = All;
-
-                        trigger OnValidate()
-                        begin
-                            this.UpdateAverageExecutionTimeBase();
-                        end;
                     }
                     field(Version; Rec.Version)
                     {
@@ -126,151 +121,60 @@ page 149031 "BCCT Setup Card"
             {
                 Caption = 'Latest Run';
 
-                grid(Summary)
+                field("No. of Tests Executed"; Rec."No. of Tests Executed")
                 {
-                    group("Summary Captions")
-                    {
-                        ShowCaption = false;
-                        label(NoOfTests)
-                        {
-                            Caption = 'No. of Tests';
-                            ApplicationArea = All;
-                        }
-                        label(NoOfTestsPassed)
-                        {
-                            Caption = 'No. of Tests Passed';
-                            ApplicationArea = All;
-                        }
-                        label(NoOfTestsFailed)
-                        {
-                            Caption = 'No. of Tests Failed';
-                            ApplicationArea = All;
-                        }
-                        label(NoOfOperations)
-                        {
-                            Caption = 'No. of Operations';
-                            ApplicationArea = All;
-                        }
-                        label(TotalDuration)
-                        {
-                            Caption = 'Total Duration (ms)';
-                            ApplicationArea = All;
-                        }
-                        label(AvgDuration)
-                        {
-                            Caption = 'Average Duration (ms)';
-                            ApplicationArea = All;
-                        }
-                    }
-                    group("Latest Version")
-                    {
-                        field("No. of Tests Executed"; Rec."No. of Tests Executed")
-                        {
-                            Editable = false;
-                            ApplicationArea = All;
-                            ShowCaption = false;
-                        }
-                        field("No. of Tests Passed"; Rec."No. of Tests Passed") // TODO: this should be filtered on not empty output
-                        {
-                            Editable = false;
-                            ApplicationArea = All;
-                            Style = Favorable;
-                            ShowCaption = false;
-                        }
-                        field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
-                        {
-                            Editable = false;
-                            ApplicationArea = All;
-                            Style = Unfavorable;
-                            ShowCaption = false;
+                    Caption = 'No. of Tests Executed';
+                    ToolTip = 'Specifies the number of tests executed in the current version.';
+                    Editable = false;
+                    ApplicationArea = All;
+                }
+                field("No. of Tests Passed"; Rec."No. of Tests Passed") // TODO: this should be filtered on not empty output
+                {
+                    Caption = 'No. of Tests Passed';
+                    ToolTip = 'Specifies the number of tests passed in the current version.';
+                    Editable = false;
+                    ApplicationArea = All;
+                    Style = Favorable;
+                }
+                field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
+                {
+                    Editable = false;
+                    ApplicationArea = All;
+                    Style = Unfavorable;
+                    Caption = 'No. of Tests Failed';
+                    ToolTip = 'Specifies the number of tests failed in the current version.';
 
-                            trigger OnDrillDown()
-                            var
-                                BCCTLogEntries: Record "BCCT Log Entry";
-                                BCCTLogEntry: Page "BCCT Log Entries";
-                            begin
-                                BCCTLogEntries.SetFilterForFailedTestProcedures();
-                                BCCTLogEntries.SetRange("BCCT Code", Rec.Code);
-                                BCCTLogEntries.SetRange(Version, Rec.Version);
-                                BCCTLogEntry.SetTableView(BCCTLogEntries);
-                                BCCTLogEntry.Run();
-                            end;
-                        }
-                        field("No. of Operations"; Rec."No. of Operations")
-                        {
-                            ApplicationArea = All;
-                            ShowCaption = false;
-                        }
-
-                        field("Total Duration (ms)"; Rec."Total Duration (ms)")
-                        {
-                            ApplicationArea = All;
-                            ShowCaption = false;
-                        }
-                        field("Average Duration (ms)"; this.AvgTime)
-                        {
-                            Editable = false;
-                            ApplicationArea = All;
-                            ToolTip = 'Specifies the average time (ms) taken by the tests in the last run.';
-                            ShowCaption = false;
-                        }
-
-                    }
-                    group("Base Version")
-                    {
-                        field("No. of Tests Executed - Base"; Rec."No. of Tests Executed - Base")
-                        {
-                            Editable = false;
-                            ApplicationArea = All;
-                            ShowCaption = false;
-                        }
-                        field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base") // TODO: this should be filtered on not empty output
-                        {
-                            Editable = false;
-                            ApplicationArea = All;
-                            Style = Favorable;
-                            ShowCaption = false;
-                        }
-                        field("No. of Tests Failed - Base"; Rec."No. of Tests Executed - Base" - Rec."No. of Tests Passed - Base")
-                        {
-                            Editable = false;
-                            ApplicationArea = All;
-                            ToolTip = 'Specifies the number of tests that failed in the current Version.';
-                            Style = Unfavorable;
-                            ShowCaption = false;
-
-                            trigger OnDrillDown()
-                            var
-                                BCCTLogEntries: Record "BCCT Log Entry";
-                                BCCTLogEntry: Page "BCCT Log Entries";
-                            begin
-                                BCCTLogEntries.SetFilterForFailedTestProcedures();
-                                BCCTLogEntries.SetRange("BCCT Code", Rec.Code);
-                                BCCTLogEntries.SetRange(Version, Rec."Base Version");
-                                BCCTLogEntry.SetTableView(BCCTLogEntries);
-                                BCCTLogEntry.Run();
-                            end;
-                        }
-                        field("No. of Operations - Base"; Rec."No. of Operations - Base")
-                        {
-                            ApplicationArea = All;
-                            ShowCaption = false;
-                        }
-
-                        field("Total Duration (ms) - Base"; Rec."Total Duration (ms) - Base")
-                        {
-                            ApplicationArea = All;
-                            ShowCaption = false;
-                        }
-                        field("Average Duration (ms) - Base"; this.AvgTimeBase)
-                        {
-                            Editable = false;
-                            ApplicationArea = All;
-                            ToolTip = 'Specifies the average time (ms) taken by the tests in the last run.';
-                            ShowCaption = false;
-                        }
-
-                    }
+                    trigger OnDrillDown()
+                    var
+                        BCCTLogEntries: Record "BCCT Log Entry";
+                        BCCTLogEntry: Page "BCCT Log Entries";
+                    begin
+                        BCCTLogEntries.SetFilterForFailedTestProcedures();
+                        BCCTLogEntries.SetRange("BCCT Code", Rec.Code);
+                        BCCTLogEntries.SetRange(Version, Rec.Version);
+                        BCCTLogEntry.SetTableView(BCCTLogEntries);
+                        BCCTLogEntry.Run();
+                    end;
+                }
+                field("No. of Operations"; Rec."No. of Operations")
+                {
+                    ApplicationArea = All;
+                    Caption = 'No. of Operations';
+                    ToolTip = 'Specifies the number of operations executed in the current version.';
+                }
+                field("Total Duration"; this.TotalDuration)
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                    Caption = 'Total Duration';
+                    ToolTip = 'Specifies the Total Duration for executing all the selected tests in the current version.';
+                }
+                field("Average Duration"; this.AvgTimeDuration)
+                {
+                    Editable = false;
+                    ApplicationArea = All;
+                    Caption = 'Average Duration';
+                    ToolTip = 'Specifies the average time (ms) taken by the tests in the last run.';
                 }
             }
 
@@ -404,10 +308,10 @@ page 149031 "BCCT Setup Card"
         BCCTStartTests: Codeunit "BCCT Start Tests";
         BCCTHeaderCU: Codeunit "BCCT Header";
         EnableActions: Boolean;
-        AvgTime: Decimal;
-        AvgTimeBase: Decimal;
-        TestRunnerDisplayName: Text;
+        AvgTimeDuration: Duration;
+        TotalDuration: Duration;
         PageCaptionLbl: Label 'BC Copilot Test';
+        TestRunnerDisplayName: Text;
 
     trigger OnOpenPage()
     var
@@ -425,26 +329,23 @@ page 149031 "BCCT Setup Card"
     var
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
+        this.UpdateTotalDuration();
         this.UpdateAverageExecutionTime();
-        this.UpdateAverageExecutionTimeBase();
         this.TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner ID");
+    end;
+
+    local procedure UpdateTotalDuration()
+    begin
+        Rec.CalcFields("Total Duration (ms)");
+        this.TotalDuration := Rec."Total Duration (ms)";
     end;
 
     local procedure UpdateAverageExecutionTime()
     begin
         Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)", "No. of Tests Executed - Base", "Total Duration (ms) - Base");
         if Rec."No. of Tests Executed" > 0 then
-            this.AvgTime := Rec."Total Duration (ms)" / Rec."No. of Tests Executed"
+            this.AvgTimeDuration := Rec."Total Duration (ms)" div Rec."No. of Tests Executed"
         else
-            this.AvgTime := 0;
-    end;
-
-    local procedure UpdateAverageExecutionTimeBase()
-    begin
-        Rec.CalcFields("No. of Tests Executed - Base", "Total Duration (ms) - Base");
-        if Rec."No. of Tests Executed - Base" > 0 then
-            this.AvgTimeBase := Rec."Total Duration (ms) - Base" / Rec."No. of Tests Executed - Base"
-        else
-            this.AvgTimeBase := 0;
+            this.AvgTimeDuration := 0;
     end;
 }
