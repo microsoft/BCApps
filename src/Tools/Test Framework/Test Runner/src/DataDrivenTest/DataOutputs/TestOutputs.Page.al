@@ -33,7 +33,7 @@ page 130461 "Test Outputs"
                     Caption = 'Data Input';
                     ToolTip = 'Data input for the test method line';
                 }
-                field(TestOutput; TestOutputTxt)
+                field(TestOutput; this.TestOutputTxt)
                 {
                     ApplicationArea = All;
                     Caption = 'Test Output';
@@ -50,7 +50,7 @@ page 130461 "Test Outputs"
 
     trigger OnAfterGetRecord()
     begin
-        TestOutputTxt := Rec.GetOutput();
+        this.TestOutputTxt := Rec.GetOutput();
     end;
 
     var

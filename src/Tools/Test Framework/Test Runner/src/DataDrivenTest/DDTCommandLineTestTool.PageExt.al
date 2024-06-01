@@ -11,13 +11,17 @@ pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Too
     {
         addafter(CCResultsCSVText)
         {
+#pragma warning disable AA0248
             field(DataOutput; DataOutputTxt)
+#pragma warning restore AA0248
             {
                 ApplicationArea = All;
                 Caption = 'Data Output';
                 ToolTip = 'Data output for the test method line';
             }
+#pragma warning disable AA0248
             field(DataInput; DataInputTxt)
+#pragma warning restore AA0248
             {
                 ApplicationArea = All;
                 Caption = 'Data Input';
@@ -25,22 +29,13 @@ pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Too
 
                 trigger OnValidate()
                 var
+                    TestInputGroup: Record "Test Input Group";
                     TestInputsManagement: Codeunit "Test Inputs Management";
                 begin
-                    TestInputsManagement.ImportDataInputsFromText(GlobalALTestSuite, DataInputTxt);
-                end;
-            }
-            field(TestDefinitions; TestDefinitionsTxt)
-            {
-                ApplicationArea = All;
-                Caption = 'Test Definitions';
-                ToolTip = 'Test definitions for the test method line';
-
-                trigger OnValidate()
-                var
-                    DataDrivenTestInput: Codeunit "Test Inputs Management";
-                begin
-                    DataDrivenTestInput.ImportTestDefinitions(GlobalALTestSuite, TestDefinitionsTxt);
+                    TestInputGroup.CreateUniqueGroupForALTest(GlobalALTestSuite);
+#pragma warning disable AA0248
+                    TestInputsManagement.ImportDataInputsFromText(TestInputGroup, DataInputTxt);
+#pragma warning restore AA0248
                 end;
             }
         }
@@ -61,7 +56,9 @@ pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Too
                     TestOutputJson: Codeunit "Test Output Json";
                 begin
                     TestOutputJson := TestOutput.GetAllTestOutput();
+#pragma warning disable AA0248
                     DataOutputTxt := TestOutputJson.ToText();
+#pragma warning restore AA0248
                 end;
             }
             action(ClearDataOuput)
@@ -74,7 +71,9 @@ pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Too
                     TestOutput: Codeunit "Test Output";
                 begin
                     Clear(TestOutput);
+#pragma warning disable AA0248
                     DataOutputTxt := '';
+#pragma warning restore AA0248
                 end;
             }
         }
@@ -92,5 +91,4 @@ pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Too
     var
         DataOutputTxt: Text;
         DataInputTxt: Text;
-        TestDefinitionsTxt: Text;
 }
