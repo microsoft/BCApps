@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 using System.Environment;
 
@@ -16,7 +16,7 @@ codeunit 149030 "BCCT Install"
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         if EnvironmentInformation.IsSaaSInfrastructure() and (not EnvironmentInformation.IsSandbox()) then
-            Error(CannotInstallErr);
+            Error(this.CannotInstallErr);
     end;
 
     var

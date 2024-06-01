@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 page 149040 "BCCT Setup List"
 {
@@ -83,7 +83,7 @@ page 149040 "BCCT Setup List"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Export';
                     Image = Export;
-                    Enabled = ValidRecord;
+                    Enabled = this.ValidRecord;
                     Promoted = true;
                     PromotedCategory = Category4;
                     PromotedIsBig = false;
@@ -110,6 +110,6 @@ page 149040 "BCCT Setup List"
 
     trigger OnAfterGetCurrRecord()
     begin
-        ValidRecord := Rec.Code <> '';
+        this.ValidRecord := Rec.Code <> '';
     end;
 }

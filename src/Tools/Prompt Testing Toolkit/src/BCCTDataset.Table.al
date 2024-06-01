@@ -3,7 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
+
 table 149031 "BCCT Dataset"
 {
     DataClassification = CustomerContent;
@@ -65,11 +66,11 @@ table 149031 "BCCT Dataset"
         DatasetBeingUsedInLineErr: Label 'The dataset is being used in BCCT Line(s). Please remove the dataset from the BCCT Line(s) before deleting it.';
     begin
         // Throw an error if the dataset is being used somewhere
-        BCCTHeader.SetRange(Dataset, Rec."Dataset Name");
+        BCCTHeader.SetRange("Input Dataset", Rec."Dataset Name");
         if not BCCTHeader.IsEmpty() then
             Error(DatasetBeingUsedInHeaderErr);
 
-        BCCTLines.SetRange("Dataset", Rec."Dataset Name");
+        BCCTLines.SetRange("Input Dataset", Rec."Dataset Name");
         if not BCCTLines.IsEmpty() then
             Error(DatasetBeingUsedInLineErr);
 

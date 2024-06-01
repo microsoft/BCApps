@@ -40,6 +40,7 @@ codeunit 130459 "Expand Data Driven Tests"
 
         // Only codeunit should be inserted, other lines need to be expanded
         if TestMethodLine."Line Type" = TestMethodLine."Line Type"::Codeunit then begin
+            TestMethodLine."Data Input Group Code" := TempTestMethodLine."Data Input Group Code";
             TestMethodLine.Insert(true);
             exit;
         end;
@@ -57,6 +58,7 @@ codeunit 130459 "Expand Data Driven Tests"
                 TestMethodLine."Line No." := MaxLineNo;
                 MaxLineNo += 10000;
                 TestMethodLine."Data Input" := TempTestMethodLine."Data Input";
+                TestMethodLine."Data Input Group Code" := TempTestMethodLine."Data Input Group Code";
                 TestMethodLine.Insert(true);
             until TempTestMethodLine.Next() = 0;
         end;

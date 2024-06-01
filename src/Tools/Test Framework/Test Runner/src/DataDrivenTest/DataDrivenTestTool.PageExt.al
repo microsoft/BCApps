@@ -11,28 +11,13 @@ pageextension 130451 MyExtension extends "AL Test Tool"
     {
         addafter(Name)
         {
-            field("Data Input"; Rec."Data Input")
+            field("Data Input"; DataInputDisplayText)
             {
                 ApplicationArea = All;
                 Visible = DataInputVisible;
                 Caption = 'Data Input';
                 ToolTip = 'Data input for the test method line';
-
-                trigger OnValidate()
-                var
-                    ChildTestMethodLine: Record "Test Method Line";
-                    NextCodeunitLine: Record "Test Method Line";
-                    TestSuiteMgt: Codeunit "Test Suite Mgt.";
-                begin
-                    if Rec."Line Type" = Rec."Line Type"::Codeunit then begin
-                        ChildTestMethodLine.SetRange("Test Suite", Rec."Test Suite");
-                        ChildTestMethodLine.SetRange("Test Codeunit", Rec."Test Codeunit");
-                        ChildTestMethodLine.SetRange("Line Type", ChildTestMethodLine."Line Type"::Function);
-                        ChildTestMethodLine.SetFilter("Line No.", TestSuiteMgt.GetLineNoFilterForTestCodeunit(Rec));
-                        ChildTestMethodLine.ModifyAll("Data Input", Rec."Data Input");
-                        CurrPage.Update(false);
-                    end;
-                end;
+                Editable = false;
             }
         }
     }
@@ -50,26 +35,9 @@ pageextension 130451 MyExtension extends "AL Test Tool"
 
                     trigger OnAction()
                     var
-                        ALTestSuite: Record "AL Test Suite";
                         TestInputsManagement: Codeunit "Test Inputs Management";
                     begin
-                        ALTestSuite.Get(Rec."Test Suite");
-                        TestInputsManagement.UploadAndImportDataInputsFromJson(ALTestSuite);
-                    end;
-                }
-                action(ImportTestDefinitions)
-                {
-                    ApplicationArea = All;
-                    Caption = 'Import data-driven test definitions';
-                    Image = ImportLog;
-
-                    trigger OnAction()
-                    var
-                        ALTestSuite: Record "AL Test Suite";
-                        TestInputsManagement: Codeunit "Test Inputs Management";
-                    begin
-                        ALTestSuite.Get(Rec."Test Suite");
-                        TestInputsManagement.UploadAndImportTestDefinitions(ALTestSuite);
+                        TestInputsManagement.UploadAndImportDataInputsFromJson();
                     end;
                 }
                 action(DataInputs)
@@ -77,12 +45,10 @@ pageextension 130451 MyExtension extends "AL Test Tool"
                     ApplicationArea = All;
                     Caption = 'Data inputs';
                     Image = TestFile;
+
                     trigger OnAction()
-                    var
-                        TestInput: Record "Test Input";
                     begin
-                        TestInput.SetRange("Test Suite", Rec."Test Suite");
-                        Page.RunModal(Page::"Test Inputs", TestInput);
+                        Page.RunModal(Page::"Test Input Groups");
                         CurrPage.Update(false);
                     end;
                 }
@@ -93,21 +59,10 @@ pageextension 130451 MyExtension extends "AL Test Tool"
                     Image = ExpandDepositLine;
                     trigger OnAction()
                     var
-                        TestInputs: Record "Test Input";
-                        TestInputsPage: Page "Test Inputs";
                         TestInputsManagement: Codeunit "Test Inputs Management";
                     begin
-                        if Rec."Line Type" <> Rec."Line Type"::Codeunit then
-                            Error(LineTypeMustBeCodeunitErr);
-
-                        TestInputsPage.LookupMode(true);
-                        if not (TestInputsPage.RunModal() = Action::LookupOK) then
-                            exit;
-
-                        TestInputsPage.SetSelectionFilter(TestInputs);
-
-                        TestInputs.MarkedOnly(true);
-                        TestInputsManagement.AssignDataDrivenTest(Rec, TestInputs);
+                        TestInputsManagement.SelectTestGroupsAndExpandTestLine(Rec);
+                        CurrPage.Update(false);
                     end;
                 }
                 action(DataOutput)
@@ -166,10 +121,6 @@ pageextension 130451 MyExtension extends "AL Test Tool"
                 actionref(ImportDefinition_Promoted; ImportDataInputs)
                 {
                 }
-                actionref(ImportTestDefinitions_Promoted; ImportTestDefinitions)
-                {
-                }
-
             }
             group(DataOutputs)
             {
@@ -189,8 +140,8 @@ pageextension 130451 MyExtension extends "AL Test Tool"
         }
     }
     var
+        DataInputDisplayText: Text;
         DataInputVisible: Boolean;
-        LineTypeMustBeCodeunitErr: Label 'Line type must be Codeunit.';
 
     trigger OnAfterGetRecord()
     var
@@ -198,5 +149,9 @@ pageextension 130451 MyExtension extends "AL Test Tool"
     begin
         TestInput.ReadIsolation := IsolationLevel::ReadUncommitted;
         DataInputVisible := not TestInput.IsEmpty();
+        if DataInputVisible then
+            DataInputDisplayText := TestInput.GetTestInputDisplayName(Rec."Data Input Group Code", Rec."Data Input")
     end;
+
+
 }

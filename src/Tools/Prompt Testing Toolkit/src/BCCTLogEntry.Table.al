@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 using System.Reflection;
 
@@ -174,7 +174,7 @@ table 149034 "BCCT Log Entry"
         InStream: InStream;
         P: Text;
     begin
-        CalcFields("Input Data");
+        this.CalcFields("Input Data");
         "Input Data".CreateInStream(InStream, TextEncoding::UTF8);
         InStream.Read(P);
         exit(P);
@@ -194,7 +194,7 @@ table 149034 "BCCT Log Entry"
         InStream: InStream;
         P: Text;
     begin
-        CalcFields("Output Data");
+        this.CalcFields("Output Data");
         "Output Data".CreateInStream(InStream, TextEncoding::UTF8);
         InStream.Read(P);
         exit(P);
@@ -212,9 +212,9 @@ table 149034 "BCCT Log Entry"
 
     internal procedure SetFilterForFailedTestProcedures()
     var
-        BCCTRoleWrapper: Codeunit "BCCT Role Wrapper";
+        AITTestRunner: Codeunit "AIT Test Runner";
     begin
-        Rec.SetRange(Operation, BCCTRoleWrapper.GetDefaultExecuteProcedureOperationLbl());
+        Rec.SetRange(Operation, AITTestRunner.GetDefaultRunProcedureOperationLbl());
         Rec.SetFilter("Procedure Name", '<> %1', '');
         Rec.SetRange(Status, Rec.Status::Error);
     end;

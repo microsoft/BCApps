@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 using System.Reflection;
 
@@ -14,7 +14,7 @@ codeunit 149036 "BCCT Start Tests"
 
     trigger OnRun();
     begin
-        StartBenchmarkTests(Rec);
+        this.StartBenchmarkTests(Rec);
     end;
 
     var
@@ -27,7 +27,7 @@ codeunit 149036 "BCCT Start Tests"
         BCCTLine: Record "BCCT Line";
         BCCTHeaderCU: Codeunit "BCCT Header";
     begin
-        ValidateLines(BCCTHeader);
+        this.ValidateLines(BCCTHeader);
         BCCTHeader.RunID := CreateGuid();
         BCCTHeader.Validate("Started at", CurrentDateTime);
         BCCTHeaderCU.SetRunStatus(BCCTHeader, BCCTHeader.Status::Running);
@@ -43,7 +43,7 @@ codeunit 149036 "BCCT Start Tests"
         if BCCTLine.FindSet() then begin
             BCCTLine.ModifyAll(Status, BCCTLine.Status::Running);
             Commit();
-            Codeunit.Run(Codeunit::"BCCT Role Wrapper", BCCTLine);
+            Codeunit.Run(Codeunit::"AIT Test Runner", BCCTLine);
         end;
     end;
 
@@ -55,10 +55,10 @@ codeunit 149036 "BCCT Start Tests"
         // If there is already a suite running, then error
         BCCTHeader2.SetRange(Status, BCCTHeader2.Status::Running);
         if not BCCTHeader2.IsEmpty then
-            Error(CannotRunMultipleSuitesInParallelErr);
+            Error(this.CannotRunMultipleSuitesInParallelErr);
         Commit();
 
-        StatusDialog.Open(RunningTestsMsg);
+        StatusDialog.Open(this.RunningTestsMsg);
         Codeunit.Run(Codeunit::"BCCT Start Tests", BCCTHeader);
         StatusDialog.Close();
         if BCCTHeader.Find() then;
@@ -80,7 +80,7 @@ codeunit 149036 "BCCT Start Tests"
         BCCTHeader2.SetRange(Status, BCCTHeader2.Status::Running);
         BCCTHeader2.SetFilter(Code, '<> %1', BCCTHeader.Code);
         if not BCCTHeader2.IsEmpty() then
-            Error(CannotRunMultipleSuitesInParallelErr);
+            Error(this.CannotRunMultipleSuitesInParallelErr);
 
         BCCTHeader.LockTable();
         BCCTHeader.Find();
@@ -117,9 +117,9 @@ codeunit 149036 "BCCT Start Tests"
             Commit();
             BCCTLine.SetRange("Line No.", BCCTLine."Line No.");
             BCCTLine.SetRange(Status);
-            Codeunit.Run(Codeunit::"BCCT Role Wrapper", BCCTLine);
+            Codeunit.Run(Codeunit::"AIT Test Runner", BCCTLine);
         end else
-            Error(NothingToRunErr);
+            Error(this.NothingToRunErr);
     end;
 
     local procedure ValidateLines(BCCTHeader: Record "BCCT Header")

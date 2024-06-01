@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 page 149034 "BCCT Lines"
 {
@@ -47,7 +47,7 @@ page 149034 "BCCT Lines"
                     ToolTip = 'Specifies the name of the codeunit.';
                     ApplicationArea = All;
                 }
-                field(Dataset; Rec.Dataset)
+                field(InputDataset; Rec."Input Dataset")
                 {
                     ToolTip = 'Specifies a dataset that overrides the default dataset for the suite.';
                     ApplicationArea = All;
@@ -71,11 +71,13 @@ page 149034 "BCCT Lines"
                 {
                     ToolTip = 'Specifies the min. user delay in ms of the BCCT.';
                     ApplicationArea = All;
+                    Visible = false;
                 }
                 field(MaxDelay; Rec."Max. User Delay (ms)")
                 {
                     ToolTip = 'Specifies the max. user delay in ms of the BCCT.';
                     ApplicationArea = All;
+                    Visible = false;
                 }
                 field("No. of Tests"; Rec."No. of Tests")
                 {
@@ -102,7 +104,7 @@ page 149034 "BCCT Lines"
                     begin
                         BCCTHeaderRec.SetLoadFields(Version); // TODO: See if  there is a better way to do this
                         BCCTHeaderRec.Get(Rec."BCCT Code");
-                        FailedTestsBCCTLogEntryDrillDown(BCCTHeaderRec.Version);
+                        this.FailedTestsBCCTLogEntryDrillDown(BCCTHeaderRec.Version);
                     end;
                 }
                 field("No. of Operations"; Rec."No. of Operations")
@@ -115,22 +117,25 @@ page 149034 "BCCT Lines"
                     ToolTip = 'Specifies Total Duration of the BCCT for this role.';
                     ApplicationArea = All;
                 }
-                field(AvgDuration; BCCTLineCU.GetAvgDuration(Rec))
+                field(AvgDuration; this.BCCTLineCU.GetAvgDuration(Rec))
                 {
                     ToolTip = 'Specifies average duration of the BCCT for this role.';
                     Caption = 'Average Duration (ms)';
                     ApplicationArea = All;
+                    Visible = false;
                 }
                 field("No. of Tests - Base"; Rec."No. of Tests - Base")
                 {
                     Tooltip = 'Specifies the number of tests in this Line for the base version.';
                     ApplicationArea = All;
+                    Visible = false;
                 }
                 field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the number of tests passed in the base Version.';
                     Style = Favorable;
+                    Visible = false;
                 }
                 field("No. of Tests Failed - Base"; Rec."No. of Tests - Base" - Rec."No. of Tests Passed - Base")
                 {
@@ -139,6 +144,7 @@ page 149034 "BCCT Lines"
                     Caption = 'No. of Tests Failed - Base';
                     ToolTip = 'Specifies the number of tests that failed in the base Version.';
                     Style = Unfavorable;
+                    Visible = false;
 
                     trigger OnDrillDown()
                     var
@@ -146,36 +152,35 @@ page 149034 "BCCT Lines"
                     begin
                         BCCTHeaderRec.SetLoadFields("Base Version"); // TODO: See if  there is a better way to do this
                         BCCTHeaderRec.Get(Rec."BCCT Code");
-                        FailedTestsBCCTLogEntryDrillDown(BCCTHeaderRec."Base Version");
+                        this.FailedTestsBCCTLogEntryDrillDown(BCCTHeaderRec."Base Version");
                     end;
-                }
-                field("Input Dataset"; Rec."Input Dataset")
-                {
-                    ToolTip = 'Specifies the input dataset for the BCCT line.';
-                    ApplicationArea = All;
                 }
                 field("No. of Operations - Base"; Rec."No. of Operations - Base")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the number of operations in the base Version.';
+                    Visible = false;
                 }
                 field(DurationBase; Rec."Total Duration - Base (ms)")
                 {
                     ToolTip = 'Specifies Total Duration of the BCCT for this role for the base version.';
                     Caption = 'Total Duration Base (ms)';
                     ApplicationArea = All;
+                    Visible = false;
                 }
-                field(AvgDurationBase; GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"))
+                field(AvgDurationBase; this.GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"))
                 {
                     ToolTip = 'Specifies average duration of the BCCT for this role for the base version.';
                     Caption = 'Average Duration Base (ms)';
                     ApplicationArea = All;
+                    Visible = false;
                 }
-                field(AvgDurationDeltaPct; GetDiffPct(GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"), GetAvg(Rec."No. of Tests", Rec."Total Duration (ms)")))
+                field(AvgDurationDeltaPct; this.GetDiffPct(this.GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"), this.GetAvg(Rec."No. of Tests", Rec."Total Duration (ms)")))
                 {
                     ToolTip = 'Specifies difference in duration of the BCCT for this role compared to the base version.';
                     Caption = 'Change in Duration (%)';
                     ApplicationArea = All;
+                    Visible = false;
                 }
             }
         }
@@ -217,13 +222,13 @@ page 149034 "BCCT Lines"
 
                 trigger OnAction()
                 begin
-                    BCCTHeader.Get(Rec."BCCT Code");
-                    BCCTHeader.Version += 1;
-                    BCCTHeader.Modify();
+                    this.BCCTHeader.Get(Rec."BCCT Code");
+                    this.BCCTHeader.Version += 1;
+                    this.BCCTHeader.Modify();
                     Commit();
                     // If no range is set, all following foreground lines will be run
                     Rec.SetRange("Codeunit ID", Rec."Codeunit ID");
-                    Codeunit.Run(codeunit::"BCCT Role Wrapper", Rec);
+                    Codeunit.Run(codeunit::"AIT Test Runner", Rec);
                     Rec.SetRange("Codeunit ID"); // reset filter
                 end;
             }
@@ -236,7 +241,7 @@ page 149034 "BCCT Lines"
                 ToolTip = 'Make this process a child of the above session.';
                 trigger OnAction()
                 begin
-                    BCCTLineCU.Indent(Rec);
+                    this.BCCTLineCU.Indent(Rec);
                 end;
             }
             action(Outdent)
@@ -249,7 +254,7 @@ page 149034 "BCCT Lines"
 
                 trigger OnAction()
                 begin
-                    BCCTLineCU.Outdent(Rec);
+                    this.BCCTLineCU.Outdent(Rec);
                 end;
             }
             action(LogEntries)
@@ -269,16 +274,16 @@ page 149034 "BCCT Lines"
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        Rec."Min. User Delay (ms)" := BCCTHeader."Default Min. User Delay (ms)";
-        Rec."Max. User Delay (ms)" := BCCTHeader."Default Max. User Delay (ms)";
+        Rec."Min. User Delay (ms)" := this.BCCTHeader."Default Min. User Delay (ms)";
+        Rec."Max. User Delay (ms)" := this.BCCTHeader."Default Max. User Delay (ms)";
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
         if Rec."BCCT Code" = '' then
             exit(true);
-        if Rec."BCCT Code" <> BCCTHeader.Code then
-            if BCCTHeader.Get(Rec."BCCT Code") then;
+        if Rec."BCCT Code" <> this.BCCTHeader.Code then
+            if this.BCCTHeader.Get(Rec."BCCT Code") then;
     end;
 
     local procedure GetAvg(NumIterations: Integer; TotalNo: Integer): Integer

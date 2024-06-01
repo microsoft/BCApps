@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 using System.TestTools.TestRunner;
 
-codeunit 149042 "BCCT Role Wrapper"
+codeunit 149042 "AIT Test Runner"
 {
     TableNo = "BCCT Line";
     SingleInstance = true;
@@ -20,21 +20,21 @@ codeunit 149042 "BCCT Role Wrapper"
         GlobalBCCTDatasetLine: Record "BCCT Dataset Line";
         NoOfInsertedLogEntries: Integer;
         AccumulatedWaitTimeMs: Integer;
-        ExecuteProcedureOperationLbl: Label 'Execute Procedure', Locked = true;
+        RunProcedureOperationLbl: Label 'Run Procedure', Locked = true;
 
     trigger OnRun();
     begin
         if Rec."Codeunit ID" = 0 then
             exit;
-        SetBCCTLine(Rec);
+        this.SetBCCTLine(Rec);
 
-        NoOfInsertedLogEntries := 0;
-        AccumulatedWaitTimeMs := 0;
+        this.NoOfInsertedLogEntries := 0;
+        this.AccumulatedWaitTimeMs := 0;
 
-        InitializeBCCTLineForRun(Rec, ActiveBCCTHeader);
-        SetBCCTHeader(ActiveBCCTHeader);
+        this.InitializeBCCTLineForRun(Rec, this.ActiveBCCTHeader);
+        this.SetBCCTHeader(this.ActiveBCCTHeader);
 
-        ExecuteBCCTLine(Rec, ActiveBCCTHeader);
+        this.RunBCCTLine(Rec, this.ActiveBCCTHeader);
     end;
 
     local procedure InitializeBCCTLineForRun(var BCCTLine: Record "BCCT Line"; var BCCTHeader: Record "BCCT Header")
@@ -43,80 +43,41 @@ codeunit 149042 "BCCT Role Wrapper"
         if BCCTHeader."Started at" < CurrentDateTime() then
             BCCTHeader."Started at" := CurrentDateTime();
 
-        if BCCTLine.Dataset = '' then
-            BCCTLine.Dataset := (BCCTHeader.Dataset);
+        if BCCTLine."Input Dataset" = '' then
+            BCCTLine."Input Dataset" := (BCCTHeader."Input Dataset");
 
         if BCCTLine."Delay (ms btwn. iter.)" < 1 then
             BCCTLine."Delay (ms btwn. iter.)" := BCCTHeader."Default Delay (ms)";
     end;
 
-    local procedure ExecuteBCCTLine(var BCCTLine: Record "BCCT Line"; var BCCTHeader: Record "BCCT Header")
+    local procedure RunBCCTLine(var BCCTLine: Record "BCCT Line"; var BCCTHeader: Record "BCCT Header")
     var
-        BCCTDatasetLine: Record "BCCT Dataset Line";
         BCCTHeaderCU: Codeunit "BCCT Header";
-        ExecuteNextIteration: Boolean;
     begin
-        ExecuteNextIteration := true;
+        this.GetAndClearAccumulatedWaitTimeMs();
 
-        SetDatasetFilter(BCCTDatasetLine, BCCTLine, BCCTHeader);
-        if not BCCTDatasetLine.FindSet() then
-            exit;
-
-        repeat
-            GetAndClearAccumulatedWaitTimeMs();
-
-            SetBCCTDatasetLine(BCCTDatasetLine);
-            OnBeforeExecuteIteration(BCCTHeader, BCCTLine, BCCTDatasetLine);
-            ExecuteIteration(BCCTLine, BCCTDatasetLine);
-            Commit();
-
-            BCCTHeader.Find();
-            if BCCTHeader.Status = BCCTHeader.Status::Cancelled then
-                ExecuteNextIteration := false;
-
-
-            if ExecuteNextIteration then
-                if BCCTDatasetLine.Next() = 0 then begin
-                    if BCCTLine.Next() = 0 then
-                        ExecuteNextIteration := false
-                    else begin
-                        BCCTDatasetLine.Reset();
-                        SetDatasetFilter(BCCTDatasetLine, BCCTLine, BCCTHeader);
-                        if BCCTDatasetLine.FindSet() then;
-                    end;
-                    Sleep(BCCTLine."Delay (ms btwn. iter.)");
-                end;
+        this.OnBeforeRunIteration(BCCTHeader, BCCTLine);
+        this.RunIteration(BCCTLine);
+        Commit();
 
         //TODO override delay from line / default delay
+        Sleep(BCCTLine."Delay (ms btwn. iter.)");
 
-        until (ExecuteNextIteration = false);
         BCCTHeaderCU.DecreaseNoOfTestsRunningNow(BCCTHeader);
     end;
 
-    local procedure SetDatasetFilter(var BCCTDatasetLine: Record "BCCT Dataset Line"; BCCTLine: Record "BCCT Line"; BCCTHeader: Record "BCCT Header")
-    begin
-        // Select the correct dataset
-        if BCCTLine.Dataset = '' then
-            BCCTDatasetLine.SetRange(BCCTDatasetLine."Dataset Name", BCCTHeader.Dataset)
-        else
-            BCCTDatasetLine.SetRange(BCCTDatasetLine."Dataset Name", BCCTLine.Dataset);
-    end;
-
-    local procedure ExecuteIteration(var BCCTLine: Record "BCCT Line"; BCCTDatasetLine: Record "BCCT Dataset Line")
+    local procedure RunIteration(var BCCTLine: Record "BCCT Line")
     var
         TestMethodLine: Record "Test Method Line";
-        BCCTHeader: Record "BCCT Header";
-        TestRunnerIsolDisabled: Codeunit "Test Runner - Isol. Disabled";
         AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
-        BCCTHeader.Get(BCCTLine."BCCT Code");
-        AITTALTestSuiteMgt.RemoveTestMethods(BCCTHeader);
-        AITTALTestSuiteMgt.ExpandCodeunit(BCCTLine);
-        SetBCCTLine(BCCTLine);
+        BCCTLine.Find();
+        AITTALTestSuiteMgt.UpdateALTestSuite(BCCTLine);
+        this.SetBCCTLine(BCCTLine);
 
         TestMethodLine.SetRange("Test Codeunit", BCCTLine."Codeunit ID");
-        TestMethodLine.SetRange("Test Suite", BCCTLine."BCCT Code");
+        TestMethodLine.SetRange("Test Suite", BCCTLine."AL Test Suite");
         TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
         TestMethodLine.FindFirst();
         TestSuiteMgt.RunAllTests(TestMethodLine);
@@ -131,7 +92,7 @@ codeunit 149042 "BCCT Role Wrapper"
 
     internal procedure GetBCCTHeaderTag(): Text[20]
     begin
-        exit(ActiveBCCTHeader.Tag);
+        exit(this.ActiveBCCTHeader.Tag);
     end;
 
     /// <summary>
@@ -139,7 +100,7 @@ codeunit 149042 "BCCT Role Wrapper"
     /// </summary>
     local procedure SetBCCTLine(var BCCTLine: Record "BCCT Line")
     begin
-        GlobalBCCTLine := BCCTLine;
+        this.GlobalBCCTLine := BCCTLine;
     end;
 
     /// <summary>
@@ -147,63 +108,58 @@ codeunit 149042 "BCCT Role Wrapper"
     /// </summary>
     internal procedure GetBCCTLine(var BCCTLine: Record "BCCT Line")
     begin
-        BCCTLine := GlobalBCCTLine;
-    end;
-
-    local procedure SetBCCTDatasetLine(var BCCTDatasetLine: Record "BCCT Dataset Line")
-    begin
-        GlobalBCCTDatasetLine := BCCTDatasetLine;
+        BCCTLine := this.GlobalBCCTLine;
     end;
 
     internal procedure GetBCCTDatasetLine(var BCCTDatasetLine: Record "BCCT Dataset Line")
     begin
-        BCCTDatasetLine := GlobalBCCTDatasetLine;
+        BCCTDatasetLine := this.GlobalBCCTDatasetLine;
     end;
 
     local procedure SetBCCTHeader(var CurrBCCTHeader: Record "BCCT Header")
     begin
-        GlobalBCCTHeader := CurrBCCTHeader;
+        this.GlobalBCCTHeader := CurrBCCTHeader;
     end;
 
     internal procedure GetBCCTHeader(var CurrBCCTHeader: Record "BCCT Header")
     begin
-        CurrBCCTHeader := GlobalBCCTHeader;
+        CurrBCCTHeader := this.GlobalBCCTHeader;
     end;
 
     internal procedure AddToNoOfLogEntriesInserted()
     begin
-        NoOfInsertedLogEntries += 1;
+        this.NoOfInsertedLogEntries += 1;
     end;
 
     internal procedure GetNoOfLogEntriesInserted(): Integer
     var
         ReturnValue: Integer;
     begin
-        ReturnValue := NoOfInsertedLogEntries;
+        ReturnValue := this.NoOfInsertedLogEntries;
         exit(ReturnValue);
     end;
 
     internal procedure AddToAccumulatedWaitTimeMs(ms: Integer)
     begin
-        AccumulatedWaitTimeMs += ms;
+        this.AccumulatedWaitTimeMs += ms;
     end;
 
     internal procedure GetAndClearAccumulatedWaitTimeMs(): Integer
     var
         ReturnValue: Integer;
     begin
-        ReturnValue := AccumulatedWaitTimeMs;
-        AccumulatedWaitTimeMs := 0;
+        ReturnValue := this.AccumulatedWaitTimeMs;
+        this.AccumulatedWaitTimeMs := 0;
         exit(ReturnValue);
     end;
 
-    internal procedure GetDefaultExecuteProcedureOperationLbl(): Text
+    internal procedure GetDefaultRunProcedureOperationLbl(): Text
     begin
-        exit(ExecuteProcedureOperationLbl);
+        exit(this.RunProcedureOperationLbl);
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeExecuteIteration(var BCCTHeader: Record "BCCT Header"; var BCCTLine: Record "BCCT Line"; var BCCTDatasetLine: Record "BCCT Dataset Line")
+    procedure OnBeforeRunIteration(var BCCTHeader: Record "BCCT Header"; var BCCTLine: Record "BCCT Line")
     begin
     end;
 
@@ -212,11 +168,11 @@ codeunit 149042 "BCCT Role Wrapper"
     var
         BCCTContextCU: Codeunit "BCCT Test Context";
     begin
-        if ActiveBCCTHeader.Code = '' then // exit the code if not triggered by BCCT 
+        if this.ActiveBCCTHeader.Code = '' then // exit the code if not triggered by BCCT 
             exit;
         if FunctionName = '' then
             exit;
-        BCCTContextCU.StartScenario(GetDefaultExecuteProcedureOperationLbl());
+        BCCTContextCU.StartScenario(this.GetDefaultRunProcedureOperationLbl());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnAfterTestMethodRun, '', false, false)]
@@ -224,12 +180,12 @@ codeunit 149042 "BCCT Role Wrapper"
     var
         BCCTContextCU: Codeunit "BCCT Test Context";
     begin
-        if ActiveBCCTHeader.Code = '' then // exit the code if not triggered by BCCT 
+        if this.ActiveBCCTHeader.Code = '' then // exit the code if not triggered by BCCT 
             exit;
         Commit(); //TODO: Do we need these commits?
         if FunctionName = '' then
             exit;
-        BCCTContextCU.EndScenario(GetDefaultExecuteProcedureOperationLbl(), FunctionName, IsSuccess);
+        BCCTContextCU.EndScenario(this.GetDefaultRunProcedureOperationLbl(), FunctionName, IsSuccess);
         Commit();
     end;
 }

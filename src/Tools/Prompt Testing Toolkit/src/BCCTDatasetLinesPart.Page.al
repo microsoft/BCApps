@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 page 149036 "BCCT Dataset Lines Part"
 {
@@ -27,7 +27,7 @@ page 149036 "BCCT Dataset Lines Part"
                     ToolTip = 'Specifies the ID of the line.';
                     Visible = false;
                 }
-                field(InputText; TestInputText)
+                field(InputText; this.TestInputText)
                 {
                     ApplicationArea = All;
                     Caption = 'Test Input Text';
@@ -35,7 +35,7 @@ page 149036 "BCCT Dataset Lines Part"
 
                     trigger OnValidate()
                     begin
-                        Rec.SetInputTextAsBlob(TestInputText);
+                        Rec.SetInputTextAsBlob(this.TestInputText);
                     end;
                 }
             }
@@ -44,13 +44,13 @@ page 149036 "BCCT Dataset Lines Part"
 
     trigger OnAfterGetRecord()
     begin
-        TestInputText := Rec.GetInputBlobAsText();
+        this.TestInputText := Rec.GetInputBlobAsText();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
         if Rec.Id = 0 then
-            TestInputText := '';
+            this.TestInputText := '';
     end;
 
     var

@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 page 149038 "BCCT Log Entry API"
 {
@@ -118,8 +118,8 @@ page 149038 "BCCT Log Entry API"
 
     trigger OnAfterGetRecord()
     begin
-        InputText := Rec.GetInputBlob();
-        OutputText := Rec.GetOutputBlob();
+        this.InputText := Rec.GetInputBlob();
+        this.OutputText := Rec.GetOutputBlob();
     end;
 
     var

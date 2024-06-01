@@ -25,22 +25,11 @@ pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Too
 
                 trigger OnValidate()
                 var
+                    TestInputGroup: Record "Test Input Group";
                     TestInputsManagement: Codeunit "Test Inputs Management";
                 begin
-                    TestInputsManagement.ImportDataInputsFromText(GlobalALTestSuite, DataInputTxt);
-                end;
-            }
-            field(TestDefinitions; TestDefinitionsTxt)
-            {
-                ApplicationArea = All;
-                Caption = 'Test Definitions';
-                ToolTip = 'Test definitions for the test method line';
-
-                trigger OnValidate()
-                var
-                    DataDrivenTestInput: Codeunit "Test Inputs Management";
-                begin
-                    DataDrivenTestInput.ImportTestDefinitions(GlobalALTestSuite, TestDefinitionsTxt);
+                    TestInputGroup.CreateUniqueGroupForALTest(GlobalALTestSuite);
+                    TestInputsManagement.ImportDataInputsFromText(TestInputGroup, DataInputTxt);
                 end;
             }
         }

@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 page 149033 "BCCT Log Entries"
 {
@@ -118,7 +118,7 @@ page 149033 "BCCT Log Entries"
                     Visible = false;
                     ApplicationArea = All;
                 }
-                field("Input Text"; InputText)
+                field("Input Text"; this.InputText)
                 {
                     Caption = 'Input';
                     ToolTip = 'Specifies the test input of the BCCT.';
@@ -129,7 +129,7 @@ page 149033 "BCCT Log Entries"
                         Message(Rec.GetInputBlob());
                     end;
                 }
-                field("Output Text"; OutputText)
+                field("Output Text"; this.OutputText)
                 {
                     Caption = 'Test Output';
                     ToolTip = 'Specifies the test output of the BCCT.';
@@ -196,7 +196,7 @@ page 149033 "BCCT Log Entries"
 
                 trigger OnAction()
                 begin
-                    if not Confirm(DoYouWantToDeleteQst, false) then
+                    if not Confirm(this.DoYouWantToDeleteQst, false) then
                         exit;
                     Rec.DeleteAll();
                     CurrPage.Update(false);
@@ -205,7 +205,7 @@ page 149033 "BCCT Log Entries"
             action(ShowErrors)
             {
                 ApplicationArea = All;
-                Visible = not IsFilteredToErrors;
+                Visible = not this.IsFilteredToErrors;
                 Caption = 'Show errors';
                 Image = FilterLines;
                 Promoted = true;
@@ -216,14 +216,14 @@ page 149033 "BCCT Log Entries"
                 trigger OnAction()
                 begin
                     Rec.SetRange(Status, Rec.Status::Error);
-                    IsFilteredToErrors := true;
+                    this.IsFilteredToErrors := true;
                     CurrPage.Update(false);
                 end;
             }
             action(ClearShowErrors)
             {
                 ApplicationArea = All;
-                Visible = IsFilteredToErrors;
+                Visible = this.IsFilteredToErrors;
                 Caption = 'Show success and errors';
                 Image = RemoveFilterLines;
                 Promoted = true;
@@ -234,7 +234,7 @@ page 149033 "BCCT Log Entries"
                 trigger OnAction()
                 begin
                     Rec.SetRange(Status);
-                    IsFilteredToErrors := false;
+                    this.IsFilteredToErrors := false;
                     CurrPage.Update(false);
                 end;
             }
@@ -243,8 +243,8 @@ page 149033 "BCCT Log Entries"
 
     trigger OnAfterGetRecord()
     begin
-        InputText := Rec.GetInputBlob();
-        OutputText := Rec.GetOutputBlob();
+        this.InputText := Rec.GetInputBlob();
+        this.OutputText := Rec.GetOutputBlob();
     end;
 
     var

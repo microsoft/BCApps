@@ -463,9 +463,9 @@ codeunit 130456 "Test Suite Mgt."
         LineNoFilter: Text;
     begin
         TestMethodLine.TestField("Line Type", TestMethodLine."Line Type"::"Function");
-        LineNoFilter := Format(TestMethodLine."Line No.");
         CodeunitTestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
         CodeunitTestMethodLine.SetRange("Test Codeunit", TestMethodLine."Test Codeunit");
+        CodeunitTestMethodLine.SetFilter("Line No.", GetLineNoFilterForTestCodeunit(TestMethodLine));
         CodeunitTestMethodLine.FindFirst();
 #pragma warning disable AA0217
         LineNoFilter := StrSubstNo('%1|%2', CodeunitTestMethodLine."Line No.", TestMethodLine."Line No.");
@@ -479,12 +479,12 @@ codeunit 130456 "Test Suite Mgt."
         NextCodeunitTestMethodLine: Record "Test Method Line";
         LineNoFilter: Text;
     begin
-        CodeunitTestMethodLine.SetFilter("Line No.", '>=%1', TestMethodLine."Line No.");
+        CodeunitTestMethodLine.SetFilter("Line No.", '<=%1', TestMethodLine."Line No.");
         CodeunitTestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
         CodeunitTestMethodLine.SetRange("Test Codeunit", TestMethodLine."Test Codeunit");
         CodeunitTestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
         CodeunitTestMethodLine.SetAscending("Line No.", true);
-        CodeunitTestMethodLine.FindFirst();
+        CodeunitTestMethodLine.FindLast();
 
         NextCodeunitTestMethodLine.SetFilter("Line No.", '>%1', TestMethodLine."Line No.");
         NextCodeunitTestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
@@ -563,14 +563,19 @@ codeunit 130456 "Test Suite Mgt."
     end;
 
     procedure GetTestRunnerDisplayName(ALTestSuite: Record "AL Test Suite"): Text
+    begin
+        exit(GetTestRunnerDisplayName(ALTestSuite."Test Runner Id"));
+    end;
+
+    procedure GetTestRunnerDisplayName(TestRunnerID: Integer): Text
     var
         AllObjWithCaption: Record AllObjWithCaption;
     begin
-        if not AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Codeunit, ALTestSuite."Test Runner Id") then
+        if not AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Codeunit, TestRunnerId) then
             exit(NoTestRunnerSelectedTxt);
 
 #pragma warning disable AA0217
-        exit(StrSubstNo('%1 - %2', ALTestSuite."Test Runner Id", AllObjWithCaption."Object Name"));
+        exit(StrSubstNo('%1 - %2', TestRunnerId, AllObjWithCaption."Object Name"));
 #pragma warning restore        
     end;
 

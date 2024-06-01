@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 table 149033 "BCCT Dataset Line"
 {
@@ -50,7 +50,7 @@ table 149033 "BCCT Dataset Line"
         InStream: InStream;
         InputText: Text;
     begin
-        CalcFields("Input Blob");
+        this.CalcFields("Input Blob");
         "Input Blob".CreateInStream(InStream, TextEncoding::UTF8);
         InStream.ReadText(InputText);
         exit(InputText);

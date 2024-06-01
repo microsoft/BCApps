@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 page 149046 "BCCT Suite API"
 {
@@ -49,7 +49,7 @@ page 149046 "BCCT Suite API"
                 {
                     Caption = 'Model Version';
                 }
-                field(dataset; Rec.Dataset)
+                field(dataset; Rec."Input Dataset")
                 {
                     Caption = 'Dataset';
                 }

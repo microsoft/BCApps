@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
-using System.TestTools.TestRunner;
+namespace System.TestTools.AITestToolkit;
 
+using System.TestTools.TestRunner;
 
 table 149030 "BCCT Header"
 {
@@ -42,10 +42,11 @@ table 149030 "BCCT Header"
             MinValue = 1;
             MaxValue = 10000;
         }
-        field(7; Dataset; Text[100])
+        field(7; "Input Dataset"; Code[100])
         {
-            Caption = 'Dataset';
-            TableRelation = "BCCT Dataset"."Dataset Name";
+            Caption = 'Input Dataset';
+            TableRelation = "Test Input Group".Code;
+            ValidateTableRelation = true;
         }
         field(8; "Ended at"; DateTime)
         {
@@ -141,7 +142,7 @@ table 149030 "BCCT Header"
             trigger OnValidate()
             begin
                 if "Base Version" > Version then
-                    Error(BaseVersionMustBeLessThanVersionErr)
+                    Error(this.BaseVersionMustBeLessThanVersionErr)
             end;
         }
         field(19; RunID; Guid)
@@ -228,17 +229,30 @@ table 149030 "BCCT Header"
             end;
         }
     }
-
     keys
     {
-        key(Key1; "Code")
+        key(Key1;
+        "Code")
         {
             Clustered = true;
         }
-        key(Dataset; Dataset)
+        key(Dataset; "Input Dataset")
         {
         }
     }
+
+    trigger OnInsert()
+    begin
+        this.AssignDefaultTestRunner();
+    end;
+
+    internal procedure AssignDefaultTestRunner()
+    var
+        TestRunnerMgt: Codeunit "Test Runner - Mgt";
+    begin
+        Rec."Test Runner Id" := TestRunnerMgt.GetDefaultTestRunner();
+    end;
+
 
     var
         BaseVersionMustBeLessThanVersionErr: Label 'Base Version must be less than or equal to Version';

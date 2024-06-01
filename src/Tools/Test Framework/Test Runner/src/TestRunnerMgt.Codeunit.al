@@ -45,14 +45,13 @@ codeunit 130454 "Test Runner - Mgt"
         BackupTestFilter := TestMethodLine.GetFilter("Line No.");
         if TestMethodLine.FindSet() then
             repeat
-                OnBeforeCodeunitRun(TestMethodLine);
-
                 CurrentTestFilter := TestSuiteMgt.GetLineNoFilterForTestCodeunit(TestMethodLine);
                 TestMethodLine.SetFilter("Line No.", CurrentTestFilter);
+                OnBeforeCodeunitRun(TestMethodLine);
                 CODEUNIT.Run(TestMethodLine."Test Codeunit");
+                OnAfterCodeunitRun(TestMethodLine);
                 TestMethodLine.SetFilter("Line No.", BackupTestFilter);
                 TestMethodLine.Find();
-                OnAfterCodeunitRun(TestMethodLine);
             until TestMethodLine.Next() = 0;
 
         OnAfterRunTestSuite(TestMethodLine);

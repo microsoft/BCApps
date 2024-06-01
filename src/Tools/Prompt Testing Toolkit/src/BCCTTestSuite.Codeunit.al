@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 codeunit 149046 "BCCT Test Suite"
 {
@@ -13,7 +13,7 @@ codeunit 149046 "BCCT Test Suite"
         TestSuiteLineNotFoundErr: Label 'Test suite line with %1 %2 and %3 %4 does not exist.', Comment = '%1 - field caption, %2 - field value, %3 - field caption, %4 - field value';
         DatasetNotFoundErr: Label 'Dataset %1 does not exist.', Comment = '%1 - field value';
 
-    procedure CreateTestSuiteHeader(SuiteCode: Code[100]; SuiteDescription: Text[250]; Dataset: Text[100];
+    procedure CreateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[250]; Dataset: Text[100];
                               DefaultMinUserDelayInMs: Integer; DefaultMaxUserDelayInMs: Integer;
                               Tag: Text[20])
     var
@@ -21,14 +21,14 @@ codeunit 149046 "BCCT Test Suite"
         BCCTDataset: Record "BCCT Dataset";
     begin
         if BCCTHeader.Get(SuiteCode) then
-            Error(TestSuiteAlreadyExistsErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+            Error(this.TestSuiteAlreadyExistsErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
         Clear(BCCTHeader);
         BCCTHeader.Code := SuiteCode;
         BCCTHeader.Description := SuiteDescription;
 
         if BCCTDataset.Get(Dataset) then
-            BCCTHeader.Dataset := Dataset; //TODO: Should not finding a dataset error?
+            BCCTHeader."Input Dataset" := Dataset; //TODO: Should not finding a dataset error?
 
         if DefaultMinUserDelayInMs <> 0 then
             BCCTHeader."Default Min. User Delay (ms)" := DefaultMinUserDelayInMs;
@@ -40,12 +40,12 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader.Insert(true);
     end;
 
-    procedure CreateTestSuiteHeader(SuiteCode: Code[100]; SuiteDescription: Text[250])
+    procedure CreateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[250])
     var
         BCCTHeader: Record "BCCT Header";
     begin
         if BCCTHeader.Get(SuiteCode) then
-            Error(TestSuiteAlreadyExistsErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+            Error(this.TestSuiteAlreadyExistsErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
         Clear(BCCTHeader);
         BCCTHeader.Code := SuiteCode;
@@ -53,7 +53,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader.Insert(true);
     end;
 
-    procedure CreateUpdateTestSuiteHeader(SuiteCode: Code[100]; SuiteDescription: Text[250]; Dataset: Text[100];
+    procedure CreateUpdateTestSuiteHeader(SuiteCode: Code[10]; SuiteDescription: Text[250]; Dataset: Text[100];
                               DefaultMinUserDelayInMs: Integer; DefaultMaxUserDelayInMs: Integer;
                               Tag: Text[20])
     var
@@ -70,7 +70,7 @@ codeunit 149046 "BCCT Test Suite"
         end;
 
         if BCCTDataset.Get(Dataset) then
-            BCCTheader.Dataset := Dataset; //TODO: Should not finding a dataset error?
+            BCCTheader."Input Dataset" := Dataset; //TODO: Should not finding a dataset error?
 
         BCCTHeader.Description := SuiteDescription;
 
@@ -99,7 +99,7 @@ codeunit 149046 "BCCT Test Suite"
     var
         BCCTLine: Record "BCCT Line";
     begin
-        SetBCCTLineCodeunitFilter(SuiteCode, CodeunitID, BCCTLine);
+        this.SetBCCTLineCodeunitFilter(SuiteCode, CodeunitID, BCCTLine);
         exit(not BCCTLine.IsEmpty());
     end;
 
@@ -107,7 +107,7 @@ codeunit 149046 "BCCT Test Suite"
     var
         BCCTLine: Record "BCCT Line";
     begin
-        SetBCCTLineCodeunitFilter(SuiteCode, CodeunitID, BCCTLine);
+        this.SetBCCTLineCodeunitFilter(SuiteCode, CodeunitID, BCCTLine);
         if not BCCTLine.FindFirst() then
             exit(false);
         LineNo := BCCTLine."Line No.";
@@ -119,7 +119,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader: Record "BCCT Header";
     begin
         if not BCCTHeader.Get(SuiteCode) then
-            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+            Error(this.TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
         BCCTHeader."Default Min. User Delay (ms)" := DelayInMs;
         BCCTHeader.Modify(true);
@@ -130,7 +130,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader: Record "BCCT Header";
     begin
         if not BCCTHeader.Get(SuiteCode) then
-            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+            Error(this.TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
         exit(BCCTHeader."Default Min. User Delay (ms)");
     end;
@@ -140,7 +140,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader: Record "BCCT Header";
     begin
         if not BCCTHeader.Get(SuiteCode) then
-            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+            Error(this.TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
         BCCTHeader."Default Max. User Delay (ms)" := DelayInMs;
         BCCTHeader.Modify(true);
@@ -151,7 +151,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader: Record "BCCT Header";
     begin
         if not BCCTHeader.Get(SuiteCode) then
-            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+            Error(this.TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
         exit(BCCTHeader."Default Max. User Delay (ms)");
     end;
@@ -162,12 +162,12 @@ codeunit 149046 "BCCT Test Suite"
         BCCTDataset: Record "BCCT Dataset";
     begin
         if not BCCTHeader.Get(SuiteCode) then
-            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+            Error(this.TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
         if not BCCTDataset.Get(Dataset) then
-            Error(DatasetNotFoundErr, Dataset);
+            Error(this.DatasetNotFoundErr, Dataset);
 
-        BCCTHeader.Dataset := Dataset;
+        BCCTHeader."Input Dataset" := Dataset;
         BCCTHeader.Modify(true);
     end;
 
@@ -176,9 +176,9 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader: Record "BCCT Header";
     begin
         if not BCCTHeader.Get(SuiteCode) then
-            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+            Error(this.TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
-        exit(BCCTHeader.Dataset);
+        exit(BCCTHeader."Input Dataset");
     end;
 
     procedure SetTestSuiteTag(SuiteCode: Code[100]; Tag: Text[20])
@@ -186,7 +186,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader: Record "BCCT Header";
     begin
         if not BCCTHeader.Get(SuiteCode) then
-            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+            Error(this.TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
         BCCTHeader.Tag := Tag;
         BCCTHeader.Modify(true);
@@ -197,7 +197,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTHeader: Record "BCCT Header";
     begin
         if not BCCTHeader.Get(SuiteCode) then
-            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+            Error(this.TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
         exit(BCCTHeader.Tag);
     end;
@@ -210,7 +210,7 @@ codeunit 149046 "BCCT Test Suite"
 
     begin
         if not BCCTHeader.Get(SuiteCode) then
-            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+            Error(this.TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
         LastBCCTLine.SetRange("BCCT Code", SuiteCode);
         if LastBCCTLine.FindLast() then;
@@ -231,7 +231,7 @@ codeunit 149046 "BCCT Test Suite"
         LastBCCTLine: Record "BCCT Line";
     begin
         if not BCCTHeader.Get(SuiteCode) then
-            Error(TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
+            Error(this.TestSuiteNotFoundErr, BCCTHeader.FieldCaption(Code), SuiteCode);
 
 
         LastBCCTLine.SetRange("BCCT Code", SuiteCode);
@@ -266,7 +266,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTLine: Record "BCCT Line";
     begin
         if not BCCTLine.Get(SuiteCode, LineNo) then
-            Error(TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
+            Error(this.TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
 
         BCCTLine.Description := Description;
         BCCTLine.Modify(true);
@@ -277,7 +277,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTLine: Record "BCCT Line";
     begin
         if not BCCTLine.Get(SuiteCode, LineNo) then
-            Error(TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
+            Error(this.TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
 
         BCCTLine."Min. User Delay (ms)" := DelayInMs;
         BCCTLine.Modify(true);
@@ -288,7 +288,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTLine: Record "BCCT Line";
     begin
         if not BCCTLine.Get(SuiteCode, LineNo) then
-            Error(TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
+            Error(this.TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
 
         BCCTLine."Max. User Delay (ms)" := DelayInMs;
         BCCTLine.Modify(true);
@@ -299,7 +299,7 @@ codeunit 149046 "BCCT Test Suite"
         BCCTLine: Record "BCCT Line";
     begin
         if not BCCTLine.Get(SuiteCode, LineNo) then
-            Error(TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
+            Error(this.TestSuiteLineNotFoundErr, BCCTLine.FieldCaption("BCCT Code"), SuiteCode, BCCTLine.FieldCaption("Line No."), LineNo);
 
         BCCTLine."Delay (ms btwn. iter.)" := DelayInSecs;
         BCCTLine.Modify(true);

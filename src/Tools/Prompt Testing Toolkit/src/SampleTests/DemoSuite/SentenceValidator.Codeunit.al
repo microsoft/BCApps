@@ -1,4 +1,4 @@
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 codeunit 149031 SentenceValidator
 {
     Access = Internal;
