@@ -174,7 +174,7 @@ function BuildApp {
     }
 
     $appProjectFolder = GetRootedFolder -folder $appProjectFolder -baseFolder $baseFolder
-    
+
     # If we are rebuilding, remove the app file if it already exists
     if ($rebuild -and (Test-Path $appFilePath)) {
         Write-Host "App $appFileName already exists in $appOutputFolder. Removing and rebuilding..." -ForegroundColor Yellow
