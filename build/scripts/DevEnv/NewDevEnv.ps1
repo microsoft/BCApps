@@ -24,7 +24,7 @@ param(
     [Parameter(Mandatory = $false)]
     [string] $ContainerName = "BC-$(Get-Date -Format 'yyyyMMdd')",
     [Parameter(Mandatory = $false)]
-    [ValidateSet('Windows', 'UserPassword')]
+    [ValidateSet('UserPassword')]
     [string] $Authentication = "UserPassword",
     [Parameter(Mandatory = $false)]
     [switch] $SkipVsCodeSetup,
@@ -40,7 +40,6 @@ param(
 
 Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\ALDev.psm1" -DisableNameChecking
-Import-Module "$PSScriptRoot\NewDevContainer.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\NewDevEnv.psm1" -DisableNameChecking
 Import-Module BcContainerHelper
 
@@ -49,30 +48,15 @@ Push-Location $baseFolder
 
 $credential = Get-CredentialForContainer -AuthenticationType $Authentication
 
-# Step 1: Create a container if it does not exist
-if (-not (Test-ContainerExists -ContainerName $ContainerName))
+# Create the container if it does not exist already
+$ContainerExists = Test-ContainerExists -ContainerName $ContainerName
+if (-not $ContainerExists)
 {
-    # Get artifactUrl from branch
-    $artifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
-
-    # Create a new container with a single tenant
-    $bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
-    New-BcContainer -artifactUrl $artifactUrl -accept_eula -accept_insiderEula -containerName $ContainerName -auth $Authentication -Credential $credential -includeAL -additionalParameters @("--volume ""$($baseFolder):c:\sources""")
-} else {
-    Write-Host "Container $ContainerName already exists. Skipping creation." -ForegroundColor Yellow
+    Write-Host "Creating container $ContainerName..." -ForegroundColor Yellow
+    $createContainerJob = Create-BCContainer -ContainerName $ContainerName -Authentication $Authentication -Credential $credential -backgroundJob
 }
 
-# Step 2: Move all installed apps to the dev scope
-# By default, the container is created with the global scope. We need to move all installed apps to the dev scope.
-Setup-ContainerForDevelopment -ContainerName $ContainerName -RepoVersion (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go)
-
-if (-not $SkipVsCodeSetup)
-{
-    # Step 3: Set up vscode for development against the container (i.e. set up launch.json and settings.json)
-    Configure-ALProjectsInPath -ContainerName $ContainerName -Authentication $Authentication
-}
-
-# Step 4: (Optional) Build the apps
+# Build the apps
 if ($ProjectPaths -or $WorkspacePath -or $AlGoProject)
 {
     # Resolve AL project paths
@@ -81,10 +65,32 @@ if ($ProjectPaths -or $WorkspacePath -or $AlGoProject)
     # Build apps
     Write-Host "Building apps..." -ForegroundColor Yellow
     $appFiles = Build-Apps -ProjectPaths $ProjectPaths -packageCacheFolder (Get-ArtifactsCacheFolder -ContainerName $ContainerName) -rebuild:$RebuildApps
+}
 
-    # Publish apps
-    if ($appFiles) {
-        Write-Host "Publishing apps..." -ForegroundColor Yellow
-        Publish-Apps -ContainerName $ContainerName -AppFiles $appFiles -Credential $credential
+# Wait for container creation to finish
+if($createContainerJob) {
+    Write-Host 'Waiting for container creation to finish...' -ForegroundColor Yellow
+    Wait-Job -Job $createContainerJob -Timeout 1
+    Receive-Job -Job $createContainerJob -Wait -AutoRemoveJob
+
+    if($createContainerJob.State -eq 'Failed'){
+        Write-Output "Creating container failed:"
+        throw $($createContainerJob.ChildJobs | ForEach-Object { $_.JobStateInfo.Reason.Message } | Out-String)
     }
 }
+
+# Publish apps
+if ($appFiles) {
+    Write-Host "Publishing apps..." -ForegroundColor Yellow
+    Publish-Apps -ContainerName $ContainerName -AppFiles $appFiles -Credential $credential
+}
+
+# Set up vscode for development against the container (i.e. set up launch.json and settings.json)
+if (-not $SkipVsCodeSetup)
+{
+    Write-Host "Configuring vscode for development against the container..."
+    Configure-ALProjectsInPath -ContainerName $ContainerName -Authentication $Authentication
+}
+
+Write-Host "Development environment setup completed successfully" -ForegroundColor Green
+Write-Host "You can access the webclient by going to http://$ContainerName/BC/ in your browser" -ForegroundColor Green

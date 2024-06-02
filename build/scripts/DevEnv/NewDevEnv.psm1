@@ -20,6 +20,51 @@ function GetRootedFolder {
     return $folder
 }
 
+function Create-BCContainer {
+    param(
+        [string] $ContainerName,
+        [string] $Authentication,
+        [PSCredential] $Credential,
+        [switch] $backgroundJob
+    )
+    $baseFolder = (Get-BaseFolderForPath -Path $PSScriptRoot)
+
+    [Scriptblock] $createContainerScriptblock = {
+        param(
+            [string] $baseFolder,
+            [string] $ContainerName,
+            [string] $Authentication,
+            [PSCredential] $Credential
+        )
+        Set-Location $baseFolder
+
+        Import-Module "$baseFolder\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+        Import-Module "$baseFolder\build\scripts\DevEnv\NewDevContainer.psm1" -DisableNameChecking
+        Import-Module BcContainerHelper
+
+        # Get artifactUrl from branch
+        $artifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+
+        # Create a new container with a single tenant
+        $bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
+        New-BcContainer -artifactUrl $artifactUrl -accept_eula -accept_insiderEula -containerName $ContainerName -auth $Authentication -Credential $Credential -includeAL -additionalParameters @("--volume ""$($baseFolder):c:\sources""")
+
+        # Move all installed apps to the dev scope
+        # By default, the container is created with the global scope. We need to move all installed apps to the dev scope.
+        Setup-ContainerForDevelopment -ContainerName $ContainerName -RepoVersion (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go)
+    }
+
+    if ($backgroundJob)
+    {
+        $createContainerJob = Start-Job -ScriptBlock $createContainerScriptblock -ArgumentList $baseFolder, $ContainerName, $Authentication, $credential | Get-Job
+        return $createContainerJob
+    }
+    else
+    {
+        Invoke-Command -ScriptBlock $createContainerScriptblock -ArgumentList $baseFolder, $ContainerName, $Authentication, $credential
+    }
+}
+
 <#
     .Synopsis
     Resolves the project paths to AL app project folders.
@@ -137,7 +182,7 @@ function BuildApp {
     }
 
     if(Test-Path $appFilePath) {
-        Write-Host "App $appFile already exists in $appOutputFolder. Skipping..."
+        Write-Host "App $appFileName already exists in $appOutputFolder. Skipping..."
     } else {
         # Create compiler folder on demand
         if(-not $compilerFolder.Value) {
@@ -257,7 +302,8 @@ function CreateCompilerFolder {
     # Create compiler folder using the AL-Go artifact URL
     $bcArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
     Write-Host "Creating compiler folder $compilerFolder" -ForegroundColor Yellow
-    return New-BcCompilerFolder -artifactUrl $bcArtifactUrl -cacheFolder $compilerFolder
+    New-BcCompilerFolder -artifactUrl $bcArtifactUrl -cacheFolder $compilerFolder | Out-Null
+    return $compilerFolder
 }
 
 <#
@@ -333,6 +379,7 @@ function Get-CredentialForContainer($AuthenticationType) {
     }
 }
 
+Export-ModuleMember -Function Create-BCContainer
 Export-ModuleMember -Function Resolve-ProjectPaths
 Export-ModuleMember -Function Build-Apps
 Export-ModuleMember -Function Publish-Apps
