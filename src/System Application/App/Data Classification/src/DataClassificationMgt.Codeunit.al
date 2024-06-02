@@ -186,6 +186,16 @@ codeunit 1750 "Data Classification Mgt."
     end;
 
     /// <summary>
+    /// Check if the table is supported in the Data Privacy Utilities and Data Classification Worksheet.
+    /// </summary>
+    /// <param name="TableNo"></param>
+    /// <returns>True if the table has type Normal and not obsoleted</returns>
+    procedure IsSupportedTable(TableNo: Integer): Boolean
+    begin
+        exit(DataClassificationMgtImpl.IsSupportedTable(TableNo));
+    end;
+
+    /// <summary>
     /// Raises an event that allows subscribers to insert Data Privacy Entities in the DataPrivacyEntities record.
     /// Throws an error when it is not called with a temporary record.
     /// </summary>

@@ -19,7 +19,7 @@ codeunit 132684 "Azure OpenAI Test"
         CopilotTestLibrary: Codeunit "Copilot Test Library";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
         LibraryAssert: Codeunit "Library Assert";
-        Any: codeunit Any;
+        Any: Codeunit Any;
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
         EndpointTxt: Label 'https://resourcename.openai.azure.com/', Locked = true;
         DeploymentTxt: Label 'deploymentid', Locked = true;

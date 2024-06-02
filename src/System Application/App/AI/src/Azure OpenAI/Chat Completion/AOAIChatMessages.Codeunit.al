@@ -70,6 +70,18 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Adds a tool result to the chat messages history.
+    /// </summary>
+    /// <param name="ToolCallId">The id of the tool call.</param>
+    /// <param name="FunctionName">The name of the called function.</param>
+    /// <param name="FunctionResult">The result of the tool call.</param>
+    [NonDebuggable]
+    procedure AddToolMessage(ToolCallId: Text; FunctionName: Text; FunctionResult: Text)
+    begin
+        AOAIChatMessagesImpl.AddToolMessage(ToolCallId, FunctionName, FunctionResult);
+    end;
+
+    /// <summary>
     /// Modifies a message in the chat messages history.
     /// </summary>
     /// <param name="Id">Id of the message.</param>
@@ -179,17 +191,27 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Gets the number of tokens used by the primary system messages and all other messages.
+    /// </summary>
+    [NonDebuggable]
+    procedure GetHistoryTokenCount(): Integer
+    begin
+        exit(AOAIChatMessagesImpl.GetHistoryTokenCount());
+    end;
+
+#if not CLEAN25
+    /// <summary>
     /// Appends a Tool to the payload.
     /// </summary>
     /// <param name="NewTool">The Tool to be added to the payload.</param>
     /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
     [NonDebuggable]
+    [Obsolete('Use AddTool that takes in an AOAI Function interface.', '25.0')]
     procedure AddTool(NewTool: JsonObject)
-    var
-        CallerModuleInfo: ModuleInfo;
     begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        AOAIToolsImpl.AddTool(NewTool, CallerModuleInfo);
+#pragma warning disable AL0432
+        AOAIToolsImpl.AddTool(NewTool);
+#pragma warning restore AL0432
     end;
 
     /// <summary>
@@ -199,9 +221,12 @@ codeunit 7763 "AOAI Chat Messages"
     /// <param name="NewTool">The new Tool.</param>
     /// <error>Message id does not exist.</error>
     [NonDebuggable]
+    [Obsolete('Deprecated with no replacement. Use DeleteFunctionTool and AddTool.', '25.0')]
     procedure ModifyTool(Id: Integer; NewTool: JsonObject)
     begin
+#pragma warning disable AL0432
         AOAIToolsImpl.ModifyTool(Id, NewTool);
+#pragma warning restore AL0432
     end;
 
     /// <summary>
@@ -209,20 +234,76 @@ codeunit 7763 "AOAI Chat Messages"
     /// </summary>
     /// <param name="Id">Id of the Tool.</param>
     /// <error>Message id does not exist.</error>
+    [Obsolete('Use DeleteFunctionTool that takes in a function name instead.', '25.0')]
     procedure DeleteTool(Id: Integer)
     begin
+#pragma warning disable AL0432
         AOAIToolsImpl.DeleteTool(Id);
+#pragma warning restore AL0432
+    end;
+#endif
+
+    /// <summary>
+    /// Adds a function to the payload.
+    /// </summary>
+    /// <param name="Function">The function to be added</param>
+    procedure AddTool(Function: Interface "AOAI Function")
+    begin
+        AOAIToolsImpl.AddTool(Function);
     end;
 
+    /// <summary>
+    /// Deletes a Function from the list of Functions.
+    /// </summary>
+    /// <param name="Name">Name of the Function.</param>
+    /// <error>Message id does not exist.</error>
+    procedure DeleteFunctionTool(Name: Text): Boolean
+    begin
+        exit(AOAIToolsImpl.DeleteTool(Name));
+    end;
+
+    /// <summary>
+    /// Remove all tools.
+    /// </summary>
+    procedure ClearTools()
+    begin
+        AOAIToolsImpl.ClearTools();
+    end;
+
+    /// <summary>
+    /// Gets the function associated with the specified name.
+    /// </summary>
+    /// <param name="Name">Name of the function to get.</param>
+    /// <returns>The function codeunit.</returns>
+    /// <error>Tool not found.</error>
+    procedure GetFunctionTool(Name: Text; var Function: Interface "AOAI Function"): Boolean
+    begin
+        exit(AOAIToolsImpl.GetTool(Name, Function));
+    end;
+
+    /// <summary>
+    /// Gets the list of names of Function Tools that have been added.
+    /// </summary>
+    /// <returns>List of function tool names.</returns>
+    procedure GetFunctionTools(): List of [Text]
+    begin
+        exit(AOAIToolsImpl.GetFunctionTools());
+    end;
+
+#if not CLEAN25
     /// <summary>
     /// Gets the list of Tools.
     /// </summary>
     /// <returns>List of Tools.</returns>
     [NonDebuggable]
+    [Obsolete('Use GetFunctionTool() that takes in a function name and returns the interface.', '25.0')]
     procedure GetTools(): List of [JsonObject]
     begin
+#pragma warning disable AL0432
         exit(AOAIToolsImpl.GetTools());
+#pragma warning restore AL0432
     end;
+#endif
 
     /// <summary>
     /// Checks if at least one Tools exists in the list.
@@ -251,6 +332,28 @@ codeunit 7763 "AOAI Chat Messages"
     procedure SetToolChoice(ToolChoice: Text)
     begin
         AOAIToolsImpl.SetToolChoice(ToolChoice);
+    end;
+
+    /// <summary>
+    /// Sets the function as the tool choice to be called.
+    /// </summary>
+    /// <param name="FunctionName">The function name parameter. </param>
+    /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
+    [NonDebuggable]
+    procedure SetFunctionAsToolChoice(FunctionName: Text)
+    begin
+        AOAIToolsImpl.SetFunctionAsToolChoice(FunctionName);
+    end;
+
+    /// <summary>
+    /// Sets the function as the tool choice to be called.
+    /// </summary>
+    /// <param name="Function">The function codeunit.</param>
+    /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
+    [NonDebuggable]
+    procedure SetFunctionAsToolChoice(Function: Interface "AOAI Function")
+    begin
+        AOAIToolsImpl.SetFunctionAsToolChoice(Function);
     end;
 
     /// <summary>

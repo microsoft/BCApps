@@ -29,9 +29,6 @@ function Get-BuildMode() {
 }
 
 function Get-CurrentBranch() {
-    if ($ENV:GITHUB_REF) {
-        return $ENV:GITHUB_REF.Replace("refs/heads/", "")
-    }
     return git rev-parse --abbrev-ref HEAD
 }
 
@@ -66,6 +63,38 @@ function New-Directory()
     }
 }
 
+function GetPath($Path, $Relative) {
+    if ($Relative) {
+        return $Path
+    }
+
+    return Join-Path (Get-BaseFolder) $Path -Resolve
+}
+
+<#
+.Synopsis
+    Gets the path to the AL-Go settings file
+.Parameter Relative
+    If specified, the path will be relative to the base folder
+.Outputs
+    System.String - The path to the AL-Go settings file
+#>
+function Get-ALGoSettingsPath([switch] $Relative) {
+    return GetPath ".github/AL-Go-Settings.json" $Relative
+}
+
+<#
+.Synopsis
+    Gets the path to the Packages file
+.Parameter Relative
+    If specified, the path will be relative to the base folder
+.Outputs
+    System.String - The path to the Packages file
+#>
+function Get-PackagesFilePath([switch] $Relative) {
+    return GetPath "build/Packages.json" $Relative
+}
+
 <#
 .Synopsis
     Get the value of a key from a config file
@@ -84,14 +113,11 @@ function Get-ConfigValue() {
     )
 
     switch ($ConfigType) {
-        "BuildConfig" {
-            $ConfigPath = Join-Path (Get-BaseFolder) "build/BuildConfig.json" -Resolve
-        }
         "AL-GO" {
-            $ConfigPath = Join-Path (Get-BaseFolder) ".github/AL-Go-Settings.json" -Resolve
+            $ConfigPath = Get-ALGoSettingsPath
         }
         "Packages" {
-            $ConfigPath = Join-Path (Get-BaseFolder) "build/Packages.json" -Resolve
+            $ConfigPath = Get-PackagesFilePath
         }
     }
 
@@ -178,6 +204,8 @@ function Set-ConfigValue() {
     For example, if the repo version is 1.2, the function will look for the latest version of the package that has major.minor = 1.2.
 .Parameter PackageName
     The name of the package
+.Returns
+    The latest version of the package
 #>
 function Get-PackageLatestVersion() {
     param(
@@ -215,7 +243,23 @@ function Get-PackageLatestVersion() {
                 }
             }
 
-            return Get-LatestBCArtifactVersion -minimumVersion $minimumVersion
+            $currentBranch = Get-CurrentBranch
+            Write-Host "Current branch: $currentBranch"
+            $storageAccountOrder = @("bcartifacts", "bcinsider")
+            if($currentBranch -eq "main") {
+                # Always use bcinsider for baselines for the main branch
+                $storageAccountOrder = @("bcinsider")
+            }
+
+            $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $minimumVersion -storageAccountOrder $storageAccountOrder
+
+            if ($latestArtifactUrl -and ($latestArtifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
+                $latestVersion = $Matches[0]
+            } else {
+                throw "Could not find BCArtifact version (for min version: $minimumVersion)"
+            }
+
+            return $latestVersion
         }
         default {
             throw "Unknown package source: $($package.Source)"
@@ -228,27 +272,99 @@ function Get-PackageLatestVersion() {
     Gets the latest version of a BC artifact
 .Parameter MinimumVersion
     The minimum version of the artifact to look for
+.Parameter StorageAccountOrder
+    The order of storage accounts to look for the artifact in
+.Returns
+    The latest version of the artifact
 #>
-function Get-LatestBCArtifactVersion
+function Get-LatestBCArtifactUrl
 (
     [Parameter(Mandatory=$true)]
-    $minimumVersion
+    $minimumVersion,
+    [Parameter(Mandatory=$false)]
+    $storageAccountOrder = @("bcartifacts", "bcinsider")
 )
 {
-    $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest
+    $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount $storageAccountOrder[0] -accept_insiderEula
+
+    if(-not $artifactUrl -and $storageAccountOrder.Count -gt 1) {
+        #Fallback to the other storage account
+        $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount $storageAccountOrder[1] -accept_insiderEula
+    }
 
     if(-not $artifactUrl) {
-        #Fallback to bcinsider
-        $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount bcinsider -accept_insiderEula
+        throw "No artifact found for version $minimumVersion"
     }
 
-    if ($artifactUrl -and ($artifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
-        $latestVersion = $Matches[0]
+    return $artifactUrl
+}
+
+<#
+.Synopsis
+    Updates the BCArtifact version in the AL-Go settings file (artifact property) to the latest version available on the BC artifacts feed (bcinsider/bcartifacts storage account).
+.Returns
+    The new version of the BCArtifact, if it was updated
+#>
+function Update-BCArtifactVersion {
+    $currentArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
+
+    Write-Host "Current BCArtifact URL: $currentArtifactUrl"
+
+    $currentVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
+    $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $currentVersion
+
+    Write-Host "Latest BCArtifact URL: $latestArtifactUrl"
+
+    $result = $null
+    if($latestArtifactUrl -ne $currentArtifactUrl) {
+        Write-Host "Updating BCArtifact version from $currentArtifactUrl to $latestArtifactUrl"
+        Set-ConfigValue -Key "artifact" -Value $latestArtifactUrl -ConfigType AL-Go
+
+        $result = $latestArtifactUrl # only return the new version if it was updated
+    }
+
+    return $result
+}
+
+<#
+.Synopsis
+    Updates the version of a package in the Packages config file to the latest version available.
+.Parameter PackageName
+    The name of the package to update
+.Returns
+    The new version of the package, if it was updated
+#>
+function Update-PackageVersion
+(
+    [Parameter(Mandatory=$true)]
+    [string] $PackageName
+)
+{
+    $currentPackage = Get-ConfigValue -Key $PackageName -ConfigType Packages
+    # Defensively check if the package is not found in the config
+    if(!$currentPackage) {
+        throw "Package $PackageName not found in Packages config"
+    }
+
+    $currentVersion = $currentPackage.Version
+    Write-Host "Current $PackageName version: $currentVersion"
+
+    $latestVersion = Get-PackageLatestVersion -PackageName $PackageName
+    Write-Host "Latest $PackageName version found: $latestVersion"
+
+    $result = $null
+    if ([System.Version] $latestVersion -gt [System.Version] $currentVersion) {
+        Write-Host "Updating $PackageName version from $currentVersion to $latestVersion"
+
+        $currentPackage.Version = $latestVersion
+        Set-ConfigValue -Key $PackageName -Value $currentPackage -ConfigType Packages
+
+        $result = $latestVersion
     } else {
-        throw "Could not find BCArtifact version (for min version: $minimumVersion)"
+        Write-Host "$PackageName is already up to date."
     }
 
-    return $latestVersion
+    return $result
 }
 
 <#

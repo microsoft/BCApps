@@ -33,19 +33,19 @@ codeunit 1491 "Edit in Excel Filters Impl."
         FilterContainsMultipleOperatorsTxt: Label 'The page filter contains multiple operators, the latter was removed.', Locked = true;
         FieldPayloadEdmTypeTok: Label 'fieldPayload.%1.edmType', Locked = true;
 
-    procedure AddField(ODataFieldName: Text; EditinExcelFilterCollectionType: Enum "Edit in Excel Filter Collection Type"; EditInExcelEdmType: Enum "Edit in Excel Edm Type"): Interface "Edit in Excel Field Filter"
+    procedure AddField(ODataFieldName: Text; EditinExcelFilterCollectionType: Enum "Edit in Excel Filter Collection Type"; EditInExcelEdmType: Enum "Edit in Excel Edm Type"): Codeunit "Edit in Excel Fld Filter Impl."
     begin
         TryAdd(ODataFieldName, EditinExcelFilterCollectionType, Format(EditInExcelEdmType));
         exit(Get(ODataFieldName));
     end;
 
-    procedure AddField(ODataFieldName: Text; EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text; EditInExcelEdmType: Enum "Edit in Excel Edm Type") EditinExcelFieldFilter: Interface "Edit in Excel Field Filter"
+    procedure AddField(ODataFieldName: Text; EditInExcelFilterType: Enum "Edit in Excel Filter Type"; FilterValue: Text; EditInExcelEdmType: Enum "Edit in Excel Edm Type") EditinExcelFieldFilter: Codeunit "Edit in Excel Fld Filter Impl."
     begin
         EditinExcelFieldFilter := AddField(ODataFieldName, "Edit in Excel Filter Collection Type"::"and", EditInExcelEdmType);
-        Get(ODataFieldName).AddFilterValue(EditInExcelFilterType, FilterValue);
+        Get(ODataFieldName).AddFilterValueV2(EditInExcelFilterType, FilterValue);
     end;
 
-    procedure Get(ODataFieldName: Text): Interface "Edit in Excel Field Filter"
+    procedure Get(ODataFieldName: Text): Codeunit "Edit in Excel Fld Filter Impl."
     var
         EditinExcelFldFilterImpl: Codeunit "Edit in Excel Fld Filter Impl.";
         FilterCollectionNode: DotNet FilterCollectionNode;
@@ -137,7 +137,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
                             Session.LogMessage('0000I3X', FilterContainsMultipleOperatorsTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
                             exit; // OData does not support filtering on a field with both 'and' and 'or' hence if we see both, ignore the second type
                         end;
-                    Get(ODataFieldName).AddFilterValue(EditinExcelFilterType, FilterValue);
+                    Get(ODataFieldName).AddFilterValueV2(EditinExcelFilterType, FilterValue);
                 end;
         end;
     end;

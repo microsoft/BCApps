@@ -18,7 +18,7 @@ codeunit 329 "No. Series Installer"
         SetupNoSeriesImplementation();
     end;
 
-    local procedure SetupNoSeriesImplementation()
+    internal procedure SetupNoSeriesImplementation()
     var
         NoSeriesLine: Record "No. Series Line";
         UpgradeTag: Codeunit "Upgrade Tag";
@@ -27,6 +27,7 @@ codeunit 329 "No. Series Installer"
         if UpgradeTag.HasUpgradeTag(NoSeriesUpgradeTags.GetImplementationUpgradeTag()) then
             exit;
 
+        NoSeriesLine.SetRange(Implementation, 0); // Only update the No. Series Lines that are still referencing the default implementation (0)
         NoSeriesLine.SetRange("Allow Gaps in Nos.", true);
         NoSeriesLine.ModifyAll(Implementation, "No. Series Implementation"::Sequence, false);
         NoSeriesLine.SetRange("Allow Gaps in Nos.", false);

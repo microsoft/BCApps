@@ -18,7 +18,6 @@ codeunit 9045 "ABS Web Request Helper"
         HttpResponseInfoErr: Label '%1.\\Response Code: %2 %3', Comment = '%1 = Default Error Message ; %2 = Status Code; %3 = Reason Phrase';
 
     #region GET Request
-    [NonDebuggable]
     procedure GetOperationAsText(var ABSOperationPayload: Codeunit "ABS Operation Payload"; var ResponseText: Text; OperationNotSuccessfulErr: Text): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
@@ -32,7 +31,6 @@ codeunit 9045 "ABS Web Request Helper"
         exit(ABSOperationResponse);
     end;
 
-    [NonDebuggable]
     procedure GetOperationAsStream(var ABSOperationPayload: Codeunit "ABS Operation Payload"; var InStream: InStream; OperationNotSuccessfulErr: Text): Codeunit "ABS Operation Response"
     var
         ABSOperationResponse: Codeunit "ABS Operation Response";
