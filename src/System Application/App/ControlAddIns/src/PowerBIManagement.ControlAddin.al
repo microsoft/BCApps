@@ -17,8 +17,8 @@ controladdin PowerBIManagement
     HorizontalShrink = true;
 
     Scripts = 'Resources\PowerBIManagement\js\PowerBIManagement.js',
-              // The powerbi.js file comes from the nuget package: Microsoft.PowerBI.Javascript version: 2.22.2
-              // https://github.com/microsoft/PowerBI-JavaScript/blob/master/dist/powerbi.js
+              // The powerbi.js file comes from the nuget package: Microsoft.PowerBI.Javascript version: 2.23.1
+              // https://github.com/microsoft/PowerBI-JavaScript/blob/release_2.23.1/dist/powerbi.js
               // The file below should point to the nuget package when the AL infrastructure supports it.
               'Resources\PowerBIManagement\js\powerbi.js';
     StartupScript = 'Resources\PowerBIManagement\js\Startup.js';
