@@ -106,7 +106,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the Total Duration (ms) for executing all the tests in the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(13; Version; Integer)
         {
@@ -163,7 +163,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of tests executed in the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(22; "No. of Tests Passed"; Integer)
         {
@@ -171,7 +171,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of tests passed in the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
         field(23; "No. of Operations"; Integer) //TODO: Change the name to No. of Scenarios? 
         {
@@ -187,7 +187,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of tests executed in the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(32; "No. of Tests Passed - Base"; Integer)
         {
@@ -195,7 +195,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of tests passed in the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
         field(33; "No. of Operations - Base"; Integer) //TODO: Change the name to No. of Scenarios? 
         {
@@ -211,7 +211,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the Total Duration (ms) for executing all the tests in the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Base Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(50; "Test Runner Id"; Integer)
         {

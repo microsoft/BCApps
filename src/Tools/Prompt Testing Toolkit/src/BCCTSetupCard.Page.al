@@ -91,11 +91,6 @@ page 149031 "BCCT Setup Card"
                         ToolTip = 'Specifies when the test was started.';
                         ApplicationArea = All;
                     }
-                    field(BaseVersion; Rec."Base Version")
-                    {
-                        ToolTip = 'Specifies the Base version of the test run. Used for comparisons in the lines.';
-                        ApplicationArea = All;
-                    }
                     field(Version; Rec.Version)
                     {
                         ToolTip = 'Specifies the current version of the test run. Log entries will get this version no.';

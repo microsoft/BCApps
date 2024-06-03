@@ -14,7 +14,7 @@ codeunit 149036 "BCCT Start Tests"
 
     trigger OnRun();
     begin
-        this.StartBenchmarkTests(Rec);
+        this.StartAITests(Rec);
     end;
 
     var
@@ -22,7 +22,7 @@ codeunit 149036 "BCCT Start Tests"
         CannotRunMultipleSuitesInParallelErr: Label 'There is already test run in progress. Start this operaiton after that finishes.';
         RunningTestsMsg: Label 'Running tests...';
 
-    local procedure StartBenchmarkTests(BCCTHeader: Record "BCCT Header")
+    local procedure StartAITests(BCCTHeader: Record "BCCT Header")
     var
         BCCTLine: Record "BCCT Line";
         BCCTHeaderCU: Codeunit "BCCT Header";

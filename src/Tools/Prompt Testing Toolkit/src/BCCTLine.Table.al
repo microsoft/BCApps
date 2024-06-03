@@ -132,7 +132,7 @@ table 149032 "BCCT Line"
             // ToolTip ='Specifies the number of tests executed for this BCCT line.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
 #pragma warning disable AA0232
         // TODO: Remove warning, add SIFT key
@@ -142,7 +142,7 @@ table 149032 "BCCT Line"
             Caption = 'Total Duration (ms)';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(19; Sequence; Option)
         {
@@ -167,14 +167,14 @@ table 149032 "BCCT Line"
             // ToolTip ='Specifies the number of tests executed for this BCCT line for the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(27; "Total Duration - Base (ms)"; Integer)
         {
             Caption = 'Total Duration - Base (ms)';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(22; "No. of Tests Passed"; Integer)
         {
@@ -182,7 +182,7 @@ table 149032 "BCCT Line"
             // ToolTip ='Specifies the number of tests passed in the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
         field(23; "No. of Operations"; Integer) //TODO: Change the name to No. of Scenarios? 
         {
@@ -198,7 +198,7 @@ table 149032 "BCCT Line"
             // ToolTip ='Specifies the number of tests passed in the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
         field(31; "No. of Operations - Base"; Integer) //TODO: Change the name to No. of Scenarios? 
         {
@@ -244,7 +244,7 @@ table 149032 "BCCT Line"
     var
         ALTestSuite: Record "AL Test Suite";
     begin
-        if Rec."AL Test Suite" <> '' then 
+        if Rec."AL Test Suite" <> '' then
             if ALTestSuite.Get(Rec."AL Test Suite") then
                 ALTestSuite.Delete(true);
     end;
