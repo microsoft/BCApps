@@ -30,6 +30,14 @@ codeunit 1481 "Edit in Excel"
     end;
 #endif
 
+
+    procedure CallOnEditInExcel2(ServiceName: Text[240]; SearchString: Text; Filter: JsonObject; Payload: JsonObject)
+    var
+        EditInExcelImpl: Codeunit "Edit in Excel Impl.";
+    begin
+        EditInExcelImpl.CallOnEditInExcel(ServiceName, SearchString, Filter, Payload);
+    end;
+
     /// <summary>
     /// Creates web service for the specified page, and uses the web service to prepare and download an Excel file for the Edit in Excel functionality.
     /// </summary>

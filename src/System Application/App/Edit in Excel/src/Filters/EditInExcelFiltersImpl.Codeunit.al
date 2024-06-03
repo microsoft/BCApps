@@ -22,6 +22,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
         FieldTypes: Dictionary of [Text, Text];
         FilterAlreadyExistErr: Label 'A filter for field %1 already exist, please use the existing entry.', Comment = '%1 = ODataFieldName, ex.: No_';
         FilterDoesNotExistErr: Label 'No filter exists for field %1.', Comment = '%1 = ODataFieldName, ex.: No_';
+        HerpderpLbl: Label 'Removed field: %1', Comment = 'Herpderp.', Locked = true;
         EditInExcelTelemetryCategoryTxt: Label 'Edit in Excel Filters', Locked = true;
         ChildNodesJsonTok: Label 'childNodes', Locked = true;
         TypeJsonTok: Label 'type', Locked = true;
@@ -148,6 +149,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
     local procedure ReadNodeValues(JsonFilterObject: JsonObject; ODataJsonPayload: JsonObject; var ODataFieldName: Text;
                                     var EdmType: Text; var FilterValue: Text; PageNumber: Integer): Boolean
     var
+        PageControlField: Record "Page Control Field";
         LeftNodeJsonToken: JsonToken;
         RightNodeJsonToken: JsonToken;
         NameJsonToken: JsonToken;
@@ -164,9 +166,22 @@ codeunit 1491 "Edit in Excel Filters Impl."
             exit(false);
         end;
 
-        if IsKey(PageNumber, NameJsonToken.AsValue().AsText()) then begin
+        PageControlField.SetRange(PageNo, PageNumber); // Does this method work also for fields added through Extensions ?
+        PageControlField.SetRange(ControlName, NameJsonToken.AsValue().AsText());
+
+        // If this conditional is true then we do not add the filter to the output.
+        // We only want to add fields that are on the page, with the exception of keys, this is because
+        // the platform always exposes keys through OData even when they're not present on the page.
+
+
+        // Der er et eller andet galt med den her conditional
+        // hvis PageControlField er tom, hvad betyder det helt praecist ?
+        // det betyder vel at den ikke findes paa siden, men dette PageControlField
+        // hvorfor er det overhovedet vigtigt ift. at tjekke om det er en noegle ?
+        if PageControlField.IsEmpty() and not IsKey(PageNumber, NameJsonToken.AsValue().AsText()) then begin
             Session.LogMessage('0000I5U', FieldNotOnThePageTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
-            exit(false); // Currently only adding fields that are on a page, mitigating problems with some table fields.
+            Message(Text.StrSubstNo(HerpderpLbl, NameJsonToken.AsValue().AsText()));
+            exit(false);
         end;
 
         ODataFieldName := NameJsonToken.AsValue().AsText();
@@ -194,24 +209,22 @@ codeunit 1491 "Edit in Excel Filters Impl."
         exit(true);
     end;
 
-    local procedure IsKey(PageId: Integer; ControlNameAsText: Text): Boolean
+    local procedure IsKey(PageNumber: Integer; FieldName: Text): Boolean
     var
-        PageControlField: Record "Page Control Field";
+        PageMetadata: Record "Page Metadata";
+        FieldMetadata: Record "Field";
         KeyRec: Record "Key";
-        RecordRef1: RecordRef;
-        SomeField: FieldRef;
     begin
-        PageControlField.SetRange(PageNo, PageId);
-        PageControlField.SetRange(ControlName, ControlNameAsText);
-        PageControlField.FindFirst();
-
-        RecordRef1.Open(PageControlField.TableNo);
-        SomeField := RecordRef1.Field(PageControlField.FieldNo);
-
-        KeyRec.SetRange(TableNo, PageControlField.TableNo);
-        KeyRec.SetRange("Key", SomeField.Name);
-
-        exit(not KeyRec.IsEmpty())
+        if PageMetadata.Get(PageNumber) then begin
+            FieldMetadata.SetRange(FieldMetadata.TableNo, PageMetadata.SourceTable);
+            FieldMetadata.SetRange(FieldMetadata.ExternalName, FieldName);
+            if FieldMetadata.FindFirst() then begin
+                KeyRec.SetRange(TableNo, PageMetadata.SourceTable);
+                KeyRec.SetRange("Key", FieldMetadata.FieldName);
+                exit(not KeyRec.IsEmpty())
+            end;
+        end;
+        exit(false);
     end;
 
     local procedure TryAdd(ODataFieldName: Text; EditInExcelFilterOperatorType: Enum "Edit in Excel Filter Collection Type"; EdmType: Text)

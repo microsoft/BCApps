@@ -874,4 +874,29 @@ codeunit 1482 "Edit in Excel Impl."
 
         GetEndPointAndCreateWorkbookWStructuredFilter(ServiceName, EditinExcelFilters, SearchString);
     end;
+
+    procedure CallOnEditInExcel(ServiceName: Text[240]; SearchString: Text; Filter: JsonObject; Payload: JsonObject)
+    var
+        TenantWebService: Record "Tenant Web Service";
+        EditinExcelFilters: Codeunit "Edit in Excel Filters";
+        Handled: Boolean;
+    begin
+        EditinExcel.OnEditInExcelWithStructuredFilter(ServiceName, Filter, Payload, SearchString, Handled);
+        if Handled then begin
+            Session.LogMessage('0000I43', EditInExcelHandledTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
+            exit;
+        end;
+
+        if not TenantWebService.Get(TenantWebService."Object Type"::Page, ServiceName) then
+            exit;
+
+        EditinExcelFilters.ReadFromJsonFilters(Filter, Payload, TenantWebService."Object ID");
+        EditinExcel.OnEditInExcelWithFilters(ServiceName, EditinExcelFilters, SearchString, Handled);
+        if Handled then begin
+            Session.LogMessage('0000IG8', EditInExcelHandledTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
+            exit;
+        end;
+
+        GetEndPointAndCreateWorkbookWStructuredFilter(ServiceName, EditinExcelFilters, SearchString);
+    end;
 }
