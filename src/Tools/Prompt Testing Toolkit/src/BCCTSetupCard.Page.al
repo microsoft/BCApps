@@ -288,13 +288,13 @@ page 149031 "BCCT Setup Card"
             action(Datasets)
             {
                 ApplicationArea = All;
-                Caption = 'Datasets';
+                Caption = 'Input Datasets';
                 Image = DataEntry;
                 Promoted = true;
                 PromotedOnly = true;
                 PromotedCategory = Process;
-                ToolTip = 'Open datasets.';
-                RunObject = page "BCCT Datasets";
+                ToolTip = 'Open input datasets.';
+                RunObject = page "Test Input Groups";
             }
         }
     }
