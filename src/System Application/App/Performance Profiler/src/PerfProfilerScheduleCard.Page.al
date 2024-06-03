@@ -194,7 +194,12 @@ page 1932 "Perf. Profiler Schedule Card"
     trigger OnModifyRecord(): Boolean
     begin
         ScheduledPerfProfiler.MapActivityTypeToRecord(Rec, Activity);
-        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(Rec);
+        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(Rec, Activity);
+    end;
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    begin
+        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(Rec, Activity);
     end;
 
     var

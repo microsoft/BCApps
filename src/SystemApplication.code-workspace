@@ -31,12 +31,7 @@
 		{
 			"name": "System Application Tests",
 			"path": "System Application\\Test"
-		},
-                {
-			"name": "Scheduled Performance Profiler",
-			"path": "Temp\\ScheduledPerformanceProfiler"
 		}
-
 	],
 	"settings": {}
 }

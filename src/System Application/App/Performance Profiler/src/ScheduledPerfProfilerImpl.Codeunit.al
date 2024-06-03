@@ -55,14 +55,15 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     procedure ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
     begin
         if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Starting Date-Time" > PerformanceProfileScheduler."Ending Date-Time")) then
-            Error(ProfileStartingDateLessThenEndingDateLbl);
+            Error(ProfileStartingDateLessThenEndingDateErr);
     end;
 
-    procedure ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
+    procedure ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Activity Type")
     var
         LocalPerformanceProfileScheduler: Record "Performance Profile Scheduler";
-
     begin
+        MapActivityTypeToRecord(PerformanceProfileScheduler, ActivityType);
+
         if ((PerformanceProfileScheduler."Ending Date-Time" = 0DT) or
             (PerformanceProfileScheduler."Starting Date-Time" = 0DT) or
             (IsNullGuid(PerformanceProfileScheduler."User ID"))) then
@@ -78,7 +79,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
             (LocalPerformanceProfileScheduler."Starting Date-Time" <> 0DT) and
             (LocalPerformanceProfileScheduler."Ending Date-Time" <> 0DT) and
             (LocalPerformanceProfileScheduler."Schedule ID" <> PerformanceProfileScheduler."Schedule ID")) then
-            Error(ProfileHasAlreadyBeenScheduledLbl);
+            Error(ProfileHasAlreadyBeenScheduledErr);
     end;
 
     procedure GetRetentionPeriod(): Code[20]
@@ -113,6 +114,6 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     end;
 
     var
-        ProfileStartingDateLessThenEndingDateLbl: Label 'The performance profile starting date must be set before the ending date.';
-        ProfileHasAlreadyBeenScheduledLbl: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
+        ProfileStartingDateLessThenEndingDateErr: Label 'The performance profile starting date must be set before the ending date.';
+        ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
 }
