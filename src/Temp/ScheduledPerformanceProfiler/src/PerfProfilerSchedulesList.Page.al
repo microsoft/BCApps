@@ -107,9 +107,22 @@ page 1933 "Perf. Profiler Schedules List"
     }
     actions
     {
-        area(Processing)
+        area(Promoted)
         {
+            actionref(OpenProfiles; "Open Profiles")
+            {
+            }
+        }
 
+        area(Navigation)
+        {
+            action("Open Profiles")
+            {
+                ApplicationArea = All;
+                Caption = 'Open Profiles';
+                RunObject = page "Performance Profiles";
+                RunPageLink = "Schedule ID" = field("Schedule ID");
+            }
         }
     }
     trigger OnAfterGetCurrRecord()
