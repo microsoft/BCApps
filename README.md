@@ -1,4 +1,4 @@
-# Welcome to BCApps: Microsoft Dynamics 365 Business Central Applicationtest
+# Welcome to BCApps: Microsoft Dynamics 365 Business Central Application
 
 ## The Repository
 This repository contains the source code for several _Business Central_ applications, developed by Microsoft.
