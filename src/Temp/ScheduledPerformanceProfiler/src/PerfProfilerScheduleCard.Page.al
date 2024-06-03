@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.Tooling;
 using System.PerformanceProfile;
 using System.Security.AccessControl;
@@ -93,7 +98,6 @@ page 1932 "Perf. Profiler Schedules Card"
                 field(Activity; Activity)
                 {
                     Caption = 'Activity Type';
-                    OptionCaption = 'Activity in the browser, Background Tasks, Calling external components through REST calls';
                     ToolTip = 'The type of activity for which the schedule is created.';
                     AboutText = 'The type of activity for which the schedule is created.';
 
@@ -180,6 +184,6 @@ page 1932 "Perf. Profiler Schedules Card"
 
     var
         SchedulerPage: codeunit "Scheduled Perf Profiler";
-        Activity: Option WebClient,Background,WebAPIClient;
+        Activity: enum ActivityType;
 
 }

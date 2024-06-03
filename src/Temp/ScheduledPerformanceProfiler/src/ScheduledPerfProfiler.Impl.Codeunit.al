@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.Tooling;
 using System.PerformanceProfile;
 using System.Security.AccessControl;
@@ -15,7 +20,7 @@ codeunit 1932 "Scheduled Perf Profiler Impl"
         end;
     end;
 
-    procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; ActivityType: Option WebClient,Background,WebAPIClient)
+    procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; ActivityType: enum ActivityType)
     begin
         if (ActivityType = ActivityType::WebClient) then
             PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::"Web Client"
@@ -25,7 +30,7 @@ codeunit 1932 "Scheduled Perf Profiler Impl"
             PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::"Web Service";
     end;
 
-    procedure MapRecordToActivityType(PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: Option WebClient,Background,WebAPIClient)
+    procedure MapRecordToActivityType(PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: enum ActivityType)
     begin
         if (PerformanceProfileScheduler."Client Type" = PerformanceProfileScheduler."Client Type"::Background) then
             ActivityType := ActivityType::Background
@@ -35,7 +40,7 @@ codeunit 1932 "Scheduled Perf Profiler Impl"
             ActivityType := ActivityType::WebAPIClient;
     end;
 
-    procedure InitializeFields(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: Option WebClient,Background,WebAPIClient)
+    procedure InitializeFields(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: enum ActivityType)
     begin
         PerformanceProfileScheduler.Init();
         PerformanceProfileScheduler."Schedule ID" := CreateGuid();
@@ -44,6 +49,7 @@ codeunit 1932 "Scheduled Perf Profiler Impl"
         PerformanceProfileScheduler."Profile Keep Time" := 7;
         PerformanceProfileScheduler."Profile Creation Threshold" := 500;
         PerformanceProfileScheduler.Frequency := PerformanceProfileScheduler.Frequency::"100";
+        PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::"Web Client";
         ActivityType := ActivityType::WebClient;
     end;
 

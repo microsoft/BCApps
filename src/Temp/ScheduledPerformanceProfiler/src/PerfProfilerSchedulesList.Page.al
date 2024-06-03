@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.Tooling;
 using System.PerformanceProfile;
 using System.Security.AccessControl;
@@ -119,5 +124,5 @@ page 1933 "Perf. Profiler Schedules List"
 
     var
         SchedulerPage: codeunit "Scheduled Perf Profiler";
-        Activity: Option WebClient,Background,WebAPIClient;
+        Activity: enum ActivityType;
 }

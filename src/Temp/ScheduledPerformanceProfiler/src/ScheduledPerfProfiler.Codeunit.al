@@ -1,3 +1,8 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
 namespace System.Tooling;
 using System.PerformanceProfile;
 
@@ -31,7 +36,7 @@ codeunit 1931 "Scheduled Perf Profiler"
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
     /// <param name="ActivityType">The actvity option type</param>
-    procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; ActivityType: Option WebClient,Background,WebAPIClient)
+    procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; ActivityType: enum ActivityType)
     begin
         SchedulerPage.MapActivityTypeToRecord(PerformanceProfileScheduler, ActivityType);
     end;
@@ -41,7 +46,7 @@ codeunit 1931 "Scheduled Perf Profiler"
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
     /// <param name="ActivityType">The actvity option type</param>
-    procedure MapRecordToActivityType(PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: Option WebClient,Background,WebAPIClient)
+    procedure MapRecordToActivityType(PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: enum ActivityType)
     begin
         SchedulerPage.MapRecordToActivityType(PerformanceProfileScheduler, ActivityType);
     end;
@@ -51,7 +56,7 @@ codeunit 1931 "Scheduled Perf Profiler"
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
     /// <param name="ActivityType">>The actvity option type</param>
-    procedure InitializeFields(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: Option WebClient,Background,WebAPIClient)
+    procedure InitializeFields(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: enum ActivityType)
     begin
         SchedulerPage.InitializeFields(PerformanceProfileScheduler, ActivityType);
     end;
