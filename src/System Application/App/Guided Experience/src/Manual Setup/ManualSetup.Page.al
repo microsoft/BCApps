@@ -118,8 +118,6 @@ page 1875 "Manual Setup"
     end;
 
     local procedure SetPageVariablesForSetupRecord()
-    var
-        GuidedExperienceImpl: Codeunit "Guided Experience Impl.";
     begin
         NameIndent := 1;
         NameEmphasize := false;

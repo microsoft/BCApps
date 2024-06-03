@@ -521,7 +521,7 @@ codeunit 1991 "Guided Experience Impl."
         end;
     end;
 
-    procedure GetContentForManualSetup(var GuidedExperienceItemTemp: Record "Guided Experience Item" temporary)
+    procedure GetContentForManualSetup(var TempGuidedExperienceItemTemp: Record "Guided Experience Item" temporary)
     var
         GuidedExperienceItem: Record "Guided Experience Item";
         GroupValue: Enum "Manual Setup Category";
@@ -539,17 +539,17 @@ codeunit 1991 "Guided Experience Impl."
 
             if GuidedExperienceItem.FindSet() then begin
                 // this part is necessary to include the Manual Setup Category as a header on the page
-                GuidedExperienceItemTemp.Init();
-                GuidedExperienceItemTemp.Code := Format(GroupId);
-                GuidedExperienceItemTemp."Object ID to Run" := GroupId;
-                GuidedExperienceItemTemp.Title := Format(GroupValue);
-                GuidedExperienceItemTemp."Short Title" := Format(GroupValue);
-                GuidedExperienceItemTemp."Manual Setup Category" := GroupValue;
-                GuidedExperienceItemTemp.Insert();
+                TempGuidedExperienceItemTemp.Init();
+                TempGuidedExperienceItemTemp.Code := Format(GroupId);
+                TempGuidedExperienceItemTemp."Object ID to Run" := GroupId;
+                TempGuidedExperienceItemTemp.Title := Format(GroupValue);
+                TempGuidedExperienceItemTemp."Short Title" := Format(GroupValue);
+                TempGuidedExperienceItemTemp."Manual Setup Category" := GroupValue;
+                TempGuidedExperienceItemTemp.Insert();
 
                 GroupId -= 1;
 
-                InsertGuidedExperienceItemsInTempVar(GuidedExperienceItem, GuidedExperienceItemTemp);
+                InsertGuidedExperienceItemsInTempVar(GuidedExperienceItem, TempGuidedExperienceItemTemp);
             end;
         end;
     end;
