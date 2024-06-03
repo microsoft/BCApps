@@ -86,14 +86,6 @@ page 1933 "Perf. Profiler Schedules List"
                     ToolTip = 'Specifies to create only profiles that are greater then the profile creation threshold';
                     AboutText = 'Limit the amount of sampling profiles that are created by setting a millisecond threshold. Only profiles larger then the threshold will be created.';
                 }
-
-
-                field("Profile Keep Time"; Rec."Profile Keep Time")
-                {
-                    Caption = 'Profile Expiration Time (days)';
-                    ToolTip = 'Specifies the number of days the profile will be kept.';
-                    AboutText = 'The number of days the profile will be kept.';
-                }
             }
         }
     }

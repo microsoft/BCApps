@@ -44,7 +44,6 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         PerformanceProfileScheduler."Schedule ID" := CreateGuid();
         PerformanceProfileScheduler."Starting Date-Time" := CurrentDateTime;
         PerformanceProfileScheduler.Enabled := true;
-        PerformanceProfileScheduler."Profile Keep Time" := 7;
         PerformanceProfileScheduler."Profile Creation Threshold" := 500;
         PerformanceProfileScheduler.Frequency := PerformanceProfileScheduler.Frequency::"100";
         PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::"Web Client";
@@ -71,7 +70,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
 
         // The period sets should not intersect.
         LocalPerformanceProfileScheduler.Init();
-        LocalPerformanceProfileScheduler.SetFilter("Starting Date-Time", '<=%1', PerformanceProfileScheduler."Ending Date-Time");
+        LocalPerformanceProfileScheduler.SetFilter("Ending Date-Time", '>%1', PerformanceProfileScheduler."Starting Date-Time");
         LocalPerformanceProfileScheduler.SetFilter("Client Type", '=%1', PerformanceProfileScheduler."Client Type");
         LocalPerformanceProfileScheduler.SetFilter("User ID", '=%1', PerformanceProfileScheduler."User ID");
 

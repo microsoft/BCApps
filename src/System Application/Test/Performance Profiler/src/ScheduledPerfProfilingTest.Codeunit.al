@@ -118,7 +118,7 @@ codeunit 135016 "Scheduled Perf. Profiling Test"
         // [THEN] it should not intersect with another.
         Clear(PerformanceProfileScheduler);
         ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
-        PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime + 15 * 60000;
+        PerformanceProfileScheduler."Starting Date-Time" := EndingDateTime - 60000;
         asserterror ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler, ActivityType);
         Assert.ExpectedError(ProfileHasAlreadyBeenScheduledErr);
     end;
