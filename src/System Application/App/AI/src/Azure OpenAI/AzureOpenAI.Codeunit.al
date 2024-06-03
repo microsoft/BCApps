@@ -81,6 +81,22 @@ codeunit 7771 "Azure OpenAI"
     /// Deployment would look like: gpt-35-turbo-16k
     /// </remarks>
     [NonDebuggable]
+    procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text; Deployment: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
+    begin
+        AzureOpenAIImpl.SetManagedResourceAuthorization(ModelType, Endpoint, Deployment, ApiKey, ManagedResourceDeployment);
+    end;
+
+    /// <summary>
+    /// Sets the Azure OpenAI API authorization to use for a specific model type and endpoint.
+    /// </summary>
+    /// <param name="ModelType">The model type to set authorization for.</param>
+    /// <param name="Endpoint">The endpoint to use for the model type.</param>
+    /// <param name="Deployment">The deployment to use for the endpoint.</param>
+    /// <param name="ApiKey">The API key to use for the endpoint.</param>
+    /// <remarks>Endpoint would look like: https://resource-name.openai.azure.com/
+    /// Deployment would look like: gpt-35-turbo-16k
+    /// </remarks>
+    [NonDebuggable]
     procedure SetAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text; Deployment: Text; ApiKey: SecretText)
     begin
         AzureOpenAIImpl.SetAuthorization(ModelType, Endpoint, Deployment, ApiKey);
