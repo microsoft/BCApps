@@ -122,7 +122,6 @@ codeunit 1432 "Satisfaction Survey Impl."
             exit(false);
 
         NetPromoterScore.DeleteAll();
-        Commit();
         exit(true);
     end;
 
