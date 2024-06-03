@@ -506,9 +506,9 @@ codeunit 7772 "Azure OpenAI Impl"
         ClearLastError();
         case AOAIAuthorization.GetResourceUtilization() of
             Enum::"AOAI Resource Utilization"::MicrosoftManaged:
-                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetDeployment(), EmptySecretText);
+                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
             Enum::"AOAI Resource Utilization"::FirstParty:
-                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetDeployment(), EmptySecretText);
+                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
             else
                 ALCopilotAuthorization := ALCopilotAuthorization.Create(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
         end;
