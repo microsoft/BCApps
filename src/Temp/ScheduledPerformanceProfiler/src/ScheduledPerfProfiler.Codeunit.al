@@ -35,7 +35,7 @@ codeunit 1931 "Scheduled Perf Profiler"
     /// Maps an activity type to a session type
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
-    /// <param name="ActivityType">The actvity option type</param>
+    /// <param name="ActivityType">The actvity enum type</param>
     procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; ActivityType: enum ActivityType)
     begin
         SchedulerPage.MapActivityTypeToRecord(PerformanceProfileScheduler, ActivityType);
@@ -45,7 +45,7 @@ codeunit 1931 "Scheduled Perf Profiler"
     /// Maps a session type to an activity type.
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
-    /// <param name="ActivityType">The actvity option type</param>
+    /// <param name="ActivityType">The actvity enum type</param>
     procedure MapRecordToActivityType(PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: enum ActivityType)
     begin
         SchedulerPage.MapRecordToActivityType(PerformanceProfileScheduler, ActivityType);
@@ -55,7 +55,7 @@ codeunit 1931 "Scheduled Perf Profiler"
     /// Initalizes teh fields for the "Performance Profile Scheduler" receord
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
-    /// <param name="ActivityType">>The actvity option type</param>
+    /// <param name="ActivityType">>The actvity enum type</param>
     procedure InitializeFields(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: enum ActivityType)
     begin
         SchedulerPage.InitializeFields(PerformanceProfileScheduler, ActivityType);
@@ -65,9 +65,9 @@ codeunit 1931 "Scheduled Perf Profiler"
     /// Validates teh consistency of the "Performance Profile Scheduler" record
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record</param>
-    procedure ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler: record "Performance Profile Scheduler")
+    procedure ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler: record "Performance Profile Scheduler"; ActivityType: enum ActivityType)
     begin
-        SchedulerPage.ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler);
+        SchedulerPage.ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler, ActivityType);
     end;
 
     var

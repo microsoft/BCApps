@@ -13,7 +13,7 @@ permissionset 1922 "Sched Perf Profiler - Objects"
     Assignable = false;
 
     Permissions =
-                  tabledata "Performance Profile Scheduler" = Rimd,
+                  tabledata "Performance Profile Scheduler" = RIMD,
                   tabledata "Performance Profiles" = R,
                   page "Perf. Profiler Schedules List" = X,
                   page "Perf Profiler Schedule Card" = X,

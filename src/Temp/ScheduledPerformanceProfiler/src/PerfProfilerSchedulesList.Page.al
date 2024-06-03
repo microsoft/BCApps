@@ -135,6 +135,11 @@ page 1933 "Perf. Profiler Schedules List"
         SchedulerPage.MapRecordToActivityType(rec, Activity);
     end;
 
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    begin
+        SchedulerPage.MapRecordToActivityType(rec, Activity);
+    end;
+
     var
         SchedulerPage: codeunit "Scheduled Perf Profiler";
         Activity: enum ActivityType;

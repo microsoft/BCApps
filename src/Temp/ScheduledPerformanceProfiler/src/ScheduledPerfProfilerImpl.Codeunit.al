@@ -16,7 +16,7 @@ codeunit 1932 "Scheduled Perf Profiler Impl"
     procedure ValidateProfileKeepTime(PerformanceProfileScheduler: record "Performance Profile Scheduler")
     begin
         if (PerformanceProfileScheduler."Profile Keep Time" < 1) or (PerformanceProfileScheduler."Profile Keep Time" > 7) then
-            Error(ProfileExpirationTimeRangeErrorLbl);
+            Error(ProfileExpirationTimeRangeErrorErr);
     end;
 
     procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; ActivityType: enum ActivityType)
@@ -60,14 +60,16 @@ codeunit 1932 "Scheduled Perf Profiler Impl"
     procedure ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler: record "Performance Profile Scheduler")
     begin
         if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Starting Date-Time" > PerformanceProfileScheduler."Ending Date-Time")) then
-            Error(ProfileStartingDateLessThenEndingDateLbl);
+            Error(ProfileStartingDateLessThenEndingDateErr);
     end;
 
-    procedure ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler: record "Performance Profile Scheduler")
+    procedure ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler: record "Performance Profile Scheduler"; ActivityType: enum ActivityType)
     var
         LocalPerformanceProfileScheduler: record "Performance Profile Scheduler";
 
     begin
+        MapActivityTypeToRecord(PerformanceProfileScheduler, ActivityType);
+
         if ((PerformanceProfileScheduler."Ending Date-Time" = 0DT) or
             (PerformanceProfileScheduler."Starting Date-Time" = 0DT) or
             (IsNullGuid(PerformanceProfileScheduler."User ID"))) then
@@ -83,12 +85,13 @@ codeunit 1932 "Scheduled Perf Profiler Impl"
             (LocalPerformanceProfileScheduler."Starting Date-Time" <> 0DT) and
             (LocalPerformanceProfileScheduler."Ending Date-Time" <> 0DT) and
             (LocalPerformanceProfileScheduler."Schedule ID" <> PerformanceProfileScheduler."Schedule ID")) then
-            Error(ProfileHasAlreadyBeenScheduledLbl);
+            Error(ProfileHasAlreadyBeenScheduledErr);
     end;
 
     var
-        ProfileExpirationTimeRangeErrorLbl: Label 'The performance profile expiration time must be between 1 and 7 days.';
-        ProfileStartingDateLessThenEndingDateLbl: Label 'The performance profile starting date must be set before the ending date.';
+        ProfileExpirationTimeRangeErrorErr: Label 'The performance profile expiration time must be between 1 and 7 days.';
 
-        ProfileHasAlreadyBeenScheduledLbl: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
+        ProfileStartingDateLessThenEndingDateErr: Label 'The performance profile starting date must be set before the ending date.';
+
+        ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
 }
