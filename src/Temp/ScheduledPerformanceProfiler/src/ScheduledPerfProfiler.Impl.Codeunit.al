@@ -44,6 +44,7 @@ codeunit 1932 "Scheduled Perf Profiler Impl"
         PerformanceProfileScheduler."Profile Keep Time" := 7;
         PerformanceProfileScheduler."Profile Creation Threshold" := 500;
         PerformanceProfileScheduler.Frequency := PerformanceProfileScheduler.Frequency::"100";
+        PerformanceProfileScheduler."User ID" := UserSecurityId();
         ActivityType := ActivityType::WebClient;
     end;
 

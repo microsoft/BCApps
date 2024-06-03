@@ -121,6 +121,11 @@ page 1932 "Perf. Profiler Schedules Card"
                     Caption = 'Profile Expiration Time (days)';
                     ToolTip = 'The number of days the profile will be kept.';
                     AboutText = 'The number of days the profile will be kept.';
+
+                    trigger OnValidate()
+                    begin
+                        SchedulerPage.ValidateProfileKeepTime(rec);
+                    end;
                 }
 
                 field("Profile Creation Threshold"; Rec."Profile Creation Threshold")
@@ -128,11 +133,6 @@ page 1932 "Perf. Profiler Schedules Card"
                     Caption = 'Profile Creation Threshold (ms)';
                     ToolTip = 'Create only profiles that are greater then the profile creation threshold';
                     AboutText = 'Limit the amount of sampling profiles that are created by setting a millisecond threshold. Only profiles larger then the threshold will be created.';
-
-                    trigger OnValidate()
-                    begin
-                        SchedulerPage.ValidateProfileKeepTime(rec);
-                    end;
                 }
             }
         }
@@ -140,6 +140,13 @@ page 1932 "Perf. Profiler Schedules Card"
 
     actions
     {
+        area(Promoted)
+        {
+            actionref(OpenProfiles; "Open Profiles")
+            {
+            }
+        }
+
         area(Navigation)
         {
             action("Open Profiles")
