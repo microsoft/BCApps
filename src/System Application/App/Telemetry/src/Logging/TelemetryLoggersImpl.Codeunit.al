@@ -52,22 +52,13 @@ codeunit 8709 "Telemetry Loggers Impl."
         exit(IsLoggerFromCurrentPublisherFound);
     end;
 
-    internal procedure GetRegisteredTelemetryLoggers(): List of [Interface "Telemetry Logger"]
+    internal procedure GetRelevantTelemetryLoggers(CallstackModuleInfos: List of [ModuleInfo]) RelevantTelemetryLoggers: List of [Interface "Telemetry Logger"]
+    var
+        ModuleInfo: ModuleInfo;
     begin
-        if CurrentPublisher <> FirstPartyPublisherTxt then
-            Session.LogMessage('0000HIW', StrSubstNo(RichTelemetryUsedTxt, CurrentPublisher), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryLibraryCategoryTxt);
-
-        exit(RegisteredTelemetryLoggers);
-    end;
-
-    internal procedure GetFirstPartyTelemetryLogger(var TelemetryLogger: Interface "Telemetry Logger"): Boolean
-    begin
-        if RegisteredPublishers.Contains(FirstPartyPublisherTxt) then begin
-            TelemetryLogger := RegisteredTelemetryLoggers.Get(RegisteredPublishers.IndexOf(FirstPartyPublisherTxt));
-            exit(true);
-        end;
-
-        exit(false);
+        foreach ModuleInfo in CallstackModuleInfos do
+            if RegisteredPublishers.Contains(ModuleInfo.Publisher) and (ModuleInfo.Publisher <> CurrentPublisher) then
+                RelevantTelemetryLoggers.Add(RegisteredTelemetryLoggers.Get(RegisteredPublishers.IndexOf(ModuleInfo.Publisher)));
     end;
 
     internal procedure SetCurrentPublisher(Publisher: Text)
