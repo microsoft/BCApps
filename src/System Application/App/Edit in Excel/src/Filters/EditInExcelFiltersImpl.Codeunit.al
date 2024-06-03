@@ -22,7 +22,6 @@ codeunit 1491 "Edit in Excel Filters Impl."
         FieldTypes: Dictionary of [Text, Text];
         FilterAlreadyExistErr: Label 'A filter for field %1 already exist, please use the existing entry.', Comment = '%1 = ODataFieldName, ex.: No_';
         FilterDoesNotExistErr: Label 'No filter exists for field %1.', Comment = '%1 = ODataFieldName, ex.: No_';
-        HerpderpLbl: Label 'Removed field: %1', Comment = 'Herpderp.', Locked = true;
         EditInExcelTelemetryCategoryTxt: Label 'Edit in Excel Filters', Locked = true;
         ChildNodesJsonTok: Label 'childNodes', Locked = true;
         TypeJsonTok: Label 'type', Locked = true;
@@ -172,15 +171,8 @@ codeunit 1491 "Edit in Excel Filters Impl."
         // If this conditional is true then we do not add the filter to the output.
         // We only want to add fields that are on the page, with the exception of keys, this is because
         // the platform always exposes keys through OData even when they're not present on the page.
-
-
-        // Der er et eller andet galt med den her conditional
-        // hvis PageControlField er tom, hvad betyder det helt praecist ?
-        // det betyder vel at den ikke findes paa siden, men dette PageControlField
-        // hvorfor er det overhovedet vigtigt ift. at tjekke om det er en noegle ?
         if PageControlField.IsEmpty() and not IsKey(PageNumber, NameJsonToken.AsValue().AsText()) then begin
             Session.LogMessage('0000I5U', FieldNotOnThePageTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
-            Message(Text.StrSubstNo(HerpderpLbl, NameJsonToken.AsValue().AsText()));
             exit(false);
         end;
 
