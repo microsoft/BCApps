@@ -236,4 +236,3 @@ codeunit 1491 "Edit in Excel Filters Impl."
     end;
 
 }
-
