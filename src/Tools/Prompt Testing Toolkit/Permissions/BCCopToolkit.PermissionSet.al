@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
+using System.TestTools.TestRunner;
 
 permissionset 149030 "BC Cop. Toolkit"
 {
@@ -17,5 +18,6 @@ permissionset 149030 "BC Cop. Toolkit"
         tabledata "BCCT Line" = RIMD,
         tabledata "BCCT Log Entry" = RIMD,
         tabledata "BCCT Dataset" = RIMD,
-        tabledata "BCCT Dataset Line" = RIMD;
+        tabledata "BCCT Dataset Line" = RIMD,
+        tabledata "Test Input" = RIMD;
 }
