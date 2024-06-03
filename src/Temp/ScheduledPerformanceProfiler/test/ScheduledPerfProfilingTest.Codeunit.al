@@ -14,6 +14,9 @@ codeunit 135018 "Scheduled Perf Profiling Test"
 
     var
         Assert: Codeunit "Library Assert";
+        ScheduledPerfProfiler: Codeunit "Scheduled Perf Profiler";
+        ProfileStartingDateLessThenEndingDateErr: Label 'The performance profile starting date must be set before the ending date.';
+        ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
 
     [Test]
     procedure TestInitializedData()
@@ -128,9 +131,4 @@ codeunit 135018 "Scheduled Perf Profiling Test"
         PerformanceProfileScheduler."Client Type" := ClientType;
         ScheduledPerfProfiler.MapRecordToActivityType(PerformanceProfileScheduler, ActivityType);
     end;
-
-    var
-        ScheduledPerfProfiler: Codeunit "Scheduled Perf Profiler";
-        ProfileStartingDateLessThenEndingDateErr: Label 'The performance profile starting date must be set before the ending date.';
-        ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
 }
