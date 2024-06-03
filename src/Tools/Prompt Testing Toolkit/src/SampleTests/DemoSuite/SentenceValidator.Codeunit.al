@@ -1,4 +1,5 @@
 namespace System.TestTools.AITestToolkit;
+using System.TestTools.TestRunner;
 codeunit 149031 SentenceValidator
 {
     Access = Internal;
@@ -7,15 +8,11 @@ codeunit 149031 SentenceValidator
     [Test]
     procedure AssertSentenceLengthFunction()
     var
-        BCCTTestContext: Codeunit "BCCT Test Context";
-        JsonContent: JsonObject;
-        JsonToken: JsonToken;
+        TestInput: Codeunit "Test Input";
         UserInputKeyLbl: Label 'input', Locked = true;
         UserInput: Text;
     begin
-        JsonContent.ReadFrom(BCCTTestContext.GetInput());
-        JsonContent.Get(UserInputKeyLbl, JsonToken);
-        UserInput := JsonToken.AsValue().AsText();
+        UserInput := TestInput.GetTestInput(UserInputKeyLbl).ValueAsText();
         if StrLen(UserInput) > 50 then
             Error('Length exceeds 50 characters');
     end;
@@ -23,25 +20,21 @@ codeunit 149031 SentenceValidator
     [Test]
     procedure EvaluateGeneratedSentenceGrammarExternally()
     var
-        BCCTTestContext: Codeunit "BCCT Test Context";
-        JsonContent: JsonObject;
-        JsonToken: JsonToken;
+        // BCCTTestContext: Codeunit "BCCT Test Context";
+        TestInput: Codeunit "Test Input";
+        TestOutput: Codeunit "Test Output";
         UserInputKeyLbl: Label 'input', Locked = true;
         UserInput: Text;
         Sentence: Text;
         JsonSentenceKeyLbl: Label 'sentence', Locked = true;
-        Result: Text;
     begin
-        JsonContent.ReadFrom(BCCTTestContext.GetInput());
-        JsonContent.Get(UserInputKeyLbl, JsonToken);
-        UserInput := JsonToken.AsValue().AsText();
+        UserInput := TestInput.GetTestInput(UserInputKeyLbl).ValueAsText();
         // Generate a sentence based on the user input
         Sentence := 'I hope you like the generated text based on ' + UserInput;
 
         // Write the generated sentence to the output
-        Clear(JsonContent);
-        JsonContent.Add(JsonSentenceKeyLbl, Sentence);
-        JsonContent.WriteTo(Result);
-        BCCTTestContext.SetTestOutput(Result);
+        TestOutput.TestData().Add(JsonSentenceKeyLbl, Sentence);
+
+        // BCCTTestContext.SetTestOutput(Sentence);
     end;
 }
