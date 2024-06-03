@@ -246,7 +246,7 @@ codeunit 7772 "Azure OpenAI Impl"
         PayloadText: Text;
         UnwrappedPrompt: Text;
     begin
-        GuiCheck(CallerModuleInfo);
+        GuiCheck(TextCompletionsAOAIAuthorization);
 
         CheckCapabilitySet();
         CheckEnabled(CallerModuleInfo);
@@ -280,7 +280,7 @@ codeunit 7772 "Azure OpenAI Impl"
         Payload: JsonObject;
         PayloadText: Text;
     begin
-        GuiCheck(CallerModuleInfo);
+        GuiCheck(EmbeddingsAOAIAuthorization);
 
         CheckCapabilitySet();
         CheckEnabled(CallerModuleInfo);
@@ -334,7 +334,7 @@ codeunit 7772 "Azure OpenAI Impl"
         MetapromptTokenCount: Integer;
         PromptTokenCount: Integer;
     begin
-        GuiCheck(CallerModuleInfo);
+        GuiCheck(ChatCompletionsAOAIAuthorization);
 
         CheckCapabilitySet();
         CheckEnabled(CallerModuleInfo);
@@ -501,15 +501,16 @@ codeunit 7772 "Azure OpenAI Impl"
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         ALCopilotOperationResponse: DotNet ALCopilotOperationResponse;
         Error: Text;
+        EmptySecretText: SecretText;
     begin
         ClearLastError();
         case AOAIAuthorization.GetResourceUtilization() of
             Enum::"AOAI Resource Utilization"::MicrosoftManaged:
-                ALCopilotAuthorization := ALCopilotAuthorization.CreateMicrosoftManaged(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
+                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetDeployment(), EmptySecretText);
             Enum::"AOAI Resource Utilization"::FirstParty:
-                ALCopilotAuthorization := ALCopilotAuthorization.CreateFirstParty(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
+                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetDeployment(), EmptySecretText);
             else
-                ALCopilotAuthorization := ALCopilotAuthorization.CreateSelfManaged(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
+                ALCopilotAuthorization := ALCopilotAuthorization.Create(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
         end;
 
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), GetCapabilityName());
@@ -556,13 +557,9 @@ codeunit 7772 "Azure OpenAI Impl"
         Telemetry.LogMessage('0000LT4', StrSubstNo(TelemetryTokenCountLbl, Metaprompt, Prompt, Metaprompt + Prompt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
     end;
 
-    local procedure GuiCheck(CallerModuleInfo: ModuleInfo)
-    var
-        CurrentModuleInfo: ModuleInfo;
+    local procedure GuiCheck(AOAIAuthorization: Codeunit "AOAI Authorization")
     begin
-        NavApp.GetCallerModuleInfo(CurrentModuleInfo);
-
-        if (not GuiAllowed()) and (CallerModuleInfo.Publisher = CurrentModuleInfo.Publisher) then
+        if (not GuiAllowed()) and (AOAIAuthorization.GetResourceUtilization() <> Enum::"AOAI Resource Utilization"::SelfManaged) then
             Error(CapabilityBackgroundErr);
     end;
 
