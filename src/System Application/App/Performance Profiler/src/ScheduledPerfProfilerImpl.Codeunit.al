@@ -44,7 +44,6 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         PerformanceProfileScheduler."Schedule ID" := CreateGuid();
         PerformanceProfileScheduler."Starting Date-Time" := CurrentDateTime;
         PerformanceProfileScheduler.Enabled := true;
-        PerformanceProfileScheduler."Profile Keep Time" := 7;
         PerformanceProfileScheduler."Profile Creation Threshold" := 500;
         PerformanceProfileScheduler.Frequency := PerformanceProfileScheduler.Frequency::"100";
         PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::"Web Client";

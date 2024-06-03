@@ -9,7 +9,7 @@ using System.PerformanceProfile;
 using System.TestLibraries.Utilities;
 using System.Tooling;
 
-codeunit 135016 "Scheduled Perf. Profiling Test"
+codeunit 135019 "Scheduled Perf. Profiling Test"
 {
     Subtype = Test;
 
@@ -31,7 +31,6 @@ codeunit 135016 "Scheduled Perf. Profiling Test"
 
         // [THEN] Expected initalization happens
         Assert.AreEqual(ActivityType, ActivityType::WebClient, 'Expected to be initialized to web client');
-        Assert.AreEqual(TempPerformanceProfileScheduler."Profile Keep Time", 7, 'The default profile keep time is 7 days');
         Assert.IsTrue(TempPerformanceProfileScheduler."Profile Creation Threshold" = 500, 'The default profile creation threshold is 500 ms.');
         Assert.AreEqual(TempPerformanceProfileScheduler.Frequency, TempPerformanceProfileScheduler.Frequency::"100", 'The default frequency should be 100 ms.');
         Assert.IsTrue(TempPerformanceProfileScheduler.Enabled, 'The scheduled sampling profile record should be enabled.');
