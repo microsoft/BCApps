@@ -2,7 +2,7 @@ namespace System.Tooling;
 using System.PerformanceProfile;
 using System.Security.AccessControl;
 
-codeunit 1932 "Scheduler Page Impl"
+codeunit 1932 "Scheduled Perf Profiler Impl"
 {
     Access = Internal;
     InherentEntitlements = X;

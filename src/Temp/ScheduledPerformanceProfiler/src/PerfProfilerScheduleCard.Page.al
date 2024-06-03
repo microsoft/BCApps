@@ -2,6 +2,9 @@ namespace System.Tooling;
 using System.PerformanceProfile;
 using System.Security.AccessControl;
 
+/// <summary>
+/// Card page for schedule based sampling profiler crud operations
+/// </summary>
 page 1932 "Perf. Profiler Schedules Card"
 {
     Caption = 'Profiler Schedule';
@@ -176,7 +179,7 @@ page 1932 "Perf. Profiler Schedules Card"
     end;
 
     var
-        SchedulerPage: codeunit "Scheduler Page";
+        SchedulerPage: codeunit "Scheduled Perf Profiler";
         Activity: Option WebClient,Background,WebAPIClient;
 
 }

@@ -5,12 +5,17 @@
 
 namespace System.Tooling;
 
+using System.PerformanceProfile;
+
 permissionset 1922 "Sched Perf Profiler - Objects"
 {
     Access = Internal;
     Assignable = false;
 
-    Permissions = page "Perf. Profiler Schedules List" = X,
+    Permissions =
+                  tabledata "Performance Profile Scheduler" = Rimd,
+                  tabledata "Performance Profiles" = R,
+                  page "Perf. Profiler Schedules List" = X,
                   page "Perf. Profiler Schedules Card" = X,
                   page "Performance Profiles" = X;
 }

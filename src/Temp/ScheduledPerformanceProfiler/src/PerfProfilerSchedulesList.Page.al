@@ -2,6 +2,9 @@ namespace System.Tooling;
 using System.PerformanceProfile;
 using System.Security.AccessControl;
 
+/// <summary>
+/// List for schedule based sampling profilers
+/// </summary>
 page 1933 "Perf. Profiler Schedules List"
 {
     Caption = 'Profiler Schedules';
@@ -115,6 +118,6 @@ page 1933 "Perf. Profiler Schedules List"
     end;
 
     var
-        SchedulerPage: codeunit "Scheduler Page";
+        SchedulerPage: codeunit "Scheduled Perf Profiler";
         Activity: Option WebClient,Background,WebAPIClient;
 }

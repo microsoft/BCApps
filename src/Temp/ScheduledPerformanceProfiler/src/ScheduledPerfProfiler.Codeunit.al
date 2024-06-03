@@ -4,7 +4,7 @@ using System.PerformanceProfile;
 /// <summary>
 /// Provides implementation details for working on the Perf. Profiler Schedules" list and card pages.
 /// </summary>
-codeunit 1931 "Scheduler Page"
+codeunit 1931 "Scheduled Perf Profiler"
 {
     Access = Public;
 
@@ -66,5 +66,5 @@ codeunit 1931 "Scheduler Page"
     end;
 
     var
-        SchedulerPage: codeunit "Scheduler Page Impl";
+        SchedulerPage: codeunit "Scheduled Perf Profiler Impl";
 }
