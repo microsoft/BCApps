@@ -5,7 +5,7 @@
 
 namespace System.Tooling;
 using System.PerformanceProfile;
-using System.Security.AccessControl;
+
 
 codeunit 1932 "Scheduled Perf Profiler Impl"
 {
@@ -15,29 +15,32 @@ codeunit 1932 "Scheduled Perf Profiler Impl"
 
     procedure ValidateProfileKeepTime(PerformanceProfileScheduler: record "Performance Profile Scheduler")
     begin
-        if (PerformanceProfileScheduler."Profile Keep Time" < 1) or (PerformanceProfileScheduler."Profile Keep Time" > 7) then begin
+        if (PerformanceProfileScheduler."Profile Keep Time" < 1) or (PerformanceProfileScheduler."Profile Keep Time" > 7) then
             Error(ProfileExpirationTimeRangeErrorLbl);
-        end;
     end;
 
     procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; ActivityType: enum ActivityType)
     begin
         if (ActivityType = ActivityType::WebClient) then
             PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::"Web Client"
-        else if (ActivityType = ActivityType::Background) then
-            PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::Background
-        else if (ActivityType = ActivityType::WebAPIClient) then
-            PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::"Web Service";
+        else
+            if (ActivityType = ActivityType::Background) then
+                PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::Background
+            else
+                if (ActivityType = ActivityType::WebAPIClient) then
+                    PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::"Web Service";
     end;
 
     procedure MapRecordToActivityType(PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: enum ActivityType)
     begin
         if (PerformanceProfileScheduler."Client Type" = PerformanceProfileScheduler."Client Type"::Background) then
             ActivityType := ActivityType::Background
-        else if (PerformanceProfileScheduler."Client Type" = PerformanceProfileScheduler."Client Type"::"Web Client") then
-            ActivityType := ActivityType::WebClient
-        else if (PerformanceProfileScheduler."Client Type" = PerformanceProfileScheduler."Client Type"::"Web Service") then
-            ActivityType := ActivityType::WebAPIClient;
+        else
+            if (PerformanceProfileScheduler."Client Type" = PerformanceProfileScheduler."Client Type"::"Web Client") then
+                ActivityType := ActivityType::WebClient
+            else
+                if (PerformanceProfileScheduler."Client Type" = PerformanceProfileScheduler."Client Type"::"Web Service") then
+                    ActivityType := ActivityType::WebAPIClient;
     end;
 
     procedure InitializeFields(var PerformanceProfileScheduler: record "Performance Profile Scheduler"; var ActivityType: enum ActivityType)
@@ -62,7 +65,7 @@ codeunit 1932 "Scheduled Perf Profiler Impl"
 
     procedure ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler: record "Performance Profile Scheduler")
     var
-        TempPerformanceProfileScheduler: record "Performance Profile Scheduler";
+        LocalPerformanceProfileScheduler: record "Performance Profile Scheduler";
 
     begin
         if ((PerformanceProfileScheduler."Ending Date-Time" = 0DT) or
@@ -71,16 +74,16 @@ codeunit 1932 "Scheduled Perf Profiler Impl"
             exit;
 
         // The period sets should not intersect.
-        TempPerformanceProfileScheduler.Init();
-        TempPerformanceProfileScheduler.SetFilter("Starting Date-Time", '<=%1', PerformanceProfileScheduler."Ending Date-Time");
-        TempPerformanceProfileScheduler.SetFilter("Client Type", '=%1', PerformanceProfileScheduler."Client Type");
-        TempPerformanceProfileScheduler.SetFilter("User ID", '=%1', PerformanceProfileScheduler."User ID");
+        LocalPerformanceProfileScheduler.Init();
+        LocalPerformanceProfileScheduler.SetFilter("Starting Date-Time", '<=%1', PerformanceProfileScheduler."Ending Date-Time");
+        LocalPerformanceProfileScheduler.SetFilter("Client Type", '=%1', PerformanceProfileScheduler."Client Type");
+        LocalPerformanceProfileScheduler.SetFilter("User ID", '=%1', PerformanceProfileScheduler."User ID");
 
-        if ((TempPerformanceProfileScheduler.FindFirst()) and
-            (TempPerformanceProfileScheduler."Starting Date-Time" <> 0DT) and
-            (TempPerformanceProfileScheduler."Ending Date-Time" <> 0DT) and
-            (TempPerformanceProfileScheduler."Schedule ID" <> PerformanceProfileScheduler."Schedule ID")) then
-            Error(ProfileHasAlreadyBeenScheduledLbl, ProfileHasAlreadyBeenScheduledLbl);
+        if ((LocalPerformanceProfileScheduler.FindFirst()) and
+            (LocalPerformanceProfileScheduler."Starting Date-Time" <> 0DT) and
+            (LocalPerformanceProfileScheduler."Ending Date-Time" <> 0DT) and
+            (LocalPerformanceProfileScheduler."Schedule ID" <> PerformanceProfileScheduler."Schedule ID")) then
+            Error(ProfileHasAlreadyBeenScheduledLbl);
     end;
 
     var

@@ -19,7 +19,7 @@ page 1933 "Perf. Profiler Schedules List"
     AboutTitle = 'About performance profile scheduling';
     AboutText = 'Schedule performance profiles to run at specific times based on different criteria to troubleshoot performance issues.';
     InsertAllowed = false;
-    CardPageID = "Perf. Profiler Schedules Card";
+    CardPageID = "Perf Profiler Schedule Card";
     SourceTable = "Performance Profile Scheduler";
 
     layout
@@ -31,7 +31,7 @@ page 1933 "Perf. Profiler Schedules List"
                 field("Schedule ID"; Rec."Schedule ID")
                 {
                     Caption = 'Schedule ID';
-                    ToolTip = 'The ID of the schedule.';
+                    ToolTip = 'Specifies the ID of the schedule.';
                     AboutText = 'The ID of the schedule.';
                     Editable = false;
                 }
@@ -46,21 +46,21 @@ page 1933 "Perf. Profiler Schedules List"
                 field("Start Time"; Rec."Starting Date-Time")
                 {
                     Caption = 'Start Time';
-                    ToolTip = 'The time the schedule will start.';
+                    ToolTip = 'Specifies the time the schedule will start.';
                     AboutText = 'The time the schedule will start.';
                 }
 
                 field("End Time"; Rec."Ending Date-Time")
                 {
                     Caption = 'End Time';
-                    ToolTip = 'The time the schedule will end.';
+                    ToolTip = 'Specifies the time the schedule will end.';
                     AboutText = 'The time the schedule will end.';
                 }
 
                 field("User ID"; Rec."User ID")
                 {
                     Caption = 'User ID';
-                    ToolTip = 'The ID of the user who created the schedule.';
+                    ToolTip = 'Specifies the ID of the user who created the schedule.';
                     AboutText = 'The ID of the user who created the schedule.';
                     TableRelation = User."User Security ID";
                     Lookup = true;
@@ -69,29 +69,28 @@ page 1933 "Perf. Profiler Schedules List"
                 field(Activity; Activity)
                 {
                     Caption = 'Activity Type';
-                    OptionCaption = 'Activity in the browser, Background Tasks, Calling external components through REST calls';
-                    ToolTip = 'The type of activity for which the schedule is created.';
+                    ToolTip = 'Specifies the type of activity for which the schedule is created.';
                     AboutText = 'The type of activity for which the schedule is created.';
                 }
 
                 field(Description; Rec.Description)
                 {
                     Caption = 'Description';
-                    ToolTip = 'The description of the schedule.';
+                    ToolTip = 'Specifies the description of the schedule.';
                     AboutText = 'The description of the schedule.';
                 }
 
                 field(Frequency; Rec.Frequency)
                 {
                     Caption = 'Sampling Frequency';
-                    ToolTip = 'The frequency at which the profiler will sample data.';
+                    ToolTip = 'Specifies the frequency at which the profiler will sample data.';
                     AboutText = 'The frequency at which the profiler will sample data.';
                 }
 
                 field("Profile Creation Threshold"; Rec."Profile Creation Threshold")
                 {
                     Caption = 'Profile Creation Threshold (ms)';
-                    ToolTip = 'Create only profiles that are greater then the profile creation threshold';
+                    ToolTip = 'Specifies to create only profiles that are greater then the profile creation threshold';
                     AboutText = 'Limit the amount of sampling profiles that are created by setting a millisecond threshold. Only profiles larger then the threshold will be created.';
                 }
 
@@ -99,7 +98,7 @@ page 1933 "Perf. Profiler Schedules List"
                 field("Profile Keep Time"; Rec."Profile Keep Time")
                 {
                     Caption = 'Profile Expiration Time (days)';
-                    ToolTip = 'The number of days the profile will be kept.';
+                    ToolTip = 'Specifies the number of days the profile will be kept.';
                     AboutText = 'The number of days the profile will be kept.';
                 }
             }
@@ -120,6 +119,7 @@ page 1933 "Perf. Profiler Schedules List"
             {
                 ApplicationArea = All;
                 Caption = 'Open Profiles';
+                ToolTip = 'Open the profiles for the schedule';
                 RunObject = page "Performance Profiles";
                 RunPageLink = "Schedule ID" = field("Schedule ID");
             }

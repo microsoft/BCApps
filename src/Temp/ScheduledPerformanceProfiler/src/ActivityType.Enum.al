@@ -25,7 +25,7 @@ enum 1932 "ActivityType"
     /// </summary>
     value(1; "Background")
     {
-        CAption = 'Background Tasks';
+        Caption = 'Background Tasks';
     }
 
     /// <summary>

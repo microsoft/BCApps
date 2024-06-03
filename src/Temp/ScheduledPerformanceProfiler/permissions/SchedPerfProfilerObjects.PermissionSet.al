@@ -16,6 +16,6 @@ permissionset 1922 "Sched Perf Profiler - Objects"
                   tabledata "Performance Profile Scheduler" = Rimd,
                   tabledata "Performance Profiles" = R,
                   page "Perf. Profiler Schedules List" = X,
-                  page "Perf. Profiler Schedules Card" = X,
+                  page "Perf Profiler Schedule Card" = X,
                   page "Performance Profiles" = X;
 }

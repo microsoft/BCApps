@@ -28,63 +28,63 @@ page 1931 "Performance Profiles"
                 field("Start Time"; Rec."Starting Date-Time")
                 {
                     Caption = 'Start Time';
-                    ToolTip = 'The time the profile was started.';
+                    ToolTip = 'Specifies the time the profile was started.';
                 }
 
                 field("Username"; Rec."User Name")
                 {
                     Caption = 'Username';
-                    ToolTip = 'The name of the user that was profiled.';
+                    ToolTip = 'Specifies the name of the user that was profiled.';
                 }
 
                 field("Client Type"; Rec."Client Type")
                 {
                     Caption = 'Client Type';
-                    ToolTip = 'The type of the client that was profiled.';
+                    ToolTip = 'Specifies the type of the client that was profiled.';
                 }
 
                 field("Activity Description"; Rec."Activity Description")
                 {
                     Caption = 'Activity Description';
-                    ToolTip = 'A short description of the activity that was profiled.';
+                    ToolTip = 'Specifies a short description of the activity that was profiled.';
                 }
 
                 field("Object Display Name"; Rec."Object Display Name")
                 {
                     Caption = 'Object';
-                    ToolTip = 'The object that contains the entry point for this profile.';
+                    ToolTip = 'Specifies the object that contains the entry point for this profile.';
                 }
 
                 field(Duration; Rec.Duration)
                 {
                     Caption = 'Activity Duration';
-                    ToolTip = 'The duration of the activity that was profiled in milliseconds.';
+                    ToolTip = 'Specifies the duration of the activity that was profiled in milliseconds.';
                 }
 
                 field("Http Call Duration"; Rec."Http Call Duration")
                 {
                     Caption = 'Duration of Http Calls';
-                    ToolTip = 'The duration of the http calls during the activity that was profiled in milliseconds.';
+                    ToolTip = 'Specifies the duration of the http calls during the activity that was profiled in milliseconds.';
                 }
 
                 field("Http Call Number"; Rec."Http Call Number")
                 {
                     Caption = 'Number of Http Calls';
-                    ToolTip = 'The number of http calls during the activity that was profiled.';
+                    ToolTip = 'Specifies the number of http calls during the activity that was profiled.';
                 }
 
                 field("Client Session ID"; Rec."Client Session ID")
                 {
                     Caption = 'Client Session ID';
-                    ToolTip = 'The ID of the client session that was profiled.';
+                    ToolTip = 'Specifies the ID of the client session that was profiled.';
                 }
 
                 field("Schedule ID"; Rec."Schedule ID")
                 {
                     Caption = 'Schedule ID';
-                    ToolTip = 'The ID of the schedule that was used to profile the activity.';
+                    ToolTip = 'Specifies the ID of the schedule that was used to profile the activity.';
                     TableRelation = "Performance Profile Scheduler"."Schedule ID";
-                    DrillDownPageId = "Perf. Profiler Schedules Card";
+                    DrillDownPageId = "Perf Profiler Schedule Card";
                 }
             }
         }
