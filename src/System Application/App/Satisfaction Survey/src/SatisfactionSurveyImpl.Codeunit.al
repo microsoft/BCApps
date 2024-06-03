@@ -122,6 +122,7 @@ codeunit 1432 "Satisfaction Survey Impl."
             exit(false);
 
         NetPromoterScore.DeleteAll();
+        Commit();
         exit(true);
     end;
 
@@ -134,6 +135,7 @@ codeunit 1432 "Satisfaction Survey Impl."
             exit(false);
 
         NetPromoterScoreSetup.ModifyAll("Expire Time", CurrentDateTime() - 1000);
+        Commit();
         exit(true);
     end;
 
