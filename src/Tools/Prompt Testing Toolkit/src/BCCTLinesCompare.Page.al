@@ -10,6 +10,9 @@ page 149035 "BCCT Lines Compare"
     PageType = Card;
     ApplicationArea = All;
     SourceTable = "BCCT Line";
+    ModifyAllowed = false;
+    InsertAllowed = false;
+    DeleteAllowed = false;
 
     layout
     {
