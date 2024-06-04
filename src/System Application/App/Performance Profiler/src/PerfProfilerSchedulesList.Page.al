@@ -58,17 +58,7 @@ page 1933 "Perf. Profiler Schedules List"
                 {
                     Caption = 'User Name';
                     ToolTip = 'Specifies the name of the user who created the schedule.';
-                    AboutText = 'The ID of the user who created the schedule.';
-                    TableRelation = User."User Security ID";
-                    Lookup = true;
-
-                    trigger OnAfterLookup(Selected: RecordRef)
-                    var
-                        User: Record User;
-                    begin
-                        User.Get(Selected.RecordId);
-                        UserName := User."User Name";
-                    end;
+                    AboutText = 'The name of the user who created the schedule.';
                 }
                 field(Activity; Activity)
                 {
