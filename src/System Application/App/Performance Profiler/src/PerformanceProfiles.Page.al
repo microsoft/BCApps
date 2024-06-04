@@ -83,6 +83,39 @@ page 1931 "Performance Profiles"
         }
     }
 
+    actions
+    {
+        area(Promoted)
+        {
+            actionref(OpenProfiles; "Open Profile")
+            {
+            }
+        }
+
+        area(Navigation)
+        {
+            action("Open Profile")
+            {
+                ApplicationArea = All;
+                Image = Setup;
+                Caption = 'Open Profile';
+                ToolTip = 'Open profiles for the scheduled session';
+                Enabled = Rec."Activity ID" <> '';
+
+                trigger OnAction()
+                var
+                    ProfilerPage: Page "Performance Profiler";
+                    ProfileInStream: InStream;
+                begin
+                    Rec.CalcFields(Profile);
+                    Rec.Profile.CreateInStream(ProfileInStream);
+                    ProfilerPage.SetData(ProfileInStream);
+                    ProfilerPage.Run();
+                end;
+            }
+        }
+    }
+
     trigger OnOpenPage()
     begin
         Rec.SetAutoCalcFields("User Name", "Client Type");

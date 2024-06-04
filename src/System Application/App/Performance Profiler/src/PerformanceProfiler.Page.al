@@ -211,8 +211,7 @@ page 24 "Performance Profiler"
                         exit;
 
                     FeatureTelemetry.LogUptake('0000GMO', PerformanceProfilingFeatureTxt, Enum::"Feature Uptake Status"::"Set up");
-                    SamplingPerformanceProfiler.SetData(FileContentInStream);
-                    UpdateData();
+                    this.SetData(FileContentInStream);
                 end;
             }
             action(Settings)
@@ -282,6 +281,12 @@ page 24 "Performance Profiler"
         FeatureTelemetry.LogUptake('0000GMP', PerformanceProfilingFeatureTxt, Enum::"Feature Uptake Status"::Discovered);
         IsShareVisible := DocumentSharing.ShareEnabled();
         UpdateControlProperties();
+    end;
+
+    procedure SetData(Data: InStream)
+    begin
+        SamplingPerformanceProfiler.SetData(Data);
+        UpdateData();
     end;
 
     local procedure UpdateSubPages()

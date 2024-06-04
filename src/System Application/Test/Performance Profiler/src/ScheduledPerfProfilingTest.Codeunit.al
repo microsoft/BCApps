@@ -118,6 +118,7 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         Clear(PerformanceProfileScheduler);
         ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
         PerformanceProfileScheduler."Starting Date-Time" := EndingDateTime - 60000;
+        PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
         asserterror ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler, ActivityType);
         Assert.ExpectedError(ProfileHasAlreadyBeenScheduledErr);
     end;
