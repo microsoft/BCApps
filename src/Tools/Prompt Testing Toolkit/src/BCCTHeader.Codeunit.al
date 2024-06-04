@@ -14,7 +14,7 @@ codeunit 149034 "BCCT Header"
     begin
         if BCCTHeader.Code = '' then
             exit;
-        BCCTHeader.LockTable();
+        BCCTHeader.ReadIsolation(IsolationLevel::UpdLock);
         if not BCCTHeader.Find() then
             exit;
         BCCTHeader.Validate("No. of tests running", BCCTHeader."No. of tests running" - 1);
