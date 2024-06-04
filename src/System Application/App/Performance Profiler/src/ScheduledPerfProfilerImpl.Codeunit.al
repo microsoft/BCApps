@@ -7,6 +7,7 @@ namespace System.Tooling;
 
 using System.PerformanceProfile;
 using System.DataAdministration;
+using System.Security.AccessControl;
 
 codeunit 1932 "Scheduled Perf. Profiler Impl."
 {
@@ -36,6 +37,16 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
             else
                 if (PerformanceProfileScheduler."Client Type" = PerformanceProfileScheduler."Client Type"::"Web Service") then
                     ActivityType := ActivityType::WebAPIClient;
+    end;
+
+    procedure MapRecordToUserName(PerformanceProfileScheduler: Record "Performance Profile Scheduler"): Text
+    var
+        User: Record User;
+    begin
+        if User.GET(PerformanceProfileScheduler."User ID") then;
+        Exit(User."User Name");
+
+        Exit('');
     end;
 
     procedure InitializeFields(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; var ActivityType: Enum "Activity Type")
@@ -128,8 +139,8 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         startInterval2 := Second."Starting Date-Time";
         endInterval2 := Second."Ending Date-Time";
 
-        if (((startInterval1 < endInterval1) and (endInterval1 < startInterval2) and (startInterval2 < endInterval2)) or
-            ((startInterval2 < endInterval2) and (endInterval2 < startInterval1) and (startInterval1 < endInterval1))) then
+        if (((startInterval1 < endInterval1) and (endInterval1 <= startInterval2) and (startInterval2 < endInterval2)) or
+            ((startInterval2 < endInterval2) and (endInterval2 <= startInterval1) and (startInterval1 < endInterval1))) then
             Exit(false);
 
         Exit(true);

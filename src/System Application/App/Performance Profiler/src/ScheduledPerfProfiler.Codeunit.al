@@ -47,6 +47,17 @@ codeunit 1931 "Scheduled Perf. Profiler"
     end;
 
     /// <summary>
+    /// Maps a session type to an activity type.
+    /// </summary>
+    /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
+    ///<returns>The user name if found, else empty</returns>
+    procedure MapRecordToUserName(PerformanceProfileScheduler: Record "Performance Profile Scheduler"): Text
+    begin
+        Exit(ScheduledPerfProfilerImpl.MapRecordToUserName(PerformanceProfileScheduler));
+    end;
+
+
+    /// <summary>
     /// Initalizes the fields for the "Performance Profile Scheduler" receord
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>

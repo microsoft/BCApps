@@ -54,24 +54,27 @@ page 1933 "Perf. Profiler Schedules List"
                     ToolTip = 'Specifies the time the schedule will end.';
                     AboutText = 'The time the schedule will end.';
                 }
-                field("User ID"; Rec."User ID")
+                field("User Name"; UserName)
                 {
-                    Caption = 'User ID';
-                    ToolTip = 'Specifies the ID of the user who created the schedule.';
+                    Caption = 'User Name';
+                    ToolTip = 'Specifies the name of the user who created the schedule.';
                     AboutText = 'The ID of the user who created the schedule.';
                     TableRelation = User."User Security ID";
                     Lookup = true;
+
+                    trigger OnAfterLookup(Selected: RecordRef)
+                    var
+                        User: Record User;
+                    begin
+                        User.Get(Selected.RecordId);
+                        UserName := User."User Name";
+                    end;
                 }
                 field(Activity; Activity)
                 {
                     Caption = 'Activity Type';
                     ToolTip = 'Specifies the type of activity for which the schedule is created.';
                     AboutText = 'The type of activity for which the schedule is created.';
-
-                    trigger OnValidate()
-                    begin
-                        ScheduledPerfProfiler.MapRecordToActivityType(Rec, Activity);
-                    end;
                 }
                 field(Description; Rec.Description)
                 {
@@ -120,19 +123,23 @@ page 1933 "Perf. Profiler Schedules List"
     trigger OnAfterGetRecord()
     begin
         ScheduledPerfProfiler.MapRecordToActivityType(Rec, Activity);
+        UserName := ScheduledPerfProfiler.MapRecordToUserName(Rec);
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
         ScheduledPerfProfiler.MapRecordToActivityType(Rec, Activity);
+        UserName := ScheduledPerfProfiler.MapRecordToUserName(Rec);
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
         ScheduledPerfProfiler.MapRecordToActivityType(Rec, Activity);
+        UserName := ScheduledPerfProfiler.MapRecordToUserName(Rec);
     end;
 
     var
         ScheduledPerfProfiler: Codeunit "Scheduled Perf. Profiler";
+        UserName: Text;
         Activity: Enum "Activity Type";
 }
