@@ -266,11 +266,40 @@ page 149034 "BCCT Lines"
                 RunObject = page "BCCT Log Entries";
                 RunPageLink = "BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter");
             }
+            action(Compare)
+            {
+                ApplicationArea = All;
+                Caption = 'Compare Versions';
+                Image = CompareCOA;
+                ToolTip = 'Compare results of the line to a base version.';
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    BCCTLine: Record "BCCT Line";
+                    BCCTHeaderRec: Record "BCCT Header";
+                    BCCTLineComparePage: Page "BCCT Lines Compare";
+                begin
+                    CurrPage.SetSelectionFilter(BCCTLine);
+
+                    if not BCCTLine.FindFirst() then
+                        Error(NoLineSelectedErr);
+
+                    BCCTHeaderRec.SetLoadFields(Version, "Base Version");
+                    BCCTHeaderRec.Get(Rec."BCCT Code");
+
+                    BCCTLineComparePage.SetBaseVersion(BCCTHeaderRec."Base Version");
+                    BCCTLineComparePage.SetVersion(BCCTHeaderRec.Version);
+                    BCCTLineComparePage.SetRecord(BCCTLine);
+                    BCCTLineComparePage.Run();
+                end;
+            }
         }
     }
     var
         BCCTHeader: Record "BCCT Header";
         BCCTLineCU: Codeunit "BCCT Line";
+        NoLineSelectedErr: Label 'Select a line to compare';
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin

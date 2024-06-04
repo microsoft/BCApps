@@ -82,7 +82,7 @@ codeunit 149036 "BCCT Start Tests"
         if not BCCTHeader2.IsEmpty() then
             Error(this.CannotRunMultipleSuitesInParallelErr);
 
-        BCCTHeader.LockTable();
+        BCCTHeader.ReadIsolation(IsolationLevel::UpdLock);
         BCCTHeader.Find();
         if BCCTHeader.Status <> BCCTHeader.Status::Running then begin
             BCCTHeader.RunID := CreateGuid();
@@ -105,7 +105,7 @@ codeunit 149036 "BCCT Start Tests"
                 until BCCTLine.Next() = 0;
         end;
 
-        BCCTLine.LockTable();
+        BCCTLine.ReadIsolation(IsolationLevel::UpdLock);
         BCCTLine.SetRange("BCCT Code", BCCTHeader.Code);
         BCCTLine.SetFilter("Codeunit ID", '<>0');
         BCCTLine.SetFilter(Status, '%1 | %2', BCCTLine.Status::" ", BCCTLine.Status::Starting);

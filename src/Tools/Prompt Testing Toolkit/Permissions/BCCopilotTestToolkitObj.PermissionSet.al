@@ -24,6 +24,7 @@ permissionset 149031 "BC Copilot Test Toolkit - Obj"
         xmlport "BCCT Log Entries" = X,
         page "BCCT CommandLine Card" = X,
         page "BCCT Lines" = X,
+        page "BCCT Lines Compare" = X,
         page "BCCT Log Entries" = X,
         page "BCCT Log Entry API" = X,
         page "BCCT Setup Card" = X,
