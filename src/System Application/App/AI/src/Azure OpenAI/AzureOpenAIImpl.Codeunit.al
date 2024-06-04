@@ -559,8 +559,13 @@ codeunit 7772 "Azure OpenAI Impl"
 
     local procedure GuiCheck(AOAIAuthorization: Codeunit "AOAI Authorization")
     begin
-        if (not GuiAllowed()) and (AOAIAuthorization.GetResourceUtilization() <> Enum::"AOAI Resource Utilization"::SelfManaged) then
-            Error(CapabilityBackgroundErr);
+        if GuiAllowed() then
+            exit;
+
+        if AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::SelfManaged then
+            exit;
+
+        Error(CapabilityBackgroundErr);
     end;
 
     local procedure AddTelemetryCustomDimensions(var CustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)

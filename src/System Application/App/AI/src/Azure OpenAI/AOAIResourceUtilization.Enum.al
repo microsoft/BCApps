@@ -13,7 +13,7 @@ enum 7771 "AOAI Resource Utilization"
     Extensible = false;
 
     /// <summary>
-    /// The Self-managed utilization (the resource used for the LLM call is the one provided by the developer).
+    /// The first party utilization (only available for Microsoft first party apps).
     /// </summary>
     value(0; FirstParty)
     {
