@@ -125,6 +125,7 @@ codeunit 134934 "Manual Setup Test"
     [ModalPageHandler]
     procedure HandleManualSetup(var ManualSetup: TestPage "Manual Setup")
     begin
+        ManualSetup.Expand(true);
         ManualSetup.GoToKey('MANUAL SETUP_PAGE_134934__0', 0);
     end;
 }
