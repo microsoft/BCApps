@@ -208,7 +208,7 @@ codeunit 149035 "BCCT Line"
     local procedure AddLogAppInsights(var BCCTLogEntry: Record "BCCT Log Entry")
     var
         Dimensions: Dictionary of [Text, Text];
-        TelemetryLogLbl: Label 'Performance Toolkit - %1 - %2 - %3', Locked = true;
+        TelemetryLogLbl: Label 'AI Test Tool - %1 - %2 - %3', Locked = true;
     begin
         Dimensions.Add('RunID', BCCTLogEntry.RunID);
         Dimensions.Add('Code', BCCTLogEntry."BCCT Code");

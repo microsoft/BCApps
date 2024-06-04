@@ -16,7 +16,7 @@ page 149040 "BCCT Setup List"
     RefreshOnActivate = true;
     UsageCategory = Lists;
     Extensible = true;
-    AdditionalSearchTerms = 'BCCT,Benchmark,Perf,Performance,Toolkit';
+    AdditionalSearchTerms = 'AITT';
     ApplicationArea = All;
 
     layout

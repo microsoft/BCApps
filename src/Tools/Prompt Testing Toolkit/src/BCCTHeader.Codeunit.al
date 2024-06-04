@@ -113,9 +113,9 @@ codeunit 149034 "BCCT Header"
     procedure SetRunStatus(var BCCTHeader: Record "BCCT Header"; BCCTHeaderStatus: Enum "BCCT Header Status")
     var
         TelemetryCustomDimensions: Dictionary of [Text, Text];
-        PerformanceRunStartedLbl: Label 'Performance Toolkit run started.', Locked = true;
-        PerformanceRunFinishedLbl: Label 'Performance Toolkit run finished.', Locked = true;
-        PerformanceRunCancelledLbl: Label 'Performance Toolkit run cancelled.', Locked = true;
+        AITTRunStartedLbl: Label 'AITT Suite run started.', Locked = true;
+        AITTRunFinishedLbl: Label 'AITT Suite run finished.', Locked = true;
+        AITTRunCancelledLbl: Label 'AITT Suite run cancelled.', Locked = true;
     begin
         TelemetryCustomDimensions.Add('RunID', Format(BCCTHeader.RunID));
         TelemetryCustomDimensions.Add('Code', BCCTHeader.Code);
@@ -131,11 +131,11 @@ codeunit 149034 "BCCT Header"
 
         case BCCTHeaderStatus of
             BCCTHeaderStatus::Running:
-                Session.LogMessage('0000DHR', PerformanceRunStartedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
+                Session.LogMessage('0000DHR', AITTRunStartedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
             BCCTHeaderStatus::Completed:
-                Session.LogMessage('0000DHS', PerformanceRunFinishedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
+                Session.LogMessage('0000DHS', AITTRunFinishedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
             BCCTHeaderStatus::Cancelled:
-                Session.LogMessage('0000DHT', PerformanceRunCancelledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
+                Session.LogMessage('0000DHT', AITTRunCancelledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
         end;
         BCCTHeader.Modify();
         Commit();
