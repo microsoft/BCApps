@@ -50,18 +50,24 @@ page 130462 "Test Input Groups"
     {
         area(Processing)
         {
-            action(ImportDataInputs)
+            fileuploadaction(ImportDataInputs)
             {
-                ApplicationArea = All;
                 Caption = 'Import data-driven test inputs';
-                Image = ImportCodes;
-                ToolTip = 'Import data-driven test inputs from a JSON file';
+                AllowMultipleFiles = true;
+                ToolTip = 'Import data-driven test inputs from a JSON or JSONL file';
+                AllowedFileExtensions = '.jsonl', '.json';
+                Image = Attach;
 
-                trigger OnAction()
+                trigger OnAction(Files: List of [FileUpload])
                 var
                     TestInputsManagement: Codeunit "Test Inputs Management";
+                    CurrentFile: FileUpload;
+                    FileDataInStream: InStream;
                 begin
-                    TestInputsManagement.UploadAndImportDataInputsFromJson();
+                    foreach CurrentFile in files do begin
+                        CurrentFile.CreateInStream(FileDataInStream, TextEncoding::UTF8);
+                        TestInputsManagement.UploadAndImportDataInputsFromJson(CurrentFile.FileName, FileDataInStream);
+                    end;
                 end;
             }
         }

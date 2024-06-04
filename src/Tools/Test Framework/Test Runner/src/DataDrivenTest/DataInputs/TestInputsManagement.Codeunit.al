@@ -101,17 +101,11 @@ codeunit 130458 "Test Inputs Management"
         this.UploadAndImportDataInputsFromJson(TestInputGroup);
     end;
 
-    procedure UploadAndImportDataInputsFromJson(var TestInputGroup: Record "Test Input Group")
+    internal procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream)
     var
-        TempDummyTestInput: Record "Test Input" temporary;
-        TestInputInStream: InStream;
-        FileName: Text;
+        TestInputGroup: Record "Test Input Group";
         InputText: Text;
     begin
-        TempDummyTestInput."Test Input".CreateInStream(TestInputInStream);
-        if not UploadIntoStream(this.ChooseFileLbl, '', '', FileName, TestInputInStream) then
-            exit;
-
         if not TestInputGroup.Find() then
             this.CreateTestInputGroup(TestInputGroup, FileName);
 
@@ -122,6 +116,19 @@ codeunit 130458 "Test Inputs Management"
 
         if FileName.EndsWith(this.JsonlFileExtensionTxt) then
             this.ParseDataInputsJsonl(TestInputInStream, TestInputGroup);
+    end;
+
+    procedure UploadAndImportDataInputsFromJson(var TestInputGroup: Record "Test Input Group")
+    var
+        TempDummyTestInput: Record "Test Input" temporary;
+        TestInputInStream: InStream;
+        FileName: Text;
+    begin
+        TempDummyTestInput."Test Input".CreateInStream(TestInputInStream);
+        if not UploadIntoStream(this.ChooseFileLbl, '', '', FileName, TestInputInStream) then
+            exit;
+
+        this.UploadAndImportDataInputsFromJson(FileName, TestInputInStream);
     end;
 
     procedure ImportDataInputsFromText(var TestInputGroup: Record "Test Input Group"; DataInputText: Text)
