@@ -70,15 +70,19 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
 
         // The period sets should not intersect.
         LocalPerformanceProfileScheduler.Init();
-        LocalPerformanceProfileScheduler.SetFilter("Ending Date-Time", '>%1', PerformanceProfileScheduler."Starting Date-Time");
         LocalPerformanceProfileScheduler.SetFilter("Client Type", '=%1', PerformanceProfileScheduler."Client Type");
         LocalPerformanceProfileScheduler.SetFilter("User ID", '=%1', PerformanceProfileScheduler."User ID");
+        LocalPerformanceProfileScheduler.SetFilter("Schedule ID", '<>%1', PerformanceProfileScheduler."Schedule ID");
 
-        if ((LocalPerformanceProfileScheduler.FindFirst()) and
-            (LocalPerformanceProfileScheduler."Starting Date-Time" <> 0DT) and
-            (LocalPerformanceProfileScheduler."Ending Date-Time" <> 0DT) and
-            (LocalPerformanceProfileScheduler."Schedule ID" <> PerformanceProfileScheduler."Schedule ID")) then
-            Error(ProfileHasAlreadyBeenScheduledErr);
+        if not LocalPerformanceProfileScheduler.FindSet() then
+            exit;
+
+        repeat
+            if (Intersects(LocalPerformanceProfileScheduler, PerformanceProfileScheduler)) then
+                Error(ProfileHasAlreadyBeenScheduledErr);
+
+        until LocalPerformanceProfileScheduler.Next() = 0;
+
     end;
 
     procedure GetRetentionPeriod(): Code[20]
@@ -110,6 +114,25 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         RetentionPolicySetup.Validate("Retention Period", RetentionPeriodCode);
         RetentionPolicySetup.Validate(Enabled, true);
         RetentionPolicySetup.Insert(true);
+    end;
+
+    local procedure Intersects(First: record "Performance Profile Scheduler"; Second: Record "Performance Profile Scheduler"): Boolean
+    var
+        startInterval1: DateTime;
+        endInterval1: DateTime;
+        startInterval2: DateTime;
+        endInterval2: Datetime;
+    begin
+        startInterval1 := First."Starting Date-Time";
+        endInterval1 := First."Ending Date-Time";
+        startInterval2 := Second."Starting Date-Time";
+        endInterval2 := Second."Ending Date-Time";
+
+        if (((startInterval1 < endInterval1) and (endInterval1 < startInterval2) and (startInterval2 < endInterval2)) or
+            ((startInterval2 < endInterval2) and (endInterval2 < startInterval1) and (startInterval1 < endInterval1))) then
+            Exit(false);
+
+        Exit(true);
     end;
 
     var

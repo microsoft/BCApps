@@ -67,6 +67,11 @@ page 1933 "Perf. Profiler Schedules List"
                     Caption = 'Activity Type';
                     ToolTip = 'Specifies the type of activity for which the schedule is created.';
                     AboutText = 'The type of activity for which the schedule is created.';
+
+                    trigger OnValidate()
+                    begin
+                        ScheduledPerfProfiler.MapRecordToActivityType(Rec, Activity);
+                    end;
                 }
                 field(Description; Rec.Description)
                 {
@@ -111,6 +116,11 @@ page 1933 "Perf. Profiler Schedules List"
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    begin
+        ScheduledPerfProfiler.MapRecordToActivityType(Rec, Activity);
+    end;
 
     trigger OnAfterGetCurrRecord()
     begin
