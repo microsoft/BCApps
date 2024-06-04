@@ -13,6 +13,14 @@ codeunit 149037 "AITT AL Test Suite Mgt"
     Permissions = tabledata "Test Method Line" = rmid,
                   tabledata "AL Test Suite" = rmid;
 
+    var
+        RunProcedureOperationLbl: Label 'Run Procedure', Locked = true;
+
+    internal procedure GetDefaultRunProcedureOperationLbl(): Text
+    begin
+        exit(this.RunProcedureOperationLbl);
+    end;
+
     internal procedure AssistEditTestRunner(var BCCTHeader: Record "BCCT Header")
     var
         AllObjWithCaption: Record AllObjWithCaption;

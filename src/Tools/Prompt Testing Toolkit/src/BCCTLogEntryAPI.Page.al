@@ -95,11 +95,11 @@ page 149038 "BCCT Log Entry API"
                 {
                     Caption = 'Status';
                 }
-                field(dataset; Rec.Dataset)
+                field(dataset; Rec."Test Input Group Code")
                 {
                     Caption = 'Dataset';
                 }
-                field("datasetLineNumber"; Rec."Dataset Line No.")
+                field("datasetLineNumber"; Rec."Test Input Code")
                 {
                     Caption = 'Dataset Line No.';
                 }

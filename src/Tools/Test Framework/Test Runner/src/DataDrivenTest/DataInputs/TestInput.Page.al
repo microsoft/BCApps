@@ -32,6 +32,13 @@ page 130457 "Test Input"
                     Caption = 'Description';
                     ToolTip = 'Specifies the description of the test input.';
                 }
+                field("No. of Entries"; Rec."No. of Entries")
+                {
+                    ApplicationArea = All;
+                    Caption = 'No. of Entries';
+                    ToolTip = 'Specifies the number of entries in the dataset.';
+                    Editable = false;
+                }
             }
             part(TestInputPart; "Test Input Part")
             {

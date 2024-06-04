@@ -36,6 +36,13 @@ page 130462 "Test Input Groups"
                     ToolTip = 'Specifies the description of the test input group.';
                     Caption = 'Description';
                 }
+                field("No. of Entries"; Rec."No. of Entries")
+                {
+                    ApplicationArea = All;
+                    Caption = 'No. of Entries';
+                    ToolTip = 'Specifies the number of entries in the dataset.';
+                    Editable = false;
+                }
             }
         }
     }

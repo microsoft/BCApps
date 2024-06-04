@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Reflection;
+using System.TestTools.TestRunner;
 
 table 149034 "BCCT Log Entry"
 {
@@ -58,12 +59,12 @@ table 149034 "BCCT Log Entry"
         {
             Caption = 'DurationInMs (ms)';
         }
-        field(10; "Status"; Option)
+        field(10; Status; Option)
         {
             Caption = 'Status';
             OptionMembers = Success,Error;
         }
-        field(11; Operation; Text[100]) //TODO: Change the name to No. of Scenarios?
+        field(11; Operation; Text[100])
         {
             Caption = 'Operation';
         }
@@ -77,7 +78,7 @@ table 149034 "BCCT Log Entry"
             DataClassification = CustomerContent;
             Caption = 'Tag';
         }
-        field(16; "Error Call Stack"; Text[2048])
+        field(16; "Error Call Stack"; Text[2048]) //TODO: Consider changing this to blob
         {
             DataClassification = CustomerContent;
             Caption = 'Error Call Stack';
@@ -118,15 +119,24 @@ table 149034 "BCCT Log Entry"
         {
             Caption = 'Log was Modified';
         }
-        field(24; "Dataset"; Text[100])
+        field(24; "Test Input Group Code"; Code[100])
         {
-            Caption = 'Dataset';
-            TableRelation = "BCCT Dataset"."Dataset Name";
+            Caption = 'Test Input Group Code';
+            TableRelation = "Test Input Group".Code;
         }
-        field(25; "Dataset Line No."; Integer)
+        field(25; "Test Input Code"; Code[100])
         {
-            Caption = 'Dataset Line No.';
-            TableRelation = "BCCT Dataset Line".Id where("Dataset Name" = field("Dataset"));
+            Caption = 'Test Input Code';
+            TableRelation = "Test Input".Code where("Test Input Group Code" = field("Test Input Group Code"));
+        }
+        field(26; "Test Input Desc."; Text[2048])
+        {
+            Caption = 'Test Input Description';
+            TableRelation = "Test Input Group"."Description" where("Code" = field("Test Input Group Code"));
+        }
+        field(27; Sensitive; Boolean)
+        {
+            Caption = 'Sensitive';
         }
         field(28; "Input Data"; Blob)
         {
@@ -144,7 +154,7 @@ table 149034 "BCCT Log Entry"
         {
             Clustered = true;
         }
-        key(Key2; "BCCT Code", Version, "BCCT Line No.", Operation, "Duration (ms)", "Dataset Line No.")
+        key(Key2; "BCCT Code", Version, "BCCT Line No.", Operation, "Duration (ms)", "Test Input Code")
         {
             // Instead of a SIFT index. This will make both inserts and calculations faster - and non-blocking
             IncludedFields = "Procedure Name", Status;
@@ -212,9 +222,9 @@ table 149034 "BCCT Log Entry"
 
     internal procedure SetFilterForFailedTestProcedures()
     var
-        AITTestRunner: Codeunit "AIT Test Runner";
+        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
     begin
-        Rec.SetRange(Operation, AITTestRunner.GetDefaultRunProcedureOperationLbl());
+        Rec.SetRange(Operation, AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
         Rec.SetFilter("Procedure Name", '<> %1', '');
         Rec.SetRange(Status, Rec.Status::Error);
     end;

@@ -96,14 +96,19 @@ page 149033 "BCCT Log Entries"
                     ToolTip = 'Specifies the original status of the iteration.';
                     ApplicationArea = All;
                 }
-                field(Dataset; Rec.Dataset)
+                field(Dataset; Rec."Test Input Group Code")
                 {
                     ToolTip = 'Specifies the dataset of the BCCT.';
                     ApplicationArea = All;
                 }
-                field("Dataset Line No."; Rec."Dataset Line No.")
+                field("Dataset Line No."; Rec."Test Input Code")
                 {
                     ToolTip = 'Specifies the Line No. of the dataset.';
+                    ApplicationArea = All;
+                }
+                field("Input Dataset Desc."; Rec."Test Input Desc.")
+                {
+                    ToolTip = 'Specifies the description of the input dataset.';
                     ApplicationArea = All;
                 }
                 field("Input Text"; this.InputText)
@@ -247,8 +252,15 @@ page 149033 "BCCT Log Entries"
 
     trigger OnAfterGetRecord()
     begin
-        this.InputText := Rec.GetInputBlob();
-        this.OutputText := Rec.GetOutputBlob();
+        if Rec.Sensitive then begin
+            this.InputText := '*******';
+            this.OutputText := '*******';
+        end
+        else begin
+            this.InputText := Rec.GetInputBlob();
+            this.OutputText := Rec.GetOutputBlob();
+        end;
+
         this.TestRunDuration := Rec."Duration (ms)";
         case Rec.Status of
             Rec.Status::Success:

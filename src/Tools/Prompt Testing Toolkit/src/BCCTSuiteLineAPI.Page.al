@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
+using System.TestTools.TestRunner;
 
 page 149037 "BCCT Suite Line API"
 {
@@ -58,7 +59,7 @@ page 149037 "BCCT Suite Line API"
                 field(dataset; Rec."Input Dataset")
                 {
                     Caption = 'Override the suite dataset';
-                    TableRelation = "BCCT Dataset"."Dataset Name";
+                    TableRelation = "Test Input Group".Code;
                 }
                 field("minimumUserDelay"; Rec."Min. User Delay (ms)")
                 {

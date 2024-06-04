@@ -23,6 +23,11 @@ table 130454 "Test Input Group"
             Caption = 'Description';
             Tooltip = 'Specifies the description of the test input group.';
         }
+        field(20; "No. of Entries"; Integer)
+        {
+            FieldClass = FlowField;
+            CalcFormula = count("Test Input" where("Test Input Group Code" = field(Code)));
+        }
     }
     keys
     {

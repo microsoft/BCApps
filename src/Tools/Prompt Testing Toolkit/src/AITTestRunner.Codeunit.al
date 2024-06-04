@@ -17,10 +17,9 @@ codeunit 149042 "AIT Test Runner"
         GlobalBCCTLine: Record "BCCT Line";
         GlobalBCCTHeader: Record "BCCT Header";
         ActiveBCCTHeader: Record "BCCT Header";
-        GlobalBCCTDatasetLine: Record "BCCT Dataset Line";
+        GlobalTestMethodLine: Record "Test Method Line";
         NoOfInsertedLogEntries: Integer;
         AccumulatedWaitTimeMs: Integer;
-        RunProcedureOperationLbl: Label 'Run Procedure', Locked = true;
 
     trigger OnRun();
     begin
@@ -111,11 +110,6 @@ codeunit 149042 "AIT Test Runner"
         BCCTLine := this.GlobalBCCTLine;
     end;
 
-    internal procedure GetBCCTDatasetLine(var BCCTDatasetLine: Record "BCCT Dataset Line")
-    begin
-        BCCTDatasetLine := this.GlobalBCCTDatasetLine;
-    end;
-
     local procedure SetBCCTHeader(var CurrBCCTHeader: Record "BCCT Header")
     begin
         this.GlobalBCCTHeader := CurrBCCTHeader;
@@ -153,9 +147,9 @@ codeunit 149042 "AIT Test Runner"
         exit(ReturnValue);
     end;
 
-    internal procedure GetDefaultRunProcedureOperationLbl(): Text
+    internal procedure GetCurrTestMethodLine(): Record "Test Method Line"
     begin
-        exit(this.RunProcedureOperationLbl);
+        exit(this.GlobalTestMethodLine);
     end;
 
     [InternalEvent(false)]
@@ -172,7 +166,10 @@ codeunit 149042 "AIT Test Runner"
             exit;
         if FunctionName = '' then
             exit;
-        BCCTContextCU.StartScenario(this.GetDefaultRunProcedureOperationLbl());
+
+        GlobalTestMethodLine := CurrentTestMethodLine;
+
+        BCCTContextCU.StartRunProcedureScenario();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnAfterTestMethodRun, '', false, false)]
@@ -182,10 +179,11 @@ codeunit 149042 "AIT Test Runner"
     begin
         if this.ActiveBCCTHeader.Code = '' then // exit the code if not triggered by BCCT 
             exit;
-        Commit(); //TODO: Do we need these commits?
         if FunctionName = '' then
             exit;
-        BCCTContextCU.EndScenario(this.GetDefaultRunProcedureOperationLbl(), FunctionName, IsSuccess);
+
+        GlobalTestMethodLine := CurrentTestMethodLine;
+        BCCTContextCU.EndRunProcedureScenario(CurrentTestMethodLine, IsSuccess);
         Commit();
     end;
 }

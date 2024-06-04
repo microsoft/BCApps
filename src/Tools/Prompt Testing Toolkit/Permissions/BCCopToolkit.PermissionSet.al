@@ -17,7 +17,6 @@ permissionset 149030 "BC Cop. Toolkit"
     Permissions = tabledata "BCCT Header" = RIMD,
         tabledata "BCCT Line" = RIMD,
         tabledata "BCCT Log Entry" = RIMD,
-        tabledata "BCCT Dataset" = RIMD,
-        tabledata "BCCT Dataset Line" = RIMD,
-        tabledata "Test Input" = RIMD;
+        tabledata "Test Input" = RIMD,
+        tabledata "Test Method Line" = RIMD;
 }

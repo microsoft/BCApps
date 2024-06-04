@@ -13,8 +13,6 @@ permissionset 149031 "BC Copilot Test Toolkit - Obj"
     Permissions = table "BCCT Header" = X,
         table "BCCT Line" = X,
         table "BCCT Log Entry" = X,
-        table "BCCT Dataset" = X,
-        table "BCCT Dataset Line" = X,
         codeunit "BCCT Header" = X,
         codeunit "BCCT Install" = X,
         codeunit "BCCT Line" = X,

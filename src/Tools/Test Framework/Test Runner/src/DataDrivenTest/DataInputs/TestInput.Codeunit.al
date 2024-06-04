@@ -43,7 +43,7 @@ codeunit 130460 "Test Input"
 
     procedure GetTestInputName(): Text
     begin
-        exit(this.DataPerTest.Code);
+        exit(this.DataPerTest.GetTestInputDisplayName(this.DataPerTest."Test Input Group Code", this.DataPerTest.Code));
     end;
 
     procedure GetTestInput(ElementName: Text): Codeunit "Test Input Json"
@@ -54,6 +54,11 @@ codeunit 130460 "Test Input"
         TestInputJson := this.DataPerTestTestInput.ElementExists(ElementName, ElementExists);
         if ElementExists then
             exit(TestInputJson)
+    end;
+
+    procedure GetTestInputValue(): Text
+    begin
+        exit(this.DataPerTest.GetInput(this.DataPerTest));
     end;
 
     var
