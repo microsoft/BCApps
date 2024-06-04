@@ -90,6 +90,10 @@ page 1931 "Performance Profiles"
             actionref(OpenProfiles; "Open Profile")
             {
             }
+
+            actionref(Refresh; RefreshPage)
+            {
+            }
         }
 
         area(Navigation)
@@ -101,6 +105,7 @@ page 1931 "Performance Profiles"
                 Caption = 'Open Profile';
                 ToolTip = 'Open profiles for the scheduled session';
                 Enabled = Rec."Activity ID" <> '';
+                ShortcutKey = 'Return';
 
                 trigger OnAction()
                 var
@@ -111,6 +116,19 @@ page 1931 "Performance Profiles"
                     Rec.Profile.CreateInStream(ProfileInStream);
                     ProfilerPage.SetData(ProfileInStream);
                     ProfilerPage.Run();
+                end;
+            }
+
+            action(RefreshPage)
+            {
+                ApplicationArea = All;
+                Image = Refresh;
+                Caption = 'Refresh';
+                ToolTip = 'Refresh the profiles for the schedule.';
+
+                trigger OnAction()
+                begin
+                    Update();
                 end;
             }
         }
