@@ -66,7 +66,7 @@ permissionset 66 "System Tables - Basic"
                   tabledata "Style Sheet" = RIMD,
                   tabledata "System Object" = Rimd,
                   tabledata "Tenant Profile Page Metadata" = Rimd,
-                  tabledata "Token Cache" = Rimd;
+                  tabledata "Token Cache" = Rimd,
                   tabledata "Performance Profile Scheduler" = Rimd,
                   tabledata "Performance Profiles" = R;
 }
