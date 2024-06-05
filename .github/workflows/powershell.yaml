@@ -20,10 +20,10 @@ jobs:
     permissions:
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
 
       - name: Run PSScriptAnalyzer
-        uses: microsoft/psscriptanalyzer-action@v1.1
+        uses: microsoft/psscriptanalyzer-action@6b2948b1944407914a58661c49941824d149734f # v1.1
         with:
           path: .\
           recurse: true
@@ -32,6 +32,6 @@ jobs:
 
       # Upload the SARIF file generated in the previous step
       - name: Upload SARIF results file
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@f079b8493333aace61c81488f8bd40919487bd9f # v3.25.7
         with:
           sarif_file: results.sarif
