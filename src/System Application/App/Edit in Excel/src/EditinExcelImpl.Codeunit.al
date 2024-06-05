@@ -873,7 +873,8 @@ codeunit 1482 "Edit in Excel Impl."
             Session.LogMessage('0000IG8', EditInExcelHandledTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
             exit;
         end;
-        Message(StrSubstNo(EditInExcelInvalidFilterErr, FormatFilterErrors(FilterErrors)));
+        if FilterErrors.Count() > 0 then
+            Message(StrSubstNo(EditInExcelInvalidFilterErr, FormatFilterErrors(FilterErrors)));
         GetEndPointAndCreateWorkbookWStructuredFilter(ServiceName, EditinExcelFilters, SearchString);
     end;
 
