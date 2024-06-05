@@ -43,6 +43,7 @@ codeunit 1482 "Edit in Excel Impl."
         CreateEndpointForObjectTxt: Label 'Creating endpoint for %1 %2.', Locked = true;
         EditInExcelHandledTxt: Label 'Edit in excel has been handled.', Locked = true;
         EditInExcelOnlySupportPageWebServicesTxt: Label 'Edit in Excel only support web services created from pages.', Locked = true;
+        EditInExcelInvalidFilterErr: Label 'We had to remove the filters applied to the following fields, because they are not available in the Office Add-In. Please notice that as a result of this that the number of rows you exported to Excel could vary.\n %1', Locked = true;
         DialogTitleTxt: Label 'Export';
         ExcelFileNameTxt: Text;
         XmlByteEncodingTok: Label '_x00%1_%2', Locked = true;
@@ -854,6 +855,7 @@ codeunit 1482 "Edit in Excel Impl."
     var
         TenantWebService: Record "Tenant Web Service";
         EditinExcelFilters: Codeunit "Edit in Excel Filters";
+        FilterErrors: Dictionary of [Text, Boolean];
         Handled: Boolean;
     begin
         EditinExcel.OnEditInExcelWithStructuredFilter(ServiceName, Filter, Payload, SearchString, Handled);
@@ -865,13 +867,31 @@ codeunit 1482 "Edit in Excel Impl."
         if not TenantWebService.Get(TenantWebService."Object Type"::Page, ServiceName) then
             exit;
 
-        EditinExcelFilters.ReadFromJsonFilters(Filter, Payload, TenantWebService."Object ID");
+        EditinExcelFilters.ReadFromJsonFilters(Filter, Payload, TenantWebService."Object ID", FilterErrors);
         EditinExcel.OnEditInExcelWithFilters(ServiceName, EditinExcelFilters, SearchString, Handled);
         if Handled then begin
             Session.LogMessage('0000IG8', EditInExcelHandledTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
             exit;
         end;
-
+        Message(StrSubstNo(EditInExcelInvalidFilterErr, FormatFilterErrors(FilterErrors)));
         GetEndPointAndCreateWorkbookWStructuredFilter(ServiceName, EditinExcelFilters, SearchString);
+    end;
+
+    local procedure FormatFilterErrors(FilterErrors: Dictionary of [Text, Boolean]): Text
+    var
+        ConcatenatedErrors: Text;
+        ErrorText: Text;
+        IsFirst: Boolean;
+    begin
+        ConcatenatedErrors := '';
+        IsFirst := true;
+
+        foreach ErrorText in FilterErrors.Keys() do begin
+            if not IsFirst then
+                ConcatenatedErrors := ConcatenatedErrors + ', ';
+            IsFirst := false;
+            ConcatenatedErrors := ConcatenatedErrors + ErrorText;
+        end;
+        exit(ConcatenatedErrors);
     end;
 }
