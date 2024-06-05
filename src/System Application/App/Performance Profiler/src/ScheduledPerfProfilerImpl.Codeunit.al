@@ -16,27 +16,17 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     InherentPermissions = X;
 
     procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Activity Type")
+    var
+        PerformanceProfileHelper: Codeunit "Performance Profile Helper";
     begin
-        if (ActivityType = ActivityType::WebClient) then
-            PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::"Web Client"
-        else
-            if (ActivityType = ActivityType::Background) then
-                PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::Background
-            else
-                if (ActivityType = ActivityType::WebAPIClient) then
-                    PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::"Web Service";
+        PerformanceProfileHelper.MapActivityTypeToClientType(PerformanceProfileScheduler."Client Type", ActivityType);
     end;
 
     procedure MapRecordToActivityType(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; var ActivityType: Enum "Activity Type")
+    var
+        PerformanceProfileHelper: Codeunit "Performance Profile Helper";
     begin
-        if (PerformanceProfileScheduler."Client Type" = PerformanceProfileScheduler."Client Type"::Background) then
-            ActivityType := ActivityType::Background
-        else
-            if (PerformanceProfileScheduler."Client Type" = PerformanceProfileScheduler."Client Type"::"Web Client") then
-                ActivityType := ActivityType::WebClient
-            else
-                if (PerformanceProfileScheduler."Client Type" = PerformanceProfileScheduler."Client Type"::"Web Service") then
-                    ActivityType := ActivityType::WebAPIClient;
+        PerformanceProfileHelper.MapClientTypeToActivityType(PerformanceProfileScheduler."Client Type", ActivityType);
     end;
 
     procedure MapRecordToUserName(PerformanceProfileScheduler: Record "Performance Profile Scheduler"): Text
@@ -44,9 +34,17 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         User: Record User;
     begin
         if User.GET(PerformanceProfileScheduler."User ID") then;
-        Exit(User."User Name");
+        exit(User."User Name");
+    end;
 
-        Exit('');
+    procedure FilterUsers(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; SecurityID: Guid)
+    var
+        PerformanceProfileHelper: Codeunit "Performance Profile Helper";
+        RecordRef: RecordRef;
+    begin
+        RecordRef.GetTable(PerformanceProfileScheduler);
+        PerformanceProfileHelper.FilterUsers(RecordRef, SecurityID);
+        RecordRef.SetTable(PerformanceProfileScheduler);
     end;
 
     procedure InitializeFields(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; var ActivityType: Enum "Activity Type")
@@ -141,9 +139,9 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
 
         if (((startInterval1 < endInterval1) and (endInterval1 <= startInterval2) and (startInterval2 < endInterval2)) or
             ((startInterval2 < endInterval2) and (endInterval2 <= startInterval1) and (startInterval1 < endInterval1))) then
-            Exit(false);
+            exit(false);
 
-        Exit(true);
+        exit(true);
     end;
 
     var

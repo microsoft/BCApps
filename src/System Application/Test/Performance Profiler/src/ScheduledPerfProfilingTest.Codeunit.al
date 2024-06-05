@@ -6,6 +6,7 @@
 namespace System.Test.Tooling;
 
 using System.PerformanceProfile;
+using System.Security.AccessControl;
 using System.TestLibraries.Utilities;
 using System.Tooling;
 
@@ -14,6 +15,7 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     Subtype = Test;
 
     var
+        Any: Codeunit Any;
         Assert: Codeunit "Library Assert";
         ScheduledPerfProfiler: Codeunit "Scheduled Perf. Profiler";
         ProfileStartingDateLessThenEndingDateErr: Label 'The performance profile starting date must be set before the ending date.';
@@ -24,7 +26,6 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     var
         TempPerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
         ActivityType: Enum "Activity Type";
-        asd: Duration;
     begin
         // [WHEN] The initial data shown on the "Perf. Profiler Schedules Card" card page is set up
         ScheduledPerfProfiler.InitializeFields(TempPerformanceProfileScheduler, ActivityType);
@@ -123,10 +124,53 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         Assert.ExpectedError(ProfileHasAlreadyBeenScheduledErr);
     end;
 
+    [Test]
+    procedure TestUserFilter()
+    var
+        TempPerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
+        TempUser: Record User temporary;
+        ActivityType: Enum "Activity Type";
+    begin
+        // [WHEN] we have a user that is just a default user 
+        this.AddTwoUsers(TempUser);
+        if not TempUser.FindSet() then
+            exit;
+
+        repeat
+            ScheduledPerfProfiler.InitializeFields(TempPerformanceProfileScheduler, ActivityType);
+            TempPerformanceProfileScheduler."User ID" := TempUser."User Security ID";
+            TempPerformanceProfileScheduler.Insert(true);
+        until TempUser.Next() = 0;
+
+
+        // [THEN] the scheduler page is showing values only for that user.
+        TempUser.FindLast();
+        Clear(TempPerformanceProfileScheduler);
+        ScheduledPerfProfiler.FilterUsers(TempPerformanceProfileScheduler, TempUser."User Security ID");
+
+        Assert.AreEqual(1, TempPerformanceProfileScheduler.Count(), 'Expected one filtered record');
+
+        TempPerformanceProfileScheduler.FindFirst();
+        Assert.AreEqual(TempUser."User Security ID", TempPerformanceProfileScheduler."User ID", 'Wrong user id mapped');
+
+    end;
 
     local procedure SetupClientType(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ClientType: Option; var ActivityType: Enum "Activity Type")
     begin
         PerformanceProfileScheduler."Client Type" := ClientType;
         ScheduledPerfProfiler.MapRecordToActivityType(PerformanceProfileScheduler, ActivityType);
+    end;
+
+    local procedure AddTwoUsers(TempUser: Record User temporary)
+    var
+        i: Integer;
+    begin
+
+        for i := 0 to 2 do begin
+            Clear(TempUser);
+            TempUser."User Security ID" := CreateGuid();
+            TempUser."User Name" := CopyStr(Any.AlphanumericText(50), 1, 10);
+            TempUser.Insert();
+        end;
     end;
 }

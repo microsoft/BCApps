@@ -47,13 +47,23 @@ codeunit 1931 "Scheduled Perf. Profiler"
     end;
 
     /// <summary>
+    /// Filters the record with the users that allowed to view the Performance Profile Scheduler page
+    /// </summary>
+    /// <param name="PerformanceProfileScheduler">The record</param>
+    /// <param name="SecurityID">The security ID to filter the opening of the page</param>
+    procedure FilterUsers(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; SecurityID: Guid)
+    begin
+        ScheduledPerfProfilerImpl.FilterUsers(PerformanceProfileScheduler, SecurityID);
+    end;
+
+    /// <summary>
     /// Maps a session type to an activity type.
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
     ///<returns>The user name if found, else empty</returns>
     procedure MapRecordToUserName(PerformanceProfileScheduler: Record "Performance Profile Scheduler"): Text
     begin
-        Exit(ScheduledPerfProfilerImpl.MapRecordToUserName(PerformanceProfileScheduler));
+        exit(ScheduledPerfProfilerImpl.MapRecordToUserName(PerformanceProfileScheduler));
     end;
 
 

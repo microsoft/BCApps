@@ -37,10 +37,11 @@ page 1931 "Performance Profiles"
                     Caption = 'User Name';
                     ToolTip = 'Specifies the name of the user that was profiled.';
                 }
-                field("Client Type"; Rec."Client Type")
+                field(Activity; ActivityType)
                 {
-                    Caption = 'Client Type';
-                    ToolTip = 'Specifies the type of the client that was profiled.';
+                    Caption = 'Activity Type';
+                    ToolTip = 'Specifies the type of activity for which the schedule is created.';
+                    AboutText = 'The type of activity for which the schedule is created.';
                 }
                 field("Activity Description"; Rec."Activity Description")
                 {
@@ -135,7 +136,27 @@ page 1931 "Performance Profiles"
     }
 
     trigger OnOpenPage()
+    var
+        RecordRef: RecordRef;
     begin
         Rec.SetAutoCalcFields("User Name", "Client Type");
+        RecordRef.GetTable(Rec);
+        PerformanceProfileHelper.FilterUsers(RecordRef, UserSecurityId());
+        RecordRef.SetTable(Rec);
     end;
+
+    trigger OnAfterGetRecord()
+    var
+    begin
+        PerformanceProfileHelper.MapClientTypeToActivityType(rec."Client Type", ActivityType);
+    end;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        PerformanceProfileHelper.MapClientTypeToActivityType(rec."Client Type", ActivityType);
+    end;
+
+    var
+        PerformanceProfileHelper: Codeunit "Performance Profile Helper";
+        ActivityType: Enum "Activity Type";
 }

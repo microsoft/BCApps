@@ -6,7 +6,7 @@
 namespace System.Tooling;
 
 using System.PerformanceProfile;
-using System.Security.AccessControl;
+
 
 /// <summary>
 /// List for schedule based sampling profilers
@@ -109,6 +109,11 @@ page 1933 "Perf. Profiler Schedules List"
             }
         }
     }
+
+    trigger OnOpenPage()
+    begin
+        ScheduledPerfProfiler.FilterUsers(Rec, UserSecurityId());
+    end;
 
     trigger OnAfterGetRecord()
     begin
