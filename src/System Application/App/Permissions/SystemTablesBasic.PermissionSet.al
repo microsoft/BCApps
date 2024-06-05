@@ -38,6 +38,7 @@ permissionset 66 "System Tables - Basic"
 
     Permissions = tabledata "Add-in" = R,
                   tabledata "Aggregate Permission Set" = Rimd,
+                  tabledata "All Profile Page Metadata" = Rimd,
 #if not CLEAN22
 #pragma warning disable AL0432
                   tabledata Chart = R,
@@ -64,10 +65,8 @@ permissionset 66 "System Tables - Basic"
                   tabledata "Signup Context" = R,
                   tabledata "Style Sheet" = RIMD,
                   tabledata "System Object" = Rimd,
-#pragma warning disable AL0432
                   tabledata "Tenant Profile Page Metadata" = Rimd,
-#pragma warning restore AL0432
-                  tabledata "Token Cache" = Rimd,
+                  tabledata "Token Cache" = Rimd;
                   tabledata "Performance Profile Scheduler" = Rimd,
                   tabledata "Performance Profiles" = R;
 }
