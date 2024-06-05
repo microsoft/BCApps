@@ -82,6 +82,8 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         LocalPerformanceProfileScheduler.SetFilter("Client Type", '=%1', PerformanceProfileScheduler."Client Type");
         LocalPerformanceProfileScheduler.SetFilter("User ID", '=%1', PerformanceProfileScheduler."User ID");
         LocalPerformanceProfileScheduler.SetFilter("Schedule ID", '<>%1', PerformanceProfileScheduler."Schedule ID");
+        LocalPerformanceProfileScheduler.SetFilter("Starting Date-Time", '<>%1', 0DT);
+        LocalPerformanceProfileScheduler.SetFilter("Ending Date-Time", '<>%1', 0DT);
 
         if not LocalPerformanceProfileScheduler.FindSet() then
             exit;

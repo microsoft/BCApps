@@ -125,6 +125,47 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     end;
 
     [Test]
+    procedure TestValidatePerformanceProfileSchedulerRecordWithNoStartingDate()
+    var
+        PerformanceProfileScheduler: Record "Performance Profile Scheduler";
+        ActivityType: Enum "Activity Type";
+        EndingDateTime: DateTime;
+    begin
+        // [WHEN] we have inserted a new performance profile record
+        ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
+        EndingDateTime := PerformanceProfileScheduler."Starting Date-Time" + 15 * 60000;
+        PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
+        PerformanceProfileScheduler.Insert(true);
+
+        // [THEN] it should not intersect with another that has no ending date
+        Clear(PerformanceProfileScheduler);
+        ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
+        PerformanceProfileScheduler."Starting Date-Time" := 0DT;
+        PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
+        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler, ActivityType);
+    end;
+
+    [Test]
+    procedure TestValidatePerformanceProfileSchedulerRecordWithNoEndingDate()
+    var
+        PerformanceProfileScheduler: Record "Performance Profile Scheduler";
+        ActivityType: Enum "Activity Type";
+        EndingDateTime: DateTime;
+    begin
+        // [WHEN] we have inserted a new performance profile record that has no starting date.
+        ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
+        EndingDateTime := PerformanceProfileScheduler."Starting Date-Time" + 15 * 60000;
+        PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
+        PerformanceProfileScheduler.Insert(true);
+
+        // [THEN] it should not intersect with another.
+        Clear(PerformanceProfileScheduler);
+        ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
+        PerformanceProfileScheduler."Ending Date-Time" := 0DT;
+        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler, ActivityType);
+    end;
+
+    [Test]
     procedure TestUserFilter()
     var
         TempPerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
