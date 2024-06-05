@@ -94,4 +94,13 @@ codeunit 1931 "Scheduled Perf. Profiler"
     begin
         exit(ScheduledPerfProfilerImpl.GetRetentionPeriod());
     end;
+
+    /// <summary>
+    ///  Validates the threshold field
+    /// </summary>
+    /// <param name="PerformanceProfileScheduler"></param>
+    procedure ValidateThreshold(var PerformanceProfileScheduler: Record "Performance Profile Scheduler")
+    begin
+        ScheduledPerfProfilerImpl.ValidateThreshold(PerformanceProfileScheduler);
+    end;
 }

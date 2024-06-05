@@ -125,6 +125,12 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         RetentionPolicySetup.Insert(true);
     end;
 
+    procedure ValidateThreshold(var PerformanceProfileScheduler: Record "Performance Profile Scheduler")
+    begin
+        if (PerformanceProfileScheduler."Profile Creation Threshold" <= 0) then
+            PerformanceProfileScheduler.Validate("Profile Creation Threshold", 500);
+    end;
+
     local procedure Intersects(First: record "Performance Profile Scheduler"; Second: Record "Performance Profile Scheduler"): Boolean
     var
         startInterval1: DateTime;

@@ -147,6 +147,11 @@ page 1932 "Perf. Profiler Schedule Card"
                     Caption = 'Profile Creation Threshold (ms)';
                     ToolTip = 'Specifies Create only profiles that are greater then the profile creation threshold';
                     AboutText = 'Limit the amount of sampling profiles that are created by setting a millisecond threshold. Only profiles larger then the threshold will be created.';
+
+                    trigger OnValidate()
+                    begin
+                        ScheduledPerfProfiler.ValidateThreshold(Rec);
+                    end;
                 }
             }
         }
