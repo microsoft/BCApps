@@ -150,6 +150,7 @@ codeunit 304 "No. Series - Impl."
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
     var
         NoSeriesRec: Record "No. Series";
+        NoSeriesLine2: Record "No. Series Line";
         NoSeries: Codeunit "No. Series";
         NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";
 #if not CLEAN24
@@ -163,12 +164,21 @@ codeunit 304 "No. Series - Impl."
             UsageDate := WorkDate();
 
         // Find the No. Series Line closest to the usage date
-        NoSeriesLine.Reset();
-        NoSeriesLine.SetCurrentKey("Series Code", "Starting Date");
-        NoSeriesLine.SetRange("Series Code", NoSeriesCode);
-        NoSeriesLine.SetRange("Starting Date", 0D, UsageDate);
-        NoSeriesLine.SetRange(Open, true);
-        if (NoSeriesLine."Line No." <> 0) and (NoSeriesLine."Series Code" = NoSeriesCode) then begin
+        NoSeriesLine2.Reset();
+        NoSeriesLine2.SetCurrentKey("Series Code", "Starting Date");
+        NoSeriesLine2.SetRange("Series Code", NoSeriesCode);
+        NoSeriesLine2.SetRange("Starting Date", 0D, UsageDate);
+        NoSeriesLine2.SetRange(Open, true);
+#if not CLEAN24
+#pragma warning disable AL0432
+        NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine2);
+#pragma warning restore AL0432
+#endif
+        if NoSeriesLine2.FindLast() then;
+        NoSeriesLine.CopyFilters(NoSeriesLine2);
+
+        if (NoSeriesLine."Line No." <> 0) and (NoSeriesLine."Series Code" = NoSeriesCode) and (NoSeriesLine."Starting Date" = NoSeriesLine2."Starting Date") then begin
+            NoSeriesLine.CopyFilters(NoSeriesLine2);
             NoSeriesLine.SetRange("Line No.", NoSeriesLine."Line No.");
 #if not CLEAN24
 #pragma warning disable AL0432
