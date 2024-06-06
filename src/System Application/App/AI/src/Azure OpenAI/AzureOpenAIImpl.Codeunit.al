@@ -505,9 +505,9 @@ codeunit 7772 "Azure OpenAI Impl"
     begin
         ClearLastError();
         case AOAIAuthorization.GetResourceUtilization() of
-            Enum::"AOAI Resource Utilization"::MicrosoftManaged:
+            Enum::"AOAI Resource Utilization"::"Microsoft Managed":
                 ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
-            Enum::"AOAI Resource Utilization"::FirstParty:
+            Enum::"AOAI Resource Utilization"::"First Party":
                 ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
             else
                 ALCopilotAuthorization := ALCopilotAuthorization.Create(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
@@ -562,7 +562,7 @@ codeunit 7772 "Azure OpenAI Impl"
         if GuiAllowed() then
             exit;
 
-        if AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::SelfManaged then
+        if AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed" then
             exit;
 
         Error(CapabilityBackgroundErr);

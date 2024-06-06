@@ -36,11 +36,11 @@ codeunit 7767 "AOAI Authorization"
         NavApp.GetCurrentModuleInfo(CurrentModule);
 
         case ResourceUtilization of
-            Enum::"AOAI Resource Utilization"::FirstParty:
+            Enum::"AOAI Resource Utilization"::"First Party":
                 exit((Deployment <> '') and ALCopilotFunctions.IsPlatformAuthorizationConfigured(CallerModule.Publisher(), CurrentModule.Publisher()));
-            Enum::"AOAI Resource Utilization"::SelfManaged:
+            Enum::"AOAI Resource Utilization"::"Self-Managed":
                 exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()));
-            Enum::"AOAI Resource Utilization"::MicrosoftManaged:
+            Enum::"AOAI Resource Utilization"::"Microsoft Managed":
                 exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()) and (ManagedResourceDeployment <> '') and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls());
         end;
 
@@ -52,7 +52,7 @@ codeunit 7767 "AOAI Authorization"
     begin
         ClearVariables();
 
-        ResourceUtilization := Enum::"AOAI Resource Utilization"::MicrosoftManaged;
+        ResourceUtilization := Enum::"AOAI Resource Utilization"::"Microsoft Managed";
         Endpoint := NewEndpoint;
         Deployment := NewDeployment;
         ApiKey := NewApiKey;
@@ -64,7 +64,7 @@ codeunit 7767 "AOAI Authorization"
     begin
         ClearVariables();
 
-        ResourceUtilization := Enum::"AOAI Resource Utilization"::SelfManaged;
+        ResourceUtilization := Enum::"AOAI Resource Utilization"::"Self-Managed";
         Endpoint := NewEndpoint;
         Deployment := NewDeployment;
         ApiKey := NewApiKey;
@@ -75,7 +75,7 @@ codeunit 7767 "AOAI Authorization"
     begin
         ClearVariables();
 
-        ResourceUtilization := Enum::"AOAI Resource Utilization"::FirstParty;
+        ResourceUtilization := Enum::"AOAI Resource Utilization"::"First Party";
         Deployment := NewDeployment;
     end;
 

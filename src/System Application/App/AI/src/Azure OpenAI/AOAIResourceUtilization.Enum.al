@@ -15,22 +15,22 @@ enum 7771 "AOAI Resource Utilization"
     /// <summary>
     /// The first party utilization (only available for Microsoft first party apps).
     /// </summary>
-    value(0; FirstParty)
+    value(0; "First Party")
     {
     }
 
     /// <summary>
-    /// The MicrosoftManaged utilization (the resource used for the LLM call is provided and managed by Microsoft).
+    /// The Microsoft managed utilization (the resource used for the LLM call is provided and managed by Microsoft).
     /// </summary>
     /// <remarks>A valid resource is still required to validate that the developer has access to Azure OpenAI.</remarks>
-    value(1; MicrosoftManaged)
+    value(1; "Microsoft Managed")
     {
     }
 
     /// <summary>
     /// The Self-managed utilization (the resource used for the LLM call is the one provided by the developer).
     /// </summary>
-    value(2; SelfManaged)
+    value(2; "Self-Managed")
     {
     }
 }
