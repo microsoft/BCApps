@@ -132,6 +132,13 @@ codeunit 149043 "BCCT Test Context"
         exit(TestInputCU.GetTestInputValue());
     end;
 
+    procedure GetUserQuery(): Text
+    var
+        TestInputCU: Codeunit "Test Input";
+    begin
+        TestInputCU.GetTestInput('user_query');
+    end;
+
     /// <summary>
     /// Returns the BCCTHeader associated with the sessions.
     /// </summary>
@@ -149,6 +156,22 @@ codeunit 149043 "BCCT Test Context"
         AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
     begin
         TestOutputCU.TestData().Add('test_output', TestOutputText);
+        this.BCCTLineCU.SetTestOutput(AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+    end;
+
+    procedure SetAnswerForQnAEvaluation(Answer: Text)
+    var
+        TestOutputCU: Codeunit "Test Output";
+        TestInputCU: Codeunit "Test Input";
+        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+    begin
+        TestOutputCU.TestData().Add('answer', Answer);
+        if not TestInputCU.GetTestInput('context').ElementValue().IsNull then
+            TestOutputCU.TestData().Add('context', TestInputCU.GetTestInput('context').ValueAsText());
+        if not TestInputCU.GetTestInput('question').ElementValue().IsNull then
+            TestOutputCU.TestData().Add('question', TestInputCU.GetTestInput('question').ValueAsText());
+        if not TestInputCU.GetTestInput('ground_truth').ElementValue().IsNull then
+            TestOutputCU.TestData().Add('ground_truth', TestInputCU.GetTestInput('ground_truth').ValueAsText());
         this.BCCTLineCU.SetTestOutput(AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
     end;
 
