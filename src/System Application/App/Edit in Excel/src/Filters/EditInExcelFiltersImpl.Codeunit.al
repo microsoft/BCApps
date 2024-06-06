@@ -166,16 +166,11 @@ codeunit 1491 "Edit in Excel Filters Impl."
             exit(false);
         end;
 
-        // TODO: When platform fixes the bug so we receive ExternalPageFieldName instead, then change
-        // this logic, in particular look at the implementation of IsKey(..) which wouldn't work anymore.  
         ExternalTableFieldName := NameJsonToken.AsValue().AsText();
 
         PageControlField.SetRange(PageNo, PageNumber); // Does this method work also for fields added through Extensions ?
         PageControlField.SetRange(ControlName, ExternalTableFieldName);
 
-        // If this conditional is true then we do not add the filter to the output.
-        // We only want to add fields that are on the page, with the exception of keys, this is because
-        // the platform always exposes keys through OData even when they're not present on the page.
         if PageControlField.IsEmpty() and not IsKey(PageNumber, ExternalTableFieldName) then begin
             Session.LogMessage('0000I5U', FieldNotOnThePageTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
             if not FilterErrors.ContainsKey(ExternalTableFieldName) then
@@ -203,7 +198,6 @@ codeunit 1491 "Edit in Excel Filters Impl."
             exit(false);
         end;
 
-        // this FilterValue variable is set as a side effect and used later in ConvertStructuredFiltersToEntityFilterCollection
         FilterValue := NameJsonToken.AsValue().AsText();
         exit(true);
     end;
