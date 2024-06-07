@@ -66,9 +66,61 @@ codeunit 130462 "Test Output Json"
         exit(this.Add(Name, NewJsonToken));
     end;
 
+    procedure Add(Name: Text; DecimalValue: Decimal): Codeunit "Test Output Json"
+    var
+        NewJsonValue: JsonValue;
+        NewJsonToken: JsonToken;
+    begin
+        NewJsonValue.SetValue(DecimalValue);
+        NewJsonToken := NewJsonValue.AsToken();
+        exit(this.Add(Name, NewJsonToken));
+    end;
+
+    procedure Add(Name: Text; IntegerValue: Integer): Codeunit "Test Output Json"
+    var
+        NewJsonValue: JsonValue;
+        NewJsonToken: JsonToken;
+    begin
+        NewJsonValue.SetValue(IntegerValue);
+        NewJsonToken := NewJsonValue.AsToken();
+        exit(this.Add(Name, NewJsonToken));
+    end;
+
+    procedure Add(Name: Text; BooleanValue: Boolean): Codeunit "Test Output Json"
+    var
+        NewJsonValue: JsonValue;
+        NewJsonToken: JsonToken;
+    begin
+        NewJsonValue.SetValue(BooleanValue);
+        NewJsonToken := NewJsonValue.AsToken();
+        exit(this.Add(Name, NewJsonToken));
+    end;
+
+    procedure Add(Name: Text; DateTimeValue: DateTime): Codeunit "Test Output Json"
+    var
+        NewJsonValue: JsonValue;
+        NewJsonToken: JsonToken;
+    begin
+        NewJsonValue.SetValue(DateTimeValue);
+        NewJsonToken := NewJsonValue.AsToken();
+        exit(this.Add(Name, NewJsonToken));
+    end;
+
+    procedure Add(Name: Text; DateValue: Date): Codeunit "Test Output Json"
+    var
+        NewJsonValue: JsonValue;
+        NewJsonToken: JsonToken;
+    begin
+        NewJsonValue.SetValue(DateValue);
+        NewJsonToken := NewJsonValue.AsToken();
+        exit(this.Add(Name, NewJsonToken));
+    end;
+
     procedure Add(Name: Text; var ValueVariant: JsonToken): Codeunit "Test Output Json"
     var
         NewTestJson: Codeunit "Test Output Json";
+        NewJsonObject: JsonObject;
+        NewJsonToken: JsonToken;
     begin
         if this.TestJson.IsObject() then begin
             this.TestJson.AsObject().Add(Name, ValueVariant);
@@ -76,11 +128,21 @@ codeunit 130462 "Test Output Json"
             exit(NewTestJson);
         end;
 
-        if this.TestJson.IsArray() then begin
+        if not this.TestJson.IsArray() then
+            Error(this.WrongTypeOrNotInitializedErr);
+
+        if Name = '' then begin
             this.TestJson.AsArray().Add(ValueVariant);
             NewTestJson.Initialize(ValueVariant);
             exit(NewTestJson);
         end;
+
+        NewJsonObject.ReadFrom('{}');
+        NewJsonObject.Add(Name, ValueVariant);
+        NewJsonToken := NewJsonObject.AsToken();
+        this.TestJson.AsArray().Add(NewJsonToken);
+        NewTestJson.Initialize(NewJsonToken);
+        exit(NewTestJson);
     end;
 
     procedure AddArray(Name: Text): Codeunit "Test Output Json"
@@ -177,6 +239,7 @@ codeunit 130462 "Test Output Json"
         TheElementIsNotAnObjectErr: Label 'DataOutput - The element is not an object, use a different method.';
         TheElementIsNotAnArrayErr: Label 'DataOutput - The element is not an array, use a different method.';
         NoDataOutputsWereRecordedErr: Label 'No data outputs were recorded.';
+        WrongTypeOrNotInitializedErr: Label 'The data output is not initialized or is of the wrong type. It must be an Json object or array.';
         TestJson: JsonToken;
         TestOutputJsonTok: Label 'TestOutput.json';
 }

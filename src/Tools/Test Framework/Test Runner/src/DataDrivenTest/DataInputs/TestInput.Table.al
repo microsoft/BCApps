@@ -89,4 +89,15 @@ table 130452 "Test Input"
 
         exit(StrSubstNo('%1-%2', TestInputGroupCode, TestInputCode))
     end;
+
+    internal procedure IsSensitive(): Boolean
+    var
+        TestInputGroup: Record "Test Input Group";
+    begin
+        if TestInputGroup.Get(Rec."Test Input Group Code") then
+            if TestInputGroup.Sensitive then
+                exit(true);
+
+        exit(Rec.Sensitive);
+    end;
 }
