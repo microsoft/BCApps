@@ -182,6 +182,19 @@ page 2500 "Extension Management"
                         ExtensionOperationImpl.DownloadExtensionSource(Rec."Package ID");
                     end;
                 }
+                action("Open Source in VS Code")
+                {
+                    Caption = 'Open Source in VS Code';
+                    //Enabled = IsSourceSpecificationAvailable;
+                    Image = Download;
+                    Scope = Repeater;
+                    ToolTip = 'Open the source code for the extension based on the source control information.';
+
+                    trigger OnAction()
+                    begin
+                        Hyperlink(Rec."Open source in VS Code URL");
+                    end;
+                }
                 action("Learn More")
                 {
                     Caption = 'Learn More';
