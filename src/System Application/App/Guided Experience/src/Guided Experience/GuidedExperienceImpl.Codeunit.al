@@ -431,7 +431,9 @@ codeunit 1991 "Guided Experience Impl."
 
     procedure IsAssistedSetupSetupRecord(GuidedExperienceItem: Record "Guided Experience Item"): Boolean
     begin
-        exit(GuidedExperienceItem."Object ID to Run" > 0);
+        if not (GuidedExperienceItem."Object ID to Run" > 0) then
+            exit(false);
+        exit(IsObjectToRunValid(GuidedExperienceItem."Object Type to Run", GuidedExperienceItem."Object ID to Run"));
     end;
 
     procedure GetTranslationForField(GuidedExperienceItem: Record "Guided Experience Item"; FieldNo: Integer): Text
@@ -528,18 +530,19 @@ codeunit 1991 "Guided Experience Impl."
         GroupId: Integer;
         i: Integer;
     begin
+        GuidedExperienceItem.ReadIsolation := GuidedExperienceItem.ReadIsolation::ReadUncommitted;
         GuidedExperienceItem.SetCurrentKey("Guided Experience Type", "Object Type to Run", "Object ID to Run", "Manual Setup Category", Link, Version);
         GuidedExperienceItem.SetRange("Guided Experience Type", GuidedExperienceItem."Guided Experience Type"::"Manual Setup");
         GuidedExperienceItem.SetAscending(Version, false);
 
-        GroupId := -1;
+        GroupId := 0;
         foreach i in "Manual Setup Category".Ordinals() do begin
             GroupValue := "Manual Setup Category".FromInteger(i);
             GuidedExperienceItem.SetRange("Manual Setup Category", GroupValue);
 
             if GuidedExperienceItem.FindSet() then begin
                 // this part is necessary to include the Manual Setup Category as a header on the page
-                TempGuidedExperienceItem.Init();
+                Clear(TempGuidedExperienceItem);
                 TempGuidedExperienceItem.Code := Format(GroupId);
                 TempGuidedExperienceItem."Object ID to Run" := GroupId;
                 TempGuidedExperienceItem.Title := Format(GroupValue);
