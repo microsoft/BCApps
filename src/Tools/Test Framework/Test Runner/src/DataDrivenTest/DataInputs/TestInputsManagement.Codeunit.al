@@ -82,11 +82,16 @@ codeunit 130458 "Test Inputs Management"
     local procedure UpdateCodeunitTestInputProperties(var TempTestMethodLine: Record "Test Method Line" temporary; var DataInput: Record "Test Input")
     var
         CodeunitTestMethodLine: Record "Test Method Line";
+        LastTestMethodLine: Record "Test Method Line";
+        TestSuiteManagement: Codeunit "Test Suite Mgt.";
     begin
+        LastTestMethodLine.SetRange("Test Suite", TempTestMethodLine."Test Suite");
+        LastTestMethodLine.FindLast();
         CodeunitTestMethodLine.SetRange("Test Suite", TempTestMethodLine."Test Suite");
         CodeunitTestMethodLine.SetRange("Line Type", CodeunitTestMethodLine."Line Type"::Codeunit);
 
         CodeunitTestMethodLine.SetRange("Data Input Group Code", '');
+        CodeunitTestMethodLine.SetFilter("Line No.", TestSuiteManagement.GetLineNoFilterForTestCodeunit(LastTestMethodLine));
         CodeunitTestMethodLine.ModifyAll("Data Input Group Code", DataInput."Test Input Group Code");
         CodeunitTestMethodLine.SetRange("Data Input Group Code");
 
@@ -101,17 +106,11 @@ codeunit 130458 "Test Inputs Management"
         this.UploadAndImportDataInputsFromJson(TestInputGroup);
     end;
 
-    procedure UploadAndImportDataInputsFromJson(var TestInputGroup: Record "Test Input Group")
+    internal procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream)
     var
-        TempDummyTestInput: Record "Test Input" temporary;
-        TestInputInStream: InStream;
-        FileName: Text;
+        TestInputGroup: Record "Test Input Group";
         InputText: Text;
     begin
-        TempDummyTestInput."Test Input".CreateInStream(TestInputInStream);
-        if not UploadIntoStream(this.ChooseFileLbl, '', '', FileName, TestInputInStream) then
-            exit;
-
         if not TestInputGroup.Find() then
             this.CreateTestInputGroup(TestInputGroup, FileName);
 
@@ -122,6 +121,19 @@ codeunit 130458 "Test Inputs Management"
 
         if FileName.EndsWith(this.JsonlFileExtensionTxt) then
             this.ParseDataInputsJsonl(TestInputInStream, TestInputGroup);
+    end;
+
+    procedure UploadAndImportDataInputsFromJson(var TestInputGroup: Record "Test Input Group")
+    var
+        TempDummyTestInput: Record "Test Input" temporary;
+        TestInputInStream: InStream;
+        FileName: Text;
+    begin
+        TempDummyTestInput."Test Input".CreateInStream(TestInputInStream);
+        if not UploadIntoStream(this.ChooseFileLbl, '', '', FileName, TestInputInStream) then
+            exit;
+
+        this.UploadAndImportDataInputsFromJson(FileName, TestInputInStream);
     end;
 
     procedure ImportDataInputsFromText(var TestInputGroup: Record "Test Input Group"; DataInputText: Text)

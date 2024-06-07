@@ -32,6 +32,19 @@ page 130457 "Test Input"
                     Caption = 'Description';
                     ToolTip = 'Specifies the description of the test input.';
                 }
+                field(Sensitive; Rec.Sensitive)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Sensitive';
+                    ToolTip = 'Specifies if the test input is sensitive and should not be shown directly off the page.';
+                }
+                field("No. of Entries"; Rec."No. of Entries")
+                {
+                    ApplicationArea = All;
+                    Caption = 'No. of Entries';
+                    ToolTip = 'Specifies the number of entries in the dataset.';
+                    Editable = false;
+                }
             }
             part(TestInputPart; "Test Input Part")
             {

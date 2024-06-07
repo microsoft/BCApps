@@ -22,8 +22,13 @@ codeunit 130478 "E2E Test Data Driven Output"
         TestOutput.TestData().Element('TestList').Add('Item1', 'aaa');
         TestOutput.TestData().Add('CopilotKPis', '').Add('Number of calls', Format(111, 0, 9));
         TestOutput.TestData().Element('CopilotKPis').Add('Number of tokens', Format(122, 0, 9));
-        // TODO: Add overloads for decimals, integers, boolean and other commonly used types
-        TestOutput.TestData().Element('TestList').Add('Amount', '123.11');
+
+        // Test Integers, decimals, booleans, datetime and date
+        TestOutput.TestData().Element('TestList').Add('Decimal', 123.11);
+        TestOutput.TestData().Element('TestList').Add('Integer', 123);
+        TestOutput.TestData().Element('TestList').Add('Boolean', true);
+        TestOutput.TestData().Element('TestList').Add('DateTime', CurrentDateTime());
+        TestOutput.TestData().Element('TestList').Add('Date', DT2Date(CurrentDateTime()));
     end;
 
     [Test]
