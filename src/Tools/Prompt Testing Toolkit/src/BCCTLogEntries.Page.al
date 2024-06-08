@@ -198,9 +198,6 @@ page 149033 "BCCT Log Entries"
                 ApplicationArea = All;
                 Caption = 'Delete entries within filter';
                 Image = Delete;
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedOnly = true;
                 ToolTip = 'Deletes all the log entries.';
 
                 trigger OnAction()
@@ -217,9 +214,6 @@ page 149033 "BCCT Log Entries"
                 Visible = not this.IsFilteredToErrors;
                 Caption = 'Show errors';
                 Image = FilterLines;
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedOnly = true;
                 ToolTip = 'Shows only errors.';
 
                 trigger OnAction()
@@ -235,9 +229,6 @@ page 149033 "BCCT Log Entries"
                 Visible = this.IsFilteredToErrors;
                 Caption = 'Show success and errors';
                 Image = RemoveFilterLines;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
                 ToolTip = 'Clears the filter on errors.';
 
                 trigger OnAction()
@@ -247,21 +238,67 @@ page 149033 "BCCT Log Entries"
                     CurrPage.Update(false);
                 end;
             }
+            action("Show Sensitive Data")
+            {
+                ApplicationArea = All;
+                Caption = 'Show sensitive data';
+                Image = ShowWarning;
+                Visible = not this.ShowSensitiveData;
+                ToolTip = 'Use this action to make sensitive data visible.';
+
+                trigger OnAction()
+                begin
+                    this.ShowSensitiveData := true;
+                    CurrPage.Update(false);
+                end;
+            }
+            action("Hide Sensitive Data")
+            {
+                ApplicationArea = All;
+                Caption = 'Hide sensitive data';
+                Image = RemoveFilterLines;
+                Visible = this.ShowSensitiveData;
+                ToolTip = 'Use this action to hide sensitive data.';
+
+                trigger OnAction()
+                begin
+                    this.ShowSensitiveData := false;
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                actionref(DeleteAll_Promoted; DeleteAll)
+                {
+                }
+                actionref(ShowErrors_Promoted; ShowErrors)
+                {
+                }
+                actionref(ClearShowErrors_Promoted; ClearShowErrors)
+                {
+                }
+                actionref("Show Sensitive Data_Promoted"; "Show Sensitive Data")
+                {
+                }
+                actionref("Hide Sensitive Data_Promoted"; "Hide Sensitive Data")
+                {
+                }
+            }
         }
     }
 
     trigger OnAfterGetRecord()
     begin
-        if Rec.Sensitive then begin
-            this.InputText := '*******';
-            this.OutputText := '*******';
-        end
-        else begin
-            this.InputText := Rec.GetInputBlob();
-            this.OutputText := Rec.GetOutputBlob();
-        end;
-
         this.TestRunDuration := Rec."Duration (ms)";
+        this.SetInputOutputDataFields();
+        this.SetStatusStyleExpr();
+    end;
+
+    local procedure SetStatusStyleExpr()
+    begin
         case Rec.Status of
             Rec.Status::Success:
                 this.StatusStyleExpr := 'Favorable';
@@ -272,11 +309,31 @@ page 149033 "BCCT Log Entries"
         end;
     end;
 
+    local procedure SetInputOutputDataFields()
+    begin
+        this.InputText := '';
+        this.OutputText := '';
+
+        if Rec.Sensitive and not this.ShowSensitiveData then begin
+            Rec.CalcFields("Input Data", "Output Data");
+            if Rec."Input Data".Length > 0 then
+                this.InputText := ClickToShowLbl;
+            if Rec."Output Data".Length > 0 then
+                this.OutputText := ClickToShowLbl;
+        end
+        else begin
+            this.InputText := Rec.GetInputBlob();
+            this.OutputText := Rec.GetOutputBlob();
+        end;
+    end;
+
     var
         DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
         IsFilteredToErrors: Boolean;
         InputText: Text;
         OutputText: Text;
+        ClickToShowLbl: Label 'Show data input';
         TestRunDuration: Duration;
         StatusStyleExpr: Text;
+        ShowSensitiveData: Boolean;
 }
