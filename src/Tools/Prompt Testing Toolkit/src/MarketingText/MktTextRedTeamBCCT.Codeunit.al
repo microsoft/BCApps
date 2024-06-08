@@ -30,7 +30,7 @@ codeunit 149038 "Mkt Text RedTeam BCCT"
         Format := Enum::"Entity Text Format"::Tagline;
         AddFacts(Facts, InputPrompt, Format);
         Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Inspiring, Format, Enum::"Entity Text Emphasis"::None);
-        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, Response, Enum::"Entity Text Tone"::Inspiring, Format));
+        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, BuildFactsText(Facts, Format), Response, Enum::"Entity Text Tone"::Inspiring, Format));
     end;
 
     [Test]
@@ -52,7 +52,7 @@ codeunit 149038 "Mkt Text RedTeam BCCT"
         Format := Enum::"Entity Text Format"::TaglineParagraph;
         AddFacts(Facts, InputPrompt, Format);
         Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Inspiring, Format, Enum::"Entity Text Emphasis"::None);
-        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, Response, Enum::"Entity Text Tone"::Inspiring, Format));
+        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, BuildFactsText(Facts, Format), Response, Enum::"Entity Text Tone"::Inspiring, Format));
     end;
 
     [Test]
@@ -74,7 +74,7 @@ codeunit 149038 "Mkt Text RedTeam BCCT"
         Format := Enum::"Entity Text Format"::Paragraph;
         AddFacts(Facts, InputPrompt, Format);
         Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Inspiring, Format, Enum::"Entity Text Emphasis"::None);
-        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, Response, Enum::"Entity Text Tone"::Inspiring, Format));
+        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, BuildFactsText(Facts, Format), Response, Enum::"Entity Text Tone"::Inspiring, Format));
     end;
 
     [Test]
@@ -96,7 +96,7 @@ codeunit 149038 "Mkt Text RedTeam BCCT"
         Format := Enum::"Entity Text Format"::Brief;
         AddFacts(Facts, InputPrompt, Format);
         Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Inspiring, Format, Enum::"Entity Text Emphasis"::None);
-        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, Response, Enum::"Entity Text Tone"::Inspiring, Format));
+        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, BuildFactsText(Facts, Format), Response, Enum::"Entity Text Tone"::Inspiring, Format));
     end;
 
     local procedure AddFacts(var Facts: Dictionary of [Text, Text]; InputPrompt: Text; Format: Enum "Entity Text Format")
@@ -109,13 +109,46 @@ codeunit 149038 "Mkt Text RedTeam BCCT"
         end;
     end;
 
-    local procedure PrepareOutput(InputPrompt: Text; Response: Text; Tone: Enum "Entity Text Tone"; Format: Enum "Entity Text Format"): Text;
+    local procedure BuildFactsText(var Facts: Dictionary of [Text, Text]; TextFormat: Enum "Entity Text Format"): Text
+    var
+        FactTemplateTxt: Label '- %1: %2%3', Locked = true;
+        FactKey: Text;
+        FactValue: Text;
+        FactsList: Text;
+        NewLineChar: Char;
+        MaxFacts: Integer;
+        TotalFacts: Integer;
+        MaxFactLength: Integer;
+    begin
+        NewLineChar := 10;
+        TotalFacts := Facts.Count();
+
+        MaxFacts := 20;
+        MaxFactLength := 250;
+
+        TotalFacts := 0;
+        foreach FactKey in Facts.Keys() do begin
+            if TotalFacts < MaxFacts then begin
+                Facts.Get(FactKey, FactValue);
+                FactKey := FactKey.Replace(NewLineChar, '').Trim();
+                FactValue := FactValue.Replace(NewLineChar, '').Trim();
+                FactsList += StrSubstNo(FactTemplateTxt, CopyStr(FactKey, 1, MaxFactLength), CopyStr(FactValue, 1, MaxFactLength), NewLineChar);
+            end;
+            TotalFacts += 1;
+        end;
+        exit(FactsList);
+    end;
+
+    local procedure PrepareOutput(InputPrompt: Text; Facts: Text; Response: Text; Tone: Enum "Entity Text Tone"; Format: Enum "Entity Text Format"): Text;
     var
         Context: Text;
-        FormatLbl: Label '{"question": "%1", "answer": "%2", "context": "%3", "ground_truth": "%4", "tone": "%5", "format" : "%6"}', Comment = '%1= Input Prompt, %2= Response Prompt, %3= Context, %4= Ground Truth, %5= Tone, %6= Format';
+        FormatLbl: Label '{"question": "METAPROMPT %1", "answer": "%2", "context": "%3", "ground_truth": "%4", "tone": "%5", "format" : "%6"}', Comment = '%1= Input Prompt, %2= Response Prompt, %3= Context, %4= Ground Truth, %5= Tone, %6= Format';
+        EncodedNewlineTok: Label '<br />', Locked = true;
+        NewLineChar: Char;
     begin
-        Context := 'The following facts should only be used to produce the marketing ad:\\n' + InputPrompt;
-        exit(StrSubstNo(FormatLbl, InputPrompt, Response, Context, '', Tone.Names.Get(Tone.Ordinals.IndexOf(Tone.AsInteger())), Format.Names.Get(Format.Ordinals.IndexOf(Format.AsInteger()))));
+        NewLineChar := 10;
+        Context := 'Here are some facts about the item:<br /><br />' + Facts.Replace(NewLineChar, EncodedNewlineTok);
+        exit(StrSubstNo(FormatLbl, Facts.Replace(NewLineChar, EncodedNewlineTok), Response.Replace(NewLineChar, EncodedNewlineTok), Context, '', Tone.Names.Get(Tone.Ordinals.IndexOf(Tone.AsInteger())), Format.Names.Get(Format.Ordinals.IndexOf(Format.AsInteger()))));
     end;
 
 

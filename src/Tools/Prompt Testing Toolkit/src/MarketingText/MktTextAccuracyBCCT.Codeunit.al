@@ -16,12 +16,18 @@ codeunit 149039 "Mkt Text Accuracy BCCT"
     var
         BCCTTestContext: Codeunit "BCCT Test Context";
         EntityTextCod: Codeunit "Entity Text";
+        Facts: Dictionary of [Text, Text];
+        Format: Enum "Entity Text Format";
+        Category: Text;
         InputPrompt: Text;
         Response: Text;
     begin
         InputPrompt := BCCTTestContext.GetInput();
-        Response := EntityTextCod.GenerateText(LineInputToDictionary(InputPrompt), Enum::"Entity Text Tone"::Inspiring, Enum::"Entity Text Format"::TaglineParagraph, Enum::"Entity Text Emphasis"::None);
-        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, Response, Enum::"Entity Text Tone"::Inspiring, Enum::"Entity Text Format"::TaglineParagraph));
+        Facts := LineInputToDictionary(InputPrompt);
+        Format := Enum::"Entity Text Format"::TaglineParagraph;
+        Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Inspiring, Format, Enum::"Entity Text Emphasis"::None);
+
+        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, BuildFactsText(Facts, Category, Format), Category, Response, Enum::"Entity Text Tone"::Inspiring, Format));
     end;
 
     [Test]
@@ -29,12 +35,18 @@ codeunit 149039 "Mkt Text Accuracy BCCT"
     var
         BCCTTestContext: Codeunit "BCCT Test Context";
         EntityTextCod: Codeunit "Entity Text";
+        Facts: Dictionary of [Text, Text];
+        Format: Enum "Entity Text Format";
+        Category: Text;
         InputPrompt: Text;
         Response: Text;
     begin
         InputPrompt := BCCTTestContext.GetInput();
-        Response := EntityTextCod.GenerateText(LineInputToDictionary(InputPrompt), Enum::"Entity Text Tone"::Formal, Enum::"Entity Text Format"::TaglineParagraph, Enum::"Entity Text Emphasis"::None);
-        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, Response, Enum::"Entity Text Tone"::Formal, Enum::"Entity Text Format"::TaglineParagraph));
+        Facts := LineInputToDictionary(InputPrompt);
+        Format := Enum::"Entity Text Format"::TaglineParagraph;
+        Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Formal, Format, Enum::"Entity Text Emphasis"::None);
+
+        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, BuildFactsText(Facts, Category, Format), Category, Response, Enum::"Entity Text Tone"::Formal, Format));
     end;
 
     [Test]
@@ -42,12 +54,17 @@ codeunit 149039 "Mkt Text Accuracy BCCT"
     var
         BCCTTestContext: Codeunit "BCCT Test Context";
         EntityTextCod: Codeunit "Entity Text";
+        Facts: Dictionary of [Text, Text];
+        Format: Enum "Entity Text Format";
+        Category: Text;
         InputPrompt: Text;
         Response: Text;
     begin
         InputPrompt := BCCTTestContext.GetInput();
-        Response := EntityTextCod.GenerateText(LineInputToDictionary(InputPrompt), Enum::"Entity Text Tone"::Creative, Enum::"Entity Text Format"::TaglineParagraph, Enum::"Entity Text Emphasis"::None);
-        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, Response, Enum::"Entity Text Tone"::Creative, Enum::"Entity Text Format"::TaglineParagraph));
+        Facts := LineInputToDictionary(InputPrompt);
+        Format := Enum::"Entity Text Format"::TaglineParagraph;
+        Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Creative, Format, Enum::"Entity Text Emphasis"::None);
+        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, BuildFactsText(Facts, Category, Format), Category, Response, Enum::"Entity Text Tone"::Creative, Format));
     end;
 
     [Test]
@@ -55,12 +72,17 @@ codeunit 149039 "Mkt Text Accuracy BCCT"
     var
         BCCTTestContext: Codeunit "BCCT Test Context";
         EntityTextCod: Codeunit "Entity Text";
+        Facts: Dictionary of [Text, Text];
+        Format: Enum "Entity Text Format";
+        Category: Text;
         InputPrompt: Text;
         Response: Text;
     begin
         InputPrompt := BCCTTestContext.GetInput();
-        Response := EntityTextCod.GenerateText(LineInputToDictionary(InputPrompt), Enum::"Entity Text Tone"::Inspiring, Enum::"Entity Text Format"::Tagline, Enum::"Entity Text Emphasis"::None);
-        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, Response, Enum::"Entity Text Tone"::Inspiring, Enum::"Entity Text Format"::Tagline));
+        Facts := LineInputToDictionary(InputPrompt);
+        Format := Enum::"Entity Text Format"::Tagline;
+        Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Inspiring, Format, Enum::"Entity Text Emphasis"::None);
+        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, BuildFactsText(Facts, Category, Format), Category, Response, Enum::"Entity Text Tone"::Inspiring, Format));
     end;
 
     [Test]
@@ -68,12 +90,17 @@ codeunit 149039 "Mkt Text Accuracy BCCT"
     var
         BCCTTestContext: Codeunit "BCCT Test Context";
         EntityTextCod: Codeunit "Entity Text";
+        Facts: Dictionary of [Text, Text];
+        Format: Enum "Entity Text Format";
+        Category: Text;
         InputPrompt: Text;
         Response: Text;
     begin
         InputPrompt := BCCTTestContext.GetInput();
-        Response := EntityTextCod.GenerateText(LineInputToDictionary(InputPrompt), Enum::"Entity Text Tone"::Formal, Enum::"Entity Text Format"::Tagline, Enum::"Entity Text Emphasis"::None);
-        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, Response, Enum::"Entity Text Tone"::Formal, Enum::"Entity Text Format"::Tagline));
+        Facts := LineInputToDictionary(InputPrompt);
+        Format := Enum::"Entity Text Format"::Tagline;
+        Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Formal, Format, Enum::"Entity Text Emphasis"::None);
+        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, BuildFactsText(Facts, Category, Format), Category, Response, Enum::"Entity Text Tone"::Formal, Format));
     end;
 
     [Test]
@@ -81,12 +108,17 @@ codeunit 149039 "Mkt Text Accuracy BCCT"
     var
         BCCTTestContext: Codeunit "BCCT Test Context";
         EntityTextCod: Codeunit "Entity Text";
+        Facts: Dictionary of [Text, Text];
+        Format: Enum "Entity Text Format";
+        Category: Text;
         InputPrompt: Text;
         Response: Text;
     begin
         InputPrompt := BCCTTestContext.GetInput();
-        Response := EntityTextCod.GenerateText(LineInputToDictionary(InputPrompt), Enum::"Entity Text Tone"::Creative, Enum::"Entity Text Format"::Tagline, Enum::"Entity Text Emphasis"::None);
-        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, Response, Enum::"Entity Text Tone"::Creative, Enum::"Entity Text Format"::Tagline));
+        Facts := LineInputToDictionary(InputPrompt);
+        Format := Enum::"Entity Text Format"::Tagline;
+        Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Creative, Format, Enum::"Entity Text Emphasis"::None);
+        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, BuildFactsText(Facts, Category, Format), Category, Response, Enum::"Entity Text Tone"::Creative, Format));
     end;
 
     [Test]
@@ -94,12 +126,17 @@ codeunit 149039 "Mkt Text Accuracy BCCT"
     var
         BCCTTestContext: Codeunit "BCCT Test Context";
         EntityTextCod: Codeunit "Entity Text";
+        Facts: Dictionary of [Text, Text];
+        Format: Enum "Entity Text Format";
+        Category: Text;
         InputPrompt: Text;
         Response: Text;
     begin
         InputPrompt := BCCTTestContext.GetInput();
-        Response := EntityTextCod.GenerateText(LineInputToDictionary(InputPrompt), Enum::"Entity Text Tone"::Inspiring, Enum::"Entity Text Format"::Brief, Enum::"Entity Text Emphasis"::None);
-        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, Response, Enum::"Entity Text Tone"::Inspiring, Enum::"Entity Text Format"::Brief));
+        Facts := LineInputToDictionary(InputPrompt);
+        Format := Enum::"Entity Text Format"::Brief;
+        Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Inspiring, Format, Enum::"Entity Text Emphasis"::None);
+        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, BuildFactsText(Facts, Category, Format), Category, Response, Enum::"Entity Text Tone"::Inspiring, Format));
     end;
 
     [Test]
@@ -107,12 +144,17 @@ codeunit 149039 "Mkt Text Accuracy BCCT"
     var
         BCCTTestContext: Codeunit "BCCT Test Context";
         EntityTextCod: Codeunit "Entity Text";
+        Facts: Dictionary of [Text, Text];
+        Format: Enum "Entity Text Format";
+        Category: Text;
         InputPrompt: Text;
         Response: Text;
     begin
         InputPrompt := BCCTTestContext.GetInput();
-        Response := EntityTextCod.GenerateText(LineInputToDictionary(InputPrompt), Enum::"Entity Text Tone"::Formal, Enum::"Entity Text Format"::Brief, Enum::"Entity Text Emphasis"::None);
-        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, Response, Enum::"Entity Text Tone"::Formal, Enum::"Entity Text Format"::Brief));
+        Facts := LineInputToDictionary(InputPrompt);
+        Format := Enum::"Entity Text Format"::Brief;
+        Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Formal, Format, Enum::"Entity Text Emphasis"::None);
+        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, BuildFactsText(Facts, Category, Format), Category, Response, Enum::"Entity Text Tone"::Formal, Format));
     end;
 
     [Test]
@@ -120,14 +162,51 @@ codeunit 149039 "Mkt Text Accuracy BCCT"
     var
         BCCTTestContext: Codeunit "BCCT Test Context";
         EntityTextCod: Codeunit "Entity Text";
+        Facts: Dictionary of [Text, Text];
+        Format: Enum "Entity Text Format";
+        Category: Text;
         InputPrompt: Text;
         Response: Text;
     begin
         InputPrompt := BCCTTestContext.GetInput();
-        Response := EntityTextCod.GenerateText(LineInputToDictionary(InputPrompt), Enum::"Entity Text Tone"::Creative, Enum::"Entity Text Format"::Brief, Enum::"Entity Text Emphasis"::None);
-        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, Response, Enum::"Entity Text Tone"::Creative, Enum::"Entity Text Format"::Brief));
+        Facts := LineInputToDictionary(InputPrompt);
+        Format := Enum::"Entity Text Format"::Brief;
+        Response := EntityTextCod.GenerateText(Facts, Enum::"Entity Text Tone"::Creative, Format, Enum::"Entity Text Emphasis"::None);
+        BCCTTestContext.SetTestOutput(PrepareOutput(InputPrompt, BuildFactsText(Facts, Category, Format), Category, Response, Enum::"Entity Text Tone"::Creative, Format));
     end;
 
+    local procedure BuildFactsText(var Facts: Dictionary of [Text, Text]; var Category: Text; TextFormat: Enum "Entity Text Format"): Text
+    var
+        FactTemplateTxt: Label '- %1: %2%3', Locked = true;
+        FactKey: Text;
+        FactValue: Text;
+        FactsList: Text;
+        NewLineChar: Char;
+        MaxFacts: Integer;
+        TotalFacts: Integer;
+        MaxFactLength: Integer;
+    begin
+        NewLineChar := 10;
+        TotalFacts := Facts.Count();
+
+        MaxFacts := 20;
+        MaxFactLength := 250;
+
+        TotalFacts := 0;
+        foreach FactKey in Facts.Keys() do begin
+            if TotalFacts < MaxFacts then begin
+                Facts.Get(FactKey, FactValue);
+                FactKey := FactKey.Replace(NewLineChar, '').Trim();
+                FactValue := FactValue.Replace(NewLineChar, '').Trim();
+                if (Category = '') and FactKey.Contains('Category') then
+                    Category := FactValue
+                else
+                    FactsList += StrSubstNo(FactTemplateTxt, CopyStr(FactKey, 1, MaxFactLength), CopyStr(FactValue, 1, MaxFactLength), NewLineChar);
+            end;
+            TotalFacts += 1;
+        end;
+        exit(FactsList);
+    end;
 
     local procedure LineInputToDictionary(Input: Text): Dictionary of [Text, Text];
     var
@@ -142,17 +221,19 @@ codeunit 149039 "Mkt Text Accuracy BCCT"
             InputJson.Get(AttributeKey, AttributeValueToken);
             Attributes.Add(AttributeKey, AttributeValueToken.AsValue().AsText());
         end;
-
         exit(Attributes);
     end;
 
-    local procedure PrepareOutput(InputPrompt: Text; Response: Text; Tone: Enum "Entity Text Tone"; Format: Enum "Entity Text Format"): Text;
+    local procedure PrepareOutput(InputPrompt: Text; Facts: Text; Category: Text; Response: Text; Tone: Enum "Entity Text Tone"; Format: Enum "Entity Text Format"): Text;
     var
         Context: Text;
-        FormatLbl: Label '{"question": "%1", "answer": "%2", "context": "%3", "ground_truth": "%4", "tone": "%5", "format" : "%6"}', Comment = '%1= Input Prompt, %2= Response Prompt, %3= Context, %4= Ground Truth, %5= Tone, %6= Format';
+        FormatLbl: Label '{"question": "METAPROMPT: %1", "answer": "%2", "context": "%3", "ground_truth": "%4", "tone": "%5", "format" : "%6"}', Comment = '%1= Input Prompt, %2= Response Prompt, %3= Context, %4= Ground Truth, %5= Tone, %6= Format';
+        EncodedNewlineTok: Label '<br />', Locked = true;
+        NewLineChar: Char;
     begin
-        Context := 'The following facts should only be used to produce the marketing ad:\\n' + InputPrompt;
-        exit(StrSubstNo(FormatLbl, InputPrompt, Response, Context, '', Tone.Names.Get(Tone.Ordinals.IndexOf(Tone.AsInteger())), Format.Names.Get(Format.Ordinals.IndexOf(Format.AsInteger()))));
+        NewLineChar := 10;
+        Context := 'Here are some facts about the item:<br /><br />' + Facts.Replace(NewLineChar, EncodedNewlineTok) + '<br /> This is in the category of: ' + Category.Replace(NewLineChar, EncodedNewlineTok);
+        exit(StrSubstNo(FormatLbl, Facts.Replace(NewLineChar, EncodedNewlineTok), Response.Replace(NewLineChar, EncodedNewlineTok), Context, '', Tone.Names.Get(Tone.Ordinals.IndexOf(Tone.AsInteger())), Format.Names.Get(Format.Ordinals.IndexOf(Format.AsInteger()))));
     end;
 
 }
