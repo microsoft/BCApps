@@ -82,11 +82,16 @@ codeunit 130458 "Test Inputs Management"
     local procedure UpdateCodeunitTestInputProperties(var TempTestMethodLine: Record "Test Method Line" temporary; var DataInput: Record "Test Input")
     var
         CodeunitTestMethodLine: Record "Test Method Line";
+        LastTestMethodLine: Record "Test Method Line";
+        TestSuiteManagement: Codeunit "Test Suite Mgt.";
     begin
+        LastTestMethodLine.SetRange("Test Suite", TempTestMethodLine."Test Suite");
+        LastTestMethodLine.FindLast();
         CodeunitTestMethodLine.SetRange("Test Suite", TempTestMethodLine."Test Suite");
         CodeunitTestMethodLine.SetRange("Line Type", CodeunitTestMethodLine."Line Type"::Codeunit);
 
         CodeunitTestMethodLine.SetRange("Data Input Group Code", '');
+        CodeunitTestMethodLine.SetFilter("Line No.", TestSuiteManagement.GetLineNoFilterForTestCodeunit(LastTestMethodLine));
         CodeunitTestMethodLine.ModifyAll("Data Input Group Code", DataInput."Test Input Group Code");
         CodeunitTestMethodLine.SetRange("Data Input Group Code");
 

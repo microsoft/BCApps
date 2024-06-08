@@ -71,7 +71,7 @@ page 130459 "Test Input Part"
     trigger OnAfterGetRecord()
     begin
         this.TestInputText := Rec.GetInput(Rec);
-        if Rec.Sensitive then
+        if Rec.IsSensitive() then
             this.TestInputDisplayText := this.ClickToShowLbl
         else
             this.TestInputDisplayText := this.TestInputText;
@@ -80,5 +80,5 @@ page 130459 "Test Input Part"
     var
         TestInputText: Text;
         TestInputDisplayText: Text;
-        ClickToShowLbl: Label 'Click to show data input';
+        ClickToShowLbl: Label 'Show data input';
 }
