@@ -136,7 +136,7 @@ codeunit 149043 "BCCT Test Context"
     var
         TestInputCU: Codeunit "Test Input";
     begin
-        TestInputCU.GetTestInput('user_query');
+        exit(TestInputCU.GetTestInput('user_query').ValueAsText());
     end;
 
     /// <summary>
