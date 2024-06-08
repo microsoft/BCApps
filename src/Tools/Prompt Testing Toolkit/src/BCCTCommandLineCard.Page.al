@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 using System.Environment;
 
@@ -19,7 +19,7 @@ page 149042 "BCCT CommandLine Card"
         {
             group(General)
             {
-                field("Select Code"; BCCTCode)
+                field("Select Code"; this.BCCTCode)
                 {
                     Caption = 'Select Code', Locked = true;
                     ToolTip = 'Specifies the ID of the suite.';
@@ -31,16 +31,16 @@ page 149042 "BCCT CommandLine Card"
                         BCCTHeader: record "BCCT Header";
                         BCCTLine: record "BCCT Line";
                     begin
-                        if not BCCTHeader.Get(BCCTCode) then
-                            Error(CannotFindBCCTSuiteErr, BCCTCode);
+                        if not BCCTHeader.Get(this.BCCTCode) then
+                            Error(this.CannotFindBCCTSuiteErr, this.BCCTCode);
 
-                        BCCTLine.SetRange("BCCT Code", BCCTCode);
-                        NoOfTests := BCCTLine.Count();
+                        BCCTLine.SetRange("BCCT Code", this.BCCTCode);
+                        this.NoOfTests := BCCTLine.Count();
                     end;
                 }
 
 
-                field("No. of Tests"; NoOfTests)
+                field("No. of Tests"; this.NoOfTests)
                 {
                     Caption = 'No. of Tests', Locked = true;
                     ToolTip = 'Specifies the number of BCCT Suite Lines present in the BCCT Suite';
@@ -56,7 +56,7 @@ page 149042 "BCCT CommandLine Card"
         {
             action(StartNext)
             {
-                Enabled = EnableActions;
+                Enabled = this.EnableActions;
                 ApplicationArea = All;
                 Caption = 'Start Next', Locked = true;
                 Image = Start;
@@ -67,7 +67,7 @@ page 149042 "BCCT CommandLine Card"
 
                 trigger OnAction()
                 begin
-                    StartNextBCCT();
+                    this.StartNextBCCT();
                 end;
             }
         }
@@ -83,7 +83,7 @@ page 149042 "BCCT CommandLine Card"
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        EnableActions := (EnvironmentInformation.IsSaas() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
+        this.EnableActions := (EnvironmentInformation.IsSaas() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
     end;
 
     local procedure StartNextBCCT()
@@ -92,7 +92,7 @@ page 149042 "BCCT CommandLine Card"
         BCCTStartTests: Codeunit "BCCT Start Tests";
         BCCTHeaderCU: Codeunit "BCCT Header";
     begin
-        if BCCTHeader.Get(BCCTCode) then begin
+        if BCCTHeader.Get(this.BCCTCode) then begin
             BCCTHeaderCU.ValidateDatasets(BCCTHeader);
             BCCTStartTests.StartBCCTSuite(BCCTHeader);
         end;

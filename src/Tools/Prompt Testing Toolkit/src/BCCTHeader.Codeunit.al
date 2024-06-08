@@ -3,7 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
+using System.TestTools.TestRunner;
 
 codeunit 149034 "BCCT Header"
 {
@@ -13,7 +14,7 @@ codeunit 149034 "BCCT Header"
     begin
         if BCCTHeader.Code = '' then
             exit;
-        BCCTHeader.LockTable();
+        BCCTHeader.ReadIsolation(IsolationLevel::UpdLock);
         if not BCCTHeader.Find() then
             exit;
         BCCTHeader.Validate("No. of tests running", BCCTHeader."No. of tests running" - 1);
@@ -45,53 +46,52 @@ codeunit 149034 "BCCT Header"
         NoInputsInSuiteErr: Label 'The dataset %1 specified for BCCT Suite %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the BCCT Suite code.';
         NoDatasetInLineErr: Label 'The dataset %1 specified for BCCT Line %2 does not exist.', Comment = '%1 is the Dataset name, %2 is BCCT Line No.';
         NoInputsInLineErr: Label 'The dataset %1 specified for BCCT line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the BCCT Line No.';
-        DatasetsToValidate: List of [Text[100]];
-        DatasetName: Text[100];
+        DatasetsToValidate: List of [Code[100]];
+        DatasetName: Code[100];
     begin
         // Validate header
-        if BCCTHeader.Dataset = '' then
+        if BCCTHeader."Input Dataset" = '' then
             Error(EmptyDatasetSuiteErr, BCCTHeader."Code");
 
-        if not DatasetExists(BCCTHeader.Dataset) then
-            Error(NoDatasetInSuiteErr, BCCTHeader.Dataset, BCCTHeader."Code");
+        if not this.DatasetExists(BCCTHeader."Input Dataset") then
+            Error(NoDatasetInSuiteErr, BCCTHeader."Input Dataset", BCCTHeader."Code");
 
-        if not InputDataLinesExists(BCCTHeader.Dataset) then
-            Error(NoInputsInSuiteErr, BCCTHeader.Dataset, BCCTHeader."Code");
+        if not this.InputDataLinesExists(BCCTHeader."Input Dataset") then
+            Error(NoInputsInSuiteErr, BCCTHeader."Input Dataset", BCCTHeader."Code");
 
         // Validate lines
         BCCTLine.SetRange("BCCT Code", BCCTHeader."Code");
-        BCCTLine.SetFilter(Dataset, '<>%1', '');
-        BCCTLine.SetLoadFields(Dataset);
+        BCCTLine.SetFilter("Input Dataset", '<>%1', '');
+        BCCTLine.SetLoadFields("Input Dataset");
         if BCCTLine.FindSet() then
             repeat
-                if BCCTLine.Dataset <> BCCTHeader.Dataset then
-                    if not DatasetsToValidate.Contains(BCCTLine.Dataset) then
-                        DatasetsToValidate.Add(BCCTLine.Dataset);
+                if BCCTLine."Input Dataset" <> BCCTHeader."Input Dataset" then
+                    if not DatasetsToValidate.Contains(BCCTLine."Input Dataset") then
+                        DatasetsToValidate.Add(BCCTLine."Input Dataset");
             until BCCTLine.Next() = 0;
 
         foreach DatasetName in DatasetsToValidate do begin
-            if not DatasetExists(DatasetName) then
+            if not this.DatasetExists(DatasetName) then
                 Error(NoDatasetInLineErr, DatasetName, BCCTLine."Line No.");
-            if not InputDataLinesExists(DatasetName) then
+            if not this.InputDataLinesExists(DatasetName) then
                 Error(NoInputsInLineErr, DatasetName, BCCTLine."Line No.");
         end;
     end;
 
-    local procedure DatasetExists(DatasetName: Text[100]): Boolean
+    local procedure DatasetExists(DatasetName: Code[100]): Boolean
     var
-        BCCTDataset: Record "BCCT Dataset";
+        TestInputGroup: Record "Test Input Group";
     begin
-        BCCTDataset.SetRange("Dataset Name", DatasetName);
-        exit(not BCCTDataset.IsEmpty());
+        exit(TestInputGroup.Get(DatasetName));
     end;
 
-    local procedure InputDataLinesExists(DatasetName: Text[100]): Boolean
+    local procedure InputDataLinesExists(DatasetName: Code[100]): Boolean
     var
-        BCCTDatasetLine: Record "BCCT Dataset Line";
+        TestInput: Record "Test Input";
     begin
-        BCCTDatasetLine.Reset();
-        BCCTDatasetLine.SetRange("Dataset Name", DatasetName);
-        exit(not BCCTDatasetLine.IsEmpty());
+        TestInput.Reset();
+        TestInput.SetRange("Test Input Group Code", DatasetName);
+        exit(not TestInput.IsEmpty());
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"BCCT Header", OnBeforeDeleteEvent, '', false, false)]
@@ -113,9 +113,9 @@ codeunit 149034 "BCCT Header"
     procedure SetRunStatus(var BCCTHeader: Record "BCCT Header"; BCCTHeaderStatus: Enum "BCCT Header Status")
     var
         TelemetryCustomDimensions: Dictionary of [Text, Text];
-        PerformanceRunStartedLbl: Label 'Performance Toolkit run started.', Locked = true;
-        PerformanceRunFinishedLbl: Label 'Performance Toolkit run finished.', Locked = true;
-        PerformanceRunCancelledLbl: Label 'Performance Toolkit run cancelled.', Locked = true;
+        AITTRunStartedLbl: Label 'AITT Suite run started.', Locked = true;
+        AITTRunFinishedLbl: Label 'AITT Suite run finished.', Locked = true;
+        AITTRunCancelledLbl: Label 'AITT Suite run cancelled.', Locked = true;
     begin
         TelemetryCustomDimensions.Add('RunID', Format(BCCTHeader.RunID));
         TelemetryCustomDimensions.Add('Code', BCCTHeader.Code);
@@ -131,11 +131,11 @@ codeunit 149034 "BCCT Header"
 
         case BCCTHeaderStatus of
             BCCTHeaderStatus::Running:
-                Session.LogMessage('0000DHR', PerformanceRunStartedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
+                Session.LogMessage('0000DHR', AITTRunStartedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
             BCCTHeaderStatus::Completed:
-                Session.LogMessage('0000DHS', PerformanceRunFinishedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
+                Session.LogMessage('0000DHS', AITTRunFinishedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
             BCCTHeaderStatus::Cancelled:
-                Session.LogMessage('0000DHT', PerformanceRunCancelledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
+                Session.LogMessage('0000DHT', AITTRunCancelledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
         end;
         BCCTHeader.Modify();
         Commit();

@@ -3,9 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 using System.Environment;
+using System.TestTools.TestRunner;
 
 page 149031 "BCCT Setup Card"
 {
@@ -13,7 +14,7 @@ page 149031 "BCCT Setup Card"
     PageType = Document;
     SourceTable = "BCCT Header";
     Extensible = false;
-    DataCaptionExpression = PageCaptionLbl + ' - ' + Rec."Code";
+    DataCaptionExpression = this.PageCaptionLbl + ' - ' + Rec."Code";
 
     layout
     {
@@ -34,7 +35,7 @@ page 149031 "BCCT Setup Card"
                     ToolTip = 'Specifies the description of the test suite.';
                     ApplicationArea = All;
                 }
-                field(Dataset; Rec.Dataset)
+                field(Dataset; Rec."Input Dataset")
                 {
                     ToolTip = 'Specifies the dataset to be used by the tests.';
                     ApplicationArea = All;
@@ -56,6 +57,27 @@ page 149031 "BCCT Setup Card"
                     ToolTip = 'Specifies the slowest user input.';
                     ApplicationArea = All;
                 }
+                field("Test Runner Id"; this.TestRunnerDisplayName)
+                {
+                    Caption = 'Test Runner';
+                    ToolTip = 'Specifies the Test Runner to be used by the tests.';
+                    ApplicationArea = All;
+                    Editable = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        // Used to fix the rendering - don't show as a box
+                        Error('');
+                    end;
+
+                    trigger OnAssistEdit()
+                    var
+                        AITALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+                    begin
+                        AITALTestSuiteMgt.AssistEditTestRunner(Rec);
+                        CurrPage.Update(true);
+                    end;
+                }
                 group(StatusGroup)
                 {
                     Caption = 'Suite Status';
@@ -67,11 +89,6 @@ page 149031 "BCCT Setup Card"
                     field(Started; Rec."Started at")
                     {
                         ToolTip = 'Specifies when the test was started.';
-                        ApplicationArea = All;
-                    }
-                    field(BaseVersion; Rec."Base Version")
-                    {
-                        ToolTip = 'Specifies the Base version of the test run. Used for comparisons in the lines.';
                         ApplicationArea = All;
                     }
                     field(Version; Rec.Version)
@@ -101,11 +118,15 @@ page 149031 "BCCT Setup Card"
 
                 field("No. of Tests Executed"; Rec."No. of Tests Executed")
                 {
+                    Caption = 'No. of Tests Executed';
+                    ToolTip = 'Specifies the number of tests executed in the current version.';
                     Editable = false;
                     ApplicationArea = All;
                 }
                 field("No. of Tests Passed"; Rec."No. of Tests Passed") // TODO: this should be filtered on not empty output
                 {
+                    Caption = 'No. of Tests Passed';
+                    ToolTip = 'Specifies the number of tests passed in the current version.';
                     Editable = false;
                     ApplicationArea = All;
                     Style = Favorable;
@@ -133,16 +154,17 @@ page 149031 "BCCT Setup Card"
                 field("No. of Operations"; Rec."No. of Operations")
                 {
                     ApplicationArea = All;
+                    Caption = 'No. of Operations';
+                    ToolTip = 'Specifies the number of operations executed in the current version.';
                 }
-
-                field("Total Duration"; TotalDuration)
+                field("Total Duration"; this.TotalDuration)
                 {
                     ApplicationArea = All;
                     Editable = false;
                     Caption = 'Total Duration';
                     ToolTip = 'Specifies the Total Duration for executing all the selected tests in the current version.';
                 }
-                field("Average Duration"; AvgTimeDuration)
+                field("Average Duration"; this.AvgTimeDuration)
                 {
                     Editable = false;
                     ApplicationArea = All;
@@ -159,7 +181,7 @@ page 149031 "BCCT Setup Card"
         {
             action(Start)
             {
-                Enabled = (EnableActions and (Rec.Status <> Rec.Status::Running));
+                Enabled = (this.EnableActions and (Rec.Status <> Rec.Status::Running));
                 ApplicationArea = All;
                 Caption = 'Start';
                 Image = Start;
@@ -172,10 +194,10 @@ page 149031 "BCCT Setup Card"
                 begin
                     CurrPage.Update(false);
                     Rec.Find();
-                    if Rec.Dataset = '' then
+                    if Rec."Input Dataset" = '' then
                         Error('Please specify a dataset before starting the suite.');
-                    BCCTHeaderCU.ValidateDatasets(Rec);
-                    BCCTStartTests.StartBCCTSuite(Rec);
+                    this.BCCTHeaderCU.ValidateDatasets(Rec);
+                    this.BCCTStartTests.StartBCCTSuite(Rec);
                     CurrPage.Update(false);
                 end;
             }
@@ -203,7 +225,7 @@ page 149031 "BCCT Setup Card"
                         exit;
                     Window.Open('Cancelling all sessions...');
                     MaxDateTime := CurrentDateTime() + (60000 * 5); // Wait for a max of 5 mins
-                    BCCTStartTests.StopBCCTSuite(Rec);
+                    this.BCCTStartTests.StopBCCTSuite(Rec);
 
                     BCCTLine.SetRange("BCCT Code", Rec.Code);
                     BCCTLine.SetFilter(Status, '<> %1', BCCTLine.Status::Cancelled);
@@ -245,7 +267,7 @@ page 149031 "BCCT Setup Card"
 
                 trigger OnAction()
                 begin
-                    BCCTHeaderCU.ResetStatus(Rec);
+                    this.BCCTHeaderCU.ResetStatus(Rec);
                 end;
             }
         }
@@ -266,13 +288,13 @@ page 149031 "BCCT Setup Card"
             action(Datasets)
             {
                 ApplicationArea = All;
-                Caption = 'Datasets';
+                Caption = 'Input Datasets';
                 Image = DataEntry;
                 Promoted = true;
                 PromotedOnly = true;
                 PromotedCategory = Process;
-                ToolTip = 'Open datasets.';
-                RunObject = page "BCCT Datasets";
+                ToolTip = 'Open input datasets.';
+                RunObject = page "Test Input Groups";
             }
         }
     }
@@ -284,32 +306,41 @@ page 149031 "BCCT Setup Card"
         AvgTimeDuration: Duration;
         TotalDuration: Duration;
         PageCaptionLbl: Label 'BC Copilot Test';
+        TestRunnerDisplayName: Text;
 
     trigger OnOpenPage()
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        EnableActions := (EnvironmentInformation.IsSaas() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
+        this.EnableActions := (EnvironmentInformation.IsSaas() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
+    end;
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    begin
+        Rec.AssignDefaultTestRunner();
     end;
 
     trigger OnAfterGetCurrRecord()
+    var
+        TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
-        UpdateTotalDuration();
-        UpdateAverageExecutionTime();
+        this.UpdateTotalDuration();
+        this.UpdateAverageExecutionTime();
+        this.TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner ID");
     end;
 
     local procedure UpdateTotalDuration()
     begin
         Rec.CalcFields("Total Duration (ms)");
-        TotalDuration := Rec."Total Duration (ms)";
+        this.TotalDuration := Rec."Total Duration (ms)";
     end;
 
     local procedure UpdateAverageExecutionTime()
     begin
         Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)", "No. of Tests Executed - Base", "Total Duration (ms) - Base");
         if Rec."No. of Tests Executed" > 0 then
-            AvgTimeDuration := Rec."Total Duration (ms)" div Rec."No. of Tests Executed"
+            this.AvgTimeDuration := Rec."Total Duration (ms)" div Rec."No. of Tests Executed"
         else
-            AvgTimeDuration := 0;
+            this.AvgTimeDuration := 0;
     end;
 }

@@ -17,15 +17,15 @@ codeunit 130452 "Test Runner - Get Methods"
         ALTestSuite: Record "AL Test Suite";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
-        CurrentTestMethodLine.Copy(Rec);
+        this.CurrentTestMethodLine.Copy(Rec);
         ALTestSuite.Get(Rec."Test Suite");
 
-        if UpdateTests then
-            MaxLineNo := TestSuiteMgt.GetNextMethodNumber(Rec)
+        if this.UpdateTests then
+            this.MaxLineNo := TestSuiteMgt.GetNextMethodNumber(Rec)
         else
-            MaxLineNo := TestSuiteMgt.GetLastTestLineNo(ALTestSuite);
+            this.MaxLineNo := TestSuiteMgt.GetLastTestLineNo(ALTestSuite);
 
-        CODEUNIT.Run(CurrentTestMethodLine."Test Codeunit");
+        CODEUNIT.Run(this.CurrentTestMethodLine."Test Codeunit");
     end;
 
     var
@@ -38,8 +38,8 @@ codeunit 130452 "Test Runner - Get Methods"
         if (FunctionName = 'OnRun') or (FunctionName = '') then
             exit(true);
 
-        OnGetTestMethods(CodeunitID, COPYSTR(CodeunitName, 1, 30), COPYSTR(FunctionName, 1, 128), FunctionTestPermissions);
-        AddTestMethod(CodeunitID, COPYSTR(FunctionName, 1, 128));
+        this.OnGetTestMethods(CodeunitID, COPYSTR(CodeunitName, 1, 30), COPYSTR(FunctionName, 1, 128), FunctionTestPermissions);
+        this.AddTestMethod(CodeunitID, COPYSTR(FunctionName, 1, 128));
 
         // Do not run the tests
         exit(false);
@@ -53,7 +53,7 @@ codeunit 130452 "Test Runner - Get Methods"
 
     procedure SetUpdateTests(NewUpdateTests: Boolean)
     begin
-        UpdateTests := NewUpdateTests;
+        this.UpdateTests := NewUpdateTests;
     end;
 
     local procedure AddTestMethod(CodeunitID: Integer; FunctionName: Text[128])
@@ -61,22 +61,22 @@ codeunit 130452 "Test Runner - Get Methods"
         TestMethodLine: Record "Test Method Line";
         Handled: Boolean;
     begin
-        if UpdateTests then
-            MaxLineNo += 100
+        if this.UpdateTests then
+            this.MaxLineNo += 100
         else
-            MaxLineNo += 10000;
+            this.MaxLineNo += 10000;
 
-        TestMethodLine."Line No." := MaxLineNo;
+        TestMethodLine."Line No." := this.MaxLineNo;
         TestMethodLine.Validate("Test Codeunit", CodeunitID);
-        TestMethodLine.Validate("Test Suite", CurrentTestMethodLine."Test Suite");
+        TestMethodLine.Validate("Test Suite", this.CurrentTestMethodLine."Test Suite");
         TestMethodLine.Validate("Line Type", TestMethodLine."Line Type"::"Function");
         TestMethodLine.Validate("Function", FunctionName);
-        TestMethodLine.Validate(Run, CurrentTestMethodLine.Run);
-        OnBeforeAddTestMethodLine(TestMethodLine, Handled);
+        TestMethodLine.Validate(Run, this.CurrentTestMethodLine.Run);
+        this.OnBeforeAddTestMethodLine(TestMethodLine, Handled);
         if not Handled then
             TestMethodLine.Insert(true);
 
-        OnAfterAddTestMethodLine(TestMethodLine, MaxLineNo);
+        this.OnAfterAddTestMethodLine(TestMethodLine, this.MaxLineNo);
     end;
 
     [IntegrationEvent(false, false)]

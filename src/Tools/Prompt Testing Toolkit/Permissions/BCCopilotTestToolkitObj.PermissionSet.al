@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 permissionset 149031 "BC Copilot Test Toolkit - Obj"
 {
@@ -13,12 +13,10 @@ permissionset 149031 "BC Copilot Test Toolkit - Obj"
     Permissions = table "BCCT Header" = X,
         table "BCCT Line" = X,
         table "BCCT Log Entry" = X,
-        table "BCCT Dataset" = X,
-        table "BCCT Dataset Line" = X,
         codeunit "BCCT Header" = X,
         codeunit "BCCT Install" = X,
         codeunit "BCCT Line" = X,
-        codeunit "BCCT Role Wrapper" = X,
+        codeunit "AIT Test Runner" = X,
         codeunit "BCCT Start Tests" = X,
         codeunit "BCCT Test Context" = X,
         codeunit "BCCT Test Suite" = X,
@@ -26,9 +24,9 @@ permissionset 149031 "BC Copilot Test Toolkit - Obj"
         xmlport "BCCT Log Entries" = X,
         page "BCCT CommandLine Card" = X,
         page "BCCT Lines" = X,
+        page "BCCT Lines Compare" = X,
         page "BCCT Log Entries" = X,
         page "BCCT Log Entry API" = X,
-        page "BCCT Lookup Codeunits" = X,
         page "BCCT Setup Card" = X,
         page "BCCT Setup List" = X,
         page "BCCT Suite API" = X,

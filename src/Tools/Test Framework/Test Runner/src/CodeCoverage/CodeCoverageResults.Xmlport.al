@@ -50,11 +50,11 @@ xmlport 130470 "Code Coverage Results"
                     // Adjust the "Code Coverage Status" for AzureDevOps
                     case ALCodeCoverage."Code Coverage Status" of
                         ALCodeCoverage."Code Coverage Status"::Covered:
-                            CoverageStatus := AzureDevOpsCoveredLbl;
+                            CoverageStatus := this.AzureDevOpsCoveredLbl;
                         ALCodeCoverage."Code Coverage Status"::NotCovered:
-                            CoverageStatus := AzureDevOpsNotCoveredLbl;
+                            CoverageStatus := this.AzureDevOpsNotCoveredLbl;
                         ALCodeCoverage."Code Coverage Status"::PartiallyCovered:
-                            CoverageStatus := AzureDevOpsPartiallyCoveredLbl;
+                            CoverageStatus := this.AzureDevOpsPartiallyCoveredLbl;
                     end;
                 end;
             }

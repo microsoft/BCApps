@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 xmlport 149030 "BCCT Log Entries"
 {
@@ -36,7 +36,7 @@ xmlport 149030 "BCCT Log Entries"
                 fieldelement(Codeunit_ID; logentry."Codeunit ID") { }
                 fieldelement(Codeunit_Name; logentry."Codeunit Name") { }
                 fieldelement(Duration_ms; logentry."Duration (ms)") { }
-                fieldelement(Status; logentry."Status") { }
+                fieldelement(Status; logentry.Status) { }
                 fieldelement(Tage; logentry.Tag) { }
                 fieldelement(Version; logentry.Version) { }
             }

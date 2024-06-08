@@ -3,9 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 using System.Reflection;
+using System.TestTools.TestRunner;
 
 codeunit 149035 "BCCT Line"
 {
@@ -55,12 +56,12 @@ codeunit 149035 "BCCT Line"
         end;
 
         if Rec."Min. User Delay (ms)" = 0 then
-            Rec."Min. User Delay (ms)" := BCCTHeader."Default Min. User Delay (ms)";
+            Rec."Min. User Delay (ms)" := this.BCCTHeader."Default Min. User Delay (ms)";
         if Rec."Max. User Delay (ms)" = 0 then
-            Rec."Max. User Delay (ms)" := BCCTHeader."Default Max. User Delay (ms)";
+            Rec."Max. User Delay (ms)" := this.BCCTHeader."Default Max. User Delay (ms)";
 
-        if Rec."BCCT Code" <> BCCTHeader.Code then
-            if BCCTHeader.Get(Rec."BCCT Code") then;
+        if Rec."BCCT Code" <> this.BCCTHeader.Code then
+            if this.BCCTHeader.Get(Rec."BCCT Code") then;
     end;
 
     procedure Indent(var BCCTLine: Record "BCCT Line")
@@ -90,49 +91,61 @@ codeunit 149035 "BCCT Line"
     var
         OldStartTime: DateTime;
     begin
-        if ScenarioStarted.Get(ScenarioOperation, OldStartTime) then
-            ScenarioStarted.Set(ScenarioOperation, CurrentDateTime())
+        if this.ScenarioStarted.Get(ScenarioOperation, OldStartTime) then
+            this.ScenarioStarted.Set(ScenarioOperation, CurrentDateTime())
         else
-            ScenarioStarted.Add(ScenarioOperation, CurrentDateTime());
+            this.ScenarioStarted.Add(ScenarioOperation, CurrentDateTime());
     end;
 
-    procedure EndScenario(BCCTLine: Record "BCCT Line"; ScenarioOperation: Text; BCCTDatasetLine: Record "BCCT Dataset Line") //TODO: seems to be dead code. Remove?
-    begin
-        if not ScenarioStarted.ContainsKey(ScenarioOperation) then
-            error(ScenarioNotStartedErr, ScenarioOperation, BCCTLine."Codeunit Name");
-        EndScenario(BCCTLine, ScenarioOperation, '', true, BCCTDatasetLine);
-    end;
-
-    internal procedure EndScenario(BCCTLine: Record "BCCT Line"; ScenarioOperation: Text; ProcedureName: Text[128]; ExecutionSuccess: Boolean; BCCTDatasetLine: Record "BCCT Dataset Line")
+    internal procedure EndRunProcedureScenario(BCCTLine: Record "BCCT Line"; ScenarioOperation: Text; CurrentTestMethodLine: Record "Test Method Line"; ExecutionSuccess: Boolean)
     var
-        ErrorMessage: Text;
+        TestSuiteMgt: Codeunit "Test Suite Mgt.";
+        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
         StartTime: DateTime;
         EndTime: DateTime;
+        ErrorMessage: Text;
     begin
-        EndTime := CurrentDateTime();
-        if not ExecutionSuccess then
-            ErrorMessage := CopyStr(GetLastErrorText(), 1, MaxStrLen(ErrorMessage));
-        if ScenarioStarted.Get(ScenarioOperation, StartTime) then
-            if ScenarioStarted.Remove(ScenarioOperation) then;
+        // Skip the OnRun entry if there are no errors
+        if (ScenarioOperation = AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl()) and (CurrentTestMethodLine.Function = 'OnRun') and (ExecutionSuccess = true) and (CurrentTestMethodLine."Error Message".Length = 0) then
+            exit;
 
-        AddLogEntry(BCCTLine, ScenarioOperation, ProcedureName, ExecutionSuccess, ErrorMessage, StartTime, EndTime, BCCTDatasetLine);
+        // Set the start time and end time
+        if ScenarioOperation = AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then begin
+            StartTime := CurrentTestMethodLine."Start Time";
+            EndTime := CurrentTestMethodLine."Finish Time";
+        end
+        else begin
+            if not this.ScenarioStarted.ContainsKey(ScenarioOperation) then
+                Error(this.ScenarioNotStartedErr, ScenarioOperation, BCCTLine."Codeunit Name");
+            EndTime := CurrentDateTime();
+            if this.ScenarioStarted.Get(ScenarioOperation, StartTime) then // Get the start time
+                if this.ScenarioStarted.Remove(ScenarioOperation) then;
+        end;
+
+        if CurrentTestMethodLine."Error Message".Length > 0 then
+            ErrorMessage := TestSuiteMgt.GetFullErrorMessage(CurrentTestMethodLine)
+        else
+            ErrorMessage := '';
+
+        this.AddLogEntry(BCCTLine, CurrentTestMethodLine, ScenarioOperation, ExecutionSuccess, ErrorMessage, StartTime, EndTime);
     end;
 
-    local procedure AddLogEntry(var BCCTLine: Record "BCCT Line"; Operation: Text; ProcedureName: Text[128]; ExecutionSuccess: Boolean; Message: Text; StartTime: DateTime; EndTime: Datetime; BCCTDatasetLine: Record "BCCT Dataset Line")
+    // TODO: Scenario output has to be collected and inserted at the end, before EndRunProcedure. Currently it is added with isolation and it gets rolled back.
+
+    local procedure AddLogEntry(var BCCTLine: Record "BCCT Line"; CurrentTestMethodLine: Record "Test Method Line"; Operation: Text; ExecutionSuccess: Boolean; Message: Text; StartTime: DateTime; EndTime: Datetime)
     var
         BCCTLogEntry: Record "BCCT Log Entry";
-        BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper"; // single instance
+        TestInput: Record "Test Input";
+        AITTestRunnerImpl: Codeunit "AIT Test Runner"; // single instance
+        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
         BCCTTestSuite: Codeunit "BCCT Test Suite";
+        TestSuiteMgt: Codeunit "Test Suite Mgt.";
         ModifiedOperation: Text;
         ModifiedExecutionSuccess: Boolean;
         ModifiedMessage: Text;
         TestOutput: Text;
         EntryWasModified: Boolean;
     begin
-        // Skip the OnRun entry if not implemented
-        if (Operation = BCCTRoleWrapperImpl.GetDefaultExecuteProcedureOperationLbl()) and (ProcedureName = 'OnRun') and (ExecutionSuccess = true) and (Message = '') then
-            exit;
-
         ModifiedOperation := Operation;
         ModifiedExecutionSuccess := ExecutionSuccess;
         ModifiedMessage := Message;
@@ -141,22 +154,22 @@ codeunit 149035 "BCCT Line"
             EntryWasModified := true;
 
         BCCTLine.Testfield("BCCT Code");
-        BCCTRoleWrapperImpl.GetBCCTHeader(BCCTHeader);
+        AITTestRunnerImpl.GetBCCTHeader(this.BCCTHeader);
         Clear(BCCTLogEntry);
-        BCCTLogEntry.RunID := BCCTHeader.RunID;
+        BCCTLogEntry.RunID := this.BCCTHeader.RunID;
         BCCTLogEntry."BCCT Code" := BCCTLine."BCCT Code";
         BCCTLogEntry."BCCT Line No." := BCCTLine."Line No.";
-        BCCTLogEntry.Version := BCCTHeader.Version;
+        BCCTLogEntry.Version := this.BCCTHeader.Version;
         BCCTLogEntry."Codeunit ID" := BCCTLine."Codeunit ID";
         BCCTLogEntry.Operation := CopyStr(ModifiedOperation, 1, MaxStrLen(BCCTLogEntry.Operation));
         BCCTLogEntry."Orig. Operation" := CopyStr(Operation, 1, MaxStrLen(BCCTLogEntry."Orig. Operation"));
-        BCCTLogEntry.Tag := BCCTRoleWrapperImpl.GetBCCTHeaderTag();
+        BCCTLogEntry.Tag := AITTestRunnerImpl.GetBCCTHeaderTag();
         BCCTLogEntry."Entry No." := 0;
         if ModifiedExecutionSuccess then
             BCCTLogEntry.Status := BCCTLogEntry.Status::Success
         else begin
             BCCTLogEntry.Status := BCCTLogEntry.Status::Error;
-            BCCTLogEntry."Error Call Stack" := CopyStr(GetLastErrorCallStack, 1, MaxStrLen(BCCTLogEntry."Error Call Stack"));
+            BCCTLogEntry."Error Call Stack" := CopyStr(TestSuiteMgt.GetErrorCallStack(CurrentTestMethodLine), 1, MaxStrLen(BCCTLogEntry."Error Call Stack"));
         end;
         if ExecutionSuccess then
             BCCTLogEntry."Orig. Status" := BCCTLogEntry.Status::Success
@@ -167,28 +180,35 @@ codeunit 149035 "BCCT Line"
         BCCTLogEntry."Log was Modified" := EntryWasModified;
         BCCTLogEntry."End Time" := EndTime;
         BCCTLogEntry."Start Time" := StartTime;
-        BCCTLogEntry."Duration (ms)" := BCCTLogEntry."End Time" - BCCTLogEntry."Start Time";
-        BCCTLogEntry.Dataset := BCCTDatasetLine."Dataset Name";
-        BCCTLogEntry."Dataset Line No." := BCCTDatasetLine.Id;
-        BCCTDatasetLine.CalcFields("Input Blob");
-        BCCTLogEntry."Input Data" := BCCTDatasetLine."Input Blob";
-        TestOutput := GetTestOutput(Operation);
+        if BCCTLogEntry."Start Time" = 0DT then
+            BCCTLogEntry."Duration (ms)" := BCCTLogEntry."End Time" - BCCTLogEntry."Start Time";
+
+        BCCTLogEntry."Test Input Group Code" := CurrentTestMethodLine."Data Input Group Code";
+        BCCTLogEntry."Test Input Code" := CurrentTestMethodLine."Data Input";
+
+        if TestInput.Get(CurrentTestMethodLine."Data Input Group Code", CurrentTestMethodLine."Data Input") then begin
+            TestInput.CalcFields("Test Input");
+            BCCTLogEntry."Input Data" := TestInput."Test Input";
+            BCCTLogEntry.Sensitive := TestInput.Sensitive;
+            BCCTLogEntry."Test Input Desc." := TestInput.Description;
+        end;
+
+        TestOutput := this.GetTestOutput(Operation);
         if TestOutput <> '' then
             BCCTLogEntry.SetOutputBlob(TestOutput);
-        BCCTLogEntry."Procedure Name" := ProcedureName;
-        if Operation = BCCTRoleWrapperImpl.GetDefaultExecuteProcedureOperationLbl() then
-            BCCTLogEntry."Duration (ms)" -= BCCTRoleWrapperImpl.GetAndClearAccumulatedWaitTimeMs();
+        BCCTLogEntry."Procedure Name" := CurrentTestMethodLine.Function;
+        if Operation = AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then
+            BCCTLogEntry."Duration (ms)" -= AITTestRunnerImpl.GetAndClearAccumulatedWaitTimeMs();
         BCCTLogEntry.Insert(true);
         Commit();
-        AddLogAppInsights(BCCTLogEntry);
-        BCCTRoleWrapperImpl.AddToNoOfLogEntriesInserted();
+        this.AddLogAppInsights(BCCTLogEntry);
+        AITTestRunnerImpl.AddToNoOfLogEntriesInserted();
     end;
 
     local procedure AddLogAppInsights(var BCCTLogEntry: Record "BCCT Log Entry")
     var
-        // BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper"; // single instance
         Dimensions: Dictionary of [Text, Text];
-        TelemetryLogLbl: Label 'Performance Toolkit - %1 - %2 - %3', Locked = true;
+        TelemetryLogLbl: Label 'AI Test Tool - %1 - %2 - %3', Locked = true;
     begin
         Dimensions.Add('RunID', BCCTLogEntry.RunID);
         Dimensions.Add('Code', BCCTLogEntry."BCCT Code");
@@ -217,12 +237,12 @@ codeunit 149035 "BCCT Line"
 
     procedure UserWait(var BCCTLine: Record "BCCT Line")
     var
-        BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper"; // single instance
+        AITTestRunnerImpl: Codeunit "AIT Test Runner"; // single instance
         NapTime: Integer;
     begin
         Commit();
         NapTime := BCCTLine."Min. User Delay (ms)" + Random(BCCTLine."Max. User Delay (ms)" - BCCTLine."Min. User Delay (ms)");
-        BCCTRoleWrapperImpl.AddToAccumulatedWaitTimeMs(NapTime);
+        AITTestRunnerImpl.AddToAccumulatedWaitTimeMs(NapTime);
         Sleep(NapTime);
     end;
 
@@ -275,19 +295,19 @@ codeunit 149035 "BCCT Line"
 
     procedure SetTestOutput(Scenario: Text; OutputValue: Text)
     begin
-        if ScenarioOutput.ContainsKey(Scenario) then
-            ScenarioOutput.Set(Scenario, OutputValue)
+        if this.ScenarioOutput.ContainsKey(Scenario) then
+            this.ScenarioOutput.Set(Scenario, OutputValue)
         else
-            ScenarioOutput.Add(Scenario, OutputValue);
+            this.ScenarioOutput.Add(Scenario, OutputValue);
     end;
 
     procedure GetTestOutput(Scenario: Text): Text
     var
         OutputValue: Text;
     begin
-        if ScenarioOutput.ContainsKey(Scenario) then begin
-            OutputValue := ScenarioOutput.Get(Scenario);
-            ScenarioOutput.Remove(Scenario);
+        if this.ScenarioOutput.ContainsKey(Scenario) then begin
+            OutputValue := this.ScenarioOutput.Get(Scenario);
+            this.ScenarioOutput.Remove(Scenario);
             exit(OutputValue);
         end else
             exit('');

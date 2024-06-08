@@ -3,8 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
+using System.TestTools.TestRunner;
 
 table 149030 "BCCT Header"
 {
@@ -15,7 +16,7 @@ table 149030 "BCCT Header"
 
     fields
     {
-        field(1; "Code"; Code[100])
+        field(1; "Code"; Code[10])
         {
             Caption = 'Code';
             NotBlank = true;
@@ -41,10 +42,11 @@ table 149030 "BCCT Header"
             MinValue = 1;
             MaxValue = 10000;
         }
-        field(7; Dataset; Text[100])
+        field(7; "Input Dataset"; Code[100])
         {
-            Caption = 'Dataset';
-            TableRelation = "BCCT Dataset"."Dataset Name";
+            Caption = 'Input Dataset';
+            TableRelation = "Test Input Group".Code;
+            ValidateTableRelation = true;
         }
         field(8; "Ended at"; DateTime)
         {
@@ -104,7 +106,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the Total Duration (ms) for executing all the tests in the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(13; Version; Integer)
         {
@@ -140,7 +142,7 @@ table 149030 "BCCT Header"
             trigger OnValidate()
             begin
                 if "Base Version" > Version then
-                    Error(BaseVersionMustBeLessThanVersionErr)
+                    Error(this.BaseVersionMustBeLessThanVersionErr)
             end;
         }
         field(19; RunID; Guid)
@@ -161,7 +163,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of tests executed in the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(22; "No. of Tests Passed"; Integer)
         {
@@ -169,7 +171,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of tests passed in the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
         field(23; "No. of Operations"; Integer) //TODO: Change the name to No. of Scenarios? 
         {
@@ -185,7 +187,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of tests executed in the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(32; "No. of Tests Passed - Base"; Integer)
         {
@@ -193,7 +195,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of tests passed in the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
         field(33; "No. of Operations - Base"; Integer) //TODO: Change the name to No. of Scenarios? 
         {
@@ -209,20 +211,48 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the Total Duration (ms) for executing all the tests in the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Base Version"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+        }
+        field(50; "Test Runner Id"; Integer)
+        {
+            Caption = 'Test Runner Id';
+            Editable = false;
+
+            trigger OnValidate()
+            var
+                ALTestSuite: Record "AL Test Suite";
+            begin
+                if ALTestSuite.Get(Rec.Code) then begin
+                    ALTestSuite."Test Runner Id" := Rec."Test Runner Id";
+                    ALTestSuite.Modify(true);
+                end;
+            end;
         }
     }
-
     keys
     {
-        key(Key1; "Code")
+        key(Key1;
+        "Code")
         {
             Clustered = true;
         }
-        key(Dataset; Dataset)
+        key(Dataset; "Input Dataset")
         {
         }
     }
+
+    trigger OnInsert()
+    begin
+        this.AssignDefaultTestRunner();
+    end;
+
+    internal procedure AssignDefaultTestRunner()
+    var
+        TestRunnerMgt: Codeunit "Test Runner - Mgt";
+    begin
+        Rec."Test Runner Id" := TestRunnerMgt.GetDefaultTestRunner();
+    end;
+
 
     var
         BaseVersionMustBeLessThanVersionErr: Label 'Base Version must be less than or equal to Version';

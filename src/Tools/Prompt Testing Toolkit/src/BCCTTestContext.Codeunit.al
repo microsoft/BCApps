@@ -3,7 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
+using System.TestTools.TestRunner;
 
 /// <summary>
 /// Exposes functions that can be used by the BCCT tests.
@@ -17,58 +18,94 @@ codeunit 149043 "BCCT Test Context"
         BCCTLineCU: Codeunit "BCCT Line";
 
     /// <summary>
-    /// This method starts the scope of a test session where the performance numbers are collected.
+    /// This method starts the scope of the Run Procedure scenario.
+    /// </summary>
+    internal procedure StartRunProcedureScenario()
+    var
+        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+    begin
+        this.BCCTLineCU.StartScenario(AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
+    end;
+
+    /// <summary>
+    /// This method ends the scope of the Run Procedure scenario.
+    /// </summary>
+    /// <param name="TestMethodLine">Record containing the result of the test execution.</param>
+    /// <param name="ExecutionSuccess">Result of the test execution.</param>
+    internal procedure EndRunProcedureScenario(TestMethodLine: Record "Test Method Line"; ExecutionSuccess: Boolean)
+    var
+        BCCTLine: Record "BCCT Line";
+        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+    begin
+        this.GetBCCTLine(BCCTLine);
+        this.BCCTLineCU.EndRunProcedureScenario(BCCTLine, AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestMethodLine, ExecutionSuccess);
+    end;
+
+    /// <summary>
+    /// This method starts the scope of a scenario being tested.
     /// </summary>
     /// <param name="ScenarioOperation">Label of the scenario.</param>
     procedure StartScenario(ScenarioOperation: Text)
+    var
+        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+        ScenarioCannotUseDefaultScenarioErr: Label 'Please use a different Scenario Operation. It cannot be the same as %1.', Comment = '%1 = "Run Procedure"';
     begin
-        BCCTLineCU.StartScenario(ScenarioOperation);
+        if ScenarioOperation = AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then
+            Error(ScenarioCannotUseDefaultScenarioErr, AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
+        this.BCCTLineCU.StartScenario(ScenarioOperation);
     end;
 
-    /// <summary>
-    /// This method ends the scope of a test session where the performance numbers are collected.
-    /// </summary>
-    /// <param name="ScenarioOperation">Label of the scenario.</param>
-    procedure EndScenario(ScenarioOperation: Text)
-    var
-        BCCTLine: Record "BCCT Line";
-        BCCTDatasetLine: Record "BCCT Dataset Line";
-    begin
-        GetBCCTLine(BCCTLine);
-        GetBCCTDatasetLine(BCCTDatasetLine);
-        BCCTLineCU.EndScenario(BCCTLine, ScenarioOperation, '', true, BCCTDatasetLine);
-    end;
+    // /// <summary>
+    // /// This method ends the scope of a scenario being tested.
+    // /// </summary>
+    // /// <param name="ScenarioOperation">Label of the scenario.</param>
+    // procedure EndScenario(ScenarioOperation: Text)
+    // var
+    //     BCCTLine: Record "BCCT Line";
+    //     AITTestRunnerImpl: Codeunit "AIT Test Runner";
+    // begin
+    //     this.GetBCCTLine(BCCTLine);
+    //     this.BCCTLineCU.EndRunProcedureScenario(BCCTLine, ScenarioOperation, AITTestRunnerImpl.GetCurrTestMethodLine(), true);
+    // end;
 
-    /// <summary>
-    /// This method ends the scope of a test session where the performance numbers are collected.
-    /// </summary>
-    /// <param name="ScenarioOperation">Label of the scenario.</param>
-    /// <param name="ExecutionSuccess">Result of the test execution.</param>
-    procedure EndScenario(ScenarioOperation: Text; ExecutionSuccess: Boolean)
-    var
-        BCCTLine: Record "BCCT Line";
-        BCCTDatasetLine: Record "BCCT Dataset Line";
-    begin
-        GetBCCTLine(BCCTLine);
-        GetBCCTDatasetLine(BCCTDatasetLine);
-        BCCTLineCU.EndScenario(BCCTLine, ScenarioOperation, '', ExecutionSuccess, BCCTDatasetLine);
-    end;
+    // /// <summary>
+    // /// This method ends the scope of a scenario being tested.
+    // /// </summary>
+    // /// <param name="ScenarioOperation">Label of the scenario.</param>
+    // /// <param name="ScenarioOutput">Output of the scenario.</param>
+    // procedure EndScenario(ScenarioOperation: Text; ScenarioOutput: Text)
+    // var
+    //     BCCTLine: Record "BCCT Line";
+    //     AITTestRunnerImpl: Codeunit "AIT Test Runner";
+    // begin
+    //     this.GetBCCTLine(BCCTLine);
+    //     this.SetScenarioOutput(ScenarioOperation, ScenarioOutput);
+    //     this.BCCTLineCU.EndRunProcedureScenario(BCCTLine, ScenarioOperation, AITTestRunnerImpl.GetCurrTestMethodLine(), true);
+    // end;
 
-    /// <summary>
-    /// This method ends the scope of a test session where the performance numbers are collected.
-    /// </summary>
-    /// <param name="ScenarioOperation">Label of the scenario.</param>
-    /// <param name="ExecutionSuccess">Result of the test execution.</param>
-    /// <param name="ProcedureName">Name of the procedure being executed</param>
-    internal procedure EndScenario(ScenarioOperation: Text; ProcedureName: Text[128]; ExecutionSuccess: Boolean)
-    var
-        BCCTLine: Record "BCCT Line";
-        BCCTDatasetLine: Record "BCCT Dataset Line";
-    begin
-        GetBCCTLine(BCCTLine);
-        GetBCCTDatasetLine(BCCTDatasetLine);
-        BCCTLineCU.EndScenario(BCCTLine, ScenarioOperation, ProcedureName, ExecutionSuccess, BCCTDatasetLine);
-    end;
+    // /// <summary>
+    // /// This method ends the scope of a scenario being tested.
+    // /// </summary>
+    // /// <param name="ScenarioOperation">Label of the scenario.</param>
+    // /// <param name="ExecutionSuccess">Result of the test execution.</param>
+    // procedure EndScenario(ScenarioOperation: Text; ExecutionSuccess: Boolean)
+    // var
+    //     BCCTLine: Record "BCCT Line";
+    //     AITTestRunnerImpl: Codeunit "AIT Test Runner";
+    // begin
+    //     this.GetBCCTLine(BCCTLine);
+    //     this.BCCTLineCU.EndRunProcedureScenario(BCCTLine, ScenarioOperation, AITTestRunnerImpl.GetCurrTestMethodLine(), ExecutionSuccess);
+    // end;
+
+    // procedure EndScenario(ScenarioOperation: Text; ExecutionSuccess: Boolean; ScenarioOutput: Text)
+    // var
+    //     BCCTLine: Record "BCCT Line";
+    //     AITTestRunnerImpl: Codeunit "AIT Test Runner";
+    // begin
+    //     this.GetBCCTLine(BCCTLine);
+    //     this.SetScenarioOutput(ScenarioOperation, ScenarioOutput);
+    //     this.BCCTLineCU.EndRunProcedureScenario(BCCTLine, ScenarioOperation, AITTestRunnerImpl.GetCurrTestMethodLine(), ExecutionSuccess);
+    // end;
 
     /// <summary>
     /// This method simulates a users delay between operations. This method is called by the BCCT test to represent a realistic scenario.
@@ -80,9 +117,70 @@ codeunit 149043 "BCCT Test Context"
         BCCTLine: Record "BCCT Line";
 
     begin
-        GetBCCTHeader(BCCTHeader);
-        GetBCCTLine(BCCTLine);
-        BCCTLineCU.UserWait(BCCTLine);
+        this.GetBCCTHeader(BCCTHeader);
+        this.GetBCCTLine(BCCTLine);
+        this.BCCTLineCU.UserWait(BCCTLine);
+    end;
+
+    /// <summary>
+    /// Returns the Test Input Value from the dataset for the current iteration.
+    /// </summary>
+    procedure GetInput(): Text
+    var
+        TestInputCU: Codeunit "Test Input";
+    begin
+        exit(TestInputCU.GetTestInputValue());
+    end;
+
+    procedure GetUserQuery(): Text
+    var
+        TestInputCU: Codeunit "Test Input";
+    begin
+        exit(TestInputCU.GetTestInput('user_query').ValueAsText());
+    end;
+
+    /// <summary>
+    /// Returns the BCCTHeader associated with the sessions.
+    /// </summary>
+    /// <param name="BCCTLine">BCCTLine associated with the session.</param>
+    local procedure GetBCCTHeader(var BCCTHeader: Record "BCCT Header")
+    var
+        AITTestRunnerImpl: Codeunit "AIT Test Runner";
+    begin
+        AITTestRunnerImpl.GetBCCTHeader(BCCTHeader);
+    end;
+
+    procedure SetTestOutput(TestOutputText: Text)
+    var
+        TestOutputCU: Codeunit "Test Output";
+        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+    begin
+        TestOutputCU.TestData().Add('test_output', TestOutputText);
+        this.BCCTLineCU.SetTestOutput(AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+    end;
+
+    procedure SetAnswerForQnAEvaluation(Answer: Text)
+    var
+        TestOutputCU: Codeunit "Test Output";
+        TestInputCU: Codeunit "Test Input";
+        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+    begin
+        TestOutputCU.TestData().Add('answer', Answer);
+        if not TestInputCU.GetTestInput('context').ElementValue().IsNull then
+            TestOutputCU.TestData().Add('context', TestInputCU.GetTestInput('context').ValueAsText());
+        if not TestInputCU.GetTestInput('question').ElementValue().IsNull then
+            TestOutputCU.TestData().Add('question', TestInputCU.GetTestInput('question').ValueAsText());
+        if not TestInputCU.GetTestInput('ground_truth').ElementValue().IsNull then
+            TestOutputCU.TestData().Add('ground_truth', TestInputCU.GetTestInput('ground_truth').ValueAsText());
+        this.BCCTLineCU.SetTestOutput(AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+    end;
+
+    procedure SetScenarioOutput(Scenario: Text; TestOutputText: Text)
+    var
+        TestOutputCU: Codeunit "Test Output";
+    begin
+        TestOutputCU.TestData().Add('scenario_output', TestOutputText);
+        this.BCCTLineCU.SetTestOutput(Scenario, TestOutputCU.TestData().ToText());
     end;
 
     /// <summary>
@@ -91,56 +189,9 @@ codeunit 149043 "BCCT Test Context"
     /// <param name="BCCTLine">BCCTLine associated with the session.</param>
     local procedure GetBCCTLine(var BCCTLine: Record "BCCT Line")
     var
-        BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper";
+        AITTestRunnerImpl: Codeunit "AIT Test Runner";
     begin
-        BCCTRoleWrapperImpl.GetBCCTLine(BCCTLine);
-    end;
-
-    /// <summary>
-    /// Returns the BCCTDatasetLine associated with the tests.
-    /// </summary>
-    /// <param name="BCCTDatasetLine">BCCTLine associated with the session.</param>
-    local procedure GetBCCTDatasetLine(var BCCTDatasetLine: Record "BCCT Dataset Line") //TODO: Consider exposing the Get input/output procedures from inside the record instead of sending the entire record
-    var
-        BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper";
-    begin
-        BCCTRoleWrapperImpl.GetBCCTDatasetLine(BCCTDatasetLine);
-    end;
-
-    /// <summary>
-    /// Returns the Input line from the dataset for the current iteration.
-    /// </summary>
-    procedure GetInput(): Text
-    var
-        BCCTDatasetLine: Record "BCCT Dataset Line";
-        BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper";
-    begin
-        BCCTRoleWrapperImpl.GetBCCTDatasetLine(BCCTDatasetLine);
-        exit(BCCTDatasetLine.GetInputBlobAsText());
-    end;
-
-
-    /// <summary>
-    /// Returns the BCCTHeader associated with the sessions.
-    /// </summary>
-    /// <param name="BCCTLine">BCCTLine associated with the session.</param>
-    local procedure GetBCCTHeader(var BCCTHeader: Record "BCCT Header")
-    var
-        BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper";
-    begin
-        BCCTRoleWrapperImpl.GetBCCTHeader(BCCTHeader);
-    end;
-
-    procedure SetTestOutput(TestOutput: Text)
-    var
-        BCCTRoleWrapperImpl: Codeunit "BCCT Role Wrapper";
-    begin
-        BCCTLineCU.SetTestOutput(BCCTRoleWrapperImpl.GetDefaultExecuteProcedureOperationLbl(), TestOutput);
-    end;
-
-    procedure SetTestOutput(Scenario: Text; TestOutput: Text)
-    begin
-        BCCTLineCU.SetTestOutput(Scenario, TestOutput);
+        AITTestRunnerImpl.GetBCCTLine(BCCTLine);
     end;
 
 }

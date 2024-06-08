@@ -3,7 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
+using System.TestTools.TestRunner;
 
 permissionset 149030 "BC Cop. Toolkit"
 {
@@ -16,6 +17,6 @@ permissionset 149030 "BC Cop. Toolkit"
     Permissions = tabledata "BCCT Header" = RIMD,
         tabledata "BCCT Line" = RIMD,
         tabledata "BCCT Log Entry" = RIMD,
-        tabledata "BCCT Dataset" = RIMD,
-        tabledata "BCCT Dataset Line" = RIMD;
+        tabledata "Test Input" = RIMD,
+        tabledata "Test Method Line" = RIMD;
 }

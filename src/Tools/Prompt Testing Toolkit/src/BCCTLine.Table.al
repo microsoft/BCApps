@@ -3,9 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 using System.Reflection;
+using System.TestTools.TestRunner;
 
 table 149032 "BCCT Line"
 {
@@ -38,13 +39,13 @@ table 149032 "BCCT Line"
 
             trigger OnLookup()
             var
-                CodeunitMetadata: Record "CodeUnit Metadata";
-                BCCTLookupRoles: Page "BCCT Lookup Codeunits";
+                AllObjWithCaption: Record AllObjWithCaption;
+                SelectTests: Page "Select Tests";
             begin
-                BCCTLookupRoles.LookupMode := true;
-                if BCCTLookupRoles.RunModal() = ACTION::LookupOK then begin
-                    BCCTLookupRoles.GetRecord(CodeunitMetadata);
-                    Validate("Codeunit ID", CodeunitMetadata.ID);
+                SelectTests.LookupMode := true;
+                if SelectTests.RunModal() = ACTION::LookupOK then begin
+                    SelectTests.GetRecord(AllObjWithCaption);
+                    this.Validate("Codeunit ID", AllObjWithCaption."Object ID");
                 end;
             end;
 
@@ -53,12 +54,12 @@ table 149032 "BCCT Line"
                 CodeunitMetadata: Record "CodeUnit Metadata";
             begin
                 CodeunitMetadata.Get("Codeunit ID");
-                CalcFields("Codeunit Name");
+                this.CalcFields("Codeunit Name");
 
 
-                if ("Codeunit ID" = Codeunit::"BCCT Role Wrapper") or not (CodeunitMetadata.TableNo in [0, Database::"BCCT Line"]) then
+                if ("Codeunit ID" = Codeunit::"AIT Test Runner") or not (CodeunitMetadata.TableNo in [0, Database::"BCCT Line"]) then
                     if not (CodeunitMetadata.SubType = CodeunitMetadata.SubType::Test) then
-                        Error(NotSupportedCodeunitErr, "Codeunit Name");
+                        Error(this.NotSupportedCodeunitErr, "Codeunit Name");
             end;
         }
 #pragma warning disable AS0086
@@ -76,11 +77,11 @@ table 149032 "BCCT Line"
             Caption = 'Description';
             DataClassification = CustomerContent;
         }
-        field(7; Dataset; Text[100])
+        field(7; "Input Dataset"; Code[100])
         {
-            Caption = 'Override the suite dataset';
+            Caption = 'Input Dataset';
             DataClassification = CustomerContent;
-            TableRelation = "BCCT Dataset"."Dataset Name";
+            TableRelation = "Test Input Group";
         }
         field(9; "Status"; Enum "BCCT Line Status")
         {
@@ -131,7 +132,7 @@ table 149032 "BCCT Line"
             // ToolTip ='Specifies the number of tests executed for this BCCT line.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
 #pragma warning disable AA0232
         // TODO: Remove warning, add SIFT key
@@ -141,7 +142,7 @@ table 149032 "BCCT Line"
             Caption = 'Total Duration (ms)';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(19; Sequence; Option)
         {
@@ -166,14 +167,14 @@ table 149032 "BCCT Line"
             // ToolTip ='Specifies the number of tests executed for this BCCT line for the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(27; "Total Duration - Base (ms)"; Integer)
         {
             Caption = 'Total Duration - Base (ms)';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(22; "No. of Tests Passed"; Integer)
         {
@@ -181,7 +182,7 @@ table 149032 "BCCT Line"
             // ToolTip ='Specifies the number of tests passed in the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
         field(23; "No. of Operations"; Integer) //TODO: Change the name to No. of Scenarios? 
         {
@@ -197,7 +198,7 @@ table 149032 "BCCT Line"
             // ToolTip ='Specifies the number of tests passed in the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Execute Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
         field(31; "No. of Operations - Base"; Integer) //TODO: Change the name to No. of Scenarios? 
         {
@@ -206,6 +207,12 @@ table 149032 "BCCT Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Base Version Filter")));
+        }
+        field(101; "AL Test Suite"; Code[10])
+        {
+            Caption = 'AL Test Suite';
+            Editable = false;
+            DataClassification = CustomerContent;
         }
     }
 
@@ -218,9 +225,29 @@ table 149032 "BCCT Line"
 
         key(Key3; "BCCT Code", "Codeunit ID")
         {
-            IncludedFields = Dataset;
+            IncludedFields = "Input Dataset";
         }
     }
+
+    internal procedure GetTestInputCode(): Code[100]
+    var
+        BCCTHeader: Record "BCCT Header";
+    begin
+        if Rec."Input Dataset" <> '' then
+            exit(Rec."Input Dataset");
+
+        BCCTHeader.Get(Rec."BCCT Code");
+        exit(BCCTHeader."Input Dataset");
+    end;
+
+    trigger OnDelete()
+    var
+        ALTestSuite: Record "AL Test Suite";
+    begin
+        if Rec."AL Test Suite" <> '' then
+            if ALTestSuite.Get(Rec."AL Test Suite") then
+                ALTestSuite.Delete(true);
+    end;
 
     var
         NotSupportedCodeunitErr: Label 'Codeunit %1 can not be used for testing.', Comment = '%1 = codeunit name';

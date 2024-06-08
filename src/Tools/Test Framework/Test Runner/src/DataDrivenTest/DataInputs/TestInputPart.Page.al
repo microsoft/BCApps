@@ -5,14 +5,13 @@
 
 namespace System.TestTools.TestRunner;
 
-page 130459 "Test Inputs"
+page 130459 "Test Input Part"
 {
-    PageType = List;
+    PageType = ListPart;
     SourceTable = "Test Input";
     Caption = 'Test inputs';
     InsertAllowed = false;
     ModifyAllowed = false;
-    DeleteAllowed = true;
 
     layout
     {
@@ -21,11 +20,11 @@ page 130459 "Test Inputs"
             repeater(TestInputs)
             {
                 Editable = false;
-                field(TestSuite; Rec."Test Suite")
+                field(TestGroup; Rec."Test Input Group Code")
                 {
                     ApplicationArea = All;
                 }
-                field(MethodName; Rec.Name)
+                field(TestInputCode; Rec.Code)
                 {
                     ApplicationArea = All;
                 }
@@ -33,11 +32,7 @@ page 130459 "Test Inputs"
                 {
                     ApplicationArea = All;
                 }
-                field(InputDescription; Rec.Name)
-                {
-                    ApplicationArea = All;
-                }
-                field(InputTestInputText; TestInputText)
+                field(InputTestInputText; this.TestInputDisplayText)
                 {
                     ApplicationArea = All;
                     Caption = 'Test Input';
@@ -45,7 +40,7 @@ page 130459 "Test Inputs"
 
                     trigger OnDrillDown()
                     begin
-                        Message(TestInputText);
+                        Message(this.TestInputText);
                     end;
                 }
             }
@@ -60,32 +55,30 @@ page 130459 "Test Inputs"
                 ApplicationArea = All;
                 Caption = 'Import';
                 Image = ImportCodes;
+                ToolTip = 'Import data-driven test inputs from a JSON file';
 
                 trigger OnAction()
                 var
-                    ALTestSuite: Record "AL Test Suite";
+                    TestInputGroup: Record "Test Input Group";
                     TestInputsManagement: Codeunit "Test Inputs Management";
                 begin
-                    ALTestSuite.Get(Rec."Test Suite");
-                    TestInputsManagement.UploadAndImportDataInputsFromJson(ALTestSuite);
+                    TestInputGroup.Get(Rec."Test Input Group Code");
+                    TestInputsManagement.UploadAndImportDataInputsFromJson(TestInputGroup);
                 end;
-            }
-        }
-        area(Promoted)
-        {
-            group(Category_Process)
-            {
-                actionref(ImportDataInputs_Promoted; ImportDataInputs)
-                {
-                }
             }
         }
     }
     trigger OnAfterGetRecord()
     begin
-        TestInputText := Rec.GetInput(Rec);
+        this.TestInputText := Rec.GetInput(Rec);
+        if Rec.IsSensitive() then
+            this.TestInputDisplayText := this.ClickToShowLbl
+        else
+            this.TestInputDisplayText := this.TestInputText;
     end;
 
     var
         TestInputText: Text;
+        TestInputDisplayText: Text;
+        ClickToShowLbl: Label 'Show data input';
 }

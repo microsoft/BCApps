@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 page 149034 "BCCT Lines"
 {
@@ -47,7 +47,7 @@ page 149034 "BCCT Lines"
                     ToolTip = 'Specifies the name of the codeunit.';
                     ApplicationArea = All;
                 }
-                field(Dataset; Rec.Dataset)
+                field(InputDataset; Rec."Input Dataset")
                 {
                     ToolTip = 'Specifies a dataset that overrides the default dataset for the suite.';
                     ApplicationArea = All;
@@ -71,11 +71,13 @@ page 149034 "BCCT Lines"
                 {
                     ToolTip = 'Specifies the min. user delay in ms of the BCCT.';
                     ApplicationArea = All;
+                    Visible = false;
                 }
                 field(MaxDelay; Rec."Max. User Delay (ms)")
                 {
                     ToolTip = 'Specifies the max. user delay in ms of the BCCT.';
                     ApplicationArea = All;
+                    Visible = false;
                 }
                 field("No. of Tests"; Rec."No. of Tests")
                 {
@@ -120,17 +122,20 @@ page 149034 "BCCT Lines"
                     ToolTip = 'Specifies average duration of the BCCT for this role.';
                     Caption = 'Average Duration (ms)';
                     ApplicationArea = All;
+                    Visible = false;
                 }
                 field("No. of Tests - Base"; Rec."No. of Tests - Base")
                 {
                     Tooltip = 'Specifies the number of tests in this Line for the base version.';
                     ApplicationArea = All;
+                    Visible = false;
                 }
                 field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the number of tests passed in the base Version.';
                     Style = Favorable;
+                    Visible = false;
                 }
                 field("No. of Tests Failed - Base"; Rec."No. of Tests - Base" - Rec."No. of Tests Passed - Base")
                 {
@@ -139,6 +144,7 @@ page 149034 "BCCT Lines"
                     Caption = 'No. of Tests Failed - Base';
                     ToolTip = 'Specifies the number of tests that failed in the base Version.';
                     Style = Unfavorable;
+                    Visible = false;
 
                     trigger OnDrillDown()
                     var
@@ -153,24 +159,28 @@ page 149034 "BCCT Lines"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the number of operations in the base Version.';
+                    Visible = false;
                 }
                 field(DurationBase; Rec."Total Duration - Base (ms)")
                 {
                     ToolTip = 'Specifies Total Duration of the BCCT for this role for the base version.';
                     Caption = 'Total Duration Base (ms)';
                     ApplicationArea = All;
+                    Visible = false;
                 }
                 field(AvgDurationBase; GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"))
                 {
                     ToolTip = 'Specifies average duration of the BCCT for this role for the base version.';
                     Caption = 'Average Duration Base (ms)';
                     ApplicationArea = All;
+                    Visible = false;
                 }
                 field(AvgDurationDeltaPct; GetDiffPct(GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"), GetAvg(Rec."No. of Tests", Rec."Total Duration (ms)")))
                 {
                     ToolTip = 'Specifies difference in duration of the BCCT for this role compared to the base version.';
                     Caption = 'Change in Duration (%)';
                     ApplicationArea = All;
+                    Visible = false;
                 }
             }
         }
@@ -218,7 +228,7 @@ page 149034 "BCCT Lines"
                     Commit();
                     // If no range is set, all following foreground lines will be run
                     Rec.SetRange("Codeunit ID", Rec."Codeunit ID");
-                    Codeunit.Run(codeunit::"BCCT Role Wrapper", Rec);
+                    Codeunit.Run(codeunit::"AIT Test Runner", Rec);
                     Rec.SetRange("Codeunit ID"); // reset filter
                 end;
             }
@@ -256,11 +266,40 @@ page 149034 "BCCT Lines"
                 RunObject = page "BCCT Log Entries";
                 RunPageLink = "BCCT Code" = field("BCCT Code"), "BCCT Line No." = field("Line No."), Version = field("Version Filter");
             }
+            action(Compare)
+            {
+                ApplicationArea = All;
+                Caption = 'Compare Versions';
+                Image = CompareCOA;
+                ToolTip = 'Compare results of the line to a base version.';
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    BCCTLine: Record "BCCT Line";
+                    BCCTHeaderRec: Record "BCCT Header";
+                    BCCTLineComparePage: Page "BCCT Lines Compare";
+                begin
+                    CurrPage.SetSelectionFilter(BCCTLine);
+
+                    if not BCCTLine.FindFirst() then
+                        Error(NoLineSelectedErr);
+
+                    BCCTHeaderRec.SetLoadFields(Version, "Base Version");
+                    BCCTHeaderRec.Get(Rec."BCCT Code");
+
+                    BCCTLineComparePage.SetBaseVersion(BCCTHeaderRec."Base Version");
+                    BCCTLineComparePage.SetVersion(BCCTHeaderRec.Version);
+                    BCCTLineComparePage.SetRecord(BCCTLine);
+                    BCCTLineComparePage.Run();
+                end;
+            }
         }
     }
     var
         BCCTHeader: Record "BCCT Header";
         BCCTLineCU: Codeunit "BCCT Line";
+        NoLineSelectedErr: Label 'Select a line to compare';
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin

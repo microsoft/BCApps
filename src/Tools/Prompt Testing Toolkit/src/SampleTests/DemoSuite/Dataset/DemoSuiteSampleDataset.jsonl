@@ -1,5 +1,5 @@
-{"input": "Hi, I'm a bot. How can I help you today?"}
-{"input": "I need help with my account."}
-{"input": "Sure, I can help with that. What do you need help with?"}
-{"input": "I need to reset my password."}
-{"input": "I can help with that. Please provide me with your email address."}
+{"user_query": "Hi, I'm a bot. How can I help you today?"}
+{"user_query": "I need help with my account."}
+{"user_query": "Sure, I can help with that. What do you need help with?"}
+{"user_query": "I need to reset my password."}
+{"user_query": "I can help with that. Please provide me with your email address."}

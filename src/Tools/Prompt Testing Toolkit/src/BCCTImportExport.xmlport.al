@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Tooling;
+namespace System.TestTools.AITestToolkit;
 
 xmlport 149031 "BCCT Import/Export"
 {
@@ -46,7 +46,7 @@ xmlport 149031 "BCCT Import/Export"
                 {
                     Occurrence = Optional;
                 }
-                fieldattribute(Dataset; "BCCTSuite".Dataset)
+                fieldattribute(Dataset; "BCCTSuite"."Input Dataset")
                 {
                     Occurrence = Required;
                 }
@@ -69,7 +69,7 @@ xmlport 149031 "BCCT Import/Export"
                     {
                         Occurrence = Optional;
                     }
-                    fieldattribute(Dataset; BCCTSuiteLine.Dataset)
+                    fieldattribute(Dataset; BCCTSuiteLine."Input Dataset")
                     {
                         Occurrence = Optional;
                     }
