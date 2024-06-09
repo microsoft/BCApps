@@ -29,6 +29,13 @@ page 132525 "Edit in Excel List"
                     ApplicationArea = All;
                     ToolTip = 'Specifies if Edit in Excel should use centralized deployments';
                 }
+                // If this page does not expose an OData field Date_Filter then the Edit In Excel
+                // filter tests will fail because the filter is just removed.
+                field("Date Filter"; Rec.Id)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the Record ID';
+                }
             }
         }
     }
