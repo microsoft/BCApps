@@ -123,6 +123,17 @@ codeunit 149043 "BCCT Test Context"
     end;
 
     /// <summary>
+    /// Returns the BCCTHeader associated with the sessions.
+    /// </summary>
+    /// <param name="BCCTLine">BCCTLine associated with the session.</param>
+    local procedure GetBCCTHeader(var BCCTHeader: Record "BCCT Header")
+    var
+        AITTestRunnerImpl: Codeunit "AIT Test Runner";
+    begin
+        AITTestRunnerImpl.GetBCCTHeader(BCCTHeader);
+    end;
+
+    /// <summary>
     /// Returns the Test Input Value from the dataset for the current iteration.
     /// </summary>
     procedure GetInput(): Text
@@ -137,17 +148,6 @@ codeunit 149043 "BCCT Test Context"
         TestInputCU: Codeunit "Test Input";
     begin
         exit(TestInputCU.GetTestInput('user_query').ValueAsText());
-    end;
-
-    /// <summary>
-    /// Returns the BCCTHeader associated with the sessions.
-    /// </summary>
-    /// <param name="BCCTLine">BCCTLine associated with the session.</param>
-    local procedure GetBCCTHeader(var BCCTHeader: Record "BCCT Header")
-    var
-        AITTestRunnerImpl: Codeunit "AIT Test Runner";
-    begin
-        AITTestRunnerImpl.GetBCCTHeader(BCCTHeader);
     end;
 
     procedure SetTestOutput(TestOutputText: Text)
