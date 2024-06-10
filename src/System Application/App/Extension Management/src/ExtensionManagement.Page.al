@@ -185,14 +185,14 @@ page 2500 "Extension Management"
                 action("Open Source in VS Code")
                 {
                     Caption = 'Open Source in VS Code';
-                    //Enabled = IsSourceSpecificationAvailable;
-                    Image = Download;
+                    Enabled = IsSourceSpecificationAvailable;
+                    Image = Open;
                     Scope = Repeater;
                     ToolTip = 'Open the source code for the extension based on the source control information.';
 
                     trigger OnAction()
                     begin
-                        Hyperlink(Rec."Open source in VS Code URL");
+                        Hyperlink(ExtensionOperationImpl.OpenExtensionSource(Rec."Source Repository Url", Rec."Source Commit ID"));
                     end;
                 }
                 action("Learn More")
@@ -347,6 +347,7 @@ page 2500 "Extension Management"
         IsInstallAllowed: Boolean;
         InfoStyle: Boolean;
         HelpActionVisible: Boolean;
+        IsSourceSpecificationAvailable: Boolean;
 
     local procedure SetExtensionManagementFilter()
     begin
@@ -379,6 +380,7 @@ page 2500 "Extension Management"
         // Determining Record and Styling Configurations
         IsInstalled := ExtensionInstallationImpl.IsInstalledByPackageId(Rec."Package ID");
         IsTenantExtension := Rec."Published As" <> Rec."Published As"::Global;
+        IsSourceSpecificationAvailable: := Rec."Source Repository Url" <> None;
     end;
 
     local procedure GetVersionDisplayText(): Text
