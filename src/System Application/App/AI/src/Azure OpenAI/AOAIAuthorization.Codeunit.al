@@ -76,7 +76,7 @@ codeunit 7767 "AOAI Authorization"
         ClearVariables();
 
         ResourceUtilization := Enum::"AOAI Resource Utilization"::"First Party";
-        Deployment := NewDeployment;
+        ManagedResourceDeployment := NewDeployment;
     end;
 
     [NonDebuggable]
