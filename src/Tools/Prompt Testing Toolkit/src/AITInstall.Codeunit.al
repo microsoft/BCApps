@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 using System.Environment;
 
-codeunit 149030 "BCCT Install"
+codeunit 149030 "AIT Install"
 {
     Subtype = Install;
 

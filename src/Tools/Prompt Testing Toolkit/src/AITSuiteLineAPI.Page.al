@@ -6,21 +6,21 @@
 namespace System.TestTools.AITestToolkit;
 using System.TestTools.TestRunner;
 
-page 149037 "BCCT Suite Line API"
+page 149037 "AIT Suite Line API"
 {
     PageType = API;
     APIPublisher = 'microsoft';
     APIGroup = 'copilotTestToolkit';
     APIVersion = 'v1.0';
 
-    Caption = 'BCCT Suite Lines API';
+    Caption = 'AIT Suite Lines API';
 
-    EntityCaption = 'BCCTSuiteLine';
-    EntitySetCaption = 'BCCTSuiteLine';
-    EntityName = 'bcctSuiteLine';
-    EntitySetName = 'bcctSuiteLines';
+    EntityCaption = 'AITSuiteLine';
+    EntitySetCaption = 'AITSuiteLine';
+    EntityName = 'AITSuiteLine';
+    EntitySetName = 'AITSuiteLines';
 
-    SourceTable = "BCCT Line";
+    SourceTable = "AIT Line";
     ODataKeyFields = SystemId;
 
     Extensible = false;
@@ -37,12 +37,12 @@ page 149037 "BCCT Suite Line API"
                     Caption = 'Id';
                     Editable = false;
                 }
-                field("bcctCode"; Rec."BCCT Code")
+                field("AITCode"; Rec."AIT Code")
                 {
-                    Caption = 'BCCT Code';
+                    Caption = 'AIT Code';
                     Editable = false;
                     NotBlank = true;
-                    TableRelation = "BCCT Header";
+                    TableRelation = "AIT Header";
                 }
                 field("codeunitID"; Rec."Codeunit ID")
                 {

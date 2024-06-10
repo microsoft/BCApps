@@ -7,9 +7,9 @@ namespace System.TestTools.AITestToolkit;
 
 using System.Environment;
 
-page 149042 "BCCT CommandLine Card"
+page 149042 "AIT CommandLine Card"
 {
-    Caption = 'BCCT CommandLine Runner';
+    Caption = 'AIT CommandLine Runner';
     PageType = Card;
     Extensible = false;
 
@@ -19,23 +19,23 @@ page 149042 "BCCT CommandLine Card"
         {
             group(General)
             {
-                field("Select Code"; this.BCCTCode)
+                field("Select Code"; this.AITCode)
                 {
                     Caption = 'Select Code', Locked = true;
                     ToolTip = 'Specifies the ID of the suite.';
                     ApplicationArea = All;
-                    TableRelation = "BCCT Header".Code;
+                    TableRelation = "AIT Header".Code;
 
                     trigger OnValidate()
                     var
-                        BCCTHeader: record "BCCT Header";
-                        BCCTLine: record "BCCT Line";
+                        AITHeader: record "AIT Header";
+                        AITLine: record "AIT Line";
                     begin
-                        if not BCCTHeader.Get(this.BCCTCode) then
-                            Error(this.CannotFindBCCTSuiteErr, this.BCCTCode);
+                        if not AITHeader.Get(this.AITCode) then
+                            Error(this.CannotFindAITSuiteErr, this.AITCode);
 
-                        BCCTLine.SetRange("BCCT Code", this.BCCTCode);
-                        this.NoOfTests := BCCTLine.Count();
+                        AITLine.SetRange("AIT Code", this.AITCode);
+                        this.NoOfTests := AITLine.Count();
                     end;
                 }
 
@@ -43,7 +43,7 @@ page 149042 "BCCT CommandLine Card"
                 field("No. of Tests"; this.NoOfTests)
                 {
                     Caption = 'No. of Tests', Locked = true;
-                    ToolTip = 'Specifies the number of BCCT Suite Lines present in the BCCT Suite';
+                    ToolTip = 'Specifies the number of AIT Suite Lines present in the AIT Suite';
                     ApplicationArea = All;
                     Editable = false;
                 }
@@ -67,16 +67,16 @@ page 149042 "BCCT CommandLine Card"
 
                 trigger OnAction()
                 begin
-                    this.StartNextBCCT();
+                    this.StartNextAIT();
                 end;
             }
         }
     }
 
     var
-        CannotFindBCCTSuiteErr: Label 'The specified BCCT Suite with code %1 cannot be found.', Comment = '%1 = BCCT Suite id.';
+        CannotFindAITSuiteErr: Label 'The specified AIT Suite with code %1 cannot be found.', Comment = '%1 = AIT Suite id.';
         EnableActions: Boolean;
-        BCCTCode: Code[100];
+        AITCode: Code[100];
         NoOfTests: Integer;
 
     trigger OnOpenPage()
@@ -86,15 +86,15 @@ page 149042 "BCCT CommandLine Card"
         this.EnableActions := (EnvironmentInformation.IsSaas() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
     end;
 
-    local procedure StartNextBCCT()
+    local procedure StartNextAIT()
     var
-        BCCTHeader: Record "BCCT Header";
-        BCCTStartTests: Codeunit "BCCT Start Tests";
-        BCCTHeaderCU: Codeunit "BCCT Header";
+        AITHeader: Record "AIT Header";
+        AITStartTests: Codeunit "AIT Start Tests";
+        AITHeaderCU: Codeunit "AIT Header";
     begin
-        if BCCTHeader.Get(this.BCCTCode) then begin
-            BCCTHeaderCU.ValidateDatasets(BCCTHeader);
-            BCCTStartTests.StartBCCTSuite(BCCTHeader);
+        if AITHeader.Get(this.AITCode) then begin
+            AITHeaderCU.ValidateDatasets(AITHeader);
+            AITStartTests.StartAITSuite(AITHeader);
         end;
     end;
 }

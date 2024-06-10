@@ -5,11 +5,11 @@
 
 namespace System.TestTools.AITestToolkit;
 
-page 149035 "BCCT Lines Compare"
+page 149035 "AIT Lines Compare"
 {
     PageType = Card;
     ApplicationArea = All;
-    SourceTable = "BCCT Line";
+    SourceTable = "AIT Line";
     ModifyAllowed = false;
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -81,7 +81,7 @@ page 149035 "BCCT Lines Compare"
                         label(TotalDuration)
                         {
                             Caption = 'Total Duration (ms)';
-                            ToolTip = 'Specifies Total Duration of the BCCT for this role for the version.';
+                            ToolTip = 'Specifies Total Duration of the AIT for this role for the version.';
                             ApplicationArea = All;
                         }
                     }
@@ -111,11 +111,11 @@ page 149035 "BCCT Lines Compare"
 
                             trigger OnDrillDown()
                             var
-                                BCCTHeaderRec: Record "BCCT Header";
+                                AITHeaderRec: Record "AIT Header";
                             begin
-                                BCCTHeaderRec.SetLoadFields(Version);
-                                BCCTHeaderRec.Get(Rec."BCCT Code");
-                                FailedTestsBCCTLogEntryDrillDown(BCCTHeaderRec.Version);
+                                AITHeaderRec.SetLoadFields(Version);
+                                AITHeaderRec.Get(Rec."AIT Code");
+                                FailedTestsAITLogEntryDrillDown(AITHeaderRec.Version);
                             end;
                         }
                         field("No. of Operations"; Rec."No. of Operations")
@@ -126,7 +126,7 @@ page 149035 "BCCT Lines Compare"
                         }
                         field(Duration; Rec."Total Duration (ms)")
                         {
-                            ToolTip = 'Specifies Total Duration of the BCCT for this role.';
+                            ToolTip = 'Specifies Total Duration of the AIT for this role.';
                             ApplicationArea = All;
                             ShowCaption = false;
                         }
@@ -157,11 +157,11 @@ page 149035 "BCCT Lines Compare"
 
                             trigger OnDrillDown()
                             var
-                                BCCTHeaderRec: Record "BCCT Header";
+                                AITHeaderRec: Record "AIT Header";
                             begin
-                                BCCTHeaderRec.SetLoadFields("Base Version");
-                                BCCTHeaderRec.Get(Rec."BCCT Code");
-                                FailedTestsBCCTLogEntryDrillDown(BCCTHeaderRec."Base Version");
+                                AITHeaderRec.SetLoadFields("Base Version");
+                                AITHeaderRec.Get(Rec."AIT Code");
+                                FailedTestsAITLogEntryDrillDown(AITHeaderRec."Base Version");
                             end;
                         }
                         field("No. of Operations - Base"; Rec."No. of Operations - Base")
@@ -172,7 +172,7 @@ page 149035 "BCCT Lines Compare"
                         }
                         field(DurationBase; Rec."Total Duration - Base (ms)")
                         {
-                            ToolTip = 'Specifies Total Duration of the BCCT for this role for the base version.';
+                            ToolTip = 'Specifies Total Duration of the AIT for this role for the base version.';
                             Caption = 'Total Duration Base (ms)';
                             ApplicationArea = All;
                             ShowCaption = false;
@@ -209,16 +209,16 @@ page 149035 "BCCT Lines Compare"
         CurrPage.Update(false);
     end;
 
-    local procedure FailedTestsBCCTLogEntryDrillDown(VersionNo: Integer) // TODO: Move to codeunit
+    local procedure FailedTestsAITLogEntryDrillDown(VersionNo: Integer) // TODO: Move to codeunit
     var
-        BCCTLogEntries: Record "BCCT Log Entry";
-        BCCTLogEntry: Page "BCCT Log Entries";
+        AITLogEntries: Record "AIT Log Entry";
+        AITLogEntry: Page "AIT Log Entries";
     begin
-        BCCTLogEntries.SetFilterForFailedTestProcedures();
-        BCCTLogEntries.SetRange("BCCT Code", Rec."BCCT Code");
-        BCCTLogEntries.SetRange(Version, VersionNo);
-        BCCTLogEntries.SetRange("BCCT Line No.", Rec."Line No.");
-        BCCTLogEntry.SetTableView(BCCTLogEntries);
-        BCCTLogEntry.Run();
+        AITLogEntries.SetFilterForFailedTestProcedures();
+        AITLogEntries.SetRange("AIT Code", Rec."AIT Code");
+        AITLogEntries.SetRange(Version, VersionNo);
+        AITLogEntries.SetRange("AIT Line No.", Rec."Line No.");
+        AITLogEntry.SetTableView(AITLogEntries);
+        AITLogEntry.Run();
     end;
 }

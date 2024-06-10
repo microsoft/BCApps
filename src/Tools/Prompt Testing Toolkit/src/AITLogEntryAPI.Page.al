@@ -5,21 +5,21 @@
 
 namespace System.TestTools.AITestToolkit;
 
-page 149038 "BCCT Log Entry API"
+page 149038 "AIT Log Entry API"
 {
     PageType = API;
     APIPublisher = 'microsoft';
     APIGroup = 'copilotTestToolkit';
     APIVersion = 'v1.0';
 
-    Caption = 'BCCT Logs Entry API';
+    Caption = 'AIT Logs Entry API';
 
-    EntityCaption = 'BCCTLogEntry';
-    EntitySetCaption = 'BCCTLogEntry';
-    EntityName = 'bcctLogEntry';
-    EntitySetName = 'bcctLogEntries';
+    EntityCaption = 'AITLogEntry';
+    EntitySetCaption = 'AITLogEntry';
+    EntityName = 'aitLogEntry';
+    EntitySetName = 'aitLogEntries';
 
-    SourceTable = "BCCT Log Entry";
+    SourceTable = "AIT Log Entry";
     ODataKeyFields = SystemId;
 
     Extensible = false;
@@ -36,14 +36,14 @@ page 149038 "BCCT Log Entry API"
                     Caption = 'Id';
                     Editable = false;
                 }
-                field("bcctCode"; Rec."BCCT Code")
+                field("aitCode"; Rec."AIT Code")
                 {
-                    Caption = 'BCCT Code';
+                    Caption = 'AIT Code';
                     Editable = false;
                     NotBlank = true;
-                    TableRelation = "BCCT Header";
+                    TableRelation = "AIT Header";
                 }
-                field("lineNumber"; Rec."BCCT Line No.")
+                field("lineNumber"; Rec."AIT Line No.")
                 {
                     Caption = 'Line No.';
                 }

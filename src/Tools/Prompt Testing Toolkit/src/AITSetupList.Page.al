@@ -5,13 +5,13 @@
 
 namespace System.TestTools.AITestToolkit;
 
-page 149040 "BCCT Setup List"
+page 149040 "AIT Setup List"
 {
-    Caption = 'BCCT Suites';
+    Caption = 'AIT Suites';
     PageType = List;
     PromotedActionCategories = 'New,Process,Report,Import/Export';
-    SourceTable = "BCCT Header";
-    CardPageId = "BCCT Setup Card";
+    SourceTable = "AIT Header";
+    CardPageId = "AIT Setup Card";
     Editable = false;
     RefreshOnActivate = true;
     UsageCategory = Lists;
@@ -28,25 +28,25 @@ page 149040 "BCCT Setup List"
                 field("Code"; Rec."Code")
                 {
                     Caption = 'Code';
-                    ToolTip = 'Specifies the ID of the BCCT.';
+                    ToolTip = 'Specifies the ID of the AIT.';
                     ApplicationArea = All;
                 }
                 field(Description; Rec.Description)
                 {
                     Caption = 'Description';
-                    ToolTip = 'Specifies the description of the BCCT.';
+                    ToolTip = 'Specifies the description of the AIT.';
                     ApplicationArea = All;
                 }
                 field(Started; Rec."Started at")
                 {
                     Caption = 'Started at';
-                    ToolTip = 'Specifies when the BCCT was started.';
+                    ToolTip = 'Specifies when the AIT was started.';
                     ApplicationArea = All;
                 }
                 field(Status; Rec.Status)
                 {
                     Caption = 'Status';
-                    ToolTip = 'Specifies the status of the BCCT.';
+                    ToolTip = 'Specifies the status of the AIT.';
                     ApplicationArea = All;
                 }
 
@@ -59,7 +59,7 @@ page 149040 "BCCT Setup List"
         {
             group("Import/Export")
             {
-                action(ImportBCCT)
+                action(ImportAIT)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Import';
@@ -68,17 +68,17 @@ page 149040 "BCCT Setup List"
                     PromotedCategory = Category4;
                     PromotedIsBig = false;
                     PromotedOnly = true;
-                    ToolTip = 'Import a file with BCCT Suite details.';
+                    ToolTip = 'Import a file with AIT Suite details.';
 
                     trigger OnAction()
                     var
-                        BCCTHeader: Record "BCCT Header";
+                        AITHeader: Record "AIT Header";
                     begin
-                        XMLPORT.Run(XMLPORT::"BCCT Import/Export", false, true, BCCTHeader);
+                        XMLPORT.Run(XMLPORT::"AIT Import/Export", false, true, AITHeader);
                         CurrPage.Update(false);
                     end;
                 }
-                action(ExportBCCT)
+                action(ExportAIT)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Export';
@@ -89,14 +89,14 @@ page 149040 "BCCT Setup List"
                     PromotedIsBig = false;
                     PromotedOnly = true;
                     Scope = Repeater;
-                    ToolTip = 'Exports a file with BCCT Suite details.';
+                    ToolTip = 'Exports a file with AIT Suite details.';
 
                     trigger OnAction()
                     var
-                        BCCTHeader: Record "BCCT Header";
+                        AITHeader: Record "AIT Header";
                     begin
-                        CurrPage.SetSelectionFilter(BCCTHeader);
-                        XMLPORT.Run(XMLPORT::"BCCT Import/Export", false, false, BCCTHeader);
+                        CurrPage.SetSelectionFilter(AITHeader);
+                        XMLPORT.Run(XMLPORT::"AIT Import/Export", false, false, AITHeader);
                         CurrPage.Update(false);
                     end;
                 }

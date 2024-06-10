@@ -6,17 +6,17 @@
 namespace System.TestTools.AITestToolkit;
 using System.TestTools.TestRunner;
 
-permissionset 149030 "BC Cop. Toolkit"
+permissionset 149030 "AI Test Toolkit"
 {
-    Caption = 'Businss Central Copilot Test Toolkit';
+    Caption = 'Businss Central AI Test Toolkit';
     Access = Public;
     Assignable = true;
 
-    IncludedPermissionSets = "BC Copilot Test Toolkit - Obj";
+    IncludedPermissionSets = "AI Test Toolkit - Obj";
 
-    Permissions = tabledata "BCCT Header" = RIMD,
-        tabledata "BCCT Line" = RIMD,
-        tabledata "BCCT Log Entry" = RIMD,
+    Permissions = tabledata "AIT Header" = RIMD,
+        tabledata "AIT Line" = RIMD,
+        tabledata "AIT Log Entry" = RIMD,
         tabledata "Test Input" = RIMD,
         tabledata "Test Method Line" = RIMD;
 }

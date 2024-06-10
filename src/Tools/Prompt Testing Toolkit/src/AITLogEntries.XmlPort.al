@@ -5,7 +5,7 @@
 
 namespace System.TestTools.AITestToolkit;
 
-xmlport 149030 "BCCT Log Entries"
+xmlport 149030 "AIT Log Entries"
 {
     Caption = 'Export Item Data';
     DefaultFieldsValidation = false;
@@ -21,15 +21,15 @@ xmlport 149030 "BCCT Log Entries"
         textelement(root)
         {
             XmlName = 'Root';
-            tableelement(logentry; "BCCT Log Entry")
+            tableelement(logentry; "AIT Log Entry")
             {
                 AutoSave = false;
                 AutoUpdate = false;
-                RequestFilterFields = "BCCT Code";
-                XmlName = 'BCCTLogEntry';
+                RequestFilterFields = "AIT Code";
+                XmlName = 'AITLogEntry';
                 fieldelement(Entry_No; logentry."Entry No.") { }
-                fieldelement(BCCT_Code; logentry."BCCT Code") { }
-                fieldelement(BCCT_Line_No; logentry."BCCT Line No.") { }
+                fieldelement(AIT_Code; logentry."AIT Code") { }
+                fieldelement(AIT_Line_No; logentry."AIT Line No.") { }
                 fieldelement(Start_Time; logentry."Start Time") { }
                 fieldelement(End_Time; logentry."End Time") { }
                 fieldelement(Message; logentry."Message") { }

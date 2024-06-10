@@ -8,10 +8,10 @@ namespace System.TestTools.AITestToolkit;
 using System.Reflection;
 using System.TestTools.TestRunner;
 
-table 149034 "BCCT Log Entry"
+table 149034 "AIT Log Entry"
 {
     DataClassification = SystemMetadata;
-    DrillDownPageId = "BCCT Log Entries";
+    DrillDownPageId = "AIT Log Entries";
     Extensible = false;
     Access = Internal;
     ReplicateData = false;
@@ -23,13 +23,13 @@ table 149034 "BCCT Log Entry"
             Caption = 'Entry No.';
             AutoIncrement = true;
         }
-        field(2; "BCCT Code"; Code[100])
+        field(2; "AIT Code"; Code[100])
         {
-            Caption = 'BCCT Code';
+            Caption = 'AIT Code';
             NotBlank = true;
-            TableRelation = "BCCT Header";
+            TableRelation = "AIT Header";
         }
-        field(3; "BCCT Line No."; Integer)
+        field(3; "AIT Line No."; Integer)
         {
             Caption = 'Line No.';
         }
@@ -154,12 +154,12 @@ table 149034 "BCCT Log Entry"
         {
             Clustered = true;
         }
-        key(Key2; "BCCT Code", Version, "BCCT Line No.", Operation, "Duration (ms)", "Test Input Code")
+        key(Key2; "AIT Code", Version, "AIT Line No.", Operation, "Duration (ms)", "Test Input Code")
         {
             // Instead of a SIFT index. This will make both inserts and calculations faster - and non-blocking
             IncludedFields = "Procedure Name", Status;
         }
-        key(Key4; "BCCT Code", Version, Operation, "Duration (ms)")
+        key(Key4; "AIT Code", Version, Operation, "Duration (ms)")
         {
             // Instead of a SIFT index. This will make both inserts and calculations faster - and non-blocking
         }

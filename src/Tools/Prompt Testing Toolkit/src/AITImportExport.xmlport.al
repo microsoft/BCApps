@@ -5,90 +5,90 @@
 
 namespace System.TestTools.AITestToolkit;
 
-xmlport 149031 "BCCT Import/Export"
+xmlport 149031 "AIT Import/Export"
 {
-    Caption = 'BCCT Import/Export';
+    Caption = 'AIT Import/Export';
     UseRequestPage = false;
 
     schema
     {
         textelement(Root)
         {
-            tableelement(BCCTSuite; "BCCT Header")
+            tableelement(AITSuite; "AIT Header")
             {
                 MaxOccurs = Unbounded;
-                XmlName = 'BCCTSuite';
-                fieldattribute(Code; BCCTSuite.Code)
+                XmlName = 'AITSuite';
+                fieldattribute(Code; AITSuite.Code)
                 {
                     Occurrence = Required;
                 }
-                fieldattribute(Description; "BCCTSuite".Description)
+                fieldattribute(Description; "AITSuite".Description)
                 {
                     Occurrence = Optional;
                 }
-                fieldattribute(Tag; "BCCTSuite".Tag)
+                fieldattribute(Tag; "AITSuite".Tag)
                 {
                     Occurrence = Optional;
                 }
-                fieldattribute(Duration; "BCCTSuite".Duration)
+                fieldattribute(Duration; "AITSuite".Duration)
                 {
                     Occurrence = Optional;
                 }
-                fieldattribute(DefaultMinDelay; "BCCTSuite"."Default Min. User Delay (ms)")
+                fieldattribute(DefaultMinDelay; "AITSuite"."Default Min. User Delay (ms)")
                 {
                     Occurrence = Optional;
                 }
-                fieldattribute(DefaultMaxDelay; "BCCTSuite"."Default Max. User Delay (ms)")
+                fieldattribute(DefaultMaxDelay; "AITSuite"."Default Max. User Delay (ms)")
                 {
                     Occurrence = Optional;
                 }
-                fieldattribute(ModelVersion; "BCCTSuite"."ModelVersion")
+                fieldattribute(ModelVersion; "AITSuite"."ModelVersion")
                 {
                     Occurrence = Optional;
                 }
-                fieldattribute(Dataset; "BCCTSuite"."Input Dataset")
+                fieldattribute(Dataset; "AITSuite"."Input Dataset")
                 {
                     Occurrence = Required;
                 }
-                tableelement(BCCTSuiteLine; "BCCT Line")
+                tableelement(AITSuiteLine; "AIT Line")
                 {
-                    LinkFields = "BCCT Code" = field("Code");
-                    LinkTable = "BCCTSuite";
+                    LinkFields = "AIT Code" = field("Code");
+                    LinkTable = "AITSuite";
                     MinOccurs = Zero;
                     XmlName = 'Line';
 
-                    fieldattribute(CodeunitID; BCCTSuiteLine."Codeunit ID")
+                    fieldattribute(CodeunitID; AITSuiteLine."Codeunit ID")
                     {
                         Occurrence = Required;
                     }
-                    fieldattribute(DelayBetwnItr; BCCTSuiteLine."Delay (ms btwn. iter.)")
+                    fieldattribute(DelayBetwnItr; AITSuiteLine."Delay (ms btwn. iter.)")
                     {
                         Occurrence = Optional;
                     }
-                    fieldattribute(Description; BCCTSuiteLine.Description)
+                    fieldattribute(Description; AITSuiteLine.Description)
                     {
                         Occurrence = Optional;
                     }
-                    fieldattribute(Dataset; BCCTSuiteLine."Input Dataset")
+                    fieldattribute(Dataset; AITSuiteLine."Input Dataset")
                     {
                         Occurrence = Optional;
                     }
-                    fieldattribute(MinDelay; BCCTSuiteLine."Min. User Delay (ms)")
+                    fieldattribute(MinDelay; AITSuiteLine."Min. User Delay (ms)")
                     {
                         Occurrence = Optional;
                     }
-                    fieldattribute(MaxDelay; BCCTSuiteLine."Max. User Delay (ms)")
+                    fieldattribute(MaxDelay; AITSuiteLine."Max. User Delay (ms)")
                     {
                         Occurrence = Optional;
                     }
                     trigger OnBeforeInsertRecord()
                     var
-                        BCCTLine: Record "BCCT Line";
+                        AITLine: Record "AIT Line";
                     begin
-                        BCCTLine.SetAscending("Line No.", true);
-                        BCCTLine.SetRange("BCCT Code", BCCTSuite.Code);
-                        if BCCTLine.FindLast() then;
-                        BCCTSuiteLine."Line No." := BCCTLine."Line No." + 1000;
+                        AITLine.SetAscending("Line No.", true);
+                        AITLine.SetRange("AIT Code", AITSuite.Code);
+                        if AITLine.FindLast() then;
+                        AITSuiteLine."Line No." := AITLine."Line No." + 1000;
                     end;
                 }
             }

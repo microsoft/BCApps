@@ -6,9 +6,9 @@
 namespace System.TestTools.AITestToolkit;
 
 /// <summary>
-/// This enum has the Status of the BCCT Header.
+/// This enum has the Status of the AIT Header.
 /// </summary>
-enum 149030 "BCCT Header Status"
+enum 149030 "AIT Header Status"
 {
     Extensible = false;
 
@@ -20,21 +20,21 @@ enum 149030 "BCCT Header Status"
     }
 
     /// <summary>
-    /// Specifies that the BCCT Header state is Running.
+    /// Specifies that the AIT Header state is Running.
     /// </summary>
     value(20; Running)
     {
     }
 
     /// <summary>
-    /// Specifies that the BCCT Header state is Completed.
+    /// Specifies that the AIT Header state is Completed.
     /// </summary>
     value(30; Completed)
     {
     }
 
     /// <summary>
-    /// Specifies that the BCCT Header state is Cancelled.
+    /// Specifies that the AIT Header state is Cancelled.
     /// </summary>
     value(40; Cancelled)
     {

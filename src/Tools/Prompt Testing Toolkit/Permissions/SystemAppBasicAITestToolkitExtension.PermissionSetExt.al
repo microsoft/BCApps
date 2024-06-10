@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 using System.Security.AccessControl;
 
-permissionsetextension 149032 "System App Basic BC Cop. Toolkit Extension" extends "System App - Basic"
+permissionsetextension 149032 "System App Basic AI Test Toolkit Extension" extends "System App - Basic"
 {
-    IncludedPermissionSets = "BC Cop. Toolkit";
+    IncludedPermissionSets = "AI Test Toolkit";
 }

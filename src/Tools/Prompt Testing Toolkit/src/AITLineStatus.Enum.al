@@ -6,9 +6,9 @@
 namespace System.TestTools.AITestToolkit;
 
 /// <summary>
-/// This enum has the Status of the BCCT Line.
+/// This enum has the Status of the AIT Line.
 /// </summary>
-enum 149031 "BCCT Line Status"
+enum 149031 "AIT Line Status"
 {
     Extensible = false;
 
@@ -20,27 +20,27 @@ enum 149031 "BCCT Line Status"
     }
 
     /// <summary>
-    /// Specifies that the BCCT Line state is Starting.
+    /// Specifies that the AIT Line state is Starting.
     /// </summary>
     value(10; Starting)
     {
     }
     /// <summary>
-    /// Specifies that the BCCT Line state is Running.
+    /// Specifies that the AIT Line state is Running.
     /// </summary>
     value(20; Running)
     {
     }
 
     /// <summary>
-    /// Specifies that the BCCT Line state is Completed.
+    /// Specifies that the AIT Line state is Completed.
     /// </summary>
     value(30; Completed)
     {
     }
 
     /// <summary>
-    /// Specifies that the BCCT Line state is Cancelled.
+    /// Specifies that the AIT Line state is Cancelled.
     /// </summary>
     value(40; Cancelled)
     {

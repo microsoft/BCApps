@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 using System.TestTools.TestRunner;
 
-table 149030 "BCCT Header"
+table 149030 "AIT Header"
 {
     DataClassification = SystemMetadata;
     Extensible = false;
@@ -25,7 +25,7 @@ table 149030 "BCCT Header"
         {
             Caption = 'Description';
         }
-        field(4; Status; Enum "BCCT Header Status")
+        field(4; Status; Enum "AIT Header Status")
         {
             Caption = 'Status';
             Editable = false;
@@ -63,8 +63,8 @@ table 149030 "BCCT Header"
             Caption = 'No. of tests running';
             trigger OnValidate()
             var
-                BCCTLine: Record "BCCT Line";
-                BCCTHeaderCU: Codeunit "BCCT Header";
+                AITLine: Record "AIT Line";
+                AITHeaderCU: Codeunit "AIT Header";
             begin
                 if "No. of tests running" < 0 then
                     "No. of tests running" := 0;
@@ -75,19 +75,19 @@ table 149030 "BCCT Header"
                 case Status of
                     Status::Running:
                         begin
-                            BCCTLine.SetRange("BCCT Code", "Code");
-                            BCCTLine.SetRange(Status, BCCTLine.Status::" ");
-                            if not BCCTLine.IsEmpty then
+                            AITLine.SetRange("AIT Code", "Code");
+                            AITLine.SetRange(Status, AITLine.Status::" ");
+                            if not AITLine.IsEmpty then
                                 exit;
-                            BCCTHeaderCU.SetRunStatus(Rec, Rec.Status::Completed);
-                            BCCTLine.SetRange("BCCT Code", "Code");
-                            BCCTLine.SetRange(Status);
-                            BCCTLine.ModifyAll(Status, BCCTLine.Status::Completed);
+                            AITHeaderCU.SetRunStatus(Rec, Rec.Status::Completed);
+                            AITLine.SetRange("AIT Code", "Code");
+                            AITLine.SetRange(Status);
+                            AITLine.ModifyAll(Status, AITLine.Status::Completed);
                         end;
                     Status::Cancelled:
                         begin
-                            BCCTLine.SetRange("BCCT Code", "Code");
-                            BCCTLine.ModifyAll(Status, BCCTLine.Status::Cancelled);
+                            AITLine.SetRange("AIT Code", "Code");
+                            AITLine.ModifyAll(Status, AITLine.Status::Cancelled);
                         end;
                 end;
             end;
@@ -106,7 +106,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the Total Duration (ms) for executing all the tests in the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("AIT Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(13; Version; Integer)
         {
@@ -163,7 +163,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of tests executed in the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("AIT Log Entry" where("AIT Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(22; "No. of Tests Passed"; Integer)
         {
@@ -171,7 +171,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of tests passed in the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+            CalcFormula = count("AIT Log Entry" where("AIT Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
         field(23; "No. of Operations"; Integer) //TODO: Change the name to No. of Scenarios? 
         {
@@ -179,7 +179,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of operations executed including "Execute Procedure" operation for the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Version")));
+            CalcFormula = count("AIT Log Entry" where("AIT Code" = field("Code"), "Version" = field("Version")));
         }
         field(31; "No. of Tests Executed - Base"; Integer)
         {
@@ -187,7 +187,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of tests executed in the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("AIT Log Entry" where("AIT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(32; "No. of Tests Passed - Base"; Integer)
         {
@@ -195,7 +195,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of tests passed in the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+            CalcFormula = count("AIT Log Entry" where("AIT Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
         field(33; "No. of Operations - Base"; Integer) //TODO: Change the name to No. of Scenarios? 
         {
@@ -203,7 +203,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the number of operations executed including "Execute Procedure" operation for the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("BCCT Log Entry" where("BCCT Code" = field("Code"), "Version" = field("Base Version")));
+            CalcFormula = count("AIT Log Entry" where("AIT Code" = field("Code"), "Version" = field("Base Version")));
         }
         field(34; "Total Duration (ms) - Base"; Integer)
         {
@@ -211,7 +211,7 @@ table 149030 "BCCT Header"
             // ToolTip ='Specifies the Total Duration (ms) for executing all the tests in the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("BCCT Log Entry"."Duration (ms)" where("BCCT Code" = field("Code"), Version = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("AIT Code" = field("Code"), Version = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(50; "Test Runner Id"; Integer)
         {

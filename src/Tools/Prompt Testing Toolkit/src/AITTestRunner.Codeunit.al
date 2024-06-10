@@ -9,14 +9,14 @@ using System.TestTools.TestRunner;
 
 codeunit 149042 "AIT Test Runner"
 {
-    TableNo = "BCCT Line";
+    TableNo = "AIT Line";
     SingleInstance = true;
     Access = Internal;
 
     var
-        GlobalBCCTLine: Record "BCCT Line";
-        GlobalBCCTHeader: Record "BCCT Header";
-        ActiveBCCTHeader: Record "BCCT Header";
+        GlobalAITLine: Record "AIT Line";
+        GlobalAITHeader: Record "AIT Header";
+        ActiveAITHeader: Record "AIT Header";
         GlobalTestMethodLine: Record "Test Method Line";
         NoOfInsertedLogEntries: Integer;
         AccumulatedWaitTimeMs: Integer;
@@ -25,107 +25,97 @@ codeunit 149042 "AIT Test Runner"
     begin
         if Rec."Codeunit ID" = 0 then
             exit;
-        this.SetBCCTLine(Rec);
+        this.SetAITLine(Rec);
 
         this.NoOfInsertedLogEntries := 0;
         this.AccumulatedWaitTimeMs := 0;
 
-        this.InitializeBCCTLineForRun(Rec, this.ActiveBCCTHeader);
-        this.SetBCCTHeader(this.ActiveBCCTHeader);
+        this.InitializeAITLineForRun(Rec, this.ActiveAITHeader);
+        this.SetAITHeader(this.ActiveAITHeader);
 
-        this.RunBCCTLine(Rec, this.ActiveBCCTHeader);
+        this.RunAITLine(Rec, this.ActiveAITHeader);
     end;
 
-    local procedure InitializeBCCTLineForRun(var BCCTLine: Record "BCCT Line"; var BCCTHeader: Record "BCCT Header")
+    local procedure InitializeAITLineForRun(var AITLine: Record "AIT Line"; var AITHeader: Record "AIT Header")
     begin
-        BCCTHeader.Get(BCCTLine."BCCT Code");
-        if BCCTHeader."Started at" < CurrentDateTime() then
-            BCCTHeader."Started at" := CurrentDateTime();
+        AITHeader.Get(AITLine."AIT Code");
+        if AITHeader."Started at" < CurrentDateTime() then
+            AITHeader."Started at" := CurrentDateTime();
 
-        if BCCTLine."Input Dataset" = '' then
-            BCCTLine."Input Dataset" := (BCCTHeader."Input Dataset");
+        if AITLine."Input Dataset" = '' then
+            AITLine."Input Dataset" := (AITHeader."Input Dataset");
 
-        if BCCTLine."Delay (ms btwn. iter.)" < 1 then
-            BCCTLine."Delay (ms btwn. iter.)" := BCCTHeader."Default Delay (ms)";
+        if AITLine."Delay (ms btwn. iter.)" < 1 then
+            AITLine."Delay (ms btwn. iter.)" := AITHeader."Default Delay (ms)";
     end;
 
-    local procedure RunBCCTLine(var BCCTLine: Record "BCCT Line"; var BCCTHeader: Record "BCCT Header")
+    local procedure RunAITLine(var AITLine: Record "AIT Line"; var AITHeader: Record "AIT Header")
     var
-        BCCTHeaderCU: Codeunit "BCCT Header";
+        AITHeaderCU: Codeunit "AIT Header";
     begin
         this.GetAndClearAccumulatedWaitTimeMs();
 
-        this.OnBeforeRunIteration(BCCTHeader, BCCTLine);
-        this.RunIteration(BCCTLine);
+        this.OnBeforeRunIteration(AITHeader, AITLine);
+        this.RunIteration(AITLine);
         Commit();
 
         //TODO override delay from line / default delay
-        Sleep(BCCTLine."Delay (ms btwn. iter.)");
+        Sleep(AITLine."Delay (ms btwn. iter.)");
 
-        BCCTHeaderCU.DecreaseNoOfTestsRunningNow(BCCTHeader);
+        AITHeaderCU.DecreaseNoOfTestsRunningNow(AITHeader);
     end;
 
-    local procedure RunIteration(var BCCTLine: Record "BCCT Line")
+    local procedure RunIteration(var AITLine: Record "AIT Line")
     var
         TestMethodLine: Record "Test Method Line";
         AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
-        BCCTLine.Find();
-        AITTALTestSuiteMgt.UpdateALTestSuite(BCCTLine);
-        this.SetBCCTLine(BCCTLine);
+        AITLine.Find();
+        AITTALTestSuiteMgt.UpdateALTestSuite(AITLine);
+        this.SetAITLine(AITLine);
 
-        TestMethodLine.SetRange("Test Codeunit", BCCTLine."Codeunit ID");
-        TestMethodLine.SetRange("Test Suite", BCCTLine."AL Test Suite");
+        TestMethodLine.SetRange("Test Codeunit", AITLine."Codeunit ID");
+        TestMethodLine.SetRange("Test Suite", AITLine."AL Test Suite");
         TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
         TestMethodLine.FindFirst();
         TestSuiteMgt.RunAllTests(TestMethodLine);
     end;
 
-    // local procedure CompleteBCCTLine(var BCCTLine: Record "BCCT Line")
-    // begin
-    //     BCCTLine.Status := BCCTLine.Status::Completed;
-    //     BCCTLine.Modify();
-    //     Commit();
-    // end;
-
-    internal procedure GetBCCTHeaderTag(): Text[20]
+    procedure GetAITHeaderTag(): Text[20]
     begin
-        exit(this.ActiveBCCTHeader.Tag);
+        exit(this.ActiveAITHeader.Tag);
+    end;
+
+    local procedure SetAITLine(var AITLine: Record "AIT Line")
+    begin
+        this.GlobalAITLine := AITLine;
     end;
 
     /// <summary>
-    /// Sets the BCCT Line so that the test codeunits can retrieve.
+    /// Gets the AIT Line stored through the SetAITLine method.
     /// </summary>
-    local procedure SetBCCTLine(var BCCTLine: Record "BCCT Line")
+    procedure GetAITLine(var AITLine: Record "AIT Line")
     begin
-        this.GlobalBCCTLine := BCCTLine;
+        AITLine := this.GlobalAITLine;
     end;
 
-    /// <summary>
-    /// Gets the BCCT Line stored through the SetBCCTLine method.
-    /// </summary>
-    internal procedure GetBCCTLine(var BCCTLine: Record "BCCT Line")
+    local procedure SetAITHeader(var CurrAITHeader: Record "AIT Header")
     begin
-        BCCTLine := this.GlobalBCCTLine;
+        this.GlobalAITHeader := CurrAITHeader;
     end;
 
-    local procedure SetBCCTHeader(var CurrBCCTHeader: Record "BCCT Header")
+    procedure GetAITHeader(var CurrAITHeader: Record "AIT Header")
     begin
-        this.GlobalBCCTHeader := CurrBCCTHeader;
+        CurrAITHeader := this.GlobalAITHeader;
     end;
 
-    internal procedure GetBCCTHeader(var CurrBCCTHeader: Record "BCCT Header")
-    begin
-        CurrBCCTHeader := this.GlobalBCCTHeader;
-    end;
-
-    internal procedure AddToNoOfLogEntriesInserted()
+    procedure AddToNoOfLogEntriesInserted()
     begin
         this.NoOfInsertedLogEntries += 1;
     end;
 
-    internal procedure GetNoOfLogEntriesInserted(): Integer
+    procedure GetNoOfLogEntriesInserted(): Integer
     var
         ReturnValue: Integer;
     begin
@@ -133,12 +123,12 @@ codeunit 149042 "AIT Test Runner"
         exit(ReturnValue);
     end;
 
-    internal procedure AddToAccumulatedWaitTimeMs(ms: Integer)
+    procedure AddToAccumulatedWaitTimeMs(ms: Integer)
     begin
         this.AccumulatedWaitTimeMs += ms;
     end;
 
-    internal procedure GetAndClearAccumulatedWaitTimeMs(): Integer
+    procedure GetAndClearAccumulatedWaitTimeMs(): Integer
     var
         ReturnValue: Integer;
     begin
@@ -147,43 +137,43 @@ codeunit 149042 "AIT Test Runner"
         exit(ReturnValue);
     end;
 
-    internal procedure GetCurrTestMethodLine(): Record "Test Method Line"
+    procedure GetCurrTestMethodLine(): Record "Test Method Line"
     begin
         exit(this.GlobalTestMethodLine);
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeRunIteration(var BCCTHeader: Record "BCCT Header"; var BCCTLine: Record "BCCT Line")
+    procedure OnBeforeRunIteration(var AITHeader: Record "AIT Header"; var AITLine: Record "AIT Line")
     begin
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnBeforeTestMethodRun, '', false, false)]
     local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions)
     var
-        BCCTContextCU: Codeunit "BCCT Test Context";
+        AITContextCU: Codeunit "AIT Test Context";
     begin
-        if this.ActiveBCCTHeader.Code = '' then // exit the code if not triggered by BCCT 
+        if this.ActiveAITHeader.Code = '' then // exit the code if not triggered by AIT 
             exit;
         if FunctionName = '' then
             exit;
 
         GlobalTestMethodLine := CurrentTestMethodLine;
 
-        BCCTContextCU.StartRunProcedureScenario();
+        AITContextCU.StartRunProcedureScenario();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnAfterTestMethodRun, '', false, false)]
     local procedure OnAfterTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
     var
-        BCCTContextCU: Codeunit "BCCT Test Context";
+        AITContextCU: Codeunit "AIT Test Context";
     begin
-        if this.ActiveBCCTHeader.Code = '' then // exit the code if not triggered by BCCT 
+        if this.ActiveAITHeader.Code = '' then // exit the code if not triggered by AIT 
             exit;
         if FunctionName = '' then
             exit;
 
         GlobalTestMethodLine := CurrentTestMethodLine;
-        BCCTContextCU.EndRunProcedureScenario(CurrentTestMethodLine, IsSuccess);
+        AITContextCU.EndRunProcedureScenario(CurrentTestMethodLine, IsSuccess);
         Commit();
     end;
 }

@@ -5,21 +5,21 @@
 
 namespace System.TestTools.AITestToolkit;
 
-page 149046 "BCCT Suite API"
+page 149046 "AIT Suite API"
 {
     PageType = API;
 
     APIPublisher = 'microsoft';
     APIGroup = 'copilotTestToolkit';
     APIVersion = 'v1.0';
-    Caption = 'BCCT Suite API';
+    Caption = 'AIT Suite API';
 
-    EntityCaption = 'BCCTSuite';
-    EntitySetCaption = 'BCCTSuite';
-    EntityName = 'bcctSuite';
-    EntitySetName = 'bcctSuites';
+    EntityCaption = 'AITSuite';
+    EntitySetCaption = 'AITSuite';
+    EntityName = 'AITSuite';
+    EntitySetName = 'AITSuites';
 
-    SourceTable = "BCCT Header";
+    SourceTable = "AIT Header";
     ODataKeyFields = SystemId;
 
     Extensible = false;
@@ -65,12 +65,12 @@ page 149046 "BCCT Suite API"
                 {
                     Caption = 'Default Max. User Delay (ms)';
                 }
-                part("testSuitesLines"; "BCCT Suite Line API")
+                part("testSuitesLines"; "AIT Suite Line API")
                 {
-                    Caption = 'BCCT Suite Line';
-                    EntityName = 'bcctSuiteLine';
-                    EntitySetName = 'bcctSuiteLines';
-                    SubPageLink = "BCCT Code" = field("Code");
+                    Caption = 'AIT Suite Line';
+                    EntityName = 'AITSuiteLine';
+                    EntitySetName = 'AITSuiteLines';
+                    SubPageLink = "AIT Code" = field("Code");
                 }
             }
         }

@@ -8,11 +8,11 @@ namespace System.TestTools.AITestToolkit;
 using System.Environment;
 using System.TestTools.TestRunner;
 
-page 149031 "BCCT Setup Card"
+page 149031 "AIT Setup Card"
 {
     Caption = 'BC Copilot Test Suite';
     PageType = Document;
-    SourceTable = "BCCT Header";
+    SourceTable = "AIT Header";
     Extensible = false;
     DataCaptionExpression = this.PageCaptionLbl + ' - ' + Rec."Code";
 
@@ -105,11 +105,11 @@ page 149031 "BCCT Setup Card"
                     }
                 }
             }
-            part(BCCTLines; "BCCT Lines")
+            part(AITLines; "AIT Lines")
             {
                 ApplicationArea = All;
                 Enabled = Rec.Status <> Rec.Status::Running;
-                SubPageLink = "BCCT Code" = field("Code"), "Version Filter" = field(Version), "Base Version Filter" = field("Base Version");
+                SubPageLink = "AIT Code" = field("Code"), "Version Filter" = field(Version), "Base Version Filter" = field("Base Version");
                 UpdatePropagation = Both;
             }
             group("Latest Run")
@@ -141,14 +141,14 @@ page 149031 "BCCT Setup Card"
 
                     trigger OnDrillDown()
                     var
-                        BCCTLogEntries: Record "BCCT Log Entry";
-                        BCCTLogEntry: Page "BCCT Log Entries";
+                        AITLogEntries: Record "AIT Log Entry";
+                        AITLogEntry: Page "AIT Log Entries";
                     begin
-                        BCCTLogEntries.SetFilterForFailedTestProcedures();
-                        BCCTLogEntries.SetRange("BCCT Code", Rec.Code);
-                        BCCTLogEntries.SetRange(Version, Rec.Version);
-                        BCCTLogEntry.SetTableView(BCCTLogEntries);
-                        BCCTLogEntry.Run();
+                        AITLogEntries.SetFilterForFailedTestProcedures();
+                        AITLogEntries.SetRange("AIT Code", Rec.Code);
+                        AITLogEntries.SetRange(Version, Rec.Version);
+                        AITLogEntry.SetTableView(AITLogEntries);
+                        AITLogEntry.Run();
                     end;
                 }
                 field("No. of Operations"; Rec."No. of Operations")
@@ -188,7 +188,7 @@ page 149031 "BCCT Setup Card"
                 Promoted = true;
                 PromotedOnly = true;
                 PromotedCategory = Process;
-                ToolTip = 'Starts running the BCCT Suite.';
+                ToolTip = 'Starts running the AIT Suite.';
 
                 trigger OnAction()
                 begin
@@ -196,8 +196,8 @@ page 149031 "BCCT Setup Card"
                     Rec.Find();
                     if Rec."Input Dataset" = '' then
                         Error('Please specify a dataset before starting the suite.');
-                    this.BCCTHeaderCU.ValidateDatasets(Rec);
-                    this.BCCTStartTests.StartBCCTSuite(Rec);
+                    this.AITHeaderCU.ValidateDatasets(Rec);
+                    this.AITStartTests.StartAITSuite(Rec);
                     CurrPage.Update(false);
                 end;
             }
@@ -210,11 +210,11 @@ page 149031 "BCCT Setup Card"
                 Promoted = true;
                 PromotedOnly = true;
                 PromotedCategory = Process;
-                ToolTip = 'Stops the BCCT Suite that is running.';
+                ToolTip = 'Stops the AIT Suite that is running.';
 
                 trigger OnAction()
                 var
-                    BCCTLine: Record "BCCT Line";
+                    AITLine: Record "AIT Line";
                     Window: Dialog;
                     MaxDateTime: DateTime;
                     SomethingWentWrongErr: Label 'It is taking longer to stop the run than expected. You can reopen the page later to check the status or you can invoke "Reset Status" action.';
@@ -225,20 +225,20 @@ page 149031 "BCCT Setup Card"
                         exit;
                     Window.Open('Cancelling all sessions...');
                     MaxDateTime := CurrentDateTime() + (60000 * 5); // Wait for a max of 5 mins
-                    this.BCCTStartTests.StopBCCTSuite(Rec);
+                    this.AITStartTests.StopAITSuite(Rec);
 
-                    BCCTLine.SetRange("BCCT Code", Rec.Code);
-                    BCCTLine.SetFilter(Status, '<> %1', BCCTLine.Status::Cancelled);
-                    if not BCCTLine.IsEmpty then
+                    AITLine.SetRange("AIT Code", Rec.Code);
+                    AITLine.SetFilter(Status, '<> %1', AITLine.Status::Cancelled);
+                    if not AITLine.IsEmpty then
                         repeat
                             Sleep(1000);
                             if CurrentDateTime > MaxDateTime then
                                 Error(SomethingWentWrongErr);
-                        until BCCTLine.IsEmpty;
+                        until AITLine.IsEmpty;
                     Window.Close();
 
                     CurrPage.Update(false);
-                    CurrPage.BCCTLines.Page.Refresh();
+                    CurrPage.AITLines.Page.Refresh();
                 end;
             }
             action(RefreshStatus)
@@ -267,7 +267,7 @@ page 149031 "BCCT Setup Card"
 
                 trigger OnAction()
                 begin
-                    this.BCCTHeaderCU.ResetStatus(Rec);
+                    this.AITHeaderCU.ResetStatus(Rec);
                 end;
             }
         }
@@ -282,8 +282,8 @@ page 149031 "BCCT Setup Card"
                 PromotedOnly = true;
                 PromotedCategory = Process;
                 ToolTip = 'Open log entries.';
-                RunObject = page "BCCT Log Entries";
-                RunPageLink = "BCCT Code" = field(Code), Version = field(Version);
+                RunObject = page "AIT Log Entries";
+                RunPageLink = "AIT Code" = field(Code), Version = field(Version);
             }
             action(Datasets)
             {
@@ -300,8 +300,8 @@ page 149031 "BCCT Setup Card"
     }
 
     var
-        BCCTStartTests: Codeunit "BCCT Start Tests";
-        BCCTHeaderCU: Codeunit "BCCT Header";
+        AITStartTests: Codeunit "AIT Start Tests";
+        AITHeaderCU: Codeunit "AIT Header";
         EnableActions: Boolean;
         AvgTimeDuration: Duration;
         TotalDuration: Duration;

@@ -5,12 +5,12 @@
 
 namespace System.TestTools.AITestToolkit;
 
-page 149033 "BCCT Log Entries"
+page 149033 "AIT Log Entries"
 {
-    Caption = 'BCCT Log Entries';
+    Caption = 'AIT Log Entries';
     PageType = List;
     Editable = false;
-    SourceTable = "BCCT Log Entry";
+    SourceTable = "AIT Log Entry";
     Extensible = false;
 
     layout
@@ -23,52 +23,52 @@ page 149033 "BCCT Log Entries"
 
                 field(RunID; Rec.RunID)
                 {
-                    ToolTip = 'Specifies the BCCT RunID Guid';
+                    ToolTip = 'Specifies the AIT RunID Guid';
                     Visible = false;
                     ApplicationArea = All;
                 }
-                field("Code"; Rec."BCCT Code")
+                field("Code"; Rec."AIT Code")
                 {
-                    ToolTip = 'Specifies the BCCT Code of the BCCT.';
+                    ToolTip = 'Specifies the AIT Code of the AIT.';
                     Visible = false;
                     ApplicationArea = All;
                 }
-                field("BCCT Line No."; Rec."BCCT Line No.")
+                field("AIT Line No."; Rec."AIT Line No.")
                 {
-                    ToolTip = 'Specifies the Line No. of the BCCT.';
+                    ToolTip = 'Specifies the Line No. of the AIT.';
                     Visible = false;
                     ApplicationArea = All;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
-                    ToolTip = 'Specifies the Entry No. of the BCCT.';
+                    ToolTip = 'Specifies the Entry No. of the AIT.';
                     Visible = false;
                     ApplicationArea = All;
                 }
                 field(Version; Rec.Version)
                 {
                     Caption = 'Version No.';
-                    ToolTip = 'Specifies the Version No. of the BCCT execution.';
+                    ToolTip = 'Specifies the Version No. of the AIT execution.';
                     ApplicationArea = All;
                 }
                 field(Tag; Rec.Tag)
                 {
-                    ToolTip = 'Specifies the Tag that we entered in the BCCT header.';
+                    ToolTip = 'Specifies the Tag that we entered in the AIT header.';
                     ApplicationArea = All;
                 }
                 field(CodeunitID; Rec."Codeunit ID")
                 {
-                    ToolTip = 'Specifies the codeunit id of the BCCT.';
+                    ToolTip = 'Specifies the codeunit id of the AIT.';
                     ApplicationArea = All;
                 }
                 field(CodeunitName; Rec."Codeunit Name")
                 {
-                    ToolTip = 'Specifies the codeunit name of the BCCT.';
+                    ToolTip = 'Specifies the codeunit name of the AIT.';
                     ApplicationArea = All;
                 }
                 field(Operation; Rec.Operation)
                 {
-                    ToolTip = 'Specifies the single operation of the BCCT.';
+                    ToolTip = 'Specifies the single operation of the AIT.';
                     ApplicationArea = All;
                 }
                 field("Procedure Name"; Rec."Procedure Name")
@@ -78,7 +78,7 @@ page 149033 "BCCT Log Entries"
                 }
                 field("Orig. Operation"; Rec."Orig. Operation")
                 {
-                    ToolTip = 'Specifies the original operation of the BCCT.';
+                    ToolTip = 'Specifies the original operation of the AIT.';
                     Visible = false;
                     ApplicationArea = All;
                 }
@@ -98,7 +98,7 @@ page 149033 "BCCT Log Entries"
                 }
                 field(Dataset; Rec."Test Input Group Code")
                 {
-                    ToolTip = 'Specifies the dataset of the BCCT.';
+                    ToolTip = 'Specifies the dataset of the AIT.';
                     ApplicationArea = All;
                 }
                 field("Dataset Line No."; Rec."Test Input Code")
@@ -114,7 +114,7 @@ page 149033 "BCCT Log Entries"
                 field("Input Text"; this.InputText)
                 {
                     Caption = 'Input';
-                    ToolTip = 'Specifies the test input of the BCCT.';
+                    ToolTip = 'Specifies the test input of the AIT.';
                     ApplicationArea = All;
 
                     trigger OnDrillDown()
@@ -125,7 +125,7 @@ page 149033 "BCCT Log Entries"
                 field("Output Text"; this.OutputText)
                 {
                     Caption = 'Test Output';
-                    ToolTip = 'Specifies the test output of the BCCT.';
+                    ToolTip = 'Specifies the test output of the AIT.';
                     ApplicationArea = All;
 
                     trigger OnDrillDown()
@@ -142,14 +142,14 @@ page 149033 "BCCT Log Entries"
                 field(StartTime; Format(Rec."Start Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'Start Time';
-                    ToolTip = 'Specifies the start time of the BCCT scenario.';
+                    ToolTip = 'Specifies the start time of the AIT scenario.';
                     ApplicationArea = All;
                     Visible = false;
                 }
                 field(EndTime; Format(Rec."End Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'End Time';
-                    ToolTip = 'Specifies the end time of the BCCT scenario.';
+                    ToolTip = 'Specifies the end time of the AIT scenario.';
                     ApplicationArea = All;
                     Visible = false;
                 }
