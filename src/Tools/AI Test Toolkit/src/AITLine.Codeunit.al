@@ -97,7 +97,7 @@ codeunit 149035 "AIT Line"
             this.ScenarioStarted.Add(ScenarioOperation, CurrentDateTime());
     end;
 
-    internal procedure EndRunProcedureScenario(AITLine: Record "AIT Line"; ScenarioOperation: Text; CurrentTestMethodLine: Record "Test Method Line"; ExecutionSuccess: Boolean)
+    procedure EndRunProcedureScenario(AITLine: Record "AIT Line"; ScenarioOperation: Text; CurrentTestMethodLine: Record "Test Method Line"; ExecutionSuccess: Boolean)
     var
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";

@@ -10,18 +10,20 @@ using System.Reflection;
 
 codeunit 149037 "AIT AL Test Suite Mgt"
 {
+    Access = Internal;
     Permissions = tabledata "Test Method Line" = rmid,
                   tabledata "AL Test Suite" = rmid;
 
     var
+        AITTestSuitePrefixLbl: Label 'AIT-', Locked = true;
         RunProcedureOperationLbl: Label 'Run Procedure', Locked = true;
 
-    internal procedure GetDefaultRunProcedureOperationLbl(): Text
+    procedure GetDefaultRunProcedureOperationLbl(): Text
     begin
         exit(this.RunProcedureOperationLbl);
     end;
 
-    internal procedure AssistEditTestRunner(var AITHeader: Record "AIT Header")
+    procedure AssistEditTestRunner(var AITHeader: Record "AIT Header")
     var
         AllObjWithCaption: Record AllObjWithCaption;
         SelectTestRunner: Page "Select TestRunner";
@@ -34,14 +36,14 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         end;
     end;
 
-    internal procedure UpdateALTestSuite(var AITLine: Record "AIT Line")
+    procedure UpdateALTestSuite(var AITLine: Record "AIT Line")
     begin
         this.GetOrCreateALTestSuite(AITLine);
         this.RemoveTestMethods(AITLine);
         this.ExpandCodeunit(AITLine);
     end;
 
-    internal procedure CreateALTestSuite(var AITHeader: Record "AIT Header")
+    procedure CreateALTestSuite(var AITHeader: Record "AIT Header")
     var
         ALTestSuite: Record "AL Test Suite";
     begin
@@ -53,7 +55,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         ALTestSuite.Insert(true);
     end;
 
-    internal procedure ExpandCodeunit(var AITLine: Record "AIT Line")
+    procedure ExpandCodeunit(var AITLine: Record "AIT Line")
     var
         TestInput: Record "Test Input";
     begin
@@ -67,7 +69,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         until TestInput.Next() = 0;
     end;
 
-    internal procedure ExpandCodeunit(var AITLine: Record "AIT Line"; var TestInput: Record "Test Input")
+    procedure ExpandCodeunit(var AITLine: Record "AIT Line"; var TestInput: Record "Test Input")
     var
         TempTestMethodLine: Record "Test Method Line" temporary;
         ALTestSuite: Record "AL Test Suite";
@@ -85,12 +87,12 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         TestInputsManagement.InsertTestMethodLines(TempTestMethodLine, ALTestSuite);
     end;
 
-    internal procedure RemoveTestMethods(var AITLine: Record "AIT Line")
+    procedure RemoveTestMethods(var AITLine: Record "AIT Line")
     begin
         this.RemoveTestMethods(AITLine, 0, '');
     end;
 
-    internal procedure RemoveTestMethods(var AITLine: Record "AIT Line"; CodeunitID: Integer; DataInputName: Text[250])
+    procedure RemoveTestMethods(var AITLine: Record "AIT Line"; CodeunitID: Integer; DataInputName: Text[250])
     var
         TestMethodLine: Record "Test Method Line";
     begin
@@ -108,7 +110,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         this.RemoveEmptyCodeunitTestLines(this.GetOrCreateALTestSuite(AITLine));
     end;
 
-    internal procedure RemoveEmptyCodeunitTestLines(ALTestSuite: Record "AL Test Suite")
+    procedure RemoveEmptyCodeunitTestLines(ALTestSuite: Record "AL Test Suite")
     var
         TestMethodLine: Record "Test Method Line";
         FunctionTestMethodLine: Record "Test Method Line";
@@ -130,7 +132,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         until TestMethodLine.Next() = 0;
     end;
 
-    internal procedure GetOrCreateALTestSuite(var AITLine: Record "AIT Line"): Record "AL Test Suite"
+    procedure GetOrCreateALTestSuite(var AITLine: Record "AIT Line"): Record "AL Test Suite"
     var
         AITHeader: Record "AIT Header";
         ALTestSuite: Record "AL Test Suite";
@@ -166,7 +168,4 @@ codeunit 149037 "AIT AL Test Suite Mgt"
 
         exit(IncStr(ALTestSuite.Name))
     end;
-
-    var
-        AITTestSuitePrefixLbl: Label 'AIT-', Locked = true;
 }

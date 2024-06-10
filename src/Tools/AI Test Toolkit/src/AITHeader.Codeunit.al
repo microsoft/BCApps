@@ -84,6 +84,34 @@ codeunit 149034 "AIT Header"
         end;
     end;
 
+    procedure SetRunStatus(var AITHeader: Record "AIT Header"; AITHeaderStatus: Enum "AIT Header Status")
+    var
+        TelemetryCustomDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryCustomDimensions.Add('RunID', Format(AITHeader.RunID));
+        TelemetryCustomDimensions.Add('Code', AITHeader.Code);
+        if AITHeaderStatus <> AITHeaderStatus::Running then begin
+            AITHeader."Ended at" := CurrentDateTime();
+            AITHeader.Duration := AITHeader."Ended at" - AITHeader."Started at";
+            TelemetryCustomDimensions.Add('DurationInMiliseconds', Format(AITHeader.Duration));
+        end;
+        TelemetryCustomDimensions.Add('Version', Format(AITHeader.Version));
+
+        AITHeader.Status := AITHeaderStatus;
+        AITHeader.CalcFields("No. of Tests Executed", "Total Duration (ms)"); //TODO: add this to custom dimensions or remove it
+
+        case AITHeaderStatus of
+            AITHeaderStatus::Running:
+                Session.LogMessage('0000DHR', AITTRunStartedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
+            AITHeaderStatus::Completed:
+                Session.LogMessage('0000DHS', AITTRunFinishedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
+            AITHeaderStatus::Cancelled:
+                Session.LogMessage('0000DHT', AITTRunCancelledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
+        end;
+        AITHeader.Modify();
+        Commit();
+    end;
+
     local procedure DatasetExists(DatasetName: Code[100]): Boolean
     var
         TestInputGroup: Record "Test Input Group";
@@ -114,33 +142,5 @@ codeunit 149034 "AIT Header"
 
         AITLogEntry.SetRange("AIT Code", Rec."Code");
         AITLogEntry.DeleteAll(true);
-    end;
-
-    procedure SetRunStatus(var AITHeader: Record "AIT Header"; AITHeaderStatus: Enum "AIT Header Status")
-    var
-        TelemetryCustomDimensions: Dictionary of [Text, Text];
-    begin
-        TelemetryCustomDimensions.Add('RunID', Format(AITHeader.RunID));
-        TelemetryCustomDimensions.Add('Code', AITHeader.Code);
-        if AITHeaderStatus <> AITHeaderStatus::Running then begin
-            AITHeader."Ended at" := CurrentDateTime();
-            AITHeader.Duration := AITHeader."Ended at" - AITHeader."Started at";
-            TelemetryCustomDimensions.Add('DurationInMiliseconds', Format(AITHeader.Duration));
-        end;
-        TelemetryCustomDimensions.Add('Version', Format(AITHeader.Version));
-
-        AITHeader.Status := AITHeaderStatus;
-        AITHeader.CalcFields("No. of Tests Executed", "Total Duration (ms)"); //TODO: add this to custom dimensions or remove it
-
-        case AITHeaderStatus of
-            AITHeaderStatus::Running:
-                Session.LogMessage('0000DHR', AITTRunStartedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
-            AITHeaderStatus::Completed:
-                Session.LogMessage('0000DHS', AITTRunFinishedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
-            AITHeaderStatus::Cancelled:
-                Session.LogMessage('0000DHT', AITTRunCancelledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
-        end;
-        AITHeader.Modify();
-        Commit();
     end;
 }

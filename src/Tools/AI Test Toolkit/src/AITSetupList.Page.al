@@ -16,7 +16,7 @@ page 149040 "AIT Setup List"
     RefreshOnActivate = true;
     UsageCategory = Lists;
     Extensible = true;
-    AdditionalSearchTerms = 'AITT';
+    AdditionalSearchTerms = 'AIT';
     ApplicationArea = All;
 
     layout
