@@ -33,6 +33,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
         NodeTypeNotRecognizedTxt: Label 'Node type %1 was not recognized.', Locked = true;
         FilterContainsMultipleOperatorsTxt: Label 'The page filter contains multiple operators, the latter was removed.', Locked = true;
         FieldPayloadEdmTypeTok: Label 'fieldPayload.%1.edmType', Locked = true;
+        FieldPayloadAlNameTok: Label 'fieldPayload.%1.alName', Locked = true;
         FieldNotOnThePageTxt: Label 'Field not on the page', Locked = true;
 
     procedure AddField(ODataFieldName: Text; EditinExcelFilterCollectionType: Enum "Edit in Excel Filter Collection Type"; EditInExcelEdmType: Enum "Edit in Excel Edm Type"): Codeunit "Edit in Excel Fld Filter Impl."
@@ -153,7 +154,9 @@ codeunit 1491 "Edit in Excel Filters Impl."
         RightNodeJsonToken: JsonToken;
         NameJsonToken: JsonToken;
         TypeJsonToken: JsonToken;
+        AlNameJsonToken: JsonToken;
         ExternalTableFieldName: Text;
+        FieldAlName: Text;
     begin
         if not JsonFilterObject.Get(LeftNodeJsonTok, LeftNodeJsonToken) then begin
             Session.LogMessage('0000I3Y', StrSubstNo(TypeNotFoundTxt, LeftNodeJsonTok), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
@@ -168,15 +171,23 @@ codeunit 1491 "Edit in Excel Filters Impl."
 
         ExternalTableFieldName := NameJsonToken.AsValue().AsText();
 
-        PageControlField.SetRange(PageNo, PageNumber); // Does this method work also for fields added through Extensions ?
-        PageControlField.SetRange(ControlName, ExternalTableFieldName);
-
-        if PageControlField.IsEmpty() and not IsKey(PageNumber, ExternalTableFieldName) then begin
-            Session.LogMessage('0000I5U', FieldNotOnThePageTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
-            if not FilterErrors.ContainsKey(ExternalTableFieldName) then
-                FilterErrors.Add(ExternalTableFieldName, true);
+        if not ODataJsonPayload.SelectToken(StrSubstNo(FieldPayloadAlNameTok, ExternalTableFieldName), AlNameJsonToken) then begin
+            Session.LogMessage('0000I5T', StrSubstNo(TypeNotFoundTxt, ExternalTableFieldName), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
             exit(false);
         end;
+
+        FieldAlName := AlNameJsonToken.AsValue().AsText();
+
+        PageControlField.SetRange(PageNo, PageNumber);
+        PageControlField.SetRange(ControlName, FieldAlName);
+
+        if PageControlField.IsEmpty() then
+            if not IsKey(PageNumber, ExternalTableFieldName) then begin
+                Session.LogMessage('0000I5U', FieldNotOnThePageTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
+                if not FilterErrors.ContainsKey(ExternalTableFieldName) then
+                    FilterErrors.Add(FieldAlName, true);
+                exit(false);
+            end;
 
         ODataFieldName := NameJsonToken.AsValue().AsText();
 
@@ -206,16 +217,18 @@ codeunit 1491 "Edit in Excel Filters Impl."
     var
         PageMetadata: Record "Page Metadata";
         FieldMetadata: Record "Field";
-        KeyRec: Record "Key";
+        EditInExcelImpl: codeunit "Edit in Excel Impl.";
+        ExternalizedFieldName: Text;
     begin
         if PageMetadata.Get(PageNumber) then begin
-            FieldMetadata.SetRange(FieldMetadata.TableNo, PageMetadata.SourceTable);
-            FieldMetadata.SetRange(FieldMetadata.ExternalName, ExternalTableFieldName);
-            if FieldMetadata.FindFirst() then begin
-                KeyRec.SetRange(TableNo, PageMetadata.SourceTable);
-                KeyRec.SetRange("Key", FieldMetadata.FieldName);
-                exit(not KeyRec.IsEmpty())
-            end;
+            FieldMetadata.SetRange(TableNo, PageMetadata.SourceTable);
+            if FieldMetadata.FindSet() then
+                repeat
+                    ExternalizedFieldName := EditInExcelImpl.ExternalizeODataObjectName(FieldMetadata.FieldName);
+                    if ExternalizedFieldName = ExternalTableFieldName then
+                        if FieldMetadata.IsPartOfPrimaryKey then
+                            exit(true);
+                until FieldMetadata.Next() = 0;
         end;
         exit(false);
     end;
