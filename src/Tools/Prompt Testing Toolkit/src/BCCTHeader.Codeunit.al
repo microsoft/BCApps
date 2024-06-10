@@ -4,11 +4,22 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
+
 using System.TestTools.TestRunner;
 
 codeunit 149034 "BCCT Header"
 {
     Access = Internal;
+
+    var
+        AITTRunStartedLbl: Label 'AITT Suite run started.', Locked = true;
+        AITTRunFinishedLbl: Label 'AITT Suite run finished.', Locked = true;
+        AITTRunCancelledLbl: Label 'AITT Suite run cancelled.', Locked = true;
+        EmptyDatasetSuiteErr: Label 'Please provide a dataset for the BCCT Suite %1.', Comment = '%1 is the BCCT Suite code';
+        NoDatasetInSuiteErr: Label 'The dataset %1 specified for BCCT Suite %2 does not exist.', Comment = '%1 is the Dataset name, %2 is the BCCT Suite code';
+        NoInputsInSuiteErr: Label 'The dataset %1 specified for BCCT Suite %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the BCCT Suite code.';
+        NoDatasetInLineErr: Label 'The dataset %1 specified for BCCT Line %2 does not exist.', Comment = '%1 is the Dataset name, %2 is BCCT Line No.';
+        NoInputsInLineErr: Label 'The dataset %1 specified for BCCT line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the BCCT Line No.';
 
     procedure DecreaseNoOfTestsRunningNow(var BCCTHeader: Record "BCCT Header")
     begin
@@ -41,11 +52,6 @@ codeunit 149034 "BCCT Header"
     procedure ValidateDatasets(var BCCTHeader: Record "BCCT Header")
     var
         BCCTLine: Record "BCCT Line";
-        EmptyDatasetSuiteErr: Label 'Please provide a dataset for the BCCT Suite %1.', Comment = '%1 is the BCCT Suite code';
-        NoDatasetInSuiteErr: Label 'The dataset %1 specified for BCCT Suite %2 does not exist.', Comment = '%1 is the Dataset name, %2 is the BCCT Suite code';
-        NoInputsInSuiteErr: Label 'The dataset %1 specified for BCCT Suite %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the BCCT Suite code.';
-        NoDatasetInLineErr: Label 'The dataset %1 specified for BCCT Line %2 does not exist.', Comment = '%1 is the Dataset name, %2 is BCCT Line No.';
-        NoInputsInLineErr: Label 'The dataset %1 specified for BCCT line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the BCCT Line No.';
         DatasetsToValidate: List of [Code[100]];
         DatasetName: Code[100];
     begin
@@ -113,9 +119,6 @@ codeunit 149034 "BCCT Header"
     procedure SetRunStatus(var BCCTHeader: Record "BCCT Header"; BCCTHeaderStatus: Enum "BCCT Header Status")
     var
         TelemetryCustomDimensions: Dictionary of [Text, Text];
-        AITTRunStartedLbl: Label 'AITT Suite run started.', Locked = true;
-        AITTRunFinishedLbl: Label 'AITT Suite run finished.', Locked = true;
-        AITTRunCancelledLbl: Label 'AITT Suite run cancelled.', Locked = true;
     begin
         TelemetryCustomDimensions.Add('RunID', Format(BCCTHeader.RunID));
         TelemetryCustomDimensions.Add('Code', BCCTHeader.Code);
@@ -139,7 +142,5 @@ codeunit 149034 "BCCT Header"
         end;
         BCCTHeader.Modify();
         Commit();
-
     end;
-
 }

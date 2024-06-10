@@ -189,30 +189,6 @@ page 149034 "BCCT Lines"
     {
         area(Processing)
         {
-            //             action(New)
-            //             {
-            //                 ApplicationArea = All;
-            //                 Caption = 'New';
-            //                 Image = New;
-            //                 Scope = Repeater;
-            //                 ToolTip = 'Add a new line.';
-
-            //                 trigger OnAction()
-            //                 var
-            //                     NextBCCTLine: Record "BCCT Line";
-            //                 begin
-            //                     // Missing implementation for very first record
-            //                     NextBCCTLine := Rec;
-            //                     Rec.init();
-            // #pragma warning disable AA0181
-            //                     if NextBCCTLine.Next() <> 0 then
-            // #pragma warning restore AA0181
-            //                         Rec."Line No." := (NextBCCTLine."Line No." - Rec."Line No.") div 2
-            //                     else
-            //                         Rec."Line No." += 10000;
-            //                     Rec.Insert(true);
-            //                 end;
-            //             }
             action(Start)
             {
                 ApplicationArea = All;
