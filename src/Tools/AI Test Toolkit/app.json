@@ -1,9 +1,9 @@
 {
     "id":  "2156302a-872f-4568-be0b-60968696f0d5",
-    "name":  "Copilot Testing Toolkit",
+    "name":  "AI Test Toolkit",
     "publisher":  "Microsoft",
     "version":  "25.0.0.0",
-    "brief":  "Provides tools for Copilot features regression testing.",
+    "brief":  "Provides tools for AI feature regression testing.",
     "description":  "The Performance Toolkit lets developers use test suites during development to analyze the performance of their code by simulating the work environments in which the code will run.",
     "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
     "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
