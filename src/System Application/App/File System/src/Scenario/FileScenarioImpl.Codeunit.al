@@ -158,6 +158,7 @@ codeunit 9453 "File Scenario Impl."
     local procedure AddEntry(var Result: Record "File Account Scenario"; EntryType: Option; Scenario: Integer; AccountId: Guid; Connector: Enum "File System Connector"; DisplayName: Text[2048]; Default: Boolean; var Position: Integer)
     begin
         // Add entry to the result while maintaining the position so that the tree represents the data correctly
+        Result.Init();
         Result.EntryType := EntryType;
         Result.Scenario := Scenario;
         Result."Account Id" := AccountId;
@@ -165,7 +166,6 @@ codeunit 9453 "File Scenario Impl."
         Result."Display Name" := DisplayName;
         Result.Default := Default;
         Result.Position := Position;
-
         Result.Insert();
 
         Position := Position + 1;
