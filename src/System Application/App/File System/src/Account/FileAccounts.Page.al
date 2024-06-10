@@ -14,6 +14,7 @@ page 9450 "File Accounts"
 {
     PageType = List;
     Caption = 'File Accounts';
+    ApplicationArea = All;
     UsageCategory = Administration;
     SourceTable = "File Account";
     SourceTableTemporary = true;

@@ -43,7 +43,6 @@ page 9451 "File Account Wizard"
                 Visible = not DoneVisible and TopBannerVisible;
                 field(NotDoneIcon; MediaResourcesStandard."Media Reference")
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ShowCaption = false;
                     ToolTip = ' ';
@@ -57,7 +56,6 @@ page 9451 "File Account Wizard"
                 Visible = DoneVisible and TopBannerVisible;
                 field(DoneIcon; MediaResourcesDone."Media Reference")
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ShowCaption = false;
                     ToolTip = ' ';
@@ -198,13 +196,11 @@ page 9451 "File Account Wizard"
 
                 label(NoConnectorsAvailable3)
                 {
-                    ApplicationArea = All;
                     Caption = 'View a list of the available file apps';
                 }
 
                 field(LearnMore; LearnMoreTok)
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ShowCaption = false;
                     Caption = ' ';
@@ -232,7 +228,6 @@ page 9451 "File Account Wizard"
                     Caption = 'Account';
                     field(Namefield; RegisteredAccount.Name)
                     {
-                        ApplicationArea = All;
                         Editable = false;
                         Caption = 'Name';
                         ToolTip = 'Specifies the name of the account registered.';
@@ -245,7 +240,6 @@ page 9451 "File Account Wizard"
 
                     field(DefaultField; SetAsDefault)
                     {
-                        ApplicationArea = All;
                         Editable = true;
                         Enabled = true;
                         Caption = 'Set as default';
@@ -263,7 +257,6 @@ page 9451 "File Account Wizard"
 
             action(Cancel)
             {
-                ApplicationArea = All;
                 Visible = CancelActionVisible;
                 Caption = 'Cancel';
                 ToolTip = 'Cancel';
@@ -278,7 +271,6 @@ page 9451 "File Account Wizard"
 
             action(Back)
             {
-                ApplicationArea = All;
                 Visible = BackActionVisible;
                 Enabled = BackActionEnabled;
                 Caption = 'Back';
@@ -294,7 +286,6 @@ page 9451 "File Account Wizard"
 
             action(Next)
             {
-                ApplicationArea = All;
                 Visible = NextActionVisible;
                 Enabled = NextActionEnabled;
                 Caption = 'Next';
@@ -310,7 +301,6 @@ page 9451 "File Account Wizard"
 
             action(Finish)
             {
-                ApplicationArea = All;
                 Visible = FinishActionVisible;
                 Caption = 'Finish';
                 ToolTip = 'Finish';
