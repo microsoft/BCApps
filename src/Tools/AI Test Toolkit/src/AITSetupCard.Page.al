@@ -10,7 +10,7 @@ using System.TestTools.TestRunner;
 
 page 149031 "AIT Setup Card"
 {
-    Caption = 'BC Copilot Test Suite';
+    Caption = 'AI Test Suite';
     PageType = Document;
     SourceTable = "AIT Header";
     Extensible = false;
@@ -22,7 +22,7 @@ page 149031 "AIT Setup Card"
         {
             group(General)
             {
-                Caption = 'BC Copilot Test Suite';
+                Caption = 'AI Test Suite';
                 Enabled = Rec.Status <> Rec.Status::Running;
 
                 field("Code"; Rec."Code")
@@ -72,7 +72,7 @@ page 149031 "AIT Setup Card"
 
                     trigger OnAssistEdit()
                     var
-                        AITALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+                        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
                     begin
                         AITALTestSuiteMgt.AssistEditTestRunner(Rec);
                         CurrPage.Update(true);
@@ -305,7 +305,7 @@ page 149031 "AIT Setup Card"
         EnableActions: Boolean;
         AvgTimeDuration: Duration;
         TotalDuration: Duration;
-        PageCaptionLbl: Label 'BC Copilot Test';
+        PageCaptionLbl: Label 'AI Test';
         TestRunnerDisplayName: Text;
 
     trigger OnOpenPage()

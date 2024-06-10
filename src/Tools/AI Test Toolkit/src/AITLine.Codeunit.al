@@ -100,17 +100,17 @@ codeunit 149035 "AIT Line"
     internal procedure EndRunProcedureScenario(AITLine: Record "AIT Line"; ScenarioOperation: Text; CurrentTestMethodLine: Record "Test Method Line"; ExecutionSuccess: Boolean)
     var
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
-        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
         StartTime: DateTime;
         EndTime: DateTime;
         ErrorMessage: Text;
     begin
         // Skip the OnRun entry if there are no errors
-        if (ScenarioOperation = AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl()) and (CurrentTestMethodLine.Function = 'OnRun') and (ExecutionSuccess = true) and (CurrentTestMethodLine."Error Message".Length = 0) then
+        if (ScenarioOperation = AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl()) and (CurrentTestMethodLine.Function = 'OnRun') and (ExecutionSuccess = true) and (CurrentTestMethodLine."Error Message".Length = 0) then
             exit;
 
         // Set the start time and end time
-        if ScenarioOperation = AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then begin
+        if ScenarioOperation = AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then begin
             StartTime := CurrentTestMethodLine."Start Time";
             EndTime := CurrentTestMethodLine."Finish Time";
         end
@@ -137,7 +137,7 @@ codeunit 149035 "AIT Line"
         AITLogEntry: Record "AIT Log Entry";
         TestInput: Record "Test Input";
         AITTestRunnerImpl: Codeunit "AIT Test Runner"; // single instance
-        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
         AITTestSuite: Codeunit "AIT Test Suite";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
         ModifiedOperation: Text;
@@ -197,7 +197,7 @@ codeunit 149035 "AIT Line"
         if TestOutput <> '' then
             AITLogEntry.SetOutputBlob(TestOutput);
         AITLogEntry."Procedure Name" := CurrentTestMethodLine.Function;
-        if Operation = AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then
+        if Operation = AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then
             AITLogEntry."Duration (ms)" -= AITTestRunnerImpl.GetAndClearAccumulatedWaitTimeMs();
         AITLogEntry.Insert(true);
         Commit();

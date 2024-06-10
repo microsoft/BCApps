@@ -8,7 +8,7 @@ namespace System.TestTools.AITestToolkit;
 using System.TestTools.TestRunner;
 using System.Reflection;
 
-codeunit 149037 "AITT AL Test Suite Mgt"
+codeunit 149037 "AIT AL Test Suite Mgt"
 {
     Permissions = tabledata "Test Method Line" = rmid,
                   tabledata "AL Test Suite" = rmid;

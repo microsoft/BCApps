@@ -68,11 +68,11 @@ codeunit 149042 "AIT Test Runner"
     local procedure RunIteration(var AITLine: Record "AIT Line")
     var
         TestMethodLine: Record "Test Method Line";
-        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
         AITLine.Find();
-        AITTALTestSuiteMgt.UpdateALTestSuite(AITLine);
+        AITALTestSuiteMgt.UpdateALTestSuite(AITLine);
         this.SetAITLine(AITLine);
 
         TestMethodLine.SetRange("Test Codeunit", AITLine."Codeunit ID");

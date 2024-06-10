@@ -9,7 +9,7 @@ page 149038 "AIT Log Entry API"
 {
     PageType = API;
     APIPublisher = 'microsoft';
-    APIGroup = 'copilotTestToolkit';
+    APIGroup = 'aiTestToolkit';
     APIVersion = 'v1.0';
 
     Caption = 'AIT Logs Entry API';

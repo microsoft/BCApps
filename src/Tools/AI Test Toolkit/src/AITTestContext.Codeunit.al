@@ -22,9 +22,9 @@ codeunit 149043 "AIT Test Context"
     /// </summary>
     internal procedure StartRunProcedureScenario()
     var
-        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
-        this.AITLineCU.StartScenario(AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
+        this.AITLineCU.StartScenario(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
     end;
 
     /// <summary>
@@ -35,10 +35,10 @@ codeunit 149043 "AIT Test Context"
     internal procedure EndRunProcedureScenario(TestMethodLine: Record "Test Method Line"; ExecutionSuccess: Boolean)
     var
         AITLine: Record "AIT Line";
-        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
         this.GetAITLine(AITLine);
-        this.AITLineCU.EndRunProcedureScenario(AITLine, AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestMethodLine, ExecutionSuccess);
+        this.AITLineCU.EndRunProcedureScenario(AITLine, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestMethodLine, ExecutionSuccess);
     end;
 
     /// <summary>
@@ -47,11 +47,11 @@ codeunit 149043 "AIT Test Context"
     /// <param name="ScenarioOperation">Label of the scenario.</param>
     procedure StartScenario(ScenarioOperation: Text)
     var
-        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
         ScenarioCannotUseDefaultScenarioErr: Label 'Please use a different Scenario Operation. It cannot be the same as %1.', Comment = '%1 = "Run Procedure"';
     begin
-        if ScenarioOperation = AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then
-            Error(ScenarioCannotUseDefaultScenarioErr, AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
+        if ScenarioOperation = AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then
+            Error(ScenarioCannotUseDefaultScenarioErr, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
         this.AITLineCU.StartScenario(ScenarioOperation);
     end;
 
@@ -153,17 +153,17 @@ codeunit 149043 "AIT Test Context"
     procedure SetTestOutput(TestOutputText: Text)
     var
         TestOutputCU: Codeunit "Test Output";
-        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
         TestOutputCU.TestData().Add('test_output', TestOutputText);
-        this.AITLineCU.SetTestOutput(AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+        this.AITLineCU.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
     end;
 
     procedure SetAnswerForQnAEvaluation(Answer: Text)
     var
         TestOutputCU: Codeunit "Test Output";
         TestInputCU: Codeunit "Test Input";
-        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
         TestOutputCU.TestData().Add('answer', Answer);
         if not TestInputCU.GetTestInput('context').ElementValue().IsNull then
@@ -172,7 +172,7 @@ codeunit 149043 "AIT Test Context"
             TestOutputCU.TestData().Add('question', TestInputCU.GetTestInput('question').ValueAsText());
         if not TestInputCU.GetTestInput('ground_truth').ElementValue().IsNull then
             TestOutputCU.TestData().Add('ground_truth', TestInputCU.GetTestInput('ground_truth').ValueAsText());
-        this.AITLineCU.SetTestOutput(AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+        this.AITLineCU.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
     end;
 
     procedure SetScenarioOutput(Scenario: Text; TestOutputText: Text)

@@ -10,7 +10,7 @@ page 149037 "AIT Suite Line API"
 {
     PageType = API;
     APIPublisher = 'microsoft';
-    APIGroup = 'copilotTestToolkit';
+    APIGroup = 'aiTestToolkit';
     APIVersion = 'v1.0';
 
     Caption = 'AIT Suite Lines API';

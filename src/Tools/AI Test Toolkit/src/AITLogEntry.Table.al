@@ -222,9 +222,9 @@ table 149034 "AIT Log Entry"
 
     internal procedure SetFilterForFailedTestProcedures()
     var
-        AITTALTestSuiteMgt: Codeunit "AITT AL Test Suite Mgt";
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
-        Rec.SetRange(Operation, AITTALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
+        Rec.SetRange(Operation, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
         Rec.SetFilter("Procedure Name", '<> %1', '');
         Rec.SetRange(Status, Rec.Status::Error);
     end;
