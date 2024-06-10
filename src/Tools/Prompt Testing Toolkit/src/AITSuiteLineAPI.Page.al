@@ -17,8 +17,8 @@ page 149037 "AIT Suite Line API"
 
     EntityCaption = 'AITSuiteLine';
     EntitySetCaption = 'AITSuiteLine';
-    EntityName = 'AITSuiteLine';
-    EntitySetName = 'AITSuiteLines';
+    EntityName = 'aitSuiteLine';
+    EntitySetName = 'aitSuiteLines';
 
     SourceTable = "AIT Line";
     ODataKeyFields = SystemId;
@@ -37,7 +37,7 @@ page 149037 "AIT Suite Line API"
                     Caption = 'Id';
                     Editable = false;
                 }
-                field("AITCode"; Rec."AIT Code")
+                field("aitCode"; Rec."AIT Code")
                 {
                     Caption = 'AIT Code';
                     Editable = false;

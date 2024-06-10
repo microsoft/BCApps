@@ -16,8 +16,8 @@ page 149046 "AIT Suite API"
 
     EntityCaption = 'AITSuite';
     EntitySetCaption = 'AITSuite';
-    EntityName = 'AITSuite';
-    EntitySetName = 'AITSuites';
+    EntityName = 'aitSuite';
+    EntitySetName = 'aitSuites';
 
     SourceTable = "AIT Header";
     ODataKeyFields = SystemId;
@@ -68,8 +68,8 @@ page 149046 "AIT Suite API"
                 part("testSuitesLines"; "AIT Suite Line API")
                 {
                     Caption = 'AIT Suite Line';
-                    EntityName = 'AITSuiteLine';
-                    EntitySetName = 'AITSuiteLines';
+                    EntityName = 'aitSuiteLine';
+                    EntitySetName = 'aitSuiteLines';
                     SubPageLink = "AIT Code" = field("Code");
                 }
             }
