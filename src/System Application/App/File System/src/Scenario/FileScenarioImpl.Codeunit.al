@@ -323,7 +323,6 @@ codeunit 9453 "File Scenario Impl."
 
     var
         FileAccountImpl: Codeunit "File Account Impl.";
-        AccountDisplayLbl: Label '%1 (%2)', Locked = true;
         ChangeFileAccountForScenarioTxt: Label 'Change file account used for the selected scenarios';
         ScenariosForAccountCaptionTxt: Label 'Assign scenarios to account %1', Comment = '%1 = the name of the e-file account';
 }
