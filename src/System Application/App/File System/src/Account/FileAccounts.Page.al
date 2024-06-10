@@ -263,8 +263,8 @@ page 9450 "File Accounts"
     var
         FileAccount: Codeunit "File Account";
         FileScenario: Codeunit "File Scenario";
-        IsSelected: Boolean;
         SelectedAccountId: Guid;
+        IsSelected: Boolean;
     begin
         // We need this code block to maintain the same selected record.
         SelectedAccountId := Rec."Account Id";
@@ -330,12 +330,12 @@ page 9450 "File Accounts"
     var
         DefaultFileAccount: Record "File Account";
         FileAccountImpl: Codeunit "File Account Impl.";
-        IsDefault: Boolean;
         CanUserManageFileSetup: Boolean;
-        DefaultTxt: Text;
-        UpdateAccounts: Boolean;
-        ShowLogo: Boolean;
-        IsInLookupMode: Boolean;
         HasFileAccount: Boolean;
+        IsDefault: Boolean;
+        IsInLookupMode: Boolean;
+        ShowLogo: Boolean;
+        UpdateAccounts: Boolean;
+        DefaultTxt: Text;
         FileConnectorHasBeenUninstalledMsg: Label 'The selected file extension has been uninstalled. To view information about the file account, you must reinstall the extension.';
 }
