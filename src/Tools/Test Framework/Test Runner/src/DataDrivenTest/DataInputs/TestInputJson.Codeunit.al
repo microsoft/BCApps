@@ -64,6 +64,14 @@ codeunit 130464 "Test Input Json"
         exit(NewTestJson);
     end;
 
+    procedure GetElementCount(): Integer
+    begin
+        if not this.TestJson.IsArray() then
+            Error(this.TheElementIsNotAnArrayErr);
+
+        exit(this.TestJson.AsArray().Count());
+    end;
+
     procedure ElementValue(): JsonValue
     begin
         exit(this.TestJson.AsValue());

@@ -175,6 +175,13 @@ codeunit 130462 "Test Output Json"
         exit(NewTestJson);
     end;
 
+    procedure ElementExists(ElementName: Text): Boolean
+    var
+        ObjectJsonToken: JsonToken;
+    begin
+        exit(this.TestJson.AsObject().Get(ElementName, ObjectJsonToken));
+    end;
+
     procedure ToText(): Text
     var
         TextOutput: Text;
