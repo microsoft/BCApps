@@ -148,14 +148,19 @@ page 1931 "Performance Profiles"
     trigger OnAfterGetRecord()
     var
     begin
-        PerformanceProfileHelper.MapClientTypeToActivityType(rec."Client Type", ActivityType);
+        this.MapClientTypeToActivityType();
     end;
 
     trigger OnAfterGetCurrRecord()
     begin
-        PerformanceProfileHelper.MapClientTypeToActivityType(rec."Client Type", ActivityType);
+        this.MapClientTypeToActivityType();
     end;
 
+    local procedure MapClientTypeToActivityType()
+    begin
+        rec.CalcFields(rec."Client Type");
+        PerformanceProfileHelper.MapClientTypeToActivityType(rec."Client Type", ActivityType);
+    end;
     var
         PerformanceProfileHelper: Codeunit "Performance Profile Helper";
         ActivityType: Enum "Activity Type";

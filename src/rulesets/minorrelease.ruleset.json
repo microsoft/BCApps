@@ -21,6 +21,11 @@
             "id": "AS0102",
             "action": "Error",
             "justification": "Adding a return type on procedures is a runtime breaking change."
+        },
+        {
+            "id": "AL0432",
+            "action": "Warning",
+            "justification": "Temporarily disallowed"
         }
 	]
 }
