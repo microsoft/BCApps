@@ -245,7 +245,7 @@ codeunit 9453 "File Scenario Impl."
                 FileScenarios.Insert();
             end;
 
-            i := i + 1;
+            i += 1;
         end;
     end;
 
