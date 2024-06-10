@@ -53,7 +53,7 @@ codeunit 130460 "Test Input"
     begin
         TestInputJson := this.DataPerTestTestInput.ElementExists(ElementName, ElementExists);
         if ElementExists then
-            exit(TestInputJson)
+            exit(TestInputJson);
     end;
 
     procedure GetTestInputValue(): Text
