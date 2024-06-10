@@ -108,7 +108,7 @@ page 9450 "File Accounts"
             {
                 Image = Add;
                 Caption = 'Add an file account';
-                ToolTip = 'Add an file account.';
+                ToolTip = 'Opens a File Account Wizard setup page in order to add an File Account.';
                 Visible = (not IsInLookupMode) and CanUserManageFileSetup;
 
                 trigger OnAction()
