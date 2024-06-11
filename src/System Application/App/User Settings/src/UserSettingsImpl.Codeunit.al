@@ -221,7 +221,9 @@ codeunit 9175 "User Settings Impl."
             ShouldRefreshSession := true;
             sessionSetting.ProfileId := NewUserSettings."Profile ID";
             sessionSetting.ProfileAppId := NewUserSettings."App ID";
+#pragma warning disable AL0667
             sessionSetting.ProfileSystemScope := NewUserSettings.Scope = NewUserSettings.Scope::System;
+#pragma warning disable AL0667
         end;
 
         if OldUserSettings."Work Date" <> NewUserSettings."Work Date" then
@@ -537,7 +539,6 @@ codeunit 9175 "User Settings Impl."
         TempAllProfile: Record "All Profile" temporary;
     begin
         PopulateProfiles(TempAllProfile);
-
         if TempAllProfile.Get(UserPersonalization.Scope, UserPersonalization."App ID", UserPersonalization."Profile ID") then;
         if Page.RunModal(Page::Roles, TempAllProfile) = Action::LookupOK then begin
             UserPersonalization."Profile ID" := TempAllProfile."Profile ID";
