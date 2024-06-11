@@ -159,6 +159,11 @@ page 149033 "AIT Log Entries"
                     ToolTip = 'Specifies when the error message from the test.';
                     ApplicationArea = All;
                     Style = Unfavorable;
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(Rec.Message);
+                    end;
                 }
                 field("Orig. Message"; Rec."Orig. Message")
                 {
