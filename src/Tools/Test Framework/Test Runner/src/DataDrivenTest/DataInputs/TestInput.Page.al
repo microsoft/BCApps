@@ -9,7 +9,6 @@ page 130457 "Test Input"
 {
     PageType = Document;
     ApplicationArea = All;
-    UsageCategory = Administration;
     SourceTable = "Test Input Group";
 
     layout

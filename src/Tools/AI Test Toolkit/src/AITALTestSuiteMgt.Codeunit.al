@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.TestTools.TestRunner;
+using System.Utilities;
 using System.Reflection;
 
 codeunit 149037 "AIT AL Test Suite Mgt"
@@ -165,6 +166,36 @@ codeunit 149037 "AIT AL Test Suite Mgt"
             exit(this.AITTestSuitePrefixLbl + '000001');
 
         exit(IncStr(ALTestSuite.Name))
+    end;
+
+    internal procedure DownloadTestOutputFromAITLLogToFile(var AITLogEntry: Record "AIT Log Entry")
+    var
+        TempBlob: Codeunit "Temp Blob";
+        TestOutput: Text;
+        FileNameTxt: Text;
+        JsonTextBuilder: TextBuilder;
+        JsonOutStream: OutStream;
+        JsonInStream: InStream;
+        NoTestOutputFoundErr: Label 'No Test Output found in the logs';
+    begin
+        AITLogEntry.SetLoadFields("AIT Code", "Output Data");
+        if AITLogEntry.FindSet(false) then begin
+            FileNameTxt := Format(AITLogEntry."AIT Code") + '_' + 'test_output' + '.jsonl';
+            repeat
+                TestOutput := AITLogEntry.GetOutputBlob();
+                if TestOutput <> '' then
+                    JsonTextBuilder.AppendLine(TestOutput);
+            until AITLogEntry.Next() = 0;
+
+            if JsonTextBuilder.Length > 0 then begin
+                TempBlob.CreateOutStream(JsonOutStream, TextEncoding::UTF8);
+                JsonOutStream.WriteText(JsonTextBuilder.ToText());
+                TempBlob.CreateInStream(JsonInStream, TextEncoding::UTF8);
+                DownloadFromStream(JsonInStream, '', '', '.jsonl', FileNameTxt);
+            end
+            else
+                Error(NoTestOutputFoundErr);
+        end;
     end;
 
     var
