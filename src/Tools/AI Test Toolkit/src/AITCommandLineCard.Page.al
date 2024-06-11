@@ -9,7 +9,7 @@ using System.Environment;
 
 page 149042 "AIT CommandLine Card"
 {
-    Caption = 'AIT CommandLine Runner';
+    Caption = 'AI Test CommandLine Runner';
     PageType = Card;
     Extensible = false;
 
@@ -24,18 +24,18 @@ page 149042 "AIT CommandLine Card"
                     Caption = 'Select Code', Locked = true;
                     ToolTip = 'Specifies the ID of the suite.';
                     ApplicationArea = All;
-                    TableRelation = "AIT Header".Code;
+                    TableRelation = "AIT Test Suite".Code;
 
                     trigger OnValidate()
                     var
-                        AITHeader: record "AIT Header";
-                        AITLine: record "AIT Line";
+                        AITTestSuite: record "AIT Test Suite";
+                        AITTestMethodLine: record "AIT Test Method Line";
                     begin
-                        if not AITHeader.Get(this.AITCode) then
+                        if not AITTestSuite.Get(this.AITCode) then
                             Error(this.CannotFindAITSuiteErr, this.AITCode);
 
-                        AITLine.SetRange("AIT Code", this.AITCode);
-                        this.NoOfTests := AITLine.Count();
+                        AITTestMethodLine.SetRange("Test Suite Code", this.AITCode);
+                        this.NoOfTests := AITTestMethodLine.Count();
                     end;
                 }
 
@@ -88,13 +88,13 @@ page 149042 "AIT CommandLine Card"
 
     local procedure StartNextAIT()
     var
-        AITHeader: Record "AIT Header";
+        AITTestSuite: Record "AIT Test Suite";
         AITStartTests: Codeunit "AIT Start Tests";
-        AITHeaderCU: Codeunit "AIT Header";
+        AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
     begin
-        if AITHeader.Get(this.AITCode) then begin
-            AITHeaderCU.ValidateDatasets(AITHeader);
-            AITStartTests.StartAITSuite(AITHeader);
+        if AITTestSuite.Get(this.AITCode) then begin
+            AITTestSuiteCU.ValidateDatasets(AITTestSuite);
+            AITStartTests.StartAITSuite(AITTestSuite);
         end;
     end;
 }

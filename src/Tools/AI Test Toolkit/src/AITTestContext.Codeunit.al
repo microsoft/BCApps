@@ -15,7 +15,7 @@ codeunit 149043 "AIT Test Context"
     Access = Public;
 
     var
-        AITLineCU: Codeunit "AIT Line";
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
 
     /// <summary>
     /// This method starts the scope of the Run Procedure scenario.
@@ -24,7 +24,7 @@ codeunit 149043 "AIT Test Context"
     var
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
-        this.AITLineCU.StartScenario(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
+        this.AITTestSuiteMgt.StartScenario(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
     end;
 
     /// <summary>
@@ -34,11 +34,11 @@ codeunit 149043 "AIT Test Context"
     /// <param name="ExecutionSuccess">Result of the test execution.</param>
     internal procedure EndRunProcedureScenario(TestMethodLine: Record "Test Method Line"; ExecutionSuccess: Boolean)
     var
-        AITLine: Record "AIT Line";
+        AITTestMethodLine: Record "AIT Test Method Line";
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
-        this.GetAITLine(AITLine);
-        this.AITLineCU.EndRunProcedureScenario(AITLine, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestMethodLine, ExecutionSuccess);
+        this.GetAITTestMethodLine(AITTestMethodLine);
+        this.AITTestSuiteMgt.EndRunProcedureScenario(AITTestMethodLine, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestMethodLine, ExecutionSuccess);
     end;
 
     /// <summary>
@@ -52,60 +52,8 @@ codeunit 149043 "AIT Test Context"
     begin
         if ScenarioOperation = AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then
             Error(ScenarioCannotUseDefaultScenarioErr, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
-        this.AITLineCU.StartScenario(ScenarioOperation);
+        this.AITTestSuiteMgt.StartScenario(ScenarioOperation);
     end;
-
-    // /// <summary>
-    // /// This method ends the scope of a scenario being tested.
-    // /// </summary>
-    // /// <param name="ScenarioOperation">Label of the scenario.</param>
-    // procedure EndScenario(ScenarioOperation: Text)
-    // var
-    //     AITLine: Record "AIT Line";
-    //     AITTestRunnerImpl: Codeunit "AIT Test Runner";
-    // begin
-    //     this.GetAITLine(AITLine);
-    //     this.AITLineCU.EndRunProcedureScenario(AITLine, ScenarioOperation, AITTestRunnerImpl.GetCurrTestMethodLine(), true);
-    // end;
-
-    // /// <summary>
-    // /// This method ends the scope of a scenario being tested.
-    // /// </summary>
-    // /// <param name="ScenarioOperation">Label of the scenario.</param>
-    // /// <param name="ScenarioOutput">Output of the scenario.</param>
-    // procedure EndScenario(ScenarioOperation: Text; ScenarioOutput: Text)
-    // var
-    //     AITLine: Record "AIT Line";
-    //     AITTestRunnerImpl: Codeunit "AIT Test Runner";
-    // begin
-    //     this.GetAITLine(AITLine);
-    //     this.SetScenarioOutput(ScenarioOperation, ScenarioOutput);
-    //     this.AITLineCU.EndRunProcedureScenario(AITLine, ScenarioOperation, AITTestRunnerImpl.GetCurrTestMethodLine(), true);
-    // end;
-
-    // /// <summary>
-    // /// This method ends the scope of a scenario being tested.
-    // /// </summary>
-    // /// <param name="ScenarioOperation">Label of the scenario.</param>
-    // /// <param name="ExecutionSuccess">Result of the test execution.</param>
-    // procedure EndScenario(ScenarioOperation: Text; ExecutionSuccess: Boolean)
-    // var
-    //     AITLine: Record "AIT Line";
-    //     AITTestRunnerImpl: Codeunit "AIT Test Runner";
-    // begin
-    //     this.GetAITLine(AITLine);
-    //     this.AITLineCU.EndRunProcedureScenario(AITLine, ScenarioOperation, AITTestRunnerImpl.GetCurrTestMethodLine(), ExecutionSuccess);
-    // end;
-
-    // procedure EndScenario(ScenarioOperation: Text; ExecutionSuccess: Boolean; ScenarioOutput: Text)
-    // var
-    //     AITLine: Record "AIT Line";
-    //     AITTestRunnerImpl: Codeunit "AIT Test Runner";
-    // begin
-    //     this.GetAITLine(AITLine);
-    //     this.SetScenarioOutput(ScenarioOperation, ScenarioOutput);
-    //     this.AITLineCU.EndRunProcedureScenario(AITLine, ScenarioOperation, AITTestRunnerImpl.GetCurrTestMethodLine(), ExecutionSuccess);
-    // end;
 
     /// <summary>
     /// This method simulates a users delay between operations. This method is called by the AIT test to represent a realistic scenario.
@@ -113,13 +61,13 @@ codeunit 149043 "AIT Test Context"
     /// </summary>
     procedure UserWait()
     var
-        AITHeader: Record "AIT Header";
-        AITLine: Record "AIT Line";
+        AITTestSuite: Record "AIT Test Suite";
+        AITTestMethodLine: Record "AIT Test Method Line";
 
     begin
-        this.GetAITHeader(AITHeader);
-        this.GetAITLine(AITLine);
-        this.AITLineCU.UserWait(AITLine);
+        this.GetAITTestSuite(AITTestSuite);
+        this.GetAITTestMethodLine(AITTestMethodLine);
+        this.AITTestSuiteMgt.UserWait(AITTestMethodLine);
     end;
 
     /// <summary>
@@ -140,14 +88,14 @@ codeunit 149043 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Returns the AITHeader associated with the sessions.
+    /// Returns the AITTestSuite associated with the sessions.
     /// </summary>
-    /// <param name="AITLine">AITLine associated with the session.</param>
-    local procedure GetAITHeader(var AITHeader: Record "AIT Header")
+    /// <param name="AITTestMethodLine">AITTestMethodLine associated with the session.</param>
+    local procedure GetAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
     var
         AITTestRunnerImpl: Codeunit "AIT Test Runner";
     begin
-        AITTestRunnerImpl.GetAITHeader(AITHeader);
+        AITTestRunnerImpl.GetAITTestSuite(AITTestSuite);
     end;
 
     procedure SetTestOutput(TestOutputText: Text)
@@ -156,7 +104,7 @@ codeunit 149043 "AIT Test Context"
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
         TestOutputCU.TestData().Add('test_output', TestOutputText);
-        this.AITLineCU.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+        this.AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
     end;
 
     procedure SetAnswerForQnAEvaluation(Answer: Text)
@@ -172,7 +120,7 @@ codeunit 149043 "AIT Test Context"
             TestOutputCU.TestData().Add('question', TestInputCU.GetTestInput('question').ValueAsText());
         if not TestInputCU.GetTestInput('ground_truth').ElementValue().IsNull then
             TestOutputCU.TestData().Add('ground_truth', TestInputCU.GetTestInput('ground_truth').ValueAsText());
-        this.AITLineCU.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+        this.AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
     end;
 
     procedure SetScenarioOutput(Scenario: Text; TestOutputText: Text)
@@ -180,18 +128,18 @@ codeunit 149043 "AIT Test Context"
         TestOutputCU: Codeunit "Test Output";
     begin
         TestOutputCU.TestData().Add('scenario_output', TestOutputText);
-        this.AITLineCU.SetTestOutput(Scenario, TestOutputCU.TestData().ToText());
+        this.AITTestSuiteMgt.SetTestOutput(Scenario, TestOutputCU.TestData().ToText());
     end;
 
     /// <summary>
-    /// Returns the AITLine associated with the sessions.
+    /// Returns the AITTestMethodLine associated with the sessions.
     /// </summary>
-    /// <param name="AITLine">AITLine associated with the session.</param>
-    local procedure GetAITLine(var AITLine: Record "AIT Line")
+    /// <param name="AITTestMethodLine">AITTestMethodLine associated with the session.</param>
+    local procedure GetAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line")
     var
         AITTestRunnerImpl: Codeunit "AIT Test Runner";
     begin
-        AITTestRunnerImpl.GetAITLine(AITLine);
+        AITTestRunnerImpl.GetAITTestMethodLine(AITTestMethodLine);
     end;
 
 }

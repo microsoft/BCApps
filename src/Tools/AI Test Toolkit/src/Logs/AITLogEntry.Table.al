@@ -27,7 +27,7 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'AIT Code';
             NotBlank = true;
-            TableRelation = "AIT Header";
+            TableRelation = "AIT Test Suite";
         }
         field(3; "AIT Line No."; Integer)
         {

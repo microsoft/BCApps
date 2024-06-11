@@ -4,27 +4,26 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
-using System.TestTools.TestRunner;
 
-page 149037 "AIT Suite Line API"
+page 149046 "AIT Suite API"
 {
     PageType = API;
+
     APIPublisher = 'microsoft';
     APIGroup = 'aiTestToolkit';
     APIVersion = 'v1.0';
+    Caption = 'AI Test Suite';
+    EntityCaption = 'AI Test Suite';
+    EntitySetCaption = 'AI Test Suite';
+    EntityName = 'aiTestSuite';
+    EntitySetName = 'aiTestSuites';
 
-    Caption = 'AIT Suite Lines API';
-
-    EntityCaption = 'AITSuiteLine';
-    EntitySetCaption = 'AITSuiteLine';
-    EntityName = 'aitSuiteLine';
-    EntitySetName = 'aitSuiteLines';
-
-    SourceTable = "AIT Line";
+    SourceTable = "AIT Test Suite";
     ODataKeyFields = SystemId;
 
     Extensible = false;
     DelayedInsert = true;
+
 
     layout
     {
@@ -37,37 +36,40 @@ page 149037 "AIT Suite Line API"
                     Caption = 'Id';
                     Editable = false;
                 }
-                field("aitCode"; Rec."AIT Code")
+                field("code"; Rec.Code)
                 {
-                    Caption = 'AIT Code';
-                    Editable = false;
-                    NotBlank = true;
-                    TableRelation = "AIT Header";
-                }
-                field("codeunitID"; Rec."Codeunit ID")
-                {
-                    Caption = 'Codeunit ID';
+                    Caption = 'Code';
                 }
                 field(description; Rec.Description)
                 {
                     Caption = 'Description';
                 }
-                field("delayBetweenIterations"; Rec."Delay (ms btwn. iter.)")
+                field(modelVersion; Rec.ModelVersion)
                 {
-                    Caption = 'Delay between iterations (ms.)';
+                    Caption = 'Model Version';
                 }
                 field(dataset; Rec."Input Dataset")
                 {
-                    Caption = 'Override the suite dataset';
-                    TableRelation = "Test Input Group".Code;
+                    Caption = 'Dataset';
                 }
-                field("minimumUserDelay"; Rec."Min. User Delay (ms)")
+                field(tag; Rec.Tag)
                 {
-                    Caption = 'Min. User Delay (ms)';
+                    Caption = 'Tag';
                 }
-                field("maximumUserDelay"; Rec."Max. User Delay (ms)")
+                field("defaultMinimumUserDelayInMilliSeconds"; Rec."Default Min. User Delay (ms)")
                 {
-                    Caption = 'Max. User Delay (ms)';
+                    Caption = 'Default Min. User Delay (ms)';
+                }
+                field("defaultMaximumUserDelayInMilliSeconds"; Rec."Default Max. User Delay (ms)")
+                {
+                    Caption = 'Default Max. User Delay (ms)';
+                }
+                part("testSuitesLines"; "AIT Suite Line API")
+                {
+                    Caption = 'AIT Suite Line';
+                    EntityName = 'aiTestSuiteLine';
+                    EntitySetName = 'aiTestSuiteLines';
+                    SubPageLink = "Test Suite Code" = field("Code");
                 }
             }
         }

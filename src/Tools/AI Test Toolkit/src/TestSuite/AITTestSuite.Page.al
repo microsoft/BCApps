@@ -8,11 +8,11 @@ namespace System.TestTools.AITestToolkit;
 using System.Environment;
 using System.TestTools.TestRunner;
 
-page 149031 "AIT Setup Card"
+page 149031 "AIT Test Suite"
 {
     Caption = 'AI Test Suite';
     PageType = Document;
-    SourceTable = "AIT Header";
+    SourceTable = "AIT Test Suite";
     Extensible = false;
     DataCaptionExpression = this.PageCaptionLbl + ' - ' + Rec."Code";
 
@@ -105,11 +105,11 @@ page 149031 "AIT Setup Card"
                     }
                 }
             }
-            part(AITLines; "AIT Lines")
+            part(AITTestMethodLines; "AIT Test Method Lines")
             {
                 ApplicationArea = All;
                 Enabled = Rec.Status <> Rec.Status::Running;
-                SubPageLink = "AIT Code" = field("Code"), "Version Filter" = field(Version), "Base Version Filter" = field("Base Version");
+                SubPageLink = "Test Suite Code" = field("Code"), "Version Filter" = field(Version), "Base Version Filter" = field("Base Version");
                 UpdatePropagation = Both;
             }
             group("Latest Run")
@@ -196,7 +196,7 @@ page 149031 "AIT Setup Card"
                     Rec.Find();
                     if Rec."Input Dataset" = '' then
                         Error('Please specify a dataset before starting the suite.');
-                    this.AITHeaderCU.ValidateDatasets(Rec);
+                    this.AITTestSuiteCU.ValidateDatasets(Rec);
                     this.AITStartTests.StartAITSuite(Rec);
                     CurrPage.Update(false);
                 end;
@@ -214,7 +214,7 @@ page 149031 "AIT Setup Card"
 
                 trigger OnAction()
                 var
-                    AITLine: Record "AIT Line";
+                    AITTestMethodLine: Record "AIT Test Method Line";
                     Window: Dialog;
                     MaxDateTime: DateTime;
                     SomethingWentWrongErr: Label 'It is taking longer to stop the run than expected. You can reopen the page later to check the status or you can invoke "Reset Status" action.';
@@ -227,18 +227,18 @@ page 149031 "AIT Setup Card"
                     MaxDateTime := CurrentDateTime() + (60000 * 5); // Wait for a max of 5 mins
                     this.AITStartTests.StopAITSuite(Rec);
 
-                    AITLine.SetRange("AIT Code", Rec.Code);
-                    AITLine.SetFilter(Status, '<> %1', AITLine.Status::Cancelled);
-                    if not AITLine.IsEmpty then
+                    AITTestMethodLine.SetRange("Test Suite Code", Rec.Code);
+                    AITTestMethodLine.SetFilter(Status, '<> %1', AITTestMethodLine.Status::Cancelled);
+                    if not AITTestMethodLine.IsEmpty then
                         repeat
                             Sleep(1000);
                             if CurrentDateTime > MaxDateTime then
                                 Error(SomethingWentWrongErr);
-                        until AITLine.IsEmpty;
+                        until AITTestMethodLine.IsEmpty;
                     Window.Close();
 
                     CurrPage.Update(false);
-                    CurrPage.AITLines.Page.Refresh();
+                    CurrPage.AITTestMethodLines.Page.Refresh();
                 end;
             }
             action(RefreshStatus)
@@ -267,7 +267,7 @@ page 149031 "AIT Setup Card"
 
                 trigger OnAction()
                 begin
-                    this.AITHeaderCU.ResetStatus(Rec);
+                    this.AITTestSuiteCU.ResetStatus(Rec);
                 end;
             }
         }
@@ -301,7 +301,7 @@ page 149031 "AIT Setup Card"
 
     var
         AITStartTests: Codeunit "AIT Start Tests";
-        AITHeaderCU: Codeunit "AIT Header";
+        AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
         EnableActions: Boolean;
         AvgTimeDuration: Duration;
         TotalDuration: Duration;

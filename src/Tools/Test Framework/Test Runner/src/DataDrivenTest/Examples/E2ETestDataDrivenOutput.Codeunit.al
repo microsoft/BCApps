@@ -16,6 +16,9 @@ codeunit 130478 "E2E Test Data Driven Output"
     var
         TestOutput: Codeunit "Test Output";
     begin
+        TestOutput.TestData().Add('context', 'Here is a json object: {"key":"value"}');
+        TestOutput.TestData().Add('raw JSON', '{"key":"value"}');
+        TestOutput.TestData().Add('raw JSON Array', '[{"key":"value"},{"key":"value"}]');
         TestOutput.TestData().Add('Time', Format(CurrentDateTime(), 0, 9));
         TestOutput.TestData().AddArray('TestList');
 
@@ -29,6 +32,8 @@ codeunit 130478 "E2E Test Data Driven Output"
         TestOutput.TestData().Element('TestList').Add('Boolean', true);
         TestOutput.TestData().Element('TestList').Add('DateTime', CurrentDateTime());
         TestOutput.TestData().Element('TestList').Add('Date', DT2Date(CurrentDateTime()));
+
+
     end;
 
     [Test]

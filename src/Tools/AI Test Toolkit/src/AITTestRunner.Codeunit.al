@@ -9,14 +9,14 @@ using System.TestTools.TestRunner;
 
 codeunit 149042 "AIT Test Runner"
 {
-    TableNo = "AIT Line";
+    TableNo = "AIT Test Method Line";
     SingleInstance = true;
     Access = Internal;
 
     var
-        GlobalAITLine: Record "AIT Line";
-        GlobalAITHeader: Record "AIT Header";
-        ActiveAITHeader: Record "AIT Header";
+        GlobalAITTestMethodLine: Record "AIT Test Method Line";
+        GlobalAITTestSuite: Record "AIT Test Suite";
+        ActiveAITTestSuite: Record "AIT Test Suite";
         GlobalTestMethodLine: Record "Test Method Line";
         NoOfInsertedLogEntries: Integer;
         AccumulatedWaitTimeMs: Integer;
@@ -25,89 +25,89 @@ codeunit 149042 "AIT Test Runner"
     begin
         if Rec."Codeunit ID" = 0 then
             exit;
-        this.SetAITLine(Rec);
+        this.SetAITTestMethodLine(Rec);
 
         this.NoOfInsertedLogEntries := 0;
         this.AccumulatedWaitTimeMs := 0;
 
-        this.InitializeAITLineForRun(Rec, this.ActiveAITHeader);
-        this.SetAITHeader(this.ActiveAITHeader);
+        this.InitializeAITTestMethodLineForRun(Rec, this.ActiveAITTestSuite);
+        this.SetAITTestSuite(this.ActiveAITTestSuite);
 
-        this.RunAITLine(Rec, this.ActiveAITHeader);
+        this.RunAITTestMethodLine(Rec, this.ActiveAITTestSuite);
     end;
 
-    local procedure InitializeAITLineForRun(var AITLine: Record "AIT Line"; var AITHeader: Record "AIT Header")
+    local procedure InitializeAITTestMethodLineForRun(var AITTestMethodLine: Record "AIT Test Method Line"; var AITTestSuite: Record "AIT Test Suite")
     begin
-        AITHeader.Get(AITLine."AIT Code");
-        if AITHeader."Started at" < CurrentDateTime() then
-            AITHeader."Started at" := CurrentDateTime();
+        AITTestSuite.Get(AITTestMethodLine."Test Suite Code");
+        if AITTestSuite."Started at" < CurrentDateTime() then
+            AITTestSuite."Started at" := CurrentDateTime();
 
-        if AITLine."Input Dataset" = '' then
-            AITLine."Input Dataset" := (AITHeader."Input Dataset");
+        if AITTestMethodLine."Input Dataset" = '' then
+            AITTestMethodLine."Input Dataset" := (AITTestSuite."Input Dataset");
 
-        if AITLine."Delay (ms btwn. iter.)" < 1 then
-            AITLine."Delay (ms btwn. iter.)" := AITHeader."Default Delay (ms)";
+        if AITTestMethodLine."Delay (ms btwn. iter.)" < 1 then
+            AITTestMethodLine."Delay (ms btwn. iter.)" := AITTestSuite."Default Delay (ms)";
     end;
 
-    local procedure RunAITLine(var AITLine: Record "AIT Line"; var AITHeader: Record "AIT Header")
+    local procedure RunAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line"; var AITTestSuite: Record "AIT Test Suite")
     var
-        AITHeaderCU: Codeunit "AIT Header";
+        AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
     begin
         this.GetAndClearAccumulatedWaitTimeMs();
 
-        this.OnBeforeRunIteration(AITHeader, AITLine);
-        this.RunIteration(AITLine);
+        this.OnBeforeRunIteration(AITTestSuite, AITTestMethodLine);
+        this.RunIteration(AITTestMethodLine);
         Commit();
 
         //TODO override delay from line / default delay
-        Sleep(AITLine."Delay (ms btwn. iter.)");
+        Sleep(AITTestMethodLine."Delay (ms btwn. iter.)");
 
-        AITHeaderCU.DecreaseNoOfTestsRunningNow(AITHeader);
+        AITTestSuiteCU.DecreaseNoOfTestsRunningNow(AITTestSuite);
     end;
 
-    local procedure RunIteration(var AITLine: Record "AIT Line")
+    local procedure RunIteration(var AITTestMethodLine: Record "AIT Test Method Line")
     var
         TestMethodLine: Record "Test Method Line";
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
-        AITLine.Find();
-        AITALTestSuiteMgt.UpdateALTestSuite(AITLine);
-        this.SetAITLine(AITLine);
+        AITTestMethodLine.Find();
+        AITALTestSuiteMgt.UpdateALTestSuite(AITTestMethodLine);
+        this.SetAITTestMethodLine(AITTestMethodLine);
 
-        TestMethodLine.SetRange("Test Codeunit", AITLine."Codeunit ID");
-        TestMethodLine.SetRange("Test Suite", AITLine."AL Test Suite");
+        TestMethodLine.SetRange("Test Codeunit", AITTestMethodLine."Codeunit ID");
+        TestMethodLine.SetRange("Test Suite", AITTestMethodLine."AL Test Suite");
         TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
         TestMethodLine.FindFirst();
         TestSuiteMgt.RunAllTests(TestMethodLine);
     end;
 
-    procedure GetAITHeaderTag(): Text[20]
+    procedure GetAITTestSuiteTag(): Text[20]
     begin
-        exit(this.ActiveAITHeader.Tag);
+        exit(this.ActiveAITTestSuite.Tag);
     end;
 
-    local procedure SetAITLine(var AITLine: Record "AIT Line")
+    local procedure SetAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line")
     begin
-        this.GlobalAITLine := AITLine;
+        this.GlobalAITTestMethodLine := AITTestMethodLine;
     end;
 
     /// <summary>
-    /// Gets the AIT Line stored through the SetAITLine method.
+    /// Gets the AIT Line stored through the SetAITTestMethodLine method.
     /// </summary>
-    procedure GetAITLine(var AITLine: Record "AIT Line")
+    procedure GetAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line")
     begin
-        AITLine := this.GlobalAITLine;
+        AITTestMethodLine := this.GlobalAITTestMethodLine;
     end;
 
-    local procedure SetAITHeader(var CurrAITHeader: Record "AIT Header")
+    local procedure SetAITTestSuite(var CurrAITTestSuite: Record "AIT Test Suite")
     begin
-        this.GlobalAITHeader := CurrAITHeader;
+        this.GlobalAITTestSuite := CurrAITTestSuite;
     end;
 
-    procedure GetAITHeader(var CurrAITHeader: Record "AIT Header")
+    procedure GetAITTestSuite(var CurrAITTestSuite: Record "AIT Test Suite")
     begin
-        CurrAITHeader := this.GlobalAITHeader;
+        CurrAITTestSuite := this.GlobalAITTestSuite;
     end;
 
     procedure AddToNoOfLogEntriesInserted()
@@ -143,7 +143,7 @@ codeunit 149042 "AIT Test Runner"
     end;
 
     [InternalEvent(false)]
-    procedure OnBeforeRunIteration(var AITHeader: Record "AIT Header"; var AITLine: Record "AIT Line")
+    procedure OnBeforeRunIteration(var AITTestSuite: Record "AIT Test Suite"; var AITTestMethodLine: Record "AIT Test Method Line")
     begin
     end;
 
@@ -152,7 +152,7 @@ codeunit 149042 "AIT Test Runner"
     var
         AITContextCU: Codeunit "AIT Test Context";
     begin
-        if this.ActiveAITHeader.Code = '' then // exit the code if not triggered by AIT 
+        if this.ActiveAITTestSuite.Code = '' then // exit the code if not triggered by AIT 
             exit;
         if FunctionName = '' then
             exit;
@@ -167,7 +167,7 @@ codeunit 149042 "AIT Test Runner"
     var
         AITContextCU: Codeunit "AIT Test Context";
     begin
-        if this.ActiveAITHeader.Code = '' then // exit the code if not triggered by AIT 
+        if this.ActiveAITTestSuite.Code = '' then // exit the code if not triggered by AIT 
             exit;
         if FunctionName = '' then
             exit;

@@ -9,7 +9,7 @@ using System.Reflection;
 
 codeunit 149036 "AIT Start Tests"
 {
-    TableNo = "AIT Header";
+    TableNo = "AIT Test Suite";
     Access = Internal;
 
     trigger OnRun();
@@ -22,118 +22,131 @@ codeunit 149036 "AIT Start Tests"
         CannotRunMultipleSuitesInParallelErr: Label 'There is already test run in progress. Start this operaiton after that finishes.';
         RunningTestsMsg: Label 'Running tests...';
 
-    local procedure StartAITests(AITHeader: Record "AIT Header")
+    local procedure StartAITests(AITTestSuite: Record "AIT Test Suite")
     var
-        AITLine: Record "AIT Line";
-        AITHeaderCU: Codeunit "AIT Header";
+        AITTestMethodLine: Record "AIT Test Method Line";
+        AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
     begin
-        this.ValidateLines(AITHeader);
-        AITHeader.RunID := CreateGuid();
-        AITHeader.Validate("Started at", CurrentDateTime);
-        AITHeaderCU.SetRunStatus(AITHeader, AITHeader.Status::Running);
+        this.ValidateLines(AITTestSuite);
+        AITTestSuite.RunID := CreateGuid();
+        AITTestSuite.Validate("Started at", CurrentDateTime);
+        AITTestSuiteCU.SetRunStatus(AITTestSuite, AITTestSuite.Status::Running);
 
-        AITHeader."No. of tests running" := 0;
-        AITHeader.Version += 1;
-        AITHeader.Modify();
+        AITTestSuite."No. of tests running" := 0;
+        AITTestSuite.Version += 1;
+        AITTestSuite.Modify();
         Commit();
 
-        AITLine.SetRange("AIT Code", AITHeader.Code);
-        AITLine.SetFilter("Codeunit ID", '<>0');
-        AITLine.SetRange("Version Filter", AITHeader.Version);
-        if AITLine.FindSet() then begin
-            AITLine.ModifyAll(Status, AITLine.Status::Running);
-            Commit();
-            Codeunit.Run(Codeunit::"AIT Test Runner", AITLine);
+        AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
+        AITTestMethodLine.SetFilter("Codeunit ID", '<>0');
+        AITTestMethodLine.SetRange("Version Filter", AITTestSuite.Version);
+        if AITTestMethodLine.IsEmpty() then
+            exit;
+
+        AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ");
+
+        if AITTestMethodLine.FindSet() then begin
+            repeat
+                AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Running);
+                AITTestMethodLine.Modify();
+                Commit();
+                Codeunit.Run(Codeunit::"AIT Test Runner", AITTestMethodLine);
+                if AITTestMethodLine.Find() then begin
+                    AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Completed);
+                    AITTestMethodLine.Modify();
+                    Commit();
+                end;
+            until AITTestMethodLine.Next() = 0;
         end;
     end;
 
-    internal procedure StartAITSuite(var AITHeader: Record "AIT Header")
+    internal procedure StartAITSuite(var AITTestSuite: Record "AIT Test Suite")
     var
-        AITHeader2: Record "AIT Header";
+        AITTestSuite2: Record "AIT Test Suite";
         StatusDialog: Dialog;
     begin
         // If there is already a suite running, then error
-        AITHeader2.SetRange(Status, AITHeader2.Status::Running);
-        if not AITHeader2.IsEmpty then
+        AITTestSuite2.SetRange(Status, AITTestSuite2.Status::Running);
+        if not AITTestSuite2.IsEmpty then
             Error(this.CannotRunMultipleSuitesInParallelErr);
         Commit();
 
         StatusDialog.Open(this.RunningTestsMsg);
-        Codeunit.Run(Codeunit::"AIT Start Tests", AITHeader);
+        Codeunit.Run(Codeunit::"AIT Start Tests", AITTestSuite);
         StatusDialog.Close();
-        if AITHeader.Find() then;
+        if AITTestSuite.Find() then;
     end;
 
-    internal procedure StopAITSuite(var AITHeader: Record "AIT Header")
+    internal procedure StopAITSuite(var AITTestSuite: Record "AIT Test Suite")
     var
-        AITHeaderCU: Codeunit "AIT Header";
+        AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
     begin
-        AITHeaderCU.SetRunStatus(AITHeader, AITHeader.Status::Cancelled);
+        AITTestSuiteCU.SetRunStatus(AITTestSuite, AITTestSuite.Status::Cancelled);
     end;
 
-    internal procedure StartNextTestSuite(AITHeader: Record "AIT Header")
+    internal procedure StartNextTestSuite(AITTestSuite: Record "AIT Test Suite")
     var
-        AITHeader2: Record "AIT Header";
-        AITLine: Record "AIT Line";
-        AITHeaderCU: Codeunit "AIT Header";
+        AITTestSuite2: Record "AIT Test Suite";
+        AITTestMethodLine: Record "AIT Test Method Line";
+        AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
     begin
-        AITHeader2.SetRange(Status, AITHeader2.Status::Running);
-        AITHeader2.SetFilter(Code, '<> %1', AITHeader.Code);
-        if not AITHeader2.IsEmpty() then
+        AITTestSuite2.SetRange(Status, AITTestSuite2.Status::Running);
+        AITTestSuite2.SetFilter(Code, '<> %1', AITTestSuite.Code);
+        if not AITTestSuite2.IsEmpty() then
             Error(this.CannotRunMultipleSuitesInParallelErr);
 
-        AITHeader.ReadIsolation(IsolationLevel::UpdLock);
-        AITHeader.Find();
-        if AITHeader.Status <> AITHeader.Status::Running then begin
-            AITHeader.RunID := CreateGuid();
-            AITHeader.Validate("Started at", CurrentDateTime);
-            AITHeaderCU.SetRunStatus(AITHeader, AITHeader.Status::Running);
+        AITTestSuite.ReadIsolation(IsolationLevel::UpdLock);
+        AITTestSuite.Find();
+        if AITTestSuite.Status <> AITTestSuite.Status::Running then begin
+            AITTestSuite.RunID := CreateGuid();
+            AITTestSuite.Validate("Started at", CurrentDateTime);
+            AITTestSuiteCU.SetRunStatus(AITTestSuite, AITTestSuite.Status::Running);
 
-            AITHeader."No. of tests running" := 0;
-            AITHeader.Version += 1;
-            AITHeader."No. of tests running" := 0;
-            AITHeader.Modify();
+            AITTestSuite."No. of tests running" := 0;
+            AITTestSuite.Version += 1;
+            AITTestSuite."No. of tests running" := 0;
+            AITTestSuite.Modify();
 
-            AITLine.SetRange("AIT Code", AITHeader.Code);
-            if AITLine.FindSet(true) then
+            AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
+            if AITTestMethodLine.FindSet(true) then
                 repeat
-                    AITLine.Status := AITLine.Status::" ";
-                    AITLine."Total Duration (ms)" := 0;
-                    AITLine."No. of Tests" := 0;
-                    AITLine.SetRange("Version Filter", AITHeader.Version);
-                    AITLine.Modify(true);
-                until AITLine.Next() = 0;
+                    AITTestMethodLine.Status := AITTestMethodLine.Status::" ";
+                    AITTestMethodLine."Total Duration (ms)" := 0;
+                    AITTestMethodLine."No. of Tests" := 0;
+                    AITTestMethodLine.SetRange("Version Filter", AITTestSuite.Version);
+                    AITTestMethodLine.Modify(true);
+                until AITTestMethodLine.Next() = 0;
         end;
 
-        AITLine.ReadIsolation(IsolationLevel::UpdLock);
-        AITLine.SetRange("AIT Code", AITHeader.Code);
-        AITLine.SetFilter("Codeunit ID", '<>0');
-        AITLine.SetFilter(Status, '%1 | %2', AITLine.Status::" ", AITLine.Status::Starting);
-        if AITLine.FindFirst() then begin
-            AITHeader."No. of tests running" += 1;
-            AITLine.Status := AITLine.Status::Running;
-            AITHeader.Modify();
-            AITLine.Modify();
+        AITTestMethodLine.ReadIsolation(IsolationLevel::UpdLock);
+        AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
+        AITTestMethodLine.SetFilter("Codeunit ID", '<>0');
+        AITTestMethodLine.SetFilter(Status, '%1 | %2', AITTestMethodLine.Status::" ", AITTestMethodLine.Status::Starting);
+        if AITTestMethodLine.FindFirst() then begin
+            AITTestSuite."No. of tests running" += 1;
+            AITTestMethodLine.Status := AITTestMethodLine.Status::Running;
+            AITTestSuite.Modify();
+            AITTestMethodLine.Modify();
             Commit();
-            AITLine.SetRange("Line No.", AITLine."Line No.");
-            AITLine.SetRange(Status);
-            Codeunit.Run(Codeunit::"AIT Test Runner", AITLine);
+            AITTestMethodLine.SetRange("Line No.", AITTestMethodLine."Line No.");
+            AITTestMethodLine.SetRange(Status);
+            Codeunit.Run(Codeunit::"AIT Test Runner", AITTestMethodLine);
         end else
             Error(this.NothingToRunErr);
     end;
 
-    local procedure ValidateLines(AITHeader: Record "AIT Header")
+    local procedure ValidateLines(AITTestSuite: Record "AIT Test Suite")
     var
-        AITLine: Record "AIT Line";
+        AITTestMethodLine: Record "AIT Test Method Line";
         CodeunitMetadata: Record "CodeUnit Metadata";
     begin
-        AITLine.SetRange("AIT Code", AITHeader.Code);
+        AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
 
-        if not AITLine.FindSet() then
+        if not AITTestMethodLine.FindSet() then
             Error('There is nothing to run.');
 
         repeat
-            CodeunitMetadata.Get(AITLine."Codeunit ID");
-        until AITLine.Next() = 0;
+            CodeunitMetadata.Get(AITTestMethodLine."Codeunit ID");
+        until AITTestMethodLine.Next() = 0;
     end;
 }

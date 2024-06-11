@@ -14,8 +14,8 @@ permissionset 149030 "AI Test Toolkit"
 
     IncludedPermissionSets = "AI Test Toolkit - Obj";
 
-    Permissions = tabledata "AIT Header" = RIMD,
-        tabledata "AIT Line" = RIMD,
+    Permissions = tabledata "AIT Test Suite" = RIMD,
+        tabledata "AIT Test Method Line" = RIMD,
         tabledata "AIT Log Entry" = RIMD,
         tabledata "Test Input" = RIMD,
         tabledata "Test Method Line" = RIMD;

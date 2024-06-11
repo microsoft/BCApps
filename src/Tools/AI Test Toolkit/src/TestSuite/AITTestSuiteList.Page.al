@@ -5,18 +5,18 @@
 
 namespace System.TestTools.AITestToolkit;
 
-page 149040 "AIT Setup List"
+page 149040 "AIT Test Suite List"
 {
-    Caption = 'AIT Suites';
+    Caption = 'AI Test Suites';
     PageType = List;
     PromotedActionCategories = 'New,Process,Report,Import/Export';
-    SourceTable = "AIT Header";
-    CardPageId = "AIT Setup Card";
+    SourceTable = "AIT Test Suite";
+    CardPageId = "AIT Test Suite";
     Editable = false;
     RefreshOnActivate = true;
     UsageCategory = Lists;
     Extensible = true;
-    AdditionalSearchTerms = 'AITT';
+    AdditionalSearchTerms = 'AIT, AI Test Suite, Test Suite, Copilot, Copilot Test';
     ApplicationArea = All;
 
     layout
@@ -72,9 +72,9 @@ page 149040 "AIT Setup List"
 
                     trigger OnAction()
                     var
-                        AITHeader: Record "AIT Header";
+                        AITTestSuite: Record "AIT Test Suite";
                     begin
-                        XMLPORT.Run(XMLPORT::"AIT Import/Export", false, true, AITHeader);
+                        XMLPORT.Run(XMLPORT::"AIT Test Suite Import/Export", false, true, AITTestSuite);
                         CurrPage.Update(false);
                     end;
                 }
@@ -93,10 +93,10 @@ page 149040 "AIT Setup List"
 
                     trigger OnAction()
                     var
-                        AITHeader: Record "AIT Header";
+                        AITTestSuite: Record "AIT Test Suite";
                     begin
-                        CurrPage.SetSelectionFilter(AITHeader);
-                        XMLPORT.Run(XMLPORT::"AIT Import/Export", false, false, AITHeader);
+                        CurrPage.SetSelectionFilter(AITTestSuite);
+                        XMLPORT.Run(XMLPORT::"AIT Test Suite Import/Export", false, false, AITTestSuite);
                         CurrPage.Update(false);
                     end;
                 }

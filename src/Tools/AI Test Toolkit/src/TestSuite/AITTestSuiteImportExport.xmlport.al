@@ -5,7 +5,7 @@
 
 namespace System.TestTools.AITestToolkit;
 
-xmlport 149031 "AIT Import/Export"
+xmlport 149031 "AIT Test Suite Import/Export"
 {
     Caption = 'AIT Import/Export';
     UseRequestPage = false;
@@ -14,7 +14,7 @@ xmlport 149031 "AIT Import/Export"
     {
         textelement(Root)
         {
-            tableelement(AITSuite; "AIT Header")
+            tableelement(AITSuite; "AIT Test Suite")
             {
                 MaxOccurs = Unbounded;
                 XmlName = 'AITSuite';
@@ -50,45 +50,45 @@ xmlport 149031 "AIT Import/Export"
                 {
                     Occurrence = Required;
                 }
-                tableelement(AITSuiteLine; "AIT Line")
+                tableelement(AITestMethodLine; "AIT Test Method Line")
                 {
-                    LinkFields = "AIT Code" = field("Code");
+                    LinkFields = "Test Suite Code" = field("Code");
                     LinkTable = "AITSuite";
                     MinOccurs = Zero;
                     XmlName = 'Line';
 
-                    fieldattribute(CodeunitID; AITSuiteLine."Codeunit ID")
+                    fieldattribute(CodeunitID; AITestMethodLine."Codeunit ID")
                     {
                         Occurrence = Required;
                     }
-                    fieldattribute(DelayBetwnItr; AITSuiteLine."Delay (ms btwn. iter.)")
+                    fieldattribute(DelayBetwnItr; AITestMethodLine."Delay (ms btwn. iter.)")
                     {
                         Occurrence = Optional;
                     }
-                    fieldattribute(Description; AITSuiteLine.Description)
+                    fieldattribute(Description; AITestMethodLine.Description)
                     {
                         Occurrence = Optional;
                     }
-                    fieldattribute(Dataset; AITSuiteLine."Input Dataset")
+                    fieldattribute(Dataset; AITestMethodLine."Input Dataset")
                     {
                         Occurrence = Optional;
                     }
-                    fieldattribute(MinDelay; AITSuiteLine."Min. User Delay (ms)")
+                    fieldattribute(MinDelay; AITestMethodLine."Min. User Delay (ms)")
                     {
                         Occurrence = Optional;
                     }
-                    fieldattribute(MaxDelay; AITSuiteLine."Max. User Delay (ms)")
+                    fieldattribute(MaxDelay; AITestMethodLine."Max. User Delay (ms)")
                     {
                         Occurrence = Optional;
                     }
                     trigger OnBeforeInsertRecord()
                     var
-                        AITLine: Record "AIT Line";
+                        AITTestMethodLine: Record "AIT Test Method Line";
                     begin
-                        AITLine.SetAscending("Line No.", true);
-                        AITLine.SetRange("AIT Code", AITSuite.Code);
-                        if AITLine.FindLast() then;
-                        AITSuiteLine."Line No." := AITLine."Line No." + 1000;
+                        AITTestMethodLine.SetAscending("Line No.", true);
+                        AITTestMethodLine.SetRange("Test Suite Code", AITSuite.Code);
+                        if AITTestMethodLine.FindLast() then;
+                        AITestMethodLine."Line No." := AITTestMethodLine."Line No." + 1000;
                     end;
                 }
             }

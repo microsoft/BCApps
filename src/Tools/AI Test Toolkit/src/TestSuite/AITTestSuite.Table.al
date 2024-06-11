@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 using System.TestTools.TestRunner;
 
-table 149030 "AIT Header"
+table 149030 "AIT Test Suite"
 {
     DataClassification = SystemMetadata;
     Extensible = false;
@@ -25,7 +25,7 @@ table 149030 "AIT Header"
         {
             Caption = 'Description';
         }
-        field(4; Status; Enum "AIT Header Status")
+        field(4; Status; Enum "AIT Test Suite Status")
         {
             Caption = 'Status';
             Editable = false;
@@ -63,8 +63,8 @@ table 149030 "AIT Header"
             Caption = 'No. of tests running';
             trigger OnValidate()
             var
-                AITLine: Record "AIT Line";
-                AITHeaderCU: Codeunit "AIT Header";
+                AITTestMethodLine: Record "AIT Test Method Line";
+                AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
             begin
                 if "No. of tests running" < 0 then
                     "No. of tests running" := 0;
@@ -75,19 +75,19 @@ table 149030 "AIT Header"
                 case Status of
                     Status::Running:
                         begin
-                            AITLine.SetRange("AIT Code", "Code");
-                            AITLine.SetRange(Status, AITLine.Status::" ");
-                            if not AITLine.IsEmpty then
+                            AITTestMethodLine.SetRange("Test Suite Code", "Code");
+                            AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::" ");
+                            if not AITTestMethodLine.IsEmpty then
                                 exit;
-                            AITHeaderCU.SetRunStatus(Rec, Rec.Status::Completed);
-                            AITLine.SetRange("AIT Code", "Code");
-                            AITLine.SetRange(Status);
-                            AITLine.ModifyAll(Status, AITLine.Status::Completed);
+                            AITTestSuiteCU.SetRunStatus(Rec, Rec.Status::Completed);
+                            AITTestMethodLine.SetRange("Test Suite Code", "Code");
+                            AITTestMethodLine.SetRange(Status);
+                            AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Completed);
                         end;
                     Status::Cancelled:
                         begin
-                            AITLine.SetRange("AIT Code", "Code");
-                            AITLine.ModifyAll(Status, AITLine.Status::Cancelled);
+                            AITTestMethodLine.SetRange("Test Suite Code", "Code");
+                            AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Cancelled);
                         end;
                 end;
             end;

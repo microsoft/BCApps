@@ -12,12 +12,12 @@ page 149038 "AIT Log Entry API"
     APIGroup = 'aiTestToolkit';
     APIVersion = 'v1.0';
 
-    Caption = 'AIT Logs Entry API';
+    Caption = 'AI Test Logs Entries';
 
-    EntityCaption = 'AITLogEntry';
-    EntitySetCaption = 'AITLogEntry';
-    EntityName = 'aitLogEntry';
-    EntitySetName = 'aitLogEntries';
+    EntityCaption = 'AI Test Logs Entry';
+    EntitySetCaption = 'AI Test Log Entries';
+    EntityName = 'aiTestLogEntry';
+    EntitySetName = 'aitTestLogEntries';
 
     SourceTable = "AIT Log Entry";
     ODataKeyFields = SystemId;
@@ -41,7 +41,7 @@ page 149038 "AIT Log Entry API"
                     Caption = 'AIT Code';
                     Editable = false;
                     NotBlank = true;
-                    TableRelation = "AIT Header";
+                    TableRelation = "AIT Test Suite";
                 }
                 field("lineNumber"; Rec."AIT Line No.")
                 {

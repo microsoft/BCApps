@@ -5,11 +5,11 @@
 
 namespace System.TestTools.AITestToolkit;
 
-page 149035 "AIT Lines Compare"
+page 149035 "AIT Test Method Lines Compare"
 {
     PageType = Card;
     ApplicationArea = All;
-    SourceTable = "AIT Line";
+    SourceTable = "AIT Test Method Line";
     ModifyAllowed = false;
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -111,11 +111,11 @@ page 149035 "AIT Lines Compare"
 
                             trigger OnDrillDown()
                             var
-                                AITHeaderRec: Record "AIT Header";
+                                AITTestSuiteRec: Record "AIT Test Suite";
                             begin
-                                AITHeaderRec.SetLoadFields(Version);
-                                AITHeaderRec.Get(Rec."AIT Code");
-                                FailedTestsAITLogEntryDrillDown(AITHeaderRec.Version);
+                                AITTestSuiteRec.SetLoadFields(Version);
+                                AITTestSuiteRec.Get(Rec."Test Suite Code");
+                                FailedTestsAITLogEntryDrillDown(AITTestSuiteRec.Version);
                             end;
                         }
                         field("No. of Operations"; Rec."No. of Operations")
@@ -157,11 +157,11 @@ page 149035 "AIT Lines Compare"
 
                             trigger OnDrillDown()
                             var
-                                AITHeaderRec: Record "AIT Header";
+                                AITTestSuiteRec: Record "AIT Test Suite";
                             begin
-                                AITHeaderRec.SetLoadFields("Base Version");
-                                AITHeaderRec.Get(Rec."AIT Code");
-                                FailedTestsAITLogEntryDrillDown(AITHeaderRec."Base Version");
+                                AITTestSuiteRec.SetLoadFields("Base Version");
+                                AITTestSuiteRec.Get(Rec."Test Suite Code");
+                                FailedTestsAITLogEntryDrillDown(AITTestSuiteRec."Base Version");
                             end;
                         }
                         field("No. of Operations - Base"; Rec."No. of Operations - Base")
@@ -215,7 +215,7 @@ page 149035 "AIT Lines Compare"
         AITLogEntry: Page "AIT Log Entries";
     begin
         AITLogEntries.SetFilterForFailedTestProcedures();
-        AITLogEntries.SetRange("AIT Code", Rec."AIT Code");
+        AITLogEntries.SetRange("AIT Code", Rec."Test Suite Code");
         AITLogEntries.SetRange(Version, VersionNo);
         AITLogEntries.SetRange("AIT Line No.", Rec."Line No.");
         AITLogEntry.SetTableView(AITLogEntries);

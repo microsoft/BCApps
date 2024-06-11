@@ -22,7 +22,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         exit(this.RunProcedureOperationLbl);
     end;
 
-    internal procedure AssistEditTestRunner(var AITHeader: Record "AIT Header")
+    internal procedure AssistEditTestRunner(var AITTestSuite: Record "AIT Test Suite")
     var
         AllObjWithCaption: Record AllObjWithCaption;
         SelectTestRunner: Page "Select TestRunner";
@@ -30,55 +30,55 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         SelectTestRunner.LookupMode := true;
         if SelectTestRunner.RunModal() = ACTION::LookupOK then begin
             SelectTestRunner.GetRecord(AllObjWithCaption);
-            AITHeader.Validate("Test Runner Id", AllObjWithCaption."Object ID");
-            AITHeader.Modify(true);
+            AITTestSuite.Validate("Test Runner Id", AllObjWithCaption."Object ID");
+            AITTestSuite.Modify(true);
         end;
     end;
 
-    internal procedure UpdateALTestSuite(var AITLine: Record "AIT Line")
+    internal procedure UpdateALTestSuite(var AITTestMethodLine: Record "AIT Test Method Line")
     begin
-        this.GetOrCreateALTestSuite(AITLine);
-        this.RemoveTestMethods(AITLine);
-        this.ExpandCodeunit(AITLine);
+        this.GetOrCreateALTestSuite(AITTestMethodLine);
+        this.RemoveTestMethods(AITTestMethodLine);
+        this.ExpandCodeunit(AITTestMethodLine);
     end;
 
-    internal procedure CreateALTestSuite(var AITHeader: Record "AIT Header")
+    internal procedure CreateALTestSuite(var AITTestSuite: Record "AIT Test Suite")
     var
         ALTestSuite: Record "AL Test Suite";
     begin
-        if ALTestSuite.Get(AITHeader.Code) then
+        if ALTestSuite.Get(AITTestSuite.Code) then
             ALTestSuite.Delete(true);
 
-        ALTestSuite.Name := AITHeader.Code;
-        ALTestSuite."Test Runner Id" := AITHeader."Test Runner Id";
+        ALTestSuite.Name := AITTestSuite.Code;
+        ALTestSuite."Test Runner Id" := AITTestSuite."Test Runner Id";
         ALTestSuite.Insert(true);
     end;
 
-    internal procedure ExpandCodeunit(var AITLine: Record "AIT Line")
+    internal procedure ExpandCodeunit(var AITTestMethodLine: Record "AIT Test Method Line")
     var
         TestInput: Record "Test Input";
     begin
-        TestInput.SetRange("Test Input Group Code", AITLine.GetTestInputCode());
+        TestInput.SetRange("Test Input Group Code", AITTestMethodLine.GetTestInputCode());
         TestInput.ReadIsolation := TestInput.ReadIsolation::ReadUncommitted;
         if not TestInput.FindSet() then
             exit;
 
         repeat
-            this.ExpandCodeunit(AITLine, TestInput);
+            this.ExpandCodeunit(AITTestMethodLine, TestInput);
         until TestInput.Next() = 0;
     end;
 
-    internal procedure ExpandCodeunit(var AITLine: Record "AIT Line"; var TestInput: Record "Test Input")
+    internal procedure ExpandCodeunit(var AITTestMethodLine: Record "AIT Test Method Line"; var TestInput: Record "Test Input")
     var
         TempTestMethodLine: Record "Test Method Line" temporary;
         ALTestSuite: Record "AL Test Suite";
         TestInputsManagement: Codeunit "Test Inputs Management";
     begin
-        ALTestSuite := this.GetOrCreateALTestSuite(AITLine);
+        ALTestSuite := this.GetOrCreateALTestSuite(AITTestMethodLine);
 
         TempTestMethodLine."Line Type" := TempTestMethodLine."Line Type"::Codeunit;
-        TempTestMethodLine."Test Codeunit" := AITLine."Codeunit ID";
-        TempTestMethodLine."Test Suite" := AITLine."AL Test Suite";
+        TempTestMethodLine."Test Codeunit" := AITTestMethodLine."Codeunit ID";
+        TempTestMethodLine."Test Suite" := AITTestMethodLine."AL Test Suite";
         TempTestMethodLine."Data Input Group Code" := TestInput."Test Input Group Code";
         TempTestMethodLine."Data Input" := TestInput.Code;
         TempTestMethodLine.Insert();
@@ -86,12 +86,12 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         TestInputsManagement.InsertTestMethodLines(TempTestMethodLine, ALTestSuite);
     end;
 
-    internal procedure RemoveTestMethods(var AITLine: Record "AIT Line")
+    internal procedure RemoveTestMethods(var AITTestMethodLine: Record "AIT Test Method Line")
     begin
-        this.RemoveTestMethods(AITLine, 0, '');
+        this.RemoveTestMethods(AITTestMethodLine, 0, '');
     end;
 
-    internal procedure RemoveTestMethods(var AITLine: Record "AIT Line"; CodeunitID: Integer; DataInputName: Text[250])
+    internal procedure RemoveTestMethods(var AITTestMethodLine: Record "AIT Test Method Line"; CodeunitID: Integer; DataInputName: Text[250])
     var
         TestMethodLine: Record "Test Method Line";
     begin
@@ -106,7 +106,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
             exit;
 
         TestMethodLine.DeleteAll();
-        this.RemoveEmptyCodeunitTestLines(this.GetOrCreateALTestSuite(AITLine));
+        this.RemoveEmptyCodeunitTestLines(this.GetOrCreateALTestSuite(AITTestMethodLine));
     end;
 
     internal procedure RemoveEmptyCodeunitTestLines(ALTestSuite: Record "AL Test Suite")
@@ -131,27 +131,27 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         until TestMethodLine.Next() = 0;
     end;
 
-    internal procedure GetOrCreateALTestSuite(var AITLine: Record "AIT Line"): Record "AL Test Suite"
+    internal procedure GetOrCreateALTestSuite(var AITTestMethodLine: Record "AIT Test Method Line"): Record "AL Test Suite"
     var
-        AITHeader: Record "AIT Header";
+        AITTestSuite: Record "AIT Test Suite";
         ALTestSuite: Record "AL Test Suite";
     begin
-        if AITLine."AL Test Suite" <> '' then begin
-            ALTestSuite.SetFilter(Name, AITLine."AL Test Suite");
+        if AITTestMethodLine."AL Test Suite" <> '' then begin
+            ALTestSuite.SetFilter(Name, AITTestMethodLine."AL Test Suite");
             if ALTestSuite.FindFirst() then
                 exit(ALTestSuite);
         end;
 
-        if AITLine."AL Test Suite" = '' then begin
-            AITLine."AL Test Suite" := this.GetUniqueAITTestSuiteCode();
-            AITLine.Modify();
+        if AITTestMethodLine."AL Test Suite" = '' then begin
+            AITTestMethodLine."AL Test Suite" := this.GetUniqueAITTestSuiteCode();
+            AITTestMethodLine.Modify();
         end;
 
-        ALTestSuite.Name := AITLine."AL Test Suite";
-        ALTestSuite.Description := CopyStr(AITLine.Description, 1, MaxStrLen(ALTestSuite.Description));
-        AITHeader.ReadIsolation := IsolationLevel::ReadUncommitted;
-        if AITHeader.Get(AITLine."AIT Code") then
-            ALTestSuite."Test Runner Id" := AITHeader."Test Runner Id";
+        ALTestSuite.Name := AITTestMethodLine."AL Test Suite";
+        ALTestSuite.Description := CopyStr(AITTestMethodLine.Description, 1, MaxStrLen(ALTestSuite.Description));
+        AITTestSuite.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if AITTestSuite.Get(AITTestMethodLine."Test Suite Code") then
+            ALTestSuite."Test Runner Id" := AITTestSuite."Test Runner Id";
 
         ALTestSuite.Insert(true);
         exit(ALTestSuite);

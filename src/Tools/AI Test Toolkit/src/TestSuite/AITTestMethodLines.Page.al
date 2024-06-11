@@ -5,11 +5,11 @@
 
 namespace System.TestTools.AITestToolkit;
 
-page 149034 "AIT Lines"
+page 149034 "AIT Test Method Lines"
 {
     Caption = 'Tests';
     PageType = ListPart;
-    SourceTable = "AIT Line";
+    SourceTable = "AIT Test Method Line";
     AutoSplitKey = true;
     DelayedInsert = true;
     Extensible = false;
@@ -20,7 +20,7 @@ page 149034 "AIT Lines"
         {
             repeater(Control1)
             {
-                field("LoadTestCode"; Rec."AIT Code")
+                field("LoadTestCode"; Rec."Test Suite Code")
                 {
                     ToolTip = 'Specifies the ID of the AIT.';
                     Visible = false;
@@ -100,11 +100,11 @@ page 149034 "AIT Lines"
 
                     trigger OnDrillDown()
                     var
-                        AITHeaderRec: Record "AIT Header";
+                        AITTestSuiteRec: Record "AIT Test Suite";
                     begin
-                        AITHeaderRec.SetLoadFields(Version); // TODO: See if  there is a better way to do this
-                        AITHeaderRec.Get(Rec."AIT Code");
-                        FailedTestsAITLogEntryDrillDown(AITHeaderRec.Version);
+                        AITTestSuiteRec.SetLoadFields(Version); // TODO: See if  there is a better way to do this
+                        AITTestSuiteRec.Get(Rec."Test Suite Code");
+                        FailedTestsAITLogEntryDrillDown(AITTestSuiteRec.Version);
                     end;
                 }
                 field("No. of Operations"; Rec."No. of Operations")
@@ -117,7 +117,7 @@ page 149034 "AIT Lines"
                     ToolTip = 'Specifies Total Duration of the AIT for this role.';
                     ApplicationArea = All;
                 }
-                field(AvgDuration; AITLineCU.GetAvgDuration(Rec))
+                field(AvgDuration; AITTestSuiteMgt.GetAvgDuration(Rec))
                 {
                     ToolTip = 'Specifies average duration of the AIT for this role.';
                     Caption = 'Average Duration (ms)';
@@ -148,11 +148,11 @@ page 149034 "AIT Lines"
 
                     trigger OnDrillDown()
                     var
-                        AITHeaderRec: Record "AIT Header";
+                        AITTestSuiteRec: Record "AIT Test Suite";
                     begin
-                        AITHeaderRec.SetLoadFields("Base Version"); // TODO: See if  there is a better way to do this
-                        AITHeaderRec.Get(Rec."AIT Code");
-                        FailedTestsAITLogEntryDrillDown(AITHeaderRec."Base Version");
+                        AITTestSuiteRec.SetLoadFields("Base Version"); // TODO: See if  there is a better way to do this
+                        AITTestSuiteRec.Get(Rec."Test Suite Code");
+                        FailedTestsAITLogEntryDrillDown(AITTestSuiteRec."Base Version");
                     end;
                 }
                 field("No. of Operations - Base"; Rec."No. of Operations - Base")
@@ -198,9 +198,9 @@ page 149034 "AIT Lines"
 
                 trigger OnAction()
                 begin
-                    AITHeader.Get(Rec."AIT Code");
-                    AITHeader.Version += 1;
-                    AITHeader.Modify();
+                    AITTestSuite.Get(Rec."Test Suite Code");
+                    AITTestSuite.Version += 1;
+                    AITTestSuite.Modify();
                     Commit();
                     // If no range is set, all following foreground lines will be run
                     Rec.SetRange("Codeunit ID", Rec."Codeunit ID");
@@ -217,7 +217,7 @@ page 149034 "AIT Lines"
                 ToolTip = 'Make this process a child of the above session.';
                 trigger OnAction()
                 begin
-                    AITLineCU.Indent(Rec);
+                    AITTestSuiteMgt.Indent(Rec);
                 end;
             }
             action(Outdent)
@@ -230,7 +230,7 @@ page 149034 "AIT Lines"
 
                 trigger OnAction()
                 begin
-                    AITLineCU.Outdent(Rec);
+                    AITTestSuiteMgt.Outdent(Rec);
                 end;
             }
             action(LogEntries)
@@ -240,7 +240,7 @@ page 149034 "AIT Lines"
                 Image = Entries;
                 ToolTip = 'Open log entries for the line.';
                 RunObject = page "AIT Log Entries";
-                RunPageLink = "AIT Code" = field("AIT Code"), "AIT Line No." = field("Line No."), Version = field("Version Filter");
+                RunPageLink = "AIT Code" = field("Test Suite Code"), "AIT Line No." = field("Line No."), Version = field("Version Filter");
             }
             action(Compare)
             {
@@ -252,43 +252,43 @@ page 149034 "AIT Lines"
 
                 trigger OnAction()
                 var
-                    AITLine: Record "AIT Line";
-                    AITHeaderRec: Record "AIT Header";
-                    AITLineComparePage: Page "AIT Lines Compare";
+                    AITTestMethodLine: Record "AIT Test Method Line";
+                    AITTestSuiteRec: Record "AIT Test Suite";
+                    AITTestMethodLineComparePage: Page "AIT Test Method Lines Compare";
                 begin
-                    CurrPage.SetSelectionFilter(AITLine);
+                    CurrPage.SetSelectionFilter(AITTestMethodLine);
 
-                    if not AITLine.FindFirst() then
+                    if not AITTestMethodLine.FindFirst() then
                         Error(NoLineSelectedErr);
 
-                    AITHeaderRec.SetLoadFields(Version, "Base Version");
-                    AITHeaderRec.Get(Rec."AIT Code");
+                    AITTestSuiteRec.SetLoadFields(Version, "Base Version");
+                    AITTestSuiteRec.Get(Rec."Test Suite Code");
 
-                    AITLineComparePage.SetBaseVersion(AITHeaderRec."Base Version");
-                    AITLineComparePage.SetVersion(AITHeaderRec.Version);
-                    AITLineComparePage.SetRecord(AITLine);
-                    AITLineComparePage.Run();
+                    AITTestMethodLineComparePage.SetBaseVersion(AITTestSuiteRec."Base Version");
+                    AITTestMethodLineComparePage.SetVersion(AITTestSuiteRec.Version);
+                    AITTestMethodLineComparePage.SetRecord(AITTestMethodLine);
+                    AITTestMethodLineComparePage.Run();
                 end;
             }
         }
     }
     var
-        AITHeader: Record "AIT Header";
-        AITLineCU: Codeunit "AIT Line";
+        AITTestSuite: Record "AIT Test Suite";
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         NoLineSelectedErr: Label 'Select a line to compare';
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        Rec."Min. User Delay (ms)" := AITHeader."Default Min. User Delay (ms)";
-        Rec."Max. User Delay (ms)" := AITHeader."Default Max. User Delay (ms)";
+        Rec."Min. User Delay (ms)" := AITTestSuite."Default Min. User Delay (ms)";
+        Rec."Max. User Delay (ms)" := AITTestSuite."Default Max. User Delay (ms)";
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
-        if Rec."AIT Code" = '' then
+        if Rec."Test Suite Code" = '' then
             exit(true);
-        if Rec."AIT Code" <> AITHeader.Code then
-            if AITHeader.Get(Rec."AIT Code") then;
+        if Rec."Test Suite Code" <> AITTestSuite.Code then
+            if AITTestSuite.Get(Rec."Test Suite Code") then;
     end;
 
     local procedure GetAvg(NumIterations: Integer; TotalNo: Integer): Integer
@@ -317,7 +317,7 @@ page 149034 "AIT Lines"
         AITLogEntry: Page "AIT Log Entries";
     begin
         AITLogEntries.SetFilterForFailedTestProcedures();
-        AITLogEntries.SetRange("AIT Code", Rec."AIT Code");
+        AITLogEntries.SetRange("AIT Code", Rec."Test Suite Code");
         AITLogEntries.SetRange(Version, VersionNo);
         AITLogEntries.SetRange("AIT Line No.", Rec."Line No.");
         AITLogEntry.SetTableView(AITLogEntries);

@@ -53,7 +53,7 @@ page 149033 "AIT Log Entries"
                 }
                 field(Tag; Rec.Tag)
                 {
-                    ToolTip = 'Specifies the Tag that we entered in the AIT header.';
+                    ToolTip = 'Specifies the Tag that we entered in the AIT Test Suite.';
                     ApplicationArea = All;
                 }
                 field(CodeunitID; Rec."Codeunit ID")

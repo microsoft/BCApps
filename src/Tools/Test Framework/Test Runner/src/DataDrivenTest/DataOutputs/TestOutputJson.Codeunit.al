@@ -55,13 +55,25 @@ codeunit 130462 "Test Output Json"
             exit(this.Add(Name, NewJsonToken));
         end;
 
+        if NewValue.StartsWith('{') and NewValue.EndsWith('}') then begin
+            NewJsonObject.ReadFrom(NewValue);
+            NewJsonToken := NewJsonObject.AsToken();
+            exit(this.Add(Name, NewJsonToken));
+        end;
+
         if NewValue = '[]' then begin
             NewJsonArray.ReadFrom('[]');
             NewJsonToken := NewJsonArray.AsToken();
             exit(this.Add(Name, NewJsonToken));
         end;
 
-        NewJsonValue.ReadFrom('"' + NewValue + '"');
+        if NewValue.StartsWith('[') and NewValue.EndsWith(']') then begin
+            NewJsonArray.ReadFrom(NewValue);
+            NewJsonToken := NewJsonArray.AsToken();
+            exit(this.Add(Name, NewJsonToken));
+        end;
+
+        NewJsonValue.SetValue(NewValue);
         NewJsonToken := NewJsonValue.AsToken();
         exit(this.Add(Name, NewJsonToken));
     end;
