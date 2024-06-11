@@ -31,8 +31,6 @@ codeunit 329 "No. Series Installer"
         NoSeriesLine.SetRange(Implementation, 0); // Only update the No. Series Lines that are still referencing the default implementation (0)
         NoSeriesLine.SetRange("Allow Gaps in Nos.", true);
         NoSeriesLine.ModifyAll(Implementation, "No. Series Implementation"::Sequence, false);
-        NoSeriesLine.SetRange("Allow Gaps in Nos.", false);
-        NoSeriesLine.ModifyAll(Implementation, "No. Series Implementation"::Normal, false);
 
         UpgradeTag.SetUpgradeTag(NoSeriesUpgradeTags.GetImplementationUpgradeTag());
     end;
