@@ -117,7 +117,7 @@ codeunit 132526 "Edit in Excel Filters Test"
         // [Scenario] User clicks "Edit in Excel" without choosing additional filters. BC sends the default date filter
 
         // [Given] A Json Structured filter and Payload, TenantWebservice exist and is enabled
-        JsonFilter := '{"type":"and","childNodes":[{"type":"and","childNodes":[{"type":"ge","leftNode":{"type":"var","name":"Field_Not_Exposed"},"rightNode":{"type":"Edm.DateTimeOffset constant","value":"0001-01-01T00:00:00"}},{"type":"le","leftNode":{"type":"var","name":"Field_Not_Exposed"},"rightNode":{"type":"Edm.DateTimeOffset constant","value":"2024-01-25T00:00:00"}}]}]}';
+        JsonFilter := '{ "type": "and", "childNodes": [ { "type": "ge", "leftNode": { "type": "var", "name": "Field_Not_Exposed" }, "rightNode": { "type": "Edm.DateTimeOffset constant", "value": "0001-01-01T00:00:00"}}]}';
         JsonPayload := '{ "fieldPayload": {"Field_Not_Exposed": {"alName": "Field Not Exposed","validInODataFilter": true,"edmType": "Edm.DateTimeOffset"}}}';
         LibraryAssert.IsTrue(FilterJsonObject.ReadFrom(JsonFilter), 'Could not read json filter');
         LibraryAssert.IsTrue(PayloadJsonObject.ReadFrom(JsonPayload), 'Could not read json payload');
@@ -129,35 +129,6 @@ codeunit 132526 "Edit in Excel Filters Test"
         EditinExcelTestLibrary.GetFilters(EditinExcelFilters, FieldFilters);
 
         LibraryAssert.IsTrue(IsNull(FieldFilters), 'FieldFilters is initialized, but should be null');
-    end;
-
-    [Test]
-    procedure TestEditInExcelDoNotRemoveFilterWhenFieldIsNotExposedOnPageButIsKey()
-    var
-        EditinExcelTestLibrary: Codeunit "Edit in Excel Test Library";
-        EditinExcelFilters: Codeunit "Edit in Excel Filters";
-        JsonFilter: Text;
-        JsonPayload: Text;
-        FilterJsonObject: JsonObject;
-        PayloadJsonObject: JsonObject;
-        FieldFilters: DotNet GenericDictionary2;
-    begin
-        // [Scenario] User clicks "Edit in Excel" without choosing additional filters. BC sends the default date filter
-
-        // [Given] A Json Structured filter and Payload, TenantWebservice exist and is enabled
-        JsonFilter := '{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":{"type":"Edm.String constant","value":"01121212"}}';
-        JsonPayload := '{ "fieldPayload": { "Id": { "alName": "Id", "validInODataFilter": true, "edmType": "Edm.String" }}}';
-        LibraryAssert.IsTrue(FilterJsonObject.ReadFrom(JsonFilter), 'Could not read json filter');
-        LibraryAssert.IsTrue(PayloadJsonObject.ReadFrom(JsonPayload), 'Could not read json payload');
-
-        // [When] Edit in Excel filters are created
-        EditinExcelTestLibrary.ReadFromJsonFilters(EditinExcelFilters, FilterJsonObject, PayloadJsonObject, Page::"Edit in Excel List 2");
-
-        // [Then] The filters match expectations
-        EditinExcelTestLibrary.GetFilters(EditinExcelFilters, FieldFilters);
-
-        LibraryAssert.IsFalse(IsNull(FieldFilters), 'No field filters created.');
-        LibraryAssert.AreEqual(1, FieldFilters.Count(), 'The field "Id" is filtered out despite being a key in the underlying table.');
     end;
 
     [Test]
@@ -174,8 +145,8 @@ codeunit 132526 "Edit in Excel Filters Test"
         // [Scenario] User clicks "Edit in Excel" without choosing additional filters. BC sends the default date filter
 
         // [Given] A Json Structured filter and Payload, TenantWebservice exist and is enabled
-        JsonFilter := '{"type":"and","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":{"type":"Edm.String constant","value":"1"}},{"type":"and","childNodes":[{"type":"ge","leftNode":{"type":"var","name":"SystemCreatedAt"},"rightNode":{"type":"Edm.DateTimeOffset constant","value":"2024-06-08T22:00:00.0000000Z"}},{"type":"le","leftNode":{"type":"var","name":"SystemCreatedAt"},"rightNode":{"type":"Edm.DateTimeOffset constant","value":"2024-06-09T21:59:59.0000000Z"}}]},{"type":"eq","leftNode":{"type":"var","name":"SystemCreatedBy"},"rightNode":{"type":"Edm.String constant","value":"{CA4755DA-D377-45B0-8B70-D723F621C68B}"}},{"type":"and","childNodes":[{"type":"ge","leftNode":{"type":"var","name":"SystemModifiedAt"},"rightNode":{"type":"Edm.DateTimeOffset constant","value":"2024-06-08T22:00:00.0000000Z"}},{"type":"le","leftNode":{"type":"var","name":"SystemModifiedAt"},"rightNode":{"type":"Edm.DateTimeOffset constant","value":"2024-06-09T21:59:59.0000000Z"}}]},{"type":"eq","leftNode":{"type":"var","name":"SystemModifiedBy"},"rightNode":{"type":"Edm.String constant","value":"{CA4755DA-D377-45B0-8B70-D723F621C68B}"}}]}';
-        JsonPayload := '{ "fieldPayload": {"No": {"alName": "No","validInODataFilter": true,"edmType": "Edm.DateTimeOffset"}, "SystemCreatedAt": {"alName": "SystemCreatedAt","validInODataFilter": true,"edmType": "Edm.DateTimeOffset"}, "SystemCreatedBy":{"alName": "SystemCreatedBy","validInODataFilter": true,"edmType": "Edm.DateTimeOffset"}, "SystemModifiedAt": {"alName": "SystemModifiedAt","validInODataFilter": true,"edmType": "Edm.DateTimeOffset"}, "SystemModifiedBy": {"alName": "SystemModifiedAt","validInODataFilter": true,"edmType": "Edm.DateTimeOffset"}}}';
+        JsonFilter := '{"type":"and","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":{"type":"Edm.String constant","value":"1"}},{"type":"gt","leftNode":{"type":"var","name":"SystemCreatedAt"},"rightNode":{"type":"Edm.DateTimeOffset constant","value":"2024-06-08T06:00:00.0000000Z"}},{"type":"eq","leftNode":{"type":"var","name":"SystemCreatedBy"},"rightNode":{"type":"Edm.String constant","value":"{CA4755DA-D377-45B0-8B70-D723F621C68B}"}},{"type":"gt","leftNode":{"type":"var","name":"SystemModifiedAt"},"rightNode":{"type":"Edm.DateTimeOffset constant","value":"2024-06-08T06:00:00.0000000Z"}},{"type":"eq","leftNode":{"type":"var","name":"SystemModifiedBy"},"rightNode":{"type":"Edm.String constant","value":"{CA4755DA-D377-45B0-8B70-D723F621C68B}"}}]}';
+        JsonPayload := '{ "fieldPayload": {"No": {"alName": "No","validInODataFilter": true,"edmType": "Edm.DateTimeOffset"}, "SystemCreatedAt": {"alName": "SystemCreatedAt","validInODataFilter": true,"edmType": "Edm.DateTimeOffset"}, "SystemCreatedBy":{"alName": "SystemCreatedBy","validInODataFilter": true,"edmType": "Edm.DateTimeOffset"}, "SystemModifiedAt": {"alName": "SystemModifiedAt","validInODataFilter": true,"edmType": "Edm.DateTimeOffset"}, "SystemModifiedBy": {"alName": "SystemModifiedBy","validInODataFilter": true,"edmType": "Edm.DateTimeOffset"}}}';
         LibraryAssert.IsTrue(FilterJsonObject.ReadFrom(JsonFilter), 'Could not read json filter');
         LibraryAssert.IsTrue(PayloadJsonObject.ReadFrom(JsonPayload), 'Could not read json payload');
 

@@ -124,7 +124,8 @@ codeunit 1491 "Edit in Excel Filters Impl."
                             ODataJsonPayload,
                             FieldFilterGroupingOperator,
                             "Edit in Excel Filter Collection Type".FromInteger(ExcelFilterNodeType.AsInteger()),
-                            PageId, FilterErrors);
+                            PageId,
+                            FilterErrors);
                 end;
             "Excel Filter Node Type"::lt, "Excel Filter Node Type"::le, "Excel Filter Node Type"::eq, "Excel Filter Node Type"::ge, "Excel Filter Node Type"::gt, "Excel Filter Node Type"::ne:
                 begin
@@ -147,7 +148,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
     end;
 
     local procedure ReadNodeValues(JsonFilterObject: JsonObject; ODataJsonPayload: JsonObject; var ODataFieldName: Text;
-                                    var EdmType: Text; var FilterValue: Text; PageNumber: Integer; FilterErrors: Dictionary of [Text, Boolean]): Boolean
+                                var EdmType: Text; var FilterValue: Text; PageNumber: Integer; FilterErrors: Dictionary of [Text, Boolean]): Boolean
     var
         PageControlField: Record "Page Control Field";
         LeftNodeJsonToken: JsonToken;
@@ -215,8 +216,8 @@ codeunit 1491 "Edit in Excel Filters Impl."
 
     local procedure IsKey(PageNumber: Integer; ExternalTableFieldName: Text): Boolean
     var
-        PageMetadata: Record "Page Metadata";
         FieldMetadata: Record "Field";
+        PageMetadata: Record "Page Metadata";
         EditInExcelImpl: codeunit "Edit in Excel Impl.";
         ExternalizedFieldName: Text;
     begin
