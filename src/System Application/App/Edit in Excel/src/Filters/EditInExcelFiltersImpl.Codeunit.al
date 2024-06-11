@@ -147,8 +147,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
         end;
     end;
 
-    local procedure ReadNodeValues(JsonFilterObject: JsonObject; ODataJsonPayload: JsonObject; var ODataFieldName: Text;
-                                var EdmType: Text; var FilterValue: Text; PageNumber: Integer; FilterErrors: Dictionary of [Text, Boolean]): Boolean
+    local procedure ReadNodeValues(JsonFilterObject: JsonObject; ODataJsonPayload: JsonObject; var ODataFieldName: Text; var EdmType: Text; var FilterValue: Text; PageNumber: Integer; FilterErrors: Dictionary of [Text, Boolean]): Boolean
     var
         PageControlField: Record "Page Control Field";
         LeftNodeJsonToken: JsonToken;

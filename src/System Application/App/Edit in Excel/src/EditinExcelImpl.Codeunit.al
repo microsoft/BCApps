@@ -43,7 +43,7 @@ codeunit 1482 "Edit in Excel Impl."
         CreateEndpointForObjectTxt: Label 'Creating endpoint for %1 %2.', Locked = true;
         EditInExcelHandledTxt: Label 'Edit in excel has been handled.', Locked = true;
         EditInExcelOnlySupportPageWebServicesTxt: Label 'Edit in Excel only support web services created from pages.', Locked = true;
-        EditInExcelInvalidFilterErr: Label 'We had to remove the filters applied to the following fields, because they are not available in the Office Add-In. Please notice that as a result of this that the number of rows you exported to Excel could vary.\n %1', Locked = true;
+        EditInExcelInvalidFilterErr: Label 'We had to remove the filters applied to the following fields, because they are not available in the Office Add-In. Please notice that as a result of this the number of rows you exported to Excel could vary.\ %1', Locked = true;
         DialogTitleTxt: Label 'Export';
         ExcelFileNameTxt: Text;
         XmlByteEncodingTok: Label '_x00%1_%2', Locked = true;
@@ -882,17 +882,11 @@ codeunit 1482 "Edit in Excel Impl."
     var
         ConcatenatedErrors: Text;
         ErrorText: Text;
-        IsFirst: Boolean;
     begin
-        ConcatenatedErrors := '';
-        IsFirst := true;
-
-        foreach ErrorText in FilterErrors.Keys() do begin
-            if not IsFirst then
-                ConcatenatedErrors := ConcatenatedErrors + ', ';
-            IsFirst := false;
-            ConcatenatedErrors := ConcatenatedErrors + ErrorText;
-        end;
+        foreach ErrorText in FilterErrors.Keys() do
+            ConcatenatedErrors := ConcatenatedErrors + ErrorText + ', ';
+        if StrLen(ConcatenatedErrors) > 0 then
+            ConcatenatedErrors := DelStr(ConcatenatedErrors, StrLen(ConcatenatedErrors) - 1);
         exit(ConcatenatedErrors);
     end;
 }
