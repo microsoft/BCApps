@@ -175,6 +175,7 @@ codeunit 304 "No. Series - Impl."
 #pragma warning restore AL0432
 #endif
         if NoSeriesLine2.FindLast() then;
+        NoSeriesLine.SetCurrentKey("Series Code", "Starting Date");
         NoSeriesLine.CopyFilters(NoSeriesLine2);
 
         if (NoSeriesLine."Line No." <> 0) and (NoSeriesLine."Series Code" = NoSeriesCode) and (NoSeriesLine."Starting Date" = NoSeriesLine2."Starting Date") then begin
