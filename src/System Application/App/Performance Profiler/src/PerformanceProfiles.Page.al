@@ -148,8 +148,8 @@ page 1931 "Performance Profiles"
 
                 trigger OnAction()
                 var
-                    FileName: Text;
                     SampPerfProfilerImplCodeunit: Codeunit "Sampling Perf. Profiler Impl.";
+                    FileName: Text;
                 begin
                     FileName := StrSubstNo(ProfileFileNameTxt, Rec."Activity ID", Rec."Client Session ID") + ProfileFileExtensionTxt;
                     SampPerfProfilerImplCodeunit.DownloadData(FileName, SampPerfProfilerImplCodeunit.GetData());
