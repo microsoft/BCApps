@@ -159,6 +159,11 @@ page 149033 "AIT Log Entries"
                     ToolTip = 'Specifies when the error message from the test.';
                     ApplicationArea = All;
                     Style = Unfavorable;
+
+                    trigger OnDrillDown()
+                    begin
+                        Message(Rec.Message);
+                    end;
                 }
                 field("Orig. Message"; Rec."Orig. Message")
                 {
@@ -266,6 +271,21 @@ page 149033 "AIT Log Entries"
                     CurrPage.Update(false);
                 end;
             }
+            action("Download Test Output")
+            {
+                ApplicationArea = All;
+                Caption = 'Download Test Output';
+                Image = Download;
+                ToolTip = 'Use this action to download the test output.';
+
+                trigger OnAction()
+                var
+                    AIALTTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+                begin
+                    AIALTTestSuiteMgt.DownloadTestOutputFromAITLLogToFile(Rec);
+                end;
+
+            }
         }
         area(Promoted)
         {
@@ -284,6 +304,9 @@ page 149033 "AIT Log Entries"
                 {
                 }
                 actionref("Hide Sensitive Data_Promoted"; "Hide Sensitive Data")
+                {
+                }
+                actionref("Download Test Output_Promoted"; "Download Test Output")
                 {
                 }
             }

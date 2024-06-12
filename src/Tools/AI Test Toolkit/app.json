@@ -3,6 +3,7 @@
     "name":  "AI Test Toolkit",
     "publisher":  "Microsoft",
     "version":  "25.0.0.0",
+    "propagateDependencies":  true,
     "brief":  "Provides tools for AI feature regression testing.",
     "description":  "The Performance Toolkit lets developers use test suites during development to analyze the performance of their code by simulating the work environments in which the code will run.",
     "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
