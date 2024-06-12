@@ -78,7 +78,19 @@ page 1931 "Performance Profiles"
                     Caption = 'Schedule ID';
                     ToolTip = 'Specifies the ID of the schedule that was used to profile the activity.';
                     TableRelation = "Performance Profile Scheduler"."Schedule ID";
-                    DrillDownPageId = "Perf. Profiler Schedule Card";
+                    DrillDown = true;
+
+                    trigger OnDrillDown()
+                    var
+                        PerfProfileSchedule: Record "Performance Profile Scheduler";
+                        PerfProfileScheduleCard: Page "Perf. Profiler Schedule Card";
+                    begin
+                        if not PerfProfileSchedule.Get(Rec."Schedule ID") then
+                            exit;
+
+                        PerfProfileScheduleCard.SetRecord(PerfProfileSchedule);
+                        PerfProfileScheduleCard.Run();
+                    end;
                 }
             }
         }
@@ -150,9 +162,12 @@ page 1931 "Performance Profiles"
                 var
                     SampPerfProfilerImplCodeunit: Codeunit "Sampling Perf. Profiler Impl.";
                     FileName: Text;
+                    ProfileInStream: InStream;
                 begin
                     FileName := StrSubstNo(ProfileFileNameTxt, Rec."Activity ID", Rec."Client Session ID") + ProfileFileExtensionTxt;
-                    SampPerfProfilerImplCodeunit.DownloadData(FileName, SampPerfProfilerImplCodeunit.GetData());
+                    Rec.CalcFields(Profile);
+                    Rec.Profile.CreateInStream(ProfileInStream);
+                    SampPerfProfilerImplCodeunit.DownloadData(FileName, ProfileInStream);
                 end;
             }
         }
@@ -181,7 +196,7 @@ page 1931 "Performance Profiles"
 
     local procedure MapClientTypeToActivityType()
     begin
-        rec.CalcFields(rec."Client Type");
+        Rec.CalcFields(Rec."Client Type");
         PerformanceProfileHelper.MapClientTypeToActivityType(rec."Client Type", ActivityType);
     end;
 
