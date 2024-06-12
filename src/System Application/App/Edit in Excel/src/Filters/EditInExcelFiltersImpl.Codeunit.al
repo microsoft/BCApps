@@ -184,7 +184,7 @@ codeunit 1491 "Edit in Excel Filters Impl."
         if PageControlField.IsEmpty() then
             if not IsKey(PageNumber, ExternalTableFieldName) then begin
                 Session.LogMessage('0000I5U', FieldNotOnThePageTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EditInExcelTelemetryCategoryTxt);
-                if not FilterErrors.ContainsKey(ExternalTableFieldName) then
+                if not FilterErrors.ContainsKey(FieldAlName) then
                     FilterErrors.Add(FieldAlName, true);
                 exit(false);
             end;

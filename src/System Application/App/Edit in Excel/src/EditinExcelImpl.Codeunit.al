@@ -43,7 +43,7 @@ codeunit 1482 "Edit in Excel Impl."
         CreateEndpointForObjectTxt: Label 'Creating endpoint for %1 %2.', Locked = true;
         EditInExcelHandledTxt: Label 'Edit in excel has been handled.', Locked = true;
         EditInExcelOnlySupportPageWebServicesTxt: Label 'Edit in Excel only support web services created from pages.', Locked = true;
-        EditInExcelInvalidFilterErr: Label 'We had to remove the filters applied to the following fields, because they are not available in the Office Add-In. Please notice that as a result of this the number of rows you exported to Excel could vary.\ %1', Locked = true;
+        EditInExcelInvalidFilterErr: Label 'We had to remove the filters applied to the following fields, because they are not available in the Office Add-In. Please notice that as a result of this the number of rows you exported to Excel could vary.\ %1', Comment = '%1 = The field filters we had to remove because they are not exposed through OData';
         DialogTitleTxt: Label 'Export';
         ExcelFileNameTxt: Text;
         XmlByteEncodingTok: Label '_x00%1_%2', Locked = true;
@@ -874,7 +874,7 @@ codeunit 1482 "Edit in Excel Impl."
             exit;
         end;
         if FilterErrors.Count() > 0 then
-            Message(StrSubstNo(EditInExcelInvalidFilterErr, FormatFilterErrors(FilterErrors)));
+            Message(EditInExcelInvalidFilterErr, FormatFilterErrors(FilterErrors));
         GetEndPointAndCreateWorkbookWStructuredFilter(ServiceName, EditinExcelFilters, SearchString);
     end;
 
