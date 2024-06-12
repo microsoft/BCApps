@@ -41,6 +41,11 @@ page 132525 "Edit in Excel List"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the Record ID';
                 }
+                field("Country/Region Code"; Rec.Id)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the Record ID';
+                }
             }
         }
     }
