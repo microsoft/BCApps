@@ -13,6 +13,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     Access = Internal;
 
     var
+        GlobalAITTestSuite: Record "AIT Test Suite";
         AITTRunStartedLbl: Label 'AI Test Suite run started.', Locked = true;
         AITTRunFinishedLbl: Label 'AI Test Suite run finished.', Locked = true;
         AITTRunCancelledLbl: Label 'AI Test Suite run cancelled.', Locked = true;
@@ -21,13 +22,9 @@ codeunit 149034 "AIT Test Suite Mgt."
         NoInputsInSuiteErr: Label 'The dataset %1 specified for AIT Suite %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the AIT Suite code.';
         NoDatasetInLineErr: Label 'The dataset %1 specified for AIT Line %2 does not exist.', Comment = '%1 is the Dataset name, %2 is AIT Line No.';
         NoInputsInLineErr: Label 'The dataset %1 specified for AIT line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the AIT Line No.';
-        AITTestSuite: Record "AIT Test Suite";
         ScenarioStarted: Dictionary of [Text, DateTime];
         ScenarioOutput: Dictionary of [Text, Text];
         ScenarioNotStartedErr: Label 'Scenario %1 in codeunit %2 was not started.', Comment = '%1 = method name, %2 = codeunit name';
-        TestSuiteAlreadyExistsErr: Label 'Test suite with %1 %2 already exists.', Comment = '%1 - field caption, %2 - field value';
-        TestSuiteNotFoundErr: Label 'Test suite with %1 %2 does not exist.', Comment = '%1 - field caption, %2 - field value';
-        TestSuiteLineNotFoundErr: Label 'Test suite line with %1 %2 and %3 %4 does not exist.', Comment = '%1 - field caption, %2 - field value, %3 - field caption, %4 - field value';
 
     procedure DecreaseNoOfTestsRunningNow(var AITTestSuite: Record "AIT Test Suite")
     begin
@@ -191,12 +188,12 @@ codeunit 149034 "AIT Test Suite Mgt."
         end;
 
         if Rec."Min. User Delay (ms)" = 0 then
-            Rec."Min. User Delay (ms)" := this.AITTestSuite."Default Min. User Delay (ms)";
+            Rec."Min. User Delay (ms)" := this.GlobalAITTestSuite."Default Min. User Delay (ms)";
         if Rec."Max. User Delay (ms)" = 0 then
-            Rec."Max. User Delay (ms)" := this.AITTestSuite."Default Max. User Delay (ms)";
+            Rec."Max. User Delay (ms)" := this.GlobalAITTestSuite."Default Max. User Delay (ms)";
 
-        if Rec."Test Suite Code" <> this.AITTestSuite.Code then
-            if this.AITTestSuite.Get(Rec."Test Suite Code") then;
+        if Rec."Test Suite Code" <> this.GlobalAITTestSuite.Code then
+            if this.GlobalAITTestSuite.Get(Rec."Test Suite Code") then;
     end;
 
     procedure Indent(var AITTestMethodLine: Record "AIT Test Method Line")
@@ -287,12 +284,12 @@ codeunit 149034 "AIT Test Suite Mgt."
             EntryWasModified := true;
 
         AITTestMethodLine.Testfield("Test Suite Code");
-        AITTestRunnerImpl.GetAITTestSuite(this.AITTestSuite);
+        AITTestRunnerImpl.GetAITTestSuite(this.GlobalAITTestSuite);
         Clear(AITLogEntry);
-        AITLogEntry.RunID := this.AITTestSuite.RunID;
+        AITLogEntry.RunID := this.GlobalAITTestSuite.RunID;
         AITLogEntry."AIT Code" := AITTestMethodLine."Test Suite Code";
         AITLogEntry."AIT Line No." := AITTestMethodLine."Line No.";
-        AITLogEntry.Version := this.AITTestSuite.Version;
+        AITLogEntry.Version := this.GlobalAITTestSuite.Version;
         AITLogEntry."Codeunit ID" := AITTestMethodLine."Codeunit ID";
         AITLogEntry.Operation := CopyStr(ModifiedOperation, 1, MaxStrLen(AITLogEntry.Operation));
         AITLogEntry."Orig. Operation" := CopyStr(Operation, 1, MaxStrLen(AITLogEntry."Orig. Operation"));

@@ -45,7 +45,7 @@ codeunit 149036 "AIT Start Tests"
 
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ");
 
-        if AITTestMethodLine.FindSet() then begin
+        if AITTestMethodLine.FindSet() then
             repeat
                 AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Running);
                 AITTestMethodLine.Modify();
@@ -57,7 +57,6 @@ codeunit 149036 "AIT Start Tests"
                     Commit();
                 end;
             until AITTestMethodLine.Next() = 0;
-        end;
     end;
 
     internal procedure StartAITSuite(var AITTestSuite: Record "AIT Test Suite")
