@@ -221,6 +221,35 @@ codeunit 132526 "Edit in Excel Filters Test"
     end;
 
     [Test]
+    procedure TestEditInExcelDoNotRemoveFilterWhenFieldIsNotExposedOnPageButIsKey()
+    var
+        EditinExcelTestLibrary: Codeunit "Edit in Excel Test Library";
+        EditinExcelFilters: Codeunit "Edit in Excel Filters";
+        JsonFilter: Text;
+        JsonPayload: Text;
+        FilterJsonObject: JsonObject;
+        PayloadJsonObject: JsonObject;
+        FieldFilters: DotNet GenericDictionary2;
+    begin
+        // [Scenario] User clicks "Edit in Excel" without choosing additional filters. BC sends the default date filter
+
+        // [Given] A Json Structured filter and Payload, TenantWebservice exist and is enabled
+        JsonFilter := '{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":{"type":"Edm.String constant","value":"01121212"}}';
+        JsonPayload := '{ "fieldPayload": { "Id": { "alName": "Id", "validInODataFilter": true, "edmType": "Edm.String" }}}';
+        LibraryAssert.IsTrue(FilterJsonObject.ReadFrom(JsonFilter), 'Could not read json filter');
+        LibraryAssert.IsTrue(PayloadJsonObject.ReadFrom(JsonPayload), 'Could not read json payload');
+
+        // [When] Edit in Excel filters are created
+        EditinExcelTestLibrary.ReadFromJsonFilters(EditinExcelFilters, FilterJsonObject, PayloadJsonObject, Page::"Edit in Excel List 2");
+
+        // [Then] The filters match expectations
+        EditinExcelTestLibrary.GetFilters(EditinExcelFilters, FieldFilters);
+
+        LibraryAssert.IsFalse(IsNull(FieldFilters), 'No field filters created.');
+        LibraryAssert.AreEqual(1, FieldFilters.Count(), 'The field "Id" is filtered out despite being a key in the underlying table.');
+    end;
+
+    [Test]
     procedure TestEditInExcelStructuredFilterSingleFilter()
     var
         EditinExcelTestLibrary: Codeunit "Edit in Excel Test Library";
