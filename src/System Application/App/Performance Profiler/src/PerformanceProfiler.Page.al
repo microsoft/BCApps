@@ -168,12 +168,11 @@ page 24 "Performance Profiler"
 
                 trigger OnAction()
                 var
-                    ToFile: Text;
+                    FileName: Text;
+                    SampPerfProfilerImplCodeunit: Codeunit "Sampling Perf. Profiler Impl.";
                 begin
-                    if not Confirm(PrivacyNoticeMsg) then
-                        exit;
-                    ToFile := StrSubstNo(ProfileFileNameTxt, SessionId()) + ProfileFileExtensionTxt;
-                    DownloadFromStream(SamplingPerformanceProfiler.GetData(), '', '', '', ToFile);
+                    FileName := StrSubstNo(ProfileFileNameTxt, SessionId()) + ProfileFileExtensionTxt;
+                    SampPerfProfilerImplCodeunit.DownloadData(FileName, SamplingPerformanceProfiler.GetData());
                 end;
             }
             action(ShareToOneDrive)
@@ -357,6 +356,5 @@ page 24 "Performance Profiler"
         ProfileFileNameTxt: Label 'PerformanceProfile_Session%1', Locked = true;
         ProfileFileExtensionTxt: Label '.alcpuprofile', Locked = true;
         PerformanceProfilingFeatureTxt: Label 'Performance Profiling', Locked = true;
-        PrivacyNoticeMsg: Label 'The file might contain sensitive data, so be sure to handle it securely and according to privacy requirements. Do you want to continue?';
         SamplingIntervalChoiceTxt: Label 'Choose the sampling interval of the performance profiler. Smaller intervals will result in more precise timings, but it might result in higher load of the system.';
 }

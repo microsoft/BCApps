@@ -95,6 +95,11 @@ page 1931 "Performance Profiles"
             actionref(Refresh; RefreshPage)
             {
             }
+
+            actionref(DownloadProfile; Download)
+            {
+
+            }
         }
 
         area(Navigation)
@@ -132,6 +137,24 @@ page 1931 "Performance Profiles"
                     Update();
                 end;
             }
+
+            action(Download)
+            {
+                ApplicationArea = All;
+                Image = Download;
+                Enabled = Rec."Activity ID" <> '';
+                Caption = 'Download';
+                ToolTip = 'Download the performance profile file.';
+
+                trigger OnAction()
+                var
+                    FileName: Text;
+                    SampPerfProfilerImplCodeunit: Codeunit "Sampling Perf. Profiler Impl.";
+                begin
+                    FileName := StrSubstNo(ProfileFileNameTxt, Rec."Activity ID", Rec."Client Session ID") + ProfileFileExtensionTxt;
+                    SampPerfProfilerImplCodeunit.DownloadData(FileName, SampPerfProfilerImplCodeunit.GetData());
+                end;
+            }
         }
     }
 
@@ -161,7 +184,10 @@ page 1931 "Performance Profiles"
         rec.CalcFields(rec."Client Type");
         PerformanceProfileHelper.MapClientTypeToActivityType(rec."Client Type", ActivityType);
     end;
+
     var
         PerformanceProfileHelper: Codeunit "Performance Profile Helper";
         ActivityType: Enum "Activity Type";
+        ProfileFileNameTxt: Label 'PerformanceProfile_Activity%1_Session%2', Locked = true;
+        ProfileFileExtensionTxt: Label '.alcpuprofile', Locked = true;
 }
