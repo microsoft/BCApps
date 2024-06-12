@@ -10,7 +10,7 @@ controladdin FlowIntegration
 {
     ObsoleteState = Pending;
     ObsoleteTag = '25.0';
-    ObsoleteReason = 'This add-in is deprecated.';
+    ObsoleteReason = 'This add-in is deprecated. There is no replacement. Power Automate is supported natively without add-ins.';
     RequestedHeight = 600;
     MinimumHeight = 600;
     RequestedWidth = 320;
