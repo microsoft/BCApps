@@ -9,10 +9,11 @@ controladdin PowerBIManagement
 {
     RequestedHeight = 320;
     MinimumHeight = 180;
-    RequestedWidth = 300;
-    MinimumWidth = 200;
     VerticalStretch = true;
     VerticalShrink = true;
+
+    RequestedWidth = 300;
+    MinimumWidth = 200;
     HorizontalStretch = true;
     HorizontalShrink = true;
 
@@ -59,23 +60,26 @@ controladdin PowerBIManagement
     /// </summary>
     event ReportVisualLoaded(CorrelationId: Text);
 
-#pragma warning disable AS0105
+#if not CLEAN25
     /// <summary>
     /// Initializes the Power BI Embed into the page
     /// </summary>
     [Obsolete('This method is deprecated. Please use EmbedReport instead.', '24.0')]
     procedure InitializeReport(ReportLink: Text; ReportId: Text; AuthToken: Text; PowerBIApi: Text);
-#pragma warning restore AS0105
+#endif
 
     /// <summary>
     /// Initializes the Power BI embed Report into the page
     /// </summary>
     procedure EmbedReport(ReportLink: Text; ReportId: Text; AuthToken: Text; PageName: Text);
 
+#if not CLEAN25
     /// <summary>
     /// Initializes the Power BI embed Report into the page, with additional options
     /// </summary>
+    [Obsolete('Use SetSettings and then EmbedReport instead.', '25.0')]
     procedure EmbedReportWithOptions(ReportLink: Text; ReportId: Text; AuthToken: Text; PageName: Text; ShowPanes: Boolean);
+#endif
 
     /// <summary>
     /// Initializes the Power BI embed Dashboard into the page
@@ -92,15 +96,19 @@ controladdin PowerBIManagement
     /// </summary>
     procedure EmbedReportVisual(ReportVisualLink: Text; ReportId: Text; PageName: Text; VisualName: Text; AuthToken: Text);
 
+#if not CLEAN25
     /// <summary>
     /// Changes the current mode into View
     /// </summary>
+    [Obsolete('Switching between edit more and view mode is no longer supported. Only view mode will be supported going forward.', '25.0')]
     procedure ViewMode();
 
     /// <summary>
     /// Changes the current mode into Edit
     /// </summary>
+    [Obsolete('Switching between edit more and view mode is no longer supported. Only view mode will be supported going forward.', '25.0')]
     procedure EditMode();
+#endif
 
     /// <summary>
     /// Enters full screen mode for the current embed
@@ -141,8 +149,23 @@ controladdin PowerBIManagement
     /// <param name="pageName">The name of the new page to set as active</param>
     procedure SetPage(PageName: Text);
 
+#if not CLEAN25
     /// <summary>
     /// Sets the properties for the browser frame containing the embed
     /// </summary>
+    [Obsolete('Use SetSettings instead to choose the different embed settings separately.', '25.0')]
     procedure InitializeFrame(FullPage: Boolean; Ratio: Text);
+#endif
+
+    /// <summary>
+    /// Sets the properties for the embed experience.
+    /// </summary>
+    ///<param name="ShowBookmarkSelection">Shows the bookmark selection pane.</param>
+    ///<param name="ShowFilterSelection">Shows the filter pane to filter embed.</param>
+    ///<param name="ShowPageSelection">Shows the pane to select the report page.</param>
+    ///<param name="ShowZoomSelection">Shows the bar that allows manual zoom in and zoom out for the embed.</param>
+    ///<param name="ForceTransparentBackground">Forces a transparent background to the embed.</param>
+    ///<param name="ForceFitToPage">Forces the Fit To Page behaviour for the embed.</param>
+    ///<param name="AddBottomPadding">Controls whether a padding is needed on the bottom of the page (useful in case the embed is the only element displayed on the page).</param>
+    procedure SetSettings(ShowBookmarkSelection: Boolean; ShowFilters: Boolean; ShowPageSelection: Boolean; ShowZoomBar: Boolean; ForceTransparentBackground: Boolean; ForceFitToPage: Boolean; AddBottomPadding: Boolean);
 }
