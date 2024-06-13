@@ -175,7 +175,7 @@ codeunit 9175 "User Settings Impl."
         UserPersonalization."Profile ID" := NewUserSettings."Profile ID";
 #pragma warning disable AL0432 // All profiles are now in the tenant scope
         UserPersonalization.Scope := NewUserSettings.Scope;
-#pragma warnig restore AL0432
+#pragma warning restore AL0432
         UserPersonalization."App ID" := NewUserSettings."App ID";
         UserPersonalization.Modify();
 
