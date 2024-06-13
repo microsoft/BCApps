@@ -110,12 +110,8 @@ page 149035 "AIT Test Method Lines Compare"
                             Style = Unfavorable;
 
                             trigger OnDrillDown()
-                            var
-                                AITTestSuiteRec: Record "AIT Test Suite";
                             begin
-                                AITTestSuiteRec.SetLoadFields(Version);
-                                AITTestSuiteRec.Get(Rec."Test Suite Code");
-                                FailedTestsAITLogEntryDrillDown(AITTestSuiteRec.Version);
+                                FailedTestsAITLogEntryDrillDown(Version);
                             end;
                         }
                         field("No. of Operations"; Rec."No. of Operations")
@@ -156,12 +152,8 @@ page 149035 "AIT Test Method Lines Compare"
                             ShowCaption = false;
 
                             trigger OnDrillDown()
-                            var
-                                AITTestSuiteRec: Record "AIT Test Suite";
                             begin
-                                AITTestSuiteRec.SetLoadFields("Base Version");
-                                AITTestSuiteRec.Get(Rec."Test Suite Code");
-                                FailedTestsAITLogEntryDrillDown(AITTestSuiteRec."Base Version");
+                                FailedTestsAITLogEntryDrillDown(BaseVersion);
                             end;
                         }
                         field("No. of Operations - Base"; Rec."No. of Operations - Base")

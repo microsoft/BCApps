@@ -313,6 +313,16 @@ page 149033 "AIT Log Entries"
         }
     }
 
+    var
+        ClickToShowLbl: Label 'Show data input';
+        DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
+        InputText: Text;
+        OutputText: Text;
+        StatusStyleExpr: Text;
+        TestRunDuration: Duration;
+        IsFilteredToErrors: Boolean;
+        ShowSensitiveData: Boolean;
+
     trigger OnAfterGetRecord()
     begin
         this.TestRunDuration := Rec."Duration (ms)";
@@ -349,14 +359,4 @@ page 149033 "AIT Log Entries"
             this.OutputText := Rec.GetOutputBlob();
         end;
     end;
-
-    var
-        DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
-        IsFilteredToErrors: Boolean;
-        InputText: Text;
-        OutputText: Text;
-        ClickToShowLbl: Label 'Show data input';
-        TestRunDuration: Duration;
-        StatusStyleExpr: Text;
-        ShowSensitiveData: Boolean;
 }

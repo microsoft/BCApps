@@ -8,7 +8,6 @@ namespace System.TestTools.AITestToolkit;
 page 149046 "AIT Suite API"
 {
     PageType = API;
-
     APIPublisher = 'microsoft';
     APIGroup = 'aiTestToolkit';
     APIVersion = 'v1.0';
@@ -17,13 +16,10 @@ page 149046 "AIT Suite API"
     EntitySetCaption = 'AI Test Suite';
     EntityName = 'aiTestSuite';
     EntitySetName = 'aiTestSuites';
-
     SourceTable = "AIT Test Suite";
     ODataKeyFields = SystemId;
-
     Extensible = false;
     DelayedInsert = true;
-
 
     layout
     {

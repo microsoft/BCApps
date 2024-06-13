@@ -16,6 +16,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
 
     var
         RunProcedureOperationLbl: Label 'Run Procedure', Locked = true;
+        AITTestSuitePrefixLbl: Label 'AIT-', Locked = true;
 
     internal procedure GetDefaultRunProcedureOperationLbl(): Text
     begin
@@ -197,7 +198,4 @@ codeunit 149037 "AIT AL Test Suite Mgt"
                 Error(NoTestOutputFoundErr);
         end;
     end;
-
-    var
-        AITTestSuitePrefixLbl: Label 'AIT-', Locked = true;
 }

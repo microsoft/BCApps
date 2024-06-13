@@ -11,17 +11,13 @@ page 149038 "AIT Log Entry API"
     APIPublisher = 'microsoft';
     APIGroup = 'aiTestToolkit';
     APIVersion = 'v1.0';
-
     Caption = 'AI Test Logs Entries';
-
     EntityCaption = 'AI Test Logs Entry';
     EntitySetCaption = 'AI Test Log Entries';
     EntityName = 'aiTestLogEntry';
     EntitySetName = 'aitTestLogEntries';
-
     SourceTable = "AIT Log Entry";
     ODataKeyFields = SystemId;
-
     Extensible = false;
     DelayedInsert = true;
 

@@ -12,17 +12,13 @@ page 149037 "AIT Suite Line API"
     APIPublisher = 'microsoft';
     APIGroup = 'aiTestToolkit';
     APIVersion = 'v1.0';
-
     Caption = 'AI Test Suite Lines';
-
     EntityCaption = 'AI Test Suite Line';
     EntitySetCaption = 'AI Test Suite Lines';
     EntityName = 'aiTestSuiteLine';
     EntitySetName = 'aiTestSuiteLines';
-
     SourceTable = "AIT Test Method Line";
     ODataKeyFields = SystemId;
-
     Extensible = false;
     DelayedInsert = true;
 

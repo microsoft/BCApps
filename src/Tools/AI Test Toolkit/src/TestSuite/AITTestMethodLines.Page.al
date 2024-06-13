@@ -272,6 +272,7 @@ page 149034 "AIT Test Method Lines"
             }
         }
     }
+
     var
         AITTestSuite: Record "AIT Test Suite";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
