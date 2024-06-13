@@ -37,7 +37,7 @@ page 130461 "Test Outputs"
                 {
                     ApplicationArea = All;
                     Caption = 'Test Output';
-                    ToolTip = 'Test output for the test method line';
+                    ToolTip = 'Specifies the test output for the test method line';
                     Editable = false;
                     trigger OnDrillDown()
                     begin

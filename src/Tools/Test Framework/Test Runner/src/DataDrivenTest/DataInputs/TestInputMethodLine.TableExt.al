@@ -19,7 +19,7 @@ tableextension 130458 "Test Input Method Line" extends "Test Method Line"
         field(1001; "Data Input"; Code[100])
         {
             Caption = 'Data Input';
-            ToolTip = 'Data input code for the test method line';
+            ToolTip = 'Specifies the data input code for the test method line';
             DataClassification = CustomerContent;
             TableRelation = "Test Input".Code where("Test Input Group Code" = field("Data Input Group Code"));
         }

@@ -17,7 +17,7 @@ pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Too
             {
                 ApplicationArea = All;
                 Caption = 'Data Output';
-                ToolTip = 'Data output for the test method line';
+                ToolTip = 'Specifies the data output for the test method line';
             }
 #pragma warning disable AA0248
             field(DataInput; DataInputTxt)
@@ -25,7 +25,7 @@ pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Too
             {
                 ApplicationArea = All;
                 Caption = 'Data Input';
-                ToolTip = 'Data input for the test method line';
+                ToolTip = 'Specifies the data input for the test method line';
 
                 trigger OnValidate()
                 var
@@ -50,6 +50,8 @@ pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Too
                 ApplicationArea = All;
                 Caption = 'Get Data Output';
                 ToolTip = 'Specifies the action for invoking GetDataOutput procedure';
+                Image = DataEntry;
+
                 trigger OnAction()
                 var
                     TestOutput: Codeunit "Test Output";
@@ -66,6 +68,8 @@ pageextension 130452 "DDT Command Line Test Tool" extends "Command Line Test Too
                 ApplicationArea = All;
                 Caption = 'Clear Data Output';
                 ToolTip = 'Specifies the action for invoking ClearDataOutput procedure';
+                Image = Delete;
+
                 trigger OnAction()
                 var
                     TestOutput: Codeunit "Test Output";

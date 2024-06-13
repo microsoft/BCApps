@@ -36,7 +36,7 @@ page 130459 "Test Input Part"
                 {
                     ApplicationArea = All;
                     Caption = 'Test Input';
-                    ToolTip = 'Data input for the test method line';
+                    ToolTip = 'Specifies the data input for the test method line';
 
                     trigger OnDrillDown()
                     begin

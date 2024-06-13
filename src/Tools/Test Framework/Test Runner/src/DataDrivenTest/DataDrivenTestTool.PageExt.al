@@ -20,7 +20,7 @@ pageextension 130451 "Data Driven Test Tool" extends "AL Test Tool"
                 Visible = DataInputVisible;
 #pragma warning restore AA0248
                 Caption = 'Data Input';
-                ToolTip = 'Data input for the test method line';
+                ToolTip = 'Specifies the data input for the test method line';
                 Editable = false;
             }
         }
