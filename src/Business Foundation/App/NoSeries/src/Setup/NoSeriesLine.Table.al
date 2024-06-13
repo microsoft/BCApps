@@ -131,6 +131,16 @@ table 309 "No. Series Line"
             Caption = 'Temporary Sequence Number';
             DataClassification = SystemMetadata;
             Access = Internal;
+            ObsoleteReason = 'This field is replaced by field 16 - "Temp. Current Sequence No.".';
+            ObsoleteTag = '24.0';
+            ObsoleteState = Removed;
+        }
+        field(16; "Temp. Current Sequence No."; BigInteger)
+        {
+            Caption = 'Temporary Sequence Number';
+            Description = 'The field should only have value during runtime';
+            DataClassification = SystemMetadata;
+            Access = Internal;
         }
     }
 
