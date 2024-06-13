@@ -138,7 +138,7 @@ table 309 "No. Series Line"
         field(16; "Temp. Current Sequence No."; BigInteger)
         {
             Caption = 'Temporary Sequence Number';
-            Description = 'The field should only have value during runtime';
+            Description = 'This field holds the next sequence number during batching for sequences. It is only used during runtime and no values will be stored in the database.';
             DataClassification = SystemMetadata;
             Access = Internal;
         }
