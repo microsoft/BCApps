@@ -270,6 +270,31 @@ page 149031 "AIT Test Suite"
                     this.AITTestSuiteCU.ResetStatus(Rec);
                 end;
             }
+
+            action(Compare)
+            {
+                ApplicationArea = All;
+                Caption = 'Compare Versions';
+                Image = CompareCOA;
+                ToolTip = 'Compare results of the suite to a base version.';
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    TemporaryAITTestSuiteRec: Record "AIT Test Suite" temporary;
+                    AITTestSuiteComparePage: Page "AIT Test Suite Compare";
+                begin
+                    TemporaryAITTestSuiteRec.Code := Rec.Code;
+                    TemporaryAITTestSuiteRec.Version := Rec.Version;
+                    TemporaryAITTestSuiteRec."Base Version" := Rec."Version" - 1;
+                    TemporaryAITTestSuiteRec.Insert();
+
+                    AITTestSuiteComparePage.SetBaseVersion(Rec."Version" - 1);
+                    AITTestSuiteComparePage.SetVersion(Rec.Version);
+                    AITTestSuiteComparePage.SetRecord(TemporaryAITTestSuiteRec);
+                    AITTestSuiteComparePage.Run();
+                end;
+            }
         }
         area(Navigation)
         {

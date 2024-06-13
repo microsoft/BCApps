@@ -5,11 +5,12 @@
 
 namespace System.TestTools.AITestToolkit;
 
-page 149035 "AIT Test Method Lines Compare"
+page 149036 "AIT Test Suite Compare"
 {
     PageType = Card;
     ApplicationArea = All;
-    SourceTable = "AIT Test Method Line";
+    SourceTable = "AIT Test Suite";
+    SourceTableTemporary = true;
     ModifyAllowed = false;
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -87,7 +88,7 @@ page 149035 "AIT Test Method Lines Compare"
                     }
                     group("Latest Version")
                     {
-                        field("No. of Tests"; Rec."No. of Tests")
+                        field("No. of Tests"; Rec."No. of Tests Executed")
                         {
                             Tooltip = 'Specifies the number of tests in this Line';
                             ApplicationArea = All;
@@ -100,7 +101,7 @@ page 149035 "AIT Test Method Lines Compare"
                             ToolTip = 'Specifies the number of tests passed in the current Version.';
                             ShowCaption = false;
                         }
-                        field("No. of Tests Failed"; Rec."No. of Tests" - Rec."No. of Tests Passed")
+                        field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
                         {
                             Editable = false;
                             ApplicationArea = All;
@@ -129,7 +130,7 @@ page 149035 "AIT Test Method Lines Compare"
                     }
                     group("Base Version")
                     {
-                        field("No. of Tests - Base"; Rec."No. of Tests - Base")
+                        field("No. of Tests - Base"; Rec."No. of Tests Executed - Base")
                         {
                             Tooltip = 'Specifies the number of tests in this Line for the base version.';
                             ApplicationArea = All;
@@ -142,7 +143,7 @@ page 149035 "AIT Test Method Lines Compare"
                             Style = Favorable;
                             ShowCaption = false;
                         }
-                        field("No. of Tests Failed - Base"; Rec."No. of Tests - Base" - Rec."No. of Tests Passed - Base")
+                        field("No. of Tests Failed - Base"; Rec."No. of Tests Executed - Base" - Rec."No. of Tests Passed - Base")
                         {
                             Editable = false;
                             ApplicationArea = All;
@@ -162,7 +163,7 @@ page 149035 "AIT Test Method Lines Compare"
                             ToolTip = 'Specifies the number of operations in the base Version.';
                             ShowCaption = false;
                         }
-                        field(DurationBase; Rec."Total Duration - Base (ms)")
+                        field(DurationBase; Rec."Total Duration (ms) - Base")
                         {
                             ToolTip = 'Specifies Total Duration of the AIT for this role for the base version.';
                             Caption = 'Total Duration Base (ms)';
@@ -196,9 +197,9 @@ page 149035 "AIT Test Method Lines Compare"
 
     local procedure UpdateVersionFilter()
     begin
-        Rec.SetRange("Version Filter", this.Version);
-        Rec.SetRange("Base Version Filter", this.BaseVersion);
-        CurrPage.Update(false);
+        Rec.Version := this.Version;
+        Rec."Base Version" := this.BaseVersion;
+        CurrPage.Update();
     end;
 
     local procedure FailedTestsAITLogEntryDrillDown(VersionNo: Integer) // TODO: Move to codeunit
@@ -207,9 +208,8 @@ page 149035 "AIT Test Method Lines Compare"
         AITLogEntry: Page "AIT Log Entries";
     begin
         AITLogEntries.SetFilterForFailedTestProcedures();
-        AITLogEntries.SetRange("AIT Code", Rec."Test Suite Code");
+        AITLogEntries.SetRange("AIT Code", Rec.Code);
         AITLogEntries.SetRange(Version, VersionNo);
-        AITLogEntries.SetRange("AIT Line No.", Rec."Line No.");
         AITLogEntry.SetTableView(AITLogEntries);
         AITLogEntry.Run();
     end;

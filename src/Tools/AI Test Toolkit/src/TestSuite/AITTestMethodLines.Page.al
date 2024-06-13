@@ -261,10 +261,10 @@ page 149034 "AIT Test Method Lines"
                     if not AITTestMethodLine.FindFirst() then
                         Error(NoLineSelectedErr);
 
-                    AITTestSuiteRec.SetLoadFields(Version, "Base Version");
+                    AITTestSuiteRec.SetLoadFields(Version);
                     AITTestSuiteRec.Get(Rec."Test Suite Code");
 
-                    AITTestMethodLineComparePage.SetBaseVersion(AITTestSuiteRec."Base Version");
+                    AITTestMethodLineComparePage.SetBaseVersion(AITTestSuiteRec.Version - 1);
                     AITTestMethodLineComparePage.SetVersion(AITTestSuiteRec.Version);
                     AITTestMethodLineComparePage.SetRecord(AITTestMethodLine);
                     AITTestMethodLineComparePage.Run();
