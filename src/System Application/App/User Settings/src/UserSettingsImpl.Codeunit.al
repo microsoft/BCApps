@@ -107,7 +107,9 @@ codeunit 9175 "User Settings Impl."
         UserSettingsRec."User ID" := UserPersonalization."User ID";
         UserSettingsRec."Profile ID" := UserPersonalization."Profile ID";
         UserSettingsRec."App ID" := UserPersonalization."App ID";
+#pragma warning disable AL0432 // All profiles are now in the tenant scope
         UserSettingsRec.Scope := UserPersonalization.Scope;
+#pragma warning restore AL0432
 
         if UserSettingsRec."Profile ID" = '' then begin
             AllProfile.SetRange("Default Role Center", true);
@@ -116,9 +118,7 @@ codeunit 9175 "User Settings Impl."
                 UserSettings.OnGetDefaultProfile(AllProfile);
                 UserSettingsRec."Profile ID" := AllProfile."Profile ID";
                 UserSettingsRec."App ID" := AllProfile."App ID";
-#pragma warning disable AL0432 // All profiles are now in the tenant scope
                 UserSettingsRec.Scope := AllProfile.Scope;
-#pragma warning restore AL0432
             end;
         end;
 
