@@ -34,9 +34,9 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
     begin
         if (not NoSeriesLine.IsTemporary()) and (NoSeriesLine."Last Date Used" <> UsageDate) then begin
             NoSeriesLine.ReadIsolation(IsolationLevel::UpdLock);
-            TempCurrentSequenceNo := NoSeriesLine."Temp Current Sequence No.";
+            TempCurrentSequenceNo := NoSeriesLine."Temp. Current Sequence No.";
             NoSeriesLine.Find();
-            NoSeriesLine."Temp Current Sequence No." := TempCurrentSequenceNo;
+            NoSeriesLine."Temp. Current Sequence No." := TempCurrentSequenceNo;
         end;
 
         exit(GetNextNoInternal(NoSeriesLine, true, UsageDate, HideErrorsAndWarnings));
@@ -59,8 +59,8 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 
     local procedure GetCurrentSequenceNo(var NoSeriesLine: Record "No. Series Line") LastSeqNoUsed: BigInteger
     begin
-        if NoSeriesLine."Temp Current Sequence No." <> 0 then
-            exit(NoSeriesLine."Temp Current Sequence No.");
+        if NoSeriesLine."Temp. Current Sequence No." <> 0 then
+            exit(NoSeriesLine."Temp. Current Sequence No.");
 
         if not TryGetCurrentSequenceNo(NoSeriesLine."Sequence Name", LastSeqNoUsed) then begin
             if not NumberSequence.Exists(NoSeriesLine."Sequence Name") then
@@ -88,14 +88,14 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 #endif
         NewNo: BigInteger;
     begin
-        if NoSeriesLine.IsTemporary() or (NoSeriesLine."Temp Current Sequence No." <> 0) then begin // Do not update the database for temporary records, if Temp Current Sequence No. is set that means we are emulating the next numbers
-            if NoSeriesLine."Temp Current Sequence No." = 0 then
-                NoSeriesLine."Temp Current Sequence No." := GetCurrentSequenceNo(NoSeriesLine);
+        if NoSeriesLine.IsTemporary() or (NoSeriesLine."Temp. Current Sequence No." <> 0) then begin // Do not update the database for temporary records, if Temp Current Sequence No. is set that means we are emulating the next numbers
+            if NoSeriesLine."Temp. Current Sequence No." = 0 then
+                NoSeriesLine."Temp. Current Sequence No." := GetCurrentSequenceNo(NoSeriesLine);
 
-            NewNo := NoSeriesLine."Temp Current Sequence No." + NoSeriesLine."Increment-by No.";
+            NewNo := NoSeriesLine."Temp. Current Sequence No." + NoSeriesLine."Increment-by No.";
 
             if ModifySeries then
-                NoSeriesLine."Temp Current Sequence No." := NewNo;
+                NoSeriesLine."Temp. Current Sequence No." := NewNo;
         end else
             if not TryGetNextSequenceNo(NoSeriesLine, ModifySeries, NewNo) then begin
                 if not NumberSequence.Exists(NoSeriesLine."Sequence Name") then
@@ -337,15 +337,15 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
 
     local procedure EnsureTempCurrentSequenceNoIsReset(var NoSeriesLine: Record "No. Series Line")
     begin
-        if NoSeriesLine."Temp Current Sequence No." = 0 then
+        if NoSeriesLine."Temp. Current Sequence No." = 0 then
             exit;
 
         if NoSeriesLine.Implementation = "No. Series Implementation"::Sequence then begin
             Session.LogMessage('0000MI6', UpdatingSequenceBasedOnTempValueTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', NoSeriesSequenceTxt);
-            RecreateNoSeriesWithLastUsedNo(NoSeriesLine, NoSeriesLine."Temp Current Sequence No.");
+            RecreateNoSeriesWithLastUsedNo(NoSeriesLine, NoSeriesLine."Temp. Current Sequence No.");
         end;
 
 
-        NoSeriesLine."Temp Current Sequence No." := 0; // Always reset the temporary sequence number!
+        NoSeriesLine."Temp. Current Sequence No." := 0; // Always reset the temporary sequence number!
     end;
 }
