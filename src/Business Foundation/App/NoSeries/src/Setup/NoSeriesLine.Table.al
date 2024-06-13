@@ -132,8 +132,10 @@ table 309 "No. Series Line"
             DataClassification = SystemMetadata;
             Access = Internal;
             ObsoleteReason = 'This field is replaced by field 16 - "Temp. Current Sequence No.".';
-            ObsoleteTag = '24.0';
+#pragma warning disable AS0115
             ObsoleteState = Removed;
+            ObsoleteTag = '25.0';
+#pragma warning restore AS0115
         }
         field(16; "Temp. Current Sequence No."; BigInteger)
         {
