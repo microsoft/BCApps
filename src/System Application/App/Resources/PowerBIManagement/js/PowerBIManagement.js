@@ -471,7 +471,7 @@ function GetErrorMessage(error) {
 
 function ValidatePowerBIHost(embedUrl) {
     var urlHost = GetHost(embedUrl);
-    if (!urlHost.endsWith(".powerbi.com") && !urlHost.endsWith('analysis-df.windows.net')) {
+    if (!urlHost.endsWith(".powerbi.com") && !urlHost.endsWith('.analysis-df.windows.net')) {
         var errorMsg = 'The host "' + urlHost + '" is not a valid Power BI host.';
         ProcessError('InvalidHost', errorMsg);
         throw new Error(errorMsg);

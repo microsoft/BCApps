@@ -146,7 +146,7 @@ controladdin PowerBIManagement
     /// <summary>
     /// Initializes the Power BI Embed into the page
     /// </summary>
-    [Obsolete('Use SetSettings, SetToken and then EmbedReport instead.', '25.0')]
+    [Obsolete('Use SetSettings, SetToken and then EmbedReport instead.', '24.0')]
     procedure InitializeReport(ReportLink: Text; ReportId: Text; AuthToken: Text; PowerBIApi: Text);
 
     /// <summary>
