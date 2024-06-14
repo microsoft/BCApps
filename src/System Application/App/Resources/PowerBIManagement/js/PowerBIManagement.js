@@ -142,6 +142,7 @@ function InitializeFrame(fullpage, ratio) {
 
 function EmbedPowerBIReport(reportLink, reportId, pageName) {
     ClearEmbedGlobals();
+    ValidatePowerBIHost(reportLink);
 
     var embedConfiguration = InitializeEmbedConfig();
     embedConfiguration.type = 'report';
@@ -207,6 +208,7 @@ function EmbedPowerBIReport(reportLink, reportId, pageName) {
 
 function EmbedPowerBIDashboard(dashboardLink, dashboardId) {
     ClearEmbedGlobals();
+    ValidatePowerBIHost(dashboardLink);
 
     var embedConfiguration = InitializeEmbedConfig();
     embedConfiguration.type = 'dashboard';
@@ -229,6 +231,7 @@ function EmbedPowerBIDashboard(dashboardLink, dashboardId) {
 
 function EmbedPowerBIDashboardTile(dashboardTileLink, dashboardId, tileId) {
     ClearEmbedGlobals();
+    ValidatePowerBIHost(dashboardTileLink);
 
     var embedConfiguration = InitializeEmbedConfig();
     embedConfiguration.type = 'tile';
@@ -252,6 +255,7 @@ function EmbedPowerBIDashboardTile(dashboardTileLink, dashboardId, tileId) {
 
 function EmbedPowerBIReportVisual(reportVisualLink, reportId, pageName, visualName) {
     ClearEmbedGlobals();
+    ValidatePowerBIHost(reportVisualLink);
 
     var embedConfiguration = InitializeEmbedConfig();
     embedConfiguration.type = 'visual';
@@ -462,5 +466,14 @@ function GetErrorMessage(error) {
         return error.detail.message;
     }
 
-    return '';
+    return error.toString();
+}
+
+function ValidatePowerBIHost(embedUrl) {
+    var urlHost = GetHost(embedUrl);
+    if (!urlHost.endsWith(".powerbi.com") && !urlHost.endsWith('analysis-df.windows.net')) {
+        var errorMsg = 'The host "' + urlHost + '" is not a valid Power BI host.';
+        ProcessError('InvalidHost', errorMsg);
+        throw new Error(errorMsg);
+    }
 }
