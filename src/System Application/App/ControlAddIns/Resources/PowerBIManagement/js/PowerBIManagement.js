@@ -11,6 +11,7 @@ var embed = null;
 var activePage = null;
 var settingsObject = null;
 var models = null;
+var pbiAuthToken = null;
 
 function Initialize() {
     models = window['powerbi-client'].models;
@@ -58,6 +59,30 @@ function InitializeReport(reportLink, reportId, authToken, powerBIEnv) {
 function EmbedReportWithOptions(reportLink, reportId, authToken, pageName, showPanes) {
     // OBSOLETE
     EmbedReport(reportLink, reportId, authToken, pageName)
+}
+
+function EmbedReport(reportLink, reportId, authToken, pageName) {
+    // OBSOLETE
+    pbiAuthToken = authToken;
+    EmbedPowerBIReport(reportLink, reportId, pageName);
+}
+
+function EmbedDashboard(dashboardLink, dashboardId, authToken) {
+    // OBSOLETE
+    pbiAuthToken = authToken;
+    EmbedPowerBIDashboard(dashboardLink, dashboardId);
+}
+
+function EmbedDashboardTile(dashboardTileLink, dashboardId, tileId, authToken) {
+    // OBSOLETE
+    pbiAuthToken = authToken;
+    EmbedPowerBIDashboardTile(dashboardTileLink, dashboardId, tileId);
+}
+
+function EmbedReportVisual(reportVisualLink, reportId, pageName, visualName, authToken) {
+    // OBSOLETE
+    pbiAuthToken = authToken;
+    EmbedPowerBIReportVisual(reportVisualLink, reportId, pageName, visualName);
 }
 
 function ViewMode() {
@@ -115,10 +140,10 @@ function InitializeFrame(fullpage, ratio) {
 
 // Exposed Functions
 
-function EmbedReport(reportLink, reportId, authToken, pageName) {
+function EmbedPowerBIReport(reportLink, reportId, pageName) {
     ClearEmbedGlobals();
 
-    var embedConfiguration = InitializeEmbedConfig(authToken);
+    var embedConfiguration = InitializeEmbedConfig();
     embedConfiguration.type = 'report';
     embedConfiguration.id = SanitizeId(reportId);
     embedConfiguration.embedUrl = reportLink;
@@ -180,10 +205,10 @@ function EmbedReport(reportLink, reportId, authToken, pageName) {
     });
 }
 
-function EmbedDashboard(dashboardLink, dashboardId, authToken) {
+function EmbedPowerBIDashboard(dashboardLink, dashboardId) {
     ClearEmbedGlobals();
 
-    var embedConfiguration = InitializeEmbedConfig(authToken);
+    var embedConfiguration = InitializeEmbedConfig();
     embedConfiguration.type = 'dashboard';
     embedConfiguration.id = SanitizeId(dashboardId);
     embedConfiguration.embedUrl = dashboardLink;
@@ -202,10 +227,10 @@ function EmbedDashboard(dashboardLink, dashboardId, authToken) {
     });
 }
 
-function EmbedDashboardTile(dashboardTileLink, dashboardId, tileId, authToken) {
+function EmbedPowerBIDashboardTile(dashboardTileLink, dashboardId, tileId) {
     ClearEmbedGlobals();
 
-    var embedConfiguration = InitializeEmbedConfig(authToken);
+    var embedConfiguration = InitializeEmbedConfig();
     embedConfiguration.type = 'tile';
     embedConfiguration.id = SanitizeId(tileId);
     embedConfiguration.dashboardId = SanitizeId(dashboardId);
@@ -225,10 +250,10 @@ function EmbedDashboardTile(dashboardTileLink, dashboardId, tileId, authToken) {
     });
 }
 
-function EmbedReportVisual(reportVisualLink, reportId, pageName, visualName, authToken) {
+function EmbedPowerBIReportVisual(reportVisualLink, reportId, pageName, visualName) {
     ClearEmbedGlobals();
 
-    var embedConfiguration = InitializeEmbedConfig(authToken);
+    var embedConfiguration = InitializeEmbedConfig();
     embedConfiguration.type = 'visual';
     embedConfiguration.id = SanitizeId(reportId);
     embedConfiguration.pageName = SanitizeId(pageName);
@@ -297,6 +322,10 @@ function SetPage(pageName) {
     });
 }
 
+function SetToken(authToken) {
+    pbiAuthToken = authToken;
+}
+
 function SetSettings(showBookmarkSelection, showFilters, showPageSelection, showZoomBar, forceTransparentBackground, forceFitToPage, addBottomPadding) {
     if (addBottomPadding) {
         var iframe = window.frameElement;
@@ -359,10 +388,14 @@ function ClearEmbedGlobals() {
     activePage = null;
 }
 
-function InitializeEmbedConfig(authToken) {
+function InitializeEmbedConfig() {
+    if (!pbiAuthToken || (pbiAuthToken == '')) {
+        RaiseErrorOccurred('Initialize Config', 'No token was provided');
+    }
+
     var embedConfiguration = {
         tokenType: models.TokenType.Aad,
-        accessToken: authToken,
+        accessToken: pbiAuthToken,
 
         viewMode: models.ViewMode.View,
         permissions: models.Permissions.All,
