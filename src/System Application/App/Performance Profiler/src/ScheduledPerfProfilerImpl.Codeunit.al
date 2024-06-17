@@ -78,7 +78,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
 
     procedure ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
     begin
-        if (((PerformanceProfileScheduler."Ending Date-Time" = 0DT) or (PerformanceProfileScheduler."Ending Date-Time" > CurrentDateTime())) and (PerformanceProfileScheduler."Starting Date-Time" < CurrentDateTime())) then
+        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Ending Date-Time" < CurrentDateTime())) then
             Error(ProfileCannotBeInThePastErr);
 
         if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Starting Date-Time" > PerformanceProfileScheduler."Ending Date-Time")) then
