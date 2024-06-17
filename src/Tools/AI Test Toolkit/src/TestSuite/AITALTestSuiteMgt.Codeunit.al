@@ -96,6 +96,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
     var
         TestMethodLine: Record "Test Method Line";
     begin
+        TestMethodLine.SetRange("Test Suite", AITTestMethodLine."AL Test Suite");
         if CodeunitID > 1 then
             TestMethodLine.SetRange("Test Codeunit", CodeunitID);
 
