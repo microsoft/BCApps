@@ -990,6 +990,34 @@ codeunit 134531 "No. Series Batch Tests"
         LibraryAssert.AreEqual(StrSubstNo('%1-003', WorkDate() + 1), NextNo, 'Number was not as expected');
     end;
 
+    [Test]
+    procedure TestDailyNoSeriesWithDifferentOrder()
+    var
+        NoSeriesBatch: Codeunit "No. Series - Batch";
+        NoSeriesCode: Code[20];
+        NextNo: Code[20];
+    begin
+        // [Bug 537964] No Series Line should be picked in the order of Starting Date, instead of line number
+        // [SCENARIO] When setting up a No. Series Line with a new start date each day in a different order(i.e., the line number doesn't match the order of start date), ensure that the correct number is returned for each day
+
+        Initialize();
+
+        // [GIVEN] A No Series with 3 lines starting on 3 different days 
+        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        CreateDailyNoSeriesLinesDisOrder(NoSeriesCode);
+
+        // [WHEN] We get the next number for the first starting date
+        NextNo := NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate());
+        // [THEN] the correct number is returned
+        LibraryAssert.AreEqual(StrSubstNo('%1-001', WorkDate()), NextNo, 'Number was not as expected');
+
+        // [WHEN] We get the next number for the second starting date
+        NextNo := NoSeriesBatch.GetNextNo(NoSeriesCode, WorkDate() + 1);
+        // [THEN] the correct number is returned
+        LibraryAssert.AreEqual(StrSubstNo('%1-001', WorkDate() + 1), NextNo, 'Number was not as expected');
+    end;
+
 #if not CLEAN24
 #pragma warning disable AL0432
     [Test]
@@ -1050,6 +1078,13 @@ codeunit 134531 "No. Series Batch Tests"
         LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, StrSubstNo('%1-001', WorkDate()), '', WorkDate());
         LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, StrSubstNo('%1-001', WorkDate() + 1), '', WorkDate() + 1);
         LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, StrSubstNo('%1-001', WorkDate() + 2), '', WorkDate() + 2);
+    end;
+
+    local procedure CreateDailyNoSeriesLinesDisOrder(NoSeriesCode: Code[20])
+    begin
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, StrSubstNo('%1-001', WorkDate() + 2), '', WorkDate() + 2);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, StrSubstNo('%1-001', WorkDate() + 1), '', WorkDate() + 1);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, StrSubstNo('%1-001', WorkDate()), '', WorkDate());
     end;
 
     local procedure Initialize()

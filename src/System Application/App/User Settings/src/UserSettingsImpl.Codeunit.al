@@ -107,7 +107,9 @@ codeunit 9175 "User Settings Impl."
         UserSettingsRec."User ID" := UserPersonalization."User ID";
         UserSettingsRec."Profile ID" := UserPersonalization."Profile ID";
         UserSettingsRec."App ID" := UserPersonalization."App ID";
+#pragma warning disable AL0432 // All profiles are now in the tenant scope
         UserSettingsRec.Scope := UserPersonalization.Scope;
+#pragma warning restore AL0432
 
         if UserSettingsRec."Profile ID" = '' then begin
             AllProfile.SetRange("Default Role Center", true);
@@ -171,7 +173,9 @@ codeunit 9175 "User Settings Impl."
         UserPersonalization.Company := NewUserSettings.Company;
         UserPersonalization."Time Zone" := NewUserSettings."Time Zone";
         UserPersonalization."Profile ID" := NewUserSettings."Profile ID";
+#pragma warning disable AL0432 // All profiles are now in the tenant scope
         UserPersonalization.Scope := NewUserSettings.Scope;
+#pragma warning restore AL0432
         UserPersonalization."App ID" := NewUserSettings."App ID";
         UserPersonalization.Modify();
 
@@ -539,11 +543,15 @@ codeunit 9175 "User Settings Impl."
         TempAllProfile: Record "All Profile" temporary;
     begin
         PopulateProfiles(TempAllProfile);
+#pragma warning disable AL0432 // All profiles are now in the tenant scope
         if TempAllProfile.Get(UserPersonalization.Scope, UserPersonalization."App ID", UserPersonalization."Profile ID") then;
+#pragma warning restore AL0432
         if Page.RunModal(Page::Roles, TempAllProfile) = Action::LookupOK then begin
             UserPersonalization."Profile ID" := TempAllProfile."Profile ID";
             UserPersonalization."App ID" := TempAllProfile."App ID";
+#pragma warning disable AL0432 // All profiles are now in the tenant scope
             UserPersonalization.Scope := TempAllProfile.Scope;
+#pragma warning restore AL0432
             UserPersonalization.CalcFields("Role");
         end;
     end;
