@@ -253,7 +253,6 @@ table 149030 "AIT Test Suite"
         Rec."Test Runner Id" := TestRunnerMgt.GetDefaultTestRunner();
     end;
 
-
     var
         BaseVersionMustBeLessThanVersionErr: Label 'Base Version must be less than or equal to Version';
 }
