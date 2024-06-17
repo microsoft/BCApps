@@ -106,7 +106,7 @@ page 149036 "AIT Test Suite Compare"
                             Editable = false;
                             ApplicationArea = All;
                             Caption = 'Number of Tests Failed';
-                            ToolTip = 'Specifies the number of tests that failed in the current Version.';
+                            ToolTip = 'Specifies the number of tests that failed in the current version.';
                             ShowCaption = false;
                             Style = Unfavorable;
 
