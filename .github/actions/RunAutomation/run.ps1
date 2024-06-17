@@ -96,7 +96,7 @@ function OpenPR {
 
     $shortTargetBranch = $TargetBranch -replace 'releases/',''
     $Category = "$shortTargetBranch/$Category".ToLower().Replace(' ', '_')
-    $branch = New-TopicBranchIfNeeded -Category "$shortTargetBranch/$Category"
+    $branch = New-TopicBranchIfNeeded -Category "$shortTargetBranch/$Category" -Repository $Repository
 
     # Open PR with a commit for each update
     $prDescription = "This PR contains the following changes:"
@@ -157,7 +157,7 @@ if($availableUpdates) { # Only open PR if there are updates
     Write-Host "::group::Create PR for available updates"
     Import-Module $PSScriptRoot\..\..\..\build\scripts\AutomatedSubmission.psm1 -DisableNameChecking
 
-    $prLink = OpenPR -AvailableUpdates $availableUpdates -Category $automationNames[0] -Repository $Repository -TargetBranch $TargetBranch -Actor $Actor
+    $prLink = OpenPR -AvailableUpdates $availableUpdates -Category $($automationNames[0]) -Repository $Repository -TargetBranch $TargetBranch -Actor $Actor
 
     Write-Host "::Notice::PR created: $prLink"
     Write-Host "::endgroup::"

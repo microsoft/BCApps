@@ -22,6 +22,8 @@ permissionset 87 "Metadata - Read"
                              "Table Information - Read";
 
     Permissions = tabledata "All Profile" = R,
+                  tabledata "All Profile Extension" = R,
+                  tabledata "All Profile Page Metadata" = R,
                   tabledata AllObj = R,
                   tabledata "CodeUnit Metadata" = R,
                   tabledata Date = R,
@@ -33,13 +35,9 @@ permissionset 87 "Metadata - Read"
                   tabledata "Report Metadata" = R,
                   tabledata "System Object" = R,
                   tabledata "Table Metadata" = R,
-#pragma warning disable AL0432
                   tabledata "Tenant Profile" = R,
-#pragma warning restore AL0432
                   tabledata "Tenant Profile Extension" = R,
-#pragma warning disable AL0432
                   tabledata "Tenant Profile Page Metadata" = R,
-#pragma warning restore AL0432
                   tabledata "Tenant Profile Setting" = R,
                   tabledata "Time Zone" = R,
                   tabledata "Windows Language" = R;

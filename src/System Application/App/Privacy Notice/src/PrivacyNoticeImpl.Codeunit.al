@@ -162,6 +162,7 @@ codeunit 1565 "Privacy Notice Impl."
 
     procedure CanCurrentUserApproveForOrganization(): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         PrivacyNoticeApproval: Record "Privacy Notice Approval";
     begin
         exit(PrivacyNoticeApproval.WritePermission());
