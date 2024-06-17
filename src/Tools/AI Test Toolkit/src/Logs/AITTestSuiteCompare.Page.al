@@ -26,7 +26,7 @@ page 149036 "AIT Test Suite Compare"
                 field(Version; this.Version)
                 {
                     Caption = 'Version';
-                    ToolTip = 'Specifies the Base version to compare with.';
+                    ToolTip = 'Specifies the base version to compare with.';
                     ApplicationArea = All;
 
                     trigger OnValidate()
