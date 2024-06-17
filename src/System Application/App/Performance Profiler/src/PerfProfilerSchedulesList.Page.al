@@ -104,7 +104,7 @@ page 1933 "Perf. Profiler Schedules List"
                 Image = Setup;
                 Caption = 'Open Profiles';
                 ToolTip = 'Open the profiles for the schedule';
-                RunObject = page "Performance Profiles";
+                RunObject = page "Performance Profile List";
                 RunPageLink = "Schedule ID" = field("Schedule ID");
             }
         }
@@ -136,5 +136,5 @@ page 1933 "Perf. Profiler Schedules List"
     var
         ScheduledPerfProfiler: Codeunit "Scheduled Perf. Profiler";
         UserName: Text;
-        Activity: Enum "Activity Type";
+        Activity: Enum "Perf. Profile Activity Type";
 }

@@ -7,7 +7,7 @@ namespace System.Tooling;
 /// <summary>
 /// The supported activity types for creating scheduled based sampling profiles
 /// </summary>
-enum 1932 "Activity Type"
+enum 1932 "Perf. Profile Activity Type"
 {
     Access = Public;
     Extensible = false;

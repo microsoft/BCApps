@@ -8,6 +8,7 @@ namespace System.Tooling;
 using System.PerformanceProfile;
 using System.DataAdministration;
 using System.Security.AccessControl;
+using System.Security.User;
 
 codeunit 1932 "Scheduled Perf. Profiler Impl."
 {
@@ -15,18 +16,18 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Activity Type")
+    procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Perf. Profile Activity Type")
     var
-        PerformanceProfileHelper: Codeunit "Performance Profile Helper";
+        PerformanceProfileHelper: Codeunit "Perf. Prof. Activity Mapper";
     begin
         PerformanceProfileHelper.MapActivityTypeToClientType(PerformanceProfileScheduler."Client Type", ActivityType);
     end;
 
-    procedure MapRecordToActivityType(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; var ActivityType: Enum "Activity Type")
+    procedure MapRecordToActivityType(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; var ActivityType: Enum "Perf. Profile Activity Type")
     var
-        PerformanceProfileHelper: Codeunit "Performance Profile Helper";
+        PerfProfActivityMapper: Codeunit "Perf. Prof. Activity Mapper";
     begin
-        PerformanceProfileHelper.MapClientTypeToActivityType(PerformanceProfileScheduler."Client Type", ActivityType);
+        PerfProfActivityMapper.MapClientTypeToActivityType(PerformanceProfileScheduler."Client Type", ActivityType);
     end;
 
     procedure MapRecordToUserName(PerformanceProfileScheduler: Record "Performance Profile Scheduler"): Text
@@ -39,15 +40,30 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
 
     procedure FilterUsers(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; SecurityID: Guid)
     var
-        PerformanceProfileHelper: Codeunit "Performance Profile Helper";
         RecordRef: RecordRef;
     begin
         RecordRef.GetTable(PerformanceProfileScheduler);
-        PerformanceProfileHelper.FilterUsers(RecordRef, SecurityID);
+        this.FilterUsers(RecordRef, SecurityID);
         RecordRef.SetTable(PerformanceProfileScheduler);
     end;
 
-    procedure InitializeFields(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; var ActivityType: Enum "Activity Type")
+    procedure FilterUsers(var RecordRef: RecordRef; SecurityID: Guid)
+    var
+        UserPermissions: Codeunit "User Permissions";
+        FilterView: Text;
+        FilterTextTxt: Label 'where("User ID"=filter(''%1''))', locked = true;
+
+    begin
+        if UserPermissions.CanManageUsersOnTenant(SecurityID) then
+            exit; // No need for additional user filters
+
+        FilterView := StrSubstNo(FilterTextTxt, SecurityID);
+        RecordRef.FilterGroup(2);
+        RecordRef.SetView(FilterView);
+        RecordRef.FilterGroup(0);
+    end;
+
+    procedure InitializeFields(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; var ActivityType: Enum "Perf. Profile Activity Type")
     begin
         PerformanceProfileScheduler.Init();
         PerformanceProfileScheduler."Schedule ID" := CreateGuid();
@@ -62,11 +78,14 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
 
     procedure ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
     begin
+        if (((PerformanceProfileScheduler."Ending Date-Time" = 0DT) or (PerformanceProfileScheduler."Ending Date-Time" > CurrentDateTime())) and (PerformanceProfileScheduler."Starting Date-Time" < CurrentDateTime())) then
+            Error(ProfileCannotBeInThePastErr);
+
         if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Starting Date-Time" > PerformanceProfileScheduler."Ending Date-Time")) then
             Error(ProfileStartingDateLessThenEndingDateErr);
     end;
 
-    procedure ValidatePerformanceProfileScheduler(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Activity Type")
+    procedure ValidatePerformanceProfileScheduler(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Perf. Profile Activity Type")
     var
         LocalPerformanceProfileScheduler: Record "Performance Profile Scheduler";
     begin
@@ -155,4 +174,5 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     var
         ProfileStartingDateLessThenEndingDateErr: Label 'The performance profile starting date must be set before the ending date.';
         ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
+        ProfileCannotBeInThePastErr: Label 'A schedule cannot be set to run in the past.';
 }

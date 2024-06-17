@@ -4,16 +4,14 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Tooling;
 
-using System.Security.User;
-
-codeunit 1934 "Performance Profile Helper"
+codeunit 1934 "Perf. Prof. Activity Mapper"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
 
-    procedure MapActivityTypeToClientType(var ClientTpe: Option ,,"Web Service",,,Background,,"Web Client",,,,; ActivityType: Enum "Activity Type")
+    procedure MapActivityTypeToClientType(var ClientTpe: Option ,,"Web Service",,,Background,,"Web Client",,,,; ActivityType: Enum "Perf. Profile Activity Type")
     begin
         if (ActivityType = ActivityType::WebClient) then
             ClientTpe := ClientTpe::"Web Client"
@@ -25,7 +23,7 @@ codeunit 1934 "Performance Profile Helper"
                     ClientTpe := ClientTpe::"Web Service";
     end;
 
-    procedure MapClientTypeToActivityType(ClientTpe: Option ,,"Web Service",,,Background,,"Web Client",,,,; var ActivityType: Enum "Activity Type")
+    procedure MapClientTypeToActivityType(ClientTpe: Option ,,"Web Service",,,Background,,"Web Client",,,,; var ActivityType: Enum "Perf. Profile Activity Type")
     begin
         if (ClientTpe = ClientTpe::Background) then
             ActivityType := ActivityType::Background
@@ -35,21 +33,5 @@ codeunit 1934 "Performance Profile Helper"
             else
                 if (ClientTpe = ClientTpe::"Web Service") then
                     ActivityType := ActivityType::WebAPIClient;
-    end;
-
-    procedure FilterUsers(var RecordRef: RecordRef; SecurityID: Guid)
-    var
-        UserPermissions: Codeunit "User Permissions";
-        FilterView: Text;
-        FilterTextTxt: Label 'where("User ID"=filter(''%1''))', locked = true;
-
-    begin
-        if UserPermissions.CanManageUsersOnTenant(SecurityID) then
-            exit; // No need for additional user filters
-
-        FilterView := StrSubstNo(FilterTextTxt, SecurityID);
-        RecordRef.FilterGroup(2);
-        RecordRef.SetView(FilterView);
-        RecordRef.FilterGroup(0);
     end;
 }

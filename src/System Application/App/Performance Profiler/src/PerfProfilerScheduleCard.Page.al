@@ -51,8 +51,8 @@ page 1932 "Perf. Profiler Schedule Card"
                 {
                     ApplicationArea = All;
                     Caption = 'Start Time';
-                    ToolTip = 'Specifies the time the schedule will start.';
-                    AboutText = 'The time the schedule will start.';
+                    ToolTip = 'Specifies the start time of the schedule.';
+                    AboutText = 'The start time of the schedule.';
 
                     trigger OnValidate()
                     begin
@@ -63,8 +63,8 @@ page 1932 "Perf. Profiler Schedule Card"
                 {
                     ApplicationArea = All;
                     Caption = 'End Time';
-                    ToolTip = 'Specifies the time the schedule will end.';
-                    AboutText = 'The time the schedule will end.';
+                    ToolTip = 'Specifies the end time of the schedule.';
+                    AboutText = 'The end time of the schedule.';
 
                     trigger OnValidate()
                     begin
@@ -174,7 +174,7 @@ page 1932 "Perf. Profiler Schedule Card"
                 Image = Setup;
                 Caption = 'Open Profiles';
                 ToolTip = 'Open profiles for the scheduled session';
-                RunObject = page "Performance Profiles";
+                RunObject = page "Performance Profile List";
                 RunPageLink = "Schedule ID" = field("Schedule ID");
             }
         }
@@ -209,7 +209,7 @@ page 1932 "Perf. Profiler Schedule Card"
 
     var
         ScheduledPerfProfiler: Codeunit "Scheduled Perf. Profiler";
-        Activity: Enum "Activity Type";
+        Activity: Enum "Perf. Profile Activity Type";
         RetentionPeriod: Code[20];
         NoRetentionPolicySetupErr: Label 'No retention policy setup found for the performance profiles table.';
         CreateRetentionPolicySetupTxt: Label 'Create a retention policy setup';
