@@ -69,6 +69,11 @@ codeunit 8708 "Telemetry Loggers"
         TelemetryLoggersImpl.SetCurrentPublisher(Publisher);
     end;
 
+    internal procedure SetCurrentTelemetryScope(TelemetryScope: TelemetryScope)
+    begin
+        TelemetryLoggersImpl.SetCurrentTelemetryScope(TelemetryScope);
+    end;
+
     internal procedure Register(TelemetryLogger: Interface "Telemetry Logger"; Publisher: Text)
     begin
         TelemetryLoggersImpl.Register(TelemetryLogger, Publisher);

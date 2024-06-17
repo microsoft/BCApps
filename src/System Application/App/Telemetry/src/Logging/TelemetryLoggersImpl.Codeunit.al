@@ -15,6 +15,7 @@ codeunit 8709 "Telemetry Loggers Impl."
         RegisteredTelemetryLoggers: List of [Interface "Telemetry Logger"];
         RegisteredPublishers: List of [Text];
         CurrentPublisher: Text;
+        CurrentTelemetryScope: TelemetryScope;
         NoPublisherErr: Label 'An app from publisher %1 is sending telemetry, but there is no registered telemetry logger for this publisher.', Locked = true;
         RichTelemetryUsedTxt: Label 'A 3rd party app from publisher %1 is using rich telemetry.', Locked = true;
         TelemetryLibraryCategoryTxt: Label 'TelemetryLibrary', Locked = true;
@@ -22,6 +23,11 @@ codeunit 8709 "Telemetry Loggers Impl."
 
     procedure Register(TelemetryLogger: Interface "Telemetry Logger"; Publisher: Text)
     begin
+        // Only currentPublisher's logger needs to be saved for ExtensionPublisher scope.
+        // TODO: This might need to be changed if we decide to add one more enum value for TelemetryScope.
+        if (CurrentTelemetryScope = TelemetryScope::ExtensionPublisher) and (Publisher <> CurrentPublisher) then
+            exit;
+
         if not RegisteredPublishers.Contains(Publisher) then begin
             RegisteredTelemetryLoggers.Add(TelemetryLogger);
             RegisteredPublishers.Add(Publisher);
@@ -56,5 +62,10 @@ codeunit 8709 "Telemetry Loggers Impl."
     internal procedure SetCurrentPublisher(Publisher: Text)
     begin
         CurrentPublisher := Publisher;
+    end;
+
+    internal procedure SetCurrentTelemetryScope(TelemetryScope: TelemetryScope)
+    begin
+        CurrentTelemetryScope := TelemetryScope;
     end;
 }

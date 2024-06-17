@@ -40,6 +40,7 @@ codeunit 8712 "Telemetry Impl."
         AddCustomDimensionsSafely(CustomDimensions, CallerCustomDimensions);
 
         TelemetryLoggers.SetCurrentPublisher(Publisher);
+        TelemetryLoggers.SetCurrentTelemetryScope(TelemetryScope);
         TelemetryLoggers.OnRegisterTelemetryLogger();
 
         case TelemetryScope of
