@@ -37,11 +37,10 @@ page 1931 "Performance Profiles"
                     Caption = 'User Name';
                     ToolTip = 'Specifies the name of the user that was profiled.';
                 }
-                field(Activity; ActivityType)
+                field("Client Type"; Rec."Client Type")
                 {
-                    Caption = 'Activity Type';
-                    ToolTip = 'Specifies the type of activity for which the schedule is created.';
-                    AboutText = 'The type of activity for which the schedule is created.';
+                    Caption = 'Client Type';
+                    ToolTip = 'Specifies the type of the client that was profiled.';
                 }
                 field("Activity Description"; Rec."Activity Description")
                 {
@@ -78,18 +77,19 @@ page 1931 "Performance Profiles"
                     Caption = 'Schedule ID';
                     ToolTip = 'Specifies the ID of the schedule that was used to profile the activity.';
                     TableRelation = "Performance Profile Scheduler"."Schedule ID";
+                    DrillDownPageId = "Perf. Profiler Schedule Card";
                     DrillDown = true;
 
                     trigger OnDrillDown()
                     var
-                        PerfProfileSchedule: Record "Performance Profile Scheduler";
-                        PerfProfileScheduleCard: Page "Perf. Profiler Schedule Card";
+                        PerformanceProfilesRecord: Record "Performance Profiles";
+                        ScheduleCardPage: Page "Perf. Profiler Schedule Card";
                     begin
-                        if not PerfProfileSchedule.Get(Rec."Schedule ID") then
+                        if IsNullGuid("Schedule ID") or not PerformanceProfilesRecord.Get("Schedule ID") then
                             exit;
 
-                        PerfProfileScheduleCard.SetRecord(PerfProfileSchedule);
-                        PerfProfileScheduleCard.Run();
+                        ScheduleCardPage.SetRecord(PerformanceProfilesRecord);
+                        ScheduleCardPage.Run();
                     end;
                 }
             }
@@ -106,11 +106,6 @@ page 1931 "Performance Profiles"
 
             actionref(Refresh; RefreshPage)
             {
-            }
-
-            actionref(DownloadProfile; Download)
-            {
-
             }
         }
 
@@ -154,55 +149,34 @@ page 1931 "Performance Profiles"
             {
                 ApplicationArea = All;
                 Image = Download;
-                Enabled = Rec."Activity ID" <> '';
                 Caption = 'Download';
-                ToolTip = 'Download the performance profile file.';
+                ToolTip = 'Download the selected profile.';
+                Enabled = Rec."Activity ID" <> '';
 
                 trigger OnAction()
                 var
-                    SampPerfProfilerImplCodeunit: Codeunit "Sampling Perf. Profiler Impl.";
-                    FileName: Text;
                     ProfileInStream: InStream;
+                    ToFile: Text;
                 begin
-                    FileName := StrSubstNo(ProfileFileNameTxt, Rec."Activity ID", Rec."Client Session ID") + ProfileFileExtensionTxt;
                     Rec.CalcFields(Profile);
                     Rec.Profile.CreateInStream(ProfileInStream);
-                    SampPerfProfilerImplCodeunit.DownloadData(FileName, ProfileInStream);
+
+                    if not Confirm(PrivacyNoticeMsg) then
+                        exit;
+
+                    ToFile := StrSubstNo(ProfileFileNameTxt, SessionId()) + ProfileFileExtensionTxt;
+                    DownloadFromStream(SamplingPerformanceProfiler.GetData(), '', '', '', ToFile);
                 end;
+
             }
         }
     }
 
     trigger OnOpenPage()
-    var
-        RecordRef: RecordRef;
     begin
         Rec.SetAutoCalcFields("User Name", "Client Type");
-        RecordRef.GetTable(Rec);
-        PerformanceProfileHelper.FilterUsers(RecordRef, UserSecurityId());
-        RecordRef.SetTable(Rec);
-    end;
-
-    trigger OnAfterGetRecord()
-    var
-    begin
-        this.MapClientTypeToActivityType();
-    end;
-
-    trigger OnAfterGetCurrRecord()
-    begin
-        this.MapClientTypeToActivityType();
-    end;
-
-    local procedure MapClientTypeToActivityType()
-    begin
-        Rec.CalcFields(Rec."Client Type");
-        PerformanceProfileHelper.MapClientTypeToActivityType(rec."Client Type", ActivityType);
     end;
 
     var
-        PerformanceProfileHelper: Codeunit "Performance Profile Helper";
-        ActivityType: Enum "Activity Type";
-        ProfileFileNameTxt: Label 'PerformanceProfile_Activity%1_Session%2', Locked = true;
-        ProfileFileExtensionTxt: Label '.alcpuprofile', Locked = true;
+        PrivacyNoticeMsg: Label 'The file might contain sensitive data, so be sure to handle it securely and according to privacy requirements. Do you want to continue?';
 }
