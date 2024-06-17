@@ -26,7 +26,7 @@ codeunit 1933 "Performance Profiler Installer"
 
     procedure AddRetentionPolicyAllowedTables(ForceUpdate: Boolean)
     var
-        Field: Record Field;
+        PerformanceProfileScheduler: Record "Performance Profile Scheduler";
         ScheduledPerfProfilerImpl: Codeunit "Scheduled Perf. Profiler Impl.";
         RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
         RetentionPolicySetup: Codeunit "Retention Policy Setup";
@@ -37,12 +37,12 @@ codeunit 1933 "Performance Profiler Installer"
         if not (IsInitialSetup or ForceUpdate) then
             exit;
 
-        RetenPolAllowedTables.AddAllowedTable(Database::"Performance Profiles", Field.FieldNo(SystemCreatedAt), 1);
+        RetenPolAllowedTables.AddAllowedTable(Database::"Performance Profile Scheduler", PerformanceProfileScheduler.FieldNo("Ending Date-Time"), 1);
 
         if not IsInitialSetup then
             exit;
 
-        ScheduledPerfProfilerImpl.CreateRetentionPolicySetup(Database::"Performance Profiles", RetentionPolicySetup.FindOrCreateRetentionPeriod("Retention Period Enum"::"1 Week"));
+        ScheduledPerfProfilerImpl.CreateRetentionPolicySetup(Database::"Performance Profile Scheduler", RetentionPolicySetup.FindOrCreateRetentionPeriod("Retention Period Enum"::"1 Week"));
 
         UpgradeTag.SetUpgradeTag(GetPerformanceProfileAddedToAllowedListUpgradeTag());
     end;

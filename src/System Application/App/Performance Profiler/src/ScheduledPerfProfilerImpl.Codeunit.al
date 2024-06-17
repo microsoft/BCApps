@@ -66,7 +66,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
             Error(ProfileStartingDateLessThenEndingDateErr);
     end;
 
-    procedure ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Activity Type")
+    procedure ValidatePerformanceProfileScheduler(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Activity Type")
     var
         LocalPerformanceProfileScheduler: Record "Performance Profile Scheduler";
     begin

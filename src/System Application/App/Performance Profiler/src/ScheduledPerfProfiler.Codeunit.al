@@ -83,7 +83,7 @@ codeunit 1931 "Scheduled Perf. Profiler"
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record</param>
     procedure ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Activity Type")
     begin
-        ScheduledPerfProfilerImpl.ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler, ActivityType);
+        ScheduledPerfProfilerImpl.ValidatePerformanceProfileScheduler(PerformanceProfileScheduler, ActivityType);
     end;
 
     /// <summary>
