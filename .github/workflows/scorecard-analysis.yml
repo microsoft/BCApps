@@ -28,6 +28,6 @@ jobs:
           results_format: sarif
 
       - name: "Upload to code-scanning"
-        uses: github/codeql-action/upload-sarif@83a02f7883b12e0e4e1a146174f5e2292a01e601 # v2.16.4
+        uses: github/codeql-action/upload-sarif@2e230e8fe0ad3a14a340ad0815ddb96d599d2aff # v2.16.4
         with:
           sarif_file: results.sarif
