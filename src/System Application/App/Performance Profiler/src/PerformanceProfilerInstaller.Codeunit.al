@@ -8,7 +8,6 @@ namespace System.Tooling;
 using System.Environment.Configuration;
 using System.DataAdministration;
 using System.PerformanceProfile;
-using System.Reflection;
 using System.Upgrade;
 
 codeunit 1933 "Performance Profiler Installer"
