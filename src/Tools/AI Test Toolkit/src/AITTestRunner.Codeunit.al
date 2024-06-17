@@ -93,7 +93,7 @@ codeunit 149042 "AIT Test Runner"
     end;
 
     /// <summary>
-    /// Gets the AIT Line stored through the SetAITTestMethodLine method.
+    /// Gets the Test Method Line stored through the SetAITTestMethodLine method.
     /// </summary>
     procedure GetAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line")
     begin

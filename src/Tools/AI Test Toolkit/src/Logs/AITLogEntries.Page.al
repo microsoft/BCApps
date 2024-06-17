@@ -21,19 +21,19 @@ page 149033 "AIT Log Entries"
             {
                 FreezeColumn = Status;
 
-                field(RunID; Rec.RunID)
+                field(RunID; Rec."Run ID")
                 {
                     ToolTip = 'Specifies the AIT RunID Guid';
                     Visible = false;
                     ApplicationArea = All;
                 }
-                field("Code"; Rec."AIT Code")
+                field("Code"; Rec."Test Suite Code")
                 {
                     ToolTip = 'Specifies the AIT Code of the AIT.';
                     Visible = false;
                     ApplicationArea = All;
                 }
-                field("AIT Line No."; Rec."AIT Line No.")
+                field("AIT Line No."; Rec."Test Method Line No.")
                 {
                     ToolTip = 'Specifies the Line No. of the AIT.';
                     Visible = false;
@@ -76,7 +76,7 @@ page 149033 "AIT Log Entries"
                     ToolTip = 'Specifies the name of the procedure being executed';
                     ApplicationArea = All;
                 }
-                field("Orig. Operation"; Rec."Orig. Operation")
+                field("Original Operation"; Rec."Original Operation")
                 {
                     ToolTip = 'Specifies the original operation of the AIT.';
                     Visible = false;
@@ -89,7 +89,7 @@ page 149033 "AIT Log Entries"
                     ApplicationArea = All;
                     StyleExpr = this.StatusStyleExpr;
                 }
-                field("Orig. Status"; Rec."Orig. Status")
+                field("Orig. Status"; Rec."Original Status")
                 {
                     Caption = 'Orig. Status';
                     Visible = false;
@@ -106,7 +106,7 @@ page 149033 "AIT Log Entries"
                     ToolTip = 'Specifies the Line No. of the dataset.';
                     ApplicationArea = All;
                 }
-                field("Input Dataset Desc."; Rec."Test Input Desc.")
+                field("Input Dataset Desc."; Rec."Test Input Description")
                 {
                     ToolTip = 'Specifies the description of the input dataset.';
                     ApplicationArea = All;
@@ -165,7 +165,7 @@ page 149033 "AIT Log Entries"
                         Message(Rec.Message);
                     end;
                 }
-                field("Orig. Message"; Rec."Orig. Message")
+                field("Orig. Message"; Rec."Original Message")
                 {
                     Caption = 'Orig. Message';
                     Visible = false;

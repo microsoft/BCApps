@@ -145,7 +145,7 @@ page 149031 "AIT Test Suite"
                         AITLogEntry: Page "AIT Log Entries";
                     begin
                         AITLogEntries.SetFilterForFailedTestProcedures();
-                        AITLogEntries.SetRange("AIT Code", Rec.Code);
+                        AITLogEntries.SetRange("Test Suite Code", Rec.Code);
                         AITLogEntries.SetRange(Version, Rec.Version);
                         AITLogEntry.SetTableView(AITLogEntries);
                         AITLogEntry.Run();
@@ -308,7 +308,7 @@ page 149031 "AIT Test Suite"
                 PromotedCategory = Process;
                 ToolTip = 'Open log entries.';
                 RunObject = page "AIT Log Entries";
-                RunPageLink = "AIT Code" = field(Code), Version = field(Version);
+                RunPageLink = "Test Suite Code" = field(Code), Version = field(Version);
             }
             action(Datasets)
             {

@@ -23,13 +23,13 @@ table 149034 "AIT Log Entry"
             Caption = 'Entry No.';
             AutoIncrement = true;
         }
-        field(2; "AIT Code"; Code[100])
+        field(2; "Test Suite Code"; Code[100])
         {
-            Caption = 'AIT Code';
+            Caption = 'Test Suite Code';
             NotBlank = true;
             TableRelation = "AIT Test Suite";
         }
-        field(3; "AIT Line No."; Integer)
+        field(3; "Test Method Line No."; Integer)
         {
             Caption = 'Line No.';
         }
@@ -88,29 +88,29 @@ table 149034 "AIT Log Entry"
             Caption = 'Procedure Name';
             DataClassification = CustomerContent;
         }
-        field(18; RunID; Guid)
+        field(18; "Run ID"; Guid)
         {
             DataClassification = SystemMetadata;
-            Caption = 'RunID';
+            Caption = 'Run ID';
         }
-        field(20; "Orig. Operation"; Text[100])
+        field(20; "Original Operation"; Text[100])
         {
-            Caption = 'Orig. Operation';
+            Caption = 'Original Operation';
         }
         /// <summary>
         /// Contains the original status of the test if any event subscribers modifies the status of the test
         /// </summary>
-        field(21; "Orig. Status"; Option)
+        field(21; "Original Status"; Option)
         {
-            Caption = 'Orig. Status';
+            Caption = 'Original Status';
             OptionMembers = Success,Error;
         }
         /// <summary>
         /// Contains the original message of the test if any event subscribers modifies the message of the test
         /// </summary>
-        field(22; "Orig. Message"; Text[250])
+        field(22; "Original Message"; Text[250])
         {
-            Caption = 'Orig. Message';
+            Caption = 'Original Message';
         }
         /// <summary>
         /// Is true if any event subscribers has modified the log entry
@@ -129,7 +129,7 @@ table 149034 "AIT Log Entry"
             Caption = 'Test Input Code';
             TableRelation = "Test Input".Code where("Test Input Group Code" = field("Test Input Group Code"));
         }
-        field(26; "Test Input Desc."; Text[2048])
+        field(26; "Test Input Description"; Text[2048])
         {
             Caption = 'Test Input Description';
             TableRelation = "Test Input Group"."Description" where("Code" = field("Test Input Group Code"));
@@ -154,12 +154,12 @@ table 149034 "AIT Log Entry"
         {
             Clustered = true;
         }
-        key(Key2; "AIT Code", Version, "AIT Line No.", Operation, "Duration (ms)", "Test Input Code")
+        key(Key2; "Test Suite Code", Version, "Test Method Line No.", Operation, "Duration (ms)", "Test Input Code")
         {
             // Instead of a SIFT index. This will make both inserts and calculations faster - and non-blocking
             IncludedFields = "Procedure Name", Status;
         }
-        key(Key4; "AIT Code", Version, Operation, "Duration (ms)")
+        key(Key4; "Test Suite Code", Version, Operation, "Duration (ms)")
         {
             // Instead of a SIFT index. This will make both inserts and calculations faster - and non-blocking
         }
@@ -170,44 +170,44 @@ table 149034 "AIT Log Entry"
     }
 
 
-    procedure SetInputBlob(P: Text)
+    procedure SetInputBlob(NewInput: Text)
     var
         OutStream: OutStream;
     begin
         Clear("Input Data");
         "Input Data".CreateOutStream(OutStream, TextEncoding::UTF8);
-        OutStream.Write(P);
+        OutStream.Write(NewInput);
     end;
 
     procedure GetInputBlob(): Text
     var
         InStream: InStream;
-        P: Text;
+        InputContent: Text;
     begin
         this.CalcFields("Input Data");
         "Input Data".CreateInStream(InStream, TextEncoding::UTF8);
-        InStream.Read(P);
-        exit(P);
+        InStream.Read(InputContent);
+        exit(InputContent);
     end;
 
-    procedure SetOutputBlob(P: Text)
+    procedure SetOutputBlob(NewOutput: Text)
     var
         OutStream: OutStream;
     begin
         Clear("Output Data");
         "Output Data".CreateOutStream(OutStream, TextEncoding::UTF8);
-        OutStream.Write(P);
+        OutStream.Write(NewOutput);
     end;
 
     procedure GetOutputBlob(): Text
     var
         InStream: InStream;
-        P: Text;
+        OutputContent: Text;
     begin
         this.CalcFields("Output Data");
         "Output Data".CreateInStream(InStream, TextEncoding::UTF8);
-        InStream.Read(P);
-        exit(P);
+        InStream.Read(OutputContent);
+        exit(OutputContent);
     end;
 
     trigger OnInsert()

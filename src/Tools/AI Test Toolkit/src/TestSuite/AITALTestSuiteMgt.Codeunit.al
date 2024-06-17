@@ -180,9 +180,9 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         JsonInStream: InStream;
         NoTestOutputFoundErr: Label 'No Test Output found in the logs';
     begin
-        AITLogEntry.SetLoadFields("AIT Code", "Output Data");
+        AITLogEntry.SetLoadFields("Test Suite Code", "Output Data");
         if AITLogEntry.FindSet(false) then begin
-            FileNameTxt := Format(AITLogEntry."AIT Code") + '_' + 'test_output' + '.jsonl';
+            FileNameTxt := Format(AITLogEntry."Test Suite Code") + '_' + 'test_output' + '.jsonl';
             repeat
                 TestOutput := AITLogEntry.GetOutputBlob();
                 if TestOutput <> '' then

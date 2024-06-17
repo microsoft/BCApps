@@ -240,7 +240,7 @@ page 149034 "AIT Test Method Lines"
                 Image = Entries;
                 ToolTip = 'Open log entries for the line.';
                 RunObject = page "AIT Log Entries";
-                RunPageLink = "AIT Code" = field("Test Suite Code"), "AIT Line No." = field("Line No."), Version = field("Version Filter");
+                RunPageLink = "Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter");
             }
             action(Compare)
             {
@@ -318,9 +318,9 @@ page 149034 "AIT Test Method Lines"
         AITLogEntry: Page "AIT Log Entries";
     begin
         AITLogEntries.SetFilterForFailedTestProcedures();
-        AITLogEntries.SetRange("AIT Code", Rec."Test Suite Code");
+        AITLogEntries.SetRange("Test Suite Code", Rec."Test Suite Code");
         AITLogEntries.SetRange(Version, VersionNo);
-        AITLogEntries.SetRange("AIT Line No.", Rec."Line No.");
+        AITLogEntries.SetRange("Test Method Line No.", Rec."Line No.");
         AITLogEntry.SetTableView(AITLogEntries);
         AITLogEntry.Run();
     end;

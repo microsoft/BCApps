@@ -57,25 +57,25 @@ page 149036 "AIT Test Suite Compare"
                         ShowCaption = false;
                         label(NoOfTests)
                         {
-                            Caption = 'No. of Tests';
+                            Caption = 'Number of Tests';
                             Tooltip = 'Specifies the number of tests in this Line';
                             ApplicationArea = All;
                         }
                         label(NoOfTestsPassed)
                         {
-                            Caption = 'No. of Tests Passed';
+                            Caption = 'Number of Tests Passed';
                             ToolTip = 'Specifies the number of tests passed in the version.';
                             ApplicationArea = All;
                         }
                         label(NoOfTestsFailed)
                         {
-                            Caption = 'No. of Tests Failed';
+                            Caption = 'Number of Tests Failed';
                             ToolTip = 'Specifies the number of tests that failed in the version.';
                             ApplicationArea = All;
                         }
                         label(NoOfOperations)
                         {
-                            Caption = 'No. of Operations';
+                            Caption = 'Number of Operations';
                             ToolTip = 'Specifies the number of operations in the version.';
                             ApplicationArea = All;
                         }
@@ -105,7 +105,7 @@ page 149036 "AIT Test Suite Compare"
                         {
                             Editable = false;
                             ApplicationArea = All;
-                            Caption = 'No. of Tests Failed';
+                            Caption = 'Number of Tests Failed';
                             ToolTip = 'Specifies the number of tests that failed in the current Version.';
                             ShowCaption = false;
                             Style = Unfavorable;
@@ -147,7 +147,7 @@ page 149036 "AIT Test Suite Compare"
                         {
                             Editable = false;
                             ApplicationArea = All;
-                            Caption = 'No. of Tests Failed - Base';
+                            Caption = 'Number of Tests Failed - Base';
                             ToolTip = 'Specifies the number of tests that failed in the base Version.';
                             Style = Unfavorable;
                             ShowCaption = false;
@@ -208,7 +208,7 @@ page 149036 "AIT Test Suite Compare"
         AITLogEntry: Page "AIT Log Entries";
     begin
         AITLogEntries.SetFilterForFailedTestProcedures();
-        AITLogEntries.SetRange("AIT Code", Rec.Code);
+        AITLogEntries.SetRange("Test Suite Code", Rec.Code);
         AITLogEntries.SetRange(Version, VersionNo);
         AITLogEntry.SetTableView(AITLogEntries);
         AITLogEntry.Run();

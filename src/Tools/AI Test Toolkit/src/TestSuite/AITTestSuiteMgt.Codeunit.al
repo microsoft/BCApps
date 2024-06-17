@@ -117,7 +117,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestMethodLine.SetRange("Test Suite Code", Rec."Code");
         AITTestMethodLine.DeleteAll(true);
 
-        AITLogEntry.SetRange("AIT Code", Rec."Code");
+        AITLogEntry.SetRange("Test Suite Code", Rec."Code");
         AITLogEntry.DeleteAll(true);
     end;
 
@@ -174,8 +174,8 @@ codeunit 149034 "AIT Test Suite Mgt."
         if Rec.IsTemporary() then
             exit;
 
-        AITLogEntry.SetRange("AIT Code", Rec."Test Suite Code");
-        AITLogEntry.SetRange("AIT Line No.", Rec."Line No.");
+        AITLogEntry.SetRange("Test Suite Code", Rec."Test Suite Code");
+        AITLogEntry.SetRange("Test Method Line No.", Rec."Line No.");
         AITLogEntry.DeleteAll(true);
     end;
 
@@ -286,13 +286,13 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestMethodLine.Testfield("Test Suite Code");
         AITTestRunnerImpl.GetAITTestSuite(this.GlobalAITTestSuite);
         Clear(AITLogEntry);
-        AITLogEntry.RunID := this.GlobalAITTestSuite.RunID;
-        AITLogEntry."AIT Code" := AITTestMethodLine."Test Suite Code";
-        AITLogEntry."AIT Line No." := AITTestMethodLine."Line No.";
+        AITLogEntry."Run ID" := this.GlobalAITTestSuite.RunID;
+        AITLogEntry."Test Suite Code" := AITTestMethodLine."Test Suite Code";
+        AITLogEntry."Test Method Line No." := AITTestMethodLine."Line No.";
         AITLogEntry.Version := this.GlobalAITTestSuite.Version;
         AITLogEntry."Codeunit ID" := AITTestMethodLine."Codeunit ID";
         AITLogEntry.Operation := CopyStr(ModifiedOperation, 1, MaxStrLen(AITLogEntry.Operation));
-        AITLogEntry."Orig. Operation" := CopyStr(Operation, 1, MaxStrLen(AITLogEntry."Orig. Operation"));
+        AITLogEntry."Original Operation" := CopyStr(Operation, 1, MaxStrLen(AITLogEntry."Original Operation"));
         AITLogEntry.Tag := AITTestRunnerImpl.GetAITTestSuiteTag();
         AITLogEntry."Entry No." := 0;
         if ModifiedExecutionSuccess then
@@ -302,11 +302,11 @@ codeunit 149034 "AIT Test Suite Mgt."
             AITLogEntry."Error Call Stack" := CopyStr(TestSuiteMgt.GetErrorCallStack(CurrentTestMethodLine), 1, MaxStrLen(AITLogEntry."Error Call Stack"));
         end;
         if ExecutionSuccess then
-            AITLogEntry."Orig. Status" := AITLogEntry.Status::Success
+            AITLogEntry."Original Status" := AITLogEntry.Status::Success
         else
-            AITLogEntry."Orig. Status" := AITLogEntry.Status::Error;
+            AITLogEntry."Original Status" := AITLogEntry.Status::Error;
         AITLogEntry.Message := CopyStr(ModifiedMessage, 1, MaxStrLen(AITLogEntry.Message));
-        AITLogEntry."Orig. Message" := CopyStr(Message, 1, MaxStrLen(AITLogEntry."Orig. Message"));
+        AITLogEntry."Original Message" := CopyStr(Message, 1, MaxStrLen(AITLogEntry."Original Message"));
         AITLogEntry."Log was Modified" := EntryWasModified;
         AITLogEntry."End Time" := EndTime;
         AITLogEntry."Start Time" := StartTime;
@@ -320,7 +320,7 @@ codeunit 149034 "AIT Test Suite Mgt."
             TestInput.CalcFields("Test Input");
             AITLogEntry."Input Data" := TestInput."Test Input";
             AITLogEntry.Sensitive := TestInput.Sensitive;
-            AITLogEntry."Test Input Desc." := TestInput.Description;
+            AITLogEntry."Test Input Description" := TestInput.Description;
         end;
 
         TestOutput := this.GetTestOutput(Operation);
@@ -340,9 +340,9 @@ codeunit 149034 "AIT Test Suite Mgt."
         Dimensions: Dictionary of [Text, Text];
         TelemetryLogLbl: Label 'AI Test Tool - %1 - %2 - %3', Locked = true;
     begin
-        Dimensions.Add('RunID', AITLogEntry.RunID);
-        Dimensions.Add('Code', AITLogEntry."AIT Code");
-        Dimensions.Add('LineNo', Format(AITLogEntry."AIT Line No."));
+        Dimensions.Add('RunID', AITLogEntry."Run ID");
+        Dimensions.Add('Code', AITLogEntry."Test Suite Code");
+        Dimensions.Add('LineNo', Format(AITLogEntry."Test Method Line No."));
         Dimensions.Add('Version', Format(AITLogEntry.Version));
         Dimensions.Add('CodeunitId', Format(AITLogEntry."Codeunit ID"));
         AITLogEntry.CalcFields("Codeunit Name");
@@ -358,7 +358,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         Dimensions.Add('DurationInMs', Format(AITLogEntry."Duration (ms)"));
         Session.LogMessage(
             '0000DGF',
-            StrSubstNo(TelemetryLogLbl, AITLogEntry."AIT Code", AITLogEntry.Operation, AITLogEntry.Status),
+            StrSubstNo(TelemetryLogLbl, AITLogEntry."Test Suite Code", AITLogEntry.Operation, AITLogEntry.Status),
             Verbosity::Normal,
             DataClassification::SystemMetadata,
             TelemetryScope::All,
@@ -381,46 +381,6 @@ codeunit 149034 "AIT Test Suite Mgt."
         if AITTestMethodLine."No. of Tests" = 0 then
             exit(0);
         exit(AITTestMethodLine."Total Duration (ms)" div AITTestMethodLine."No. of Tests");
-    end;
-
-    procedure EvaluateDecimal(var Parm: Text; var ParmVal: Decimal): Boolean
-    var
-        x: Decimal;
-    begin
-        if not Evaluate(x, Parm) then
-            exit(false);
-        ParmVal := x;
-        Parm := format(ParmVal, 0, 9);
-        exit(true);
-    end;
-
-    procedure EvaluateDate(var Parm: Text; var ParmVal: Date): Boolean
-    var
-        x: Date;
-    begin
-        if not Evaluate(x, Parm) then
-            exit(false);
-        ParmVal := x;
-        Parm := format(ParmVal, 0, 9);
-        exit(true);
-    end;
-
-    procedure EvaluateFieldValue(var Parm: Text; TableNo: Integer; FieldNo: Integer): Boolean
-    var
-        Field: Record Field;
-        RecRef: RecordRef;
-        FldRef: FieldRef;
-    begin
-        if not Field.Get(TableNo, FieldNo) then
-            exit(false);
-        if Field.Type <> Field.Type::Option then
-            exit(false);
-        RecRef.Open(TableNo);
-        FldRef := RecRef.Field(FieldNo);
-        if not Evaluate(FldRef, Parm) then
-            exit(false);
-        Parm := format(FldRef.Value, 0, 9);
-        exit(true);
     end;
 
     procedure SetTestOutput(Scenario: Text; OutputValue: Text)

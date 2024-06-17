@@ -25,11 +25,11 @@ xmlport 149030 "AIT Log Entries"
             {
                 AutoSave = false;
                 AutoUpdate = false;
-                RequestFilterFields = "AIT Code";
+                RequestFilterFields = "Test Suite Code";
                 XmlName = 'AITLogEntry';
                 fieldelement(Entry_No; logentry."Entry No.") { }
-                fieldelement(AIT_Code; logentry."AIT Code") { }
-                fieldelement(AIT_Line_No; logentry."AIT Line No.") { }
+                fieldelement(AIT_Code; logentry."Test Suite Code") { }
+                fieldelement(AIT_Line_No; logentry."Test Method Line No.") { }
                 fieldelement(Start_Time; logentry."Start Time") { }
                 fieldelement(End_Time; logentry."End Time") { }
                 fieldelement(Message; logentry."Message") { }

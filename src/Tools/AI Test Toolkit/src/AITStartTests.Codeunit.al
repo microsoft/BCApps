@@ -83,57 +83,6 @@ codeunit 149036 "AIT Start Tests"
         AITTestSuiteCU.SetRunStatus(AITTestSuite, AITTestSuite.Status::Cancelled);
     end;
 
-    internal procedure StartNextTestSuite(AITTestSuite: Record "AIT Test Suite")
-    var
-        AITTestSuite2: Record "AIT Test Suite";
-        AITTestMethodLine: Record "AIT Test Method Line";
-        AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
-    begin
-        AITTestSuite2.SetRange(Status, AITTestSuite2.Status::Running);
-        AITTestSuite2.SetFilter(Code, '<> %1', AITTestSuite.Code);
-        if not AITTestSuite2.IsEmpty() then
-            Error(this.CannotRunMultipleSuitesInParallelErr);
-
-        AITTestSuite.ReadIsolation(IsolationLevel::UpdLock);
-        AITTestSuite.Find();
-        if AITTestSuite.Status <> AITTestSuite.Status::Running then begin
-            AITTestSuite.RunID := CreateGuid();
-            AITTestSuite.Validate("Started at", CurrentDateTime);
-            AITTestSuiteCU.SetRunStatus(AITTestSuite, AITTestSuite.Status::Running);
-
-            AITTestSuite."No. of tests running" := 0;
-            AITTestSuite.Version += 1;
-            AITTestSuite."No. of tests running" := 0;
-            AITTestSuite.Modify();
-
-            AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
-            if AITTestMethodLine.FindSet(true) then
-                repeat
-                    AITTestMethodLine.Status := AITTestMethodLine.Status::" ";
-                    AITTestMethodLine."Total Duration (ms)" := 0;
-                    AITTestMethodLine."No. of Tests" := 0;
-                    AITTestMethodLine.SetRange("Version Filter", AITTestSuite.Version);
-                    AITTestMethodLine.Modify(true);
-                until AITTestMethodLine.Next() = 0;
-        end;
-
-        AITTestMethodLine.ReadIsolation(IsolationLevel::UpdLock);
-        AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
-        AITTestMethodLine.SetFilter("Codeunit ID", '<>0');
-        AITTestMethodLine.SetFilter(Status, '%1 | %2', AITTestMethodLine.Status::" ", AITTestMethodLine.Status::Starting);
-        if AITTestMethodLine.FindFirst() then begin
-            AITTestSuite."No. of tests running" += 1;
-            AITTestMethodLine.Status := AITTestMethodLine.Status::Running;
-            AITTestSuite.Modify();
-            AITTestMethodLine.Modify();
-            Commit();
-            AITTestMethodLine.SetRange("Line No.", AITTestMethodLine."Line No.");
-            AITTestMethodLine.SetRange(Status);
-            Codeunit.Run(Codeunit::"AIT Test Runner", AITTestMethodLine);
-        end else
-            Error(this.NothingToRunErr);
-    end;
-
     local procedure ValidateLines(AITTestSuite: Record "AIT Test Suite")
     var
         AITTestMethodLine: Record "AIT Test Method Line";
@@ -142,7 +91,7 @@ codeunit 149036 "AIT Start Tests"
         AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
 
         if not AITTestMethodLine.FindSet() then
-            Error('There is nothing to run.');
+            Error(NothingToRunErr);
 
         repeat
             CodeunitMetadata.Get(AITTestMethodLine."Codeunit ID");
