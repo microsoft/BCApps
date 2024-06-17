@@ -17,7 +17,7 @@ codeunit 1933 "Performance Profiler Installer"
     Access = Internal;
     InherentPermissions = X;
     InherentEntitlements = X;
-    Permissions = tabledata Field = r;
+    Permissions = tabledata "Performance Profile Scheduler" = r;
 
     trigger OnInstallAppPerCompany()
     begin
