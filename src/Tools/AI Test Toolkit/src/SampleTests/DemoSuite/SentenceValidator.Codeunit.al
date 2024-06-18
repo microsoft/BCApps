@@ -10,12 +10,7 @@ codeunit 149031 SentenceValidator
         AITContext: Codeunit "AIT Test Context";
         UserInput: Text;
     begin
-        // AITContext.StartScenario('Scene1');
-        // UserInput := TestInput.GetTestInput(UserInputKeyLbl).ValueAsText();
         UserInput := AITContext.GetQuestionAsText();
-        // AITContext.SetScenarioOutput('Scene1', 'User input: ' + UserInput);
-        // Sleep(100);
-        // AITContext.EndScenario('Scene1');
         if StrLen(UserInput) > 50 then
             Error('Length exceeds 50 characters');
     end;
