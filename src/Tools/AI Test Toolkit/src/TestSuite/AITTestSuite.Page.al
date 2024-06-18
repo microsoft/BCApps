@@ -141,14 +141,9 @@ page 149031 "AIT Test Suite"
 
                     trigger OnDrillDown()
                     var
-                        AITLogEntries: Record "AIT Log Entry";
-                        AITLogEntry: Page "AIT Log Entries";
+                        AITLogEntry: Codeunit "AIT Log Entry";
                     begin
-                        AITLogEntries.SetFilterForFailedTestProcedures();
-                        AITLogEntries.SetRange("Test Suite Code", Rec.Code);
-                        AITLogEntries.SetRange(Version, Rec.Version);
-                        AITLogEntry.SetTableView(AITLogEntries);
-                        AITLogEntry.Run();
+                        AITLogEntry.DrillDownFailedAITLogEntries(Rec.Code, 0, Rec.Version);
                     end;
                 }
                 field("No. of Operations"; Rec."No. of Operations")

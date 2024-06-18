@@ -153,7 +153,7 @@ page 149033 "AIT Log Entries"
                     ApplicationArea = All;
                     Visible = false;
                 }
-                field(Message; Rec.Message)
+                field(Message; this.ErrorMessage)
                 {
                     Caption = 'Error Message';
                     ToolTip = 'Specifies when the error message from the test.';
@@ -162,7 +162,7 @@ page 149033 "AIT Log Entries"
 
                     trigger OnDrillDown()
                     begin
-                        Message(Rec.Message);
+                        Message(this.ErrorMessage);
                     end;
                 }
                 field("Orig. Message"; Rec."Original Message")
@@ -172,7 +172,7 @@ page 149033 "AIT Log Entries"
                     ToolTip = 'Specifies the original message from the test.';
                     ApplicationArea = All;
                 }
-                field("Error Call Stack"; Rec."Error Call Stack")
+                field("Error Call Stack"; this.ErrorCallStack)
                 {
                     Caption = 'Call stack';
                     Editable = false;
@@ -181,7 +181,7 @@ page 149033 "AIT Log Entries"
 
                     trigger OnDrillDown()
                     begin
-                        Message(Rec."Error Call Stack");
+                        Message(this.ErrorCallStack);
                     end;
                 }
                 field("Log was Modified"; Rec."Log was Modified")
@@ -318,6 +318,8 @@ page 149033 "AIT Log Entries"
         DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
         InputText: Text;
         OutputText: Text;
+        ErrorMessage: Text;
+        ErrorCallStack: Text;
         StatusStyleExpr: Text;
         TestRunDuration: Duration;
         IsFilteredToErrors: Boolean;
@@ -327,6 +329,7 @@ page 149033 "AIT Log Entries"
     begin
         this.TestRunDuration := Rec."Duration (ms)";
         this.SetInputOutputDataFields();
+        this.SetErrorFields();
         this.SetStatusStyleExpr();
     end;
 
@@ -339,6 +342,17 @@ page 149033 "AIT Log Entries"
                 this.StatusStyleExpr := 'Unfavorable';
             else
                 this.StatusStyleExpr := '';
+        end;
+    end;
+
+    local procedure SetErrorFields()
+    begin
+        this.ErrorMessage := '';
+        this.ErrorCallStack := '';
+
+        if Rec.Status = Rec.Status::Error then begin
+            ErrorCallStack := Rec.GetErrorCallStack();
+            ErrorMessage := Rec.GetMessage();
         end;
     end;
 

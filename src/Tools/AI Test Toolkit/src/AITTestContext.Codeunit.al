@@ -29,7 +29,7 @@ codeunit 149043 "AIT Test Context"
     /// This method starts the scope of a scenario being tested.
     /// </summary>
     /// <param name="ScenarioOperation">Label of the scenario.</param>
-    procedure StartScenario(ScenarioOperation: Text)
+    local procedure StartScenario(ScenarioOperation: Text)
     var
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin

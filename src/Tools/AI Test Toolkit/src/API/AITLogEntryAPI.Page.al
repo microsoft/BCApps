@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
-
+// TODO: Do we need this for v1?
 page 149038 "AIT Log Entry API"
 {
     PageType = API;
@@ -79,7 +79,7 @@ page 149038 "AIT Log Entry API"
                 {
                     Caption = 'Operation';
                 }
-                field("message"; Rec.Message)
+                field("message"; MessageTxt)
                 {
                     Caption = 'Message';
                 }
@@ -107,7 +107,6 @@ page 149038 "AIT Log Entry API"
                 {
                     Caption = 'Output Data';
                 }
-                // TODO metrics fields
             }
         }
     }
@@ -116,9 +115,11 @@ page 149038 "AIT Log Entry API"
     begin
         this.InputText := Rec.GetInputBlob();
         this.OutputText := Rec.GetOutputBlob();
+        this.MessageTxt := Rec.GetMessage();
     end;
 
     var
         InputText: Text;
         OutputText: Text;
+        MessageTxt: Text;
 }

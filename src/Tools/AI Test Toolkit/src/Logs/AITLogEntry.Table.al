@@ -41,7 +41,7 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'End Time';
         }
-        field(6; "Message"; text[250])
+        field(6; Message; Blob)
         {
             Caption = 'Message';
         }
@@ -78,7 +78,7 @@ table 149034 "AIT Log Entry"
             DataClassification = CustomerContent;
             Caption = 'Tag';
         }
-        field(16; "Error Call Stack"; Text[2048]) //TODO: Consider changing this to blob
+        field(16; "Error Call Stack"; Blob)
         {
             DataClassification = CustomerContent;
             Caption = 'Error Call Stack';
@@ -175,7 +175,7 @@ table 149034 "AIT Log Entry"
         OutStream: OutStream;
     begin
         Clear("Input Data");
-        "Input Data".CreateOutStream(OutStream, TextEncoding::UTF8);
+        "Input Data".CreateOutStream(OutStream, this.GetDefaultTextEncoding());
         OutStream.Write(NewInput);
     end;
 
@@ -185,7 +185,7 @@ table 149034 "AIT Log Entry"
         InputContent: Text;
     begin
         this.CalcFields("Input Data");
-        "Input Data".CreateInStream(InStream, TextEncoding::UTF8);
+        "Input Data".CreateInStream(InStream, this.GetDefaultTextEncoding());
         InStream.Read(InputContent);
         exit(InputContent);
     end;
@@ -195,7 +195,7 @@ table 149034 "AIT Log Entry"
         OutStream: OutStream;
     begin
         Clear("Output Data");
-        "Output Data".CreateOutStream(OutStream, TextEncoding::UTF8);
+        "Output Data".CreateOutStream(OutStream, this.GetDefaultTextEncoding());
         OutStream.Write(NewOutput);
     end;
 
@@ -205,9 +205,54 @@ table 149034 "AIT Log Entry"
         OutputContent: Text;
     begin
         this.CalcFields("Output Data");
-        "Output Data".CreateInStream(InStream, TextEncoding::UTF8);
+        "Output Data".CreateInStream(InStream, this.GetDefaultTextEncoding());
         InStream.Read(OutputContent);
         exit(OutputContent);
+    end;
+
+    procedure SetMessage(Msg: Text)
+    var
+        MessageOutStream: OutStream;
+    begin
+        Clear(Message);
+        Message.CreateOutStream(MessageOutStream, this.GetDefaultTextEncoding());
+        MessageOutStream.WriteText(Msg);
+    end;
+
+    procedure GetMessage(): Text
+    var
+        MessageInStream: InStream;
+        MessageText: Text;
+    begin
+        this.CalcFields(Message);
+        Message.CreateInStream(MessageInStream, this.GetDefaultTextEncoding());
+        MessageInStream.ReadText(MessageText);
+        exit(MessageText);
+    end;
+
+    procedure SetErrorCallStack(ErrorCallStack: Text)
+    var
+        ErrorCallStackOutStream: OutStream;
+    begin
+        Clear("Error Call Stack");
+        "Error Call Stack".CreateOutStream(ErrorCallStackOutStream, this.GetDefaultTextEncoding());
+        ErrorCallStackOutStream.WriteText(ErrorCallStack);
+    end;
+
+    procedure GetErrorCallStack(): Text
+    var
+        ErrorCallStackInStream: InStream;
+        ErrorCallStackText: Text;
+    begin
+        this.CalcFields("Error Call Stack");
+        "Error Call Stack".CreateInStream(ErrorCallStackInStream, this.GetDefaultTextEncoding());
+        ErrorCallStackInStream.ReadText(ErrorCallStackText);
+        exit(ErrorCallStackText);
+    end;
+
+    local procedure GetDefaultTextEncoding(): TextEncoding
+    begin
+        exit(TextEncoding::UTF8);
     end;
 
     trigger OnInsert()

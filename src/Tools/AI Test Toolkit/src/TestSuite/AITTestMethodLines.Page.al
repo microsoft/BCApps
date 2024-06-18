@@ -100,11 +100,12 @@ page 149034 "AIT Test Method Lines"
 
                     trigger OnDrillDown()
                     var
-                        AITTestSuiteRec: Record "AIT Test Suite";
+                        AITTestSuite: Record "AIT Test Suite";
+                        AITLogEntry: Codeunit "AIT Log Entry";
                     begin
-                        AITTestSuiteRec.SetLoadFields(Version); // TODO: See if  there is a better way to do this
-                        AITTestSuiteRec.Get(Rec."Test Suite Code");
-                        FailedTestsAITLogEntryDrillDown(AITTestSuiteRec.Version);
+                        AITTestSuite.SetLoadFields(Version);
+                        AITTestSuite.Get(Rec."Test Suite Code");
+                        AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", AITTestSuite.Version);
                     end;
                 }
                 field("No. of Operations"; Rec."No. of Operations")
@@ -148,11 +149,12 @@ page 149034 "AIT Test Method Lines"
 
                     trigger OnDrillDown()
                     var
-                        AITTestSuiteRec: Record "AIT Test Suite";
+                        AITTestSuite: Record "AIT Test Suite";
+                        AITLogEntry: Codeunit "AIT Log Entry";
                     begin
-                        AITTestSuiteRec.SetLoadFields("Base Version"); // TODO: See if  there is a better way to do this
-                        AITTestSuiteRec.Get(Rec."Test Suite Code");
-                        FailedTestsAITLogEntryDrillDown(AITTestSuiteRec."Base Version");
+                        AITTestSuite.SetLoadFields("Base Version");
+                        AITTestSuite.Get(Rec."Test Suite Code");
+                        AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", AITTestSuite."Base Version");
                     end;
                 }
                 field("No. of Operations - Base"; Rec."No. of Operations - Base")
@@ -310,18 +312,5 @@ page 149034 "AIT Test Method Lines"
     begin
         CurrPage.Update(false);
         if Rec.Find() then;
-    end;
-
-    local procedure FailedTestsAITLogEntryDrillDown(VersionNo: Integer)
-    var
-        AITLogEntries: Record "AIT Log Entry";
-        AITLogEntry: Page "AIT Log Entries";
-    begin
-        AITLogEntries.SetFilterForFailedTestProcedures();
-        AITLogEntries.SetRange("Test Suite Code", Rec."Test Suite Code");
-        AITLogEntries.SetRange(Version, VersionNo);
-        AITLogEntries.SetRange("Test Method Line No.", Rec."Line No.");
-        AITLogEntry.SetTableView(AITLogEntries);
-        AITLogEntry.Run();
     end;
 }

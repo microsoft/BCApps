@@ -135,7 +135,6 @@ table 149032 "AIT Test Method Line"
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
 #pragma warning disable AA0232
-        // TODO: Remove warning, add SIFT key
         field(16; "Total Duration (ms)"; Integer)
 #pragma warning restore AA0232
         {
@@ -184,10 +183,10 @@ table 149032 "AIT Test Method Line"
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
-        field(23; "No. of Operations"; Integer) //TODO: Change the name to No. of Scenarios? 
+        field(23; "No. of Operations"; Integer)
         {
             Caption = 'No. of Operations';
-            // ToolTip = 'Specifies the number of operations executed including "Execute Procedure" operation for the current version.';
+            // ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the current version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter")));
@@ -200,10 +199,10 @@ table 149032 "AIT Test Method Line"
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
-        field(31; "No. of Operations - Base"; Integer) //TODO: Change the name to No. of Scenarios? 
+        field(31; "No. of Operations - Base"; Integer)
         {
             Caption = 'No. of Operations - Base';
-            // ToolTip = 'Specifies the number of operations executed including "Execute Procedure" operation for the base version.';
+            // ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the base version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter")));

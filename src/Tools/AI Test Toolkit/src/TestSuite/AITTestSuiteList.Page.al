@@ -9,7 +9,6 @@ page 149040 "AIT Test Suite List"
 {
     Caption = 'AI Test Suites';
     PageType = List;
-    PromotedActionCategories = 'New,Process,Report,Import/Export';
     SourceTable = "AIT Test Suite";
     CardPageId = "AIT Test Suite";
     Editable = false;
@@ -64,10 +63,6 @@ page 149040 "AIT Test Suite List"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Import';
                     Image = Import;
-                    Promoted = true;
-                    PromotedCategory = Category4;
-                    PromotedIsBig = false;
-                    PromotedOnly = true;
                     ToolTip = 'Import a file with AIT Suite details.';
 
                     trigger OnAction()
@@ -84,10 +79,6 @@ page 149040 "AIT Test Suite List"
                     Caption = 'Export';
                     Image = Export;
                     Enabled = this.ValidRecord;
-                    Promoted = true;
-                    PromotedCategory = Category4;
-                    PromotedIsBig = false;
-                    PromotedOnly = true;
                     Scope = Repeater;
                     ToolTip = 'Exports a file with AIT Suite details.';
 
@@ -101,6 +92,24 @@ page 149040 "AIT Test Suite List"
                     end;
                 }
 
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Report)
+            {
+                Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
+            }
+            group(Category_Category4)
+            {
+                Caption = 'Import/Export', Comment = 'Generated from the PromotedActionCategories property index 3.';
+
+                actionref(ImportAIT_Promoted; ImportAIT)
+                {
+                }
+                actionref(ExportAIT_Promoted; ExportAIT)
+                {
+                }
             }
         }
     }

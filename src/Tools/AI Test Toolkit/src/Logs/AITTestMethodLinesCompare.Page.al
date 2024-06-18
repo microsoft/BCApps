@@ -110,8 +110,10 @@ page 149035 "AIT Test Method Lines Compare"
                             Style = Unfavorable;
 
                             trigger OnDrillDown()
+                            var
+                                AITLogEntry: Codeunit "AIT Log Entry";
                             begin
-                                FailedTestsAITLogEntryDrillDown(this.Version);
+                                AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", this.Version);
                             end;
                         }
                         field("No. of Operations"; Rec."No. of Operations")
@@ -152,8 +154,10 @@ page 149035 "AIT Test Method Lines Compare"
                             ShowCaption = false;
 
                             trigger OnDrillDown()
+                            var
+                                AITLogEntry: Codeunit "AIT Log Entry";
                             begin
-                                FailedTestsAITLogEntryDrillDown(this.BaseVersion);
+                                AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", this.BaseVersion);
                             end;
                         }
                         field("No. of Operations - Base"; Rec."No. of Operations - Base")
@@ -199,18 +203,5 @@ page 149035 "AIT Test Method Lines Compare"
         Rec.SetRange("Version Filter", this.Version);
         Rec.SetRange("Base Version Filter", this.BaseVersion);
         CurrPage.Update(false);
-    end;
-
-    local procedure FailedTestsAITLogEntryDrillDown(VersionNo: Integer) // TODO: Move to codeunit
-    var
-        AITLogEntries: Record "AIT Log Entry";
-        AITLogEntry: Page "AIT Log Entries";
-    begin
-        AITLogEntries.SetFilterForFailedTestProcedures();
-        AITLogEntries.SetRange("Test Suite Code", Rec."Test Suite Code");
-        AITLogEntries.SetRange(Version, VersionNo);
-        AITLogEntries.SetRange("Test Method Line No.", Rec."Line No.");
-        AITLogEntry.SetTableView(AITLogEntries);
-        AITLogEntry.Run();
     end;
 }

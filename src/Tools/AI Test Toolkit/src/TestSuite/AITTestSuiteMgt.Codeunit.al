@@ -135,7 +135,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         TelemetryCustomDimensions.Add('Version', Format(AITTestSuite.Version));
 
         AITTestSuite.Status := AITTestSuiteStatus;
-        AITTestSuite.CalcFields("No. of Tests Executed", "Total Duration (ms)"); //TODO: add this to custom dimensions or remove it
+        AITTestSuite.CalcFields("No. of Tests Executed", "Total Duration (ms)"); //TODO: Use feature uptake telemetry
 
         case AITTestSuiteStatus of
             AITTestSuiteStatus::Running:
@@ -262,8 +262,6 @@ codeunit 149034 "AIT Test Suite Mgt."
         this.AddLogEntry(AITTestMethodLine, CurrentTestMethodLine, ScenarioOperation, ExecutionSuccess, ErrorMessage, StartTime, EndTime);
     end;
 
-    // TODO: Scenario output has to be collected and inserted at the end, before EndRunProcedure. Currently it is added with isolation and it gets rolled back.
-
     local procedure AddLogEntry(var AITTestMethodLine: Record "AIT Test Method Line"; CurrentTestMethodLine: Record "Test Method Line"; Operation: Text; ExecutionSuccess: Boolean; Message: Text; StartTime: DateTime; EndTime: Datetime)
     var
         AITLogEntry: Record "AIT Log Entry";
@@ -299,13 +297,13 @@ codeunit 149034 "AIT Test Suite Mgt."
             AITLogEntry.Status := AITLogEntry.Status::Success
         else begin
             AITLogEntry.Status := AITLogEntry.Status::Error;
-            AITLogEntry."Error Call Stack" := CopyStr(TestSuiteMgt.GetErrorCallStack(CurrentTestMethodLine), 1, MaxStrLen(AITLogEntry."Error Call Stack"));
+            AITLogEntry.SetErrorCallStack(TestSuiteMgt.GetErrorCallStack(CurrentTestMethodLine));
         end;
         if ExecutionSuccess then
             AITLogEntry."Original Status" := AITLogEntry.Status::Success
         else
             AITLogEntry."Original Status" := AITLogEntry.Status::Error;
-        AITLogEntry.Message := CopyStr(ModifiedMessage, 1, MaxStrLen(AITLogEntry.Message));
+        AITLogEntry.SetMessage(ModifiedMessage);
         AITLogEntry."Original Message" := CopyStr(Message, 1, MaxStrLen(AITLogEntry."Original Message"));
         AITLogEntry."Log was Modified" := EntryWasModified;
         AITLogEntry."End Time" := EndTime;
@@ -351,8 +349,8 @@ codeunit 149034 "AIT Test Suite Mgt."
         Dimensions.Add('Tag', AITLogEntry.Tag);
         Dimensions.Add('Status', Format(AITLogEntry.Status));
         if AITLogEntry.Status = AITLogEntry.Status::Error then
-            Dimensions.Add('StackTrace', AITLogEntry."Error Call Stack");
-        Dimensions.Add('Message', AITLogEntry.Message);
+            Dimensions.Add('StackTrace', AITLogEntry.GetErrorCallStack());
+        Dimensions.Add('Message', AITLogEntry.GetMessage());
         Dimensions.Add('StartTime', Format(AITLogEntry."Start Time"));
         Dimensions.Add('EndTime', Format(AITLogEntry."End Time"));
         Dimensions.Add('DurationInMs', Format(AITLogEntry."Duration (ms)"));

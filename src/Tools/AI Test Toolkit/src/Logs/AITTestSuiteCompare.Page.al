@@ -111,8 +111,10 @@ page 149036 "AIT Test Suite Compare"
                             Style = Unfavorable;
 
                             trigger OnDrillDown()
+                            var
+                                AITLogEntryCU: Codeunit "AIT Log Entry";
                             begin
-                                FailedTestsAITLogEntryDrillDown(this.Version);
+                                AITLogEntryCU.DrillDownFailedAITLogEntries(Rec.Code, 0, this.Version);
                             end;
                         }
                         field("No. of Operations"; Rec."No. of Operations")
@@ -153,8 +155,10 @@ page 149036 "AIT Test Suite Compare"
                             ShowCaption = false;
 
                             trigger OnDrillDown()
+                            var
+                                AITLogEntryCU: Codeunit "AIT Log Entry";
                             begin
-                                FailedTestsAITLogEntryDrillDown(this.BaseVersion);
+                                AITLogEntryCU.DrillDownFailedAITLogEntries(Rec.Code, 0, this.BaseVersion);
                             end;
                         }
                         field("No. of Operations - Base"; Rec."No. of Operations - Base")
@@ -200,17 +204,5 @@ page 149036 "AIT Test Suite Compare"
         Rec.Version := this.Version;
         Rec."Base Version" := this.BaseVersion;
         CurrPage.Update();
-    end;
-
-    local procedure FailedTestsAITLogEntryDrillDown(VersionNo: Integer) // TODO: Move to codeunit
-    var
-        AITLogEntries: Record "AIT Log Entry";
-        AITLogEntry: Page "AIT Log Entries";
-    begin
-        AITLogEntries.SetFilterForFailedTestProcedures();
-        AITLogEntries.SetRange("Test Suite Code", Rec.Code);
-        AITLogEntries.SetRange(Version, VersionNo);
-        AITLogEntry.SetTableView(AITLogEntries);
-        AITLogEntry.Run();
     end;
 }
