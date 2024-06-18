@@ -12,7 +12,7 @@ codeunit 149031 SentenceValidator
     begin
         // AITContext.StartScenario('Scene1');
         // UserInput := TestInput.GetTestInput(UserInputKeyLbl).ValueAsText();
-        UserInput := AITContext.GetUserQuery();
+        UserInput := AITContext.GetQuestionAsText();
         // AITContext.SetScenarioOutput('Scene1', 'User input: ' + UserInput);
         // Sleep(100);
         // AITContext.EndScenario('Scene1');
@@ -27,7 +27,7 @@ codeunit 149031 SentenceValidator
         Sentence: Text;
     begin
         // Generate a sentence based on the user input
-        Sentence := 'I hope you like the generated text based on ' + AITTestContext.GetUserQuery();
+        Sentence := 'I hope you like the generated text based on ' + AITTestContext.GetQuestionAsText();
 
         // Write the generated sentence to the output
         AITTestContext.SetTestOutput(Sentence);

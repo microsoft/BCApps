@@ -20,8 +20,6 @@ codeunit 149043 "AIT Test Context"
         AnswerTok: Label 'answer', Locked = true;
         ContextTok: Label 'context', Locked = true;
         GroundTruthTok: Label 'ground_truth', Locked = true;
-        UserQueryTok: Label 'user_query', Locked = true;
-        ScenarioOutputTok: Label 'scenario_output', Locked = true;
         TestMetricsTok: Label 'test_metrics', Locked = true;
         TestOutputTok: Label 'test_output', Locked = true;
         TestSetupTok: Label 'test_setup', Locked = true;
@@ -63,26 +61,6 @@ codeunit 149043 "AIT Test Context"
         TestInputCU: Codeunit "Test Input";
     begin
         exit(TestInputCU.GetTestInputValue());
-    end;
-
-    /// <summary>
-    /// Get the User Query value as text from the input dataset for the current iteration.
-    /// </summary>
-    /// <returns>A text value for the user_query element.</returns>
-    procedure GetUserQuery(): Text
-    begin
-        exit(GetUserQueryAsJson().ValueAsText());
-    end;
-
-    /// <summary>
-    /// Get the User Query from the input dataset for the current iteration.
-    /// <returns>A Test Input Json codeunit for the user_query element.</returns>
-    /// </summary>
-    procedure GetUserQueryAsJson() TestInputJson: Codeunit "Test Input Json"
-    var
-        TestInputCU: Codeunit "Test Input";
-    begin
-        TestInputJson := TestInputCU.GetTestInput(UserQueryTok);
     end;
 
     /// <summary>
@@ -167,18 +145,6 @@ codeunit 149043 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Sets the scneario test output for the current iteration.
-    /// </summary>
-    /// <param name="TestOutputText">The test output as text.</param>
-    procedure SetScenarioOutput(Scenario: Text; TestOutputText: Text)
-    var
-        TestOutputCU: Codeunit "Test Output";
-    begin
-        TestOutputCU.TestData().Add(ScenarioOutputTok, TestOutputText);
-        this.AITTestSuiteMgt.SetTestOutput(Scenario, TestOutputCU.TestData().ToText());
-    end;
-
-    /// <summary>
     /// Sets the test output for the current iteration.
     /// </summary>
     /// <param name="TestOutputText">The test output as text.</param>
@@ -205,6 +171,23 @@ codeunit 149043 "AIT Test Context"
         CopyElementToOutput(ContextTok);
         CopyElementToOutput(QuestionTok);
         CopyElementToOutput(GroundTruthTok);
+        this.AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+    end;
+
+    /// <summary>
+    /// Sets the test output for the current iteration.
+    /// </summary>
+    /// <param name="Context">The context as text.</param>
+    /// <param name="Question">The question as text.</param>
+    /// <param name="Answer">The answer as text.</param>
+    procedure SetTestOutput(Context: Text; Question: Text; Answer: Text)
+    var
+        TestOutputCU: Codeunit "Test Output";
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+    begin
+        TestOutputCU.TestData().Add('context', Context);
+        TestOutputCU.TestData().Add('question', Question);
+        TestOutputCU.TestData().Add('answer', Answer);
         this.AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
     end;
 

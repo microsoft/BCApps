@@ -97,6 +97,11 @@ codeunit 130464 "Test Input Json"
         exit(this.TestJson.AsValue().AsBoolean());
     end;
 
+    procedure ValueAsJsonObject(): JsonObject
+    begin
+        exit(this.TestJson.AsObject());
+    end;
+
     var
         ElementDoesNotExistErr: Label 'DataInput - The element does not exist.';
         TheElementIsNotAnArrayErr: Label 'DataInput - The element is not an array, use a different method.';
