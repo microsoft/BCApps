@@ -54,8 +54,13 @@ codeunit 8711 Telemetry
     procedure LogMessage(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; TelemetryScope: TelemetryScope; CustomDimensions: Dictionary of [Text, Text])
     var
         CallerModuleInfo: ModuleInfo;
+        CallerCallStackModuleInfos: List of [ModuleInfo];
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
+
+        if TelemetryScope = TelemetryScope::All then
+            CallerCallStackModuleInfos := NavApp.GetCallstackModuleInfos();
+
         TelemetryImpl.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope, CustomDimensions, CallerModuleInfo);
     end;
 
@@ -71,8 +76,13 @@ codeunit 8711 Telemetry
     var
         DummyCustomDimensions: Dictionary of [Text, Text];
         CallerModuleInfo: ModuleInfo;
+        CallerCallStackModuleInfos: List of [ModuleInfo];
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
+
+        if TelemetryScope = TelemetryScope::All then
+            CallerCallStackModuleInfos := NavApp.GetCallstackModuleInfos();
+
         TelemetryImpl.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope, DummyCustomDimensions, CallerModuleInfo);
     end;
 

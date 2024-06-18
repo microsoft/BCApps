@@ -25,12 +25,31 @@ codeunit 8712 "Telemetry Impl."
     procedure LogMessage(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; TelemetryScope: TelemetryScope; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     var
         CommonCustomDimensions: Dictionary of [Text, Text];
+        DummyCallStackPublishers: List of [Text];
     begin
         AddCommonCustomDimensions(CommonCustomDimensions, CallerModuleInfo);
-        LogMessageInternal(EventId, Message, Verbosity, DataClassification, TelemetryScope, CommonCustomDimensions, CallerCustomDimensions, CallerModuleInfo.Publisher);
+
+        DummyCallStackPublishers.Add(CallerModuleInfo.Publisher);
+
+        LogMessageInternal(EventId, Message, Verbosity, DataClassification, TelemetryScope, CommonCustomDimensions, CallerCustomDimensions, CallerModuleInfo.Publisher, DummyCallStackPublishers);
     end;
 
-    procedure LogMessageInternal(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; TelemetryScope: TelemetryScope; CustomDimensions: Dictionary of [Text, Text]; CallerCustomDimensions: Dictionary of [Text, Text]; Publisher: Text)
+    // TODO: Telemetry Scope can be more specific here for the two procedure overloads. Depends on the result of the discussion for the extra value.
+    procedure LogMessage(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; TelemetryScope: TelemetryScope; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo; CallerCallStackModuleInfos: List of [ModuleInfo])
+    var
+        CommonCustomDimensions: Dictionary of [Text, Text];
+        CallStackPublishers: List of [Text];
+        Module: ModuleInfo;
+    begin
+        AddCommonCustomDimensions(CommonCustomDimensions, CallerModuleInfo);
+
+        foreach Module in CallerCallStackModuleInfos do
+            CallStackPublishers.Add(Module.Publisher);
+
+        LogMessageInternal(EventId, Message, Verbosity, DataClassification, TelemetryScope, CommonCustomDimensions, CallerCustomDimensions, CallerModuleInfo.Publisher, CallStackPublishers);
+    end;
+
+    procedure LogMessageInternal(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; TelemetryScope: TelemetryScope; CustomDimensions: Dictionary of [Text, Text]; CallerCustomDimensions: Dictionary of [Text, Text]; Publisher: Text; CallStackPublishers: List of [Text])
     var
         TelemetryLoggers: Codeunit "Telemetry Loggers";
         TelemetryLogger: Interface "Telemetry Logger";
@@ -40,7 +59,8 @@ codeunit 8712 "Telemetry Impl."
         AddCustomDimensionsSafely(CustomDimensions, CallerCustomDimensions);
 
         TelemetryLoggers.SetCurrentPublisher(Publisher);
-        TelemetryLoggers.SetCurrentTelemetryScope(TelemetryScope);
+        TelemetryLoggers.SetCallStackPublishers(CallStackPublishers);
+
         TelemetryLoggers.OnRegisterTelemetryLogger();
 
         case TelemetryScope of
@@ -56,8 +76,8 @@ codeunit 8712 "Telemetry Impl."
                     if TelemetryLoggers.GetTelemetryLoggerFromCurrentPublisher(TelemetryLogger) then
                         TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::All, CustomDimensions);
 
-                    // Loop through all loggers on the callstack to log telemetry to 3. all registered loggers.
-                    RelevantTelemetryLoggers := TelemetryLoggers.GetRelevantTelemetryLoggers(NavApp.GetCallstackModuleInfos());
+                    // Loop through all loggers (except for the one from current publisher) on the CallerCallStack to log telemetry to 3. all registered loggers.
+                    RelevantTelemetryLoggers := TelemetryLoggers.GetRelevantTelemetryLoggers();
                     foreach TelemetryLogger in RelevantTelemetryLoggers do
                         TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::ExtensionPublisher, CustomDimensions);
                 end;

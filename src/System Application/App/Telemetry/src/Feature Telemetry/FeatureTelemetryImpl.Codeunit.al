@@ -82,6 +82,7 @@ codeunit 8704 "Feature Telemetry Impl."
         TelemetryImpl: Codeunit "Telemetry Impl.";
     begin
         TelemetryImpl.AddCustomDimensionsSafely(EventCustomDimensions, CallerCustomDimensions);
+        // TODO: should Feature Telemetry send to ISVs, maybe not by default as least.
         TelemetryImpl.LogMessage(EventId, Message, Verbosity, DataClassification::SystemMetadata, TelemetryScope::All, EventCustomDimensions, CallerModuleInfo);
     end;
 }

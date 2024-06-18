@@ -56,12 +56,11 @@ codeunit 8708 "Telemetry Loggers"
     end;
 
     /// <summary>
-    /// Gets the relevant telemetry loggers based on the callstack module infos, doesn't include the current publisher's logger.
+    /// Gets the relevant telemetry loggers based on the CallerCallStack, doesn't include the current publisher's logger.
     /// </summary>
-    /// <param name="CallstackModuleInfos">A unique set of ModuleInfos on the current callstack</param>
-    internal procedure GetRelevantTelemetryLoggers(CallstackModuleInfos: List of [ModuleInfo]): List of [Interface "Telemetry Logger"]
+    internal procedure GetRelevantTelemetryLoggers(): List of [Interface "Telemetry Logger"]
     begin
-        exit(TelemetryLoggersImpl.GetRelevantTelemetryLoggers(CallstackModuleInfos));
+        exit(TelemetryLoggersImpl.GetRelevantTelemetryLoggers());
     end;
 
     internal procedure SetCurrentPublisher(Publisher: Text)
@@ -69,9 +68,9 @@ codeunit 8708 "Telemetry Loggers"
         TelemetryLoggersImpl.SetCurrentPublisher(Publisher);
     end;
 
-    internal procedure SetCurrentTelemetryScope(TelemetryScope: TelemetryScope)
+    internal procedure SetCallStackPublishers(Publishers: List of [Text])
     begin
-        TelemetryLoggersImpl.SetCurrentTelemetryScope(TelemetryScope);
+        TelemetryLoggersImpl.SetCallStackPublishers(Publishers);
     end;
 
     internal procedure Register(TelemetryLogger: Interface "Telemetry Logger"; Publisher: Text)

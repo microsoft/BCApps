@@ -15,7 +15,7 @@ codeunit 8709 "Telemetry Loggers Impl."
         RegisteredTelemetryLoggers: List of [Interface "Telemetry Logger"];
         RegisteredPublishers: List of [Text];
         CurrentPublisher: Text;
-        CurrentTelemetryScope: TelemetryScope;
+        CallStackPublishers: List of [Text];
         NoPublisherErr: Label 'An app from publisher %1 is sending telemetry, but there is no registered telemetry logger for this publisher.', Locked = true;
         RichTelemetryUsedTxt: Label 'A 3rd party app from publisher %1 is using rich telemetry.', Locked = true;
         TelemetryLibraryCategoryTxt: Label 'TelemetryLibrary', Locked = true;
@@ -23,9 +23,7 @@ codeunit 8709 "Telemetry Loggers Impl."
 
     procedure Register(TelemetryLogger: Interface "Telemetry Logger"; Publisher: Text)
     begin
-        // Only currentPublisher's logger needs to be saved for ExtensionPublisher scope.
-        // TODO: This might need to be changed if we decide to add one more enum value for TelemetryScope.
-        if (CurrentTelemetryScope = TelemetryScope::ExtensionPublisher) and (Publisher <> CurrentPublisher) then
+        if not CallStackPublishers.Contains(Publisher) then
             exit;
 
         if not RegisteredPublishers.Contains(Publisher) then begin
@@ -50,13 +48,13 @@ codeunit 8709 "Telemetry Loggers Impl."
         exit(IsLoggerFromCurrentPublisherFound);
     end;
 
-    internal procedure GetRelevantTelemetryLoggers(CallstackModuleInfos: List of [ModuleInfo]) RelevantTelemetryLoggers: List of [Interface "Telemetry Logger"]
+    internal procedure GetRelevantTelemetryLoggers() RelevantTelemetryLoggers: List of [Interface "Telemetry Logger"]
     var
-        ModuleInfo: ModuleInfo;
+        Publisher: Text;
     begin
-        foreach ModuleInfo in CallstackModuleInfos do
-            if RegisteredPublishers.Contains(ModuleInfo.Publisher) and (ModuleInfo.Publisher <> CurrentPublisher) then
-                RelevantTelemetryLoggers.Add(RegisteredTelemetryLoggers.Get(RegisteredPublishers.IndexOf(ModuleInfo.Publisher)));
+        foreach Publisher in RegisteredPublishers do
+            if Publisher <> CurrentPublisher then
+                RelevantTelemetryLoggers.Add(RegisteredTelemetryLoggers.Get(RegisteredPublishers.IndexOf(Publisher)));
     end;
 
     internal procedure SetCurrentPublisher(Publisher: Text)
@@ -64,8 +62,8 @@ codeunit 8709 "Telemetry Loggers Impl."
         CurrentPublisher := Publisher;
     end;
 
-    internal procedure SetCurrentTelemetryScope(TelemetryScope: TelemetryScope)
+    internal procedure SetCallStackPublishers(Publishers: List of [Text])
     begin
-        CurrentTelemetryScope := TelemetryScope;
+        CallStackPublishers := Publishers;
     end;
 }
