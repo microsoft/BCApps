@@ -70,6 +70,8 @@ page 149033 "AIT Log Entries"
                 {
                     ToolTip = 'Specifies the single operation of the AIT.';
                     ApplicationArea = All;
+                    Visible = false;
+                    Enabled = false;
                 }
                 field("Procedure Name"; Rec."Procedure Name")
                 {
@@ -80,6 +82,7 @@ page 149033 "AIT Log Entries"
                 {
                     ToolTip = 'Specifies the original operation of the AIT.';
                     Visible = false;
+                    Enabled = false;
                     ApplicationArea = All;
                 }
                 field(Status; Rec.Status)
@@ -142,14 +145,14 @@ page 149033 "AIT Log Entries"
                 field(StartTime; Format(Rec."Start Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'Start Time';
-                    ToolTip = 'Specifies the start time of the AIT scenario.';
+                    ToolTip = 'Specifies the start time of the test.';
                     ApplicationArea = All;
                     Visible = false;
                 }
                 field(EndTime; Format(Rec."End Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'End Time';
-                    ToolTip = 'Specifies the end time of the AIT scenario.';
+                    ToolTip = 'Specifies the end time of the test.';
                     ApplicationArea = All;
                     Visible = false;
                 }

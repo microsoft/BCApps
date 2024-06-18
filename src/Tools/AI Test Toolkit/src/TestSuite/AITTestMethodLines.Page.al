@@ -112,6 +112,8 @@ page 149034 "AIT Test Method Lines"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the number of operations in the current Version.';
+                    Visible = false;
+                    Enabled = false;
                 }
                 field(Duration; Rec."Total Duration (ms)")
                 {
@@ -162,6 +164,7 @@ page 149034 "AIT Test Method Lines"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the number of operations in the base Version.';
                     Visible = false;
+                    Enabled = false;
                 }
                 field(DurationBase; Rec."Total Duration - Base (ms)")
                 {

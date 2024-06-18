@@ -100,7 +100,7 @@ page 149031 "AIT Test Suite"
 
                     field(Tag; Rec.Tag)
                     {
-                        ToolTip = 'Specifies a version or scenario the test is being run for. The Tag will be transferred to the log entries and enables comparison between scenarios.';
+                        ToolTip = 'Specifies the tag for a test run. The Tag will be transferred to the log entries and enables comparison between tests.';
                         ApplicationArea = All;
                     }
                 }
@@ -151,6 +151,8 @@ page 149031 "AIT Test Suite"
                     ApplicationArea = All;
                     Caption = 'No. of Operations';
                     ToolTip = 'Specifies the number of operations executed in the current version.';
+                    Visible = false;
+                    Enabled = false;
                 }
                 field("Total Duration"; this.TotalDuration)
                 {

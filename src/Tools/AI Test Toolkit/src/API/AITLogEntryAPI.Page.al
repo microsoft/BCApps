@@ -77,6 +77,8 @@ page 149038 "AIT Log Entry API"
                 }
                 field("operation"; Rec.Operation)
                 {
+                    Visible = false;
+                    Enabled = false;
                     Caption = 'Operation';
                 }
                 field("message"; MessageTxt)

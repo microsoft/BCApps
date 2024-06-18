@@ -333,7 +333,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestRunnerImpl.AddToNoOfLogEntriesInserted();
     end;
 
-    local procedure AddLogAppInsights(var AITLogEntry: Record "AIT Log Entry")
+    local procedure AddLogAppInsights(var AITLogEntry: Record "AIT Log Entry") //TODO: Check what is being emitted, consider using feature uptake telemetry
     var
         Dimensions: Dictionary of [Text, Text];
         TelemetryLogLbl: Label 'AI Test Tool - %1 - %2 - %3', Locked = true;

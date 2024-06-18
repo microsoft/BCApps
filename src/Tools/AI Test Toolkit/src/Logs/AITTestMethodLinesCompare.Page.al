@@ -72,12 +72,6 @@ page 149035 "AIT Test Method Lines Compare"
                             ToolTip = 'Specifies the number of tests that failed in the version.';
                             ApplicationArea = All;
                         }
-                        label(NoOfOperations)
-                        {
-                            Caption = 'Number of Operations';
-                            ToolTip = 'Specifies the number of operations in the version.';
-                            ApplicationArea = All;
-                        }
                         label(TotalDuration)
                         {
                             Caption = 'Total Duration (ms)';
@@ -116,12 +110,6 @@ page 149035 "AIT Test Method Lines Compare"
                                 AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", this.Version);
                             end;
                         }
-                        field("No. of Operations"; Rec."No. of Operations")
-                        {
-                            ApplicationArea = All;
-                            ToolTip = 'Specifies the number of operations in the current Version.';
-                            ShowCaption = false;
-                        }
                         field(Duration; Rec."Total Duration (ms)")
                         {
                             ToolTip = 'Specifies Total Duration of the AIT for this role.';
@@ -159,12 +147,6 @@ page 149035 "AIT Test Method Lines Compare"
                             begin
                                 AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", this.BaseVersion);
                             end;
-                        }
-                        field("No. of Operations - Base"; Rec."No. of Operations - Base")
-                        {
-                            ApplicationArea = All;
-                            ToolTip = 'Specifies the number of operations in the base Version.';
-                            ShowCaption = false;
                         }
                         field(DurationBase; Rec."Total Duration - Base (ms)")
                         {
