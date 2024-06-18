@@ -389,7 +389,7 @@ page 1751 "Data Classification Worksheet"
         Field: Record Field;
     begin
         CurrPage.SetSelectionFilter(DataSensitivity);
-        CalcFields("Field Type");
+        Rec.CalcFields("Field Type");
         FieldContentEnabled := ((Rec."Field Type" = Field.Type::Code) or (Rec."Field Type" = Field.Type::Text))
             and (DataSensitivity.Count() = 1);
     end;
