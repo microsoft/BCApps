@@ -15,7 +15,7 @@ codeunit 149031 SentenceValidator
         LengthErr: Label 'Length exceeds %1 characters', Comment = '%1 = Expected Max Length';
     begin
         UserInput := AITContext.GetQuestionAsText();
-        TestInputJson := AITContext.GetTestSetupAsJson();
+        TestInputJson := AITContext.GetInputAsJson();
         ExpectedMaxLength := TestInputJson.Element('ExpectedMaxLength').ValueAsInteger();
         if StrLen(UserInput) > ExpectedMaxLength then
             Error(LengthErr, ExpectedMaxLength);
