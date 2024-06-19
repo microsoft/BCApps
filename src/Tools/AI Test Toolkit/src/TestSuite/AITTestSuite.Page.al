@@ -187,11 +187,7 @@ page 149031 "AIT Test Suite"
                 trigger OnAction()
                 begin
                     CurrPage.Update(false);
-                    Rec.Find();
-                    if Rec."Input Dataset" = '' then
-                        Error('Please specify a dataset before starting the suite.');
-                    this.AITTestSuiteCU.ValidateDatasets(Rec);
-                    this.AITStartTests.StartAITSuite(Rec);
+                    this.AITTestSuiteMgt.StartAITSuite(Rec);
                     CurrPage.Update(false);
                 end;
             }
@@ -218,7 +214,7 @@ page 149031 "AIT Test Suite"
 
                 trigger OnAction()
                 begin
-                    this.AITTestSuiteCU.ResetStatus(Rec);
+                    this.AITTestSuiteMgt.ResetStatus(Rec);
                 end;
             }
 
@@ -288,8 +284,7 @@ page 149031 "AIT Test Suite"
     }
 
     var
-        AITStartTests: Codeunit "AIT Start Tests";
-        AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         EnableActions: Boolean;
         AvgTimeDuration: Duration;
         TotalDuration: Duration;

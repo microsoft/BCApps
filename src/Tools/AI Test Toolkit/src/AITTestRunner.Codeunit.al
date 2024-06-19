@@ -51,7 +51,7 @@ codeunit 149042 "AIT Test Runner"
 
     local procedure RunAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line"; var AITTestSuite: Record "AIT Test Suite")
     var
-        AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
         this.GetAndClearAccumulatedWaitTimeMs();
 
@@ -62,7 +62,7 @@ codeunit 149042 "AIT Test Runner"
         //TODO override delay from line / default delay
         Sleep(AITTestMethodLine."Delay (ms btwn. iter.)");
 
-        AITTestSuiteCU.DecreaseNoOfTestsRunningNow(AITTestSuite);
+        AITTestSuiteMgt.DecreaseNoOfTestsRunningNow(AITTestSuite);
     end;
 
     local procedure RunIteration(var AITTestMethodLine: Record "AIT Test Method Line")

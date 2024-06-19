@@ -64,7 +64,7 @@ table 149030 "AIT Test Suite"
             trigger OnValidate()
             var
                 AITTestMethodLine: Record "AIT Test Method Line";
-                AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
+                AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
             begin
                 if "No. of tests running" < 0 then
                     "No. of tests running" := 0;
@@ -79,7 +79,7 @@ table 149030 "AIT Test Suite"
                             AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::" ");
                             if not AITTestMethodLine.IsEmpty then
                                 exit;
-                            AITTestSuiteCU.SetRunStatus(Rec, Rec.Status::Completed);
+                            AITTestSuiteMgt.SetRunStatus(Rec, Rec.Status::Completed);
                             AITTestMethodLine.SetRange("Test Suite Code", "Code");
                             AITTestMethodLine.SetRange(Status);
                             AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Completed);
@@ -97,9 +97,7 @@ table 149030 "AIT Test Suite"
             Caption = 'Tag';
             DataClassification = CustomerContent;
         }
-#pragma warning disable AA0232
         field(12; "Total Duration (ms)"; Integer)
-#pragma warning restore AA0232
         {
             Caption = 'Total Duration (ms)';
             ToolTip = 'Specifies the Total Duration (ms) for executing all the tests in the current version.';

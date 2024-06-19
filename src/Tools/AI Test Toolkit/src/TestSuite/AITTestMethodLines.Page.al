@@ -194,10 +194,10 @@ page 149034 "AIT Test Method Lines"
     {
         area(Processing)
         {
-            action(Start)
+            action("Run Test")
             {
                 ApplicationArea = All;
-                Caption = 'Run';
+                Caption = 'Run Test';
                 Image = Start;
                 Tooltip = 'Starts running the AIT Line.';
 
@@ -207,35 +207,9 @@ page 149034 "AIT Test Method Lines"
                     AITTestSuite.Version += 1;
                     AITTestSuite.Modify();
                     Commit();
-                    // If no range is set, all following foreground lines will be run
                     Rec.SetRange("Codeunit ID", Rec."Codeunit ID");
                     Codeunit.Run(codeunit::"AIT Test Runner", Rec);
                     Rec.SetRange("Codeunit ID"); // reset filter
-                end;
-            }
-            action(Indent)
-            {
-                ApplicationArea = All;
-                Visible = false;
-                Caption = 'Make Child';  //'Indent';
-                Image = Indent;
-                ToolTip = 'Make this process a child of the above session.';
-                trigger OnAction()
-                begin
-                    AITTestSuiteMgt.Indent(Rec);
-                end;
-            }
-            action(Outdent)
-            {
-                ApplicationArea = Basic, Suite;
-                Visible = false;
-                Caption = 'Make Session';  //'Outdent';
-                Image = DecreaseIndent;
-                ToolTip = 'Make this process its own session.';
-
-                trigger OnAction()
-                begin
-                    AITTestSuiteMgt.Outdent(Rec);
                 end;
             }
             action(LogEntries)

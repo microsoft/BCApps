@@ -62,9 +62,7 @@ table 149032 "AIT Test Method Line"
                         Error(this.NotSupportedCodeunitErr, "Codeunit Name");
             end;
         }
-#pragma warning disable AS0086
         field(4; "Codeunit Name"; Text[249])
-#pragma warning restore AS0086
         {
             Caption = 'Codeunit Name';
             Editable = false;
@@ -134,9 +132,7 @@ table 149032 "AIT Test Method Line"
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
-#pragma warning disable AA0232
         field(16; "Total Duration (ms)"; Integer)
-#pragma warning restore AA0232
         {
             Caption = 'Total Duration (ms)';
             Editable = false;
