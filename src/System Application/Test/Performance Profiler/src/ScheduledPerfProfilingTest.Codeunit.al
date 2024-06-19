@@ -105,7 +105,7 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         TempPerformanceProfileScheduler."Starting Date-Time" := CurrentDateTime + 60000;
 
         // [THEN] we get the correct error messages
-        TempPerformanceProfileScheduler."Ending Date-Time" := CurrentDateTime - 60000;
+        TempPerformanceProfileScheduler."Ending Date-Time" := CurrentDateTime + 10000;
         asserterror ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(TempPerformanceProfileScheduler);
         Assert.ExpectedError(ProfileStartingDateLessThenEndingDateErr);
     end;
@@ -217,13 +217,12 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         ScheduledPerfProfiler.MapRecordToActivityType(PerformanceProfileScheduler, ActivityType);
     end;
 
-    local procedure AddTwoUsers(TempUser: Record User temporary)
+    local procedure AddTwoUsers(var TempUser: Record User temporary)
     var
         I: Integer;
     begin
 
         for I := 0 to 2 do begin
-            Clear(TempUser);
             TempUser."User Security ID" := CreateGuid();
             TempUser."User Name" := CopyStr(Any.AlphanumericText(50), 1, 10);
             TempUser.Insert();
