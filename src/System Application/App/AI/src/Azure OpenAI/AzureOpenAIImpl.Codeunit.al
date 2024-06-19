@@ -173,10 +173,17 @@ codeunit 7772 "Azure OpenAI Impl"
 
     [NonDebuggable]
     procedure SetAuthorization(ModelType: Enum "AOAI Model Type"; Deployment: Text)
-    var
-        ApiKey: SecretText;
     begin
-        SetAuthorization(ModelType, '', Deployment, ApiKey);
+        case ModelType of
+            Enum::"AOAI Model Type"::"Text Completions":
+                TextCompletionsAOAIAuthorization.SetFirstPartyAuthorization(Deployment);
+            Enum::"AOAI Model Type"::Embeddings:
+                EmbeddingsAOAIAuthorization.SetFirstPartyAuthorization(Deployment);
+            Enum::"AOAI Model Type"::"Chat Completions":
+                ChatCompletionsAOAIAuthorization.SetFirstPartyAuthorization(Deployment);
+            else
+                Error(InvalidModelTypeErr);
+        end;
     end;
 
     [NonDebuggable]
@@ -184,11 +191,26 @@ codeunit 7772 "Azure OpenAI Impl"
     begin
         case ModelType of
             Enum::"AOAI Model Type"::"Text Completions":
-                TextCompletionsAOAIAuthorization.SetAuthorization(Endpoint, Deployment, ApiKey);
+                TextCompletionsAOAIAuthorization.SetSelfManagedAuthorization(Endpoint, Deployment, ApiKey);
             Enum::"AOAI Model Type"::Embeddings:
-                EmbeddingsAOAIAuthorization.SetAuthorization(Endpoint, Deployment, ApiKey);
+                EmbeddingsAOAIAuthorization.SetSelfManagedAuthorization(Endpoint, Deployment, ApiKey);
             Enum::"AOAI Model Type"::"Chat Completions":
-                ChatCompletionsAOAIAuthorization.SetAuthorization(Endpoint, Deployment, ApiKey);
+                ChatCompletionsAOAIAuthorization.SetSelfManagedAuthorization(Endpoint, Deployment, ApiKey);
+            else
+                Error(InvalidModelTypeErr);
+        end;
+    end;
+
+    [NonDebuggable]
+    procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text; Deployment: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
+    begin
+        case ModelType of
+            Enum::"AOAI Model Type"::"Text Completions":
+                TextCompletionsAOAIAuthorization.SetMicrosoftManagedAuthorization(Endpoint, Deployment, ApiKey, ManagedResourceDeployment);
+            Enum::"AOAI Model Type"::Embeddings:
+                EmbeddingsAOAIAuthorization.SetMicrosoftManagedAuthorization(Endpoint, Deployment, ApiKey, ManagedResourceDeployment);
+            Enum::"AOAI Model Type"::"Chat Completions":
+                ChatCompletionsAOAIAuthorization.SetMicrosoftManagedAuthorization(Endpoint, Deployment, ApiKey, ManagedResourceDeployment);
             else
                 Error(InvalidModelTypeErr);
         end;
@@ -224,7 +246,7 @@ codeunit 7772 "Azure OpenAI Impl"
         PayloadText: Text;
         UnwrappedPrompt: Text;
     begin
-        GuiCheck(CallerModuleInfo);
+        GuiCheck(TextCompletionsAOAIAuthorization);
 
         CheckCapabilitySet();
         CheckEnabled(CallerModuleInfo);
@@ -258,7 +280,7 @@ codeunit 7772 "Azure OpenAI Impl"
         Payload: JsonObject;
         PayloadText: Text;
     begin
-        GuiCheck(CallerModuleInfo);
+        GuiCheck(EmbeddingsAOAIAuthorization);
 
         CheckCapabilitySet();
         CheckEnabled(CallerModuleInfo);
@@ -312,7 +334,7 @@ codeunit 7772 "Azure OpenAI Impl"
         MetapromptTokenCount: Integer;
         PromptTokenCount: Integer;
     begin
-        GuiCheck(CallerModuleInfo);
+        GuiCheck(ChatCompletionsAOAIAuthorization);
 
         CheckCapabilitySet();
         CheckEnabled(CallerModuleInfo);
@@ -479,9 +501,17 @@ codeunit 7772 "Azure OpenAI Impl"
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         ALCopilotOperationResponse: DotNet ALCopilotOperationResponse;
         Error: Text;
+        EmptySecretText: SecretText;
     begin
         ClearLastError();
-        ALCopilotAuthorization := ALCopilotAuthorization.Create(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
+        case AOAIAuthorization.GetResourceUtilization() of
+            Enum::"AOAI Resource Utilization"::"Microsoft Managed":
+                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
+            Enum::"AOAI Resource Utilization"::"First Party":
+                ALCopilotAuthorization := ALCopilotAuthorization.Create(EmptySecretText, AOAIAuthorization.GetManagedResourceDeployment(), EmptySecretText);
+            else
+                ALCopilotAuthorization := ALCopilotAuthorization.Create(AOAIAuthorization.GetEndpoint(), AOAIAuthorization.GetDeployment(), AOAIAuthorization.GetApiKey());
+        end;
 
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), GetCapabilityName());
 
@@ -527,14 +557,15 @@ codeunit 7772 "Azure OpenAI Impl"
         Telemetry.LogMessage('0000LT4', StrSubstNo(TelemetryTokenCountLbl, Metaprompt, Prompt, Metaprompt + Prompt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
     end;
 
-    local procedure GuiCheck(CallerModuleInfo: ModuleInfo)
-    var
-        CurrentModuleInfo: ModuleInfo;
+    local procedure GuiCheck(AOAIAuthorization: Codeunit "AOAI Authorization")
     begin
-        NavApp.GetCallerModuleInfo(CurrentModuleInfo);
+        if GuiAllowed() then
+            exit;
 
-        if (not GuiAllowed()) and (CallerModuleInfo.Publisher = CurrentModuleInfo.Publisher) then
-            Error(CapabilityBackgroundErr);
+        if AOAIAuthorization.GetResourceUtilization() = Enum::"AOAI Resource Utilization"::"Self-Managed" then
+            exit;
+
+        Error(CapabilityBackgroundErr);
     end;
 
     local procedure AddTelemetryCustomDimensions(var CustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
