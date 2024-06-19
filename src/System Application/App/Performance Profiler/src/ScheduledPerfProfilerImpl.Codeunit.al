@@ -101,7 +101,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     procedure ValidatePerformanceProfileEndTime(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
     begin
         if (PerformanceProfileScheduler."Ending Date-Time" = 0DT) then
-            Error(ScheduleEndTimeCannotBeEmpty);
+            Error(ScheduleEndTimeCannotBeEmptyErr);
     end;
 
     procedure ValidatePerformanceProfileScheduler(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Perf. Profile Activity Type")
@@ -195,5 +195,5 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
         ProfileCannotBeInThePastErr: Label 'A schedule cannot be set to run in the past.';
         ScheduleDurationCannotExceedRetentionPeriodErr: Label 'The performance profile schedule duration cannot exceed the retention period.';
-        ScheduleEndTimeCannotBeEmpty: Label 'The performance profile schedule must have an end time.';
+        ScheduleEndTimeCannotBeEmptyErr: Label 'The performance profile schedule must have an end time.';
 }

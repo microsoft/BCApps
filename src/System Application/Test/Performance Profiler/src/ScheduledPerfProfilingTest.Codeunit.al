@@ -24,7 +24,6 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
         ScheduleDurationCannotExceedRetentionPeriodErr: Label 'The performance profile schedule duration cannot exceed the retention period.';
         ProfileCannotBeInThePastErr: Label 'A schedule cannot be set to run in the past.';
-        MaxRetentionPeriod: Duration;
 
     [Test]
     procedure TestInitializedData()
@@ -147,25 +146,24 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     [Test]
     procedure TestValidatePerformanceProfileSchedulerRecordWithStartingDateInThePast()
     var
-        PerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
+        TempPerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
         ActivityType: Enum "Perf. Profile Activity Type";
-        EndingDateTime: DateTime;
     begin
         // [SCENARIO] Validating that a performance profile schedule record needs a starting date that is not in the past
 
         // [WHEN] We create a profile schedule record with a starting date in the past
-        ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
-        PerformanceProfileScheduler."Ending Date-Time" := CurrentDateTime - 60000;
+        ScheduledPerfProfiler.InitializeFields(TempPerformanceProfileScheduler, ActivityType);
+        TempPerformanceProfileScheduler."Ending Date-Time" := CurrentDateTime - 60000;
 
         // [THEN] we get an appropriate error message.
-        asserterror ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler, 0);
+        asserterror ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(TempPerformanceProfileScheduler, 0);
         Assert.ExpectedError(ProfileCannotBeInThePastErr);
     end;
 
     [Test]
     procedure TestValidatePerformanceProfileSchedulerRecordWithDurationLargerThanRetentionPeriod()
     var
-        PerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
+        TempPerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
         ActivityType: Enum "Perf. Profile Activity Type";
         EndingDateTime: DateTime;
         OneWeek: Duration;
@@ -174,14 +172,14 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         // [SCENARIO] Validating that a performance profile schedule record cannot have a duration larger than the retention period.
 
         // [WHEN] We try to validate a record with a duration larger than the retention period
-        ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
+        ScheduledPerfProfiler.InitializeFields(TempPerformanceProfileScheduler, ActivityType);
         OneWeek := 24 * 60 * 60 * 1000 * 7;
         OneWeekPlusOneDay := OneWeek + 24 * 60 * 60 * 1000;
-        EndingDateTime := PerformanceProfileScheduler."Starting Date-Time" + OneWeekPlusOneDay;
-        PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
+        EndingDateTime := TempPerformanceProfileScheduler."Starting Date-Time" + OneWeekPlusOneDay;
+        TempPerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
 
         // [THEN] we get an appropriate error message.
-        asserterror ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler, OneWeek);
+        asserterror ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(TempPerformanceProfileScheduler, OneWeek);
         Assert.ExpectedError(ScheduleDurationCannotExceedRetentionPeriodErr);
     end;
 
