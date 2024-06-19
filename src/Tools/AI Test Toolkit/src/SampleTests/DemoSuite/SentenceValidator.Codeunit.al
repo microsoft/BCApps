@@ -1,4 +1,5 @@
 namespace System.TestTools.AITestToolkit;
+using System.TestTools.TestRunner;
 codeunit 149031 SentenceValidator
 {
     Access = Internal;
@@ -8,11 +9,16 @@ codeunit 149031 SentenceValidator
     procedure AssertSentenceLengthFunction()
     var
         AITContext: Codeunit "AIT Test Context";
+        TestInputJson: Codeunit "Test Input Json";
         UserInput: Text;
+        ExpectedMaxLength: Integer;
+        LengthErr: Label 'Length exceeds %1 characters', Comment = '%1 = Expected Max Length';
     begin
         UserInput := AITContext.GetQuestionAsText();
-        if StrLen(UserInput) > 50 then
-            Error('Length exceeds 50 characters');
+        TestInputJson := AITContext.GetTestSetupAsJson();
+        ExpectedMaxLength := TestInputJson.Element('ExpectedMaxLength').ValueAsInteger();
+        if StrLen(UserInput) > ExpectedMaxLength then
+            Error(LengthErr, ExpectedMaxLength);
     end;
 
     [Test]
