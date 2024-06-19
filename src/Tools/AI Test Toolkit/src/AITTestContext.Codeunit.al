@@ -20,6 +20,7 @@ codeunit 149043 "AIT Test Context"
         AnswerTok: Label 'answer', Locked = true;
         ContextTok: Label 'context', Locked = true;
         GroundTruthTok: Label 'ground_truth', Locked = true;
+        ExpectedDataTok: Label 'expected_data', Locked = true;
         TestMetricsTok: Label 'test_metrics', Locked = true;
         TestOutputTok: Label 'test_output', Locked = true;
         TestSetupTok: Label 'test_setup', Locked = true;
@@ -142,6 +143,28 @@ codeunit 149043 "AIT Test Context"
         TestInputCU: Codeunit "Test Input";
     begin
         TestInputJson := TestInputCU.GetTestInput(GroundTruthTok);
+    end;
+
+    /// <summary>
+    /// Get the Expected Data value as text from the input dataset for the current iteration.
+    /// Expected data is used for internal validation if the test was successful.
+    /// </summary>
+    /// <returns>Text representing JSON for the expected data</returns>
+    procedure GetExpectedDataAsText(): Text
+    begin
+        exit(GetExpectedDataTokAsJson().ValueAsText());
+    end;
+
+    /// <summary>
+    /// Get the Expected Data value as text from the input dataset for the current iteration.
+    /// Expected data is used for internal validation if the test was successful.
+    /// </summary>
+    /// <returns>Test Input Json for the expected data</returns>
+    procedure GetExpectedDataTokAsJson() TestInputJson: Codeunit "Test Input Json"
+    var
+        TestInputCU: Codeunit "Test Input";
+    begin
+        TestInputJson := TestInputCU.GetTestInput(ExpectedDataTok);
     end;
 
     /// <summary>
