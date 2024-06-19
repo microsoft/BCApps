@@ -19,7 +19,7 @@ codeunit 149036 "AIT Start Tests"
 
     var
         NothingToRunErr: Label 'There is nothing to run.';
-        CannotRunMultipleSuitesInParallelErr: Label 'There is already test run in progress. Start this operaiton after that finishes.';
+        CannotRunMultipleSuitesInParallelErr: Label 'There is already a test run in progress. Start this operation after that finishes.';
         RunningTestsMsg: Label 'Running tests...';
 
     local procedure StartAITests(AITTestSuite: Record "AIT Test Suite")
