@@ -61,8 +61,8 @@ codeunit 2019 "Entity Text Prompts"
         PromptObject: JsonObject;
         SystemPromptJson: JsonToken;
         UserPromptJson: JsonToken;
+        SafetyPromptToken: JsonToken;
         BCETPromptObject: Text;
-        BCETSafetyPrompt: Text;
         LanguageName: Text;
         NewLineChar: Char;
     begin
@@ -71,15 +71,14 @@ codeunit 2019 "Entity Text Prompts"
 
         GetAzureKeyVaultSecret(BCETPromptObject, 'BCETPromptObject');
         PromptObject.ReadFrom(BCETPromptObject);
-
         PromptObject.Get('system', SystemPromptJson);
         PromptObject.Get('user', UserPromptJson);
+        PromptObject.Get('safety-prompt', SafetyPromptToken);
 
         SystemPrompt := BuildSinglePrompt(SystemPromptJson.AsObject(), LanguageName, FactsList, Category, Tone, TextFormat, TextEmphasis);
         UserPrompt := BuildSinglePrompt(UserPromptJson.AsObject(), LanguageName, FactsList, Category, Tone, TextFormat, TextEmphasis);
 
-        GetAzureKeyVaultSecret(BCETSafetyPrompt, 'BCETSafetyPrompt');
-        SystemPrompt := StrSubstNo(BCETSafetyPrompt, NewLineChar) + SystemPrompt;
+        SystemPrompt := StrSubstNo(SafetyPromptToken.AsValue().AsText(), NewLineChar) + SystemPrompt;
     end;
 
     [NonDebuggable]
