@@ -5,7 +5,6 @@
 
 namespace System.TestTools.AITestToolkit;
 using System.TestTools.TestRunner;
-using System.Text.Json;
 
 /// <summary>
 /// Exposes functions that can be used by the AIT tests.
