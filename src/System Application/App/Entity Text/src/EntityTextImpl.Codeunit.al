@@ -333,7 +333,6 @@ codeunit 2012 "Entity Text Impl."
         EmptyArguments: JsonObject;
         StartDateTime: DateTime;
         DurationAsBigInt: BigInteger;
-        CompletionAnswer: Text;
         Result: Text;
         EntityTextModuleInfo: ModuleInfo;
         ResponseErr: Label 'Response error code: %1', Comment = '%1 = Error code', Locked = true;
@@ -344,7 +343,7 @@ codeunit 2012 "Entity Text Impl."
             AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", Endpoint, Deployment, ApiKey)
         else
             if (not IsNullGuid(CallerModuleInfo.Id())) and (CallerModuleInfo.Publisher() = EntityTextModuleInfo.Publisher()) then
-                AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT4Preview())
+                AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT4Preview()) //ToDo: Change to the correct deployment
             else begin
                 Session.LogMessage('0000LJB', TelemetryNoAuthorizationHandlerTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
                 Error(NoAuthorizationHandlerErr);
@@ -370,7 +369,6 @@ codeunit 2012 "Entity Text Impl."
         TelemetryCD.Add('Response time', Format(DurationAsBigInt));
 
         if AOAIOperationResponse.IsSuccess() then begin
-            CompletionAnswer := AOAIOperationResponse.GetResult(); //ToDo: not Used
             if AOAIOperationResponse.IsFunctionCall() then begin
                 AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
                 FeatureTelemetry.LogUsage('0000N5C', GetFeatureName(), 'Call Chat Completion API', TelemetryCD);
