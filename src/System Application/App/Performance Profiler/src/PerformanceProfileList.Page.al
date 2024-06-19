@@ -178,7 +178,7 @@ page 1931 "Performance Profile List"
     begin
         Rec.SetAutoCalcFields("User Name", "Client Type");
         RecordRef.GetTable(Rec);
-        ScheduledPerfProfilerImpl.FilterUsers(RecordRef, UserSecurityId());
+        ScheduledPerfProfilerImpl.FilterUsers(RecordRef, UserSecurityId(), false);
         RecordRef.SetTable(Rec);
     end;
 

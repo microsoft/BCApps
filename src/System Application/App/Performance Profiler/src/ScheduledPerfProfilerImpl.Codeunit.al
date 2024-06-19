@@ -38,23 +38,23 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         exit(User."User Name");
     end;
 
-    procedure FilterUsers(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; SecurityID: Guid)
+    procedure FilterUsers(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; SecurityID: Guid; ForceFilterToUser: Boolean)
     var
         RecordRef: RecordRef;
     begin
         RecordRef.GetTable(PerformanceProfileScheduler);
-        this.FilterUsers(RecordRef, SecurityID);
+        this.FilterUsers(RecordRef, SecurityID, ForceFilterToUser);
         RecordRef.SetTable(PerformanceProfileScheduler);
     end;
 
-    procedure FilterUsers(var RecordRef: RecordRef; SecurityID: Guid)
+    procedure FilterUsers(var RecordRef: RecordRef; SecurityID: Guid; ForceFilterToUser: Boolean)
     var
         UserPermissions: Codeunit "User Permissions";
         FilterView: Text;
         FilterTextTxt: Label 'where("User ID"=filter(''%1''))', locked = true;
 
     begin
-        if UserPermissions.CanManageUsersOnTenant(SecurityID) then
+        if (not ForceFilterToUser) and UserPermissions.CanManageUsersOnTenant(SecurityID) then
             exit; // No need for additional user filters
 
         FilterView := StrSubstNo(FilterTextTxt, SecurityID);
@@ -64,10 +64,14 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     end;
 
     procedure InitializeFields(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; var ActivityType: Enum "Perf. Profile Activity Type")
+    var
+        OneHour: Duration;
     begin
+        OneHour := 1000 * 60 * 60;
         PerformanceProfileScheduler.Init();
         PerformanceProfileScheduler."Schedule ID" := CreateGuid();
         PerformanceProfileScheduler."Starting Date-Time" := CurrentDateTime;
+        PerformanceProfileScheduler."Ending Date-Time" := PerformanceProfileScheduler."Starting Date-Time" + OneHour;
         PerformanceProfileScheduler.Enabled := true;
         PerformanceProfileScheduler."Profile Creation Threshold" := 500;
         PerformanceProfileScheduler.Frequency := PerformanceProfileScheduler.Frequency::"100 milliseconds";
@@ -76,13 +80,28 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         ActivityType := ActivityType::WebClient;
     end;
 
-    procedure ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
+    procedure ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; MaxRetentionPeriod: Duration)
+    var
+        ScheduleDuration: Duration;
     begin
         if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Ending Date-Time" < CurrentDateTime())) then
             Error(ProfileCannotBeInThePastErr);
 
         if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Starting Date-Time" > PerformanceProfileScheduler."Ending Date-Time")) then
             Error(ProfileStartingDateLessThenEndingDateErr);
+
+        if (MaxRetentionPeriod = 0) then
+            exit;
+
+        ScheduleDuration := PerformanceProfileScheduler."Ending Date-Time" - PerformanceProfileScheduler."Starting Date-Time";
+        if (ScheduleDuration > MaxRetentionPeriod) then
+            Error(ScheduleDurationCannotExceedRetentionPeriodErr);
+    end;
+
+    procedure ValidatePerformanceProfileEndTime(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
+    begin
+        if (PerformanceProfileScheduler."Ending Date-Time" = 0DT) then
+            Error(ScheduleEndTimeCannotBeEmpty);
     end;
 
     procedure ValidatePerformanceProfileScheduler(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Perf. Profile Activity Type")
@@ -119,7 +138,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     var
         RetentionPolicySetup: Record "Retention Policy Setup";
     begin
-        if RetentionPolicySetup.Get(Database::"Performance Profiles") then
+        if RetentionPolicySetup.Get(Database::"Performance Profile Scheduler") then
             exit(RetentionPolicySetup."Retention Period");
     end;
 
@@ -175,4 +194,6 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         ProfileStartingDateLessThenEndingDateErr: Label 'The performance profile starting date must be set before the ending date.';
         ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
         ProfileCannotBeInThePastErr: Label 'A schedule cannot be set to run in the past.';
+        ScheduleDurationCannotExceedRetentionPeriodErr: Label 'The performance profile schedule duration cannot exceed the retention period.';
+        ScheduleEndTimeCannotBeEmpty: Label 'The performance profile schedule must have an end time.';
 }

@@ -56,7 +56,7 @@ page 1932 "Perf. Profiler Schedule Card"
 
                     trigger OnValidate()
                     begin
-                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec);
+                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec, MaxRetentionPeriod);
                     end;
                 }
                 field("End Time"; Rec."Ending Date-Time")
@@ -68,7 +68,8 @@ page 1932 "Perf. Profiler Schedule Card"
 
                     trigger OnValidate()
                     begin
-                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec);
+                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec, MaxRetentionPeriod);
+                        ScheduledPerfProfiler.ValidatePerformanceProfileEndTime(Rec);
                     end;
                 }
                 field(Description; Rec.Description)
@@ -188,6 +189,7 @@ page 1932 "Perf. Profiler Schedule Card"
     trigger OnOpenPage()
     begin
         ScheduledPerfProfiler.MapRecordToActivityType(Rec, Activity);
+        MaxRetentionPeriod := 1000 * 60 * 60 * 24 * 7; // 1 week
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -211,6 +213,7 @@ page 1932 "Perf. Profiler Schedule Card"
         ScheduledPerfProfiler: Codeunit "Scheduled Perf. Profiler";
         Activity: Enum "Perf. Profile Activity Type";
         RetentionPeriod: Code[20];
+        MaxRetentionPeriod: Duration;
         NoRetentionPolicySetupErr: Label 'No retention policy setup found for the performance profiles table.';
         CreateRetentionPolicySetupTxt: Label 'Create a retention policy setup';
 }

@@ -13,6 +13,8 @@ using System.Tooling;
 codeunit 135019 "Scheduled Perf. Profiling Test"
 {
     Subtype = Test;
+    TestPermissions = NonRestrictive;
+    Permissions = tabledata "Performance Profile Scheduler" = RIMD, tabledata User = RIMD;
 
     var
         Any: Codeunit Any;
@@ -20,6 +22,9 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         ScheduledPerfProfiler: Codeunit "Scheduled Perf. Profiler";
         ProfileStartingDateLessThenEndingDateErr: Label 'The performance profile starting date must be set before the ending date.';
         ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
+        ScheduleDurationCannotExceedRetentionPeriodErr: Label 'The performance profile schedule duration cannot exceed the retention period.';
+        ProfileCannotBeInThePastErr: Label 'A schedule cannot be set to run in the past.';
+        MaxRetentionPeriod: Duration;
 
     [Test]
     procedure TestInitializedData()
@@ -29,7 +34,7 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     begin
         // [SCENARIO] The initial data shown on the "Perf. Profiler Schedules Card" card page is set up
 
-        // [GIVEN] The initial data shown on the "Perf. Profiler Schedules Card" card page is set up
+        // [WHEN] The initial data shown on the "Perf. Profiler Schedules Card" card page is set up
         ScheduledPerfProfiler.InitializeFields(TempPerformanceProfileScheduler, ActivityType);
 
         // [THEN] Expected initalization happens
@@ -51,6 +56,7 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         // [SCENARIO] Mapping a record to an activity type
 
         // [GIVEN] a web client session type is used
+        // [WHEN] we map the record to an activity type
         TempPerformanceProfileScheduler.Init();
         this.SetupClientType(TempPerformanceProfileScheduler, TempPerformanceProfileScheduler."Client Type"::Background, ActivityType);
 
@@ -78,6 +84,7 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         // [SCENARIO] Mapping an activity type to a record
 
         // [GIVEN] an activity enum is used
+        // [WHEN] we map the activity type to a record
         TempPerformanceProfileScheduler.Init();
         ScheduledPerfProfiler.MapActivityTypeToRecord(TempPerformanceProfileScheduler, ActivityType);
 
@@ -100,17 +107,18 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     begin
         // [SCENARIO] Validating that the starting date is less than the ending date
 
-        // [GIVEN] a starting date is greater then an ending date
+        // [WHEN] A starting date is set to be greater then an ending date
         TempPerformanceProfileScheduler.Init();
         TempPerformanceProfileScheduler."Starting Date-Time" := CurrentDateTime + 60000;
 
         // [THEN] we get the correct error messages
         TempPerformanceProfileScheduler."Ending Date-Time" := CurrentDateTime + 10000;
-        asserterror ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(TempPerformanceProfileScheduler);
+        asserterror ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(TempPerformanceProfileScheduler, 0);
         Assert.ExpectedError(ProfileStartingDateLessThenEndingDateErr);
     end;
 
     [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestValidatePerformanceProfileSchedulerRecord()
     var
         PerformanceProfileScheduler: Record "Performance Profile Scheduler";
@@ -125,58 +133,56 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
         PerformanceProfileScheduler.Insert(true);
 
-        // [THEN] it should not intersect with another.
         Clear(PerformanceProfileScheduler);
+        // [WHEN] we try to create a new record that intersects with the previous one
         ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
         PerformanceProfileScheduler."Starting Date-Time" := EndingDateTime - 60000;
         PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
+
+        // [THEN] we get an appropriate error message.
         asserterror ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler, ActivityType);
         Assert.ExpectedError(ProfileHasAlreadyBeenScheduledErr);
     end;
 
     [Test]
-    procedure TestValidatePerformanceProfileSchedulerRecordWithNoStartingDate()
+    procedure TestValidatePerformanceProfileSchedulerRecordWithStartingDateInThePast()
     var
-        PerformanceProfileScheduler: Record "Performance Profile Scheduler";
+        PerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
         ActivityType: Enum "Perf. Profile Activity Type";
         EndingDateTime: DateTime;
     begin
-        // [SCENARIO] Validating that a performance profile schedule record needs a starting date
+        // [SCENARIO] Validating that a performance profile schedule record needs a starting date that is not in the past
 
-        // [GIVEN] we have inserted a new performance profile record
+        // [WHEN] We create a profile schedule record with a starting date in the past
         ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
-        EndingDateTime := PerformanceProfileScheduler."Starting Date-Time" + 15 * 60000;
-        PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
-        PerformanceProfileScheduler.Insert(true);
+        PerformanceProfileScheduler."Ending Date-Time" := CurrentDateTime - 60000;
 
-        // [THEN] it should not intersect with another that has no ending date
-        Clear(PerformanceProfileScheduler);
-        ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
-        PerformanceProfileScheduler."Starting Date-Time" := 0DT;
-        PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
-        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler, ActivityType);
+        // [THEN] we get an appropriate error message.
+        asserterror ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler, 0);
+        Assert.ExpectedError(ProfileCannotBeInThePastErr);
     end;
 
     [Test]
-    procedure TestValidatePerformanceProfileSchedulerRecordWithNoEndingDate()
+    procedure TestValidatePerformanceProfileSchedulerRecordWithDurationLargerThanRetentionPeriod()
     var
-        PerformanceProfileScheduler: Record "Performance Profile Scheduler";
+        PerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
         ActivityType: Enum "Perf. Profile Activity Type";
         EndingDateTime: DateTime;
+        OneWeek: Duration;
+        OneWeekPlusOneDay: Duration;
     begin
-        // [SCENARIO] Validating that a performance profile schedule record needs an ending date
+        // [SCENARIO] Validating that a performance profile schedule record cannot have a duration larger than the retention period.
 
-        // [GIVEN] we have inserted a new performance profile record that has no starting date.
+        // [WHEN] We try to validate a record with a duration larger than the retention period
         ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
-        EndingDateTime := PerformanceProfileScheduler."Starting Date-Time" + 15 * 60000;
+        OneWeek := 24 * 60 * 60 * 1000 * 7;
+        OneWeekPlusOneDay := OneWeek + 24 * 60 * 60 * 1000;
+        EndingDateTime := PerformanceProfileScheduler."Starting Date-Time" + OneWeekPlusOneDay;
         PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
-        PerformanceProfileScheduler.Insert(true);
 
-        // [THEN] it should not intersect with another.
-        Clear(PerformanceProfileScheduler);
-        ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
-        PerformanceProfileScheduler."Ending Date-Time" := 0DT;
-        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(PerformanceProfileScheduler, ActivityType);
+        // [THEN] we get an appropriate error message.
+        asserterror ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler, OneWeek);
+        Assert.ExpectedError(ScheduleDurationCannotExceedRetentionPeriodErr);
     end;
 
     [Test]
@@ -199,11 +205,12 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         until TempUser.Next() = 0;
 
 
-        // [THEN] the scheduler page is showing values only for that user.
         TempUser.FindLast();
         Clear(TempPerformanceProfileScheduler);
-        ScheduledPerfProfiler.FilterUsers(TempPerformanceProfileScheduler, TempUser."User Security ID");
+        // [WHEN] we filter the records for the user
+        ScheduledPerfProfiler.FilterUsers(TempPerformanceProfileScheduler, TempUser."User Security ID", true);
 
+        // [THEN] the scheduler page is showing values only for that user.
         Assert.AreEqual(1, TempPerformanceProfileScheduler.Count(), 'Expected one filtered record');
 
         TempPerformanceProfileScheduler.FindFirst();

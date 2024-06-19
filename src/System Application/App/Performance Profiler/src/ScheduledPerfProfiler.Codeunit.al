@@ -21,9 +21,19 @@ codeunit 1931 "Scheduled Perf. Profiler"
     /// Validate dates for the "Performance Profile Scheduler" record
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record</param>
-    procedure ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
+    /// <param name="MaxRetentionPeriod">The maximum retention period</param>
+    procedure ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; MaxRetentionPeriod: Duration)
     begin
-        ScheduledPerfProfilerImpl.ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler);
+        ScheduledPerfProfilerImpl.ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler, MaxRetentionPeriod);
+    end;
+
+    /// <summary>
+    /// Validates the end time of a schedule.
+    /// </summary>
+    /// <param name="PerformanceProfileScheduler">The record.</param>
+    procedure ValidatePerformanceProfileEndTime(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
+    begin
+        ScheduledPerfProfilerImpl.ValidatePerformanceProfileEndTime(PerformanceProfileScheduler);
     end;
 
     /// <summary>
@@ -53,7 +63,18 @@ codeunit 1931 "Scheduled Perf. Profiler"
     /// <param name="SecurityID">The security ID to filter the opening of the page</param>
     procedure FilterUsers(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; SecurityID: Guid)
     begin
-        ScheduledPerfProfilerImpl.FilterUsers(PerformanceProfileScheduler, SecurityID);
+        ScheduledPerfProfilerImpl.FilterUsers(PerformanceProfileScheduler, SecurityID, false);
+    end;
+
+    /// <summary>
+    /// Filters the record with the users that allowed to view the Performance Profile Scheduler page
+    /// </summary>
+    /// <param name="PerformanceProfileScheduler">The record</param>
+    /// <param name="SecurityID">The security ID to filter the opening of the page</param>
+    /// <param name="ForceFilterToUser">Filter to the passed in user even if the user is an admin.</param>
+    procedure FilterUsers(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; SecurityID: Guid; ForceFilterToUser: Boolean)
+    begin
+        ScheduledPerfProfilerImpl.FilterUsers(PerformanceProfileScheduler, SecurityID, ForceFilterToUser);
     end;
 
     /// <summary>
