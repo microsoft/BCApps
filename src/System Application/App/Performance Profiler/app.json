@@ -68,6 +68,12 @@
                             "name":  "Upgrade Tags",
                             "publisher":  "Microsoft",
                             "version": "25.0.0.0"
+                        },
+                        {
+                            "id":  "2955a828-6c0a-4d51-a1b8-a4cf2a040b9a",
+                            "name":  "System Initialization",
+                            "publisher":  "Microsoft",
+                            "version": "25.0.0.0"
                         }
                      ],
     "internalsVisibleTo":  [
