@@ -64,7 +64,7 @@ codeunit 2017 "Generate Prod Mkt Ad Function" implements "AOAI Function"
                 end;
         end;
         FeatureTelemetryCD.Add('Text Format', TextFormat.Names.Get(TextFormat.Ordinals.IndexOf(TextFormat.AsInteger())));
-        FeatureTelemetry.LogUsage('', EntityTextImpl.GetFeatureName(), 'function_call: generate_product_marketing_ad', FeatureTelemetryCD);
+        FeatureTelemetry.LogUsage('0000N58', EntityTextImpl.GetFeatureName(), 'function_call: generate_product_marketing_ad', FeatureTelemetryCD);
         exit(Result);
     end;
 

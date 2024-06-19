@@ -19,7 +19,7 @@ codeunit 2019 "Entity Text Prompts"
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret(SecretName, SecretValue) then begin
-            FeatureTelemetry.LogError('', EntityTextImpl.GetFeatureName(), 'Get prompt from Key Vault', TelemetryConstructingPromptFailedErr);
+            FeatureTelemetry.LogError('0000N5D', EntityTextImpl.GetFeatureName(), 'Get prompt from Key Vault', TelemetryConstructingPromptFailedErr);
             Error(ConstructingPromptFailedErr);
         end;
     end;

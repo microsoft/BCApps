@@ -373,18 +373,18 @@ codeunit 2012 "Entity Text Impl."
             CompletionAnswer := AOAIOperationResponse.GetResult(); //ToDo: not Used
             if AOAIOperationResponse.IsFunctionCall() then begin
                 AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
-                FeatureTelemetry.LogUsage('', GetFeatureName(), 'Call Chat Completion API', TelemetryCD);
+                FeatureTelemetry.LogUsage('0000N5C', GetFeatureName(), 'Call Chat Completion API', TelemetryCD);
                 if AOAIFunctionResponse.IsSuccess() then
                     Result := AOAIFunctionResponse.GetResult()
                 else
                     MagicFunction.Execute(EmptyArguments)
             end else begin
                 Result := '';
-                FeatureTelemetry.LogError('', GetFeatureName(), 'Call Chat Completion API', 'AOAI response is not a function call', '', TelemetryCD);
+                FeatureTelemetry.LogError('0000N5A', GetFeatureName(), 'Call Chat Completion API', 'AOAI response is not a function call', '', TelemetryCD);
             end;
         end else begin
             Clear(Result);
-            FeatureTelemetry.LogError('', GetFeatureName(), 'Call Chat Completion API', StrSubstNo(ResponseErr, AOAIOperationResponse.GetStatusCode()), '', TelemetryCD);
+            FeatureTelemetry.LogError('0000N5B', GetFeatureName(), 'Call Chat Completion API', StrSubstNo(ResponseErr, AOAIOperationResponse.GetStatusCode()), '', TelemetryCD);
             MagicFunction.Execute(EmptyArguments)
         end;
 
