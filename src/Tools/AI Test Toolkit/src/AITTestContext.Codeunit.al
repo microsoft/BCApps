@@ -65,6 +65,9 @@ codeunit 149043 "AIT Test Context"
         exit(TestInputCU.GetTestInputValue());
     end;
 
+    /// <summary>
+    /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
+    /// </summary>
     procedure GetInputAsJson() TestInputJson: Codeunit "Test Input Json"
     var
         TestInputCU: Codeunit "Test Input";
