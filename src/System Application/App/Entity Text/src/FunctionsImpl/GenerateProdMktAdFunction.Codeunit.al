@@ -5,6 +5,7 @@
 namespace System.Text;
 
 using System.AI;
+using System.Telemetry;
 
 codeunit 2017 "Generate Prod Mkt Ad Function" implements "AOAI Function"
 {
@@ -27,6 +28,9 @@ codeunit 2017 "Generate Prod Mkt Ad Function" implements "AOAI Function"
     [NonDebuggable]
     procedure Execute(Arguments: JsonObject): Variant
     var
+        EntityTextImpl: Codeunit "Entity Text Impl.";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        FeatureTelemetryCD: Dictionary of [Text, Text];
         TaglineToken: JsonToken;
         ParagraphToken: JsonToken;
         BriefToken: JsonToken;
@@ -59,6 +63,8 @@ codeunit 2017 "Generate Prod Mkt Ad Function" implements "AOAI Function"
                     Result := BriefToken.AsValue().AsText().Replace(NewLineChar, EncodedNewlineTok);
                 end;
         end;
+        FeatureTelemetryCD.Add('Text Format', TextFormat.Names.Get(TextFormat.Ordinals.IndexOf(TextFormat.AsInteger())));
+        FeatureTelemetry.LogUsage('', EntityTextImpl.GetFeatureName(), 'function_call: generate_product_marketing_ad', FeatureTelemetryCD);
         exit(Result);
     end;
 

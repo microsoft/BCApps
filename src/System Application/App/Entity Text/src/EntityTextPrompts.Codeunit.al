@@ -14,11 +14,12 @@ codeunit 2019 "Entity Text Prompts"
     [NonDebuggable]
     internal procedure GetAzureKeyVaultSecret(var SecretValue: Text; SecretName: Text)
     var
+        EntityTextImpl: Codeunit "Entity Text Impl.";
         AzureKeyVault: Codeunit "Azure Key Vault";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret(SecretName, SecretValue) then begin
-            FeatureTelemetry.LogError('', 'Entity Text', 'Get prompt from Key Vault', TelemetryConstructingPromptFailedErr);
+            FeatureTelemetry.LogError('', EntityTextImpl.GetFeatureName(), 'Get prompt from Key Vault', TelemetryConstructingPromptFailedErr);
             Error(ConstructingPromptFailedErr);
         end;
     end;
@@ -124,9 +125,9 @@ codeunit 2019 "Entity Text Prompts"
     [NonDebuggable]
     procedure HasPromptInfo()
     var
-        BCETPromptObjectLbl: Text;
+        BCETPromptObject: Text;
     begin
-        GetAzureKeyVaultSecret(BCETPromptObjectLbl, 'BCETPromptObjectLbl');
+        GetAzureKeyVaultSecret(BCETPromptObject, 'BCETPromptObject');
     end;
 
     var

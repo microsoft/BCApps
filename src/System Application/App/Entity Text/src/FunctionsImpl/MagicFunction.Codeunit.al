@@ -5,6 +5,7 @@
 namespace System.Text;
 
 using System.AI;
+using System.Telemetry;
 
 codeunit 2018 "Magic Function" implements "AOAI Function"
 {
@@ -26,7 +27,11 @@ codeunit 2018 "Magic Function" implements "AOAI Function"
 
     [NonDebuggable]
     procedure Execute(Arguments: JsonObject): Variant
+    var
+        EntityTextImpl: Codeunit "Entity Text Impl.";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
+        FeatureTelemetry.LogUsage('', EntityTextImpl.GetFeatureName(), 'function_call: magic_function');
         Error(CompletionDeniedPhraseErr);
     end;
 
