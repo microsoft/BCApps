@@ -105,7 +105,7 @@ codeunit 149042 "AIT Test Runner"
         this.GlobalAITTestSuite := CurrAITTestSuite;
     end;
 
-    procedure GetAITTestSuite(var CurrAITTestSuite: Record "AIT Test Suite")
+    internal procedure GetAITTestSuite(var CurrAITTestSuite: Record "AIT Test Suite")
     begin
         CurrAITTestSuite := this.GlobalAITTestSuite;
     end;

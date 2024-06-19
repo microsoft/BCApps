@@ -266,7 +266,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         AITLogEntry: Record "AIT Log Entry";
         TestInput: Record "Test Input";
-        AITTestRunnerImpl: Codeunit "AIT Test Runner"; // single instance
+        AITTestRunner: Codeunit "AIT Test Runner"; // single instance
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
         ModifiedOperation: Text;
@@ -282,7 +282,7 @@ codeunit 149034 "AIT Test Suite Mgt."
             EntryWasModified := true;
 
         AITTestMethodLine.Testfield("Test Suite Code");
-        AITTestRunnerImpl.GetAITTestSuite(this.GlobalAITTestSuite);
+        AITTestRunner.GetAITTestSuite(this.GlobalAITTestSuite);
         Clear(AITLogEntry);
         AITLogEntry."Run ID" := this.GlobalAITTestSuite.RunID;
         AITLogEntry."Test Suite Code" := AITTestMethodLine."Test Suite Code";
@@ -291,7 +291,8 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry."Codeunit ID" := AITTestMethodLine."Codeunit ID";
         AITLogEntry.Operation := CopyStr(ModifiedOperation, 1, MaxStrLen(AITLogEntry.Operation));
         AITLogEntry."Original Operation" := CopyStr(Operation, 1, MaxStrLen(AITLogEntry."Original Operation"));
-        AITLogEntry.Tag := AITTestRunnerImpl.GetAITTestSuiteTag();
+        AITLogEntry.Tag := AITTestRunner.GetAITTestSuiteTag();
+        AITLogEntry.ModelVersion := this.GlobalAITTestSuite.ModelVersion;
         AITLogEntry."Entry No." := 0;
         if ModifiedExecutionSuccess then
             AITLogEntry.Status := AITLogEntry.Status::Success
@@ -326,11 +327,11 @@ codeunit 149034 "AIT Test Suite Mgt."
             AITLogEntry.SetOutputBlob(TestOutput);
         AITLogEntry."Procedure Name" := CurrentTestMethodLine.Function;
         if Operation = AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then
-            AITLogEntry."Duration (ms)" -= AITTestRunnerImpl.GetAndClearAccumulatedWaitTimeMs();
+            AITLogEntry."Duration (ms)" -= AITTestRunner.GetAndClearAccumulatedWaitTimeMs();
         AITLogEntry.Insert(true);
         Commit();
         this.AddLogAppInsights(AITLogEntry);
-        AITTestRunnerImpl.AddToNoOfLogEntriesInserted();
+        AITTestRunner.AddToNoOfLogEntriesInserted();
     end;
 
     local procedure AddLogAppInsights(var AITLogEntry: Record "AIT Log Entry") //TODO: Check what is being emitted, consider using feature uptake telemetry

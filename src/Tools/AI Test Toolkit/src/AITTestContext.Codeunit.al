@@ -145,6 +145,18 @@ codeunit 149043 "AIT Test Context"
     end;
 
     /// <summary>
+    /// Get the AOAI Model Version for the AIT Test Suite.
+    /// </summary>
+    /// <returns>The AOAI Model Version as an Option.</returns>
+    procedure GetAOAIModelVersion(): Option
+    var
+        AITTestSuite: Record "AIT Test Suite";
+    begin
+        this.GetAITTestSuite(AITTestSuite);
+        exit(AITTestSuite.ModelVersion);
+    end;
+
+    /// <summary>
     /// Sets the test output for the current iteration.
     /// </summary>
     /// <param name="TestOutputText">The test output as text.</param>
@@ -234,9 +246,9 @@ codeunit 149043 "AIT Test Context"
     /// <param name="AITTestMethodLine">AITTestMethodLine associated with the session.</param>
     local procedure GetAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
     var
-        AITTestRunnerImpl: Codeunit "AIT Test Runner";
+        AITTestRunner: Codeunit "AIT Test Runner";
     begin
-        AITTestRunnerImpl.GetAITTestSuite(AITTestSuite);
+        AITTestRunner.GetAITTestSuite(AITTestSuite);
     end;
 
     /// <summary>
