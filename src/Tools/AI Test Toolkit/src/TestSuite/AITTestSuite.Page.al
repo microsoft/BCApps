@@ -270,10 +270,10 @@ page 149031 "AIT Test Suite"
                 actionref(Start_Promoted; Start)
                 {
                 }
-                actionref(RefreshStatus_Promoted; RefreshStatus)
+                actionref(LogEntries_Promoted; LogEntries)
                 {
                 }
-                actionref(LogEntries_Promoted; LogEntries)
+                actionref(Compare_Promoted; Compare)
                 {
                 }
                 actionref(Datasets_Promoted; Datasets)

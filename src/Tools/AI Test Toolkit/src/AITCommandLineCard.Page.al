@@ -60,15 +60,21 @@ page 149042 "AIT CommandLine Card"
                 ApplicationArea = All;
                 Caption = 'Start Next', Locked = true;
                 Image = Start;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
                 ToolTip = 'Starts the next available test.';
 
                 trigger OnAction()
                 begin
                     this.StartNextAIT();
                 end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                actionref(StartNext_Promoted; StartNext)
+                {
+                }
             }
         }
     }
