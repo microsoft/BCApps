@@ -182,9 +182,6 @@ page 149031 "AIT Test Suite"
                 ApplicationArea = All;
                 Caption = 'Start';
                 Image = Start;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
                 ToolTip = 'Starts running the AIT Suite.';
 
                 trigger OnAction()
@@ -198,55 +195,12 @@ page 149031 "AIT Test Suite"
                     CurrPage.Update(false);
                 end;
             }
-            action(Stop)
-            {
-                Enabled = Rec.Status = Rec.Status::Running;
-                ApplicationArea = All;
-                Caption = 'Stop';
-                Image = Stop;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
-                ToolTip = 'Stops the AIT Suite that is running.';
-
-                trigger OnAction()
-                var
-                    AITTestMethodLine: Record "AIT Test Method Line";
-                    Window: Dialog;
-                    MaxDateTime: DateTime;
-                    SomethingWentWrongErr: Label 'It is taking longer to stop the run than expected. You can reopen the page later to check the status or you can invoke "Reset Status" action.';
-                begin
-                    CurrPage.Update(false);
-                    Rec.Find();
-                    if Rec.Status <> Rec.Status::Running then
-                        exit;
-                    Window.Open('Cancelling all sessions...');
-                    MaxDateTime := CurrentDateTime() + (60000 * 5); // Wait for a max of 5 mins
-                    this.AITStartTests.StopAITSuite(Rec);
-
-                    AITTestMethodLine.SetRange("Test Suite Code", Rec.Code);
-                    AITTestMethodLine.SetFilter(Status, '<> %1', AITTestMethodLine.Status::Cancelled);
-                    if not AITTestMethodLine.IsEmpty then
-                        repeat
-                            Sleep(1000);
-                            if CurrentDateTime > MaxDateTime then
-                                Error(SomethingWentWrongErr);
-                        until AITTestMethodLine.IsEmpty;
-                    Window.Close();
-
-                    CurrPage.Update(false);
-                    CurrPage.AITTestMethodLines.Page.Refresh();
-                end;
-            }
             action(RefreshStatus)
             {
                 ApplicationArea = All;
                 Caption = 'Refresh';
                 ToolTip = 'Refreshes the page.';
                 Image = Refresh;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
 
                 trigger OnAction()
                 begin
@@ -300,9 +254,6 @@ page 149031 "AIT Test Suite"
                 ApplicationArea = All;
                 Caption = 'Log Entries';
                 Image = Entries;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
                 ToolTip = 'Open log entries.';
                 RunObject = page "AIT Log Entries";
                 RunPageLink = "Test Suite Code" = field(Code), Version = field(Version);
@@ -312,11 +263,26 @@ page 149031 "AIT Test Suite"
                 ApplicationArea = All;
                 Caption = 'Input Datasets';
                 Image = DataEntry;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
                 ToolTip = 'Open input datasets.';
                 RunObject = page "Test Input Groups";
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                actionref(Start_Promoted; Start)
+                {
+                }
+                actionref(RefreshStatus_Promoted; RefreshStatus)
+                {
+                }
+                actionref(LogEntries_Promoted; LogEntries)
+                {
+                }
+                actionref(Datasets_Promoted; Datasets)
+                {
+                }
             }
         }
     }

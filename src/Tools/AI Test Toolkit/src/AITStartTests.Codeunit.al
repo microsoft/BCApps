@@ -76,13 +76,6 @@ codeunit 149036 "AIT Start Tests"
         if AITTestSuite.Find() then;
     end;
 
-    internal procedure StopAITSuite(var AITTestSuite: Record "AIT Test Suite")
-    var
-        AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
-    begin
-        AITTestSuiteCU.SetRunStatus(AITTestSuite, AITTestSuite.Status::Cancelled);
-    end;
-
     local procedure ValidateLines(AITTestSuite: Record "AIT Test Suite")
     var
         AITTestMethodLine: Record "AIT Test Method Line";
