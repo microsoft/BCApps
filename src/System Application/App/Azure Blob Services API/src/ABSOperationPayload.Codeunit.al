@@ -6,6 +6,7 @@
 namespace System.Azure.Storage;
 
 using System;
+using System.Utilities;
 
 codeunit 9042 "ABS Operation Payload"
 {
@@ -98,8 +99,10 @@ codeunit 9042 "ABS Operation Payload"
 
     [NonDebuggable]
     procedure SetBlobName("Blob": Text);
+    var
+        Uri: Codeunit Uri;
     begin
-        BlobName := "Blob";
+        BlobName := Uri.EscapeDataString("Blob");
     end;
 
     [NonDebuggable]
