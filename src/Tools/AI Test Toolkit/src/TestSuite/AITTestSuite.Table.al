@@ -102,7 +102,7 @@ table 149030 "AIT Test Suite"
 #pragma warning restore AA0232
         {
             Caption = 'Total Duration (ms)';
-            // ToolTip = 'Specifies the Total Duration (ms) for executing all the tests in the current version.';
+            ToolTip = 'Specifies the Total Duration (ms) for executing all the tests in the current version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -159,7 +159,7 @@ table 149030 "AIT Test Suite"
         field(21; "No. of Tests Executed"; Integer)
         {
             Caption = 'No. of Tests Executed';
-            // ToolTip = 'Specifies the number of tests executed in the current version.';
+            ToolTip = 'Specifies the number of tests executed in the current version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -167,7 +167,7 @@ table 149030 "AIT Test Suite"
         field(22; "No. of Tests Passed"; Integer)
         {
             Caption = 'No. of Tests Passed';
-            // ToolTip = 'Specifies the number of tests passed in the current version.';
+            ToolTip = 'Specifies the number of tests passed in the current version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
@@ -175,7 +175,7 @@ table 149030 "AIT Test Suite"
         field(23; "No. of Operations"; Integer)
         {
             Caption = 'No. of Operations';
-            // ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the current version.';
+            ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the current version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version")));
@@ -183,7 +183,7 @@ table 149030 "AIT Test Suite"
         field(31; "No. of Tests Executed - Base"; Integer)
         {
             Caption = 'No. of Tests Executed';
-            // ToolTip = 'Specifies the number of tests executed in the base version.';
+            ToolTip = 'Specifies the number of tests executed in the base version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -191,7 +191,7 @@ table 149030 "AIT Test Suite"
         field(32; "No. of Tests Passed - Base"; Integer)
         {
             Caption = 'No. of Tests Passed';
-            // ToolTip = 'Specifies the number of tests passed in the base version.';
+            ToolTip = 'Specifies the number of tests passed in the base version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
@@ -199,7 +199,7 @@ table 149030 "AIT Test Suite"
         field(33; "No. of Operations - Base"; Integer)
         {
             Caption = 'No. of Operations';
-            // ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the base version.';
+            ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the base version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Base Version")));
@@ -207,7 +207,7 @@ table 149030 "AIT Test Suite"
         field(34; "Total Duration (ms) - Base"; Integer)
         {
             Caption = 'Total Duration (ms) - Base';
-            // ToolTip = 'Specifies the Total Duration (ms) for executing all the tests in the base version.';
+            ToolTip = 'Specifies the Total Duration (ms) for executing all the tests in the base version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Code"), Version = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
