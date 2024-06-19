@@ -89,7 +89,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     var
         LocalPerformanceProfileScheduler: Record "Performance Profile Scheduler";
     begin
-        MapActivityTypeToRecord(PerformanceProfileScheduler, ActivityType);
+        this.MapActivityTypeToRecord(PerformanceProfileScheduler, ActivityType);
 
         if ((PerformanceProfileScheduler."Ending Date-Time" = 0DT) or
             (PerformanceProfileScheduler."Starting Date-Time" = 0DT) or
@@ -108,7 +108,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
             exit;
 
         repeat
-            if (Intersects(LocalPerformanceProfileScheduler, PerformanceProfileScheduler)) then
+            if (this.Intersects(LocalPerformanceProfileScheduler, PerformanceProfileScheduler)) then
                 Error(ProfileHasAlreadyBeenScheduledErr);
 
         until LocalPerformanceProfileScheduler.Next() = 0;
@@ -128,7 +128,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         RetentionPolicySetupRec: Record "Retention Policy Setup";
         RetentionPolicySetup: Codeunit "Retention Policy Setup";
     begin
-        CreateRetentionPolicySetup(Database::"Performance Profiles", RetentionPolicySetup.FindOrCreateRetentionPeriod("Retention Period Enum"::"1 Week"));
+        this.CreateRetentionPolicySetup(Database::"Performance Profiles", RetentionPolicySetup.FindOrCreateRetentionPeriod("Retention Period Enum"::"1 Week"));
         if RetentionPolicySetupRec.Get(Database::"Performance Profiles") then
             Page.Run(Page::"Retention Policy Setup Card", RetentionPolicySetupRec);
     end;
@@ -152,20 +152,20 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
             PerformanceProfileScheduler.Validate("Profile Creation Threshold", 500);
     end;
 
-    local procedure Intersects(First: record "Performance Profile Scheduler"; Second: Record "Performance Profile Scheduler"): Boolean
+    local procedure Intersects(First: Record "Performance Profile Scheduler"; Second: Record "Performance Profile Scheduler"): Boolean
     var
-        startInterval1: DateTime;
-        endInterval1: DateTime;
-        startInterval2: DateTime;
-        endInterval2: Datetime;
+        StartInterval1: DateTime;
+        EndInterval1: DateTime;
+        StartInterval2: DateTime;
+        EndInterval2: Datetime;
     begin
-        startInterval1 := First."Starting Date-Time";
-        endInterval1 := First."Ending Date-Time";
-        startInterval2 := Second."Starting Date-Time";
-        endInterval2 := Second."Ending Date-Time";
+        StartInterval1 := First."Starting Date-Time";
+        EndInterval1 := First."Ending Date-Time";
+        StartInterval2 := Second."Starting Date-Time";
+        EndInterval2 := Second."Ending Date-Time";
 
-        if (((startInterval1 < endInterval1) and (endInterval1 <= startInterval2) and (startInterval2 < endInterval2)) or
-            ((startInterval2 < endInterval2) and (endInterval2 <= startInterval1) and (startInterval1 < endInterval1))) then
+        if (((StartInterval1 < EndInterval1) and (EndInterval1 <= StartInterval2) and (StartInterval2 < EndInterval2)) or
+            ((StartInterval2 < EndInterval2) and (EndInterval2 <= StartInterval1) and (StartInterval1 < EndInterval1))) then
             exit(false);
 
         exit(true);

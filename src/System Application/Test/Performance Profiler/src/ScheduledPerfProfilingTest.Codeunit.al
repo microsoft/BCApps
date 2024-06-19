@@ -25,15 +25,17 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     procedure TestInitializedData()
     var
         TempPerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
-        ActivityType: Enum "Activity Type";
+        ActivityType: Enum "Perf. Profile Activity Type";
     begin
-        // [WHEN] The initial data shown on the "Perf. Profiler Schedules Card" card page is set up
+        // [SCENARIO] The initial data shown on the "Perf. Profiler Schedules Card" card page is set up
+
+        // [GIVEN] The initial data shown on the "Perf. Profiler Schedules Card" card page is set up
         ScheduledPerfProfiler.InitializeFields(TempPerformanceProfileScheduler, ActivityType);
 
         // [THEN] Expected initalization happens
         Assert.AreEqual(ActivityType, ActivityType::WebClient, 'Expected to be initialized to web client');
         Assert.IsTrue(TempPerformanceProfileScheduler."Profile Creation Threshold" = 500, 'The default profile creation threshold is 500 ms.');
-        Assert.AreEqual(TempPerformanceProfileScheduler.Frequency, TempPerformanceProfileScheduler.Frequency::"100", 'The default frequency should be 100 ms.');
+        Assert.AreEqual(TempPerformanceProfileScheduler.Frequency, TempPerformanceProfileScheduler.Frequency::"100 milliseconds", 'The default frequency should be 100 ms.');
         Assert.IsTrue(TempPerformanceProfileScheduler.Enabled, 'The scheduled sampling profile record should be enabled.');
         Assert.IsFalse(IsNullGuid(TempPerformanceProfileScheduler."Schedule ID"), 'The scheduled sampling profile record should have been created a non zero guid.');
         Assert.AreEqual(TempPerformanceProfileScheduler."User ID", UserSecurityId(), 'The scheduled sampling profile record should have been initialized with the user associated to the session.');
@@ -44,9 +46,11 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     var
         TempPerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
         ExpectedActivityTypeMsg: Label 'Expected %1 actvity type. Actual type %2:', Locked = true;
-        ActivityType: Enum "Activity Type";
+        ActivityType: Enum "Perf. Profile Activity Type";
     begin
-        // [WHEN] a web client session type is used
+        // [SCENARIO] Mapping a record to an activity type
+
+        // [GIVEN] a web client session type is used
         TempPerformanceProfileScheduler.Init();
         this.SetupClientType(TempPerformanceProfileScheduler, TempPerformanceProfileScheduler."Client Type"::Background, ActivityType);
 
@@ -69,9 +73,11 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     var
         TempPerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
         ExpectedClientTypeMsg: Label 'Expected %1 client type. Actual type %2:', Locked = true;
-        ActivityType: Enum "Activity Type";
+        ActivityType: Enum "Perf. Profile Activity Type";
     begin
-        // [WHEN] an activity enum is used
+        // [SCENARIO] Mapping an activity type to a record
+
+        // [GIVEN] an activity enum is used
         TempPerformanceProfileScheduler.Init();
         ScheduledPerfProfiler.MapActivityTypeToRecord(TempPerformanceProfileScheduler, ActivityType);
 
@@ -92,7 +98,9 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     var
         TempPerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
     begin
-        // [WHEN] a starting date is greater then an ending date
+        // [SCENARIO] Validating that the starting date is less than the ending date
+
+        // [GIVEN] a starting date is greater then an ending date
         TempPerformanceProfileScheduler.Init();
         TempPerformanceProfileScheduler."Starting Date-Time" := CurrentDateTime + 60000;
 
@@ -106,10 +114,12 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     procedure TestValidatePerformanceProfileSchedulerRecord()
     var
         PerformanceProfileScheduler: Record "Performance Profile Scheduler";
-        ActivityType: Enum "Activity Type";
+        ActivityType: Enum "Perf. Profile Activity Type";
         EndingDateTime: DateTime;
     begin
-        // [WHEN] we have inserted a new performance profile record
+        // [SCENARIO] Validating that we cannot create intersecting performance profile schedule records
+
+        // [GIVEN] we have inserted a new performance profile record
         ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
         EndingDateTime := PerformanceProfileScheduler."Starting Date-Time" + 15 * 60000;
         PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
@@ -128,10 +138,12 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     procedure TestValidatePerformanceProfileSchedulerRecordWithNoStartingDate()
     var
         PerformanceProfileScheduler: Record "Performance Profile Scheduler";
-        ActivityType: Enum "Activity Type";
+        ActivityType: Enum "Perf. Profile Activity Type";
         EndingDateTime: DateTime;
     begin
-        // [WHEN] we have inserted a new performance profile record
+        // [SCENARIO] Validating that a performance profile schedule record needs a starting date
+
+        // [GIVEN] we have inserted a new performance profile record
         ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
         EndingDateTime := PerformanceProfileScheduler."Starting Date-Time" + 15 * 60000;
         PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
@@ -149,10 +161,12 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     procedure TestValidatePerformanceProfileSchedulerRecordWithNoEndingDate()
     var
         PerformanceProfileScheduler: Record "Performance Profile Scheduler";
-        ActivityType: Enum "Activity Type";
+        ActivityType: Enum "Perf. Profile Activity Type";
         EndingDateTime: DateTime;
     begin
-        // [WHEN] we have inserted a new performance profile record that has no starting date.
+        // [SCENARIO] Validating that a performance profile schedule record needs an ending date
+
+        // [GIVEN] we have inserted a new performance profile record that has no starting date.
         ScheduledPerfProfiler.InitializeFields(PerformanceProfileScheduler, ActivityType);
         EndingDateTime := PerformanceProfileScheduler."Starting Date-Time" + 15 * 60000;
         PerformanceProfileScheduler."Ending Date-Time" := EndingDateTime;
@@ -170,13 +184,14 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
     var
         TempPerformanceProfileScheduler: Record "Performance Profile Scheduler" temporary;
         TempUser: Record User temporary;
-        ActivityType: Enum "Activity Type";
+        ActivityType: Enum "Perf. Profile Activity Type";
     begin
-        // [WHEN] we have a user that is just a default user 
-        this.AddTwoUsers(TempUser);
-        if not TempUser.FindSet() then
-            exit;
+        // [SCENARIO] The schedules page shows values for the user that is currently logged in by default
 
+        // [GIVEN] we have a user that is just a default user 
+        this.AddTwoUsers(TempUser);
+
+        TempUser.FindSet();
         repeat
             ScheduledPerfProfiler.InitializeFields(TempPerformanceProfileScheduler, ActivityType);
             TempPerformanceProfileScheduler."User ID" := TempUser."User Security ID";
@@ -196,7 +211,7 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
 
     end;
 
-    local procedure SetupClientType(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ClientType: Option; var ActivityType: Enum "Activity Type")
+    local procedure SetupClientType(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ClientType: Option; var ActivityType: Enum "Perf. Profile Activity Type")
     begin
         PerformanceProfileScheduler."Client Type" := ClientType;
         ScheduledPerfProfiler.MapRecordToActivityType(PerformanceProfileScheduler, ActivityType);
@@ -204,10 +219,10 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
 
     local procedure AddTwoUsers(TempUser: Record User temporary)
     var
-        i: Integer;
+        I: Integer;
     begin
 
-        for i := 0 to 2 do begin
+        for I := 0 to 2 do begin
             Clear(TempUser);
             TempUser."User Security ID" := CreateGuid();
             TempUser."User Name" := CopyStr(Any.AlphanumericText(50), 1, 10);

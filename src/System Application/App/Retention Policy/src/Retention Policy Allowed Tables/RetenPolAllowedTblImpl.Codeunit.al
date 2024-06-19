@@ -126,7 +126,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         end;
 
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        if (TableId > 2000000000) and (PublishedApplication."Runtime Package ID" = CurrentModuleInfo.PackageId) then
+        if (TableId > 2000000000) and (PublishedApplication.ID = CurrentModuleInfo.Id()) then
             exit(true);
 
         if AllObj."App Runtime Package ID" <> PublishedApplication."Runtime Package ID" then begin

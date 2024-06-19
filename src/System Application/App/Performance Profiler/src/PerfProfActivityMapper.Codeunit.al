@@ -13,25 +13,25 @@ codeunit 1934 "Perf. Prof. Activity Mapper"
 
     procedure MapActivityTypeToClientType(var ClientTpe: Option ,,"Web Service",,,Background,,"Web Client",,,,; ActivityType: Enum "Perf. Profile Activity Type")
     begin
-        if (ActivityType = ActivityType::WebClient) then
-            ClientTpe := ClientTpe::"Web Client"
-        else
-            if (ActivityType = ActivityType::Background) then
-                ClientTpe := ClientTpe::Background
-            else
-                if (ActivityType = ActivityType::WebAPIClient) then
-                    ClientTpe := ClientTpe::"Web Service";
+        case ActivityType of
+            ActivityType::WebClient:
+                ClientTpe := ClientTpe::"Web Client";
+            ActivityType::Background:
+                ClientTpe := ClientTpe::Background;
+            ActivityType::WebAPIClient:
+                ClientTpe := ClientTpe::"Web Service";
+        end;
     end;
 
     procedure MapClientTypeToActivityType(ClientTpe: Option ,,"Web Service",,,Background,,"Web Client",,,,; var ActivityType: Enum "Perf. Profile Activity Type")
     begin
-        if (ClientTpe = ClientTpe::Background) then
-            ActivityType := ActivityType::Background
-        else
-            if (ClientTpe = ClientTpe::"Web Client") then
-                ActivityType := ActivityType::WebClient
-            else
-                if (ClientTpe = ClientTpe::"Web Service") then
-                    ActivityType := ActivityType::WebAPIClient;
+        case ClientTpe of
+            ClientTpe::Background:
+                ActivityType := ActivityType::Background;
+            ClientTpe::"Web Client":
+                ActivityType := ActivityType::WebClient;
+            ClientTpe::"Web Service":
+                ActivityType := ActivityType::WebAPIClient;
+        end;
     end;
 }
