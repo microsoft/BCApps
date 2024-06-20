@@ -7,7 +7,6 @@ namespace System.Tooling;
 
 using System.PerformanceProfile;
 
-
 /// <summary>
 /// List for schedule based sampling profilers
 /// </summary>

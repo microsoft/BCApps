@@ -5,8 +5,6 @@
 
 namespace System.Tooling;
 
-using System.PerformanceProfile;
-
 permissionset 1921 "Performance Profiler - Objects"
 {
     Access = Internal;
@@ -17,7 +15,7 @@ permissionset 1921 "Performance Profiler - Objects"
                   page "Performance Profiler" = X,
                   page "Perf. Profiler Schedules List" = X,
                   page "Perf. Profiler Schedule Card" = X,
-                  page "Performance Profile List" = X,
-                  tabledata "Performance Profile Scheduler" = Rimd,
-                  tabledata "Performance Profiles" = R;
+                  page "Performance Profile List" = X;
+
+    IncludedPermissionSets = "Performance Profiler - Edit";
 }

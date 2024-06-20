@@ -15,7 +15,7 @@ enum 1932 "Perf. Profile Activity Type"
     /// <summary>
     /// The web client activity type
     /// </summary>
-    value(0; WebClient)
+    value(0; "Web Client")
     {
         Caption = 'Activity in the browser';
     }
@@ -31,7 +31,7 @@ enum 1932 "Perf. Profile Activity Type"
     /// <summary>
     /// The web api activity type
     /// </summary>
-    value(2; "WebAPIClient")
+    value(2; "Web API Client")
     {
         Caption = 'Calling external components through REST calls';
     }

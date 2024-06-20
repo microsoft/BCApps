@@ -87,7 +87,6 @@ codeunit 1931 "Scheduled Perf. Profiler"
         exit(ScheduledPerfProfilerImpl.MapRecordToUserName(PerformanceProfileScheduler));
     end;
 
-
     /// <summary>
     /// Initalizes the fields for the "Performance Profile Scheduler" receord
     /// </summary>

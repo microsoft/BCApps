@@ -10,28 +10,27 @@ codeunit 1934 "Perf. Prof. Activity Mapper"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-
-    procedure MapActivityTypeToClientType(var ClientTpe: Option ,,"Web Service",,,Background,,"Web Client",,,,; ActivityType: Enum "Perf. Profile Activity Type")
+    procedure MapActivityTypeToClientType(var ClientType: Option ,,"Web Service",,,Background,,"Web Client",,,,; ActivityType: Enum "Perf. Profile Activity Type")
     begin
         case ActivityType of
-            ActivityType::WebClient:
-                ClientTpe := ClientTpe::"Web Client";
+            ActivityType::"Web Client":
+                ClientType := ClientType::"Web Client";
             ActivityType::Background:
-                ClientTpe := ClientTpe::Background;
-            ActivityType::WebAPIClient:
-                ClientTpe := ClientTpe::"Web Service";
+                ClientType := ClientType::Background;
+            ActivityType::"Web API Client":
+                ClientType := ClientType::"Web Service";
         end;
     end;
 
-    procedure MapClientTypeToActivityType(ClientTpe: Option ,,"Web Service",,,Background,,"Web Client",,,,; var ActivityType: Enum "Perf. Profile Activity Type")
+    procedure MapClientTypeToActivityType(ClientType: Option ,,"Web Service",,,Background,,"Web Client",,,,; var ActivityType: Enum "Perf. Profile Activity Type")
     begin
-        case ClientTpe of
-            ClientTpe::Background:
+        case ClientType of
+            ClientType::Background:
                 ActivityType := ActivityType::Background;
-            ClientTpe::"Web Client":
-                ActivityType := ActivityType::WebClient;
-            ClientTpe::"Web Service":
-                ActivityType := ActivityType::WebAPIClient;
+            ClientType::"Web Client":
+                ActivityType := ActivityType::"Web Client";
+            ClientType::"Web Service":
+                ActivityType := ActivityType::"Web API Client";
         end;
     end;
 }

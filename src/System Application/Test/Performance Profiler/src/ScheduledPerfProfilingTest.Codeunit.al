@@ -37,7 +37,7 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         ScheduledPerfProfiler.InitializeFields(TempPerformanceProfileScheduler, ActivityType);
 
         // [THEN] Expected initalization happens
-        Assert.AreEqual(ActivityType, ActivityType::WebClient, 'Expected to be initialized to web client');
+        Assert.AreEqual(ActivityType, ActivityType::"Web Client", 'Expected to be initialized to web client');
         Assert.IsTrue(TempPerformanceProfileScheduler."Profile Creation Threshold" = 500, 'The default profile creation threshold is 500 ms.');
         Assert.AreEqual(TempPerformanceProfileScheduler.Frequency, TempPerformanceProfileScheduler.Frequency::"100 milliseconds", 'The default frequency should be 100 ms.');
         Assert.IsTrue(TempPerformanceProfileScheduler.Enabled, 'The scheduled sampling profile record should be enabled.');
@@ -63,14 +63,14 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         Assert.AreEqual(ActivityType::Background, ActivityType, StrSubstNo(ExpectedActivityTypeMsg, ActivityType::Background, ActivityType.AsInteger()));
 
         this.SetupClientType(TempPerformanceProfileScheduler, TempPerformanceProfileScheduler."Client Type"::"Web Client", ActivityType);
-        Assert.AreEqual(ActivityType::WebClient, ActivityType, StrSubstNo(ExpectedActivityTypeMsg, ActivityType::WebClient, ActivityType.AsInteger()));
+        Assert.AreEqual(ActivityType::"Web Client", ActivityType, StrSubstNo(ExpectedActivityTypeMsg, ActivityType::"Web Client", ActivityType.AsInteger()));
 
         this.SetupClientType(TempPerformanceProfileScheduler, TempPerformanceProfileScheduler."Client Type"::"Web Service", ActivityType);
-        Assert.AreEqual(ActivityType::WebAPIClient, ActivityType, StrSubstNo(ExpectedActivityTypeMsg, ActivityType::WebAPIClient, ActivityType.AsInteger()));
+        Assert.AreEqual(ActivityType::"Web API Client", ActivityType, StrSubstNo(ExpectedActivityTypeMsg, ActivityType::"Web API Client", ActivityType.AsInteger()));
 
-        ActivityType := ActivityType::WebClient;
+        ActivityType := ActivityType::"Web Client";
         this.SetupClientType(TempPerformanceProfileScheduler, 40, ActivityType);
-        Assert.AreEqual(ActivityType::WebClient, ActivityType, StrSubstNo(ExpectedActivityTypeMsg, ActivityType::WebClient, ActivityType.AsInteger()));
+        Assert.AreEqual(ActivityType::"Web Client", ActivityType, StrSubstNo(ExpectedActivityTypeMsg, ActivityType::"Web Client", ActivityType.AsInteger()));
     end;
 
     [Test]
@@ -94,7 +94,7 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
         ScheduledPerfProfiler.MapActivityTypeToRecord(TempPerformanceProfileScheduler, ActivityType);
         Assert.AreEqual(TempPerformanceProfileScheduler."Client Type"::Background, TempPerformanceProfileScheduler."Client Type", StrSubstNo(ExpectedClientTypeMsg, TempPerformanceProfileScheduler."Client Type"::Background, TempPerformanceProfileScheduler."Client Type"));
 
-        ActivityType := ActivityType::WebAPIClient;
+        ActivityType := ActivityType::"Web API Client";
         ScheduledPerfProfiler.MapActivityTypeToRecord(TempPerformanceProfileScheduler, ActivityType);
         Assert.AreEqual(TempPerformanceProfileScheduler."Client Type"::"Web Service", TempPerformanceProfileScheduler."Client Type", StrSubstNo(ExpectedClientTypeMsg, TempPerformanceProfileScheduler."Client Type"::"Web Service", TempPerformanceProfileScheduler."Client Type"));
     end;

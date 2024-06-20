@@ -77,7 +77,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         PerformanceProfileScheduler.Frequency := PerformanceProfileScheduler.Frequency::"100 milliseconds";
         PerformanceProfileScheduler."Client Type" := PerformanceProfileScheduler."Client Type"::"Web Client";
         PerformanceProfileScheduler."User ID" := UserSecurityId();
-        ActivityType := ActivityType::WebClient;
+        ActivityType := ActivityType::"Web Client";
     end;
 
     procedure ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; MaxRetentionPeriod: Duration)
