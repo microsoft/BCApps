@@ -2,6 +2,9 @@
 /// This page is used to setup the Copilot No. Series. The page is used to store the secret key and the endpoint of the Azure OpenAI service.
 /// Should be removed once the number series copilot is fully integrated with the system.
 /// </summary>
+
+namespace Microsoft.Foundation.NoSeries;
+
 page 9245 "No. Series Copilot Setup"
 {
 
@@ -24,10 +27,12 @@ page 9245 "No. Series Copilot Setup"
                 field(Endpoint; Rec.Endpoint)
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Endpoint field.';
                 }
                 field(Deployment; Rec.Deployment)
                 {
                     ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Deployment field.';
                 }
             }
             group(Secrets)
@@ -39,6 +44,7 @@ page 9245 "No. Series Copilot Setup"
                     NotBlank = true;
                     ShowMandatory = true;
                     ExtendedDatatype = Masked;
+                    ToolTip = 'Specifies the value of the Secret Key field.';
                     trigger OnValidate()
                     begin
                         Rec.SetSecretKeyToIsolatedStorage(SecretKey);
@@ -55,6 +61,7 @@ page 9245 "No. Series Copilot Setup"
                     ShowMandatory = true;
                     ExtendedDatatype = Masked;
                     MultiLine = true;
+                    ToolTip = 'Specifies the value of the System Prompt field.';
                     trigger OnValidate()
                     begin
                         Rec.SetNoSeriesGenerationSystemPromptToIsolatedStorage(SystemPrompt);
@@ -75,6 +82,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tools Selection System Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetToolsSystemPromptToIsolatedStorage(ToolsSystemPrompt);
@@ -91,6 +99,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 1 Definition field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool1DefinitionToIsolatedStorage(Tool1Definition);
@@ -105,6 +114,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 1 General Instructions Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool1GeneralInstructionsPromptToIsolatedStorage(Tool1GeneralInstructionsPrompt);
@@ -119,6 +129,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 1 Limitations Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool1LimitationsPromptToIsolatedStorage(Tool1LimitationsPrompt);
@@ -133,6 +144,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 1 Code Guidelines Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool1CodeGuidelinePromptToIsolatedStorage(Tool1CodeGuidelinesPrompt);
@@ -147,6 +159,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 1 Description Guidelines Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool1DescrGuidelinePromptToIsolatedStorage(Tool1DescriptionGuidelinesPrompt);
@@ -161,6 +174,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 1 Number Guidelines Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool1NumberGuidelinePromptToIsolatedStorage(Tool1NumberGuidelinesPrompt);
@@ -175,6 +189,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 1 Custom Patterns Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool1CustomPatternsPromptToIsolatedStorage(Tool1CustomPatternsPrompt);
@@ -189,6 +204,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 1 Output Examples Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool1OutputExamplesPromptToIsolatedStorage(Tool1OutputExamplesPrompt);
@@ -203,6 +219,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 1 Output Format Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool1OutputFormatPromptToIsolatedStorage(Tool1OutputFormatPrompt);
@@ -219,6 +236,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 2 Definition field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool2DefinitionToIsolatedStorage(Tool2Definition);
@@ -233,6 +251,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 2 General Instructions Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool2GeneralInstructionsPromptToIsolatedStorage(Tool2GeneralInstructionsPrompt);
@@ -247,6 +266,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 2 Limitations Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool2LimitationsPromptToIsolatedStorage(Tool2LimitationsPrompt);
@@ -261,6 +281,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 2 Code Guidelines Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool2CodeGuidelinePromptToIsolatedStorage(Tool2CodeGuidelinesPrompt);
@@ -275,6 +296,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 2 Description Guidelines Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool2DescrGuidelinePromptToIsolatedStorage(Tool2DescriptionGuidelinesPrompt);
@@ -289,6 +311,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 2 Number Guidelines Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool2NumberGuidelinePromptToIsolatedStorage(Tool2NumberGuidelinesPrompt);
@@ -303,6 +326,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 2 Custom Patterns Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool2CustomPatternsPromptToIsolatedStorage(Tool2CustomPatternsPrompt);
@@ -317,6 +341,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 2 Output Examples Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool2OutputExamplesPromptToIsolatedStorage(Tool2OutputExamplesPrompt);
@@ -331,6 +356,7 @@ page 9245 "No. Series Copilot Setup"
                         ShowMandatory = true;
                         ExtendedDatatype = Masked;
                         MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 2 Output Format Prompt field.';
                         trigger OnValidate()
                         begin
                             Rec.SetTool2OutputFormatPromptToIsolatedStorage(Tool2OutputFormatPrompt);

@@ -1,3 +1,10 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Foundation.NoSeries;
+
 table 391 "No. Series Proposal"
 {
     TableType = Temporary;
@@ -6,11 +13,9 @@ table 391 "No. Series Proposal"
     {
         field(1; "No."; Integer)
         {
-
         }
         field(10; "Input Text"; Blob)
         {
-
         }
     }
 
@@ -18,7 +23,6 @@ table 391 "No. Series Proposal"
     {
         key(PK; "No.")
         {
-
         }
     }
 

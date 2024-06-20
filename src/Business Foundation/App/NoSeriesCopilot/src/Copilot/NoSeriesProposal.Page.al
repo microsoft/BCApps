@@ -1,3 +1,10 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Foundation.NoSeries;
+
 page 332 "No. Series Proposal"
 {
     Caption = 'Generate No. Series with Copilot';
@@ -54,8 +61,6 @@ page 332 "No. Series Proposal"
                 Caption = 'No. Series proposals';
                 ShowFilter = false;
                 ApplicationArea = All;
-                Editable = true;
-                Enabled = true;
                 Visible = IsProposalDetailsVisible;
                 SubPageLink = "Proposal No." = field("No.");
             }
@@ -70,6 +75,7 @@ page 332 "No. Series Proposal"
                 Caption = 'Create new';
                 action(NewNumberSeriesFor)
                 {
+                    ApplicationArea = All;
                     Caption = 'Create number series for [purchase orders]';
                     trigger OnAction()
                     begin
@@ -79,6 +85,7 @@ page 332 "No. Series Proposal"
                 }
                 action(NewNumberSeriesForModuleWithPattern)
                 {
+                    ApplicationArea = All;
                     Caption = 'Create numbers for the [sales] module, using pattern [@@-#####]';
                     trigger OnAction()
                     begin
@@ -88,6 +95,7 @@ page 332 "No. Series Proposal"
                 }
                 action(NewNumberSeriesForCompany)
                 {
+                    ApplicationArea = All;
                     Caption = 'Create numbers series for the new company';
                     trigger OnAction()
                     begin
@@ -169,8 +177,8 @@ page 332 "No. Series Proposal"
 
     local procedure GenerateNoSeries()
     var
-        NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
         NoSeriesGenerated: Record "No. Series Proposal Line";
+        NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
     begin
         NoSeriesCopilotImpl.Generate(Rec, ResponseText, NoSeriesGenerated, InputText);
         CurrPage.ProposalDetails.Page.Load(NoSeriesGenerated);
@@ -180,8 +188,8 @@ page 332 "No. Series Proposal"
 
     local procedure ApplyProposedNoSeries()
     var
-        NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
         NoSeriesGenerated: Record "No. Series Proposal Line";
+        NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
     begin
         CurrPage.ProposalDetails.Page.GetTempRecord(Rec."No.", NoSeriesGenerated);
         NoSeriesCopilotImpl.ApplyProposedNoSeries(NoSeriesGenerated);

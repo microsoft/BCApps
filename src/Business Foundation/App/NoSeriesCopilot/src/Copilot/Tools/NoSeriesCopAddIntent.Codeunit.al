@@ -1,3 +1,13 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Foundation.NoSeries;
+
+using System.AI;
+using System.Reflection;
+
 codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 {
     Access = Internal;
@@ -31,14 +41,13 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
         NewNoSeriesPrompt, TablesPromptList, CustomPatternsPromptList, EmptyList : List of [Text];
         TablesBlockLbl: Label 'Tables:', Locked = true;
         NumberOfToolResponses, i, ActualTablesChunkSize : Integer;
-        TokenCountImpl: Codeunit "AOAI Token";
     begin
         GetTablesPrompt(Arguments, TablesPromptList);
         ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(Arguments, CustomPatternsPromptList, EmptyList, GetToolCustomPatternsGuidelines());
 
         NumberOfToolResponses := Round(TablesPromptList.Count / ToolsImpl.GetTablesChunkSize(), 1, '>'); // we add tables by small chunks, as more tables can lead to hallucinations
 
-        for i := 1 to NumberOfToolResponses do begin
+        for i := 1 to NumberOfToolResponses do
             if TablesPromptList.Count > 0 then begin
                 Clear(NewNoSeriesPrompt);
                 Clear(ActualTablesChunkSize);
@@ -54,7 +63,6 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
                 NewNoSeriesPrompt.Add(GetToolOutputFormat());
                 ToolResults.Add(ToolsImpl.ConvertListToText(NewNoSeriesPrompt), ActualTablesChunkSize);
             end
-        end;
     end;
 
     local procedure GetTablesPrompt(var Arguments: JsonObject; var TablesPromptList: List of [Text])
@@ -69,7 +77,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
     var
         TableMetadata: Record "Table Metadata";
     begin
-        // Looping trhough all Setup tables
+        // Looping through all Setup tables
         ToolsImpl.SetFilterOnSetupTables(TableMetadata);
         if TableMetadata.FindSet() then
             repeat
@@ -93,7 +101,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
     var
         TableMetadata: Record "Table Metadata";
     begin
-        // Looping trhough all Setup tables
+        // Looping through all Setup tables
         ToolsImpl.SetFilterOnSetupTables(TableMetadata);
         if TableMetadata.FindSet() then
             repeat

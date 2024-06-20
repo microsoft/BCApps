@@ -3,6 +3,9 @@
 /// Should be removed once the number series copilot is fully integrated with the system.
 /// Shoulbe replaced with the Azure Key Vault storage.
 /// </summary>
+
+namespace Microsoft.Foundation.NoSeries;
+
 table 9200 "No. Series Copilot Setup"
 {
     Description = 'Number Series Copilot Setup';
@@ -24,6 +27,7 @@ table 9200 "No. Series Copilot Setup"
 
         field(3; Deployment; Text[250])
         {
+            DataClassification = CustomerContent;
             Caption = 'Deployment';
         }
 
@@ -152,20 +156,20 @@ table 9200 "No. Series Copilot Setup"
 
     procedure GetEndpoint() Endpoint: Text[250]
     var
-        Rec: Record "No. Series Copilot Setup";
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
-        Rec.Get();
-        Rec.TestField(Rec.Endpoint);
-        exit(Rec.Endpoint);
+        NoSeriesCopilotSetup.Get();
+        NoSeriesCopilotSetup.TestField(NoSeriesCopilotSetup.Endpoint);
+        exit(NoSeriesCopilotSetup.Endpoint);
     end;
 
     procedure GetDeployment() Deployment: Text[250]
     var
-        Rec: Record "No. Series Copilot Setup";
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
-        Rec.Get();
-        Rec.TestField(Rec.Deployment);
-        exit(Rec.Deployment);
+        NoSeriesCopilotSetup.Get();
+        NoSeriesCopilotSetup.TestField(NoSeriesCopilotSetup.Deployment);
+        exit(NoSeriesCopilotSetup.Deployment);
     end;
 
 

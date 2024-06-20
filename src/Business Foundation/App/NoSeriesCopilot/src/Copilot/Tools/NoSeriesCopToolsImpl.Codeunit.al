@@ -1,3 +1,12 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Foundation.NoSeries;
+
+using System.Reflection;
+
 codeunit 336 "No. Series Cop. Tools Impl."
 {
     Access = Internal;
@@ -96,6 +105,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
         JsonArr: JsonArray;
         i: Integer;
     begin
+        i := 0;
         // show first 5 existing number series as example
         if NoSeries.FindSet() then
             repeat
@@ -145,11 +155,11 @@ codeunit 336 "No. Series Cop. Tools Impl."
 
     procedure IsRelevant(TableMetadata: Record "Table Metadata"; Field: Record "Field"; Entities: List of [Text]): Boolean
     var
-        Entity: Text;
+        RecordMatchMgtCopy: Codeunit "Record Match Mgt. Copy"; //TODO: Replace with system app module when available
+        Entity: Text[250];
         String1: Text[250];
         String2: Text[250];
         Score: Decimal;
-        RecordMatchMgtCopy: Codeunit "Record Match Mgt. Copy"; //TODO: Replace with system app module when available
     begin
         //TODO: Replace this with embeddings, when Business Central supports it
         foreach Entity in Entities do begin

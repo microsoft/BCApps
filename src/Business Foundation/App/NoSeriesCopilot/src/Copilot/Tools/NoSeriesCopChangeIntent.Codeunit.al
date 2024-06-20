@@ -1,3 +1,13 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Foundation.NoSeries;
+
+using System.AI;
+using System.Reflection;
+
 codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
 {
     Access = Internal;
@@ -32,14 +42,13 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         ChangeNoSeriesPrompt, TablesPromptList, CustomPatternsPromptList, ExistingNoSeriesToChangeList : List of [Text];
         TablesBlockLbl: Label 'Tables:', Locked = true;
         NumberOfToolResponses, i, ActualTablesChunkSize : Integer;
-        TokenCountImpl: Codeunit "AOAI Token";
     begin
         GetTablesPrompt(Arguments, TablesPromptList, ExistingNoSeriesToChangeList);
         ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(Arguments, CustomPatternsPromptList, ExistingNoSeriesToChangeList, GetToolCustomPatternsGuidelines());
 
         NumberOfToolResponses := Round(TablesPromptList.Count / ToolsImpl.GetTablesChunkSize(), 1, '>'); // we add tables by small chunks, as more tables can lead to hallucinations
 
-        for i := 1 to NumberOfToolResponses do begin
+        for i := 1 to NumberOfToolResponses do
             if TablesPromptList.Count > 0 then begin
                 Clear(ChangeNoSeriesPrompt);
                 Clear(ActualTablesChunkSize);
@@ -55,7 +64,6 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
                 ChangeNoSeriesPrompt.Add(GetToolOutputFormat());
                 ToolResults.Add(ToolsImpl.ConvertListToText(ChangeNoSeriesPrompt), ActualTablesChunkSize);
             end
-        end;
     end;
 
     local procedure GetTablesPrompt(var Arguments: JsonObject; var TablesPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text])
@@ -70,7 +78,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
     var
         TableMetadata: Record "Table Metadata";
     begin
-        // Looping trhough all Setup tables
+        // Looping through all Setup tables
         ToolsImpl.SetFilterOnSetupTables(TableMetadata);
         if TableMetadata.FindSet() then
             repeat
@@ -81,7 +89,6 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
     local procedure ListOnlyRelevantNoSeriesFieldsWithExistingNumberSeries(var TablesPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]; var TableMetadata: Record "Table Metadata"; Entities: List of [Text])
     var
         Field: Record "Field";
-        NoSeries: Record "No. Series";
     begin
         ToolsImpl.SetFilterOnNoSeriesFields(TableMetadata, Field);
         if Field.FindSet() then
@@ -93,9 +100,9 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
 
     local procedure AddChangeNoSeriesFieldToTablesPrompt(var TablesPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]; TableMetadata: Record "Table Metadata"; Field: Record "Field")
     var
+        NoSeries: Record "No. Series";
         RecRef: RecordRef;
         FieldRef: FieldRef;
-        NoSeries: Record "No. Series";
     begin
         //TODO: Check if we need to check if the requested change no. series exists: should we give error or do nothing
         RecRef.OPEN(TableMetadata.ID);

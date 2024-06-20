@@ -1,10 +1,21 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Foundation.NoSeries;
+
+using System.Telemetry;
+using System.AI;
+using System.Text.Json;
+
 codeunit 324 "No. Series Copilot Impl."
 {
     var
-        IncorrectCompletionErr: Label 'Incorrect completion. The property %1 is empty';
-        IncorrectCompletionNumberOfGeneratedNoSeriesErr: Label 'Incorrect completion. The number of generated number series is incorrect. Expected %1, but got %2';
-        TextLengthIsOverMaxLimitErr: Label 'The property %1 exceeds the maximum length of %2';
-        DateSpecificPlaceholderLbl: label '{current_date}', Locked = true;
+        IncorrectCompletionErr: Label 'Incorrect completion. The property %1 is empty', Comment = '%1 = property name';
+        IncorrectCompletionNumberOfGeneratedNoSeriesErr: Label 'Incorrect completion. The number of generated number series is incorrect. Expected %1, but got %2', Comment = '%1 = Expected Number, %2 = Actual Number';
+        TextLengthIsOverMaxLimitErr: Label 'The property %1 exceeds the maximum length of %2', Comment = '%1 = property name, %2 = maximum length';
+        DateSpecificPlaceholderLbl: Label '{current_date}', Locked = true;
         NotAbleToGenerateNumberSeriesTryToRephraseErr: Label 'Sorry, I am not able to generate the number series. Try to rephrase your request or provide more details.';
 
     internal procedure GetNoSeriesSuggestions()
@@ -25,12 +36,12 @@ codeunit 324 "No. Series Copilot Impl."
         NoSeriesCopilot.Run();
     end;
 
-    procedure Generate(var NoSeriesProposal: Record "No. Series Proposal"; var ResponseText: text; var NoSeriesGenerated: Record "No. Series Proposal Line"; InputText: Text)
+    procedure Generate(var NoSeriesProposal: Record "No. Series Proposal"; var ResponseText: Text; var NoSeriesGenerated: Record "No. Series Proposal Line"; InputText: Text)
     var
+        TokenCountImpl: Codeunit "AOAI Token";
         SystemPromptTxt: SecretText;
         CompletePromptTokenCount: Integer;
         Completion: Text;
-        TokenCountImpl: Codeunit "AOAI Token";
     begin
         Clear(ResponseText);
         SystemPromptTxt := GetToolsSystemPrompt();
@@ -107,7 +118,7 @@ codeunit 324 "No. Series Copilot Impl."
         RecRef: RecordRef;
         FieldRef: FieldRef;
     begin
-        RecRef.OPEN(NoSeriesGenerated."Setup Table No.");
+        RecRef.Open(NoSeriesGenerated."Setup Table No.");
         if not RecRef.FindFirst() then
             exit;
 
@@ -141,14 +152,14 @@ codeunit 324 "No. Series Copilot Impl."
     [NonDebuggable]
     local procedure GenerateNoSeries(SystemPromptTxt: SecretText; InputText: Text): Text
     var
-        AzureOpenAI: Codeunit "Azure OpenAi";
-        AOAIDeployments: Codeunit "AOAI Deployments";
+        AzureOpenAI: Codeunit "Azure OpenAI";
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
-        CompletionAnswerTxt: Text;
+        AOAIDeployments: Codeunit "AOAI Deployments";
         AddNoSeriesIntent: Codeunit "No. Series Cop. Add Intent";
         ChangeNoSeriesIntent: Codeunit "No. Series Cop. Change Intent";
+        CompletionAnswerTxt: Text;
     begin
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"No. Series Copilot") then
             exit;
@@ -175,16 +186,16 @@ codeunit 324 "No. Series Copilot Impl."
         exit(CompletionAnswerTxt);
     end;
 
-    local procedure GenerateNoSeriesUsingToolResult(var AzureOpenAI: Codeunit "Azure OpenAi"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
+    local procedure GenerateNoSeriesUsingToolResult(var AzureOpenAI: Codeunit "Azure OpenAI"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
     var
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        NoSeriesCopToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
         ToolResponse: Text;
         ToolResponses: Dictionary of [Text, Integer]; // tool response can be a list of strings, as the response can be too long and exceed the token limit. In this case each string would be a separate message, each of them should be called separately. The integer is the number of tables used in the prompt, so we can test if the LLM answer covers all tables
         FinalResults: List of [Text]; // The final response will be the concatenation of all the LLM responses (final results).
-        ExpectedNoSeriesCount, i : Integer;
-        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        ExpectedNoSeriesCount: Integer;
         Progress: Dialog;
-        GeneratingNoSeriesForLbl: Label 'Generating number series %1';
-        NoSeriesCopToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
+        GeneratingNoSeriesForLbl: Label 'Generating number series %1', Comment = '%1 = No. Series';
     begin
         // remove the tools from the chat messages, as they are not needed anymore
         AOAIChatMessages.ClearTools();
@@ -223,7 +234,7 @@ codeunit 324 "No. Series Copilot Impl."
         exit(ConcatenateToolResponse(FinalResults));
     end;
 
-    local procedure GenerateAndReviewToolCompletionWithRetry(var AzureOpenAI: Codeunit "Azure OpenAi"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; ExpectedNoSeriesCount: Integer): Boolean
+    local procedure GenerateAndReviewToolCompletionWithRetry(var AzureOpenAI: Codeunit "Azure OpenAI"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; ExpectedNoSeriesCount: Integer): Boolean
     var
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         MaxAttempts: Integer;
@@ -252,7 +263,7 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         ResultJArray := ReadGeneratedNumberSeriesJArray(Completion);
         if ResultJArray.Count <> ExpectedNoSeriesCount then
-            Error(StrSubstNo(IncorrectCompletionNumberOfGeneratedNoSeriesErr, ExpectedNoSeriesCount, ResultJArray.Count));
+            Error(IncorrectCompletionNumberOfGeneratedNoSeriesErr, ExpectedNoSeriesCount, ResultJArray.Count);
     end;
 
     local procedure ConcatenateToolResponse(var FinalResults: List of [Text]) ConcatenatedResponse: Text
@@ -311,16 +322,16 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         Json.GetStringPropertyValueByName(propertyName, value);
         if value = '' then
-            Error(StrSubstNo(IncorrectCompletionErr, propertyName));
+            Error(IncorrectCompletionErr, propertyName);
     end;
 
     local procedure CheckIntegerPropertyExistAndCheckIfNotEmpty(propertyName: Text; var Json: Codeunit Json)
     var
-        value: Integer;
+        PropertyValue: Integer;
     begin
-        Json.GetIntegerPropertyValueFromJObjectByName(propertyName, value);
-        if value = 0 then
-            Error(StrSubstNo(IncorrectCompletionErr, propertyName));
+        Json.GetIntegerPropertyValueFromJObjectByName(propertyName, PropertyValue);
+        if PropertyValue = 0 then
+            Error(IncorrectCompletionErr, propertyName);
     end;
 
     local procedure CheckMaximumLengthOfPropertyValue(propertyName: Text; var Json: Codeunit Json; maxLength: Integer)
@@ -329,7 +340,7 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         Json.GetStringPropertyValueByName(propertyName, value);
         if StrLen(value) > maxLength then
-            Error(StrSubstNo(TextLengthIsOverMaxLimitErr, propertyName, maxLength));
+            Error(TextLengthIsOverMaxLimitErr, propertyName, maxLength);
     end;
 
     local procedure ReadGeneratedNumberSeriesJArray(Completion: Text): JsonArray
@@ -359,7 +370,7 @@ codeunit 324 "No. Series Copilot Impl."
         i: Integer;
     begin
         ReadGeneratedNumberSeriesJArray(Completion).WriteTo(NoSeriesArrText);
-        ReAssambleDuplicates(NoSeriesArrText);
+        ReAssembleDuplicates(NoSeriesArrText);
 
         Json.InitializeCollection(NoSeriesArrText);
 
@@ -370,13 +381,13 @@ codeunit 324 "No. Series Copilot Impl."
         end;
     end;
 
-    local procedure ReAssambleDuplicates(var NoSeriesArrText: Text)
+    local procedure ReAssembleDuplicates(var NoSeriesArrText: Text)
     var
+        Json: Codeunit Json;
         i: Integer;
         NoSeriesObj: Text;
         NoSeriesCodes: List of [Text];
         NoSeriesCode: Text;
-        Json: Codeunit Json;
     begin
         Json.InitializeCollection(NoSeriesArrText);
 
@@ -418,11 +429,10 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
 
-    local procedure InsertNoSeriesGenerated(var NoSeriesGenerated: Record "No. Series Proposal Line"; var NoSeriesObj: Text; ProposalNo: Integer)
+    local procedure InsertNoSeriesGenerated(var NoSeriesGenerated: Record "No. Series Proposal Line"; NoSeriesObj: Text; ProposalNo: Integer)
     var
         Json: Codeunit Json;
         RecRef: RecordRef;
-        FieldRef: FieldRef;
     begin
         Json.InitializeObject(NoSeriesObj);
 
@@ -430,7 +440,7 @@ codeunit 324 "No. Series Copilot Impl."
         RecRef.Init();
         SetProposalNo(RecRef, ProposalNo, NoSeriesGenerated.FieldNo("Proposal No."));
         Json.GetValueAndSetToRecFieldNo(RecRef, 'seriesCode', NoSeriesGenerated.FieldNo("Series Code"));
-        Json.GetValueAndSetToRecFieldNo(RecRef, 'description', NoSeriesGenerated.FieldNo("Description"));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'description', NoSeriesGenerated.FieldNo(Description));
         Json.GetValueAndSetToRecFieldNo(RecRef, 'startingNo', NoSeriesGenerated.FieldNo("Starting No."));
         Json.GetValueAndSetToRecFieldNo(RecRef, 'endingNo', NoSeriesGenerated.FieldNo("Ending No."));
         Json.GetValueAndSetToRecFieldNo(RecRef, 'warningNo', NoSeriesGenerated.FieldNo("Warning No."));
@@ -505,5 +515,4 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         exit('Number Series with AI');
     end;
-
 }

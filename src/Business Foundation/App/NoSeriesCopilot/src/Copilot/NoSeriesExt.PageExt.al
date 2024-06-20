@@ -1,4 +1,13 @@
-pageextension 324 "No. Series Ext" extends "No. Series"
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Foundation.NoSeries;
+
+using System.Environment.Configuration;
+
+pageextension 324 "No. Series Ext." extends "No. Series"
 {
     actions
     {
@@ -45,7 +54,6 @@ pageextension 324 "No. Series Ext" extends "No. Series"
     var
         FeatureKey: Record "Feature Key";
         FeatureManagementFacade: Codeunit "Feature Management Facade";
-        EnvironmentInformation: Codeunit "Environment Information";
     begin
         if not FeatureKey.Get(NumberSeriesWithAILbl) then
             CopilotActionsVisible := true
@@ -58,6 +66,6 @@ pageextension 324 "No. Series Ext" extends "No. Series"
 
     var
         CopilotActionsVisible: Boolean;
-        NumberSeriesWithAILbl: label 'NumberSeriesWithAI', Locked = true;
+        NumberSeriesWithAILbl: Label 'NumberSeriesWithAI', Locked = true;
 
 }

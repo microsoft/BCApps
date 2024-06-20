@@ -1,3 +1,10 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Foundation.NoSeries;
+
 codeunit 337 "Record Match Mgt. Copy"
 {
     //TODO: This is a copy of codeunit 1251 "Record Match Mgt." CalculateStringNearness(). It should be moved to a system app, or replaced with a system function

@@ -1,3 +1,13 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace Microsoft.Foundation.NoSeries;
+
+using System.AI;
+using System.Upgrade;
+
 codeunit 327 "No. Series Copilot Register"
 {
     Access = Internal;
@@ -13,7 +23,6 @@ codeunit 327 "No. Series Copilot Register"
     procedure RegisterCapability()
     var
         CopilotCapability: Codeunit "Copilot Capability";
-        EnvironmentInformation: Codeunit "Environment Information";
         UpgradeTag: Codeunit "Upgrade Tag";
         NoSeriesCopilotUpgradeTags: Codeunit "No. Series Copilot Upgr. Tags";
     begin
