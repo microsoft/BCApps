@@ -6,7 +6,6 @@
 namespace System.Security.AccessControl;
 
 using System.Feedback;
-using System.PerformanceProfile;
 using System.Security.User;
 using System.Reflection;
 using System.Tooling;
