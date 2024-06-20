@@ -44,7 +44,8 @@ codeunit 8712 "Telemetry Impl."
         AddCommonCustomDimensions(CommonCustomDimensions, CallerModuleInfo);
 
         foreach Module in CallerCallStackModuleInfos do
-            CallStackPublishers.Add(Module.Publisher);
+            if not CallStackPublishers.Contains(Module.Publisher) then
+                CallStackPublishers.Add(Module.Publisher);
 
         LogMessageInternal(EventId, Message, Verbosity, DataClassification, TelemetryScope, CommonCustomDimensions, CallerCustomDimensions, CallerModuleInfo.Publisher, CallStackPublishers);
     end;
