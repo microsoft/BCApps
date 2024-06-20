@@ -17,7 +17,6 @@ codeunit 9350 "Graph Client"
     InherentPermissions = X;
 
     var
-        [NonDebuggable]
         GraphClientImpl: Codeunit "Graph Client Impl.";
 
     /// <summary>

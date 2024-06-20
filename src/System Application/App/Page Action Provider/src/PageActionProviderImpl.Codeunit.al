@@ -57,8 +57,10 @@ codeunit 2916 "Page Action Provider Impl."
         // Try to find the current profile
         if UserPersonalization.Get(UserSecurityId()) then
             if UserPersonalization."Profile ID" <> '' then
+#pragma warning disable AL0432 // All profiles are now in the tenant scope
                 if AllProfile.Get(UserPersonalization.Scope, UserPersonalization."App ID", UserPersonalization."Profile ID") then
                     exit(AllProfile."Role Center ID");
+#pragma warning restore AL0432
 
         // otherwise it means we are using the default one for this user
         if EnvironmentInfo.IsSaaS() then

@@ -403,6 +403,16 @@ codeunit 9047 "ABS Optional Parameters"
         SetParameter('include', "Value");
     end;
 
+    /// <summary>
+    /// Specifies the datasets to be returned in the response.
+    /// </summary>
+    /// see: https://learn.microsoft.com/rest/api/storageservices/list-blobs?tabs=microsoft-entra-id#uri-parameters
+    /// <param name="Value">The dataset to include in text</param>
+    procedure ShowOnly("Value": Text)
+    begin
+        SetParameter('showonly', "Value");
+    end;
+
     local procedure SetParameter(Header: Text; HeaderValue: Text)
     begin
         Parameters.Remove(Header);

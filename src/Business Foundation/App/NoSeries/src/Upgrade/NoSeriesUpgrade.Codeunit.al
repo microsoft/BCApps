@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace Microsoft.Foundation.NoSeries;
+
 codeunit 328 "No. Series Upgrade"
 {
     Access = Internal;
@@ -15,6 +16,6 @@ codeunit 328 "No. Series Upgrade"
     var
         NoSeriesInstaller: Codeunit "No. Series Installer";
     begin
-        NoSeriesInstaller.TriggerMovedTableSchemaSanityCheck();
+        NoSeriesInstaller.SetupNoSeriesImplementation();
     end;
 }

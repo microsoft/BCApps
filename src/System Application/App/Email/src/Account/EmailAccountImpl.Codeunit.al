@@ -198,6 +198,7 @@ codeunit 8889 "Email Account Impl."
 
     internal procedure IsUserEmailAdmin(): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         EmailScenario: Record "Email Scenario";
     begin
         exit(EmailScenario.WritePermission());
