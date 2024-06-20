@@ -1,0 +1,26 @@
+{
+    "id":  "6d835194-4978-413c-9c2b-8bb3e6e5842c",
+    "name":  "Named Forward Link Test",
+    "publisher":  "Microsoft",
+    "brief":  "",
+    "description":  "Test Module for Named Forward Link",
+    "version":  "25.0.0.0",
+    "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
+    "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help":  "",
+    "url":  "https://go.microsoft.com/fwlink/?LinkId=724011",
+    "logo":  "",
+    "dependencies":  [
+                     ],
+    "screenshots":  [
+
+                    ],
+    "platform":  "25.0.0.0",
+    "idRanges":  [
+                     {
+                         "from":  134568,
+                         "to":  134568
+                     }
+                 ],
+    "target":  "OnPrem"
+}
