@@ -156,7 +156,6 @@ codeunit 324 "No. Series Copilot Impl."
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
-        AOAIDeployments: Codeunit "AOAI Deployments";
         AddNoSeriesIntent: Codeunit "No. Series Cop. Add Intent";
         ChangeNoSeriesIntent: Codeunit "No. Series Cop. Change Intent";
         CompletionAnswerTxt: Text;

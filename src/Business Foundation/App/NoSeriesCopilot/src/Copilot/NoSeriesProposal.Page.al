@@ -66,6 +66,7 @@ page 332 "No. Series Proposal"
             }
         }
     }
+#pragma warning disable AW0005
     actions
     {
         area(PromptGuide)
@@ -73,10 +74,12 @@ page 332 "No. Series Proposal"
             group(CreateNewNoSeries)
             {
                 Caption = 'Create new';
+    
                 action(NewNumberSeriesFor)
                 {
                     ApplicationArea = All;
                     Caption = 'Create number series for [purchase orders]';
+                    ToolTip = 'Sample prompt for creating number series. Replace [purchase orders] with the entity you want to create number series for.';
                     trigger OnAction()
                     begin
                         InputText := CreateNoSeriesForLbl;
@@ -87,6 +90,7 @@ page 332 "No. Series Proposal"
                 {
                     ApplicationArea = All;
                     Caption = 'Create numbers for the [sales] module, using pattern [@@-#####]';
+                    ToolTip = 'Sample prompt for creating number series for a specific module with a specific pattern. Replace [sales] with the module you want to create number series for and [@@-#####] with the pattern you want to use.';
                     trigger OnAction()
                     begin
                         InputText := CreateNoSeriesForModuleWithPatternLbl;
@@ -97,6 +101,7 @@ page 332 "No. Series Proposal"
                 {
                     ApplicationArea = All;
                     Caption = 'Create numbers series for the new company';
+                    ToolTip = 'Sample prompt for creating number series for a new company.';
                     trigger OnAction()
                     begin
                         InputText := CreateNoSeriesForCompanyLbl;
@@ -111,6 +116,7 @@ page 332 "No. Series Proposal"
                 action(ChangeNumberTo)
                 {
                     Caption = 'Change the [sales order] number to [SO-10001]';
+                    ToolTip = 'Sample prompt for changing the number series. Replace [sales order] with the entity you want to change the number series for and [SO-10001] with the new number.';
                     trigger OnAction()
                     begin
                         InputText := ChangeNumberLbl;
@@ -119,6 +125,7 @@ page 332 "No. Series Proposal"
                 }
             }
         }
+#pragma warning restore AW0005
 
         area(SystemActions)
         {
