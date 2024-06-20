@@ -57,7 +57,7 @@ codeunit 1931 "Scheduled Perf. Profiler"
     end;
 
     /// <summary>
-    /// Filters the record with the users that allowed to view the Performance Profile Scheduler page
+    /// Filters the record with the users that are allowed to view the Performance Profile Scheduler page
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The record</param>
     /// <param name="SecurityID">The security ID to filter the opening of the page</param>
@@ -67,7 +67,7 @@ codeunit 1931 "Scheduled Perf. Profiler"
     end;
 
     /// <summary>
-    /// Filters the record with the users that allowed to view the Performance Profile Scheduler page
+    /// Filters the record with the users that are allowed to view the Performance Profile Scheduler page
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The record</param>
     /// <param name="SecurityID">The security ID to filter the opening of the page</param>
@@ -88,7 +88,7 @@ codeunit 1931 "Scheduled Perf. Profiler"
     end;
 
     /// <summary>
-    /// Initalizes the fields for the "Performance Profile Scheduler" receord
+    /// Initalizes the fields for the "Performance Profile Scheduler" record
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
     /// <param name="ActivityType">>The activity enum type</param>
