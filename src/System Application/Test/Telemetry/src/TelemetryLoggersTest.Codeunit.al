@@ -46,6 +46,7 @@ codeunit 139484 "Telemetry Loggers Test"
         // [GIVEN] The test implementation of the telemetry logger interface is registered as the current implementation (see OnRegisterTelemetryLogger subscriber).
         BindSubscription(ErrorTelemetryLogger);
 
+        DummyCallStackPublishers.Add(TestPublisherTxt);
         // [WHEN] A telemetry message is logged via the Telemetry Codeunit with an event ID that is not expected by the verification.
         asserterror TelemetryImpl.LogMessageInternal(CurrentEventIdTxt, CurrentMessageTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, EmptyCustomDimensions, EmptyCustomDimensions, TestPublisherTxt, DummyCallStackPublishers);
 
