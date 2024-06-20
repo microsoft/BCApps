@@ -10,6 +10,8 @@ using System.Telemetry;
 codeunit 2018 "Magic Function" implements "AOAI Function"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         FunctionNameLbl: Label 'magic_function', Locked = true;

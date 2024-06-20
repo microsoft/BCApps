@@ -10,6 +10,8 @@ using System.Telemetry;
 codeunit 2017 "Generate Prod Mkt Ad Function" implements "AOAI Function"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         FunctionNameLbl: Label 'generate_product_marketing_ad', Locked = true;

@@ -10,6 +10,8 @@ using System.Telemetry;
 codeunit 2019 "Entity Text Prompts"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     [NonDebuggable]
     internal procedure GetAzureKeyVaultSecret(var SecretValue: Text; SecretName: Text)
