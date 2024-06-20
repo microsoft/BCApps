@@ -34,7 +34,8 @@ permissionset 66 "System Tables - Basic"
                              "User Personalization - Edit",
                              "User Selection - Read",
                              "Webhook - Edit",
-                             "Data Analysis - Exec";
+                             "Data Analysis - Exec",
+                             "Perf. Profiler Tables - Edit";
 
     Permissions = tabledata "Add-in" = R,
                   tabledata "Aggregate Permission Set" = Rimd,
@@ -66,7 +67,5 @@ permissionset 66 "System Tables - Basic"
                   tabledata "Style Sheet" = RIMD,
                   tabledata "System Object" = Rimd,
                   tabledata "Tenant Profile Page Metadata" = Rimd,
-                  tabledata "Token Cache" = Rimd,
-                  tabledata "Performance Profile Scheduler" = Rimd,
-                  tabledata "Performance Profiles" = R;
+                  tabledata "Token Cache" = Rimd;
 }

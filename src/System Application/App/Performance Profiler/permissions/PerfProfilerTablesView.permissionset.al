@@ -7,7 +7,7 @@ namespace System.Tooling;
 
 using System.PerformanceProfile;
 
-permissionset 1922 "Performance Profiler - View"
+permissionset 1922 "Perf. Profiler Tables - View"
 {
     Access = Internal;
     Assignable = false;

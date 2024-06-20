@@ -16,6 +16,4 @@ permissionset 1921 "Performance Profiler - Objects"
                   page "Perf. Profiler Schedules List" = X,
                   page "Perf. Profiler Schedule Card" = X,
                   page "Performance Profile List" = X;
-
-    IncludedPermissionSets = "Performance Profiler - Edit";
 }
