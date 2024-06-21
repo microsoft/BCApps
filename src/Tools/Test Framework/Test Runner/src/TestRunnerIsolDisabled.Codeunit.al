@@ -14,33 +14,37 @@ codeunit 130451 "Test Runner - Isol. Disabled"
                   tabledata "Test Method Line" = rimd;
 
     trigger OnRun()
+    var
+        ALTestSuite: Record "AL Test Suite";
     begin
         if Rec."Skip Logging Results" then
-            TestRunnerMgt.RunTestsWithoutLoggingResults(Rec)
+            this.TestRunnerMgt.RunTestsWithoutLoggingResults(Rec)
         else begin
-            ALTestSuite.Get(Rec."Test Suite");
-            CurrentTestMethodLine.Copy(Rec);
-            TestRunnerMgt.RunTests(Rec);
+            if ALTestSuite.Get(Rec."Test Suite") then
+                this.TestSuiteName := ALTestSuite.Name;
+
+            this.CurrentTestMethodLine.Copy(Rec);
+            this.TestRunnerMgt.RunTests(Rec);
         end;
     end;
 
     var
-        ALTestSuite: Record "AL Test Suite";
         CurrentTestMethodLine: Record "Test Method Line";
         TestRunnerMgt: Codeunit "Test Runner - Mgt";
+        TestSuiteName: Code[10];
 
     trigger OnBeforeTestRun(CodeunitID: Integer; CodeunitName: Text; FunctionName: Text; FunctionTestPermissions: TestPermissions): Boolean
     begin
         exit(
-          TestRunnerMgt.PlatformBeforeTestRun(
-            CodeunitID, COPYSTR(CodeunitName, 1, 30), COPYSTR(FunctionName, 1, 128), FunctionTestPermissions, ALTestSuite.Name, CurrentTestMethodLine.GetFilter("Line No.")));
+          this.TestRunnerMgt.PlatformBeforeTestRun(
+            CodeunitID, COPYSTR(CodeunitName, 1, 30), COPYSTR(FunctionName, 1, 128), FunctionTestPermissions, this.TestSuiteName, this.CurrentTestMethodLine.GetFilter("Line No.")));
     end;
 
     trigger OnAfterTestRun(CodeunitID: Integer; CodeunitName: Text; FunctionName: Text; FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
     begin
-        TestRunnerMgt.PlatformAfterTestRun(
-          CodeunitID, COPYSTR(CodeunitName, 1, 30), COPYSTR(FunctionName, 1, 128), FunctionTestPermissions, IsSuccess, ALTestSuite.Name,
-          CurrentTestMethodLine.GetFilter("Line No."));
+        this.TestRunnerMgt.PlatformAfterTestRun(
+          CodeunitID, COPYSTR(CodeunitName, 1, 30), COPYSTR(FunctionName, 1, 128), FunctionTestPermissions, IsSuccess, this.TestSuiteName,
+          this.CurrentTestMethodLine.GetFilter("Line No."));
     end;
 }
 

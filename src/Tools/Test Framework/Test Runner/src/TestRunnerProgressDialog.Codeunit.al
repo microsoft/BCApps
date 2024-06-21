@@ -44,23 +44,23 @@ codeunit 130455 "Test Runner - Progress Dialog"
             exit;
 
         CopyTestMethodLine.Copy(TestMethodLine);
-        WindowNoOfTestCodeunitTotal := CopyTestMethodLine.Count();
+        this.WindowNoOfTestCodeunitTotal := CopyTestMethodLine.Count();
         CopyTestMethodLine.Reset();
         CopyTestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
         CopyTestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::"Function");
 
-        WindowNoOfFunctionTotal := CopyTestMethodLine.Count();
+        this.WindowNoOfFunctionTotal := CopyTestMethodLine.Count();
 
-        Dialog.HideSubsequentDialogs(true);
-        Dialog.Open(
-          ExecutingTestsMsg +
-          TestSuiteMsg +
-          TestCodeunitMsg +
-          TestFunctionMsg +
-          NoOfResultsMsg +
-          SuccessMsg +
-          FailureMsg +
-          SkipMsg);
+        this.Dialog.HideSubsequentDialogs(true);
+        this.Dialog.Open(
+          this.ExecutingTestsMsg +
+          this.TestSuiteMsg +
+          this.TestCodeunitMsg +
+          this.TestFunctionMsg +
+          this.NoOfResultsMsg +
+          this.SuccessMsg +
+          this.FailureMsg +
+          this.SkipMsg);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterRunTestSuite', '', false, false)]
@@ -69,7 +69,7 @@ codeunit 130455 "Test Runner - Progress Dialog"
         if not GuiAllowed() then
             exit;
 
-        Dialog.Close();
+        this.Dialog.Close();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterTestMethodRun', '', false, false)]
@@ -80,40 +80,40 @@ codeunit 130455 "Test Runner - Progress Dialog"
 
         case CurrentTestMethodLine.Result of
             CurrentTestMethodLine.Result::Failure:
-                WindowTestFailure += 1;
+                this.WindowTestFailure += 1;
             CurrentTestMethodLine.Result::Success:
-                WindowTestSuccess += 1;
+                this.WindowTestSuccess += 1;
             else
-                WindowTestSkip += 1;
+                this.WindowTestSkip += 1;
         end;
 
-        WindowNoOfFunction += 1;
+        this.WindowNoOfFunction += 1;
 
-        if CurrentCodeunitNumber <> CurrentTestMethodLine."Test Codeunit" then begin
-            if CurrentCodeunitNumber <> 0 then
-                WindowNoOfTestCodeunit += 1;
-            CurrentCodeunitNumber := CurrentTestMethodLine."Test Codeunit";
+        if this.CurrentCodeunitNumber <> CurrentTestMethodLine."Test Codeunit" then begin
+            if this.CurrentCodeunitNumber <> 0 then
+                this.WindowNoOfTestCodeunit += 1;
+            this.CurrentCodeunitNumber := CurrentTestMethodLine."Test Codeunit";
         end;
 
-        if IsTimeForUpdate() then begin
-            Dialog.Update(1, CurrentTestMethodLine."Test Suite");
-            Dialog.Update(2, CurrentTestMethodLine."Test Codeunit");
-            Dialog.Update(4, FunctionName);
-            Dialog.Update(6, WindowTestSuccess);
-            Dialog.Update(7, WindowTestFailure);
-            Dialog.Update(8, WindowTestSkip);
+        if this.IsTimeForUpdate() then begin
+            this.Dialog.Update(1, CurrentTestMethodLine."Test Suite");
+            this.Dialog.Update(2, CurrentTestMethodLine."Test Codeunit");
+            this.Dialog.Update(4, FunctionName);
+            this.Dialog.Update(6, this.WindowTestSuccess);
+            this.Dialog.Update(7, this.WindowTestFailure);
+            this.Dialog.Update(8, this.WindowTestSkip);
 
-            if WindowNoOfTestCodeunitTotal <> 0 then
-                Dialog.Update(3, Round(WindowNoOfTestCodeunit / WindowNoOfTestCodeunitTotal * 10000, 1));
-            if WindowNoOfFunctionTotal <> 0 then
-                Dialog.Update(5, Round(WindowNoOfFunction / WindowNoOfFunctionTotal * 10000, 1));
+            if this.WindowNoOfTestCodeunitTotal <> 0 then
+                this.Dialog.Update(3, Round(this.WindowNoOfTestCodeunit / this.WindowNoOfTestCodeunitTotal * 10000, 1));
+            if this.WindowNoOfFunctionTotal <> 0 then
+                this.Dialog.Update(5, Round(this.WindowNoOfFunction / this.WindowNoOfFunctionTotal * 10000, 1));
         end;
     end;
 
     local procedure IsTimeForUpdate(): Boolean
     begin
-        if true in [WindowUpdateDateTime = 0DT, CurrentDateTime() - WindowUpdateDateTime >= 1000] then begin
-            WindowUpdateDateTime := CurrentDateTime();
+        if true in [this.WindowUpdateDateTime = 0DT, CurrentDateTime() - this.WindowUpdateDateTime >= 1000] then begin
+            this.WindowUpdateDateTime := CurrentDateTime();
             exit(true);
         end;
 

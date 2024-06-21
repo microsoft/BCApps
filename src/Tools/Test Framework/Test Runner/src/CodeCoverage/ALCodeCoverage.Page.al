@@ -26,7 +26,7 @@ page 130460 "AL Code Coverage"
             group(Control22)
             {
                 ShowCaption = false;
-                field(ObjectIdFilter; ObjectIdFilter)
+                field(ObjectIdFilter; this.ObjectIdFilter)
                 {
                     ApplicationArea = All;
                     Caption = 'Object Id Filter';
@@ -34,12 +34,12 @@ page 130460 "AL Code Coverage"
 
                     trigger OnValidate()
                     begin
-                        Rec.SetFilter("Object ID", ObjectIdFilter);
-                        TotalCoveragePercent := ALCodeCoverageMgt.ObjectsCoverage(Rec, TotalNoofLines, TotalLinesHit) * 100;
+                        Rec.SetFilter("Object ID", this.ObjectIdFilter);
+                        this.TotalCoveragePercent := this.ALCodeCoverageMgt.ObjectsCoverage(Rec, this.TotalNoofLines, this.TotalLinesHit) * 100;
                         CurrPage.Update(false);
                     end;
                 }
-                field(ObjectTypeFilter; ObjectTypeFilter)
+                field(ObjectTypeFilter; this.ObjectTypeFilter)
                 {
                     ApplicationArea = All;
                     Caption = 'Object Type Filter';
@@ -47,12 +47,12 @@ page 130460 "AL Code Coverage"
 
                     trigger OnValidate()
                     begin
-                        Rec.SetFilter("Object Type", ObjectTypeFilter);
-                        TotalCoveragePercent := ALCodeCoverageMgt.ObjectsCoverage(Rec, TotalNoofLines, TotalLinesHit);
+                        Rec.SetFilter("Object Type", this.ObjectTypeFilter);
+                        this.TotalCoveragePercent := this.ALCodeCoverageMgt.ObjectsCoverage(Rec, this.TotalNoofLines, this.TotalLinesHit);
                         CurrPage.Update(false);
                     end;
                 }
-                field(RequiredCoverage; RequiredCoveragePercent)
+                field(RequiredCoverage; this.RequiredCoveragePercent)
                 {
                     ApplicationArea = All;
                     Caption = 'Required Coverage %';
@@ -63,14 +63,14 @@ page 130460 "AL Code Coverage"
                         CurrPage.Update(false);
                     end;
                 }
-                field(TotalNoofLines; TotalNoofLines)
+                field(TotalNoofLines; this.TotalNoofLines)
                 {
                     ApplicationArea = All;
                     Caption = 'Total # Lines';
                     Editable = false;
                     ToolTip = 'Specifies the total number of lines, when tracking which part of the application code has been exercised during test activity.';
                 }
-                field(TotalCoveragePercent; TotalCoveragePercent)
+                field(TotalCoveragePercent; this.TotalCoveragePercent)
                 {
                     ApplicationArea = All;
                     Caption = 'Total Coverage %';
@@ -83,19 +83,21 @@ page 130460 "AL Code Coverage"
             {
                 Caption = 'Object';
                 Editable = false;
-                IndentationColumn = Indent;
+#pragma warning disable AA0205
+                IndentationColumn = this.Indent;
+#pragma warning restore AA0205
                 ShowAsTree = true;
-                field(CodeLine; CodeLine)
+                field(CodeLine; this.CodeLine)
                 {
                     ApplicationArea = All;
                     Caption = 'Code';
                     ToolTip = 'Specifies which part of the application code has been exercised during test activity.';
                 }
-                field(CoveragePercent; CoveragePercent)
+                field(CoveragePercent; this.CoveragePercent)
                 {
                     ApplicationArea = All;
                     Caption = 'Coverage %';
-                    StyleExpr = CoveragePercentStyle;
+                    StyleExpr = this.CoveragePercentStyle;
                     ToolTip = 'Specifies the percentage applied to the code coverage line.';
                 }
                 field(LineType; Rec."Line Type")
@@ -122,7 +124,7 @@ page 130460 "AL Code Coverage"
                     Caption = 'Line No.';
                     ToolTip = 'Specifies the line number, when tracking which part of the application code has been exercised during test activity.';
                 }
-                field(NoofLines; NoofLines)
+                field(NoofLines; this.NoofLines)
                 {
                     ApplicationArea = All;
                     Caption = 'No. of Lines';
@@ -134,13 +136,13 @@ page 130460 "AL Code Coverage"
                     Caption = 'No. of Hits';
                     ToolTip = 'Specifies the number of hits, when tracking which part of the application code has been exercised during test activity.';
                 }
-                field(LinesHit; LinesHit)
+                field(LinesHit; this.LinesHit)
                 {
                     ApplicationArea = All;
                     Caption = 'No. of Hit Lines';
                     ToolTip = 'Specifies the number of hit lines, when tracking which part of the application code has been exercised during test activity.';
                 }
-                field(LinesNotHit; LinesNotHit)
+                field(LinesNotHit; this.LinesNotHit)
                 {
                     ApplicationArea = All;
                     Caption = 'No. of Skipped Lines';
@@ -158,7 +160,7 @@ page 130460 "AL Code Coverage"
             {
                 ApplicationArea = All;
                 Caption = 'Start';
-                Enabled = not CodeCoverageRunning;
+                Enabled = not this.CodeCoverageRunning;
                 Image = Start;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -168,15 +170,15 @@ page 130460 "AL Code Coverage"
 
                 trigger OnAction()
                 begin
-                    ALCodeCoverageMgt.Start(true);
-                    CodeCoverageRunning := true;
+                    this.ALCodeCoverageMgt.Start(true);
+                    this.CodeCoverageRunning := true;
                 end;
             }
             action(Refresh)
             {
                 ApplicationArea = All;
                 Caption = 'Refresh';
-                Enabled = CodeCoverageRunning;
+                Enabled = this.CodeCoverageRunning;
                 Image = Refresh;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -187,14 +189,14 @@ page 130460 "AL Code Coverage"
 
                 trigger OnAction()
                 begin
-                    ALCodeCoverageMgt.Refresh();
+                    this.ALCodeCoverageMgt.Refresh();
                 end;
             }
             action(Stop)
             {
                 ApplicationArea = All;
                 Caption = 'Stop';
-                Enabled = CodeCoverageRunning;
+                Enabled = this.CodeCoverageRunning;
                 Image = Stop;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -204,9 +206,9 @@ page 130460 "AL Code Coverage"
 
                 trigger OnAction()
                 begin
-                    ALCodeCoverageMgt.Stop();
-                    TotalCoveragePercent := ALCodeCoverageMgt.ObjectsCoverage(Rec, TotalNoofLines, TotalLinesHit) * 100;
-                    CodeCoverageRunning := false;
+                    this.ALCodeCoverageMgt.Stop();
+                    this.TotalCoveragePercent := this.ALCodeCoverageMgt.ObjectsCoverage(Rec, this.TotalNoofLines, this.TotalLinesHit) * 100;
+                    this.CodeCoverageRunning := false;
                 end;
             }
         }
@@ -236,41 +238,41 @@ page 130460 "AL Code Coverage"
 
     trigger OnAfterGetRecord()
     begin
-        NoofLines := 0;
-        LinesHit := 0;
-        LinesNotHit := 0;
-        Indent := 2;
+        this.NoofLines := 0;
+        this.LinesHit := 0;
+        this.LinesNotHit := 0;
+        this.Indent := 2;
 
-        CodeLine := Rec.Line;
+        this.CodeLine := Rec.Line;
 
         case Rec."Line Type" of
             Rec."Line Type"::Object:
                 // Sum object coverage
                 begin
-                    CoveragePercent := ALCodeCoverageMgt.ObjectCoverage(Rec, NoofLines, LinesHit) * 100;
-                    LinesNotHit := NoofLines - LinesHit;
-                    Indent := 0
+                    this.CoveragePercent := this.ALCodeCoverageMgt.ObjectCoverage(Rec, this.NoofLines, this.LinesHit) * 100;
+                    this.LinesNotHit := this.NoofLines - this.LinesHit;
+                    this.Indent := 0
                 end;
             Rec."Line Type"::"Trigger/Function":
                 // Sum method coverage
                 begin
-                    CoveragePercent := ALCodeCoverageMgt.FunctionCoverage(Rec, NoofLines, LinesHit) * 100;
-                    LinesNotHit := NoofLines - LinesHit;
-                    Indent := 1
+                    this.CoveragePercent := this.ALCodeCoverageMgt.FunctionCoverage(Rec, this.NoofLines, this.LinesHit) * 100;
+                    this.LinesNotHit := this.NoofLines - this.LinesHit;
+                    this.Indent := 1
                 end
             else
                 if Rec."No. of Hits" > 0 then
-                    CoveragePercent := 100
+                    this.CoveragePercent := 100
                 else
-                    CoveragePercent := 0;
+                    this.CoveragePercent := 0;
         end;
 
-        SetStyles();
+        this.SetStyles();
     end;
 
     trigger OnInit()
     begin
-        RequiredCoveragePercent := 90;
+        this.RequiredCoveragePercent := 90;
     end;
 
     var
@@ -293,11 +295,11 @@ page 130460 "AL Code Coverage"
     local procedure SetStyles()
     begin
         if Rec."Line Type" = Rec."Line Type"::Empty then
-            CoveragePercentStyle := 'Standard'
+            this.CoveragePercentStyle := 'Standard'
         else
-            if CoveragePercent < RequiredCoveragePercent then
-                CoveragePercentStyle := 'Unfavorable'
+            if this.CoveragePercent < this.RequiredCoveragePercent then
+                this.CoveragePercentStyle := 'Unfavorable'
             else
-                CoveragePercentStyle := 'Favorable';
+                this.CoveragePercentStyle := 'Favorable';
     end;
 }
