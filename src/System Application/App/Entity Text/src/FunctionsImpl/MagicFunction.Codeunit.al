@@ -5,10 +5,13 @@
 namespace System.Text;
 
 using System.AI;
+using System.Telemetry;
 
 codeunit 2018 "Magic Function" implements "AOAI Function"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         FunctionNameLbl: Label 'magic_function', Locked = true;
@@ -26,7 +29,11 @@ codeunit 2018 "Magic Function" implements "AOAI Function"
 
     [NonDebuggable]
     procedure Execute(Arguments: JsonObject): Variant
+    var
+        EntityTextImpl: Codeunit "Entity Text Impl.";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
+        FeatureTelemetry.LogUsage('0000N59', EntityTextImpl.GetFeatureName(), 'function_call: magic_function');
         Error(CompletionDeniedPhraseErr);
     end;
 

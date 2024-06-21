@@ -10,15 +10,18 @@ using System.Telemetry;
 codeunit 2019 "Entity Text Prompts"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     [NonDebuggable]
     internal procedure GetAzureKeyVaultSecret(var SecretValue: Text; SecretName: Text)
     var
+        EntityTextImpl: Codeunit "Entity Text Impl.";
         AzureKeyVault: Codeunit "Azure Key Vault";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret(SecretName, SecretValue) then begin
-            FeatureTelemetry.LogError('', 'Entity Text', 'Get prompt from Key Vault', TelemetryConstructingPromptFailedErr);
+            FeatureTelemetry.LogError('0000N5D', EntityTextImpl.GetFeatureName(), 'Get prompt from Key Vault', TelemetryConstructingPromptFailedErr);
             Error(ConstructingPromptFailedErr);
         end;
     end;
@@ -61,8 +64,8 @@ codeunit 2019 "Entity Text Prompts"
         PromptObject: JsonObject;
         SystemPromptJson: JsonToken;
         UserPromptJson: JsonToken;
+        SafetyPromptToken: JsonToken;
         BCETPromptObject: Text;
-        BCETSafetyPrompt: Text;
         LanguageName: Text;
         NewLineChar: Char;
     begin
@@ -71,15 +74,14 @@ codeunit 2019 "Entity Text Prompts"
 
         GetAzureKeyVaultSecret(BCETPromptObject, 'BCETPromptObject');
         PromptObject.ReadFrom(BCETPromptObject);
-
         PromptObject.Get('system', SystemPromptJson);
         PromptObject.Get('user', UserPromptJson);
+        PromptObject.Get('safety-prompt', SafetyPromptToken);
 
         SystemPrompt := BuildSinglePrompt(SystemPromptJson.AsObject(), LanguageName, FactsList, Category, Tone, TextFormat, TextEmphasis);
         UserPrompt := BuildSinglePrompt(UserPromptJson.AsObject(), LanguageName, FactsList, Category, Tone, TextFormat, TextEmphasis);
 
-        GetAzureKeyVaultSecret(BCETSafetyPrompt, 'BCETSafetyPrompt');
-        SystemPrompt := StrSubstNo(BCETSafetyPrompt, NewLineChar) + SystemPrompt;
+        SystemPrompt := StrSubstNo(SafetyPromptToken.AsValue().AsText(), NewLineChar) + SystemPrompt;
     end;
 
     [NonDebuggable]
@@ -125,9 +127,9 @@ codeunit 2019 "Entity Text Prompts"
     [NonDebuggable]
     procedure HasPromptInfo()
     var
-        BCETPromptObjectLbl: Text;
+        BCETPromptObject: Text;
     begin
-        GetAzureKeyVaultSecret(BCETPromptObjectLbl, 'BCETPromptObjectLbl');
+        GetAzureKeyVaultSecret(BCETPromptObject, 'BCETPromptObject');
     end;
 
     var

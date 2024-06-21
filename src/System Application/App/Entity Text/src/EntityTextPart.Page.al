@@ -58,6 +58,7 @@ page 2012 "Entity Text Part"
     /// <remarks>Text cannot be suggested without calling SetContext.</remarks>
     procedure SetContext(InitialText: Text; var InitialFacts: Dictionary of [Text, Text]; var InitialTextTone: Enum "Entity Text Tone"; var InitialTextFormat: Enum "Entity Text Format")
     var
+        EntityTextImpl: Codeunit "Entity Text Impl.";
         CurrentModuleInfo: ModuleInfo;
         EntityTextModuleInfo: ModuleInfo;
     begin
@@ -67,7 +68,7 @@ page 2012 "Entity Text Part"
         if CurrentModuleInfo.Id() <> EntityTextModuleInfo.Id() then
             CallerModuleInfo := CurrentModuleInfo;
 
-        Session.LogMessage('0000JVK', StrSubstNo(TelemetrySetContextTxt, Format(CallerModuleInfo.Id()), CallerModuleInfo.Publisher()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+        Session.LogMessage('0000JVK', StrSubstNo(TelemetrySetContextTxt, Format(CallerModuleInfo.Id()), CallerModuleInfo.Publisher()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EntityTextImpl.GetFeatureName());
 
         Facts := InitialFacts;
         TextTone := InitialTextTone;
@@ -146,7 +147,7 @@ page 2012 "Entity Text Part"
     var
         EntityTextImpl: Codeunit "Entity Text Impl.";
     begin
-        Session.LogMessage('0000JVL', StrSubstNo(TelemetryUpdateRecordTxt, Format(EntityText."Source Table Id"), Format(EntityText.Scenario)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+        Session.LogMessage('0000JVL', StrSubstNo(TelemetryUpdateRecordTxt, Format(EntityText."Source Table Id"), Format(EntityText.Scenario)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EntityTextImpl.GetFeatureName());
         EntityTextImpl.SetText(EntityText, EntityTextContent);
     end;
 
@@ -162,13 +163,14 @@ page 2012 "Entity Text Part"
 
     internal procedure SetModuleInfo(NewModuleInfo: ModuleInfo)
     var
+        EntityTextImpl: Codeunit "Entity Text Impl.";
         CurrentModuleInfo: ModuleInfo;
         EntityTextModuleInfo: ModuleInfo;
     begin
         NavApp.GetCurrentModuleInfo(EntityTextModuleInfo);
         NavApp.GetCallerModuleInfo(CurrentModuleInfo);
 
-        Session.LogMessage('0000JVM', StrSubstNo(TelemetrySetModuleTxt, Format(NewModuleInfo.Id()), NewModuleInfo.Publisher(), Format(CurrentModuleInfo.Id()), CurrentModuleInfo.Publisher()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+        Session.LogMessage('0000JVM', StrSubstNo(TelemetrySetModuleTxt, Format(NewModuleInfo.Id()), NewModuleInfo.Publisher(), Format(CurrentModuleInfo.Id()), CurrentModuleInfo.Publisher()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EntityTextImpl.GetFeatureName());
 
         if CurrentModuleInfo.Id() <> EntityTextModuleInfo.Id() then
             exit;
@@ -185,7 +187,6 @@ page 2012 "Entity Text Part"
         CallerModuleInfo: ModuleInfo;
         ContentCaption: Text;
         ContentLbl: Label 'Content';
-        TelemetryCategoryLbl: Label 'Entity Text', Locked = true;
         TelemetrySetContextTxt: Label 'Context set for the entity text edit page. Calling module %1 (%2).', Locked = true, Comment = '%1 = the app id, %2 = the publisher name';
         TelemetrySetModuleTxt: Label 'Attempting to update the calling module to %1 (%2). This was requested by %3 (%4).', Locked = true, Comment = '%1 the new app id, %2 the new publisher, %3 the calling app id, %4 the calling publisher';
         TelemetryUpdateRecordTxt: Label 'Updating text on record for table %1 and scenario %2.', Locked = true, Comment = '%1 the table id, %2 the scenario id';

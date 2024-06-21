@@ -8,6 +8,7 @@ namespace System.Text;
 using System;
 using System.Utilities;
 using System.AI;
+using System.Telemetry;
 
 /// <summary>
 /// Implements functionality to handle text suggestions.
@@ -26,6 +27,11 @@ codeunit 2012 "Entity Text Impl."
         AzureOpenAI: Codeunit "Azure OpenAI";
     begin
         exit(AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Entity Text", Silent));
+    end;
+
+    internal procedure GetFeatureName(): Text
+    begin
+        exit('Entity Text');
     end;
 
     procedure CanSuggest(): Boolean
@@ -57,7 +63,7 @@ codeunit 2012 "Entity Text Impl."
         FactsList := BuildFacts(Facts, Category, TextFormat);
         EntityTextPrompts.BuildPrompts(FactsList, Category, Tone, TextFormat, TextEmphasis, SystemPrompt, UserPrompt);
 
-        Session.LogMessage('0000JVG', TelemetryGenerationRequestedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+        Session.LogMessage('0000JVG', TelemetryGenerationRequestedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
 
         Suggestion := GenerateAndReviewCompletion(SystemPrompt, UserPrompt, TextFormat, Facts, CallerModuleInfo);
 
@@ -83,7 +89,7 @@ codeunit 2012 "Entity Text Impl."
         if not EntityText.Insert() then
             EntityText.Modify();
 
-        Session.LogMessage('0000JVH', StrSubstNo(TelemetrySuggestionCreatedTxt, Format(SourceTableId), Format(SourceScenario)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+        Session.LogMessage('0000JVH', StrSubstNo(TelemetrySuggestionCreatedTxt, Format(SourceTableId), Format(SourceScenario)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
     end;
 
     procedure SetText(var EntityText: Record "Entity Text"; Content: Text)
@@ -169,7 +175,7 @@ codeunit 2012 "Entity Text Impl."
         MaxFacts := 20;
         MaxFactLength := 250;
         if TotalFacts > MaxFacts then
-            Session.LogMessage('0000JWA', StrSubstNo(TelemetryPromptManyFactsTxt, Format(Facts.Count()), MaxFacts), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+            Session.LogMessage('0000JWA', StrSubstNo(TelemetryPromptManyFactsTxt, Format(Facts.Count()), MaxFacts), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
 
         TotalFacts := 0;
         foreach FactKey in Facts.Keys() do begin
@@ -192,6 +198,8 @@ codeunit 2012 "Entity Text Impl."
     [NonDebuggable]
     local procedure GenerateAndReviewCompletion(SystemPrompt: Text; UserPrompt: Text; TextFormat: Enum "Entity Text Format"; Facts: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo): Text
     var
+        MagicFunction: Codeunit "Magic Function";
+        EmptyArguments: JsonObject;
         Completion: Text;
         MaxAttempts: Integer;
         Attempt: Integer;
@@ -204,13 +212,13 @@ codeunit 2012 "Entity Text Impl."
                 exit(Completion);
 
             Sleep(500);
-            Session.LogMessage('0000LVP', StrSubstNo(TelemetryGenerationRetryTxt, Attempt + 1), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+            Session.LogMessage('0000LVP', StrSubstNo(TelemetryGenerationRetryTxt, Attempt + 1), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
         end;
 
         // this completion is of low quality
-        Session.LogMessage('0000JYB', TelemetryLowQualityCompletionTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+        Session.LogMessage('0000JYB', TelemetryLowQualityCompletionTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
 
-        exit(''); //ToDo: Throw an error here
+        MagicFunction.Execute(EmptyArguments);
     end;
 
     [NonDebuggable]
@@ -227,7 +235,7 @@ codeunit 2012 "Entity Text Impl."
 
             if PromptSentence <> '' then
                 if Completion.Contains(PromptSentence) then begin
-                    Session.LogMessage('0000JZG', StrSubstNo(TelemetryCompletionHasPromptTxt, PromptSentence), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+                    Session.LogMessage('0000JZG', StrSubstNo(TelemetryCompletionHasPromptTxt, PromptSentence), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
                     exit(true);
                 end;
         end;
@@ -248,12 +256,12 @@ codeunit 2012 "Entity Text Impl."
         FormatValid: Boolean;
     begin
         if Completion = '' then begin
-            Session.LogMessage('0000JWJ', TelemetryCompletionEmptyTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+            Session.LogMessage('0000JWJ', TelemetryCompletionEmptyTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
             exit(false);
         end;
 
         if Completion.ToLower().StartsWith('tagline:') then begin
-            Session.LogMessage('0000JYD', TelemetryTaglineCleanedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+            Session.LogMessage('0000JYD', TelemetryTaglineCleanedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
             Completion := CopyStr(Completion, 9).Trim();
         end;
         FormatValid := true;
@@ -272,7 +280,7 @@ codeunit 2012 "Entity Text Impl."
         end;
 
         if not FormatValid then begin
-            Session.LogMessage('0000JYC', StrSubstNo(TelemetryCompletionInvalidFormatTxt, TextFormat), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+            Session.LogMessage('0000JYC', StrSubstNo(TelemetryCompletionInvalidFormatTxt, TextFormat), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
             exit(false);
         end;
 
@@ -295,13 +303,13 @@ codeunit 2012 "Entity Text Impl."
                     end;
 
             if not FoundNumber then begin
-                Session.LogMessage('0000JYE', StrSubstNo(TelemetryCompletionInvalidNumberTxt, CandidateNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+                Session.LogMessage('0000JYE', StrSubstNo(TelemetryCompletionInvalidNumberTxt, CandidateNumber), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
                 exit(false); // made up number
             end;
         until TempMatches.Next() = 0;
 
         if Completion.Contains(StrSubstNo(NoteParagraphTxt, EncodedNewlineTok)) or Completion.Contains(StrSubstNo(TranslationParagraphTxt, EncodedNewlineTok)) then begin
-            Session.LogMessage('0000LHZ', TelemetryCompletionExtraTextTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+            Session.LogMessage('0000LHZ', TelemetryCompletionExtraTextTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
             exit(false);
         end;
 
@@ -320,10 +328,14 @@ codeunit 2012 "Entity Text Impl."
         MagicFunction: Codeunit "Magic Function";
         GenerateProdMktAdFunction: Codeunit "Generate Prod Mkt Ad Function";
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        TelemetryCD: Dictionary of [Text, Text];
         EmptyArguments: JsonObject;
-        CompletionAnswer: Text;
+        StartDateTime: DateTime;
+        DurationAsBigInt: BigInteger;
         Result: Text;
         EntityTextModuleInfo: ModuleInfo;
+        ResponseErr: Label 'Response error code: %1', Comment = '%1 = Error code', Locked = true;
     begin
         NavApp.GetCurrentModuleInfo(EntityTextModuleInfo);
         if (not (Endpoint = '')) and (not (Deployment = ''))
@@ -331,9 +343,9 @@ codeunit 2012 "Entity Text Impl."
             AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", Endpoint, Deployment, ApiKey)
         else
             if (not IsNullGuid(CallerModuleInfo.Id())) and (CallerModuleInfo.Publisher() = EntityTextModuleInfo.Publisher()) then
-                AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT4Preview())
+                AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT4Preview()) //ToDo: Change to the correct deployment
             else begin
-                Session.LogMessage('0000LJB', TelemetryNoAuthorizationHandlerTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+                Session.LogMessage('0000LJB', TelemetryNoAuthorizationHandlerTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
                 Error(NoAuthorizationHandlerErr);
             end;
 
@@ -351,21 +363,26 @@ codeunit 2012 "Entity Text Impl."
         AOAIChatMessages.SetPrimarySystemMessage(SystemPrompt);
         AOAIChatMessages.AddUserMessage(UserPrompt);
 
+        StartDateTime := CurrentDateTime();
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAICompletionParams, AOAIOperationResponse);
+        DurationAsBigInt := CurrentDateTime() - StartDateTime;
+        TelemetryCD.Add('Response time', Format(DurationAsBigInt));
 
         if AOAIOperationResponse.IsSuccess() then begin
-            CompletionAnswer := AOAIOperationResponse.GetResult(); //ToDo: not Used
             if AOAIOperationResponse.IsFunctionCall() then begin
                 AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
+                FeatureTelemetry.LogUsage('0000N5C', GetFeatureName(), 'Call Chat Completion API', TelemetryCD);
                 if AOAIFunctionResponse.IsSuccess() then
                     Result := AOAIFunctionResponse.GetResult()
                 else
                     MagicFunction.Execute(EmptyArguments)
-            end else
-                if AOAIOperationResponse.GetResult() = '' then
-                    Result := '';
+            end else begin
+                Result := '';
+                FeatureTelemetry.LogError('0000N5A', GetFeatureName(), 'Call Chat Completion API', 'AOAI response is not a function call', '', TelemetryCD);
+            end;
         end else begin
             Clear(Result);
+            FeatureTelemetry.LogError('0000N5B', GetFeatureName(), 'Call Chat Completion API', StrSubstNo(ResponseErr, AOAIOperationResponse.GetStatusCode()), '', TelemetryCD);
             MagicFunction.Execute(EmptyArguments)
         end;
 
@@ -390,7 +407,6 @@ codeunit 2012 "Entity Text Impl."
         MinFactsErr: Label 'There''s not enough information available to draft a text. Please provide more.';
         NotEnoughFactsForFormatErr: Label 'There''s not enough information available to draft a text for the chosen format. Please provide more, or choose another format.';
         NoAuthorizationHandlerErr: Label 'There was no handler to provide authorization information for the suggestion. Contact your partner.';
-        TelemetryCategoryLbl: Label 'Entity Text', Locked = true;
         TelemetryGenerationRequestedTxt: Label 'New suggestion requested.', Locked = true;
         TelemetrySuggestionCreatedTxt: Label 'A new suggestion was generated for table %1, scenario %2', Locked = true;
         TelemetryCompletionEmptyTxt: Label 'The returned completion was empty.', Locked = true;
