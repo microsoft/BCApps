@@ -107,6 +107,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         PublishedApplication: Record "Published Application";
         RetentionPolicyLog: Codeunit "Retention Policy Log";
         TenantInformation: Codeunit "Tenant Information";
+        CurrentModuleInfo: ModuleInfo;
     begin
         if not AllObj.Get(AllObj."Object Type"::Table, TableId) then begin
             RetentionPolicyLog.LogWarning(LogCategory(), StrSubstNo(TableDoesNotExistLbl, TableId));
@@ -123,6 +124,10 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
             RetentionPolicyLog.LogWarning(LogCategory(), StrSubstNo(ModuleDoesNotExistLbl, TableId, AllObj."Object Name", CallerModuleInfo.Id));
             exit(false);
         end;
+
+        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+        if (TableId > 2000000000) and (PublishedApplication.ID = CurrentModuleInfo.Id()) then
+            exit(true);
 
         if AllObj."App Runtime Package ID" <> PublishedApplication."Runtime Package ID" then begin
             RetentionPolicyLog.LogWarning(LogCategory(), StrSubstNo(WrongModuleOwnerLbl, TableId, AllObj."Object Name", CallerModuleInfo.Id));
