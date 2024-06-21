@@ -100,17 +100,20 @@ page 149034 "AIT Test Method Lines"
 
                     trigger OnDrillDown()
                     var
-                        AITTestSuiteRec: Record "AIT Test Suite";
+                        AITTestSuite: Record "AIT Test Suite";
+                        AITLogEntry: Codeunit "AIT Log Entry";
                     begin
-                        AITTestSuiteRec.SetLoadFields(Version); // TODO: See if  there is a better way to do this
-                        AITTestSuiteRec.Get(Rec."Test Suite Code");
-                        FailedTestsAITLogEntryDrillDown(AITTestSuiteRec.Version);
+                        AITTestSuite.SetLoadFields(Version);
+                        AITTestSuite.Get(Rec."Test Suite Code");
+                        AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", AITTestSuite.Version);
                     end;
                 }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the number of operations in the current Version.';
+                    Visible = false;
+                    Enabled = false;
                 }
                 field(Duration; Rec."Total Duration (ms)")
                 {
@@ -148,11 +151,12 @@ page 149034 "AIT Test Method Lines"
 
                     trigger OnDrillDown()
                     var
-                        AITTestSuiteRec: Record "AIT Test Suite";
+                        AITTestSuite: Record "AIT Test Suite";
+                        AITLogEntry: Codeunit "AIT Log Entry";
                     begin
-                        AITTestSuiteRec.SetLoadFields("Base Version"); // TODO: See if  there is a better way to do this
-                        AITTestSuiteRec.Get(Rec."Test Suite Code");
-                        FailedTestsAITLogEntryDrillDown(AITTestSuiteRec."Base Version");
+                        AITTestSuite.SetLoadFields("Base Version");
+                        AITTestSuite.Get(Rec."Test Suite Code");
+                        AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", AITTestSuite."Base Version");
                     end;
                 }
                 field("No. of Operations - Base"; Rec."No. of Operations - Base")
@@ -160,6 +164,7 @@ page 149034 "AIT Test Method Lines"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the number of operations in the base Version.';
                     Visible = false;
+                    Enabled = false;
                 }
                 field(DurationBase; Rec."Total Duration - Base (ms)")
                 {
@@ -189,10 +194,10 @@ page 149034 "AIT Test Method Lines"
     {
         area(Processing)
         {
-            action(Start)
+            action("Run Test")
             {
                 ApplicationArea = All;
-                Caption = 'Run';
+                Caption = 'Run Test';
                 Image = Start;
                 Tooltip = 'Starts running the AIT Line.';
 
@@ -202,35 +207,9 @@ page 149034 "AIT Test Method Lines"
                     AITTestSuite.Version += 1;
                     AITTestSuite.Modify();
                     Commit();
-                    // If no range is set, all following foreground lines will be run
                     Rec.SetRange("Codeunit ID", Rec."Codeunit ID");
                     Codeunit.Run(codeunit::"AIT Test Runner", Rec);
                     Rec.SetRange("Codeunit ID"); // reset filter
-                end;
-            }
-            action(Indent)
-            {
-                ApplicationArea = All;
-                Visible = false;
-                Caption = 'Make Child';  //'Indent';
-                Image = Indent;
-                ToolTip = 'Make this process a child of the above session.';
-                trigger OnAction()
-                begin
-                    AITTestSuiteMgt.Indent(Rec);
-                end;
-            }
-            action(Outdent)
-            {
-                ApplicationArea = Basic, Suite;
-                Visible = false;
-                Caption = 'Make Session';  //'Outdent';
-                Image = DecreaseIndent;
-                ToolTip = 'Make this process its own session.';
-
-                trigger OnAction()
-                begin
-                    AITTestSuiteMgt.Outdent(Rec);
                 end;
             }
             action(LogEntries)
@@ -240,7 +219,7 @@ page 149034 "AIT Test Method Lines"
                 Image = Entries;
                 ToolTip = 'Open log entries for the line.';
                 RunObject = page "AIT Log Entries";
-                RunPageLink = "AIT Code" = field("Test Suite Code"), "AIT Line No." = field("Line No."), Version = field("Version Filter");
+                RunPageLink = "Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter");
             }
             action(Compare)
             {
@@ -310,18 +289,5 @@ page 149034 "AIT Test Method Lines"
     begin
         CurrPage.Update(false);
         if Rec.Find() then;
-    end;
-
-    local procedure FailedTestsAITLogEntryDrillDown(VersionNo: Integer)
-    var
-        AITLogEntries: Record "AIT Log Entry";
-        AITLogEntry: Page "AIT Log Entries";
-    begin
-        AITLogEntries.SetFilterForFailedTestProcedures();
-        AITLogEntries.SetRange("AIT Code", Rec."Test Suite Code");
-        AITLogEntries.SetRange(Version, VersionNo);
-        AITLogEntries.SetRange("AIT Line No.", Rec."Line No.");
-        AITLogEntry.SetTableView(AITLogEntries);
-        AITLogEntry.Run();
     end;
 }

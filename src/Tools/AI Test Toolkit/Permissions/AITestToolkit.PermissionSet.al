@@ -12,11 +12,8 @@ permissionset 149030 "AI Test Toolkit"
     Access = Public;
     Assignable = true;
 
-    IncludedPermissionSets = "AI Test Toolkit - Obj";
+    IncludedPermissionSets = "AI Test Toolkit - View";
 
-    Permissions = tabledata "AIT Test Suite" = RIMD,
-        tabledata "AIT Test Method Line" = RIMD,
-        tabledata "AIT Log Entry" = RIMD,
-        tabledata "Test Input" = RIMD,
-        tabledata "Test Method Line" = RIMD;
+    Permissions = tabledata "Test Input" = RIMD,
+                  tabledata "Test Method Line" = RIMD;
 }

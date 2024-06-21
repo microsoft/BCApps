@@ -20,5 +20,5 @@ codeunit 149030 "AIT Install"
     end;
 
     var
-        CannotInstallErr: Label 'Cannot install on environment that is not a Sandbox or OnPrem.//Please contact your administrator.';
+        CannotInstallErr: Label 'Cannot install on an environment that is not a Sandbox or OnPrem.//Please contact your administrator.';
 }

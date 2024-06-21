@@ -21,19 +21,19 @@ page 149033 "AIT Log Entries"
             {
                 FreezeColumn = Status;
 
-                field(RunID; Rec.RunID)
+                field(RunID; Rec."Run ID")
                 {
                     ToolTip = 'Specifies the AIT RunID Guid';
                     Visible = false;
                     ApplicationArea = All;
                 }
-                field("Code"; Rec."AIT Code")
+                field("Code"; Rec."Test Suite Code")
                 {
                     ToolTip = 'Specifies the AIT Code of the AIT.';
                     Visible = false;
                     ApplicationArea = All;
                 }
-                field("AIT Line No."; Rec."AIT Line No.")
+                field("AIT Line No."; Rec."Test Method Line No.")
                 {
                     ToolTip = 'Specifies the Line No. of the AIT.';
                     Visible = false;
@@ -70,16 +70,19 @@ page 149033 "AIT Log Entries"
                 {
                     ToolTip = 'Specifies the single operation of the AIT.';
                     ApplicationArea = All;
+                    Visible = false;
+                    Enabled = false;
                 }
                 field("Procedure Name"; Rec."Procedure Name")
                 {
                     ToolTip = 'Specifies the name of the procedure being executed';
                     ApplicationArea = All;
                 }
-                field("Orig. Operation"; Rec."Orig. Operation")
+                field("Original Operation"; Rec."Original Operation")
                 {
                     ToolTip = 'Specifies the original operation of the AIT.';
                     Visible = false;
+                    Enabled = false;
                     ApplicationArea = All;
                 }
                 field(Status; Rec.Status)
@@ -89,7 +92,7 @@ page 149033 "AIT Log Entries"
                     ApplicationArea = All;
                     StyleExpr = this.StatusStyleExpr;
                 }
-                field("Orig. Status"; Rec."Orig. Status")
+                field("Orig. Status"; Rec."Original Status")
                 {
                     Caption = 'Orig. Status';
                     Visible = false;
@@ -106,7 +109,7 @@ page 149033 "AIT Log Entries"
                     ToolTip = 'Specifies the Line No. of the dataset.';
                     ApplicationArea = All;
                 }
-                field("Input Dataset Desc."; Rec."Test Input Desc.")
+                field("Input Dataset Desc."; Rec."Test Input Description")
                 {
                     ToolTip = 'Specifies the description of the input dataset.';
                     ApplicationArea = All;
@@ -142,18 +145,18 @@ page 149033 "AIT Log Entries"
                 field(StartTime; Format(Rec."Start Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'Start Time';
-                    ToolTip = 'Specifies the start time of the AIT scenario.';
+                    ToolTip = 'Specifies the start time of the test.';
                     ApplicationArea = All;
                     Visible = false;
                 }
                 field(EndTime; Format(Rec."End Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'End Time';
-                    ToolTip = 'Specifies the end time of the AIT scenario.';
+                    ToolTip = 'Specifies the end time of the test.';
                     ApplicationArea = All;
                     Visible = false;
                 }
-                field(Message; Rec.Message)
+                field(Message; this.ErrorMessage)
                 {
                     Caption = 'Error Message';
                     ToolTip = 'Specifies when the error message from the test.';
@@ -162,17 +165,17 @@ page 149033 "AIT Log Entries"
 
                     trigger OnDrillDown()
                     begin
-                        Message(Rec.Message);
+                        Message(this.ErrorMessage);
                     end;
                 }
-                field("Orig. Message"; Rec."Orig. Message")
+                field("Orig. Message"; Rec."Original Message")
                 {
                     Caption = 'Orig. Message';
                     Visible = false;
                     ToolTip = 'Specifies the original message from the test.';
                     ApplicationArea = All;
                 }
-                field("Error Call Stack"; Rec."Error Call Stack")
+                field("Error Call Stack"; this.ErrorCallStack)
                 {
                     Caption = 'Call stack';
                     Editable = false;
@@ -181,7 +184,7 @@ page 149033 "AIT Log Entries"
 
                     trigger OnDrillDown()
                     begin
-                        Message(Rec."Error Call Stack");
+                        Message(this.ErrorCallStack);
                     end;
                 }
                 field("Log was Modified"; Rec."Log was Modified")
@@ -318,6 +321,8 @@ page 149033 "AIT Log Entries"
         DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
         InputText: Text;
         OutputText: Text;
+        ErrorMessage: Text;
+        ErrorCallStack: Text;
         StatusStyleExpr: Text;
         TestRunDuration: Duration;
         IsFilteredToErrors: Boolean;
@@ -327,6 +332,7 @@ page 149033 "AIT Log Entries"
     begin
         this.TestRunDuration := Rec."Duration (ms)";
         this.SetInputOutputDataFields();
+        this.SetErrorFields();
         this.SetStatusStyleExpr();
     end;
 
@@ -339,6 +345,17 @@ page 149033 "AIT Log Entries"
                 this.StatusStyleExpr := 'Unfavorable';
             else
                 this.StatusStyleExpr := '';
+        end;
+    end;
+
+    local procedure SetErrorFields()
+    begin
+        this.ErrorMessage := '';
+        this.ErrorCallStack := '';
+
+        if Rec.Status = Rec.Status::Error then begin
+            ErrorCallStack := Rec.GetErrorCallStack();
+            ErrorMessage := Rec.GetMessage();
         end;
     end;
 

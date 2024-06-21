@@ -62,9 +62,7 @@ table 149032 "AIT Test Method Line"
                         Error(this.NotSupportedCodeunitErr, "Codeunit Name");
             end;
         }
-#pragma warning disable AS0086
         field(4; "Codeunit Name"; Text[249])
-#pragma warning restore AS0086
         {
             Caption = 'Codeunit Name';
             Editable = false;
@@ -129,20 +127,17 @@ table 149032 "AIT Test Method Line"
         field(15; "No. of Tests"; Integer)
         {
             Caption = 'No. of Tests';
-            // ToolTip = 'Specifies the number of tests executed for this AIT line.';
+            ToolTip = 'Specifies the number of tests executed for this AIT line.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("AIT Code" = field("Test Suite Code"), "AIT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
-#pragma warning disable AA0232
-        // TODO: Remove warning, add SIFT key
         field(16; "Total Duration (ms)"; Integer)
-#pragma warning restore AA0232
         {
             Caption = 'Total Duration (ms)';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("AIT Code" = field("Test Suite Code"), "AIT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(19; Sequence; Option)
         {
@@ -164,49 +159,49 @@ table 149032 "AIT Test Method Line"
         field(26; "No. of Tests - Base"; Integer)
         {
             Caption = 'No. of Tests - Base';
-            // ToolTip = 'Specifies the number of tests executed for this AIT line for the base version.';
+            ToolTip = 'Specifies the number of tests executed for this AIT line for the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("AIT Code" = field("Test Suite Code"), "AIT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(27; "Total Duration - Base (ms)"; Integer)
         {
             Caption = 'Total Duration - Base (ms)';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("AIT Code" = field("Test Suite Code"), "AIT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(22; "No. of Tests Passed"; Integer)
         {
             Caption = 'No. of Tests Passed';
-            // ToolTip = 'Specifies the number of tests passed in the current version.';
+            ToolTip = 'Specifies the number of tests passed in the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("AIT Code" = field("Test Suite Code"), "AIT Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
-        field(23; "No. of Operations"; Integer) //TODO: Change the name to No. of Scenarios? 
+        field(23; "No. of Operations"; Integer)
         {
             Caption = 'No. of Operations';
-            // ToolTip = 'Specifies the number of operations executed including "Execute Procedure" operation for the current version.';
+            ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the current version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("AIT Code" = field("Test Suite Code"), "AIT Line No." = field("Line No."), Version = field("Version Filter")));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter")));
         }
         field(30; "No. of Tests Passed - Base"; Integer)
         {
             Caption = 'No. of Tests Passed - Base';
-            // ToolTip = 'Specifies the number of tests passed in the base version.';
+            ToolTip = 'Specifies the number of tests passed in the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("AIT Code" = field("Test Suite Code"), "AIT Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
-        field(31; "No. of Operations - Base"; Integer) //TODO: Change the name to No. of Scenarios? 
+        field(31; "No. of Operations - Base"; Integer)
         {
             Caption = 'No. of Operations - Base';
-            // ToolTip = 'Specifies the number of operations executed including "Execute Procedure" operation for the base version.';
+            ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the base version.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("AIT Code" = field("Test Suite Code"), "AIT Line No." = field("Line No."), Version = field("Base Version Filter")));
+            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter")));
         }
         field(101; "AL Test Suite"; Code[10])
         {

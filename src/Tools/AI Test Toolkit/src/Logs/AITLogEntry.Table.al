@@ -23,13 +23,13 @@ table 149034 "AIT Log Entry"
             Caption = 'Entry No.';
             AutoIncrement = true;
         }
-        field(2; "AIT Code"; Code[100])
+        field(2; "Test Suite Code"; Code[100])
         {
-            Caption = 'AIT Code';
+            Caption = 'Test Suite Code';
             NotBlank = true;
             TableRelation = "AIT Test Suite";
         }
-        field(3; "AIT Line No."; Integer)
+        field(3; "Test Method Line No."; Integer)
         {
             Caption = 'Line No.';
         }
@@ -41,7 +41,7 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'End Time';
         }
-        field(6; "Message"; text[250])
+        field(6; Message; Blob)
         {
             Caption = 'Message';
         }
@@ -78,7 +78,7 @@ table 149034 "AIT Log Entry"
             DataClassification = CustomerContent;
             Caption = 'Tag';
         }
-        field(16; "Error Call Stack"; Text[2048]) //TODO: Consider changing this to blob
+        field(16; "Error Call Stack"; Blob)
         {
             DataClassification = CustomerContent;
             Caption = 'Error Call Stack';
@@ -88,29 +88,29 @@ table 149034 "AIT Log Entry"
             Caption = 'Procedure Name';
             DataClassification = CustomerContent;
         }
-        field(18; RunID; Guid)
+        field(18; "Run ID"; Guid)
         {
             DataClassification = SystemMetadata;
-            Caption = 'RunID';
+            Caption = 'Run ID';
         }
-        field(20; "Orig. Operation"; Text[100])
+        field(20; "Original Operation"; Text[100])
         {
-            Caption = 'Orig. Operation';
+            Caption = 'Original Operation';
         }
         /// <summary>
         /// Contains the original status of the test if any event subscribers modifies the status of the test
         /// </summary>
-        field(21; "Orig. Status"; Option)
+        field(21; "Original Status"; Option)
         {
-            Caption = 'Orig. Status';
+            Caption = 'Original Status';
             OptionMembers = Success,Error;
         }
         /// <summary>
         /// Contains the original message of the test if any event subscribers modifies the message of the test
         /// </summary>
-        field(22; "Orig. Message"; Text[250])
+        field(22; "Original Message"; Text[250])
         {
-            Caption = 'Orig. Message';
+            Caption = 'Original Message';
         }
         /// <summary>
         /// Is true if any event subscribers has modified the log entry
@@ -129,7 +129,7 @@ table 149034 "AIT Log Entry"
             Caption = 'Test Input Code';
             TableRelation = "Test Input".Code where("Test Input Group Code" = field("Test Input Group Code"));
         }
-        field(26; "Test Input Desc."; Text[2048])
+        field(26; "Test Input Description"; Text[2048])
         {
             Caption = 'Test Input Description';
             TableRelation = "Test Input Group"."Description" where("Code" = field("Test Input Group Code"));
@@ -146,6 +146,12 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Output Data';
         }
+        field(40; ModelVersion; Option)
+        {
+            Caption = 'AOAI Model Version';
+            OptionMembers = Latest,Preview;
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
@@ -154,12 +160,12 @@ table 149034 "AIT Log Entry"
         {
             Clustered = true;
         }
-        key(Key2; "AIT Code", Version, "AIT Line No.", Operation, "Duration (ms)", "Test Input Code")
+        key(Key2; "Test Suite Code", Version, "Test Method Line No.", Operation, "Duration (ms)", "Test Input Code")
         {
             // Instead of a SIFT index. This will make both inserts and calculations faster - and non-blocking
             IncludedFields = "Procedure Name", Status;
         }
-        key(Key4; "AIT Code", Version, Operation, "Duration (ms)")
+        key(Key4; "Test Suite Code", Version, Operation, "Duration (ms)")
         {
             // Instead of a SIFT index. This will make both inserts and calculations faster - and non-blocking
         }
@@ -170,44 +176,89 @@ table 149034 "AIT Log Entry"
     }
 
 
-    procedure SetInputBlob(P: Text)
+    procedure SetInputBlob(NewInput: Text)
     var
         OutStream: OutStream;
     begin
         Clear("Input Data");
-        "Input Data".CreateOutStream(OutStream, TextEncoding::UTF8);
-        OutStream.Write(P);
+        "Input Data".CreateOutStream(OutStream, this.GetDefaultTextEncoding());
+        OutStream.Write(NewInput);
     end;
 
     procedure GetInputBlob(): Text
     var
         InStream: InStream;
-        P: Text;
+        InputContent: Text;
     begin
         this.CalcFields("Input Data");
-        "Input Data".CreateInStream(InStream, TextEncoding::UTF8);
-        InStream.Read(P);
-        exit(P);
+        "Input Data".CreateInStream(InStream, this.GetDefaultTextEncoding());
+        InStream.Read(InputContent);
+        exit(InputContent);
     end;
 
-    procedure SetOutputBlob(P: Text)
+    procedure SetOutputBlob(NewOutput: Text)
     var
         OutStream: OutStream;
     begin
         Clear("Output Data");
-        "Output Data".CreateOutStream(OutStream, TextEncoding::UTF8);
-        OutStream.Write(P);
+        "Output Data".CreateOutStream(OutStream, this.GetDefaultTextEncoding());
+        OutStream.Write(NewOutput);
     end;
 
     procedure GetOutputBlob(): Text
     var
         InStream: InStream;
-        P: Text;
+        OutputContent: Text;
     begin
         this.CalcFields("Output Data");
-        "Output Data".CreateInStream(InStream, TextEncoding::UTF8);
-        InStream.Read(P);
-        exit(P);
+        "Output Data".CreateInStream(InStream, this.GetDefaultTextEncoding());
+        InStream.Read(OutputContent);
+        exit(OutputContent);
+    end;
+
+    procedure SetMessage(Msg: Text)
+    var
+        MessageOutStream: OutStream;
+    begin
+        Clear(Message);
+        Message.CreateOutStream(MessageOutStream, this.GetDefaultTextEncoding());
+        MessageOutStream.WriteText(Msg);
+    end;
+
+    procedure GetMessage(): Text
+    var
+        MessageInStream: InStream;
+        MessageText: Text;
+    begin
+        this.CalcFields(Message);
+        Message.CreateInStream(MessageInStream, this.GetDefaultTextEncoding());
+        MessageInStream.ReadText(MessageText);
+        exit(MessageText);
+    end;
+
+    procedure SetErrorCallStack(ErrorCallStack: Text)
+    var
+        ErrorCallStackOutStream: OutStream;
+    begin
+        Clear("Error Call Stack");
+        "Error Call Stack".CreateOutStream(ErrorCallStackOutStream, this.GetDefaultTextEncoding());
+        ErrorCallStackOutStream.WriteText(ErrorCallStack);
+    end;
+
+    procedure GetErrorCallStack(): Text
+    var
+        ErrorCallStackInStream: InStream;
+        ErrorCallStackText: Text;
+    begin
+        this.CalcFields("Error Call Stack");
+        "Error Call Stack".CreateInStream(ErrorCallStackInStream, this.GetDefaultTextEncoding());
+        ErrorCallStackInStream.ReadText(ErrorCallStackText);
+        exit(ErrorCallStackText);
+    end;
+
+    local procedure GetDefaultTextEncoding(): TextEncoding
+    begin
+        exit(TextEncoding::UTF8);
     end;
 
     trigger OnInsert()

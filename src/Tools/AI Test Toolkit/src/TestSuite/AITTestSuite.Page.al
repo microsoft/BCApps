@@ -100,7 +100,7 @@ page 149031 "AIT Test Suite"
 
                     field(Tag; Rec.Tag)
                     {
-                        ToolTip = 'Specifies a version or scenario the test is being run for. The Tag will be transferred to the log entries and enables comparison between scenarios.';
+                        ToolTip = 'Specifies the tag for a test run. The Tag will be transferred to the log entries and enables comparison between tests.';
                         ApplicationArea = All;
                     }
                 }
@@ -141,14 +141,9 @@ page 149031 "AIT Test Suite"
 
                     trigger OnDrillDown()
                     var
-                        AITLogEntries: Record "AIT Log Entry";
-                        AITLogEntry: Page "AIT Log Entries";
+                        AITLogEntry: Codeunit "AIT Log Entry";
                     begin
-                        AITLogEntries.SetFilterForFailedTestProcedures();
-                        AITLogEntries.SetRange("AIT Code", Rec.Code);
-                        AITLogEntries.SetRange(Version, Rec.Version);
-                        AITLogEntry.SetTableView(AITLogEntries);
-                        AITLogEntry.Run();
+                        AITLogEntry.DrillDownFailedAITLogEntries(Rec.Code, 0, Rec.Version);
                     end;
                 }
                 field("No. of Operations"; Rec."No. of Operations")
@@ -156,6 +151,8 @@ page 149031 "AIT Test Suite"
                     ApplicationArea = All;
                     Caption = 'No. of Operations';
                     ToolTip = 'Specifies the number of operations executed in the current version.';
+                    Visible = false;
+                    Enabled = false;
                 }
                 field("Total Duration"; this.TotalDuration)
                 {
@@ -185,60 +182,13 @@ page 149031 "AIT Test Suite"
                 ApplicationArea = All;
                 Caption = 'Start';
                 Image = Start;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
                 ToolTip = 'Starts running the AIT Suite.';
 
                 trigger OnAction()
                 begin
                     CurrPage.Update(false);
-                    Rec.Find();
-                    if Rec."Input Dataset" = '' then
-                        Error('Please specify a dataset before starting the suite.');
-                    this.AITTestSuiteCU.ValidateDatasets(Rec);
-                    this.AITStartTests.StartAITSuite(Rec);
+                    this.AITTestSuiteMgt.StartAITSuite(Rec);
                     CurrPage.Update(false);
-                end;
-            }
-            action(Stop)
-            {
-                Enabled = Rec.Status = Rec.Status::Running;
-                ApplicationArea = All;
-                Caption = 'Stop';
-                Image = Stop;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
-                ToolTip = 'Stops the AIT Suite that is running.';
-
-                trigger OnAction()
-                var
-                    AITTestMethodLine: Record "AIT Test Method Line";
-                    Window: Dialog;
-                    MaxDateTime: DateTime;
-                    SomethingWentWrongErr: Label 'It is taking longer to stop the run than expected. You can reopen the page later to check the status or you can invoke "Reset Status" action.';
-                begin
-                    CurrPage.Update(false);
-                    Rec.Find();
-                    if Rec.Status <> Rec.Status::Running then
-                        exit;
-                    Window.Open('Cancelling all sessions...');
-                    MaxDateTime := CurrentDateTime() + (60000 * 5); // Wait for a max of 5 mins
-                    this.AITStartTests.StopAITSuite(Rec);
-
-                    AITTestMethodLine.SetRange("Test Suite Code", Rec.Code);
-                    AITTestMethodLine.SetFilter(Status, '<> %1', AITTestMethodLine.Status::Cancelled);
-                    if not AITTestMethodLine.IsEmpty then
-                        repeat
-                            Sleep(1000);
-                            if CurrentDateTime > MaxDateTime then
-                                Error(SomethingWentWrongErr);
-                        until AITTestMethodLine.IsEmpty;
-                    Window.Close();
-
-                    CurrPage.Update(false);
-                    CurrPage.AITTestMethodLines.Page.Refresh();
                 end;
             }
             action(RefreshStatus)
@@ -247,9 +197,6 @@ page 149031 "AIT Test Suite"
                 Caption = 'Refresh';
                 ToolTip = 'Refreshes the page.';
                 Image = Refresh;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
 
                 trigger OnAction()
                 begin
@@ -267,7 +214,7 @@ page 149031 "AIT Test Suite"
 
                 trigger OnAction()
                 begin
-                    this.AITTestSuiteCU.ResetStatus(Rec);
+                    this.AITTestSuiteMgt.ResetStatus(Rec);
                 end;
             }
 
@@ -303,30 +250,41 @@ page 149031 "AIT Test Suite"
                 ApplicationArea = All;
                 Caption = 'Log Entries';
                 Image = Entries;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
                 ToolTip = 'Open log entries.';
                 RunObject = page "AIT Log Entries";
-                RunPageLink = "AIT Code" = field(Code), Version = field(Version);
+                RunPageLink = "Test Suite Code" = field(Code), Version = field(Version);
             }
             action(Datasets)
             {
                 ApplicationArea = All;
                 Caption = 'Input Datasets';
                 Image = DataEntry;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
                 ToolTip = 'Open input datasets.';
                 RunObject = page "Test Input Groups";
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                actionref(Start_Promoted; Start)
+                {
+                }
+                actionref(LogEntries_Promoted; LogEntries)
+                {
+                }
+                actionref(Compare_Promoted; Compare)
+                {
+                }
+                actionref(Datasets_Promoted; Datasets)
+                {
+                }
             }
         }
     }
 
     var
-        AITStartTests: Codeunit "AIT Start Tests";
-        AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         EnableActions: Boolean;
         AvgTimeDuration: Duration;
         TotalDuration: Duration;

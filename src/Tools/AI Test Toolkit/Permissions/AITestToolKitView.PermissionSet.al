@@ -5,9 +5,14 @@
 
 namespace System.TestTools.AITestToolkit;
 
-using System.Security.AccessControl;
-
-permissionsetextension 149032 "System App Basic AI Test Toolkit Extension" extends "System App - Basic"
+permissionset 149034 "AI Test Toolkit - View"
 {
-    IncludedPermissionSets = "AI Test Toolkit - View";
+    Access = Internal;
+    Assignable = false;
+
+    IncludedPermissionSets = "AI Test Toolkit - Read";
+
+    Permissions = tabledata "AIT Test Suite" = IMD,
+        tabledata "AIT Test Method Line" = IMD,
+        tabledata "AIT Log Entry" = IMD;
 }

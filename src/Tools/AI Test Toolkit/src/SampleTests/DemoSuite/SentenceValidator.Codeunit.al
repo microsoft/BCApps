@@ -1,4 +1,5 @@
 namespace System.TestTools.AITestToolkit;
+using System.TestTools.TestRunner;
 codeunit 149031 SentenceValidator
 {
     Access = Internal;
@@ -8,16 +9,16 @@ codeunit 149031 SentenceValidator
     procedure AssertSentenceLengthFunction()
     var
         AITContext: Codeunit "AIT Test Context";
+        TestInputJson: Codeunit "Test Input Json";
         UserInput: Text;
+        ExpectedMaxLength: Integer;
+        LengthErr: Label 'Length exceeds %1 characters', Comment = '%1 = Expected Max Length';
     begin
-        // AITContext.StartScenario('Scene1');
-        // UserInput := TestInput.GetTestInput(UserInputKeyLbl).ValueAsText();
-        UserInput := AITContext.GetUserQuery();
-        // AITContext.SetScenarioOutput('Scene1', 'User input: ' + UserInput);
-        // Sleep(100);
-        // AITContext.EndScenario('Scene1');
-        if StrLen(UserInput) > 50 then
-            Error('Length exceeds 50 characters');
+        UserInput := AITContext.GetQuestionAsText();
+        TestInputJson := AITContext.GetInputAsJson();
+        ExpectedMaxLength := TestInputJson.Element('ExpectedMaxLength').ValueAsInteger();
+        if StrLen(UserInput) > ExpectedMaxLength then
+            Error(LengthErr, ExpectedMaxLength);
     end;
 
     [Test]
@@ -27,7 +28,7 @@ codeunit 149031 SentenceValidator
         Sentence: Text;
     begin
         // Generate a sentence based on the user input
-        Sentence := 'I hope you like the generated text based on ' + AITTestContext.GetUserQuery();
+        Sentence := 'I hope you like the generated text based on ' + AITTestContext.GetQuestionAsText();
 
         // Write the generated sentence to the output
         AITTestContext.SetTestOutput(Sentence);

@@ -56,26 +56,20 @@ page 149035 "AIT Test Method Lines Compare"
                         ShowCaption = false;
                         label(NoOfTests)
                         {
-                            Caption = 'No. of Tests';
+                            Caption = 'Number of Tests';
                             Tooltip = 'Specifies the number of tests in this Line';
                             ApplicationArea = All;
                         }
                         label(NoOfTestsPassed)
                         {
-                            Caption = 'No. of Tests Passed';
+                            Caption = 'Number of Tests Passed';
                             ToolTip = 'Specifies the number of tests passed in the version.';
                             ApplicationArea = All;
                         }
                         label(NoOfTestsFailed)
                         {
-                            Caption = 'No. of Tests Failed';
+                            Caption = 'Number of Tests Failed';
                             ToolTip = 'Specifies the number of tests that failed in the version.';
-                            ApplicationArea = All;
-                        }
-                        label(NoOfOperations)
-                        {
-                            Caption = 'No. of Operations';
-                            ToolTip = 'Specifies the number of operations in the version.';
                             ApplicationArea = All;
                         }
                         label(TotalDuration)
@@ -104,21 +98,17 @@ page 149035 "AIT Test Method Lines Compare"
                         {
                             Editable = false;
                             ApplicationArea = All;
-                            Caption = 'No. of Tests Failed';
+                            Caption = 'Number of Tests Failed';
                             ToolTip = 'Specifies the number of tests that failed in the current Version.';
                             ShowCaption = false;
                             Style = Unfavorable;
 
                             trigger OnDrillDown()
+                            var
+                                AITLogEntry: Codeunit "AIT Log Entry";
                             begin
-                                FailedTestsAITLogEntryDrillDown(this.Version);
+                                AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", this.Version);
                             end;
-                        }
-                        field("No. of Operations"; Rec."No. of Operations")
-                        {
-                            ApplicationArea = All;
-                            ToolTip = 'Specifies the number of operations in the current Version.';
-                            ShowCaption = false;
                         }
                         field(Duration; Rec."Total Duration (ms)")
                         {
@@ -152,15 +142,11 @@ page 149035 "AIT Test Method Lines Compare"
                             ShowCaption = false;
 
                             trigger OnDrillDown()
+                            var
+                                AITLogEntry: Codeunit "AIT Log Entry";
                             begin
-                                FailedTestsAITLogEntryDrillDown(this.BaseVersion);
+                                AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", this.BaseVersion);
                             end;
-                        }
-                        field("No. of Operations - Base"; Rec."No. of Operations - Base")
-                        {
-                            ApplicationArea = All;
-                            ToolTip = 'Specifies the number of operations in the base Version.';
-                            ShowCaption = false;
                         }
                         field(DurationBase; Rec."Total Duration - Base (ms)")
                         {
@@ -199,18 +185,5 @@ page 149035 "AIT Test Method Lines Compare"
         Rec.SetRange("Version Filter", this.Version);
         Rec.SetRange("Base Version Filter", this.BaseVersion);
         CurrPage.Update(false);
-    end;
-
-    local procedure FailedTestsAITLogEntryDrillDown(VersionNo: Integer) // TODO: Move to codeunit
-    var
-        AITLogEntries: Record "AIT Log Entry";
-        AITLogEntry: Page "AIT Log Entries";
-    begin
-        AITLogEntries.SetFilterForFailedTestProcedures();
-        AITLogEntries.SetRange("AIT Code", Rec."Test Suite Code");
-        AITLogEntries.SetRange(Version, VersionNo);
-        AITLogEntries.SetRange("AIT Line No.", Rec."Line No.");
-        AITLogEntry.SetTableView(AITLogEntries);
-        AITLogEntry.Run();
     end;
 }

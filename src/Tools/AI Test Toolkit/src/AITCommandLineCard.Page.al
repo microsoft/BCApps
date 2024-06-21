@@ -60,15 +60,21 @@ page 149042 "AIT CommandLine Card"
                 ApplicationArea = All;
                 Caption = 'Start Next', Locked = true;
                 Image = Start;
-                Promoted = true;
-                PromotedOnly = true;
-                PromotedCategory = Process;
                 ToolTip = 'Starts the next available test.';
 
                 trigger OnAction()
                 begin
                     this.StartNextAIT();
                 end;
+            }
+        }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                actionref(StartNext_Promoted; StartNext)
+                {
+                }
             }
         }
     }
@@ -89,12 +95,9 @@ page 149042 "AIT CommandLine Card"
     local procedure StartNextAIT()
     var
         AITTestSuite: Record "AIT Test Suite";
-        AITStartTests: Codeunit "AIT Start Tests";
-        AITTestSuiteCU: Codeunit "AIT Test Suite Mgt.";
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
-        if AITTestSuite.Get(this.AITCode) then begin
-            AITTestSuiteCU.ValidateDatasets(AITTestSuite);
-            AITStartTests.StartAITSuite(AITTestSuite);
-        end;
+        if AITTestSuite.Get(this.AITCode) then
+            AITTestSuiteMgt.StartAITSuite(AITTestSuite);
     end;
 }
