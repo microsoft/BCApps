@@ -33,10 +33,12 @@ permissionset 66 "System Tables - Basic"
                              "User Personalization - Edit",
                              "User Selection - Read",
                              "Webhook - Edit",
-                             "Data Analysis - Exec";
+                             "Data Analysis - Exec",
+                             "Perf. Profiler Tables - Edit";
 
     Permissions = tabledata "Add-in" = R,
                   tabledata "Aggregate Permission Set" = Rimd,
+                  tabledata "All Profile Page Metadata" = Rimd,
 #if not CLEAN22
 #pragma warning disable AL0432
                   tabledata Chart = R,
@@ -63,8 +65,6 @@ permissionset 66 "System Tables - Basic"
                   tabledata "Signup Context" = R,
                   tabledata "Style Sheet" = RIMD,
                   tabledata "System Object" = Rimd,
-#pragma warning disable AL0432
                   tabledata "Tenant Profile Page Metadata" = Rimd,
-#pragma warning restore AL0432
                   tabledata "Token Cache" = Rimd;
 }

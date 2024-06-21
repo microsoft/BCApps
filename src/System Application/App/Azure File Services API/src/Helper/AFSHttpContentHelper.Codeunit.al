@@ -94,7 +94,7 @@ codeunit 8953 "AFS HttpContent Helper"
 
         AFSOperationPayload.AddContentHeader('Content-Type', ContentType);
         if AFSOperationPayload.GetOperation() in [FileServiceAPIOperation::CreateFile] then
-            AFSOperationPayload.AddContentHeader('x-ms-content-length', StrSubstNo(ContentLengthLbl, ContentLength))
+            AFSOperationPayload.AddRequestHeader('x-ms-content-length', StrSubstNo(ContentLengthLbl, ContentLength))
         else
             AFSOperationPayload.AddContentHeader('Content-Length', StrSubstNo(ContentLengthLbl, ContentLength));
 

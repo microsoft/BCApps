@@ -61,6 +61,22 @@ codeunit 132921 "ABS Test Library"
         exit(TagDictionary);
     end;
 
+    procedure GetBlobMetaData(): Dictionary of [Text, Text]
+    var
+        MetaDataDictionary: Dictionary of [Text, Text];
+        i: Integer;
+    begin
+        for i := 1 to 10 do begin
+            Any.SetSeed(Random(2000));
+            MetaDataDictionary.Add(
+                Any.AlphabeticText(Any.IntegerInRange(1, 10)),
+                Any.AlphabeticText(Any.IntegerInRange(1, 50))
+            );
+        end;
+
+        exit(MetaDataDictionary);
+    end;
+
     procedure GetContainerName(): Text
     begin
         Any.SetSeed(Random(2000));

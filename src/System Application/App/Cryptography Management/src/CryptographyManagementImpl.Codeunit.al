@@ -463,24 +463,28 @@ codeunit 1279 "Cryptography Management Impl."
         SignData(DataInStream, SignatureKey.ToXmlString(), HashAlgorithm, SignatureOutStream);
     end;
 
-    [NonDebuggable]
-    procedure VerifyData(InputString: SecretText; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    procedure SignData(InputString: Text; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; RSASignaturePadding: Enum "RSA Signature Padding"; SignatureOutStream: OutStream)
     var
         TempBlob: Codeunit "Temp Blob";
         DataOutStream: OutStream;
         DataInStream: InStream;
     begin
-        if InputString.IsEmpty() then
-            exit(false);
+        if InputString = '' then
+            exit;
         TempBlob.CreateOutStream(DataOutStream, TextEncoding::UTF8);
         TempBlob.CreateInStream(DataInStream, TextEncoding::UTF8);
-        DataOutStream.WriteText(InputString.Unwrap());
-        exit(VerifyData(DataInStream, XmlString, HashAlgorithm, SignatureInStream));
+        DataOutStream.WriteText(InputString);
+        SignData(DataInStream, XmlString, HashAlgorithm, SignatureOutStream);
     end;
 
-    procedure VerifyData(InputString: SecretText; SignatureKey: Codeunit "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
+    procedure SignData(DataInStream: InStream; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; RSASignaturePadding: Enum "RSA Signature Padding"; SignatureOutStream: OutStream)
+    var
+        RSAImpl: Codeunit "RSA Impl.";
     begin
-        exit(VerifyData(InputString, SignatureKey.ToXmlString(), HashAlgorithm, SignatureInStream));
+        if DataInStream.EOS() then
+            exit;
+
+        RSAImpl.SignData(XmlString, DataInStream, HashAlgorithm, RSASignaturePadding, SignatureOutStream);
     end;
 
     procedure VerifyData(InputString: Text; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
