@@ -446,16 +446,10 @@ codeunit 1279 "Cryptography Management Impl."
 
     procedure SignData(InputString: Text; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
     var
-        TempBlob: Codeunit "Temp Blob";
-        DataOutStream: OutStream;
-        DataInStream: InStream;
+        InputStringSecretText: SecretText;
     begin
-        if InputString = '' then
-            exit;
-        TempBlob.CreateOutStream(DataOutStream, TextEncoding::UTF8);
-        TempBlob.CreateInStream(DataInStream, TextEncoding::UTF8);
-        DataOutStream.WriteText(InputString);
-        SignData(DataInStream, XmlString, HashAlgorithm, SignatureOutStream);
+        InputStringSecretText := InputString;
+        SignData(InputStringSecretText, XmlString, HashAlgorithm, SignatureOutStream);
     end;
 
     procedure SignData(InputString: Text; SignatureKey: Codeunit "Signature Key"; HashAlgorithm: Enum "Hash Algorithm"; SignatureOutStream: OutStream)
