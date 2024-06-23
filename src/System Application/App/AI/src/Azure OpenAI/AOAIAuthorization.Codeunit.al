@@ -37,7 +37,7 @@ codeunit 7767 "AOAI Authorization"
 
         case ResourceUtilization of
             Enum::"AOAI Resource Utilization"::"First Party":
-                exit((Deployment <> '') and ALCopilotFunctions.IsPlatformAuthorizationConfigured(CallerModule.Publisher(), CurrentModule.Publisher()));
+                exit((ManagedResourceDeployment <> '') and ALCopilotFunctions.IsPlatformAuthorizationConfigured(CallerModule.Publisher(), CurrentModule.Publisher()));
             Enum::"AOAI Resource Utilization"::"Self-Managed":
                 exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()));
             Enum::"AOAI Resource Utilization"::"Microsoft Managed":
@@ -76,7 +76,7 @@ codeunit 7767 "AOAI Authorization"
         ClearVariables();
 
         ResourceUtilization := Enum::"AOAI Resource Utilization"::"First Party";
-        Deployment := NewDeployment;
+        ManagedResourceDeployment := NewDeployment;
     end;
 
     [NonDebuggable]

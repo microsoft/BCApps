@@ -1,8 +1,8 @@
 {
     "projectName": "Test Framework",
     "appFolders":  [
-        "..\\..\\..\\src\\Tools\\Test Framework\\Test Libraries\\*",
-        "..\\..\\..\\src\\Tools\\Test Framework\\Test Runner"
+        "../../../src/Tools/Test Framework/Test Libraries/*",
+        "../../../src/Tools/Test Framework/Test Runner"
     ],
     "buildModes": [ "Translated" ],
     "doNotRunTests": true,
