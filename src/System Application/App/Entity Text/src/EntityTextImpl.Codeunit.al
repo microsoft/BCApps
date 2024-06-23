@@ -218,7 +218,7 @@ codeunit 2012 "Entity Text Impl."
         // this completion is of low quality
         Session.LogMessage('0000JYB', TelemetryLowQualityCompletionTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GetFeatureName());
 
-        MagicFunction.Execute(EmptyArguments);
+        Error(MagicFunction.Execute(EmptyArguments));
     end;
 
     [NonDebuggable]
@@ -330,12 +330,11 @@ codeunit 2012 "Entity Text Impl."
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         TelemetryCD: Dictionary of [Text, Text];
-        EmptyArguments: JsonObject;
         StartDateTime: DateTime;
         DurationAsBigInt: BigInteger;
         Result: Text;
         EntityTextModuleInfo: ModuleInfo;
-        ResponseErr: Label 'Response error code: %1', Comment = '%1 = Error code', Locked = true;
+        ResponseErr: Label 'AOAI Operation failed, response error code: %1', Comment = '%1 = Error code', Locked = true;
     begin
         NavApp.GetCurrentModuleInfo(EntityTextModuleInfo);
         if (not (Endpoint = '')) and (not (Deployment = ''))
@@ -368,28 +367,29 @@ codeunit 2012 "Entity Text Impl."
         DurationAsBigInt := CurrentDateTime() - StartDateTime;
         TelemetryCD.Add('Response time', Format(DurationAsBigInt));
 
-        if AOAIOperationResponse.IsSuccess() then begin
+        if AOAIOperationResponse.IsSuccess() then
             if AOAIOperationResponse.IsFunctionCall() then begin
                 AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
                 FeatureTelemetry.LogUsage('0000N5C', GetFeatureName(), 'Call Chat Completion API', TelemetryCD);
-                if AOAIFunctionResponse.IsSuccess() then
-                    Result := AOAIFunctionResponse.GetResult()
-                else
-                    MagicFunction.Execute(EmptyArguments)
+                if AOAIFunctionResponse.IsSuccess() then begin
+                    Result := AOAIFunctionResponse.GetResult();
+                    if AOAIFunctionResponse.GetFunctionName() = MagicFunction.GetName() then
+                        Error(Result)
+                end else begin
+                    Clear(Result);
+                    FeatureTelemetry.LogError('', GetFeatureName(), 'Call Chat Completion API', 'AOAI Function response is not sucessfull', '', TelemetryCD);
+                end;
             end else begin
-                Result := '';
+                Clear(Result);
                 FeatureTelemetry.LogError('0000N5A', GetFeatureName(), 'Call Chat Completion API', 'AOAI response is not a function call', '', TelemetryCD);
-            end;
-        end else begin
+            end
+        else begin
             Clear(Result);
             FeatureTelemetry.LogError('0000N5B', GetFeatureName(), 'Call Chat Completion API', StrSubstNo(ResponseErr, AOAIOperationResponse.GetStatusCode()), '', TelemetryCD);
-            MagicFunction.Execute(EmptyArguments)
         end;
 
-        if EntityTextAOAISettings.ContainsWordsInDenyList(Result) then begin
+        if EntityTextAOAISettings.ContainsWordsInDenyList(Result) then
             Clear(Result);
-            MagicFunction.Execute(EmptyArguments)
-        end;
         exit(Result);
     end;
 

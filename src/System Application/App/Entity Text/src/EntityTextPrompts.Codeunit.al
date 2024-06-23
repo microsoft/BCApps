@@ -31,8 +31,11 @@ codeunit 2019 "Entity Text Prompts"
     var
         PromptObject: JsonObject;
         FunctPropArrayToken: JsonToken;
+        FunctPropReqArrayToken: JsonToken;
         FuncPropArray: JsonArray;
+        FuncPropReqArray: JsonArray;
         FunctionPropObject: JsonToken;
+        FunctionPropReqObject: JsonToken;
         BCETGenerateProdMAdFuncPrompt: Text;
         BCETPromptObject: Text;
     begin
@@ -42,8 +45,12 @@ codeunit 2019 "Entity Text Prompts"
         FuncPropArray := FunctPropArrayToken.AsArray();
         FuncPropArray.Get(TextFormat.AsInteger(), FunctionPropObject);
 
+        PromptObject.Get('required-properties', FunctPropReqArrayToken);
+        FuncPropReqArray := FunctPropReqArrayToken.AsArray();
+        FuncPropReqArray.Get(TextFormat.AsInteger(), FunctionPropReqObject);
+
         GetAzureKeyVaultSecret(BCETGenerateProdMAdFuncPrompt, 'BCETGenerateProdMAdFuncPrompt');
-        BCETGenerateProdMAdFuncPrompt := StrSubstNo(BCETGenerateProdMAdFuncPrompt, Format(FunctionPropObject));
+        BCETGenerateProdMAdFuncPrompt := StrSubstNo(BCETGenerateProdMAdFuncPrompt, Format(FunctionPropObject), Format(FunctionPropReqObject));
 
         exit(BCETGenerateProdMAdFuncPrompt);
     end;
@@ -64,24 +71,18 @@ codeunit 2019 "Entity Text Prompts"
         PromptObject: JsonObject;
         SystemPromptJson: JsonToken;
         UserPromptJson: JsonToken;
-        SafetyPromptToken: JsonToken;
         BCETPromptObject: Text;
         LanguageName: Text;
-        NewLineChar: Char;
     begin
-        NewLineChar := 10;
         LanguageName := EntityTextAOAISettings.GetLanguageName();
 
         GetAzureKeyVaultSecret(BCETPromptObject, 'BCETPromptObject');
         PromptObject.ReadFrom(BCETPromptObject);
         PromptObject.Get('system', SystemPromptJson);
         PromptObject.Get('user', UserPromptJson);
-        PromptObject.Get('safety-prompt', SafetyPromptToken);
 
         SystemPrompt := BuildSinglePrompt(SystemPromptJson.AsObject(), LanguageName, FactsList, Category, Tone, TextFormat, TextEmphasis);
         UserPrompt := BuildSinglePrompt(UserPromptJson.AsObject(), LanguageName, FactsList, Category, Tone, TextFormat, TextEmphasis);
-
-        SystemPrompt := StrSubstNo(SafetyPromptToken.AsValue().AsText(), NewLineChar) + SystemPrompt;
     end;
 
     [NonDebuggable]
@@ -89,7 +90,9 @@ codeunit 2019 "Entity Text Prompts"
     var
         PromptHints: JsonToken;
         PromptOrder: JsonToken;
+        PromptArray: JsonArray;
         PromptHint: JsonToken;
+        CategoryIndex: Integer;
         HintName: Text;
         NewLineChar: Char;
         PromptIndex: Integer;
@@ -99,7 +102,14 @@ codeunit 2019 "Entity Text Prompts"
         PromptInfo.Get('prompt', PromptHints);
         PromptInfo.Get('order', PromptOrder);
 
-        foreach PromptHint in PromptOrder.AsArray() do begin
+        PromptArray := PromptOrder.AsArray();
+        CategoryIndex := PromptArray.IndexOf('category');
+
+        if CategoryIndex <> -1 then
+            if Category = '' then
+                PromptArray.RemoveAt(CategoryIndex);
+
+        foreach PromptHint in PromptArray do begin
             HintName := PromptHint.AsValue().AsText();
             if PromptHints.AsObject().Get(HintName, PromptHint) then begin
                 // found the hint

@@ -34,7 +34,7 @@ codeunit 2018 "Magic Function" implements "AOAI Function"
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         FeatureTelemetry.LogUsage('0000N59', EntityTextImpl.GetFeatureName(), 'function_call: magic_function');
-        Error(CompletionDeniedPhraseErr);
+        exit(CompletionDeniedPhraseErr);
     end;
 
     procedure GetName(): Text
