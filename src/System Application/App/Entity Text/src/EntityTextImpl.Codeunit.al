@@ -377,7 +377,7 @@ codeunit 2012 "Entity Text Impl."
                         Error(Result)
                 end else begin
                     Clear(Result);
-                    FeatureTelemetry.LogError('', GetFeatureName(), 'Call Chat Completion API', 'AOAI Function response is not sucessfull', '', TelemetryCD);
+                    FeatureTelemetry.LogError('0000N5Z', GetFeatureName(), 'Call Chat Completion API', 'AOAI Function response is not sucessfull', '', TelemetryCD);
                 end;
             end else begin
                 Clear(Result);
