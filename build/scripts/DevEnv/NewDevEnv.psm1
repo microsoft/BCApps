@@ -266,14 +266,17 @@ function Publish-Apps() {
         [Parameter(Mandatory = $true)]
         [PSCredential] $Credential
     )
-
+    $appPublishResults = @() # Array of hashtables with the results of the app publishing
     foreach($appFile in $AppFiles) {
         try {
             Publish-BcContainerApp -containerName $ContainerName -appFile $appFile -credential $Credential -syncMode ForceSync -sync -skipVerification -install -useDevEndpoint -dependencyPublishingOption ignore
+            $appPublishResults += @{ "AppFile" = $appFile; "Success" = $true }
         } catch {
             Write-Error "Failed to publish app $appFile : $_"
+            $appPublishResults += @{ "AppFile" = $appFile; "Success" = $false}
         }
     }
+    return $appPublishResults
 }
 
 <#

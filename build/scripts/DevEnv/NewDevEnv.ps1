@@ -46,51 +46,87 @@ Import-Module BcContainerHelper
 $baseFolder = (Get-BaseFolderForPath -Path $PSScriptRoot)
 Push-Location $baseFolder
 
-$credential = Get-CredentialForContainer -AuthenticationType $Authentication
+try {
+    $credential = Get-CredentialForContainer -AuthenticationType $Authentication
 
-# Create the container if it does not exist already
-$ContainerExists = Test-ContainerExists -ContainerName $ContainerName
-if (-not $ContainerExists)
-{
-    Write-Host "Creating container $ContainerName..." -ForegroundColor Yellow
-    $createContainerJob = Create-BCContainer -ContainerName $ContainerName -Authentication $Authentication -Credential $credential -backgroundJob
-}
+    # Create the container if it does not exist already
+    $ContainerExists = Test-ContainerExists -ContainerName $ContainerName
+    if (-not $ContainerExists)
+    {
+        Write-Host "Creating container $ContainerName..." -ForegroundColor Yellow
+        $createContainerJob = Create-BCContainer -ContainerName $ContainerName -Authentication $Authentication -Credential $credential -backgroundJob
+    }
 
-# Build the apps
-if ($ProjectPaths -or $WorkspacePath -or $AlGoProject)
-{
-    # Resolve AL project paths
-    $ProjectPaths = Resolve-ProjectPaths -ProjectPaths $ProjectPaths -WorkspacePath $WorkspacePath -AlGoProject $AlGoProject
+    # Build the apps
+    if ($ProjectPaths -or $WorkspacePath -or $AlGoProject)
+    {
+        # Resolve AL project paths
+        $ProjectPaths = Resolve-ProjectPaths -ProjectPaths $ProjectPaths -WorkspacePath $WorkspacePath -AlGoProject $AlGoProject
 
-    # Build apps
-    Write-Host "Building apps..." -ForegroundColor Yellow
-    $appFiles = Build-Apps -ProjectPaths $ProjectPaths -packageCacheFolder (Get-ArtifactsCacheFolder -ContainerName $ContainerName) -rebuild:$RebuildApps
-}
+        # Build apps
+        Write-Host "Building apps..." -ForegroundColor Yellow
+        $buildAppFiles = Build-Apps -ProjectPaths $ProjectPaths -packageCacheFolder (Get-ArtifactsCacheFolder -ContainerName $ContainerName) -rebuild:$RebuildApps
+    }
 
-# Wait for container creation to finish
-if($createContainerJob) {
-    Write-Host 'Waiting for container creation to finish...' -ForegroundColor Yellow
-    Wait-Job -Job $createContainerJob -Timeout 1
-    Receive-Job -Job $createContainerJob -Wait -AutoRemoveJob
+    # Wait for container creation to finish
+    if($createContainerJob) {
+        Write-Host 'Waiting for container creation to finish...' -ForegroundColor Yellow
+        Wait-Job -Job $createContainerJob -Timeout 1
+        Receive-Job -Job $createContainerJob -Wait -AutoRemoveJob
 
-    if($createContainerJob.State -eq 'Failed'){
-        Write-Output "Creating container failed:"
-        throw $($createContainerJob.ChildJobs | ForEach-Object { $_.JobStateInfo.Reason.Message } | Out-String)
+        if($createContainerJob.State -eq 'Failed'){
+            Write-Output "Creating container failed:"
+            throw $($createContainerJob.ChildJobs | ForEach-Object { $_.JobStateInfo.Reason.Message } | Out-String)
+        }
+    }
+
+    # Publish apps
+    if ($buildAppFiles) {
+        Write-Host "Publishing apps..." -ForegroundColor Yellow
+        $appPublishingResults = Publish-Apps -ContainerName $ContainerName -AppFiles $buildAppFiles -Credential $credential
+    }
+
+    # Set up vscode for development against the container (i.e. set up launch.json and settings.json)
+    if (-not $SkipVsCodeSetup)
+    {
+        Write-Host "Configuring vscode for development against the container..."
+        Configure-ALProjectsInPath -ContainerName $ContainerName -Authentication $Authentication
     }
 }
+finally {
+    Pop-Location
 
-# Publish apps
-if ($appFiles) {
-    Write-Host "Publishing apps..." -ForegroundColor Yellow
-    Publish-Apps -ContainerName $ContainerName -AppFiles $appFiles -Credential $credential
+    # Output results
+    if ($createContainerJob) {
+        if ($createContainerJob.State -eq 'Failed') {
+            Write-Host "Container $ContainerName failed to be created." -ForegroundColor Red
+        } else {
+            Write-Host "Container $ContainerName created successfully. You can access the webclient by going to http://$ContainerName/BC/ in your browser" -ForegroundColor Green
+        }
+    } else {
+        Write-Host "Skipped creating container as it already exists. You can access the webclient by going to http://$ContainerName/BC/ in your browser" -ForegroundColor Yellow
+    }
+    
+    if ($buildAppFiles) {
+        # Output the app files that were built. One per line 
+        Write-Host "Apps built successfully:" -ForegroundColor Green
+        $buildAppFiles | ForEach-Object { Write-Host $_ -ForegroundColor Green }
+    } else {
+        Write-Host "Skipped building apps." -ForegroundColor Yellow
+    }
+
+    if ($appPublishingResults) {
+        # Output the app files that were published. One per line 
+        if ($appPublishingResults | Where-Object { $_.Success }) {
+            Write-Host "Apps published successfully:" -ForegroundColor Green
+            $appPublishingResults | Where-Object { $_.Success } | ForEach-Object { Write-Host $_.AppFile -ForegroundColor Green }
+        }
+        
+        if ($appPublishingResults | Where-Object { -not $_.Success }) {
+            Write-Host "Apps failed to publish:" -ForegroundColor Red
+            $appPublishingResults | Where-Object { -not $_.Success } | ForEach-Object { Write-Host $_.AppFile -ForegroundColor Red }
+        }
+    } else {
+        Write-Host "Skipped publishing apps." -ForegroundColor Yellow
+    }
 }
-
-# Set up vscode for development against the container (i.e. set up launch.json and settings.json)
-if (-not $SkipVsCodeSetup)
-{
-    Write-Host "Configuring vscode for development against the container..."
-    Configure-ALProjectsInPath -ContainerName $ContainerName -Authentication $Authentication
-}
-
-Write-Host "Development environment setup completed successfully" -ForegroundColor Green
-Write-Host "You can access the webclient by going to http://$ContainerName/BC/ in your browser" -ForegroundColor Green
