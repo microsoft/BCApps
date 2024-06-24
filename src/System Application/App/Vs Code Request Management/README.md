@@ -1,0 +1,1 @@
+This module provides the tools needed to manage requests to Visual Studio Code.

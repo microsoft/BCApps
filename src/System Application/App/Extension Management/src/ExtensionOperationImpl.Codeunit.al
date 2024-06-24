@@ -202,21 +202,6 @@ codeunit 2503 "Extension Operation Impl"
         exit(DownloadFromStream(NvInStream, DialogTitleTxt, '', '*.*', CleanFileName));
     end;
 
-
-    procedure OpenExtensionSource(RepositoryUrl: Text[250]; CommitId: Text): Text
-    var
-        UriBuilder: Codeunit "Uri Builder";
-        Uri: Codeunit Uri;
-    begin
-        UriBuilder.Init('vscode://ms-dynamics-smb.al/sourceSync?');
-
-        UriBuilder.AddQueryParameter('repoUrl', RepositoryUrl);
-        if Text.StrLen(CommitId) <> 0 then
-            UriBuilder.AddQueryParameter('commitId', CommitId);
-
-        exit(Uri.GetAbsoluteUri());
-    end;
-
     procedure DownloadDeploymentStatusDetails(OperationId: Guid)
     var
         TempBlob: Codeunit "Temp Blob";

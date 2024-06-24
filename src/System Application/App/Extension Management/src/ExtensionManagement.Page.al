@@ -7,6 +7,7 @@ namespace System.Apps;
 
 using System.Environment;
 using System.Environment.Configuration;
+using System.VsCodeRequestManagement;
 
 /// <summary>
 /// Lists the available extensions, and provides features for managing them.
@@ -192,7 +193,7 @@ page 2500 "Extension Management"
 
                     trigger OnAction()
                     begin
-                        Hyperlink(ExtensionOperationImpl.OpenExtensionSource(Rec."Source Repository Url", Rec."Source Commit ID"));
+                        Hyperlink(VsCodeRequestManagement.OpenExtensionSource(Rec."Source Repository Url", Rec."Source Commit ID"));
                     end;
                 }
                 action("Learn More")
@@ -333,6 +334,7 @@ page 2500 "Extension Management"
     var
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
+        VsCodeRequestManagement: Codeunit "VS Code Request Management";
         VersionDisplay: Text;
         ActionsEnabled: Boolean;
         IsSaaS: Boolean;
@@ -380,7 +382,7 @@ page 2500 "Extension Management"
         // Determining Record and Styling Configurations
         IsInstalled := ExtensionInstallationImpl.IsInstalledByPackageId(Rec."Package ID");
         IsTenantExtension := Rec."Published As" <> Rec."Published As"::Global;
-        IsSourceSpecificationAvailable: := Rec."Source Repository Url" <> None;
+        IsSourceSpecificationAvailable := StrLen(Rec."Source Repository Url") > 0;
     end;
 
     local procedure GetVersionDisplayText(): Text
