@@ -59,7 +59,7 @@ codeunit 8711 Telemetry
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
 
         if TelemetryScope = TelemetryScope::All then
-            CallerCallStackModuleInfos := NavApp.GetCallstackModuleInfos();
+            CallerCallStackModuleInfos := NavApp.GetCallerCallstackModuleInfos();
 
         TelemetryImpl.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope, CustomDimensions, CallerModuleInfo, CallerCallStackModuleInfos);
     end;
@@ -81,7 +81,7 @@ codeunit 8711 Telemetry
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
 
         if TelemetryScope = TelemetryScope::All then
-            CallerCallStackModuleInfos := NavApp.GetCallstackModuleInfos();
+            CallerCallStackModuleInfos := NavApp.GetCallerCallstackModuleInfos();
 
         TelemetryImpl.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope, DummyCustomDimensions, CallerModuleInfo, CallerCallStackModuleInfos);
     end;
