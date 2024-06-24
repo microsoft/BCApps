@@ -369,8 +369,14 @@ function Test-ContainerExists {
     .Synopsis
     Gets the credential to use for a container.
 
+    .Description
+    This function gets the credential to use for a container. The credential is used to authenticate with the container.
+
     .Parameter AuthenticationType
     The authentication type to use. Can be 'Windows' or 'NavUserPassword'.
+
+    .Outputs
+    The credential to use for the container.
 #>
 function Get-CredentialForContainer($AuthenticationType) {
     if ($AuthenticationType -eq 'Windows') {
