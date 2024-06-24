@@ -106,9 +106,9 @@ finally {
     } else {
         Write-Host "Skipped creating container as it already exists. You can access the webclient by going to http://$ContainerName/BC/ in your browser" -ForegroundColor Yellow
     }
-    
+
     if ($buildAppFiles) {
-        # Output the app files that were built. One per line 
+        # Output the app files that were built. One per line
         Write-Host "Apps built successfully:" -ForegroundColor Green
         $buildAppFiles | ForEach-Object { Write-Host $_ -ForegroundColor Green }
     } else {
@@ -116,12 +116,12 @@ finally {
     }
 
     if ($appPublishingResults) {
-        # Output the app files that were published. One per line 
+        # Output the app files that were published. One per line
         if ($appPublishingResults | Where-Object { $_.Success }) {
             Write-Host "Apps published successfully:" -ForegroundColor Green
             $appPublishingResults | Where-Object { $_.Success } | ForEach-Object { Write-Host $_.AppFile -ForegroundColor Green }
         }
-        
+
         if ($appPublishingResults | Where-Object { -not $_.Success }) {
             Write-Host "Apps failed to publish:" -ForegroundColor Red
             $appPublishingResults | Where-Object { -not $_.Success } | ForEach-Object { Write-Host $_.AppFile -ForegroundColor Red }
