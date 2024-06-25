@@ -5,6 +5,7 @@
 
 namespace System.Test.Tooling;
 
+using System.DataAdministration;
 using System.PerformanceProfile;
 using System.Security.AccessControl;
 using System.TestLibraries.Utilities;
