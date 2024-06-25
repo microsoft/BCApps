@@ -25,17 +25,21 @@ codeunit 8712 "Telemetry Impl."
     procedure LogMessage(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; TelemetryScope: TelemetryScope; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     var
         CommonCustomDimensions: Dictionary of [Text, Text];
-        DummyCallStackPublishers: List of [Text];
+        CallStackPublishers: List of [Text];
     begin
         AddCommonCustomDimensions(CommonCustomDimensions, CallerModuleInfo);
 
-        DummyCallStackPublishers.Add(CallerModuleInfo.Publisher);
+        CallStackPublishers.Add(CallerModuleInfo.Publisher);
 
-        LogMessageInternal(EventId, Message, Verbosity, DataClassification, TelemetryScope, CommonCustomDimensions, CallerCustomDimensions, CallerModuleInfo.Publisher, DummyCallStackPublishers);
+        case TelemetryScope of
+            TelemetryScope::ExtensionPublisher:
+                LogMessageInternal(EventId, Message, Verbosity, DataClassification, Enum::"AL Telemetry Scope"::ExtensionPublisher, CommonCustomDimensions, CallerCustomDimensions, CallerModuleInfo.Publisher, CallStackPublishers);
+            TelemetryScope::All:
+                LogMessageInternal(EventId, Message, Verbosity, DataClassification, Enum::"AL Telemetry Scope"::Environment, CommonCustomDimensions, CallerCustomDimensions, CallerModuleInfo.Publisher, CallStackPublishers);
+        end;
     end;
 
-    // TODO: Telemetry Scope can be more specific here for the two procedure overloads. Depends on the result of the discussion for the extra value.
-    procedure LogMessage(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; TelemetryScope: TelemetryScope; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo; CallerCallStackModuleInfos: List of [ModuleInfo])
+    procedure LogMessage(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; ALTelemetryScope: Enum "AL Telemetry Scope"; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo; CallerCallStackModuleInfos: List of [ModuleInfo])
     var
         CommonCustomDimensions: Dictionary of [Text, Text];
         CallStackPublishers: List of [Text];
@@ -47,10 +51,10 @@ codeunit 8712 "Telemetry Impl."
             if not CallStackPublishers.Contains(Module.Publisher) then
                 CallStackPublishers.Add(Module.Publisher);
 
-        LogMessageInternal(EventId, Message, Verbosity, DataClassification, TelemetryScope, CommonCustomDimensions, CallerCustomDimensions, CallerModuleInfo.Publisher, CallStackPublishers);
+        LogMessageInternal(EventId, Message, Verbosity, DataClassification, ALTelemetryScope, CommonCustomDimensions, CallerCustomDimensions, CallerModuleInfo.Publisher, CallStackPublishers);
     end;
 
-    procedure LogMessageInternal(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; TelemetryScope: TelemetryScope; CustomDimensions: Dictionary of [Text, Text]; CallerCustomDimensions: Dictionary of [Text, Text]; Publisher: Text; CallStackPublishers: List of [Text])
+    procedure LogMessageInternal(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; ALTelemetryScope: Enum "AL Telemetry Scope"; CustomDimensions: Dictionary of [Text, Text]; CallerCustomDimensions: Dictionary of [Text, Text]; Publisher: Text; CallStackPublishers: List of [Text])
     var
         TelemetryLoggers: Codeunit "Telemetry Loggers";
         TelemetryLogger: Interface "Telemetry Logger";
@@ -59,26 +63,25 @@ codeunit 8712 "Telemetry Impl."
         AddCustomDimensionsFromSubscribers(CustomDimensions, Publisher);
         AddCustomDimensionsSafely(CustomDimensions, CallerCustomDimensions);
 
-        TelemetryLoggers.SetCurrentPublisher(Publisher);
         TelemetryLoggers.SetCallStackPublishers(CallStackPublishers);
 
         TelemetryLoggers.OnRegisterTelemetryLogger();
 
-        case TelemetryScope of
-            // When Scope is ExtensionPublisher: only the current publisher gets a copy of Telemetry.
-            TelemetryScope::ExtensionPublisher:
-                if TelemetryLoggers.GetTelemetryLoggerFromCurrentPublisher(TelemetryLogger) then
+        case ALTelemetryScope of
+            Enum::"AL Telemetry Scope"::ExtensionPublisher:
+                if TelemetryLoggers.GetTelemetryLogger(Publisher, TelemetryLogger) then
                     TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::ExtensionPublisher, CustomDimensions);
-
-            // When Scope is All: 1. the current publisher gets a copy of Telemetry, 2. the environment gets a copy of Telemetry, 3. all registered loggers on the callstack get a copy of Telemetry.
-            TelemetryScope::All:
+            Enum::"AL Telemetry Scope"::Environment:
+                if TelemetryLoggers.GetTelemetryLogger(Publisher, TelemetryLogger) then
+                    TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::All, CustomDimensions);
+            Enum::"AL Telemetry Scope"::All:
                 begin
                     // Use current publisher's logger to log telemetry to 1. the current publisher and 2. the environment.
-                    if TelemetryLoggers.GetTelemetryLoggerFromCurrentPublisher(TelemetryLogger) then
+                    if TelemetryLoggers.GetTelemetryLogger(Publisher, TelemetryLogger) then
                         TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::All, CustomDimensions);
 
-                    // Loop through all loggers (except for the one from current publisher) on the CallerCallStack to log telemetry to 3. all registered loggers.
-                    RelevantTelemetryLoggers := TelemetryLoggers.GetRelevantTelemetryLoggers();
+                    // Loop through all other loggers on the CallerCallStack to log telemetry to 3. registered loggers.
+                    RelevantTelemetryLoggers := TelemetryLoggers.GetRelevantTelemetryLoggers(Publisher);
                     foreach TelemetryLogger in RelevantTelemetryLoggers do
                         TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::ExtensionPublisher, CustomDimensions);
                 end;
