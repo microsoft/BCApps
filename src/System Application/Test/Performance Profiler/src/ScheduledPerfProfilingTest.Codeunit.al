@@ -216,6 +216,21 @@ codeunit 135019 "Scheduled Perf. Profiling Test"
 
     end;
 
+    [Test]
+    procedure TestRetentionPolicy()
+    var
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+    begin
+        // [SCENARIO] A retention policy is created when the app is installed
+
+        // [THEN] Performance profile scheduler table is allowed and set up in the retention policy
+        Assert.IsTrue(RetenPolAllowedTables.IsAllowedTable(Database::"Performance Profile Scheduler"), 'Performance profile scheduler table should be allowed in retention policy');
+
+        RetentionPolicySetup.Get(Database::"Performance Profile Scheduler");
+        Assert.IsTrue(RetentionPolicySetup.Enabled, 'Performance profile scheduler table should have a retention policy enabled');
+    end;
+
     local procedure SetupClientType(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ClientType: Option; var ActivityType: Enum "Perf. Profile Activity Type")
     begin
         PerformanceProfileScheduler."Client Type" := ClientType;

@@ -40,6 +40,12 @@
                             "name":  "Any",
                             "publisher":  "Microsoft",
                             "version":  "25.0.0.0"
+                        },
+                        {
+                            "id":  "a8177fd4-0adb-4482-889c-2e123a13b50a",
+                            "name":  "Retention Policy",
+                            "publisher":  "Microsoft",
+                            "version":  "25.0.0.0"
                         }
                      ],
     "screenshots":  [
