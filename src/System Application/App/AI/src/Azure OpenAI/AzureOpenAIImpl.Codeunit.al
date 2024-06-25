@@ -586,7 +586,6 @@ codeunit 7772 "Azure OpenAI Impl"
 
     procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo)
     var
-        CopilotTelemetry: Codeunit "Copilot Telemetry";
         Language: Codeunit Language;
         SavedGlobalLanguageId: Integer;
         CustomDimensions: Dictionary of [Text, Text];
@@ -611,7 +610,6 @@ codeunit 7772 "Azure OpenAI Impl"
             ErrorMessage := StrSubstNo(CapabilityNotEnabledErr, Capability);
             Error(ErrorMessage);
         end;
-        CopilotTelemetry.SetCopilotCapability(Capability, CallerModuleInfo.Id());
     end;
 
     local procedure CheckEnabled(CallerModuleInfo: ModuleInfo)
