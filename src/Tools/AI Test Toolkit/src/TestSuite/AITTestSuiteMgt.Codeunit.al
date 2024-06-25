@@ -185,7 +185,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         if AITTestSuiteStatus <> AITTestSuiteStatus::Running then begin
             AITTestSuite."Ended at" := CurrentDateTime();
             AITTestSuite.Duration := AITTestSuite."Ended at" - AITTestSuite."Started at";
-            TelemetryCustomDimensions.Add('DurationInMiliseconds', Format(AITTestSuite.Duration));
+            TelemetryCustomDimensions.Add('DurationInMilliseconds', Format(AITTestSuite.Duration));
         end;
         TelemetryCustomDimensions.Add('Version', Format(AITTestSuite.Version));
 
@@ -266,7 +266,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         if (Operation <> ModifiedOperation) or (ExecutionSuccess <> ModifiedExecutionSuccess) or (Message <> ModifiedMessage) then
             EntryWasModified := true;
 
-        AITTestMethodLine.Testfield("Test Suite Code");
+        AITTestMethodLine.TestField("Test Suite Code");
         AITTestRunner.GetAITTestSuite(this.GlobalAITTestSuite);
         Clear(AITLogEntry);
         AITLogEntry."Run ID" := this.GlobalAITTestSuite.RunID;

@@ -61,7 +61,7 @@ xmlport 149031 "AIT Test Suite Import/Export"
                     {
                         Occurrence = Required;
                     }
-                    fieldattribute(DelayBetwnItr; AITestMethodLine."Delay (ms btwn. iter.)")
+                    fieldattribute(DelayBetweenItr; AITestMethodLine."Delay (ms btwn. iter.)")
                     {
                         Occurrence = Optional;
                     }

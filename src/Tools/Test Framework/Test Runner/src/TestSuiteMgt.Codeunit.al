@@ -315,9 +315,9 @@ codeunit 130456 "Test Suite Mgt."
         ALTestSuite.Modify(true);
     end;
 
-    procedure ChangeStabilityRun(var ALTestSuite: Record "AL Test Suite"; NewStabiltyRun: Boolean)
+    procedure ChangeStabilityRun(var ALTestSuite: Record "AL Test Suite"; NewStabilityRun: Boolean)
     begin
-        ALTestSuite.Validate("Stability Run", NewStabiltyRun);
+        ALTestSuite.Validate("Stability Run", NewStabilityRun);
         ALTestSuite.Modify(true);
     end;
 
