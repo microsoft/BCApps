@@ -5,23 +5,33 @@
 
 namespace System.Telemetry;
 
+/// <summary>
+/// Represents the emission scope of the telemetry signal.
+/// An wrapper in AL to provide the capability to send Telemetries to ISVs.
+/// </summary>
 enum 8704 "AL Telemetry Scope"
 {
     Access = Internal;
 
     value(0; ExtensionPublisher)
     {
+        /// <summary>
+        /// Emit telemetry to only extensions publisher. Corresponds to TelemetryScope::ExtensionPublisher.
+        /// </summary>
         Caption = 'Extension Publisher';
-        // map to TelemetryScope::ExtensionPublisher
     }
     value(1; Environment)
     {
+        /// <summary>
+        /// Emit telemetry to extensions publisher and environment. Corresponds to TelemetryScope::All.
+        /// </summary>
         Caption = 'Environment';
-        // map to TelemetryScope::All
     }
     value(2; All)
     {
+        /// <summary>
+        /// Emit telemetry to extensions publisher, environment and ISVs on the callstack.
+        /// </summary>
         Caption = 'All';
-        // Telemetry to 1. Extension Publisher, 2. Environment and 3. ISVs on the callstack
     }
 }
