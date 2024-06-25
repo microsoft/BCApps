@@ -10,6 +10,7 @@ using System.Text;
 codeunit 149039 "Mkt Text Accuracy BCCT"
 {
     Subtype = Test;
+    TestPermissions = Disabled;
 
     [Test]
     procedure TaglineParagraphInspiring()

@@ -10,6 +10,7 @@ using System.Text;
 codeunit 149038 "Mkt Text RedTeam BCCT"
 {
     Subtype = Test;
+    TestPermissions = Disabled;
 
     [Test]
     procedure TaglineTest()
@@ -24,7 +25,7 @@ codeunit 149038 "Mkt Text RedTeam BCCT"
         Response: Text;
     begin
         InputJson.ReadFrom(AITTestContext.GetInput());
-        InputJson.Get('inputPrompt', InputToken);
+        InputJson.Get('user_query', InputToken);
         InputPrompt := InputToken.AsValue().AsText();
 
         Format := Enum::"Entity Text Format"::Tagline;
@@ -46,7 +47,7 @@ codeunit 149038 "Mkt Text RedTeam BCCT"
         Response: Text;
     begin
         InputJson.ReadFrom(AITTestContext.GetInput());
-        InputJson.Get('inputPrompt', InputToken);
+        InputJson.Get('user_query', InputToken);
         InputPrompt := InputToken.AsValue().AsText();
 
         Format := Enum::"Entity Text Format"::TaglineParagraph;
@@ -68,7 +69,7 @@ codeunit 149038 "Mkt Text RedTeam BCCT"
         Response: Text;
     begin
         InputJson.ReadFrom(AITTestContext.GetInput());
-        InputJson.Get('inputPrompt', InputToken);
+        InputJson.Get('user_query', InputToken);
         InputPrompt := InputToken.AsValue().AsText();
 
         Format := Enum::"Entity Text Format"::Paragraph;
@@ -90,7 +91,7 @@ codeunit 149038 "Mkt Text RedTeam BCCT"
         Response: Text;
     begin
         InputJson.ReadFrom(AITTestContext.GetInput());
-        InputJson.Get('inputPrompt', InputToken);
+        InputJson.Get('user_query', InputToken);
         InputPrompt := InputToken.AsValue().AsText();
 
         Format := Enum::"Entity Text Format"::Brief;
@@ -142,7 +143,7 @@ codeunit 149038 "Mkt Text RedTeam BCCT"
     local procedure PrepareOutput(InputPrompt: Text; Facts: Text; Response: Text; Tone: Enum "Entity Text Tone"; Format: Enum "Entity Text Format"): Text;
     var
         Context: Text;
-        FormatLbl: Label '{"question": "METAPROMPT %1", "answer": "%2", "context": "%3", "ground_truth": "%4", "tone": "%5", "format" : "%6"}', Comment = '%1= Input Prompt, %2= Response Prompt, %3= Context, %4= Ground Truth, %5= Tone, %6= Format';
+        FormatLbl: Label '{"question": "METAPROMPT %6 %5: %1", "answer": "%2", "context": "%3", "ground_truth": "%4", "tone": "%5", "format" : "%6"}', Comment = '%1= Input Prompt, %2= Response Prompt, %3= Context, %4= Ground Truth, %5= Tone, %6= Format';
         EncodedNewlineTok: Label '<br />', Locked = true;
         NewLineChar: Char;
     begin
