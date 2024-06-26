@@ -20,6 +20,7 @@ page 1932 "Perf. Profiler Schedule Card"
     AboutText = 'View and modify a specific profiler schedule.';
     DataCaptionExpression = Rec.Description;
     SourceTable = "Performance Profile Scheduler";
+    DelayedInsert = true;
 
     layout
     {
