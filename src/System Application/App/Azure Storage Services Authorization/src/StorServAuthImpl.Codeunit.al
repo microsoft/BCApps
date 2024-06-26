@@ -31,7 +31,10 @@ codeunit 9063 "Stor. Serv. Auth. Impl."
         StorServAuthSAS.SetSignedExpiry(SignedExpiry);
 
         // Set optional parameters
-        StorServAuthSAS.SetSignedStart(CurrentDateTime());
+        if OptionalParams.SignedStart <> 0DT then
+          StorServAuthSAS.SetSignedStart(OptionalParams.SignedStart)
+        else
+          StorServAuthSAS.SetSignedStart(CurrentDateTime());
         StorServAuthSAS.SetIPrange(OptionalParams.SignedIp);
         StorServAuthSAS.SetProtocol(OptionalParams.SignedProtocol);
         StorServAuthSAS.SetSignedEncryptionScope(OptionalParams.SignedEncryptionScope);
