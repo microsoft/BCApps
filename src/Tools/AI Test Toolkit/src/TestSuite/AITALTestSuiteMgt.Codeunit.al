@@ -170,7 +170,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         exit(IncStr(ALTestSuite.Name))
     end;
 
-    internal procedure DownloadTestOutputFromAITLLogToFile(var AITLogEntry: Record "AIT Log Entry")
+    internal procedure DownloadTestOutputFromLogToFile(var AITLogEntry: Record "AIT Log Entry")
     var
         TempBlob: Codeunit "Temp Blob";
         TestOutput: Text;

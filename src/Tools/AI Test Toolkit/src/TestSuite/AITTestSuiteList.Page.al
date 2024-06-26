@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
+using System.TestTools.TestRunner;
 
 page 149040 "AIT Test Suite List"
 {
@@ -91,18 +92,27 @@ page 149040 "AIT Test Suite List"
                         CurrPage.Update(false);
                     end;
                 }
-
+            }
+        }
+        area(Navigation)
+        {
+            action(Datasets)
+            {
+                ApplicationArea = All;
+                Caption = 'Input Datasets';
+                Image = DataEntry;
+                ToolTip = 'Open input datasets.';
+                RunObject = page "Test Input Groups";
             }
         }
         area(Promoted)
         {
-            group(Category_Report)
+            actionref(Datasets_Promoted; Datasets)
             {
-                Caption = 'Report', Comment = 'Generated from the PromotedActionCategories property index 2.';
             }
             group(Category_Category4)
             {
-                Caption = 'Import/Export', Comment = 'Generated from the PromotedActionCategories property index 3.';
+                Caption = 'Import/Export';
 
                 actionref(ImportAIT_Promoted; ImportAIT)
                 {
