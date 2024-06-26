@@ -30,6 +30,18 @@ codeunit 8704 "Feature Telemetry Impl."
         LogMessage(EventId, EventName, Verbosity::Normal, CallerCustomDimensions, UsageCustomDimensions, CallerModuleInfo);
     end;
 
+    procedure LogUsage(EventId: Text; FeatureName: Text; EventName: Text; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo; CallerCallStackModuleInfos: List of [ModuleInfo])
+    var
+        UsageCustomDimensions: Dictionary of [Text, Text];
+    begin
+        UsageCustomDimensions.Add('Category', 'FeatureTelemetry');
+        UsageCustomDimensions.Add('SubCategory', 'Usage');
+        UsageCustomDimensions.Add('FeatureName', FeatureName);
+        UsageCustomDimensions.Add('EventName', EventName);
+
+        LogMessage(EventId, EventName, Verbosity::Normal, CallerCustomDimensions, UsageCustomDimensions, CallerModuleInfo, CallerCallStackModuleInfos);
+    end;
+
     procedure LogError(EventId: Text; FeatureName: Text; EventName: Text; ErrorText: Text; ErrorCallStack: Text; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     var
         ErrorCustomDimensions: Dictionary of [Text, Text];
@@ -82,7 +94,14 @@ codeunit 8704 "Feature Telemetry Impl."
         TelemetryImpl: Codeunit "Telemetry Impl.";
     begin
         TelemetryImpl.AddCustomDimensionsSafely(EventCustomDimensions, CallerCustomDimensions);
-        // TODO: should Feature Telemetry send to ISVs, maybe not by default as least.
         TelemetryImpl.LogMessage(EventId, Message, Verbosity, DataClassification::SystemMetadata, TelemetryScope::All, EventCustomDimensions, CallerModuleInfo);
+    end;
+
+    local procedure LogMessage(EventId: Text; Message: Text; Verbosity: Verbosity; CallerCustomDimensions: Dictionary of [Text, Text]; EventCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo; CallerCallStackModuleInfos: List of [ModuleInfo])
+    var
+        TelemetryImpl: Codeunit "Telemetry Impl.";
+    begin
+        TelemetryImpl.AddCustomDimensionsSafely(EventCustomDimensions, CallerCustomDimensions);
+        TelemetryImpl.LogMessage(EventId, Message, Verbosity, DataClassification::SystemMetadata, Enum::"AL Telemetry Scope"::All, EventCustomDimensions, CallerModuleInfo, CallerCallStackModuleInfos);
     end;
 }
