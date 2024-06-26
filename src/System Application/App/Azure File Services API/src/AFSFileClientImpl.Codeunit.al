@@ -187,7 +187,7 @@ codeunit 8951 "AFS File Client Impl."
 
         AFSHelperLibrary.DirectoryContentNodeListToTempRecord(DirectoryURI, DirectoryPath, NodeList, PreserveDirectoryContent, AFSDirectoryContent);
 
-        if AFSOperationResponse.IsSuccessful() then begin
+        if AFSOperationResponse.IsSuccessful() and (AFSDirectoryContent."Entry No." <> 0) then begin
             AFSDirectoryContent."Next Marker" := CopyStr(AFSHelperLibrary.GetNextMarkerFromResponse(ResponseText), 1, MaxStrLen(AFSDirectoryContent."Next Marker"));
             AFSDirectoryContent.Modify();
         end;
@@ -217,7 +217,7 @@ codeunit 8951 "AFS File Client Impl."
         NodeList := AFSHelperLibrary.CreateHandleNodeListFromResponse(ResponseText);
         AFSHelperLibrary.HandleNodeListToTempRecord(NodeList, AFSHandle);
 
-        if AFSOperationResponse.IsSuccessful() then begin
+        if AFSOperationResponse.IsSuccessful() and (AFSHandle."Entry No." <> 0) then begin
             AFSHandle."Next Marker" := CopyStr(AFSHelperLibrary.GetNextMarkerFromResponse(ResponseText), 1, MaxStrLen(AFSHandle."Next Marker"));
             AFSHandle.Modify();
         end;
