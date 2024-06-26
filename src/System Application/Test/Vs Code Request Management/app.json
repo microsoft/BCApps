@@ -16,6 +16,12 @@
                              "name":  "Library Assert",
                              "publisher":  "Microsoft",
                              "version":  "25.0.0.0"
+                         },
+                         {
+                            "id":  "66d56517-9469-4cdf-83a8-7122c54af08f",
+                            "name":  "VS Code Request Management",
+                            "publisher":  "Microsoft",
+                            "version":  "25.0.0.0"
                          }
                      ],
     "screenshots":  [
