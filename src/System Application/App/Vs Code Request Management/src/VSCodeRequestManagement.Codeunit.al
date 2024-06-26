@@ -7,6 +7,8 @@ using System.Utilities;
 codeunit 8033 "VS Code Request Management"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     var
         AllObjWithCaption: Record AllObjWithCaption;
