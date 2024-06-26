@@ -332,10 +332,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry.CalcFields("Codeunit Name");
         Dimensions.Add('CodeunitName', AITLogEntry."Codeunit Name");
         Dimensions.Add('Operation', AITLogEntry.Operation);
-        Dimensions.Add('Tag', AITLogEntry.Tag);
         Dimensions.Add('Status', Format(AITLogEntry.Status));
-        if AITLogEntry.Status = AITLogEntry.Status::Error then
-            Dimensions.Add('StackTrace', AITLogEntry.GetErrorCallStack());
         Dimensions.Add('Message', AITLogEntry.GetMessage());
         Dimensions.Add('StartTime', Format(AITLogEntry."Start Time"));
         Dimensions.Add('EndTime', Format(AITLogEntry."End Time"));
