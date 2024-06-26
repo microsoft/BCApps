@@ -56,6 +56,20 @@ codeunit 8704 "Feature Telemetry Impl."
         LogMessage(EventId, ErrorText, Verbosity::Error, CallerCustomDimensions, ErrorCustomDimensions, CallerModuleInfo);
     end;
 
+    procedure LogError(EventId: Text; FeatureName: Text; EventName: Text; ErrorText: Text; ErrorCallStack: Text; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo; CallerCallStackModuleInfos: List of [ModuleInfo])
+    var
+        ErrorCustomDimensions: Dictionary of [Text, Text];
+    begin
+        ErrorCustomDimensions.Add('Category', 'FeatureTelemetry');
+        ErrorCustomDimensions.Add('SubCategory', 'Error');
+        ErrorCustomDimensions.Add('FeatureName', FeatureName);
+        ErrorCustomDimensions.Add('EventName', EventName);
+        ErrorCustomDimensions.Add('ErrorText', ErrorText);
+        ErrorCustomDimensions.Add('ErrorCallStack', ErrorCallStack);
+
+        LogMessage(EventId, ErrorText, Verbosity::Error, CallerCustomDimensions, ErrorCustomDimensions, CallerModuleInfo, CallerCallStackModuleInfos);
+    end;
+
     procedure LogUptake(EventId: Text; FeatureName: Text; FeatureUptakeStatus: Enum "Feature Uptake Status"; IsPerUser: Boolean; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     var
         EnvironmentInformation: Codeunit "Environment Information";
