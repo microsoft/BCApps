@@ -21,7 +21,7 @@ codeunit 7774 "Copilot Capability Impl"
     Permissions = tabledata "Copilot Settings" = rimd;
 
     var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
+        Telemetry: Codeunit Telemetry;
         CopilotCategoryLbl: Label 'Copilot', Locked = true;
         AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
         AlreadyRegisteredErr: Label 'Capability has already been registered.';
@@ -62,7 +62,7 @@ codeunit 7774 "Copilot Capability Impl"
         Commit();
 
         AddTelemetryDimensions(CopilotCapability, CallerModuleInfo.Id(), CustomDimensions);
-        FeatureTelemetry.LogUsage('0000LDV', CopilotCategoryLbl, TelemetryRegisteredNewCopilotCapabilityLbl, CustomDimensions);
+        Telemetry.LogMessage('0000LDV', TelemetryRegisteredNewCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All, CustomDimensions);
     end;
 
     procedure ModifyCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
@@ -86,7 +86,7 @@ codeunit 7774 "Copilot Capability Impl"
 
         AddTelemetryDimensions(CopilotCapability, CallerModuleInfo.Id(), CustomDimensions);
         AddStatusTelemetryDimension(CopilotSettings.Status, CustomDimensions);
-        FeatureTelemetry.LogUsage('0000LDW', CopilotCategoryLbl, TelemetryModifiedCopilotCapabilityLbl, CustomDimensions);
+        Telemetry.LogMessage('0000LDW', TelemetryModifiedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All, CustomDimensions);
     end;
 
     procedure UnregisterCapability(CopilotCapability: Enum "Copilot Capability"; var CallerModuleInfo: ModuleInfo)
@@ -104,7 +104,7 @@ codeunit 7774 "Copilot Capability Impl"
         Commit();
 
         AddTelemetryDimensions(CopilotCapability, CallerModuleInfo.Id(), CustomDimensions);
-        FeatureTelemetry.LogUsage('0000LDX', CopilotCategoryLbl, TelemetryUnregisteredCopilotCapabilityLbl, CustomDimensions);
+        Telemetry.LogMessage('0000LDX', TelemetryUnregisteredCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All, CustomDimensions);
     end;
 
     procedure IsCapabilityRegistered(CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
@@ -144,7 +144,7 @@ codeunit 7774 "Copilot Capability Impl"
         CustomDimensions: Dictionary of [Text, Text];
     begin
         AddTelemetryDimensions(CopilotCapability, AppId, CustomDimensions);
-        FeatureTelemetry.LogUsage('0000LDY', CopilotCategoryLbl, TelemetryActivatedCopilotCapabilityLbl, CustomDimensions);
+        Telemetry.LogMessage('0000LDY', TelemetryActivatedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All, CustomDimensions);
     end;
 
     procedure SendDeactivateTelemetry(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; Reason: Option)
@@ -159,7 +159,7 @@ codeunit 7774 "Copilot Capability Impl"
         GlobalLanguage(Language.GetDefaultApplicationLanguageId());
 
         CustomDimensions.Add('Reason', Format(Reason));
-        FeatureTelemetry.LogUsage('0000LDZ', CopilotCategoryLbl, TelemetryDeactivatedCopilotCapabilityLbl, CustomDimensions);
+        Telemetry.LogMessage('0000LDZ', TelemetryDeactivatedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All, CustomDimensions);
 
         GlobalLanguage(SavedGlobalLanguageId);
     end;
@@ -223,6 +223,7 @@ codeunit 7774 "Copilot Capability Impl"
         SavedGlobalLanguageId := GlobalLanguage();
         GlobalLanguage(Language.GetDefaultApplicationLanguageId());
 
+        CustomDimensions.Add('Category', GetCopilotCategory());
         CustomDimensions.Add('Capability', Format(CopilotCapability));
         CustomDimensions.Add('AppId', Format(AppId));
 
