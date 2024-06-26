@@ -356,7 +356,7 @@ codeunit 7772 "Azure OpenAI Impl"
             end;
 
             CustomDimensions.Add('ToolsCount', Format(ToolsPayload.Count));
-            FeatureTelemetry.LogUsage('0000MFG', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryChatCompletionToolUsedLbl, CustomDimensions);
+            Telemetry.LogMessage('0000MFG', TelemetryChatCompletionToolUsedLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
         end;
 
         CheckJsonModeCompatibility(Payload);
@@ -551,10 +551,9 @@ codeunit 7772 "Azure OpenAI Impl"
         exit(CapabilityName);
     end;
 
-    [NonDebuggable]
     local procedure SendTokenCountTelemetry(Metaprompt: Integer; Prompt: Integer; CustomDimensions: Dictionary of [Text, Text])
     begin
-        Telemetry.LogMessage('0000LT4', StrSubstNo(TelemetryTokenCountLbl, Metaprompt, Prompt, Metaprompt + Prompt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        Telemetry.LogMessage('0000LT4', StrSubstNo(TelemetryTokenCountLbl, Metaprompt, Prompt, Metaprompt + Prompt), Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
     end;
 
     local procedure GuiCheck(AOAIAuthorization: Codeunit "AOAI Authorization")
