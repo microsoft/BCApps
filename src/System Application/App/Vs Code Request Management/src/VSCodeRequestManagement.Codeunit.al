@@ -100,8 +100,7 @@ codeunit 8033 "VS Code Request Management"
     local procedure FormatObjectType(ObjectType: Option): Text
     begin
         case ObjectType of
-            llObjWithCaption."Object Type"::Page:
-                A
+            AllObjWithCaption."Object Type"::Page:
                 exit('page');
             AllObjWithCaption."Object Type"::Table:
                 exit('table');
