@@ -7,7 +7,7 @@ namespace System.Apps;
 
 using System.Environment;
 using System.Environment.Configuration;
-using System.VsCodeRequestManagement;
+using System.Integration;
 
 /// <summary>
 /// Lists the available extensions, and provides features for managing them.

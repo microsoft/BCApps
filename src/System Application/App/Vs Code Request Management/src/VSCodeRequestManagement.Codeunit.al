@@ -1,4 +1,4 @@
-﻿namespace System.VsCodeRequestManagement;
+﻿namespace System.Integration;
 
 using System.Apps;
 using System.Reflection;
@@ -67,7 +67,7 @@ codeunit 8033 "VS Code Request Management"
     end;
 
     [Scope('OnPrem')]
-    procedure GetFormattedDependencies(NavAppInstalledApp: Record "NAV App Installed App"): Text
+    procedure GetFormattedDependencies(var NavAppInstalledApp: Record "NAV App Installed App"): Text
     var
         DependencyList: TextBuilder;
     begin
@@ -80,7 +80,7 @@ codeunit 8033 "VS Code Request Management"
     end;
 
     [Scope('OnPrem')]
-    procedure FormatDependency(NavAppInstalledApp: Record "NAV App Installed App"): Text
+    local procedure FormatDependency(NavAppInstalledApp: Record "NAV App Installed App"): Text
     var
         AppVersion: Text;
         AppVersionLbl: Label '%1.%2.%3.%4', Comment = '%1 = major, %2 = minor, %3 = build, %4 = revision', Locked = true;
@@ -100,7 +100,8 @@ codeunit 8033 "VS Code Request Management"
     local procedure FormatObjectType(ObjectType: Option): Text
     begin
         case ObjectType of
-            AllObjWithCaption."Object Type"::Page:
+            llObjWithCaption."Object Type"::Page:
+                A
                 exit('page');
             AllObjWithCaption."Object Type"::Table:
                 exit('table');
