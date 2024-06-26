@@ -102,6 +102,22 @@ codeunit 130464 "Test Input Json"
         exit(this.TestJson.AsObject());
     end;
 
+    procedure AsJsonToken(): JsonToken
+    begin
+        exit(this.TestJson);
+    end;
+
+    procedure ToText(): Text
+    var
+        TextOutput: Text;
+    begin
+        this.TestJson.WriteTo(TextOutput);
+        if TextOutput = 'null' then
+            exit('');
+
+        exit(TextOutput);
+    end;
+
     var
         ElementDoesNotExistErr: Label 'DataInput - The element does not exist.';
         TheElementIsNotAnArrayErr: Label 'DataInput - The element is not an array, use a different method.';
