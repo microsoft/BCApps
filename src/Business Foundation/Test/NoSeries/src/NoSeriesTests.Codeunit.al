@@ -18,7 +18,7 @@ codeunit 134530 "No. Series Tests"
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
         LibraryNoSeries: Codeunit "Library - No. Series";
-        CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1.', Comment = '%1=No. Series Code';
+        CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1', Comment = '%1=No. Series Code';
 
     #region sequence
     [Test]
@@ -275,6 +275,69 @@ codeunit 134530 "No. Series Tests"
         asserterror NoSeries.PeekNextNo(NoSeriesCode);
         LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
     end;
+
+
+    [Test]
+    procedure TestGetNextNoWithMultipleLinesExhaustClosedLine_Sequence()
+    var
+        NoSeries: Codeunit "No. Series";
+        PermissionsMock: Codeunit "Permissions Mock";
+        NoSeriesCode: Code[20];
+    begin
+        // [Scenario] [Bug 538011] When we have multiple lines, the GetNextNo should return value from latest line. If there is no number left in the latest line, it should throw an error even there are numbers left in previous line.
+        // [GIVEN] Initialize the test
+        Initialize();
+        PermissionsMock.Set('No. Series - Admin');
+
+        // [GIVEN] Create a No. Series
+        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        // [GIVEN] Create the first line with 10 numbers and no start day, and the 'Last No. Used' set to 'TEST0005'
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'TEST0001', 'TEST0010', 'TEST0005', 0D);
+        // [GIVEN] Create the second line with 10 numbers and the start date is today, and the 'Last No. Used' set to 'TEST0039', so only one number is left
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'TEST0030', 'TEST0040', 'TEST0039', Today());
+
+        PermissionsMock.SetExactPermissionSet('No. Series Test');
+
+        // [WHEN] Call GetNextNo and we get the last number from the second Series Line.
+        LibraryAssert.AreEqual('TEST0040', NoSeries.GetNextNo(NoSeriesCode, Today()), 'Get the last SN from the second Series Line');
+        // [Then] Call GetNextNo again, and we get an error since the second Series Line is out of SN although the first Series Line still has SN.
+        asserterror NoSeries.GetNextNo(NoSeriesCode, Today());
+        LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
+    end;
+
+#if not CLEAN24
+#pragma warning disable AL0432
+    [Test]
+    procedure TestGetNextNoWithMultipleLinesExhaustClosedLine_Sequence_ObsoleteCode()
+    var
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+        PermissionsMock: Codeunit "Permissions Mock";
+        NoSeriesCode: Code[20];
+    begin
+        // [Scenario] [Bug 538011] When we have multiple lines, the GetNextNo should return value from latest line. If there is no number left in the latest line, it should throw an error even there are numbers left in previous line.
+        // [GIVEN] Initialize the test
+        Initialize();
+        PermissionsMock.Set('No. Series - Admin');
+
+        // [GIVEN] Create a No. Series
+        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        // [GIVEN] Create the first line with 10 numbers and no start day, and the 'Last No. Used' set to 'TEST0005'
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'TEST0001', 'TEST0010', 'TEST0005', 0D);
+        // [GIVEN] Create the second line with 10 numbers and the start date is today, and the 'Last No. Used' set to 'TEST0039', so only one number is left
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, 'TEST0030', 'TEST0040', 'TEST0039', Today());
+
+        PermissionsMock.SetExactPermissionSet('No. Series Test');
+
+        // [WHEN] Call GetNextNo and we get the last number from the second Series Line.
+        LibraryAssert.AreEqual('TEST0040', NoSeriesManagement.GetNextNo(NoSeriesCode, Today(), true), 'Get the last SN from the second Series Line');
+        // [Then] Call GetNextNo again, and we get an error since the second Series Line is out of SN although the first Series Line still has SN.
+        asserterror NoSeriesManagement.GetNextNo(NoSeriesCode, Today(), true);
+        LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
+    end;
+#pragma warning restore AL0432
+#endif
     #endregion
 
     #region normal
@@ -566,6 +629,68 @@ codeunit 134530 "No. Series Tests"
         LibraryAssert.AreEqual(StartingNo, NoSeries.GetNextNo(NoSeriesCode), 'not the first number');
         LibraryAssert.AreEqual(IncStr(StartingNo), NoSeries.GetNextNo(NoSeriesCode), 'not the second number');
     end;
+
+    [Test]
+    procedure TestGetNextNoWithMultipleLinesExhaustClosedLine()
+    var
+        NoSeries: Codeunit "No. Series";
+        PermissionsMock: Codeunit "Permissions Mock";
+        NoSeriesCode: Code[20];
+    begin
+        // [Scenario] [Bug 538011] When we have multiple lines, the GetNextNo should return value from latest line. If there is no number left in the latest line, it should throw an error even there are numbers left in previous line.
+        // [GIVEN] Initialize the test
+        Initialize();
+        PermissionsMock.Set('No. Series - Admin');
+
+        // [GIVEN] Create a No. Series
+        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        // [GIVEN] Create the first line with 10 numbers and no start day, and the 'Last No. Used' set to 'TEST0005'
+        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'TEST0001', 'TEST0010', 'TEST0005', 0D);
+        // [GIVEN] Create the second line with 10 numbers and the start date is today, and the 'Last No. Used' set to 'TEST0039', so only one number is left
+        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'TEST0030', 'TEST0040', 'TEST0039', Today());
+
+        PermissionsMock.SetExactPermissionSet('No. Series Test');
+
+        // [WHEN] Call GetNextNo and we get the last number from the second Series Line.
+        LibraryAssert.AreEqual('TEST0040', NoSeries.GetNextNo(NoSeriesCode, Today()), 'Get the last SN from the second Series Line');
+        // [Then] Call GetNextNo again, and we get an error since the second Series Line is out of SN although the first Series Line still has SN.
+        asserterror NoSeries.GetNextNo(NoSeriesCode, Today());
+        LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
+    end;
+
+#if not CLEAN24
+#pragma warning disable AL0432
+    [Test]
+    procedure TestGetNextNoWithMultipleLinesExhaustClosedLine_ObsoleteCode()
+    var
+        NoSeriesManagement: Codeunit NoSeriesManagement;
+        PermissionsMock: Codeunit "Permissions Mock";
+        NoSeriesCode: Code[20];
+    begin
+        // [Scenario] [Bug 538011] When we have multiple lines, the GetNextNo should return value from latest line. If there is no number left in the latest line, it should throw an error even there are numbers left in previous line.
+        // [GIVEN] Initialize the test
+        Initialize();
+        PermissionsMock.Set('No. Series - Admin');
+
+        // [GIVEN] Create a No. Series
+        NoSeriesCode := CopyStr(UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        // [GIVEN] Create the first line with 10 numbers and no start day, and the 'Last No. Used' set to 'TEST0005'
+        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'TEST0001', 'TEST0010', 'TEST0005', 0D);
+        // [GIVEN] Create the second line with 10 numbers and the start date is today, and the 'Last No. Used' set to 'TEST0039', so only one number is left
+        LibraryNoSeries.CreateNormalNoSeriesLine(NoSeriesCode, 1, 'TEST0030', 'TEST0040', 'TEST0039', Today());
+
+        PermissionsMock.SetExactPermissionSet('No. Series Test');
+
+        // [WHEN] Call GetNextNo and we get the last number from the second Series Line.
+        LibraryAssert.AreEqual('TEST0040', NoSeriesManagement.GetNextNo(NoSeriesCode, Today(), true), 'Get the last SN from the second Series Line');
+        // [Then] Call GetNextNo again, and we get an error since the second Series Line is out of SN although the first Series Line still has SN.
+        asserterror NoSeriesManagement.GetNextNo(NoSeriesCode, Today(), true);
+        LibraryAssert.ExpectedError(StrSubstNo(CannotAssignNewErr, NoSeriesCode));
+    end;
+#pragma warning restore AL0432
+#endif
     #endregion
 
     #region GetLastNoUsed

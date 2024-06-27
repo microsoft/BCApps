@@ -1,3 +1,4 @@
+#if not CLEAN25
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -7,6 +8,9 @@ namespace System.Automation;
 
 controladdin FlowIntegration
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '25.0';
+    ObsoleteReason = 'This add-in is deprecated. There is no replacement. Power Automate is supported natively without add-ins.';
     RequestedHeight = 600;
     MinimumHeight = 600;
     RequestedWidth = 320;
@@ -62,3 +66,4 @@ controladdin FlowIntegration
     /// <param name="Destination">Determines page that opens when one selects a template</param>
     procedure LoadTemplates(EnvironmentId: Text; SearchTerm: Text; PageSize: Text; Destination: Text);
 }
+#endif

@@ -124,6 +124,9 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
             exit(false);
         end;
 
+        if (TableId > 2000000000) and IsAppAllowListed(PublishedApplication.ID) then
+            exit(true);
+
         if AllObj."App Runtime Package ID" <> PublishedApplication."Runtime Package ID" then begin
             RetentionPolicyLog.LogWarning(LogCategory(), StrSubstNo(WrongModuleOwnerLbl, TableId, AllObj."Object Name", CallerModuleInfo.Id));
             exit(false);
@@ -422,4 +425,17 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
             RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(RefusedModifyingTableLbl, TableId));
     end;
 
+    local procedure IsAppAllowListed(AppId: Guid): Boolean
+    var
+        SystemApplicationId: Guid;
+        PerformanceProfilerId: Guid;
+    begin
+        SystemApplicationId := '63ca2fa4-4f03-4f2b-a480-172fef340d3f';
+        PerformanceProfilerId := '3ed12f72-47eb-4173-87c2-42ea99d60e67';
+
+        if AppId in [SystemApplicationId, PerformanceProfilerId] then
+            exit(true);
+
+        exit(false);
+    end;
 }
