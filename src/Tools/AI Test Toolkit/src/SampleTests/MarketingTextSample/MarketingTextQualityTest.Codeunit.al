@@ -1,6 +1,7 @@
 codeunit 149033 "Marketing Text Quality Test"
 {
     Subtype = Test;
+    TestPermissions = Disabled;
 
     var
         AITestContext: Codeunit "AIT Test Context";
