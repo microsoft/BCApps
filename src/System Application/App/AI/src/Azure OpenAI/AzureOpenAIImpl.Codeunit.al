@@ -597,7 +597,7 @@ codeunit 7772 "Azure OpenAI Impl"
             CustomDimensions.Add('AppId', Format(CallerModuleInfo.Id()));
             GlobalLanguage(SavedGlobalLanguageId);
 
-            FeatureTelemetry.LogError('0000LFN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetrySetCapabilityLbl, TelemetryCopilotCapabilityNotRegisteredLbl);
+            FeatureTelemetry.LogError('0000LFN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetrySetCapabilityLbl, TelemetryCopilotCapabilityNotRegisteredLbl, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
             ErrorMessage := StrSubstNo(CapabilityNotRegisteredErr, Capability);
             Error(ErrorMessage);
         end;
