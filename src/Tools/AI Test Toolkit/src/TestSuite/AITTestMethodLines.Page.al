@@ -52,11 +52,6 @@ page 149034 "AIT Test Method Lines"
                     ToolTip = 'Specifies a dataset that overrides the default dataset for the suite.';
                     ApplicationArea = All;
                 }
-                field("Delay (ms btwn. iter.)"; Rec."Delay (ms btwn. iter.)")
-                {
-                    ToolTip = 'Specifies the delay between iterations.';
-                    ApplicationArea = All;
-                }
                 field(Description; Rec.Description)
                 {
                     ToolTip = 'Specifies the description of the AIT line.';
@@ -66,18 +61,6 @@ page 149034 "AIT Test Method Lines"
                 {
                     ToolTip = 'Specifies the status of the AIT.';
                     ApplicationArea = All;
-                }
-                field(MinDelay; Rec."Min. User Delay (ms)")
-                {
-                    ToolTip = 'Specifies the min. user delay in ms of the AIT.';
-                    ApplicationArea = All;
-                    Visible = false;
-                }
-                field(MaxDelay; Rec."Max. User Delay (ms)")
-                {
-                    ToolTip = 'Specifies the max. user delay in ms of the AIT.';
-                    ApplicationArea = All;
-                    Visible = false;
                 }
                 field("No. of Tests"; Rec."No. of Tests")
                 {

@@ -47,16 +47,6 @@ page 149031 "AIT Test Suite"
                     ToolTip = 'Specifies the model version to be used by the tests.';
                     ApplicationArea = All;
                 }
-                field(MinDelay; Rec."Default Min. User Delay (ms)")
-                {
-                    ToolTip = 'Specifies the fastest user input.';
-                    ApplicationArea = All;
-                }
-                field(MaxDelay; Rec."Default Max. User Delay (ms)")
-                {
-                    ToolTip = 'Specifies the slowest user input.';
-                    ApplicationArea = All;
-                }
                 field("Test Runner Id"; this.TestRunnerDisplayName)
                 {
                     Caption = 'Test Runner';
