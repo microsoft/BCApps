@@ -16,16 +16,16 @@ controladdin BusinessChart
     HorizontalStretch = true;
     HorizontalShrink = true;
 
-    Scripts = 'Resources\BusinessChart\js\BusinessChartAddIn.js',
+    Scripts = '..\Resources\BusinessChart\js\BusinessChartAddIn.js',
               'https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.5.1.min.js',
               'https://code.highcharts.com/9.1.1/highcharts.js',
               'https://code.highcharts.com/9.1.1/highcharts-more.js',
               'https://code.highcharts.com/9.1.1/modules/accessibility.js',
               'https://code.highcharts.com/9.1.1/modules/funnel.js';
-    StartupScript = 'Resources\BusinessChart\js\Startup.js';
-    RecreateScript = 'Resources\BusinessChart\js\Recreate.js';
-    RefreshScript = 'Resources\BusinessChart\js\Refresh.js';
-    StyleSheets = 'Resources\BusinessChart\stylesheets\BusinessChartAddIn.css';
+    StartupScript = '..\Resources\BusinessChart\js\Startup.js';
+    RecreateScript = '..\Resources\BusinessChart\js\Recreate.js';
+    RefreshScript = '..\Resources\BusinessChart\js\Refresh.js';
+    StyleSheets = '..\Resources\BusinessChart\stylesheets\BusinessChartAddIn.css';
 
     /// <summary>
     /// Event raised when a data point has been clicked.

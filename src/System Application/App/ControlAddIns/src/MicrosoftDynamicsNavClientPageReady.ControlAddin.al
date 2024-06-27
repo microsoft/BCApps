@@ -10,8 +10,8 @@ controladdin "Microsoft.Dynamics.Nav.Client.PageReady"
     ObsoleteState = Pending;
     ObsoleteTag = '24.0';
     ObsoleteReason = 'Replaced with PageReady addin.';
-    Scripts = 'Resources\PageReady\js\PageReady.js';
-    StyleSheets = 'Resources\PageReady\stylesheets\PageReady.css';
+    Scripts = '..\Resources\PageReady\js\PageReady.js';
+    StyleSheets = '..\Resources\PageReady\stylesheets\PageReady.css';
     RequestedWidth = 0;
     RequestedHeight = 0;
     HorizontalStretch = false;

@@ -19,13 +19,13 @@ controladdin "Microsoft.Dynamics.Nav.Client.PowerBIManagement"
     HorizontalStretch = true;
     HorizontalShrink = true;
 
-    Scripts = 'Resources\PowerBIManagement\js\PowerBIManagement.js',
+    Scripts = '..\Resources\PowerBIManagement\js\PowerBIManagement.js',
               // The powerbi.js file comes from the nuget package: Microsoft.PowerBI.Javascript version: 2.22.2
               // https://github.com/microsoft/PowerBI-JavaScript/blob/master/dist/powerbi.js
               // The file below should point to the nuget package when the AL infrastructure supports it.
-              'Resources\PowerBIManagement\js\powerbi.js';
-    StartupScript = 'Resources\PowerBIManagement\js\Startup.js';
-    StyleSheets = 'Resources\PowerBIManagement\stylesheets\PowerBIManagement.css';
+              '..\Resources\PowerBIManagement\js\powerbi.js';
+    StartupScript = '..\Resources\PowerBIManagement\js\Startup.js';
+    StyleSheets = '..\Resources\PowerBIManagement\stylesheets\PowerBIManagement.css';
 
     /// <summary>
     /// Event that will be fired when the AddIn is ready for communication through its API

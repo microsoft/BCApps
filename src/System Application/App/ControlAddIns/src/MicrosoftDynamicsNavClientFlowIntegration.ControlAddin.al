@@ -19,11 +19,11 @@ controladdin "Microsoft.Dynamics.Nav.Client.FlowIntegration"
     HorizontalStretch = true;
     HorizontalShrink = true;
 
-    Scripts = 'Resources\FlowIntegration\js\msflowsdk-1.1.1.144.min.js',
-              'Resources\FlowIntegration\js\FlowIntegration.js';
-    StartupScript = 'Resources\FlowIntegration\js\Startup.js';
-    RecreateScript = 'Resources\FlowIntegration\js\Recreate.js';
-    RefreshScript = 'Resources\FlowIntegration\js\Refresh.js';
+    Scripts = '..\Resources\FlowIntegration\js\msflowsdk-1.1.1.144.min.js',
+              '..\Resources\FlowIntegration\js\FlowIntegration.js';
+    StartupScript = '..\Resources\FlowIntegration\js\Startup.js';
+    RecreateScript = '..\Resources\FlowIntegration\js\Recreate.js';
+    RefreshScript = '..\Resources\FlowIntegration\js\Refresh.js';
 
     /// <summary>
     /// Event raised when addin is done loading
