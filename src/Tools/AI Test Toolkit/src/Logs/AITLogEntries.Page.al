@@ -285,7 +285,7 @@ page 149033 "AIT Log Entries"
                 var
                     AIALTTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
                 begin
-                    AIALTTestSuiteMgt.DownloadTestOutputFromAITLLogToFile(Rec);
+                    AIALTTestSuiteMgt.DownloadTestOutputFromLogToFile(Rec);
                 end;
 
             }

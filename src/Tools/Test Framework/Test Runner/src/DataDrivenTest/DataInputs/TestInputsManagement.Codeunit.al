@@ -216,7 +216,7 @@ codeunit 130458 "Test Inputs Management"
         end;
 
         if TestInput.Code = '' then
-            this.AssingTestInputName(TestInput, TestInputGroup);
+            this.AssignTestInputName(TestInput, TestInputGroup);
 
         if TestInput.Description = '' then
             TestInput.Description := TestInput.Code;
@@ -254,7 +254,7 @@ codeunit 130458 "Test Inputs Management"
         exit(10000);
     end;
 
-    local procedure AssingTestInputName(var TestInput: Record "Test Input"; var TestInputGroup: Record "Test Input Group")
+    local procedure AssignTestInputName(var TestInput: Record "Test Input"; var TestInputGroup: Record "Test Input Group")
     var
         LastTestInput: Record "Test Input";
     begin
