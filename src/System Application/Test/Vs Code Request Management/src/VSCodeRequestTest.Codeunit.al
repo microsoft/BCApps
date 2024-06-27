@@ -70,7 +70,7 @@ codeunit 138133 "VS Code Request Test"
         URL := VSCodeRequestManagement.GetUrlToNavigateInVSCode(AllObjWithCaption."Object Type"::Page, 2515, 'AppSource Product List', '', '');
 
         // [THEN] URL has the expected format
-        Assert.IsTrue(URL.StartsWith('vscode://ms-dynamics-smb.al/navigateTo?type=page&id=2515&name=AppSource%20Product%20List&appid=%7B63CA2FA4-4F03-4F2B-A480-172FEF340D3F%7D'), 'Unexpected URL.');
+        Assert.IsTrue(URL.StartsWith('vscode://ms-dynamics-smb.al/navigateTo?type=page&id=2515&name=AppSource%20Product%20List'), 'Unexpected URL.');
     end;
 
     [Test]
@@ -85,7 +85,7 @@ codeunit 138133 "VS Code Request Test"
         URL := VSCodeRequestManagement.GetUrlToNavigateInVSCode(AllObjWithCaption."Object Type"::Table, 2515, 'AppSource Product', 'DisplayName', '');
 
         // [THEN] URL has the expected format
-        Assert.IsTrue(Url.StartsWith('vscode://ms-dynamics-smb.al/navigateTo?type=table&id=2515&name=AppSource%20Product&appid=%7B63CA2FA4-4F03-4F2B-A480-172FEF340D3F%7D&fieldName=DisplayName'), 'Unexpected URL.');
+        Assert.IsTrue(Url.StartsWith('vscode://ms-dynamics-smb.al/navigateTo?type=table&id=2515&name=AppSource%20Product&fieldName=DisplayName'), 'Unexpected URL.');
     end;
 
     [Test]

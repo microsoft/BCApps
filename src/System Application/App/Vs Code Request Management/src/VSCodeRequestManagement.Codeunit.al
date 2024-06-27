@@ -49,9 +49,9 @@ codeunit 8033 "VS Code Request Management"
         UriBuilder.AddQueryParameter('type', FormatObjectType(ObjectType));
         UriBuilder.AddQueryParameter('id', Format(ObjectId));
         UriBuilder.AddQueryParameter('name', ObjectName);
-        UriBuilder.AddQueryParameter('appid', GetAppIdForObject(ObjectType, ObjectId));
         if Text.StrLen(ControlName) <> 0 then
             UriBuilder.AddQueryParameter('fieldName', Format(ControlName));
+        UriBuilder.AddQueryParameter('appid', GetAppIdForObject(ObjectType, ObjectId));
         UriBuilder.SetQuery(UriBuilder.GetQuery() + '&' + VSCodeRequestHelper.GetLaunchInformationQueryPart());
         UriBuilder.AddQueryParameter('sessionId', Format(SessionId()));
 
