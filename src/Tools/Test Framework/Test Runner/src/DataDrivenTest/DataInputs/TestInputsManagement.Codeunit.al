@@ -106,7 +106,7 @@ codeunit 130458 "Test Inputs Management"
         this.UploadAndImportDataInputsFromJson(TestInputGroup);
     end;
 
-    internal procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream)
+    procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream)
     var
         TestInputGroup: Record "Test Input Group";
         InputText: Text;

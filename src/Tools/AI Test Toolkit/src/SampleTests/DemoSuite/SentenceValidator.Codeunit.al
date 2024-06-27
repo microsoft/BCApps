@@ -4,6 +4,7 @@ codeunit 149031 SentenceValidator
 {
     Access = Internal;
     Subtype = Test;
+    TestPermissions = Disabled;
 
     [Test]
     procedure AssertSentenceLengthFunction()
