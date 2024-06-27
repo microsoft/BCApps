@@ -224,7 +224,7 @@ codeunit 8951 "AFS File Client Impl."
 
         if AFSOperationResponse.IsSuccessful() then begin
             NextMarker := AFSHelperLibrary.GetNextMarkerFromResponse(ResponseText);
-            if (NextMarker <> '') or (not AFSDirectoryContent.IsEmpty()) then begin
+            if (NextMarker <> '') or (not AFSHandle.IsEmpty()) then begin
                 AFSHandle."Next Marker" := CopyStr(NextMarker, 1, MaxStrLen(AFSHandle."Next Marker"));
                 AFSHandle.Modify();
             end;
