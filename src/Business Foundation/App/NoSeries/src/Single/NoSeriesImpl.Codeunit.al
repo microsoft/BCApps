@@ -168,7 +168,6 @@ codeunit 304 "No. Series - Impl."
         NoSeriesLine2.SetCurrentKey("Series Code", "Starting Date");
         NoSeriesLine2.SetRange("Series Code", NoSeriesCode);
         NoSeriesLine2.SetRange("Starting Date", 0D, UsageDate);
-        NoSeriesLine2.SetRange(Open, true);
 #if not CLEAN24
 #pragma warning disable AL0432
         NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine2);
@@ -204,17 +203,18 @@ codeunit 304 "No. Series - Impl."
 
         if LineFound and NoSeries.MayProduceGaps(NoSeriesLine) then begin
             NoSeriesLine.Validate(Open);
-            if not NoSeriesLine.Open then begin
+            if not NoSeriesLine.Open then
                 NoSeriesLine.Modify(true);
-                exit(GetNoSeriesLine(NoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings));
-            end;
         end;
 
         if LineFound then begin
             // There may be multiple No. Series Lines for the same day, so find the first one.
+            NoSeriesLine.SetRange(Open, true);
             NoSeriesLine.SetRange("Starting Date", NoSeriesLine."Starting Date");
-            NoSeriesLine.FindFirst();
-        end else begin
+            LineFound := NoSeriesLine.FindFirst();
+        end;
+
+        if not LineFound then begin
             // Throw an error depending on the reason we couldn't find a date
             if HideErrorsAndWarnings then
                 exit(false);
