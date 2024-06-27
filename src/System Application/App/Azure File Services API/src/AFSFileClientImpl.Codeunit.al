@@ -170,6 +170,7 @@ codeunit 8951 "AFS File Client Impl."
         ResponseText: Text;
         NodeList: XmlNodeList;
         DirectoryURI: Text;
+        NextMarker: Text;
     begin
         Telemetry.LogMessage('0000M1X', ListingDirectoryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::ListDirectory);
@@ -188,8 +189,11 @@ codeunit 8951 "AFS File Client Impl."
         AFSHelperLibrary.DirectoryContentNodeListToTempRecord(DirectoryURI, DirectoryPath, NodeList, PreserveDirectoryContent, AFSDirectoryContent);
 
         if AFSOperationResponse.IsSuccessful() then begin
-            AFSDirectoryContent."Next Marker" := CopyStr(AFSHelperLibrary.GetNextMarkerFromResponse(ResponseText), 1, MaxStrLen(AFSDirectoryContent."Next Marker"));
-            AFSDirectoryContent.Modify();
+            NextMarker := AFSHelperLibrary.GetNextMarkerFromResponse(ResponseText);
+            if NextMarker <> '' or not AFSDirectoryContent.IsEmpty() then begin
+                AFSDirectoryContent."Next Marker" := CopyStr(NextMarker, 1, MaxStrLen(AFSDirectoryContent."Next Marker"));
+                AFSDirectoryContent.Modify();
+            end;
         end;
 
         exit(AFSOperationResponse);
@@ -202,6 +206,7 @@ codeunit 8951 "AFS File Client Impl."
         AFSOperation: Enum "AFS Operation";
         ResponseText: Text;
         NodeList: XmlNodeList;
+        NextMarker: Text;
     begin
         Telemetry.LogMessage('0000M20', ListingFileHandlesTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All);
         AFSOperationPayload.SetOperation(AFSOperation::ListFileHandles);
@@ -218,8 +223,11 @@ codeunit 8951 "AFS File Client Impl."
         AFSHelperLibrary.HandleNodeListToTempRecord(NodeList, AFSHandle);
 
         if AFSOperationResponse.IsSuccessful() then begin
-            AFSHandle."Next Marker" := CopyStr(AFSHelperLibrary.GetNextMarkerFromResponse(ResponseText), 1, MaxStrLen(AFSHandle."Next Marker"));
-            AFSHandle.Modify();
+            NextMarker := AFSHelperLibrary.GetNextMarkerFromResponse(ResponseText);
+            if NextMarker <> '' or not AFSDirectoryContent.IsEmpty() then begin
+                AFSHandle."Next Marker" := CopyStr(NextMarker, 1, MaxStrLen(AFSHandle."Next Marker"));
+                AFSHandle.Modify();
+            end;
         end;
 
         exit(AFSOperationResponse);
