@@ -67,10 +67,10 @@ codeunit 138133 "VS Code Request Test"
 
         // [GIVEN] a page's infomation
         // [WHEN] we generate the URL to send a request to VS Code to navigate to the page source 
-        URL := VSCodeRequestManagement.GetUrlToNavigateInVSCode(AllObjWithCaption."Object Type"::Page, 22, 'Customer List', '', '');
+        URL := VSCodeRequestManagement.GetUrlToNavigateInVSCode(AllObjWithCaption."Object Type"::Page, 2515, 'AppSource Product List', '', '');
 
         // [THEN] URL has the expected format
-        Assert.IsTrue(URL.StartsWith('vscode://ms-dynamics-smb.al/navigateTo?type=page&id=22&name=Customer%20List&appid=%7B437DBF0E-84FF-417A-965D-ED2BB9650972%7D'), 'Unexpected URL.');
+        Assert.IsTrue(URL.StartsWith('vscode://ms-dynamics-smb.al/navigateTo?type=page&id=2515&name=AppSource%20Product%20List&appid=%7B63CA2FA4-4F03-4F2B-A480-172FEF340D3F%7D'), 'Unexpected URL.');
     end;
 
     [Test]
@@ -82,10 +82,10 @@ codeunit 138133 "VS Code Request Test"
 
         // [GIVEN] a table field's infomation
         // [WHEN] we generate the URL to send a request to VS Code to navigate to the table field's definition in source code
-        URL := VSCodeRequestManagement.GetUrlToNavigateInVSCode(AllObjWithCaption."Object Type"::Table, 18, 'Customer', 'Name', '');
+        URL := VSCodeRequestManagement.GetUrlToNavigateInVSCode(AllObjWithCaption."Object Type"::Table, 2515, 'AppSource Product', 'DisplayName', '');
 
         // [THEN] URL has the expected format
-        Assert.IsTrue(Url.StartsWith('vscode://ms-dynamics-smb.al/navigateTo?type=table&id=18&name=Customer&appid=%7B437DBF0E-84FF-417A-965D-ED2BB9650972%7D&fieldName=Name'), 'Unexpected URL.');
+        Assert.IsTrue(Url.StartsWith('vscode://ms-dynamics-smb.al/navigateTo?type=table&id=2515&name=AppSource%20Product&appid=%7B63CA2FA4-4F03-4F2B-A480-172FEF340D3F%7D&fieldName=DisplayName'), 'Unexpected URL.');
     end;
 
     [Test]
