@@ -10,6 +10,30 @@ codeunit 149033 "Marketing Text Quality Test"
         Format: Enum "Entity Text Format";
         Tone: Enum "Entity Text Tone";
 
+    [Test] // Test No. 0
+    procedure CheckLengthOfMarketingText()
+    var
+        TestSetup: Codeunit "Test Input Json";
+        Answer: Text;
+        Facts: Dictionary of [Text, Text];
+    begin
+        // [Scenario] Test check the maximum length of the marketing text
+        // [GIVEN] Item with attributes
+        // Sample from the dataset:
+        // {"test_setup": {"Product Name":"ATHENS Mobile Pedestal","Color":"Black","Depth":"75 CM","Height":"90 CM","Material Description":"Wood","Model Year":"1942","Category":"Assorted Tables"}}
+        TestSetup := AITestContext.GetTestSetupAsJson();
+        Format := Enum::"Entity Text Format"::TaglineParagraph;
+        Tone := Enum::"Entity Text Tone"::Inspiring;
+        Facts := ItemJsonPropertiesToDictionary(TestSetup);
+
+        // [WHEN] Generate marketing text with inspiring tone
+        Answer := GenerateMarketingText(Facts, Tone, Format);
+
+        // [THEN] Assert that the length of the marketing text is less than or equal to 1000 characters
+        if StrLen(Answer) > 1000 then
+            Error('The length of the marketing text is greater than 1000 characters. Actual length: %1', StrLen(Answer));
+    end;
+
     [Test] // Test No. 1
     procedure TaglineParagraphInspiring()
     var
@@ -123,5 +147,11 @@ codeunit 149033 "Marketing Text Quality Test"
         end;
     end;
 
-
+    local procedure Assert(Expected: Integer; Actual: Integer; Message: Text)
+    var
+        ErrMsg: Label 'Expected %1 but got %2. \%3', Comment = '%1 = Expected, %2 = Actual, %3 = Message', Locked = true;
+    begin
+        if Actual <> Expected then
+            Error(ErrMsg, Expected, Actual, Message);
+    end;
 }

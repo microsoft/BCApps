@@ -1,6 +1,7 @@
 codeunit 149035 "SLS Accuracy Test"
 {
     Subtype = Test;
+    TestPermissions = Disabled;
 
     var
         ChatCompletionResponse: Codeunit "Test Input Json";
@@ -19,7 +20,6 @@ codeunit 149035 "SLS Accuracy Test"
 
         // Sample from the dataset: 
         // {"question": "Need all the items from sales invoice from last week to today", "ExpectedDocumentNo": "", "ExpectedStartDate": "LAST_WEEK", "ExpectedEndDate": "TODAY"}
-
         Question := AITestContext.GetQuestionAsText();
         ExpectedDocumentNo := AITestContext.GetInputAsJson().Element('ExpectedDocumentNo').ValueAsText();
         ExpectedStartDate := GetDateFromText(AITestContext.GetInputAsJson().Element('ExpectedStartDate').ValueAsText());
