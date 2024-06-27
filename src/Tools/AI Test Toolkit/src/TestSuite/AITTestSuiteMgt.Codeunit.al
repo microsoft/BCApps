@@ -333,7 +333,6 @@ codeunit 149034 "AIT Test Suite Mgt."
         Dimensions.Add('CodeunitName', AITLogEntry."Codeunit Name");
         Dimensions.Add('Operation', AITLogEntry.Operation);
         Dimensions.Add('Status', Format(AITLogEntry.Status));
-        Dimensions.Add('Message', AITLogEntry.GetMessage());
         Dimensions.Add('StartTime', Format(AITLogEntry."Start Time"));
         Dimensions.Add('EndTime', Format(AITLogEntry."End Time"));
         Dimensions.Add('DurationInMs', Format(AITLogEntry."Duration (ms)"));

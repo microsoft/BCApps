@@ -43,6 +43,7 @@ table 149034 "AIT Log Entry"
         }
         field(6; Message; Blob)
         {
+            DataClassification = CustomerContent;
             Caption = 'Message';
         }
         field(7; "Codeunit ID"; Integer)
@@ -110,6 +111,7 @@ table 149034 "AIT Log Entry"
         /// </summary>
         field(22; "Original Message"; Text[250])
         {
+            DataClassification = CustomerContent;
             Caption = 'Original Message';
         }
         /// <summary>
