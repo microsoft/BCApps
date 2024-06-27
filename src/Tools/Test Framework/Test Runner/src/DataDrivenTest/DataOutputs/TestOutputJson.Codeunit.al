@@ -254,6 +254,12 @@ codeunit 130462 "Test Output Json"
         exit(NewTestJson);
     end;
 
+    procedure AsJsonToken(): JsonToken
+    begin
+        exit(this.TestJson);
+    end;
+
+
     var
         TheElementIsNotAnObjectErr: Label 'DataOutput - The element is not an object, use a different method.';
         TheElementIsNotAnArrayErr: Label 'DataOutput - The element is not an array, use a different method.';
