@@ -16,6 +16,21 @@ Param(
 
 $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
 
+function DownloadHelperFile {
+    param(
+        [string] $url,
+        [string] $folder
+    )
+
+    $prevProgressPreference = $ProgressPreference; $ProgressPreference = 'SilentlyContinue'
+    $name = [System.IO.Path]::GetFileName($url)
+    Write-Host "Downloading $name from $url"
+    $path = Join-Path $folder $name
+    Invoke-WebRequest -UseBasicParsing -uri $url -OutFile $path
+    $ProgressPreference = $prevProgressPreference
+    return $path
+}
+
 try {
 Clear-Host
 Write-Host
@@ -29,17 +44,11 @@ Write-Host -ForegroundColor Yellow @'
 
 '@
 
-$webClient = New-Object System.Net.WebClient
-$webClient.CachePolicy = New-Object System.Net.Cache.RequestCachePolicy -argumentList ([System.Net.Cache.RequestCacheLevel]::NoCacheNoStore)
-$webClient.Encoding = [System.Text.Encoding]::UTF8
-$GitHubHelperUrl = 'https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v5.2/Github-Helper.psm1'
-Write-Host "Downloading GitHub Helper module from $GitHubHelperUrl"
-$GitHubHelperPath = "$([System.IO.Path]::GetTempFileName()).psm1"
-$webClient.DownloadFile($GitHubHelperUrl, $GitHubHelperPath)
-$ALGoHelperUrl = 'https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v5.2/AL-Go-Helper.ps1'
-Write-Host "Downloading AL-Go Helper script from $ALGoHelperUrl"
-$ALGoHelperPath = "$([System.IO.Path]::GetTempFileName()).ps1"
-$webClient.DownloadFile($ALGoHelperUrl, $ALGoHelperPath)
+$tmpFolder = Join-Path ([System.IO.Path]::GetTempPath()) "$([Guid]::NewGuid().ToString())"
+New-Item -Path $tmpFolder -ItemType Directory -Force | Out-Null
+$GitHubHelperPath = DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/3ecb65a53dfa9187e7b329bebdc443e42c6dde51/Actions/Github-Helper.psm1' -folder $tmpFolder
+$ALGoHelperPath = DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/3ecb65a53dfa9187e7b329bebdc443e42c6dde51/Actions/AL-Go-Helper.ps1' -folder $tmpFolder
+DownloadHelperFile -url 'https://raw.githubusercontent.com/microsoft/AL-Go/3ecb65a53dfa9187e7b329bebdc443e42c6dde51/Actions/Packages.json' -folder $tmpFolder | Out-Null
 
 Import-Module $GitHubHelperPath
 . $ALGoHelperPath -local
