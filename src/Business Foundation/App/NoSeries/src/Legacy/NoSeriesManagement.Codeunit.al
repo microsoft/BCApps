@@ -236,6 +236,7 @@ codeunit 396 NoSeriesManagement
         OnBeforeFilterSeries(NoSeries, NoSeriesCode, IsHandled);
     end;
 
+    [Obsolete('Please use method GetNextNo(Code[20]; Date) or PeekNextNo(Code[20]; UsageDate) in the codeunit "No. Series" or "No. Series - Batch" codeunit instead. Make sure to use the correct parameters.', '24.0')]
     procedure GetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean) Result: Code[20]
     var
         IsHandled: Boolean;
