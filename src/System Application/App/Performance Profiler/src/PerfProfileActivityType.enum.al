@@ -33,6 +33,6 @@ enum 1932 "Perf. Profile Activity Type"
     /// </summary>
     value(2; "Web API Client")
     {
-        Caption = 'Calling external components through REST calls';
+        Caption = 'Web Service Calls';
     }
 }
