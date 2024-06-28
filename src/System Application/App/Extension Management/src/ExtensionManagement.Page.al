@@ -208,24 +208,6 @@ page 2500 "Extension Management"
                         CurrPage.Update(false);
                     end;
                 }
-                action("Extension Marketplace")
-                {
-                    Caption = 'Extension Marketplace';
-                    Enabled = IsSaaS;
-                    Image = NewItem;
-                    ToolTip = 'Browse the extension marketplace for new extensions to install.';
-                    Visible = not IsOnPremDisplay;
-#if not CLEAN24                    
-#pragma warning disable AL0432
-                    RunObject = page "Extension Marketplace";
-#pragma warning restore AL0432
-#else                    
-                    trigger OnAction()
-                    begin
-                        Hyperlink('https://aka.ms/bcappsource');
-                    end;
-#endif
-                }
                 action("Microsoft AppSource Gallery")
                 {
                     Caption = 'AppSource Gallery';
@@ -273,7 +255,7 @@ page 2500 "Extension Management"
             {
                 Caption = 'Manage', Comment = 'Generated from the PromotedActionCategories property index 4.';
 
-                actionref("Extension Marketplace_Promoted"; "Extension Marketplace") { }
+                actionref("Microsoft AppSource Gallery_Promoted"; "Microsoft AppSource Gallery") { }
                 actionref("Upload Extension_Promoted"; "Upload Extension") { }
                 actionref("Deployment Status_Promoted"; "Deployment Status") { }
                 actionref(View_Promoted; View) { }
@@ -295,7 +277,7 @@ page 2500 "Extension Management"
 
         DetermineExtensionConfigurations();
 
-        VersionDisplay := GetVersionDisplayText();
+        VersionDisplay := ExtensionInstallationImpl.GetVersionDisplayString(Rec);
         SetInfoStyleForIsInstalled();
     end;
 
@@ -323,7 +305,6 @@ page 2500 "Extension Management"
         VersionDisplay: Text;
         ActionsEnabled: Boolean;
         IsSaaS: Boolean;
-        VersionFormatTxt: Label 'v. %1', Comment = 'v=version abbr, %1=Version string';
         SaaSCaptionTxt: Label 'Installed Extensions', Comment = 'The caption to display when on SaaS';
         IsTenantExtension: Boolean;
         CannotUnpublishIfInstalledMsg: Label 'The extension %1 cannot be unpublished because it is installed.', Comment = '%1 = name of extension';
@@ -366,11 +347,6 @@ page 2500 "Extension Management"
         // Determining Record and Styling Configurations
         IsInstalled := ExtensionInstallationImpl.IsInstalledByPackageId(Rec."Package ID");
         IsTenantExtension := Rec."Published As" <> Rec."Published As"::Global;
-    end;
-
-    local procedure GetVersionDisplayText(): Text
-    begin
-        exit(StrSubstNo(VersionFormatTxt, ExtensionInstallationImpl.GetVersionDisplayString(Rec)));
     end;
 
     local procedure SetInfoStyleForIsInstalled()
