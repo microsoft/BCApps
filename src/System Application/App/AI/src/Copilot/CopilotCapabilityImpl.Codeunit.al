@@ -144,7 +144,7 @@ codeunit 7774 "Copilot Capability Impl"
         CustomDimensions: Dictionary of [Text, Text];
     begin
         AddTelemetryDimensions(CopilotCapability, AppId, CustomDimensions);
-        Telemetry.LogMessage('0000LDY', TelemetryActivatedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All, CustomDimensions);
+        Telemetry.LogMessage('0000LDY', TelemetryActivatedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
     end;
 
     procedure SendDeactivateTelemetry(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; Reason: Option)
@@ -159,7 +159,7 @@ codeunit 7774 "Copilot Capability Impl"
         GlobalLanguage(Language.GetDefaultApplicationLanguageId());
 
         CustomDimensions.Add('Reason', Format(Reason));
-        Telemetry.LogMessage('0000LDZ', TelemetryDeactivatedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All, CustomDimensions);
+        Telemetry.LogMessage('0000LDZ', TelemetryDeactivatedCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
 
         GlobalLanguage(SavedGlobalLanguageId);
     end;
