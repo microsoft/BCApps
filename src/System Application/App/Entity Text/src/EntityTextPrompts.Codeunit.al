@@ -7,7 +7,7 @@ namespace System.Text;
 using System.Azure.KeyVault;
 using System.Telemetry;
 
-codeunit 2019 "Entity Text Prompts"
+codeunit 2016 "Entity Text Prompts"
 {
     Access = Internal;
     InherentEntitlements = X;
