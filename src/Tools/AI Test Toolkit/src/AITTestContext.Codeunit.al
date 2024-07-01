@@ -22,7 +22,6 @@ codeunit 149043 "AIT Test Context"
         GroundTruthTok: Label 'ground_truth', Locked = true;
         ExpectedDataTok: Label 'expected_data', Locked = true;
         TestMetricsTok: Label 'test_metrics', Locked = true;
-        TestOutputTok: Label 'test_output', Locked = true;
         TestSetupTok: Label 'test_setup', Locked = true;
         QuestionTok: Label 'question', Locked = true;
 

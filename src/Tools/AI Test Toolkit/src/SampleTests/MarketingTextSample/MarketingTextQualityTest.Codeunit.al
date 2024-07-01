@@ -134,7 +134,7 @@ codeunit 149033 "Marketing Text Quality Test"
         exit(FactsList);
     end;
 
-    local procedure GenerateMarketingText(Facts: Dictionary of [Text, Text]; Tone: Enum "Entity Text Tone"; Format: Enum "Entity Text Format"): Text
+    local procedure GenerateMarketingText(Facts: Dictionary of [Text, Text]; Tone2: Enum "Entity Text Tone"; Format2: Enum "Entity Text Format"): Text
     begin
         // Mocked Responses, replace this with actual logic to generate marketing text based on facts, tone, and format
         case Facts.Get('Product Name') of
@@ -145,13 +145,5 @@ codeunit 149033 "Marketing Text Quality Test"
             'MUNICH Swivel Chair, yellow':
                 exit('Introducing the MUNICH Swivel Chair in vibrant yellow, a perfect addition to any office space. <br /><br />- It''s luxuriously designed with a depth of 70 CM, a height of 110 CM, and a width of 90 CM, ensuring optimal comfort and fit for your workspace. <br />- The bold yellow color adds a pop of color and energy to your office. <br />- Crafted with high-quality material, it promises durability and longevity. <br /><br />Upgrade your office with the MUNICH Swivel Chair, where style meets comfort!');
         end;
-    end;
-
-    local procedure Assert(Expected: Integer; Actual: Integer; Message: Text)
-    var
-        ErrMsg: Label 'Expected %1 but got %2. \%3', Comment = '%1 = Expected, %2 = Actual, %3 = Message', Locked = true;
-    begin
-        if Actual <> Expected then
-            Error(ErrMsg, Expected, Actual, Message);
     end;
 }
