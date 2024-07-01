@@ -1,6 +1,102 @@
-## Preview
+## v5.2
 
-Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+### Issues
+- Issue 1084 Automatic updates for AL-Go are failing when main branch requires Pull Request
+
+### New Settings
+
+- `PowerPlatformSolutionFolder`: Contains the name of the folder containing a PowerPlatform Solution (only one)
+- `DeployTo<environment>` now has two additional properties `companyId` is the Company Id from Business Central (for PowerPlatform connection) and `ppEnvironmentUrl` is the Url of the PowerPlatform environment to deploy to.
+
+### New Actions
+
+- `BuildPowerPlatform`: to build a PowerPlatform Solution
+- `DeployPowerPlatform`: to deploy a PowerPlatform Solution
+- `PullPowerPlatformChanges`: to pull changes made in PowerPlatform studio into the repository
+- `ReadPowerPlatformSettings`: to read settings and secrets for PowerPlatform deployment
+- `GetArtifactsForDeployment`: originally code from deploy.ps1 to retrieve artifacts for releases or builds - now as an action to read apps into a folder.
+
+### New Workflows
+
+- **Pull PowerPlatform Changes** for pulling changes from your PowerPlatform development environment into your AL-Go for GitHub repository
+- **Push PowerPlatform Changes** for pushing changes from your AL-Go for GitHub repository to your PowerPlatform development environment
+
+> [!NOTE]
+> PowerPlatform workflows are only available in the PTE template and will be removed if no PowerPlatformSolutionFolder is defined in settings.
+
+### New Scenarios (Documentation)
+
+- [Connect your GitHub repository to Power Platform](https://github.com/microsoft/AL-Go/blob/main/Scenarios/SetupPowerPlatform.md)
+- [How to set up Service Principal for Power Platform](https://github.com/microsoft/AL-Go/blob/main/Scenarios/SetupServicePrincipalForPowerPlatform.md)
+- [Try one of the Business Central and Power Platform samples](https://github.com/microsoft/AL-Go/blob/main/Scenarios/TryPowerPlatformSamples.md)
+- [Publish To AppSource](https://github.com/microsoft/AL-Go/blob/main/Scenarios/PublishToAppSource.md)
+
+> [!NOTE]
+> PowerPlatform functionality are only available in the PTE template.
+
+## v5.1
+
+### Issues
+
+- Issue 1019 CI/CD Workflow still being scheduled after it was disabled
+- Issue 1021 Error during Create Online Development Environment action
+- Issue 1022 Error querying artifacts: No such host is known. (bcartifacts-exdbf9fwegejdqak.blob.core.windows.net:443)
+- Issue 922 Deploy Reference Documentation (ALDoc) failed with custom
+- ContainerName used during build was invalid if project names contained special characters
+- Issue 1009 by adding a includeDependencies property in DeliverToAppSource
+- Issue 997 'Deliver to AppSource' action fails for projects containing a space
+- Issue 987 Resource not accessible by integration when creating release from specific version
+- Issue 979 Publish to AppSource Documentation
+- Issue 1018 Artifact setting - possibility to read version from app.json
+- Issue 1008 Allow PullRequestHandler to use ubuntu or self hosted runners for all jobs except for pregateCheck
+- Issue 962 Finer control of "shell"-property
+- Issue 1041 Harden the version comparison when incrementing version number
+- Issue 1042 Downloading artifacts from GitHub doesn't work with branch names which include forward slashes
+
+### Better artifact selection
+
+The artifact setting in your project settings file can now contain a `*` instead of the version number. This means that AL-Go for GitHub will determine the application dependency for your projects together with the `applicationDependency` setting and determine which Business Central version is needed for the project.
+- `"artifact": "//*//latest"` will give you the latest Business Central version, higher than your application dependency and with the same major.minor as your application dependency.
+- `"artifact": "//*//first"` will give you the first Business Central version, higher than your application dependency and with the same major.minor as your application dependency.
+
+### New Settings
+
+- `deliverToAppSource`: a JSON object containing the following properties
+  - **productId** must be the product Id from partner Center.
+  - **mainAppFolder** specifies the appFolder of the main app if you have multiple apps in the same project.
+  - **continuousDelivery** can be set to true to enable continuous delivery of every successful build to AppSource Validation. Note that the app will only be in preview in AppSource and you will need to manually press GO LIVE in order for the app to be promoted to production.
+  - **includeDependencies** can be set to an array of file names (incl. wildcards) which are the names of the dependencies to include in the AppSource submission. Note that you need to set `generateDependencyArtifact` in the project settings file to true in order to include dependencies.
+- Add `shell` as a property under `DeployTo` structure
+
+### Deprecated Settings
+
+- `appSourceContinuousDelivery` is moved to the `deliverToAppSource` structure
+- `appSourceMainAppFolder` is moved to the `deliverToAppSource` structure
+- `appSourceProductId` is moved to the `deliverToAppSource` structure
+
+### New parameter -clean on localdevenv and clouddevenv
+
+Adding -clean when running localdevenv or clouddevenv will create a clean development environment without compiling and publishing your apps.
+
+## v5.0
+
+### Issues
+- Issue 940 Publish to Environment is broken when specifying projects to publish
+- Issue 994 CI/CD ignores Deploy to GitHub Pages in private repositories
+
+### New Settings
+- `UpdateALGoSystemFilesEnvironment`: The name of the environment that is referenced in job `UpdateALGoSystemFiles` in the _Update AL-Go System Files_ workflow. See [jobs.<job_id>.environment](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idenvironment) for more information. Currently, only setting the environment name is supported.
+
+### Issues
+- Support release branches that start with releases/
+- Issue 870 Improve Error Handling when CLI is missing
+- Issue 889 CreateRelease and IncrementVersionNumber workflow did not handle wild characters in `appFolders`, `testFolders` or `bcptTestFolders` settings.
+- Issue 973 Prerelease is not used for deployment
+
+### Build modes
+AL-Go ships with Default, Translated and Clean mode out of the box. Now you can also define custom build modes in addition to the ones shipped with AL-Go. This allows you to define your own build modes, which can be used to build your apps in different ways. By default, a custom build mode will build the apps similarly to the Default mode but this behavior can be overridden in e.g. script overrides in your repository.
+
+## v4.1
 
 ### New Settings
 - `templateSha`: The SHA of the version of AL-Go currently used
@@ -33,7 +129,7 @@ If false, the templateSha repository setting is used to download specific AL-Go 
   - **footer** = Footer for the documentation site. (Default: Made with...)
   - **defaultIndexMD** = Markdown for the landing page of the documentation site. (Default: Reference documentation...)
   - **defaultReleaseMD** = Markdown for the landing page of the release sites. (Default: Release reference documentation...)
-  - *Note that in header, footer, defaultIndexMD and defaultReleaseMD you can use the following placeholders: {REPOSITORY}, {VERSION}, {INDEXTEMPLATERELATIVEPATH}, {RELEASENOTES}* 
+  - *Note that in header, footer, defaultIndexMD and defaultReleaseMD you can use the following placeholders: {REPOSITORY}, {VERSION}, {INDEXTEMPLATERELATIVEPATH}, {RELEASENOTES}*
 
 ### New Workflows
 - **Deploy Reference Documentation** is a workflow, which you can invoke manually or on a schedule to generate and deploy reference documentation using the aldoc tool, using the ALDoc setting properties described above.
