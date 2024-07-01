@@ -24,12 +24,13 @@ codeunit 139484 "Telemetry Loggers Test"
         TelemetryImpl: Codeunit "Telemetry Impl.";
         TestTelemetryLogger: Codeunit "Test Telemetry Logger";
         EmptyCustomDimensions: Dictionary of [Text, Text];
+        DummyCallStackPublishers: List of [Text];
     begin
         // [GIVEN] The test implementation of the telemetry logger interface is registered as the current implementation (see OnRegisterTelemetryLogger subscriber).
         BindSubscription(TestTelemetryLogger);
 
         // [WHEN] A telemetry message is logged via the Telemetry Codeunit.
-        TelemetryImpl.LogMessageInternal(CurrentEventIdTxt, CurrentMessageTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, EmptyCustomDimensions, EmptyCustomDimensions, TestPublisherTxt);
+        TelemetryImpl.LogMessageInternal(CurrentEventIdTxt, CurrentMessageTxt, Verbosity::Normal, DataClassification::SystemMetadata, Enum::"AL Telemetry Scope"::ExtensionPublisher, EmptyCustomDimensions, EmptyCustomDimensions, TestPublisherTxt, DummyCallStackPublishers);
 
         // [THEN] The correct information is passed to the inteface (verified in the LogMessage method).
     end;
@@ -40,12 +41,14 @@ codeunit 139484 "Telemetry Loggers Test"
         TelemetryImpl: Codeunit "Telemetry Impl.";
         ErrorTelemetryLogger: Codeunit "Error Telemetry Logger";
         EmptyCustomDimensions: Dictionary of [Text, Text];
+        DummyCallStackPublishers: List of [Text];
     begin
         // [GIVEN] The test implementation of the telemetry logger interface is registered as the current implementation (see OnRegisterTelemetryLogger subscriber).
         BindSubscription(ErrorTelemetryLogger);
 
+        DummyCallStackPublishers.Add(TestPublisherTxt);
         // [WHEN] A telemetry message is logged via the Telemetry Codeunit with an event ID that is not expected by the verification.
-        asserterror TelemetryImpl.LogMessageInternal(CurrentEventIdTxt, CurrentMessageTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, EmptyCustomDimensions, EmptyCustomDimensions, TestPublisherTxt);
+        asserterror TelemetryImpl.LogMessageInternal(CurrentEventIdTxt, CurrentMessageTxt, Verbosity::Normal, DataClassification::SystemMetadata, Enum::"AL Telemetry Scope"::ExtensionPublisher, EmptyCustomDimensions, EmptyCustomDimensions, TestPublisherTxt, DummyCallStackPublishers);
 
         // [THEN] The assertion fails, confirming that LogMessage is called when the subscribers are active.
         Assert.ExpectedError('Error when logging telemetry.');
@@ -56,9 +59,10 @@ codeunit 139484 "Telemetry Loggers Test"
     var
         TelemetryImpl: Codeunit "Telemetry Impl.";
         EmptyCustomDimensions: Dictionary of [Text, Text];
+        DummyCallStackPublishers: List of [Text];
     begin
         // [GIVEN] The test implementation of the telemetry logger interface is not registered as the current implementation.
-        TelemetryImpl.LogMessageInternal('AnotherEventID', 'AnotherMessage', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, EmptyCustomDimensions, EmptyCustomDimensions, TestPublisherTxt);
+        TelemetryImpl.LogMessageInternal('AnotherEventID', 'AnotherMessage', Verbosity::Normal, DataClassification::SystemMetadata, Enum::"AL Telemetry Scope"::ExtensionPublisher, EmptyCustomDimensions, EmptyCustomDimensions, TestPublisherTxt, DummyCallStackPublishers);
 
         // [THEN] The implementation was not registered. No failures.
     end;

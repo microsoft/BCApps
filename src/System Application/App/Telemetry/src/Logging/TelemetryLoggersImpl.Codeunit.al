@@ -12,10 +12,9 @@ codeunit 8709 "Telemetry Loggers Impl."
     InherentPermissions = X;
 
     var
-        CurrentTelemetryLogger: Interface "Telemetry Logger";
-        CurrentPublisher: Text;
-        IsLoggerFound: Boolean;
-        MultipleTelemetryLoggersFoundErr: Label 'More than one telemetry logger has been registered for publisher %1.', Locked = true;
+        RegisteredTelemetryLoggers: List of [Interface "Telemetry Logger"];
+        RegisteredPublishers: List of [Text];
+        CallStackPublishers: List of [Text];
         NoPublisherErr: Label 'An app from publisher %1 is sending telemetry, but there is no registered telemetry logger for this publisher.', Locked = true;
         RichTelemetryUsedTxt: Label 'A 3rd party app from publisher %1 is using rich telemetry.', Locked = true;
         TelemetryLibraryCategoryTxt: Label 'TelemetryLibrary', Locked = true;
@@ -23,28 +22,42 @@ codeunit 8709 "Telemetry Loggers Impl."
 
     procedure Register(TelemetryLogger: Interface "Telemetry Logger"; Publisher: Text)
     begin
-        if Publisher = CurrentPublisher then
-            if not IsLoggerFound then begin
-                CurrentTelemetryLogger := TelemetryLogger;
-                IsLoggerFound := true;
-            end else
-                Session.LogMessage('0000G7J', StrSubstNo(MultipleTelemetryLoggersFoundErr, Publisher), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryLibraryCategoryTxt)
+        if not CallStackPublishers.Contains(Publisher) then
+            exit;
+
+        if not RegisteredPublishers.Contains(Publisher) then begin
+            RegisteredTelemetryLoggers.Add(TelemetryLogger);
+            RegisteredPublishers.Add(Publisher);
+        end;
     end;
 
-    internal procedure GetTelemetryLogger(var TelemetryLogger: Interface "Telemetry Logger"): Boolean
+    internal procedure GetTelemetryLogger(Publisher: Text; var TelemetryLogger: Interface "Telemetry Logger"): Boolean
+    var
+        IsLoggerFound: Boolean;
     begin
+        IsLoggerFound := RegisteredPublishers.Contains(Publisher);
+
         if IsLoggerFound then begin
-            TelemetryLogger := CurrentTelemetryLogger;
-            if CurrentPublisher <> FirstPartyPublisherTxt then
-                Session.LogMessage('0000HIW', StrSubstNo(RichTelemetryUsedTxt, CurrentPublisher), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryLibraryCategoryTxt);
+            TelemetryLogger := RegisteredTelemetryLoggers.Get(RegisteredPublishers.IndexOf(Publisher));
+            if Publisher <> FirstPartyPublisherTxt then
+                Session.LogMessage('0000HIW', StrSubstNo(RichTelemetryUsedTxt, Publisher), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryLibraryCategoryTxt);
         end else
-            Session.LogMessage('0000G7K', StrSubstNo(NoPublisherErr, CurrentPublisher), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryLibraryCategoryTxt);
+            Session.LogMessage('0000G7K', StrSubstNo(NoPublisherErr, Publisher), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryLibraryCategoryTxt);
 
         exit(IsLoggerFound);
     end;
 
-    internal procedure SetCurrentPublisher(Publisher: Text)
+    internal procedure GetRelevantTelemetryLoggers(ExcludePublisher: Text) RelevantTelemetryLoggers: List of [Interface "Telemetry Logger"]
+    var
+        Publisher: Text;
     begin
-        CurrentPublisher := Publisher;
+        foreach Publisher in RegisteredPublishers do
+            if Publisher <> ExcludePublisher then
+                RelevantTelemetryLoggers.Add(RegisteredTelemetryLoggers.Get(RegisteredPublishers.IndexOf(Publisher)));
+    end;
+
+    internal procedure SetCallStackPublishers(Publishers: List of [Text])
+    begin
+        CallStackPublishers := Publishers;
     end;
 }
