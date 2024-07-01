@@ -7,7 +7,6 @@ namespace System.TestTools.AITestToolkit;
 
 using System.Environment;
 using System.TestTools.TestRunner;
-using System.Xml;
 using System.Utilities;
 
 page 149042 "AIT CommandLine Card"
@@ -41,6 +40,17 @@ page 149042 "AIT CommandLine Card"
                         NoOfTests := AITTestMethodLine.Count();
                     end;
                 }
+                field("No. of Tests"; NoOfTests)
+                {
+                    Caption = 'No. of Tests', Locked = true;
+                    ToolTip = 'Specifies the number of AIT Suite Lines present in the AIT Suite';
+                    Editable = false;
+                }
+            }
+            group(DatasetGroup)
+            {
+                ShowCaption = false;
+
                 field("Input Dataset Filename"; InputDatasetFilename)
                 {
                     Caption = 'Input Dataset Filename', Locked = true;
@@ -72,6 +82,11 @@ page 149042 "AIT CommandLine Card"
                         TestInputsManagement.UploadAndImportDataInputsFromJson(InputDatasetFilename, InputDatasetInStream);
                     end;
                 }
+            }
+            group(SuiteDefinitionGroup)
+            {
+                ShowCaption = false;
+
                 field("Suite Definition"; SuiteDefinition)
                 {
                     Caption = 'Suite Definition', Locked = true;
@@ -100,12 +115,6 @@ page 149042 "AIT CommandLine Card"
                         if not Xmlport.Import(XMLPORT::"AIT Test Suite Import/Export", SuiteDefinitionInStream) then
                             Error('Error importing Suite Definition.');
                     end;
-                }
-                field("No. of Tests"; NoOfTests)
-                {
-                    Caption = 'No. of Tests', Locked = true;
-                    ToolTip = 'Specifies the number of AIT Suite Lines present in the AIT Suite';
-                    Editable = false;
                 }
             }
         }
