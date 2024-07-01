@@ -31,9 +31,9 @@ codeunit 7772 "Azure OpenAI Impl"
         Telemetry: Codeunit Telemetry;
         InvalidModelTypeErr: Label 'Selected model type is not supported.';
         GenerateRequestFailedErr: Label 'The request did not return a success status code.';
-        CompletionsFailedWithCodeErr: Label 'The text completions generation failed.';
-        EmbeddingsFailedWithCodeErr: Label 'The embeddings generation failed.';
-        ChatCompletionsFailedWithCodeErr: Label 'The chat completions generation failed.';
+        CompletionsFailedWithCodeErr: Label 'Text completions failed to be generated';
+        EmbeddingsFailedWithCodeErr: Label 'Embeddings failed to be generated.';
+        ChatCompletionsFailedWithCodeErr: Label 'Chat completions failed to be generated.';
         AuthenticationNotConfiguredErr: Label 'The authentication was not configured.';
         CopilotNotEnabledErr: Label 'Copilot is not enabled. Please contact your system administrator.';
         CopilotCapabilityNotSetErr: Label 'Copilot capability has not been set.';
@@ -47,22 +47,22 @@ codeunit 7772 "Azure OpenAI Impl"
         EnabledKeyTok: Label 'AOAI-Enabled', Locked = true;
         FunctionCallingFunctionNotFoundErr: Label 'Function call not found, %1.', Comment = '%1 is the name of the function';
         AllowlistedTenantsAkvKeyTok: Label 'AOAI-Allow-1P-Auth', Locked = true;
-        TelemetryGenerateTextCompletionLbl: Label 'Generate Text Completion', Locked = true;
-        TelemetryGenerateEmbeddingLbl: Label 'Generate Embedding', Locked = true;
-        TelemetryGenerateChatCompletionLbl: Label 'Generate Chat Completion', Locked = true;
-        TelemetryChatCompletionToolCallLbl: Label 'The chat completion called tools.', Locked = true;
+        TelemetryGenerateTextCompletionLbl: Label 'Text completion generated.', Locked = true;
+        TelemetryGenerateEmbeddingLbl: Label 'Embedding generated.', Locked = true;
+        TelemetryGenerateChatCompletionLbl: Label 'Chat Completion generated.', Locked = true;
+        TelemetryChatCompletionToolCallLbl: Label 'Tools called by chat completion.', Locked = true;
         TelemetryChatCompletionToolUsedLbl: Label 'Tools added to chat completion.', Locked = true;
         TelemetrySetCapabilityLbl: Label 'Set Capability', Locked = true;
-        TelemetryCopilotCapabilityNotRegisteredLbl: Label 'Copilot capability was not registered.', Locked = true;
+        TelemetryCopilotCapabilityNotRegisteredLbl: Label 'Copilot capability not registered.', Locked = true;
         TelemetryIsEnabledLbl: Label 'Is Enabled', Locked = true;
         TelemetryUnableToCheckEnvironmentKVTxt: Label 'Unable to check if environment is allowed to run AOAI.', Locked = true;
         TelemetryEnvironmentNotAllowedtoRunCopilotTxt: Label 'Copilot is not allowed on this environment.', Locked = true;
-        TelemetryProhibitedCharactersTxt: Label 'Prohibited characters were removed from the prompt.', Locked = true;
+        TelemetryProhibitedCharactersTxt: Label 'Prohibited characters removed from the prompt.', Locked = true;
         TelemetryTokenCountLbl: Label 'Metaprompt token count: %1, Prompt token count: %2, Total token count: %3', Comment = '%1 is the number of tokens in the metaprompt, %2 is the number of tokens in the prompt, %3 is the total number of tokens', Locked = true;
         TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
         TelemetryFunctionCallingFailedErr: Label 'Function calling failed for function: %1', Comment = '%1 is the name of the function', Locked = true;
         TelemetryEmptyTenantIdErr: Label 'Empty or malformed tenant ID.', Locked = true;
-        TelemetryTenantAllowlistedMsg: Label 'The current tenant is allowlisted for first party auth.', Locked = true;
+        TelemetryTenantAllowlistedMsg: Label 'Current tenant allowlisted for first party auth.', Locked = true;
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
