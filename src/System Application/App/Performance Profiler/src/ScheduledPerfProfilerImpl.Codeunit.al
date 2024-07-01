@@ -216,5 +216,4 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         ProfileCannotBeInThePastErr: Label 'A schedule cannot be set to run in the past.';
         ScheduleDurationCannotExceedRetentionPeriodErr: Label 'The performance profile schedule duration cannot exceed the retention period.';
         ScheduleEndTimeCannotBeEmptyErr: Label 'The performance profile schedule must have an end time.';
-
 }
