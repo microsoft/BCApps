@@ -9,12 +9,15 @@ using System.PerformanceProfile;
 using System.DataAdministration;
 using System.Security.AccessControl;
 using System.Security.User;
+using System.Environment;
+using System.Environment.Configuration;
 
 codeunit 1932 "Scheduled Perf. Profiler Impl."
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    SingleInstance = true;
 
     procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Perf. Profile Activity Type")
     var
@@ -190,10 +193,32 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         exit(true);
     end;
 
+    internal procedure IsProfilingEnabled(var ScheduleId: Guid): Boolean
+    var
+        ProfilerHelper: DotNet ProfilerHelper;
+        PerformanceProfileSchedulerRecord: DotNet PerformanceProfileSchedulerRecord;
+    begin
+        PerformanceProfileSchedulerRecord := ProfilerHelper.GetScheduleBasedProfilingStatus();
+        ScheduleId := PerformanceProfileSchedulerRecord.ScheduleId;
+        exit(PerformanceProfileSchedulerRecord.IsProfiling());
+    end;
+
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetProfilerSchedulesPageId, '', false, false)]
+    local procedure GetProfilerSchedulesPageId(var PageId: Integer)
+    begin
+        PageId := Page::"Perf. Profiler Schedules List";
+    end;
+
     var
         ProfileStartingDateLessThenEndingDateErr: Label 'The performance profile starting date must be set before the ending date.';
         ProfileHasAlreadyBeenScheduledErr: Label 'Only one performance profile session can be scheduled for a given activity type for a given user for a given period.';
         ProfileCannotBeInThePastErr: Label 'A schedule cannot be set to run in the past.';
         ScheduleDurationCannotExceedRetentionPeriodErr: Label 'The performance profile schedule duration cannot exceed the retention period.';
         ScheduleEndTimeCannotBeEmptyErr: Label 'The performance profile schedule must have an end time.';
+        ScheduleCouldNotBeFoundErr: Label 'The performance profile schedule could not be found.';
+        SessionIsBeingProfiledTxt: Label 'Performance analysis is enabled for this session. You may experience some performance degradation.';
+        ScheduleIdKeyTxt: Label 'Schedule ID';
+        ViewScheduleTxt: Label 'View performance profile schedule';
+
 }

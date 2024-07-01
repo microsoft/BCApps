@@ -123,4 +123,14 @@ codeunit 1931 "Scheduled Perf. Profiler"
     begin
         ScheduledPerfProfilerImpl.ValidateThreshold(PerformanceProfileScheduler);
     end;
+
+    /// <summary>
+    /// Returns true if profiling is enabled for the session.
+    /// </summary>
+    /// <param name="ScheduleID">The schedule ID that triggers the profiling.</param>
+    /// <returns>True if profiling is enabled, false otherwise.</returns>
+    procedure IsProfilingEnabled(var ScheduleID: Guid): Boolean
+    begin
+        exit(ScheduledPerfProfilerImpl.IsProfilingEnabled(ScheduleID));
+    end;
 }
