@@ -44,9 +44,9 @@ codeunit 149043 "AIT Test Context"
     /// <returns>The test input value as text.</returns>
     procedure GetInput(): Text
     var
-        TestInputCU: Codeunit "Test Input";
+        TestInput: Codeunit "Test Input";
     begin
-        exit(TestInputCU.GetTestInputValue());
+        exit(TestInput.GetTestInputValue());
     end;
 
     /// <summary>
@@ -54,9 +54,9 @@ codeunit 149043 "AIT Test Context"
     /// </summary>
     procedure GetInputAsJson() TestInputJson: Codeunit "Test Input Json"
     var
-        TestInputCU: Codeunit "Test Input";
+        TestInput: Codeunit "Test Input";
     begin
-        exit(TestInputCU.GetTestInput());
+        exit(TestInput.GetTestInput());
     end;
 
     /// <summary>
@@ -74,9 +74,9 @@ codeunit 149043 "AIT Test Context"
     /// <returns>A Test Input Json codeunit for the test_setup element.</returns>
     procedure GetTestSetupAsJson() TestInputJson: Codeunit "Test Input Json"
     var
-        TestInputCU: Codeunit "Test Input";
+        TestInput: Codeunit "Test Input";
     begin
-        TestInputJson := TestInputCU.GetTestInput(TestSetupTok);
+        TestInputJson := TestInput.GetTestInput(TestSetupTok);
     end;
 
 
@@ -95,9 +95,9 @@ codeunit 149043 "AIT Test Context"
     /// </summary>
     procedure GetContextAsJson() TestInputJson: Codeunit "Test Input Json"
     var
-        TestInputCU: Codeunit "Test Input";
+        TestInput: Codeunit "Test Input";
     begin
-        TestInputJson := TestInputCU.GetTestInput(ContextTok);
+        TestInputJson := TestInput.GetTestInput(ContextTok);
     end;
 
     /// <summary>
@@ -115,9 +115,9 @@ codeunit 149043 "AIT Test Context"
     /// <returns>A Test Input Json codeunit for the question element.</returns>
     procedure GetQuestionAsJson() TestInputJson: Codeunit "Test Input Json"
     var
-        TestInputCU: Codeunit "Test Input";
+        TestInput: Codeunit "Test Input";
     begin
-        TestInputJson := TestInputCU.GetTestInput(QuestionTok);
+        TestInputJson := TestInput.GetTestInput(QuestionTok);
     end;
 
     /// <summary>
@@ -135,9 +135,9 @@ codeunit 149043 "AIT Test Context"
     /// </summary>
     procedure GetGroundTruthAsJson() TestInputJson: Codeunit "Test Input Json"
     var
-        TestInputCU: Codeunit "Test Input";
+        TestInput: Codeunit "Test Input";
     begin
-        TestInputJson := TestInputCU.GetTestInput(GroundTruthTok);
+        TestInputJson := TestInput.GetTestInput(GroundTruthTok);
     end;
 
     /// <summary>
@@ -157,9 +157,9 @@ codeunit 149043 "AIT Test Context"
     /// <returns>Test Input Json for the expected data</returns>
     procedure GetExpectedDataTokAsJson() TestInputJson: Codeunit "Test Input Json"
     var
-        TestInputCU: Codeunit "Test Input";
+        TestInput: Codeunit "Test Input";
     begin
-        TestInputJson := TestInputCU.GetTestInput(ExpectedDataTok);
+        TestInputJson := TestInput.GetTestInput(ExpectedDataTok);
     end;
 
     /// <summary>
@@ -285,11 +285,11 @@ codeunit 149043 "AIT Test Context"
     local procedure CopyElementToOutput(ElementName: Text)
     var
         TestOutputCU: Codeunit "Test Output";
-        TestInputCU: Codeunit "Test Input";
+        TestInput: Codeunit "Test Input";
     begin
-        if TestInputCU.GetTestInput(ElementName).ElementValue().IsNull() then
+        if TestInput.GetTestInput(ElementName).ElementValue().IsNull() then
             exit;
 
-        TestOutputCU.TestData().Add(ElementName, TestInputCU.GetTestInput(ElementName).ValueAsText());
+        TestOutputCU.TestData().Add(ElementName, TestInput.GetTestInput(ElementName).ValueAsText());
     end;
 }
