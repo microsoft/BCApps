@@ -35,13 +35,6 @@ table 149030 "AIT Test Suite"
             Caption = 'Started at';
             Editable = false;
         }
-        field(6; "Default Delay (ms)"; Integer)
-        {
-            Caption = 'Default Delay (ms) between tests';
-            InitValue = 100;
-            MinValue = 1;
-            MaxValue = 10000;
-        }
         field(7; "Input Dataset"; Code[100])
         {
             Caption = 'Input Dataset';
@@ -51,11 +44,6 @@ table 149030 "AIT Test Suite"
         field(8; "Ended at"; DateTime)
         {
             Caption = 'Ended at';
-            Editable = false;
-        }
-        field(9; "Duration"; Duration)
-        {
-            Caption = 'Duration';
             Editable = false;
         }
         field(10; "No. of tests running"; Integer)
@@ -110,26 +98,6 @@ table 149030 "AIT Test Suite"
             Caption = 'Version';
             Editable = false;
             DataClassification = SystemMetadata;
-        }
-        field(14; "Default Min. User Delay (ms)"; Integer)
-        {
-            Caption = 'Default Min. User Delay (ms)';
-            InitValue = 100;
-            MinValue = 100;
-            MaxValue = 10000;
-        }
-        field(15; "Default Max. User Delay (ms)"; Integer)
-        {
-            Caption = 'Default Max. User Delay (ms)';
-            InitValue = 1000;
-            MinValue = 100;
-            MaxValue = 30000;
-
-            trigger OnValidate()
-            begin
-                if "Default Max. User Delay (ms)" < "Default Min. User Delay (ms)" then
-                    "Default Max. User Delay (ms)" := "Default Min. User Delay (ms)";
-            end;
         }
         field(16; "Base Version"; Integer)
         {

@@ -48,22 +48,10 @@ page 149037 "AIT Suite Line API"
                 {
                     Caption = 'Description';
                 }
-                field("delayBetweenIterations"; Rec."Delay (ms btwn. iter.)")
-                {
-                    Caption = 'Delay between iterations (ms.)';
-                }
                 field(dataset; Rec."Input Dataset")
                 {
                     Caption = 'Override the suite dataset';
                     TableRelation = "Test Input Group".Code;
-                }
-                field("minimumUserDelay"; Rec."Min. User Delay (ms)")
-                {
-                    Caption = 'Min. User Delay (ms)';
-                }
-                field("maximumUserDelay"; Rec."Max. User Delay (ms)")
-                {
-                    Caption = 'Max. User Delay (ms)';
                 }
             }
         }

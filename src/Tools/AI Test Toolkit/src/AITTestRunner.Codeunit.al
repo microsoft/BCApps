@@ -19,7 +19,6 @@ codeunit 149042 "AIT Test Runner"
         ActiveAITTestSuite: Record "AIT Test Suite";
         GlobalTestMethodLine: Record "Test Method Line";
         NoOfInsertedLogEntries: Integer;
-        AccumulatedWaitTimeMs: Integer;
 
     trigger OnRun();
     begin
@@ -28,7 +27,6 @@ codeunit 149042 "AIT Test Runner"
         this.SetAITTestMethodLine(Rec);
 
         this.NoOfInsertedLogEntries := 0;
-        this.AccumulatedWaitTimeMs := 0;
 
         this.InitializeAITTestMethodLineForRun(Rec, this.ActiveAITTestSuite);
         this.SetAITTestSuite(this.ActiveAITTestSuite);
@@ -44,23 +42,15 @@ codeunit 149042 "AIT Test Runner"
 
         if AITTestMethodLine."Input Dataset" = '' then
             AITTestMethodLine."Input Dataset" := (AITTestSuite."Input Dataset");
-
-        if AITTestMethodLine."Delay (ms btwn. iter.)" < 1 then
-            AITTestMethodLine."Delay (ms btwn. iter.)" := AITTestSuite."Default Delay (ms)";
     end;
 
     local procedure RunAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line"; var AITTestSuite: Record "AIT Test Suite")
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
-        this.GetAndClearAccumulatedWaitTimeMs();
-
         this.OnBeforeRunIteration(AITTestSuite, AITTestMethodLine);
         this.RunIteration(AITTestMethodLine);
         Commit();
-
-        //TODO override delay from line / default delay
-        Sleep(AITTestMethodLine."Delay (ms btwn. iter.)");
 
         AITTestSuiteMgt.DecreaseNoOfTestsRunningNow(AITTestSuite);
     end;
@@ -120,20 +110,6 @@ codeunit 149042 "AIT Test Runner"
         ReturnValue: Integer;
     begin
         ReturnValue := this.NoOfInsertedLogEntries;
-        exit(ReturnValue);
-    end;
-
-    procedure AddToAccumulatedWaitTimeMs(ms: Integer)
-    begin
-        this.AccumulatedWaitTimeMs += ms;
-    end;
-
-    procedure GetAndClearAccumulatedWaitTimeMs(): Integer
-    var
-        ReturnValue: Integer;
-    begin
-        ReturnValue := this.AccumulatedWaitTimeMs;
-        this.AccumulatedWaitTimeMs := 0;
         exit(ReturnValue);
     end;
 

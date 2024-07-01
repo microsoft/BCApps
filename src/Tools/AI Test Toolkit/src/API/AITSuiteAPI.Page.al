@@ -52,14 +52,7 @@ page 149046 "AIT Suite API"
                 {
                     Caption = 'Tag';
                 }
-                field("defaultMinimumUserDelayInMilliSeconds"; Rec."Default Min. User Delay (ms)")
-                {
-                    Caption = 'Default Min. User Delay (ms)';
-                }
-                field("defaultMaximumUserDelayInMilliSeconds"; Rec."Default Max. User Delay (ms)")
-                {
-                    Caption = 'Default Max. User Delay (ms)';
-                }
+
                 part("testSuitesLines"; "AIT Suite Line API")
                 {
                     Caption = 'AIT Suite Line';

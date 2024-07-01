@@ -30,18 +30,6 @@ xmlport 149031 "AIT Test Suite Import/Export"
                 {
                     Occurrence = Optional;
                 }
-                fieldattribute(Duration; "AITSuite".Duration)
-                {
-                    Occurrence = Optional;
-                }
-                fieldattribute(DefaultMinDelay; "AITSuite"."Default Min. User Delay (ms)")
-                {
-                    Occurrence = Optional;
-                }
-                fieldattribute(DefaultMaxDelay; "AITSuite"."Default Max. User Delay (ms)")
-                {
-                    Occurrence = Optional;
-                }
                 fieldattribute(ModelVersion; "AITSuite"."ModelVersion")
                 {
                     Occurrence = Optional;
@@ -66,10 +54,6 @@ xmlport 149031 "AIT Test Suite Import/Export"
                     {
                         Occurrence = Required;
                     }
-                    fieldattribute(DelayBetweenItr; AITestMethodLine."Delay (ms btwn. iter.)")
-                    {
-                        Occurrence = Optional;
-                    }
                     fieldattribute(Description; AITestMethodLine.Description)
                     {
                         Occurrence = Optional;
@@ -78,14 +62,7 @@ xmlport 149031 "AIT Test Suite Import/Export"
                     {
                         Occurrence = Optional;
                     }
-                    fieldattribute(MinDelay; AITestMethodLine."Min. User Delay (ms)")
-                    {
-                        Occurrence = Optional;
-                    }
-                    fieldattribute(MaxDelay; AITestMethodLine."Max. User Delay (ms)")
-                    {
-                        Occurrence = Optional;
-                    }
+
                     trigger OnBeforeInsertRecord()
                     var
                         AITTestMethodLine: Record "AIT Test Method Line";

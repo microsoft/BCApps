@@ -39,21 +39,6 @@ codeunit 149043 "AIT Test Context"
     end;
 
     /// <summary>
-    /// This method simulates a users delay between operations. This method is called by the AIT test to represent a realistic scenario.
-    /// The calculation of the length of the wait is done using the parameters defined on the AIT suite.
-    /// </summary>
-    procedure UserWait()
-    var
-        AITTestSuite: Record "AIT Test Suite";
-        AITTestMethodLine: Record "AIT Test Method Line";
-
-    begin
-        this.GetAITTestSuite(AITTestSuite);
-        this.GetAITTestMethodLine(AITTestMethodLine);
-        this.AITTestSuiteMgt.UserWait(AITTestMethodLine);
-    end;
-
-    /// <summary>
     /// Returns the Test Input Value from the dataset for the current iteration.
     /// </summary>
     procedure GetInput(): Text

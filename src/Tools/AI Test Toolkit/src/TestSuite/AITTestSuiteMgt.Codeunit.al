@@ -171,7 +171,6 @@ codeunit 149034 "AIT Test Suite Mgt."
             AITTestSuite.Status := AITTestSuite.Status::Completed;
             AITTestSuite."No. of tests running" := 0;
             AITTestSuite."Ended at" := CurrentDateTime();
-            AITTestSuite.Duration := AITTestSuite."Ended at" - AITTestSuite."Started at";
             AITTestSuite.Modify(true);
         end;
     end;
@@ -179,13 +178,14 @@ codeunit 149034 "AIT Test Suite Mgt."
     internal procedure SetRunStatus(var AITTestSuite: Record "AIT Test Suite"; AITTestSuiteStatus: Enum "AIT Test Suite Status")
     var
         TelemetryCustomDimensions: Dictionary of [Text, Text];
+        SuiteExecutionDuration: Integer;
     begin
         TelemetryCustomDimensions.Add('RunID', Format(AITTestSuite.RunID));
         TelemetryCustomDimensions.Add('Code', AITTestSuite.Code);
         if AITTestSuiteStatus <> AITTestSuiteStatus::Running then begin
             AITTestSuite."Ended at" := CurrentDateTime();
-            AITTestSuite.Duration := AITTestSuite."Ended at" - AITTestSuite."Started at";
-            TelemetryCustomDimensions.Add('DurationInMilliseconds', Format(AITTestSuite.Duration));
+            SuiteExecutionDuration := AITTestSuite."Ended at" - AITTestSuite."Started at";
+            TelemetryCustomDimensions.Add('DurationInMilliseconds', Format(SuiteExecutionDuration));
         end;
         TelemetryCustomDimensions.Add('Version', Format(AITTestSuite.Version));
 
@@ -311,8 +311,6 @@ codeunit 149034 "AIT Test Suite Mgt."
         if TestOutput <> '' then
             AITLogEntry.SetOutputBlob(TestOutput);
         AITLogEntry."Procedure Name" := CurrentTestMethodLine.Function;
-        if Operation = AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then
-            AITLogEntry."Duration (ms)" -= AITTestRunner.GetAndClearAccumulatedWaitTimeMs();
         AITLogEntry.Insert(true);
         Commit();
         this.AddLogAppInsights(AITLogEntry);
@@ -343,17 +341,6 @@ codeunit 149034 "AIT Test Suite Mgt."
             DataClassification::SystemMetadata,
             TelemetryScope::All,
             Dimensions)
-    end;
-
-    internal procedure UserWait(var AITTestMethodLine: Record "AIT Test Method Line")
-    var
-        AITTestRunnerImpl: Codeunit "AIT Test Runner"; // single instance
-        NapTime: Integer;
-    begin
-        Commit();
-        NapTime := AITTestMethodLine."Min. User Delay (ms)" + Random(AITTestMethodLine."Max. User Delay (ms)" - AITTestMethodLine."Min. User Delay (ms)");
-        AITTestRunnerImpl.AddToAccumulatedWaitTimeMs(NapTime);
-        Sleep(NapTime);
     end;
 
     internal procedure GetAvgDuration(AITTestMethodLine: Record "AIT Test Method Line"): Integer
@@ -435,11 +422,6 @@ codeunit 149034 "AIT Test Suite Mgt."
             AllowInsert := false;
             exit;
         end;
-
-        if Rec."Min. User Delay (ms)" = 0 then
-            Rec."Min. User Delay (ms)" := this.GlobalAITTestSuite."Default Min. User Delay (ms)";
-        if Rec."Max. User Delay (ms)" = 0 then
-            Rec."Max. User Delay (ms)" := this.GlobalAITTestSuite."Default Max. User Delay (ms)";
 
         if Rec."Test Suite Code" <> this.GlobalAITTestSuite.Code then
             if this.GlobalAITTestSuite.Get(Rec."Test Suite Code") then;

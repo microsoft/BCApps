@@ -240,12 +240,6 @@ page 149034 "AIT Test Method Lines"
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         NoLineSelectedErr: Label 'Select a line to compare';
 
-    trigger OnNewRecord(BelowxRec: Boolean)
-    begin
-        Rec."Min. User Delay (ms)" := AITTestSuite."Default Min. User Delay (ms)";
-        Rec."Max. User Delay (ms)" := AITTestSuite."Default Max. User Delay (ms)";
-    end;
-
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
         if Rec."Test Suite Code" = '' then
