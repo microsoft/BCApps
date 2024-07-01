@@ -26,6 +26,8 @@ permissionset 162 "SECURITY (System)"
     Permissions = system "Tools, Security, Roles" = X,
                   tabledata "Add-in" = imd,
                   tabledata "All Profile" = IMD,
+                  tabledata "All Profile Extension" = IMD,
+                  tabledata "All Profile Page Metadata" = IMD,
                   tabledata AllObj = imd,
                   tabledata AllObjWithCaption = Rimd,
 #if not CLEAN22
@@ -61,13 +63,9 @@ permissionset 162 "SECURITY (System)"
                   tabledata "SID - Account ID" = Rimd,
                   tabledata "System Object" = imd,
                   tabledata "Table Information" = Rimd,
-#pragma warning disable AL0432
                   tabledata "Tenant Profile" = IMD,
-#pragma warning restore AL0432
                   tabledata "Tenant Profile Extension" = IMD,
-#pragma warning disable AL0432
                   tabledata "Tenant Profile Page Metadata" = IMD,
-#pragma warning restore AL0432
                   tabledata "Tenant Profile Setting" = IMD,
                   tabledata User = RMD,
                   tabledata "User Property" = Rimd,

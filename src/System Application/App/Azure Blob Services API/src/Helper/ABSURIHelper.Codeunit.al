@@ -12,17 +12,14 @@ codeunit 9046 "ABS URI Helper"
     InherentPermissions = X;
 
     var
-        [NonDebuggable]
         OptionalUriParameters: Dictionary of [Text, Text];
         BlobStorageBaseUrlLbl: Label 'https://%1.blob.core.windows.net', Comment = '%1 = Storage Account Name', Locked = true;
 
-    [NonDebuggable]
     procedure SetOptionalUriParameter(NewOptionalUriParameters: Dictionary of [Text, Text])
     begin
         OptionalUriParameters := NewOptionalUriParameters;
     end;
 
-    [NonDebuggable]
     procedure ConstructUri(StorageBaseUrl: Text; StorageAccountName: Text; ContainerName: Text; BlobName: Text; Operation: Enum "ABS Operation"): Text
     var
         ABSFormatHelper: Codeunit "ABS Format Helper";
@@ -56,7 +53,6 @@ codeunit 9046 "ABS URI Helper"
         exit(ConstructedUrl);
     end;
 
-    [NonDebuggable]
     local procedure AppendContainerIfNecessary(var ConstructedUrl: Text; ContainerName: Text; Operation: Enum "ABS Operation")
     begin
         // e.g. https://<StorageAccountName>.blob.core.windows.net/<ContainerName>?restype=container
@@ -74,7 +70,6 @@ codeunit 9046 "ABS URI Helper"
         ConstructedUrl += ContainerName;
     end;
 
-    [NonDebuggable]
     local procedure AppendBlobIfNecessary(var ConstructedUrl: Text; BlobName: Text; Operation: Enum "ABS Operation")
     begin
         // e.g. https://<StorageAccountName>.blob.core.windows.net/<Container>/<BlobName>
@@ -91,7 +86,6 @@ codeunit 9046 "ABS URI Helper"
         ConstructedUrl += BlobName;
     end;
 
-    [NonDebuggable]
     local procedure AppendRestTypeIfNecessary(var ConstructedUrl: Text; Operation: Enum "ABS Operation")
     var
         ABSFormatHelper: Codeunit "ABS Format Helper";
@@ -119,7 +113,6 @@ codeunit 9046 "ABS URI Helper"
         ABSFormatHelper.AppendToUri(ConstructedUrl, RestTypeLbl, RestType);
     end;
 
-    [NonDebuggable]
     local procedure AppendCompValueIfNecessary(var ConstructedUrl: Text; Operation: Enum "ABS Operation")
     var
         ABSFormatHelper: Codeunit "ABS Format Helper";
@@ -199,7 +192,6 @@ codeunit 9046 "ABS URI Helper"
         ABSFormatHelper.AppendToUri(ConstructedUrl, CompIdentifierLbl, CompValue);
     end;
 
-    [NonDebuggable]
     local procedure RetrieveFromOptionalUriParameters(Identifier: Text): Text
     var
         ReturnValue: Text;
@@ -211,7 +203,6 @@ codeunit 9046 "ABS URI Helper"
         exit(ReturnValue);
     end;
 
-    [NonDebuggable]
     local procedure AddOptionalUriParameters(var Uri: Text)
     var
         ABSFormatHelper: Codeunit "ABS Format Helper";
@@ -228,7 +219,6 @@ codeunit 9046 "ABS URI Helper"
             end;
     end;
 
-    [NonDebuggable]
     local procedure TestConstructUrlParameter(StorageAccountName: Text; ContainerName: Text; BlobName: Text; Operation: Enum "ABS Operation")
     var
         ValueCanNotBeEmptyErr: Label '%1 can not be empty', Comment = '%1 = Variable Name';

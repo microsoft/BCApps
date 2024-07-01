@@ -1,0 +1,26 @@
+name: Run Automation
+author: Microsoft Corporation
+description: Run a list of automations on a target branch
+inputs:
+  automations:
+    description: Comma-separated list of automations to run
+  targetBranch:
+    description: The target branch to run the automations on
+    required: true
+    default: ${{ github.ref_name }}
+runs:
+  using: composite
+  steps:
+    - name: run
+      shell: pwsh
+      id: runAutomation
+      env:
+        _repository: ${{ github.repository }}
+        _targetBranch: ${{ inputs.targetBranch }}
+        _actor: ${{ github.actor }}
+        _automations: ${{ inputs.automations }}
+      run: |
+        ${{ github.action_path }}/run.ps1 -Include "$env:_automations".Split(',').Trim() -Repository $env:_repository -TargetBranch $env:_targetBranch -Actor $env:_actor
+branding:
+  icon: terminal
+  color: blue

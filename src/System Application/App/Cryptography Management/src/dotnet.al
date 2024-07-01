@@ -38,6 +38,7 @@ dotnet
         type("System.Security.Cryptography.SymmetricAlgorithm"; "Cryptography.SymmetricAlgorithm") { }
         type("System.Security.Cryptography.DESCryptoServiceProvider"; "Cryptography.DESCryptoServiceProvider") { }
         type("System.Security.Cryptography.RSASignaturePadding"; RSASignaturePadding) { }
+        type("System.Security.Cryptography.RSAEncryptionPadding"; RSAEncryptionPadding) { }
         type("System.Security.Cryptography.TripleDESCryptoServiceProvider"; "Cryptography.TripleDESCryptoServiceProvider") { }
         type("System.Security.Cryptography.X509Certificates.X509BasicConstraintsExtension"; X509BasicConstraintsExtension) { }
         type("System.Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension"; X509EnhancedKeyUsageExtension) { }

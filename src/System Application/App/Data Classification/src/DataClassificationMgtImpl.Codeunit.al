@@ -248,6 +248,7 @@ codeunit 1753 "Data Classification Mgt. Impl."
 
     procedure AreAllFieldsClassified(): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         DataSensitivity: Record "Data Sensitivity";
     begin
         if not DataSensitivity.WritePermission() then

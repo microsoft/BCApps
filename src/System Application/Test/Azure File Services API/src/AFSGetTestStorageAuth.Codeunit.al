@@ -46,7 +46,9 @@ codeunit 132518 "AFS Get Test Storage Auth."
         SignedResources: List of [Enum "SAS Resource Type"];
         SignedExpiry: DateTime;
         Second: Integer;
+        SecretAccountKey: SecretText;
     begin
+        SecretAccountKey := AccountKey;
         Second := 1000;
         SignedExpiry := CurrentDateTime() + (60 * Second);
 
@@ -57,7 +59,7 @@ codeunit 132518 "AFS Get Test Storage Auth."
         SignedResources.AddRange(Enum::"SAS Resource Type"::Object, Enum::"SAS Resource Type"::Container);
 
         exit(StorageServiceAuthorization.CreateAccountSAS(
-            AccountKey,
+            SecretAccountKey,
             APIVersion,
             SignedServices,
             SignedResources,

@@ -5,19 +5,22 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+using System.Upgrade;
+
 codeunit 332 "No. Series Upgrade Tags"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
+    local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    begin
+        PerCompanyUpgradeTags.Add(GetImplementationUpgradeTag());
+    end;
+
     procedure GetImplementationUpgradeTag(): Code[250]
     begin
         exit('MS-471519-AddImplementationExtensibility-20231206 ');
-    end;
-
-    procedure GetMovedTableSchemaSanityCheckUpgradeTag(): Code[250]
-    begin
-        exit('MS-523755-AddMovedTableSchemaSanityCheck-20240402');
     end;
 }
