@@ -50,8 +50,8 @@ page 1933 "Perf. Profiler Schedules List"
 
                     trigger OnDrillDown()
                     var
-                        ScheduleCardPage: Page "Perf. Profiler Schedule Card";
                         PerformanceProfileScheduler: Record "Performance Profile Scheduler";
+                        ScheduleCardPage: Page "Perf. Profiler Schedule Card";
                     begin
                         if (IsNullGuid(ActiveScheduleId)) then
                             exit;
