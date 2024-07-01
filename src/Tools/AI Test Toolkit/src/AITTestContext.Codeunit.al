@@ -39,8 +39,9 @@ codeunit 149043 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Returns the Test Input Value from the dataset for the current iteration.
+    /// Get the test input value from the dataset for the current iteration.
     /// </summary>
+    /// <returns>The test input value as text.</returns>
     procedure GetInput(): Text
     var
         TestInputCU: Codeunit "Test Input";
@@ -110,8 +111,8 @@ codeunit 149043 "AIT Test Context"
 
     /// <summary>
     /// Get the Question from the input dataset for the current iteration.
-    /// <returns>A Test Input Json codeunit for the question element.</returns>
     /// </summary>
+    /// <returns>A Test Input Json codeunit for the question element.</returns>
     procedure GetQuestionAsJson() TestInputJson: Codeunit "Test Input Json"
     var
         TestInputCU: Codeunit "Test Input";

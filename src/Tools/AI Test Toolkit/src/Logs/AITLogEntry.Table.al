@@ -177,6 +177,15 @@ table 149034 "AIT Log Entry"
         }
     }
 
+    trigger OnInsert()
+    begin
+        if "End Time" = 0DT then
+            "End Time" := CurrentDateTime;
+        if "Start Time" = 0DT then
+            "Start Time" := "End Time" - "Duration (ms)";
+        if "Duration (ms)" = 0 then
+            "Duration (ms)" := "End Time" - "Start Time";
+    end;
 
     procedure SetInputBlob(NewInput: Text)
     var
@@ -261,16 +270,6 @@ table 149034 "AIT Log Entry"
     local procedure GetDefaultTextEncoding(): TextEncoding
     begin
         exit(TextEncoding::UTF8);
-    end;
-
-    trigger OnInsert()
-    begin
-        if "End Time" = 0DT then
-            "End Time" := CurrentDateTime;
-        if "Start Time" = 0DT then
-            "Start Time" := "End Time" - "Duration (ms)";
-        if "Duration (ms)" = 0 then
-            "Duration (ms)" := "End Time" - "Start Time";
     end;
 
     internal procedure SetFilterForFailedTestProcedures()

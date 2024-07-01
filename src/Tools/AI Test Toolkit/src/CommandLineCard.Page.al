@@ -9,7 +9,7 @@ using System.Environment;
 using System.TestTools.TestRunner;
 using System.Utilities;
 
-page 149042 "AIT CommandLine Card"
+page 149042 "CommandLine Card"
 {
     Caption = 'AI Test CommandLine Runner';
     PageType = Card;

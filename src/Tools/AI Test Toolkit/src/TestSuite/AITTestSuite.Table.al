@@ -196,8 +196,7 @@ table 149030 "AIT Test Suite"
     }
     keys
     {
-        key(Key1;
-        "Code")
+        key(Key1; "Code")
         {
             Clustered = true;
         }
