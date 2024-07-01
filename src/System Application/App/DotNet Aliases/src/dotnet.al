@@ -2200,6 +2200,10 @@ dotnet
         type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotOperationResponse"; ALCopilotOperationResponse)
         {
         }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotCapability"; ALCopilotCapability)
+        {
+        }
     }
     assembly("Microsoft.Dynamics.Nav.DataSearch")
     {
