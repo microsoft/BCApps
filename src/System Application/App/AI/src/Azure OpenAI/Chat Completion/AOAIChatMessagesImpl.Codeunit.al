@@ -33,11 +33,11 @@ codeunit 7764 "AOAI Chat Messages Impl"
         MessageIdDoesNotExistErr: Label 'Message id does not exist.';
         HistoryLengthErr: Label 'History length must be greater than 0.';
         MetapromptLoadingErr: Label 'Metaprompt not found.';
-        TelemetryMetapromptSetbutEmptyTxt: Label 'Metaprompt was set but is empty.', Locked = true;
-        TelemetryMetapromptEmptyTxt: Label 'Metaprompt was not set.', Locked = true;
-        TelemetryMetapromptRetrievalErr: Label 'Unable to retrieve metaprompt from Azure Key Vault.', Locked = true;
-        TelemetryPrepromptRetrievalErr: Label 'Unable to retrieve preprompt from Azure Key Vault.', Locked = true;
-        TelemetryPostpromptRetrievalErr: Label 'Unable to retrieve postprompt from Azure Key Vault.', Locked = true;
+        TelemetryMetapromptSetbutEmptyTxt: Label 'Metaprompt set (but was empty)', Locked = true;
+        TelemetryMetapromptEmptyTxt: Label 'Metaprompt not set.', Locked = true;
+        TelemetryMetapromptRetrievalErr: Label 'Metaprompt failed to be retrieved from Azure Key Vault.', Locked = true;
+        TelemetryPrepromptRetrievalErr: Label 'Preprompt failed to be retrieved from Azure Key Vault.', Locked = true;
+        TelemetryPostpromptRetrievalErr: Label 'Postprompt failed to be retrieved from Azure Key Vault.', Locked = true;
 
     [NonDebuggable]
     procedure SetPrimarySystemMessage(NewPrimaryMessage: SecretText)
