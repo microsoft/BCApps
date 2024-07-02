@@ -133,8 +133,10 @@ codeunit 304 "No. Series - Impl."
 #if not CLEAN24
 #pragma warning disable AL0432, AA0205
         Result := NoSeriesSingle.GetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings);
+        if Result <> NoSeriesLine."Last No. Used" then
+            NoSeriesLine."Last No. Used" := Result;
         NoSeriesManagement.RaiseObsoleteOnAfterGetNextNo3(NoSeriesLine, true);
-        exit(Result);
+        exit(NoSeriesLine."Last No. Used");
 #pragma warning restore AL0432, AA0205
 #else
         exit(NoSeriesSingle.GetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings))
@@ -281,8 +283,10 @@ codeunit 304 "No. Series - Impl."
 #if not CLEAN24
 #pragma warning disable AL0432, AA0205
         Result := NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate);
+        if Result <> NoSeriesLine."Last No. Used" then
+            NoSeriesLine."Last No. Used" := Result;
         NoSeriesManagement.RaiseObsoleteOnAfterGetNextNo3(NoSeriesLine, false);
-        exit(Result);
+        exit(NoSeriesLine."Last No. Used");
 #pragma warning restore AL0432, AA0205
 #else
         exit(NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate));
