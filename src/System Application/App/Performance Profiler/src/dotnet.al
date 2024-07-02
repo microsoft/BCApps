@@ -21,5 +21,11 @@ dotnet
         type("Microsoft.Dynamics.Nav.Runtime.Debugger.ProfilerSamplingInterval"; "ProfilerSamplingInterval")
         {
         }
+        type("Microsoft.Dynamics.Nav.Runtime.Debugger.ALProfilerHelper"; ProfilerHelper)
+        {
+        }
+        type("Microsoft.Dynamics.Nav.Runtime.Debugger.ALPerformanceProfileSchedulerRecord"; PerformanceProfileSchedulerRecord)
+        {
+        }
     }
 }
