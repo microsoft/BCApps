@@ -869,7 +869,7 @@ codeunit 396 NoSeriesManagement
     end;
 
     [Obsolete('This is a temporary method for compatibility only. Please use the "No. Series" codeunit instead', '24.0')]
-    internal procedure RaiseObsoleteOnAfterGetNextNo3(NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean)
+    internal procedure RaiseObsoleteOnAfterGetNextNo3(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean)
     begin
         OnAfterGetNextNo3(NoSeriesLine, ModifySeries);
     end;
