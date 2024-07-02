@@ -20,42 +20,42 @@ codeunit 130471 "AL Code Coverage Subscribers"
 
     procedure SetALTestSuite(NewALTestSuite: Record "AL Test Suite")
     begin
-        ALTestSuite := NewALTestSuite;
+        this.ALTestSuite := NewALTestSuite;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnRunTestSuite', '', false, false)]
     local procedure OnRunTestSuite(var TestMethodLine: Record "Test Method Line")
     begin
-        if ALTestSuite."CC Tracking Type" = ALTestSuite."CC Tracking Type"::"Per Run" then
-            ALCodeCoverageMgt.Start(ALTestSuite."CC Track All Sessions");
+        if this.ALTestSuite."CC Tracking Type" = this.ALTestSuite."CC Tracking Type"::"Per Run" then
+            this.ALCodeCoverageMgt.Start(this.ALTestSuite."CC Track All Sessions");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterRunTestSuite', '', false, false)]
     local procedure OnAfterRunTestSuite(var TestMethodLine: Record "Test Method Line")
     begin
-        if ALTestSuite."CC Tracking Type" = ALTestSuite."CC Tracking Type"::"Per Run" then
-            ALCodeCoverageMgt.StopAndSave(0, TestMethodLine.GetFilter("Test Suite"));
+        if this.ALTestSuite."CC Tracking Type" = this.ALTestSuite."CC Tracking Type"::"Per Run" then
+            this.ALCodeCoverageMgt.StopAndSave(0, TestMethodLine.GetFilter("Test Suite"));
     end;
 
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeCodeunitRun', '', false, false)]
     local procedure OnBeforeCodeunitRun(var TestMethodLine: Record "Test Method Line")
     begin
-        if ALTestSuite."CC Tracking Type" = ALTestSuite."CC Tracking Type"::"Per Codeunit" then
-            ALCodeCoverageMgt.Start(ALTestSuite."CC Track All Sessions");
+        if this.ALTestSuite."CC Tracking Type" = this.ALTestSuite."CC Tracking Type"::"Per Codeunit" then
+            this.ALCodeCoverageMgt.Start(this.ALTestSuite."CC Track All Sessions");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterCodeunitRun', '', false, false)]
     local procedure OnAfterCodeunitRun(var TestMethodLine: Record "Test Method Line")
     begin
-        if ALTestSuite."CC Tracking Type" = ALTestSuite."CC Tracking Type"::"Per Codeunit" then
-            ALCodeCoverageMgt.StopAndSave(TestMethodLine."Test Codeunit", '');
+        if this.ALTestSuite."CC Tracking Type" = this.ALTestSuite."CC Tracking Type"::"Per Codeunit" then
+            this.ALCodeCoverageMgt.StopAndSave(TestMethodLine."Test Codeunit", '');
 
-        if ALTestSuite."CC Coverage Map" = ALTestSuite."CC Coverage Map"::"Per Codeunit" then begin
-            if ALTestSuite."CC Tracking Type" = ALTestSuite."CC Tracking Type"::"Per Run" then
-                ALCodeCoverageMgt.Refresh();
+        if this.ALTestSuite."CC Coverage Map" = this.ALTestSuite."CC Coverage Map"::"Per Codeunit" then begin
+            if this.ALTestSuite."CC Tracking Type" = this.ALTestSuite."CC Tracking Type"::"Per Run" then
+                this.ALCodeCoverageMgt.Refresh();
 
-            ALCodeCoverageMgt.SaveCodeCoverageMap(TestMethodLine."Test Codeunit", '', ALTestSuite);
+            this.ALCodeCoverageMgt.SaveCodeCoverageMap(TestMethodLine."Test Codeunit", '', this.ALTestSuite);
         end;
     end;
 
@@ -63,25 +63,25 @@ codeunit 130471 "AL Code Coverage Subscribers"
     local procedure OnBeforeTestMethodRun(CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var CurrentTestMethodLine: Record "Test Method Line")
     begin
         if (
-            (ALTestSuite."CC Tracking Type" = ALTestSuite."CC Tracking Type"::"Per Test") and
-            TestSuiteMgt.IsTestMethodLine(FunctionName)
+            (this.ALTestSuite."CC Tracking Type" = this.ALTestSuite."CC Tracking Type"::"Per Test") and
+            this.TestSuiteMgt.IsTestMethodLine(FunctionName)
         ) then
-            ALCodeCoverageMgt.Start(ALTestSuite."CC Track All Sessions");
+            this.ALCodeCoverageMgt.Start(this.ALTestSuite."CC Track All Sessions");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterTestMethodRun', '', false, false)]
     local procedure OnAfterTestMethodRun(CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; IsSuccess: Boolean; var CurrentTestMethodLine: Record "Test Method Line")
     begin
-        if not (ALTestSuite."CC Tracking Type" = ALTestSuite."CC Tracking Type"::"Per Test") then
+        if not (this.ALTestSuite."CC Tracking Type" = this.ALTestSuite."CC Tracking Type"::"Per Test") then
             exit;
 
 
-        if not TestSuiteMgt.IsTestMethodLine(FunctionName) then
+        if not this.TestSuiteMgt.IsTestMethodLine(FunctionName) then
             exit;
 
-        ALCodeCoverageMgt.StopAndSave(CodeunitID, FunctionName);
+        this.ALCodeCoverageMgt.StopAndSave(CodeunitID, FunctionName);
 
-        if ALTestSuite."CC Coverage Map" = ALTestSuite."CC Coverage Map"::"Per Test" then
-            ALCodeCoverageMgt.SaveCodeCoverageMap(CodeunitID, FunctionName, ALTestSuite);
+        if this.ALTestSuite."CC Coverage Map" = this.ALTestSuite."CC Coverage Map"::"Per Test" then
+            this.ALCodeCoverageMgt.SaveCodeCoverageMap(CodeunitID, FunctionName, this.ALTestSuite);
     end;
 }

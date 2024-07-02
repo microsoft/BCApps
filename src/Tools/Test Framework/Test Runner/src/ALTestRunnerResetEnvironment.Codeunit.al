@@ -17,7 +17,7 @@ codeunit 130453 "ALTestRunner Reset Environment"
 
     procedure Initialize()
     begin
-        CurrentWorkDate := WorkDate();
+        this.CurrentWorkDate := WorkDate();
     end;
 
 #if not CLEAN22
@@ -36,8 +36,8 @@ codeunit 130453 "ALTestRunner Reset Environment"
         if FunctionName = 'OnRun' then
             exit;
 
-        ClearLegacyLibraries(FunctionTestPermissions);
-        BindStopSystemTableChanges();
+        this.ClearLegacyLibraries(FunctionTestPermissions);
+        this.BindStopSystemTableChanges();
     end;
 
 #if not CLEAN22
@@ -51,7 +51,7 @@ codeunit 130453 "ALTestRunner Reset Environment"
     local procedure AfterTestMethod(var TestMethodLine: Record "Test Method Line")
 #endif
     begin
-        WorkDate(CurrentWorkDate);
+        WorkDate(this.CurrentWorkDate);
         ApplicationArea('');
     end;
 
@@ -81,13 +81,13 @@ codeunit 130453 "ALTestRunner Reset Environment"
     local procedure BindStopSystemTableChanges()
     var
         AllObj: Record AllObj;
-        BlockChangestoSystemTables: Integer;
+        BlockChangesToSystemTables: Integer;
     begin
-        BlockChangestoSystemTables := 132553; // codeunit 132553 "Block Changes to System Tables"
+        BlockChangesToSystemTables := 132553; // codeunit 132553 "Block Changes to System Tables"
         AllObj.SetRange("Object Type", AllObj."Object Type"::Codeunit);
-        AllObj.SetRange("Object ID", BlockChangestoSystemTables);
+        AllObj.SetRange("Object ID", BlockChangesToSystemTables);
         if not AllObj.IsEmpty() then
-            Codeunit.Run(BlockChangestoSystemTables);
+            Codeunit.Run(BlockChangesToSystemTables);
     end;
 
 

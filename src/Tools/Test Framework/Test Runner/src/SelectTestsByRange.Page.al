@@ -16,7 +16,7 @@ page 130452 "Select Tests By Range"
             group(Control1)
             {
                 ShowCaption = false;
-                field("Selection Filter"; SelectionFilter)
+                field("Selection Filter"; this.SelectionFilter)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the selection filter.';
@@ -35,7 +35,7 @@ page 130452 "Select Tests By Range"
 
     procedure GetRange(): Text
     begin
-        exit(SelectionFilter);
+        exit(this.SelectionFilter);
     end;
 }
 
