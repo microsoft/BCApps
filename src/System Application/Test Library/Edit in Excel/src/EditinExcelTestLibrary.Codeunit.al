@@ -55,8 +55,10 @@ codeunit 132524 "Edit in Excel Test Library"
     /// <param name="PageId">The ID of the page being filtered on.</param>
     [Scope('OnPrem')]
     procedure ReadFromJsonFilters(var EditinExcelFilters: Codeunit "Edit in Excel Filters"; JsonFilter: JsonObject; JsonPayload: JsonObject; PageId: Integer)
+    var
+        FilterErrors: Dictionary of [Text, Boolean];
     begin
-        EditinExcelFilters.ReadFromJsonFilters(JsonFilter, JsonPayload, PageId);
+        EditinExcelFilters.ReadFromJsonFilters(JsonFilter, JsonPayload, PageId, FilterErrors);
     end;
 
     /// <summary>

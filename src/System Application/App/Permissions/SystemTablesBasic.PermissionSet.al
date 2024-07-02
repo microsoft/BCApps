@@ -33,7 +33,8 @@ permissionset 66 "System Tables - Basic"
                              "User Personalization - Edit",
                              "User Selection - Read",
                              "Webhook - Edit",
-                             "Data Analysis - Exec";
+                             "Data Analysis - Exec",
+                             "Perf. Profiler Tables - Edit";
 
     Permissions = tabledata "Add-in" = R,
                   tabledata "Aggregate Permission Set" = Rimd,
