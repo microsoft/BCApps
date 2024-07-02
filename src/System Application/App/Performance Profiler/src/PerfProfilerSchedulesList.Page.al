@@ -28,35 +28,35 @@ page 1933 "Perf. Profiler Schedules List"
         {
             group("Profiling Status")
             {
-                Caption = 'Profiling Status';
                 AboutTitle = 'Profiling Status';
-                AboutText = 'See if profiling is enabled for the current user session.';
+                AboutText = 'Specifies if profiling is enabled for the current user session.';
+                Caption = 'Profiling Status';
 
                 field("Profiling Enabled"; IsProfilingEnabled)
                 {
+                    AboutText = 'Specifies if profiling is enabled for the current user session.';
                     Caption = 'Profiling Enabled';
-                    ToolTip = 'Shows if profiling is enabled for the current user session.';
-                    AboutText = 'Shows if profiling is enabled for the current user session.';
                     Editable = false;
+                    ToolTip = 'Specifies if profiling is enabled for the current user session.';
                 }
 
                 field("Active Schedule ID"; ActiveScheduleId)
                 {
-                    Caption = 'Active Schedule ID';
-                    ToolTip = 'Shows the ID of the active schedule.';
                     AboutText = 'The ID of the active schedule.';
+                    Caption = 'Active Schedule ID';
                     Editable = false;
                     DrillDown = true;
+                    ToolTip = 'Specifies the ID of the active schedule.';
 
                     trigger OnDrillDown()
                     var
                         PerformanceProfileScheduler: Record "Performance Profile Scheduler";
                         ScheduleCardPage: Page "Perf. Profiler Schedule Card";
                     begin
-                        if (IsNullGuid(ActiveScheduleId)) then
+                        if IsNullGuid(ActiveScheduleId) then
                             exit;
 
-                        if (not PerformanceProfileScheduler.Get(ActiveScheduleId)) then
+                        if not PerformanceProfileScheduler.Get(ActiveScheduleId) then
                             exit;
 
                         ScheduleCardPage.SetRecord(PerformanceProfileScheduler);
