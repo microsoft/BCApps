@@ -10,7 +10,7 @@ using System.Integration;
 using System.Tooling;
 using System.TestLibraries.Utilities;
 
-codeunit 138133 "VS Code Request Test"
+codeunit 138133 "VS Code Integration Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -38,7 +38,7 @@ codeunit 138133 "VS Code Request Test"
         TempPageInfoAndFields."Page Name" := 'Customer List';
 
         // [WHEN] we generate the URL to send a request to VS Code to navigate to the page source 
-        VSCodeIntegration.NavigatePageInVSCode(TempPageInfoAndFields, TempNavInstalledApp);
+        VSCodeIntegration.NavigateToPageDefinitionInVSCode(TempPageInfoAndFields, TempNavInstalledApp);
 
         // [THEN] URL has the expected format
         // Asserted in handler
@@ -61,7 +61,7 @@ codeunit 138133 "VS Code Request Test"
         TempPageInfoAndFields."Field Name" := 'No.';
 
         // [WHEN] we generate the URL to send a request to VS Code to navigate to the table field's definition in source code
-        VSCodeIntegration.NavigateFieldInVSCode(TempPageInfoAndFields, TempNavInstalledApp);
+        VSCodeIntegration.NavigateFieldDefinitionInVSCode(TempPageInfoAndFields, TempNavInstalledApp);
 
         // [THEN] URL has the expected format
         // Asserted in handler
@@ -98,7 +98,7 @@ codeunit 138133 "VS Code Request Test"
         TempNavInstalledApp.Insert();
 
         // [WHEN] we generate the URL to send a request to VS Code to navigate to the page source 
-        VSCodeIntegration.NavigatePageInVSCode(TempPageInfoAndFields, TempNavInstalledApp);
+        VSCodeIntegration.NavigateToPageDefinitionInVSCode(TempPageInfoAndFields, TempNavInstalledApp);
 
         // [THEN] Dependencies in URL has the expected format
         // Asserted in handler

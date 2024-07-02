@@ -20,7 +20,7 @@ codeunit 8033 "VS Code Integration Impl."
         ApplicationIdTxt: Label 'c1335042-3002-4257-bf8a-75c898ccb1b8', Locked = true;
 
     [Scope('OnPrem')]
-    procedure GetUrlToOpenExtensionSource(PublishedApplication: Record "Published Application"): Text
+    procedure GetUrlToOpenExtensionSource(var PublishedApplication: Record "Published Application"): Text
     var
         Url: Text;
     begin
@@ -41,7 +41,7 @@ codeunit 8033 "VS Code Integration Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure GetUrlToNavigateInVSCode(ObjectType: Option; ObjectId: Integer; ObjectName: Text; ControlName: Text; NavAppInstalledApp: Record "NAV App Installed App"): Text
+    procedure GetUrlToNavigateInVSCode(ObjectType: Option; ObjectId: Integer; ObjectName: Text; ControlName: Text; var NavAppInstalledApp: Record "NAV App Installed App"): Text
     var
         Url: Text;
     begin
@@ -66,7 +66,7 @@ codeunit 8033 "VS Code Integration Impl."
     end;
 
     [Scope('OnPrem')]
-    local procedure GetDependencies(NavAppInstalledApp: Record "NAV App Installed App"): Text
+    local procedure GetDependencies(var NavAppInstalledApp: Record "NAV App Installed App"): Text
     var
         DependencyList: TextBuilder;
     begin
@@ -82,7 +82,7 @@ codeunit 8033 "VS Code Integration Impl."
     end;
 
     [Scope('OnPrem')]
-    local procedure FormatDependency(NavAppInstalledApp: Record "NAV App Installed App"): Text
+    local procedure FormatDependency(var NavAppInstalledApp: Record "NAV App Installed App"): Text
     var
         AppVersion: Text;
         AppVersionLbl: Label '%1.%2.%3.%4', Comment = '%1 = major, %2 = minor, %3 = build, %4 = revision', Locked = true;

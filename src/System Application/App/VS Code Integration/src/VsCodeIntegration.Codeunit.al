@@ -15,19 +15,19 @@ codeunit 8034 "VS Code Integration"
         VsCodeIntegrationImpl: Codeunit "VS Code Integration Impl.";
 
     [Scope('OnPrem')]
-    procedure OpenExtensionSource(PublishedApplication: Record "Published Application")
+    procedure OpenExtensionSource(var PublishedApplication: Record "Published Application")
     begin
         Hyperlink(VsCodeIntegrationImpl.GetUrlToOpenExtensionSource(PublishedApplication));
     end;
 
     [Scope('OnPrem')]
-    procedure NavigatePageInVSCode(PageInfoAndFields: Record "Page Info And Fields"; NavAppInstalledApp: Record "NAV App Installed App")
+    procedure NavigateToPageDefinitionInVSCode(var PageInfoAndFields: Record "Page Info And Fields"; var NavAppInstalledApp: Record "NAV App Installed App")
     begin
         Hyperlink(VsCodeIntegrationImpl.GetUrlToNavigateInVSCode(AllObjWithCaption."Object Type"::Page, PageInfoAndFields."Page ID", PageInfoAndFields."Page Name", '', NavAppInstalledApp));
     end;
 
     [Scope('OnPrem')]
-    procedure NavigateFieldInVSCode(PageInfoAndFields: Record "Page Info And Fields"; NavAppInstalledApp: Record "NAV App Installed App")
+    procedure NavigateFieldDefinitionInVSCode(var PageInfoAndFields: Record "Page Info And Fields"; var NavAppInstalledApp: Record "NAV App Installed App")
     begin
         Hyperlink(VsCodeIntegrationImpl.GetUrlToNavigateInVSCode(AllObjWithCaption."Object Type"::Table, PageInfoAndFields."Source Table No.", PageInfoAndFields."Source Table Name", PageInfoAndFields."Field Name", NavAppInstalledApp));
     end;

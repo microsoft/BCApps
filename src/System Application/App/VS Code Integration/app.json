@@ -1,6 +1,6 @@
 {
     "id":  "66d56517-9469-4cdf-83a8-7122c54af08f",
-    "name":  "VS Code Request Management",
+    "name":  "VS Code Integration",
     "publisher":  "Microsoft",
     "brief":  "Provides the tools needed to manage Visual Studio Code requests.",
     "description":  "Provides methods for constructing requests to Visual Studio Code to debug, navigate to a symbol and more.",

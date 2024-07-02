@@ -1,9 +1,9 @@
 {
     "id":  "2245bae0-6048-49d8-bc86-c1c5d0fbabd9",
-    "name":  "VS Code Request Management Test",
+    "name":  "VS Code Integration Test",
     "publisher":  "Microsoft",
-    "brief":  "Tests for the VS Code Request Management module",
-    "description":  "Tests for the VS Code Request Management module.",
+    "brief":  "Tests for the VS Code Integration module",
+    "description":  "Tests for the VS Code Integration module.",
     "version":  "25.0.0.0",
     "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
     "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
@@ -25,7 +25,7 @@
                         },
                         {
                             "id":  "66d56517-9469-4cdf-83a8-7122c54af08f",
-                            "name":  "VS Code Request Management",
+                            "name":  "VS Code Integration",
                             "publisher":  "Microsoft",
                             "version":  "25.0.0.0"
                         }
