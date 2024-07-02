@@ -193,7 +193,7 @@ page 2500 "Extension Management"
 
                     trigger OnAction()
                     begin
-                        Hyperlink(VsCodeRequestManagement.GetUrlToOpenExtensionSource(Rec."Source Repository Url", Rec."Source Commit ID"));
+                        VsCodeIntegration.OpenExtensionSource(Rec);
                     end;
                 }
                 action("Learn More")
@@ -335,7 +335,7 @@ page 2500 "Extension Management"
     var
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
-        VsCodeRequestManagement: Codeunit "VS Code Request Management";
+        VsCodeIntegration: Codeunit "VS Code Integration";
         VersionDisplay: Text;
         ActionsEnabled: Boolean;
         IsSaaS: Boolean;

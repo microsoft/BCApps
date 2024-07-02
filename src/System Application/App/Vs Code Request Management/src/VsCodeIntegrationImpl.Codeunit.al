@@ -4,9 +4,9 @@ using System.Apps;
 using System.Reflection;
 using System.Utilities;
 
-codeunit 8033 "VS Code Request Management"
+codeunit 8033 "VS Code Integration Impl."
 {
-    Access = Public;
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -20,15 +20,16 @@ codeunit 8033 "VS Code Request Management"
         ApplicationIdTxt: Label 'c1335042-3002-4257-bf8a-75c898ccb1b8', Locked = true;
 
     [Scope('OnPrem')]
-    procedure GetUrlToOpenExtensionSource(RepositoryUrl: Text[250]; CommitId: Text): Text
+    procedure GetUrlToOpenExtensionSource(PublishedApplication: Record "Published Application"): Text
     var
         Url: Text;
     begin
-        if Text.StrLen(RepositoryUrl) <> 0 then begin
+        if Text.StrLen(PublishedApplication."Source Repository Url") <> 0 then begin
             UriBuilder.Init(AlExtensionUriTxt + '/sourceSync');
-            UriBuilder.AddQueryParameter('repoUrl', RepositoryUrl);
-            if Text.StrLen(CommitId) <> 0 then
-                UriBuilder.AddQueryParameter('commitId', CommitId);
+            UriBuilder.AddQueryParameter('repoUrl', PublishedApplication."Source Repository Url");
+            if Text.StrLen(PublishedApplication."Source Commit ID") <> 0 then
+                UriBuilder.AddQueryParameter('commitId', PublishedApplication."Source Commit ID");
+            UriBuilder.AddQueryParameter('appid', PublishedApplication.ID);
 
             Url := GetAbsoluteUri();
             if DoesExceedCharLimit(Url) then
@@ -40,7 +41,7 @@ codeunit 8033 "VS Code Request Management"
     end;
 
     [Scope('OnPrem')]
-    procedure GetUrlToNavigateInVSCode(ObjectType: Option; ObjectId: Integer; ObjectName: Text; ControlName: Text; Dependencies: Text): Text
+    procedure GetUrlToNavigateInVSCode(ObjectType: Option; ObjectId: Integer; ObjectName: Text; ControlName: Text; NavAppInstalledApp: Record "NAV App Installed App"): Text
     var
         Url: Text;
     begin
@@ -49,34 +50,33 @@ codeunit 8033 "VS Code Request Management"
         UriBuilder.AddQueryParameter('type', FormatObjectType(ObjectType));
         UriBuilder.AddQueryParameter('id', Format(ObjectId));
         UriBuilder.AddQueryParameter('name', ObjectName);
+        UriBuilder.AddQueryParameter('appid', GetAppIdForObject(ObjectType, ObjectId));
         if Text.StrLen(ControlName) <> 0 then
             UriBuilder.AddQueryParameter('fieldName', Format(ControlName));
-        UriBuilder.AddQueryParameter('appid', GetAppIdForObject(ObjectType, ObjectId));
         UriBuilder.SetQuery(UriBuilder.GetQuery() + '&' + VSCodeRequestHelper.GetLaunchInformationQueryPart());
         UriBuilder.AddQueryParameter('sessionId', Format(SessionId()));
-
-        // If the URL length exceeds 2000 characters when adding the dependencies, then it will crash the page, so we truncate the dependency list.
-        if DoesExceedCharLimit(GetAbsoluteUri() + Dependencies) then
-            Dependencies := 'truncated';
-        UriBuilder.AddQueryParameter('dependencies', Dependencies);
+        UriBuilder.AddQueryParameter('dependencies', GetDependencies(NavAppInstalledApp));
 
         Url := GetAbsoluteUri();
         if DoesExceedCharLimit(Url) then
-            // If the URL length exceeds 2000 characters then it will crash the page, so we truncate the whole URL.
+            // If the URL length exceeds 2000 characters then it will crash the page, so we truncate it.
             exit(AlExtensionUriTxt + '/truncated');
 
         exit(Url);
     end;
 
     [Scope('OnPrem')]
-    procedure GetFormattedDependencies(var NavAppInstalledApp: Record "NAV App Installed App"): Text
+    local procedure GetDependencies(NavAppInstalledApp: Record "NAV App Installed App"): Text
     var
         DependencyList: TextBuilder;
     begin
-        if NavAppInstalledApp.FindSet() then
+        if NavAppInstalledApp.Find() then
             repeat
                 DependencyList.Append(FormatDependency(NavAppInstalledApp));
             until NavAppInstalledApp.Next() = 0;
+
+        if DoesExceedCharLimit(GetAbsoluteUri() + DependencyList.ToText()) then
+            exit('truncated');
 
         exit(DependencyList.ToText());
     end;
