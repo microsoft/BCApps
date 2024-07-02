@@ -12,6 +12,7 @@ using System.Environment.Configuration;
 /// </summary>
 page 2511 "Extension Settings"
 {
+    ApplicationArea = All;
     Extensible = false;
     DataCaptionExpression = AppNameValue;
     PageType = Card;
@@ -30,28 +31,36 @@ page 2511 "Extension Settings"
 
                 field(AppId; AppIdValue)
                 {
-                    ApplicationArea = All;
                     Caption = 'App ID';
                     Editable = false;
                     ToolTip = 'Specifies the App ID of the extension.';
                 }
                 field(AppName; AppNameValue)
                 {
-                    ApplicationArea = All;
                     Caption = 'Name';
                     Editable = false;
                     ToolTip = 'Specifies the name of the extension.';
                 }
+                field(AppVersion; AppVersionDisplay)
+                {
+                    Caption = 'Version';
+                    Editable = false;
+                    ToolTip = 'Specifies the version of the extension.';
+                }
                 field(AppPublisher; AppPublisherValue)
                 {
-                    ApplicationArea = All;
                     Caption = 'Publisher';
                     Editable = false;
                     ToolTip = 'Specifies the publisher of the extension.';
                 }
+                field(AppIsInstalled; AppIsInstalled)
+                {
+                    Caption = 'Is Installed';
+                    Editable = false;
+                    ToolTip = 'Specifies whether the extension is installed.';
+                }
                 field(AllowHttpClientRequests; Rec."Allow HttpClient Requests")
                 {
-                    ApplicationArea = All;
                     Caption = 'Allow HttpClient Requests';
                     Editable = CanManageExtensions;
                     ToolTip = 'Specifies whether the runtime should allow this extension to make HTTP requests through the HttpClient data type when running in a non-production environment.';
@@ -59,7 +68,6 @@ page 2511 "Extension Settings"
             }
         }
     }
-
 
     trigger OnAfterGetCurrRecord()
     var
@@ -72,12 +80,12 @@ page 2511 "Extension Settings"
             AppNameValue := PublishedApplication.Name;
             AppPublisherValue := PublishedApplication.Publisher;
             AppIdValue := LowerCase(DelChr(Format(PublishedApplication.ID), '=', '{}'));
+            AppVersionDisplay := ExtensionInstallationImpl.GetVersionDisplayString(PublishedApplication);
+            AppIsInstalled := ExtensionInstallationImpl.IsInstalledByPackageId(PublishedApplication."Package ID");
         end
     end;
 
     trigger OnOpenPage()
-    var
-        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
     begin
         if Rec.GetFilter("App ID") = '' then
             exit;
@@ -92,9 +100,12 @@ page 2511 "Extension Settings"
     end;
 
     var
+        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         AppNameValue: Text;
         AppPublisherValue: Text;
         AppIdValue: Text;
+        AppVersionDisplay: Text;
+        AppIsInstalled: Boolean;
         CanManageExtensions: Boolean;
 }
 
