@@ -320,5 +320,9 @@ TestResults.xml
 #Build files
 *.al.bak
 
+# Jupyter Notebook
+*.ipynb_checkpoints
+*.ipynb
+
 # Exceptions
 !src/System Application/Test/Extension Management/testArtifacts/*.app
