@@ -1,6 +1,7 @@
 namespace Microsoft.Foundation;
 
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.AuditCodes;
 
 permissionset 3 "Bus. Found. - View"
 {
@@ -9,5 +10,6 @@ permissionset 3 "Bus. Found. - View"
     Caption = 'Business Foundation - View';
 
     IncludedPermissionSets = "Bus. Found. - Read",
+                             "Audit Codes - View",
                              "No. Series - View";
 }
