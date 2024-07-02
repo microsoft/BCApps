@@ -31,19 +31,17 @@ page 149042 "CommandLine Card"
                     trigger OnValidate()
                     var
                         AITTestSuite: record "AIT Test Suite";
-                        AITTestMethodLine: record "AIT Test Method Line";
                     begin
                         if not AITTestSuite.Get(AITCode) then
                             Error(CannotFindAITSuiteErr, AITCode);
 
-                        AITTestMethodLine.SetRange("Test Suite Code", AITCode);
-                        NoOfTests := AITTestMethodLine.Count();
+                        RefreshNoOfPendingTests();
                     end;
                 }
-                field("No. of Tests"; NoOfTests)
+                field("No. of Pending Tests"; NoOfPendingTests)
                 {
-                    Caption = 'No. of Tests', Locked = true;
-                    ToolTip = 'Specifies the number of AIT Suite Lines present in the AIT Suite';
+                    Caption = 'No. of Pending Tests', Locked = true;
+                    ToolTip = 'Specifies the number of AIT Suite Lines in the AIT Suite that are yet to be run.';
                     Editable = false;
                 }
             }
@@ -135,6 +133,55 @@ page 149042 "CommandLine Card"
                     StartAITSuite();
                 end;
             }
+            action(RunNextTest)
+            {
+                Enabled = EnableActions;
+                Caption = 'Run Next Test', Locked = true;
+                Image = TestReport;
+                ToolTip = 'Starts running the next test in the AI test suite.';
+
+                trigger OnAction()
+                begin
+                    StartNextTest();
+                end;
+            }
+            action(ResetTestSuite)
+            {
+                Enabled = EnableActions;
+                Caption = 'Reset Test Suite', Locked = true;
+                Image = Restore;
+                ToolTip = 'Resets the test method lines status to run them again.';
+
+                trigger OnAction()
+                var
+                    AITTestMethodLine: Record "AIT Test Method Line";
+                begin
+                    AITTestMethodLine.SetRange("Test Suite Code", AITCode);
+                    AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ");
+                    RefreshNoOfPendingTests();
+                end;
+            }
+
+        }
+        area(Navigation)
+        {
+            action("AI Test Suite")
+            {
+                Caption = 'AI Test Suite';
+                ApplicationArea = All;
+                Image = Setup;
+                ToolTip = 'Opens the AI Test Suite page.';
+
+                trigger OnAction()
+                var
+                    AITTestSuite: Record "AIT Test Suite";
+                    AITTestSuitePage: Page "AIT Test Suite";
+                begin
+                    AITTestSuite.Get(AITCode);
+                    AITTestSuitePage.SetTableView(AITTestSuite);
+                    AITTestSuitePage.Run();
+                end;
+            }
         }
         area(Promoted)
         {
@@ -143,18 +190,15 @@ page 149042 "CommandLine Card"
                 actionref(RunSuite_Promoted; RunSuite)
                 {
                 }
+                actionref(RunNextTest_Promoted; RunNextTest)
+                {
+                }
+                actionref(ClearTestStatus_Promoted; ResetTestSuite)
+                {
+                }
             }
         }
     }
-
-    var
-        CannotFindAITSuiteErr: Label 'The specified AIT Suite with code %1 cannot be found.', Comment = '%1 = AIT Suite id.';
-        EnableActions: Boolean;
-        AITCode: Code[100];
-        NoOfTests: Integer;
-        InputDataset: Text;
-        SuiteDefinition: Text;
-        InputDatasetFilename: Text;
 
     trigger OnOpenPage()
     var
@@ -163,12 +207,52 @@ page 149042 "CommandLine Card"
         EnableActions := (EnvironmentInformation.IsSaas() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
     end;
 
+    var
+        CannotFindAITSuiteErr: Label 'The specified AIT Suite with code %1 cannot be found.', Comment = '%1 = AIT Suite id.';
+        EnableActions: Boolean;
+        AITCode: Code[100];
+        NoOfPendingTests: Integer;
+        InputDataset: Text;
+        SuiteDefinition: Text;
+        InputDatasetFilename: Text;
+
     local procedure StartAITSuite()
     var
         AITTestSuite: Record "AIT Test Suite";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
-        if AITTestSuite.Get(AITCode) then
+        if AITTestSuite.Get(AITCode) then begin
             AITTestSuiteMgt.StartAITSuite(AITTestSuite);
+            RefreshNoOfPendingTests();
+        end;
     end;
+
+    local procedure StartNextTest()
+    var
+        AITTestMethodLine: Record "AIT Test Method Line";
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+    begin
+        if NoOfPendingTests = 0 then
+            exit;
+        AITTestMethodLine.SetRange("Test Suite Code", AITCode);
+        AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::" ");
+        if AITTestMethodLine.FindFirst() then
+            AITTestSuiteMgt.RunAITestLine(AITTestMethodLine, true);
+
+        RefreshNoOfPendingTests();
+    end;
+
+    local procedure RefreshNoOfPendingTests(): Integer
+    var
+        AITTestMethodLine: Record "AIT Test Method Line";
+    begin
+        if AITCode <> '' then begin
+            AITTestMethodLine.SetRange("Test Suite Code", AITCode);
+            AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::" ");
+            NoOfPendingTests := AITTestMethodLine.Count();
+        end
+        else
+            NoOfPendingTests := 0;
+    end;
+
 }

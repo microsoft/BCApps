@@ -186,13 +186,9 @@ page 149034 "AIT Test Method Lines"
 
                 trigger OnAction()
                 begin
-                    AITTestSuite.Get(Rec."Test Suite Code");
-                    AITTestSuite.Version += 1;
-                    AITTestSuite.Modify();
-                    Commit();
-                    Rec.SetRange("Codeunit ID", Rec."Codeunit ID");
-                    Codeunit.Run(codeunit::"AIT Test Runner", Rec);
-                    Rec.SetRange("Codeunit ID"); // reset filter
+                    if Rec."Codeunit ID" = 0 then
+                        exit;
+                    AITTestSuiteMgt.RunAITestLine(Rec, true);
                 end;
             }
             action(LogEntries)

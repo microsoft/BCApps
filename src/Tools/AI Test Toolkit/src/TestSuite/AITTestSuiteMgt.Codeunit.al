@@ -72,17 +72,30 @@ codeunit 149034 "AIT Test Suite Mgt."
             repeat
                 AITTestMethodLine.CalcFields("Codeunit Name");
                 StatusDialog.Update(1, AITTestMethodLine."Codeunit Name");
-                AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Running);
-                AITTestMethodLine.Modify();
-                Commit();
-                Codeunit.Run(Codeunit::"AIT Test Runner", AITTestMethodLine);
-                if AITTestMethodLine.Find() then begin
-                    AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Completed);
-                    AITTestMethodLine.Modify();
-                    Commit();
-                end;
+                RunAITestLine(AITTestMethodLine, false);
             until AITTestMethodLine.Next() = 0;
             StatusDialog.Close();
+        end;
+    end;
+
+    internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; UpdateSuiteVersion: Boolean)
+    var
+        AITTestSuite: Record "AIT Test Suite";
+    begin
+        if UpdateSuiteVersion then begin
+            AITTestSuite.Get(AITTestMethodLine."Test Suite Code");
+            AITTestSuite.Version += 1;
+            AITTestSuite.Modify();
+        end;
+
+        AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Running);
+        AITTestMethodLine.Modify();
+        Commit();
+        Codeunit.Run(Codeunit::"AIT Test Runner", AITTestMethodLine);
+        if AITTestMethodLine.Find() then begin
+            AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Completed);
+            AITTestMethodLine.Modify();
+            Commit();
         end;
     end;
 
