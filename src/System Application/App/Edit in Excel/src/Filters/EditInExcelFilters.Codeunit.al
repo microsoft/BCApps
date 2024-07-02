@@ -151,8 +151,8 @@ codeunit 1490 "Edit in Excel Filters"
         EditinExcelFiltersImpl.GetFilters(SpecifiedFieldFilters);
     end;
 
-    internal procedure ReadFromJsonFilters(JsonFilter: JsonObject; JsonPayload: JsonObject; PageId: Integer)
+    internal procedure ReadFromJsonFilters(JsonFilter: JsonObject; JsonPayload: JsonObject; PageId: Integer; FilterErrors: Dictionary of [Text, Boolean])
     begin
-        EditinExcelFiltersImpl.ConvertFromJsonFilters(JsonFilter, JsonPayload, PageId);
+        EditinExcelFiltersImpl.ConvertFromJsonFilters(JsonFilter, JsonPayload, PageId, FilterErrors);
     end;
 }

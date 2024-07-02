@@ -355,14 +355,14 @@ codeunit 132525 "Edit in Excel Test"
         // [Given] Invalid json filter object (missing last bracket)
         // [Given] A Json Structured filter and Payload
         JsonFilter := '{"type":"and","childNodes":[{"type":"or","childNodes":[{"type":"or","childNodes":' +
-                        '[{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":{"type":"Edm.String constant",' +
-                        '"value":"10000"}},{"type":"eq","leftNode":{"type":"var","name":"No"},' +
+                        '[{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":{"type":"Edm.String constant",' +
+                        '"value":"10000"}},{"type":"eq","leftNode":{"type":"var","name":"Id"},' +
                         '"rightNode":{"type":"Edm.String constant","value":"20000"}}]},' +
-                        '{"type":"or","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"No"}' +
+                        '{"type":"or","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"Id"}' +
                         ',"rightNode":{"type":"Edm.String constant","value":"30000"}},' +
-                        '{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":' +
+                        '{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":' +
                         '{"type":"Edm.String constant","value":"40000"}}]}]}]}';
-        JsonPayload := '{ "fieldPayload": { "No": { "alName": "No.", "validInODataFilter": true, "edmType": "Edm.String" }}}';
+        JsonPayload := '{ "fieldPayload": { "Id": { "alName": "Id", "validInODataFilter": true, "edmType": "Edm.String" }}}';
 
         FilterJsonObject.ReadFrom(JsonFilter);
         PayloadJsonObject.ReadFrom(JsonPayload);
@@ -372,9 +372,9 @@ codeunit 132525 "Edit in Excel Test"
 
         // [Then] The filters match expectations
         EditinExcelTestLibrary.GetFilters(EditinExcelFilters, FieldFilters);
-        NumberKey := 'No';
+        NumberKey := 'Id';
         LibraryAssert.IsTrue(FieldFilters.TryGetValue(NumberKey, FieldFilter), 'Could not find the "No" key in the filters');
-        ExpectedFilter := '((No eq ''10000'') or (No eq ''20000'') or (No eq ''30000'') or (No eq ''40000''))';
+        ExpectedFilter := '((Id eq ''10000'') or (Id eq ''20000'') or (Id eq ''30000'') or (Id eq ''40000''))';
         LibraryAssert.AreEqual(ExpectedFilter, FieldFilter.ToString(), 'The actual and expected filters are not equal');
     end;
 
@@ -389,7 +389,7 @@ codeunit 132525 "Edit in Excel Test"
         PayloadJsonObject: JsonObject;
         FieldFilters: DotNet GenericDictionary2;
         NumberKey: Text;
-        SalesKey: Text;
+        CountryRegionCodeKey: Text;
         ExpectedNumberFilter: Text;
         ExpectedSalesFilter: Text;
         NumberFieldFilter: DotNet FilterCollectionNode;
@@ -400,10 +400,10 @@ codeunit 132525 "Edit in Excel Test"
         Init();
 
         // [Given] A Json Structured filter and Payload
-        JsonFilter := '{"type":"and","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":{"type":"Edm.String constant",' +
-                      '"value":"10000"}},{"type":"eq","leftNode":{"type":"var","name":"Global_Dimension_1_Code"},"rightNode"' +
-                      ':{"type":"Edm.String constant","value":"SALES"}}]}';
-        JsonPayload := '{ "fieldPayload": { "No": { "alName": "No.", "validInODataFilter": true, "edmType": "Edm.String" }, "Global_Dimension_1_Code": {"alName": "Global Dimension 1 Code","validInODataFilter": true, "edmType": "Edm.String" }}}';
+        JsonFilter := '{"type":"and","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":{"type":"Edm.String constant",' +
+                      '"value":"10000"}},{"type":"eq","leftNode":{"type":"var","name":"Country_Region_Code"},"rightNode"' +
+                      ':{"type":"Edm.String constant","value":"GB"}}]}';
+        JsonPayload := '{ "fieldPayload": { "Id": { "alName": "Id", "validInODataFilter": true, "edmType": "Edm.String" }, "Country_Region_Code": { "alName": "Country/Region Code", "ValidInODataFilter": true, "edmType": "Edm.String" }}}';
         LibraryAssert.IsTrue(FilterJsonObject.ReadFrom(JsonFilter), 'Could not read json filter');
         LibraryAssert.IsTrue(PayloadJsonObject.ReadFrom(JsonPayload), 'Could not read json payload');
 
@@ -413,16 +413,16 @@ codeunit 132525 "Edit in Excel Test"
         // [Then] The filters match expectations
         EditinExcelTestLibrary.GetFilters(EditinExcelFilters, FieldFilters);
 
-        NumberKey := 'No';
-        SalesKey := 'Global_Dimension_1_Code';
+        NumberKey := 'Id';
+        CountryRegionCodeKey := 'Country_Region_Code';
 
         LibraryAssert.IsTrue(FieldFilters.TryGetValue(NumberKey, NumberFieldFilter), 'Could not find the "' + NumberKey + '" key in the filters');
-        LibraryAssert.IsTrue(FieldFilters.TryGetValue(SalesKey, SalesFieldFilter), 'Could not find the "' + SalesKey + '" key in the filters');
+        LibraryAssert.IsTrue(FieldFilters.TryGetValue(CountryRegionCodeKey, SalesFieldFilter), 'Could not find the "' + CountryRegionCodeKey + '" key in the filters');
 
-        ExpectedNumberFilter := '((No eq ''10000''))';
-        ExpectedSalesFilter := '((Global_Dimension_1_Code eq ''SALES''))';
+        ExpectedNumberFilter := '((Id eq ''10000''))';
+        ExpectedSalesFilter := '((Country_Region_Code eq ''GB''))';
 
-        // We expect this: ( (No eq '10000') and (Global_Dimension_1_Code eq 'SALES'))
+        // We expect this: ( (No eq '10000') and (Country_Region_Code eq 'GB'))
         LibraryAssert.AreEqual(ExpectedNumberFilter, NumberFieldFilter.ToString(), 'The actual and expected filters are not equal');
         LibraryAssert.AreEqual(ExpectedSalesFilter, SalesFieldFilter.ToString(), 'The actual and expected filters are not equal');
     end;
@@ -443,16 +443,15 @@ codeunit 132525 "Edit in Excel Test"
         ExpectedCountryRegionCodeFilter: Text;
         NumberFieldFilter: DotNet FilterCollectionNode;
         CountryRegionCodeFieldFilter: DotNet FilterCollectionNode;
-
     begin
         // [Scenario] User clicks "Edit in Excel" with filter on "No" field - 4 or filters and one other filter
         Init();
 
         // [Given] A Json Structured filter and Payload
-        JsonFilter := '{"type":"and","childNodes":[{"type":"or","childNodes":[{"type":"or","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":' +
-         '{"type":"Edm.String constant","value":"10000"}},{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":{"type":"Edm.String constant","value":"20000"}}]},' +
-         '{"type":"or","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":{"type":"Edm.String constant","value":"30000"}},{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":{"type":"Edm.String constant","value":"40000"}}]}]},{"type":"eq","leftNode":{"type":"var","name":"Country_Region_Code"},"rightNode":{"type":"Edm.String constant","value":"GB"}}]}';
-        JsonPayload := '{ "fieldPayload": { "No": { "alName": "No.", "validInODataFilter": true, "edmType": "Edm.String" }, "Country_Region_Code": { "alName": "Country/Region Code", "ValidInODataFilter": true, "edmType": "Edm.String" } }}';
+        JsonFilter := '{"type":"and","childNodes":[{"type":"or","childNodes":[{"type":"or","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":' +
+         '{"type":"Edm.String constant","value":"10000"}},{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":{"type":"Edm.String constant","value":"20000"}}]},' +
+         '{"type":"or","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":{"type":"Edm.String constant","value":"30000"}},{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":{"type":"Edm.String constant","value":"40000"}}]}]},{"type":"eq","leftNode":{"type":"var","name":"Country_Region_Code"},"rightNode":{"type":"Edm.String constant","value":"GB"}}]}';
+        JsonPayload := '{ "fieldPayload": { "Id": { "alName": "Id", "validInODataFilter": true, "edmType": "Edm.String" }, "Country_Region_Code": { "alName": "Country/Region Code", "ValidInODataFilter": true, "edmType": "Edm.String" } }}';
         LibraryAssert.IsTrue(FilterJsonObject.ReadFrom(JsonFilter), 'Could not read json filter');
         LibraryAssert.IsTrue(PayloadJsonObject.ReadFrom(JsonPayload), 'Could not read json payload');
 
@@ -462,17 +461,16 @@ codeunit 132525 "Edit in Excel Test"
         // [Then] The filters match expectations
         EditinExcelTestLibrary.GetFilters(EditinExcelFilters, FieldFilters);
 
-        NumberKey := 'No';
+        NumberKey := 'Id';
         CountryRegionCodeKey := 'Country_Region_Code';
 
         LibraryAssert.IsTrue(FieldFilters.TryGetValue(NumberKey, NumberFieldFilter), 'Could not find the "' + NumberKey + '" key in the filters');
         LibraryAssert.IsTrue(FieldFilters.TryGetValue(CountryRegionCodeKey, CountryRegionCodeFieldFilter), 'Could not find the "' + CountryRegionCodeKey + '" key in the filters');
 
-        // We expect this: (((No eq '10000') or (No eq '20000') or (No eq '30000') or (No eq '40000')) and (Country_Region_Code eq 'GB'))
-        ExpectedNumberFilter := '((No eq ''10000'') or (No eq ''20000'') or (No eq ''30000'') or (No eq ''40000''))';
+        // We expect this: (((Id eq '10000') or (Id eq '20000') or (Id eq '30000') or (Id eq '40000')) and (Country_Region_Code eq 'GB'))
+        ExpectedNumberFilter := '((Id eq ''10000'') or (Id eq ''20000'') or (Id eq ''30000'') or (Id eq ''40000''))';
         ExpectedCountryRegionCodeFilter := '((Country_Region_Code eq ''GB''))';
 
-        // We expect this: ( (No eq '10000') and (Global_Dimension_1_Code eq 'SALES'))
         LibraryAssert.AreEqual(ExpectedNumberFilter, NumberFieldFilter.ToString(), 'The actual and expected filters are not equal');
         LibraryAssert.AreEqual(ExpectedCountryRegionCodeFilter, CountryRegionCodeFieldFilter.ToString(), 'The actual and expected filters are not equal');
     end;
