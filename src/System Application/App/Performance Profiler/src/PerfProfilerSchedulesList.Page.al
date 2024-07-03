@@ -67,9 +67,6 @@ page 1933 "Perf. Profiler Schedules List"
 
             repeater(ProfilerSchedules)
             {
-                AboutTitle = 'The list of profiler schedules';
-                AboutText = 'See the existing profiler schedules.';
-
                 field("Schedule ID"; Rec."Schedule ID")
                 {
                     Caption = 'Schedule ID';
