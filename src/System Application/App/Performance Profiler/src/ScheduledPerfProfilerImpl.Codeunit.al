@@ -10,7 +10,6 @@ using System.DataAdministration;
 using System.Security.AccessControl;
 using System.Security.User;
 using System.Environment;
-using System.Environment.Configuration;
 
 codeunit 1932 "Scheduled Perf. Profiler Impl."
 {
