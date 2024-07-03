@@ -64,6 +64,14 @@ page 2500 "Extension Management"
                     StyleExpr = InfoStyle;
                     ToolTip = 'Specifies whether the extension is installed.';
                 }
+                field("Source"; AllowsDownloadSource)
+                {
+                    Caption = 'Source';
+                    StyleExpr = AllowsDownloadSourceStyleExpr;
+                    ToolTip = 'Specifies whether the extension is allows the source to be downloaded.';
+                    OptionCaption = ' ,Yes,No';
+                }
+
                 field("Published As"; Rec."Published As")
                 {
                     Caption = 'Published As';
@@ -215,12 +223,8 @@ page 2500 "Extension Management"
                     Image = NewItem;
                     ToolTip = 'Browse the Microsoft AppSource Gallery for new extensions to install.';
                     Visible = not IsOnPremDisplay;
+                    RunObject = Page 2515;
                     RunPageMode = View;
-
-                    trigger OnAction()
-                    begin
-                        Page.Run(2515);
-                    end;
                 }
                 action("Upload Extension")
                 {
@@ -315,6 +319,8 @@ page 2500 "Extension Management"
         IsInstallAllowed: Boolean;
         InfoStyle: Boolean;
         HelpActionVisible: Boolean;
+        AllowsDownloadSource: Option " ","Yes","No";
+        AllowsDownloadSourceStyleExpr: Text;
 
     local procedure SetExtensionManagementFilter()
     begin
@@ -347,6 +353,15 @@ page 2500 "Extension Management"
         // Determining Record and Styling Configurations
         IsInstalled := ExtensionInstallationImpl.IsInstalledByPackageId(Rec."Package ID");
         IsTenantExtension := Rec."Published As" <> Rec."Published As"::Global;
+        AllowsDownloadSource := AllowsDownloadSource::" ";
+        if (IsTenantExtension) then
+            if ExtensionInstallationImpl.AllowsDownloadSource(Rec."Resource Exposure Policy") then begin
+                AllowsDownloadSource := AllowsDownloadSource::Yes;
+                AllowsDownloadSourceStyleExpr := Format(PageStyle::Favorable);
+            end else begin
+                AllowsDownloadSource := AllowsDownloadSource::No;
+                AllowsDownloadSourceStyleExpr := Format(PageStyle::Unfavorable);
+            end;
     end;
 
     local procedure SetInfoStyleForIsInstalled()

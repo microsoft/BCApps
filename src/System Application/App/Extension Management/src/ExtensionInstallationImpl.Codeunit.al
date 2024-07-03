@@ -364,5 +364,41 @@ codeunit 2500 "Extension Installation Impl"
         ExtensionDetails.Run();
         exit(ExtensionDetails.Editable());
     end;
+
+    internal procedure AllowsDebug(ResourceProtectionPolicy: Integer): Boolean
+    begin
+        exit(HasPolicy(ResourceProtectionPolicy, 1));
+    end;
+
+    internal procedure AllowsDownloadSource(ResourceProtectionPolicy: Integer): Boolean
+    begin
+        exit(HasPolicy(ResourceProtectionPolicy, 2));
+    end;
+
+    internal procedure AllowsDownloadSourceInSymbols(ResourceProtectionPolicy: Integer): Boolean
+    begin
+        exit(HasPolicy(ResourceProtectionPolicy, 4));
+    end;
+
+    local procedure HasPolicy(ResourceProtectionPolicy: Integer; PolicyToTestFor: Integer): Boolean
+    var
+        remaining, tester, result, nextFlag : integer;
+
+    begin
+        result := 0;
+        remaining := ResourceProtectionPolicy;
+        tester := PolicyToTestFor;
+        nextFlag := 1;
+        while ((remaining > 0) and (tester > 0)) do begin
+            if ((remaining mod 2) = 1) and ((tester mod 2) = 1) then
+                result += nextFlag;
+
+            remaining := remaining div 2;
+            tester := tester div 2;
+            nextFlag := nextFlag * 2;
+        end;
+
+        exit(result = PolicyToTestFor);
+    end;
 }
 
