@@ -238,7 +238,6 @@ codeunit 396 NoSeriesManagement
 
 #pragma warning disable AS0072
     [Obsolete('Please use method GetNextNo(Code[20]; Date) or PeekNextNo(Code[20]; UsageDate) in the codeunit "No. Series" or "No. Series - Batch" instead. GetNextNo(Code[20]; Date; Boolean) does not have the same behavior. Make sure to use the correct parameters.', '24.0')]
-#pragma warning restore AS0072
     procedure GetNextNo(NoSeriesCode: Code[20]; SeriesDate: Date; ModifySeries: Boolean) Result: Code[20]
     var
         IsHandled: Boolean;
@@ -250,6 +249,7 @@ codeunit 396 NoSeriesManagement
 
         exit(DoGetNextNo(NoSeriesCode, SeriesDate, ModifySeries, false));
     end;
+#pragma warning restore AS0072
 
     /// <summary>
     /// This method is added for compatibility only.It raises the obsolete OnBeforeGetNextNo event. 
@@ -872,7 +872,7 @@ codeunit 396 NoSeriesManagement
     end;
 
     [Obsolete('This is a temporary method for compatibility only. Please use the "No. Series" codeunit instead', '24.0')]
-    internal procedure RaiseObsoleteOnAfterGetNextNo3(NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean)
+    internal procedure RaiseObsoleteOnAfterGetNextNo3(var NoSeriesLine: Record "No. Series Line"; ModifySeries: Boolean)
     begin
         OnAfterGetNextNo3(NoSeriesLine, ModifySeries);
     end;
