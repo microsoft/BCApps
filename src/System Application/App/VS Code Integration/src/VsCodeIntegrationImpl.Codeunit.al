@@ -29,7 +29,7 @@ codeunit 8033 "VS Code Integration Impl."
             UriBuilder.AddQueryParameter('repoUrl', PublishedApplication."Source Repository Url");
             if Text.StrLen(PublishedApplication."Source Commit ID") <> 0 then
                 UriBuilder.AddQueryParameter('commitId', PublishedApplication."Source Commit ID");
-            UriBuilder.AddQueryParameter('appid', PublishedApplication.ID);
+            UriBuilder.AddQueryParameter('appid', Format(PublishedApplication.ID, 0, 4));
 
             Url := GetAbsoluteUri();
             if DoesExceedCharLimit(Url) then

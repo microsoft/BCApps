@@ -72,7 +72,7 @@ codeunit 138133 "VS Code Integration Test"
     [HandlerFunctions('HyperlinkHandler')]
     procedure FormatDependencies()
     begin
-        // [SCENARIO] Constructing URL to send a request to VS Code to navigate to the page
+        // [SCENARIO] Constructing URL to send a request to VS Code to navigate to the page with dependencies
 
         Initialize();
         HyperlinkStorage.Enqueue('&dependencies=A15FD72B-6430-4BB6-DFBC-1A948B7B15B4%2CMyApp2%2CPublisher2%2C23.0.0.0%3BF15FD82B-8050-4BB6-BFBC-1A948B7B17C3%2CMyApp1%2CPublisher1%2C1.2.3.4%3B');
@@ -112,7 +112,7 @@ codeunit 138133 "VS Code Integration Test"
         // [SCENARIO] Constructing URL to send a request to VS Code to get an extension's source code from a source evrsion control
 
         Initialize();
-        HyperlinkStorage.Enqueue('vscode://ms-dynamics-smb.al/sourceSync?repoUrl=https%3A%2F%2Fgithub.com%2Fmicrosoft%2FBCApps&commitId=d00e148c0513b02b4818a6f8fd399ad6e9543080&appid=%7BF15FD82B-8050-4BB6-BFBC-1A948B7B17C3%7D');
+        HyperlinkStorage.Enqueue('vscode://ms-dynamics-smb.al/sourceSync?repoUrl=https%3A%2F%2Fgithub.com%2Fmicrosoft%2FBCApps&commitId=d00e148c0513b02b4818a6f8fd399ad6e9543080&appid=F15FD82B-8050-4BB6-BFBC-1A948B7B17C3');
 
         // [GIVEN] a the source control information
         TempPublishedApplication.Init();
