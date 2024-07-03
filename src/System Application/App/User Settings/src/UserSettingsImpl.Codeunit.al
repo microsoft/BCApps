@@ -221,10 +221,7 @@ codeunit 9175 "User Settings Impl."
             ShouldRefreshSession := true;
             sessionSetting.ProfileId := NewUserSettings."Profile ID";
             sessionSetting.ProfileAppId := NewUserSettings."App ID";
-#pragma warning disable AL0667
             sessionSetting.ProfileSystemScope := NewUserSettings.Scope = NewUserSettings.Scope::System;
-#pragma warning restore AL0667
-
         end;
 
         if OldUserSettings."Work Date" <> NewUserSettings."Work Date" then

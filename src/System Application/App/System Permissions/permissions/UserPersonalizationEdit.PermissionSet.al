@@ -18,9 +18,7 @@ permissionset 91 "User Personalization - Edit"
                   tabledata "User Default Style Sheet" = IMD,
                   tabledata "User Personalization" = IMD,
 #pragma warning disable AL0432
-#pragma warning disable AL0601
                   tabledata "User Metadata" = IMD,
 #pragma warning restore AL0432
-#pragma warning restore AL0601
                   tabledata "User Page Metadata" = IMD;
 }
