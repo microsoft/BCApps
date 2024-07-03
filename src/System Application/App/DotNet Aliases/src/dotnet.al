@@ -599,6 +599,10 @@ dotnet
         {
         }
 
+        type("Microsoft.Dynamics.Nav.Runtime.ALAzureAdCodeGrantFlowSecretText"; "ALAzureAdCodeGrantFlowSecretText")
+        {
+        }
+
         type("Microsoft.Dynamics.Nav.Runtime.CompoundTokenInfo"; "CompoundTokenInfo")
         {
         }
