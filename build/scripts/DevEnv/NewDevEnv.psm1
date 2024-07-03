@@ -388,6 +388,13 @@ function Get-CredentialForContainer($AuthenticationType) {
     }
 }
 
+<#
+    .Synopsis
+    Installs the AL extension in VSCode.
+
+    .Parameter ContainerName
+    The name of the container for which to install the extension.
+#>
 function Install-ALExtension($ContainerName) {
     if (-not (Get-Command code -ErrorAction SilentlyContinue)) {
         Write-Host "VSCode is not installed or 'code' is not in the PATH. See https://code.visualstudio.com/docs/setup/windows for installation instructions." -ForegroundColor Red
@@ -401,7 +408,7 @@ function Install-ALExtension($ContainerName) {
     $vsixPath = Get-ChildItem "$($bcContainerHelperConfig.containerHelperFolder)\Extensions\$ContainerName\*.vsix" | Select-Object -ExpandProperty FullName
     Write-Host "code --install-extension $vsixPath --force"
     code --install-extension $vsixPath --force
-    Write-Host "VSCode extension installed." -ForegroundColor Magenta  
+    Write-Host "VSCode extension installed." -ForegroundColor Magenta
 }
 
 Export-ModuleMember -Function Create-BCContainer
