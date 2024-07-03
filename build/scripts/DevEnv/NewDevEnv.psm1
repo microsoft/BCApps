@@ -388,9 +388,26 @@ function Get-CredentialForContainer($AuthenticationType) {
     }
 }
 
+function Install-ALExtension($ContainerName) {
+    if (-not (Get-Command code -ErrorAction SilentlyContinue)) {
+        Write-Host "VSCode is not installed or 'code' is not in the PATH. See https://code.visualstudio.com/docs/setup/windows for installation instructions." -ForegroundColor Red
+        return
+    }
+
+    Write-Host "Installing VSCode extension..." -ForegroundColor Magenta
+    # Kill VSCode to avoid issues with the extension installation
+    Stop-Process -Name code -Force -ErrorAction SilentlyContinue
+
+    $vsixPath = Get-ChildItem "$($bcContainerHelperConfig.containerHelperFolder)\Extensions\$ContainerName\*.vsix" | Select-Object -ExpandProperty FullName
+    Write-Host "code --install-extension $vsixPath --force"
+    code --install-extension $vsixPath --force
+    Write-Host "VSCode extension installed." -ForegroundColor Magenta  
+}
+
 Export-ModuleMember -Function Create-BCContainer
 Export-ModuleMember -Function Resolve-ProjectPaths
 Export-ModuleMember -Function Build-Apps
 Export-ModuleMember -Function Publish-Apps
 Export-ModuleMember -Function Test-ContainerExists
 Export-ModuleMember -Function Get-CredentialForContainer
+Export-ModuleMember -Function Install-ALExtension
