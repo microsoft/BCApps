@@ -20,7 +20,7 @@ codeunit 8033 "VS Code Integration Impl."
         ApplicationIdTxt: Label 'c1335042-3002-4257-bf8a-75c898ccb1b8', Locked = true;
 
     [Scope('OnPrem')]
-    procedure GetUrlToOpenExtensionSource(var PublishedApplication: Record "Published Application"): Text
+    procedure GetUrlToOpenExtensionSource(var PublishedApplication: Record "Published Application")
     var
         Url: Text;
     begin
@@ -34,14 +34,14 @@ codeunit 8033 "VS Code Integration Impl."
             Url := GetAbsoluteUri();
             if DoesExceedCharLimit(Url) then
                 // If the URL length exceeds 2000 characters then it will crash the page, so we truncate it.
-                exit(AlExtensionUriTxt + '/truncated');
+                Hyperlink(AlExtensionUriTxt + '/truncated')
+            else
+                HyperLink(Url);
         end;
-
-        exit(Url);
     end;
 
     [Scope('OnPrem')]
-    procedure GetUrlToNavigateInVSCode(ObjectType: Option; ObjectId: Integer; ObjectName: Text; ControlName: Text; var NavAppInstalledApp: Record "NAV App Installed App"): Text
+    procedure NavigateToObjectDefinitionInVSCode(ObjectType: Option; ObjectId: Integer; ObjectName: Text; ControlName: Text; var NavAppInstalledApp: Record "NAV App Installed App")
     var
         Url: Text;
     begin
@@ -60,9 +60,9 @@ codeunit 8033 "VS Code Integration Impl."
         Url := GetAbsoluteUri();
         if DoesExceedCharLimit(Url) then
             // If the URL length exceeds 2000 characters then it will crash the page, so we truncate it.
-            exit(AlExtensionUriTxt + '/truncated');
-
-        exit(Url);
+            Hyperlink(AlExtensionUriTxt + '/truncated')
+        else
+            HyperLink(Url);
     end;
 
     [Scope('OnPrem')]

@@ -17,18 +17,18 @@ codeunit 8034 "VS Code Integration"
     [Scope('OnPrem')]
     procedure OpenExtensionSource(var PublishedApplication: Record "Published Application")
     begin
-        Hyperlink(VsCodeIntegrationImpl.GetUrlToOpenExtensionSource(PublishedApplication));
+        VsCodeIntegrationImpl.GetUrlToOpenExtensionSource(PublishedApplication);
     end;
 
     [Scope('OnPrem')]
     procedure NavigateToPageDefinitionInVSCode(var PageInfoAndFields: Record "Page Info And Fields"; var NavAppInstalledApp: Record "NAV App Installed App")
     begin
-        Hyperlink(VsCodeIntegrationImpl.GetUrlToNavigateInVSCode(AllObjWithCaption."Object Type"::Page, PageInfoAndFields."Page ID", PageInfoAndFields."Page Name", '', NavAppInstalledApp));
+        VsCodeIntegrationImpl.NavigateToObjectDefinitionInVSCode(AllObjWithCaption."Object Type"::Page, PageInfoAndFields."Page ID", PageInfoAndFields."Page Name", '', NavAppInstalledApp);
     end;
 
     [Scope('OnPrem')]
     procedure NavigateFieldDefinitionInVSCode(var PageInfoAndFields: Record "Page Info And Fields"; var NavAppInstalledApp: Record "NAV App Installed App")
     begin
-        Hyperlink(VsCodeIntegrationImpl.GetUrlToNavigateInVSCode(AllObjWithCaption."Object Type"::Table, PageInfoAndFields."Source Table No.", PageInfoAndFields."Source Table Name", PageInfoAndFields."Field Name", NavAppInstalledApp));
+        VsCodeIntegrationImpl.NavigateToObjectDefinitionInVSCode(AllObjWithCaption."Object Type"::Table, PageInfoAndFields."Source Table No.", PageInfoAndFields."Source Table Name", PageInfoAndFields."Field Name", NavAppInstalledApp);
     end;
 }
