@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 page 149035 "AIT Test Method Lines Compare"
 {
-    Caption = 'AIT Test Method Lines Compare';
+    Caption = 'AI Test Method Lines Compare';
     PageType = Card;
     ApplicationArea = All;
     SourceTable = "AIT Test Method Line";

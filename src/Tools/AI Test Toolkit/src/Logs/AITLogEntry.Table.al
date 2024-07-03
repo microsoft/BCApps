@@ -10,7 +10,7 @@ using System.TestTools.TestRunner;
 
 table 149034 "AIT Log Entry"
 {
-    Caption = 'AIT Log Entry';
+    Caption = 'AI Log Entry';
     DataClassification = SystemMetadata;
     DrillDownPageId = "AIT Log Entries";
     LookupPageId = "AIT Log Entries";

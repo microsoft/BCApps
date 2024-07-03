@@ -10,7 +10,7 @@ using System.TestTools.TestRunner;
 
 table 149032 "AIT Test Method Line"
 {
-    Caption = 'AIT Test Method Line';
+    Caption = 'AI Test Method Line';
     DataClassification = SystemMetadata;
     Extensible = false;
     Access = Internal;

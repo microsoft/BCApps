@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 page 149036 "AIT Test Suite Compare"
 {
-    Caption = 'AIT Test Suite Compare';
+    Caption = 'AI Test Suite Compare';
     PageType = Card;
     ApplicationArea = All;
     SourceTable = "AIT Test Suite";

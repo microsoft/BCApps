@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 page 149033 "AIT Log Entries"
 {
-    Caption = 'AIT Log Entries';
+    Caption = 'AI Log Entries';
     PageType = List;
     Editable = false;
     SourceTable = "AIT Log Entry";
