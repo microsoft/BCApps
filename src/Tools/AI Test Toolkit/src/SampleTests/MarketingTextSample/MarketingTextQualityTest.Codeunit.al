@@ -1,3 +1,13 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.TestTools.AITestToolkit;
+
+using System.Text;
+using System.TestTools.TestRunner;
+
 codeunit 149033 "Marketing Text Quality Test"
 {
     Subtype = Test;

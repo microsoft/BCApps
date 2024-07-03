@@ -52,6 +52,7 @@ page 149046 "AIT Suite API"
                 {
                     Caption = 'Tag';
                 }
+                field(lastModifiedDateTime; Rec.SystemModifiedAt) { }
 
                 part("testSuitesLines"; "AIT Suite Line API")
                 {

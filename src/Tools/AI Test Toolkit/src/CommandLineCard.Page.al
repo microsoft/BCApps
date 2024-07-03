@@ -18,10 +18,11 @@ page 149042 "CommandLine Card"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(General)
             {
+                Caption = 'General';
                 field("AIT Suite Code"; AITCode)
                 {
                     Caption = 'AIT Suite Code', Locked = true;
@@ -30,7 +31,7 @@ page 149042 "CommandLine Card"
 
                     trigger OnValidate()
                     var
-                        AITTestSuite: record "AIT Test Suite";
+                        AITTestSuite: Record "AIT Test Suite";
                     begin
                         if not AITTestSuite.Get(AITCode) then
                             Error(CannotFindAITSuiteErr, AITCode);
@@ -52,14 +53,14 @@ page 149042 "CommandLine Card"
                 field("Input Dataset Filename"; InputDatasetFilename)
                 {
                     Caption = 'Input Dataset Filename', Locked = true;
-                    ToolTip = 'Specifies the input dataset filename to import for running the test suite';
+                    ToolTip = 'Specifies the input dataset filename to import for running the test suite.';
                     ShowMandatory = InputDataset <> '';
                 }
                 field("Input Dataset"; InputDataset)
                 {
                     Caption = 'Input Dataset', Locked = true;
                     MultiLine = true;
-                    ToolTip = 'Specifies the input dataset to import for running the test suite';
+                    ToolTip = 'Specifies the input dataset to import for running the test suite.';
 
                     trigger OnValidate()
                     var
@@ -67,11 +68,12 @@ page 149042 "CommandLine Card"
                         TempBlob: Codeunit "Temp Blob";
                         InputDatasetOutStream: OutStream;
                         InputDatasetInStream: InStream;
+                        FileNameRequiredErr: Label 'Input Dataset Filename is required to import the dataset.';
                     begin
                         if InputDataset.Trim() = '' then
                             exit;
                         if InputDatasetFilename = '' then
-                            Error('Input Dataset Filename is required to import the dataset.');
+                            Error(FileNameRequiredErr);
 
                         // Import the dataset
                         InputDatasetOutStream := TempBlob.CreateOutStream();
@@ -88,7 +90,7 @@ page 149042 "CommandLine Card"
                 field("Suite Definition"; SuiteDefinition)
                 {
                     Caption = 'Suite Definition', Locked = true;
-                    ToolTip = 'Specifies the suite definition to import';
+                    ToolTip = 'Specifies the suite definition to import.';
                     MultiLine = true;
 
                     trigger OnValidate()
@@ -97,21 +99,23 @@ page 149042 "CommandLine Card"
                         SuiteDefinitionXML: XmlDocument;
                         SuiteDefinitionOutStream: OutStream;
                         SuiteDefinitionInStream: InStream;
+                        InvalidXMLFormatErr: Label 'Invalid XML format for Suite Definition.';
+                        SuiteImportErr: Label 'Error importing Suite Definition.';
                     begin
                         // Import the suite definition
                         if SuiteDefinition.Trim() = '' then
                             exit;
 
                         if not XmlDocument.ReadFrom(SuiteDefinition, SuiteDefinitionXML) then
-                            Error('Invalid XML format for Suite Definition.');
+                            Error(InvalidXMLFormatErr);
 
                         SuiteDefinitionOutStream := TempBlob.CreateOutStream();
                         SuiteDefinitionXML.WriteTo(SuiteDefinitionOutStream);
                         TempBlob.CreateInStream(SuiteDefinitionInStream);
 
                         // Import the suite definition
-                        if not Xmlport.Import(XMLPORT::"AIT Test Suite Import/Export", SuiteDefinitionInStream) then
-                            Error('Error importing Suite Definition.');
+                        if not XmlPort.Import(XmlPort::"AIT Test Suite Import/Export", SuiteDefinitionInStream) then
+                            Error(SuiteImportErr);
                     end;
                 }
             }
@@ -157,7 +161,7 @@ page 149042 "CommandLine Card"
                     AITTestMethodLine: Record "AIT Test Method Line";
                 begin
                     AITTestMethodLine.SetRange("Test Suite Code", AITCode);
-                    AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ");
+                    AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ", true);
                     RefreshNoOfPendingTests();
                 end;
             }
@@ -204,7 +208,7 @@ page 149042 "CommandLine Card"
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        EnableActions := (EnvironmentInformation.IsSaas() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
+        EnableActions := (EnvironmentInformation.IsSaaS() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
     end;
 
     var

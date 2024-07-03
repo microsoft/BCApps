@@ -21,7 +21,7 @@ page 149040 "AIT Test Suite List"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control1)
             {
@@ -29,25 +29,21 @@ page 149040 "AIT Test Suite List"
                 {
                     Caption = 'Code';
                     ToolTip = 'Specifies the ID of the AIT.';
-                    ApplicationArea = All;
                 }
                 field(Description; Rec.Description)
                 {
                     Caption = 'Description';
                     ToolTip = 'Specifies the description of the AIT.';
-                    ApplicationArea = All;
                 }
                 field(Started; Rec."Started at")
                 {
                     Caption = 'Started at';
                     ToolTip = 'Specifies when the AIT was started.';
-                    ApplicationArea = All;
                 }
                 field(Status; Rec.Status)
                 {
                     Caption = 'Status';
                     ToolTip = 'Specifies the status of the AIT.';
-                    ApplicationArea = All;
                 }
 
             }
@@ -59,6 +55,7 @@ page 149040 "AIT Test Suite List"
         {
             group("Import/Export")
             {
+                Caption = 'Import/Export';
                 action(ImportAIT)
                 {
                     ApplicationArea = Basic, Suite;
@@ -70,7 +67,7 @@ page 149040 "AIT Test Suite List"
                     var
                         AITTestSuite: Record "AIT Test Suite";
                     begin
-                        XMLPORT.Run(XMLPORT::"AIT Test Suite Import/Export", false, true, AITTestSuite);
+                        XmlPort.Run(XmlPort::"AIT Test Suite Import/Export", false, true, AITTestSuite);
                         CurrPage.Update(false);
                     end;
                 }
@@ -88,7 +85,7 @@ page 149040 "AIT Test Suite List"
                         AITTestSuite: Record "AIT Test Suite";
                     begin
                         CurrPage.SetSelectionFilter(AITTestSuite);
-                        XMLPORT.Run(XMLPORT::"AIT Test Suite Import/Export", false, false, AITTestSuite);
+                        XmlPort.Run(XmlPort::"AIT Test Suite Import/Export", false, false, AITTestSuite);
                         CurrPage.Update(false);
                     end;
                 }

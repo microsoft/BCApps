@@ -109,6 +109,7 @@ page 149038 "AIT Log Entry API"
                 {
                     Caption = 'Output Data';
                 }
+                field(lastModifiedDateTime; Rec.SystemModifiedAt) { }
             }
         }
     }

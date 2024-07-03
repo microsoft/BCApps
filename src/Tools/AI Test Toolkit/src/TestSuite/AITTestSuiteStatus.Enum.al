@@ -17,6 +17,7 @@ enum 149030 "AIT Test Suite Status"
     /// </summary>
     value(0; " ")
     {
+        Caption = ' ', Locked = true;
     }
 
     /// <summary>
@@ -24,6 +25,7 @@ enum 149030 "AIT Test Suite Status"
     /// </summary>
     value(20; Running)
     {
+        Caption = 'Running';
     }
 
     /// <summary>
@@ -31,6 +33,7 @@ enum 149030 "AIT Test Suite Status"
     /// </summary>
     value(30; Completed)
     {
+        Caption = 'Completed';
     }
 
     /// <summary>
@@ -38,5 +41,6 @@ enum 149030 "AIT Test Suite Status"
     /// </summary>
     value(40; Cancelled)
     {
+        Caption = 'Cancelled';
     }
 }

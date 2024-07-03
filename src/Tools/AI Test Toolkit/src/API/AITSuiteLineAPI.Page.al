@@ -53,6 +53,7 @@ page 149037 "AIT Suite Line API"
                     Caption = 'Override the suite dataset';
                     TableRelation = "Test Input Group".Code;
                 }
+                field(lastModifiedDateTime; Rec.SystemModifiedAt) { }
             }
         }
     }

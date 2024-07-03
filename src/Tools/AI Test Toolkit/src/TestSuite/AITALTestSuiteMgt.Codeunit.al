@@ -15,12 +15,12 @@ codeunit 149037 "AIT AL Test Suite Mgt"
                   tabledata "AL Test Suite" = rmid;
 
     var
-        RunProcedureOperationLbl: Label 'Run Procedure', Locked = true;
-        AITTestSuitePrefixLbl: Label 'AIT-', Locked = true;
+        RunProcedureOperationTok: Label 'Run Procedure', Locked = true;
+        AITTestSuitePrefixTok: Label 'AIT-', Locked = true;
 
     internal procedure GetDefaultRunProcedureOperationLbl(): Text
     begin
-        exit(this.RunProcedureOperationLbl);
+        exit(this.RunProcedureOperationTok);
     end;
 
     internal procedure AssistEditTestRunner(var AITTestSuite: Record "AIT Test Suite")
@@ -29,7 +29,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         SelectTestRunner: Page "Select TestRunner";
     begin
         SelectTestRunner.LookupMode := true;
-        if SelectTestRunner.RunModal() = ACTION::LookupOK then begin
+        if SelectTestRunner.RunModal() = Action::LookupOK then begin
             SelectTestRunner.GetRecord(AllObjWithCaption);
             AITTestSuite.Validate("Test Runner Id", AllObjWithCaption."Object ID");
             AITTestSuite.Modify(true);
@@ -107,30 +107,19 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         if TestMethodLine.IsEmpty() then
             exit;
 
-        TestMethodLine.DeleteAll();
+        TestMethodLine.DeleteAll(true);
         this.RemoveEmptyCodeunitTestLines(this.GetOrCreateALTestSuite(AITTestMethodLine));
     end;
 
     internal procedure RemoveEmptyCodeunitTestLines(ALTestSuite: Record "AL Test Suite")
     var
         TestMethodLine: Record "Test Method Line";
-        FunctionTestMethodLine: Record "Test Method Line";
     begin
         TestMethodLine.SetRange("Test Suite", ALTestSuite.Name);
         TestMethodLine.SetRange("Line Type", TestMethodLine."Line Type"::Codeunit);
+        TestMethodLine.SetRange("No. of Functions", 0);
         TestMethodLine.ReadIsolation := TestMethodLine.ReadIsolation::ReadUncommitted;
-
-        if not TestMethodLine.FindSet() then
-            exit;
-
-        repeat
-            FunctionTestMethodLine.SetRange("Test Suite", ALTestSuite.Name);
-            FunctionTestMethodLine.SetRange("Test Codeunit", TestMethodLine."Test Codeunit");
-            FunctionTestMethodLine.SetRange("Line Type", FunctionTestMethodLine."Line Type"::Function);
-            FunctionTestMethodLine.ReadIsolation := FunctionTestMethodLine.ReadIsolation::ReadUncommitted;
-            if FunctionTestMethodLine.IsEmpty() then
-                TestMethodLine.Delete();
-        until TestMethodLine.Next() = 0;
+        TestMethodLine.DeleteAll(true);
     end;
 
     internal procedure GetOrCreateALTestSuite(var AITTestMethodLine: Record "AIT Test Method Line"): Record "AL Test Suite"
@@ -140,18 +129,20 @@ codeunit 149037 "AIT AL Test Suite Mgt"
     begin
         if AITTestMethodLine."AL Test Suite" <> '' then begin
             ALTestSuite.SetFilter(Name, AITTestMethodLine."AL Test Suite");
+            ALTestSuite.ReadIsolation := ALTestSuite.ReadIsolation::ReadUncommitted;
             if ALTestSuite.FindFirst() then
                 exit(ALTestSuite);
         end;
 
         if AITTestMethodLine."AL Test Suite" = '' then begin
             AITTestMethodLine."AL Test Suite" := this.GetUniqueAITTestSuiteCode();
-            AITTestMethodLine.Modify();
+            AITTestMethodLine.Modify(true);
         end;
 
         ALTestSuite.Name := AITTestMethodLine."AL Test Suite";
         ALTestSuite.Description := CopyStr(AITTestMethodLine.Description, 1, MaxStrLen(ALTestSuite.Description));
         AITTestSuite.ReadIsolation := IsolationLevel::ReadUncommitted;
+        AITTestSuite.SetLoadFields("Test Runner Id");
         if AITTestSuite.Get(AITTestMethodLine."Test Suite Code") then
             ALTestSuite."Test Runner Id" := AITTestSuite."Test Runner Id";
 
@@ -163,9 +154,11 @@ codeunit 149037 "AIT AL Test Suite Mgt"
     var
         ALTestSuite: Record "AL Test Suite";
     begin
-        ALTestSuite.SetFilter(Name, this.AITTestSuitePrefixLbl + '*');
+        ALTestSuite.SetFilter(Name, this.AITTestSuitePrefixTok + '*');
+        ALTestSuite.ReadIsolation := ALTestSuite.ReadIsolation::UpdLock;
+        ALTestSuite.SetLoadFields(Name);
         if not ALTestSuite.FindLast() then
-            exit(this.AITTestSuitePrefixLbl + '000001');
+            exit(this.AITTestSuitePrefixTok + '000001');
 
         exit(IncStr(ALTestSuite.Name))
     end;
@@ -181,7 +174,8 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         NoTestOutputFoundErr: Label 'No Test Output found in the logs';
     begin
         AITLogEntry.SetLoadFields("Test Suite Code", "Output Data");
-        if AITLogEntry.FindSet(false) then begin
+        AITLogEntry.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if AITLogEntry.FindSet() then begin
             FileNameTxt := Format(AITLogEntry."Test Suite Code") + '_' + 'test_output' + '.jsonl';
             repeat
                 TestOutput := AITLogEntry.GetOutputBlob();

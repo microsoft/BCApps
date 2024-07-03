@@ -35,6 +35,7 @@ codeunit 149043 "AIT Test Context"
     begin
         if ScenarioOperation = AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then
             Error(ScenarioCannotUseDefaultScenarioErr, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
+
         this.AITTestSuiteMgt.StartScenario(ScenarioOperation);
     end;
 

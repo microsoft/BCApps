@@ -15,7 +15,7 @@ page 149033 "AIT Log Entries"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control1)
             {
@@ -23,7 +23,7 @@ page 149033 "AIT Log Entries"
 
                 field(RunID; Rec."Run ID")
                 {
-                    ToolTip = 'Specifies the AIT RunID Guid';
+                    ToolTip = 'Specifies the AIT RunID Guid.';
                     Visible = false;
                     ApplicationArea = All;
                 }
@@ -75,7 +75,7 @@ page 149033 "AIT Log Entries"
                 }
                 field("Procedure Name"; Rec."Procedure Name")
                 {
-                    ToolTip = 'Specifies the name of the procedure being executed';
+                    ToolTip = 'Specifies the name of the procedure being executed.';
                     ApplicationArea = All;
                 }
                 field("Original Operation"; Rec."Original Operation")
@@ -179,7 +179,7 @@ page 149033 "AIT Log Entries"
                 {
                     Caption = 'Call stack';
                     Editable = false;
-                    Tooltip = 'Specifies the call stack for this error';
+                    ToolTip = 'Specifies the call stack for this error.';
                     ApplicationArea = All;
 
                     trigger OnDrillDown()
@@ -212,7 +212,8 @@ page 149033 "AIT Log Entries"
                 begin
                     if not Confirm(this.DoYouWantToDeleteQst, false) then
                         exit;
-                    Rec.DeleteAll();
+
+                    Rec.DeleteAll(true);
                     CurrPage.Update(false);
                 end;
             }
@@ -283,9 +284,9 @@ page 149033 "AIT Log Entries"
 
                 trigger OnAction()
                 var
-                    AIALTTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+                    AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
                 begin
-                    AIALTTestSuiteMgt.DownloadTestOutputFromLogToFile(Rec);
+                    AITALTestSuiteMgt.DownloadTestOutputFromLogToFile(Rec);
                 end;
 
             }
@@ -370,8 +371,7 @@ page 149033 "AIT Log Entries"
                 this.InputText := ClickToShowLbl;
             if Rec."Output Data".Length > 0 then
                 this.OutputText := ClickToShowLbl;
-        end
-        else begin
+        end else begin
             this.InputText := Rec.GetInputBlob();
             this.OutputText := Rec.GetOutputBlob();
         end;

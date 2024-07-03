@@ -1,3 +1,12 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+
+namespace System.TestTools.AITestToolkit;
+
+using System.TestTools.TestRunner;
+
 codeunit 149035 "SLS Accuracy Test"
 {
     Subtype = Test;
@@ -40,11 +49,11 @@ codeunit 149035 "SLS Accuracy Test"
     begin
         case DateDescription of
             'LAST_WEEK':
-                Result := FORMAT(Today() - 7, 0, '<Year4>-<Month,2>-<Day,2>');
+                Result := Format(Today() - 7, 0, '<Year4>-<Month,2>-<Day,2>');
             'YESTERDAY':
-                Result := FORMAT(Today() - 1, 0, '<Year4>-<Month,2>-<Day,2>');
+                Result := Format(Today() - 1, 0, '<Year4>-<Month,2>-<Day,2>');
             'TODAY':
-                Result := FORMAT(Today(), 0, '<Year4>-<Month,2>-<Day,2>');
+                Result := Format(Today(), 0, '<Year4>-<Month,2>-<Day,2>');
             'LAST_FEB_01':
                 if (System.Date2DMY(Today(), 2) < 3) then
                     Result := Format(System.Date2DMY(Today(), 3) - 1) + '-02-01'

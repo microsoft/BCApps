@@ -10,8 +10,10 @@ using System.TestTools.TestRunner;
 
 table 149034 "AIT Log Entry"
 {
+    Caption = 'AIT Log Entry';
     DataClassification = SystemMetadata;
     DrillDownPageId = "AIT Log Entries";
+    LookupPageId = "AIT Log Entries";
     Extensible = false;
     Access = Internal;
     ReplicateData = false;
@@ -55,8 +57,9 @@ table 149034 "AIT Log Entry"
             Caption = 'Codeunit Name';
             FieldClass = FlowField;
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit), "Object ID" = field("Codeunit ID")));
+            Editable = false;
         }
-        field(9; "Duration (ms)"; integer)
+        field(9; "Duration (ms)"; Integer)
         {
             Caption = 'DurationInMs (ms)';
         }
@@ -71,7 +74,6 @@ table 149034 "AIT Log Entry"
         }
         field(13; Version; Integer)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Version';
         }
         field(15; Tag; Text[20])
@@ -91,7 +93,6 @@ table 149034 "AIT Log Entry"
         }
         field(18; "Run ID"; Guid)
         {
-            DataClassification = SystemMetadata;
             Caption = 'Run ID';
         }
         field(20; "Original Operation"; Text[100])
@@ -152,7 +153,6 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'AOAI Model Version';
             OptionMembers = Latest,Preview;
-            DataClassification = SystemMetadata;
         }
     }
 
