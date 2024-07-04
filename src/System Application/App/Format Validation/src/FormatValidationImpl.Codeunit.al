@@ -29,13 +29,13 @@ codeunit 5054 "Format Validation Impl."
 
     procedure ThrowErrorIfPhoneNoContainsCharacters(PhoneNo: Text[30]; SourceRecordId: RecordId; SourceFieldId: Integer)
     var
+        SourceRecordId: RecordId;
         RecRef: RecordRef;
         FieldRef: FieldRef;
+        SourceFieldId: Integer;
     begin
-        if not ValidateIfPhoneNoContainsCharacters(PhoneNo: Text[30];
-        SourceRecordId: RecordId;
-        SourceFieldId: Integer) then
-        exit;
+        if not ValidateIfPhoneNoContainsCharacters(PhoneNo: Text[30]) then
+            exit;
 
         RecRef.Get(SourceRecordId);
         FieldRef := RecRef.Field(SourceFieldId);
