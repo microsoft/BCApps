@@ -365,17 +365,17 @@ codeunit 2500 "Extension Installation Impl"
         exit(ExtensionDetails.Editable());
     end;
 
-    internal procedure AllowsDebug(ResourceProtectionPolicy: Integer): Boolean
+    procedure AllowsDebug(ResourceProtectionPolicy: Integer): Boolean
     begin
         exit(HasPolicy(ResourceProtectionPolicy, 1));
     end;
 
-    internal procedure AllowsDownloadSource(ResourceProtectionPolicy: Integer): Boolean
+    procedure AllowsDownloadSource(ResourceProtectionPolicy: Integer): Boolean
     begin
         exit(HasPolicy(ResourceProtectionPolicy, 2));
     end;
 
-    internal procedure AllowsDownloadSourceInSymbols(ResourceProtectionPolicy: Integer): Boolean
+    procedure AllowsDownloadSourceInSymbols(ResourceProtectionPolicy: Integer): Boolean
     begin
         exit(HasPolicy(ResourceProtectionPolicy, 4));
     end;
