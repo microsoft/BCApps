@@ -487,7 +487,6 @@ codeunit 2501 "Extension Marketplace"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OpenAppSourceMarket, '', false, false)]
     local procedure OpenAppSourceMarket()
     begin
-        // ToolTip = 'Browse the Microsoft AppSource Gallery for new extensions to install.';
-        Page.Run(2515);
+        Page.Run(2515); // Using ID to avoid circular dependency
     end;
 }
