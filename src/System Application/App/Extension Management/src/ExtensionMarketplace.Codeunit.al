@@ -487,6 +487,6 @@ codeunit 2501 "Extension Marketplace"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OpenAppSourceMarket, '', false, false)]
     local procedure OpenAppSourceMarket()
     begin
-        Page.Run(2515); // Using ID to avoid circular dependency
+        Page.Run(2515); // Using ID to avoid circular dependency.
     end;
 }

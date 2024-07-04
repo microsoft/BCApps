@@ -223,7 +223,7 @@ page 2500 "Extension Management"
                     Image = NewItem;
                     ToolTip = 'Browse the Microsoft AppSource Gallery for new extensions to install.';
                     Visible = not IsOnPremDisplay;
-                    RunObject = Page 2515;
+                    RunObject = Page 2515; // Using ID to avoid circular dependency.
                     RunPageMode = View;
                 }
                 action("Upload Extension")
