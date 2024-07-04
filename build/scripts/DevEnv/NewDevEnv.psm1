@@ -394,8 +394,11 @@ function Get-CredentialForContainer($AuthenticationType) {
 
     .Parameter ContainerName
     The name of the container for which to install the extension.
+
+    .Parameter Force
+    If specified, the extension will be installed even there is a newer version already installed.
 #>
-function Install-ALExtension($ContainerName) {
+function Install-ALExtension([string] $ContainerName, [switch] $Force) {
     if (-not (Get-Command code -ErrorAction SilentlyContinue)) {
         Write-Host "VSCode is not installed or 'code' is not in the PATH. See https://code.visualstudio.com/docs/setup/windows for installation instructions." -ForegroundColor Red
         return
@@ -406,8 +409,11 @@ function Install-ALExtension($ContainerName) {
     Stop-Process -Name code -Force -ErrorAction SilentlyContinue
 
     $vsixPath = Get-ChildItem "$($bcContainerHelperConfig.containerHelperFolder)\Extensions\$ContainerName\*.vsix" | Select-Object -ExpandProperty FullName
-    Write-Host "code --install-extension $vsixPath --force"
-    code --install-extension $vsixPath --force
+    if ($Force) {
+        code --install-extension $vsixPath --force 
+    } else {
+        code --install-extension $vsixPath
+    }
     Write-Host "VSCode extension installed." -ForegroundColor Magenta
 }
 
