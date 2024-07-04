@@ -7,6 +7,7 @@ namespace Microsoft.Foundation.NoSeries;
 
 using System.AI;
 using System.Reflection;
+using System.Utilities;
 
 codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 {
@@ -14,6 +15,10 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 
     var
         ToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
+        DateSpecificPlaceholderLbl: Label '{current_date}', Locked = true;
+        CustomPatternsPlaceholderLbl: Label '{custom_patterns}', Locked = true;
+        TablesYamlFormatPlaceholderLbl: Label '{tables_yaml_format}', Locked = true;
+        NumberOfAddedTablesPlaceholderLbl: Label '{number_of_tables}', Locked = true;
 
     procedure GetName(): Text
     begin
@@ -22,7 +27,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 
     procedure GetPrompt() Function: JsonObject;
     begin
-        Function.ReadFrom(GetTool1Definition());
+        Function.ReadFrom(GetToolDefinition());
     end;
 
     procedure Execute(Arguments: JsonObject): Variant
@@ -38,42 +43,41 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
     /// <remarks> This function is used to build the prompts for generating new number series. The prompts are built based on the tables and patterns specified in the input. If no tables are specified, all tables with number series are used. If no patterns are specified, default patterns are used. In case number of tables can't be pasted in one prompt, due to token limits, function chunk result into several messages, that need to be called separately</remarks>
     local procedure Build(var Arguments: JsonObject) ToolResults: Dictionary of [Text, Integer]
     var
-        NewNoSeriesPrompt, TablesPromptList, CustomPatternsPromptList, EmptyList : List of [Text];
-        TablesBlockLbl: Label 'Tables:', Locked = true;
+        NewNoSeriesPrompt, CustomPatternsPromptList, TablesYamlList, EmptyList : List of [Text];
         NumberOfToolResponses, i, ActualTablesChunkSize : Integer;
+        TempSetupTable: Record "Table Metadata" temporary;
+        TempNoSeriesField: Record "Field" temporary;
+        NumberOfAddedTables: Integer;
     begin
-        GetTablesPrompt(Arguments, TablesPromptList);
-        ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(Arguments, CustomPatternsPromptList, EmptyList, GetToolCustomPatternsGuidelines());
+        GetTablesRequireNoSeries(Arguments, TempSetupTable, TempNoSeriesField);
+        ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(Arguments, CustomPatternsPromptList, EmptyList);
 
-        NumberOfToolResponses := Round(TablesPromptList.Count / ToolsImpl.GetTablesChunkSize(), 1, '>'); // we add tables by small chunks, as more tables can lead to hallucinations
+        NumberOfAddedTables := TempNoSeriesField.Count();
+        NumberOfToolResponses := Round(NumberOfAddedTables / ToolsImpl.GetMaxNumberOfTablesInOneChunk(), 1, '>'); // we add tables by small chunks, as more tables can lead to hallucinations
 
         for i := 1 to NumberOfToolResponses do
-            if TablesPromptList.Count > 0 then begin
+            if NumberOfAddedTables > 0 then begin
                 Clear(NewNoSeriesPrompt);
                 Clear(ActualTablesChunkSize);
-                NewNoSeriesPrompt.Add(GetToolGeneralInstructions());
-                NewNoSeriesPrompt.Add(GetToolLimitations());
-                NewNoSeriesPrompt.Add(GetToolCodeGuidelines());
-                NewNoSeriesPrompt.Add(GetToolDescrGuidelines());
-                NewNoSeriesPrompt.Add(GetToolNumberGuideline());
-                NewNoSeriesPrompt.Add(ToolsImpl.ConvertListToText(CustomPatternsPromptList));
-                NewNoSeriesPrompt.Add(GetToolOutputExamples());
-                NewNoSeriesPrompt.Add(TablesBlockLbl);
-                ToolsImpl.AddChunkedTablesPrompt(NewNoSeriesPrompt, TablesPromptList, ActualTablesChunkSize);
-                NewNoSeriesPrompt.Add(GetToolOutputFormat());
+                ToolsImpl.GenerateChunkedTablesListInYamlFormat(TablesYamlList, TempSetupTable, TempNoSeriesField, ActualTablesChunkSize);
+                NewNoSeriesPrompt.Add(GetToolPrompt().Replace(DateSpecificPlaceholderLbl, Format(Today(), 0, 4))
+                                                     .Replace(CustomPatternsPlaceholderLbl, ToolsImpl.ConvertListToText(CustomPatternsPromptList))
+                                                     .Replace(TablesYamlFormatPlaceholderLbl, ToolsImpl.ConvertListToText(TablesYamlList))
+                                                     .Replace(NumberOfAddedTablesPlaceholderLbl, Format(ActualTablesChunkSize)));
+
                 ToolResults.Add(ToolsImpl.ConvertListToText(NewNoSeriesPrompt), ActualTablesChunkSize);
             end
     end;
 
-    local procedure GetTablesPrompt(var Arguments: JsonObject; var TablesPromptList: List of [Text])
+    local procedure GetTablesRequireNoSeries(var Arguments: JsonObject; var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary)
     begin
         if ToolsImpl.CheckIfTablesSpecified(Arguments) then
-            ListOnlySpecifiedTables(TablesPromptList, ToolsImpl.GetEntities(Arguments))
+            ListOnlySpecifiedTables(TempSetupTable, TempNoSeriesField, ToolsImpl.GetEntities(Arguments))
         else
-            ListAllTablesWithNumberSeries(TablesPromptList);
+            ListAllTablesWithNumberSeries(TempSetupTable, TempNoSeriesField);
     end;
 
-    local procedure ListOnlySpecifiedTables(var TablesPromptList: List of [Text]; Entities: List of [Text])
+    local procedure ListOnlySpecifiedTables(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; Entities: List of [Text])
     var
         TableMetadata: Record "Table Metadata";
     begin
@@ -81,23 +85,24 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
         ToolsImpl.SetFilterOnSetupTables(TableMetadata);
         if TableMetadata.FindSet() then
             repeat
-                ListOnlyRelevantNoSeriesFields(TablesPromptList, TableMetadata, Entities);
+                ListOnlyRelevantNoSeriesFields(TempSetupTable, TempNoSeriesField, TableMetadata, Entities);
             until TableMetadata.Next() = 0;
     end;
 
-    local procedure ListOnlyRelevantNoSeriesFields(var TablesPromptList: List of [Text]; var TableMetadata: Record "Table Metadata"; Entities: List of [Text])
+    local procedure ListOnlyRelevantNoSeriesFields(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var TableMetadata: Record "Table Metadata"; Entities: List of [Text])
     var
         Field: Record "Field";
     begin
+        // Looping through all No. Series fields
         ToolsImpl.SetFilterOnNoSeriesFields(TableMetadata, Field);
         if Field.FindSet() then
             repeat
                 if ToolsImpl.IsRelevant(TableMetadata, Field, Entities) then
-                    AddNewNoSeriesFieldToTablesPrompt(TablesPromptList, TableMetadata, Field);
+                    AddNewNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, TableMetadata, Field);
             until Field.Next() = 0;
     end;
 
-    local procedure ListAllTablesWithNumberSeries(var TablesPromptList: List of [Text])
+    local procedure ListAllTablesWithNumberSeries(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary)
     var
         TableMetadata: Record "Table Metadata";
     begin
@@ -105,28 +110,56 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
         ToolsImpl.SetFilterOnSetupTables(TableMetadata);
         if TableMetadata.FindSet() then
             repeat
-                ListAllNoSeriesFields(TablesPromptList, TableMetadata);
+                ListAllNoSeriesFields(TempSetupTable, TempNoSeriesField, TableMetadata);
             until TableMetadata.Next() = 0;
     end;
 
-    local procedure ListAllNoSeriesFields(var TablesPromptList: List of [Text]; var TableMetadata: Record "Table Metadata")
+    local procedure ListAllNoSeriesFields(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var TableMetadata: Record "Table Metadata")
     var
         Field: Record "Field";
     begin
+        // Looping through all No. Series fields
         ToolsImpl.SetFilterOnNoSeriesFields(TableMetadata, Field);
         if Field.FindSet() then
             repeat
-                AddNewNoSeriesFieldToTablesPrompt(TablesPromptList, TableMetadata, Field);
+                AddNewNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, TableMetadata, Field);
             until Field.Next() = 0;
     end;
 
-    local procedure AddNewNoSeriesFieldToTablesPrompt(var TablesPromptList: List of [Text]; TableMetadata: Record "Table Metadata"; Field: Record "Field")
+    local procedure AddNewNoSeriesFieldToTablesList(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; TableMetadata: Record "Table Metadata"; Field: Record "Field")
+    var
+        RecRef: RecordRef;
+        FieldRef: FieldRef;
     begin
-        TablesPromptList.Add('Area: ' + ToolsImpl.RemoveTextPart(TableMetadata.Caption, ' Setup') + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + ToolsImpl.RemoveTextParts(Field.FieldName, ToolsImpl.GetNoSeriesAbbreviations()));
+        RecRef.OPEN(TableMetadata.ID);
+        if not RecRef.FindFirst() then
+            exit;
+
+        FieldRef := RecRef.Field(Field."No.");
+        if Format(FieldRef.Value) <> '' then
+            exit; // No need to generate number series if it already created and confgured
+
+        TempSetupTable := TableMetadata;
+        if TempSetupTable.Insert() then;
+
+        TempNoSeriesField := Field;
+        TempNoSeriesField.Insert();
     end;
 
     [NonDebuggable]
-    local procedure GetTool1Definition(): Text
+    local procedure GetToolPrompt(): Text
+    var
+        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    begin
+        // This is a temporary solution to get the tool prompt. The tool should be retrieved from the Azure Key Vault.
+        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
+        NoSeriesCopilotSetup.Get();
+        exit(NoSeriesCopilotSetup.GetTool1PromptFromIsolatedStorage())
+    end;
+
+
+    [NonDebuggable]
+    local procedure GetToolDefinition(): Text
     var
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
@@ -136,91 +169,4 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
         exit(NoSeriesCopilotSetup.GetTool1DefinitionFromIsolatedStorage())
     end;
 
-    [NonDebuggable]
-    local procedure GetToolGeneralInstructions(): Text
-    var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
-    begin
-        // This is a temporary solution to get the tool 1 general instructions. The tool 1 general instructions should be retrieved from the Azure Key Vault.
-        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
-        NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool1GeneralInstructionsPromptFromIsolatedStorage())
-    end;
-
-    [NonDebuggable]
-    local procedure GetToolLimitations(): Text
-    var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
-    begin
-        // This is a temporary solution to get the tool 1 limitations. The tool 1 limitations should be retrieved from the Azure Key Vault.
-        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
-        NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool1LimitationsPromptFromIsolatedStorage())
-    end;
-
-    [NonDebuggable]
-    local procedure GetToolCodeGuidelines(): Text
-    var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
-    begin
-        // This is a temporary solution to get the tool 1 code guidelines. The tool 1 code guidelines should be retrieved from the Azure Key Vault.
-        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
-        NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool1CodeGuidelinePromptFromIsolatedStorage())
-    end;
-
-    [NonDebuggable]
-    local procedure GetToolDescrGuidelines(): Text
-    var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
-    begin
-        // This is a temporary solution to get the tool 1 description guidelines. The tool 1 description guidelines should be retrieved from the Azure Key Vault.
-        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
-        NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool1DescrGuidelinePromptFromIsolatedStorage())
-    end;
-
-    [NonDebuggable]
-    local procedure GetToolNumberGuideline(): Text
-    var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
-    begin
-        // This is a temporary solution to get the tool 1 number guideline. The tool 1 number guideline should be retrieved from the Azure Key Vault.
-        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
-        NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool1NumberGuidelinePromptFromIsolatedStorage())
-    end;
-
-    [NonDebuggable]
-    local procedure GetToolCustomPatternsGuidelines(): Text
-    var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
-    begin
-        // This is a temporary solution to get the tool 1 custom patterns guidelines. The tool 1 custom patterns guidelines should be retrieved from the Azure Key Vault.
-        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
-        NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool1CustomPatternsPromptFromIsolatedStorage())
-    end;
-
-    [NonDebuggable]
-    local procedure GetToolOutputExamples(): Text
-    var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
-    begin
-        // This is a temporary solution to get the tool 1 output examples. The tool 1 output examples should be retrieved from the Azure Key Vault.
-        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
-        NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool1OutputExamplesPromptFromIsolatedStorage())
-    end;
-
-    [NonDebuggable]
-    local procedure GetToolOutputFormat(): Text
-    var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
-    begin
-        // This is a temporary solution to get the tool 1 output format. The tool 1 output format should be retrieved from the Azure Key Vault.
-        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
-        NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool1OutputFormatPromptFromIsolatedStorage())
-    end;
 }

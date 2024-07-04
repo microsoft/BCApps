@@ -30,7 +30,7 @@ pageextension 324 "No. Series Ext." extends "No. Series"
             }
         }
 
-        addlast(Processing)
+        addlast(Processing) // TODO: Remove this action when the feature is enabled, as it is a duplicate of the action above
         {
             action("Generate With Copilot")
             {

@@ -13,13 +13,14 @@ codeunit 336 "No. Series Cop. Tools Impl."
 
     var
         CustomPatternsPlaceholderLbl: label '{custom_patterns}', Locked = true;
+        PrefixLbl: Label 'for ';
 
-    procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var Arguments: JsonObject; var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]; CustomGuidelinesPrompt: Text)
+    procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var Arguments: JsonObject; var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text])
     begin
         if CheckIfPatternSpecified(Arguments) then
-            CustomPatternsPromptList.Add(CustomGuidelinesPrompt.Replace(CustomPatternsPlaceholderLbl, ''))
+            CustomPatternsPromptList.Add('')
         else
-            CustomPatternsPromptList.Add(CustomGuidelinesPrompt.Replace(CustomPatternsPlaceholderLbl, BuildExistingPatternIfExist(ExistingNoSeriesToChangeList)));
+            CustomPatternsPromptList.Add(BuildExistingPatternIfExist(ExistingNoSeriesToChangeList));
     end;
 
     procedure CheckIfTablesSpecified(var Arguments: JsonObject): Boolean
@@ -177,23 +178,92 @@ codeunit 336 "No. Series Cop. Tools Impl."
         exit(0.9)
     end;
 
-    procedure AddChunkedTablesPrompt(var FinalPrompt: List of [Text]; var TablesPromptList: List of [Text]; var AddedCount: Integer)
-    var
-        TablePrompt: Text;
-        IncludedTablePrompts: List of [Text];
+    procedure GenerateChunkedTablesListInYamlFormat(var TablesYamlList: List of [Text]; var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var NumberOfAddedTables: Integer)
     begin
-        // we add by chunks of 10 tables, not to exceed the token limit, as more than 10 tables can lead to hallucinations
-        foreach TablePrompt in TablesPromptList do
-            if (AddedCount < GetTablesChunkSize()) then begin
-                IncludedTablePrompts.Add(TablePrompt);
-                AddedCount += 1;
-            end;
+        Clear(TablesYamlList);
+        TablesYamlList.Add('');
+        TablesYamlList.Add('```yaml');
+        TablesYamlList.Add('');
 
-        foreach TablePrompt in IncludedTablePrompts do begin
-            FinalPrompt.Add(TablePrompt);
-            TablesPromptList.Remove(TablePrompt);
-        end;
+        TempSetupTable.Reset();
+        if TempSetupTable.FindSet() then
+            repeat
+                AddAreaYamlBlock(TablesYamlList, TempSetupTable, TempNoSeriesField, NumberOfAddedTables);
+            until TempSetupTable.Next() = 0;
+
+        TablesYamlList.Add('```');
     end;
+
+    local procedure AddAreaYamlBlock(var FinalPrompt: List of [Text]; var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var NumberOfAddedTables: Integer)
+    var
+        Identation: Integer;
+    begin
+        TempNoSeriesField.Reset();
+        TempNoSeriesField.SetRange(TableNo, TempSetupTable.ID);
+        if TempNoSeriesField.IsEmpty then
+            exit;
+
+        TempNoSeriesField.FindSet(true);
+        repeat
+            AddFieldYamlBlock(FinalPrompt, TempSetupTable, TempNoSeriesField, NumberOfAddedTables, Identation);
+        until TempNoSeriesField.Next() = 0;
+    end;
+
+    local procedure AddFieldYamlBlock(var FinalPrompt: List of [Text]; var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var NumberOfAddedTables: Integer; var Identation: Integer)
+    var
+        FieldName: Text;
+    begin
+        if (NumberOfAddedTables >= GetMaxNumberOfTablesInOneChunk()) then
+            exit;
+
+        FieldName := RemoveTextParts(TempNoSeriesField.FieldName, GetNoSeriesAbbreviations()).Replace('-', ' ');
+        if FieldName = '' then
+            exit;
+
+        AddAreaTag(FinalPrompt, TempSetupTable, Identation);
+        FinalPrompt.Add(GetYAMLIdentationText(Identation) + '- FieldId: ' + Format(TempNoSeriesField."No."));
+        FinalPrompt.Add(GetYAMLIdentationText(Identation) + '  FieldName: ' + FieldName);
+        AddNoSeriesInfo(FinalPrompt, TempNoSeriesField, Identation);
+
+        Identation -= 2;
+        NumberOfAddedTables += 1;
+        TempNoSeriesField.Delete();
+    end;
+
+    local procedure AddAreaTag(var YamlLines: List of [Text]; var TempSetupTable: Record "Table Metadata" temporary; var Identation: Integer)
+    begin
+        if Identation = 0 then begin
+            YamlLines.Add(RemoveTextPart(TempSetupTable.Caption, ' Setup') + ':');
+            Identation += 2;
+        end;
+
+        YamlLines.Add(GetYAMLIdentationText(Identation) + Format(TempSetupTable.ID) + ':');
+        Identation += 2;
+    end;
+
+    local procedure GetYAMLIdentationText(var Identation: Integer): Text
+    var
+        NewIdentationText: Text;
+        EmptyText: Text;
+    begin
+        NewIdentationText := EmptyText.PadLeft(Identation, ' ');
+        exit(NewIdentationText);
+    end;
+
+    local procedure AddNoSeriesInfo(var YamlLines: List of [Text]; var TempNoSeriesField: Record "Field" temporary; var Identation: Integer)
+    var
+        NoSeries: Record "No. Series";
+    begin
+        if TempNoSeriesField.ExternalName = '' then
+            exit;
+
+        if not NoSeries.Get(CopyStr(TempNoSeriesField.ExternalName, 1, MaxStrLen(NoSeries.Code))) then
+            exit;
+
+        YamlLines.Add(GetYAMLIdentationText(Identation) + '  seriesCode: ' + NoSeries.Code);
+        YamlLines.Add(GetYAMLIdentationText(Identation) + '  description: ' + NoSeries.Description);
+    end;
+
 
     procedure RemoveTextParts(Text: Text; PartsToRemove: List of [Text]): Text
     var
@@ -212,21 +282,43 @@ codeunit 336 "No. Series Cop. Tools Impl."
         exit(DelStr(Text, StrPos(Text, Part), StrLen(Part)));
     end;
 
-    procedure ExtractAreaWithPrefix(Text: Text): Text
+    procedure ExtractAreaWithPrefix(Prompt: Text): Text
     var
-        AreaLbl: Label 'Area: ', Locked = true;
-        PrefixLbl: Label 'for ';
+        YamlStartBlockLbl: Label '```yaml', Locked = true;
+        YamlTextEndLbl: Label '```', Locked = true;
+        YamlText: Text;
+        YamlLinesList: List of [Text];
+        YamlLine: Text;
+        Areas: TextBuilder;
+        AreasText: Text;
     begin
-        if StrPos(Text, AreaLbl) = 0 then
+        if StrPos(Prompt, YamlStartBlockLbl) = 0 then
             exit('');
 
-        Text := CopyStr(Text, StrPos(Text, AreaLbl) + StrLen(AreaLbl));
-
-        if StrPos(Text, ',') = 0 then
+        if StrPos(Prompt, YamlTextEndLbl) = 0 then
             exit('');
 
-        Text := CopyStr(Text, 1, StrPos(Text, ',') - 1);
-        exit(PrefixLbl + Text);
+        YamlText := CopyStr(Prompt, StrPos(Prompt, YamlStartBlockLbl) + StrLen(YamlStartBlockLbl), StrLen(Prompt));
+        YamlText := CopyStr(YamlText, 1, StrPos(YamlText, YamlTextEndLbl) - StrLen(YamlTextEndLbl) - 1);
+
+        YamlLinesList := YamlText.Split(CRLFSeparator);
+        foreach YamlLine in YamlLinesList do
+            if (CopyStr(YamlLine, 1, 2) <> '  ') and (CopyStr(YamlLine, 1, 1) <> '') then
+                Areas.Append(YamlLine.Replace(':', ', '));
+
+        AreasText := Areas.ToText();
+        AreasText := DelStr(AreasText, StrLen(AreasText) - 2, 2); // remove the last ', '
+        exit(PrefixLbl + AreasText);
+    end;
+
+    // This is a cpoy from TypeHelper.CRLFSeparator() as it's a part of a Base App, not accessible from Business Foundation
+    local procedure CRLFSeparator(): Text[2]
+    var
+        CRLF: Text[2];
+    begin
+        CRLF[1] := 13; // Carriage return, '\r'
+        CRLF[2] := 10; // Line feed, '\n'
+        exit(CRLF);
     end;
 
     procedure GetNoSeriesAbbreviations() NoSeriesAbbreviations: List of [Text]
@@ -246,8 +338,8 @@ codeunit 336 "No. Series Cop. Tools Impl."
         exit(Result.ToText());
     end;
 
-    procedure GetTablesChunkSize(): Integer
+    procedure GetMaxNumberOfTablesInOneChunk(): Integer
     begin
-        exit(10);
+        exit(40);
     end;
 }
