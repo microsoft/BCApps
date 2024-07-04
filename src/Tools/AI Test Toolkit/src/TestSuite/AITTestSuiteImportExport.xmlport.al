@@ -38,11 +38,6 @@ xmlport 149031 "AIT Test Suite Import/Export"
                 {
                     Occurrence = Required;
                 }
-                textattribute(EvaluatorText)
-                {
-                    Occurrence = Optional;
-                    XmlName = 'Evaluator';
-                }
                 tableelement(AITestMethodLine; "AIT Test Method Line")
                 {
                     LinkFields = "Test Suite Code" = field("Code");
@@ -61,6 +56,11 @@ xmlport 149031 "AIT Test Suite Import/Export"
                     fieldattribute(Dataset; AITestMethodLine."Input Dataset")
                     {
                         Occurrence = Optional;
+                    }
+                    textattribute(EvaluatorText)
+                    {
+                        Occurrence = Optional;
+                        XmlName = 'Evaluator';
                     }
 
                     trigger OnBeforeInsertRecord()
