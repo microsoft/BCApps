@@ -392,11 +392,11 @@ codeunit 2500 "Extension Installation Impl"
         Remaining := ResourceProtectionPolicy;
         Tester := PolicyToTestFor;
         NextFlag := 1;
-        while ((Remaining > 0) and (Tester > 0)) do begin
+        while (Remaining > 0) and (Tester > 0) do begin
             if ((Remaining mod 2) = 1) and ((Tester mod 2) = 1) then
-                result += nextFlag;
+                Result += NextFlag;
 
-            remaining := Remaining div 2;
+            Remaining := Remaining div 2;
             Tester := Tester div 2;
             NextFlag := NextFlag * 2;
         end;
