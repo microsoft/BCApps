@@ -450,12 +450,14 @@ codeunit 2501 "Extension Marketplace"
         exit(false);
     end;
 
+#if not CLEAN24
     [Obsolete('Microsoft AppSource apps feature will replace the Extension Marketplace.', '24.0')]
     procedure GetMarketplaceEmbeddedUrl(): Text;
     begin
         exit(AppsourceTxt);
     end;
 
+#endif
     procedure GetMessageType(JObject: DotNet JObject): Text;
     begin
         // Extracts the 'msgType' property from the
