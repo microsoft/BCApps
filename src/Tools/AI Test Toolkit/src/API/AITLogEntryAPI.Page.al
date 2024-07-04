@@ -4,13 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
-// TODO: Do we need this for v1?
 page 149038 "AIT Log Entry API"
 {
     PageType = API;
     APIPublisher = 'microsoft';
     APIGroup = 'aiTestToolkit';
-    APIVersion = 'v1.0';
+    APIVersion = 'v2.0';
     Caption = 'AI Test Logs Entries';
     EntityCaption = 'AI Test Logs Entry';
     EntitySetCaption = 'AI Test Log Entries';
