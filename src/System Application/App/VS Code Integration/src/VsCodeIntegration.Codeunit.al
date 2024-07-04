@@ -31,7 +31,8 @@ codeunit 8034 "VS Code Integration"
     /// <summary>
     /// Opens an URL that sends a request to VS Code to navigate to the source definition of the given page and to download the dependent symbols.
     /// </summary>
-    /// <param name="PublishedApplication">The extension to open in VS Code.</param>
+    /// <param name="PageInfoAndFields">The page to navigate to.</param>
+    /// <param name="NavAppInstalledApp">The dependency extensions for the page.</param>
     [Scope('OnPrem')]
     procedure NavigateToPageDefinitionInVSCode(var PageInfoAndFields: Record "Page Info And Fields"; var NavAppInstalledApp: Record "NAV App Installed App")
     begin
@@ -41,7 +42,8 @@ codeunit 8034 "VS Code Integration"
     /// <summary>
     /// Opens an URL that sends a request to VS Code to navigate to the source definition of the given table field and to download the dependent symbols.
     /// </summary>
-    /// <param name="PublishedApplication">The extension to open in VS Code.</param>
+    /// <param name="PageInfoAndFields">The table field to navigate to.</param>
+    /// <param name="NavAppInstalledApp">The dependency extensions for the table.</param>
     [Scope('OnPrem')]
     procedure NavigateFieldDefinitionInVSCode(var PageInfoAndFields: Record "Page Info And Fields"; var NavAppInstalledApp: Record "NAV App Installed App")
     begin
