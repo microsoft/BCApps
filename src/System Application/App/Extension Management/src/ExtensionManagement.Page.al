@@ -68,7 +68,7 @@ page 2500 "Extension Management"
                 {
                     Caption = 'Source';
                     StyleExpr = AllowsDownloadSourceStyleExpr;
-                    ToolTip = 'Specifies whether the extension is allows the source to be downloaded.';
+                    ToolTip = 'Specifies whether the extension allows the source to be downloaded.';
                     OptionCaption = ' ,Yes,No';
                 }
 
