@@ -382,23 +382,26 @@ codeunit 2500 "Extension Installation Impl"
 
     local procedure HasPolicy(ResourceProtectionPolicy: Integer; PolicyToTestFor: Integer): Boolean
     var
-        remaining, tester, result, nextFlag : integer;
+        Remaining: Integer;
+        Tester: Integer;
+        Result: Integer;
+        NextFlag: Integer;
 
     begin
-        result := 0;
-        remaining := ResourceProtectionPolicy;
-        tester := PolicyToTestFor;
-        nextFlag := 1;
-        while ((remaining > 0) and (tester > 0)) do begin
-            if ((remaining mod 2) = 1) and ((tester mod 2) = 1) then
+        Result := 0;
+        Remaining := ResourceProtectionPolicy;
+        Tester := PolicyToTestFor;
+        NextFlag := 1;
+        while ((Remaining > 0) and (Tester > 0)) do begin
+            if ((Remaining mod 2) = 1) and ((Tester mod 2) = 1) then
                 result += nextFlag;
 
-            remaining := remaining div 2;
-            tester := tester div 2;
-            nextFlag := nextFlag * 2;
+            remaining := Remaining div 2;
+            Tester := Tester div 2;
+            NextFlag := NextFlag * 2;
         end;
 
-        exit(result = PolicyToTestFor);
+        exit(Result = PolicyToTestFor);
     end;
 }
 

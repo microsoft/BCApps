@@ -141,8 +141,8 @@ page 2511 "Extension Settings"
         AppPublisherValue: Text;
         AppIdValue: Text;
         AppVersionDisplay: Text;
-        AppIsInstalled: Boolean;
         PublishedAs: Text;
+        AppIsInstalled: Boolean;
         IsTenantExtension: Boolean;
         AppAllowsDebuggging: Boolean;
         AppAllowsDownloadSource: Boolean;
