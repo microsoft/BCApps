@@ -8,7 +8,7 @@ namespace System.Utilities;
 /// <summary>
 /// Codeunit that exposes format validation functionality.
 /// </summary>
-codeunit 5053 "Format Validation"
+codeunit 5070 "Format Validation"
 {
     Access = Public;
 
@@ -18,7 +18,7 @@ codeunit 5053 "Format Validation"
     /// <param name="PhoneNo">The phone no. to validate</param>
     procedure ValidateIfPhoneNoContainsCharacters(PhoneNo: Text[30]): Boolean
     var
-        FormatValidationImpl: Codeunit "Format Validation Impl."
+        FormatValidationImpl: Codeunit "Format Validation Impl.";
     begin
         exit(FormatValidationImpl.ValidateIfPhoneNoContainsCharacters(PhoneNo));
     end;
@@ -31,7 +31,7 @@ codeunit 5053 "Format Validation"
     /// <param name="SourceFieldId">The error message is a fielderror which needs the source field.</param>
     procedure ThrowErrorIfPhoneNoContainsCharacters(PhoneNo: Text[30]; SourceRecordId: RecordId; SourceFieldId: Integer)
     var
-        FormatValidationImpl: Codeunit "Format Validation Impl."
+        FormatValidationImpl: Codeunit "Format Validation Impl.";
     begin
         FormatValidationImpl.ThrowErrorIfPhoneNoContainsCharacters(PhoneNo, SourceRecordId, SourceFieldId);
     end;

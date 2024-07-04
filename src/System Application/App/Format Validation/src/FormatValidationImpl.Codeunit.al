@@ -7,7 +7,7 @@ namespace System.Utilities;
 
 using System;
 
-codeunit 5054 "Format Validation Impl."
+codeunit 5071 "Format Validation Impl."
 {
     Access = Internal;
 
@@ -20,19 +20,16 @@ codeunit 5054 "Format Validation Impl."
         i: Integer;
     begin
         for i := 1 to StrLen(PhoneNo) do
-            if Char.IsLetter(PhoneNo[i]) then begin
-                exit(true)
-            end;
+            if Char.IsLetter(PhoneNo[i]) then
+                exit(true);
 
         exit(false);
     end;
 
     procedure ThrowErrorIfPhoneNoContainsCharacters(PhoneNo: Text[30]; SourceRecordId: RecordId; SourceFieldId: Integer)
     var
-        SourceRecordId: RecordId;
         RecRef: RecordRef;
         FieldRef: FieldRef;
-        SourceFieldId: Integer;
     begin
         if not ValidateIfPhoneNoContainsCharacters(PhoneNo) then
             exit;

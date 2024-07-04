@@ -1,8 +1,8 @@
 {
-    "id":  "0c848154-92c5-4b73-987b-fc94ae48e2ff",
+    "id":  "a7ab976b-78a1-451b-8dda-313a17b50441",
     "name":  "Format Validation Test",
     "publisher":  "Microsoft",
-    "brief":  "",
+    "brief":  "Tests for the Format Validation module",
     "description":  "Tests for the Format Validation module",
     "version":  "25.0.0.0",
     "privacyStatement":  "",
@@ -11,12 +11,24 @@
     "url":  "",
     "logo":  "",
     "dependencies":  [
-                         {
-                             "id":  "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
-                             "name":  "Library Assert",
-                             "publisher":  "Microsoft",
-                             "version":  "25.0.0.0"
-                         }
+                        {
+                            "id": "fd3d0b8e-61fa-4f87-b2fc-c4a1f3e53a63",
+                            "name": "Format Validation",
+                            "publisher": "Microsoft",
+                            "version": "25.0.0.0"
+                        },
+                        {
+                            "id":  "20d9e6f0-8fc6-452f-bd7f-cc26fae09fe0",
+                            "name":  "Format Validation Test Library",
+                            "publisher":  "Microsoft",
+                            "version":  "25.0.0.0"
+                        },
+                        {
+                            "id":  "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+                            "name":  "Library Assert",
+                            "publisher":  "Microsoft",
+                            "version":  "25.0.0.0"
+                        }
                      ],
     "screenshots":  [
 

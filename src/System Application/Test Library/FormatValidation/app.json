@@ -1,0 +1,31 @@
+{
+    "id": "20d9e6f0-8fc6-452f-bd7f-cc26fae09fe0",
+    "name": "Format Validation Test Library",
+    "publisher": "Microsoft",
+    "brief": "Library with test objects for the Format Validation module",
+    "description": "Library with test objects for the Format Validation module",
+    "version": "25.0.0.0",
+    "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+    "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help": "",
+    "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+    "logo": "",
+    "dependencies": [
+                        {
+                            "id": "fd3d0b8e-61fa-4f87-b2fc-c4a1f3e53a63",
+                            "name": "Format Validation",
+                            "publisher": "Microsoft",
+                            "version": "25.0.0.0"
+                        }
+    ],
+    "screenshots": [
+    ],
+    "platform": "25.0.0.0",
+    "idRanges": [
+        {
+            "from": 130443,
+            "to": 130447
+        }
+    ],
+    "target": "OnPrem"
+}
