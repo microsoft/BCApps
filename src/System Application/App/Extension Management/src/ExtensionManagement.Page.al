@@ -354,7 +354,7 @@ page 2500 "Extension Management"
         IsInstalled := ExtensionInstallationImpl.IsInstalledByPackageId(Rec."Package ID");
         IsTenantExtension := Rec."Published As" <> Rec."Published As"::Global;
         AllowsDownloadSource := AllowsDownloadSource::" ";
-        if (IsTenantExtension) then
+        if IsTenantExtension then
             if ExtensionInstallationImpl.AllowsDownloadSource(Rec."Resource Exposure Policy") then begin
                 AllowsDownloadSource := AllowsDownloadSource::Yes;
                 AllowsDownloadSourceStyleExpr := Format(PageStyle::Favorable);
