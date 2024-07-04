@@ -20,7 +20,7 @@ codeunit 8033 "VS Code Integration Impl."
         ApplicationIdTxt: Label 'c1335042-3002-4257-bf8a-75c898ccb1b8', Locked = true;
 
     [Scope('OnPrem')]
-    procedure GetUrlToOpenExtensionSource(var PublishedApplication: Record "Published Application")
+    procedure OpenExtensionSourceInVSCode(var PublishedApplication: Record "Published Application")
     var
         Url: Text;
     begin

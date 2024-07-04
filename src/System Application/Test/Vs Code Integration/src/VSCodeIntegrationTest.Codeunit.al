@@ -122,7 +122,7 @@ codeunit 138133 "VS Code Integration Test"
         TempPublishedApplication.Insert();
 
         // [WHEN] we generate the URL to send a request to VS Code to get an extension's source code
-        VSCodeIntegration.OpenExtensionSource(TempPublishedApplication);
+        VSCodeIntegration.OpenExtensionSourceInVSCode(TempPublishedApplication);
 
         // [THEN] URL has the expected format
         // Asserted in handler

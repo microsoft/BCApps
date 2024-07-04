@@ -4,6 +4,10 @@ using System.Apps;
 using System.Reflection;
 using System.Tooling;
 
+/// <summary>
+/// Provides functionality to embed hyperlinks that send requests to VS Code to navigate to an object's definition in source code
+/// and to open the source code of an extension from Git.
+/// </summary>
 codeunit 8034 "VS Code Integration"
 {
     Access = Public;
@@ -14,18 +18,30 @@ codeunit 8034 "VS Code Integration"
         AllObjWithCaption: Record AllObjWithCaption;
         VsCodeIntegrationImpl: Codeunit "VS Code Integration Impl.";
 
+    /// <summary>
+    /// Opens an URL that sends a request to VS Code to retrieve and open the source code of the provided extension from Git.
+    /// </summary>
+    /// <param name="PublishedApplication">The extension to open in VS Code.</param>
     [Scope('OnPrem')]
-    procedure OpenExtensionSource(var PublishedApplication: Record "Published Application")
+    procedure OpenExtensionSourceInVSCode(var PublishedApplication: Record "Published Application")
     begin
-        VsCodeIntegrationImpl.GetUrlToOpenExtensionSource(PublishedApplication);
+        VsCodeIntegrationImpl.OpenExtensionSourceInVSCode(PublishedApplication);
     end;
 
+    /// <summary>
+    /// Opens an URL that sends a request to VS Code to navigate to the source definition of the given page and to download the dependent symbols.
+    /// </summary>
+    /// <param name="PublishedApplication">The extension to open in VS Code.</param>
     [Scope('OnPrem')]
     procedure NavigateToPageDefinitionInVSCode(var PageInfoAndFields: Record "Page Info And Fields"; var NavAppInstalledApp: Record "NAV App Installed App")
     begin
         VsCodeIntegrationImpl.NavigateToObjectDefinitionInVSCode(AllObjWithCaption."Object Type"::Page, PageInfoAndFields."Page ID", PageInfoAndFields."Page Name", '', NavAppInstalledApp);
     end;
 
+    /// <summary>
+    /// Opens an URL that sends a request to VS Code to navigate to the source definition of the given table field and to download the dependent symbols.
+    /// </summary>
+    /// <param name="PublishedApplication">The extension to open in VS Code.</param>
     [Scope('OnPrem')]
     procedure NavigateFieldDefinitionInVSCode(var PageInfoAndFields: Record "Page Info And Fields"; var NavAppInstalledApp: Record "NAV App Installed App")
     begin
