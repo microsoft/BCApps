@@ -82,7 +82,7 @@ page 2511 "Extension Settings"
                 {
                     Caption = 'Allow Debugging';
                     Editable = false;
-                    ToolTip = 'Specifies whether the publisher permits the runtime debug this extension .';
+                    ToolTip = 'Specifies whether the publisher permits the runtime to debug this extension .';
                 }
                 field(AppAllowsDownloadSource; AppAllowsDownloadSource)
                 {
