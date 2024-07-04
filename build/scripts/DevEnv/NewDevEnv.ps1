@@ -91,6 +91,7 @@ try {
     {
         Write-Host "Configuring vscode for development against the container..."
         Configure-ALProjectsInPath -ContainerName $ContainerName -Authentication $Authentication
+        Install-ALExtension -ContainerName $ContainerName
     }
 }
 finally {
