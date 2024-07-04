@@ -410,7 +410,7 @@ function Install-ALExtension([string] $ContainerName, [switch] $Force) {
 
     $vsixPath = Get-ChildItem "$($bcContainerHelperConfig.containerHelperFolder)\Extensions\$ContainerName\*.vsix" | Select-Object -ExpandProperty FullName
     if ($Force) {
-        code --install-extension $vsixPath --force 
+        code --install-extension $vsixPath --force
     } else {
         code --install-extension $vsixPath
     }
