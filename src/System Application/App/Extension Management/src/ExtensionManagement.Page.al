@@ -193,7 +193,7 @@ page 2500 "Extension Management"
 
                     trigger OnAction()
                     begin
-                        VsCodeIntegration.OpenExtensionSource(Rec);
+                        VsCodeIntegration.OpenExtensionSourceInVSCode(Rec);
                     end;
                 }
                 action("Learn More")
