@@ -34,7 +34,7 @@ codeunit 5054 "Format Validation Impl."
         FieldRef: FieldRef;
         SourceFieldId: Integer;
     begin
-        if not ValidateIfPhoneNoContainsCharacters(PhoneNo: Text[30]) then
+        if not ValidateIfPhoneNoContainsCharacters(PhoneNo) then
             exit;
 
         RecRef.Get(SourceRecordId);
