@@ -450,7 +450,7 @@ codeunit 2501 "Extension Marketplace"
         exit(false);
     end;
 
-#if not CLEAN24
+#if not CLEAN25
     [Obsolete('Microsoft AppSource apps feature will replace the Extension Marketplace.', '24.0')]
     procedure GetMarketplaceEmbeddedUrl(): Text;
     begin
