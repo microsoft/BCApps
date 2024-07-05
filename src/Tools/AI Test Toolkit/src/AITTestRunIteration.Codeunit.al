@@ -123,7 +123,7 @@ codeunit 149042 "AIT Test Run Iteration"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnBeforeTestMethodRun, '', false, false)]
     local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions)
     var
-        AITContextCU: Codeunit "AIT Test Context";
+        AITContextCU: Codeunit "AIT Test Context Impl.";
     begin
         if ActiveAITTestSuite.Code = '' then
             exit;
@@ -138,7 +138,7 @@ codeunit 149042 "AIT Test Run Iteration"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", OnAfterTestMethodRun, '', false, false)]
     local procedure OnAfterTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
     var
-        AITContextCU: Codeunit "AIT Test Context";
+        AITContextCU: Codeunit "AIT Test Context Impl.";
     begin
         if ActiveAITTestSuite.Code = '' then
             exit;

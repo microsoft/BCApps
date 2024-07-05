@@ -17,6 +17,7 @@ permissionset 149031 "AI Test Toolkit - Obj"
         codeunit "AIT Install" = X,
         codeunit "AIT Test Run Iteration" = X,
         codeunit "AIT Test Context" = X,
+        codeunit "AIT Test Context Impl." = X,
         xmlport "AIT Test Suite Import/Export" = X,
         page "AIT CommandLine Card" = X,
         page "AIT Test Method Lines" = X,
