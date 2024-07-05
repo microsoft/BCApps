@@ -23,6 +23,7 @@ entitlement "Delegated Helpdesk agent - Partner"
                          "Security Groups - Admin",
                          "Exten. Mgt. - Admin",
                          "Email - Admin",
-                         "Feature Key - Admin";
+                         "Feature Key - Admin",
+                         "VSC Intgr. - Admin";
 #pragma warning restore
 }
