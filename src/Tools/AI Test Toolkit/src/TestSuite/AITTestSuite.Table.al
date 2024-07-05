@@ -9,6 +9,7 @@ using System.TestTools.TestRunner;
 
 table 149030 "AIT Test Suite"
 {
+    Caption = 'AI Test Suite';
     DataClassification = SystemMetadata;
     Extensible = false;
     ReplicateData = false;
@@ -70,12 +71,12 @@ table 149030 "AIT Test Suite"
                             AITTestSuiteMgt.SetRunStatus(Rec, Rec.Status::Completed);
                             AITTestMethodLine.SetRange("Test Suite Code", "Code");
                             AITTestMethodLine.SetRange(Status);
-                            AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Completed);
+                            AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Completed, true);
                         end;
                     Status::Cancelled:
                         begin
                             AITTestMethodLine.SetRange("Test Suite Code", "Code");
-                            AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Cancelled);
+                            AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Cancelled, true);
                         end;
                 end;
             end;
@@ -97,7 +98,6 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'Version';
             Editable = false;
-            DataClassification = SystemMetadata;
         }
         field(16; "Base Version"; Integer)
         {
@@ -114,13 +114,11 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'Unique RunID';
             Editable = false;
-            DataClassification = SystemMetadata;
         }
         field(20; ModelVersion; Option)
         {
             Caption = 'AOAI Model Version';
             OptionMembers = Latest,Preview;
-            DataClassification = SystemMetadata;
         }
         field(21; "No. of Tests Executed"; Integer)
         {

@@ -14,9 +14,9 @@ codeunit 149034 "AIT Test Suite Mgt."
 
     var
         GlobalAITTestSuite: Record "AIT Test Suite";
-        AITTRunStartedLbl: Label 'AI Test Suite run started.', Locked = true;
-        AITTRunFinishedLbl: Label 'AI Test Suite run finished.', Locked = true;
-        AITTRunCancelledLbl: Label 'AI Test Suite run cancelled.', Locked = true;
+        AITRunStartedLbl: Label 'AI Test Suite run started.', Locked = true;
+        AITRunFinishedLbl: Label 'AI Test Suite run finished.', Locked = true;
+        AITRunCancelledLbl: Label 'AI Test Suite run cancelled.', Locked = true;
         EmptyDatasetSuiteErr: Label 'Please provide a dataset for the AIT Suite %1.', Comment = '%1 is the AIT Suite code';
         NoDatasetInSuiteErr: Label 'The dataset %1 specified for AIT Suite %2 does not exist.', Comment = '%1 is the Dataset name, %2 is the AIT Suite code';
         NoInputsInSuiteErr: Label 'The dataset %1 specified for AIT Suite %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the AIT Suite code.';
@@ -56,7 +56,7 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITTestSuite."No. of tests running" := 0;
         AITTestSuite.Version += 1;
-        AITTestSuite.Modify();
+        AITTestSuite.Modify(true);
         Commit();
 
         AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
@@ -65,7 +65,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         if AITTestMethodLine.IsEmpty() then
             exit;
 
-        AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ");
+        AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ", true);
 
         if AITTestMethodLine.FindSet() then begin
             StatusDialog.Open(RunningStatusMsg);
@@ -85,16 +85,16 @@ codeunit 149034 "AIT Test Suite Mgt."
         if UpdateSuiteVersion then begin
             AITTestSuite.Get(AITTestMethodLine."Test Suite Code");
             AITTestSuite.Version += 1;
-            AITTestSuite.Modify();
+            AITTestSuite.Modify(true);
         end;
 
         AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Running);
-        AITTestMethodLine.Modify();
+        AITTestMethodLine.Modify(true);
         Commit();
         Codeunit.Run(Codeunit::"AIT Test Runner", AITTestMethodLine);
         if AITTestMethodLine.Find() then begin
             AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Completed);
-            AITTestMethodLine.Modify();
+            AITTestMethodLine.Modify(true);
             Commit();
         end;
     end;
@@ -169,7 +169,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         if not AITTestSuite.Find() then
             exit;
         AITTestSuite.Validate("No. of tests running", AITTestSuite."No. of tests running" - 1);
-        AITTestSuite.Modify();
+        AITTestSuite.Modify(true);
         Commit();
     end;
 
@@ -180,7 +180,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     begin
         if Confirm(ConfirmResetStatusQst) then begin
             AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite."Code");
-            AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Completed);
+            AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Completed, true);
             AITTestSuite.Status := AITTestSuite.Status::Completed;
             AITTestSuite."No. of tests running" := 0;
             AITTestSuite."Ended at" := CurrentDateTime();
@@ -207,13 +207,13 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         case AITTestSuiteStatus of
             AITTestSuiteStatus::Running:
-                Session.LogMessage('0000DHR', AITTRunStartedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
+                Session.LogMessage('0000DHR', AITRunStartedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
             AITTestSuiteStatus::Completed:
-                Session.LogMessage('0000DHS', AITTRunFinishedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
+                Session.LogMessage('0000DHS', AITRunFinishedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
             AITTestSuiteStatus::Cancelled:
-                Session.LogMessage('0000DHT', AITTRunCancelledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
+                Session.LogMessage('0000DHT', AITRunCancelledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
         end;
-        AITTestSuite.Modify();
+        AITTestSuite.Modify(true);
         Commit();
     end;
 
@@ -243,10 +243,10 @@ codeunit 149034 "AIT Test Suite Mgt."
         if ScenarioOperation = AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then begin
             StartTime := CurrentTestMethodLine."Start Time";
             EndTime := CurrentTestMethodLine."Finish Time";
-        end
-        else begin
+        end else begin
             if not this.ScenarioStarted.ContainsKey(ScenarioOperation) then
                 Error(this.ScenarioNotStartedErr, ScenarioOperation, AITTestMethodLine."Codeunit Name");
+
             EndTime := CurrentDateTime();
             if this.ScenarioStarted.Get(ScenarioOperation, StartTime) then // Get the start time
                 if this.ScenarioStarted.Remove(ScenarioOperation) then;
@@ -265,7 +265,6 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry: Record "AIT Log Entry";
         TestInput: Record "Test Input";
         AITTestRunner: Codeunit "AIT Test Runner"; // single instance
-        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
         ModifiedOperation: Text;
         ModifiedExecutionSuccess: Boolean;
@@ -281,7 +280,7 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITTestMethodLine.TestField("Test Suite Code");
         AITTestRunner.GetAITTestSuite(this.GlobalAITTestSuite);
-        Clear(AITLogEntry);
+
         AITLogEntry."Run ID" := this.GlobalAITTestSuite.RunID;
         AITLogEntry."Test Suite Code" := AITTestMethodLine."Test Suite Code";
         AITLogEntry."Test Method Line No." := AITTestMethodLine."Line No.";
@@ -292,21 +291,25 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry.Tag := AITTestRunner.GetAITTestSuiteTag();
         AITLogEntry.ModelVersion := this.GlobalAITTestSuite.ModelVersion;
         AITLogEntry."Entry No." := 0;
+
         if ModifiedExecutionSuccess then
             AITLogEntry.Status := AITLogEntry.Status::Success
         else begin
             AITLogEntry.Status := AITLogEntry.Status::Error;
             AITLogEntry.SetErrorCallStack(TestSuiteMgt.GetErrorCallStack(CurrentTestMethodLine));
         end;
+
         if ExecutionSuccess then
             AITLogEntry."Original Status" := AITLogEntry.Status::Success
         else
             AITLogEntry."Original Status" := AITLogEntry.Status::Error;
+
         AITLogEntry.SetMessage(ModifiedMessage);
         AITLogEntry."Original Message" := CopyStr(Message, 1, MaxStrLen(AITLogEntry."Original Message"));
         AITLogEntry."Log was Modified" := EntryWasModified;
         AITLogEntry."End Time" := EndTime;
         AITLogEntry."Start Time" := StartTime;
+
         if AITLogEntry."Start Time" = 0DT then
             AITLogEntry."Duration (ms)" := AITLogEntry."End Time" - AITLogEntry."Start Time";
 
@@ -323,8 +326,10 @@ codeunit 149034 "AIT Test Suite Mgt."
         TestOutput := this.GetTestOutput(Operation);
         if TestOutput <> '' then
             AITLogEntry.SetOutputBlob(TestOutput);
+
         AITLogEntry."Procedure Name" := CurrentTestMethodLine.Function;
         AITLogEntry.Insert(true);
+
         Commit();
         this.AddLogAppInsights(AITLogEntry);
         AITTestRunner.AddToNoOfLogEntriesInserted();
@@ -347,6 +352,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         Dimensions.Add('StartTime', Format(AITLogEntry."Start Time"));
         Dimensions.Add('EndTime', Format(AITLogEntry."End Time"));
         Dimensions.Add('DurationInMs', Format(AITLogEntry."Duration (ms)"));
+
         Session.LogMessage(
             '0000DGF',
             StrSubstNo(TelemetryLogLbl, AITLogEntry."Test Suite Code", AITLogEntry.Operation, AITLogEntry.Status),

@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 xmlport 149031 "AIT Test Suite Import/Export"
 {
-    Caption = 'AIT Import/Export';
+    Caption = 'AI Import/Export';
     UseRequestPage = false;
 
     schema

@@ -20,7 +20,7 @@ codeunit 149042 "AIT Test Runner"
         GlobalTestMethodLine: Record "Test Method Line";
         NoOfInsertedLogEntries: Integer;
 
-    trigger OnRun();
+    trigger OnRun()
     begin
         if Rec."Codeunit ID" = 0 then
             exit;
