@@ -101,18 +101,18 @@ codeunit 337 "Record Match Impl."
     end;
 
     //TODO: This is a copy of codeunit 7250 "Bank Rec. AI Matching Impl." RemoveShortWords(). It should be moved to a system app, or replaced with a system function
-    procedure RemoveShortWords(Text: Text[250]): Text[250];
+    procedure RemoveShortWords(OriginalText: Text[250]): Text[250];
     var
         Words: List of [Text];
         Word: Text[250];
         Result: Text[250];
     begin
-        Words := Text.Split(' '); // split the text by spaces into a list of words
+        Words := OriginalText.Split(' '); // split the text by spaces into a list of words
         foreach Word in Words do // loop through each word in the list
             if StrLen(Word) >= 3 then // check if the word length is at least 3
                 Result += Word + ' '; // append the word and a space to the result
         Result := CopyStr(Result.TrimEnd(), 1, MaxStrLen(Result)); // remove the trailing space from the result
-        Text := Result; // assign the result back to the text parameter
-        exit(Text);
+        OriginalText := Result; // assign the result back to the text parameter
+        exit(OriginalText);
     end;
 }

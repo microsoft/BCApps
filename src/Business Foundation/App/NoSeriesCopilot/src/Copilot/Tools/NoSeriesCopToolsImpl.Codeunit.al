@@ -12,7 +12,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
     Access = Internal;
 
     var
-        CustomPatternsPlaceholderLbl: label '{custom_patterns}', Locked = true;
+        CustomPatternsPlaceholderLbl: Label '{custom_patterns}', Locked = true;
         PrefixLbl: Label 'for ';
 
     procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var Arguments: JsonObject; var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text])
@@ -325,21 +325,21 @@ codeunit 336 "No. Series Cop. Tools Impl."
     end;
 
 
-    procedure RemoveTextParts(Text: Text; PartsToRemove: List of [Text]): Text
+    procedure RemoveTextParts(OriginalText: Text; PartsToRemove: List of [Text]): Text
     var
         Part: Text;
     begin
         foreach Part in PartsToRemove do
-            Text := RemoveTextPart(Text, Part);
-        exit(Text);
+            OriginalText := RemoveTextPart(OriginalText, Part);
+        exit(OriginalText);
     end;
 
-    procedure RemoveTextPart(Text: Text; Part: Text): Text
+    procedure RemoveTextPart(OriginalText: Text; Part: Text): Text
     begin
-        if StrPos(Text, Part) = 0 then
-            exit(Text);
+        if StrPos(OriginalText, Part) = 0 then
+            exit(OriginalText);
 
-        exit(DelStr(Text, StrPos(Text, Part), StrLen(Part)));
+        exit(DelStr(OriginalText, StrPos(OriginalText, Part), StrLen(Part)));
     end;
 
     procedure ExtractAreaWithPrefix(Prompt: Text): Text
