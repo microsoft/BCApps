@@ -7,6 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 page 149036 "AIT Test Suite Compare"
 {
+    Caption = 'AI Test Suite Compare';
     PageType = Card;
     ApplicationArea = All;
     SourceTable = "AIT Test Suite";
@@ -27,7 +28,6 @@ page 149036 "AIT Test Suite Compare"
                 {
                     Caption = 'Version';
                     ToolTip = 'Specifies the base version to compare with.';
-                    ApplicationArea = All;
 
                     trigger OnValidate()
                     begin
@@ -38,7 +38,6 @@ page 149036 "AIT Test Suite Compare"
                 {
                     Caption = 'Base Version';
                     ToolTip = 'Specifies the Base version to compare to.';
-                    ApplicationArea = All;
 
                     trigger OnValidate()
                     begin
@@ -58,39 +57,34 @@ page 149036 "AIT Test Suite Compare"
                         label(NoOfTests)
                         {
                             Caption = 'Number of Tests';
-                            Tooltip = 'Specifies the number of tests in this Line';
-                            ApplicationArea = All;
+                            ToolTip = 'Specifies the number of tests in this Line';
                         }
                         label(NoOfTestsPassed)
                         {
                             Caption = 'Number of Tests Passed';
                             ToolTip = 'Specifies the number of tests passed in the version.';
-                            ApplicationArea = All;
                         }
                         label(NoOfTestsFailed)
                         {
                             Caption = 'Number of Tests Failed';
                             ToolTip = 'Specifies the number of tests that failed in the version.';
-                            ApplicationArea = All;
                         }
                         label(TotalDuration)
                         {
                             Caption = 'Total Duration (ms)';
                             ToolTip = 'Specifies Total Duration of the AIT for this role for the version.';
-                            ApplicationArea = All;
                         }
                     }
                     group("Latest Version")
                     {
+                        Caption = 'Latest Version';
                         field("No. of Tests"; Rec."No. of Tests Executed")
                         {
-                            Tooltip = 'Specifies the number of tests in this Line';
-                            ApplicationArea = All;
+                            ToolTip = 'Specifies the number of tests in this Line.';
                             ShowCaption = false;
                         }
                         field("No. of Tests Passed"; Rec."No. of Tests Passed")
                         {
-                            ApplicationArea = All;
                             Style = Favorable;
                             ToolTip = 'Specifies the number of tests passed in the current Version.';
                             ShowCaption = false;
@@ -98,7 +92,6 @@ page 149036 "AIT Test Suite Compare"
                         field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
                         {
                             Editable = false;
-                            ApplicationArea = All;
                             Caption = 'Number of Tests Failed';
                             ToolTip = 'Specifies the number of tests that failed in the current version.';
                             ShowCaption = false;
@@ -114,21 +107,19 @@ page 149036 "AIT Test Suite Compare"
                         field(Duration; Rec."Total Duration (ms)")
                         {
                             ToolTip = 'Specifies Total Duration of the AIT for this role.';
-                            ApplicationArea = All;
                             ShowCaption = false;
                         }
                     }
                     group("Base Version")
                     {
+                        Caption = 'Base Version';
                         field("No. of Tests - Base"; Rec."No. of Tests Executed - Base")
                         {
-                            Tooltip = 'Specifies the number of tests in this Line for the base version.';
-                            ApplicationArea = All;
+                            ToolTip = 'Specifies the number of tests in this Line for the base version.';
                             ShowCaption = false;
                         }
                         field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base")
                         {
-                            ApplicationArea = All;
                             ToolTip = 'Specifies the number of tests passed in the base Version.';
                             Style = Favorable;
                             ShowCaption = false;
@@ -136,7 +127,6 @@ page 149036 "AIT Test Suite Compare"
                         field("No. of Tests Failed - Base"; Rec."No. of Tests Executed - Base" - Rec."No. of Tests Passed - Base")
                         {
                             Editable = false;
-                            ApplicationArea = All;
                             Caption = 'Number of Tests Failed - Base';
                             ToolTip = 'Specifies the number of tests that failed in the base Version.';
                             Style = Unfavorable;
@@ -153,7 +143,6 @@ page 149036 "AIT Test Suite Compare"
                         {
                             ToolTip = 'Specifies Total Duration of the AIT for this role for the base version.';
                             Caption = 'Total Duration Base (ms)';
-                            ApplicationArea = All;
                             ShowCaption = false;
                         }
                     }

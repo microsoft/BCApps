@@ -16,7 +16,7 @@ page 149034 "AIT Test Method Lines"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             repeater(Control1)
             {
@@ -64,7 +64,7 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("No. of Tests"; Rec."No. of Tests")
                 {
-                    Tooltip = 'Specifies the number of tests in this Line';
+                    ToolTip = 'Specifies the number of tests in this Line.';
                     ApplicationArea = All;
                 }
                 field("No. of Tests Passed"; Rec."No. of Tests Passed")
@@ -112,7 +112,7 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("No. of Tests - Base"; Rec."No. of Tests - Base")
                 {
-                    Tooltip = 'Specifies the number of tests in this Line for the base version.';
+                    ToolTip = 'Specifies the number of tests in this Line for the base version.';
                     ApplicationArea = All;
                     Visible = false;
                 }
@@ -182,7 +182,7 @@ page 149034 "AIT Test Method Lines"
                 ApplicationArea = All;
                 Caption = 'Run Test';
                 Image = Start;
-                Tooltip = 'Starts running the AIT Line.';
+                ToolTip = 'Starts running the AIT Line.';
 
                 trigger OnAction()
                 begin
@@ -255,7 +255,7 @@ page 149034 "AIT Test Method Lines"
     begin
         if BaseNo = 0 then
             exit(0);
-        exit(round((100 * (No - BaseNo)) / BaseNo, 0.1));
+        exit(Round((100 * (No - BaseNo)) / BaseNo, 0.1));
     end;
 
     internal procedure Refresh()

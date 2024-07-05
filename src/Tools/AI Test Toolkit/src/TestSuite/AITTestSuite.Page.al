@@ -18,7 +18,7 @@ page 149031 "AIT Test Suite"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             group(General)
             {
@@ -285,7 +285,7 @@ page 149031 "AIT Test Suite"
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        this.EnableActions := (EnvironmentInformation.IsSaas() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
+        this.EnableActions := (EnvironmentInformation.IsSaaS() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -299,7 +299,7 @@ page 149031 "AIT Test Suite"
     begin
         this.UpdateTotalDuration();
         this.UpdateAverageExecutionTime();
-        this.TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner ID");
+        this.TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
     end;
 
     local procedure UpdateTotalDuration()

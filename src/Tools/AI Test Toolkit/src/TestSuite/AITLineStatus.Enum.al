@@ -17,6 +17,7 @@ enum 149031 "AIT Line Status"
     /// </summary>
     value(0; " ")
     {
+        Caption = ' ', Locked = true;
     }
 
     /// <summary>
@@ -24,12 +25,14 @@ enum 149031 "AIT Line Status"
     /// </summary>
     value(10; Starting)
     {
+        Caption = 'Starting';
     }
     /// <summary>
     /// Specifies that the AIT Line state is Running.
     /// </summary>
     value(20; Running)
     {
+        Caption = 'Running';
     }
 
     /// <summary>
@@ -37,6 +40,7 @@ enum 149031 "AIT Line Status"
     /// </summary>
     value(30; Completed)
     {
+        Caption = 'Completed';
     }
 
     /// <summary>
@@ -44,5 +48,6 @@ enum 149031 "AIT Line Status"
     /// </summary>
     value(40; Cancelled)
     {
+        Caption = 'Cancelled';
     }
 }

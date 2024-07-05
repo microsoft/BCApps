@@ -10,6 +10,7 @@ using System.TestTools.TestRunner;
 
 table 149032 "AIT Test Method Line"
 {
+    Caption = 'AI Test Method Line';
     DataClassification = SystemMetadata;
     Extensible = false;
     Access = Internal;
@@ -43,7 +44,7 @@ table 149032 "AIT Test Method Line"
                 SelectTests: Page "Select Tests";
             begin
                 SelectTests.LookupMode := true;
-                if SelectTests.RunModal() = ACTION::LookupOK then begin
+                if SelectTests.RunModal() = Action::LookupOK then begin
                     SelectTests.GetRecord(AllObjWithCaption);
                     this.Validate("Codeunit ID", AllObjWithCaption."Object ID");
                 end;
