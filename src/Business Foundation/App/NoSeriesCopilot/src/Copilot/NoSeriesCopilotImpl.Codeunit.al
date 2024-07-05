@@ -96,15 +96,17 @@ codeunit 324 "No. Series Copilot Impl."
     local procedure InsertNoSeriesLine(var GeneratedNoSeries: Record "No. Series Proposal Line")
     var
         NoSeriesLine: Record "No. Series Line";
+        Implementation: Enum "No. Series Implementation";
     begin
         NoSeriesLine.Init();
         NoSeriesLine."Series Code" := GeneratedNoSeries."Series Code";
         NoSeriesLine."Line No." := GetNoSeriesLineNo(GeneratedNoSeries."Series Code");
-        NoSeriesLine."Starting No." := GeneratedNoSeries."Starting No.";
-        NoSeriesLine."Ending No." := GeneratedNoSeries."Ending No.";
-        NoSeriesLine."Warning No." := GeneratedNoSeries."Warning No.";
-        NoSeriesLine."Increment-by No." := GeneratedNoSeries."Increment-by No.";
-        //TODO: Check if we need to add more fields here, like "Allow Gaps in Nos.", "Sequence Name" etc.
+        NoSeriesLine.Validate("Starting No.", GeneratedNoSeries."Starting No.");
+        NoSeriesLine.Validate("Ending No.", GeneratedNoSeries."Ending No.");
+        if GeneratedNoSeries."Warning No." <> '' then
+            NoSeriesLine.Validate("Warning No.", GeneratedNoSeries."Warning No.");
+        NoSeriesLine.Validate("Increment-by No.", GeneratedNoSeries."Increment-by No.");
+        NoSeriesLine.Validate(Implementation, Implementation::Normal);
         if not NoSeriesLine.Insert(true) then
             NoSeriesLine.Modify(true);
     end;
@@ -115,9 +117,9 @@ codeunit 324 "No. Series Copilot Impl."
         NoSeries: Codeunit "No. Series";
     begin
         if not NoSeries.GetNoSeriesLine(NoSeriesLine, SeriesCode, 0D, true) then
-            exit(1000);
+            exit(10000);
 
-        exit(NoSeriesLine."Line No."); // TODO: Check if we need to update existing no series line, or add a new one, e.g. if user requested to create no. series for the new year
+        exit(NoSeriesLine."Line No."); // currently we don't support 'create no. series for the new year' scenario, so we always update existing number series, if user intent is to change the number series
     end;
 
     local procedure ApplyNoSeriesToSetup(var GeneratedNoSeries: Record "No. Series Proposal Line")
@@ -194,7 +196,7 @@ codeunit 324 "No. Series Copilot Impl."
         NoSeriesGeneraredArray: Text;
         FinalResults: List of [Text]; // The final response will be the concatenation of all the LLM responses (final results).
         NoSeriesGenerateTool: Codeunit "No. Series Cop. Generate";
-        ExpectedNoSeriesCount: Integer;
+        CurrentAICallNumber, TotalAICallsRequired, ExpectedNoSeriesCount : Integer;
         Progress: Dialog;
     begin
         AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
@@ -202,9 +204,11 @@ codeunit 324 "No. Series Copilot Impl."
             Error(AOAIFunctionResponse.GetError());
 
         ToolResponse := AOAIFunctionResponse.GetResult();
+        TotalAICallsRequired := ToolResponse.Count();
 
         foreach SystemPrompt in ToolResponse.Keys() do begin
             Progress.Open(StrSubstNo(GeneratingNoSeriesForLbl, NoSeriesCopToolsImpl.ExtractAreaWithPrefix(SystemPrompt)));
+            CurrentAICallNumber += 1;
 
             AOAIChatCompletionParams.SetTemperature(0);
             AOAIChatMessages.SetPrimarySystemMessage(SystemPrompt);
@@ -218,7 +222,8 @@ codeunit 324 "No. Series Copilot Impl."
 
             FinalResults.Add(NoSeriesGeneraredArray);
 
-            Sleep(1000); // sleep for 1000ms, as the model can be called only limited number of times per second
+            if CurrentAICallNumber < TotalAICallsRequired then
+                Sleep(1000); // sleep for 1000ms, as the model has tokens per minute rate limit
             Clear(AOAIChatMessages);
             Progress.Close();
         end;
