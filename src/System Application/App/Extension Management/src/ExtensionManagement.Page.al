@@ -196,6 +196,19 @@ page 2500 "Extension Management"
                         VsCodeIntegration.OpenExtensionSourceInVSCode(Rec);
                     end;
                 }
+                action("Start Designer in Source")
+                {
+                    Caption = 'Open Source in VS Code';
+                    Enabled = IsSourceSpecificationAvailable;
+                    Image = Download;
+                    Scope = Repeater;
+                    ToolTip = 'Open the source code for the extension based on the source control information.';
+
+                    trigger OnAction()
+                    begin
+                        VsCodeIntegration.DesignExtensionSourceInVSCode(Rec);
+                    end;
+                }
                 action("Learn More")
                 {
                     Caption = 'Learn More';
