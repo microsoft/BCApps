@@ -4,7 +4,6 @@
 /// </summary>
 
 namespace Microsoft.Foundation.NoSeries;
-using System.Utilities;
 
 page 9245 "No. Series Copilot Setup"
 {

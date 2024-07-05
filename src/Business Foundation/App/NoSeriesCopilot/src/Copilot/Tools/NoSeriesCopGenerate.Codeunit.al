@@ -6,15 +6,12 @@
 namespace Microsoft.Foundation.NoSeries;
 
 using System.AI;
-using System.Reflection;
-using System.Utilities;
 
 codeunit 339 "No. Series Cop. Generate" implements "AOAI Function"
 {
     Access = Internal;
 
     var
-        ToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
         FunctionNameLbl: Label 'GenerateNumberSeries', Locked = true;
 
     procedure GetName(): Text

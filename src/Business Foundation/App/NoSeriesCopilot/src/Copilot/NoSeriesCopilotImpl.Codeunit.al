@@ -7,9 +7,8 @@ namespace Microsoft.Foundation.NoSeries;
 
 using System.Telemetry;
 using System.Globalization;
-using System.Environment;
+// using System.Environment;
 using System.AI;
-using System.Utilities;
 using System.Text.Json;
 
 codeunit 324 "No. Series Copilot Impl."
@@ -152,16 +151,15 @@ codeunit 324 "No. Series Copilot Impl."
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
-        AOAIDeployments: Codeunit "AOAI Deployments";
         AddNoSeriesIntent: Codeunit "No. Series Cop. Add Intent";
         ChangeNoSeriesIntent: Codeunit "No. Series Cop. Change Intent";
+        AOAIDeployments: Codeunit "AOAI Deployments";
         CompletionAnswerTxt: Text;
     begin
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"No. Series Copilot") then
             exit;
 
-        // AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT35TurboLatest());    //Uncomment this line when the feature is ready to be used
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", GetEndpoint(), GetDeployment(), GetSecret()); //TODO: Remove this line when the feature is ready to be used
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT35TurboLatest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"No. Series Copilot");
         AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
         AOAIChatCompletionParams.SetTemperature(0);
@@ -190,12 +188,12 @@ codeunit 324 "No. Series Copilot Impl."
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
         NoSeriesCopToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
+        NoSeriesGenerateTool: Codeunit "No. Series Cop. Generate";
         SystemPrompt: Text;
         ToolResponse: Dictionary of [Text, Integer]; // tool response can be a list of strings, as the response can be too long and exceed the token limit. In this case each string would be a separate message, each of them should be called separately. The integer is the number of tables used in the prompt, so we can test if the LLM answer covers all tables
         GeneratedNoSeriesArray: Text;
         FinalResults: List of [Text]; // The final response will be the concatenation of all the LLM responses (final results).
-        NoSeriesGenerateTool: Codeunit "No. Series Cop. Generate";
-        CurrentAICallNumber, TotalAICallsRequired, ExpectedNoSeriesCount : Integer;
+        CurrentAICallNumber, TotalAICallsRequired : Integer;
         Progress: Dialog;
     begin
         AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
@@ -268,7 +266,7 @@ codeunit 324 "No. Series Copilot Impl."
         exit(false);
     end;
 
-    local procedure CheckIfValidResult(GeneratedNoSeriesArrayText: Text; FunctionName: Text; ExpectedNoSeriesCount: Integer) ValidResult: Boolean
+    local procedure CheckIfValidResult(GeneratedNoSeriesArrayText: Text; FunctionName: Text; ExpectedNoSeriesCount: Integer) : Boolean
     var
         AddNoSeriesIntent: Codeunit "No. Series Cop. Add Intent";
     begin
@@ -304,7 +302,6 @@ codeunit 324 "No. Series Copilot Impl."
         ResultJArray: JsonArray;
         JsonTok: JsonToken;
         JsonArr: JsonArray;
-        JsonObj: JsonObject;
         i: Integer;
     begin
         foreach Result in FinalResults do begin
@@ -484,44 +481,6 @@ codeunit 324 "No. Series Copilot Impl."
         FieldRef.Value(GenerationId);
     end;
 
-    /// <summary>
-    /// Get the endpoint from the Azure Key Vault.
-    /// This is a temporary solution to get the endpoint. The endpoint should be retrieved from the Azure Key Vault.
-    /// </summary>
-    /// <returns></returns>
-    local procedure GetEndpoint(): Text
-    var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
-    begin
-        exit(NoSeriesCopilotSetup.GetEndpoint())
-    end;
-
-    /// <summary>
-    /// Get the deployment from the Azure Key Vault.
-    /// This is a temporary solution to get the deployment. The deployment should be retrieved from the Azure Key Vault.
-    /// </summary>
-    /// <returns></returns>
-    local procedure GetDeployment(): Text
-    var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
-    begin
-        exit(NoSeriesCopilotSetup.GetDeployment())
-    end;
-
-    /// <summary>
-    /// Get the secret from the Azure Key Vault.
-    /// This is a temporary solution to get the secret. The secret should be retrieved from the Azure Key Vault.
-    /// </summary>
-    /// <returns></returns>
-    [NonDebuggable]
-    local procedure GetSecret(): Text
-    var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
-    begin
-        NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetSecretKeyFromIsolatedStorage())
-    end;
-
     local procedure MinimumAccuracy(): Decimal
     begin
         exit(0.9);
@@ -544,7 +503,7 @@ codeunit 324 "No. Series Copilot Impl."
 
     procedure IsCopilotVisible(): Boolean
     var
-        EnvironmentInformation: Codeunit "Environment Information";
+        // EnvironmentInformation: Codeunit "Environment Information";
     begin
         // if not EnvironmentInformation.IsSaaSInfrastructure() then //TODO: Check how to keep IsSaaSInfrastructure but be able to test in Docker Environment
         //     exit(false);

@@ -7,7 +7,6 @@ namespace Microsoft.Foundation.NoSeries;
 
 using System.AI;
 using System.Reflection;
-using System.Utilities;
 
 codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 {
@@ -47,10 +46,10 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
     [NonDebuggable]
     local procedure Build(var Arguments: JsonObject) ToolResults: Dictionary of [Text, Integer]
     var
+        TempNoSeriesField: Record "Field" temporary;
+        TempSetupTable: Record "Table Metadata" temporary;
         NewNoSeriesPrompt, CustomPatternsPromptList, TablesYamlList, EmptyList : List of [Text];
         NumberOfToolResponses, i, ActualTablesChunkSize : Integer;
-        TempSetupTable: Record "Table Metadata" temporary;
-        TempNoSeriesField: Record "Field" temporary;
         NumberOfAddedTables: Integer;
     begin
         GetTablesRequireNoSeries(Arguments, TempSetupTable, TempNoSeriesField);
@@ -141,7 +140,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 
         FieldRef := RecRef.Field(Field."No.");
         if Format(FieldRef.Value) <> '' then
-            exit; // No need to generate number series if it already created and confgured
+            exit; // No need to generate number series if it already created and configured
 
         TempSetupTable := TempTableMetadata;
         if TempSetupTable.Insert() then;
