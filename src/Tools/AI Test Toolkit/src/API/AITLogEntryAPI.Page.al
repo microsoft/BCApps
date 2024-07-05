@@ -78,7 +78,7 @@ page 149038 "AIT Log Entry API"
                 {
                     Caption = 'Message';
                 }
-                field("durationMin"; Rec."Duration (ms)")
+                field("durationMs"; Rec."Duration (ms)")
                 {
                     Caption = 'Duration (ms)';
                 }
