@@ -14,8 +14,6 @@ permissionset 8035 "VSC Intgr. - Admin"
     Assignable = true;
     Caption = 'VS Code Integration - Admin';
 
-    IncludedPermissionSets = "Extension Management - View";
-
     Permissions = tabledata AllObjWithCaption = Rimd,
                   tabledata "Application Object Metadata" = Rimd, // r needed for check CanInteractWithSourceCode
                   tabledata "Extension Execution Info" = Rimd,
