@@ -24,18 +24,14 @@ page 149034 "AIT Test Method Lines"
             {
                 field("LoadTestCode"; Rec."Test Suite Code")
                 {
-                    ToolTip = 'Specifies the ID of the AIT.';
                     Visible = false;
                 }
                 field(LineNo; Rec."Line No.")
                 {
-                    ToolTip = 'Specifies the line number of the AI Test line.';
                     Visible = false;
                 }
                 field(CodeunitID; Rec."Codeunit ID")
                 {
-                    ToolTip = 'Specifies the codeunit id to run.';
-
                     trigger OnValidate()
                     begin
                         CurrPage.Update();
@@ -43,34 +39,28 @@ page 149034 "AIT Test Method Lines"
                 }
                 field(CodeunitName; Rec."Codeunit Name")
                 {
-                    ToolTip = 'Specifies the name of the codeunit.';
                 }
                 field(InputDataset; Rec."Input Dataset")
                 {
-                    ToolTip = 'Specifies a dataset that overrides the default dataset for the suite.';
                 }
                 field(Description; Rec.Description)
                 {
-                    ToolTip = 'Specifies the description of the AI Test line.';
                 }
                 field(Status; Rec.Status)
                 {
-                    ToolTip = 'Specifies the status of the AIT.';
                 }
                 field("No. of Tests"; Rec."No. of Tests")
                 {
-                    ToolTip = 'Specifies the number of tests in this Line.';
                 }
                 field("No. of Tests Passed"; Rec."No. of Tests Passed")
                 {
                     Style = Favorable;
-                    ToolTip = 'Specifies the number of tests passed in the current Version.';
                 }
                 field("No. of Tests Failed"; Rec."No. of Tests" - Rec."No. of Tests Passed")
                 {
                     Editable = false;
                     Caption = 'No. of Tests Failed';
-                    ToolTip = 'Specifies the number of tests that failed in the current Version.';
+                    ToolTip = 'Specifies the number of tests that failed in the current version.';
                     Style = Unfavorable;
 
                     trigger OnDrillDown()
@@ -85,13 +75,12 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
-                    ToolTip = 'Specifies the number of operations in the current Version.';
+                    ToolTip = 'Specifies the number of operations in the current version.';
                     Visible = false;
                     Enabled = false;
                 }
                 field(Duration; Rec."Total Duration (ms)")
                 {
-                    ToolTip = 'Specifies Total Duration of the AI Tests.';
                 }
                 field(AvgDuration; AITTestSuiteMgt.GetAvgDuration(Rec))
                 {
@@ -136,7 +125,6 @@ page 149034 "AIT Test Method Lines"
                 }
                 field(DurationBase; Rec."Total Duration - Base (ms)")
                 {
-                    ToolTip = 'Specifies Total Duration of the AI Tests for the base version.';
                     Caption = 'Total Duration Base (ms)';
                     Visible = false;
                 }

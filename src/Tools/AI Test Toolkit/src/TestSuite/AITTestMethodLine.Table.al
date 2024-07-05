@@ -24,17 +24,19 @@ table 149032 "AIT Test Method Line"
             Editable = false;
             NotBlank = true;
             TableRelation = "AIT Test Suite";
+            ToolTip = 'Specifies the ID of the AI Test Line.';
         }
         field(2; "Line No."; Integer)
         {
             Editable = false;
             Caption = 'Line No.';
+            ToolTip = 'Specifies the line number of the AI Test Line.';
         }
         field(3; "Codeunit ID"; Integer)
         {
             Caption = 'Codeunit ID';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Codeunit));
-
+            ToolTip = 'Specifies the codeunit id to run.';
             trigger OnLookup()
             var
                 AllObjWithCaption: Record AllObjWithCaption;
@@ -66,23 +68,27 @@ table 149032 "AIT Test Method Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit), "Object ID" = field("Codeunit ID")));
+            ToolTip = 'Specifies the name of the codeunit.';
         }
 
         field(6; "Description"; Text[250])
         {
             Caption = 'Description';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the description of the AI Test line.';
         }
         field(7; "Input Dataset"; Code[100])
         {
             Caption = 'Input Dataset';
             DataClassification = CustomerContent;
             TableRelation = "Test Input Group";
+            ToolTip = 'Specifies a dataset that overrides the default dataset for the suite.';
         }
         field(9; "Status"; Enum "AIT Line Status")
         {
             Caption = 'Status';
             Editable = false;
+            ToolTip = 'Specifies the status of the AIT.';
         }
         field(14; "Version Filter"; Integer)
         {
@@ -92,7 +98,7 @@ table 149032 "AIT Test Method Line"
         field(15; "No. of Tests"; Integer)
         {
             Caption = 'No. of Tests';
-            ToolTip = 'Specifies the number of tests executed for this AI Test line.';
+            ToolTip = 'Specifies the number of tests in this Line.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -103,6 +109,7 @@ table 149032 "AIT Test Method Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            ToolTip = 'Specifies Total Duration of the AI Tests.';
         }
         field(19; Sequence; Option)
         {
@@ -133,6 +140,7 @@ table 149032 "AIT Test Method Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            ToolTip = 'Specifies Total Duration of the AI Tests for the base version.';
         }
         field(22; "No. of Tests Passed"; Integer)
         {

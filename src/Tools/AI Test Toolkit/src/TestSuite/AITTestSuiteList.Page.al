@@ -27,23 +27,15 @@ page 149040 "AIT Test Suite List"
             {
                 field("Code"; Rec."Code")
                 {
-                    Caption = 'Code';
-                    ToolTip = 'Specifies the ID of the AIT.';
                 }
                 field(Description; Rec.Description)
                 {
-                    Caption = 'Description';
-                    ToolTip = 'Specifies the description of the AIT.';
                 }
                 field(Started; Rec."Started at")
                 {
-                    Caption = 'Started at';
-                    ToolTip = 'Specifies when the AI Test suite was started.';
                 }
                 field(Status; Rec.Status)
                 {
-                    Caption = 'Status';
-                    ToolTip = 'Specifies the status of the AI Test suite.';
                 }
 
             }

@@ -81,13 +81,13 @@ page 149036 "AIT Test Suite Compare"
                         Caption = 'Latest Version';
                         field("No. of Tests"; Rec."No. of Tests Executed")
                         {
-                            ToolTip = 'Specifies the number of tests in this Line.';
+                            ToolTip = 'Specifies the number of tests in this line.';
                             ShowCaption = false;
                         }
                         field("No. of Tests Passed"; Rec."No. of Tests Passed")
                         {
                             Style = Favorable;
-                            ToolTip = 'Specifies the number of tests passed in the current Version.';
+                            ToolTip = 'Specifies the number of tests passed in the current version.';
                             ShowCaption = false;
                         }
                         field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")

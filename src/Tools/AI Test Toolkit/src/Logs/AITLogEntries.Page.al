@@ -25,61 +25,47 @@ page 149033 "AIT Log Entries"
 
                 field(RunID; Rec."Run ID")
                 {
-                    ToolTip = 'Specifies the Run ID.';
                     Visible = false;
                 }
                 field("Code"; Rec."Test Suite Code")
                 {
-                    ToolTip = 'Specifies the Test Suite Code.';
                     Visible = false;
                 }
                 field("AIT Line No."; Rec."Test Method Line No.")
                 {
-                    ToolTip = 'Specifies the Test Method Line No.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
-                    ToolTip = 'Specifies the Log Entry No..';
                     Visible = false;
                 }
                 field(Version; Rec.Version)
                 {
-                    Caption = 'Version No.';
-                    ToolTip = 'Specifies the Version No. of the test run.';
                 }
                 field(Tag; Rec.Tag)
                 {
-                    ToolTip = 'Specifies the Tag that we entered in the AI Test Suite.';
                 }
                 field(CodeunitID; Rec."Codeunit ID")
                 {
-                    ToolTip = 'Specifies the test codeunit id.';
                 }
                 field(CodeunitName; Rec."Codeunit Name")
                 {
-                    ToolTip = 'Specifies the test codeunit name.';
                 }
                 field(Operation; Rec.Operation)
                 {
-                    ToolTip = 'Specifies the operation.';
                     Visible = false;
                     Enabled = false;
                 }
                 field("Procedure Name"; Rec."Procedure Name")
                 {
-                    ToolTip = 'Specifies the name of the procedure being executed.';
                 }
                 field("Original Operation"; Rec."Original Operation")
                 {
-                    ToolTip = 'Specifies the original operation.';
                     Visible = false;
                     Enabled = false;
                 }
                 field(Status; Rec.Status)
                 {
-                    Caption = 'Status';
-                    ToolTip = 'Specifies the status of the iteration.';
                     StyleExpr = StatusStyleExpr;
                 }
                 field("Orig. Status"; Rec."Original Status")
@@ -88,15 +74,12 @@ page 149033 "AIT Log Entries"
                 }
                 field(Dataset; Rec."Test Input Group Code")
                 {
-                    ToolTip = 'Specifies the dataset that is used by the test.';
                 }
                 field("Dataset Line No."; Rec."Test Input Code")
                 {
-                    ToolTip = 'Specifies the Line No. of the dataset.';
                 }
                 field("Input Dataset Desc."; Rec."Test Input Description")
                 {
-                    ToolTip = 'Specifies the description of the input dataset.';
                 }
                 field("Input Text"; InputText)
                 {
