@@ -58,25 +58,25 @@ page 333 "No. Series Proposal Sub"
         }
     }
 
-    internal procedure Load(var NoSeriesGenerated: Record "No. Series Proposal Line")
+    internal procedure Load(var GeneratedNoSeries: Record "No. Series Proposal Line")
     begin
-        NoSeriesGenerated.Reset();
-        if NoSeriesGenerated.FindSet() then
+        GeneratedNoSeries.Reset();
+        if GeneratedNoSeries.FindSet() then
             repeat
-                Rec := NoSeriesGenerated;
+                Rec := GeneratedNoSeries;
                 Rec.Insert();
-            until NoSeriesGenerated.Next() = 0;
+            until GeneratedNoSeries.Next() = 0;
     end;
 
-    internal procedure GetTempRecord(EntryNo: Integer; var NoSeriesGenerated: Record "No. Series Proposal Line")
+    internal procedure GetTempRecord(EntryNo: Integer; var GeneratedNoSeries: Record "No. Series Proposal Line")
     begin
-        NoSeriesGenerated.DeleteAll();
+        GeneratedNoSeries.DeleteAll();
         Rec.Reset();
         Rec.SetRange("Proposal No.", EntryNo);
         if Rec.FindSet() then
             repeat
-                NoSeriesGenerated.Copy(Rec, false);
-                NoSeriesGenerated.Insert();
+                GeneratedNoSeries.Copy(Rec, false);
+                GeneratedNoSeries.Insert();
             until Rec.Next() = 0;
     end;
 }

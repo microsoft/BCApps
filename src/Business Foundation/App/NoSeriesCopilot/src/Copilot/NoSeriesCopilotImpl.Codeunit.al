@@ -30,21 +30,18 @@ codeunit 324 "No. Series Copilot Impl."
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         NoSeriesCopilotRegister: Codeunit "No. Series Copilot Register";
-        NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
         AzureOpenAI: Codeunit "Azure OpenAI";
-        NoSeriesCopilot: Page "No. Series Proposal";
     begin
         NoSeriesCopilotRegister.RegisterCapability();
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"No. Series Copilot") then
             exit;
 
-        FeatureTelemetry.LogUptake('0000LF4', NoSeriesCopilotImpl.FeatureName(), Enum::"Feature Uptake Status"::Discovered); //TODO: Update signal id
+        FeatureTelemetry.LogUptake('0000LF4', FeatureName(), Enum::"Feature Uptake Status"::Discovered); //TODO: Update signal id
 
-        NoSeriesCopilot.LookupMode := true;
-        NoSeriesCopilot.Run();
+        Page.Run(Page::"No. Series Proposal");
     end;
 
-    procedure Generate(var NoSeriesProposal: Record "No. Series Proposal"; var ResponseText: Text; var NoSeriesGenerated: Record "No. Series Proposal Line"; InputText: Text)
+    procedure Generate(var NoSeriesProposal: Record "No. Series Proposal"; var ResponseText: Text; var GeneratedNoSeries: Record "No. Series Proposal Line"; InputText: Text)
     var
         TokenCountImpl: Codeunit "AOAI Token";
         NotificationManager: Codeunit "No. Ser. Cop. Notific. Manager";
@@ -60,35 +57,35 @@ codeunit 324 "No. Series Copilot Impl."
             Completion := GenerateNoSeries(SystemPromptTxt, InputText);
             if CheckIfCompletionMeetAllRequirements(Completion) then begin
                 SaveGenerationHistory(NoSeriesProposal, InputText);
-                CreateNoSeries(NoSeriesProposal, NoSeriesGenerated, Completion);
+                CreateNoSeries(NoSeriesProposal, GeneratedNoSeries, Completion);
             end else
                 ResponseText := Completion;
         end else
             NotificationManager.SendNotification(GetChatCompletionResponseErr());
     end;
 
-    procedure ApplyProposedNoSeries(var NoSeriesGenerated: Record "No. Series Proposal Line")
+    procedure ApplyProposedNoSeries(var GeneratedNoSeries: Record "No. Series Proposal Line")
     begin
-        if NoSeriesGenerated.FindSet() then
+        if GeneratedNoSeries.FindSet() then
             repeat
-                InsertNoSeriesWithLines(NoSeriesGenerated);
-                ApplyNoSeriesToSetup(NoSeriesGenerated);
-            until NoSeriesGenerated.Next() = 0;
+                InsertNoSeriesWithLines(GeneratedNoSeries);
+                ApplyNoSeriesToSetup(GeneratedNoSeries);
+            until GeneratedNoSeries.Next() = 0;
     end;
 
-    local procedure InsertNoSeriesWithLines(var NoSeriesGenerated: Record "No. Series Proposal Line")
+    local procedure InsertNoSeriesWithLines(var GeneratedNoSeries: Record "No. Series Proposal Line")
     begin
-        InsertNoSeries(NoSeriesGenerated);
-        InsertNoSeriesLine(NoSeriesGenerated);
+        InsertNoSeries(GeneratedNoSeries);
+        InsertNoSeriesLine(GeneratedNoSeries);
     end;
 
-    local procedure InsertNoSeries(var NoSeriesGenerated: Record "No. Series Proposal Line")
+    local procedure InsertNoSeries(var GeneratedNoSeries: Record "No. Series Proposal Line")
     var
         NoSeries: Record "No. Series";
     begin
         NoSeries.Init();
-        NoSeries.Code := NoSeriesGenerated."Series Code";
-        NoSeries.Description := NoSeriesGenerated.Description;
+        NoSeries.Code := GeneratedNoSeries."Series Code";
+        NoSeries.Description := GeneratedNoSeries.Description;
         NoSeries."Manual Nos." := true;
         NoSeries."Default Nos." := true;
         //TODO: Check if we need to add more fields here, like "Mask", "No. Series Type", "Reverse Sales VAT No. Series" etc.
@@ -96,17 +93,17 @@ codeunit 324 "No. Series Copilot Impl."
             NoSeries.Modify(true);
     end;
 
-    local procedure InsertNoSeriesLine(var NoSeriesGenerated: Record "No. Series Proposal Line")
+    local procedure InsertNoSeriesLine(var GeneratedNoSeries: Record "No. Series Proposal Line")
     var
         NoSeriesLine: Record "No. Series Line";
     begin
         NoSeriesLine.Init();
-        NoSeriesLine."Series Code" := NoSeriesGenerated."Series Code";
-        NoSeriesLine."Line No." := GetNoSeriesLineNo(NoSeriesGenerated."Series Code");
-        NoSeriesLine."Starting No." := NoSeriesGenerated."Starting No.";
-        NoSeriesLine."Ending No." := NoSeriesGenerated."Ending No.";
-        NoSeriesLine."Warning No." := NoSeriesGenerated."Warning No.";
-        NoSeriesLine."Increment-by No." := NoSeriesGenerated."Increment-by No.";
+        NoSeriesLine."Series Code" := GeneratedNoSeries."Series Code";
+        NoSeriesLine."Line No." := GetNoSeriesLineNo(GeneratedNoSeries."Series Code");
+        NoSeriesLine."Starting No." := GeneratedNoSeries."Starting No.";
+        NoSeriesLine."Ending No." := GeneratedNoSeries."Ending No.";
+        NoSeriesLine."Warning No." := GeneratedNoSeries."Warning No.";
+        NoSeriesLine."Increment-by No." := GeneratedNoSeries."Increment-by No.";
         //TODO: Check if we need to add more fields here, like "Allow Gaps in Nos.", "Sequence Name" etc.
         if not NoSeriesLine.Insert(true) then
             NoSeriesLine.Modify(true);
@@ -123,17 +120,17 @@ codeunit 324 "No. Series Copilot Impl."
         exit(NoSeriesLine."Line No."); // TODO: Check if we need to update existing no series line, or add a new one, e.g. if user requested to create no. series for the new year
     end;
 
-    local procedure ApplyNoSeriesToSetup(var NoSeriesGenerated: Record "No. Series Proposal Line")
+    local procedure ApplyNoSeriesToSetup(var GeneratedNoSeries: Record "No. Series Proposal Line")
     var
         RecRef: RecordRef;
         FieldRef: FieldRef;
     begin
-        RecRef.Open(NoSeriesGenerated."Setup Table No.");
+        RecRef.Open(GeneratedNoSeries."Setup Table No.");
         if not RecRef.FindFirst() then
             exit;
 
-        FieldRef := RecRef.Field(NoSeriesGenerated."Setup Field No.");
-        FieldRef.Validate(NoSeriesGenerated."Series Code");
+        FieldRef := RecRef.Field(GeneratedNoSeries."Setup Field No.");
+        FieldRef.Validate(GeneratedNoSeries."Series Code");
         RecRef.Modify(true);
     end;
 
@@ -384,7 +381,7 @@ codeunit 324 "No. Series Copilot Impl."
         NoSeriesProposal.Insert(true);
     end;
 
-    local procedure CreateNoSeries(var NoSeriesProposal: Record "No. Series Proposal"; var NoSeriesGenerated: Record "No. Series Proposal Line"; Completion: Text)
+    local procedure CreateNoSeries(var NoSeriesProposal: Record "No. Series Proposal"; var GeneratedNoSeries: Record "No. Series Proposal Line"; Completion: Text)
     var
         Json: Codeunit Json;
         NoSeriesArrText: Text;
@@ -399,7 +396,7 @@ codeunit 324 "No. Series Copilot Impl."
         for i := 0 to Json.GetCollectionCount() - 1 do begin
             Json.GetObjectFromCollectionByIndex(i, NoSeriesObj);
 
-            InsertNoSeriesGenerated(NoSeriesGenerated, NoSeriesObj, NoSeriesProposal."No.");
+            InsertGeneratedNoSeries(GeneratedNoSeries, NoSeriesObj, NoSeriesProposal."No.");
         end;
     end;
 
@@ -451,24 +448,24 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
 
-    local procedure InsertNoSeriesGenerated(var NoSeriesGenerated: Record "No. Series Proposal Line"; NoSeriesObj: Text; ProposalNo: Integer)
+    local procedure InsertGeneratedNoSeries(var GeneratedNoSeries: Record "No. Series Proposal Line"; NoSeriesObj: Text; ProposalNo: Integer)
     var
         Json: Codeunit Json;
         RecRef: RecordRef;
     begin
         Json.InitializeObject(NoSeriesObj);
 
-        RecRef.GetTable(NoSeriesGenerated);
+        RecRef.GetTable(GeneratedNoSeries);
         RecRef.Init();
-        SetProposalNo(RecRef, ProposalNo, NoSeriesGenerated.FieldNo("Proposal No."));
-        Json.GetValueAndSetToRecFieldNo(RecRef, 'seriesCode', NoSeriesGenerated.FieldNo("Series Code"));
-        Json.GetValueAndSetToRecFieldNo(RecRef, 'description', NoSeriesGenerated.FieldNo(Description));
-        Json.GetValueAndSetToRecFieldNo(RecRef, 'startingNo', NoSeriesGenerated.FieldNo("Starting No."));
-        Json.GetValueAndSetToRecFieldNo(RecRef, 'endingNo', NoSeriesGenerated.FieldNo("Ending No."));
-        Json.GetValueAndSetToRecFieldNo(RecRef, 'warningNo', NoSeriesGenerated.FieldNo("Warning No."));
-        Json.GetValueAndSetToRecFieldNo(RecRef, 'incrementByNo', NoSeriesGenerated.FieldNo("Increment-by No."));
-        Json.GetValueAndSetToRecFieldNo(RecRef, 'tableId', NoSeriesGenerated.FieldNo("Setup Table No."));
-        Json.GetValueAndSetToRecFieldNo(RecRef, 'fieldId', NoSeriesGenerated.FieldNo("Setup Field No."));
+        SetProposalNo(RecRef, ProposalNo, GeneratedNoSeries.FieldNo("Proposal No."));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'seriesCode', GeneratedNoSeries.FieldNo("Series Code"));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'description', GeneratedNoSeries.FieldNo(Description));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'startingNo', GeneratedNoSeries.FieldNo("Starting No."));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'endingNo', GeneratedNoSeries.FieldNo("Ending No."));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'warningNo', GeneratedNoSeries.FieldNo("Warning No."));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'incrementByNo', GeneratedNoSeries.FieldNo("Increment-by No."));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'tableId', GeneratedNoSeries.FieldNo("Setup Table No."));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'fieldId', GeneratedNoSeries.FieldNo("Setup Field No."));
         RecRef.Insert(true);
     end;
 
@@ -570,7 +567,7 @@ codeunit 324 "No. Series Copilot Impl."
         exit(ChatCompletionResponseErr);
     end;
 
-    procedure FeatureName(): Text
+    internal procedure FeatureName(): Text
     begin
         exit(FeatureNameLbl);
     end;

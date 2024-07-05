@@ -74,7 +74,7 @@ page 332 "No. Series Proposal"
             group(CreateNewNoSeries)
             {
                 Caption = 'Create new';
-    
+
                 action(NewNumberSeriesFor)
                 {
                     ApplicationArea = All;
@@ -184,21 +184,21 @@ page 332 "No. Series Proposal"
 
     local procedure GenerateNoSeries()
     var
-        NoSeriesGenerated: Record "No. Series Proposal Line";
+        GeneratedNoSeries: Record "No. Series Proposal Line";
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
     begin
-        NoSeriesCopilotImpl.Generate(Rec, ResponseText, NoSeriesGenerated, InputText);
-        CurrPage.ProposalDetails.Page.Load(NoSeriesGenerated);
+        NoSeriesCopilotImpl.Generate(Rec, ResponseText, GeneratedNoSeries, InputText);
+        CurrPage.ProposalDetails.Page.Load(GeneratedNoSeries);
         IsResponseTextVisible := ResponseText <> '';
-        IsProposalDetailsVisible := not NoSeriesGenerated.IsEmpty;
+        IsProposalDetailsVisible := not GeneratedNoSeries.IsEmpty;
     end;
 
     local procedure ApplyProposedNoSeries()
     var
-        NoSeriesGenerated: Record "No. Series Proposal Line";
+        GeneratedNoSeries: Record "No. Series Proposal Line";
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
     begin
-        CurrPage.ProposalDetails.Page.GetTempRecord(Rec."No.", NoSeriesGenerated);
-        NoSeriesCopilotImpl.ApplyProposedNoSeries(NoSeriesGenerated);
+        CurrPage.ProposalDetails.Page.GetTempRecord(Rec."No.", GeneratedNoSeries);
+        NoSeriesCopilotImpl.ApplyProposedNoSeries(GeneratedNoSeries);
     end;
 }
