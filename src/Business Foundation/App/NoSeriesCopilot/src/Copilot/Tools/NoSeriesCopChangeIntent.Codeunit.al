@@ -93,37 +93,36 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
 
     local procedure ListOnlySpecifiedTablesWithExistingNumberSeries(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var ExistingNoSeriesToChangeList: List of [Text]; Entities: List of [Text])
     var
-        TableMetadata: Record "Table Metadata";
+        TempTableMetadata: Record "Table Metadata" temporary;
     begin
         // Looping through all Setup tables
-        ToolsImpl.SetFilterOnSetupTables(TableMetadata);
-        if TableMetadata.FindSet() then
+        ToolsImpl.RetrieveSetupTables(TempTableMetadata);
+        if TempTableMetadata.FindSet() then
             repeat
-                ListOnlyRelevantNoSeriesFieldsWithExistingNumberSeries(TempSetupTable, TempNoSeriesField, ExistingNoSeriesToChangeList, TableMetadata, Entities);
-            until TableMetadata.Next() = 0;
+                ListOnlyRelevantNoSeriesFieldsWithExistingNumberSeries(TempSetupTable, TempNoSeriesField, ExistingNoSeriesToChangeList, TempTableMetadata, Entities);
+            until TempTableMetadata.Next() = 0;
     end;
 
-    local procedure ListOnlyRelevantNoSeriesFieldsWithExistingNumberSeries(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var ExistingNoSeriesToChangeList: List of [Text]; var TableMetadata: Record "Table Metadata"; Entities: List of [Text])
+    local procedure ListOnlyRelevantNoSeriesFieldsWithExistingNumberSeries(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var ExistingNoSeriesToChangeList: List of [Text]; var TempTableMetadata: Record "Table Metadata" temporary; Entities: List of [Text])
     var
         Field: Record "Field";
     begin
         // Looping through all No. Series fields
-        ToolsImpl.SetFilterOnNoSeriesFields(TableMetadata, Field);
+        ToolsImpl.SetFilterOnNoSeriesFields(TempTableMetadata, Field);
         if Field.FindSet() then
             repeat
-                if ToolsImpl.IsRelevant(TableMetadata, Field, Entities) then
-                    AddChangeNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, ExistingNoSeriesToChangeList, TableMetadata, Field);
+                if ToolsImpl.IsRelevant(TempTableMetadata, Field, Entities) then
+                    AddChangeNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, ExistingNoSeriesToChangeList, TempTableMetadata, Field);
             until Field.Next() = 0;
     end;
 
-    local procedure AddChangeNoSeriesFieldToTablesList(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var ExistingNoSeriesToChangeList: List of [Text]; TableMetadata: Record "Table Metadata"; Field: Record "Field")
+    local procedure AddChangeNoSeriesFieldToTablesList(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var ExistingNoSeriesToChangeList: List of [Text]; TempTableMetadata: Record "Table Metadata" temporary; Field: Record "Field")
     var
         NoSeries: Record "No. Series";
         RecRef: RecordRef;
         FieldRef: FieldRef;
     begin
-        //TODO: Check if we need to check if the requested change no. series exists: should we give error or do nothing
-        RecRef.OPEN(TableMetadata.ID);
+        RecRef.OPEN(TempTableMetadata.ID);
         if not RecRef.FindFirst() then
             exit;
 
@@ -134,7 +133,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         if not NoSeries.Get(Format(FieldRef.Value)) then
             exit;
 
-        TempSetupTable := TableMetadata;
+        TempSetupTable := TempTableMetadata;
         if TempSetupTable.Insert() then;
 
         TempNoSeriesField := Field;

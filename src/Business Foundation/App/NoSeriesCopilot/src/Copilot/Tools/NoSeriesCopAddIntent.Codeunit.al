@@ -80,59 +80,59 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 
     local procedure ListOnlySpecifiedTables(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; Entities: List of [Text])
     var
-        TableMetadata: Record "Table Metadata";
+        TempTableMetadata: Record "Table Metadata" temporary;
     begin
         // Looping through all Setup tables
-        ToolsImpl.SetFilterOnSetupTables(TableMetadata);
-        if TableMetadata.FindSet() then
+        ToolsImpl.RetrieveSetupTables(TempTableMetadata);
+        if TempTableMetadata.FindSet() then
             repeat
-                ListOnlyRelevantNoSeriesFields(TempSetupTable, TempNoSeriesField, TableMetadata, Entities);
-            until TableMetadata.Next() = 0;
+                ListOnlyRelevantNoSeriesFields(TempSetupTable, TempNoSeriesField, TempTableMetadata, Entities);
+            until TempTableMetadata.Next() = 0;
     end;
 
-    local procedure ListOnlyRelevantNoSeriesFields(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var TableMetadata: Record "Table Metadata"; Entities: List of [Text])
+    local procedure ListOnlyRelevantNoSeriesFields(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var TempTableMetadata: Record "Table Metadata" temporary; Entities: List of [Text])
     var
         Field: Record "Field";
     begin
         // Looping through all No. Series fields
-        ToolsImpl.SetFilterOnNoSeriesFields(TableMetadata, Field);
+        ToolsImpl.SetFilterOnNoSeriesFields(TempTableMetadata, Field);
         if Field.FindSet() then
             repeat
-                if ToolsImpl.IsRelevant(TableMetadata, Field, Entities) then
-                    AddNewNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, TableMetadata, Field);
+                if ToolsImpl.IsRelevant(TempTableMetadata, Field, Entities) then
+                    AddNewNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, TempTableMetadata, Field);
             until Field.Next() = 0;
     end;
 
     local procedure ListAllTablesWithNumberSeries(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary)
     var
-        TableMetadata: Record "Table Metadata";
+        TempTableMetadata: Record "Table Metadata" temporary;
     begin
         // Looping through all Setup tables
-        ToolsImpl.SetFilterOnSetupTables(TableMetadata);
-        if TableMetadata.FindSet() then
+        ToolsImpl.RetrieveSetupTables(TempTableMetadata);
+        if TempTableMetadata.FindSet() then
             repeat
-                ListAllNoSeriesFields(TempSetupTable, TempNoSeriesField, TableMetadata);
-            until TableMetadata.Next() = 0;
+                ListAllNoSeriesFields(TempSetupTable, TempNoSeriesField, TempTableMetadata);
+            until TempTableMetadata.Next() = 0;
     end;
 
-    local procedure ListAllNoSeriesFields(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var TableMetadata: Record "Table Metadata")
+    local procedure ListAllNoSeriesFields(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var TempTableMetadata: Record "Table Metadata" temporary)
     var
         Field: Record "Field";
     begin
         // Looping through all No. Series fields
-        ToolsImpl.SetFilterOnNoSeriesFields(TableMetadata, Field);
+        ToolsImpl.SetFilterOnNoSeriesFields(TempTableMetadata, Field);
         if Field.FindSet() then
             repeat
-                AddNewNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, TableMetadata, Field);
+                AddNewNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, TempTableMetadata, Field);
             until Field.Next() = 0;
     end;
 
-    local procedure AddNewNoSeriesFieldToTablesList(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; TableMetadata: Record "Table Metadata"; Field: Record "Field")
+    local procedure AddNewNoSeriesFieldToTablesList(var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; TempTableMetadata: Record "Table Metadata" temporary; Field: Record "Field")
     var
         RecRef: RecordRef;
         FieldRef: FieldRef;
     begin
-        RecRef.OPEN(TableMetadata.ID);
+        RecRef.OPEN(TempTableMetadata.ID);
         if not RecRef.FindFirst() then
             exit;
 
@@ -140,7 +140,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
         if Format(FieldRef.Value) <> '' then
             exit; // No need to generate number series if it already created and confgured
 
-        TempSetupTable := TableMetadata;
+        TempSetupTable := TempTableMetadata;
         if TempSetupTable.Insert() then;
 
         TempNoSeriesField := Field;

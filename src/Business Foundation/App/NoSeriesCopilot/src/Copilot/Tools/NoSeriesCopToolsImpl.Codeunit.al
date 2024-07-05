@@ -137,11 +137,63 @@ codeunit 336 "No. Series Cop. Tools Impl."
         JsonObj.Add('incrementByNo', NoSeriesLine."Increment-by No.");
     end;
 
-    procedure SetFilterOnSetupTables(var TableMetadata: Record "Table Metadata")
+    procedure RetrieveSetupTables(var TempTableMetadata: Record "Table Metadata" temporary)
+    var
+        TableMetadata: Record "Table Metadata";
     begin
-        TableMetadata.SetFilter(Name, '* Setup');
-        TableMetadata.SetRange(ObsoleteState, TableMetadata.ObsoleteState::No); //TODO: Check if 'Pending' should be included
-        TableMetadata.SetRange(TableType, TableMetadata.TableType::Normal);
+        TableMetadata.SetFilter(Name, '* Setup*');
+        TableMetadata.SetRange(ObsoleteState, TempTableMetadata.ObsoleteState::No);
+        TableMetadata.SetRange(TableType, TempTableMetadata.TableType::Normal);
+        if TableMetadata.FindSet() then
+            repeat
+                CheckIfSetupTableAndAddToList(TempTableMetadata, TableMetadata);
+            until TableMetadata.Next() = 0;
+    end;
+
+    local procedure CheckIfSetupTableAndAddToList(var TempTableMetadata: Record "Table Metadata" temporary; var TableMetadata: Record "Table Metadata")
+    begin
+        if not IsSetupTable(TableMetadata) then
+            exit;
+
+        TempTableMetadata := TableMetadata;
+        TempTableMetadata.Insert();
+    end;
+
+    local procedure IsSetupTable(var TableMetadata: Record "Table Metadata"): Boolean
+    begin
+        if not IsOnlyOneRecord(TableMetadata) then
+            exit(false);
+
+        if not IsPrimaryKeyIsEmptyCodeField(TableMetadata) then
+            exit(false);
+
+        exit(true);
+    end;
+
+    local procedure IsOnlyOneRecord(var TableMetadata: Record "Table Metadata"): Boolean
+    var
+        RecRef: RecordRef;
+    begin
+        RecRef.OPEN(TableMetadata.ID);
+        exit(RecRef.Count = 1);
+    end;
+
+    local procedure IsPrimaryKeyIsEmptyCodeField(var TableMetadata: Record "Table Metadata"): Boolean
+    var
+        RecRef: RecordRef;
+        KeyRef: KeyRef;
+        FieldRef: FieldRef;
+    begin
+        RecRef.OPEN(TableMetadata.ID);
+        KeyRef := RecRef.KeyIndex(1);
+        if KeyRef.FieldCount > 1 then
+            exit(false);
+
+        FieldRef := KeyRef.FieldIndex(1);
+        if FieldRef.Type <> FieldRef.Type::Code then
+            exit(false);
+
+        exit(Format(FieldRef.Value) = '');
     end;
 
     procedure SetFilterOnNoSeriesFields(var TableMetadata: Record "Table Metadata"; var Field: Record "Field")
