@@ -24,6 +24,7 @@ codeunit 324 "No. Series Copilot Impl."
         TheResponseShouldBeAFunctionCallErr: Label 'The response should be a function call.';
         ChatCompletionResponseErr: Label 'Sorry, something went wrong. Please rephrase and try again.';
         GeneratingNoSeriesForLbl: Label 'Generating number series %1', Comment = '%1 = No. Series';
+        FeatureNameLbl: Label 'Number Series with AI', Locked = true;
 
     internal procedure GetNoSeriesSuggestions()
     var
@@ -571,6 +572,6 @@ codeunit 324 "No. Series Copilot Impl."
 
     procedure FeatureName(): Text
     begin
-        exit('Number Series with AI');
+        exit(FeatureNameLbl);
     end;
 }
