@@ -342,6 +342,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
         exit(DelStr(OriginalText, StrPos(OriginalText, Part), StrLen(Part)));
     end;
 
+    [NonDebuggable]
     procedure ExtractAreaWithPrefix(Prompt: Text): Text
     var
         YamlStartBlockLbl: Label '```yaml', Locked = true;
@@ -387,6 +388,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
         NoSeriesAbbreviations.Add('No. Series');
     end;
 
+    [NonDebuggable]
     procedure ConvertListToText(MyList: List of [Text]): Text
     var
         Element: Text;

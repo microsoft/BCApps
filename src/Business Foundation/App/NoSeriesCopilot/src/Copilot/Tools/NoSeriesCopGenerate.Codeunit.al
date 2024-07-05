@@ -22,6 +22,7 @@ codeunit 339 "No. Series Cop. Generate" implements "AOAI Function"
         exit(FunctionNameLbl);
     end;
 
+    [NonDebuggable]
     procedure GetPrompt() Function: JsonObject;
     begin
         Function.ReadFrom(GetTool3Definition());

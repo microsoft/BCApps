@@ -27,11 +27,13 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         exit(FunctionNameLbl);
     end;
 
+    [NonDebuggable]
     procedure GetPrompt() Function: JsonObject;
     begin
         Function.ReadFrom(GetTool2Definition());
     end;
 
+    [NonDebuggable]
     procedure Execute(Arguments: JsonObject): Variant
     begin
         exit(Build(Arguments));
@@ -43,6 +45,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
     /// <param name="Arguments">Function Arguments retrieved from LLM</param>
     /// <returns></returns>
     /// <remarks> This function is used to build the prompts for modifying existing series. The prompts are built based on the tables and patterns specified in the input. Tables should be specified. If no patterns are specified, default patterns are used. In case number of tables can't be pasted in one prompt, due to token limits, function chunk result into several messages, that need to be called separately</remarks>
+    [NonDebuggable]
     local procedure Build(var Arguments: JsonObject) ToolResults: Dictionary of [Text, Integer]
     var
         NotificationManager: Codeunit "No. Ser. Cop. Notific. Manager";

@@ -26,11 +26,13 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
         exit(FunctionNameLbl);
     end;
 
+    [NonDebuggable]
     procedure GetPrompt() Function: JsonObject;
     begin
         Function.ReadFrom(GetToolDefinition());
     end;
 
+    [NonDebuggable]
     procedure Execute(Arguments: JsonObject): Variant
     begin
         exit(Build(Arguments));
@@ -42,6 +44,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
     /// <param name="Arguments">Function Arguments retrieved from LLM</param>
     /// <returns></returns>
     /// <remarks> This function is used to build the prompts for generating new number series. The prompts are built based on the tables and patterns specified in the input. If no tables are specified, all tables with number series are used. If no patterns are specified, default patterns are used. In case number of tables can't be pasted in one prompt, due to token limits, function chunk result into several messages, that need to be called separately</remarks>
+    [NonDebuggable]
     local procedure Build(var Arguments: JsonObject) ToolResults: Dictionary of [Text, Integer]
     var
         NewNoSeriesPrompt, CustomPatternsPromptList, TablesYamlList, EmptyList : List of [Text];
