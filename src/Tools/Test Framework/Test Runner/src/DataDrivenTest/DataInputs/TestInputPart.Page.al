@@ -12,6 +12,7 @@ page 130459 "Test Input Part"
     Caption = 'Test inputs';
     InsertAllowed = false;
     ModifyAllowed = false;
+    ApplicationArea = All;
 
     layout
     {
@@ -22,19 +23,15 @@ page 130459 "Test Input Part"
                 Editable = false;
                 field(TestGroup; Rec."Test Input Group Code")
                 {
-                    ApplicationArea = All;
                 }
                 field(TestInputCode; Rec.Code)
                 {
-                    ApplicationArea = All;
                 }
                 field(Description; Rec.Description)
                 {
-                    ApplicationArea = All;
                 }
                 field(InputTestInputText; this.TestInputDisplayText)
                 {
-                    ApplicationArea = All;
                     Caption = 'Test Input';
                     ToolTip = 'Specifies the data input for the test method line';
 
@@ -52,7 +49,6 @@ page 130459 "Test Input Part"
         {
             action(ImportDataInputs)
             {
-                ApplicationArea = All;
                 Caption = 'Import';
                 Image = ImportCodes;
                 ToolTip = 'Import data-driven test inputs from a JSON file';

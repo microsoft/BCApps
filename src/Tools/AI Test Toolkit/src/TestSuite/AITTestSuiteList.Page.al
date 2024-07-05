@@ -58,7 +58,6 @@ page 149040 "AIT Test Suite List"
                 Caption = 'Import/Export';
                 action(ImportAIT)
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Import';
                     Image = Import;
                     ToolTip = 'Import a file with AIT Suite details.';
@@ -73,7 +72,6 @@ page 149040 "AIT Test Suite List"
                 }
                 action(ExportAIT)
                 {
-                    ApplicationArea = Basic, Suite;
                     Caption = 'Export';
                     Image = Export;
                     Enabled = ValidRecord;
@@ -95,7 +93,6 @@ page 149040 "AIT Test Suite List"
         {
             action(Datasets)
             {
-                ApplicationArea = All;
                 Caption = 'Input Datasets';
                 Image = DataEntry;
                 ToolTip = 'Open input datasets.';

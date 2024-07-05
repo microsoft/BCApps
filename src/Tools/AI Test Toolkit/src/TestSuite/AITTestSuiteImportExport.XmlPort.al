@@ -76,16 +76,5 @@ xmlport 149031 "AIT Test Suite Import/Export"
             }
         }
     }
-    requestpage
-    {
-
-        layout
-        {
-        }
-
-        actions
-        {
-        }
-    }
 }
 

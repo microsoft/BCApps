@@ -23,20 +23,20 @@ page 149035 "AIT Test Method Lines Compare"
             {
                 Caption = 'Version Configuration';
 
-                field(Version; Version)
+                field(Version; this.Version)
                 {
                     Caption = 'Version';
-                    ToolTip = 'Specifies the Base version to compare with.';
+                    ToolTip = 'Specifies the base version to compare with.';
 
                     trigger OnValidate()
                     begin
                         UpdateVersionFilter();
                     end;
                 }
-                field(BaseVersion; BaseVersion)
+                field(BaseVersion; this.BaseVersion)
                 {
                     Caption = 'Base Version';
-                    ToolTip = 'Specifies the Base version to compare to.';
+                    ToolTip = 'Specifies the base version to compare to.';
 
                     trigger OnValidate()
                     begin
@@ -85,14 +85,14 @@ page 149035 "AIT Test Method Lines Compare"
                         field("No. of Tests Passed"; Rec."No. of Tests Passed")
                         {
                             Style = Favorable;
-                            ToolTip = 'Specifies the number of tests passed in the current Version.';
+                            ToolTip = 'Specifies the number of tests passed in the current version.';
                             ShowCaption = false;
                         }
                         field("No. of Tests Failed"; Rec."No. of Tests" - Rec."No. of Tests Passed")
                         {
                             Editable = false;
                             Caption = 'Number of Tests Failed';
-                            ToolTip = 'Specifies the number of tests that failed in the current Version.';
+                            ToolTip = 'Specifies the number of tests that failed in the current version.';
                             ShowCaption = false;
                             Style = Unfavorable;
 
@@ -100,7 +100,7 @@ page 149035 "AIT Test Method Lines Compare"
                             var
                                 AITLogEntry: Codeunit "AIT Log Entry";
                             begin
-                                AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", Version);
+                                AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", this.Version);
                             end;
                         }
                         field(Duration; Rec."Total Duration (ms)")
@@ -119,7 +119,7 @@ page 149035 "AIT Test Method Lines Compare"
                         }
                         field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base")
                         {
-                            ToolTip = 'Specifies the number of tests passed in the base Version.';
+                            ToolTip = 'Specifies the number of tests passed in the base version.';
                             Style = Favorable;
                             ShowCaption = false;
                         }
@@ -127,7 +127,7 @@ page 149035 "AIT Test Method Lines Compare"
                         {
                             Editable = false;
                             Caption = 'No. of Tests Failed - Base';
-                            ToolTip = 'Specifies the number of tests that failed in the base Version.';
+                            ToolTip = 'Specifies the number of tests that failed in the base version.';
                             Style = Unfavorable;
                             ShowCaption = false;
 
@@ -135,7 +135,7 @@ page 149035 "AIT Test Method Lines Compare"
                             var
                                 AITLogEntry: Codeunit "AIT Log Entry";
                             begin
-                                AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", BaseVersion);
+                                AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", this.BaseVersion);
                             end;
                         }
                         field(DurationBase; Rec."Total Duration - Base (ms)")
@@ -161,18 +161,18 @@ page 149035 "AIT Test Method Lines Compare"
 
     internal procedure SetVersion(VersionNo: Integer)
     begin
-        Version := VersionNo;
+        this.Version := VersionNo;
     end;
 
     internal procedure SetBaseVersion(VersionNo: Integer)
     begin
-        BaseVersion := VersionNo;
+        this.BaseVersion := VersionNo;
     end;
 
     local procedure UpdateVersionFilter()
     begin
-        Rec.SetRange("Version Filter", Version);
-        Rec.SetRange("Base Version Filter", BaseVersion);
+        Rec.SetRange("Version Filter", this.Version);
+        Rec.SetRange("Base Version Filter", this.BaseVersion);
         CurrPage.Update(false);
     end;
 }

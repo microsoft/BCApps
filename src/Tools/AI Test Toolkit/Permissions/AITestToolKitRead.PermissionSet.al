@@ -8,7 +8,6 @@ namespace System.TestTools.AITestToolkit;
 permissionset 149033 "AI Test Toolkit - Read"
 {
     Access = Internal;
-    Assignable = false;
 
     IncludedPermissionSets = "AI Test Toolkit - Obj";
 

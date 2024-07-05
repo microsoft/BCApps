@@ -26,19 +26,16 @@ page 130462 "Test Input Groups"
             {
                 field(Code; Rec.Code)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the code for the test input group.';
                     Caption = 'Code';
                 }
                 field(Description; Rec.Description)
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the description of the test input group.';
                     Caption = 'Description';
                 }
                 field("No. of Entries"; Rec."No. of Entries")
                 {
-                    ApplicationArea = All;
                     Caption = 'No. of Entries';
                     ToolTip = 'Specifies the number of entries in the dataset.';
                     Editable = false;

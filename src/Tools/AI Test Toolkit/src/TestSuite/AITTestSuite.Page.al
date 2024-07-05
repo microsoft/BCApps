@@ -11,6 +11,7 @@ using System.TestTools.TestRunner;
 page 149031 "AIT Test Suite"
 {
     Caption = 'AI Test Suite';
+    ApplicationArea = All;
     PageType = Document;
     SourceTable = "AIT Test Suite";
     Extensible = false;
@@ -28,30 +29,25 @@ page 149031 "AIT Test Suite"
                 field("Code"; Rec."Code")
                 {
                     ToolTip = 'Specifies the ID of the test suite.';
-                    ApplicationArea = All;
                 }
                 field(Description; Rec.Description)
                 {
                     ToolTip = 'Specifies the description of the test suite.';
-                    ApplicationArea = All;
                 }
                 field(Dataset; Rec."Input Dataset")
                 {
                     ToolTip = 'Specifies the dataset to be used by the tests.';
-                    ApplicationArea = All;
                     ShowMandatory = true;
                     NotBlank = true;
                 }
                 field("Model Version"; Rec."ModelVersion")
                 {
                     ToolTip = 'Specifies the model version to be used by the tests.';
-                    ApplicationArea = All;
                 }
                 field("Test Runner Id"; TestRunnerDisplayName)
                 {
                     Caption = 'Test Runner';
                     ToolTip = 'Specifies the Test Runner to be used by the tests.';
-                    ApplicationArea = All;
                     Editable = false;
 
                     trigger OnDrillDown()
@@ -74,30 +70,25 @@ page 149031 "AIT Test Suite"
                     field(Status; Rec.Status)
                     {
                         ToolTip = 'Specifies the status of the test.';
-                        ApplicationArea = All;
                     }
                     field(Started; Rec."Started at")
                     {
                         ToolTip = 'Specifies when the test was started.';
-                        ApplicationArea = All;
                     }
                     field(Version; Rec.Version)
                     {
                         ToolTip = 'Specifies the current version of the test run. Log entries will get this version no.';
-                        ApplicationArea = All;
                         Editable = false;
                     }
 
                     field(Tag; Rec.Tag)
                     {
                         ToolTip = 'Specifies the tag for a test run. The Tag will be transferred to the log entries and enables comparison between tests.';
-                        ApplicationArea = All;
                     }
                 }
             }
             part(AITTestMethodLines; "AIT Test Method Lines")
             {
-                ApplicationArea = All;
                 Enabled = Rec.Status <> Rec.Status::Running;
                 SubPageLink = "Test Suite Code" = field("Code"), "Version Filter" = field(Version), "Base Version Filter" = field("Base Version");
                 UpdatePropagation = Both;
@@ -111,20 +102,17 @@ page 149031 "AIT Test Suite"
                     Caption = 'No. of Tests Executed';
                     ToolTip = 'Specifies the number of tests executed in the current version.';
                     Editable = false;
-                    ApplicationArea = All;
                 }
-                field("No. of Tests Passed"; Rec."No. of Tests Passed") // TODO: this should be filtered on not empty output
+                field("No. of Tests Passed"; Rec."No. of Tests Passed")
                 {
                     Caption = 'No. of Tests Passed';
                     ToolTip = 'Specifies the number of tests passed in the current version.';
                     Editable = false;
-                    ApplicationArea = All;
                     Style = Favorable;
                 }
                 field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
                 {
                     Editable = false;
-                    ApplicationArea = All;
                     Style = Unfavorable;
                     Caption = 'No. of Tests Failed';
                     ToolTip = 'Specifies the number of tests failed in the current version.';
@@ -138,7 +126,6 @@ page 149031 "AIT Test Suite"
                 }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
-                    ApplicationArea = All;
                     Caption = 'No. of Operations';
                     ToolTip = 'Specifies the number of operations executed in the current version.';
                     Visible = false;
@@ -146,7 +133,6 @@ page 149031 "AIT Test Suite"
                 }
                 field("Total Duration"; TotalDuration)
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     Caption = 'Total Duration';
                     ToolTip = 'Specifies the Total Duration for executing all the selected tests in the current version.';
@@ -154,7 +140,6 @@ page 149031 "AIT Test Suite"
                 field("Average Duration"; AvgTimeDuration)
                 {
                     Editable = false;
-                    ApplicationArea = All;
                     Caption = 'Average Duration';
                     ToolTip = 'Specifies the average time (ms) taken by the tests in the last run.';
                 }
@@ -169,7 +154,6 @@ page 149031 "AIT Test Suite"
             action(Start)
             {
                 Enabled = (EnableActions and (Rec.Status <> Rec.Status::Running));
-                ApplicationArea = All;
                 Caption = 'Start';
                 Image = Start;
                 ToolTip = 'Starts running the AIT Suite.';
@@ -183,7 +167,6 @@ page 149031 "AIT Test Suite"
             }
             action(RefreshStatus)
             {
-                ApplicationArea = All;
                 Caption = 'Refresh';
                 ToolTip = 'Refreshes the page.';
                 Image = Refresh;
@@ -197,7 +180,6 @@ page 149031 "AIT Test Suite"
             action(ResetStatus)
             {
                 Enabled = Rec.Status = Rec.Status::Running;
-                ApplicationArea = All;
                 Caption = 'Reset Status';
                 ToolTip = 'Reset the status.';
                 Image = ResetStatus;
@@ -210,7 +192,6 @@ page 149031 "AIT Test Suite"
 
             action(Compare)
             {
-                ApplicationArea = All;
                 Caption = 'Compare Versions';
                 Image = CompareCOA;
                 ToolTip = 'Compare results of the suite to a base version.';
@@ -237,7 +218,6 @@ page 149031 "AIT Test Suite"
         {
             action(LogEntries)
             {
-                ApplicationArea = All;
                 Caption = 'Log Entries';
                 Image = Entries;
                 ToolTip = 'Open log entries.';
@@ -246,7 +226,6 @@ page 149031 "AIT Test Suite"
             }
             action(Datasets)
             {
-                ApplicationArea = All;
                 Caption = 'Input Datasets';
                 Image = DataEntry;
                 ToolTip = 'Open input datasets.';

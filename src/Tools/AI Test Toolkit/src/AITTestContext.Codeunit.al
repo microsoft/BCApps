@@ -26,20 +26,6 @@ codeunit 149043 "AIT Test Context"
         QuestionTok: Label 'question', Locked = true;
 
     /// <summary>
-    /// This method starts the scope of a scenario being tested.
-    /// </summary>
-    /// <param name="ScenarioOperation">Label of the scenario.</param>
-    local procedure StartScenario(ScenarioOperation: Text)
-    var
-        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
-    begin
-        if ScenarioOperation = AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then
-            Error(ScenarioCannotUseDefaultScenarioErr, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
-
-        AITTestSuiteMgt.StartScenario(ScenarioOperation);
-    end;
-
-    /// <summary>
     /// Get the test input value from the dataset for the current iteration.
     /// </summary>
     /// <returns>The test input value as text.</returns>
@@ -53,6 +39,7 @@ codeunit 149043 "AIT Test Context"
     /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
     /// </summary>
+    /// <returns>Test Input Json for the current test.</returns>
     procedure GetInputAsJson() TestInputJson: Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";
@@ -80,7 +67,6 @@ codeunit 149043 "AIT Test Context"
         TestInputJson := TestInput.GetTestInput(TestSetupTok);
     end;
 
-
     /// <summary>
     /// Get the Context value as text from the input dataset for the current iteration.
     /// </summary>
@@ -92,8 +78,8 @@ codeunit 149043 "AIT Test Context"
 
     /// <summary>
     /// Get the Context from the input dataset for the current iteration.
-    /// <returns>A Test Input Json codeunit for the context element.</returns>
     /// </summary>
+    /// <returns>A Test Input Json codeunit for the context element.</returns>
     procedure GetContextAsJson() TestInputJson: Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";
@@ -102,7 +88,7 @@ codeunit 149043 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Get the Question value as text from the input dataset for the current iteration.
+    /// Get the Question value as text from the input dataset for the current iteration.f
     /// </summary>
     /// <returns>A text value for the question element.</returns>
     procedure GetQuestionAsText(): Text
@@ -132,8 +118,8 @@ codeunit 149043 "AIT Test Context"
 
     /// <summary>
     /// Get the Ground Truth from the input dataset for the current iteration.
-    /// <returns>A Test Input Json codeunit for the ground_truth element.</returns>
     /// </summary>
+    /// <returns>A Test Input Json codeunit for the ground_truth element.</returns>
     procedure GetGroundTruthAsJson() TestInputJson: Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";

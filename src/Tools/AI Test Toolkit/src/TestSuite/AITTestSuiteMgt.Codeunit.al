@@ -54,7 +54,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestSuite.Validate("Started at", CurrentDateTime);
         AITTestSuiteMgt.SetRunStatus(AITTestSuite, AITTestSuite.Status::Running);
 
-        AITTestSuite."No. of tests running" := 0;
+        AITTestSuite."No. of Tests running" := 0;
         AITTestSuite.Version += 1;
         AITTestSuite.Modify(true);
         Commit();
@@ -168,7 +168,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestSuite.ReadIsolation(IsolationLevel::UpdLock);
         if not AITTestSuite.Find() then
             exit;
-        AITTestSuite.Validate("No. of tests running", AITTestSuite."No. of tests running" - 1);
+        AITTestSuite.Validate("No. of Tests running", AITTestSuite."No. of Tests running" - 1);
         AITTestSuite.Modify(true);
         Commit();
     end;
@@ -182,7 +182,7 @@ codeunit 149034 "AIT Test Suite Mgt."
             AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite."Code");
             AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Completed, true);
             AITTestSuite.Status := AITTestSuite.Status::Completed;
-            AITTestSuite."No. of tests running" := 0;
+            AITTestSuite."No. of Tests running" := 0;
             AITTestSuite."Ended at" := CurrentDateTime();
             AITTestSuite.Modify(true);
         end;
@@ -203,7 +203,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         TelemetryCustomDimensions.Add('Version', Format(AITTestSuite.Version));
 
         AITTestSuite.Status := AITTestSuiteStatus;
-        AITTestSuite.CalcFields("No. of Tests Executed", "Total Duration (ms)"); //TODO: Use feature uptake telemetry
+        AITTestSuite.CalcFields("No. of Tests Executed", "Total Duration (ms)");
 
         case AITTestSuiteStatus of
             AITTestSuiteStatus::Running:
@@ -335,7 +335,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestRunner.AddToNoOfLogEntriesInserted();
     end;
 
-    local procedure AddLogAppInsights(var AITLogEntry: Record "AIT Log Entry") //TODO: Check what is being emitted, consider using feature uptake telemetry
+    local procedure AddLogAppInsights(var AITLogEntry: Record "AIT Log Entry")
     var
         Dimensions: Dictionary of [Text, Text];
         TelemetryLogLbl: Label 'AI Test Tool - %1 - %2 - %3', Locked = true;

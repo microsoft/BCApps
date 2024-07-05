@@ -24,18 +24,15 @@ page 130461 "Test Outputs"
             {
                 field(Name; Rec."Method Name")
                 {
-                    ApplicationArea = All;
                     Caption = 'Line Number';
                 }
                 field("Data Input"; Rec."Data Input")
                 {
-                    ApplicationArea = All;
                     Caption = 'Data Input';
                     ToolTip = 'Data input for the test method line';
                 }
                 field(TestOutput; this.TestOutputTxt)
                 {
-                    ApplicationArea = All;
                     Caption = 'Test Output';
                     ToolTip = 'Specifies the test output for the test method line';
                     Editable = false;

@@ -9,6 +9,7 @@ page 149034 "AIT Test Method Lines"
 {
     Caption = 'Tests';
     PageType = ListPart;
+    ApplicationArea = All;
     SourceTable = "AIT Test Method Line";
     AutoSplitKey = true;
     DelayedInsert = true;
@@ -24,18 +25,15 @@ page 149034 "AIT Test Method Lines"
                 {
                     ToolTip = 'Specifies the ID of the AIT.';
                     Visible = false;
-                    ApplicationArea = All;
                 }
                 field(LineNo; Rec."Line No.")
                 {
                     ToolTip = 'Specifies the line number of the AIT line.';
                     Visible = false;
-                    ApplicationArea = All;
                 }
                 field(CodeunitID; Rec."Codeunit ID")
                 {
                     ToolTip = 'Specifies the codeunit id to run.';
-                    ApplicationArea = All;
 
                     trigger OnValidate()
                     begin
@@ -45,38 +43,31 @@ page 149034 "AIT Test Method Lines"
                 field(CodeunitName; Rec."Codeunit Name")
                 {
                     ToolTip = 'Specifies the name of the codeunit.';
-                    ApplicationArea = All;
                 }
                 field(InputDataset; Rec."Input Dataset")
                 {
                     ToolTip = 'Specifies a dataset that overrides the default dataset for the suite.';
-                    ApplicationArea = All;
                 }
                 field(Description; Rec.Description)
                 {
                     ToolTip = 'Specifies the description of the AIT line.';
-                    ApplicationArea = All;
                 }
                 field(Status; Rec.Status)
                 {
                     ToolTip = 'Specifies the status of the AIT.';
-                    ApplicationArea = All;
                 }
                 field("No. of Tests"; Rec."No. of Tests")
                 {
                     ToolTip = 'Specifies the number of tests in this Line.';
-                    ApplicationArea = All;
                 }
                 field("No. of Tests Passed"; Rec."No. of Tests Passed")
                 {
-                    ApplicationArea = All;
                     Style = Favorable;
                     ToolTip = 'Specifies the number of tests passed in the current Version.';
                 }
                 field("No. of Tests Failed"; Rec."No. of Tests" - Rec."No. of Tests Passed")
                 {
                     Editable = false;
-                    ApplicationArea = All;
                     Caption = 'No. of Tests Failed';
                     ToolTip = 'Specifies the number of tests that failed in the current Version.';
                     Style = Unfavorable;
@@ -93,7 +84,6 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the number of operations in the current Version.';
                     Visible = false;
                     Enabled = false;
@@ -101,24 +91,20 @@ page 149034 "AIT Test Method Lines"
                 field(Duration; Rec."Total Duration (ms)")
                 {
                     ToolTip = 'Specifies Total Duration of the AIT for this role.';
-                    ApplicationArea = All;
                 }
                 field(AvgDuration; AITTestSuiteMgt.GetAvgDuration(Rec))
                 {
                     ToolTip = 'Specifies average duration of the AIT for this role.';
                     Caption = 'Average Duration (ms)';
-                    ApplicationArea = All;
                     Visible = false;
                 }
                 field("No. of Tests - Base"; Rec."No. of Tests - Base")
                 {
                     ToolTip = 'Specifies the number of tests in this Line for the base version.';
-                    ApplicationArea = All;
                     Visible = false;
                 }
                 field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the number of tests passed in the base Version.';
                     Style = Favorable;
                     Visible = false;
@@ -126,7 +112,6 @@ page 149034 "AIT Test Method Lines"
                 field("No. of Tests Failed - Base"; Rec."No. of Tests - Base" - Rec."No. of Tests Passed - Base")
                 {
                     Editable = false;
-                    ApplicationArea = All;
                     Caption = 'No. of Tests Failed - Base';
                     ToolTip = 'Specifies the number of tests that failed in the base Version.';
                     Style = Unfavorable;
@@ -144,7 +129,6 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("No. of Operations - Base"; Rec."No. of Operations - Base")
                 {
-                    ApplicationArea = All;
                     ToolTip = 'Specifies the number of operations in the base Version.';
                     Visible = false;
                     Enabled = false;
@@ -153,21 +137,18 @@ page 149034 "AIT Test Method Lines"
                 {
                     ToolTip = 'Specifies Total Duration of the AIT for this role for the base version.';
                     Caption = 'Total Duration Base (ms)';
-                    ApplicationArea = All;
                     Visible = false;
                 }
                 field(AvgDurationBase; GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"))
                 {
                     ToolTip = 'Specifies average duration of the AIT for this role for the base version.';
                     Caption = 'Average Duration Base (ms)';
-                    ApplicationArea = All;
                     Visible = false;
                 }
                 field(AvgDurationDeltaPct; GetDiffPct(GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"), GetAvg(Rec."No. of Tests", Rec."Total Duration (ms)")))
                 {
                     ToolTip = 'Specifies difference in duration of the AIT for this role compared to the base version.';
                     Caption = 'Change in Duration (%)';
-                    ApplicationArea = All;
                     Visible = false;
                 }
             }
@@ -179,7 +160,6 @@ page 149034 "AIT Test Method Lines"
         {
             action("Run Test")
             {
-                ApplicationArea = All;
                 Caption = 'Run Test';
                 Image = Start;
                 ToolTip = 'Starts running the AIT Line.';
@@ -193,7 +173,6 @@ page 149034 "AIT Test Method Lines"
             }
             action(LogEntries)
             {
-                ApplicationArea = All;
                 Caption = 'Log Entries';
                 Image = Entries;
                 ToolTip = 'Open log entries for the line.';
@@ -202,7 +181,6 @@ page 149034 "AIT Test Method Lines"
             }
             action(Compare)
             {
-                ApplicationArea = All;
                 Caption = 'Compare Versions';
                 Image = CompareCOA;
                 ToolTip = 'Compare results of the line to a base version.';

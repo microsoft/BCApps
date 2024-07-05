@@ -9,6 +9,7 @@ page 149033 "AIT Log Entries"
 {
     Caption = 'AI Log Entries';
     PageType = List;
+    ApplicationArea = All;
     Editable = false;
     SourceTable = "AIT Log Entry";
     Extensible = false;
@@ -25,71 +26,59 @@ page 149033 "AIT Log Entries"
                 {
                     ToolTip = 'Specifies the AIT RunID Guid.';
                     Visible = false;
-                    ApplicationArea = All;
                 }
                 field("Code"; Rec."Test Suite Code")
                 {
                     ToolTip = 'Specifies the AIT Code of the AIT.';
                     Visible = false;
-                    ApplicationArea = All;
                 }
                 field("AIT Line No."; Rec."Test Method Line No.")
                 {
                     ToolTip = 'Specifies the Line No. of the AIT.';
                     Visible = false;
-                    ApplicationArea = All;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ToolTip = 'Specifies the Entry No. of the AIT.';
                     Visible = false;
-                    ApplicationArea = All;
                 }
                 field(Version; Rec.Version)
                 {
                     Caption = 'Version No.';
                     ToolTip = 'Specifies the Version No. of the AIT execution.';
-                    ApplicationArea = All;
                 }
                 field(Tag; Rec.Tag)
                 {
                     ToolTip = 'Specifies the Tag that we entered in the AIT Test Suite.';
-                    ApplicationArea = All;
                 }
                 field(CodeunitID; Rec."Codeunit ID")
                 {
                     ToolTip = 'Specifies the codeunit id of the AIT.';
-                    ApplicationArea = All;
                 }
                 field(CodeunitName; Rec."Codeunit Name")
                 {
                     ToolTip = 'Specifies the codeunit name of the AIT.';
-                    ApplicationArea = All;
                 }
                 field(Operation; Rec.Operation)
                 {
                     ToolTip = 'Specifies the single operation of the AIT.';
-                    ApplicationArea = All;
                     Visible = false;
                     Enabled = false;
                 }
                 field("Procedure Name"; Rec."Procedure Name")
                 {
                     ToolTip = 'Specifies the name of the procedure being executed.';
-                    ApplicationArea = All;
                 }
                 field("Original Operation"; Rec."Original Operation")
                 {
                     ToolTip = 'Specifies the original operation of the AIT.';
                     Visible = false;
                     Enabled = false;
-                    ApplicationArea = All;
                 }
                 field(Status; Rec.Status)
                 {
                     Caption = 'Status';
                     ToolTip = 'Specifies the status of the iteration.';
-                    ApplicationArea = All;
                     StyleExpr = StatusStyleExpr;
                 }
                 field("Orig. Status"; Rec."Original Status")
@@ -97,28 +86,23 @@ page 149033 "AIT Log Entries"
                     Caption = 'Orig. Status';
                     Visible = false;
                     ToolTip = 'Specifies the original status of the iteration.';
-                    ApplicationArea = All;
                 }
                 field(Dataset; Rec."Test Input Group Code")
                 {
                     ToolTip = 'Specifies the dataset of the AIT.';
-                    ApplicationArea = All;
                 }
                 field("Dataset Line No."; Rec."Test Input Code")
                 {
                     ToolTip = 'Specifies the Line No. of the dataset.';
-                    ApplicationArea = All;
                 }
                 field("Input Dataset Desc."; Rec."Test Input Description")
                 {
                     ToolTip = 'Specifies the description of the input dataset.';
-                    ApplicationArea = All;
                 }
                 field("Input Text"; InputText)
                 {
                     Caption = 'Input';
                     ToolTip = 'Specifies the test input of the AIT.';
-                    ApplicationArea = All;
 
                     trigger OnDrillDown()
                     begin
@@ -129,7 +113,6 @@ page 149033 "AIT Log Entries"
                 {
                     Caption = 'Test Output';
                     ToolTip = 'Specifies the test output of the AIT.';
-                    ApplicationArea = All;
 
                     trigger OnDrillDown()
                     begin
@@ -140,27 +123,23 @@ page 149033 "AIT Log Entries"
                 {
                     Caption = 'Duration';
                     ToolTip = 'Specifies the duration of the iteration.';
-                    ApplicationArea = All;
                 }
                 field(StartTime; Format(Rec."Start Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'Start Time';
                     ToolTip = 'Specifies the start time of the test.';
-                    ApplicationArea = All;
                     Visible = false;
                 }
                 field(EndTime; Format(Rec."End Time", 0, '<Year4>-<Month,2>-<Day,2> <Hours24>:<Minutes,2>:<Seconds,2><Second dec.>'))
                 {
                     Caption = 'End Time';
                     ToolTip = 'Specifies the end time of the test.';
-                    ApplicationArea = All;
                     Visible = false;
                 }
                 field(Message; ErrorMessage)
                 {
                     Caption = 'Error Message';
                     ToolTip = 'Specifies when the error message from the test.';
-                    ApplicationArea = All;
                     Style = Unfavorable;
 
                     trigger OnDrillDown()
@@ -173,14 +152,12 @@ page 149033 "AIT Log Entries"
                     Caption = 'Orig. Message';
                     Visible = false;
                     ToolTip = 'Specifies the original message from the test.';
-                    ApplicationArea = All;
                 }
                 field("Error Call Stack"; ErrorCallStack)
                 {
                     Caption = 'Call stack';
                     Editable = false;
                     ToolTip = 'Specifies the call stack for this error.';
-                    ApplicationArea = All;
 
                     trigger OnDrillDown()
                     begin
@@ -192,7 +169,6 @@ page 149033 "AIT Log Entries"
                     Caption = 'Log was Modified';
                     ToolTip = 'Specifies if the log was modified by any event subscribers.';
                     Visible = false;
-                    ApplicationArea = All;
                 }
             }
         }
@@ -203,7 +179,6 @@ page 149033 "AIT Log Entries"
         {
             action(DeleteAll)
             {
-                ApplicationArea = All;
                 Caption = 'Delete entries within filter';
                 Image = Delete;
                 ToolTip = 'Deletes all the log entries.';
@@ -219,7 +194,6 @@ page 149033 "AIT Log Entries"
             }
             action(ShowErrors)
             {
-                ApplicationArea = All;
                 Visible = not IsFilteredToErrors;
                 Caption = 'Show errors';
                 Image = FilterLines;
@@ -234,7 +208,6 @@ page 149033 "AIT Log Entries"
             }
             action(ClearShowErrors)
             {
-                ApplicationArea = All;
                 Visible = IsFilteredToErrors;
                 Caption = 'Show success and errors';
                 Image = RemoveFilterLines;
@@ -249,7 +222,6 @@ page 149033 "AIT Log Entries"
             }
             action("Show Sensitive Data")
             {
-                ApplicationArea = All;
                 Caption = 'Show sensitive data';
                 Image = ShowWarning;
                 Visible = not ShowSensitiveData;
@@ -263,7 +235,6 @@ page 149033 "AIT Log Entries"
             }
             action("Hide Sensitive Data")
             {
-                ApplicationArea = All;
                 Caption = 'Hide sensitive data';
                 Image = RemoveFilterLines;
                 Visible = ShowSensitiveData;
@@ -277,7 +248,6 @@ page 149033 "AIT Log Entries"
             }
             action("Download Test Output")
             {
-                ApplicationArea = All;
                 Caption = 'Download Test Output';
                 Image = Download;
                 ToolTip = 'Use this action to download the test output.';

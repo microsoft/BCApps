@@ -47,7 +47,7 @@ table 149030 "AIT Test Suite"
             Caption = 'Ended at';
             Editable = false;
         }
-        field(10; "No. of tests running"; Integer)
+        field(10; "No. of Tests running"; Integer)
         {
             Caption = 'No. of tests running';
             trigger OnValidate()
@@ -55,10 +55,10 @@ table 149030 "AIT Test Suite"
                 AITTestMethodLine: Record "AIT Test Method Line";
                 AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
             begin
-                if "No. of tests running" < 0 then
-                    "No. of tests running" := 0;
+                if "No. of Tests running" < 0 then
+                    "No. of Tests running" := 0;
 
-                if "No. of tests running" <> 0 then
+                if "No. of Tests running" <> 0 then
                     exit;
 
                 case Status of
