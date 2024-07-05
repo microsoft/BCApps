@@ -106,11 +106,8 @@ codeunit 149042 "AIT Test Run Iteration"
     end;
 
     procedure GetNoOfLogEntriesInserted(): Integer
-    var
-        ReturnValue: Integer;
     begin
-        ReturnValue := NoOfInsertedLogEntries;
-        exit(ReturnValue);
+        exit(NoOfInsertedLogEntries);
     end;
 
     procedure GetCurrTestMethodLine(): Record "Test Method Line"
