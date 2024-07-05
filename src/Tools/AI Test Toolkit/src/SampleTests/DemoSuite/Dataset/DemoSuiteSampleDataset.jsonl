@@ -1,5 +1,0 @@
-{"question": "Hi, I'm a bot. How can I help you today?", "ExpectedMaxLength": 30}
-{"question": "I need help with my account.", "ExpectedMaxLength:": 30}
-{"question": "Sure, I can help with that. What do you need help with?", "ExpectedMaxLength": 30}
-{"question": "I need to reset my password.", "ExpectedMaxLength": 30}
-{"question": "I can help with that. Please provide me with your email address.", "ExpectedMaxLength": 30}
