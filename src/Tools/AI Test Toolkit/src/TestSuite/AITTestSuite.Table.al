@@ -121,7 +121,7 @@ table 149030 "AIT Test Suite"
             Caption = 'Unique RunID';
             Editable = false;
         }
-        field(20; ModelVersion; Option)
+        field(20; "Model Version"; Option)
         {
             Caption = 'AOAI Model Version';
             OptionMembers = Latest,Preview;

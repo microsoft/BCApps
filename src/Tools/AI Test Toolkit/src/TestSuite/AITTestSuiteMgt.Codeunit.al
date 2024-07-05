@@ -176,7 +176,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     internal procedure ResetStatus(var AITTestSuite: Record "AIT Test Suite")
     var
         AITTestMethodLine: Record "AIT Test Method Line";
-        ConfirmResetStatusQst: Label 'This action will mark the run as Completed. Are you sure you want to continue ?';
+        ConfirmResetStatusQst: Label 'This action will mark the run as Completed. Are you sure you want to continue?';
     begin
         if Confirm(ConfirmResetStatusQst) then begin
             AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite."Code");
@@ -289,7 +289,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry.Operation := CopyStr(ModifiedOperation, 1, MaxStrLen(AITLogEntry.Operation));
         AITLogEntry."Original Operation" := CopyStr(Operation, 1, MaxStrLen(AITLogEntry."Original Operation"));
         AITLogEntry.Tag := AITTestRunIteration.GetAITTestSuiteTag();
-        AITLogEntry.ModelVersion := GlobalAITTestSuite.ModelVersion;
+        AITLogEntry."Model Version" := GlobalAITTestSuite."Model Version";
         AITLogEntry."Entry No." := 0;
 
         if ModifiedExecutionSuccess then

@@ -158,7 +158,7 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Output Data';
         }
-        field(40; ModelVersion; Option)
+        field(40; "Model Version"; Option)
         {
             Caption = 'AOAI Model Version';
             OptionMembers = Latest,Preview;
@@ -278,7 +278,7 @@ table 149034 "AIT Log Entry"
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
         Rec.SetRange(Operation, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
-        Rec.SetFilter("Procedure Name", '<> %1', '');
+        Rec.SetFilter("Procedure Name", '<>%1', '');
         Rec.SetRange(Status, Rec.Status::Error);
     end;
 }

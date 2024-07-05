@@ -101,7 +101,7 @@ codeunit 149043 "AIT Test Context Impl."
         AITTestSuite: Record "AIT Test Suite";
     begin
         GetAITTestSuite(AITTestSuite);
-        exit(AITTestSuite.ModelVersion);
+        exit(AITTestSuite."Model Version");
     end;
 
     /// <summary>

@@ -41,7 +41,7 @@ page 149031 "AIT Test Suite"
                     ShowMandatory = true;
                     NotBlank = true;
                 }
-                field("Model Version"; Rec."ModelVersion")
+                field("Model Version"; Rec."Model Version")
                 {
                     ToolTip = 'Specifies the model version to be used by the tests.';
                 }

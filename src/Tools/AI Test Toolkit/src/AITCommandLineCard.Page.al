@@ -183,7 +183,7 @@ page 149042 "AIT CommandLine Card"
                     AITTestSuitePage: Page "AIT Test Suite";
                 begin
                     AITTestSuite.Get(AITCode);
-                    AITTestSuitePage.SetTableView(AITTestSuite);
+                    AITTestSuitePage.SetRecord(AITTestSuite);
                     AITTestSuitePage.Run();
                 end;
             }
