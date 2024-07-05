@@ -122,7 +122,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         RecRef: RecordRef;
         FieldRef: FieldRef;
     begin
-        RecRef.OPEN(TempTableMetadata.ID);
+        RecRef.Open(TempTableMetadata.ID);
         if not RecRef.FindFirst() then
             exit;
 

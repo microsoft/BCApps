@@ -132,7 +132,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
         RecRef: RecordRef;
         FieldRef: FieldRef;
     begin
-        RecRef.OPEN(TempTableMetadata.ID);
+        RecRef.Open(TempTableMetadata.ID);
         if not RecRef.FindFirst() then
             exit;
 

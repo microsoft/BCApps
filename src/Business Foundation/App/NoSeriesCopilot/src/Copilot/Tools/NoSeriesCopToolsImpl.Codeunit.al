@@ -174,7 +174,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
     var
         RecRef: RecordRef;
     begin
-        RecRef.OPEN(TableMetadata.ID);
+        RecRef.Open(TableMetadata.ID);
         exit(RecRef.Count = 1);
     end;
 
@@ -184,7 +184,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
         KeyRef: KeyRef;
         FieldRef: FieldRef;
     begin
-        RecRef.OPEN(TableMetadata.ID);
+        RecRef.Open(TableMetadata.ID);
         KeyRef := RecRef.KeyIndex(1);
         if KeyRef.FieldCount > 1 then
             exit(false);
