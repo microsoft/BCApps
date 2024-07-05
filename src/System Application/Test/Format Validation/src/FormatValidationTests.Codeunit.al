@@ -56,7 +56,7 @@ codeunit 139194 "Format Validation Tests"
     end;
 
     [Test]
-    procedure CreateFormatValidationDataWithInvalidPhoneNo_ValidatePhoneNo_ExpectNoError()
+    procedure CreateFormatValidationDataWithInvalidPhoneNo_ValidatePhoneNo_ExpectError()
     var
         FormatValidationTestTable: Record "Format Validation Test Table";
         FormatValidation: Codeunit "Format Validation";
