@@ -205,7 +205,7 @@ page 149033 "AIT Log Entries"
                 Caption = 'Show sensitive data';
                 Image = ShowWarning;
                 Visible = not ShowSensitiveData;
-                ToolTip = 'Use this action to make sensitive data visible.';
+                ToolTip = 'Make sensitive data visible.';
 
                 trigger OnAction()
                 begin
@@ -218,7 +218,7 @@ page 149033 "AIT Log Entries"
                 Caption = 'Hide sensitive data';
                 Image = RemoveFilterLines;
                 Visible = ShowSensitiveData;
-                ToolTip = 'Use this action to hide sensitive data.';
+                ToolTip = 'Hide sensitive data.';
 
                 trigger OnAction()
                 begin
@@ -230,7 +230,7 @@ page 149033 "AIT Log Entries"
             {
                 Caption = 'Download Test Output';
                 Image = Download;
-                ToolTip = 'Use this action to download the test output.';
+                ToolTip = 'Download the test output.';
 
                 trigger OnAction()
                 var
