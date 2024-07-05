@@ -18,12 +18,15 @@ codeunit 8033 "VS Code Integration Impl."
         BaseApplicationIdTxt: Label '437dbf0e-84ff-417a-965d-ed2bb9650972', Locked = true;
         SystemApplicationIdTxt: Label '63ca2fa4-4f03-4f2b-a480-172fef340d3f', Locked = true;
         ApplicationIdTxt: Label 'c1335042-3002-4257-bf8a-75c898ccb1b8', Locked = true;
+        NotSufficientPermissionErr: Label 'You do not have sufficient permissions to interact with the source code of extensions. Please contact your administrator.';
 
     [Scope('OnPrem')]
     procedure OpenExtensionSourceInVSCode(var PublishedApplication: Record "Published Application")
     var
         Url: Text;
     begin
+        CheckPermissions();
+
         if Text.StrLen(PublishedApplication."Source Repository Url") <> 0 then begin
             UriBuilder.Init(AlExtensionUriTxt + '/sourceSync');
             UriBuilder.AddQueryParameter('repoUrl', PublishedApplication."Source Repository Url");
@@ -45,6 +48,8 @@ codeunit 8033 "VS Code Integration Impl."
     var
         Url: Text;
     begin
+        CheckPermissions();
+
         UriBuilder.Init(AlExtensionUriTxt + '/navigateTo');
 
         UriBuilder.AddQueryParameter('type', FormatObjectType(ObjectType));
@@ -143,5 +148,18 @@ codeunit 8033 "VS Code Integration Impl."
     local procedure DoesExceedCharLimit(Url: Text): Boolean
     begin
         exit(StrLen(Url) > 2000);
+    end;
+
+    local procedure CheckPermissions()
+    begin
+        if not CanInteractWithSourceCode() then
+            Error(NotSufficientPermissionErr);
+    end;
+
+    local procedure CanInteractWithSourceCode(): Boolean
+    var
+        ApplicationObjectMetadata: Record "Application Object Metadata";
+    begin
+        exit(ApplicationObjectMetadata.ReadPermission());
     end;
 }

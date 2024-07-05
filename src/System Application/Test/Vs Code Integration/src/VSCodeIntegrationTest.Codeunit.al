@@ -9,6 +9,7 @@ using System.Apps;
 using System.Integration;
 using System.Tooling;
 using System.TestLibraries.Utilities;
+using System.TestLibraries.Security.AccessControl;
 
 codeunit 138133 "VS Code Integration Test"
 {
@@ -20,6 +21,7 @@ codeunit 138133 "VS Code Integration Test"
         TempPublishedApplication: Record "Published Application" temporary;
         TempPageInfoAndFields: Record "Page Info And Fields" temporary;
         Assert: Codeunit "Library Assert";
+        PermissionsMock: Codeunit "Permissions Mock";
         HyperlinkStorage: Codeunit "Library - Variable Storage";
         VSCodeIntegration: Codeunit "VS Code Integration";
 
@@ -137,6 +139,8 @@ codeunit 138133 "VS Code Integration Test"
 
     internal procedure Initialize()
     begin
+        PermissionsMock.Set('VSC Intgr. - Admin');
+
         TempNavInstalledApp.DeleteAll();
         TempPageInfoAndFields.DeleteAll();
         TempPublishedApplication.DeleteAll();
