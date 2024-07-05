@@ -368,7 +368,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
                 Areas.Append(YamlLine.Replace(':', ', '));
 
         AreasText := Areas.ToText();
-        AreasText := DelStr(AreasText, StrLen(AreasText) - 2, 2); // remove the last ', '
+        AreasText := DelStr(AreasText, StrLen(AreasText) - 1, 1); // remove the last ', '
         exit(PrefixLbl + AreasText);
     end;
 
