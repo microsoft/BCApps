@@ -24,7 +24,7 @@ page 149035 "AIT Test Method Lines Compare"
             {
                 Caption = 'Version Configuration';
 
-                field(Version; this.Version)
+                field(Version; Version)
                 {
                     Caption = 'Version';
                     ToolTip = 'Specifies the base version to compare with.';
@@ -34,7 +34,7 @@ page 149035 "AIT Test Method Lines Compare"
                         UpdateVersionFilter();
                     end;
                 }
-                field(BaseVersion; this.BaseVersion)
+                field(BaseVersion; BaseVersion)
                 {
                     Caption = 'Base Version';
                     ToolTip = 'Specifies the base version to compare to.';
@@ -101,7 +101,7 @@ page 149035 "AIT Test Method Lines Compare"
                             var
                                 AITLogEntry: Codeunit "AIT Log Entry";
                             begin
-                                AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", this.Version);
+                                AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", Version);
                             end;
                         }
                         field(Duration; Rec."Total Duration (ms)")
@@ -136,7 +136,7 @@ page 149035 "AIT Test Method Lines Compare"
                             var
                                 AITLogEntry: Codeunit "AIT Log Entry";
                             begin
-                                AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", this.BaseVersion);
+                                AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", BaseVersion);
                             end;
                         }
                         field(DurationBase; Rec."Total Duration - Base (ms)")
@@ -162,18 +162,18 @@ page 149035 "AIT Test Method Lines Compare"
 
     internal procedure SetVersion(VersionNo: Integer)
     begin
-        this.Version := VersionNo;
+        Version := VersionNo;
     end;
 
     internal procedure SetBaseVersion(VersionNo: Integer)
     begin
-        this.BaseVersion := VersionNo;
+        BaseVersion := VersionNo;
     end;
 
     local procedure UpdateVersionFilter()
     begin
-        Rec.SetRange("Version Filter", this.Version);
-        Rec.SetRange("Base Version Filter", this.BaseVersion);
+        Rec.SetRange("Version Filter", Version);
+        Rec.SetRange("Base Version Filter", BaseVersion);
         CurrPage.Update(false);
     end;
 }
