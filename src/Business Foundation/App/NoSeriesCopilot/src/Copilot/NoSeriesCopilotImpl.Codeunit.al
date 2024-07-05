@@ -445,9 +445,9 @@ codeunit 324 "No. Series Copilot Impl."
         exit(RandIntInRange(33, 126)); // ASCII: ! (33) to ~ (126)
     end;
 
-    local procedure RandIntInRange("Min": Integer; "Max": Integer): Integer
+    local procedure RandIntInRange(MinInt: Integer; MaxInt: Integer): Integer
     begin
-        exit(Min - 1 + Random(Max - Min + 1));
+        exit(MinInt - 1 + Random(MaxInt - MinInt + 1));
     end;
 
 
