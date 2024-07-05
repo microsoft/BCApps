@@ -178,14 +178,15 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestMethodLine: Record "AIT Test Method Line";
         ConfirmResetStatusQst: Label 'This action will mark the run as Completed. Are you sure you want to continue?';
     begin
-        if Confirm(ConfirmResetStatusQst) then begin
-            AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite."Code");
-            AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Completed, true);
-            AITTestSuite.Status := AITTestSuite.Status::Completed;
-            AITTestSuite."No. of Tests running" := 0;
-            AITTestSuite."Ended at" := CurrentDateTime();
-            AITTestSuite.Modify(true);
-        end;
+        if not Confirm(ConfirmResetStatusQst) then
+            exit;
+
+        AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite."Code");
+        AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Completed, true);
+        AITTestSuite.Status := AITTestSuite.Status::Completed;
+        AITTestSuite."No. of Tests running" := 0;
+        AITTestSuite."Ended at" := CurrentDateTime();
+        AITTestSuite.Modify(true);
     end;
 
     internal procedure SetRunStatus(var AITTestSuite: Record "AIT Test Suite"; AITTestSuiteStatus: Enum "AIT Test Suite Status")

@@ -266,5 +266,5 @@ codeunit 130462 "Test Output Json"
         NoDataOutputsWereRecordedErr: Label 'No data outputs were recorded.';
         WrongTypeOrNotInitializedErr: Label 'The data output is not initialized or is of the wrong type. It must be an Json object or array.';
         TestJson: JsonToken;
-        TestOutputJsonTok: Label 'TestOutput.json';
+        TestOutputJsonTok: Label 'TestOutput.json', Locked = true;
 }

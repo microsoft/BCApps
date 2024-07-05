@@ -121,7 +121,7 @@ page 149033 "AIT Log Entries"
                 field(Message; ErrorMessage)
                 {
                     Caption = 'Error Message';
-                    ToolTip = 'Specifies when the error message from the test.';
+                    ToolTip = 'Specifies the error message from the test.';
                     Style = Unfavorable;
 
                     trigger OnDrillDown()
@@ -133,7 +133,6 @@ page 149033 "AIT Log Entries"
                 {
                     Caption = 'Orig. Message';
                     Visible = false;
-                    ToolTip = 'Specifies the original message from the test.';
                 }
                 field("Error Call Stack"; ErrorCallStack)
                 {
@@ -149,7 +148,6 @@ page 149033 "AIT Log Entries"
                 field("Log was Modified"; Rec."Log was Modified")
                 {
                     Caption = 'Log was Modified';
-                    ToolTip = 'Specifies if the log was modified by any event subscribers.';
                     Visible = false;
                 }
             }
