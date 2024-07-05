@@ -13,6 +13,7 @@ page 130459 "Test Input Part"
     InsertAllowed = false;
     ModifyAllowed = false;
     ApplicationArea = All;
+    UsageCategory = None;
 
     layout
     {

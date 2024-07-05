@@ -58,7 +58,7 @@ codeunit 130454 "Test Runner - Mgt"
     end;
 
     /// This method is called when the caller needs to run a test codeunit but do not want to log results or the caller has 
-    /// an alternateway to log the results. Currently, this is used by the Performance Toolkit
+    /// an alternately to log the results. Currently, this is used by the Performance Toolkit
     procedure RunTestsWithoutLoggingResults(var TestMethodLine: Record "Test Method Line")
     begin
         this.SkipLoggingResults := true;

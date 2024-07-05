@@ -9,7 +9,6 @@ codeunit 130460 "Test Input"
 {
     SingleInstance = true;
     Permissions = tabledata "Test Input" = RMID;
-    // TODO: Access Internal?
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnBeforeTestMethodRun', '', false, false)]
     local procedure BeforeTestMethodRun(CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; var CurrentTestMethodLine: Record "Test Method Line")

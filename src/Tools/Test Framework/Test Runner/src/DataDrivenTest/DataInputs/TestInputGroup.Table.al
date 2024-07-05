@@ -15,20 +15,19 @@ table 130454 "Test Input Group"
             DataClassification = CustomerContent;
             TableRelation = "AL Test Suite".Name;
             Caption = 'Code';
-            //Tooltip = 'Specifies the code for the test input group.';
+            ToolTip = 'Specifies the code for the test input group.';
         }
         field(10; Description; Text[2048])
         {
             DataClassification = CustomerContent;
             Caption = 'Description';
-            Tooltip = 'Specifies the description of the test input group.';
+            ToolTip = 'Specifies the description of the test input group.';
         }
         field(20; Sensitive; Boolean)
         {
             Caption = 'Sensitive';
-            //Tooltip = 'Specifies if the test input is sensitive and should not be shown directly off the page.';
             DataClassification = CustomerContent;
-
+            ToolTip = 'Specifies if the test input is sensitive and should not be shown directly off the page.';
             trigger OnValidate()
             var
                 TestInput: Record "Test Input";
@@ -39,8 +38,10 @@ table 130454 "Test Input Group"
         }
         field(50; "No. of Entries"; Integer)
         {
+            Caption = 'No. of Entries';
             FieldClass = FlowField;
             CalcFormula = count("Test Input" where("Test Input Group Code" = field(Code)));
+            ToolTip = 'Specifies the number of entries in the dataset.';
         }
     }
     keys

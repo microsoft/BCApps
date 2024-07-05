@@ -24,12 +24,9 @@ page 130461 "Test Outputs"
             {
                 field(Name; Rec."Method Name")
                 {
-                    Caption = 'Line Number';
                 }
                 field("Data Input"; Rec."Data Input")
                 {
-                    Caption = 'Data Input';
-                    ToolTip = 'Data input for the test method line';
                 }
                 field(TestOutput; this.TestOutputTxt)
                 {
