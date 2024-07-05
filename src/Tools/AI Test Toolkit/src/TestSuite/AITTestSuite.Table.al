@@ -21,20 +21,24 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'Code';
             NotBlank = true;
+            ToolTip = 'Specifies the ID of the AIT.';
         }
         field(2; "Description"; Text[250])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies the description of the AIT.';
         }
         field(4; Status; Enum "AIT Test Suite Status")
         {
             Caption = 'Status';
             Editable = false;
+            ToolTip = 'Specifies the status of the AI Test suite.';
         }
         field(5; "Started at"; DateTime)
         {
             Caption = 'Started at';
             Editable = false;
+            ToolTip = 'Specifies when the AI Test suite was started.';
         }
         field(7; "Input Dataset"; Code[100])
         {
@@ -86,7 +90,9 @@ table 149030 "AIT Test Suite"
             Caption = 'Tag';
             DataClassification = CustomerContent;
         }
+#pragma warning disable AA0232
         field(12; "Total Duration (ms)"; Integer)
+#pragma warning restore AA0232
         {
             Caption = 'Total Duration (ms)';
             ToolTip = 'Specifies the Total Duration (ms) for executing all the tests in the current version.';

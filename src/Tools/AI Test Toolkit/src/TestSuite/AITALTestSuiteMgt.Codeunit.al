@@ -172,7 +172,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         JsonOutStream: OutStream;
         JsonInStream: InStream;
         NoTestOutputFoundErr: Label 'No Test Output found in the logs';
-        TestOutputFileNameTxt: Label '%1_test_output.jsonl';
+        TestOutputFileNameTxt: Label '%1_test_output.jsonl', Locked = true;
     begin
         AITLogEntry.SetLoadFields("Test Suite Code", "Output Data");
         AITLogEntry.ReadIsolation := IsolationLevel::ReadUncommitted;

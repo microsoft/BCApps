@@ -24,16 +24,19 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Entry No.';
             AutoIncrement = true;
+            ToolTip = 'Specifies the Log Entry No..';
         }
         field(2; "Test Suite Code"; Code[100])
         {
             Caption = 'Test Suite Code';
             NotBlank = true;
             TableRelation = "AIT Test Suite";
+            ToolTip = 'Specifies the Test Suite Code.';
         }
         field(3; "Test Method Line No."; Integer)
         {
             Caption = 'Line No.';
+            ToolTip = 'Specifies the Test Method Line No.';
         }
         field(4; "Start Time"; DateTime)
         {
@@ -51,6 +54,7 @@ table 149034 "AIT Log Entry"
         field(7; "Codeunit ID"; Integer)
         {
             Caption = 'Codeunit ID';
+            ToolTip = 'Specifies the test codeunit id.';
         }
         field(8; "Codeunit Name"; Text[250])
         {
@@ -58,6 +62,7 @@ table 149034 "AIT Log Entry"
             FieldClass = FlowField;
             CalcFormula = lookup(AllObjWithCaption."Object Caption" where("Object Type" = const(Codeunit), "Object ID" = field("Codeunit ID")));
             Editable = false;
+            ToolTip = 'Specifies the test codeunit name.';
         }
         field(9; "Duration (ms)"; Integer)
         {
@@ -67,19 +72,23 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Status';
             OptionMembers = Success,Error;
+            ToolTip = 'Specifies the status of the iteration.';
         }
         field(11; Operation; Text[100])
         {
             Caption = 'Operation';
+            ToolTip = 'Specifies the operation.';
         }
         field(13; Version; Integer)
         {
             Caption = 'Version';
+            ToolTip = 'Specifies the Version No. of the test run.';
         }
         field(15; Tag; Text[20])
         {
             DataClassification = CustomerContent;
             Caption = 'Tag';
+            ToolTip = 'Specifies the Tag that we entered in the AI Test Suite.';
         }
         field(16; "Error Call Stack"; Blob)
         {
@@ -90,14 +99,17 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Procedure Name';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the name of the procedure being executed.';
         }
         field(18; "Run ID"; Guid)
         {
             Caption = 'Run ID';
+            ToolTip = 'Specifies the Run ID.';
         }
         field(20; "Original Operation"; Text[100])
         {
             Caption = 'Original Operation';
+            ToolTip = 'Specifies the original operation.';
         }
         field(21; "Original Status"; Option)
         {
@@ -120,16 +132,19 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Test Input Group Code';
             TableRelation = "Test Input Group".Code;
+            ToolTip = 'Specifies the dataset that is used by the test.';
         }
         field(25; "Test Input Code"; Code[100])
         {
             Caption = 'Test Input Code';
             TableRelation = "Test Input".Code where("Test Input Group Code" = field("Test Input Group Code"));
+            ToolTip = 'Specifies the Line No. of the dataset.';
         }
         field(26; "Test Input Description"; Text[2048])
         {
             Caption = 'Test Input Description';
             TableRelation = "Test Input Group"."Description" where("Code" = field("Test Input Group Code"));
+            ToolTip = 'Specifies the description of the input dataset.';
         }
         field(27; Sensitive; Boolean)
         {

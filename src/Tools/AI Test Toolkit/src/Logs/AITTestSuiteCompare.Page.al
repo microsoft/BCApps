@@ -153,7 +153,6 @@ page 149036 "AIT Test Suite Compare"
     }
 
     var
-        Version: Integer;
         BaseVersion: Integer;
 
     trigger OnOpenPage()

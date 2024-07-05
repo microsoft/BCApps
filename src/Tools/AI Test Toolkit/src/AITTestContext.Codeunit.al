@@ -16,7 +16,6 @@ codeunit 149043 "AIT Test Context"
 
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-        ScenarioCannotUseDefaultScenarioErr: Label 'Please use a different Scenario Operation. It cannot be the same as %1.', Comment = '%1 = "Run Procedure"';
         AnswerTok: Label 'answer', Locked = true;
         ContextTok: Label 'context', Locked = true;
         GroundTruthTok: Label 'ground_truth', Locked = true;
