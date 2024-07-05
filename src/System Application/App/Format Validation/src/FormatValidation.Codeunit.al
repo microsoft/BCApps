@@ -8,7 +8,7 @@ namespace System.Utilities;
 /// <summary>
 /// Codeunit that exposes format validation functionality.
 /// </summary>
-codeunit 5070 "Format Validation"
+codeunit 348 "Format Validation"
 {
     Access = Public;
 

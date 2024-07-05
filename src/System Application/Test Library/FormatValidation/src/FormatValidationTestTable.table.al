@@ -5,7 +5,7 @@
 
 // namespace ?
 
-table 130443 "Format Validation Test Table"
+table 130449 "Format Validation Test Table"
 {
     Caption = 'Format Validation Test Table';
     DataClassification = SystemMetadata;

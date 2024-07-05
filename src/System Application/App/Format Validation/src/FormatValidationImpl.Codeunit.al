@@ -7,7 +7,7 @@ namespace System.Utilities;
 
 using System;
 
-codeunit 5071 "Format Validation Impl."
+codeunit 349 "Format Validation Impl."
 {
     Access = Internal;
 

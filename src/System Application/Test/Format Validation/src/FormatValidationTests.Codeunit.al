@@ -5,7 +5,7 @@
 
 namespace System.Test.Utilities;
 
-codeunit 139194 "Format Validation Tests"
+codeunit 130449 "Format Validation Tests"
 {
     Subtype = Test;
 
