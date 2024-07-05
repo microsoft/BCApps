@@ -16,7 +16,7 @@ codeunit 149030 "AIT Install"
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         if EnvironmentInformation.IsSaaSInfrastructure() and (not EnvironmentInformation.IsSandbox()) then
-            Error(this.CannotInstallErr);
+            Error(CannotInstallErr);
     end;
 
     var

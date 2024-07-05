@@ -107,7 +107,7 @@ table 149030 "AIT Test Suite"
             trigger OnValidate()
             begin
                 if "Base Version" > Version then
-                    Error(this.BaseVersionMustBeLessThanVersionErr)
+                    Error(BaseVersionMustBeLessThanVersionErr)
             end;
         }
         field(19; RunID; Guid)
@@ -205,7 +205,7 @@ table 149030 "AIT Test Suite"
 
     trigger OnInsert()
     begin
-        this.AssignDefaultTestRunner();
+        AssignDefaultTestRunner();
     end;
 
     internal procedure AssignDefaultTestRunner()

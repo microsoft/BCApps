@@ -36,7 +36,7 @@ codeunit 149043 "AIT Test Context"
         if ScenarioOperation = AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl() then
             Error(ScenarioCannotUseDefaultScenarioErr, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
 
-        this.AITTestSuiteMgt.StartScenario(ScenarioOperation);
+        AITTestSuiteMgt.StartScenario(ScenarioOperation);
     end;
 
     /// <summary>
@@ -171,7 +171,7 @@ codeunit 149043 "AIT Test Context"
     var
         AITTestSuite: Record "AIT Test Suite";
     begin
-        this.GetAITTestSuite(AITTestSuite);
+        GetAITTestSuite(AITTestSuite);
         exit(AITTestSuite.ModelVersion);
     end;
 
@@ -183,7 +183,7 @@ codeunit 149043 "AIT Test Context"
     var
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
-        this.AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputText);
+        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputText);
     end;
 
     /// <summary>
@@ -200,7 +200,7 @@ codeunit 149043 "AIT Test Context"
         CopyElementToOutput(ContextTok);
         CopyElementToOutput(QuestionTok);
         CopyElementToOutput(GroundTruthTok);
-        this.AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
     end;
 
     /// <summary>
@@ -217,7 +217,7 @@ codeunit 149043 "AIT Test Context"
         TestOutputCU.TestData().Add('context', Context);
         TestOutputCU.TestData().Add('question', Question);
         TestOutputCU.TestData().Add('answer', Answer);
-        this.AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
     end;
 
     /// <summary>
@@ -230,7 +230,7 @@ codeunit 149043 "AIT Test Context"
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
         TestOutputCU.TestData().Add(TestMetricsTok, TestMetric);
-        this.AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
     end;
 
     /// <summary>
@@ -240,7 +240,7 @@ codeunit 149043 "AIT Test Context"
     var
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
-        this.AITTestSuiteMgt.StartScenario(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
+        AITTestSuiteMgt.StartScenario(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
     end;
 
     /// <summary>
@@ -253,8 +253,8 @@ codeunit 149043 "AIT Test Context"
         AITTestMethodLine: Record "AIT Test Method Line";
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
-        this.GetAITTestMethodLine(AITTestMethodLine);
-        this.AITTestSuiteMgt.EndRunProcedureScenario(AITTestMethodLine, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestMethodLine, ExecutionSuccess);
+        GetAITTestMethodLine(AITTestMethodLine);
+        AITTestSuiteMgt.EndRunProcedureScenario(AITTestMethodLine, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestMethodLine, ExecutionSuccess);
     end;
 
     /// <summary>

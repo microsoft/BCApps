@@ -76,7 +76,7 @@ page 149040 "AIT Test Suite List"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Export';
                     Image = Export;
-                    Enabled = this.ValidRecord;
+                    Enabled = ValidRecord;
                     Scope = Repeater;
                     ToolTip = 'Exports a file with AIT Suite details.';
 
@@ -126,6 +126,6 @@ page 149040 "AIT Test Suite List"
 
     trigger OnAfterGetCurrRecord()
     begin
-        this.ValidRecord := Rec.Code <> '';
+        ValidRecord := Rec.Code <> '';
     end;
 }

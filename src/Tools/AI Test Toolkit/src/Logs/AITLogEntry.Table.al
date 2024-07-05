@@ -192,7 +192,7 @@ table 149034 "AIT Log Entry"
         OutStream: OutStream;
     begin
         Clear("Input Data");
-        "Input Data".CreateOutStream(OutStream, this.GetDefaultTextEncoding());
+        "Input Data".CreateOutStream(OutStream, GetDefaultTextEncoding());
         OutStream.Write(NewInput);
     end;
 
@@ -201,8 +201,8 @@ table 149034 "AIT Log Entry"
         InStream: InStream;
         InputContent: Text;
     begin
-        this.CalcFields("Input Data");
-        "Input Data".CreateInStream(InStream, this.GetDefaultTextEncoding());
+        CalcFields("Input Data");
+        "Input Data".CreateInStream(InStream, GetDefaultTextEncoding());
         InStream.Read(InputContent);
         exit(InputContent);
     end;
@@ -212,7 +212,7 @@ table 149034 "AIT Log Entry"
         OutStream: OutStream;
     begin
         Clear("Output Data");
-        "Output Data".CreateOutStream(OutStream, this.GetDefaultTextEncoding());
+        "Output Data".CreateOutStream(OutStream, GetDefaultTextEncoding());
         OutStream.Write(NewOutput);
     end;
 
@@ -221,8 +221,8 @@ table 149034 "AIT Log Entry"
         InStream: InStream;
         OutputContent: Text;
     begin
-        this.CalcFields("Output Data");
-        "Output Data".CreateInStream(InStream, this.GetDefaultTextEncoding());
+        CalcFields("Output Data");
+        "Output Data".CreateInStream(InStream, GetDefaultTextEncoding());
         InStream.Read(OutputContent);
         exit(OutputContent);
     end;
@@ -232,7 +232,7 @@ table 149034 "AIT Log Entry"
         MessageOutStream: OutStream;
     begin
         Clear(Message);
-        Message.CreateOutStream(MessageOutStream, this.GetDefaultTextEncoding());
+        Message.CreateOutStream(MessageOutStream, GetDefaultTextEncoding());
         MessageOutStream.WriteText(Msg);
     end;
 
@@ -241,8 +241,8 @@ table 149034 "AIT Log Entry"
         MessageInStream: InStream;
         MessageText: Text;
     begin
-        this.CalcFields(Message);
-        Message.CreateInStream(MessageInStream, this.GetDefaultTextEncoding());
+        CalcFields(Message);
+        Message.CreateInStream(MessageInStream, GetDefaultTextEncoding());
         MessageInStream.ReadText(MessageText);
         exit(MessageText);
     end;
@@ -252,7 +252,7 @@ table 149034 "AIT Log Entry"
         ErrorCallStackOutStream: OutStream;
     begin
         Clear("Error Call Stack");
-        "Error Call Stack".CreateOutStream(ErrorCallStackOutStream, this.GetDefaultTextEncoding());
+        "Error Call Stack".CreateOutStream(ErrorCallStackOutStream, GetDefaultTextEncoding());
         ErrorCallStackOutStream.WriteText(ErrorCallStack);
     end;
 
@@ -261,8 +261,8 @@ table 149034 "AIT Log Entry"
         ErrorCallStackInStream: InStream;
         ErrorCallStackText: Text;
     begin
-        this.CalcFields("Error Call Stack");
-        "Error Call Stack".CreateInStream(ErrorCallStackInStream, this.GetDefaultTextEncoding());
+        CalcFields("Error Call Stack");
+        "Error Call Stack".CreateInStream(ErrorCallStackInStream, GetDefaultTextEncoding());
         ErrorCallStackInStream.ReadText(ErrorCallStackText);
         exit(ErrorCallStackText);
     end;

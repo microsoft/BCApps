@@ -14,7 +14,7 @@ page 149031 "AIT Test Suite"
     PageType = Document;
     SourceTable = "AIT Test Suite";
     Extensible = false;
-    DataCaptionExpression = this.PageCaptionLbl + ' - ' + Rec."Code";
+    DataCaptionExpression = PageCaptionLbl + ' - ' + Rec."Code";
 
     layout
     {
@@ -47,7 +47,7 @@ page 149031 "AIT Test Suite"
                     ToolTip = 'Specifies the model version to be used by the tests.';
                     ApplicationArea = All;
                 }
-                field("Test Runner Id"; this.TestRunnerDisplayName)
+                field("Test Runner Id"; TestRunnerDisplayName)
                 {
                     Caption = 'Test Runner';
                     ToolTip = 'Specifies the Test Runner to be used by the tests.';
@@ -144,14 +144,14 @@ page 149031 "AIT Test Suite"
                     Visible = false;
                     Enabled = false;
                 }
-                field("Total Duration"; this.TotalDuration)
+                field("Total Duration"; TotalDuration)
                 {
                     ApplicationArea = All;
                     Editable = false;
                     Caption = 'Total Duration';
                     ToolTip = 'Specifies the Total Duration for executing all the selected tests in the current version.';
                 }
-                field("Average Duration"; this.AvgTimeDuration)
+                field("Average Duration"; AvgTimeDuration)
                 {
                     Editable = false;
                     ApplicationArea = All;
@@ -168,7 +168,7 @@ page 149031 "AIT Test Suite"
         {
             action(Start)
             {
-                Enabled = (this.EnableActions and (Rec.Status <> Rec.Status::Running));
+                Enabled = (EnableActions and (Rec.Status <> Rec.Status::Running));
                 ApplicationArea = All;
                 Caption = 'Start';
                 Image = Start;
@@ -177,7 +177,7 @@ page 149031 "AIT Test Suite"
                 trigger OnAction()
                 begin
                     CurrPage.Update(false);
-                    this.AITTestSuiteMgt.StartAITSuite(Rec);
+                    AITTestSuiteMgt.StartAITSuite(Rec);
                     CurrPage.Update(false);
                 end;
             }
@@ -204,7 +204,7 @@ page 149031 "AIT Test Suite"
 
                 trigger OnAction()
                 begin
-                    this.AITTestSuiteMgt.ResetStatus(Rec);
+                    AITTestSuiteMgt.ResetStatus(Rec);
                 end;
             }
 
@@ -285,7 +285,7 @@ page 149031 "AIT Test Suite"
     var
         EnvironmentInformation: Codeunit "Environment Information";
     begin
-        this.EnableActions := (EnvironmentInformation.IsSaaS() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
+        EnableActions := (EnvironmentInformation.IsSaaS() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -297,23 +297,23 @@ page 149031 "AIT Test Suite"
     var
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
-        this.UpdateTotalDuration();
-        this.UpdateAverageExecutionTime();
-        this.TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
+        UpdateTotalDuration();
+        UpdateAverageExecutionTime();
+        TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
     end;
 
     local procedure UpdateTotalDuration()
     begin
         Rec.CalcFields("Total Duration (ms)");
-        this.TotalDuration := Rec."Total Duration (ms)";
+        TotalDuration := Rec."Total Duration (ms)";
     end;
 
     local procedure UpdateAverageExecutionTime()
     begin
         Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)", "No. of Tests Executed - Base", "Total Duration (ms) - Base");
         if Rec."No. of Tests Executed" > 0 then
-            this.AvgTimeDuration := Rec."Total Duration (ms)" div Rec."No. of Tests Executed"
+            AvgTimeDuration := Rec."Total Duration (ms)" div Rec."No. of Tests Executed"
         else
-            this.AvgTimeDuration := 0;
+            AvgTimeDuration := 0;
     end;
 }

@@ -46,7 +46,7 @@ table 149032 "AIT Test Method Line"
                 SelectTests.LookupMode := true;
                 if SelectTests.RunModal() = Action::LookupOK then begin
                     SelectTests.GetRecord(AllObjWithCaption);
-                    this.Validate("Codeunit ID", AllObjWithCaption."Object ID");
+                    Validate("Codeunit ID", AllObjWithCaption."Object ID");
                 end;
             end;
 
@@ -55,12 +55,12 @@ table 149032 "AIT Test Method Line"
                 CodeunitMetadata: Record "CodeUnit Metadata";
             begin
                 CodeunitMetadata.Get("Codeunit ID");
-                this.CalcFields("Codeunit Name");
+                CalcFields("Codeunit Name");
 
 
                 if ("Codeunit ID" = Codeunit::"AIT Test Runner") or not (CodeunitMetadata.TableNo in [0, Database::"AIT Test Method Line"]) then
                     if not (CodeunitMetadata.SubType = CodeunitMetadata.SubType::Test) then
-                        Error(this.NotSupportedCodeunitErr, "Codeunit Name");
+                        Error(NotSupportedCodeunitErr, "Codeunit Name");
             end;
         }
         field(4; "Codeunit Name"; Text[249])

@@ -24,7 +24,5 @@ permissionset 149031 "AI Test Toolkit - Obj"
         page "AIT Log Entries" = X,
         page "AIT Log Entry API" = X,
         page "AIT Test Suite" = X,
-        page "AIT Test Suite List" = X,
-        page "AIT Suite API" = X,
-        page "AIT Suite Line API" = X;
+        page "AIT Test Suite List" = X;
 }

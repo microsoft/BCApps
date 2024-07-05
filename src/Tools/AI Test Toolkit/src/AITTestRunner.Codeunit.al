@@ -24,14 +24,14 @@ codeunit 149042 "AIT Test Runner"
     begin
         if Rec."Codeunit ID" = 0 then
             exit;
-        this.SetAITTestMethodLine(Rec);
+        SetAITTestMethodLine(Rec);
 
-        this.NoOfInsertedLogEntries := 0;
+        NoOfInsertedLogEntries := 0;
 
-        this.InitializeAITTestMethodLineForRun(Rec, this.ActiveAITTestSuite);
-        this.SetAITTestSuite(this.ActiveAITTestSuite);
+        InitializeAITTestMethodLineForRun(Rec, ActiveAITTestSuite);
+        SetAITTestSuite(ActiveAITTestSuite);
 
-        this.RunAITTestMethodLine(Rec, this.ActiveAITTestSuite);
+        RunAITTestMethodLine(Rec, ActiveAITTestSuite);
     end;
 
     local procedure InitializeAITTestMethodLineForRun(var AITTestMethodLine: Record "AIT Test Method Line"; var AITTestSuite: Record "AIT Test Suite")
@@ -48,8 +48,8 @@ codeunit 149042 "AIT Test Runner"
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
-        this.OnBeforeRunIteration(AITTestSuite, AITTestMethodLine);
-        this.RunIteration(AITTestMethodLine);
+        OnBeforeRunIteration(AITTestSuite, AITTestMethodLine);
+        RunIteration(AITTestMethodLine);
         Commit();
 
         AITTestSuiteMgt.DecreaseNoOfTestsRunningNow(AITTestSuite);
@@ -63,7 +63,7 @@ codeunit 149042 "AIT Test Runner"
     begin
         AITTestMethodLine.Find();
         AITALTestSuiteMgt.UpdateALTestSuite(AITTestMethodLine);
-        this.SetAITTestMethodLine(AITTestMethodLine);
+        SetAITTestMethodLine(AITTestMethodLine);
 
         TestMethodLine.SetRange("Test Codeunit", AITTestMethodLine."Codeunit ID");
         TestMethodLine.SetRange("Test Suite", AITTestMethodLine."AL Test Suite");
@@ -74,12 +74,12 @@ codeunit 149042 "AIT Test Runner"
 
     procedure GetAITTestSuiteTag(): Text[20]
     begin
-        exit(this.ActiveAITTestSuite.Tag);
+        exit(ActiveAITTestSuite.Tag);
     end;
 
     local procedure SetAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line")
     begin
-        this.GlobalAITTestMethodLine := AITTestMethodLine;
+        GlobalAITTestMethodLine := AITTestMethodLine;
     end;
 
     /// <summary>
@@ -87,35 +87,35 @@ codeunit 149042 "AIT Test Runner"
     /// </summary>
     procedure GetAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line")
     begin
-        AITTestMethodLine := this.GlobalAITTestMethodLine;
+        AITTestMethodLine := GlobalAITTestMethodLine;
     end;
 
     local procedure SetAITTestSuite(var CurrAITTestSuite: Record "AIT Test Suite")
     begin
-        this.GlobalAITTestSuite := CurrAITTestSuite;
+        GlobalAITTestSuite := CurrAITTestSuite;
     end;
 
     internal procedure GetAITTestSuite(var CurrAITTestSuite: Record "AIT Test Suite")
     begin
-        CurrAITTestSuite := this.GlobalAITTestSuite;
+        CurrAITTestSuite := GlobalAITTestSuite;
     end;
 
     procedure AddToNoOfLogEntriesInserted()
     begin
-        this.NoOfInsertedLogEntries += 1;
+        NoOfInsertedLogEntries += 1;
     end;
 
     procedure GetNoOfLogEntriesInserted(): Integer
     var
         ReturnValue: Integer;
     begin
-        ReturnValue := this.NoOfInsertedLogEntries;
+        ReturnValue := NoOfInsertedLogEntries;
         exit(ReturnValue);
     end;
 
     procedure GetCurrTestMethodLine(): Record "Test Method Line"
     begin
-        exit(this.GlobalTestMethodLine);
+        exit(GlobalTestMethodLine);
     end;
 
     [InternalEvent(false)]
@@ -128,7 +128,7 @@ codeunit 149042 "AIT Test Runner"
     var
         AITContextCU: Codeunit "AIT Test Context";
     begin
-        if this.ActiveAITTestSuite.Code = '' then // exit the code if not triggered by AIT 
+        if ActiveAITTestSuite.Code = '' then // exit the code if not triggered by AIT 
             exit;
         if FunctionName = '' then
             exit;
@@ -143,7 +143,7 @@ codeunit 149042 "AIT Test Runner"
     var
         AITContextCU: Codeunit "AIT Test Context";
     begin
-        if this.ActiveAITTestSuite.Code = '' then // exit the code if not triggered by AIT 
+        if ActiveAITTestSuite.Code = '' then // exit the code if not triggered by AIT 
             exit;
         if FunctionName = '' then
             exit;

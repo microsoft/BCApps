@@ -100,16 +100,16 @@ page 149038 "AIT Log Entry API"
                 {
                     Caption = 'Dataset Line No.';
                 }
-                field("inputData"; this.InputText)
+                field("inputData"; InputText)
                 {
                     Caption = 'Input Data';
                 }
-                field("outputData"; this.OutputText)
+                field("outputData"; OutputText)
                 {
                     Caption = 'Output Data';
                 }
                 field(lastModifiedDateTime; Rec.SystemModifiedAt)
-                { 
+                {
                     Caption = 'Last Modified Date Time';
                 }
             }
@@ -118,9 +118,9 @@ page 149038 "AIT Log Entry API"
 
     trigger OnAfterGetRecord()
     begin
-        this.InputText := Rec.GetInputBlob();
-        this.OutputText := Rec.GetOutputBlob();
-        this.MessageTxt := Rec.GetMessage();
+        InputText := Rec.GetInputBlob();
+        OutputText := Rec.GetOutputBlob();
+        MessageTxt := Rec.GetMessage();
     end;
 
     var

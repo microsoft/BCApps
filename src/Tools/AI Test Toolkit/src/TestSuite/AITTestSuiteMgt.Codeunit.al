@@ -36,9 +36,9 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestSuite2.ReadIsolation := IsolationLevel::ReadUncommitted;
         AITTestSuite2.SetRange(Status, AITTestSuite2.Status::Running);
         if not AITTestSuite2.IsEmpty() then
-            Error(this.CannotRunMultipleSuitesInParallelErr);
+            Error(CannotRunMultipleSuitesInParallelErr);
 
-        this.RunAITests(AITTestSuite);
+        RunAITests(AITTestSuite);
         if AITTestSuite.Find() then;
     end;
 
@@ -49,7 +49,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         StatusDialog: Dialog;
         RunningStatusMsg: Label 'Running test...\#1#########################################################################################', Comment = '#1 = Test codeunit name';
     begin
-        this.ValidateAITestSuite(AITTestSuite);
+        ValidateAITestSuite(AITTestSuite);
         AITTestSuite.RunID := CreateGuid();
         AITTestSuite.Validate("Started at", CurrentDateTime);
         AITTestSuiteMgt.SetRunStatus(AITTestSuite, AITTestSuite.Status::Running);
@@ -106,7 +106,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         ValidDatasets: List of [Code[100]];
     begin
         // Validate test suite dataset
-        this.ValidateSuiteDataset(AITTestSuite);
+        ValidateSuiteDataset(AITTestSuite);
         ValidDatasets.Add(AITTestSuite."Input Dataset");
 
         AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
@@ -118,7 +118,7 @@ codeunit 149034 "AIT Test Suite Mgt."
 
             // Validate test line dataset
             if (AITTestMethodLine."Input Dataset" <> '') and (not ValidDatasets.Contains(AITTestMethodLine."Input Dataset")) then begin
-                this.ValidateTestLineDataset(AITTestMethodLine, AITTestMethodLine."Input Dataset");
+                ValidateTestLineDataset(AITTestMethodLine, AITTestMethodLine."Input Dataset");
                 ValidDatasets.Add(AITTestMethodLine."Input Dataset");
             end;
         until AITTestMethodLine.Next() = 0;
@@ -130,18 +130,18 @@ codeunit 149034 "AIT Test Suite Mgt."
         if AITTestSuite."Input Dataset" = '' then
             Error(EmptyDatasetSuiteErr, AITTestSuite."Code");
 
-        if not this.DatasetExists(AITTestSuite."Input Dataset") then
+        if not DatasetExists(AITTestSuite."Input Dataset") then
             Error(NoDatasetInSuiteErr, AITTestSuite."Input Dataset", AITTestSuite."Code");
 
-        if not this.InputDataLinesExists(AITTestSuite."Input Dataset") then
+        if not InputDataLinesExists(AITTestSuite."Input Dataset") then
             Error(NoInputsInSuiteErr, AITTestSuite."Input Dataset", AITTestSuite."Code");
     end;
 
     local procedure ValidateTestLineDataset(AITTestMethodLine: Record "AIT Test Method Line"; DatasetName: Code[100])
     begin
-        if not this.DatasetExists(DatasetName) then
+        if not DatasetExists(DatasetName) then
             Error(NoDatasetInLineErr, DatasetName, AITTestMethodLine."Line No.");
-        if not this.InputDataLinesExists(DatasetName) then
+        if not InputDataLinesExists(DatasetName) then
             Error(NoInputsInLineErr, DatasetName, AITTestMethodLine."Line No.");
     end;
 
@@ -221,10 +221,10 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         OldStartTime: DateTime;
     begin
-        if this.ScenarioStarted.Get(ScenarioOperation, OldStartTime) then
-            this.ScenarioStarted.Set(ScenarioOperation, CurrentDateTime())
+        if ScenarioStarted.Get(ScenarioOperation, OldStartTime) then
+            ScenarioStarted.Set(ScenarioOperation, CurrentDateTime())
         else
-            this.ScenarioStarted.Add(ScenarioOperation, CurrentDateTime());
+            ScenarioStarted.Add(ScenarioOperation, CurrentDateTime());
     end;
 
     internal procedure EndRunProcedureScenario(AITTestMethodLine: Record "AIT Test Method Line"; ScenarioOperation: Text; CurrentTestMethodLine: Record "Test Method Line"; ExecutionSuccess: Boolean)
@@ -244,12 +244,12 @@ codeunit 149034 "AIT Test Suite Mgt."
             StartTime := CurrentTestMethodLine."Start Time";
             EndTime := CurrentTestMethodLine."Finish Time";
         end else begin
-            if not this.ScenarioStarted.ContainsKey(ScenarioOperation) then
-                Error(this.ScenarioNotStartedErr, ScenarioOperation, AITTestMethodLine."Codeunit Name");
+            if not ScenarioStarted.ContainsKey(ScenarioOperation) then
+                Error(ScenarioNotStartedErr, ScenarioOperation, AITTestMethodLine."Codeunit Name");
 
             EndTime := CurrentDateTime();
-            if this.ScenarioStarted.Get(ScenarioOperation, StartTime) then // Get the start time
-                if this.ScenarioStarted.Remove(ScenarioOperation) then;
+            if ScenarioStarted.Get(ScenarioOperation, StartTime) then // Get the start time
+                if ScenarioStarted.Remove(ScenarioOperation) then;
         end;
 
         if CurrentTestMethodLine."Error Message".Length > 0 then
@@ -257,7 +257,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         else
             ErrorMessage := '';
 
-        this.AddLogEntry(AITTestMethodLine, CurrentTestMethodLine, ScenarioOperation, ExecutionSuccess, ErrorMessage, StartTime, EndTime);
+        AddLogEntry(AITTestMethodLine, CurrentTestMethodLine, ScenarioOperation, ExecutionSuccess, ErrorMessage, StartTime, EndTime);
     end;
 
     local procedure AddLogEntry(var AITTestMethodLine: Record "AIT Test Method Line"; CurrentTestMethodLine: Record "Test Method Line"; Operation: Text; ExecutionSuccess: Boolean; Message: Text; StartTime: DateTime; EndTime: Datetime)
@@ -279,17 +279,17 @@ codeunit 149034 "AIT Test Suite Mgt."
             EntryWasModified := true;
 
         AITTestMethodLine.TestField("Test Suite Code");
-        AITTestRunner.GetAITTestSuite(this.GlobalAITTestSuite);
+        AITTestRunner.GetAITTestSuite(GlobalAITTestSuite);
 
-        AITLogEntry."Run ID" := this.GlobalAITTestSuite.RunID;
+        AITLogEntry."Run ID" := GlobalAITTestSuite.RunID;
         AITLogEntry."Test Suite Code" := AITTestMethodLine."Test Suite Code";
         AITLogEntry."Test Method Line No." := AITTestMethodLine."Line No.";
-        AITLogEntry.Version := this.GlobalAITTestSuite.Version;
+        AITLogEntry.Version := GlobalAITTestSuite.Version;
         AITLogEntry."Codeunit ID" := AITTestMethodLine."Codeunit ID";
         AITLogEntry.Operation := CopyStr(ModifiedOperation, 1, MaxStrLen(AITLogEntry.Operation));
         AITLogEntry."Original Operation" := CopyStr(Operation, 1, MaxStrLen(AITLogEntry."Original Operation"));
         AITLogEntry.Tag := AITTestRunner.GetAITTestSuiteTag();
-        AITLogEntry.ModelVersion := this.GlobalAITTestSuite.ModelVersion;
+        AITLogEntry.ModelVersion := GlobalAITTestSuite.ModelVersion;
         AITLogEntry."Entry No." := 0;
 
         if ModifiedExecutionSuccess then
@@ -323,7 +323,7 @@ codeunit 149034 "AIT Test Suite Mgt."
             AITLogEntry."Test Input Description" := TestInput.Description;
         end;
 
-        TestOutput := this.GetTestOutput(Operation);
+        TestOutput := GetTestOutput(Operation);
         if TestOutput <> '' then
             AITLogEntry.SetOutputBlob(TestOutput);
 
@@ -331,7 +331,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry.Insert(true);
 
         Commit();
-        this.AddLogAppInsights(AITLogEntry);
+        AddLogAppInsights(AITLogEntry);
         AITTestRunner.AddToNoOfLogEntriesInserted();
     end;
 
@@ -371,19 +371,19 @@ codeunit 149034 "AIT Test Suite Mgt."
 
     internal procedure SetTestOutput(Scenario: Text; OutputValue: Text)
     begin
-        if this.ScenarioOutput.ContainsKey(Scenario) then
-            this.ScenarioOutput.Set(Scenario, OutputValue)
+        if ScenarioOutput.ContainsKey(Scenario) then
+            ScenarioOutput.Set(Scenario, OutputValue)
         else
-            this.ScenarioOutput.Add(Scenario, OutputValue);
+            ScenarioOutput.Add(Scenario, OutputValue);
     end;
 
     internal procedure GetTestOutput(Scenario: Text): Text
     var
         OutputValue: Text;
     begin
-        if this.ScenarioOutput.ContainsKey(Scenario) then begin
-            OutputValue := this.ScenarioOutput.Get(Scenario);
-            this.ScenarioOutput.Remove(Scenario);
+        if ScenarioOutput.ContainsKey(Scenario) then begin
+            OutputValue := ScenarioOutput.Get(Scenario);
+            ScenarioOutput.Remove(Scenario);
             exit(OutputValue);
         end else
             exit('');
@@ -442,7 +442,7 @@ codeunit 149034 "AIT Test Suite Mgt."
             exit;
         end;
 
-        if Rec."Test Suite Code" <> this.GlobalAITTestSuite.Code then
-            if this.GlobalAITTestSuite.Get(Rec."Test Suite Code") then;
+        if Rec."Test Suite Code" <> GlobalAITTestSuite.Code then
+            if GlobalAITTestSuite.Get(Rec."Test Suite Code") then;
     end;
 }

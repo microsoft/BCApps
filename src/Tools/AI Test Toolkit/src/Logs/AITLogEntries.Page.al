@@ -90,7 +90,7 @@ page 149033 "AIT Log Entries"
                     Caption = 'Status';
                     ToolTip = 'Specifies the status of the iteration.';
                     ApplicationArea = All;
-                    StyleExpr = this.StatusStyleExpr;
+                    StyleExpr = StatusStyleExpr;
                 }
                 field("Orig. Status"; Rec."Original Status")
                 {
@@ -114,7 +114,7 @@ page 149033 "AIT Log Entries"
                     ToolTip = 'Specifies the description of the input dataset.';
                     ApplicationArea = All;
                 }
-                field("Input Text"; this.InputText)
+                field("Input Text"; InputText)
                 {
                     Caption = 'Input';
                     ToolTip = 'Specifies the test input of the AIT.';
@@ -125,7 +125,7 @@ page 149033 "AIT Log Entries"
                         Message(Rec.GetInputBlob());
                     end;
                 }
-                field("Output Text"; this.OutputText)
+                field("Output Text"; OutputText)
                 {
                     Caption = 'Test Output';
                     ToolTip = 'Specifies the test output of the AIT.';
@@ -136,7 +136,7 @@ page 149033 "AIT Log Entries"
                         Message(Rec.GetOutputBlob());
                     end;
                 }
-                field(TestRunDuration; this.TestRunDuration)
+                field(TestRunDuration; TestRunDuration)
                 {
                     Caption = 'Duration';
                     ToolTip = 'Specifies the duration of the iteration.';
@@ -156,7 +156,7 @@ page 149033 "AIT Log Entries"
                     ApplicationArea = All;
                     Visible = false;
                 }
-                field(Message; this.ErrorMessage)
+                field(Message; ErrorMessage)
                 {
                     Caption = 'Error Message';
                     ToolTip = 'Specifies when the error message from the test.';
@@ -165,7 +165,7 @@ page 149033 "AIT Log Entries"
 
                     trigger OnDrillDown()
                     begin
-                        Message(this.ErrorMessage);
+                        Message(ErrorMessage);
                     end;
                 }
                 field("Orig. Message"; Rec."Original Message")
@@ -175,7 +175,7 @@ page 149033 "AIT Log Entries"
                     ToolTip = 'Specifies the original message from the test.';
                     ApplicationArea = All;
                 }
-                field("Error Call Stack"; this.ErrorCallStack)
+                field("Error Call Stack"; ErrorCallStack)
                 {
                     Caption = 'Call stack';
                     Editable = false;
@@ -184,7 +184,7 @@ page 149033 "AIT Log Entries"
 
                     trigger OnDrillDown()
                     begin
-                        Message(this.ErrorCallStack);
+                        Message(ErrorCallStack);
                     end;
                 }
                 field("Log was Modified"; Rec."Log was Modified")
@@ -210,7 +210,7 @@ page 149033 "AIT Log Entries"
 
                 trigger OnAction()
                 begin
-                    if not Confirm(this.DoYouWantToDeleteQst, false) then
+                    if not Confirm(DoYouWantToDeleteQst, false) then
                         exit;
 
                     Rec.DeleteAll(true);
@@ -220,7 +220,7 @@ page 149033 "AIT Log Entries"
             action(ShowErrors)
             {
                 ApplicationArea = All;
-                Visible = not this.IsFilteredToErrors;
+                Visible = not IsFilteredToErrors;
                 Caption = 'Show errors';
                 Image = FilterLines;
                 ToolTip = 'Shows only errors.';
@@ -228,14 +228,14 @@ page 149033 "AIT Log Entries"
                 trigger OnAction()
                 begin
                     Rec.SetRange(Status, Rec.Status::Error);
-                    this.IsFilteredToErrors := true;
+                    IsFilteredToErrors := true;
                     CurrPage.Update(false);
                 end;
             }
             action(ClearShowErrors)
             {
                 ApplicationArea = All;
-                Visible = this.IsFilteredToErrors;
+                Visible = IsFilteredToErrors;
                 Caption = 'Show success and errors';
                 Image = RemoveFilterLines;
                 ToolTip = 'Clears the filter on errors.';
@@ -243,7 +243,7 @@ page 149033 "AIT Log Entries"
                 trigger OnAction()
                 begin
                     Rec.SetRange(Status);
-                    this.IsFilteredToErrors := false;
+                    IsFilteredToErrors := false;
                     CurrPage.Update(false);
                 end;
             }
@@ -252,12 +252,12 @@ page 149033 "AIT Log Entries"
                 ApplicationArea = All;
                 Caption = 'Show sensitive data';
                 Image = ShowWarning;
-                Visible = not this.ShowSensitiveData;
+                Visible = not ShowSensitiveData;
                 ToolTip = 'Use this action to make sensitive data visible.';
 
                 trigger OnAction()
                 begin
-                    this.ShowSensitiveData := true;
+                    ShowSensitiveData := true;
                     CurrPage.Update(false);
                 end;
             }
@@ -266,12 +266,12 @@ page 149033 "AIT Log Entries"
                 ApplicationArea = All;
                 Caption = 'Hide sensitive data';
                 Image = RemoveFilterLines;
-                Visible = this.ShowSensitiveData;
+                Visible = ShowSensitiveData;
                 ToolTip = 'Use this action to hide sensitive data.';
 
                 trigger OnAction()
                 begin
-                    this.ShowSensitiveData := false;
+                    ShowSensitiveData := false;
                     CurrPage.Update(false);
                 end;
             }
@@ -331,28 +331,28 @@ page 149033 "AIT Log Entries"
 
     trigger OnAfterGetRecord()
     begin
-        this.TestRunDuration := Rec."Duration (ms)";
-        this.SetInputOutputDataFields();
-        this.SetErrorFields();
-        this.SetStatusStyleExpr();
+        TestRunDuration := Rec."Duration (ms)";
+        SetInputOutputDataFields();
+        SetErrorFields();
+        SetStatusStyleExpr();
     end;
 
     local procedure SetStatusStyleExpr()
     begin
         case Rec.Status of
             Rec.Status::Success:
-                this.StatusStyleExpr := 'Favorable';
+                StatusStyleExpr := 'Favorable';
             Rec.Status::Error:
-                this.StatusStyleExpr := 'Unfavorable';
+                StatusStyleExpr := 'Unfavorable';
             else
-                this.StatusStyleExpr := '';
+                StatusStyleExpr := '';
         end;
     end;
 
     local procedure SetErrorFields()
     begin
-        this.ErrorMessage := '';
-        this.ErrorCallStack := '';
+        ErrorMessage := '';
+        ErrorCallStack := '';
 
         if Rec.Status = Rec.Status::Error then begin
             ErrorCallStack := Rec.GetErrorCallStack();
@@ -362,18 +362,18 @@ page 149033 "AIT Log Entries"
 
     local procedure SetInputOutputDataFields()
     begin
-        this.InputText := '';
-        this.OutputText := '';
+        InputText := '';
+        OutputText := '';
 
-        if Rec.Sensitive and not this.ShowSensitiveData then begin
+        if Rec.Sensitive and not ShowSensitiveData then begin
             Rec.CalcFields("Input Data", "Output Data");
             if Rec."Input Data".Length > 0 then
-                this.InputText := ClickToShowLbl;
+                InputText := ClickToShowLbl;
             if Rec."Output Data".Length > 0 then
-                this.OutputText := ClickToShowLbl;
+                OutputText := ClickToShowLbl;
         end else begin
-            this.InputText := Rec.GetInputBlob();
-            this.OutputText := Rec.GetOutputBlob();
+            InputText := Rec.GetInputBlob();
+            OutputText := Rec.GetOutputBlob();
         end;
     end;
 }
