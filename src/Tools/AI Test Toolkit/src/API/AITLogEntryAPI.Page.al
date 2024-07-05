@@ -50,9 +50,9 @@ page 149038 "AIT Log Entry API"
                 {
                     Caption = 'Version No.';
                 }
-                field("entryNumber"; Rec."Entry No.")
+                field(modelVersion; Rec.ModelVersion)
                 {
-                    Caption = 'Entry No.';
+                    Caption = 'AOAI Model Version';
                 }
                 field("startTime"; Rec."Start Time")
                 {
@@ -74,12 +74,6 @@ page 149038 "AIT Log Entry API"
                 {
                     Caption = 'Function Name';
                 }
-                field("operation"; Rec.Operation)
-                {
-                    Visible = false;
-                    Enabled = false;
-                    Caption = 'Operation';
-                }
                 field("message"; MessageTxt)
                 {
                     Caption = 'Message';
@@ -100,6 +94,10 @@ page 149038 "AIT Log Entry API"
                 {
                     Caption = 'Dataset Line No.';
                 }
+                field(sensitive; Rec.Sensitive)
+                {
+                    Caption = 'Sensitive';
+                }
                 field("inputData"; InputText)
                 {
                     Caption = 'Input Data';
@@ -107,6 +105,10 @@ page 149038 "AIT Log Entry API"
                 field("outputData"; OutputText)
                 {
                     Caption = 'Output Data';
+                }
+                field(errorCallStack; ErrorCallStackText)
+                {
+                    Caption = 'Error Call Stack';
                 }
                 field(lastModifiedDateTime; Rec.SystemModifiedAt)
                 {
@@ -121,10 +123,12 @@ page 149038 "AIT Log Entry API"
         InputText := Rec.GetInputBlob();
         OutputText := Rec.GetOutputBlob();
         MessageTxt := Rec.GetMessage();
+        ErrorCallStackText := Rec.GetErrorCallStack();
     end;
 
     var
         InputText: Text;
         OutputText: Text;
         MessageTxt: Text;
+        ErrorCallStackText: Text;
 }
