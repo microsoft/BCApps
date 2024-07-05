@@ -171,8 +171,9 @@ table 149034 "AIT Log Entry"
         {
             Clustered = true;
         }
-        key(Key2; "Test Suite Code", Version, "Test Method Line No.")
+        key(Key2; "Test Suite Code", Version, "Test Method Line No.", Operation, "Procedure Name")
         {
+            IncludedFields = Status;
             SumIndexFields = "Duration (ms)";
         }
     }
