@@ -80,13 +80,11 @@ page 149035 "AIT Test Method Lines Compare"
                         Caption = 'Latest Version';
                         field("No. of Tests"; Rec."No. of Tests")
                         {
-                            ToolTip = 'Specifies the number of tests in this Line.';
                             ShowCaption = false;
                         }
                         field("No. of Tests Passed"; Rec."No. of Tests Passed")
                         {
                             Style = Favorable;
-                            ToolTip = 'Specifies the number of tests passed in the current version.';
                             ShowCaption = false;
                         }
                         field("No. of Tests Failed"; Rec."No. of Tests" - Rec."No. of Tests Passed")
@@ -120,7 +118,6 @@ page 149035 "AIT Test Method Lines Compare"
                         }
                         field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base")
                         {
-                            ToolTip = 'Specifies the number of tests passed in the base version.';
                             Style = Favorable;
                             ShowCaption = false;
                         }
