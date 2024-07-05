@@ -16,6 +16,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
     var
         ToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
         SpecifyTablesErr: Label 'Please specify the tables for which you want to modify the number series.';
+        FunctionNameLbl: Label 'GetExistingTablesAndPatterns', Locked = true;
         DateSpecificPlaceholderLbl: Label '{current_date}', Locked = true;
         CustomPatternsPlaceholderLbl: Label '{custom_patterns}', Locked = true;
         TablesYamlFormatPlaceholderLbl: Label '{tables_yaml_format}', Locked = true;
@@ -23,7 +24,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
 
     procedure GetName(): Text
     begin
-        exit('GetExistingTablesAndPatterns');
+        exit(FunctionNameLbl);
     end;
 
     procedure GetPrompt() Function: JsonObject;
@@ -44,12 +45,18 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
     /// <remarks> This function is used to build the prompts for modifying existing series. The prompts are built based on the tables and patterns specified in the input. Tables should be specified. If no patterns are specified, default patterns are used. In case number of tables can't be pasted in one prompt, due to token limits, function chunk result into several messages, that need to be called separately</remarks>
     local procedure Build(var Arguments: JsonObject) ToolResults: Dictionary of [Text, Integer]
     var
+        NotificationManager: Codeunit "No. Ser. Cop. Notific. Manager";
         ChangeNoSeriesPrompt, CustomPatternsPromptList, TablesYamlList, ExistingNoSeriesToChangeList : List of [Text];
         NumberOfToolResponses, i, ActualTablesChunkSize : Integer;
         TempSetupTable: Record "Table Metadata" temporary;
         TempNoSeriesField: Record "Field" temporary;
         NumberOfChangedTables: Integer;
     begin
+        if not CheckIfUserSpecifiedNoSeriesToChange(Arguments) then begin
+            NotificationManager.SendNotification(GetLastErrorText());
+            exit;
+        end;
+
         GetTablesWithNoSeries(Arguments, TempSetupTable, TempNoSeriesField, ExistingNoSeriesToChangeList);
         ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(Arguments, CustomPatternsPromptList, ExistingNoSeriesToChangeList);
 
@@ -70,11 +77,17 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
             end
     end;
 
+    [TryFunction]
+    local procedure CheckIfUserSpecifiedNoSeriesToChange(Arguments: JsonObject)
+    begin
+        if ToolsImpl.CheckIfTablesSpecified(Arguments) then
+            exit;
+
+        Error(SpecifyTablesErr);
+    end;
+
     local procedure GetTablesWithNoSeries(var Arguments: JsonObject; var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary; var ExistingNoSeriesToChangeList: List of [Text])
     begin
-        if not ToolsImpl.CheckIfTablesSpecified(Arguments) then
-            Error(SpecifyTablesErr);
-
         ListOnlySpecifiedTablesWithExistingNumberSeries(TempSetupTable, TempNoSeriesField, ExistingNoSeriesToChangeList, ToolsImpl.GetEntities(Arguments));
     end;
 

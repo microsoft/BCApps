@@ -6,18 +6,23 @@
 namespace Microsoft.Foundation.NoSeries;
 
 using System.Telemetry;
+using System.Globalization;
+using System.Environment;
 using System.AI;
 using System.Utilities;
 using System.Text.Json;
 
 codeunit 324 "No. Series Copilot Impl."
 {
+    Access = Internal;
+
     var
         IncorrectCompletionErr: Label 'Incorrect completion. The property %1 is empty', Comment = '%1 = property name';
         IncorrectCompletionNumberOfGeneratedNoSeriesErr: Label 'Incorrect completion. The number of generated number series is incorrect. Expected %1, but got %2', Comment = '%1 = Expected Number, %2 = Actual Number';
         TextLengthIsOverMaxLimitErr: Label 'The property %1 exceeds the maximum length of %2', Comment = '%1 = property name, %2 = maximum length';
         DateSpecificPlaceholderLbl: Label '{current_date}', Locked = true;
         TheResponseShouldBeAFunctionCallErr: Label 'The response should be a function call.';
+        ChatCompletionResponseErr: Label 'Sorry, something went wrong. Please rephrase and try again.';
         GeneratingNoSeriesForLbl: Label 'Generating number series %1', Comment = '%1 = No. Series';
 
     internal procedure GetNoSeriesSuggestions()
@@ -41,6 +46,7 @@ codeunit 324 "No. Series Copilot Impl."
     procedure Generate(var NoSeriesProposal: Record "No. Series Proposal"; var ResponseText: Text; var NoSeriesGenerated: Record "No. Series Proposal Line"; InputText: Text)
     var
         TokenCountImpl: Codeunit "AOAI Token";
+        NotificationManager: Codeunit "No. Ser. Cop. Notific. Manager";
         SystemPromptTxt: SecretText;
         CompletePromptTokenCount: Integer;
         Completion: Text;
@@ -56,7 +62,8 @@ codeunit 324 "No. Series Copilot Impl."
                 CreateNoSeries(NoSeriesProposal, NoSeriesGenerated, Completion);
             end else
                 ResponseText := Completion;
-        end;
+        end else
+            NotificationManager.SendNotification(GetChatCompletionResponseErr());
     end;
 
     procedure ApplyProposedNoSeries(var NoSeriesGenerated: Record "No. Series Proposal Line")
@@ -527,7 +534,39 @@ codeunit 324 "No. Series Copilot Impl."
 
     local procedure MaxModelTokens(): Integer
     begin
-        exit(16385); //gpt-3.5-turbo-0125
+        exit(16385); //gpt-3.5-turbo-latest
+    end;
+
+    procedure IsCopilotVisible(): Boolean
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        // if not EnvironmentInformation.IsSaaSInfrastructure() then //TODO: Check how to keep IsSaaSInfrastructure but be able to test in Docker Environment
+        //     exit(false);
+
+        if not IsSupportedLanguage() then
+            exit(false);
+
+        exit(true);
+    end;
+
+    local procedure IsSupportedLanguage(): Boolean
+    var
+        LanguageSelection: Record "Language Selection";
+        UserSessionSettings: SessionSettings;
+    begin
+        UserSessionSettings.Init();
+        LanguageSelection.SetLoadFields("Language Tag");
+        LanguageSelection.SetRange("Language ID", UserSessionSettings.LanguageId());
+        if LanguageSelection.FindFirst() then
+            if LanguageSelection."Language Tag".StartsWith('pt-') then
+                exit(false);
+        exit(true);
+    end;
+
+    internal procedure GetChatCompletionResponseErr(): Text
+    begin
+        exit(ChatCompletionResponseErr);
     end;
 
     procedure FeatureName(): Text

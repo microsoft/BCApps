@@ -156,7 +156,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
 
     procedure IsRelevant(TableMetadata: Record "Table Metadata"; Field: Record "Field"; Entities: List of [Text]): Boolean
     var
-        RecordMatchMgtCopy: Codeunit "Record Match Mgt. Copy"; //TODO: Replace with system app module when available
+        RecordMatchMgtCopy: Codeunit "Record Match Impl."; //TODO: Replace with system app module when available
         Entity: Text[250];
         String1: Text[250];
         String2: Text[250];
@@ -253,6 +253,8 @@ codeunit 336 "No. Series Cop. Tools Impl."
     local procedure AddNoSeriesInfo(var YamlLines: List of [Text]; var TempNoSeriesField: Record "Field" temporary; var Identation: Integer)
     var
         NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        NoSeriesManagement: Codeunit "No. Series";
     begin
         if TempNoSeriesField.ExternalName = '' then
             exit;
@@ -260,8 +262,14 @@ codeunit 336 "No. Series Cop. Tools Impl."
         if not NoSeries.Get(CopyStr(TempNoSeriesField.ExternalName, 1, MaxStrLen(NoSeries.Code))) then
             exit;
 
+        NoSeriesManagement.GetNoSeriesLine(NoSeriesLine, NoSeries.Code, Today(), false);
+
         YamlLines.Add(GetYAMLIdentationText(Identation) + '  seriesCode: ' + NoSeries.Code);
         YamlLines.Add(GetYAMLIdentationText(Identation) + '  description: ' + NoSeries.Description);
+        YamlLines.Add(GetYAMLIdentationText(Identation) + '  startingNo: ' + NoSeriesLine."Starting No.");
+        YamlLines.Add(GetYAMLIdentationText(Identation) + '  endingNo: ' + NoSeriesLine."Ending No.");
+        YamlLines.Add(GetYAMLIdentationText(Identation) + '  warningNo: ' + NoSeriesLine."Warning No.");
+        YamlLines.Add(GetYAMLIdentationText(Identation) + '  incrementByNo: ' + Format(NoSeriesLine."Increment-by No."));
     end;
 
 

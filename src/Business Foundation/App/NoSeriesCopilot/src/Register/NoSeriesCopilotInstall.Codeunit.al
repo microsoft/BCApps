@@ -8,6 +8,8 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 290 "No. Series Copilot Install"
 {
     Subtype = Install;
+    Access = Internal;
+
     InherentPermissions = X;
     InherentEntitlements = X;
 

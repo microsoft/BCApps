@@ -52,20 +52,12 @@ pageextension 324 "No. Series Ext." extends "No. Series"
 
     trigger OnOpenPage()
     var
-        FeatureKey: Record "Feature Key";
-        FeatureManagementFacade: Codeunit "Feature Management Facade";
+        NumberSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
     begin
-        if not FeatureKey.Get(NumberSeriesWithAILbl) then
-            CopilotActionsVisible := true
-        else
-            CopilotActionsVisible := FeatureManagementFacade.IsEnabled(NumberSeriesWithAILbl);
-
-        // if CopilotActionsVisible then
-        //     CopilotActionsVisible := EnvironmentInformation.IsSaaSInfrastructure(); //TODO: Check how to keep IsSaaSInfrastructure but be able to test in Docker Environment
+        CopilotActionsVisible := NumberSeriesCopilotImpl.IsCopilotVisible();
     end;
 
     var
         CopilotActionsVisible: Boolean;
-        NumberSeriesWithAILbl: Label 'NumberSeriesWithAI', Locked = true;
 
 }

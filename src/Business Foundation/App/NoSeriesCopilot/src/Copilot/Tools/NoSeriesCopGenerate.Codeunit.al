@@ -15,12 +15,11 @@ codeunit 339 "No. Series Cop. Generate" implements "AOAI Function"
 
     var
         ToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
-        ArgumentIsMissingErr: Label '%1 is missing.', Comment = '%1 = name of the argument';
-        ArgumentIsNotArrayErr: Label '%1 is not an array.', Comment = '%1 = name of the argument';
+        FunctionNameLbl: Label 'GenerateNumberSeries', Locked = true;
 
     procedure GetName(): Text
     begin
-        exit('GenerateNumberSeries');
+        exit(FunctionNameLbl);
     end;
 
     procedure GetPrompt() Function: JsonObject;
@@ -30,17 +29,16 @@ codeunit 339 "No. Series Cop. Generate" implements "AOAI Function"
 
     procedure Execute(Arguments: JsonObject): Variant
     var
+        NotificationManager: Codeunit "No. Ser. Cop. Notific. Manager";
         NoSeriesJArray: JsonArray;
-        JToken: JsonToken;
         Completion: Text;
     begin
-        if not Arguments.Get('noSeries', JToken) then
-            Error(ArgumentIsMissingErr, 'noSeries');
+        if not GetNumberSeriesJsonArray(Arguments, NoSeriesJArray) then begin
+            NotificationManager.SendNotification(GetLastErrorText());
+            exit(Completion);
+        end;
 
-        if not JToken.IsArray() then
-            Error(ArgumentIsNotArrayErr, 'noSeries');
-
-        JToken.AsArray().WriteTo(Completion);
+        NoSeriesJArray.WriteTo(Completion);
         exit(Completion);
     end;
 
@@ -59,5 +57,20 @@ codeunit 339 "No. Series Cop. Generate" implements "AOAI Function"
         // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
         NoSeriesCopilotSetup.Get();
         exit(NoSeriesCopilotSetup.GetTool3DefinitionFromIsolatedStorage())
+    end;
+
+    [TryFunction]
+    local procedure GetNumberSeriesJsonArray(Arguments: JsonObject; var NoSeriesJArray: JsonArray)
+    var
+        NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
+        JToken: JsonToken;
+    begin
+        if not Arguments.Get('noSeries', JToken) then
+            Error(NoSeriesCopilotImpl.GetChatCompletionResponseErr());
+
+        if not JToken.IsArray() then
+            Error(NoSeriesCopilotImpl.GetChatCompletionResponseErr());
+
+        NoSeriesJArray := JToken.AsArray();
     end;
 }

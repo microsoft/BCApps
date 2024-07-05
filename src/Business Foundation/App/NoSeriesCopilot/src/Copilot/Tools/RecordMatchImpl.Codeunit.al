@@ -5,8 +5,10 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-codeunit 337 "Record Match Mgt. Copy"
+codeunit 337 "Record Match Impl."
 {
+    Access = Internal;
+
     //TODO: This is a copy of codeunit 1251 "Record Match Mgt." CalculateStringNearness(). It should be moved to a system app, or replaced with a system function
     /// <summary>
     /// Computes a nearness score between strings. Nearness is based on repeatedly finding longest common substrings.

@@ -15,6 +15,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 
     var
         ToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
+        FunctionNameLbl: Label 'GetNewTablesAndPatterns', Locked = true;
         DateSpecificPlaceholderLbl: Label '{current_date}', Locked = true;
         CustomPatternsPlaceholderLbl: Label '{custom_patterns}', Locked = true;
         TablesYamlFormatPlaceholderLbl: Label '{tables_yaml_format}', Locked = true;
@@ -22,7 +23,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 
     procedure GetName(): Text
     begin
-        exit('GetNewTablesAndPatterns');
+        exit(FunctionNameLbl);
     end;
 
     procedure GetPrompt() Function: JsonObject;
