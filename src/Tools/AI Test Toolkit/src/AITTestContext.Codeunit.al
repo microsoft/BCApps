@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 using System.TestTools.TestRunner;
 
 /// <summary>
-/// Exposes functions that can be used by the AIT tests.
+/// Exposes functions that can be used by the AI tests.
 /// </summary>
 codeunit 149043 "AIT Test Context"
 {
@@ -25,22 +25,12 @@ codeunit 149043 "AIT Test Context"
         TestSetupTok: Label 'test_setup', Locked = true;
         QuestionTok: Label 'question', Locked = true;
 
-    /// <summary>
-    /// Get the test input value from the dataset for the current iteration.
-    /// </summary>
-    /// <returns>The test input value as text.</returns>
-    procedure GetInput(): Text
-    var
-        TestInput: Codeunit "Test Input";
-    begin
-        exit(TestInput.GetTestInputValue());
-    end;
 
     /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
     /// </summary>
     /// <returns>Test Input Json for the current test.</returns>
-    procedure GetInputAsJson() TestInputJson: Codeunit "Test Input Json"
+    procedure GetInput() TestInputJson: Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";
     begin
@@ -48,19 +38,10 @@ codeunit 149043 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Get the Test Setup value as text from the input dataset for the current iteration.
-    /// </summary>
-    /// <returns>A text value for the test_setup element.</returns>
-    procedure GetTestSetupAsText(): Text
-    begin
-        exit(GetTestSetupAsJson().ValueAsText());
-    end;
-
-    /// <summary>
     /// Get the Test Setup from the input dataset for the current iteration.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the test_setup element.</returns>
-    procedure GetTestSetupAsJson() TestInputJson: Codeunit "Test Input Json"
+    procedure GetTestSetup() TestInputJson: Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";
     begin
@@ -68,19 +49,10 @@ codeunit 149043 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Get the Context value as text from the input dataset for the current iteration.
-    /// </summary>
-    /// <returns>A text value for the context element.</returns>
-    procedure GetContext(): Text
-    begin
-        exit(GetContextAsJson().ValueAsText());
-    end;
-
-    /// <summary>
     /// Get the Context from the input dataset for the current iteration.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the context element.</returns>
-    procedure GetContextAsJson() TestInputJson: Codeunit "Test Input Json"
+    procedure GetContext() TestInputJson: Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";
     begin
@@ -88,19 +60,10 @@ codeunit 149043 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Get the Question value as text from the input dataset for the current iteration.f
-    /// </summary>
-    /// <returns>A text value for the question element.</returns>
-    procedure GetQuestionAsText(): Text
-    begin
-        exit(GetQuestionAsJson().ValueAsText());
-    end;
-
-    /// <summary>
     /// Get the Question from the input dataset for the current iteration.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the question element.</returns>
-    procedure GetQuestionAsJson() TestInputJson: Codeunit "Test Input Json"
+    procedure GetQuestion() TestInputJson: Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";
     begin
@@ -108,19 +71,10 @@ codeunit 149043 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Get the Ground Truth value as text from the input dataset for the current iteration.
-    /// </summary>
-    /// <returns>A text value for the ground_truth element.</returns>
-    procedure GetGroundTruthAsText(): Text
-    begin
-        exit(GetGroundTruthAsJson().ValueAsText());
-    end;
-
-    /// <summary>
     /// Get the Ground Truth from the input dataset for the current iteration.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the ground_truth element.</returns>
-    procedure GetGroundTruthAsJson() TestInputJson: Codeunit "Test Input Json"
+    procedure GetGroundTruth() TestInputJson: Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";
     begin
@@ -131,18 +85,8 @@ codeunit 149043 "AIT Test Context"
     /// Get the Expected Data value as text from the input dataset for the current iteration.
     /// Expected data is used for internal validation if the test was successful.
     /// </summary>
-    /// <returns>Text representing JSON for the expected data</returns>
-    procedure GetExpectedDataAsText(): Text
-    begin
-        exit(GetExpectedDataTokAsJson().ValueAsText());
-    end;
-
-    /// <summary>
-    /// Get the Expected Data value as text from the input dataset for the current iteration.
-    /// Expected data is used for internal validation if the test was successful.
-    /// </summary>
     /// <returns>Test Input Json for the expected data</returns>
-    procedure GetExpectedDataTokAsJson() TestInputJson: Codeunit "Test Input Json"
+    procedure GetExpectedData() TestInputJson: Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";
     begin
@@ -150,7 +94,7 @@ codeunit 149043 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Get the AOAI Model Version for the AIT Test Suite.
+    /// Get the AOAI Model Version for the AI Test Suite.
     /// </summary>
     /// <returns>The AOAI Model Version as an Option.</returns>
     procedure GetAOAIModelVersion(): Option
@@ -159,17 +103,6 @@ codeunit 149043 "AIT Test Context"
     begin
         GetAITTestSuite(AITTestSuite);
         exit(AITTestSuite.ModelVersion);
-    end;
-
-    /// <summary>
-    /// Sets the test output for the current iteration.
-    /// </summary>
-    /// <param name="TestOutputText">The test output as text.</param>
-    procedure SetTestOutput(TestOutputText: Text)
-    var
-        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
-    begin
-        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputText);
     end;
 
     /// <summary>
@@ -192,6 +125,17 @@ codeunit 149043 "AIT Test Context"
     /// <summary>
     /// Sets the test output for the current iteration.
     /// </summary>
+    /// <param name="TestOutputText">The test output as text.</param>
+    procedure SetTestOutput(TestOutputText: Text)
+    var
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+    begin
+        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputText);
+    end;
+
+    /// <summary>
+    /// Sets the test output for the current iteration.
+    /// </summary>
     /// <param name="Context">The context as text.</param>
     /// <param name="Question">The question as text.</param>
     /// <param name="Answer">The answer as text.</param>
@@ -200,9 +144,9 @@ codeunit 149043 "AIT Test Context"
         TestOutputCU: Codeunit "Test Output";
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
-        TestOutputCU.TestData().Add('context', Context);
-        TestOutputCU.TestData().Add('question', Question);
-        TestOutputCU.TestData().Add('answer', Answer);
+        TestOutputCU.TestData().Add(ContextTok, Context);
+        TestOutputCU.TestData().Add(QuestionTok, Question);
+        TestOutputCU.TestData().Add(AnswerTok, Answer);
         AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
     end;
 
@@ -249,9 +193,9 @@ codeunit 149043 "AIT Test Context"
     /// <param name="AITTestMethodLine">AITTestMethodLine associated with the session.</param>
     local procedure GetAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
     var
-        AITTestRunner: Codeunit "AIT Test Runner";
+        AITTestRunIteration: Codeunit "AIT Test Run Iteration";
     begin
-        AITTestRunner.GetAITTestSuite(AITTestSuite);
+        AITTestRunIteration.GetAITTestSuite(AITTestSuite);
     end;
 
     /// <summary>
@@ -260,9 +204,9 @@ codeunit 149043 "AIT Test Context"
     /// <param name="AITTestMethodLine">AITTestMethodLine associated with the session.</param>
     local procedure GetAITTestMethodLine(var AITTestMethodLine: Record "AIT Test Method Line")
     var
-        AITTestRunnerImpl: Codeunit "AIT Test Runner";
+        AITTestRunIteration: Codeunit "AIT Test Run Iteration";
     begin
-        AITTestRunnerImpl.GetAITTestMethodLine(AITTestMethodLine);
+        AITTestRunIteration.GetAITTestMethodLine(AITTestMethodLine);
     end;
 
     /// <summary>

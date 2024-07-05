@@ -13,6 +13,7 @@ page 149033 "AIT Log Entries"
     Editable = false;
     SourceTable = "AIT Log Entry";
     Extensible = false;
+    UsageCategory = None;
 
     layout
     {
@@ -24,44 +25,44 @@ page 149033 "AIT Log Entries"
 
                 field(RunID; Rec."Run ID")
                 {
-                    ToolTip = 'Specifies the AIT RunID Guid.';
+                    ToolTip = 'Specifies the Run ID.';
                     Visible = false;
                 }
                 field("Code"; Rec."Test Suite Code")
                 {
-                    ToolTip = 'Specifies the AIT Code of the AIT.';
+                    ToolTip = 'Specifies the Test Suite Code.';
                     Visible = false;
                 }
                 field("AIT Line No."; Rec."Test Method Line No.")
                 {
-                    ToolTip = 'Specifies the Line No. of the AIT.';
+                    ToolTip = 'Specifies the Test Method Line No.';
                     Visible = false;
                 }
                 field("Entry No."; Rec."Entry No.")
                 {
-                    ToolTip = 'Specifies the Entry No. of the AIT.';
+                    ToolTip = 'Specifies the Log Entry No..';
                     Visible = false;
                 }
                 field(Version; Rec.Version)
                 {
                     Caption = 'Version No.';
-                    ToolTip = 'Specifies the Version No. of the AIT execution.';
+                    ToolTip = 'Specifies the Version No. of the test run.';
                 }
                 field(Tag; Rec.Tag)
                 {
-                    ToolTip = 'Specifies the Tag that we entered in the AIT Test Suite.';
+                    ToolTip = 'Specifies the Tag that we entered in the AI Test Suite.';
                 }
                 field(CodeunitID; Rec."Codeunit ID")
                 {
-                    ToolTip = 'Specifies the codeunit id of the AIT.';
+                    ToolTip = 'Specifies the test codeunit id.';
                 }
                 field(CodeunitName; Rec."Codeunit Name")
                 {
-                    ToolTip = 'Specifies the codeunit name of the AIT.';
+                    ToolTip = 'Specifies the test codeunit name.';
                 }
                 field(Operation; Rec.Operation)
                 {
-                    ToolTip = 'Specifies the single operation of the AIT.';
+                    ToolTip = 'Specifies the operation.';
                     Visible = false;
                     Enabled = false;
                 }
@@ -71,7 +72,7 @@ page 149033 "AIT Log Entries"
                 }
                 field("Original Operation"; Rec."Original Operation")
                 {
-                    ToolTip = 'Specifies the original operation of the AIT.';
+                    ToolTip = 'Specifies the original operation.';
                     Visible = false;
                     Enabled = false;
                 }
@@ -83,13 +84,11 @@ page 149033 "AIT Log Entries"
                 }
                 field("Orig. Status"; Rec."Original Status")
                 {
-                    Caption = 'Orig. Status';
                     Visible = false;
-                    ToolTip = 'Specifies the original status of the iteration.';
                 }
                 field(Dataset; Rec."Test Input Group Code")
                 {
-                    ToolTip = 'Specifies the dataset of the AIT.';
+                    ToolTip = 'Specifies the dataset that is used by the test.';
                 }
                 field("Dataset Line No."; Rec."Test Input Code")
                 {

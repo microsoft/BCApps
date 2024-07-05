@@ -7,7 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 using System.TestTools.TestRunner;
 
-codeunit 149042 "AIT Test Runner"
+codeunit 149042 "AIT Test Run Iteration"
 {
     TableNo = "AIT Test Method Line";
     SingleInstance = true;
@@ -128,7 +128,7 @@ codeunit 149042 "AIT Test Runner"
     var
         AITContextCU: Codeunit "AIT Test Context";
     begin
-        if ActiveAITTestSuite.Code = '' then // exit the code if not triggered by AIT 
+        if ActiveAITTestSuite.Code = '' then
             exit;
         if FunctionName = '' then
             exit;
@@ -143,8 +143,9 @@ codeunit 149042 "AIT Test Runner"
     var
         AITContextCU: Codeunit "AIT Test Context";
     begin
-        if ActiveAITTestSuite.Code = '' then // exit the code if not triggered by AIT 
+        if ActiveAITTestSuite.Code = '' then
             exit;
+
         if FunctionName = '' then
             exit;
 

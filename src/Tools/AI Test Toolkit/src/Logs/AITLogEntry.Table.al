@@ -43,7 +43,7 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'End Time';
         }
-        field(6; Message; Blob)
+        field(6; "Message Text"; Blob)
         {
             DataClassification = CustomerContent;
             Caption = 'Message';
@@ -156,16 +156,7 @@ table 149034 "AIT Log Entry"
         {
             Clustered = true;
         }
-        key(Key2; "Test Suite Code", Version, "Test Method Line No.", Operation, "Duration (ms)", "Test Input Code")
-        {
-            // Instead of a SIFT index. This will make both inserts and calculations faster - and non-blocking
-            IncludedFields = "Procedure Name", Status;
-        }
-        key(Key4; "Test Suite Code", Version, Operation, "Duration (ms)")
-        {
-            // Instead of a SIFT index. This will make both inserts and calculations faster - and non-blocking
-        }
-        key(Key3; "Duration (ms)")
+        key(Key2; "Test Suite Code", Version, "Test Method Line No.")
         {
             SumIndexFields = "Duration (ms)";
         }
@@ -174,7 +165,7 @@ table 149034 "AIT Log Entry"
     trigger OnInsert()
     begin
         if "End Time" = 0DT then
-            "End Time" := CurrentDateTime;
+            "End Time" := CurrentDateTime();
         if "Start Time" = 0DT then
             "Start Time" := "End Time" - "Duration (ms)";
         if "Duration (ms)" = 0 then
@@ -221,13 +212,13 @@ table 149034 "AIT Log Entry"
         exit(OutputContent);
     end;
 
-    procedure SetMessage(Msg: Text)
+    procedure SetMessage(NewMessageText: Text)
     var
         MessageOutStream: OutStream;
     begin
-        Clear(Message);
-        Message.CreateOutStream(MessageOutStream, GetDefaultTextEncoding());
-        MessageOutStream.WriteText(Msg);
+        Clear("Message Text");
+        "Message Text".CreateOutStream(MessageOutStream, GetDefaultTextEncoding());
+        MessageOutStream.WriteText(NewMessageText);
     end;
 
     procedure GetMessage(): Text
@@ -235,8 +226,8 @@ table 149034 "AIT Log Entry"
         MessageInStream: InStream;
         MessageText: Text;
     begin
-        CalcFields(Message);
-        Message.CreateInStream(MessageInStream, GetDefaultTextEncoding());
+        CalcFields("Message Text");
+        "Message Text".CreateInStream(MessageInStream, GetDefaultTextEncoding());
         MessageInStream.ReadText(MessageText);
         exit(MessageText);
     end;

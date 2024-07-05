@@ -24,19 +24,16 @@ table 149032 "AIT Test Method Line"
             Editable = false;
             NotBlank = true;
             TableRelation = "AIT Test Suite";
-            DataClassification = CustomerContent;
         }
         field(2; "Line No."; Integer)
         {
             Editable = false;
             Caption = 'Line No.';
-            DataClassification = CustomerContent;
         }
         field(3; "Codeunit ID"; Integer)
         {
             Caption = 'Codeunit ID';
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Codeunit));
-            DataClassification = CustomerContent;
 
             trigger OnLookup()
             var
@@ -58,7 +55,7 @@ table 149032 "AIT Test Method Line"
                 CalcFields("Codeunit Name");
 
 
-                if ("Codeunit ID" = Codeunit::"AIT Test Runner") or not (CodeunitMetadata.TableNo in [0, Database::"AIT Test Method Line"]) then
+                if ("Codeunit ID" = Codeunit::"AIT Test Run Iteration") or not (CodeunitMetadata.TableNo in [0, Database::"AIT Test Method Line"]) then
                     if not (CodeunitMetadata.SubType = CodeunitMetadata.SubType::Test) then
                         Error(NotSupportedCodeunitErr, "Codeunit Name");
             end;
@@ -86,7 +83,6 @@ table 149032 "AIT Test Method Line"
         {
             Caption = 'Status';
             Editable = false;
-            DataClassification = CustomerContent;
         }
         field(14; "Version Filter"; Integer)
         {
@@ -96,7 +92,7 @@ table 149032 "AIT Test Method Line"
         field(15; "No. of Tests"; Integer)
         {
             Caption = 'No. of Tests';
-            ToolTip = 'Specifies the number of tests executed for this AIT line.';
+            ToolTip = 'Specifies the number of tests executed for this AI Test line.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -112,13 +108,11 @@ table 149032 "AIT Test Method Line"
         {
             Caption = 'Sequence';
             OptionMembers = Initialization,Scenario,Finish;
-            DataClassification = CustomerContent;
         }
         field(21; Indentation; Integer)
         {
             Caption = 'Indentation';
             Editable = false;
-            DataClassification = CustomerContent;
         }
         field(25; "Base Version Filter"; Integer)
         {
@@ -128,7 +122,7 @@ table 149032 "AIT Test Method Line"
         field(26; "No. of Tests - Base"; Integer)
         {
             Caption = 'No. of Tests - Base';
-            ToolTip = 'Specifies the number of tests executed for this AIT line for the base version.';
+            ToolTip = 'Specifies the number of tests executed for this AI Test line for the base version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -176,7 +170,6 @@ table 149032 "AIT Test Method Line"
         {
             Caption = 'AL Test Suite';
             Editable = false;
-            DataClassification = CustomerContent;
         }
     }
 

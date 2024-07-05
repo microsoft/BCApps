@@ -172,11 +172,12 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         JsonOutStream: OutStream;
         JsonInStream: InStream;
         NoTestOutputFoundErr: Label 'No Test Output found in the logs';
+        TestOutputFileNameTxt: Label '%1_test_output.jsonl';
     begin
         AITLogEntry.SetLoadFields("Test Suite Code", "Output Data");
         AITLogEntry.ReadIsolation := IsolationLevel::ReadUncommitted;
         if AITLogEntry.FindSet() then begin
-            FileNameTxt := Format(AITLogEntry."Test Suite Code") + '_' + 'test_output' + '.jsonl';
+            FileNameTxt := StrSubstNo(TestOutputFileNameTxt, AITLogEntry."Test Suite Code");
             repeat
                 TestOutput := AITLogEntry.GetOutputBlob();
                 if TestOutput <> '' then
@@ -188,8 +189,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
                 JsonOutStream.WriteText(JsonTextBuilder.ToText());
                 TempBlob.CreateInStream(JsonInStream, TextEncoding::UTF8);
                 DownloadFromStream(JsonInStream, '', '', '.jsonl', FileNameTxt);
-            end
-            else
+            end else
                 Error(NoTestOutputFoundErr);
         end;
     end;

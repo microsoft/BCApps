@@ -17,11 +17,11 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITRunStartedLbl: Label 'AI Test Suite run started.', Locked = true;
         AITRunFinishedLbl: Label 'AI Test Suite run finished.', Locked = true;
         AITRunCancelledLbl: Label 'AI Test Suite run cancelled.', Locked = true;
-        EmptyDatasetSuiteErr: Label 'Please provide a dataset for the AIT Suite %1.', Comment = '%1 is the AIT Suite code';
-        NoDatasetInSuiteErr: Label 'The dataset %1 specified for AIT Suite %2 does not exist.', Comment = '%1 is the Dataset name, %2 is the AIT Suite code';
-        NoInputsInSuiteErr: Label 'The dataset %1 specified for AIT Suite %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the AIT Suite code.';
-        NoDatasetInLineErr: Label 'The dataset %1 specified for AIT Line %2 does not exist.', Comment = '%1 is the Dataset name, %2 is AIT Line No.';
-        NoInputsInLineErr: Label 'The dataset %1 specified for AIT line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the AIT Line No.';
+        EmptyDatasetSuiteErr: Label 'Please provide a dataset for the AI Test Suite %1.', Comment = '%1 is the AI Test Suite code';
+        NoDatasetInSuiteErr: Label 'The dataset %1 specified for AI Test Suite %2 does not exist.', Comment = '%1 is the Dataset name, %2 is the AI Test Suite code';
+        NoInputsInSuiteErr: Label 'The dataset %1 specified for AI Test Suite %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the AI Test Suite code.';
+        NoDatasetInLineErr: Label 'The dataset %1 specified for AI Test Line %2 does not exist.', Comment = '%1 is the Dataset name, %2 is AI Test Line No.';
+        NoInputsInLineErr: Label 'The dataset %1 specified for AI Test line %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the AI Test Line No.';
         ScenarioStarted: Dictionary of [Text, DateTime];
         ScenarioOutput: Dictionary of [Text, Text];
         ScenarioNotStartedErr: Label 'Scenario %1 in codeunit %2 was not started.', Comment = '%1 = method name, %2 = codeunit name';
@@ -91,7 +91,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Running);
         AITTestMethodLine.Modify(true);
         Commit();
-        Codeunit.Run(Codeunit::"AIT Test Runner", AITTestMethodLine);
+        Codeunit.Run(Codeunit::"AIT Test Run Iteration", AITTestMethodLine);
         if AITTestMethodLine.Find() then begin
             AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Completed);
             AITTestMethodLine.Modify(true);
@@ -264,7 +264,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         AITLogEntry: Record "AIT Log Entry";
         TestInput: Record "Test Input";
-        AITTestRunner: Codeunit "AIT Test Runner"; // single instance
+        AITTestRunIteration: Codeunit "AIT Test Run Iteration"; // single instance
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
         ModifiedOperation: Text;
         ModifiedExecutionSuccess: Boolean;
@@ -279,7 +279,7 @@ codeunit 149034 "AIT Test Suite Mgt."
             EntryWasModified := true;
 
         AITTestMethodLine.TestField("Test Suite Code");
-        AITTestRunner.GetAITTestSuite(GlobalAITTestSuite);
+        AITTestRunIteration.GetAITTestSuite(GlobalAITTestSuite);
 
         AITLogEntry."Run ID" := GlobalAITTestSuite.RunID;
         AITLogEntry."Test Suite Code" := AITTestMethodLine."Test Suite Code";
@@ -288,7 +288,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry."Codeunit ID" := AITTestMethodLine."Codeunit ID";
         AITLogEntry.Operation := CopyStr(ModifiedOperation, 1, MaxStrLen(AITLogEntry.Operation));
         AITLogEntry."Original Operation" := CopyStr(Operation, 1, MaxStrLen(AITLogEntry."Original Operation"));
-        AITLogEntry.Tag := AITTestRunner.GetAITTestSuiteTag();
+        AITLogEntry.Tag := AITTestRunIteration.GetAITTestSuiteTag();
         AITLogEntry.ModelVersion := GlobalAITTestSuite.ModelVersion;
         AITLogEntry."Entry No." := 0;
 
@@ -332,7 +332,7 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         Commit();
         AddLogAppInsights(AITLogEntry);
-        AITTestRunner.AddToNoOfLogEntriesInserted();
+        AITTestRunIteration.AddToNoOfLogEntriesInserted();
     end;
 
     local procedure AddLogAppInsights(var AITLogEntry: Record "AIT Log Entry")

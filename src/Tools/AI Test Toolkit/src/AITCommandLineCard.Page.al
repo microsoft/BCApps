@@ -9,12 +9,13 @@ using System.Environment;
 using System.TestTools.TestRunner;
 using System.Utilities;
 
-page 149042 "CommandLine Card"
+page 149042 "AIT CommandLine Card"
 {
     Caption = 'AI Test CommandLine Runner';
     PageType = Card;
     Extensible = false;
     ApplicationArea = All;
+    UsageCategory = None;
 
     layout
     {
@@ -25,7 +26,7 @@ page 149042 "CommandLine Card"
                 Caption = 'General';
                 field("AIT Suite Code"; AITCode)
                 {
-                    Caption = 'AIT Suite Code', Locked = true;
+                    Caption = 'Test Suite Code', Locked = true;
                     ToolTip = 'Specifies the ID of the suite.';
                     TableRelation = "AIT Test Suite".Code;
 
@@ -42,7 +43,7 @@ page 149042 "CommandLine Card"
                 field("No. of Pending Tests"; NoOfPendingTests)
                 {
                     Caption = 'No. of Pending Tests', Locked = true;
-                    ToolTip = 'Specifies the number of AIT Suite Lines in the AIT Suite that are yet to be run.';
+                    ToolTip = 'Specifies the number of test suite lines in the test suite that are yet to be run.';
                     Editable = false;
                 }
             }
@@ -212,7 +213,7 @@ page 149042 "CommandLine Card"
     end;
 
     var
-        CannotFindAITSuiteErr: Label 'The specified AIT Suite with code %1 cannot be found.', Comment = '%1 = AIT Suite id.';
+        CannotFindAITSuiteErr: Label 'The specified Test Suite with code %1 cannot be found.', Comment = '%1 = Test Suite id.';
         EnableActions: Boolean;
         AITCode: Code[100];
         NoOfPendingTests: Integer;
@@ -225,10 +226,11 @@ page 149042 "CommandLine Card"
         AITTestSuite: Record "AIT Test Suite";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
-        if AITTestSuite.Get(AITCode) then begin
-            AITTestSuiteMgt.StartAITSuite(AITTestSuite);
-            RefreshNoOfPendingTests();
-        end;
+        if not AITTestSuite.Get(AITCode) then
+            exit;
+
+        AITTestSuiteMgt.StartAITSuite(AITTestSuite);
+        RefreshNoOfPendingTests();
     end;
 
     local procedure StartNextTest()
@@ -254,8 +256,7 @@ page 149042 "CommandLine Card"
             AITTestMethodLine.SetRange("Test Suite Code", AITCode);
             AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::" ");
             NoOfPendingTests := AITTestMethodLine.Count();
-        end
-        else
+        end else
             NoOfPendingTests := 0;
     end;
 

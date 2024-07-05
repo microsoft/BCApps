@@ -16,7 +16,7 @@ page 149040 "AIT Test Suite List"
     RefreshOnActivate = true;
     UsageCategory = Lists;
     Extensible = true;
-    AdditionalSearchTerms = 'AIT, AI Test Suite, Test Suite, Copilot, Copilot Test';
+    AdditionalSearchTerms = 'AIT, AI Test Tool, Test Tool, AI Test Suite, Test Suite, Copilot, Copilot Test';
     ApplicationArea = All;
 
     layout
@@ -38,12 +38,12 @@ page 149040 "AIT Test Suite List"
                 field(Started; Rec."Started at")
                 {
                     Caption = 'Started at';
-                    ToolTip = 'Specifies when the AIT was started.';
+                    ToolTip = 'Specifies when the AI Test suite was started.';
                 }
                 field(Status; Rec.Status)
                 {
                     Caption = 'Status';
-                    ToolTip = 'Specifies the status of the AIT.';
+                    ToolTip = 'Specifies the status of the AI Test suite.';
                 }
 
             }
@@ -60,7 +60,7 @@ page 149040 "AIT Test Suite List"
                 {
                     Caption = 'Import';
                     Image = Import;
-                    ToolTip = 'Import a file with AIT Suite details.';
+                    ToolTip = 'Import a file with AI Test Suite details.';
 
                     trigger OnAction()
                     var
@@ -76,7 +76,7 @@ page 149040 "AIT Test Suite List"
                     Image = Export;
                     Enabled = ValidRecord;
                     Scope = Repeater;
-                    ToolTip = 'Exports a file with AIT Suite details.';
+                    ToolTip = 'Exports a file with AI Test Suite details.';
 
                     trigger OnAction()
                     var

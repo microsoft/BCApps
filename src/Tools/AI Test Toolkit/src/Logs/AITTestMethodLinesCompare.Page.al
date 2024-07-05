@@ -14,6 +14,7 @@ page 149035 "AIT Test Method Lines Compare"
     ModifyAllowed = false;
     InsertAllowed = false;
     DeleteAllowed = false;
+    UsageCategory = None;
 
     layout
     {
@@ -71,7 +72,7 @@ page 149035 "AIT Test Method Lines Compare"
                         label(TotalDuration)
                         {
                             Caption = 'Total Duration (ms)';
-                            ToolTip = 'Specifies Total Duration of the AIT for this role for the version.';
+                            ToolTip = 'Specifies Total Duration of the test for given version.';
                         }
                     }
                     group("Latest Version")
@@ -105,7 +106,7 @@ page 149035 "AIT Test Method Lines Compare"
                         }
                         field(Duration; Rec."Total Duration (ms)")
                         {
-                            ToolTip = 'Specifies Total Duration of the AIT for this role.';
+                            ToolTip = 'Specifies Total Duration of the tests for this version.';
                             ShowCaption = false;
                         }
                     }
@@ -140,7 +141,7 @@ page 149035 "AIT Test Method Lines Compare"
                         }
                         field(DurationBase; Rec."Total Duration - Base (ms)")
                         {
-                            ToolTip = 'Specifies Total Duration of the AIT for this role for the base version.';
+                            ToolTip = 'Specifies Total Duration of the tests for the base version.';
                             Caption = 'Total Duration Base (ms)';
                             ShowCaption = false;
                         }

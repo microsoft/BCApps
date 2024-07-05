@@ -15,6 +15,7 @@ page 149036 "AIT Test Suite Compare"
     ModifyAllowed = false;
     InsertAllowed = false;
     DeleteAllowed = false;
+    UsageCategory = None;
 
     layout
     {
@@ -72,7 +73,7 @@ page 149036 "AIT Test Suite Compare"
                         label(TotalDuration)
                         {
                             Caption = 'Total Duration (ms)';
-                            ToolTip = 'Specifies Total Duration of the AIT for this role for the version.';
+                            ToolTip = 'Specifies Total Duration of the tests for the version.';
                         }
                     }
                     group("Latest Version")
@@ -106,7 +107,7 @@ page 149036 "AIT Test Suite Compare"
                         }
                         field(Duration; Rec."Total Duration (ms)")
                         {
-                            ToolTip = 'Specifies Total Duration of the AIT for this role.';
+                            ToolTip = 'Specifies Total Duration of the tests for this version.';
                             ShowCaption = false;
                         }
                     }
@@ -141,7 +142,7 @@ page 149036 "AIT Test Suite Compare"
                         }
                         field(DurationBase; Rec."Total Duration (ms) - Base")
                         {
-                            ToolTip = 'Specifies Total Duration of the AIT for this role for the base version.';
+                            ToolTip = 'Specifies Total Duration of the tests for the version.';
                             Caption = 'Total Duration Base (ms)';
                             ShowCaption = false;
                         }

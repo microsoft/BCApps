@@ -16,6 +16,7 @@ page 149031 "AIT Test Suite"
     SourceTable = "AIT Test Suite";
     Extensible = false;
     DataCaptionExpression = PageCaptionLbl + ' - ' + Rec."Code";
+    UsageCategory = None;
 
     layout
     {
@@ -156,7 +157,7 @@ page 149031 "AIT Test Suite"
                 Enabled = (EnableActions and (Rec.Status <> Rec.Status::Running));
                 Caption = 'Start';
                 Image = Start;
-                ToolTip = 'Starts running the AIT Suite.';
+                ToolTip = 'Starts running the AI Test Suite.';
 
                 trigger OnAction()
                 begin

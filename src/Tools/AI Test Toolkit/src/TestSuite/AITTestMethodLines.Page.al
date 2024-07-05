@@ -14,6 +14,7 @@ page 149034 "AIT Test Method Lines"
     AutoSplitKey = true;
     DelayedInsert = true;
     Extensible = false;
+    UsageCategory = None;
 
     layout
     {
@@ -28,7 +29,7 @@ page 149034 "AIT Test Method Lines"
                 }
                 field(LineNo; Rec."Line No.")
                 {
-                    ToolTip = 'Specifies the line number of the AIT line.';
+                    ToolTip = 'Specifies the line number of the AI Test line.';
                     Visible = false;
                 }
                 field(CodeunitID; Rec."Codeunit ID")
@@ -50,7 +51,7 @@ page 149034 "AIT Test Method Lines"
                 }
                 field(Description; Rec.Description)
                 {
-                    ToolTip = 'Specifies the description of the AIT line.';
+                    ToolTip = 'Specifies the description of the AI Test line.';
                 }
                 field(Status; Rec.Status)
                 {
@@ -90,11 +91,11 @@ page 149034 "AIT Test Method Lines"
                 }
                 field(Duration; Rec."Total Duration (ms)")
                 {
-                    ToolTip = 'Specifies Total Duration of the AIT for this role.';
+                    ToolTip = 'Specifies Total Duration of the AI Tests.';
                 }
                 field(AvgDuration; AITTestSuiteMgt.GetAvgDuration(Rec))
                 {
-                    ToolTip = 'Specifies average duration of the AIT for this role.';
+                    ToolTip = 'Specifies average duration of the AI Tests.';
                     Caption = 'Average Duration (ms)';
                     Visible = false;
                 }
@@ -135,19 +136,19 @@ page 149034 "AIT Test Method Lines"
                 }
                 field(DurationBase; Rec."Total Duration - Base (ms)")
                 {
-                    ToolTip = 'Specifies Total Duration of the AIT for this role for the base version.';
+                    ToolTip = 'Specifies Total Duration of the AI Tests for the base version.';
                     Caption = 'Total Duration Base (ms)';
                     Visible = false;
                 }
                 field(AvgDurationBase; GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"))
                 {
-                    ToolTip = 'Specifies average duration of the AIT for this role for the base version.';
+                    ToolTip = 'Specifies average duration of the AI Tests for the base version.';
                     Caption = 'Average Duration Base (ms)';
                     Visible = false;
                 }
                 field(AvgDurationDeltaPct; GetDiffPct(GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"), GetAvg(Rec."No. of Tests", Rec."Total Duration (ms)")))
                 {
-                    ToolTip = 'Specifies difference in duration of the AIT for this role compared to the base version.';
+                    ToolTip = 'Specifies difference in duration of the AI Tests compared to the base version.';
                     Caption = 'Change in Duration (%)';
                     Visible = false;
                 }
@@ -162,7 +163,7 @@ page 149034 "AIT Test Method Lines"
             {
                 Caption = 'Run Test';
                 Image = Start;
-                ToolTip = 'Starts running the AIT Line.';
+                ToolTip = 'Starts running the AI Test Line.';
 
                 trigger OnAction()
                 begin

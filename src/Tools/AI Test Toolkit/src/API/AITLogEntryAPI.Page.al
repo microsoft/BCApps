@@ -33,7 +33,7 @@ page 149038 "AIT Log Entry API"
                 }
                 field("aitCode"; Rec."Test Suite Code")
                 {
-                    Caption = 'AIT Code';
+                    Caption = 'Test Suite Code';
                     Editable = false;
                     NotBlank = true;
                     TableRelation = "AIT Test Suite";
