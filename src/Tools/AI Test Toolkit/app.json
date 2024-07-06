@@ -1,0 +1,47 @@
+{
+    "id": "2156302a-872f-4568-be0b-60968696f0d5",
+    "name": "AI Test Toolkit",
+    "publisher": "Microsoft",
+    "version": "25.0.0.0",
+    "propagateDependencies": true,
+    "brief": "Provides tools for AI feature regression testing.",
+    "description": "The AI Test Toolkit lets developers write and run automated tests for AI features. The toolkit supports running data driven tests and the ability to get the output generated from the tests.",
+    "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+    "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help": "https://go.microsoft.com/fwlink/?LinkId=724011",
+    "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+    "logo": "./logo/ExtensionLogo.png",
+    "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/",
+    "dependencies": [
+        {
+            "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+            "name": "System Application",
+            "publisher": "Microsoft",
+            "version": "25.0.0.0"
+        },
+        {
+            "id": "23de40a6-dfe8-4f80-80db-d70f83ce8caf",
+            "name": "Test Runner",
+            "publisher": "Microsoft",
+            "version": "25.0.0.0"
+        }
+    ],
+    "screenshots": [],
+    "platform": "25.0.0.0",
+    "idRanges": [
+        {
+            "from": 149030,
+            "to": 149050
+        }
+    ],
+    "features": [
+        "TranslationFile",
+        "GenerateCaptions"
+    ],
+    "resourceExposurePolicy": {
+        "allowDebugging": true,
+        "allowDownloadingSource": true,
+        "includeSourceInSymbolFile": true
+    },
+    "target": "Cloud"
+}
