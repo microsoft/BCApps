@@ -15,8 +15,8 @@ codeunit 130461 "Test Output"
     var
         TestInput: Codeunit "Test Input";
     begin
-        Clear(this.CurrentTestJson);
-        this.InitializeBeforeTestRun(CodeunitID, FunctionName, TestInput.GetTestInputName(), CurrentTestMethodLine);
+        Clear(CurrentTestJson);
+        InitializeBeforeTestRun(CodeunitID, FunctionName, TestInput.GetTestInputName(), CurrentTestMethodLine);
     end;
 
     local procedure InitializeBeforeTestRun(CodeunitID: Integer; TestName: Text; TestInputName: Text; var CurrentTestMethodLine: Record "Test Method Line")
@@ -24,40 +24,40 @@ codeunit 130461 "Test Output"
         TestJsonCodeunit: Codeunit "Test Output Json";
         CurrentTestOutputJson: Codeunit "Test Output Json";
     begin
-        if not this.TestJsonInitialized then begin
-            this.GlobalTestJson := TestJsonCodeunit;
-            this.GlobalTestJson.Initialize();
-            this.TestJsonInitialized := true;
+        if not TestJsonInitialized then begin
+            GlobalTestJson := TestJsonCodeunit;
+            GlobalTestJson.Initialize();
+            TestJsonInitialized := true;
         end;
 
-        CurrentTestOutputJson := this.GlobalTestJson.ReplaceElement(this.GetUniqueTestName(CodeunitID, TestName, CurrentTestMethodLine."Line No.", TestInputName), '{}');
-        CurrentTestOutputJson.Add(this.TestNameLbl, TestName);
-        CurrentTestOutputJson.Add(this.LineNumberLbl, Format(CurrentTestMethodLine."Line No.", 0, 9));
+        CurrentTestOutputJson := GlobalTestJson.ReplaceElement(GetUniqueTestName(CodeunitID, TestName, CurrentTestMethodLine."Line No.", TestInputName), '{}');
+        CurrentTestOutputJson.Add(TestNameLbl, TestName);
+        CurrentTestOutputJson.Add(LineNumberLbl, Format(CurrentTestMethodLine."Line No.", 0, 9));
         if TestInputName <> '' then
-            CurrentTestOutputJson.Add(this.TestInputNameLbl, TestInputName);
-        this.CurrentTestJson := CurrentTestOutputJson.Add(this.TestOutputLbl, '');
+            CurrentTestOutputJson.Add(TestInputNameLbl, TestInputName);
+        CurrentTestJson := CurrentTestOutputJson.Add(TestOutputLbl, '');
     end;
 
     procedure TestData(): Codeunit "Test Output Json"
     begin
-        exit(this.CurrentTestJson);
+        exit(CurrentTestJson);
     end;
 
     procedure GetAllTestOutput(): Codeunit "Test Output Json"
     begin
-        exit(this.GlobalTestJson);
+        exit(GlobalTestJson);
     end;
 
     procedure ResetOutput()
     begin
-        Clear(this.GlobalTestJson);
-        Clear(this.CurrentTestJson);
-        this.TestJsonInitialized := false;
+        Clear(GlobalTestJson);
+        Clear(CurrentTestJson);
+        TestJsonInitialized := false;
     end;
 
     procedure DownloadTestOutput()
     begin
-        this.GetAllTestOutput().DownloadToFile();
+        GetAllTestOutput().DownloadToFile();
     end;
 
     procedure ShowTestOutputs()
@@ -65,8 +65,8 @@ codeunit 130461 "Test Output"
         TempTestOutput: Record "Test Output" temporary;
         TestOutput: Text;
     begin
-        TestOutput := this.GetAllTestOutput().ToText();
-        this.ParseTestOutput(TestOutput, TempTestOutput);
+        TestOutput := GetAllTestOutput().ToText();
+        ParseTestOutput(TestOutput, TempTestOutput);
         Page.Run(Page::"Test Outputs", TempTestOutput);
     end;
 
@@ -84,7 +84,7 @@ codeunit 130461 "Test Output"
 
         TestJson.ReadFrom(TestOutput);
         foreach TestMethodJsonToken in TestJson.Values() do
-            this.ParseTestOutputJson(TestMethodJsonToken.AsObject(), TempTestOutput);
+            ParseTestOutputJson(TestMethodJsonToken.AsObject(), TempTestOutput);
     end;
 
     local procedure ParseTestOutputJson(CodeunitJsonToken: JsonObject; var TempTestOutput: Record "Test Output" temporary)
@@ -93,21 +93,21 @@ codeunit 130461 "Test Output"
         TestOutputTxt: Text;
     begin
         Clear(TempTestOutput);
-        if CodeunitJsonToken.Get(this.TestNameLbl, JsonTokenProperty) then
+        if CodeunitJsonToken.Get(TestNameLbl, JsonTokenProperty) then
 #pragma warning disable AA0139
             TempTestOutput."Method Name" := JsonTokenProperty.AsValue().AsText();
 #pragma warning restore AA0139
 
-        if CodeunitJsonToken.Get(this.LineNumberLbl, JsonTokenProperty) then
+        if CodeunitJsonToken.Get(LineNumberLbl, JsonTokenProperty) then
             Evaluate(TempTestOutput."Line No.", JsonTokenProperty.AsValue().AsText());
 
-        if CodeunitJsonToken.Get(this.TestInputNameLbl, JsonTokenProperty) then
+        if CodeunitJsonToken.Get(TestInputNameLbl, JsonTokenProperty) then
 #pragma warning disable AA0139
             TempTestOutput."Data Input" := JsonTokenProperty.AsValue().AsText();
 #pragma warning restore AA0139
 
         TempTestOutput.Insert();
-        if CodeunitJsonToken.Get(this.TestOutputLbl, JsonTokenProperty) then begin
+        if CodeunitJsonToken.Get(TestOutputLbl, JsonTokenProperty) then begin
             JsonTokenProperty.WriteTo(TestOutputTxt);
             TempTestOutput.SetOutput(TestOutputTxt);
             TempTestOutput.Modify();
@@ -117,9 +117,9 @@ codeunit 130461 "Test Output"
     local procedure GetUniqueTestName(CodeunitID: Integer; TestName: Text; LineNumber: Integer; DataInput: Text): Text
     begin
         if DataInput = '' then
-            exit(StrSubstNo(this.UniqueNameFormatShorterLbl, Format(CodeunitID, 0, 9), Format(LineNumber, 0, 9), TestName));
+            exit(StrSubstNo(UniqueNameFormatShorterLbl, Format(CodeunitID, 0, 9), Format(LineNumber, 0, 9), TestName));
 
-        exit(StrSubstNo(this.UniqueNameFormatLongerLbl, Format(CodeunitID, 0, 9), Format(LineNumber, 0, 9), TestName, DataInput));
+        exit(StrSubstNo(UniqueNameFormatLongerLbl, Format(CodeunitID, 0, 9), Format(LineNumber, 0, 9), TestName, DataInput));
     end;
 
     var

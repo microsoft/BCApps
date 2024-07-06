@@ -15,8 +15,8 @@ codeunit 130459 "Expand Data Driven Tests"
         if not NewTempTestMethodLine.FindSet() then
             exit;
         repeat
-            this.TempTestMethodLine.TransferFields(NewTempTestMethodLine, true);
-            this.TempTestMethodLine.Insert();
+            TempTestMethodLine.TransferFields(NewTempTestMethodLine, true);
+            TempTestMethodLine.Insert();
         until NewTempTestMethodLine.Next() = 0;
     end;
 
@@ -24,43 +24,43 @@ codeunit 130459 "Expand Data Driven Tests"
     local procedure BeforeAddTestMethodLine(var TestMethodLine: Record "Test Method Line"; var Handled: Boolean)
     begin
         Handled := true;
-        this.TempTestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
-        this.TempTestMethodLine.SetRange("Test Codeunit", TestMethodLine."Test Codeunit");
+        TempTestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
+        TempTestMethodLine.SetRange("Test Codeunit", TestMethodLine."Test Codeunit");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Get Methods", 'OnAfterAddTestMethodLine', '', false, false)]
     local procedure ExpandDataDrivenTests(var TestMethodLine: Record "Test Method Line"; var MaxLineNo: Integer)
     begin
-        this.TempTestMethodLine.Reset();
-        this.TempTestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
-        this.TempTestMethodLine.SetRange("Test Codeunit", TestMethodLine."Test Codeunit");
+        TempTestMethodLine.Reset();
+        TempTestMethodLine.SetRange("Test Suite", TestMethodLine."Test Suite");
+        TempTestMethodLine.SetRange("Test Codeunit", TestMethodLine."Test Codeunit");
 
-        if this.TempTestMethodLine.IsEmpty() then
+        if TempTestMethodLine.IsEmpty() then
             exit;
 
         // Only codeunit should be inserted, other lines need to be expanded
         if TestMethodLine."Line Type" = TestMethodLine."Line Type"::Codeunit then begin
-            TestMethodLine."Data Input Group Code" := this.TempTestMethodLine."Data Input Group Code";
+            TestMethodLine."Data Input Group Code" := TempTestMethodLine."Data Input Group Code";
             TestMethodLine.Insert(true);
             exit;
         end;
 
-        this.TempTestMethodLine.SetRange("Line Type", this.TempTestMethodLine."Line Type"::Function);
-        if this.TempTestMethodLine.IsEmpty() then begin
-            this.TempTestMethodLine.SetRange("Line Type", this.TempTestMethodLine."Line Type"::Codeunit);
+        TempTestMethodLine.SetRange("Line Type", TempTestMethodLine."Line Type"::Function);
+        if TempTestMethodLine.IsEmpty() then begin
+            TempTestMethodLine.SetRange("Line Type", TempTestMethodLine."Line Type"::Codeunit);
 
-            if this.TempTestMethodLine.IsEmpty() then
+            if TempTestMethodLine.IsEmpty() then
                 exit;
         end;
 
-        if this.TempTestMethodLine.FindSet() then
+        if TempTestMethodLine.FindSet() then
             repeat
                 TestMethodLine."Line No." := MaxLineNo;
                 MaxLineNo += 10000;
-                TestMethodLine."Data Input" := this.TempTestMethodLine."Data Input";
-                TestMethodLine."Data Input Group Code" := this.TempTestMethodLine."Data Input Group Code";
+                TestMethodLine."Data Input" := TempTestMethodLine."Data Input";
+                TestMethodLine."Data Input Group Code" := TempTestMethodLine."Data Input Group Code";
                 TestMethodLine.Insert(true);
-            until this.TempTestMethodLine.Next() = 0;
+            until TempTestMethodLine.Next() = 0;
     end;
 
     var

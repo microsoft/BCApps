@@ -21,12 +21,12 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'Code';
             NotBlank = true;
-            ToolTip = 'Specifies the ID of the AIT.';
+            ToolTip = 'Specifies the Code of the AI Test Suite.';
         }
         field(2; "Description"; Text[250])
         {
             Caption = 'Description';
-            ToolTip = 'Specifies the description of the AIT.';
+            ToolTip = 'Specifies the description of the AI Test Suite.';
         }
         field(4; Status; Enum "AIT Test Suite Status")
         {
@@ -45,24 +45,28 @@ table 149030 "AIT Test Suite"
             Caption = 'Input Dataset';
             TableRelation = "Test Input Group".Code;
             ValidateTableRelation = true;
+            ToolTip = 'Specifies a default dataset.';
         }
         field(8; "Ended at"; DateTime)
         {
             Caption = 'Ended at';
             Editable = false;
+            ToolTip = 'Specifies when the running of AI Test suite was ended.';
         }
-        field(10; "No. of Tests running"; Integer)
+        field(10; "No. of Tests Running"; Integer)
         {
             Caption = 'No. of tests running';
+            ToolTip = 'Specifies the number of tests running in the current version.';
+
             trigger OnValidate()
             var
                 AITTestMethodLine: Record "AIT Test Method Line";
                 AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
             begin
-                if "No. of Tests running" < 0 then
-                    "No. of Tests running" := 0;
+                if "No. of Tests Running" < 0 then
+                    "No. of Tests Running" := 0;
 
-                if "No. of Tests running" <> 0 then
+                if "No. of Tests Running" <> 0 then
                     exit;
 
                 case Status of
@@ -95,7 +99,7 @@ table 149030 "AIT Test Suite"
 #pragma warning restore AA0232
         {
             Caption = 'Total Duration (ms)';
-            ToolTip = 'Specifies the Total Duration (ms) for executing all the tests in the current version.';
+            ToolTip = 'Specifies the total duration (ms) for executing all the tests in the current version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
@@ -104,6 +108,7 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'Version';
             Editable = false;
+            ToolTip = 'Specifies the version of the current test run. It is used for comparing the results of the current test run with the results of the previous test run.';
         }
         field(16; "Base Version"; Integer)
         {
@@ -177,7 +182,7 @@ table 149030 "AIT Test Suite"
         field(34; "Total Duration (ms) - Base"; Integer)
         {
             Caption = 'Total Duration (ms) - Base';
-            ToolTip = 'Specifies the Total Duration (ms) for executing all the tests in the base version.';
+            ToolTip = 'Specifies the total duration (ms) for executing all the tests in the base version.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Code"), Version = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));

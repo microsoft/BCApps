@@ -84,7 +84,7 @@ page 149033 "AIT Log Entries"
                 field("Input Text"; InputText)
                 {
                     Caption = 'Input';
-                    ToolTip = 'Specifies the test input of the AIT.';
+                    ToolTip = 'Specifies the test input of the test.';
 
                     trigger OnDrillDown()
                     begin
@@ -94,7 +94,7 @@ page 149033 "AIT Log Entries"
                 field("Output Text"; OutputText)
                 {
                     Caption = 'Test Output';
-                    ToolTip = 'Specifies the test output of the AIT.';
+                    ToolTip = 'Specifies the test output of the test.';
 
                     trigger OnDrillDown()
                     begin

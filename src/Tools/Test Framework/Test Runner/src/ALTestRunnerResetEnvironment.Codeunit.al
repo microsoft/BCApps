@@ -17,7 +17,7 @@ codeunit 130453 "ALTestRunner Reset Environment"
 
     procedure Initialize()
     begin
-        this.CurrentWorkDate := WorkDate();
+        CurrentWorkDate := WorkDate();
     end;
 
 #if not CLEAN22
@@ -36,8 +36,8 @@ codeunit 130453 "ALTestRunner Reset Environment"
         if FunctionName = 'OnRun' then
             exit;
 
-        this.ClearLegacyLibraries(FunctionTestPermissions);
-        this.BindStopSystemTableChanges();
+        ClearLegacyLibraries(FunctionTestPermissions);
+        BindStopSystemTableChanges();
     end;
 
 #if not CLEAN22
@@ -51,7 +51,7 @@ codeunit 130453 "ALTestRunner Reset Environment"
     local procedure AfterTestMethod(var TestMethodLine: Record "Test Method Line")
 #endif
     begin
-        WorkDate(this.CurrentWorkDate);
+        WorkDate(CurrentWorkDate);
         ApplicationArea('');
     end;
 

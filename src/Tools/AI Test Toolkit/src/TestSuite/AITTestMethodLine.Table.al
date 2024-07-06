@@ -88,7 +88,7 @@ table 149032 "AIT Test Method Line"
         {
             Caption = 'Status';
             Editable = false;
-            ToolTip = 'Specifies the status of the AIT.';
+            ToolTip = 'Specifies the status of the test method.';
         }
         field(14; "Version Filter"; Integer)
         {

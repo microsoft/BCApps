@@ -13,7 +13,7 @@ page 130451 "AL Test Tool"
     ApplicationArea = All;
     AutoSplitKey = true;
     Caption = 'AL Test Tool';
-    DataCaptionExpression = this.CurrentSuiteName;
+    DataCaptionExpression = CurrentSuiteName;
     DelayedInsert = true;
     DeleteAllowed = true;
     ModifyAllowed = true;
@@ -31,7 +31,7 @@ page 130451 "AL Test Tool"
             group(Settings)
             {
                 ShowCaption = false;
-                field(CurrentSuiteName; this.CurrentSuiteName)
+                field(CurrentSuiteName; CurrentSuiteName)
                 {
                     ApplicationArea = All;
                     Caption = 'Suite Name';
@@ -41,7 +41,7 @@ page 130451 "AL Test Tool"
                     var
                         ALTestSuite: Record "AL Test Suite";
                     begin
-                        ALTestSuite.Name := this.CurrentSuiteName;
+                        ALTestSuite.Name := CurrentSuiteName;
                         if PAGE.RunModal(0, ALTestSuite) <> ACTION::LookupOK then
                             exit(false);
 
@@ -52,11 +52,11 @@ page 130451 "AL Test Tool"
 
                     trigger OnValidate()
                     begin
-                        this.ChangeTestSuite();
+                        ChangeTestSuite();
                     end;
                 }
 
-                field(TestRunner; this.TestRunnerDisplayName)
+                field(TestRunner; TestRunnerDisplayName)
                 {
                     ApplicationArea = All;
                     Caption = 'Test Runner Codeunit';
@@ -73,12 +73,12 @@ page 130451 "AL Test Tool"
                     var
                         TestSuiteMgt: Codeunit "Test Suite Mgt.";
                     begin
-                        TestSuiteMgt.LookupTestRunner(this.GlobalALTestSuite);
-                        this.TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(this.GlobalALTestSuite);
+                        TestSuiteMgt.LookupTestRunner(GlobalALTestSuite);
+                        TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(GlobalALTestSuite);
                     end;
                 }
 
-                field(CodeCoverageTrackingType; this.GlobalALTestSuite."CC Tracking Type")
+                field(CodeCoverageTrackingType; GlobalALTestSuite."CC Tracking Type")
                 {
                     ApplicationArea = All;
                     Caption = 'Code Coverage Tracking';
@@ -88,11 +88,11 @@ page 130451 "AL Test Tool"
                     var
                         TestSuiteMgt: Codeunit "Test Suite Mgt.";
                     begin
-                        TestSuiteMgt.UpdateCodeCoverageTrackingType(this.GlobalALTestSuite);
+                        TestSuiteMgt.UpdateCodeCoverageTrackingType(GlobalALTestSuite);
                     end;
                 }
 
-                field(CodeCoverageTrackAllSesssions; this.GlobalALTestSuite."CC Track All Sessions")
+                field(CodeCoverageTrackAllSesssions; GlobalALTestSuite."CC Track All Sessions")
                 {
                     ApplicationArea = All;
                     Caption = 'Code Coverage Track All Sessions';
@@ -102,14 +102,14 @@ page 130451 "AL Test Tool"
                     var
                         TestSuiteMgt: Codeunit "Test Suite Mgt.";
                     begin
-                        TestSuiteMgt.UpdateCodeCoverageTrackAllSesssions(this.GlobalALTestSuite);
+                        TestSuiteMgt.UpdateCodeCoverageTrackAllSesssions(GlobalALTestSuite);
                     end;
                 }
             }
 
             repeater(Control1)
             {
-                IndentationColumn = this.NameIndent;
+                IndentationColumn = NameIndent;
                 IndentationControls = Name;
                 ShowAsTree = true;
                 ShowCaption = false;
@@ -120,7 +120,7 @@ page 130451 "AL Test Tool"
                     Caption = 'Line Type';
                     Editable = false;
                     Style = Strong;
-                    StyleExpr = this.LineTypeEmphasize;
+                    StyleExpr = LineTypeEmphasize;
                 }
                 field(TestCodeunit; Rec."Test Codeunit")
                 {
@@ -130,7 +130,7 @@ page 130451 "AL Test Tool"
                     Caption = 'Codeunit ID';
                     Editable = false;
                     Style = Strong;
-                    StyleExpr = this.TestCodeunitEmphasize;
+                    StyleExpr = TestCodeunitEmphasize;
                 }
                 field(Name; Rec.Name)
                 {
@@ -138,7 +138,7 @@ page 130451 "AL Test Tool"
                     Caption = 'Name';
                     Editable = false;
                     Style = Strong;
-                    StyleExpr = this.NameEmphasize;
+                    StyleExpr = NameEmphasize;
                     ToolTip = 'Specifies the name of the test tool.';
                 }
                 field(Run; Rec.Run)
@@ -160,9 +160,9 @@ page 130451 "AL Test Tool"
                     Caption = 'Result';
                     Editable = false;
                     Style = Favorable;
-                    StyleExpr = this.ResultEmphasize;
+                    StyleExpr = ResultEmphasize;
                 }
-                field("Error Message"; this.ErrorMessageWithStackTraceTxt)
+                field("Error Message"; ErrorMessageWithStackTraceTxt)
                 {
                     ApplicationArea = All;
                     Caption = 'Error Message';
@@ -174,10 +174,10 @@ page 130451 "AL Test Tool"
 
                     trigger OnDrillDown()
                     begin
-                        Message(this.ErrorMessageWithStackTraceTxt);
+                        Message(ErrorMessageWithStackTraceTxt);
                     end;
                 }
-                field(Duration; this.RunDuration)
+                field(Duration; RunDuration)
                 {
                     ApplicationArea = All;
                     Caption = 'Duration';
@@ -188,7 +188,7 @@ page 130451 "AL Test Tool"
             group(Control14)
             {
                 ShowCaption = false;
-                field(SuccessfulTests; this.Success)
+                field(SuccessfulTests; Success)
                 {
                     ApplicationArea = All;
                     AutoFormatType = 1;
@@ -196,7 +196,7 @@ page 130451 "AL Test Tool"
                     Editable = false;
                     ToolTip = 'Specifies the number of Successful Tests';
                 }
-                field(FailedTests; this.Failure)
+                field(FailedTests; Failure)
                 {
                     ApplicationArea = All;
                     AutoFormatType = 1;
@@ -204,7 +204,7 @@ page 130451 "AL Test Tool"
                     Editable = false;
                     ToolTip = 'Specifies the number of Failed Tests';
                 }
-                field(SkippedTests; this.Skipped)
+                field(SkippedTests; Skipped)
                 {
                     ApplicationArea = All;
                     AutoFormatType = 1;
@@ -212,7 +212,7 @@ page 130451 "AL Test Tool"
                     Editable = false;
                     ToolTip = 'Specifies the number of Skipped Tests';
                 }
-                field(NotExecutedTests; this.NotExecuted)
+                field(NotExecutedTests; NotExecuted)
                 {
                     ApplicationArea = All;
                     AutoFormatType = 1;
@@ -292,7 +292,7 @@ page 130451 "AL Test Tool"
                     var
                         TestSuiteMgt: Codeunit "Test Suite Mgt.";
                     begin
-                        TestSuiteMgt.SelectTestMethods(this.GlobalALTestSuite);
+                        TestSuiteMgt.SelectTestMethods(GlobalALTestSuite);
                         CurrPage.Update(false);
                     end;
                 }
@@ -311,7 +311,7 @@ page 130451 "AL Test Tool"
                     var
                         TestSuiteMgt: Codeunit "Test Suite Mgt.";
                     begin
-                        TestSuiteMgt.LookupTestMethodsByRange(this.GlobalALTestSuite);
+                        TestSuiteMgt.LookupTestMethodsByRange(GlobalALTestSuite);
                         CurrPage.Update(false);
                     end;
                 }
@@ -351,12 +351,12 @@ page 130451 "AL Test Tool"
                         TestSuiteMgt: Codeunit "Test Suite Mgt.";
                     begin
                         if GuiAllowed() then
-                            if not Confirm(this.DeleteQst, false) then
+                            if not Confirm(DeleteQst, false) then
                                 exit;
 
                         CurrPage.SetSelectionFilter(TestMethodLine);
                         TestMethodLine.DeleteAll(true);
-                        TestSuiteMgt.CalcTestResults(Rec, this.Success, this.Failure, this.Skipped, this.NotExecuted);
+                        TestSuiteMgt.CalcTestResults(Rec, Success, Failure, Skipped, NotExecuted);
                     end;
                 }
                 action(InvertRun)
@@ -372,7 +372,7 @@ page 130451 "AL Test Tool"
 
                     trigger OnAction()
                     begin
-                        this.InvertRunSelection();
+                        InvertRunSelection();
                     end;
                 }
 
@@ -408,8 +408,8 @@ page 130451 "AL Test Tool"
                     var
                         TestSuiteMgt: Codeunit "Test Suite Mgt.";
                     begin
-                        TestSuiteMgt.LookupTestRunner(this.GlobalALTestSuite);
-                        this.TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(this.GlobalALTestSuite);
+                        TestSuiteMgt.LookupTestRunner(GlobalALTestSuite);
+                        TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(GlobalALTestSuite);
                     end;
                 }
             }
@@ -420,14 +420,14 @@ page 130451 "AL Test Tool"
     var
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
-        TestSuiteMgt.CalcTestResults(Rec, this.Success, this.Failure, this.Skipped, this.NotExecuted);
-        this.UpdateDisplayPropertiesForLine();
-        this.UpdateCalculatedFields();
+        TestSuiteMgt.CalcTestResults(Rec, Success, Failure, Skipped, NotExecuted);
+        UpdateDisplayPropertiesForLine();
+        UpdateCalculatedFields();
     end;
 
     trigger OnOpenPage()
     begin
-        this.SetCurrentTestSuite();
+        SetCurrentTestSuite();
     end;
 
     var
@@ -451,51 +451,51 @@ page 130451 "AL Test Tool"
     var
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
-        this.GlobalALTestSuite.Get(this.CurrentSuiteName);
-        this.GlobalALTestSuite.CalcFields("Tests to Execute");
+        GlobalALTestSuite.Get(CurrentSuiteName);
+        GlobalALTestSuite.CalcFields("Tests to Execute");
 
         CurrPage.SaveRecord();
 
         Rec.FilterGroup(2);
-        Rec.SetRange("Test Suite", this.CurrentSuiteName);
+        Rec.SetRange("Test Suite", CurrentSuiteName);
         Rec.FilterGroup(0);
 
         CurrPage.Update(false);
 
-        this.TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(this.GlobalALTestSuite);
+        TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(GlobalALTestSuite);
     end;
 
     local procedure SetCurrentTestSuite()
     var
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
-        this.GlobalALTestSuite.SetAutoCalcFields("Tests to Execute");
+        GlobalALTestSuite.SetAutoCalcFields("Tests to Execute");
 
-        if not this.GlobalALTestSuite.Get(this.CurrentSuiteName) then
-            if (this.CurrentSuiteName = '') and this.GlobalALTestSuite.FindFirst() then
-                this.CurrentSuiteName := this.GlobalALTestSuite.Name
+        if not GlobalALTestSuite.Get(CurrentSuiteName) then
+            if (CurrentSuiteName = '') and GlobalALTestSuite.FindFirst() then
+                CurrentSuiteName := GlobalALTestSuite.Name
             else begin
-                TestSuiteMgt.CreateTestSuite(this.CurrentSuiteName);
+                TestSuiteMgt.CreateTestSuite(CurrentSuiteName);
                 Commit();
-                this.GlobalALTestSuite.Get(this.CurrentSuiteName);
+                GlobalALTestSuite.Get(CurrentSuiteName);
             end;
 
         Rec.FilterGroup(2);
-        Rec.SetRange("Test Suite", this.CurrentSuiteName);
+        Rec.SetRange("Test Suite", CurrentSuiteName);
         Rec.FilterGroup(0);
 
         if Rec.Find('-') then;
 
-        this.TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(this.GlobalALTestSuite);
+        TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(GlobalALTestSuite);
     end;
 
     local procedure UpdateDisplayPropertiesForLine()
     begin
-        this.NameIndent := Rec."Line Type";
-        this.LineTypeEmphasize := Rec."Line Type" = Rec."Line Type"::Codeunit;
-        this.TestCodeunitEmphasize := Rec."Line Type" = Rec."Line Type"::Codeunit;
+        NameIndent := Rec."Line Type";
+        LineTypeEmphasize := Rec."Line Type" = Rec."Line Type"::Codeunit;
+        TestCodeunitEmphasize := Rec."Line Type" = Rec."Line Type"::Codeunit;
 #pragma warning disable AA0205
-        this.ResultEmphasize := Rec.Result = Rec.Result::Success;
+        ResultEmphasize := Rec.Result = Rec.Result::Success;
 #pragma warning restore AA0205
     end;
 
@@ -503,8 +503,8 @@ page 130451 "AL Test Tool"
     var
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
-        this.RunDuration := Rec."Finish Time" - Rec."Start Time";
-        this.ErrorMessageWithStackTraceTxt := TestSuiteMgt.GetErrorMessageWithStackTrace(Rec);
+        RunDuration := Rec."Finish Time" - Rec."Start Time";
+        ErrorMessageWithStackTraceTxt := TestSuiteMgt.GetErrorMessageWithStackTrace(Rec);
     end;
 
     local procedure InvertRunSelection()

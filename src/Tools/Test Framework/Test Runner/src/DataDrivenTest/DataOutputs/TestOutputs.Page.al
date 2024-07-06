@@ -28,7 +28,7 @@ page 130461 "Test Outputs"
                 field("Data Input"; Rec."Data Input")
                 {
                 }
-                field(TestOutput; this.TestOutputTxt)
+                field(TestOutput; TestOutputTxt)
                 {
                     Caption = 'Test Output';
                     ToolTip = 'Specifies the test output for the test method line';
@@ -44,7 +44,7 @@ page 130461 "Test Outputs"
 
     trigger OnAfterGetRecord()
     begin
-        this.TestOutputTxt := Rec.GetOutput();
+        TestOutputTxt := Rec.GetOutput();
     end;
 
     var

@@ -136,7 +136,7 @@ page 149031 "AIT Test Suite"
                 {
                     Editable = false;
                     Caption = 'Total Duration';
-                    ToolTip = 'Specifies the Total Duration for executing all the selected tests in the current version.';
+                    ToolTip = 'Specifies the total duration (ms) for executing all the selected tests in the current version.';
                 }
                 field("Average Duration"; AvgTimeDuration)
                 {

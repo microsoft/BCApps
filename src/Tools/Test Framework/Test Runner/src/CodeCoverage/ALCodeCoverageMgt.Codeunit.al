@@ -22,12 +22,12 @@ codeunit 130470 "AL Code Coverage Mgt."
 
     procedure Start(MultiSession: Boolean)
     begin
-        if this.IsRunning then
+        if IsRunning then
             Error('Already recording CC');
 
         System.CodeCoverageLog(true, MultiSession);
-        this.IsRunning := true;
-        this.IsMultiSession := MultiSession;
+        IsRunning := true;
+        IsMultiSession := MultiSession;
     end;
 
     procedure Refresh()
@@ -37,11 +37,11 @@ codeunit 130470 "AL Code Coverage Mgt."
 
     procedure Stop()
     begin
-        if not this.IsRunning then
+        if not IsRunning then
             Error('Not recording CC');
 
-        System.CodeCoverageLog(false, this.IsMultiSession);
-        this.IsRunning := false;
+        System.CodeCoverageLog(false, IsMultiSession);
+        IsRunning := false;
     end;
 
     procedure Initialize(TestSuite: Code[10]): Boolean
@@ -54,16 +54,16 @@ codeunit 130470 "AL Code Coverage Mgt."
         if ALTestSuite."CC Tracking Type" = ALTestSuite."CC Tracking Type"::Disabled then
             exit(false);
 
-        this.ALCodeCoverageSubscribers.SetALTestSuite(ALTestSuite);
-        this.SetCodeCoverageXMLPortId(ALTestSuite."CC Exporter ID");
+        ALCodeCoverageSubscribers.SetALTestSuite(ALTestSuite);
+        SetCodeCoverageXMLPortId(ALTestSuite."CC Exporter ID");
         exit(true);
     end;
 
     procedure StopAndSave(TestCodeunitId: Integer; TestMethod: Text)
     begin
         System.CodeCoverageRefresh();
-        this.Stop();
-        this.SaveCoverageResults(TestCodeunitId, TestMethod);
+        Stop();
+        SaveCoverageResults(TestCodeunitId, TestMethod);
     end;
 
     procedure CoverageFromInternals(CodeCoverage: Record "Code Coverage"): Boolean
@@ -96,10 +96,10 @@ codeunit 130470 "AL Code Coverage Mgt."
 
         CodeCoverage.SetFilter("Code Coverage Status", '%1|%2', CodeCoverage."Code Coverage Status"::Covered, CodeCoverage."Code Coverage Status"::PartiallyCovered);
         TestCodeCoverageResult."CC Result".CreateOutStream(CSVOutStream, TextEncoding::UTF16);
-        if this.CodeCoverageXMLPortId = 0 then
-            this.CodeCoverageXMLPortId := this.GetDefaultCodeCoverageXmlPortId();
+        if CodeCoverageXMLPortId = 0 then
+            CodeCoverageXMLPortId := GetDefaultCodeCoverageXmlPortId();
 
-        XmlPort.Export(this.CodeCoverageXMLPortId, CSVOutStream, CodeCoverage);
+        XmlPort.Export(CodeCoverageXMLPortId, CSVOutStream, CodeCoverage);
 
         TestCodeCoverageResult.Modify();
     end;
@@ -191,7 +191,7 @@ codeunit 130470 "AL Code Coverage Mgt."
                 NoCodeLinesHit += 1;
         until CodeCoverage2.Next() = 0;
 
-        exit(this.CoveragePercent(NoCodeLines, NoCodeLinesHit))
+        exit(CoveragePercent(NoCodeLines, NoCodeLinesHit))
     end;
 
     procedure ObjectCoverage(var CodeCoverage: Record "Code Coverage"; var NoCodeLines: Integer; var NoCodeLinesHit: Integer): Decimal
@@ -214,7 +214,7 @@ codeunit 130470 "AL Code Coverage Mgt."
         until (CodeCoverage2.Next() = 0) or
                 (CodeCoverage2."Line Type" = CodeCoverage2."Line Type"::Object);
 
-        exit(this.CoveragePercent(NoCodeLines, NoCodeLinesHit))
+        exit(CoveragePercent(NoCodeLines, NoCodeLinesHit))
     end;
 
     procedure FunctionCoverage(var CodeCoverage: Record "Code Coverage"; var NoCodeLines: Integer; var NoCodeLinesHit: Integer): Decimal
@@ -238,12 +238,12 @@ codeunit 130470 "AL Code Coverage Mgt."
                 (CodeCoverage2."Line Type" = CodeCoverage2."Line Type"::Object) or
                 (CodeCoverage2."Line Type" = CodeCoverage2."Line Type"::"Trigger/Function");
 
-        exit(this.CoveragePercent(NoCodeLines, NoCodeLinesHit))
+        exit(CoveragePercent(NoCodeLines, NoCodeLinesHit))
     end;
 
     procedure SetCodeCoverageXMLPortId(NewCodeCoverageXMLPortId: Integer)
     begin
-        this.CodeCoverageXMLPortId := NewCodeCoverageXMLPortId;
+        CodeCoverageXMLPortId := NewCodeCoverageXMLPortId;
     end;
 
     procedure GetDefaultCodeCoverageXmlPortId(): Integer

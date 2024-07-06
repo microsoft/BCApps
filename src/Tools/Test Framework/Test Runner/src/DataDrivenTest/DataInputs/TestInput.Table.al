@@ -55,7 +55,7 @@ table 130452 "Test Input"
     var
         TestInputOutStream: OutStream;
     begin
-        TestInput."Test Input".CreateOutStream(TestInputOutStream, this.GetTextEncoding());
+        TestInput."Test Input".CreateOutStream(TestInputOutStream, GetTextEncoding());
         TestInputOutStream.Write(TextInput);
         TestInput.Modify(true);
     end;
@@ -69,7 +69,7 @@ table 130452 "Test Input"
         if (not TestInput."Test Input".HasValue()) then
             exit('');
 
-        TestInput."Test Input".CreateInStream(TestInputInStream, this.GetTextEncoding());
+        TestInput."Test Input".CreateInStream(TestInputInStream, GetTextEncoding());
         TestInputInStream.Read(TextInput);
         exit(TextInput);
     end;

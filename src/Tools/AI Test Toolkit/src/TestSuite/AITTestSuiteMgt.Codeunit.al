@@ -26,7 +26,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         ScenarioOutput: Dictionary of [Text, Text];
         ScenarioNotStartedErr: Label 'Scenario %1 in codeunit %2 was not started.', Comment = '%1 = method name, %2 = codeunit name';
         NothingToRunErr: Label 'There is nothing to run. Please add test lines to the test suite.';
-        CannotRunMultipleSuitesInParallelErr: Label 'There is already a test run in progress. Start this operation after that finishes.';
+        CannotRunMultipleSuitesInParallelErr: Label 'There is already a test run in progress. You need to wait for it to finish or cancel it before starting a new test run.';
 
     procedure StartAITSuite(var AITTestSuite: Record "AIT Test Suite")
     var
@@ -54,10 +54,10 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestSuite.Validate("Started at", CurrentDateTime);
         AITTestSuiteMgt.SetRunStatus(AITTestSuite, AITTestSuite.Status::Running);
 
-        AITTestSuite."No. of Tests running" := 0;
+        AITTestSuite."No. of Tests Running" := 0;
         AITTestSuite.Version += 1;
         AITTestSuite.Modify(true);
-        Commit();
+        Commit(); // Ensure that setup is not rolled back
 
         AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite.Code);
         AITTestMethodLine.SetFilter("Codeunit ID", '<>0');
@@ -168,7 +168,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestSuite.ReadIsolation(IsolationLevel::UpdLock);
         if not AITTestSuite.Find() then
             exit;
-        AITTestSuite.Validate("No. of Tests running", AITTestSuite."No. of Tests running" - 1);
+        AITTestSuite.Validate("No. of Tests Running", AITTestSuite."No. of Tests Running" - 1);
         AITTestSuite.Modify(true);
         Commit();
     end;
@@ -184,7 +184,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestMethodLine.SetRange("Test Suite Code", AITTestSuite."Code");
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::Completed, true);
         AITTestSuite.Status := AITTestSuite.Status::Completed;
-        AITTestSuite."No. of Tests running" := 0;
+        AITTestSuite."No. of Tests Running" := 0;
         AITTestSuite."Ended at" := CurrentDateTime();
         AITTestSuite.Modify(true);
     end;

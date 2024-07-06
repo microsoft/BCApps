@@ -31,14 +31,14 @@ page 130459 "Test Input Part"
                 field(Description; Rec.Description)
                 {
                 }
-                field(InputTestInputText; this.TestInputDisplayText)
+                field(InputTestInputText; TestInputDisplayText)
                 {
                     Caption = 'Test Input';
                     ToolTip = 'Specifies the data input for the test method line';
 
                     trigger OnDrillDown()
                     begin
-                        Message(this.TestInputText);
+                        Message(TestInputText);
                     end;
                 }
             }
@@ -67,11 +67,11 @@ page 130459 "Test Input Part"
     }
     trigger OnAfterGetRecord()
     begin
-        this.TestInputText := Rec.GetInput(Rec);
+        TestInputText := Rec.GetInput(Rec);
         if Rec.IsSensitive() then
-            this.TestInputDisplayText := this.ClickToShowLbl
+            TestInputDisplayText := ClickToShowLbl
         else
-            this.TestInputDisplayText := this.TestInputText;
+            TestInputDisplayText := TestInputText;
     end;
 
     var

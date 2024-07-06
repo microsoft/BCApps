@@ -18,13 +18,13 @@ codeunit 130451 "Test Runner - Isol. Disabled"
         ALTestSuite: Record "AL Test Suite";
     begin
         if Rec."Skip Logging Results" then
-            this.TestRunnerMgt.RunTestsWithoutLoggingResults(Rec)
+            TestRunnerMgt.RunTestsWithoutLoggingResults(Rec)
         else begin
             if ALTestSuite.Get(Rec."Test Suite") then
-                this.TestSuiteName := ALTestSuite.Name;
+                TestSuiteName := ALTestSuite.Name;
 
-            this.CurrentTestMethodLine.Copy(Rec);
-            this.TestRunnerMgt.RunTests(Rec);
+            CurrentTestMethodLine.Copy(Rec);
+            TestRunnerMgt.RunTests(Rec);
         end;
     end;
 
@@ -36,15 +36,15 @@ codeunit 130451 "Test Runner - Isol. Disabled"
     trigger OnBeforeTestRun(CodeunitID: Integer; CodeunitName: Text; FunctionName: Text; FunctionTestPermissions: TestPermissions): Boolean
     begin
         exit(
-          this.TestRunnerMgt.PlatformBeforeTestRun(
-            CodeunitID, COPYSTR(CodeunitName, 1, 30), COPYSTR(FunctionName, 1, 128), FunctionTestPermissions, this.TestSuiteName, this.CurrentTestMethodLine.GetFilter("Line No.")));
+          TestRunnerMgt.PlatformBeforeTestRun(
+            CodeunitID, COPYSTR(CodeunitName, 1, 30), COPYSTR(FunctionName, 1, 128), FunctionTestPermissions, TestSuiteName, CurrentTestMethodLine.GetFilter("Line No.")));
     end;
 
     trigger OnAfterTestRun(CodeunitID: Integer; CodeunitName: Text; FunctionName: Text; FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
     begin
-        this.TestRunnerMgt.PlatformAfterTestRun(
-          CodeunitID, COPYSTR(CodeunitName, 1, 30), COPYSTR(FunctionName, 1, 128), FunctionTestPermissions, IsSuccess, this.TestSuiteName,
-          this.CurrentTestMethodLine.GetFilter("Line No."));
+        TestRunnerMgt.PlatformAfterTestRun(
+          CodeunitID, COPYSTR(CodeunitName, 1, 30), COPYSTR(FunctionName, 1, 128), FunctionTestPermissions, IsSuccess, TestSuiteName,
+          CurrentTestMethodLine.GetFilter("Line No."));
     end;
 }
 

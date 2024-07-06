@@ -9,17 +9,17 @@ codeunit 130462 "Test Output Json"
 {
     procedure Initialize()
     begin
-        this.Initialize('{}');
+        Initialize('{}');
     end;
 
     procedure Initialize(TestJsonValue: Text)
     begin
-        this.TestJson.ReadFrom(TestJsonValue);
+        TestJson.ReadFrom(TestJsonValue);
     end;
 
     procedure Initialize(var TestJsonObject: JsonToken)
     begin
-        this.TestJson := TestJsonObject;
+        TestJson := TestJsonObject;
     end;
 
     procedure Add(NewValue: Text): Codeunit "Test Output Json"
@@ -27,17 +27,17 @@ codeunit 130462 "Test Output Json"
         NewJsonToken: JsonToken;
     begin
         NewJsonToken.ReadFrom(NewValue);
-        exit(this.Add(NewJsonToken));
+        exit(Add(NewJsonToken));
     end;
 
     procedure Add(var NewJsonToken: JsonToken): Codeunit "Test Output Json"
     var
         NewTestJson: Codeunit "Test Output Json";
     begin
-        if not this.TestJson.IsArray() then
-            Error(this.TheElementIsNotAnArrayErr);
+        if not TestJson.IsArray() then
+            Error(TheElementIsNotAnArrayErr);
 
-        this.TestJson.AsArray().Add(NewJsonToken);
+        TestJson.AsArray().Add(NewJsonToken);
         NewTestJson.Initialize(NewJsonToken);
         exit(NewTestJson);
     end;
@@ -52,30 +52,30 @@ codeunit 130462 "Test Output Json"
         if NewValue = '' then begin
             NewJsonObject.ReadFrom('{}');
             NewJsonToken := NewJsonObject.AsToken();
-            exit(this.Add(Name, NewJsonToken));
+            exit(Add(Name, NewJsonToken));
         end;
 
         if NewValue.StartsWith('{') and NewValue.EndsWith('}') then begin
             NewJsonObject.ReadFrom(NewValue);
             NewJsonToken := NewJsonObject.AsToken();
-            exit(this.Add(Name, NewJsonToken));
+            exit(Add(Name, NewJsonToken));
         end;
 
         if NewValue = '[]' then begin
             NewJsonArray.ReadFrom('[]');
             NewJsonToken := NewJsonArray.AsToken();
-            exit(this.Add(Name, NewJsonToken));
+            exit(Add(Name, NewJsonToken));
         end;
 
         if NewValue.StartsWith('[') and NewValue.EndsWith(']') then begin
             NewJsonArray.ReadFrom(NewValue);
             NewJsonToken := NewJsonArray.AsToken();
-            exit(this.Add(Name, NewJsonToken));
+            exit(Add(Name, NewJsonToken));
         end;
 
         NewJsonValue.SetValue(NewValue);
         NewJsonToken := NewJsonValue.AsToken();
-        exit(this.Add(Name, NewJsonToken));
+        exit(Add(Name, NewJsonToken));
     end;
 
     procedure Add(Name: Text; DecimalValue: Decimal): Codeunit "Test Output Json"
@@ -85,7 +85,7 @@ codeunit 130462 "Test Output Json"
     begin
         NewJsonValue.SetValue(DecimalValue);
         NewJsonToken := NewJsonValue.AsToken();
-        exit(this.Add(Name, NewJsonToken));
+        exit(Add(Name, NewJsonToken));
     end;
 
     procedure Add(Name: Text; IntegerValue: Integer): Codeunit "Test Output Json"
@@ -95,7 +95,7 @@ codeunit 130462 "Test Output Json"
     begin
         NewJsonValue.SetValue(IntegerValue);
         NewJsonToken := NewJsonValue.AsToken();
-        exit(this.Add(Name, NewJsonToken));
+        exit(Add(Name, NewJsonToken));
     end;
 
     procedure Add(Name: Text; BooleanValue: Boolean): Codeunit "Test Output Json"
@@ -105,7 +105,7 @@ codeunit 130462 "Test Output Json"
     begin
         NewJsonValue.SetValue(BooleanValue);
         NewJsonToken := NewJsonValue.AsToken();
-        exit(this.Add(Name, NewJsonToken));
+        exit(Add(Name, NewJsonToken));
     end;
 
     procedure Add(Name: Text; DateTimeValue: DateTime): Codeunit "Test Output Json"
@@ -115,7 +115,7 @@ codeunit 130462 "Test Output Json"
     begin
         NewJsonValue.SetValue(DateTimeValue);
         NewJsonToken := NewJsonValue.AsToken();
-        exit(this.Add(Name, NewJsonToken));
+        exit(Add(Name, NewJsonToken));
     end;
 
     procedure Add(Name: Text; DateValue: Date): Codeunit "Test Output Json"
@@ -125,7 +125,7 @@ codeunit 130462 "Test Output Json"
     begin
         NewJsonValue.SetValue(DateValue);
         NewJsonToken := NewJsonValue.AsToken();
-        exit(this.Add(Name, NewJsonToken));
+        exit(Add(Name, NewJsonToken));
     end;
 
     procedure Add(Name: Text; var ValueVariant: JsonToken): Codeunit "Test Output Json"
@@ -134,17 +134,17 @@ codeunit 130462 "Test Output Json"
         NewJsonObject: JsonObject;
         NewJsonToken: JsonToken;
     begin
-        if this.TestJson.IsObject() then begin
-            this.TestJson.AsObject().Add(Name, ValueVariant);
+        if TestJson.IsObject() then begin
+            TestJson.AsObject().Add(Name, ValueVariant);
             NewTestJson.Initialize(ValueVariant);
             exit(NewTestJson);
         end;
 
-        if not this.TestJson.IsArray() then
-            Error(this.WrongTypeOrNotInitializedErr);
+        if not TestJson.IsArray() then
+            Error(WrongTypeOrNotInitializedErr);
 
         if Name = '' then begin
-            this.TestJson.AsArray().Add(ValueVariant);
+            TestJson.AsArray().Add(ValueVariant);
             NewTestJson.Initialize(ValueVariant);
             exit(NewTestJson);
         end;
@@ -152,14 +152,14 @@ codeunit 130462 "Test Output Json"
         NewJsonObject.ReadFrom('{}');
         NewJsonObject.Add(Name, ValueVariant);
         NewJsonToken := NewJsonObject.AsToken();
-        this.TestJson.AsArray().Add(NewJsonToken);
+        TestJson.AsArray().Add(NewJsonToken);
         NewTestJson.Initialize(NewJsonToken);
         exit(NewTestJson);
     end;
 
     procedure AddArray(Name: Text): Codeunit "Test Output Json"
     begin
-        exit(this.Add(Name, '[]'));
+        exit(Add(Name, '[]'));
     end;
 
     procedure Element(ElementName: Text): Codeunit "Test Output Json"
@@ -167,10 +167,10 @@ codeunit 130462 "Test Output Json"
         NewTestJson: Codeunit "Test Output Json";
         ElementJsonToken: JsonToken;
     begin
-        if not this.TestJson.IsObject() then
-            Error(this.TheElementIsNotAnObjectErr);
+        if not TestJson.IsObject() then
+            Error(TheElementIsNotAnObjectErr);
 
-        this.TestJson.AsObject().Get(ElementName, ElementJsonToken);
+        TestJson.AsObject().Get(ElementName, ElementJsonToken);
         NewTestJson.Initialize(ElementJsonToken);
         exit(NewTestJson);
     end;
@@ -180,9 +180,9 @@ codeunit 130462 "Test Output Json"
         NewTestJson: Codeunit "Test Output Json";
         JsonElementToken: JsonToken;
     begin
-        if not this.TestJson.IsArray() then
-            Error(this.TheElementIsNotAnArrayErr);
-        this.TestJson.AsArray().Get(ElementIndex, JsonElementToken);
+        if not TestJson.IsArray() then
+            Error(TheElementIsNotAnArrayErr);
+        TestJson.AsArray().Get(ElementIndex, JsonElementToken);
         NewTestJson.Initialize(JsonElementToken);
         exit(NewTestJson);
     end;
@@ -191,14 +191,14 @@ codeunit 130462 "Test Output Json"
     var
         ObjectJsonToken: JsonToken;
     begin
-        exit(this.TestJson.AsObject().Get(ElementName, ObjectJsonToken));
+        exit(TestJson.AsObject().Get(ElementName, ObjectJsonToken));
     end;
 
     procedure ToText(): Text
     var
         TextOutput: Text;
     begin
-        this.TestJson.WriteTo(TextOutput);
+        TestJson.WriteTo(TextOutput);
         if TextOutput = 'null' then
             exit('');
 
@@ -214,16 +214,16 @@ codeunit 130462 "Test Output Json"
         JsonInStream: InStream;
     begin
         TempDummyTestInput."Test Input".CreateOutStream(JsonOutStream, TempDummyTestInput.GetTextEncoding());
-        TextOutput := this.ToText();
+        TextOutput := ToText();
         if TextOutput = '' then
-            Error(this.NoDataOutputsWereRecordedErr);
+            Error(NoDataOutputsWereRecordedErr);
 
         TempDummyTestInput.Insert();
         JsonOutStream.Write(TextOutput);
         TempDummyTestInput.Modify();
         TempDummyTestInput.CalcFields("Test Input");
         TempDummyTestInput."Test Input".CreateInStream(JsonInStream, TempDummyTestInput.GetTextEncoding());
-        FileNameTxt := this.TestOutputJsonTok;
+        FileNameTxt := TestOutputJsonTok;
         DownloadFromStream(JsonInStream, 'Test', '', '', FileNameTxt);
     end;
 
@@ -232,9 +232,9 @@ codeunit 130462 "Test Output Json"
         NewTestJson: Codeunit "Test Output Json";
         ElementJsonToken: JsonToken;
     begin
-        if not this.TestJson.AsObject().Get(ElementName, ElementJsonToken) then begin
+        if not TestJson.AsObject().Get(ElementName, ElementJsonToken) then begin
             ElementJsonToken.ReadFrom(NewValue);
-            this.TestJson.AsObject().Add(ElementName, ElementJsonToken);
+            TestJson.AsObject().Add(ElementName, ElementJsonToken);
         end else
             ElementJsonToken.ReadFrom(NewValue);
 
@@ -247,7 +247,7 @@ codeunit 130462 "Test Output Json"
         NewTestJson: Codeunit "Test Output Json";
         ElementJsonToken: JsonToken;
     begin
-        this.TestJson.AsObject().Get(ElementName, ElementJsonToken);
+        TestJson.AsObject().Get(ElementName, ElementJsonToken);
         ElementJsonToken := NewJsonToken;
         NewTestJson.Initialize(ElementJsonToken);
 
@@ -256,7 +256,7 @@ codeunit 130462 "Test Output Json"
 
     procedure AsJsonToken(): JsonToken
     begin
-        exit(this.TestJson);
+        exit(TestJson);
     end;
 
 

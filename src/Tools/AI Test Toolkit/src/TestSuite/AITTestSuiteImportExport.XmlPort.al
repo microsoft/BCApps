@@ -70,7 +70,7 @@ xmlport 149031 "AIT Test Suite Import/Export"
                         AITTestMethodLine.SetAscending("Line No.", true);
                         AITTestMethodLine.SetRange("Test Suite Code", AITSuite.Code);
                         if AITTestMethodLine.FindLast() then;
-                        AITestMethodLine."Line No." := AITTestMethodLine."Line No." + 1000;
+                        AITestMethodLine."Line No." := AITTestMethodLine."Line No." + 10000;
                     end;
                 }
             }

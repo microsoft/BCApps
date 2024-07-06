@@ -9,17 +9,17 @@ codeunit 130464 "Test Input Json"
 {
     procedure Initialize()
     begin
-        this.Initialize('{}');
+        Initialize('{}');
     end;
 
     procedure Initialize(TestJsonValue: Text)
     begin
-        this.TestJson.ReadFrom(TestJsonValue);
+        TestJson.ReadFrom(TestJsonValue);
     end;
 
     procedure Initialize(TestJsonObject: JsonToken)
     begin
-        this.TestJson := TestJsonObject;
+        TestJson := TestJsonObject;
     end;
 
     procedure Element(ElementName: Text): Codeunit "Test Input Json"
@@ -27,9 +27,9 @@ codeunit 130464 "Test Input Json"
         TestInputJson: Codeunit "Test Input Json";
         ElementSearchedExist: Boolean;
     begin
-        TestInputJson := this.ElementExists(ElementName, ElementSearchedExist);
+        TestInputJson := ElementExists(ElementName, ElementSearchedExist);
         if not ElementSearchedExist then
-            Error(this.ElementDoesNotExistErr);
+            Error(ElementDoesNotExistErr);
 
         exit(TestInputJson);
     end;
@@ -41,10 +41,10 @@ codeunit 130464 "Test Input Json"
     begin
         ElementFound := false;
 
-        if not this.TestJson.IsObject() then
+        if not TestJson.IsObject() then
             exit(NewTestJson);
 
-        if not this.TestJson.AsObject().Get(ElementName, ElementJsonToken) then
+        if not TestJson.AsObject().Get(ElementName, ElementJsonToken) then
             exit(NewTestJson);
 
         ElementFound := true;
@@ -57,61 +57,61 @@ codeunit 130464 "Test Input Json"
         NewTestJson: Codeunit "Test Input Json";
         JsonElementToken: JsonToken;
     begin
-        if not this.TestJson.IsArray() then
-            Error(this.TheElementIsNotAnArrayErr);
-        this.TestJson.AsArray().Get(ElementIndex, JsonElementToken);
+        if not TestJson.IsArray() then
+            Error(TheElementIsNotAnArrayErr);
+        TestJson.AsArray().Get(ElementIndex, JsonElementToken);
         NewTestJson.Initialize(JsonElementToken);
         exit(NewTestJson);
     end;
 
     procedure GetElementCount(): Integer
     begin
-        if not this.TestJson.IsArray() then
-            Error(this.TheElementIsNotAnArrayErr);
+        if not TestJson.IsArray() then
+            Error(TheElementIsNotAnArrayErr);
 
-        exit(this.TestJson.AsArray().Count());
+        exit(TestJson.AsArray().Count());
     end;
 
     procedure ElementValue(): JsonValue
     begin
-        exit(this.TestJson.AsValue());
+        exit(TestJson.AsValue());
     end;
 
     procedure ValueAsText(): Text
     begin
-        exit(this.TestJson.AsValue().AsText());
+        exit(TestJson.AsValue().AsText());
     end;
 
     procedure ValueAsInteger(): Integer
     begin
-        exit(this.TestJson.AsValue().AsInteger());
+        exit(TestJson.AsValue().AsInteger());
     end;
 
     procedure ValueAsDecimal(): Decimal
     begin
-        exit(this.TestJson.AsValue().AsDecimal());
+        exit(TestJson.AsValue().AsDecimal());
     end;
 
     procedure ValueAsBoolean(): Boolean
     begin
-        exit(this.TestJson.AsValue().AsBoolean());
+        exit(TestJson.AsValue().AsBoolean());
     end;
 
     procedure ValueAsJsonObject(): JsonObject
     begin
-        exit(this.TestJson.AsObject());
+        exit(TestJson.AsObject());
     end;
 
     procedure AsJsonToken(): JsonToken
     begin
-        exit(this.TestJson);
+        exit(TestJson);
     end;
 
     procedure ToText(): Text
     var
         TextOutput: Text;
     begin
-        this.TestJson.WriteTo(TextOutput);
+        TestJson.WriteTo(TextOutput);
         if TextOutput = 'null' then
             exit('');
 
