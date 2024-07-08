@@ -57,6 +57,7 @@ codeunit 8033 "VS Code Integration Impl."
             if Text.StrLen(PublishedApplication."Source Commit ID") <> 0 then
                 UriBuilder.AddQueryParameter('commitId', PublishedApplication."Source Commit ID");
             UriBuilder.AddQueryParameter('appid', Format(PublishedApplication.ID, 0, 4));
+            UriBuilder.SetQuery(UriBuilder.GetQuery() + '&' + VSCodeRequestHelper.GetLaunchInformationQueryPart());
 
             Url := GetAbsoluteUri();
             if DoesExceedCharLimit(Url) then
@@ -66,6 +67,30 @@ codeunit 8033 "VS Code Integration Impl."
                 HyperLink(Url);
         end;
     end;
+
+    [Scope('OnPrem')]
+    procedure DownloadDesignerCodeInVSCode(var PublishedApplication: Record "Published Application")
+    var
+        Url: Text;
+    begin
+        CheckPermissions();
+
+        if Text.StrLen(PublishedApplication."Source Repository Url") <> 0 then begin
+            UriBuilder.Init(AlExtensionUriTxt + '/syncDesign');
+            UriBuilder.AddQueryParameter('repoUrl', PublishedApplication."Source Repository Url");
+            if Text.StrLen(PublishedApplication."Source Commit ID") <> 0 then
+                UriBuilder.AddQueryParameter('commitId', PublishedApplication."Source Commit ID");
+            UriBuilder.AddQueryParameter('appid', Format(PublishedApplication.ID, 0, 4));
+
+            Url := GetAbsoluteUri();
+            if DoesExceedCharLimit(Url) then
+                // If the URL length exceeds 2000 characters then it will crash the page, so we truncate it.
+                Hyperlink(AlExtensionUriTxt + '/truncated')
+            else
+                HyperLink(Url);
+        end;
+    end;
+
 
     [Scope('OnPrem')]
     procedure NavigateToObjectDefinitionInVSCode(ObjectType: Option; ObjectId: Integer; ObjectName: Text; ControlName: Text; var NavAppInstalledApp: Record "NAV App Installed App")

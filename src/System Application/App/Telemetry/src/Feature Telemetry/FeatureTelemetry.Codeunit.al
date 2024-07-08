@@ -80,11 +80,11 @@ codeunit 8703 "Feature Telemetry"
     internal procedure LogUsage(EventId: Text; FeatureName: Text; EventName: Text; ALTelemetryScope: Enum "AL Telemetry Scope"; CustomDimensions: Dictionary of [Text, Text])
     var
         CallerModuleInfo: ModuleInfo;
-        CallerCallStackModuleInfos: List of [ModuleInfo];
+    //CallerCallStackModuleInfos: List of [ModuleInfo];
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
 
-        case ALTelemetryScope of
+        /*case ALTelemetryScope of
             Enum::"AL Telemetry Scope"::All:
                 begin
                     CallerCallStackModuleInfos := NavApp.GetCallerCallstackModuleInfos();
@@ -92,7 +92,7 @@ codeunit 8703 "Feature Telemetry"
                 end;
             else
                 FeatureTelemetryImpl.LogUsage(EventId, FeatureName, EventName, CustomDimensions, CallerModuleInfo);
-        end;
+        end;*/
     end;
 
     /// <summary>
@@ -185,11 +185,11 @@ codeunit 8703 "Feature Telemetry"
     internal procedure LogError(EventId: Text; FeatureName: Text; EventName: Text; ErrorText: Text; ErrorCallStack: Text; ALTelemetryScope: Enum "AL Telemetry Scope"; CustomDimensions: Dictionary of [Text, Text])
     var
         CallerModuleInfo: ModuleInfo;
-        CallerCallStackModuleInfos: List of [ModuleInfo];
+    //CallerCallStackModuleInfos: List of [ModuleInfo];
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
 
-        case ALTelemetryScope of
+        /*case ALTelemetryScope of
             Enum::"AL Telemetry Scope"::All:
                 begin
                     CallerCallStackModuleInfos := NavApp.GetCallerCallstackModuleInfos();
@@ -197,7 +197,7 @@ codeunit 8703 "Feature Telemetry"
                 end;
             else
                 FeatureTelemetryImpl.LogError(EventId, FeatureName, EventName, ErrorText, ErrorCallStack, CustomDimensions, CallerModuleInfo);
-        end;
+        end;*/
     end;
 
     /// <summary>

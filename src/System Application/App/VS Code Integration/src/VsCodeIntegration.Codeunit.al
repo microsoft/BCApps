@@ -39,6 +39,12 @@ codeunit 8034 "VS Code Integration"
         VsCodeIntegrationImpl.DesignExtensionSourceInVSCode(PublishedApplication);
     end;
 
+    [Scope('OnPrem')]
+    procedure DownloadDesignerCodeInVSCode(var PublishedApplication: Record "Published Application")
+    begin
+        VsCodeIntegrationImpl.DownloadDesignerCodeInVSCode(PublishedApplication);
+    end;
+
     /// <summary>
     /// Opens an URL that sends a request to VS Code to navigate to the source definition of the given page and to download the dependent symbols.
     /// </summary>

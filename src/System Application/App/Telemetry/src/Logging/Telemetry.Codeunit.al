@@ -104,16 +104,16 @@ codeunit 8711 Telemetry
     internal procedure LogMessage(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; ALTelemetryScope: Enum "AL Telemetry Scope"; CustomDimensions: Dictionary of [Text, Text])
     var
         CallerModuleInfo: ModuleInfo;
-        CallerCallStackModuleInfos: List of [ModuleInfo];
+    //CallerCallStackModuleInfos: List of [ModuleInfo];
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
 
         case ALTelemetryScope of
-            Enum::"AL Telemetry Scope"::All:
+            /*Enum::"AL Telemetry Scope"::All:
                 begin
                     CallerCallStackModuleInfos := NavApp.GetCallerCallstackModuleInfos();
                     TelemetryImpl.LogMessage(EventId, Message, Verbosity, DataClassification, ALTelemetryScope, CustomDimensions, CallerModuleInfo, CallerCallStackModuleInfos);
-                end;
+                end;*/
             Enum::"AL Telemetry Scope"::Environment:
                 TelemetryImpl.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::All, CustomDimensions, CallerModuleInfo);
             Enum::"AL Telemetry Scope"::ExtensionPublisher:

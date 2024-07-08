@@ -198,9 +198,9 @@ page 2500 "Extension Management"
                 }
                 action("Start Designer in Source")
                 {
-                    Caption = 'Open Source in VS Code';
+                    Caption = 'Start Designer in Source';
                     Enabled = IsSourceSpecificationAvailable;
-                    Image = Download;
+                    Image = Edit;
                     Scope = Repeater;
                     ToolTip = 'Open the source code for the extension based on the source control information.';
 
