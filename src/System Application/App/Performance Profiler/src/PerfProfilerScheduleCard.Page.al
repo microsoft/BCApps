@@ -21,6 +21,7 @@ page 1932 "Perf. Profiler Schedule Card"
     DataCaptionExpression = Rec.Description;
     SourceTable = "Performance Profile Scheduler";
     DelayedInsert = true;
+    Permissions = tabledata "Performance Profile Scheduler" = rimd;
 
     layout
     {
