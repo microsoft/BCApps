@@ -12,6 +12,6 @@ permissionset 1923 "Perf. Profiler Tables - Edit"
     Access = Internal;
     Assignable = false;
 
-    Permissions = tabledata "Performance Profile Scheduler" = imd;
+    Permissions = tabledata "Performance Profile Scheduler" = IMD;
     IncludedPermissionSets = "Perf. Profiler Tables - View";
 }
