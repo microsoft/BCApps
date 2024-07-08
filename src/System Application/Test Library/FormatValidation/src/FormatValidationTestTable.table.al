@@ -9,6 +9,7 @@ table 130449 "Format Validation Test Table"
 {
     Caption = 'Format Validation Test Table';
     DataClassification = SystemMetadata;
+    TableType = Temporary;
 
     fields
     {

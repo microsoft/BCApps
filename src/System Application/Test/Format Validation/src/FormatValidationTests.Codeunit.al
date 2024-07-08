@@ -19,55 +19,55 @@ codeunit 130449 "Format Validation Tests"
     [Test]
     procedure CreateFormatValidationDataWithValidPhoneNo_ValidatePhoneNo_ExpectIsValidResult()
     var
-        FormatValidationTestTable: Record "Format Validation Test Table";
+        TempFormatValidationTestTable: Record "Format Validation Test Table";
         FormatValidation: Codeunit "Format Validation";
     begin
         // [SCENARIO] Expect return value false when validating a phone on. which does not contain characters.
         Initialize();
-        CreateFormatValidationTestData(LibraryUtility.GenerateRandomNumericText(MaxStrLen(FormatValidationTestTable."Phone No.")), FormatValidationTestTable);
+        CreateFormatValidationTestData(LibraryUtility.GenerateRandomNumericText(MaxStrLen(TempFormatValidationTestTable."Phone No.")), TempFormatValidationTestTable);
 
-        LibraryAssert.IsFalse(FormatValidation.ValidateIfPhoneNoContainsCharacters(FormatValidationTestTable."Phone No."));
+        LibraryAssert.IsFalse(FormatValidation.ValidateIfPhoneNoContainsCharacters(TempFormatValidationTestTable."Phone No."));
     end;
 
     [Test]
     procedure CreateFormatValidationDataWithInvalidPhoneNo_ValidatePhoneNo_ExpectNotValidResult()
     var
-        FormatValidationTestTable: Record "Format Validation Test Table";
+        TempFormatValidationTestTable: Record "Format Validation Test Table";
         FormatValidation: Codeunit "Format Validation";
     begin
         // [SCENARIO] Expect return value true when validating a phone on. which does contain characters.
         Initialize();
-        CreateFormatValidationTestData(LibraryUtility.GenerateRandomAlphabeticText(MaxStrLen(FormatValidationTestTable."Phone No."), 1), FormatValidationTestTable);
+        CreateFormatValidationTestData(LibraryUtility.GenerateRandomAlphabeticText(MaxStrLen(TempFormatValidationTestTable."Phone No."), 1), TempFormatValidationTestTable);
 
-        LibraryAssert.IsTrue(FormatValidation.ValidateIfPhoneNoContainsCharacters(FormatValidationTestTable."Phone No."));
+        LibraryAssert.IsTrue(FormatValidation.ValidateIfPhoneNoContainsCharacters(TempFormatValidationTestTable."Phone No."));
     end;
 
     [Test]
     procedure CreateFormatValidationDataWithValidPhoneNo_ValidatePhoneNo_ExpectNoError()
     var
-        FormatValidationTestTable: Record "Format Validation Test Table";
+        TempFormatValidationTestTable: Record "Format Validation Test Table";
         FormatValidation: Codeunit "Format Validation";
     begin
         // [SCENARIO] Expect no error message when validating a phone on. which does not contain characters.
         Initialize();
-        CreateFormatValidationTestData(LibraryUtility.GenerateRandomNumericText(MaxStrLen(FormatValidationTestTable."Phone No.")), FormatValidationTestTable);
+        CreateFormatValidationTestData(LibraryUtility.GenerateRandomNumericText(MaxStrLen(TempFormatValidationTestTable."Phone No.")), TempFormatValidationTestTable);
 
-        FormatValidation.ThrowErrorIfPhoneNoContainsCharacters(FormatValidationTestTable."Phone No.", Database::"Format Validation Test Table", FormatValidationTestTable.FieldNo("Phone No."));
+        FormatValidation.ThrowErrorIfPhoneNoContainsCharacters(TempFormatValidationTestTable."Phone No.", Database::"Format Validation Test Table", TempFormatValidationTestTable.FieldNo("Phone No."));
     end;
 
     [Test]
     procedure CreateFormatValidationDataWithInvalidPhoneNo_ValidatePhoneNo_ExpectError()
     var
-        FormatValidationTestTable: Record "Format Validation Test Table";
+        TempFormatValidationTestTable: Record "Format Validation Test Table";
         FormatValidation: Codeunit "Format Validation";
     begin
         // [SCENARIO] Expect error message when validating a phone on. which does contain characters.
         Initialize();
-        CreateFormatValidationTestData(LibraryUtility.GenerateRandomAlphabeticText(MaxStrLen(FormatValidationTestTable."Phone No."), 1), FormatValidationTestTable);
+        CreateFormatValidationTestData(LibraryUtility.GenerateRandomAlphabeticText(MaxStrLen(TempFormatValidationTestTable."Phone No."), 1), TempFormatValidationTestTable);
 
-        asserterror FormatValidation.ThrowErrorIfPhoneNoContainsCharacters(FormatValidationTestTable."Phone No.", Database::"Format Validation Test Table", FormatValidationTestTable.FieldNo("Phone No."));
+        asserterror FormatValidation.ThrowErrorIfPhoneNoContainsCharacters(TempFormatValidationTestTable."Phone No.", Database::"Format Validation Test Table", TempFormatValidationTestTable.FieldNo("Phone No."));
 
-        LibraryAssert.ExpectedError(StrSubstNo(PhoneNoErr, FormatValidationTestTable.FieldCaption("Phone No."), FormatValidationTestTable.FieldCaption("No."), FormatValidationTestTable."No."));
+        LibraryAssert.ExpectedError(StrSubstNo(PhoneNoErr, TempFormatValidationTestTable.FieldCaption("Phone No."), TempFormatValidationTestTable.FieldCaption("No."), TempFormatValidationTestTable."No."));
     end;
 
     local procedure Initialize();
@@ -86,9 +86,9 @@ codeunit 130449 "Format Validation Tests"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"Format Validation");
     end;
 
-    local procedure CreateFormatValidationTestData(PhoneNo: Text[30]; var FormatValidationTestTable: Record "Format Validation Test Table");
+    local procedure CreateFormatValidationTestData(PhoneNo: Text[30]; var TempFormatValidationTestTable: Record "Format Validation Test Table");
     begin
-        FormatValidationTestTable."Phone No." := PhoneNo;
-        FormatValidationTestTable.Insert(false);
+        TempFormatValidationTestTable."Phone No." := PhoneNo;
+        TempFormatValidationTestTable.Insert(false);
     end;
 }
