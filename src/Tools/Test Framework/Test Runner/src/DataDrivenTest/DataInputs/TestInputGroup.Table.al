@@ -8,6 +8,8 @@ namespace System.TestTools.TestRunner;
 table 130454 "Test Input Group"
 {
     DataClassification = CustomerContent;
+    ReplicateData = false;
+
     fields
     {
         field(1; "Code"; Code[100])

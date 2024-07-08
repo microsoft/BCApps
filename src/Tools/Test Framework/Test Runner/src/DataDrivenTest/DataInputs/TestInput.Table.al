@@ -8,6 +8,7 @@ namespace System.TestTools.TestRunner;
 table 130452 "Test Input"
 {
     DataClassification = CustomerContent;
+    ReplicateData = false;
 
     fields
     {
