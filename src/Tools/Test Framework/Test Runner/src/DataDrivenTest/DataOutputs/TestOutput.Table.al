@@ -9,6 +9,7 @@ table 130453 "Test Output"
 {
     DataClassification = CustomerContent;
     TableType = Temporary;
+    ReplicateData = false;
 
     fields
     {
