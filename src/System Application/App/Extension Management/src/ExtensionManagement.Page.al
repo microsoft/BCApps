@@ -71,7 +71,6 @@ page 2500 "Extension Management"
                     ToolTip = 'Specifies whether the extension allows the source to be downloaded.';
                     OptionCaption = ' ,Yes,No';
                 }
-
                 field("Published As"; Rec."Published As")
                 {
                     Caption = 'Published As';

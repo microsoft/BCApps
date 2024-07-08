@@ -75,9 +75,9 @@ page 2511 "Extension Settings"
 
             group("Resource protection policies")
             {
-                Visible = IsTenantExtension;
-
                 Caption = 'Resource Protection Policies defined by the extension';
+                Visible = IsTenantExtension;
+                
                 field(AppAllowsDebuggging; AppAllowsDebuggging)
                 {
                     Caption = 'Allow Debugging';
