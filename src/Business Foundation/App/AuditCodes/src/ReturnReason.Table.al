@@ -50,4 +50,3 @@ table 6635 "Return Reason"
         }
     }
 }
-

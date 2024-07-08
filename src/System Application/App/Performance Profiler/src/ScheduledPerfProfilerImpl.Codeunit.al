@@ -9,12 +9,14 @@ using System.PerformanceProfile;
 using System.DataAdministration;
 using System.Security.AccessControl;
 using System.Security.User;
+using System.Environment;
 
 codeunit 1932 "Scheduled Perf. Profiler Impl."
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    SingleInstance = true;
 
     procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Perf. Profile Activity Type")
     var
@@ -188,6 +190,23 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
             exit(false);
 
         exit(true);
+    end;
+
+    internal procedure IsProfilingEnabled(var ScheduleId: Guid): Boolean
+    var
+        ProfilerHelper: DotNet ProfilerHelper;
+        PerformanceProfileSchedulerRecord: DotNet PerformanceProfileSchedulerRecord;
+    begin
+        PerformanceProfileSchedulerRecord := ProfilerHelper.GetScheduleBasedProfilingStatus();
+        ScheduleId := PerformanceProfileSchedulerRecord.ScheduleId;
+        exit(PerformanceProfileSchedulerRecord.IsProfiling());
+    end;
+
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetProfilerSchedulesPageId, '', false, false)]
+    local procedure GetProfilerSchedulesPageId(var PageId: Integer)
+    begin
+        PageId := Page::"Perf. Profiler Schedules List";
     end;
 
     var

@@ -81,13 +81,13 @@ codeunit 130453 "ALTestRunner Reset Environment"
     local procedure BindStopSystemTableChanges()
     var
         AllObj: Record AllObj;
-        BlockChangestoSystemTables: Integer;
+        BlockChangesToSystemTables: Integer;
     begin
-        BlockChangestoSystemTables := 132553; // codeunit 132553 "Block Changes to System Tables"
+        BlockChangesToSystemTables := 132553; // codeunit 132553 "Block Changes to System Tables"
         AllObj.SetRange("Object Type", AllObj."Object Type"::Codeunit);
-        AllObj.SetRange("Object ID", BlockChangestoSystemTables);
+        AllObj.SetRange("Object ID", BlockChangesToSystemTables);
         if not AllObj.IsEmpty() then
-            Codeunit.Run(BlockChangestoSystemTables);
+            Codeunit.Run(BlockChangesToSystemTables);
     end;
 
 
