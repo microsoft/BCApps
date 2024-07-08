@@ -21,6 +21,7 @@ page 1933 "Perf. Profiler Schedules List"
     Editable = false;
     CardPageID = "Perf. Profiler Schedule Card";
     SourceTable = "Performance Profile Scheduler";
+    Permissions = tabledata "Performance Profile Scheduler" = rimd;
 
     layout
     {
