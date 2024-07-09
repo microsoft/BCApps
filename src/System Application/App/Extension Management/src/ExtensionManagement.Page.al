@@ -278,7 +278,9 @@ page 2500 "Extension Management"
 
                 actionref("Microsoft AppSource Gallery_Promoted"; "Microsoft AppSource Gallery") { }
 #if not CLEAN25
+#pragma warning disable AL0432
                 actionref("Extension Marketplace_Promoted"; "Extension Marketplace")
+#pragma warning restore AL0432
                 {
                     ObsoleteState = Pending;
                     ObsoleteReason = 'This action will be obsoleted. Microsoft AppSource apps feature will replace the Extension Marketplace.';
