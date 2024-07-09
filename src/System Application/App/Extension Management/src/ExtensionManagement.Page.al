@@ -247,16 +247,6 @@ page 2500 "Extension Management"
                     end;
                 }
 #endif
-                action("Microsoft AppSource Gallery")
-                {
-                    Caption = 'AppSource Gallery';
-                    Enabled = IsSaaS;
-                    Image = NewItem;
-                    ToolTip = 'Browse the Microsoft AppSource Gallery for new extensions to install.';
-                    Visible = not IsOnPremDisplay;
-                    RunObject = Page 2515; // Using ID to avoid circular dependency.
-                    RunPageMode = View;
-                }
                 action("Upload Extension")
                 {
                     Caption = 'Upload Extension';
@@ -289,8 +279,6 @@ page 2500 "Extension Management"
             group(Category_Category5)
             {
                 Caption = 'Manage', Comment = 'Generated from the PromotedActionCategories property index 4.';
-
-                actionref("Microsoft AppSource Gallery_Promoted"; "Microsoft AppSource Gallery") { }
 #if not CLEAN25
 #pragma warning disable AL0432
                 actionref("Extension Marketplace_Promoted"; "Extension Marketplace")
@@ -350,7 +338,9 @@ page 2500 "Extension Management"
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
         VsCodeIntegration: Codeunit "VS Code Integration";
+        AllowsDownloadSource: Option " ","Yes","No";
         VersionDisplay: Text;
+        AllowsDownloadSourceStyleExpr: Text;
         ActionsEnabled: Boolean;
         IsSaaS: Boolean;
         SaaSCaptionTxt: Label 'Installed Extensions', Comment = 'The caption to display when on SaaS';
@@ -363,8 +353,17 @@ page 2500 "Extension Management"
         IsInstallAllowed: Boolean;
         InfoStyle: Boolean;
         HelpActionVisible: Boolean;
-        AllowsDownloadSource: Option " ","Yes","No";
-        AllowsDownloadSourceStyleExpr: Text;
+        IsSourceSpecificationAvailable: Boolean;
+
+    protected procedure IsSaasEnvironment(): boolean
+    begin
+        exit(IsSaaS)
+    end;
+
+    protected procedure IsOnPremDisplayTarget(): boolean
+    begin
+        exit(IsOnPremDisplay)
+    end;
 
     local procedure SetExtensionManagementFilter()
     begin
@@ -409,11 +408,6 @@ page 2500 "Extension Management"
             end;
 
         IsSourceSpecificationAvailable := StrLen(Rec."Source Repository Url") > 0;
-    end;
-
-    local procedure GetVersionDisplayText(): Text
-    begin
-        exit(StrSubstNo(VersionFormatTxt, ExtensionInstallationImpl.GetVersionDisplayString(Rec)));
     end;
 
     local procedure SetInfoStyleForIsInstalled()

@@ -33,27 +33,6 @@ page 2502 "Extension Marketplace"
         }
     }
 
-    actions
-    {
-        area(Navigation)
-        {
-            action("Microsoft AppSource Gallery")
-            {
-                Caption = 'AppSource Gallery';
-                Image = NewItem;
-                ToolTip = 'Browse the Microsoft AppSource Gallery for new extensions to install.';
-                RunObject = Page 2515; // Using ID to avoid circular dependency.
-                RunPageMode = View;
-            }
-        }
-        area(Promoted)
-        {
-            actionref("Microsoft AppSource Gallery_Promoted"; "Microsoft AppSource Gallery")
-            {
-            }
-        }
-    }
-
     procedure SetSearchText(Text: Text)
     begin
     end;
