@@ -108,8 +108,12 @@ codeunit 2355 "Http Content Impl."
     end;
 
     procedure AsJson() ReturnValue: JsonToken
+    var
+        Json: Text;
     begin
-        ReturnValue.ReadFrom(AsText());
+        Json := AsText();
+        if Json <> '' then
+            ReturnValue.ReadFrom(AsText());
     end;
 
     procedure SetContent(Content: Text; ContentType: Text)

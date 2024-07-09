@@ -17,6 +17,7 @@ codeunit 7758 "AOAI Function Response"
         Success: Boolean;
         FunctionCall: Boolean;
         FunctionName: Text;
+        FunctionId: Text;
         Result: Variant;
         Error: Text;
         ErrorCallStack: Text;
@@ -58,6 +59,14 @@ codeunit 7758 "AOAI Function Response"
     end;
 
     /// <summary>
+    /// Get the id of the function that was called.
+    /// </summary>
+    procedure GetFunctionId(): Text
+    begin
+        exit(FunctionId);
+    end;
+
+    /// <summary>
     /// Get the error call stack from the function that was called.
     /// </summary>
     /// <returns>The error call stack from the function.</returns>
@@ -71,11 +80,12 @@ codeunit 7758 "AOAI Function Response"
         exit(FunctionCall);
     end;
 
-    internal procedure SetFunctionCallingResponse(NewIsFunctionCall: Boolean; NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
+    internal procedure SetFunctionCallingResponse(NewIsFunctionCall: Boolean; NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionId: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
     begin
         FunctionCall := NewIsFunctionCall;
         Success := NewFunctionCallSuccess;
         FunctionName := NewFunctionCalled;
+        FunctionId := NewFunctionId;
         Result := NewFunctionResult;
         Error := NewFunctionError;
         ErrorCallStack := NewFunctionErrorCallStack;

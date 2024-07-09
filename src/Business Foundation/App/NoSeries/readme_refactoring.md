@@ -19,6 +19,9 @@ DocNo := NoSeries.PeekNextNo(GenJnlBatch."No. Series", EndDateReq);
 
 ### GetNextNo with delayed modify
 
+> [!WARNING]  
+> The procedure ``GetNextNo(Code[20]; Date; Boolean)`` exists in the legacy and in the new codeunit with the same signature but **logically different behavior**: The boolean parameter within the legacy procedure controls whether the requested number of the No. Series should be saved in the database, while the boolean in the new procedure hides errors and warnings.
+
 Old:
 ```
 if DocNo = NoSeriesMgt.GetNextNo(GenJnlBatch."No. Series", EndDateReq, false) then

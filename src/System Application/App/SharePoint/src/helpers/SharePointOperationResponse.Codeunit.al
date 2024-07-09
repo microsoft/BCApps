@@ -13,7 +13,6 @@ codeunit 9108 "SharePoint Operation Response"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    [NonDebuggable]
     [TryFunction]
     internal procedure GetResultAsText(var Result: Text);
     var
@@ -23,14 +22,12 @@ codeunit 9108 "SharePoint Operation Response"
         ResultInStream.ReadText(Result);
     end;
 
-    [NonDebuggable]
     [TryFunction]
     internal procedure GetResultAsStream(var ResultInStream: InStream)
     begin
         TempBlobContent.CreateInStream(ResultInStream);
     end;
 
-    [NonDebuggable]
     internal procedure SetHttpResponse(HttpResponseMessage: HttpResponseMessage)
     var
         ContentOutStream: OutStream;
@@ -43,7 +40,6 @@ codeunit 9108 "SharePoint Operation Response"
         SharepointDiagnostics.SetParameters(HttpResponseMessage.IsSuccessStatusCode, HttpResponseMessage.HttpStatusCode, HttpResponseMessage.ReasonPhrase, GetRetryAfterHeaderValue(), GetErrorDescription());
     end;
 
-    [NonDebuggable]
     internal procedure SetHttpResponse(ResponseContent: Text; ResponseHttpHeaders: HttpHeaders; ResponseHttpStatusCode: Integer; ResponseIsSuccessStatusCode: Boolean; ResponseReasonPhrase: Text)
     var
         ContentOutStream: OutStream;
@@ -54,7 +50,6 @@ codeunit 9108 "SharePoint Operation Response"
         SharepointDiagnostics.SetParameters(ResponseIsSuccessStatusCode, ResponseHttpStatusCode, ResponseReasonPhrase, GetRetryAfterHeaderValue(), GetErrorDescription());
     end;
 
-    [NonDebuggable]
     internal procedure GetHeaderValueFromResponseHeaders(HeaderName: Text): Text
     var
         Values: array[100] of Text;
@@ -66,7 +61,6 @@ codeunit 9108 "SharePoint Operation Response"
         exit(Values[1]);
     end;
 
-    [NonDebuggable]
     internal procedure GetRetryAfterHeaderValue() RetryAfter: Integer;
     var
         HeaderValue: Text;
@@ -78,7 +72,6 @@ codeunit 9108 "SharePoint Operation Response"
             exit(0);
     end;
 
-    [NonDebuggable]
     local procedure GetErrorDescription(): Text
     var
         Result: Text;
@@ -92,7 +85,6 @@ codeunit 9108 "SharePoint Operation Response"
                     exit(JToken.AsValue().AsText());
     end;
 
-    [NonDebuggable]
     internal procedure GetDiagnostics(): Interface "HTTP Diagnostics"
     begin
         exit(SharepointDiagnostics);

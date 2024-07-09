@@ -23,7 +23,6 @@ codeunit 9111 "SharePoint Diagnostics" implements "HTTP Diagnostics"
     /// Gets reponse details.
     /// </summary>
     /// <returns>HttpResponseMessage.IsSuccessStatusCode</returns>
-    [NonDebuggable]
     procedure IsSuccessStatusCode(): Boolean
     begin
         exit(SuccessStatusCode);
@@ -33,7 +32,6 @@ codeunit 9111 "SharePoint Diagnostics" implements "HTTP Diagnostics"
     /// Gets response details.
     /// </summary>
     /// <returns>HttpResponseMessage.StatusCode</returns>
-    [NonDebuggable]
     procedure GetHttpStatusCode(): Integer
     begin
         exit(HttpStatusCode);
@@ -43,7 +41,6 @@ codeunit 9111 "SharePoint Diagnostics" implements "HTTP Diagnostics"
     /// Gets response details.
     /// </summary>
     /// <returns>Retry-after header value</returns>
-    [NonDebuggable]
     procedure GetHttpRetryAfter(): Integer
     begin
         exit(RetryAfter);
@@ -53,7 +50,6 @@ codeunit 9111 "SharePoint Diagnostics" implements "HTTP Diagnostics"
     /// Gets reponse details
     /// </summary>
     /// <returns>Error message</returns>
-    [NonDebuggable]
     procedure GetErrorMessage(): Text
     begin
         exit(ErrorMessage);
@@ -63,13 +59,11 @@ codeunit 9111 "SharePoint Diagnostics" implements "HTTP Diagnostics"
     /// Gets response details.
     /// </summary>
     /// <returns>HttpResponseMessage.ResponseReasonPhrase</returns>
-    [NonDebuggable]
     procedure GetResponseReasonPhrase(): Text
     begin
         exit(ResponseReasonPhrase);
     end;
 
-    [NonDebuggable]
     internal procedure SetParameters(NewIsSuccesss: Boolean; NewHttpStatusCode: Integer; NewResponseReasonPhrase: Text; NewRetryAfter: Integer; NewErrorMessage: Text)
     begin
         SuccessStatusCode := NewIsSuccesss;

@@ -170,6 +170,21 @@ codeunit 8906 "Email Editor"
         UploadAttachment(EmailMessageImpl, FileName, Instream);
     end;
 
+    procedure UploadAttachment(EmailMessageImpl: Codeunit "Email Message Impl."; SingleFile: FileUpload)
+    begin
+        // Default to MS-DOS encoding to keep consistent with the old behavior
+        UploadAttachment(EmailMessageImpl, SingleFile, TextEncoding::MSDos);
+    end;
+
+    procedure UploadAttachment(EmailMessageImpl: Codeunit "Email Message Impl."; SingleFile: FileUpload; EncodeType: TextEncoding)
+    var
+        TempInStream: InStream;
+    begin
+        SingleFile.CreateInStream(TempInStream, EncodeType);
+        if SingleFile.FileName <> '' then
+            UploadAttachment(EmailMessageImpl, SingleFile.FileName, TempInStream);
+    end;
+
     procedure UploadAttachment(EmailMessageImpl: Codeunit "Email Message Impl."; FileName: Text; Instream: InStream)
     var
         AttachmentName, ContentType : Text[250];

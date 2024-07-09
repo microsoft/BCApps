@@ -70,5 +70,11 @@
         "codeunitId":  132920,
         "codeunitName":  "ABS Blob Client Test",
         "method":  "BlobExistsTest"
+    },
+    {
+        "bug": "488813",
+        "codeunitId": 132920,
+        "codeunitName": "ABS Blob Client Test",
+        "method": "GetBlockBlobMetaDataTest"
     }
 ]

@@ -45,7 +45,7 @@ codeunit 8703 "Feature Telemetry"
     /// <param name="FeatureName">The name of the feature.</param>
     /// <param name="EventName">The name of the event.</param>
     /// <param name="CustomDimensions">A dictionary containing additional information about the event.</param>
-    /// <remarks>Custom dimensions often contain infromation translated in different languages. It is a common practice to send telemetry in the default language (see example).</remarks>
+    /// <remarks>Custom dimensions often contain information translated in different languages. It is a common practice to send telemetry in the default language (see example).</remarks>
     /// <example>
     /// TranslationHelper.SetGlobalLanguageToDefault();
     /// CustomDimensions.Add('JobQueueObjectType', Format(JobQueueEntry."Object Type to Run"));
@@ -59,6 +59,40 @@ codeunit 8703 "Feature Telemetry"
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         FeatureTelemetryImpl.LogUsage(EventId, FeatureName, EventName, CustomDimensions, CallerModuleInfo);
+    end;
+
+    /// <summary>
+    /// Sends telemetry about feature usage (with the capability to send to ISVs).
+    /// </summary>
+    /// <param name="EventId">A unique ID of the event.</param>
+    /// <param name="FeatureName">The name of the feature.</param>
+    /// <param name="EventName">The name of the event.</param>
+    /// <param name="ALTelemetryScope">The telemetry scope of the message.</param>
+    /// <param name="CustomDimensions">A dictionary containing additional information about the event.</param>
+    /// <remarks>Custom dimensions often contain information translated in different languages. It is a common practice to send telemetry in the default language (see example).</remarks>
+    /// <example>
+    /// TranslationHelper.SetGlobalLanguageToDefault();
+    /// CustomDimensions.Add('JobQueueObjectType', Format(JobQueueEntry."Object Type to Run"));
+    /// CustomDimensions.Add('JobQueueObjectId', Format(JobQueueEntry."Object ID to Run"));
+    /// FeatureTelemetry.LogUsage('0000XYZ', 'Job Queue', 'Job executed', CustomDimensions);
+    /// TranslationHelper.RestoreGlobalLanguage();
+    /// </example>
+    internal procedure LogUsage(EventId: Text; FeatureName: Text; EventName: Text; ALTelemetryScope: Enum "AL Telemetry Scope"; CustomDimensions: Dictionary of [Text, Text])
+    var
+        CallerModuleInfo: ModuleInfo;
+        CallerCallStackModuleInfos: List of [ModuleInfo];
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+
+        case ALTelemetryScope of
+            Enum::"AL Telemetry Scope"::All:
+                begin
+                    CallerCallStackModuleInfos := NavApp.GetCallerCallstackModuleInfos();
+                    FeatureTelemetryImpl.LogUsage(EventId, FeatureName, EventName, CustomDimensions, CallerModuleInfo, CallerCallStackModuleInfos);
+                end;
+            else
+                FeatureTelemetryImpl.LogUsage(EventId, FeatureName, EventName, CustomDimensions, CallerModuleInfo);
+        end;
     end;
 
     /// <summary>
@@ -127,6 +161,43 @@ codeunit 8703 "Feature Telemetry"
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         FeatureTelemetryImpl.LogError(EventId, FeatureName, EventName, ErrorText, ErrorCallStack, CustomDimensions, CallerModuleInfo);
+    end;
+
+    /// <summary>
+    /// Sends telemetry about errors happening during feature usage (with the capability to send to ISVs).
+    /// </summary>
+    /// <param name="EventId">A unique ID of the error.</param>
+    /// <param name="FeatureName">The name of the feature.</param>
+    /// <param name="EventName">The name of the event.</param>
+    /// <param name="ErrorText">The text of the error.</param>
+    /// <param name="ErrorCallStack">The error call stack.</param>
+    /// <param name="ALTelemetryScope">The telemetry scope of the message.</param>
+    /// <param name="CustomDimensions">A dictionary containing additional information about the error.</param>
+    /// <remarks>Custom dimensions often contain information translated in different languages. It is a common practice to send telemetry in the default language (see example).</remarks>
+    /// <example>
+    /// if not Success then begin
+    ///     TranslationHelper.SetGlobalLanguageToDefault();
+    ///     CustomDimensions.Add('UpdateEntity', Format(AzureADUserUpdateBuffer."Update Entity"));
+    ///     FeatureTelemetry.LogError('0000XYZ', 'User management', 'Syncing users with M365', GetLastErrorText(true), GetLastErrorCallStack(), CustomDimensions);
+    ///     TranslationHelper.RestoreGlobalLanguage();
+    /// end;
+    /// </example>
+    internal procedure LogError(EventId: Text; FeatureName: Text; EventName: Text; ErrorText: Text; ErrorCallStack: Text; ALTelemetryScope: Enum "AL Telemetry Scope"; CustomDimensions: Dictionary of [Text, Text])
+    var
+        CallerModuleInfo: ModuleInfo;
+        CallerCallStackModuleInfos: List of [ModuleInfo];
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+
+        case ALTelemetryScope of
+            Enum::"AL Telemetry Scope"::All:
+                begin
+                    CallerCallStackModuleInfos := NavApp.GetCallerCallstackModuleInfos();
+                    FeatureTelemetryImpl.LogError(EventId, FeatureName, EventName, ErrorText, ErrorCallStack, CustomDimensions, CallerModuleInfo, CallerCallStackModuleInfos);
+                end;
+            else
+                FeatureTelemetryImpl.LogError(EventId, FeatureName, EventName, ErrorText, ErrorCallStack, CustomDimensions, CallerModuleInfo);
+        end;
     end;
 
     /// <summary>

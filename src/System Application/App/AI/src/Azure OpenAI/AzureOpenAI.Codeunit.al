@@ -71,6 +71,25 @@ codeunit 7771 "Azure OpenAI"
     end;
 
     /// <summary>
+    /// Sets the managed Azure OpenAI API authorization to use for a specific model type.
+    /// This will send the Azure OpenAI call to the deployment specified in <paramref name="ManagedResourceDeployment"/>, and will use the other parameters to verify that you have access to Azure OpenAI.
+    /// </summary>
+    /// <param name="ModelType">The model type to set authorization for.</param>
+    /// <param name="Endpoint">The endpoint to use to verify access to Azure OpenAI. This is used only for verification, not for actual Azure OpenAI calls.</param>
+    /// <param name="Deployment">The deployment to use to verify access to Azure OpenAI. This is used only for verification, not for actual Azure OpenAI calls.</param>
+    /// <param name="ApiKey">The API key to use  to verify access to Azure OpenAI. This is used only for verification, not for actual Azure OpenAI calls.</param>
+    /// <param name="ManagedResourceDeployment">The managed deployment to use for the model type.</param>
+    /// <remarks> NOTE: This function is currently only available to selected partners.
+    /// Endpoint would look like: https://resource-name.openai.azure.com/
+    /// Deployment would look like: gpt-35-turbo-16k
+    /// </remarks>
+    [NonDebuggable]
+    procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text; Deployment: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
+    begin
+        AzureOpenAIImpl.SetManagedResourceAuthorization(ModelType, Endpoint, Deployment, ApiKey, ManagedResourceDeployment);
+    end;
+
+    /// <summary>
     /// Sets the Azure OpenAI API authorization to use for a specific model type and endpoint.
     /// </summary>
     /// <param name="ModelType">The model type to set authorization for.</param>

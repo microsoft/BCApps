@@ -422,6 +422,10 @@ dotnet
         type("Microsoft.Dynamics.Nav.DocumentReport.WordReportManager"; "WordReportManager")
         {
         }
+
+        type("Microsoft.Dynamics.Nav.DocumentReport.ExcelReportManager"; "ExcelReportManager")
+        {
+        }
     }
 
     assembly("Microsoft.Dynamics.Nav.DocumentService")

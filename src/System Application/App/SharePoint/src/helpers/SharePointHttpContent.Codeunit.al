@@ -65,7 +65,7 @@ codeunit 9107 "SharePoint Http Content"
 
     procedure SetXHttpMethod(XHttpMethodValue: Text)
     begin
-        XHttpMethodValue := XHttpMethodValue;
+        XHttpMethod := XHttpMethodValue;
     end;
 
     procedure GetXHttpMethod(): Text;

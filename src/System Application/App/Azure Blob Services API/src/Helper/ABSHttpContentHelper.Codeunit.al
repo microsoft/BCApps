@@ -14,7 +14,6 @@ codeunit 9049 "ABS HttpContent Helper"
     var
         ContentLengthLbl: Label '%1', Comment = '%1 = Length', Locked = true;
 
-    [NonDebuggable]
     procedure AddBlobPutBlockBlobContentHeaders(var HttpContent: HttpContent; ABSOperationPayload: Codeunit "ABS Operation Payload"; var SourceInStream: InStream; ContentType: Text)
     var
         BlobType: Enum "ABS Blob Type";
@@ -22,7 +21,6 @@ codeunit 9049 "ABS HttpContent Helper"
         AddBlobPutContentHeaders(HttpContent, ABSOperationPayload, SourceInStream, BlobType::BlockBlob, ContentType)
     end;
 
-    [NonDebuggable]
     procedure AddBlobPutBlockBlobContentHeaders(var HttpContent: HttpContent; ABSOperationPayload: Codeunit "ABS Operation Payload"; SourceText: Text; ContentType: Text)
     var
         BlobType: Enum "ABS Blob Type";
@@ -30,7 +28,6 @@ codeunit 9049 "ABS HttpContent Helper"
         AddBlobPutContentHeaders(HttpContent, ABSOperationPayload, SourceText, BlobType::BlockBlob, ContentType)
     end;
 
-    [NonDebuggable]
     procedure AddBlobPutPageBlobContentHeaders(ABSOperationPayload: Codeunit "ABS Operation Payload"; ContentLength: Integer; ContentType: Text)
     var
         BlobType: Enum "ABS Blob Type";
@@ -41,7 +38,6 @@ codeunit 9049 "ABS HttpContent Helper"
         AddBlobPutContentHeaders(HttpContent, ABSOperationPayload, BlobType::PageBlob, ContentLength, ContentType)
     end;
 
-    [NonDebuggable]
     procedure AddBlobPutAppendBlobContentHeaders(ABSOperationPayload: Codeunit "ABS Operation Payload"; ContentType: Text)
     var
         BlobType: Enum "ABS Blob Type";
@@ -50,7 +46,6 @@ codeunit 9049 "ABS HttpContent Helper"
         AddBlobPutContentHeaders(HttpContent, ABSOperationPayload, BlobType::AppendBlob, 0, ContentType)
     end;
 
-    [NonDebuggable]
     local procedure AddBlobPutContentHeaders(var HttpContent: HttpContent; ABSOperationPayload: Codeunit "ABS Operation Payload"; var SourceInStream: InStream; BlobType: Enum "ABS Blob Type"; ContentType: Text)
     var
         Length: BigInteger;
@@ -66,7 +61,6 @@ codeunit 9049 "ABS HttpContent Helper"
         AddBlobPutContentHeaders(HttpContent, ABSOperationPayload, BlobType, Length, ContentType);
     end;
 
-    [NonDebuggable]
     local procedure AddBlobPutContentHeaders(var HttpContent: HttpContent; ABSOperationPayload: Codeunit "ABS Operation Payload"; SourceText: Text; BlobType: Enum "ABS Blob Type"; ContentType: Text)
     var
         Length: Integer;
@@ -81,7 +75,6 @@ codeunit 9049 "ABS HttpContent Helper"
         AddBlobPutContentHeaders(HttpContent, ABSOperationPayload, BlobType, Length, ContentType);
     end;
 
-    [NonDebuggable]
     local procedure AddBlobPutContentHeaders(var HttpContent: HttpContent; ABSOperationPayload: Codeunit "ABS Operation Payload"; BlobType: Enum "ABS Blob Type"; ContentLength: BigInteger; ContentType: Text)
     var
         Headers: HttpHeaders;
@@ -109,19 +102,16 @@ codeunit 9049 "ABS HttpContent Helper"
             ABSOperationPayload.AddRequestHeader('x-ms-blob-type', Format(BlobType));
     end;
 
-    [NonDebuggable]
     procedure AddTagsContent(var HttpContent: HttpContent; var ABSOperationPayload: Codeunit "ABS Operation Payload"; Document: XmlDocument)
     begin
         AddXmlDocumentAsContent(HttpContent, ABSOperationPayload, Document);
     end;
 
-    [NonDebuggable]
     procedure AddBlockListContent(var HttpContent: HttpContent; var ABSOperationPayload: Codeunit "ABS Operation Payload"; Document: XmlDocument)
     begin
         AddXmlDocumentAsContent(HttpContent, ABSOperationPayload, Document);
     end;
 
-    [NonDebuggable]
     local procedure AddXmlDocumentAsContent(var HttpContent: HttpContent; var ABSOperationPayload: Codeunit "ABS Operation Payload"; Document: XmlDocument)
     var
         Headers: HttpHeaders;
@@ -138,7 +128,6 @@ codeunit 9049 "ABS HttpContent Helper"
         ABSOperationPayload.AddContentHeader('Content-Length', Format(Length));
     end;
 
-    [NonDebuggable]
     procedure ContentSet(HttpContent: HttpContent): Boolean
     var
         VarContent: Text;
@@ -155,7 +144,6 @@ codeunit 9049 "ABS HttpContent Helper"
     /// </summary>
     /// <param name="SourceInStream">The InStream for Request Body.</param>
     /// <returns>The length of the current stream</returns>
-    [NonDebuggable]
     local procedure GetContentLength(var SourceInStream: InStream): BigInteger
     begin
         exit(SourceInStream.Length());
@@ -166,7 +154,6 @@ codeunit 9049 "ABS HttpContent Helper"
     /// </summary>
     /// <param name="SourceText">The Text for Request Body.</param>
     /// <returns>The length of the current stream</returns>
-    [NonDebuggable]
     local procedure GetContentLength(SourceText: Text): Integer
     var
         Length: Integer;

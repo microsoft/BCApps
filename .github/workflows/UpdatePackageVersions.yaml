@@ -13,24 +13,16 @@ permissions: read-all
 
 jobs:
   GetBranches:
-    name: Get Branches
-    runs-on: windows-latest
+    name: Get Official Branches
+    runs-on: ubuntu-latest
     outputs:
-      UpdateBranches: ${{ steps.GetBranches.outputs.UpdateBranches }}
+      updateBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Get Branches
-        id: GetBranches
-        run: |
-          git fetch
-          $branches = @(git for-each-ref --format="'%(refname:short)'" refs/remotes/origin/releases/ | % { $_ -replace 'origin/', '' })
-          $branches += "'main'"
-
-          $branchMatrix = "[$($branches -join ',')]"
-          Write-Host "Updating branches: $branchMatrix"
-          Add-Content -Path $env:GITHUB_OUTPUT -Value "UpdateBranches=$branchMatrix"
+      - name: Get Official Branches
+        id: getOfficialBranches
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        with:
+          include: "['main', 'releases/*']"
 
   UpdatePackageVersions:
     name: "[${{ matrix.branch }}] Update Package Versions"
@@ -41,7 +33,7 @@ jobs:
     needs: GetBranches
     strategy:
       matrix:
-        branch: ${{ fromJson(needs.GetBranches.outputs.UpdateBranches) }}
+        branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
       fail-fast: false
     steps:
       - name: Checkout
@@ -52,6 +44,7 @@ jobs:
       - name: Update Package Versions
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
-          InsiderSASToken: ${{ secrets.INSIDERSASTOKEN }}
-        run: |
-          build/scripts/UpdatePackageVersions.ps1 -Repository $ENV:GITHUB_REPOSITORY -TargetBranch ${{ matrix.branch }} -Actor $env:GITHUB_ACTOR
+        uses: microsoft/BCApps/.github/actions/RunAutomation@main
+        with:
+          automations: UpdateAppBaselines,UpdateAppTranslations
+          targetBranch: ${{ matrix.branch }}

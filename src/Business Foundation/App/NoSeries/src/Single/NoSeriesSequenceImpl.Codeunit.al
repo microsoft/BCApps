@@ -24,8 +24,21 @@ codeunit 307 "No. Series - Sequence Impl." implements "No. Series - Single"
         exit(GetNextNoInternal(NoSeriesLine, false, UsageDate, false));
     end;
 
+    /// <remarks>
+    /// Whenever the Last Date Used Changes, the No. Series Line will be modified. The UpdateLock is only set in cases where the No. Series Line will be modified.
+    /// The "Temp Current Sequence No." must be preserved in case we use UpdLock as the Find() will reset it.
+    /// </remarks>
     procedure GetNextNo(var NoSeriesLine: Record "No. Series Line"; UsageDate: Date; HideErrorsAndWarnings: Boolean): Code[20]
+    var
+        TempCurrentSequenceNo: Integer;
     begin
+        if (not NoSeriesLine.IsTemporary()) and (NoSeriesLine."Last Date Used" <> UsageDate) then begin
+            NoSeriesLine.ReadIsolation(IsolationLevel::UpdLock);
+            TempCurrentSequenceNo := NoSeriesLine."Temp Current Sequence No.";
+            NoSeriesLine.Find();
+            NoSeriesLine."Temp Current Sequence No." := TempCurrentSequenceNo;
+        end;
+
         exit(GetNextNoInternal(NoSeriesLine, true, UsageDate, HideErrorsAndWarnings));
     end;
 

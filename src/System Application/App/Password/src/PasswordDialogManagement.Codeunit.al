@@ -77,6 +77,18 @@ codeunit 9810 "Password Dialog Management"
         PasswordDialogImpl.OpenChangePasswordDialog(OldPassword, Password);
 #pragma warning restore AL0432
     end;
+
+    /// <summary>
+    /// Opens a dialog for the user to change a password and returns the old and new typed passwords if there is no validation error,
+    /// otherwise an empty text are returned.
+    /// </summary>
+    /// <param name="OldPassword">Out parameter, the old password user typed on the dialog.</param>
+    /// <param name="Password">Out parameter, the new password user typed on the dialog.</param>
+    [Obsolete('Replaced by OpenPasswordChangeDialog without out OldPassword param', '25.0')]
+    procedure OpenChangePasswordDialog(var OldPassword: SecretText; var Password: SecretText)
+    begin
+        PasswordDialogImpl.OpenChangePasswordDialog(OldPassword, Password);
+    end;
 #endif
 
     /// <summary>
@@ -113,14 +125,14 @@ codeunit 9810 "Password Dialog Management"
     end;
 
     /// <summary>
-    /// Opens a dialog for the user to change a password and returns the old and new typed passwords if there is no validation error,
+    /// Opens a dialog for the user to change a password and returns the new typed password if there is no validation error,
     /// otherwise an empty text are returned.
     /// </summary>
-    /// <param name="OldPassword">Out parameter, the old password user typed on the dialog.</param>
-    /// <param name="Password">Out parameter, the new password user typed on the dialog.</param>
-    procedure OpenChangePasswordDialog(var OldPassword: SecretText; var Password: SecretText)
+    /// <param name="CurrentPassword">In parameter, the current password to compare with the password user typed on the dialog.</param>
+    /// <param name="NewPassword">Out parameter, the new password user typed on the dialog.</param>
+    procedure OpenPasswordChangeDialog(CurrentPassword: SecretText; var NewPassword: SecretText)
     begin
-        PasswordDialogImpl.OpenChangePasswordDialog(OldPassword, Password);
+        PasswordDialogImpl.OpenPasswordChangeDialog(CurrentPassword, NewPassword);
     end;
 
     /// <summary>

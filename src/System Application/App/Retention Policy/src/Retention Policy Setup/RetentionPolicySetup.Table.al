@@ -23,7 +23,6 @@ table 3901 "Retention Policy Setup"
             BlankZero = true;
             NotBlank = true;
             MinValue = 0;
-            MaxValue = 1999999999;
 
             trigger OnValidate()
             var

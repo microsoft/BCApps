@@ -292,6 +292,7 @@ page 2014 "Copilot Information"
 
     local procedure CheckHttpNoticeVisibility()
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         NavAppSettings: Record "NAV App Setting";
         EnvironmentInformation: Codeunit "Environment Information";
         CurrentModuleInfo: ModuleInfo;

@@ -7,6 +7,7 @@ namespace System.Apps;
 
 using System.Environment;
 using System.Environment.Configuration;
+using System.Integration;
 
 /// <summary>
 /// Lists the available extensions, and provides features for managing them.
@@ -189,6 +190,19 @@ page 2500 "Extension Management"
                         ExtensionOperationImpl.DownloadExtensionSource(Rec."Package ID");
                     end;
                 }
+                action("Open Source in VS Code")
+                {
+                    Caption = 'Open Source in VS Code';
+                    Enabled = IsSourceSpecificationAvailable;
+                    Image = Download;
+                    Scope = Repeater;
+                    ToolTip = 'Open the source code for the extension based on the source control information.';
+
+                    trigger OnAction()
+                    begin
+                        VsCodeIntegration.OpenExtensionSourceInVSCode(Rec);
+                    end;
+                }
                 action("Learn More")
                 {
                     Caption = 'Learn More';
@@ -296,6 +310,7 @@ page 2500 "Extension Management"
                 actionref(Unpublish_Promoted; Unpublish) { }
                 actionref(SetupApp_Promoted; SetupApp) { }
                 actionref("Download Source_Promoted"; "Download Source") { }
+                actionref("Open Source in VS Code_Promoted"; "Open Source in VS Code") { }
                 actionref("Learn More_Promoted"; "Learn More") { }
                 actionref(Refresh_Promoted; Refresh) { }
             }
@@ -334,6 +349,7 @@ page 2500 "Extension Management"
     var
         ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
+        VsCodeIntegration: Codeunit "VS Code Integration";
         VersionDisplay: Text;
         ActionsEnabled: Boolean;
         IsSaaS: Boolean;
@@ -381,6 +397,7 @@ page 2500 "Extension Management"
         // Determining Record and Styling Configurations
         IsInstalled := ExtensionInstallationImpl.IsInstalledByPackageId(Rec."Package ID");
         IsTenantExtension := Rec."Published As" <> Rec."Published As"::Global;
+
         AllowsDownloadSource := AllowsDownloadSource::" ";
         if IsTenantExtension then
             if ExtensionInstallationImpl.AllowsDownloadSource(Rec."Resource Exposure Policy") then begin
@@ -390,6 +407,13 @@ page 2500 "Extension Management"
                 AllowsDownloadSource := AllowsDownloadSource::No;
                 AllowsDownloadSourceStyleExpr := Format(PageStyle::Unfavorable);
             end;
+
+        IsSourceSpecificationAvailable := StrLen(Rec."Source Repository Url") > 0;
+    end;
+
+    local procedure GetVersionDisplayText(): Text
+    begin
+        exit(StrSubstNo(VersionFormatTxt, ExtensionInstallationImpl.GetVersionDisplayString(Rec)));
     end;
 
     local procedure SetInfoStyleForIsInstalled()

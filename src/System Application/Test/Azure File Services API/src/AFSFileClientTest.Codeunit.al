@@ -44,6 +44,35 @@ codeunit 132520 "AFS File Client Test"
     end;
 
     [Test]
+    procedure CreateTextFileStorageAccountKeyTest()
+    var
+        AFSFileClient: Codeunit "AFS File Client";
+        AFSOperationResponse: Codeunit "AFS Operation Response";
+        FileContentLbl: Label 'Hello World!', Locked = true;
+        FilePathLbl: Label 'test.txt', Locked = true;
+        FileContentReturn: Text;
+    begin
+        // [SCENARIO] User wants to send a text file to azure file share using shared key authorization.
+
+        // [GIVEN] A storage account with shared key authorization
+        AFSInitTestStorage.ClearFileShare();
+        SharedKeyAuthorization := AFSGetTestStorageAuth.GetSharedKeyAuthorization(AFSInitTestStorage.GetAccessKey());
+
+        // [WHEN] The programmer creates a text file in the file share and puts the content in it
+        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+
+        AFSOperationResponse := AFSFileClient.CreateFile(FilePathLbl, StrLen(FileContentLbl));
+        LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
+        AFSOperationResponse := AFSFileClient.PutFileText(FilePathLbl, FileContentLbl);
+        LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
+
+        // [THEN] The file is created and the content is correct
+        AFSOperationResponse := AFSFileClient.GetFileAsText(FilePathLbl, FileContentReturn);
+        LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
+        LibraryAssert.AreEqual(FileContentLbl, FileContentReturn, 'File content mismatch.');
+    end;
+
+    [Test]
     procedure CreateTextFileNoParentDirectoryTest()
     var
         AFSFileClient: Codeunit "AFS File Client";

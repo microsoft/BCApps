@@ -1,0 +1,39 @@
+name: Update AL-Go On Official Branches
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "55 08 * * 3" # Run at 08:55 UTC on Wednesday
+
+permissions: read-all
+
+jobs:
+  GetBranches:
+    name: Get Official Branches
+    runs-on: ubuntu-latest
+    outputs:
+      updateBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
+    steps:
+      - name: Get Official Branches
+        id: getOfficialBranches
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        with:
+          include: "['main', 'releases/*']"
+
+  UpdateALGo:
+    name: "[${{ matrix.branch }}] Update AL-Go"
+    runs-on: ubuntu-latest
+    environment: Official-Build
+    needs: GetBranches
+    strategy:
+      matrix:
+        branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
+      fail-fast: false
+    steps:
+      - name: Update AL-Go System Files
+        env:
+          GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
+        uses: microsoft/BCApps/.github/actions/RunAutomation@main
+        with:
+          automations: UpdateALGo
+          targetBranch: ${{ matrix.branch }}

@@ -35,4 +35,12 @@ enum 7772 "AOAI Chat Roles"
     {
         Caption = 'assistant', Locked = true;
     }
+
+    /// <summary>
+    /// Tool chat role messages provides the results of tool calling to the model.
+    /// </summary>
+    value(3; Tool)
+    {
+        Caption = 'tool', Locked = true;
+    }
 }

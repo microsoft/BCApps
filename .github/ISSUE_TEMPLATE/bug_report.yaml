@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report! 
+        Thanks for taking the time to fill out this bug report!
 
         ⚠️⚠️ BEFORE WE GET STARTED ⚠️⚠️
         This is not the right place to report product defects with customer impact to Microsoft! Issues reported in this repository do not fall under SLAs (Service Level Agreements) and hence have no guaranteed time to mitigation. If your customers are experiencing product defects or you have discovered a severe issue in the product, please follow the steps outlined in https://learn.microsoft.com/dynamics365/business-central/dev-itpro/technical-support to get your issue routed to the right team at Microsoft and to get it treated with the right priority.
@@ -52,8 +52,8 @@ body:
     id: terms
     attributes:
       label: I will provide a fix for a bug
-      description: | 
-        To provide a fix for a bug, select this checkbox and then Get started. Thanks for contributing. 
+      description: |
+        To provide a fix for a bug, select this checkbox and then Get started. Thanks for contributing.
       options:
         - label: I will provide a fix for a bug
           required: true

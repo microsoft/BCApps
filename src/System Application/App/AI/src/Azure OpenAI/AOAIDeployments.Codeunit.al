@@ -16,10 +16,12 @@ codeunit 7768 "AOAI Deployments"
     var
         AOAIDeploymentsImpl: Codeunit "AOAI Deployments Impl";
 
+#if not CLEAN25
     /// <summary>
     /// Returns the name of the AOAI deployment model Turbo 0301.
     /// </summary>
     /// <returns>The deployment name.</returns>
+    [Obsolete('Specific deployment names are no longer supported. Use GetGPT35TurboLatest and GetGPT4Latest instead (or GetGPT35TurboPreview and GetGPT4Preview for testing upcoming versions).', '25.0')]
     procedure GetTurbo0301(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -32,6 +34,7 @@ codeunit 7768 "AOAI Deployments"
     /// Returns the name of the AOAI deployment model GPT4 0613.
     /// </summary>
     /// <returns>The deployment name.</returns>
+    [Obsolete('Specific deployment names are no longer supported. Use GetGPT35TurboLatest and GetGPT4Latest instead (or GetGPT35TurboPreview and GetGPT4Preview for testing upcoming versions).', '25.0')]
     procedure GetGPT40613(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -44,6 +47,7 @@ codeunit 7768 "AOAI Deployments"
     /// Returns the name of the AOAI deployment model Turbo 0613.
     /// </summary>
     /// <returns>The deployment name.</returns>
+    [Obsolete('Specific deployment names are no longer supported. Use GetGPT35TurboLatest and GetGPT4Latest instead (or GetGPT35TurboPreview and GetGPT4Preview for testing upcoming versions).', '25.0')]
     procedure GetTurbo0613(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -51,6 +55,7 @@ codeunit 7768 "AOAI Deployments"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         exit(AOAIDeploymentsImpl.GetTurbo0613(CallerModuleInfo));
     end;
+#endif
 
     /// <summary>
     /// Returns the name of the latest AOAI deployment model of GPT3.5 Turbo.

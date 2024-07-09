@@ -158,6 +158,10 @@ codeunit 1446 "RSACryptoServiceProvider Impl." implements "Signature Algorithm v
         DotNetRSACryptoServiceProvider.FromXmlString(XmlString);
     end;
 #endif
+    procedure PublicKeyToXmlString(): Text
+    begin
+        exit(DotNetRSACryptoServiceProvider.ToXmlString(false));
+    end;
 
     procedure ToSecretXmlString(IncludePrivateParameters: Boolean): SecretText
     begin
