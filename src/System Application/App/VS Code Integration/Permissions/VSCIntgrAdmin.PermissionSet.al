@@ -8,7 +8,7 @@ namespace System.Apps;
 using System.Tooling;
 using System.Reflection;
 
-permissionset 8035 "VSC Intgr. - Admin"
+permissionset 8335 "VSC Intgr. - Admin"
 {
     Access = Public;
     Assignable = true;

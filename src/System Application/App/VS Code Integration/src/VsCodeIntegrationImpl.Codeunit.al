@@ -4,7 +4,7 @@ using System.Apps;
 using System.Reflection;
 using System.Utilities;
 
-codeunit 8033 "VS Code Integration Impl."
+codeunit 8333 "VS Code Integration Impl."
 {
     Access = Internal;
     InherentEntitlements = X;
