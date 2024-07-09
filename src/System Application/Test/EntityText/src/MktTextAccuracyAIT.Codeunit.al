@@ -8,7 +8,7 @@ namespace System.Test.EntityText;
 using System.TestTools.AITestToolkit;
 using System.Text;
 
-codeunit 134640 "Mkt Text Accuracy BCCT"
+codeunit 134640 "Mkt Text Accuracy AIT"
 {
     Subtype = Test;
 
