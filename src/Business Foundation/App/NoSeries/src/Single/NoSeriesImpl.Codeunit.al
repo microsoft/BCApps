@@ -84,9 +84,6 @@ codeunit 304 "No. Series - Impl."
         NoSeriesLine: Record "No. Series Line";
         NoSeriesSingle: Interface "No. Series - Single";
     begin
-        if NoSeriesCode = '' then
-            exit('');
-
         if not GetNoSeriesLine(NoSeriesLine, NoSeriesCode, WorkDate(), true) then
             exit('');
 
