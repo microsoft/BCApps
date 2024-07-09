@@ -223,6 +223,9 @@ page 2500 "Extension Management"
                     Image = NewItem;
                     ToolTip = 'Browse the extension marketplace for new extensions to install.';
                     Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This action will be obsoleted. Microsoft AppSource apps feature will replace the Extension Marketplace.';
+                    ObsoleteTag = '25.0';
 
                     trigger OnAction()
                     begin
@@ -279,7 +282,7 @@ page 2500 "Extension Management"
                 {
                     ObsoleteState = Pending;
                     ObsoleteReason = 'This action will be obsoleted. Microsoft AppSource apps feature will replace the Extension Marketplace.';
-                    ObsoleteTag = '24.0';
+                    ObsoleteTag = '25.0';
                     Visible = false;
                 }
 #endif                
