@@ -215,6 +215,21 @@ page 2500 "Extension Management"
                         CurrPage.Update(false);
                     end;
                 }
+#if not CLEAN25
+                action("Extension Marketplace")
+                {
+                    Caption = 'Extension Marketplace';
+                    Enabled = IsSaaS;
+                    Image = NewItem;
+                    ToolTip = 'Browse the extension marketplace for new extensions to install.';
+                    Visible = false;
+
+                    trigger OnAction()
+                    begin
+                        Hyperlink('https://aka.ms/bcappsource');
+                    end;
+                }
+#endif
                 action("Microsoft AppSource Gallery")
                 {
                     Caption = 'AppSource Gallery';
@@ -259,6 +274,15 @@ page 2500 "Extension Management"
                 Caption = 'Manage', Comment = 'Generated from the PromotedActionCategories property index 4.';
 
                 actionref("Microsoft AppSource Gallery_Promoted"; "Microsoft AppSource Gallery") { }
+#if not CLEAN25
+                actionref("Extension Marketplace_Promoted"; "Extension Marketplace")
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This action will be obsoleted. Microsoft AppSource apps feature will replace the Extension Marketplace.';
+                    ObsoleteTag = '24.0';
+                    Visible = false;
+                }
+#endif                
                 actionref("Upload Extension_Promoted"; "Upload Extension") { }
                 actionref("Deployment Status_Promoted"; "Deployment Status") { }
                 actionref(View_Promoted; View) { }
