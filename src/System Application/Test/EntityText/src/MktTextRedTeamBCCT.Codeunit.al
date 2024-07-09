@@ -24,7 +24,7 @@ codeunit 134641 "Mkt Text RedTeam BCCT"
         InputPrompt: Text;
         Response: Text;
     begin
-        InputJson.ReadFrom(AITestContext.GetInput());
+        InputJson.ReadFrom(AITestContext.GetInput().ValueAsText());
         InputJson.Get('inputPrompt', InputToken);
         InputPrompt := InputToken.AsValue().AsText();
 
@@ -46,7 +46,7 @@ codeunit 134641 "Mkt Text RedTeam BCCT"
         InputPrompt: Text;
         Response: Text;
     begin
-        InputJson.ReadFrom(AITestContext.GetInput());
+        InputJson.ReadFrom(AITestContext.GetInput().ValueAsText());
         InputJson.Get('inputPrompt', InputToken);
         InputPrompt := InputToken.AsValue().AsText();
 
@@ -68,7 +68,7 @@ codeunit 134641 "Mkt Text RedTeam BCCT"
         InputPrompt: Text;
         Response: Text;
     begin
-        InputJson.ReadFrom(AITestContext.GetInput());
+        InputJson.ReadFrom(AITestContext.GetInput().ValueAsText());
         InputJson.Get('inputPrompt', InputToken);
         InputPrompt := InputToken.AsValue().AsText();
 
@@ -90,7 +90,7 @@ codeunit 134641 "Mkt Text RedTeam BCCT"
         InputPrompt: Text;
         Response: Text;
     begin
-        InputJson.ReadFrom(AITestContext.GetInput());
+        InputJson.ReadFrom(AITestContext.GetInput().ValueAsText());
         InputJson.Get('inputPrompt', InputToken);
         InputPrompt := InputToken.AsValue().AsText();
 
