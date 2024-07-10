@@ -22,6 +22,7 @@ codeunit 304 "No. Series - Impl."
         CannotAssignAutomaticallyErr: Label 'It is not possible to assign numbers automatically. If you want the program to assign numbers automatically, please activate %1 in %2 %3.', Comment = '%1=Default Nos. setting,%2=No. Series table caption,%3=No. Series Code';
         SeriesNotRelatedErr: Label 'The number series %1 is not related to %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
         PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
+        CannotGetNoSeriesLineNoWithEmtpyCodeErr: Label 'Argument NoSeriesCode in GetNoSeriesLine cannot be blank.';
 
 #if not CLEAN24
 #pragma warning disable AL0432
@@ -162,6 +163,12 @@ codeunit 304 "No. Series - Impl."
 #endif
         LineFound: Boolean;
     begin
+        if NoSeriesCode = '' then begin
+            if not HideErrorsAndWarnings then
+                Error(CannotGetNoSeriesLineNoWithEmtpyCodeErr);
+            exit(false);
+        end;
+
         if UsageDate = 0D then
             UsageDate := WorkDate();
 

@@ -19,6 +19,7 @@ codeunit 134530 "No. Series Tests"
         LibraryAssert: Codeunit "Library Assert";
         LibraryNoSeries: Codeunit "Library - No. Series";
         CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1', Comment = '%1=No. Series Code';
+        CannotGetNoSeriesLineNoWithEmtpyCodeErr: Label 'Argument NoSeriesCode in GetNoSeriesLine cannot be blank.';
 
     #region sequence
     [Test]
@@ -906,6 +907,54 @@ codeunit 134530 "No. Series Tests"
         // [THEN] Getting the next number, they again both return 7
         LibraryAssert.AreEqual('7', NoSeries.GetNextNo(NoSeriesLine, WorkDate()), 'GetNextNo returned wrong value');
         LibraryAssert.AreEqual('7', NoSeries.GetNextNo(TempNoSeriesLine, WorkDate()), 'GetNextNo with temporary record returned wrong value');
+    end;
+
+    [Test]
+    procedure TestNoSeriesEmptyCodeInLine()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        NoSeries: Record "No. Series";
+        PermissionsMock: Codeunit "Permissions Mock";
+        NoSeriesPage: TestPage "No. Series";
+    begin
+        // [Scenario 540058] No series exists without any lines. No Series line exists with empty code.
+
+        Initialize();
+        PermissionsMock.Set('No. Series - Admin');
+
+        // [GIVEN] A number series code with name making it first record found without line
+        NoSeries.Code := 'AAA';
+        NoSeries.Insert();
+        // [GIVEN] A number series line with empty code
+        NoSeriesLine."Series Code" := '';
+        NoSeriesLine.Insert();
+
+        // [THEN] We can open no series page without crash.
+        NoSeriesPage.OpenView();
+    end;
+
+    [Test]
+    procedure TestNoSeriesEmptyCodeInLine2()
+    var
+        NoSeriesLine: Record "No. Series Line";
+        Assert: Codeunit "Library Assert";
+        NoSeries: Codeunit "No. Series";
+        PermissionsMock: Codeunit "Permissions Mock";
+    begin
+        // [Scenario 540058] No series exists without any lines. No Series line exists with empty code.
+
+        Initialize();
+        PermissionsMock.Set('No. Series - Admin');
+
+        // Call to GetNoSeriesLine must fail for empty NoSeriesCode
+        asserterror NoSeries.GetNoSeriesLine(NoSeriesLine, '', WorkDate(), false);
+        Assert.ExpectedError(CannotGetNoSeriesLineNoWithEmtpyCodeErr);
+
+        // Call to GetNoSeriesLine must return empty for empty NoSeriesCode
+        Assert.IsFalse(NoSeries.GetNoSeriesLine(NoSeriesLine, '', WorkDate(), true), 'GetNoSeriesLine must return false for empty code with hidden error');
+
+        // Call to GetLastNoUsed must return empty number
+        Assert.AreEqual('', NoSeries.GetLastNoUsed(''), 'GetLastNoUsed should return empty code if argument supplied is empty code');
     end;
 
     local procedure Initialize()
