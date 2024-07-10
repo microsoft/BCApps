@@ -18,6 +18,7 @@ pageextension 2515 AppSourceExtensionManagement extends "Extension Management"
         {
             action("Microsoft AppSource Gallery")
             {
+                ApplicationArea = All;
                 Caption = 'AppSource Gallery';
                 Enabled = IsSaas;
                 Image = NewItem;

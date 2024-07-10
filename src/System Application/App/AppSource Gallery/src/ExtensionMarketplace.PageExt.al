@@ -16,6 +16,7 @@ pageextension 2516 AppSourceMarketPlaceExtension extends "Extension Marketplace"
         {
             action("Microsoft AppSource Gallery")
             {
+                ApplicationArea = All;
                 Caption = 'AppSource Gallery';
                 Image = NewItem;
                 ToolTip = 'Browse the Microsoft AppSource Gallery for new extensions to install.';
