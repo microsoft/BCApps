@@ -10,6 +10,10 @@ using System.Apps;
 pageextension 2516 AppSourceMarketPlaceExtension extends "Extension Marketplace"
 #pragma warning restore AL0432
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'This page will be obsoleted. Microsoft AppSource apps feature will replace the Extension Marketplace.';
+    ObsoleteTag = '25.0';
+
     actions
     {
         addlast("Navigation")
