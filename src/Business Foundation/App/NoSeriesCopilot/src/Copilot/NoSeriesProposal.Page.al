@@ -71,7 +71,7 @@ page 332 "No. Series Proposal"
     {
         area(PromptGuide)
         {
-            group(CreateNewNoSeries)
+            group(CreateNewNoSeriesGroup)
             {
                 Caption = 'Create new';
 
@@ -109,7 +109,7 @@ page 332 "No. Series Proposal"
                     end;
                 }
             }
-            group(ModifyExistingNoSeries)
+            group(ModifyExistingNoSeriesGroup)
             {
                 Caption = 'Modify existing';
 
@@ -120,6 +120,31 @@ page 332 "No. Series Proposal"
                     trigger OnAction()
                     begin
                         InputText := ChangeNumberLbl;
+                        CurrPage.Update();
+                    end;
+                }
+            }
+            group(PrepareForNextYearGroup)
+            {
+                Caption = 'Prepare for next year';
+
+                action(SetupForNextYear)
+                {
+                    Caption = 'Set up number series for the next year';
+                    ToolTip = 'Sample prompt for setting up number series for the next year.';
+                    trigger OnAction()
+                    begin
+                        InputText := SetupForNextYearLbl;
+                        CurrPage.Update();
+                    end;
+                }
+                action(SetupModuleForNextYear)
+                {
+                    Caption = 'Set up number series for the [sales] module for the next year';
+                    ToolTip = 'Sample prompt for setting up number series for a specific module for the next year. Replace [sales] with the module you want to set up number series for.';
+                    trigger OnAction()
+                    begin
+                        InputText := SetupModuleForNextYearLbl;
                         CurrPage.Update();
                     end;
                 }
@@ -169,6 +194,8 @@ page 332 "No. Series Proposal"
         CreateNoSeriesForModuleWithPatternLbl: Label 'Create number series for [specify here] module in the format ';
         CreateNoSeriesForCompanyLbl: Label 'Create numbers series for the new company';
         ChangeNumberLbl: Label 'Change the [specify here] number to ';
+        SetupForNextYearLbl: Label 'Set up number series for the next year';
+        SetupModuleForNextYearLbl: Label 'Set up number series for the [specify here] module for the next year';
 
     trigger OnAfterGetCurrRecord()
     begin

@@ -100,7 +100,8 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         NoSeriesLine.Init();
         NoSeriesLine."Series Code" := GeneratedNoSeries."Series Code";
-        NoSeriesLine."Line No." := GetNoSeriesLineNo(GeneratedNoSeries."Series Code");
+        NoSeriesLine."Line No." := GetNoSeriesLineNo(GeneratedNoSeries."Series Code", GeneratedNoSeries."Is Next Year");
+        NoSeriesLine.Validate("Starting Date", GeneratedNoSeries."Starting Date");
         NoSeriesLine.Validate("Starting No.", GeneratedNoSeries."Starting No.");
         NoSeriesLine.Validate("Ending No.", GeneratedNoSeries."Ending No.");
         if GeneratedNoSeries."Warning No." <> '' then
@@ -111,7 +112,7 @@ codeunit 324 "No. Series Copilot Impl."
             NoSeriesLine.Modify(true);
     end;
 
-    local procedure GetNoSeriesLineNo(SeriesCode: Code[20]): Integer
+    local procedure GetNoSeriesLineNo(SeriesCode: Code[20]; NewLineNo: Boolean): Integer
     var
         NoSeriesLine: Record "No. Series Line";
         NoSeries: Codeunit "No. Series";
@@ -119,7 +120,10 @@ codeunit 324 "No. Series Copilot Impl."
         if not NoSeries.GetNoSeriesLine(NoSeriesLine, SeriesCode, 0D, true) then
             exit(10000);
 
-        exit(NoSeriesLine."Line No."); // currently we don't support 'create no. series for the new year' scenario, so we always update existing number series, if user intent is to change the number series
+        if NewLineNo then
+            exit(NoSeriesLine."Line No." + 10000);
+
+        exit(NoSeriesLine."Line No.");
     end;
 
     local procedure ApplyNoSeriesToSetup(var GeneratedNoSeries: Record "No. Series Proposal Line")
@@ -155,6 +159,7 @@ codeunit 324 "No. Series Copilot Impl."
         AOAIDeployments: Codeunit "AOAI Deployments";
         AddNoSeriesIntent: Codeunit "No. Series Cop. Add Intent";
         ChangeNoSeriesIntent: Codeunit "No. Series Cop. Change Intent";
+        NextYearNoSeriesIntent: Codeunit "No. Series Cop. Nxt Yr. Intent";
         CompletionAnswerTxt: Text;
     begin
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"No. Series Copilot") then
@@ -170,6 +175,7 @@ codeunit 324 "No. Series Copilot Impl."
 
         AOAIChatMessages.AddTool(AddNoSeriesIntent);
         AOAIChatMessages.AddTool(ChangeNoSeriesIntent);
+        AOAIChatMessages.AddTool(NextYearNoSeriesIntent);
 
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
         if not AOAIOperationResponse.IsSuccess() then
@@ -473,7 +479,26 @@ codeunit 324 "No. Series Copilot Impl."
         Json.GetValueAndSetToRecFieldNo(RecRef, 'incrementByNo', GeneratedNoSeries.FieldNo("Increment-by No."));
         Json.GetValueAndSetToRecFieldNo(RecRef, 'tableId', GeneratedNoSeries.FieldNo("Setup Table No."));
         Json.GetValueAndSetToRecFieldNo(RecRef, 'fieldId', GeneratedNoSeries.FieldNo("Setup Field No."));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'nextYear', GeneratedNoSeries.FieldNo("Is Next Year"));
         RecRef.Insert(true);
+
+        ValidateGeneratedNoSeries(RecRef);
+    end;
+
+    local procedure ValidateGeneratedNoSeries(var RecRef: RecordRef)
+    var
+        GeneratedNoSeries: Record "No. Series Proposal Line";
+    begin
+        ValidateRecFieldNo(RecRef, GeneratedNoSeries.FieldNo("Is Next Year"));
+        RecRef.Modify(true);
+    end;
+
+    local procedure ValidateRecFieldNo(var RecRef: RecordRef; FieldNo: Integer)
+    var
+        FieldRef: FieldRef;
+    begin
+        FieldRef := RecRef.Field(FieldNo);
+        FieldRef.Validate();
     end;
 
     local procedure SetProposalNo(var RecRef: RecordRef; GenerationId: Integer; FieldNo: Integer)

@@ -61,6 +61,18 @@ table 392 "No. Series Proposal Line"
         {
             Caption = 'Setup Field No.';
         }
+        field(11; "Is Next Year"; Boolean)
+        {
+            Caption = 'Is Next Year';
+            trigger OnValidate()
+            begin
+                UpdateStartingDate();
+            end;
+        }
+        field(12; "Starting Date"; Date)
+        {
+            Caption = 'Starting Date';
+        }
     }
 
     keys
@@ -105,5 +117,13 @@ table 392 "No. Series Proposal Line"
         Rec."Starting No." := TempNoSeriesLine."Starting No.";
         Rec."Ending No." := TempNoSeriesLine."Ending No.";
         Rec."Warning No." := TempNoSeriesLine."Warning No.";
+    end;
+
+    local procedure UpdateStartingDate()
+    begin
+        if not Rec."Is Next Year" then
+            exit;
+
+        Rec."Starting Date" := CalcDate('<-CY+1Y>', Today);
     end;
 }

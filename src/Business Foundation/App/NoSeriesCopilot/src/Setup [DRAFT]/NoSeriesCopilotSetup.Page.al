@@ -167,6 +167,25 @@ page 9245 "No. Series Copilot Setup"
                         end;
                     }
                 }
+                group(Tool4)
+                {
+                    field(Tool4Definition; Tool4Definition)
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'Tool 4 Definition';
+                        Editable = false;
+                        NotBlank = true;
+                        ShowMandatory = true;
+                        ExtendedDatatype = Masked;
+                        MultiLine = true;
+                        ToolTip = 'Specifies the value of the Tool 4 Definition field.';
+                        trigger OnAssistEdit()
+                        begin
+                            Rec.ImportFromTextFile(Tool4Definition);
+                            Rec.SetTool4DefinitionToIsolatedStorage(Tool4Definition);
+                        end;
+                    }
+                }
             }
         }
     }
@@ -180,6 +199,7 @@ page 9245 "No. Series Copilot Setup"
         Tool2Prompt: Text;
         Tool2Definition: Text;
         Tool3Definition: Text;
+        Tool4Definition: Text;
 
     trigger OnOpenPage()
     begin
@@ -196,6 +216,7 @@ page 9245 "No. Series Copilot Setup"
         Tool2Prompt := Rec.GetTool2PromptFromIsolatedStorage();
         Tool2Definition := Rec.GetTool2DefinitionFromIsolatedStorage();
         Tool3Definition := Rec.GetTool3DefinitionFromIsolatedStorage();
+        Tool4Definition := Rec.GetTool4DefinitionFromIsolatedStorage();
     end;
 
 }

@@ -65,10 +65,17 @@ table 9200 "No. Series Copilot Setup"
             DataClassification = CustomerContent;
             Caption = 'Tool 2 Definition';
         }
+
         field(31; "Tool 3 Definition"; Guid)
         {
             DataClassification = CustomerContent;
             Caption = 'Tool 3 Definition';
+        }
+
+        field(41; "Tool 4 Definition"; Guid)
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Tool 4 Definition';
         }
     }
 
@@ -243,7 +250,6 @@ table 9200 "No. Series Copilot Setup"
         Rec."Tool 2 Definition" := NewFunctionsPromptGuid;
     end;
 
-
     [NonDebuggable]
     procedure GetTool3DefinitionFromIsolatedStorage() FunctionsPrompt: Text
     begin
@@ -266,6 +272,30 @@ table 9200 "No. Series Copilot Setup"
         IsolatedStorage.Set(NewFunctionsPromptGuid, FunctionsPrompt, DataScope::Module);
 
         Rec."Tool 3 Definition" := NewFunctionsPromptGuid;
+    end;
+
+    [NonDebuggable]
+    procedure GetTool4DefinitionFromIsolatedStorage() FunctionsPrompt: Text
+    begin
+        if not IsNullGuid(Rec."Tool 4 Definition") then
+            if not IsolatedStorage.Get(Rec."Tool 4 Definition", DataScope::Module, FunctionsPrompt) then;
+
+        exit(FunctionsPrompt);
+    end;
+
+    [NonDebuggable]
+    procedure SetTool4DefinitionToIsolatedStorage(FunctionsPrompt: Text)
+    var
+        NewFunctionsPromptGuid: Guid;
+    begin
+        if not IsNullGuid(Rec."Tool 4 Definition") then
+            if not IsolatedStorage.Delete(Rec."Tool 4 Definition", DataScope::Module) then;
+
+        NewFunctionsPromptGuid := CreateGuid();
+
+        IsolatedStorage.Set(NewFunctionsPromptGuid, FunctionsPrompt, DataScope::Module);
+
+        Rec."Tool 4 Definition" := NewFunctionsPromptGuid;
     end;
 
     [NonDebuggable]

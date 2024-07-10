@@ -15,11 +15,13 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
 
     var
         ToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
+        IsNextYear: Boolean;
         SpecifyTablesErr: Label 'Please specify the tables for which you want to modify the number series.';
-        FunctionNameLbl: Label 'GetExistingTablesAndPatterns', Locked = true;
+        FunctionNameLbl: Label 'UpdateExistingNumberSeries', Locked = true;
         DateSpecificPlaceholderLbl: Label '{current_date}', Locked = true;
         CustomPatternsPlaceholderLbl: Label '{custom_patterns}', Locked = true;
         TablesYamlFormatPlaceholderLbl: Label '{tables_yaml_format}', Locked = true;
+        IsNextYearPlaceholderLbl: Label '{is_next_year}', Locked = true;
         NumberOfAddedTablesPlaceholderLbl: Label '{number_of_tables}', Locked = true;
 
     procedure GetName(): Text
@@ -37,6 +39,11 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
     procedure Execute(Arguments: JsonObject): Variant
     begin
         exit(Build(Arguments));
+    end;
+
+    procedure SetIsNextYear(IsNextYearNumberSeries: Boolean)
+    begin
+        IsNextYear := IsNextYearNumberSeries;
     end;
 
     /// <summary>
@@ -74,6 +81,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
                 ChangeNoSeriesPrompt.Add(GetToolPrompt().Replace(DateSpecificPlaceholderLbl, Format(Today(), 0, 4))
                                                         .Replace(CustomPatternsPlaceholderLbl, ToolsImpl.ConvertListToText(CustomPatternsPromptList))
                                                         .Replace(TablesYamlFormatPlaceholderLbl, ToolsImpl.ConvertListToText(TablesYamlList))
+                                                        .Replace(IsNextYearPlaceholderLbl, Format(IsNextYear))
                                                         .Replace(NumberOfAddedTablesPlaceholderLbl, Format(ActualTablesChunkSize)));
 
                 ToolResults.Add(ToolsImpl.ConvertListToText(ChangeNoSeriesPrompt), ActualTablesChunkSize);
@@ -84,6 +92,9 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
     local procedure CheckIfUserSpecifiedNoSeriesToChange(Arguments: JsonObject)
     begin
         if ToolsImpl.CheckIfTablesSpecified(Arguments) then
+            exit;
+
+        if IsNextYear then
             exit;
 
         Error(SpecifyTablesErr);
@@ -114,7 +125,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         ToolsImpl.SetFilterOnNoSeriesFields(TempTableMetadata, Field);
         if Field.FindSet() then
             repeat
-                if ToolsImpl.IsRelevant(TempTableMetadata, Field, Entities) then
+                if (ToolsImpl.IsRelevant(TempTableMetadata, Field, Entities)) or IsNextYear then
                     AddChangeNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, ExistingNoSeriesToChangeList, TempTableMetadata, Field);
             until Field.Next() = 0;
     end;
@@ -144,8 +155,6 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         TempNoSeriesField.Insert();
 
         ExistingNoSeriesToChangeList.Add(NoSeries.Code);
-
-        // TablesPromptList.Add('Area: ' + ToolsImpl.RemoveTextPart(TableMetadata.Caption, ' Setup') + ', TableId: ' + Format(TableMetadata.ID) + ', FieldId: ' + Format(Field."No.") + ', FieldName: ' + ToolsImpl.RemoveTextParts(Field.FieldName, ToolsImpl.GetNoSeriesAbbreviations()) + ', seriesCode: ' + NoSeries.Code + ', description: ' + NoSeries.Description);
     end;
 
     [NonDebuggable]

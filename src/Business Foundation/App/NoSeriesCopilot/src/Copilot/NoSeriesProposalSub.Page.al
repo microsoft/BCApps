@@ -54,6 +54,11 @@ page 333 "No. Series Proposal Sub"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Warning No. field.';
                 }
+                field("Starting Date"; Rec."Starting Date")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Starting Date field.';
+                }
             }
         }
     }

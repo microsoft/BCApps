@@ -25,7 +25,7 @@ codeunit 339 "No. Series Cop. Generate" implements "AOAI Function"
     [NonDebuggable]
     procedure GetPrompt() Function: JsonObject;
     begin
-        Function.ReadFrom(GetTool3Definition());
+        Function.ReadFrom(GetTool4Definition());
     end;
 
     procedure Execute(Arguments: JsonObject): Variant
@@ -50,14 +50,14 @@ codeunit 339 "No. Series Cop. Generate" implements "AOAI Function"
 
 
     [NonDebuggable]
-    local procedure GetTool3Definition(): Text
+    local procedure GetTool4Definition(): Text
     var
         NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
     begin
         // This is a temporary solution to get the tool definition. The tool should be retrieved from the Azure Key Vault.
         // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
         NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool3DefinitionFromIsolatedStorage())
+        exit(NoSeriesCopilotSetup.GetTool4DefinitionFromIsolatedStorage())
     end;
 
     [TryFunction]
