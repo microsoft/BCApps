@@ -12,7 +12,6 @@ codeunit 336 "No. Series Cop. Tools Impl."
     Access = Internal;
 
     var
-        CustomPatternsPlaceholderLbl: Label '{custom_patterns}', Locked = true;
         PrefixLbl: Label 'for ';
 
     procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var Arguments: JsonObject; var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text])
@@ -181,8 +180,8 @@ codeunit 336 "No. Series Cop. Tools Impl."
     local procedure IsPrimaryKeyIsEmptyCodeField(var TableMetadata: Record "Table Metadata"): Boolean
     var
         RecRef: RecordRef;
-        KeyRef: KeyRef;
         FieldRef: FieldRef;
+        KeyRef: KeyRef;
     begin
         RecRef.Open(TableMetadata.ID);
         KeyRef := RecRef.KeyIndex(1);
@@ -293,7 +292,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
         Identation += 2;
     end;
 
-    local procedure GetYAMLIdentationText(var Identation: Integer): Text
+    local procedure GetYAMLIdentationText(Identation: Integer): Text
     var
         NewIdentationText: Text;
         EmptyText: Text;
@@ -302,7 +301,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
         exit(NewIdentationText);
     end;
 
-    local procedure AddNoSeriesInfo(var YamlLines: List of [Text]; var TempNoSeriesField: Record "Field" temporary; var Identation: Integer)
+    local procedure AddNoSeriesInfo(var YamlLines: List of [Text]; var TempNoSeriesField: Record "Field" temporary; Identation: Integer)
     var
         NoSeries: Record "No. Series";
         NoSeriesLine: Record "No. Series Line";
@@ -362,7 +361,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
         YamlText := CopyStr(Prompt, StrPos(Prompt, YamlStartBlockLbl) + StrLen(YamlStartBlockLbl), StrLen(Prompt));
         YamlText := CopyStr(YamlText, 1, StrPos(YamlText, YamlTextEndLbl) - StrLen(YamlTextEndLbl) - 1);
 
-        YamlLinesList := YamlText.Split(CRLFSeparator);
+        YamlLinesList := YamlText.Split(CRLFSeparator());
         foreach YamlLine in YamlLinesList do
             if (CopyStr(YamlLine, 1, 2) <> '  ') and (CopyStr(YamlLine, 1, 1) <> '') then
                 Areas.Append(YamlLine.Replace(':', ', '));

@@ -5,8 +5,6 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-using System.Environment.Configuration;
-
 pageextension 324 "No. Series Ext." extends "No. Series"
 {
     actions

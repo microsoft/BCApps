@@ -7,7 +7,6 @@ namespace Microsoft.Foundation.NoSeries;
 
 using System.AI;
 using System.Reflection;
-using System.Utilities;
 
 codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
 {
@@ -55,11 +54,11 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
     [NonDebuggable]
     local procedure Build(var Arguments: JsonObject) ToolResults: Dictionary of [Text, Integer]
     var
+        TempSetupTable: Record "Table Metadata" temporary;
+        TempNoSeriesField: Record "Field" temporary;
         NotificationManager: Codeunit "No. Ser. Cop. Notific. Manager";
         ChangeNoSeriesPrompt, CustomPatternsPromptList, TablesYamlList, ExistingNoSeriesToChangeList : List of [Text];
         NumberOfToolResponses, i, ActualTablesChunkSize : Integer;
-        TempSetupTable: Record "Table Metadata" temporary;
-        TempNoSeriesField: Record "Field" temporary;
         NumberOfChangedTables: Integer;
     begin
         if not CheckIfUserSpecifiedNoSeriesToChange(Arguments) then begin
