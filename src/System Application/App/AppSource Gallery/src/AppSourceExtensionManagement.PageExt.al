@@ -7,11 +7,6 @@ using System.Apps;
 
 pageextension 2515 AppSourceExtensionManagement extends "Extension Management"
 {
-    layout
-    {
-        // Add changes to page layout here
-    }
-
     actions
     {
         addafter("Refresh")
