@@ -957,28 +957,6 @@ codeunit 134530 "No. Series Tests"
         Assert.AreEqual('', NoSeries.GetLastNoUsed(''), 'GetLastNoUsed should return empty code if argument supplied is empty code');
     end;
 
-#if not CLEAN24
-    [Test]
-    [Obsolete('Obsoleted test to verify behavior in legacy code for No. Series.', '24.0')]
-    procedure TestNoSeriesEmptyCodeInLineLegacy()
-    var
-        NoSeriesLine: Record "No. Series Line";
-        Assert: Codeunit "Library Assert";
-        NoSeries: Codeunit "No. Series";
-        NoSeriesMgt: Codeunit NoSeriesManagement;
-        PermissionsMock: Codeunit "Permissions Mock";
-    begin
-        // [Scenario 540058] No series exists without any lines. No Series line exists with empty code.
-        // Test to verify legacy behavior for GetNoSeriesLine eqv. in NoSeriesManagement
-
-        Initialize();
-        PermissionsMock.Set('No. Series - Admin');
-
-        NoSeriesMgt.SetNoSeriesLineFilter(NoSeriesLine, '', WorkDate());
-        Assert.AreEqual('', NoSeriesLine."Series Code", 'SetNoSeriesLineFilter should not find anything for empty Series Code.');
-    end;
-#endif
-
     local procedure Initialize()
     begin
         Any.SetDefaultSeed();
