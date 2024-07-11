@@ -27,25 +27,6 @@ pageextension 324 "No. Series Ext." extends "No. Series"
                 end;
             }
         }
-
-        addlast(Processing) // TODO: Remove this action when the feature is enabled, as it is a duplicate of the action above
-        {
-            action("Generate With Copilot")
-            {
-                Caption = 'Generate';
-                ToolTip = 'Generate No. Series using Copilot';
-                Image = Sparkle;
-                ApplicationArea = All;
-                Visible = CopilotActionsVisible;
-
-                trigger OnAction()
-                var
-                    NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
-                begin
-                    NoSeriesCopilotImpl.GetNoSeriesSuggestions();
-                end;
-            }
-        }
     }
 
     trigger OnOpenPage()
