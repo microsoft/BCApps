@@ -6,6 +6,7 @@
 namespace System.Security.AccessControl;
 
 using System.Apps;
+using System.Integration;
 
 permissionset 7209 "D365 SNAPSHOT DEBUG"
 {

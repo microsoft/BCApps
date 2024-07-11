@@ -3,8 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Apps;
+namespace System.Integration;
 
+using System.Apps;
 using System.Tooling;
 using System.Reflection;
 

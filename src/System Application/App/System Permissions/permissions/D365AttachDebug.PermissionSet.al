@@ -6,6 +6,7 @@
 namespace System.Security.AccessControl;
 
 using System.Apps;
+using System.Integration;
 
 permissionset 7210 "D365 ATTACH DEBUG"
 {
