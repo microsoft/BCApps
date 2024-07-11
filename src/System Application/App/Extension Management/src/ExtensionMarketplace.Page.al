@@ -1,4 +1,4 @@
-#if not CLEAN25
+#if not CLEAN24
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -19,7 +19,7 @@ page 2502 "Extension Marketplace"
     Editable = false;
     ObsoleteState = Pending;
     ObsoleteReason = 'This page will be obsoleted. Microsoft AppSource apps feature will replace the Extension Marketplace.';
-    ObsoleteTag = '25.0';
+    ObsoleteTag = '24.0';
 
     layout
     {
