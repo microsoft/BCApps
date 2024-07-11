@@ -17,7 +17,9 @@ permissionset 2504 "Extension Management - Objects"
     Permissions = table "Extension Installation" = X,
                   codeunit "Data Out Of Geo. App" = X,
                   codeunit "Extension Management" = X,
+#if not CLEAN25
                   codeunit "Extension Marketplace" = X,
+#endif                  
                   page "Delete Orphaned Extension Data" = X,
                   page "Extension Deployment Status" = X,
                   page "Extension Details" = X,
