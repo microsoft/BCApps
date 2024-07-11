@@ -10,6 +10,7 @@ using System.Azure.Identity;
 using System.Utilities;
 using System.Azure.KeyVault;
 using System.RestClient;
+using System.Environment;
 
 /// <summary>
 /// Library for managing AppSource product retrieval and usage.
@@ -380,5 +381,11 @@ codeunit 2515 "AppSource Product Manager"
     begin
         AppSourceProductManagerDependencies := AppSourceProductManagerDependencyProvider;
         IsDependenciesInterfaceSet := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OpenAppSourceMarket, '', false, false)]
+    local procedure OpenAppSourceMarket()
+    begin
+        Page.Run(Page::"AppSource Product List");
     end;
 }
