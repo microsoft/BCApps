@@ -25,7 +25,7 @@ codeunit 324 "No. Series Copilot Impl."
         GeneratingNoSeriesForLbl: Label 'Generating number series %1', Comment = '%1 = No. Series';
         FeatureNameLbl: Label 'Number Series with AI', Locked = true;
 
-    internal procedure GetNoSeriesSuggestions()
+    procedure GetNoSeriesSuggestions()
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
         NoSeriesCopilotRegister: Codeunit "No. Series Copilot Register";
@@ -553,12 +553,12 @@ codeunit 324 "No. Series Copilot Impl."
         exit(true);
     end;
 
-    internal procedure GetChatCompletionResponseErr(): Text
+    procedure GetChatCompletionResponseErr(): Text
     begin
         exit(ChatCompletionResponseErr);
     end;
 
-    internal procedure FeatureName(): Text
+    procedure FeatureName(): Text
     begin
         exit(FeatureNameLbl);
     end;
