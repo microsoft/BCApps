@@ -19,7 +19,7 @@ codeunit 134530 "No. Series Tests"
         LibraryAssert: Codeunit "Library Assert";
         LibraryNoSeries: Codeunit "Library - No. Series";
         CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1', Comment = '%1=No. Series Code';
-        CannotGetNoSeriesLineNoWithEmtpyCodeErr: Label 'Argument NoSeriesCode in GetNoSeriesLine cannot be blank.';
+        CannotGetNoSeriesLineNoWithEmtpyCodeErr: Label 'You cannot get a No. Series Line with empty No. Series Code.';
 
     #region sequence
     [Test]
