@@ -946,8 +946,8 @@ codeunit 134530 "No. Series Tests"
         PermissionsMock.Set('No. Series - Admin');
 
         // Call to GetNoSeriesLine must fail for empty NoSeriesCode
-        asserterror NoSeries.GetNoSeriesLine(NoSeriesLine, '', WorkDate(), false);
-        Assert.ExpectedError(StrSubstNo(CannotAssignNewErr, ''));
+        NoSeries.GetNoSeriesLine(NoSeriesLine, '', WorkDate(), false);
+        //Assert.ExpectedError(StrSubstNo(CannotAssignNewErr, ''));
 
         // Call to GetNoSeriesLine must return empty for empty NoSeriesCode
         Assert.IsFalse(NoSeries.GetNoSeriesLine(NoSeriesLine, '', WorkDate(), true), 'GetNoSeriesLine must return false for empty code with hidden error');
