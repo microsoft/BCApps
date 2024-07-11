@@ -26,8 +26,8 @@ page 149035 "AIT Test Method Lines Compare"
 
                 field(Version; Version)
                 {
-                    Caption = 'Version';
-                    ToolTip = 'Specifies the base version to compare with.';
+                    Caption = 'Latest Version';
+                    ToolTip = 'Specifies the latest version to compare with.';
 
                     trigger OnValidate()
                     begin

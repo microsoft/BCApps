@@ -12,7 +12,6 @@ page 149036 "AIT Test Suite Compare"
     ApplicationArea = All;
     SourceTable = "AIT Test Suite";
     SourceTableTemporary = true;
-    ModifyAllowed = false;
     InsertAllowed = false;
     DeleteAllowed = false;
     UsageCategory = None;
@@ -25,14 +24,15 @@ page 149036 "AIT Test Suite Compare"
             {
                 Caption = 'Version Configuration';
 
-                field(Version; Rec.Version)
+                field(Version; LatestVersion)
                 {
-                    Caption = 'Version';
-                    ToolTip = 'Specifies the base version to compare with.';
+                    Caption = 'Latest Version';
+                    ToolTip = 'Specifies the latest version to compare with.';
 
                     trigger OnValidate()
                     begin
-                        UpdateVersionFilter();
+                        Rec.Version := LatestVersion;
+                        CurrPage.Update();
                     end;
                 }
                 field(BaseVersion; BaseVersion)
@@ -42,7 +42,8 @@ page 149036 "AIT Test Suite Compare"
 
                     trigger OnValidate()
                     begin
-                        UpdateVersionFilter();
+                        Rec."Base Version" := BaseVersion;
+                        CurrPage.Update();
                     end;
                 }
             }
@@ -137,7 +138,7 @@ page 149036 "AIT Test Suite Compare"
                             var
                                 AITLogEntryCU: Codeunit "AIT Log Entry";
                             begin
-                                AITLogEntryCU.DrillDownFailedAITLogEntries(Rec.Code, 0, BaseVersion);
+                                AITLogEntryCU.DrillDownFailedAITLogEntries(Rec.Code, 0, Rec."Base Version");
                             end;
                         }
                         field(DurationBase; Rec."Total Duration (ms) - Base")
@@ -152,28 +153,22 @@ page 149036 "AIT Test Suite Compare"
         }
     }
 
-    var
-        BaseVersion: Integer;
-
     trigger OnOpenPage()
     begin
-        UpdateVersionFilter();
-    end;
-
-    internal procedure SetVersion(VersionNo: Integer)
-    begin
-        Rec.Version := VersionNo;
-    end;
-
-    internal procedure SetBaseVersion(VersionNo: Integer)
-    begin
-        BaseVersion := VersionNo;
-    end;
-
-    local procedure UpdateVersionFilter()
-    begin
-        Rec.Version := Rec.Version;
-        Rec."Base Version" := BaseVersion;
         CurrPage.Update();
+    end;
+
+    var
+        LatestVersion: Integer;
+        BaseVersion: Integer;
+
+    internal procedure SetCompareVersions(Code: Code[10]; VersionNo: Integer; BaseVersionNo: Integer)
+    begin
+        LatestVersion := VersionNo;
+        BaseVersion := BaseVersionNo;
+
+        Rec.Code := Code;
+        Rec.Version := VersionNo;
+        Rec."Base Version" := BaseVersionNo;
     end;
 }

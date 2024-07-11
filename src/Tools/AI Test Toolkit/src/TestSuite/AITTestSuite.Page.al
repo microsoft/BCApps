@@ -200,17 +200,9 @@ page 149031 "AIT Test Suite"
 
                 trigger OnAction()
                 var
-                    TemporaryAITTestSuiteRec: Record "AIT Test Suite" temporary;
                     AITTestSuiteComparePage: Page "AIT Test Suite Compare";
                 begin
-                    TemporaryAITTestSuiteRec.Code := Rec.Code;
-                    TemporaryAITTestSuiteRec.Version := Rec.Version;
-                    TemporaryAITTestSuiteRec."Base Version" := Rec."Version" - 1;
-                    TemporaryAITTestSuiteRec.Insert();
-
-                    AITTestSuiteComparePage.SetBaseVersion(Rec."Version" - 1);
-                    AITTestSuiteComparePage.SetVersion(Rec.Version);
-                    AITTestSuiteComparePage.SetRecord(TemporaryAITTestSuiteRec);
+                    AITTestSuiteComparePage.SetCompareVersions(Rec.Code, Rec.Version, Rec."Version" - 1);
                     AITTestSuiteComparePage.Run();
                 end;
             }
