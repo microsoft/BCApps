@@ -19,7 +19,6 @@ codeunit 134530 "No. Series Tests"
         LibraryAssert: Codeunit "Library Assert";
         LibraryNoSeries: Codeunit "Library - No. Series";
         CannotAssignNewErr: Label 'You cannot assign new numbers from the number series %1', Comment = '%1=No. Series Code';
-        CannotGetNoSeriesLineNoWithEmtpyCodeErr: Label 'Argument NoSeriesCode in GetNoSeriesLine cannot be blank.';
 
     #region sequence
     [Test]
@@ -948,7 +947,7 @@ codeunit 134530 "No. Series Tests"
 
         // Call to GetNoSeriesLine must fail for empty NoSeriesCode
         asserterror NoSeries.GetNoSeriesLine(NoSeriesLine, '', WorkDate(), false);
-        Assert.ExpectedError(CannotGetNoSeriesLineNoWithEmtpyCodeErr);
+        Assert.ExpectedError(StrSubstNo(CannotAssignNewErr, ''));
 
         // Call to GetNoSeriesLine must return empty for empty NoSeriesCode
         Assert.IsFalse(NoSeries.GetNoSeriesLine(NoSeriesLine, '', WorkDate(), true), 'GetNoSeriesLine must return false for empty code with hidden error');
