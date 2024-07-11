@@ -53,7 +53,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
         NumberOfAddedTables: Integer;
     begin
         GetTablesRequireNoSeries(Arguments, TempSetupTable, TempNoSeriesField);
-        ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(Arguments, CustomPatternsPromptList, EmptyList);
+        ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(Arguments, CustomPatternsPromptList, EmptyList, false);
 
         NumberOfAddedTables := TempNoSeriesField.Count();
         NumberOfToolResponses := Round(NumberOfAddedTables / ToolsImpl.GetMaxNumberOfTablesInOneChunk(), 1, '>'); // we add tables by small chunks, as more tables can lead to hallucinations

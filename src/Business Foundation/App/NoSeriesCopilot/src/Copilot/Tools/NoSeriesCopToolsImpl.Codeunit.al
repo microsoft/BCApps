@@ -14,12 +14,17 @@ codeunit 336 "No. Series Cop. Tools Impl."
     var
         PrefixLbl: Label 'for ';
 
-    procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var Arguments: JsonObject; var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text])
+    procedure GetUserSpecifiedOrExistingNumberPatternsGuidelines(var Arguments: JsonObject; var CustomPatternsPromptList: List of [Text]; var ExistingNoSeriesToChangeList: List of [Text]; UpdateForNextYear: Boolean)
     begin
-        if CheckIfPatternSpecified(Arguments) then
-            CustomPatternsPromptList.Add('')
-        else
-            CustomPatternsPromptList.Add(BuildExistingPatternIfExist(ExistingNoSeriesToChangeList));
+        if CheckIfPatternSpecified(Arguments) then begin
+            CustomPatternsPromptList.Add('');
+            exit;
+        end;
+
+        if UpdateForNextYear then
+            exit;
+
+        CustomPatternsPromptList.Add(BuildExistingPatternIfExist(ExistingNoSeriesToChangeList));
     end;
 
     procedure CheckIfTablesSpecified(var Arguments: JsonObject): Boolean

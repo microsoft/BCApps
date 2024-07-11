@@ -32,7 +32,7 @@ codeunit 349 "No. Series Cop. Nxt Yr. Intent" implements "AOAI Function"
     var
         ChangeNoSeriesIntent: Codeunit "No. Series Cop. Change Intent";
     begin
-        ChangeNoSeriesIntent.SetIsNextYear(true);
+        ChangeNoSeriesIntent.SetUpdateForNextYear(true);
         exit(ChangeNoSeriesIntent.Execute(Arguments));
     end;
 

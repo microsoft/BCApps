@@ -305,6 +305,7 @@ table 9200 "No. Series Copilot Setup"
         InStr: InStream;
         TextLine: Text;
     begin
+        Clear(ImportedText);
         if not UploadIntoStream('', '', 'Text files (*.txt)|*.txt', FileName, InStr) then
             exit;
 

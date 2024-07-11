@@ -7,6 +7,7 @@ namespace Microsoft.Foundation.NoSeries;
 
 using System.AI;
 using System.Reflection;
+using System.Utilities;
 
 codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
 {
@@ -14,13 +15,15 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
 
     var
         ToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
-        IsNextYear: Boolean;
+        UpdateForNextYear: Boolean;
         SpecifyTablesErr: Label 'Please specify the tables for which you want to modify the number series.';
         FunctionNameLbl: Label 'UpdateExistingNumberSeries', Locked = true;
         DateSpecificPlaceholderLbl: Label '{current_date}', Locked = true;
         CustomPatternsPlaceholderLbl: Label '{custom_patterns}', Locked = true;
         TablesYamlFormatPlaceholderLbl: Label '{tables_yaml_format}', Locked = true;
-        IsNextYearPlaceholderLbl: Label '{is_next_year}', Locked = true;
+        UpdateForNextYearPlaceholderLbl: Label '{update_for_next_year}', Locked = true;
+        CurrentYearPlaceholderLbl: Label '{current_year}', Locked = true;
+        NextYearPlaceholderLbl: Label '{next_year}', Locked = true;
         NumberOfAddedTablesPlaceholderLbl: Label '{number_of_tables}', Locked = true;
 
     procedure GetName(): Text
@@ -40,9 +43,9 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         exit(Build(Arguments));
     end;
 
-    procedure SetIsNextYear(IsNextYearNumberSeries: Boolean)
+    procedure SetUpdateForNextYear(IsNextYearIntent: Boolean)
     begin
-        IsNextYear := IsNextYearNumberSeries;
+        UpdateForNextYear := IsNextYearIntent;
     end;
 
     /// <summary>
@@ -67,7 +70,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         end;
 
         GetTablesWithNoSeries(Arguments, TempSetupTable, TempNoSeriesField, ExistingNoSeriesToChangeList);
-        ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(Arguments, CustomPatternsPromptList, ExistingNoSeriesToChangeList);
+        ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(Arguments, CustomPatternsPromptList, ExistingNoSeriesToChangeList, UpdateForNextYear);
 
         NumberOfChangedTables := TempNoSeriesField.Count();
         NumberOfToolResponses := Round(NumberOfChangedTables / ToolsImpl.GetMaxNumberOfTablesInOneChunk(), 1, '>'); // we add tables by small chunks, as more tables can lead to hallucinations
@@ -80,7 +83,9 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
                 ChangeNoSeriesPrompt.Add(GetToolPrompt().Replace(DateSpecificPlaceholderLbl, Format(Today(), 0, 4))
                                                         .Replace(CustomPatternsPlaceholderLbl, ToolsImpl.ConvertListToText(CustomPatternsPromptList))
                                                         .Replace(TablesYamlFormatPlaceholderLbl, ToolsImpl.ConvertListToText(TablesYamlList))
-                                                        .Replace(IsNextYearPlaceholderLbl, Format(IsNextYear))
+                                                        .Replace(UpdateForNextYearPlaceholderLbl, Format(UpdateForNextYear))
+                                                        .Replace(CurrentYearPlaceholderLbl, Format(Date2DMY(Today, 3)))
+                                                        .Replace(NextYearPlaceholderLbl, Format(Date2DMY(Today, 3) + 1))
                                                         .Replace(NumberOfAddedTablesPlaceholderLbl, Format(ActualTablesChunkSize)));
 
                 ToolResults.Add(ToolsImpl.ConvertListToText(ChangeNoSeriesPrompt), ActualTablesChunkSize);
@@ -93,7 +98,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         if ToolsImpl.CheckIfTablesSpecified(Arguments) then
             exit;
 
-        if IsNextYear then
+        if UpdateForNextYear then
             exit;
 
         Error(SpecifyTablesErr);
@@ -124,7 +129,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         ToolsImpl.SetFilterOnNoSeriesFields(TempTableMetadata, Field);
         if Field.FindSet() then
             repeat
-                if (ToolsImpl.IsRelevant(TempTableMetadata, Field, Entities)) or IsNextYear then
+                if (ToolsImpl.IsRelevant(TempTableMetadata, Field, Entities)) or UpdateForNextYear then
                     AddChangeNoSeriesFieldToTablesList(TempSetupTable, TempNoSeriesField, ExistingNoSeriesToChangeList, TempTableMetadata, Field);
             until Field.Next() = 0;
     end;
