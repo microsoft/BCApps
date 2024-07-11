@@ -13,6 +13,8 @@ permissionset 7209 "D365 SNAPSHOT DEBUG"
     Assignable = true;
     Caption = 'Snapshot Debug';
 
+    IncludedPermissionSets = "VSC Intgr. - Admin";
+
     Permissions = system "Snapshot debugging" = X,
                   tabledata "Published Application" = R;
 }

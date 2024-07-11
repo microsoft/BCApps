@@ -13,6 +13,8 @@ permissionset 7210 "D365 ATTACH DEBUG"
     Assignable = true;
     Caption = 'Attach Debug';
 
+    IncludedPermissionSets = "VSC Intgr. - Admin";
+
     Permissions = system "Attach debugger to other user's session." = X,
                   tabledata "Published Application" = R;
 }
