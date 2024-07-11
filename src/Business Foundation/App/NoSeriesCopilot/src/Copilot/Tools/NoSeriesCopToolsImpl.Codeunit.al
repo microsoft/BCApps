@@ -212,13 +212,12 @@ codeunit 336 "No. Series Cop. Tools Impl."
 
     procedure IsRelevant(TableMetadata: Record "Table Metadata"; Field: Record "Field"; Entities: List of [Text]): Boolean
     var
-        RecordMatchMgtCopy: Codeunit "Record Match Impl."; //TODO: Replace with system app module when available
+        RecordMatchMgtCopy: Codeunit "Record Match Impl.";
         Entity: Text[250];
         String1: Text[250];
         String2: Text[250];
         Score: Decimal;
     begin
-        //TODO: Replace this with embeddings, when Business Central supports it
         foreach Entity in Entities do begin
             String1 := RecordMatchMgtCopy.RemoveShortWords(RemoveTextPart(TableMetadata.Caption, ' Setup') + ' ' + RemoveTextParts(Field.FieldName, GetNoSeriesAbbreviations()));
             String2 := RecordMatchMgtCopy.RemoveShortWords(Entity);
