@@ -9,7 +9,6 @@ codeunit 337 "Record Match Impl."
 {
     Access = Internal;
 
-    //TODO: This is a copy of codeunit 1251 "Record Match Mgt." CalculateStringNearness(). It should be moved to a system app, or replaced with a system function
     /// <summary>
     /// Computes a nearness score between strings. Nearness is based on repeatedly finding longest common substrings.
     /// Substring matches below Threshold are not considered.
@@ -51,7 +50,6 @@ codeunit 337 "Record Match Impl."
         exit((NormalizingFactor * TotalMatchedChars) div MinLength);
     end;
 
-    //TODO: This is a copy of codeunit 1251 "Record Match Mgt." GetLongestCommonSubstring(). It should be moved to a system app, or replaced with a system function
     procedure GetLongestCommonSubstring(FirstString: Text; SecondString: Text): Text
     var
         Result: Text;
@@ -82,13 +80,11 @@ codeunit 337 "Record Match Impl."
     end;
 
 
-    //TODO: This is a copy of codeunit 1251 "Record Match Mgt." GetLengthOfShortestString(). It should be moved to a system app, or replaced with a system function
     local procedure GetLengthOfShortestString(FirstString: Text; SecondString: Text): Integer
     begin
         exit((StrLen(FirstString) + StrLen(SecondString) - Abs(StrLen(FirstString) - StrLen(SecondString))) / 2);
     end;
 
-    //TODO: This is a copy of codeunit 1251 "Record Match Mgt." IsSubstringConsideredForNearness(). It should be moved to a system app, or replaced with a system function
     local procedure IsSubstringConsideredForNearness(Substring: Text; MinThreshold: Integer): Boolean
     var
         Length: Integer;
@@ -100,7 +96,6 @@ codeunit 337 "Record Match Impl."
         exit(MinThreshold <= Length);
     end;
 
-    //TODO: This is a copy of codeunit 7250 "Bank Rec. AI Matching Impl." RemoveShortWords(). It should be moved to a system app, or replaced with a system function
     procedure RemoveShortWords(OriginalText: Text[250]): Text[250];
     var
         Words: List of [Text];
