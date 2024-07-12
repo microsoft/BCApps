@@ -31,6 +31,7 @@ codeunit 9996 "Upgrade Tag Impl."
         UpgradeTagExists: Boolean;
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
+        UpgradeTags.ReadIsolation(IsolationLevel::ReadUncommitted);
         UpgradeTagExists := UpgradeTags.Get(Tag, TagCompanyName);
 
         if (GetExecutionContext() = ExecutionContext::Upgrade) and (not UpgradeTagExists) then begin

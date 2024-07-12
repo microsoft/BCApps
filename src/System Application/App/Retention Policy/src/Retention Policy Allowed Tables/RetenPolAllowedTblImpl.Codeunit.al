@@ -61,6 +61,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         if not ModuleOwnsTable(CallerModuleInfo, TableId) then
             exit(false);
 
+        RetentionPolicyAllowedTable.ReadIsolation(IsolationLevel::ReadUncommitted);
         if RetentionPolicyAllowedTable.Get(TableId) then
             UpdateAllowedTables := true;
 
@@ -140,6 +141,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         RetentionPolicyAllowedTable: Record "Retention Policy Allowed Table";
         RetentionPolicyLog: Codeunit "Retention Policy Log";
     begin
+        RetentionPolicyAllowedTable.ReadIsolation(IsolationLevel::ReadUncommitted);
         if not RetentionPolicyAllowedTable.Get(TableId) then begin
             RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(DeleteFromAllowedTablesErrLbl, RetentionPolicyAllowedTable."Table Id"));
             exit(true);
@@ -153,8 +155,10 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         RetentionPolicyAllowedTable: Record "Retention Policy Allowed Table";
         AllObjWithCaption: Record AllObjWithCaption;
     begin
-        if AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, TableId) then
+        if AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, TableId) then begin
+            RetentionPolicyAllowedTable.ReadIsolation(IsolationLevel::ReadUncommitted);
             exit(RetentionPolicyAllowedTable.Get(TableId));
+        end;
         exit(false);
     end;
 
@@ -163,6 +167,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         RetentionPolicyAllowedTable: Record "Retention Policy Allowed Table";
         AllObjWithCaption: Record AllObjWithCaption;
     begin
+        RetentionPolicyAllowedTable.ReadIsolation(IsolationLevel::ReadUncommitted);
         if RetentionPolicyAllowedTable.FindSet(false) then
             repeat
                 if AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, RetentionPolicyAllowedTable."Table Id") then
@@ -174,6 +179,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
     var
         RetentionPolicyAllowedTable: Record "Retention Policy Allowed Table";
     begin
+        RetentionPolicyAllowedTable.ReadIsolation(IsolationLevel::ReadUncommitted);
         RetentionPolicyAllowedTable.Get(TableId);
         exit(RetentionPolicyAllowedTable."Reten. Pol. Filtering ");
     end;
@@ -182,6 +188,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
     var
         RetentionPolicyAllowedTable: Record "Retention Policy Allowed Table";
     begin
+        RetentionPolicyAllowedTable.ReadIsolation(IsolationLevel::ReadUncommitted);
         RetentionPolicyAllowedTable.Get(TableId);
         exit(RetentionPolicyAllowedTable."Reten. Pol. Deleting");
     end;
@@ -194,6 +201,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
     begin
         if not IsAllowedTable(TableId) then
             exit(0);
+        RetentionPolicyAllowedTable.ReadIsolation(IsolationLevel::ReadUncommitted);
         RetentionPolicyAllowedTable.Get(TableId);
         // check field exists
         if not Field.Get(TableId, RetentionPolicyAllowedTable."Default Date Field No.") then begin
@@ -209,6 +217,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
     begin
         if not IsAllowedTable(TableId) then
             exit(0);
+        RetentionPolicyAllowedTable.ReadIsolation(IsolationLevel::ReadUncommitted);
         RetentionPolicyAllowedTable.Get(TableId);
         exit(RetentionPolicyAllowedTable."Mandatory Min. Reten. Days");
     end;

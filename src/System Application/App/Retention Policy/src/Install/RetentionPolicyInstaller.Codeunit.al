@@ -64,6 +64,7 @@ codeunit 3907 "Retention Policy Installer"
     var
         RetentionPeriod: Record "Retention Period";
     begin
+        RetentionPeriod.ReadIsolation(IsolationLevel::ReadUncommitted);
         if RetentionPeriod.Get(SixMonthsTok) then
             exit(RetentionPeriod.Code);
 
@@ -82,6 +83,7 @@ codeunit 3907 "Retention Policy Installer"
     var
         RetentionPolicySetup: Record "Retention Policy Setup";
     begin
+        RetentionPolicySetup.ReadIsolation(IsolationLevel::ReadUncommitted);
         if RetentionPolicySetup.Get(TableId) then
             exit;
         RetentionPolicySetup.Validate("Table Id", TableId);

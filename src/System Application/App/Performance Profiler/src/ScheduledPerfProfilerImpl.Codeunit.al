@@ -140,6 +140,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     var
         RetentionPolicySetup: Record "Retention Policy Setup";
     begin
+        RetentionPolicySetup.ReadIsolation(IsolationLevel::ReadUncommitted);
         if RetentionPolicySetup.Get(Database::"Performance Profile Scheduler") then
             exit(RetentionPolicySetup."Retention Period");
     end;
@@ -158,6 +159,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     var
         RetentionPolicySetup: Record "Retention Policy Setup";
     begin
+        RetentionPolicySetup.ReadIsolation(IsolationLevel::ReadUncommitted);
         if RetentionPolicySetup.Get(TableId) then
             exit;
         RetentionPolicySetup.Validate("Table Id", TableId);
