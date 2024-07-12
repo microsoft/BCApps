@@ -169,7 +169,7 @@ codeunit 130458 "Test Inputs Management"
             exit;
         end;
 
-        Error(CouldNotParseJsonlInputErr);
+        Error(CouldNotParseInputErr);
     end;
 
     local procedure ParseDataInputsJsonl(var TestInputInStream: InStream; var TestInputGroup: Record "Test Input Group")
@@ -181,7 +181,7 @@ codeunit 130458 "Test Inputs Management"
             if TestInputJsonToken.ReadFrom(JsonLine) then
                 InsertDataInputLine(TestInputJsonToken, TestInputGroup)
             else
-                Error(CouldNotParseJsonlInputErr);
+                Error(CouldNotParseJsonlInputErr, JsonLine);
     end;
 
     local procedure InsertDataInputsFromJsonArray(var TestInputGroup: Record "Test Input Group"; var DataOnlyTestInputsArray: JsonArray)
@@ -277,7 +277,8 @@ codeunit 130458 "Test Inputs Management"
         TestInputTok: Label 'testInput', Locked = true;
         ChooseFileLbl: Label 'Choose a file to import';
         TestInputNameTok: Label 'INPUT-', Locked = true;
-        CouldNotParseJsonlInputErr: Label 'Could not parse JSONL input';
+        CouldNotParseInputErr: Label 'Could not parse input dataset';
+        CouldNotParseJsonlInputErr: Label 'Could not parse JSONL input line: %1', Comment = '%1 = JSON Line Content';
         LineTypeMustBeCodeunitErr: Label 'Line type must be Codeunit.';
         JsonFileExtensionTxt: Label '.json', Locked = true;
         JsonlFileExtensionTxt: Label '.jsonl', Locked = true;
