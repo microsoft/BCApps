@@ -33,16 +33,24 @@ codeunit 8334 "VS Code Integration"
         VsCodeIntegrationImpl.OpenExtensionSourceInVSCode(PublishedApplication);
     end;
 
+    /// <summary>
+    /// Opens an URL that sends a request to VS Code to open the source code of the provided extension from Git and 
+    /// initiate a designer session in the client.
+    /// </summary>
+    /// <param name="PublishedApplication">The extension to design.</param>
     [Scope('OnPrem')]
     procedure DesignExtensionSourceInVSCode(var PublishedApplication: Record "Published Application")
     begin
         VsCodeIntegrationImpl.DesignExtensionSourceInVSCode(PublishedApplication);
     end;
 
+    /// <summary>
+    /// Opens an URL that sends a request to VS Code to download the code resulting of the client designer session.
+    /// </summary>
     [Scope('OnPrem')]
-    procedure DownloadDesignerCodeInVSCode(var PublishedApplication: Record "Published Application")
+    procedure DownloadDesignerCodeInVSCode()
     begin
-        VsCodeIntegrationImpl.DownloadDesignerCodeInVSCode(PublishedApplication);
+        VsCodeIntegrationImpl.DownloadDesignerCodeInVSCode();
     end;
 
     /// <summary>

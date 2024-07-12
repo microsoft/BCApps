@@ -69,26 +69,15 @@ codeunit 8333 "VS Code Integration Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure DownloadDesignerCodeInVSCode(var PublishedApplication: Record "Published Application")
+    procedure DownloadDesignerCodeInVSCode()
     var
         Url: Text;
     begin
         CheckPermissions();
 
-        if Text.StrLen(PublishedApplication."Source Repository Url") <> 0 then begin
-            UriBuilder.Init(AlExtensionUriTxt + '/syncDesign');
-            UriBuilder.AddQueryParameter('repoUrl', PublishedApplication."Source Repository Url");
-            if Text.StrLen(PublishedApplication."Source Commit ID") <> 0 then
-                UriBuilder.AddQueryParameter('commitId', PublishedApplication."Source Commit ID");
-            UriBuilder.AddQueryParameter('appid', Format(PublishedApplication.ID, 0, 4));
-
-            Url := GetAbsoluteUri();
-            if DoesExceedCharLimit(Url) then
-                // If the URL length exceeds 2000 characters then it will crash the page, so we truncate it.
-                Hyperlink(AlExtensionUriTxt + '/truncated')
-            else
-                HyperLink(Url);
-        end;
+        UriBuilder.Init(AlExtensionUriTxt + '/syncDesign');
+        Url := GetAbsoluteUri();
+        HyperLink(Url);
     end;
 
 
