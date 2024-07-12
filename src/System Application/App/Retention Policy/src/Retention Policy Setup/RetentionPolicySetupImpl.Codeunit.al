@@ -359,6 +359,7 @@ codeunit 3903 "Retention Policy Setup Impl."
     var
         RetentionPeriod: Record "Retention Period";
     begin
+        RetentionPeriod.ReadIsolation(IsolationLevel::ReadCommitted);
         // find
         RetentionPeriod.SetRange("Retention Period", RetentionPeriodEnum);
         if RetentionPeriodEnum = RetentionPeriodEnum::Custom then
