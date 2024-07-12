@@ -24,8 +24,8 @@
     "platform":  "25.0.0.0",
     "idRanges":  [
                      {
-                         "from":  8033,
-                         "to":  8035
+                         "from":  8333,
+                         "to":  8335
                      }
                  ],
     "target":  "OnPrem",

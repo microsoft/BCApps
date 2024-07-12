@@ -317,6 +317,7 @@ codeunit 310 "No. Series"
     /// <param name="NoSeriesCode">The No. Series code to lookup.</param>
     /// <param name="UsageDate">The date of retrieval, this will influence which line is used.</param>
     /// <param name="HideErrorsAndWarnings">Whether errors should be ignored.</param>
+    /// <remarks>NoSeriesCode must not be empty.</remarks>
     /// <returns>True if the No. Series line was found, false otherwise.</returns>
     procedure GetNoSeriesLine(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; UsageDate: Date; HideErrorsAndWarnings: Boolean): Boolean
     var

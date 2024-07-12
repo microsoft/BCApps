@@ -13,7 +13,7 @@ using System.Tooling;
 /// Provides functionality to embed hyperlinks that send requests to VS Code to navigate to an object's definition in source code
 /// and to open the source code of an extension from Git.
 /// </summary>
-codeunit 8034 "VS Code Integration"
+codeunit 8334 "VS Code Integration"
 {
     Access = Public;
     InherentEntitlements = X;

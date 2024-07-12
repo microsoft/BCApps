@@ -1,11 +1,11 @@
 {
   "type": "PTE",
-  "templateUrl": "https://github.com/microsoft/AL-Go-PTE@main",
+  "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/25.0.21545.0/base",
+  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/25.0.21810.0/base",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "25.0",
@@ -73,5 +73,5 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "81cff3d03e8fe6b88ee3fc0848594bfd4d9039a4"
+  "templateSha": "0aab342a0ddd80612fafbc5149c8e95b3476b12a"
 }
