@@ -11,6 +11,7 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
     InherentPermissions = X;
 
     var
+        DataSourcesArray: JsonArray;
         Initialized: Boolean;
         Temperature: Decimal;
         MaxTokens: Integer;
@@ -139,8 +140,23 @@ codeunit 7762 "AOAI Chat Compl Params Impl"
         Payload.Add('presence_penalty', GetPresencePenalty());
         Payload.Add('frequency_penalty', GetFrequencyPenalty());
 
+        AddDataSourcesArrayToPayload(Payload);
+
         if IsJsonMode() then
             Payload.Add('response_format', GetJsonResponseFormat());
+    end;
+
+    [NonDebuggable]
+    procedure SetDataSourcesArrayToPayload(var _DataSourcesArray: JsonArray)
+    begin
+        DataSourcesArray := _DataSourcesArray;
+    end;
+
+    [NonDebuggable]
+    local procedure AddDataSourcesArrayToPayload(var Payload: JsonObject)
+    begin
+        if DataSourcesArray.Count() > 0 then
+            Payload.Add('data_sources', DataSourcesArray);
     end;
 
     local procedure GetJsonResponseFormat() ResponseFormat: JsonObject
