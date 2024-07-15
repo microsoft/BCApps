@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Telemetry;
+using System.Environment.Configuration;
 
 codeunit 8705 "Feature Uptake Status Impl."
 {
@@ -29,6 +30,7 @@ codeunit 8705 "Feature Uptake Status Impl."
     procedure UpdateFeatureUptakeStatus(FeatureName: Text; FeatureUptakeStatus: Enum "Feature Uptake Status"; IsPerUser: Boolean; PerformWriteTransactionsInASeparateSession: Boolean; Publisher: Text) IsExpectedUpdate: Boolean
     var
         TempFeatureUptake: Record "Feature Uptake" temporary;
+        SystemInitialization: Codeunit "System Initialization";
         UserSecurityIDForTheFeature: Guid;
         IsExpectedTransition: Boolean;
     begin
@@ -42,7 +44,7 @@ codeunit 8705 "Feature Uptake Status Impl."
 
         WaitForStartedUpdateFeatureUptakeSession();
         if NeedToUpdateFeatureUptakeStatus(TempFeatureUptake, IsExpectedTransition) then
-            if PerformWriteTransactionsInASeparateSession then
+            if PerformWriteTransactionsInASeparateSession and (not SystemInitialization.IsInProgress()) then
                 StartSession(StartedSessionId, Codeunit::"Feature Uptake Status Impl.", CompanyName(), TempFeatureUptake)
             else
                 UpdateFeatureUptakeStatus(TempFeatureUptake);
