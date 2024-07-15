@@ -196,6 +196,33 @@ codeunit 8901 Email
 
     #endregion
 
+    #region Reply
+
+    procedure Reply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox"): Boolean
+    begin
+        exit(EmailImpl.Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, EmailOutbox));
+    end;
+
+    #endregion
+
+    #region RetrieveEmails
+
+    procedure RetrieveEmails(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox")
+    begin
+        EmailImpl.RetrieveEmails(EmailAccountId, EmailConnector, EmailInbox);
+    end;
+
+    #endregion
+
+    #region MarkAsRead
+
+    procedure MarkAsRead(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; ExternalId: Text)
+    begin
+        EmailImpl.MarkAsRead(EmailAccountId, EmailConnector, ExternalId);
+    end;
+
+    #endregion
+
     #region OpenInEditor
 
     /// <summary>

@@ -1397,6 +1397,56 @@ codeunit 134685 "Email Test"
         end;
     end;
 
+    /***
+    Retrieve emails
+    mark emails as read
+    Download attachment
+    Reply email
+    ***/
+
+    [Test]
+    procedure RetrieveEmails()
+    var
+    // EmailAccount: Record "Email Account";
+    // EmailInbox: Record "Email Inbox";
+    // ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // ConnectorMock.Initialize();
+        // ConnectorMock.AddAccountv2(EmailAccount);
+
+
+        // Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
+    end;
+
+    [Test]
+    procedure DownloadAttachmentOfRetrievedEmails()
+    var
+    // EmailAccount: Record "Email Account";
+    // ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // ConnectorMock.Initialize();
+        // ConnectorMock.AddAccountv2(EmailAccount);
+
+    end;
+
+    [Test]
+    procedure MarkEmailAsRead()
+    var
+    // EmailAccount: Record "Email Account";
+    // ConnectorMock: Codeunit "Connector Mock";
+    begin
+        // ConnectorMock.Initialize();
+        // ConnectorMock.AddAccountv2(EmailAccount);
+
+        // Email.MarkEmailAsRead(EmailAccount."Account Id", EmailAccount.Connector, 'EmailId');
+    end;
+
+    [Test]
+    procedure ReplyToEmail()
+    begin
+
+    end;
+
     local procedure CreateEmail(var EmailMessage: Codeunit "Email Message")
     var
         Any: Codeunit Any;

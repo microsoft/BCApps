@@ -39,6 +39,8 @@ codeunit 8900 "Email Impl"
         AdminViewPolicyInEffectNotificationIdTok: Label '0ee5d5db-5763-4acf-9808-10905a8997d5', Locked = true;
         AdminViewPolicyInEffectNotificationMsg: Label 'Your email view policy limits the emails visible. You can update your view policy to see all emails.';
         AdminViewPolicyUpdatePolicyNotificationActionLbl: Label 'Update policy';
+        EmailConnectorDoesNotSupportRetrievingEmailsErr: Label 'The selected email connector does not support retrieving emails.';
+        EmailConnectorDoesNotSupportMarkAsReadErr: Label 'The selected email connector does not support marking emails as read.';
 
     #region API
 
@@ -117,6 +119,102 @@ codeunit 8900 "Email Impl"
     procedure Send(EmailMessage: Codeunit "Email Message"; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox"): Boolean
     begin
         exit(Send(EmailMessage, EmailAccountId, EmailConnector, false, CurrentDateTime(), EmailOutbox));
+    end;
+
+    procedure Reply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox"): Boolean
+    var
+        EmailAccountRec: Record "Email Account";
+        CurrentUser: Record User;
+        Email: Codeunit Email;
+        EmailMessageImpl: Codeunit "Email Message Impl.";
+        IEmailConnector: Interface "Email Connector";
+        IEmailConnectorv2: Interface "Email Connector v2";
+    // EmailDispatcher: Codeunit "Email Dispatcher";
+    // TaskId: Guid;
+    begin
+        CheckRequiredPermissions();
+
+        if not EmailMessageImpl.Get(EmailMessage.GetId()) then
+            Error(EmailMessageDoesNotExistMsg);
+
+        if EmailMessageSent(EmailMessage.GetId()) then
+            Error(EmailMessageSentErr);
+
+        EmailMessageImpl.ValidateRecipients();
+
+        if GetEmailOutbox(EmailMessage.GetId(), EmailOutbox) and IsOutboxEnqueued(EmailOutbox) then
+            Error(EmailMessageQueuedErr);
+
+        // Get email account
+        GetEmailAccount(EmailAccountId, EmailConnector, EmailAccountRec);
+
+        // Add user as an related entity on email
+        if CurrentUser.Get(UserSecurityId()) then
+            Email.AddRelation(EmailMessage, Database::User, CurrentUser.SystemId, Enum::"Email Relation Type"::"Related Entity", Enum::"Email Relation Origin"::"Compose Context");
+
+        IEmailConnector := EmailConnector;
+        if CheckAndGetEmailConnectorv2(IEmailConnector, IEmailConnectorv2) then
+            IEmailConnectorv2.Reply(EmailMessage, EmailAccountId, ExternalId)
+        else
+            Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
+
+        // TODO: How do we send this in the background? Needs a mechanism to work for both foreground and background.
+
+        // BeforeSendEmail(EmailMessage);
+        // CreateOrUpdateEmailOutbox(EmailMessageImpl, EmailAccountId, EmailConnector, Enum::"Email Status"::Queued, EmailAccountRec."Email Address", EmailOutbox);
+        // Email.OnEnqueuedInOutbox(EmailMessage.GetId());
+
+        // if InBackground then begin
+        //     TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), NotBefore, EmailOutbox.RecordId());
+        //     EmailOutbox."Task Scheduler Id" := TaskId;
+        //     EmailOutbox."Date Sending" := NotBefore;
+        //     EmailOutbox.Modify();
+        // end else begin // Send the email in foreground
+        // Commit();
+
+        // if EmailDispatcher.Run(EmailOutbox) then;
+        // exit(EmailDispatcher.GetSuccess());
+        // end;
+    end;
+
+    procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox")
+    var
+        IEmailConnector: Interface "Email Connector";
+        IEmailConnectorv2: Interface "Email Connector v2";
+    begin
+        CheckRequiredPermissions();
+
+        IEmailConnector := Connector;
+
+        if CheckAndGetEmailConnectorv2(IEmailConnector, IEmailConnectorv2) then
+            IEmailConnectorv2.RetrieveEmails(EmailAccountId, EmailInbox)
+        else
+            Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
+
+    end;
+
+    procedure MarkAsRead(EmailAccountId: Guid; Connector: Enum "Email Connector"; ConversationId: Text)
+    var
+        IEmailConnector: Interface "Email Connector";
+        IEmailConnectorv2: Interface "Email Connector v2";
+    begin
+        CheckRequiredPermissions();
+
+        IEmailConnector := Connector;
+        if CheckAndGetEmailConnectorv2(IEmailConnector, IEmailConnectorv2) then
+            IEmailConnectorv2.MarkAsRead(EmailAccountId, ConversationId)
+        else
+            Error(EmailConnectorDoesNotSupportMarkAsReadErr);
+    end;
+
+    local procedure CheckAndGetEmailConnectorv2(Connector: Interface "Email Connector"; var Connectorv2: Interface "Email Connector v2"): Boolean
+    begin
+        if Connector is "Email Connector v2" then begin
+            Connectorv2 := Connector as "Email Connector v2";
+            exit(true);
+        end
+        else
+            exit(false);
     end;
 
     procedure OpenInEditor(EmailMessage: Codeunit "Email Message"; EmailScenario: Enum "Email Scenario"; IsModal: Boolean): Enum "Email Action"
