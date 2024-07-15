@@ -7,7 +7,7 @@ namespace System.TestLibraries.Email;
 
 using System.Email;
 
-codeunit 134686 "Test Email Connector v2" implements "Email Connector v2", "Email Connector" // Temporary bug #540622
+codeunit 134682 "Test Email Connector v2" implements "Email Connector v2", "Email Connector" // Temporary bug #540622
 {
 
     var
