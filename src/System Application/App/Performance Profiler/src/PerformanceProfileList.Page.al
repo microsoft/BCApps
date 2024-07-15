@@ -31,11 +31,13 @@ page 1931 "Performance Profile List"
                 {
                     Caption = 'Start Time';
                     ToolTip = 'Specifies the time the profile was started.';
+                    AboutText = 'The time the profile was started.';
                 }
                 field("User Name"; Rec."User Name")
                 {
                     Caption = 'User Name';
                     ToolTip = 'Specifies the name of the user that was profiled.';
+                    AboutText = 'The username of the user that was profiled.';
                 }
                 field(Activity; ActivityType)
                 {
@@ -47,36 +49,43 @@ page 1931 "Performance Profile List"
                 {
                     Caption = 'Activity Description';
                     ToolTip = 'Specifies a short description of the activity that was profiled.';
+                    AboutText = 'A description of the activity that was profiled.';
                 }
                 field("Object Display Name"; Rec."Object Display Name")
                 {
                     Caption = 'Object';
                     ToolTip = 'Specifies the object that contains the entry point for this profile.';
+                    AboutText = 'The object that contains the entry point for this profile.';
                 }
                 field(Duration; Rec.Duration)
                 {
                     Caption = 'Activity Duration';
                     ToolTip = 'Specifies the duration of the activity that was profiled in milliseconds.';
+                    AboutText = 'The duration of the activity that was profiled.';
                 }
                 field("Http Call Duration"; Rec."Http Call Duration")
                 {
                     Caption = 'Duration of Http Calls';
                     ToolTip = 'Specifies the duration of the http calls during the activity that was profiled in milliseconds.';
+                    AboutText = 'The duration of external http calls during the activity that was profiled.';
                 }
                 field("Http Call Number"; Rec."Http Call Number")
                 {
                     Caption = 'Number of Http Calls';
                     ToolTip = 'Specifies the number of http calls during the activity that was profiled.';
+                    AboutText = 'The number of external http calls during the activity that was profiled.';
                 }
                 field("Client Session ID"; Rec."Client Session ID")
                 {
                     Caption = 'Client Session ID';
                     ToolTip = 'Specifies the ID of the client session that was profiled.';
+                    AboutText = 'The ID of the client session that was profiled.';
                 }
                 field("Schedule ID"; Rec."Schedule ID")
                 {
                     Caption = 'Schedule ID';
                     ToolTip = 'Specifies the ID of the schedule that was used to profile the activity.';
+                    AboutText = 'The ID of the schedule that was used to profile the activity.';
                     TableRelation = "Performance Profile Scheduler"."Schedule ID";
                     DrillDown = true;
 

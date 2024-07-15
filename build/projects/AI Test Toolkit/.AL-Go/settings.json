@@ -1,0 +1,20 @@
+{
+    "projectName": "AI Test Toolkit",
+    "appFolders":  [
+        "../../../src/Tools/AI Test Toolkit"
+    ],
+    "installOnlyReferencedApps": false,
+    "doNotRunTests": true,
+    "useCompilerFolder": true,
+    "doNotPublishApps": true,
+    "ConditionalSettings": [
+        {
+            "branches": [
+                "releases/*.[0-5]"
+            ],
+            "settings": {
+                "buildModes": [ "Strict" ]
+            }
+        }
+    ]
+}

@@ -28,7 +28,7 @@ codeunit 9176 "User Settings"
     /// Gets the settings for the given user.
     /// </summary>
     /// <param name="UserSecurityID">The user security id of the user.</param>
-    /// <param name="UserSettings">The return Record with the settings od the User.</param>
+    /// <param name="UserSettings">The return Record with the settings of the User.</param>
     procedure GetUserSettings(UserSecurityID: Guid; var UserSettings: Record "User Settings")
     var
         UserSettingsImpl: Codeunit "User Settings Impl.";

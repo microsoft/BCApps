@@ -9,6 +9,7 @@ using System.Azure.Identity;
 using System.Environment.Configuration;
 using System.Email;
 using System.Apps;
+using System.Integration;
 
 entitlement "Dynamics 365 Admin - Partner"
 {
@@ -23,6 +24,7 @@ entitlement "Dynamics 365 Admin - Partner"
                          "Security Groups - Admin",
                          "Exten. Mgt. - Admin",
                          "Email - Admin",
-                         "Feature Key - Admin";
+                         "Feature Key - Admin",
+                         "VSC Intgr. - Admin";
 #pragma warning restore
 }

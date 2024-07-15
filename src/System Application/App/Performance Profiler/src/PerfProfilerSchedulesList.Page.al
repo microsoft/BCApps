@@ -21,12 +21,52 @@ page 1933 "Perf. Profiler Schedules List"
     Editable = false;
     CardPageID = "Perf. Profiler Schedule Card";
     SourceTable = "Performance Profile Scheduler";
+    Permissions = tabledata "Performance Profile Scheduler" = rimd;
 
     layout
     {
         area(Content)
         {
-            repeater(Profiles)
+            group("Profiling Status")
+            {
+                AboutTitle = 'Profiling Status';
+                AboutText = 'Specifies if profiling is enabled for the current user session.';
+                Caption = 'Profiling Status';
+
+                field("Profiling Enabled"; IsProfilingEnabled)
+                {
+                    AboutText = 'Specifies if profiling is enabled for the current user session.';
+                    Caption = 'Profiling Enabled';
+                    Editable = false;
+                    ToolTip = 'Specifies if profiling is enabled for the current user session.';
+                }
+
+                field("Active Schedule ID"; ActiveScheduleId)
+                {
+                    AboutText = 'The ID of the active schedule.';
+                    Caption = 'Active Schedule ID';
+                    Editable = false;
+                    DrillDown = true;
+                    ToolTip = 'Specifies the ID of the active schedule.';
+
+                    trigger OnDrillDown()
+                    var
+                        PerformanceProfileScheduler: Record "Performance Profile Scheduler";
+                        ScheduleCardPage: Page "Perf. Profiler Schedule Card";
+                    begin
+                        if IsNullGuid(ActiveScheduleId) then
+                            exit;
+
+                        if not PerformanceProfileScheduler.Get(ActiveScheduleId) then
+                            exit;
+
+                        ScheduleCardPage.SetRecord(PerformanceProfileScheduler);
+                        ScheduleCardPage.Run();
+                    end;
+                }
+            }
+
+            repeater(ProfilerSchedules)
             {
                 field("Schedule ID"; Rec."Schedule ID")
                 {
@@ -38,8 +78,8 @@ page 1933 "Perf. Profiler Schedules List"
                 field(Enabled; Rec.Enabled)
                 {
                     Caption = 'Enabled';
-                    ToolTip = 'Specifies whether the schedule is enabled.';
-                    AboutText = 'Specifies whether the schedule is enabled.';
+                    ToolTip = 'Specifies if the schedule is enabled.';
+                    AboutText = 'Specifies if the schedule is enabled.';
                 }
                 field("Start Time"; Rec."Starting Date-Time")
                 {
@@ -112,6 +152,7 @@ page 1933 "Perf. Profiler Schedules List"
     trigger OnOpenPage()
     begin
         ScheduledPerfProfiler.FilterUsers(Rec, UserSecurityId());
+        IsProfilingEnabled := ScheduledPerfProfiler.IsProfilingEnabled(ActiveScheduleId);
     end;
 
     trigger OnAfterGetRecord()
@@ -136,4 +177,6 @@ page 1933 "Perf. Profiler Schedules List"
         ScheduledPerfProfiler: Codeunit "Scheduled Perf. Profiler";
         UserName: Text;
         Activity: Enum "Perf. Profile Activity Type";
+        ActiveScheduleId: Guid;
+        IsProfilingEnabled: Boolean;
 }
