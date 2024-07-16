@@ -160,6 +160,14 @@ table 149032 "AIT Test Method Line"
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter")));
         }
+        field(24; "Tokens Consumed"; Integer)
+        {
+            Caption = 'Tokens Consumed';
+            ToolTip = 'Specifies the number of tokens consumed by the test in the current version.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+        }
         field(30; "No. of Tests Passed - Base"; Integer)
         {
             Caption = 'No. of Tests Passed - Base';
@@ -175,6 +183,14 @@ table 149032 "AIT Test Method Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter")));
+        }
+        field(35; "Tokens Consumed - Base"; Integer)
+        {
+            Caption = 'Tokens Consumed - Base';
+            ToolTip = 'Specifies the number of tokens consumed by the test in the base version.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(101; "AL Test Suite"; Code[10])
         {

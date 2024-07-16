@@ -144,6 +144,9 @@ page 149031 "AIT Test Suite"
                     Caption = 'Average Duration';
                     ToolTip = 'Specifies the average time (ms) taken by the tests in the last run.';
                 }
+                field("Tokens Consumed"; Rec."Tokens Consumed")
+                {
+                }
             }
 
         }

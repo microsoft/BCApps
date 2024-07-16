@@ -101,6 +101,13 @@ page 149033 "AIT Log Entries"
                         Message(Rec.GetOutputBlob());
                     end;
                 }
+                field("Model Version"; Rec."Model Version")
+                {
+                    Visible = false;
+                }
+                field("Tokens Consumed"; Rec."Tokens Consumed")
+                {
+                }
                 field(TestRunDuration; TestRunDuration)
                 {
                     Caption = 'Duration';
