@@ -77,8 +77,8 @@ page 149036 "AIT Test Suite Compare"
                         }
                         label(TokensConsumed)
                         {
-                            Caption = 'Tokens Consumed';
-                            ToolTip = 'Specifies the number of tokens consumed by the test.';
+                            Caption = 'Total Tokens Consumed';
+                            ToolTip = 'Specifies the number of tokens consumed by the test. This is applicable only when using Microsoft AI Module.';
                         }
                     }
                     group("Latest Version")
