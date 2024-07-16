@@ -69,7 +69,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         else begin
             RetentionPolicyAllowedTable.ReadIsolation := IsolationLevel::ReadUncommitted;
             if RetentionPolicyAllowedTable.Get(TableId) then begin
-                RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(TableInAllowListNotCommittedLbl, RetentionPolicyAllowedTable."Table Id", AllObj."Object Name", RetentionPolicyAllowedTable."Default Date Field No."));
+                RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(TableInAllowListNotCommittedLbl, RetentionPolicyAllowedTable."Table Id"));
                 exit(false);
             end;
         end;
