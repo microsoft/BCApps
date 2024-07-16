@@ -44,7 +44,7 @@ codeunit 8705 "Feature Uptake Status Impl."
 
         WaitForStartedUpdateFeatureUptakeSession();
         if NeedToUpdateFeatureUptakeStatus(TempFeatureUptake, IsExpectedTransition) then
-            if PerformWriteTransactionsInASeparateSession and (not SystemInitialization.IsInProgress()) then
+            if PerformWriteTransactionsInASeparateSession and (not SystemInitialization.IsInProgress() or (Session.GetExecutionContext() <> ExecutionContext::Normal)) then
                 StartSession(StartedSessionId, Codeunit::"Feature Uptake Status Impl.", CompanyName(), TempFeatureUptake)
             else
                 UpdateFeatureUptakeStatus(TempFeatureUptake);

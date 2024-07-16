@@ -36,6 +36,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         RefusedModifyingTableLbl: Label 'Did not allow modifying of table %1 in the list of allowed tables', Comment = '%1 = table number';
         FailedModifyingTableLbl: Label 'Failed to modify table %1 %2 in the list of allowed tables', Comment = '%1 = table number, %2 = table name';
         DefaultDateFieldDoesNotExistLbl: Label 'The retention policy allowed tables list has a default date field number %1 which does not exist in table %2.', Comment = '%1 = Field number, %2 = table number';
+        TableInAllowListNotCommittedLbl: Label 'Cannot add or update Table %1 to the list of allowed tables because a duplicate record is not yet committed.', Comment = '%1 = table number';
         MinExpirationDateFormulaLbl: Label '<-%1D>', Locked = true;
         MaxDateDateFormulaTxt: Label '<+CY+%1Y>', Locked = true;
 
@@ -61,8 +62,17 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         if not ModuleOwnsTable(CallerModuleInfo, TableId) then
             exit(false);
 
+        SelectLatestVersion();
+        RetentionPolicyAllowedTable.ReadIsolation := IsolationLevel::ReadCommitted;
         if RetentionPolicyAllowedTable.Get(TableId) then
-            UpdateAllowedTables := true;
+            UpdateAllowedTables := true
+        else begin
+            RetentionPolicyAllowedTable.ReadIsolation := IsolationLevel::ReadUncommitted;
+            if RetentionPolicyAllowedTable.Get(TableId) then begin
+                RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(TableInAllowListNotCommittedLbl, RetentionPolicyAllowedTable."Table Id", AllObj."Object Name", RetentionPolicyAllowedTable."Default Date Field No."));
+                exit(false);
+            end;
+        end;
 
         RetentionPolicyAllowedTable."Table Id" := TableId;
         RetentionPolicyAllowedTable."Reten. Pol. Filtering " := RetenPolFiltering;
