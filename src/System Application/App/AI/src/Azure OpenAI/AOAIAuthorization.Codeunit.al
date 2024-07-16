@@ -87,7 +87,14 @@ codeunit 7767 "AOAI Authorization"
 
     [NonDebuggable]
     procedure GetDeployment(): SecretText
+    var
+        IsHandled: Boolean;
+        CurrentDeployment: Text;
     begin
+        CurrentDeployment := ManagedResourceDeployment;
+        OnGetDeployment(IsHandled, CurrentDeployment);
+        if IsHandled then
+            exit(CurrentDeployment);
         exit(Deployment);
     end;
 
@@ -99,7 +106,14 @@ codeunit 7767 "AOAI Authorization"
 
     [NonDebuggable]
     procedure GetManagedResourceDeployment(): SecretText
+    var
+        IsHandled: Boolean;
+        CurrentDeployment: Text;
     begin
+        CurrentDeployment := ManagedResourceDeployment;
+        OnGetDeployment(IsHandled, CurrentDeployment);
+        if IsHandled then
+            exit(CurrentDeployment);
         exit(ManagedResourceDeployment);
     end;
 
@@ -115,5 +129,10 @@ codeunit 7767 "AOAI Authorization"
         Clear(Deployment);
         Clear(ManagedResourceDeployment);
         Clear(ResourceUtilization);
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnGetDeployment(var IsHandled: Boolean; var Deployment: Text)
+    begin
     end;
 }

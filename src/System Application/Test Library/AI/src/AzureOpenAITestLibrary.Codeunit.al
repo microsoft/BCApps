@@ -8,6 +8,8 @@ using System.AI;
 
 codeunit 132933 "Azure OpenAI Test Library"
 {
+    var
+        DeploymentOverride: Text;
 
     procedure GetAOAIHistory(HistoryLength: Integer; var AOAIChatMessages: Codeunit "AOAI Chat Messages"): JsonArray
     var
@@ -31,6 +33,19 @@ codeunit 132933 "Azure OpenAI Test Library"
     procedure SetAOAIFunctionResponse(var AOAIFunctionResponse: Codeunit "AOAI Function Response"; NewIsFunctionCall: Boolean; NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionId: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
     begin
         AOAIFunctionResponse.SetFunctionCallingResponse(NewIsFunctionCall, NewFunctionCallSuccess, NewFunctionCalled, NewFunctionId, NewFunctionResult, NewFunctionError, NewFunctionErrorCallStack);
+    end;
+
+    procedure SetDeploymentOverride(NewDeployment: Text)
+    begin
+        this.DeploymentOverride := NewDeployment;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"AOAI Authorization", 'OnGetDeployment', '', false, false)]
+    local procedure OverrideOnGetDeployment(var IsHandled: Boolean; var Deployment: Text)
+    begin
+        if this.DeploymentOverride <> '' then
+            IsHandled := true;
+        Deployment := this.DeploymentOverride;
     end;
 
 }
