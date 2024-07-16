@@ -82,62 +82,13 @@ page 149034 "AIT Test Method Lines"
                 field(Duration; Rec."Total Duration (ms)")
                 {
                 }
+                field("Tokens Consumed"; Rec."Tokens Consumed")
+                {
+                }
                 field(AvgDuration; AITTestSuiteMgt.GetAvgDuration(Rec))
                 {
                     ToolTip = 'Specifies average duration of the AI Tests.';
                     Caption = 'Average Duration (ms)';
-                    Visible = false;
-                }
-                field("No. of Tests - Base"; Rec."No. of Tests - Base")
-                {
-                    ToolTip = 'Specifies the number of tests in this Line for the base version.';
-                    Visible = false;
-                }
-                field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base")
-                {
-                    ToolTip = 'Specifies the number of tests passed in the base Version.';
-                    Style = Favorable;
-                    Visible = false;
-                }
-                field("No. of Tests Failed - Base"; Rec."No. of Tests - Base" - Rec."No. of Tests Passed - Base")
-                {
-                    Editable = false;
-                    Caption = 'No. of Tests Failed - Base';
-                    ToolTip = 'Specifies the number of tests that failed in the base Version.';
-                    Style = Unfavorable;
-                    Visible = false;
-
-                    trigger OnDrillDown()
-                    var
-                        AITTestSuite: Record "AIT Test Suite";
-                        AITLogEntry: Codeunit "AIT Log Entry";
-                    begin
-                        AITTestSuite.SetLoadFields("Base Version");
-                        AITTestSuite.Get(Rec."Test Suite Code");
-                        AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", AITTestSuite."Base Version");
-                    end;
-                }
-                field("No. of Operations - Base"; Rec."No. of Operations - Base")
-                {
-                    ToolTip = 'Specifies the number of operations in the base Version.';
-                    Visible = false;
-                    Enabled = false;
-                }
-                field(DurationBase; Rec."Total Duration - Base (ms)")
-                {
-                    Caption = 'Total Duration Base (ms)';
-                    Visible = false;
-                }
-                field(AvgDurationBase; GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"))
-                {
-                    ToolTip = 'Specifies average duration of the AI Tests for the base version.';
-                    Caption = 'Average Duration Base (ms)';
-                    Visible = false;
-                }
-                field(AvgDurationDeltaPct; GetDiffPct(GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"), GetAvg(Rec."No. of Tests", Rec."Total Duration (ms)")))
-                {
-                    ToolTip = 'Specifies difference in duration of the AI Tests compared to the base version.';
-                    Caption = 'Change in Duration (%)';
                     Visible = false;
                 }
             }
@@ -209,25 +160,5 @@ page 149034 "AIT Test Method Lines"
             exit(true);
         if Rec."Test Suite Code" <> AITTestSuite.Code then
             if AITTestSuite.Get(Rec."Test Suite Code") then;
-    end;
-
-    local procedure GetAvg(NumIterations: Integer; TotalNo: Integer): Integer
-    begin
-        if NumIterations = 0 then
-            exit(0);
-        exit(TotalNo div NumIterations);
-    end;
-
-    local procedure GetDiffPct(BaseNo: Integer; No: Integer): Decimal
-    begin
-        if BaseNo = 0 then
-            exit(0);
-        exit(Round((100 * (No - BaseNo)) / BaseNo, 0.1));
-    end;
-
-    internal procedure Refresh()
-    begin
-        CurrPage.Update(false);
-        if Rec.Find() then;
     end;
 }
