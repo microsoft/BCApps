@@ -146,9 +146,15 @@ page 149031 "AIT Test Suite"
                 }
                 field("Tokens Consumed"; Rec."Tokens Consumed")
                 {
+                    Caption = 'Total Tokens Consumed';
+                }
+                field("Average Tokens Consumed"; AvgTokensConsumed)
+                {
+                    Editable = false;
+                    Caption = 'Average Tokens Consumed';
+                    ToolTip = 'Specifies the average number of tokens consumed by the tests in the last run.';
                 }
             }
-
         }
     }
     actions
@@ -260,6 +266,7 @@ page 149031 "AIT Test Suite"
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         EnableActions: Boolean;
         AvgTimeDuration: Duration;
+        AvgTokensConsumed: Integer;
         TotalDuration: Duration;
         PageCaptionLbl: Label 'AI Test';
         TestRunnerDisplayName: Text;
@@ -281,7 +288,7 @@ page 149031 "AIT Test Suite"
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
         UpdateTotalDuration();
-        UpdateAverageExecutionTime();
+        UpdateAverages();
         TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
     end;
 
@@ -291,12 +298,17 @@ page 149031 "AIT Test Suite"
         TotalDuration := Rec."Total Duration (ms)";
     end;
 
-    local procedure UpdateAverageExecutionTime()
+    local procedure UpdateAverages()
     begin
-        Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)", "No. of Tests Executed - Base", "Total Duration (ms) - Base");
+        Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)", "Tokens Consumed");
         if Rec."No. of Tests Executed" > 0 then
             AvgTimeDuration := Rec."Total Duration (ms)" div Rec."No. of Tests Executed"
         else
             AvgTimeDuration := 0;
+
+        if Rec."No. of Tests Executed" > 0 then
+            AvgTokensConsumed := Rec."Tokens Consumed" div Rec."No. of Tests Executed"
+        else
+            AvgTokensConsumed := 0;
     end;
 }
