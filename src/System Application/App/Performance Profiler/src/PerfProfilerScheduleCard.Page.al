@@ -55,11 +55,6 @@ page 1932 "Perf. Profiler Schedule Card"
                     Caption = 'Start Time';
                     ToolTip = 'Specifies the start time of the schedule.';
                     AboutText = 'The start time of the schedule.';
-
-                    trigger OnValidate()
-                    begin
-                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec, MaxRetentionPeriod);
-                    end;
                 }
                 field("End Time"; Rec."Ending Date-Time")
                 {
@@ -80,6 +75,7 @@ page 1932 "Perf. Profiler Schedule Card"
                     Caption = 'Description';
                     ToolTip = 'Specifies the description of the schedule.';
                     AboutText = 'The description of the schedule.';
+                    NotBlank = true;
                 }
             }
 
@@ -203,11 +199,17 @@ page 1932 "Perf. Profiler Schedule Card"
     trigger OnModifyRecord(): Boolean
     begin
         ScheduledPerfProfiler.MapActivityTypeToRecord(Rec, Activity);
-        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(Rec, Activity);
+        this.ValidateRecord();
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
+        this.ValidateRecord();
+    end;
+
+    local procedure ValidateRecord()
+    begin
+        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec, MaxRetentionPeriod);
         ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(Rec, Activity);
     end;
 
