@@ -75,6 +75,12 @@ page 1931 "Performance Profile List"
                     ToolTip = 'Specifies the number of http calls during the activity that was profiled.';
                     AboutText = 'The number of external http calls during the activity that was profiled.';
                 }
+                field("Correlation ID"; Rec."Activity ID")
+                {
+                    Caption = 'Correlation ID';
+                    ToolTip = 'Specifies the ID of the activity that was profiled.';
+                    AboutText = 'The ID of the activity that was profiled.';
+                }
                 field("Client Session ID"; Rec."Client Session ID")
                 {
                     Caption = 'Client Session ID';
