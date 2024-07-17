@@ -130,6 +130,8 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'AOAI Model Version';
             OptionMembers = Latest,Preview;
+            OptionCaption = 'Latest,Preview';
+            ToolTip = 'Specifies the model version to be used by the tests. The AOAI model version overrides the version specified in the app for features using Managed Resource Deployment. For example, if the app is using GPT4-Latest and AOAI model version specifies Preview, then tests will force the app to use GPT4-Preview.';
         }
         field(21; "No. of Tests Executed"; Integer)
         {

@@ -43,7 +43,6 @@ page 149031 "AIT Test Suite"
                 }
                 field("Model Version"; Rec."Model Version")
                 {
-                    ToolTip = 'Specifies the model version to be used by the tests.';
                 }
                 field("Test Runner Id"; TestRunnerDisplayName)
                 {
