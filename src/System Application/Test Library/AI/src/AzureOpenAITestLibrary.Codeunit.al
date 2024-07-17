@@ -8,8 +8,10 @@ using System.AI;
 
 codeunit 132933 "Azure OpenAI Test Library"
 {
+    EventSubscriberInstance = Manual;
+
     var
-        DeploymentOverride: Text;
+        DeploymentOverride: Option Latest,Preview;
 
     procedure GetAOAIHistory(HistoryLength: Integer; var AOAIChatMessages: Codeunit "AOAI Chat Messages"): JsonArray
     var
@@ -35,17 +37,26 @@ codeunit 132933 "Azure OpenAI Test Library"
         AOAIFunctionResponse.SetFunctionCallingResponse(NewIsFunctionCall, NewFunctionCallSuccess, NewFunctionCalled, NewFunctionId, NewFunctionResult, NewFunctionError, NewFunctionErrorCallStack);
     end;
 
-    procedure SetDeploymentOverride(NewDeployment: Text)
+    procedure SetDeploymentOverride(OptionMembers: Option Latest,Preview)
     begin
-        this.DeploymentOverride := NewDeployment;
+        BindSubscription(this);
+        this.DeploymentOverride := OptionMembers;
+    end;
+
+    procedure ClearSubscription()
+    begin
+        UnbindSubscription(this);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"AOAI Authorization", 'OnGetDeployment', '', false, false)]
     local procedure OverrideOnGetDeployment(var IsHandled: Boolean; var Deployment: Text)
     begin
-        if this.DeploymentOverride <> '' then
-            IsHandled := true;
-        Deployment := this.DeploymentOverride;
+        IsHandled := true;
+
+        if DeploymentOverride = DeploymentOverride::Latest then
+            Deployment := Deployment.Replace('Preview', 'Latest')
+        else
+            Deployment := Deployment.Replace('Latest', 'Preview');
     end;
 
 }
