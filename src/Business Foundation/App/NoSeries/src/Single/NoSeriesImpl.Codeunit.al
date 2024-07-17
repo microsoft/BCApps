@@ -22,6 +22,7 @@ codeunit 304 "No. Series - Impl."
         CannotAssignAutomaticallyErr: Label 'It is not possible to assign numbers automatically. If you want the program to assign numbers automatically, please activate %1 in %2 %3.', Comment = '%1=Default Nos. setting,%2=No. Series table caption,%3=No. Series Code';
         SeriesNotRelatedErr: Label 'The number series %1 is not related to %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
         PostErr: Label 'You have one or more documents that must be posted before you post document no. %1 according to your company''s No. Series setup.', Comment = '%1=Document No.';
+        CannotGetNoSeriesLineNoWithEmptyCodeErr: Label 'You cannot get a No. Series Line with empty No. Series Code.';
 
 #if not CLEAN24
 #pragma warning disable AL0432
@@ -133,8 +134,10 @@ codeunit 304 "No. Series - Impl."
 #if not CLEAN24
 #pragma warning disable AL0432, AA0205
         Result := NoSeriesSingle.GetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings);
+        if Result <> NoSeriesLine."Last No. Used" then
+            NoSeriesLine."Last No. Used" := Result;
         NoSeriesManagement.RaiseObsoleteOnAfterGetNextNo3(NoSeriesLine, true);
-        exit(Result);
+        exit(NoSeriesLine."Last No. Used");
 #pragma warning restore AL0432, AA0205
 #else
         exit(NoSeriesSingle.GetNextNo(NoSeriesLine, UsageDate, HideErrorsAndWarnings))
@@ -160,6 +163,12 @@ codeunit 304 "No. Series - Impl."
 #endif
         LineFound: Boolean;
     begin
+        if NoSeriesCode = '' then begin
+            if not HideErrorsAndWarnings then
+                Error(CannotGetNoSeriesLineNoWithEmptyCodeErr);
+            exit(false);
+        end;
+
         if UsageDate = 0D then
             UsageDate := WorkDate();
 
@@ -168,7 +177,6 @@ codeunit 304 "No. Series - Impl."
         NoSeriesLine2.SetCurrentKey("Series Code", "Starting Date");
         NoSeriesLine2.SetRange("Series Code", NoSeriesCode);
         NoSeriesLine2.SetRange("Starting Date", 0D, UsageDate);
-        NoSeriesLine2.SetRange(Open, true);
 #if not CLEAN24
 #pragma warning disable AL0432
         NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine2);
@@ -204,17 +212,18 @@ codeunit 304 "No. Series - Impl."
 
         if LineFound and NoSeries.MayProduceGaps(NoSeriesLine) then begin
             NoSeriesLine.Validate(Open);
-            if not NoSeriesLine.Open then begin
+            if not NoSeriesLine.Open then
                 NoSeriesLine.Modify(true);
-                exit(GetNoSeriesLine(NoSeriesLine, NoSeriesCode, UsageDate, HideErrorsAndWarnings));
-            end;
         end;
 
         if LineFound then begin
             // There may be multiple No. Series Lines for the same day, so find the first one.
+            NoSeriesLine.SetRange(Open, true);
             NoSeriesLine.SetRange("Starting Date", NoSeriesLine."Starting Date");
-            NoSeriesLine.FindFirst();
-        end else begin
+            LineFound := NoSeriesLine.FindFirst();
+        end;
+
+        if not LineFound then begin
             // Throw an error depending on the reason we couldn't find a date
             if HideErrorsAndWarnings then
                 exit(false);
@@ -281,8 +290,10 @@ codeunit 304 "No. Series - Impl."
 #if not CLEAN24
 #pragma warning disable AL0432, AA0205
         Result := NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate);
+        if Result <> NoSeriesLine."Last No. Used" then
+            NoSeriesLine."Last No. Used" := Result;
         NoSeriesManagement.RaiseObsoleteOnAfterGetNextNo3(NoSeriesLine, false);
-        exit(Result);
+        exit(NoSeriesLine."Last No. Used");
 #pragma warning restore AL0432, AA0205
 #else
         exit(NoSeriesSingle.PeekNextNo(NoSeriesLine, UsageDate));

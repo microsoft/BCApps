@@ -91,5 +91,33 @@ codeunit 8711 Telemetry
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         TelemetryImpl.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::ExtensionPublisher, DummyCustomDimensions, CallerModuleInfo);
     end;
-}
 
+    /// <summary>
+    /// Logs a telemetry message (with the capability to send to ISVs).
+    /// </summary>
+    /// <param name="EventId">A unique identifier of the telemetry message.</param>
+    /// <param name="Message">The main content of the telemetry message (typically contains text that can be easily read by a person).</param>
+    /// <param name="Verbosity">The verbosity of the telemetry message.</param>
+    /// <param name="DataClassification">The data classification of the telemetry message.</param>
+    /// <param name="ALTelemetryScope">The telemetry scope of the message.</param>
+    /// <param name="CustomDimensions">Any additional information provided together with the telemetry message.</param>
+    internal procedure LogMessage(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; ALTelemetryScope: Enum "AL Telemetry Scope"; CustomDimensions: Dictionary of [Text, Text])
+    var
+        CallerModuleInfo: ModuleInfo;
+        CallerCallStackModuleInfos: List of [ModuleInfo];
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+
+        case ALTelemetryScope of
+            Enum::"AL Telemetry Scope"::All:
+                begin
+                    CallerCallStackModuleInfos := NavApp.GetCallerCallstackModuleInfos();
+                    TelemetryImpl.LogMessage(EventId, Message, Verbosity, DataClassification, ALTelemetryScope, CustomDimensions, CallerModuleInfo, CallerCallStackModuleInfos);
+                end;
+            Enum::"AL Telemetry Scope"::Environment:
+                TelemetryImpl.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::All, CustomDimensions, CallerModuleInfo);
+            Enum::"AL Telemetry Scope"::ExtensionPublisher:
+                TelemetryImpl.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::ExtensionPublisher, CustomDimensions, CallerModuleInfo);
+        end;
+    end;
+}

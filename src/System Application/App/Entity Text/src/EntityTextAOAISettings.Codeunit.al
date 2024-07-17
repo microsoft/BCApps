@@ -10,7 +10,6 @@ using System.AI;
 using System.Azure.KeyVault;
 using System.Environment;
 
-
 /// <summary>
 /// Implements functionality to call Azure OpenAI.
 /// </summary>
@@ -29,11 +28,6 @@ codeunit 2011 "Entity Text AOAI Settings"
     begin
         if not GuiAllowed() then begin
             Session.LogMessage('0000LJA', TelemetryGuiNotAllowedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
-            exit(false);
-        end;
-
-        if not IsSupportedLanguage() then begin
-            Session.LogMessage('0000JXG', TelemetryUnsupportedLanguageTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
             exit(false);
         end;
 
@@ -90,17 +84,6 @@ codeunit 2011 "Entity Text AOAI Settings"
         exit(false);
     end;
 
-    local procedure IsSupportedLanguage(): Boolean
-    var
-        NonSupportedLanguage: Text;
-        LanguageName: Text;
-    begin
-        NonSupportedLanguage := 'portuguese';
-        LanguageName := LowerCase(GetLanguageName()).Split(' ').Get(1);
-
-        exit(NonSupportedLanguage <> LanguageName);
-    end;
-
     procedure GetLanguageName(): Text
     var
         Language: Codeunit Language;
@@ -121,6 +104,5 @@ codeunit 2011 "Entity Text AOAI Settings"
         TelemetryAOAIDisabledTxt: Label 'AOAI is disabled for Entity Text.', Locked = true;
         TelemetryPrivacyResultTxt: Label 'AOAI is enabled for Entity Text', Locked = true;
         TelemetryMissingPermissionTxt: Label 'Feature is disabled due to missing write permissions.', Locked = true;
-        TelemetryUnsupportedLanguageTxt: Label 'The user is not using a supported language.', Locked = true;
         TelemetryGuiNotAllowedTxt: Label 'Entity Text called in a non-interactive session.', Locked = true;
 }

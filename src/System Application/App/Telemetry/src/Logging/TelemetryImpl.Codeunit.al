@@ -25,24 +25,67 @@ codeunit 8712 "Telemetry Impl."
     procedure LogMessage(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; TelemetryScope: TelemetryScope; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     var
         CommonCustomDimensions: Dictionary of [Text, Text];
+        CallStackPublishers: List of [Text];
     begin
         AddCommonCustomDimensions(CommonCustomDimensions, CallerModuleInfo);
-        LogMessageInternal(EventId, Message, Verbosity, DataClassification, TelemetryScope, CommonCustomDimensions, CallerCustomDimensions, CallerModuleInfo.Publisher);
+
+        CallStackPublishers.Add(CallerModuleInfo.Publisher);
+
+        case TelemetryScope of
+            TelemetryScope::ExtensionPublisher:
+                LogMessageInternal(EventId, Message, Verbosity, DataClassification, Enum::"AL Telemetry Scope"::ExtensionPublisher, CommonCustomDimensions, CallerCustomDimensions, CallerModuleInfo.Publisher, CallStackPublishers);
+            TelemetryScope::All:
+                LogMessageInternal(EventId, Message, Verbosity, DataClassification, Enum::"AL Telemetry Scope"::Environment, CommonCustomDimensions, CallerCustomDimensions, CallerModuleInfo.Publisher, CallStackPublishers);
+        end;
     end;
 
-    procedure LogMessageInternal(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; TelemetryScope: TelemetryScope; CustomDimensions: Dictionary of [Text, Text]; CallerCustomDimensions: Dictionary of [Text, Text]; Publisher: Text)
+    procedure LogMessage(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; ALTelemetryScope: Enum "AL Telemetry Scope"; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo; CallerCallStackModuleInfos: List of [ModuleInfo])
+    var
+        CommonCustomDimensions: Dictionary of [Text, Text];
+        CallStackPublishers: List of [Text];
+        Module: ModuleInfo;
+    begin
+        AddCommonCustomDimensions(CommonCustomDimensions, CallerModuleInfo);
+
+        foreach Module in CallerCallStackModuleInfos do
+            if not CallStackPublishers.Contains(Module.Publisher) then
+                CallStackPublishers.Add(Module.Publisher);
+
+        LogMessageInternal(EventId, Message, Verbosity, DataClassification, ALTelemetryScope, CommonCustomDimensions, CallerCustomDimensions, CallerModuleInfo.Publisher, CallStackPublishers);
+    end;
+
+    procedure LogMessageInternal(EventId: Text; Message: Text; Verbosity: Verbosity; DataClassification: DataClassification; ALTelemetryScope: Enum "AL Telemetry Scope"; CustomDimensions: Dictionary of [Text, Text]; CallerCustomDimensions: Dictionary of [Text, Text]; Publisher: Text; CallStackPublishers: List of [Text])
     var
         TelemetryLoggers: Codeunit "Telemetry Loggers";
         TelemetryLogger: Interface "Telemetry Logger";
+        RelevantTelemetryLoggers: List of [Interface "Telemetry Logger"];
     begin
         AddCustomDimensionsFromSubscribers(CustomDimensions, Publisher);
         AddCustomDimensionsSafely(CustomDimensions, CallerCustomDimensions);
 
-        TelemetryLoggers.SetCurrentPublisher(Publisher);
+        TelemetryLoggers.SetCallStackPublishers(CallStackPublishers);
+
         TelemetryLoggers.OnRegisterTelemetryLogger();
 
-        if TelemetryLoggers.GetTelemetryLogger(TelemetryLogger) then
-            TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope, CustomDimensions);
+        case ALTelemetryScope of
+            Enum::"AL Telemetry Scope"::ExtensionPublisher:
+                if TelemetryLoggers.GetTelemetryLogger(Publisher, TelemetryLogger) then
+                    TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::ExtensionPublisher, CustomDimensions);
+            Enum::"AL Telemetry Scope"::Environment:
+                if TelemetryLoggers.GetTelemetryLogger(Publisher, TelemetryLogger) then
+                    TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::All, CustomDimensions);
+            Enum::"AL Telemetry Scope"::All:
+                begin
+                    // Use current publisher's logger to log telemetry to 1. the current publisher and 2. the environment.
+                    if TelemetryLoggers.GetTelemetryLogger(Publisher, TelemetryLogger) then
+                        TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::All, CustomDimensions);
+
+                    // Loop through all other loggers on the CallerCallStack to log telemetry to 3. registered loggers.
+                    RelevantTelemetryLoggers := TelemetryLoggers.GetRelevantTelemetryLoggers(Publisher);
+                    foreach TelemetryLogger in RelevantTelemetryLoggers do
+                        TelemetryLogger.LogMessage(EventId, Message, Verbosity, DataClassification, TelemetryScope::ExtensionPublisher, CustomDimensions);
+                end;
+        end;
     end;
 
     local procedure AddCommonCustomDimensions(CustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)

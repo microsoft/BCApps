@@ -127,6 +127,13 @@ table 130450 "Test Method Line"
         {
             DataClassification = CustomerContent;
         }
+        field(56; "No. of Functions"; Integer)
+        {
+            FieldClass = FlowField;
+            Caption = 'No. of Functions';
+            CalcFormula = count("Test Method Line" where("Test Suite" = field("Test Suite"), "Test Codeunit" = field("Test Codeunit"), "Line Type" = const(Function)));
+            Editable = false;
+        }
     }
 
     keys

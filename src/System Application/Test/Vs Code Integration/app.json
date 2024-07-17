@@ -1,0 +1,50 @@
+{
+    "id":  "2245bae0-6048-49d8-bc86-c1c5d0fbabd9",
+    "name":  "VS Code Integration Test",
+    "publisher":  "Microsoft",
+    "brief":  "Tests for the VS Code Integration module",
+    "description":  "Tests for the VS Code Integration module.",
+    "version":  "25.0.0.0",
+    "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
+    "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help":  "",
+    "url":  "https://go.microsoft.com/fwlink/?LinkId=724011",
+    "logo":  "",
+    "dependencies":  [
+                         {
+                             "id":  "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
+                             "name":  "Library Assert",
+                             "publisher":  "Microsoft",
+                             "version":  "25.0.0.0"
+                         },
+                         {
+                            "id":  "5095f467-0a01-4b99-99d1-9ff1237d286f",
+                            "name":  "Library Variable Storage",
+                            "publisher":  "Microsoft",
+                            "version":  "25.0.0.0"
+                        },
+                        {
+                            "id":  "40860557-a18d-42ad-aecb-22b7dd80dc80",
+                            "name":  "Permissions Mock",
+                            "publisher":  "Microsoft",
+                            "version":  "25.0.0.0"
+                        },
+                        {
+                            "id":  "66d56517-9469-4cdf-83a8-7122c54af08f",
+                            "name":  "VS Code Integration",
+                            "publisher":  "Microsoft",
+                            "version":  "25.0.0.0"
+                        }
+                     ],
+    "screenshots":  [
+
+                    ],
+    "platform":  "25.0.0.0",
+    "idRanges":  [
+                     {
+                         "from":  138133,
+                         "to":  138133
+                     }
+                 ],
+    "target":  "OnPrem"
+}

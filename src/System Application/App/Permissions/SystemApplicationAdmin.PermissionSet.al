@@ -33,5 +33,6 @@ permissionset 154 "System Application - Admin"
                              "Retention Policy - Admin",
                              "PageScripting - Play",
                              "Page Summary - Admin",
-                             "TROUBLESHOOT TOOLS";
+                             "TROUBLESHOOT TOOLS",
+                             "VSC Intgr. - Admin";
 }

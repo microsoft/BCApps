@@ -6,6 +6,9 @@ namespace System.AI;
 
 using System.Telemetry;
 
+/// <summary>
+/// This codeunit is called from Platform.
+/// </summary>
 codeunit 7775 "Copilot Telemetry"
 {
     Access = Internal;

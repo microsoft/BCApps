@@ -12,6 +12,15 @@ function Get-BaseFolderForPath($Path) {
     return $baseFolder
 }
 
+function Get-ArtifactsCacheFolder($ContainerName) {
+    return Join-Path (Get-BaseFolder) "artifacts\$ContainerName"
+}
+
+function Get-RulesetPath($Name = "ruleset.json") {
+    $rulesetPath = Join-Path (Get-BaseFolder) "src\rulesets\$Name" -Resolve
+    return $rulesetPath
+}
+
 function Get-BuildMode() {
     if ($ENV:BuildMode) {
         return $ENV:BuildMode
