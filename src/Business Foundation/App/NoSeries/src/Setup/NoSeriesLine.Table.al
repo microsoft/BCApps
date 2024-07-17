@@ -126,21 +126,9 @@ table 309 "No. Series Line"
             DataClassification = SystemMetadata;
 
         }
-        field(15; "Temp Current Sequence No."; Integer)
+        field(15; "Temp Current Sequence No."; BigInteger)
         {
             Caption = 'Temporary Sequence Number';
-            DataClassification = SystemMetadata;
-            Access = Internal;
-            ObsoleteReason = 'This field is replaced by field 16 - "Temp. Current Sequence No.".';
-#pragma warning disable AS0115
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-#pragma warning restore AS0115
-        }
-        field(16; "Temp. Current Sequence No."; BigInteger)
-        {
-            Caption = 'Temporary Sequence Number';
-            Description = 'This field holds the next sequence number during batching for sequences. It is only used during runtime and no values will be stored in the database.';
             DataClassification = SystemMetadata;
             Access = Internal;
         }
