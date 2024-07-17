@@ -33,7 +33,7 @@ page 1933 "Perf. Profiler Schedules List"
                 AboutText = 'Specifies if profiling is enabled for the current user session.';
                 Caption = 'Profiling Status';
 
-                field("Active Schedule ID"; ActiveScheduleDisplayName())
+                field("Active Schedule ID"; this.ActiveScheduleDisplayName())
                 {
                     AboutText = 'The ID of the active schedule for the current session.';
                     Caption = 'Active Schedule ID';
