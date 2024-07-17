@@ -52,9 +52,9 @@ codeunit 132933 "Azure OpenAI Test Library"
     local procedure OverrideOnBeforeGetDeployment(var Deployment: Text)
     begin
         if DeploymentOverride = DeploymentOverride::Latest then
-            Deployment := Deployment.Replace('Preview', 'Latest')
+            Deployment := Deployment.Replace('preview', 'latest')
         else
-            Deployment := Deployment.Replace('Latest', 'Preview');
+            Deployment := Deployment.Replace('latest', 'preview');
     end;
 
 }
