@@ -33,6 +33,12 @@ codeunit 8334 "VS Code Integration"
         VsCodeIntegrationImpl.OpenExtensionSourceInVSCode(PublishedApplication);
     end;
 
+    [Scope('OnPrem')]
+    procedure OpenExtensionSourceInCodespaces(var PublishedApplication: Record "Published Application")
+    begin
+        VsCodeIntegrationImpl.OpenExtensionSourceInCodespaces(PublishedApplication);
+    end;
+
     /// <summary>
     /// Opens an URL that sends a request to VS Code to open the source code of the provided extension from Git and 
     /// initiate a designer session in the client.

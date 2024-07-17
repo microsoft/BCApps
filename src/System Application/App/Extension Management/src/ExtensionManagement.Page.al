@@ -203,6 +203,20 @@ page 2500 "Extension Management"
                         VsCodeIntegration.OpenExtensionSourceInVSCode(Rec);
                     end;
                 }
+                action("Open Source in Codespaces")
+                {
+                    Caption = 'Open Source in Codespaces';
+                    Enabled = IsSourceSpecificationAvailable;
+                    Image = ImportExport;
+                    Scope = Repeater;
+                    ToolTip = 'Open the source code for the extension based on the source control information.';
+
+                    trigger OnAction()
+                    begin
+                        VsCodeIntegration.OpenExtensionSourceInCodespaces(Rec);
+                    end;
+
+                }
                 action("Start Designer in Source")
                 {
                     Caption = 'Start Designer in Source';
@@ -312,6 +326,7 @@ page 2500 "Extension Management"
                 actionref(SetupApp_Promoted; SetupApp) { }
                 actionref("Download Source_Promoted"; "Download Source") { }
                 actionref("Open Source in VS Code_Promoted"; "Open Source in VS Code") { }
+                actionref("Open Source in Codespaces_Promoted"; "Open Source in Codespaces") { }
                 actionref("Learn More_Promoted"; "Learn More") { }
                 actionref(Refresh_Promoted; Refresh) { }
             }

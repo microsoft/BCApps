@@ -45,6 +45,36 @@ codeunit 8333 "VS Code Integration Impl."
 
 
     [Scope('OnPrem')]
+    procedure OpenExtensionSourceInCodespaces(var PublishedApplication: Record "Published Application")
+    var
+        Url: Text;
+    begin
+        CheckPermissions();
+
+        if Text.StrLen(PublishedApplication."Source Repository Url") <> 0 then begin
+            GetRepoDetails(PublishedApplication."Source Repository Url");
+            Url := GetAbsoluteUri();
+            if DoesExceedCharLimit(Url) then
+                // If the URL length exceeds 2000 characters then it will crash the page, so we truncate it.
+                Hyperlink(AlExtensionUriTxt + '/truncated')
+            else
+                HyperLink(Url);
+        end;
+    end;
+
+    procedure GetRepoDetails(RepoUrl: Text)
+    var
+        GitUriBuilder: Codeunit "Uri Builder";
+    begin
+        GitUriBuilder.Init(RepoUrl);
+        if GitUriBuilder.GetHost() <> 'github.com' then
+            exit;
+
+        UriBuilder.Init('https://codespaces.new' + GitUriBuilder.GetPath());
+        UriBuilder.SetQuery('quickstart=1')
+    end;
+
+    [Scope('OnPrem')]
     procedure DesignExtensionSourceInVSCode(var PublishedApplication: Record "Published Application")
     var
         Url: Text;
