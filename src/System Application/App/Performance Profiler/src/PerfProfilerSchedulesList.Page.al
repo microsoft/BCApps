@@ -33,21 +33,13 @@ page 1933 "Perf. Profiler Schedules List"
                 AboutText = 'Specifies if profiling is enabled for the current user session.';
                 Caption = 'Profiling Status';
 
-                field("Profiling Enabled"; IsProfilingEnabled)
+                field("Active Schedule ID"; ActiveScheduleDisplayName())
                 {
-                    AboutText = 'Specifies if profiling is enabled for the current user session.';
-                    Caption = 'Profiling Enabled';
-                    Editable = false;
-                    ToolTip = 'Specifies if profiling is enabled for the current user session.';
-                }
-
-                field("Active Schedule ID"; ActiveScheduleId)
-                {
-                    AboutText = 'The ID of the active schedule.';
+                    AboutText = 'The ID of the active schedule for the current session.';
                     Caption = 'Active Schedule ID';
                     Editable = false;
                     DrillDown = true;
-                    ToolTip = 'Specifies the ID of the active schedule.';
+                    ToolTip = 'Specifies the ID of the active schedule for the current session.';
 
                     trigger OnDrillDown()
                     var
@@ -68,6 +60,12 @@ page 1933 "Perf. Profiler Schedules List"
 
             repeater(ProfilerSchedules)
             {
+                field(Description; Rec.Description)
+                {
+                    Caption = 'Description';
+                    ToolTip = 'Specifies the description of the schedule.';
+                    AboutText = 'The description of the schedule.';
+                }
                 field("Schedule ID"; Rec."Schedule ID")
                 {
                     Caption = 'Schedule ID';
@@ -104,12 +102,6 @@ page 1933 "Perf. Profiler Schedules List"
                     Caption = 'Activity Type';
                     ToolTip = 'Specifies the type of activity for which the schedule is created.';
                     AboutText = 'The type of activity for which the schedule is created.';
-                }
-                field(Description; Rec.Description)
-                {
-                    Caption = 'Description';
-                    ToolTip = 'Specifies the description of the schedule.';
-                    AboutText = 'The description of the schedule.';
                 }
                 field(Frequency; Rec.Frequency)
                 {
@@ -152,7 +144,7 @@ page 1933 "Perf. Profiler Schedules List"
     trigger OnOpenPage()
     begin
         ScheduledPerfProfiler.FilterUsers(Rec, UserSecurityId());
-        IsProfilingEnabled := ScheduledPerfProfiler.IsProfilingEnabled(ActiveScheduleId);
+        ScheduledPerfProfiler.IsProfilingEnabled(ActiveScheduleId);
     end;
 
     trigger OnAfterGetRecord()
@@ -178,5 +170,12 @@ page 1933 "Perf. Profiler Schedules List"
         UserName: Text;
         Activity: Enum "Perf. Profile Activity Type";
         ActiveScheduleId: Guid;
-        IsProfilingEnabled: Boolean;
+
+    local procedure ActiveScheduleDisplayName(): Text
+    begin
+        if IsNullGuid(ActiveScheduleId) then
+            exit('');
+
+        exit(Format(ActiveScheduleId));
+    end;
 }

@@ -149,8 +149,8 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         RetentionPolicySetupRec: Record "Retention Policy Setup";
         RetentionPolicySetup: Codeunit "Retention Policy Setup";
     begin
-        this.CreateRetentionPolicySetup(Database::"Performance Profiles", RetentionPolicySetup.FindOrCreateRetentionPeriod("Retention Period Enum"::"1 Week"));
-        if RetentionPolicySetupRec.Get(Database::"Performance Profiles") then
+        this.CreateRetentionPolicySetup(Database::"Performance Profile Scheduler", RetentionPolicySetup.FindOrCreateRetentionPeriod("Retention Period Enum"::"1 Week"));
+        if RetentionPolicySetupRec.Get(Database::"Performance Profile Scheduler") then
             Page.Run(Page::"Retention Policy Setup Card", RetentionPolicySetupRec);
     end;
 
