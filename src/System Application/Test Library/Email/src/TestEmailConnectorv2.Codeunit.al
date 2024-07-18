@@ -65,18 +65,26 @@ codeunit 134682 "Test Email Connector v2" implements "Email Connector v2", "Emai
         exit('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ornare ante a est commodo interdum. Pellentesque eu diam maximus, faucibus neque ut, viverra leo. Praesent ullamcorper nibh ut pretium dapibus. Nullam eu dui libero. Etiam ac cursus metus.')
     end;
 
-    procedure Reply(EmailMessage: Codeunit "Email Message"; AccountId: Guid; ConversationId: Text)
+    procedure Reply(var EmailMessage: Codeunit "Email Message"; AccountId: Guid)
     begin
-        // Do something
+        if ConnectorMock.FailOnReply() then
+            Error('Failed to send email');
     end;
 
     procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox")
     begin
-        // Do something
+        if ConnectorMock.FailOnReply() then
+            Error('Failed to retrieve emails');
+
+        ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v2", EmailInbox);
+        EmailInbox.Mark(true);
+        ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v2", EmailInbox);
+        EmailInbox.Mark(true);
     end;
 
     procedure MarkAsRead(AccountId: Guid; ConversationId: Text)
     begin
-        // Do something
+        if ConnectorMock.FailOnMarkAsRead() then
+            Error('Failed to mark email as read');
     end;
 }

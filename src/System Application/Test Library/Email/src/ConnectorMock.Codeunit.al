@@ -10,7 +10,8 @@ using System.TestLibraries.Utilities;
 
 codeunit 134688 "Connector Mock"
 {
-    Permissions = tabledata "Email Rate Limit" = rimd;
+    Permissions = tabledata "Email Rate Limit" = rimd,
+                  tabledata "Email Inbox" = rimd;
 
     var
         Any: Codeunit Any;
@@ -110,6 +111,16 @@ codeunit 134688 "Connector Mock"
         EmailRateLimit.Insert();
     end;
 
+    procedure CreateEmailInbox(AccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox")
+    begin
+        EmailInbox.Init();
+        EmailInbox.Id := 0;
+        EmailInbox."Account Id" := AccountId;
+        EmailInbox.Connector := Connector;
+        EmailInbox.Insert();
+        Commit();
+    end;
+
     procedure FailOnSend(): Boolean
     var
         TestEmailConnectorSetup: Record "Test Email Connector Setup";
@@ -124,6 +135,57 @@ codeunit 134688 "Connector Mock"
     begin
         TestEmailConnectorSetup.FindFirst();
         TestEmailConnectorSetup."Fail On Send" := Fail;
+        TestEmailConnectorSetup.Modify();
+    end;
+
+    procedure FailOnReply(): Boolean
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        exit(TestEmailConnectorSetup."Fail On Reply");
+    end;
+
+    procedure FailOnReply(Fail: Boolean)
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        TestEmailConnectorSetup."Fail On Reply" := Fail;
+        TestEmailConnectorSetup.Modify();
+    end;
+
+    procedure FailOnRetrieveEmails(): Boolean
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        exit(TestEmailConnectorSetup."Fail On Retrieve Emails");
+    end;
+
+    procedure FailOnRetrieveEmails(Fail: Boolean)
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        TestEmailConnectorSetup."Fail On Retrieve Emails" := Fail;
+        TestEmailConnectorSetup.Modify();
+    end;
+
+    procedure FailOnMarkAsRead(): Boolean
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        exit(TestEmailConnectorSetup."Fail On Mark As Read");
+    end;
+
+    procedure FailOnMarkAsRead(Fail: Boolean)
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        TestEmailConnectorSetup."Fail On Mark As Read" := Fail;
         TestEmailConnectorSetup.Modify();
     end;
 
