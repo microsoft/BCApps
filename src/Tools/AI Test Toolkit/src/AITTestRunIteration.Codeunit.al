@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.TestTools.TestRunner;
+using System.TestLibraries.AI;
 
 codeunit 149042 "AIT Test Run Iteration"
 {
@@ -21,6 +22,8 @@ codeunit 149042 "AIT Test Run Iteration"
         NoOfInsertedLogEntries: Integer;
 
     trigger OnRun()
+    var
+        AOAITestLibrary: Codeunit "Azure OpenAI Test Library";
     begin
         if Rec."Codeunit ID" = 0 then
             exit;
@@ -31,7 +34,11 @@ codeunit 149042 "AIT Test Run Iteration"
         InitializeAITTestMethodLineForRun(Rec, ActiveAITTestSuite);
         SetAITTestSuite(ActiveAITTestSuite);
 
+        AOAITestLibrary.SetDeploymentOverride(ActiveAITTestSuite."Model Version");
+
         RunAITTestMethodLine(Rec, ActiveAITTestSuite);
+
+        AOAITestLibrary.ClearSubscription();
     end;
 
     local procedure InitializeAITTestMethodLineForRun(var AITTestMethodLine: Record "AIT Test Method Line"; var AITTestSuite: Record "AIT Test Suite")
