@@ -1430,7 +1430,7 @@ codeunit 134685 "Email Test"
         // [Given] An email account with a V1 connector
         // [Given] Existing emails in Email Inbox
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccountv2(EmailAccount);
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
 
         EmailInbox.DeleteAll();
         ConnectorMock.CreateEmailInbox(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
@@ -1463,7 +1463,7 @@ codeunit 134685 "Email Test"
         // [Given] An email account with a V1 connector
         // [Given] Existing emails in Email Inbox
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccountv2(EmailAccount);
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
 
         EmailInbox.DeleteAll();
         ConnectorMock.CreateEmailInbox(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
@@ -1513,7 +1513,7 @@ codeunit 134685 "Email Test"
         // [Scenario] Marking email as read with a V2 connector should succeed with no errors
         // [Given] An email account with a V2 connector
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccountv2(EmailAccount);
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
 
         // [When] Mark email as read
         // [Then] No error occurs
@@ -1530,7 +1530,7 @@ codeunit 134685 "Email Test"
         // [Scenario] Marking email as read with a V2 connector fails due to some error
         // [Given] An email account with a V2 connector
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccountv2(EmailAccount);
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
 
         // [Given] An error occurs when marking email as read
         ConnectorMock.FailOnMarkAsRead(true);
@@ -1573,7 +1573,7 @@ codeunit 134685 "Email Test"
         // [Scenario] Replying to an email with a V2 connector should succeed with no errors
         // [Given] An email account with a V2 connector
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccountv2(EmailAccount);
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
         CreateEmailReply(EmailMessage);
 
         // [When] Reply to email
@@ -1593,7 +1593,7 @@ codeunit 134685 "Email Test"
         // [Scenario] Replying to an email with a V2 connector should succeed with no errors
         // [Given] An email account with a V2 connector
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccountv2(EmailAccount);
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
         CreateEmailReply(EmailMessage, '');
 
         // [When] Reply to email
@@ -1635,7 +1635,7 @@ codeunit 134685 "Email Test"
         // [Scenario] Replying to an email with a V2 connector should succeed with no errors
         // [Given] An email account with a V2 connector
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccountv2(EmailAccount);
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
         CreateEmailReplyAll(EmailMessage);
 
         // [When] Reply to email
@@ -1655,7 +1655,7 @@ codeunit 134685 "Email Test"
         // [Scenario] Replying to an email with a V2 connector fails due to some error
         // [Given] An email account with a V2 connector
         ConnectorMock.Initialize();
-        ConnectorMock.AddAccountv2(EmailAccount);
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
         CreateEmailReplyAll(EmailMessage);
 
         // [Given] Force the connector to fail on reply

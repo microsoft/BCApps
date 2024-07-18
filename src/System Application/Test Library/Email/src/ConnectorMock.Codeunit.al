@@ -49,6 +49,11 @@ codeunit 134688 "Connector Mock"
     end;
 
     procedure AddAccount(var EmailAccount: Record "Email Account")
+    begin
+        AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector");
+    end;
+
+    procedure AddAccount(var EmailAccount: Record "Email Account"; Connector: Enum "Email Connector")
     var
         EmailRateLimit: Record "Email Rate Limit";
         TestEmailAccount: Record "Test Email Account";
@@ -62,28 +67,6 @@ codeunit 134688 "Connector Mock"
         EmailAccount.Name := TestEmailAccount.Name;
         EmailAccount."Email Address" := TestEmailAccount.Email;
         EmailAccount.Connector := Enum::"Email Connector"::"Test Email Connector";
-
-        EmailRateLimit."Account Id" := EmailAccount."Account Id";
-        EmailRateLimit.Connector := EmailAccount.Connector;
-        EmailRateLimit."Email Address" := EmailAccount."Email Address";
-        EmailRateLimit."Rate Limit" := 0;
-        EmailRateLimit.Insert();
-    end;
-
-    procedure AddAccountv2(var EmailAccount: Record "Email Account")
-    var
-        EmailRateLimit: Record "Email Rate Limit";
-        TestEmailAccount: Record "Test Email Account";
-    begin
-        TestEmailAccount.Id := Any.GuidValue();
-        TestEmailAccount.Name := CopyStr(Any.AlphanumericText(250), 1, 250);
-        TestEmailAccount.Email := CopyStr(Any.Email(), 1, 250);
-        TestEmailAccount.Insert();
-
-        EmailAccount."Account Id" := TestEmailAccount.Id;
-        EmailAccount.Name := TestEmailAccount.Name;
-        EmailAccount."Email Address" := TestEmailAccount.Email;
-        EmailAccount.Connector := Enum::"Email Connector"::"Test Email Connector v2";
 
         EmailRateLimit."Account Id" := EmailAccount."Account Id";
         EmailRateLimit.Connector := EmailAccount.Connector;

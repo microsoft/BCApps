@@ -50,7 +50,7 @@ table 8900 "Email Message"
         field(7; "External Id"; Text[2048])
         {
             Access = Internal;
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
         }
     }
 
