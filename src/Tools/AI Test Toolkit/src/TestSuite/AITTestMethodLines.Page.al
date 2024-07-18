@@ -84,7 +84,6 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("Tokens Consumed"; Rec."Tokens Consumed")
                 {
-                    Caption = 'Total Tokens Consumed';
                 }
                 field(AvgDuration; AITTestSuiteMgt.GetAvgDuration(Rec))
                 {
