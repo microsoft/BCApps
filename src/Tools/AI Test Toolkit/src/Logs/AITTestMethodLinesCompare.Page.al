@@ -74,11 +74,6 @@ page 149035 "AIT Test Method Lines Compare"
                             Caption = 'Total Duration (ms)';
                             ToolTip = 'Specifies Total Duration of the test for given version.';
                         }
-                        label(TokensConsumed)
-                        {
-                            Caption = 'Tokens Consumed';
-                            ToolTip = 'Specifies the number of tokens consumed by the test.';
-                        }
                     }
                     group("Latest Version")
                     {
@@ -110,10 +105,6 @@ page 149035 "AIT Test Method Lines Compare"
                         field(Duration; Rec."Total Duration (ms)")
                         {
                             ToolTip = 'Specifies Total Duration of the tests for this version.';
-                            ShowCaption = false;
-                        }
-                        field("Tokens Consumed"; Rec."Tokens Consumed")
-                        {
                             ShowCaption = false;
                         }
                     }
@@ -149,10 +140,6 @@ page 149035 "AIT Test Method Lines Compare"
                         {
                             ToolTip = 'Specifies Total Duration of the tests for the base version.';
                             Caption = 'Total Duration Base (ms)';
-                            ShowCaption = false;
-                        }
-                        field("Tokens Consumed - Base"; Rec."Tokens Consumed - Base")
-                        {
                             ShowCaption = false;
                         }
                     }
