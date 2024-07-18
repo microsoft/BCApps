@@ -17,6 +17,7 @@ codeunit 8900 "Email Impl"
     InherentEntitlements = X;
     Permissions = tabledata "Sent Email" = rimd,
                   tabledata "Email Outbox" = rimd,
+                  tabledata "Email Inbox" = rimd,
                   tabledata "Email Related Record" = rid,
                   tabledata "Email Message" = r,
                   tabledata "Email Error" = r,
@@ -41,6 +42,8 @@ codeunit 8900 "Email Impl"
         AdminViewPolicyUpdatePolicyNotificationActionLbl: Label 'Update policy';
         EmailConnectorDoesNotSupportRetrievingEmailsErr: Label 'The selected email connector does not support retrieving emails.';
         EmailConnectorDoesNotSupportMarkAsReadErr: Label 'The selected email connector does not support marking emails as read.';
+        EmailconnectorDoesNotSupportReplyingErr: Label 'The selected email connector does not support replying to emails.';
+        ExternalIdCannotBeEmptyErr: Label 'The external ID cannot be empty.';
 
     #region API
 
@@ -63,7 +66,7 @@ codeunit 8900 "Email Impl"
         if GetEmailOutbox(EmailMessage.GetId(), EmailOutbox) and IsOutboxEnqueued(EmailOutbox) then
             exit;
 
-        CreateOrUpdateEmailOutbox(EmailMessageImpl, EmptyGuid, EmptyConnector, Enum::"Email Status"::Draft, '', EmailOutbox);
+        CreateOrUpdateEmailOutbox(EmailMessageImpl.GetId(), EmailMessageImpl.GetSubject(), EmptyGuid, EmptyConnector, Enum::"Email Status"::Draft, '', EmailOutbox);
     end;
 
     procedure SaveAsDraft(EmailMessage: Codeunit "Email Message"; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox")
@@ -79,7 +82,7 @@ codeunit 8900 "Email Impl"
 
         // Get email account
         GetEmailAccount(EmailAccountId, EmailConnector, EmailAccountRecord);
-        CreateOrUpdateEmailOutbox(EmailMessageImpl, EmailAccountId, EmailConnector, Enum::"Email Status"::Draft, EmailAccountRecord."Email Address", EmailOutbox);
+        CreateOrUpdateEmailOutbox(EmailMessageImpl.GetId(), EmailMessageImpl.GetSubject(), EmailAccountId, EmailConnector, Enum::"Email Status"::Draft, EmailAccountRecord."Email Address", EmailOutbox);
     end;
 
     procedure Enqueue(EmailMessage: Codeunit "Email Message"; EmailScenario: Enum "Email Scenario"; NotBefore: DateTime)
@@ -122,15 +125,23 @@ codeunit 8900 "Email Impl"
     end;
 
     procedure Reply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox"): Boolean
+    begin
+        exit(Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, false, CurrentDateTime(), false, EmailOutbox));
+    end;
+
+    procedure Reply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; ReplyAll: Boolean; var EmailOutbox: Record "Email Outbox"): Boolean
+    begin
+        exit(Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, false, CurrentDateTime(), true, EmailOutbox));
+    end;
+
+    procedure Reply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; InBackground: Boolean; NotBefore: DateTime; ReplyAll: Boolean; var EmailOutbox: Record "Email Outbox"): Boolean
     var
         EmailAccountRec: Record "Email Account";
         CurrentUser: Record User;
         Email: Codeunit Email;
+        EmailDispatcher: Codeunit "Email Dispatcher";
         EmailMessageImpl: Codeunit "Email Message Impl.";
-        IEmailConnector: Interface "Email Connector";
-        IEmailConnectorv2: Interface "Email Connector v2";
-    // EmailDispatcher: Codeunit "Email Dispatcher";
-    // TaskId: Guid;
+        TaskId: Guid;
     begin
         CheckRequiredPermissions();
 
@@ -140,7 +151,8 @@ codeunit 8900 "Email Impl"
         if EmailMessageSent(EmailMessage.GetId()) then
             Error(EmailMessageSentErr);
 
-        EmailMessageImpl.ValidateRecipients();
+        if not ReplyAll then
+            EmailMessageImpl.ValidateRecipients();
 
         if GetEmailOutbox(EmailMessage.GetId(), EmailOutbox) and IsOutboxEnqueued(EmailOutbox) then
             Error(EmailMessageQueuedErr);
@@ -148,66 +160,68 @@ codeunit 8900 "Email Impl"
         // Get email account
         GetEmailAccount(EmailAccountId, EmailConnector, EmailAccountRec);
 
+        CheckReplySupported(EmailConnector);
+
         // Add user as an related entity on email
         if CurrentUser.Get(UserSecurityId()) then
             Email.AddRelation(EmailMessage, Database::User, CurrentUser.SystemId, Enum::"Email Relation Type"::"Related Entity", Enum::"Email Relation Origin"::"Compose Context");
 
-        IEmailConnector := EmailConnector;
-        if CheckAndGetEmailConnectorv2(IEmailConnector, IEmailConnectorv2) then
-            IEmailConnectorv2.Reply(EmailMessage, EmailAccountId, ExternalId)
-        else
-            Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
-
-        // TODO: How do we send this in the background? Needs a mechanism to work for both foreground and background.
-
         // BeforeSendEmail(EmailMessage);
-        // CreateOrUpdateEmailOutbox(EmailMessageImpl, EmailAccountId, EmailConnector, Enum::"Email Status"::Queued, EmailAccountRec."Email Address", EmailOutbox);
+        CreateOrUpdateEmailOutbox(EmailMessage.GetId(), EmailMessage.GetSubject(), EmailAccountId, EmailConnector, Enum::"Email Status"::Queued, EmailAccountRec."Email Address", EmailOutbox);
         // Email.OnEnqueuedInOutbox(EmailMessage.GetId());
 
-        // if InBackground then begin
-        //     TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), NotBefore, EmailOutbox.RecordId());
-        //     EmailOutbox."Task Scheduler Id" := TaskId;
-        //     EmailOutbox."Date Sending" := NotBefore;
-        //     EmailOutbox.Modify();
-        // end else begin // Send the email in foreground
-        // Commit();
-
-        // if EmailDispatcher.Run(EmailOutbox) then;
-        // exit(EmailDispatcher.GetSuccess());
-        // end;
+        if InBackground then begin
+            TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), NotBefore, EmailOutbox.RecordId());
+            EmailOutbox."Task Scheduler Id" := TaskId;
+            EmailOutbox."Date Sending" := NotBefore;
+            EmailOutbox.Modify();
+        end else begin // Send the email in foreground
+            Commit();
+            if EmailDispatcher.Run(EmailOutbox) then;
+            exit(EmailDispatcher.GetSuccess());
+        end;
     end;
 
     procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox")
     var
-        IEmailConnector: Interface "Email Connector";
         IEmailConnectorv2: Interface "Email Connector v2";
     begin
         CheckRequiredPermissions();
 
-        IEmailConnector := Connector;
-
-        if CheckAndGetEmailConnectorv2(IEmailConnector, IEmailConnectorv2) then
+        if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then
             IEmailConnectorv2.RetrieveEmails(EmailAccountId, EmailInbox)
         else
             Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
 
+        EmailInbox.MarkedOnly(true);
     end;
 
-    procedure MarkAsRead(EmailAccountId: Guid; Connector: Enum "Email Connector"; ConversationId: Text)
+    procedure MarkAsRead(EmailAccountId: Guid; Connector: Enum "Email Connector"; ExternalId: Text)
     var
-        IEmailConnector: Interface "Email Connector";
         IEmailConnectorv2: Interface "Email Connector v2";
     begin
         CheckRequiredPermissions();
 
-        IEmailConnector := Connector;
-        if CheckAndGetEmailConnectorv2(IEmailConnector, IEmailConnectorv2) then
-            IEmailConnectorv2.MarkAsRead(EmailAccountId, ConversationId)
+        if ExternalId = '' then
+            Error(ExternalIdCannotBeEmptyErr);
+
+        if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then
+            IEmailConnectorv2.MarkAsRead(EmailAccountId, ExternalId)
         else
             Error(EmailConnectorDoesNotSupportMarkAsReadErr);
     end;
 
-    local procedure CheckAndGetEmailConnectorv2(Connector: Interface "Email Connector"; var Connectorv2: Interface "Email Connector v2"): Boolean
+    procedure CheckReplySupported(Connector: Enum "Email Connector"): Boolean
+    var
+        IEmailConnectorv2: Interface "Email Connector v2";
+    begin
+        if not CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then
+            Error(EmailconnectorDoesNotSupportReplyingErr);
+
+        exit(true);
+    end;
+
+    procedure CheckAndGetEmailConnectorv2(Connector: Interface "Email Connector"; var Connectorv2: Interface "Email Connector v2"): Boolean
     begin
         if Connector is "Email Connector v2" then begin
             Connectorv2 := Connector as "Email Connector v2";
@@ -245,7 +259,7 @@ codeunit 8900 "Email Impl"
 
         if not IsEnqueued then begin
             // Modify the outbox only if it hasn't been enqueued yet
-            CreateOrUpdateEmailOutbox(EmailMessageImpl, EmailAccountId, EmailConnector, Enum::"Email Status"::Draft, '', EmailOutbox);
+            CreateOrUpdateEmailOutbox(EmailMessageImpl.GetId(), EmailMessageImpl.GetSubject(), EmailAccountId, EmailConnector, Enum::"Email Status"::Draft, '', EmailOutbox);
 
             // Set the record as new so that there is a save prompt and no arrows
             EmailEditor.SetAsNew();
@@ -273,7 +287,7 @@ codeunit 8900 "Email Impl"
 
         if not IsEnqueued then begin
             // Modify the outbox only if it hasn't been enqueued yet
-            CreateOrUpdateEmailOutbox(EmailMessageImpl, EmailAccountId, EmailConnector, Enum::"Email Status"::Draft, '', EmailOutbox);
+            CreateOrUpdateEmailOutbox(EmailMessageImpl.GetId(), EmailMessageImpl.GetSubject(), EmailAccountId, EmailConnector, Enum::"Email Status"::Draft, '', EmailOutbox);
 
             // Set the record as new so that there is a save prompt and no arrows
             EmailEditor.SetAsNew();
@@ -340,7 +354,7 @@ codeunit 8900 "Email Impl"
             Email.AddRelation(EmailMessage, Database::User, CurrentUser.SystemId, Enum::"Email Relation Type"::"Related Entity", Enum::"Email Relation Origin"::"Compose Context");
 
         BeforeSendEmail(EmailMessage);
-        CreateOrUpdateEmailOutbox(EmailMessageImpl, EmailAccountId, EmailConnector, Enum::"Email Status"::Queued, EmailAccountRec."Email Address", EmailOutbox);
+        CreateOrUpdateEmailOutbox(EmailMessageImpl.GetId(), EmailMessageImpl.GetSubject(), EmailAccountId, EmailConnector, Enum::"Email Status"::Queued, EmailAccountRec."Email Address", EmailOutbox);
         Email.OnEnqueuedInOutbox(EmailMessage.GetId());
 
         if InBackground then begin
@@ -386,16 +400,16 @@ codeunit 8900 "Email Impl"
             Error(InvalidEmailAccountErr);
     end;
 
-    local procedure CreateOrUpdateEmailOutbox(EmailMessageImpl: Codeunit "Email Message Impl."; AccountId: Guid; EmailConnector: Enum "Email Connector"; Status: Enum "Email Status"; SentFrom: Text; var EmailOutbox: Record "Email Outbox")
+    local procedure CreateOrUpdateEmailOutbox(EmailMessageId: Guid; Subject: Text; AccountId: Guid; EmailConnector: Enum "Email Connector"; Status: Enum "Email Status"; SentFrom: Text; var EmailOutbox: Record "Email Outbox")
     begin
-        if not GetEmailOutbox(EmailMessageImpl.GetId(), EmailOutbox) then begin
-            EmailOutbox."Message Id" := EmailMessageImpl.GetId();
+        if not GetEmailOutbox(EmailMessageId, EmailOutbox) then begin
+            EmailOutbox."Message Id" := EmailMessageId;
             EmailOutbox.Insert();
         end;
 
         EmailOutbox.Connector := EmailConnector;
         EmailOutbox."Account Id" := AccountId;
-        EmailOutbox.Description := CopyStr(EmailMessageImpl.GetSubject(), 1, MaxStrLen(EmailOutbox.Description));
+        EmailOutbox.Description := CopyStr(Subject, 1, MaxStrLen(EmailOutbox.Description));
         EmailOutbox."User Security Id" := UserSecurityId();
         EmailOutbox."Send From" := CopyStr(SentFrom, 1, MaxStrLen(EmailOutbox."Send From"));
         EmailOutbox.Status := Status;

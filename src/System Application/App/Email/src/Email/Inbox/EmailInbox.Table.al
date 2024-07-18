@@ -135,6 +135,4 @@ table 8886 "Email Inbox"
     begin
         exit(Rec.Connector);
     end;
-
-
 }

@@ -42,7 +42,7 @@ codeunit 8998 "Default Email Connector v2" implements "Email Connector v2"
 
     end;
 
-    procedure Reply(EmailMessage: Codeunit "Email Message"; AccountId: Guid; ConversationId: Text)
+    procedure Reply(var EmailMessage: Codeunit "Email Message"; AccountId: Guid)
     begin
 
     end;
@@ -52,7 +52,7 @@ codeunit 8998 "Default Email Connector v2" implements "Email Connector v2"
 
     end;
 
-    procedure MarkAsRead(AccountId: Guid; ConversationId: Text)
+    procedure MarkAsRead(AccountId: Guid; ExternalId: Text)
     begin
 
     end;

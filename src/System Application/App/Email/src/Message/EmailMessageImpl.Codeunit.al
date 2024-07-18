@@ -73,20 +73,53 @@ codeunit 8905 "Email Message Impl."
 
     procedure Create(Recipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
     begin
+        InitializeCreation();
+        UpdateMessage(Recipients, Subject, Body, HtmlFormatted, '', CCRecipients, BCCRecipients);
+    end;
+
+    procedure CreateReply(ToRecipients: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    var
+        EmptyList: List of [Text];
+    begin
+        CreateReply(EmptyList, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
+        SetRecipients(Enum::"Email Recipient Type"::"To", ToRecipients);
+    end;
+
+    procedure CreateReply(ToRecipients: List of [Text]; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    var
+        EmptyList: List of [Text];
+    begin
+        CreateReply(ToRecipients, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
+    end;
+
+    procedure CreateReplyAll(Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    var
+        EmptyList: List of [Text];
+    begin
+        CreateReply(EmptyList, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
+    end;
+
+    procedure CreateReply(ToRecipients: List of [Text]; Body: Text; HtmlFormatted: Boolean; ExternalId: Text; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
+    begin
+        InitializeCreation();
+        UpdateMessage(ToRecipients, '', Body, HtmlFormatted, ExternalId, CCRecipients, BCCRecipients);
+    end;
+
+    local procedure InitializeCreation()
+    begin
         Clear(GlobalEmailMessageAttachment);
         Clear(GlobalEmailMessage);
 
         GlobalEmailMessage.Id := CreateGuid();
         GlobalEmailMessage.Insert();
-
-        UpdateMessage(Recipients, Subject, Body, HtmlFormatted, CCRecipients, BCCRecipients);
     end;
 
-    procedure UpdateMessage(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
+    procedure UpdateMessage(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
     begin
         SetBodyValue(Body);
         SetSubjectValue(Subject);
         SetBodyHTMLFormattedValue(HtmlFormatted);
+        SetExternalId(ExternalId);
         Modify();
 
         SetRecipients(Enum::"Email Recipient Type"::"To", ToRecipients);
@@ -141,6 +174,16 @@ codeunit 8905 "Email Message Impl."
 
         ExistingBodyText := GetBody();
         SetBody(ExistingBodyText + BodyText);
+    end;
+
+    procedure GetExternalId(): Text[2048]
+    begin
+        exit(GlobalEmailMessage."External Id");
+    end;
+
+    local procedure SetExternalId(ExternalId: Text)
+    begin
+        GlobalEmailMessage."External Id" := CopyStr(ExternalId, 1, MaxStrLen(GlobalEmailMessage."External Id"));
     end;
 
     procedure GetSubject(): Text[2048]
@@ -693,6 +736,18 @@ codeunit 8905 "Email Message Impl."
     [InternalEvent(false)]
     local procedure OnBeforeDeleteSentEmailAttachment(var BypassSentCheck: Boolean)
     begin
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Email Inbox", OnAfterDeleteEvent, '', false, false)]
+    local procedure OnAfterDeleteEmailInbox(var Rec: Record "Email Inbox"; RunTrigger: Boolean)
+    var
+        EmailMessage: Record "Email Message";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if EmailMessage.Get(Rec."Message Id") then
+            EmailMessage.Delete();
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sent Email", OnAfterDeleteEvent, '', false, false)]

@@ -13,6 +13,7 @@ page 8881 "Email Inbox"
     SourceTable = "Email Inbox";
     Editable = false;
     Extensible = false;
+    Permissions = tabledata "Email Inbox" = rimd;
 
     layout
     {
@@ -113,8 +114,9 @@ page 8881 "Email Inbox"
                     EmailMessage: Codeunit "Email Message";
                 begin
                     EmailAccount.GetAllAccounts(false, TempEmailAccounts);
-                    EmailMessage.SetBody('Thank you for your email. \r\n We will process it momentarily. Please wait for another email from us with the confirmed details.');
-                    Email.Reply(EmailMessage, Rec."External Message Id", TempEmailAccounts."Account Id", TempEmailAccounts.Connector, EmailOutbox);
+
+                    EmailMessage.CreateReplyAll('Thank you for your email. \r\nWe will process it momentarily.\r\nPlease wait for another email from us with the confirmed details.', false, Rec."External Message Id");
+                    Email.ReplyAll(EmailMessage, Rec."External Message Id", TempEmailAccounts."Account Id", TempEmailAccounts.Connector, EmailOutbox);
                 end;
             }
         }

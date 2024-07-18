@@ -15,7 +15,7 @@ interface "Email Connector v2" extends "Email Connector"
     /// </summary>
     /// <param name="EmailMessage">The email message that is to be sent out.</param>
     /// <param name="AccountId">The email account ID which is used to send out the email.</param>
-    procedure Reply(EmailMessage: Codeunit "Email Message"; AccountId: Guid; ConversationId: Text);
+    procedure Reply(var EmailMessage: Codeunit "Email Message"; AccountId: Guid);
 
     /// <summary>
     /// Read e-mails from the provided account.
@@ -28,6 +28,6 @@ interface "Email Connector v2" extends "Email Connector"
     /// Mark an e-mail as read in the provided account.
     /// </summary>
     /// <param name="AccountId">The email account ID.</param>
-    /// <param name="ConversationId">The conversation ID of the email.</param>
-    procedure MarkAsRead(AccountId: Guid; ConversationId: Text);
+    /// <param name="ExternalId">The external ID of the email.</param>
+    procedure MarkAsRead(AccountId: Guid; ExternalId: Text);
 }
