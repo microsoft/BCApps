@@ -14,6 +14,7 @@ permissionset 8906 "Email - Objects"
                   table "Email Attachments" = X,
                   table "Email Connector" = X,
                   table "Email Outbox" = X,
+                  table "Email Inbox" = X,
                   table "Email Related Attachment" = X,
                   table "Email Scenario" = X,
                   table "Email Scenario Attachments" = X,
