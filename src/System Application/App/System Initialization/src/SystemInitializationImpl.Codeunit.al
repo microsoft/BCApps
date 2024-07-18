@@ -6,7 +6,6 @@
 namespace System.Environment.Configuration;
 
 using System.Security.User;
-using System.Telemetry;
 using System.Azure.Identity;
 using System.Environment;
 
@@ -56,7 +55,7 @@ codeunit 151 "System Initialization Impl."
     var
         SignupContext: Record "Signup Context"; // system table
         SignupContextValues: Record "Signup Context Values";
-        Telemetry: Codeunit Telemetry;
+        CustomDimensions: Dictionary of [Text, Text];
     begin
         if IsSystemUser() then
             exit;
@@ -67,14 +66,14 @@ codeunit 151 "System Initialization Impl."
 
         if SignupContext.IsEmpty() then begin
             InsertSignupContext(SignupContextValues."Signup Context"::" ");
-            Telemetry.LogMessage('0000HOI', NoSignupContextTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Session.LogMessage('0000HOI', NoSignupContextTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             Commit();
             exit;
         end;
 
         if not SignupContext.Get('name') then begin
             InsertSignupContext(SignupContextValues."Signup Context"::" ");
-            Telemetry.LogMessage('0000HOJ', NoNameKeySignupContextTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Session.LogMessage('0000HOJ', NoNameKeySignupContextTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             Commit();
             exit;
         end;
@@ -86,7 +85,6 @@ codeunit 151 "System Initialization Impl."
     internal procedure SetSignupContext(SignupContext: Record "Signup Context"; var SignupContextValues: Record "Signup Context Values")
     var
         SystemInitialization: Codeunit "System Initialization";
-        Telemetry: Codeunit Telemetry;
         CustomDimensions: Dictionary of [Text, Text];
     begin
         case LowerCase(SignupContext.Value) of
@@ -98,7 +96,7 @@ codeunit 151 "System Initialization Impl."
 
         if SignupContextValues.IsEmpty() then begin
             // A Signup Context was passed but nobody parsed it into Signup Context Values. The context is unknown.
-            Telemetry.LogMessage('0000HMW', UnknownSignupContextTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher);
+            Session.LogMessage('0000HMW', UnknownSignupContextTxt, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             InsertSignupContext(SignupContextValues."Signup Context"::" ");
         end else begin
             CustomDimensions.Add('DetectedSignupContext', SignupContext.Value);
@@ -107,7 +105,7 @@ codeunit 151 "System Initialization Impl."
             CustomDimensions.Add('ConvertedByName', SignupContextCallerModuleInfo.Name);
             CustomDimensions.Add('ConvertedById', SignupContextCallerModuleInfo.Id);
             CustomDimensions.Add('ConvertedByAppVersion', Format(SignupContextCallerModuleInfo.AppVersion));
-            Telemetry.LogMessage('0000HMX', DetectedSignupContextTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+            Session.LogMessage('0000HMX', DetectedSignupContextTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         end;
     end;
 

@@ -117,9 +117,13 @@ codeunit 3702 "Environment Information Impl."
 
     procedure CanStartSession(): Boolean
     var
+        SystemInitialization: Codeunit "System Initialization";
         NavTestExecution: DotNet NavTestExecution;
     begin
         if GetExecutionContext() in [ExecutionContext::Install, ExecutionContext::Upgrade] then
+            exit(false);
+
+        if SystemInitialization.IsInProgress() then
             exit(false);
 
         // Sessions cannot be started in tests if test isolation is enabled
