@@ -329,6 +329,9 @@ codeunit 149034 "AIT Test Suite Mgt."
             AITLogEntry.SetOutputBlob(TestOutput);
 
         AITLogEntry."Procedure Name" := CurrentTestMethodLine.Function;
+
+        AITLogEntry."Tokens Consumed" := AITTestRunIteration.GetAITokenUsedByLastTestMethodLine();
+
         AITLogEntry.Insert(true);
 
         Commit();

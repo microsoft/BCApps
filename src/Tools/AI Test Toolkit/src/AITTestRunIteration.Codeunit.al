@@ -19,6 +19,8 @@ codeunit 149042 "AIT Test Run Iteration"
         ActiveAITTestSuite: Record "AIT Test Suite";
         GlobalTestMethodLine: Record "Test Method Line";
         NoOfInsertedLogEntries: Integer;
+        GlobalAITokenUsedByLastTestMethodLine: Integer;
+        GlobalSessionAITokenUsed: Integer;
 
     trigger OnRun()
     begin
@@ -27,6 +29,7 @@ codeunit 149042 "AIT Test Run Iteration"
         SetAITTestMethodLine(Rec);
 
         NoOfInsertedLogEntries := 0;
+        GlobalAITokenUsedByLastTestMethodLine := 0;
 
         InitializeAITTestMethodLineForRun(Rec, ActiveAITTestSuite);
         SetAITTestSuite(ActiveAITTestSuite);
@@ -115,6 +118,11 @@ codeunit 149042 "AIT Test Run Iteration"
         exit(GlobalTestMethodLine);
     end;
 
+    procedure GetAITokenUsedByLastTestMethodLine(): Integer
+    begin
+        exit(GlobalAITokenUsedByLastTestMethodLine);
+    end;
+
     [InternalEvent(false)]
     procedure OnBeforeRunIteration(var AITTestSuite: Record "AIT Test Suite"; var AITTestMethodLine: Record "AIT Test Method Line")
     begin
@@ -132,6 +140,10 @@ codeunit 149042 "AIT Test Run Iteration"
 
         GlobalTestMethodLine := CurrentTestMethodLine;
 
+        // Update AI Token Consumption
+        GlobalAITokenUsedByLastTestMethodLine := 0;
+        GlobalSessionAITokenUsed := SessionInformation.AITokensUsed;
+
         AITContextCU.StartRunProcedureScenario();
     end;
 
@@ -147,6 +159,9 @@ codeunit 149042 "AIT Test Run Iteration"
             exit;
 
         GlobalTestMethodLine := CurrentTestMethodLine;
+        // Update AI Token Consumption
+        GlobalAITokenUsedByLastTestMethodLine := SessionInformation.AITokensUsed - GlobalSessionAITokenUsed;
+
         AITContextCU.EndRunProcedureScenario(CurrentTestMethodLine, IsSuccess);
         Commit();
     end;
