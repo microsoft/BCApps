@@ -73,7 +73,7 @@ codeunit 134682 "Test Email Connector v2" implements "Email Connector v2", "Emai
 
     procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox")
     begin
-        if ConnectorMock.FailOnReply() then
+        if ConnectorMock.FailOnRetrieveEmails() then
             Error('Failed to retrieve emails');
 
         ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v2", EmailInbox);
