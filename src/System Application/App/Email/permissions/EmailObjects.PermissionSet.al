@@ -34,8 +34,6 @@ permissionset 8906 "Email - Objects"
                   page "Email Attachments" = X,
                   page "Email Choose Scenario Attach" = X,
                   page "Email Editor" = X,
-                  page "Email Inbox" = X,
-                  page "Email Inbox Viewer" = X,
                   page "Email Outbox" = X,
                   page "Email Rate Limit Wizard" = X,
                   page "Email Related Attachments" = X,
