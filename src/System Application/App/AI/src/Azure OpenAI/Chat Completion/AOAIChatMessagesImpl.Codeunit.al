@@ -27,6 +27,8 @@ codeunit 7764 "AOAI Chat Messages Impl"
         HistoryRoles: List of [Enum "AOAI Chat Roles"];
         [NonDebuggable]
         HistoryNames: List of [Text[2048]];
+        [NonDebuggable]
+        HistoryToolCallIds: List of [Text];
         IsSystemMessageSet: Boolean;
         MessageIdDoesNotExistErr: Label 'Message id does not exist.';
         HistoryLengthErr: Label 'History length must be greater than 0.';
@@ -73,6 +75,17 @@ codeunit 7764 "AOAI Chat Messages Impl"
     end;
 
     [NonDebuggable]
+    procedure AddToolMessage(ToolCallId: Text; FunctionName: Text; FunctionResult: Text)
+    var
+        FunctionNameTruncated: Text[2048];
+    begin
+        Initialize();
+        FunctionNameTruncated := CopyStr(FunctionName, 1, MaxStrLen(FunctionNameTruncated));
+        AddMessage(FunctionResult, FunctionNameTruncated, ToolCallId, Enum::"AOAI Chat Roles"::Tool);
+    end;
+
+
+    [NonDebuggable]
     procedure ModifyMessage(Id: Integer; NewMessage: Text; NewRole: Enum "AOAI Chat Roles"; NewName: Text[2048])
     begin
         if (Id < 1) or (Id > History.Count) then
@@ -92,6 +105,7 @@ codeunit 7764 "AOAI Chat Messages Impl"
         History.RemoveAt(Id);
         HistoryRoles.RemoveAt(Id);
         HistoryNames.RemoveAt(Id);
+        HistoryToolCallIds.RemoveAt(Id);
     end;
 
     [NonDebuggable]
@@ -113,6 +127,12 @@ codeunit 7764 "AOAI Chat Messages Impl"
     end;
 
     [NonDebuggable]
+    procedure GetHistoryToolCallIds(): List of [Text]
+    begin
+        exit(HistoryToolCallIds);
+    end;
+
+    [NonDebuggable]
     procedure GetLastMessage() LastMessage: Text
     begin
         History.Get(History.Count, LastMessage);
@@ -131,6 +151,12 @@ codeunit 7764 "AOAI Chat Messages Impl"
     end;
 
     [NonDebuggable]
+    procedure GetLastToolCallId() LastToolCall: Text
+    begin
+        HistoryToolCallIds.Get(HistoryToolCallIds.Count, LastToolCall);
+    end;
+
+    [NonDebuggable]
     procedure SetHistoryLength(NewHistoryLength: Integer)
     begin
         if NewHistoryLength < 1 then
@@ -140,15 +166,27 @@ codeunit 7764 "AOAI Chat Messages Impl"
     end;
 
     [NonDebuggable]
+    procedure GetHistoryTokenCount(): Integer
+    var
+        SystemMessageTokenCount: Integer;
+        MessagesTokenCount: Integer;
+    begin
+        PrepareHistory(SystemMessageTokenCount, MessagesTokenCount);
+        exit(SystemMessageTokenCount + MessagesTokenCount);
+    end;
+
+    [NonDebuggable]
     procedure PrepareHistory(var SystemMessageTokenCount: Integer; var MessagesTokenCount: Integer) HistoryResult: JsonArray
     var
         AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
+        AOAIToolsImpl: Codeunit "AOAI Tools Impl";
         Counter: Integer;
         MessageJsonObject: JsonObject;
         Message: Text;
         TotalMessages: Text;
         Name: Text[2048];
         Role: Enum "AOAI Chat Roles";
+        ToolCallId: Text;
         UsingMicrosoftMetaprompt: Boolean;
     begin
         if History.Count = 0 then
@@ -174,15 +212,21 @@ codeunit 7764 "AOAI Chat Messages Impl"
             HistoryRoles.Get(Counter, Role);
             History.Get(Counter, Message);
             HistoryNames.Get(Counter, Name);
+            HistoryToolCallIds.Get(Counter, ToolCallId);
             MessageJsonObject.Add('role', Format(Role));
             if UsingMicrosoftMetaprompt and (Role = Enum::"AOAI Chat Roles"::User) then
                 Message := WrapUserMessages(AzureOpenAIImpl.RemoveProhibitedCharacters(Message))
             else
                 Message := AzureOpenAIImpl.RemoveProhibitedCharacters(Message);
-            MessageJsonObject.Add('content', Message);
+            if AOAIToolsImpl.IsToolsList(Message) then
+                MessageJsonObject.Add('tool_calls', AOAIToolsImpl.ConvertToJsonArray(Message))
+            else
+                MessageJsonObject.Add('content', Message);
 
             if Name <> '' then
                 MessageJsonObject.Add('name', Name);
+            if ToolCallId <> '' then
+                MessageJsonObject.Add('tool_call_id', ToolCallId);
             HistoryResult.Add(MessageJsonObject);
             Counter += 1;
             TotalMessages += Format(Role);
@@ -209,6 +253,16 @@ codeunit 7764 "AOAI Chat Messages Impl"
         History.Add(NewMessage);
         HistoryRoles.Add(NewRole);
         HistoryNames.Add(NewName);
+        HistoryToolCallIds.Add('');
+    end;
+
+    [NonDebuggable]
+    local procedure AddMessage(NewMessage: Text; NewName: Text[2048]; NewToolCallId: Text; NewRole: Enum "AOAI Chat Roles")
+    begin
+        History.Add(NewMessage);
+        HistoryRoles.Add(NewRole);
+        HistoryNames.Add(NewName);
+        HistoryToolCallIds.Add(NewToolCallId);
     end;
 
     [NonDebuggable]

@@ -70,6 +70,18 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Adds a tool result to the chat messages history.
+    /// </summary>
+    /// <param name="ToolCallId">The id of the tool call.</param>
+    /// <param name="FunctionName">The name of the called function.</param>
+    /// <param name="FunctionResult">The result of the tool call.</param>
+    [NonDebuggable]
+    procedure AddToolMessage(ToolCallId: Text; FunctionName: Text; FunctionResult: Text)
+    begin
+        AOAIChatMessagesImpl.AddToolMessage(ToolCallId, FunctionName, FunctionResult);
+    end;
+
+    /// <summary>
     /// Modifies a message in the chat messages history.
     /// </summary>
     /// <param name="Id">Id of the message.</param>
@@ -179,17 +191,23 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Gets the number of tokens used by the primary system messages and all other messages.
+    /// </summary>
+    [NonDebuggable]
+    procedure GetHistoryTokenCount(): Integer
+    begin
+        exit(AOAIChatMessagesImpl.GetHistoryTokenCount());
+    end;
+
+    /// <summary>
     /// Appends a Tool to the payload.
     /// </summary>
     /// <param name="NewTool">The Tool to be added to the payload.</param>
     /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
     [NonDebuggable]
     procedure AddTool(NewTool: JsonObject)
-    var
-        CallerModuleInfo: ModuleInfo;
     begin
-        NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        AOAIToolsImpl.AddTool(NewTool, CallerModuleInfo);
+        AOAIToolsImpl.AddTool(NewTool);
     end;
 
     /// <summary>
@@ -212,6 +230,53 @@ codeunit 7763 "AOAI Chat Messages"
     procedure DeleteTool(Id: Integer)
     begin
         AOAIToolsImpl.DeleteTool(Id);
+    end;
+
+    /// <summary>
+    /// Adds a function to the payload.
+    /// </summary>
+    /// <param name="Function">The function to be added</param>
+    procedure AddTool(Function: Interface "AOAI Function")
+    begin
+        AOAIToolsImpl.AddTool(Function);
+    end;
+
+    /// <summary>
+    /// Deletes a Function from the list of Functions.
+    /// </summary>
+    /// <param name="Name">Name of the Function.</param>
+    /// <error>Message id does not exist.</error>
+    procedure DeleteFunctionTool(Name: Text): Boolean
+    begin
+        exit(AOAIToolsImpl.DeleteTool(Name));
+    end;
+
+    /// <summary>
+    /// Remove all tools.
+    /// </summary>
+    procedure ClearTools()
+    begin
+        AOAIToolsImpl.ClearTools();
+    end;
+
+    /// <summary>
+    /// Gets the function associated with the specified name.
+    /// </summary>
+    /// <param name="Name">Name of the function to get.</param>
+    /// <returns>The function codeunit.</returns>
+    /// <error>Tool not found.</error>
+    procedure GetFunctionTool(Name: Text; var Function: Interface "AOAI Function"): Boolean
+    begin
+        exit(AOAIToolsImpl.GetTool(Name, Function));
+    end;
+
+    /// <summary>
+    /// Gets the list of names of Function Tools that have been added.
+    /// </summary>
+    /// <returns>List of function tool names.</returns>
+    procedure GetFunctionTools(): List of [Text]
+    begin
+        exit(AOAIToolsImpl.GetFunctionTools());
     end;
 
     /// <summary>
@@ -251,6 +316,28 @@ codeunit 7763 "AOAI Chat Messages"
     procedure SetToolChoice(ToolChoice: Text)
     begin
         AOAIToolsImpl.SetToolChoice(ToolChoice);
+    end;
+
+    /// <summary>
+    /// Sets the function as the tool choice to be called.
+    /// </summary>
+    /// <param name="FunctionName">The function name parameter. </param>
+    /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
+    [NonDebuggable]
+    procedure SetFunctionAsToolChoice(FunctionName: Text)
+    begin
+        AOAIToolsImpl.SetFunctionAsToolChoice(FunctionName);
+    end;
+
+    /// <summary>
+    /// Sets the function as the tool choice to be called.
+    /// </summary>
+    /// <param name="Function">The function codeunit.</param>
+    /// <remarks>See more details here: https://go.microsoft.com/fwlink/?linkid=2254538</remarks>
+    [NonDebuggable]
+    procedure SetFunctionAsToolChoice(Function: Interface "AOAI Function")
+    begin
+        AOAIToolsImpl.SetFunctionAsToolChoice(Function);
     end;
 
     /// <summary>
