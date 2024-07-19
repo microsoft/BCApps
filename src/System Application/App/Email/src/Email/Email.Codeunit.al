@@ -223,7 +223,7 @@ codeunit 8901 Email
     /// <returns>True if sent</returns>
     procedure ReplyAll(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"): Boolean
     begin
-        exit(EmailImpl.Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, true));
+        exit(EmailImpl.ReplyAll(EmailMessage, ExternalId, EmailAccountId, EmailConnector));
     end;
 
     /// <summary>
@@ -251,7 +251,7 @@ codeunit 8901 Email
     /// <returns>True if sent</returns>
     procedure ReplyAll(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox")
     begin
-        EmailImpl.Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, true, EmailOutbox);
+        EmailImpl.ReplyAll(EmailMessage, ExternalId, EmailAccountId, EmailConnector, EmailOutbox);
     end;
 
     #endregion

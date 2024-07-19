@@ -1455,7 +1455,6 @@ codeunit 134685 "Email Test"
         EmailAccount: Record "Email Account";
         EmailInbox: Record "Email Inbox";
         ConnectorMock: Codeunit "Connector Mock";
-        InitialId: Integer;
     begin
         // [Scenario] Retrieving emails with a V2 connector fails due to some error
         PermissionsMock.Set('Email Edit');
@@ -1468,21 +1467,15 @@ codeunit 134685 "Email Test"
         EmailInbox.DeleteAll();
         ConnectorMock.CreateEmailInbox(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
         Assert.AreEqual(1, EmailInbox.Count(), 'Wrong number of emails in the inbox');
-        InitialId := EmailInbox.Id;
 
         // [Given] An error occurs when retrieving emails
         ConnectorMock.FailOnRetrieveEmails(true);
 
         // [When] Retrieving emails
-        Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
+        asserterror Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
 
         // [Then] The EmailInbox will be filled only with new emails and not existing ones
-        EmailInbox.FindSet();
-        Assert.AreEqual(2, EmailInbox.Count(), 'Wrong number of emails in the inbox');
-
-        repeat
-            Assert.AreNotEqual(InitialId, EmailInbox.Id, 'The email should not be the same as the initial one');
-        until EmailInbox.Next() = 0;
+        Assert.ExpectedError('Failed to retrieve emails');
     end;
 
     [Test]
@@ -1532,12 +1525,13 @@ codeunit 134685 "Email Test"
         ConnectorMock.Initialize();
         ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
 
-        // [Given] An error occurs when marking email as read
+        // [Given] Force an error to occur when marking email as read
         ConnectorMock.FailOnMarkAsRead(true);
 
         // [When] Mark email as read
-        // [Then] No error occurs
-        Email.MarkAsRead(EmailAccount."Account Id", EmailAccount.Connector, Any.AlphabeticText(10));
+        // [Then] An error occurs
+        asserterror Email.MarkAsRead(EmailAccount."Account Id", EmailAccount.Connector, Any.AlphabeticText(10));
+        Assert.ExpectedError('Failed to mark email as read');
     end;
 
     [Test]
@@ -1565,6 +1559,25 @@ codeunit 134685 "Email Test"
     procedure ReplyToEmail()
     var
         EmailAccount: Record "Email Account";
+        EmailMessage: Codeunit "Email Message";
+        ConnectorMock: Codeunit "Connector Mock";
+        Any: Codeunit Any;
+    begin
+        // [Scenario] Replying to an email with a V2 connector should succeed with no errors
+        // [Given] An email account with a V2 connector
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v2");
+        CreateEmailReply(EmailMessage);
+
+        // [When] Reply to email
+        // [Then] No error occurs and reply returns true
+        Assert.IsTrue(Email.Reply(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector), 'Did not succeed in replying the email');
+    end;
+
+    [Test]
+    procedure ReplyToEmailInBackground()
+    var
+        EmailAccount: Record "Email Account";
         EmailOutbox: Record "Email Outbox";
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
@@ -1578,7 +1591,10 @@ codeunit 134685 "Email Test"
 
         // [When] Reply to email
         // [Then] No error occurs and reply returns true
-        Assert.IsTrue(Email.Reply(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox), 'Did not succeed in replying the email');
+        Assert.IsTrue(IsNullGuid(EmailOutbox."Message Id"), 'The email message id in the outbox should be empty');
+        Email.Reply(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
+
+        Assert.AreEqual(EmailMessage.GetId(), EmailOutbox."Message Id", 'The email message id should be the same as the one in the outbox');
     end;
 
     [Test]
@@ -1627,7 +1643,6 @@ codeunit 134685 "Email Test"
     procedure ReplyAllToEmail()
     var
         EmailAccount: Record "Email Account";
-        EmailOutbox: Record "Email Outbox";
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
         Any: Codeunit Any;
@@ -1640,14 +1655,13 @@ codeunit 134685 "Email Test"
 
         // [When] Reply to email
         // [Then] No error occurs and reply returns true
-        Assert.IsTrue(Email.ReplyAll(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox), 'Did not succeed in replying the email');
+        Assert.IsTrue(Email.ReplyAll(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector), 'Did not succeed in replying the email');
     end;
 
     [Test]
     procedure ReplyAllToEmailFail()
     var
         EmailAccount: Record "Email Account";
-        EmailOutbox: Record "Email Outbox";
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
         Any: Codeunit Any;
@@ -1663,7 +1677,7 @@ codeunit 134685 "Email Test"
 
         // [When] Reply to email
         // [Then] No error occurs and reply returns true
-        Assert.IsTrue(Email.ReplyAll(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox), 'Did not succeed in replying the email');
+        Assert.IsFalse(Email.ReplyAll(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector), 'Did succeed in replying the email when it should fail');
     end;
 
     local procedure CreateEmail(var EmailMessage: Codeunit "Email Message")

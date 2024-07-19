@@ -128,27 +128,27 @@ codeunit 8900 "Email Impl"
     var
         EmailOutbox: Record "Email Outbox";
     begin
-        exit(Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, true, CurrentDateTime(), false, EmailOutbox));
+        exit(Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, EmailOutbox, CurrentDateTime(), false, false));
     end;
 
-    procedure Reply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; ReplyAll: Boolean): Boolean
+    procedure ReplyAll(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"): Boolean
     var
         EmailOutbox: Record "Email Outbox";
     begin
-        exit(Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, true, CurrentDateTime(), ReplyAll, EmailOutbox));
+        exit(Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, EmailOutbox, CurrentDateTime(), false, true));
     end;
 
     procedure Reply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox")
     begin
-        Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, false, CurrentDateTime(), false, EmailOutbox);
+        Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, EmailOutbox, CurrentDateTime(), true, false);
     end;
 
-    procedure Reply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; ReplyAll: Boolean; var EmailOutbox: Record "Email Outbox")
+    procedure ReplyAll(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox")
     begin
-        Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, false, CurrentDateTime(), ReplyAll, EmailOutbox);
+        Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, EmailOutbox, CurrentDateTime(), true, true);
     end;
 
-    procedure Reply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; InBackground: Boolean; NotBefore: DateTime; ReplyAll: Boolean; var EmailOutbox: Record "Email Outbox"): Boolean
+    procedure Reply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox"; NotBefore: DateTime; InBackground: Boolean; ReplyToAll: Boolean): Boolean
     var
         EmailAccountRec: Record "Email Account";
         CurrentUser: Record User;
@@ -165,7 +165,7 @@ codeunit 8900 "Email Impl"
         if EmailMessageSent(EmailMessage.GetId()) then
             Error(EmailMessageSentErr);
 
-        if not ReplyAll then
+        if not ReplyToAll then
             EmailMessageImpl.ValidateRecipients();
 
         if GetEmailOutbox(EmailMessage.GetId(), EmailOutbox) and IsOutboxEnqueued(EmailOutbox) then

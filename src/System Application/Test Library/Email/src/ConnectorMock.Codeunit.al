@@ -27,6 +27,10 @@ codeunit 134688 "Connector Mock"
         TestEmailConnectorSetup.Id := Any.GuidValue();
         TestEmailConnectorSetup."Fail On Send" := false;
         TestEmailConnectorSetup."Fail On Register Account" := false;
+        TestEmailConnectorSetup."Fail On Mark As Read" := false;
+        TestEmailConnectorSetup."Fail On Reply" := false;
+        TestEmailConnectorSetup."Fail On Retrieve Emails" := false;
+        TestEmailConnectorSetup."Fail On Send" := false;
         TestEmailConnectorSetup."Unsuccessful Register" := false;
         TestEmailConnectorSetup.Insert();
 
@@ -66,7 +70,7 @@ codeunit 134688 "Connector Mock"
         EmailAccount."Account Id" := TestEmailAccount.Id;
         EmailAccount.Name := TestEmailAccount.Name;
         EmailAccount."Email Address" := TestEmailAccount.Email;
-        EmailAccount.Connector := Enum::"Email Connector"::"Test Email Connector";
+        EmailAccount.Connector := Connector;
 
         EmailRateLimit."Account Id" := EmailAccount."Account Id";
         EmailRateLimit.Connector := EmailAccount.Connector;
