@@ -738,6 +738,12 @@ codeunit 8905 "Email Message Impl."
     begin
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Email Inbox", OnBeforeInsertEvent, '', false, false)]
+    local procedure OnBeforeInsertEventEmailInbox(var Rec: Record "Email Inbox"; RunTrigger: Boolean)
+    begin
+        Rec."User Security Id" := UserSecurityId();
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Email Inbox", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteEmailInbox(var Rec: Record "Email Inbox"; RunTrigger: Boolean)
     var
