@@ -23,6 +23,7 @@ codeunit 3702 "Environment Information Impl."
         IsSaaSConfig: Boolean;
         IsSandboxConfig: Boolean;
         IsSandboxInitialized: Boolean;
+        SystemInitializationInProgress: Boolean;
         DefaultSandboxEnvironmentNameTxt: Label 'Sandbox', Locked = true;
         DefaultProductionEnvironmentNameTxt: Label 'Production', Locked = true;
 
@@ -115,11 +116,20 @@ codeunit 3702 "Environment Information Impl."
         exit(AppInfo.DataVersion.Major());
     end;
 
+    [Scope('OnPrem')]
+    procedure SetSystemInitializationInProgress(IsInProgress: Boolean)
+    begin
+        SystemInitializationInProgress := IsInProgress;
+    end;
+
     procedure CanStartSession(): Boolean
     var
         NavTestExecution: DotNet NavTestExecution;
     begin
         if GetExecutionContext() in [ExecutionContext::Install, ExecutionContext::Upgrade] then
+            exit(false);
+
+        if SystemInitializationInProgress then
             exit(false);
 
         // Sessions cannot be started in tests if test isolation is enabled

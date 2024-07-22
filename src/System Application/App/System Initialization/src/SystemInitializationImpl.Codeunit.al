@@ -34,7 +34,7 @@ codeunit 151 "System Initialization Impl."
         SystemInitialization: Codeunit "System Initialization";
         UserLoginTimeTracker: Codeunit "User Login Time Tracker";
     begin
-        InitializationInProgress := true;
+        SetSystemInitializationInProgress(true);
         // Initialization logic goes here
 
         // This needs to be the very first thing to run before company open
@@ -49,7 +49,7 @@ codeunit 151 "System Initialization Impl."
 
         SystemInitialization.OnAfterInitialization();
 
-        InitializationInProgress := false;
+        SetSystemInitializationInProgress(false);
     end;
 
     local procedure SetSignupContext()
@@ -134,9 +134,17 @@ codeunit 151 "System Initialization Impl."
     var
         SystemInitialization: Codeunit "System Initialization";
     begin
-        InitializationInProgress := true;
+        SetSystemInitializationInProgress(true);
         SystemInitialization.OnAfterLogin();
-        InitializationInProgress := false;
+        SetSystemInitializationInProgress(false);
+    end;
+
+    procedure SetSystemInitializationInProgress(InProgress: Boolean)
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        InitializationInProgress := InProgress;
+        EnvironmentInformation.SetSystemInitializationInProgress(InitializationInProgress);
     end;
 
     procedure IsInProgress(): Boolean

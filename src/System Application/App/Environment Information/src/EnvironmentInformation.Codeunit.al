@@ -102,6 +102,16 @@ codeunit 457 "Environment Information"
     end;
 
     /// <summary>
+    /// Sets the SystemInitializationIsInProgress boolean. This is used to avoid starting new sessions while the system is initializing.
+    /// </summary>
+    /// <param name="IsInProgress">When true the system is initializing. When false the system is not initializing</param>
+    [Scope('OnPrem')]
+    procedure SetSystemInitializationInProgress(IsInProgress: Boolean)
+    begin
+        EnvironmentInformationImpl.SetSystemInitializationInProgress(IsInProgress);
+    end;
+
+    /// <summary>
     /// Checks if a new session can be started via the Session.StartSession call.
     /// </summary>
     /// <returns>True, if a new session can be created, false otherwise.</returns>
