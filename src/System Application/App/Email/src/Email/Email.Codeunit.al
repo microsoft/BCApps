@@ -205,7 +205,6 @@ codeunit 8901 Email
     /// <param name="ExternalId">The external message id that is used to correlate and send the reply.</param>
     /// <param name="EmailAccountId">The ID of the email account to use for sending the email.</param>
     /// <param name="EmailConnector">The email connector to use for sending the email.</param>
-    /// <param name="EmailOutbox">The email outbox which is set up for sending in the background.</param>
     /// <returns>True if sent</returns>
     procedure Reply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"): Boolean
     begin
@@ -219,7 +218,6 @@ codeunit 8901 Email
     /// <param name="ExternalId">The external message id that is used to correlate and send the reply.</param>
     /// <param name="EmailAccountId">The ID of the email account to use for sending the email.</param>
     /// <param name="EmailConnector">The email connector to use for sending the email.</param>
-    /// <param name="EmailOutbox">The email outbox which is set up for sending in the background.</param>
     /// <returns>True if sent</returns>
     procedure ReplyAll(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"): Boolean
     begin
@@ -234,8 +232,7 @@ codeunit 8901 Email
     /// <param name="EmailAccountId">The ID of the email account to use for sending the email.</param>
     /// <param name="EmailConnector">The email connector to use for sending the email.</param>
     /// <param name="EmailOutbox">The email outbox which is set up for sending in the background.</param>
-    /// <returns>True if sent</returns>
-    procedure Reply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox")
+    procedure EnqueueReply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox")
     begin
         EmailImpl.Reply(EmailMessage, ExternalId, EmailAccountId, EmailConnector, EmailOutbox);
     end;
@@ -248,8 +245,7 @@ codeunit 8901 Email
     /// <param name="EmailAccountId">The ID of the email account to use for sending the email.</param>
     /// <param name="EmailConnector">The email connector to use for sending the email.</param>
     /// <param name="EmailOutbox">The email outbox which is set up for sending in the background.</param>
-    /// <returns>True if sent</returns>
-    procedure ReplyAll(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox")
+    procedure EnqueueReplyAll(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox")
     begin
         EmailImpl.ReplyAll(EmailMessage, ExternalId, EmailAccountId, EmailConnector, EmailOutbox);
     end;

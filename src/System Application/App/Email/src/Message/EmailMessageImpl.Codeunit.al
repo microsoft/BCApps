@@ -741,6 +741,9 @@ codeunit 8905 "Email Message Impl."
     [EventSubscriber(ObjectType::Table, Database::"Email Inbox", OnBeforeInsertEvent, '', false, false)]
     local procedure OnBeforeInsertEventEmailInbox(var Rec: Record "Email Inbox"; RunTrigger: Boolean)
     begin
+        if Rec.IsTemporary() then
+            exit;
+
         Rec."User Security Id" := UserSecurityId();
     end;
 
