@@ -46,8 +46,6 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         AITTestMethodLine: Record "AIT Test Method Line";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-        StatusDialog: Dialog;
-        RunningStatusMsg: Label 'Running test...\#1#########################################################################################', Comment = '#1 = Test codeunit name';
     begin
         ValidateAITestSuite(AITTestSuite);
         AITTestSuite.RunID := CreateGuid();
@@ -67,20 +65,16 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ", true);
 
-        if AITTestMethodLine.FindSet() then begin
-            StatusDialog.Open(RunningStatusMsg);
+        if AITTestMethodLine.FindSet() then
             repeat
-                AITTestMethodLine.CalcFields("Codeunit Name");
-                StatusDialog.Update(1, AITTestMethodLine."Codeunit Name");
                 RunAITestLine(AITTestMethodLine, false);
             until AITTestMethodLine.Next() = 0;
-            StatusDialog.Close();
-        end;
     end;
 
     internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; UpdateSuiteVersion: Boolean)
     var
         AITTestSuite: Record "AIT Test Suite";
+        TestRunnerProgressDialog: Codeunit "Test Runner - Progress Dialog";
     begin
         if UpdateSuiteVersion then begin
             AITTestSuite.Get(AITTestMethodLine."Test Suite Code");
@@ -91,7 +85,10 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Running);
         AITTestMethodLine.Modify(true);
         Commit();
+
+        BindSubscription(TestRunnerProgressDialog);
         Codeunit.Run(Codeunit::"AIT Test Run Iteration", AITTestMethodLine);
+
         if AITTestMethodLine.Find() then begin
             AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Completed);
             AITTestMethodLine.Modify(true);
