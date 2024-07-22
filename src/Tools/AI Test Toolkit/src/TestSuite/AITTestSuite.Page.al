@@ -102,7 +102,7 @@ page 149031 "AIT Test Suite"
                     Editable = false;
                     Style = Unfavorable;
                     Caption = 'No. of Tests Failed';
-                    ToolTip = 'Specifies the number of tests failed in the current version.';
+                    ToolTip = 'Specifies the number of tests failed for the test suite.';
 
                     trigger OnDrillDown()
                     var
@@ -120,13 +120,13 @@ page 149031 "AIT Test Suite"
                 {
                     Editable = false;
                     Caption = 'Total Duration';
-                    ToolTip = 'Specifies the total duration (ms) for executing all the selected tests in the current version.';
+                    ToolTip = 'Specifies the time taken for executing the tests in the test suite.';
                 }
                 field("Average Duration"; AvgTimeDuration)
                 {
                     Editable = false;
                     Caption = 'Average Duration';
-                    ToolTip = 'Specifies the average time (ms) taken by the tests in the last run.';
+                    ToolTip = 'Specifies the average time taken by the tests in the test suite.';
                 }
             }
 

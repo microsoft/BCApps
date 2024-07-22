@@ -363,9 +363,9 @@ codeunit 149034 "AIT Test Suite Mgt."
 
     internal procedure GetAvgDuration(AITTestMethodLine: Record "AIT Test Method Line"): Integer
     begin
-        if AITTestMethodLine."No. of Tests" = 0 then
+        if AITTestMethodLine."No. of Tests Executed" = 0 then
             exit(0);
-        exit(AITTestMethodLine."Total Duration (ms)" div AITTestMethodLine."No. of Tests");
+        exit(AITTestMethodLine."Total Duration (ms)" div AITTestMethodLine."No. of Tests Executed");
     end;
 
     internal procedure SetTestOutput(Scenario: Text; OutputValue: Text)
