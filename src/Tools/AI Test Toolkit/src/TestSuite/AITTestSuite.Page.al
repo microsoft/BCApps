@@ -198,6 +198,24 @@ page 149031 "AIT Test Suite"
                     AITTestSuiteComparePage.Run();
                 end;
             }
+            action(ExportAIT)
+            {
+                Caption = 'Export';
+                Image = Export;
+                Enabled = Rec.Code <> '';
+                ToolTip = 'Exports the AI Test Suite configuration.';
+
+                trigger OnAction()
+                var
+                    AITTestSuite: Record "AIT Test Suite";
+                begin
+                    if Rec.Code <> '' then begin
+                        AITTestSuite := Rec;
+                        AITTestSuite.SetRecFilter();
+                        AITTestSuiteMgt.ExportAITTestSuite(AITTestSuite);
+                    end;
+                end;
+            }
         }
         area(Navigation)
         {
@@ -231,6 +249,9 @@ page 149031 "AIT Test Suite"
                 {
                 }
                 actionref(Datasets_Promoted; Datasets)
+                {
+                }
+                actionref(ExportAIT_Promoted; ExportAIT)
                 {
                 }
             }

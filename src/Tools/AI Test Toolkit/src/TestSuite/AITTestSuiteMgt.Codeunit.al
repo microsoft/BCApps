@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Reflection;
+using System.Utilities;
 using System.TestTools.TestRunner;
 
 codeunit 149034 "AIT Test Suite Mgt."
@@ -385,6 +386,23 @@ codeunit 149034 "AIT Test Suite Mgt."
             exit(OutputValue);
         end else
             exit('');
+    end;
+
+    internal procedure ExportAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
+    var
+        TempBlob: Codeunit "Temp Blob";
+        AITSuiteXMLPort: XmlPort "AIT Test Suite Import/Export";
+        FileNameTxt: Text;
+        AITTestSuiteOutStream: OutStream;
+        AITTestSuiteInStream: InStream;
+        TestOutputFileNameTxt: Label '%1.xml', Comment = '%1 = Filename', Locked = true;
+    begin
+        TempBlob.CreateOutStream(AITTestSuiteOutStream, AITSuiteXMLPort.TextEncoding);
+        Xmlport.Export(Xmlport::"AIT Test Suite Import/Export", AITTestSuiteOutStream, AITTestSuite);
+        TempBlob.CreateInStream(AITTestSuiteInStream, AITSuiteXMLPort.TextEncoding);
+
+        FileNameTxt := StrSubstNo(TestOutputFileNameTxt, AITTestSuite.Code);
+        DownloadFromStream(AITTestSuiteInStream, '', '', '.xml', FileNameTxt);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Suite", OnBeforeDeleteEvent, '', false, false)]
