@@ -180,9 +180,9 @@ codeunit 8900 "Email Impl"
         if CurrentUser.Get(UserSecurityId()) then
             Email.AddRelation(EmailMessage, Database::User, CurrentUser.SystemId, Enum::"Email Relation Type"::"Related Entity", Enum::"Email Relation Origin"::"Compose Context");
 
-        // BeforeSendEmail(EmailMessage);
+        BeforeReplyEmail(EmailMessage);
         CreateOrUpdateEmailOutbox(EmailMessage.GetId(), EmailMessage.GetSubject(), EmailAccountId, EmailConnector, Enum::"Email Status"::Queued, EmailAccountRec."Email Address", EmailOutbox);
-        // Email.OnEnqueuedInOutbox(EmailMessage.GetId());
+        Email.OnEnqueuedReplyInOutbox(EmailMessage.GetId());
 
         if InBackground then begin
             TaskId := TaskScheduler.CreateTask(Codeunit::"Email Dispatcher", Codeunit::"Email Error Handler", true, CompanyName(), NotBefore, EmailOutbox.RecordId());
@@ -240,8 +240,7 @@ codeunit 8900 "Email Impl"
         if Connector is "Email Connector v2" then begin
             Connectorv2 := Connector as "Email Connector v2";
             exit(true);
-        end
-        else
+        end else
             exit(false);
     end;
 
@@ -402,6 +401,27 @@ codeunit 8900 "Email Impl"
             Dimensions.Add('Category', EmailCategoryLbl);
             Dimensions.Add('EmailMessageId', EmailMessage.GetId());
             Telemetry.LogMessage('0000I2F', EmailModifiedByEventTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+        end;
+    end;
+
+    local procedure BeforeReplyEmail(var EmailMessage: Codeunit "Email Message")
+    var
+        Email: Codeunit Email;
+        Telemetry: Codeunit Telemetry;
+        Dimensions: Dictionary of [Text, Text];
+        LastModifiedNo: Integer;
+        EmailMessageId: Guid;
+    begin
+        EmailMessageId := EmailMessage.GetId(); // Prevent different email message from being sent if overwritten in event
+        LastModifiedNo := EmailMessage.GetNoOfModifies();
+
+        Email.OnBeforeReplyEmail(EmailMessage);
+
+        EmailMessage.Get(EmailMessageId); // Get any latest changes
+        if LastModifiedNo < EmailMessage.GetNoOfModifies() then begin
+            Dimensions.Add('Category', EmailCategoryLbl);
+            Dimensions.Add('EmailMessageId', EmailMessage.GetId());
+            Telemetry.LogMessage('', EmailModifiedByEventTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
         end;
     end;
 

@@ -579,6 +579,16 @@ codeunit 8901 Email
     begin
     end;
 
+
+    /// <summary>
+    /// Integration event to implement additional validation after the email message has been enqueued in the email outbox.
+    /// </summary>
+    /// <param name="MessageId">The ID of the email that has been queued</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnEnqueuedReplyInOutbox(MessageId: Guid)
+    begin
+    end;
+
     /// <summary>
     /// Integration event that notifies senders when the email has been sent successfully. This event is isolated.
     /// </summary>
@@ -613,6 +623,15 @@ codeunit 8901 Email
     /// <param name="EmailMessage">Email message codeunit which is linked to the current email.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnBeforeSendEmail(var EmailMessage: Codeunit "Email Message")
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event that allows updating of the email message before the email is queued for replying.
+    /// </summary>
+    /// <param name="EmailMessage">Email message codeunit which is linked to the current email.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforeReplyEmail(var EmailMessage: Codeunit "Email Message")
     begin
     end;
 

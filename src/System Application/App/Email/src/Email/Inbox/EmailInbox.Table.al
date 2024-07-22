@@ -84,5 +84,8 @@ table 8886 "Email Inbox"
         {
             Clustered = true;
         }
+        key(MessageId; "Message Id")
+        {
+        }
     }
 }

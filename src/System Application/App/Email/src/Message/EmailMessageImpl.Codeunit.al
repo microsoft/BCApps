@@ -830,6 +830,7 @@ codeunit 8905 "Email Message Impl."
     [EventSubscriber(ObjectType::Table, Database::"Email Message", OnBeforeModifyEvent, '', false, false)]
     local procedure OnBeforeModifyEmailMessage(var Rec: Record "Email Message"; var xRec: Record "Email Message"; RunTrigger: Boolean)
     var
+        EmailInbox: Record "Email Inbox";
         EmailOutbox: Record "Email Outbox";
         EmailMessageOld: Record "Email Message";
         BypassSentCheck: Boolean;
@@ -842,6 +843,11 @@ codeunit 8905 "Email Message Impl."
 
         if not EmailOutbox.IsEmpty() then
             Error(EmailMessageQueuedCannotModifyErr);
+
+        EmailInbox.SetRange("Message Id", Rec.Id);
+
+        if not EmailInbox.IsEmpty() then
+            Error(EmailMessageRetrievedCannotModifyErr);
 
         OnBeforeDeleteSentEmailAttachment(BypassSentCheck);
 
@@ -952,6 +958,7 @@ codeunit 8905 "Email Message Impl."
         EmailCategoryLbl: Label 'Email', Locked = true;
         EmailMessageQueuedCannotModifyErr: Label 'Cannot edit the email because it has been queued to be sent.';
         EmailMessageSentCannotModifyErr: Label 'Cannot edit the message because it has already been sent.';
+        EmailMessageRetrievedCannotModifyErr: Label 'Cannot edit the message because it is from an external source.';
         EmailMessageQueuedCannotDeleteAttachmentErr: Label 'Cannot delete the attachment because the email has been queued to be sent.';
         EmailMessageSentCannotDeleteAttachmentErr: Label 'Cannot delete the attachment because the email has already been sent.';
         EmailMessageQueuedCannotInsertAttachmentErr: Label 'Cannot add the attachment because the email is queued to be sent.';
