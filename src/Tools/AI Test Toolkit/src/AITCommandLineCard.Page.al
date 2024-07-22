@@ -26,7 +26,7 @@ page 149042 "AIT CommandLine Card"
                 Caption = 'General';
                 field("AIT Suite Code"; AITCode)
                 {
-                    Caption = 'Test Suite Code', Locked = true;
+                    Caption = 'Test Suite Code';
                     ToolTip = 'Specifies the ID of the suite.';
                     TableRelation = "AIT Test Suite".Code;
 
@@ -42,7 +42,7 @@ page 149042 "AIT CommandLine Card"
                 }
                 field("No. of Pending Tests"; NoOfPendingTests)
                 {
-                    Caption = 'No. of Pending Tests', Locked = true;
+                    Caption = 'No. of Pending Tests';
                     ToolTip = 'Specifies the number of test suite lines in the test suite that are yet to be run.';
                     Editable = false;
                 }
@@ -53,13 +53,13 @@ page 149042 "AIT CommandLine Card"
 
                 field("Input Dataset Filename"; InputDatasetFilename)
                 {
-                    Caption = 'Input Dataset Filename', Locked = true;
+                    Caption = 'Input Dataset Filename';
                     ToolTip = 'Specifies the input dataset filename to import for running the test suite.';
                     ShowMandatory = InputDataset <> '';
                 }
                 field("Input Dataset"; InputDataset)
                 {
-                    Caption = 'Input Dataset', Locked = true;
+                    Caption = 'Input Dataset';
                     MultiLine = true;
                     ToolTip = 'Specifies the input dataset to import for running the test suite.';
 
@@ -90,7 +90,7 @@ page 149042 "AIT CommandLine Card"
 
                 field("Suite Definition"; SuiteDefinition)
                 {
-                    Caption = 'Suite Definition', Locked = true;
+                    Caption = 'Suite Definition';
                     ToolTip = 'Specifies the suite definition to import.';
                     MultiLine = true;
 
@@ -129,7 +129,7 @@ page 149042 "AIT CommandLine Card"
             action(RunSuite)
             {
                 Enabled = EnableActions;
-                Caption = 'Run Suite', Locked = true;
+                Caption = 'Run Suite';
                 Image = Start;
                 ToolTip = 'Starts running the AI test suite.';
 
@@ -141,7 +141,7 @@ page 149042 "AIT CommandLine Card"
             action(RunNextTest)
             {
                 Enabled = EnableActions;
-                Caption = 'Run Next Test', Locked = true;
+                Caption = 'Run Next Test';
                 Image = TestReport;
                 ToolTip = 'Starts running the next test in the AI test suite.';
 
@@ -153,7 +153,7 @@ page 149042 "AIT CommandLine Card"
             action(ResetTestSuite)
             {
                 Enabled = EnableActions;
-                Caption = 'Reset Test Suite', Locked = true;
+                Caption = 'Reset Test Suite';
                 Image = Restore;
                 ToolTip = 'Resets the test method lines status to run them again.';
 
