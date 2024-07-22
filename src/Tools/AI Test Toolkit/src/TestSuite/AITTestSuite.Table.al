@@ -45,7 +45,7 @@ table 149030 "AIT Test Suite"
             Caption = 'Input Dataset';
             TableRelation = "Test Input Group".Code;
             ValidateTableRelation = true;
-            ToolTip = 'Specifies a default dataset.';
+            ToolTip = 'Specifies the dataset to be used by the test suite.';
         }
         field(8; "Ended at"; DateTime)
         {
@@ -92,6 +92,7 @@ table 149030 "AIT Test Suite"
         field(11; Tag; Text[20])
         {
             Caption = 'Tag';
+            ToolTip = 'Specifies the tag for a test run. The Tag will be transferred to the log entries and enables easier comparison between the tests.';
             DataClassification = CustomerContent;
         }
 #pragma warning disable AA0232
@@ -108,7 +109,7 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'Version';
             Editable = false;
-            ToolTip = 'Specifies the version of the current test run. It is used for comparing the results of the current test run with the results of the previous test run.';
+            ToolTip = 'Specifies the version of the current test run. It is used for comparing the results of the current test run with the results of the previous test run. Log entries will get this version no.';
         }
         field(16; "Base Version"; Integer)
         {
@@ -129,6 +130,7 @@ table 149030 "AIT Test Suite"
         field(20; "Model Version"; Option)
         {
             Caption = 'AOAI Model Version';
+            ToolTip = 'Specifies the model version to be used by the tests.';
             OptionMembers = Latest,Preview;
         }
         field(21; "No. of Tests Executed"; Integer)

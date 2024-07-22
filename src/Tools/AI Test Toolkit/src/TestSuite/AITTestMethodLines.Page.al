@@ -75,7 +75,6 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
-                    ToolTip = 'Specifies the number of operations in the current version.';
                     Visible = false;
                     Enabled = false;
                 }
@@ -90,12 +89,10 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("No. of Tests - Base"; Rec."No. of Tests - Base")
                 {
-                    ToolTip = 'Specifies the number of tests in this Line for the base version.';
                     Visible = false;
                 }
                 field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base")
                 {
-                    ToolTip = 'Specifies the number of tests passed in the base Version.';
                     Style = Favorable;
                     Visible = false;
                 }
@@ -119,13 +116,11 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("No. of Operations - Base"; Rec."No. of Operations - Base")
                 {
-                    ToolTip = 'Specifies the number of operations in the base Version.';
                     Visible = false;
                     Enabled = false;
                 }
                 field(DurationBase; Rec."Total Duration - Base (ms)")
                 {
-                    Caption = 'Total Duration Base (ms)';
                     Visible = false;
                 }
                 field(AvgDurationBase; GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"))
