@@ -49,18 +49,18 @@ page 149034 "AIT Test Method Lines"
                 field(Status; Rec.Status)
                 {
                 }
-                field("No. of Tests"; Rec."No. of Tests")
+                field("No. of Tests Executed"; Rec."No. of Tests Executed")
                 {
                 }
                 field("No. of Tests Passed"; Rec."No. of Tests Passed")
                 {
                     Style = Favorable;
                 }
-                field("No. of Tests Failed"; Rec."No. of Tests" - Rec."No. of Tests Passed")
+                field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
                 {
                     Editable = false;
                     Caption = 'No. of Tests Failed';
-                    ToolTip = 'Specifies the number of tests that failed in the current version.';
+                    ToolTip = 'Specifies the number of failed tests for the test line.';
                     Style = Unfavorable;
 
                     trigger OnDrillDown()
@@ -75,7 +75,6 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
-                    ToolTip = 'Specifies the number of operations in the current version.';
                     Visible = false;
                     Enabled = false;
                 }
@@ -84,26 +83,24 @@ page 149034 "AIT Test Method Lines"
                 }
                 field(AvgDuration; AITTestSuiteMgt.GetAvgDuration(Rec))
                 {
-                    ToolTip = 'Specifies average duration of the AI Tests.';
                     Caption = 'Average Duration (ms)';
+                    ToolTip = 'Specifies average time taken to execute the test line.';
                     Visible = false;
                 }
-                field("No. of Tests - Base"; Rec."No. of Tests - Base")
+                field("No. of Tests Executed - Base"; Rec."No. of Tests Executed - Base")
                 {
-                    ToolTip = 'Specifies the number of tests in this Line for the base version.';
                     Visible = false;
                 }
                 field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base")
                 {
-                    ToolTip = 'Specifies the number of tests passed in the base Version.';
                     Style = Favorable;
                     Visible = false;
                 }
-                field("No. of Tests Failed - Base"; Rec."No. of Tests - Base" - Rec."No. of Tests Passed - Base")
+                field("No. of Tests Failed - Base"; Rec."No. of Tests Executed - Base" - Rec."No. of Tests Passed - Base")
                 {
                     Editable = false;
                     Caption = 'No. of Tests Failed - Base';
-                    ToolTip = 'Specifies the number of tests that failed in the base Version.';
+                    ToolTip = 'Specifies the number of failed tests for the base version of the test line.';
                     Style = Unfavorable;
                     Visible = false;
 
@@ -119,25 +116,23 @@ page 149034 "AIT Test Method Lines"
                 }
                 field("No. of Operations - Base"; Rec."No. of Operations - Base")
                 {
-                    ToolTip = 'Specifies the number of operations in the base Version.';
                     Visible = false;
                     Enabled = false;
                 }
                 field(DurationBase; Rec."Total Duration - Base (ms)")
                 {
-                    Caption = 'Total Duration Base (ms)';
                     Visible = false;
                 }
-                field(AvgDurationBase; GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"))
+                field(AvgDurationBase; GetAvg(Rec."No. of Tests Executed - Base", Rec."Total Duration - Base (ms)"))
                 {
-                    ToolTip = 'Specifies average duration of the AI Tests for the base version.';
                     Caption = 'Average Duration Base (ms)';
+                    ToolTip = 'Specifies average time taken to execute the base version of the test line.';
                     Visible = false;
                 }
-                field(AvgDurationDeltaPct; GetDiffPct(GetAvg(Rec."No. of Tests - Base", Rec."Total Duration - Base (ms)"), GetAvg(Rec."No. of Tests", Rec."Total Duration (ms)")))
+                field(AvgDurationDeltaPct; GetDiffPct(GetAvg(Rec."No. of Tests Executed - Base", Rec."Total Duration - Base (ms)"), GetAvg(Rec."No. of Tests Executed", Rec."Total Duration (ms)")))
                 {
-                    ToolTip = 'Specifies difference in duration of the AI Tests compared to the base version.';
                     Caption = 'Change in Duration (%)';
+                    ToolTip = 'Specifies difference in average test execution time compared to the base version.';
                     Visible = false;
                 }
             }
@@ -158,6 +153,7 @@ page 149034 "AIT Test Method Lines"
                     if Rec."Codeunit ID" = 0 then
                         exit;
                     AITTestSuiteMgt.RunAITestLine(Rec, true);
+                    CurrPage.Update(false);
                 end;
             }
             action(LogEntries)

@@ -29,21 +29,17 @@ page 149031 "AIT Test Suite"
 
                 field("Code"; Rec."Code")
                 {
-                    ToolTip = 'Specifies the ID of the test suite.';
                 }
                 field(Description; Rec.Description)
                 {
-                    ToolTip = 'Specifies the description of the test suite.';
                 }
                 field(Dataset; Rec."Input Dataset")
                 {
-                    ToolTip = 'Specifies the dataset to be used by the tests.';
                     ShowMandatory = true;
                     NotBlank = true;
                 }
                 field("Model Version"; Rec."Model Version")
                 {
-                    ToolTip = 'Specifies the model version to be used by the tests.';
                 }
                 field("Test Runner Id"; TestRunnerDisplayName)
                 {
@@ -68,23 +64,19 @@ page 149031 "AIT Test Suite"
                 group(StatusGroup)
                 {
                     Caption = 'Suite Status';
+
                     field(Status; Rec.Status)
                     {
-                        ToolTip = 'Specifies the status of the test.';
                     }
                     field(Started; Rec."Started at")
                     {
-                        ToolTip = 'Specifies when the test was started.';
                     }
                     field(Version; Rec.Version)
                     {
-                        ToolTip = 'Specifies the current version of the test run. Log entries will get this version no.';
                         Editable = false;
                     }
-
                     field(Tag; Rec.Tag)
                     {
-                        ToolTip = 'Specifies the tag for a test run. The Tag will be transferred to the log entries and enables comparison between tests.';
                     }
                 }
             }
@@ -100,15 +92,9 @@ page 149031 "AIT Test Suite"
 
                 field("No. of Tests Executed"; Rec."No. of Tests Executed")
                 {
-                    Caption = 'No. of Tests Executed';
-                    ToolTip = 'Specifies the number of tests executed in the current version.';
-                    Editable = false;
                 }
                 field("No. of Tests Passed"; Rec."No. of Tests Passed")
                 {
-                    Caption = 'No. of Tests Passed';
-                    ToolTip = 'Specifies the number of tests passed in the current version.';
-                    Editable = false;
                     Style = Favorable;
                 }
                 field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
@@ -116,7 +102,7 @@ page 149031 "AIT Test Suite"
                     Editable = false;
                     Style = Unfavorable;
                     Caption = 'No. of Tests Failed';
-                    ToolTip = 'Specifies the number of tests failed in the current version.';
+                    ToolTip = 'Specifies the number of tests failed for the test suite.';
 
                     trigger OnDrillDown()
                     var
@@ -127,8 +113,6 @@ page 149031 "AIT Test Suite"
                 }
                 field("No. of Operations"; Rec."No. of Operations")
                 {
-                    Caption = 'No. of Operations';
-                    ToolTip = 'Specifies the number of operations executed in the current version.';
                     Visible = false;
                     Enabled = false;
                 }
@@ -136,13 +120,13 @@ page 149031 "AIT Test Suite"
                 {
                     Editable = false;
                     Caption = 'Total Duration';
-                    ToolTip = 'Specifies the total duration (ms) for executing all the selected tests in the current version.';
+                    ToolTip = 'Specifies the time taken for executing the tests in the test suite.';
                 }
                 field("Average Duration"; AvgTimeDuration)
                 {
                     Editable = false;
                     Caption = 'Average Duration';
-                    ToolTip = 'Specifies the average time (ms) taken by the tests in the last run.';
+                    ToolTip = 'Specifies the average time taken by the tests in the test suite.';
                 }
             }
 
@@ -214,6 +198,24 @@ page 149031 "AIT Test Suite"
                     AITTestSuiteComparePage.Run();
                 end;
             }
+            action(ExportAIT)
+            {
+                Caption = 'Export';
+                Image = Export;
+                Enabled = Rec.Code <> '';
+                ToolTip = 'Exports the AI Test Suite configuration.';
+
+                trigger OnAction()
+                var
+                    AITTestSuite: Record "AIT Test Suite";
+                begin
+                    if Rec.Code <> '' then begin
+                        AITTestSuite := Rec;
+                        AITTestSuite.SetRecFilter();
+                        AITTestSuiteMgt.ExportAITTestSuite(AITTestSuite);
+                    end;
+                end;
+            }
         }
         area(Navigation)
         {
@@ -247,6 +249,9 @@ page 149031 "AIT Test Suite"
                 {
                 }
                 actionref(Datasets_Promoted; Datasets)
+                {
+                }
+                actionref(ExportAIT_Promoted; ExportAIT)
                 {
                 }
             }
