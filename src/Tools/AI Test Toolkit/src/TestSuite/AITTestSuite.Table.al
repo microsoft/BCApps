@@ -109,7 +109,7 @@ table 149030 "AIT Test Suite"
         {
             Caption = 'Version';
             Editable = false;
-            ToolTip = 'Specifies the version of the current test run. It is used for comparing the results of the current test run with the results of the previous test run. Log entries will get this version no.';
+            ToolTip = 'Specifies the version of the current test run. It is used for comparing the results of the current test run with the results of the previous test run. The version will be stored in the Log entries.';
         }
         field(16; "Base Version"; Integer)
         {
