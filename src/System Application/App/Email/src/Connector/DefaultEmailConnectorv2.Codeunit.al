@@ -6,7 +6,7 @@
 namespace System.Email;
 
 /// <summary>
-/// This is the default implementation of the Email Connector v2 interface.
+/// This is the default implementation of the Email Connector v2 interface which adds the reply, retrievial of emails and marking them as read functionalities.
 /// </summary>
 codeunit 8998 "Default Email Connector v2" implements "Email Connector v2"
 {
