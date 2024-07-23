@@ -238,8 +238,7 @@ codeunit 1489 "Edit in Excel Workbook Impl."
     begin
         if TryUserSettingsLanguageID() then begin
             UserSessionSettings.Init();
-            if UserSessionSettings.LanguageId() <> 0 then
-                exit(UserSessionSettings.LanguageId());
+            exit(UserSessionSettings.LanguageId());
         end;
 
         if WindowsLanguage() <> 0 then
