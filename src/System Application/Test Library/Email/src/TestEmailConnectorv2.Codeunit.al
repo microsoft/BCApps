@@ -23,7 +23,7 @@ codeunit 134682 "Test Email Connector v2" implements "Email Connector v2", "Emai
 
     procedure GetAccounts(var Accounts: Record "Email Account")
     begin
-        ConnectorMock.GetAccounts(Accounts);
+        ConnectorMock.GetAccounts(Accounts, Enum::"Email Connector"::"Test Email Connector v2");
     end;
 
     procedure ShowAccountInformation(AccountId: Guid)

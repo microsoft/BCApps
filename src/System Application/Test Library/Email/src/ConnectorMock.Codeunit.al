@@ -38,16 +38,18 @@ codeunit 134688 "Connector Mock"
         EmailRateLimit.DeleteAll();
     end;
 
-    procedure GetAccounts(var EmailAccount: Record "Email Account")
+    procedure GetAccounts(var EmailAccount: Record "Email Account"; Connector: Enum "Email Connector")
     var
         TestEmailAccount: Record "Test Email Account";
     begin
+        TestEmailAccount.SetRange("Connector", Connector);
         if TestEmailAccount.FindSet() then
             repeat
                 EmailAccount.Init();
                 EmailAccount."Account Id" := TestEmailAccount.Id;
                 EmailAccount.Name := TestEmailAccount.Name;
                 EmailAccount."Email Address" := TestEmailAccount.Email;
+                EmailAccount.Connector := Connector;
                 EmailAccount.Insert();
             until TestEmailAccount.Next() = 0;
     end;
@@ -65,6 +67,7 @@ codeunit 134688 "Connector Mock"
         TestEmailAccount.Id := Any.GuidValue();
         TestEmailAccount.Name := CopyStr(Any.AlphanumericText(250), 1, 250);
         TestEmailAccount.Email := CopyStr(Any.Email(), 1, 250);
+        TestEmailAccount.Connector := Connector;
         TestEmailAccount.Insert();
 
         EmailAccount."Account Id" := TestEmailAccount.Id;
@@ -80,6 +83,11 @@ codeunit 134688 "Connector Mock"
     end;
 
     procedure AddAccount(var Id: Guid)
+    begin
+        AddAccount(Id, Enum::"Email Connector"::"Test Email Connector");
+    end;
+
+    procedure AddAccount(var Id: Guid; Connector: Enum "Email Connector")
     var
         EmailRateLimit: Record "Email Rate Limit";
         TestEmailAccount: Record "Test Email Account";
@@ -87,6 +95,7 @@ codeunit 134688 "Connector Mock"
         TestEmailAccount.Id := Any.GuidValue();
         TestEmailAccount.Name := CopyStr(Any.AlphanumericText(250), 1, 250);
         TestEmailAccount.Email := CopyStr(Any.Email(), 1, 250);
+        TestEmailAccount.Connector := Connector;
         TestEmailAccount.Insert();
 
         Id := TestEmailAccount.Id;
