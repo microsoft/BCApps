@@ -93,7 +93,6 @@ page 1932 "Perf. Profiler Schedule Card"
                     TableRelation = User."User Security ID";
                     Lookup = true;
                 }
-
                 field(Activity; Activity)
                 {
                     ApplicationArea = All;

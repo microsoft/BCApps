@@ -51,29 +51,31 @@ page 1931 "Performance Profile List"
                     ToolTip = 'Specifies a short description of the activity that was profiled.';
                     AboutText = 'A description of the activity that was profiled.';
                 }
-                field("Object Display Name"; Rec."Object Display Name")
+                field(ActivityDuration; Rec."Activity Duration")
                 {
-                    Caption = 'Object';
-                    ToolTip = 'Specifies the object that contains the entry point for this profile.';
-                    AboutText = 'The object that contains the entry point for this profile.';
+                    Caption = 'Activity Duration (ms)';
+                    ToolTip = 'Specifies the duration of the recorded activity including system operations and waiting for input.';
+                    AboutText = 'The duration of the recorded activity including system operations and waiting for input.';
                 }
-                field(Duration; Rec.Duration)
+                field(ALExecutionTime; Rec.Duration)
                 {
-                    Caption = 'Activity Duration';
-                    ToolTip = 'Specifies the duration of the activity that was profiled in milliseconds.';
-                    AboutText = 'The duration of the activity that was profiled.';
+                    Caption = 'AL Execution Duration (ms)';
+                    ToolTip = 'Specifies the total duration of the sampled AL code in the recorded activity. This measurement is approximate as it depends on the selected sampling frequency.';
+                    AboutText = 'The duration of the sampled AL code in this activity.';
                 }
                 field("Http Call Duration"; Rec."Http Call Duration")
                 {
                     Caption = 'Duration of Http Calls';
                     ToolTip = 'Specifies the duration of the http calls during the activity that was profiled in milliseconds.';
                     AboutText = 'The duration of external http calls during the activity that was profiled.';
+                    Visible = false;
                 }
                 field("Http Call Number"; Rec."Http Call Number")
                 {
                     Caption = 'Number of Http Calls';
                     ToolTip = 'Specifies the number of http calls during the activity that was profiled.';
                     AboutText = 'The number of external http calls during the activity that was profiled.';
+                    Visible = false;
                 }
                 field("Correlation ID"; Rec."Activity ID")
                 {
