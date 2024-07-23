@@ -579,7 +579,6 @@ codeunit 8901 Email
     begin
     end;
 
-
     /// <summary>
     /// Integration event to implement additional validation after the email message has been enqueued in the email outbox.
     /// </summary>

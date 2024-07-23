@@ -6,7 +6,7 @@
 namespace System.Email;
 
 /// <summary>
-/// An e-mail connector interface used to creating e-mail accounts, reading, sending and replying to e-mails.
+/// An e-mail connector interface enhances the "Email Connector" with reading, replying to e-mails and marking emails as read.
 /// </summary>
 interface "Email Connector v2" extends "Email Connector"
 {

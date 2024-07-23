@@ -25,8 +25,7 @@ codeunit 8890 "Send Email"
             IEmailConnector := EmailConnector;
             if EmailImpl.CheckAndGetEmailConnectorv2(IEmailConnector, IEmailConnectorv2) then
                 IEmailConnectorv2.Reply(EmailMessage, AccountId);
-        end
-        else
+        end else
             EmailConnector.Send(EmailMessage, AccountId);
     end;
 
