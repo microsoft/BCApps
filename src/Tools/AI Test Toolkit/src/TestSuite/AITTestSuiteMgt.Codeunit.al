@@ -6,8 +6,8 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Reflection;
-using System.Utilities;
 using System.TestTools.TestRunner;
+using System.Utilities;
 
 codeunit 149034 "AIT Test Suite Mgt."
 {
