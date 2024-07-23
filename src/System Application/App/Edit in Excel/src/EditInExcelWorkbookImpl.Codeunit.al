@@ -163,7 +163,7 @@ codeunit 1489 "Edit in Excel Workbook Impl."
         ConnectionInfo.HostName := HostName;
 
         DataEntityExportInfo.Connection := ConnectionInfo;
-        DataEntityExportInfo.Language := LanguageIDToCultureName(WindowsLanguage);
+        DataEntityExportInfo.Language := LanguageIDToCultureName(UserSettingsLanguageID());
         DataEntityExportInfo.EnableDesign := true;
         DataEntityExportInfo.RefreshOnOpen := true;
         DataEntityExportInfo.DateCreated := CurrentDateTime();
@@ -231,6 +231,35 @@ codeunit 1489 "Edit in Excel Workbook Impl."
         exit(99);
     end;
 
+    local procedure UserSettingsLanguageID(): Integer
+    var
+        DefaultLanguageID: Integer;
+        UserSessionSettings: SessionSettings;
+    begin
+        if TryUserSettingsLanguageID() then begin
+            UserSessionSettings.Init();
+            if UserSessionSettings.LanguageId() <> 0 then
+                exit(UserSessionSettings.LanguageId());
+        end;
+
+        if WindowsLanguage() <> 0 then
+            DefaultLanguageID := WindowsLanguage()
+        else
+            DefaultLanguageID := 1033; // English - United States
+
+        exit(DefaultLanguageID);
+    end;
+
+    [TryFunction]
+    local procedure TryUserSettingsLanguageID()
+    var
+        UserSessionSettings: SessionSettings;
+    begin
+        UserSessionSettings.Init();
+        if UserSessionSettings.LanguageId() = 0 then
+            error('Unable to get the SessionSettings.LanguageId()')
+    end;
+
     local procedure LanguageIDToCultureName(LanguageID: Integer): Text
     var
         CultureInfo: DotNet CultureInfo;
@@ -238,5 +267,4 @@ codeunit 1489 "Edit in Excel Workbook Impl."
         CultureInfo := CultureInfo.GetCultureInfo(LanguageID);
         exit(CultureInfo.Name);
     end;
-
 }
