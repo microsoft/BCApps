@@ -17,6 +17,7 @@ codeunit 8905 "Email Message Impl."
     InherentPermissions = X;
     InherentEntitlements = X;
     Permissions = tabledata "Sent Email" = r,
+                  tabledata "Email Inbox" = r,
                   tabledata "Email Outbox" = rim,
                   tabledata "Email Message" = rimd,
                   tabledata "Email Error" = rd,
