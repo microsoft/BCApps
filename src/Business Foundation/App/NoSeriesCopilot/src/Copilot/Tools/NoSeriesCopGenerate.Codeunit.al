@@ -27,12 +27,12 @@ codeunit 339 "No. Series Cop. Generate" implements "AOAI Function"
 
     procedure Execute(Arguments: JsonObject): Variant
     var
-        NotificationManager: Codeunit "No. Ser. Cop. Notific. Manager";
+        NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
         NoSeriesJArray: JsonArray;
         Completion: Text;
     begin
         if not GetNumberSeriesJsonArray(Arguments, NoSeriesJArray) then begin
-            NotificationManager.SendNotification(GetLastErrorText());
+            NoSeriesCopilotImpl.SendNotification(GetLastErrorText());
             exit(Completion);
         end;
 

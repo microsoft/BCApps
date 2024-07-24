@@ -43,7 +43,6 @@ codeunit 324 "No. Series Copilot Impl."
     procedure Generate(var NoSeriesProposal: Record "No. Series Proposal"; var ResponseText: Text; var GeneratedNoSeries: Record "No. Series Proposal Line"; InputText: Text)
     var
         TokenCountImpl: Codeunit "AOAI Token";
-        NotificationManager: Codeunit "No. Ser. Cop. Notific. Manager";
         SystemPromptTxt: SecretText;
         CompletePromptTokenCount: Integer;
         Completion: Text;
@@ -60,7 +59,7 @@ codeunit 324 "No. Series Copilot Impl."
             end else
                 ResponseText := Completion;
         end else
-            NotificationManager.SendNotification(GetChatCompletionResponseErr());
+            SendNotification(GetChatCompletionResponseErr());
     end;
 
     procedure ApplyProposedNoSeries(var GeneratedNoSeries: Record "No. Series Proposal Line")
@@ -556,6 +555,30 @@ codeunit 324 "No. Series Copilot Impl."
     procedure GetChatCompletionResponseErr(): Text
     begin
         exit(ChatCompletionResponseErr);
+    end;
+
+    local procedure GetNotificationId(): Guid
+    begin
+        exit('1fd2bfd6-6542-4574-8a88-f8247f4b8334');
+    end;
+
+    procedure RecallNotification()
+    var
+        Notification: Notification;
+    begin
+        Notification.Id := GetNotificationId();
+        Notification.Recall();
+    end;
+
+    procedure SendNotification(NotificationMessage: Text)
+    var
+        Notification: Notification;
+    begin
+        Notification.Id := GetNotificationId();
+        Notification.Scope := NotificationScope::LocalScope;
+        Notification.Recall();
+        Notification.Message := NotificationMessage;
+        Notification.Send();
     end;
 
     procedure FeatureName(): Text

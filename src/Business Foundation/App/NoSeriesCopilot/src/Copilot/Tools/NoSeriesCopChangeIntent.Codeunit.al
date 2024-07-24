@@ -59,13 +59,13 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
     var
         TempSetupTable: Record "Table Metadata" temporary;
         TempNoSeriesField: Record "Field" temporary;
-        NotificationManager: Codeunit "No. Ser. Cop. Notific. Manager";
+        NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
         ChangeNoSeriesPrompt, CustomPatternsPromptList, TablesYamlList, ExistingNoSeriesToChangeList : List of [Text];
         NumberOfToolResponses, i, ActualTablesChunkSize : Integer;
         NumberOfChangedTables: Integer;
     begin
         if not CheckIfUserSpecifiedNoSeriesToChange(Arguments) then begin
-            NotificationManager.SendNotification(GetLastErrorText());
+            NoSeriesCopilotImpl.SendNotification(GetLastErrorText());
             exit;
         end;
 
