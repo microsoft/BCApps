@@ -13,6 +13,7 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 - Issue 1109 Why filter deployment settings?
 - Fix issue with github ref when running reusable workflows
 - Issue 1098 Support for specifying the name of the AZURE_CREDENTIALS secret by adding a AZURE_CREDENTIALSSecretName setting
+- Fix placeholder syntax for git ref in PullRequestHandler.yaml
 
 ### Dependencies to PowerShell modules
 
@@ -31,6 +32,7 @@ In the summary after a Test Run, you now also have the result of performance tes
 - `deployTo<environmentName>`: is not really new, but has a new property:
 
   - **Scope** = specifies the scope of the deployment: Dev, PTE. If not specified, AL-Go for GitHub will always use the Dev Scope for AppSource Apps, but also for PTEs when deploying to sandbox environments when impersonation (refreshtoken) is used for authentication.
+  - **BuildMode** = specifies which buildMode to use for the deployment. Default is to use the Default buildMode.
   - **\<custom>** = custom properties are now supported and will be transferred to a custom deployment script in the hashtable.
 
 - `bcptThresholds` is a JSON object with properties for the default thresholds for the Business Central Performance Toolkit
