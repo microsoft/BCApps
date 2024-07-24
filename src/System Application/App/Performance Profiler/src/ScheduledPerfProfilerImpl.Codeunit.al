@@ -86,11 +86,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     var
         ScheduleDuration: Duration;
     begin
-        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Ending Date-Time" < CurrentDateTime())) then
-            Error(ProfileCannotBeInThePastErr);
-
-        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Starting Date-Time" > PerformanceProfileScheduler."Ending Date-Time")) then
-            Error(ProfileStartingDateLessThenEndingDateErr);
+        this.ValidatePerformanceProfileSchedulerDatesRelation(PerformanceProfileScheduler);
 
         if (MaxRetentionPeriod = 0) then
             exit;
@@ -98,6 +94,15 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         ScheduleDuration := PerformanceProfileScheduler."Ending Date-Time" - PerformanceProfileScheduler."Starting Date-Time";
         if (ScheduleDuration > MaxRetentionPeriod) then
             Error(ScheduleDurationCannotExceedRetentionPeriodErr);
+    end;
+
+    procedure ValidatePerformanceProfileSchedulerDatesRelation(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
+    begin
+        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Ending Date-Time" < CurrentDateTime())) then
+            Error(ProfileCannotBeInThePastErr);
+
+        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Starting Date-Time" > PerformanceProfileScheduler."Ending Date-Time")) then
+            Error(ProfileStartingDateLessThenEndingDateErr);
     end;
 
     procedure ValidatePerformanceProfileEndTime(PerformanceProfileScheduler: Record "Performance Profile Scheduler")

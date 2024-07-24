@@ -55,6 +55,11 @@ page 1932 "Perf. Profiler Schedule Card"
                     Caption = 'Start Time';
                     ToolTip = 'Specifies the start time of the schedule.';
                     AboutText = 'The start time of the schedule.';
+
+                    trigger OnValidate()
+                    begin
+                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDatesRelation(Rec);
+                    end;
                 }
                 field("End Time"; Rec."Ending Date-Time")
                 {
@@ -65,7 +70,7 @@ page 1932 "Perf. Profiler Schedule Card"
 
                     trigger OnValidate()
                     begin
-                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec, MaxRetentionPeriod);
+                        ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDatesRelation(Rec);
                         ScheduledPerfProfiler.ValidatePerformanceProfileEndTime(Rec);
                     end;
                 }

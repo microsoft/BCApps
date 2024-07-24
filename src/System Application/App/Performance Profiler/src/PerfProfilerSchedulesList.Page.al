@@ -33,7 +33,7 @@ page 1933 "Perf. Profiler Schedules List"
                 AboutText = 'Specifies if profiling is enabled for the current user session.';
                 Caption = 'Profiling Status';
 
-                field("Active Schedule ID"; this.ActiveScheduleDisplayName())
+                field("Active Schedule ID"; ActiveScheduleIdDisplayText)
                 {
                     AboutText = 'The ID of the active schedule for the current session.';
                     Caption = 'Active Schedule ID';
@@ -145,6 +145,7 @@ page 1933 "Perf. Profiler Schedules List"
     begin
         ScheduledPerfProfiler.FilterUsers(Rec, UserSecurityId());
         ScheduledPerfProfiler.IsProfilingEnabled(ActiveScheduleId);
+        ActiveScheduleIdDisplayText := ActiveScheduleDisplayName();
     end;
 
     trigger OnAfterGetRecord()
@@ -169,6 +170,7 @@ page 1933 "Perf. Profiler Schedules List"
         ScheduledPerfProfiler: Codeunit "Scheduled Perf. Profiler";
         UserName: Text;
         Activity: Enum "Perf. Profile Activity Type";
+        ActiveScheduleIdDisplayText: Text;
         ActiveScheduleId: Guid;
 
     local procedure ActiveScheduleDisplayName(): Text
