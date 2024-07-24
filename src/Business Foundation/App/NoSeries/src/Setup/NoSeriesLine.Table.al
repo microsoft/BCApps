@@ -126,12 +126,14 @@ table 309 "No. Series Line"
             DataClassification = SystemMetadata;
 
         }
-        field(15; "Temp Current Sequence No."; Integer)
+#pragma warning disable AS0004
+        field(15; "Temp Current Sequence No."; BigInteger)
         {
             Caption = 'Temporary Sequence Number';
             DataClassification = SystemMetadata;
             Access = Internal;
         }
+#pragma warning restore AS0004
     }
 
     keys
