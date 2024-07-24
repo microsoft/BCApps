@@ -47,7 +47,7 @@ codeunit 1931 "Scheduled Perf. Profiler"
     end;
 
     /// <summary>
-    /// Maps an activity type to a session type
+    /// Maps an activity type to a session type.
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
     /// <param name="ActivityType">The activity enum type</param>
