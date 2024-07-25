@@ -8,6 +8,8 @@ namespace Microsoft.Foundation.NoSeries;
 table 391 "No. Series Generation"
 {
     TableType = Temporary;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     fields
     {
