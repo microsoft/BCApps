@@ -398,7 +398,7 @@ codeunit 324 "No. Series Copilot Impl."
         i: Integer;
     begin
         ReadGeneratedNumberSeriesJArray(Completion).WriteTo(NoSeriesArrText);
-        ReAssembleDuplicates(NoSeriesArrText);
+        ReassembleDuplicates(NoSeriesArrText);
 
         Json.InitializeCollection(NoSeriesArrText);
 
