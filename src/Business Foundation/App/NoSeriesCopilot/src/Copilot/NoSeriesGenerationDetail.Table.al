@@ -5,12 +5,12 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-table 392 "No. Series Proposal Line"
+table 392 "No. Series Generation Detail"
 {
     TableType = Temporary;
     fields
     {
-        field(1; "Proposal No."; Integer)
+        field(1; "Generation No."; Integer)
         {
             Caption = 'No.';
         }
@@ -28,7 +28,7 @@ table 392 "No. Series Proposal Line"
             Caption = 'Starting No.';
             trigger OnValidate()
             begin
-                UpdateProposalNoSeriesLine(Rec.FieldNo("Starting No."));
+                UpdateGeneratedNoSeriesLine(Rec.FieldNo("Starting No."));
             end;
         }
         field(6; "Ending No."; Code[20])
@@ -37,7 +37,7 @@ table 392 "No. Series Proposal Line"
 
             trigger OnValidate()
             begin
-                UpdateProposalNoSeriesLine(Rec.FieldNo("Ending No."));
+                UpdateGeneratedNoSeriesLine(Rec.FieldNo("Ending No."));
             end;
         }
         field(7; "Warning No."; Code[20])
@@ -46,7 +46,7 @@ table 392 "No. Series Proposal Line"
 
             trigger OnValidate()
             begin
-                UpdateProposalNoSeriesLine(Rec.FieldNo("Warning No."));
+                UpdateGeneratedNoSeriesLine(Rec.FieldNo("Warning No."));
             end;
         }
         field(8; "Increment-by No."; Integer)
@@ -77,13 +77,13 @@ table 392 "No. Series Proposal Line"
 
     keys
     {
-        key(PK; "Proposal No.", "Series Code")
+        key(PK; "Generation No.", "Series Code")
         {
             Clustered = true;
         }
     }
 
-    local procedure UpdateProposalNoSeriesLine(ChangedField: Integer)
+    local procedure UpdateGeneratedNoSeriesLine(ChangedField: Integer)
     var
         TempNoSeriesLine: Record "No. Series Line" temporary;
     begin

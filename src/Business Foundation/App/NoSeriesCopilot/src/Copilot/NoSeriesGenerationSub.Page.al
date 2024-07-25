@@ -5,12 +5,12 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-page 333 "No. Series Proposal Sub"
+page 333 "No. Series Generation Sub"
 {
 
-    Caption = 'No. Series Proposals';
+    Caption = 'No. Series Generations';
     PageType = ListPart;
-    SourceTable = "No. Series Proposal Line";
+    SourceTable = "No. Series Generation Detail";
     SourceTableTemporary = true;
     DeleteAllowed = true;
     InsertAllowed = false;
@@ -63,7 +63,7 @@ page 333 "No. Series Proposal Sub"
         }
     }
 
-    internal procedure Load(var GeneratedNoSeries: Record "No. Series Proposal Line")
+    internal procedure Load(var GeneratedNoSeries: Record "No. Series Generation Detail")
     begin
         GeneratedNoSeries.Reset();
         if GeneratedNoSeries.FindSet() then
@@ -73,11 +73,11 @@ page 333 "No. Series Proposal Sub"
             until GeneratedNoSeries.Next() = 0;
     end;
 
-    internal procedure GetTempRecord(EntryNo: Integer; var GeneratedNoSeries: Record "No. Series Proposal Line")
+    internal procedure GetTempRecord(EntryNo: Integer; var GeneratedNoSeries: Record "No. Series Generation Detail")
     begin
         GeneratedNoSeries.DeleteAll();
         Rec.Reset();
-        Rec.SetRange("Proposal No.", EntryNo);
+        Rec.SetRange("Generation No.", EntryNo);
         if Rec.FindSet() then
             repeat
                 GeneratedNoSeries.Copy(Rec, false);

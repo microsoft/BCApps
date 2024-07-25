@@ -5,7 +5,7 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
-page 332 "No. Series Proposal"
+page 332 "No. Series Generation"
 {
     Caption = 'Generate No. Series with Copilot';
     DataCaptionExpression = PageCaptionLbl;
@@ -14,7 +14,7 @@ page 332 "No. Series Proposal"
     Extensible = false;
     ApplicationArea = All;
     Editable = true;
-    SourceTable = "No. Series Proposal";
+    SourceTable = "No. Series Generation";
     SourceTableTemporary = true;
     InherentPermissions = X;
     InherentEntitlements = X;
@@ -56,13 +56,13 @@ page 332 "No. Series Proposal"
                     Enabled = false;
                 }
             }
-            part(ProposalDetails; "No. Series Proposal Sub")
+            part(GenerationDetails; "No. Series Generation Sub")
             {
-                Caption = 'No. Series proposals';
+                Caption = 'Generated No. Series';
                 ShowFilter = false;
                 ApplicationArea = All;
-                Visible = IsProposalDetailsVisible;
-                SubPageLink = "Proposal No." = field("No.");
+                Visible = IsGenerationDetailsVisible;
+                SubPageLink = "Generation No." = field("No.");
             }
         }
     }
@@ -189,7 +189,7 @@ page 332 "No. Series Proposal"
         ResponseText: Text;
         PageCaptionLbl: text;
         IsResponseTextVisible: Boolean;
-        IsProposalDetailsVisible: Boolean;
+        IsGenerationDetailsVisible: Boolean;
         CreateNoSeriesForLbl: Label 'Create number series for ';
         CreateNoSeriesForModuleWithPatternLbl: Label 'Create number series for [specify here] module in the format ';
         CreateNoSeriesForCompanyLbl: Label 'Create numbers series for the new company';
@@ -206,26 +206,26 @@ page 332 "No. Series Proposal"
     var
     begin
         if CloseAction = CloseAction::OK then
-            ApplyProposedNoSeries();
+            ApplyGeneratedNoSeries();
     end;
 
     local procedure GenerateNoSeries()
     var
-        GeneratedNoSeries: Record "No. Series Proposal Line";
+        GeneratedNoSeries: Record "No. Series Generation Detail";
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
     begin
         NoSeriesCopilotImpl.Generate(Rec, ResponseText, GeneratedNoSeries, InputText);
-        CurrPage.ProposalDetails.Page.Load(GeneratedNoSeries);
+        CurrPage.GenerationDetails.Page.Load(GeneratedNoSeries);
         IsResponseTextVisible := ResponseText <> '';
-        IsProposalDetailsVisible := not GeneratedNoSeries.IsEmpty;
+        IsGenerationDetailsVisible := not GeneratedNoSeries.IsEmpty;
     end;
 
-    local procedure ApplyProposedNoSeries()
+    local procedure ApplyGeneratedNoSeries()
     var
-        GeneratedNoSeries: Record "No. Series Proposal Line";
+        GeneratedNoSeries: Record "No. Series Generation Detail";
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
     begin
-        CurrPage.ProposalDetails.Page.GetTempRecord(Rec."No.", GeneratedNoSeries);
-        NoSeriesCopilotImpl.ApplyProposedNoSeries(GeneratedNoSeries);
+        CurrPage.GenerationDetails.Page.GetTempRecord(Rec."No.", GeneratedNoSeries);
+        NoSeriesCopilotImpl.ApplyGeneratedNoSeries(GeneratedNoSeries);
     end;
 }
