@@ -59,48 +59,30 @@ controladdin PowerBIManagement
     /// </summary>
     event ReportVisualLoaded(CorrelationId: Text);
 
-#pragma warning disable AS0105
     /// <summary>
-    /// Initializes the Power BI Embed into the page
+    /// Initializes the token to be used when embedding Power BI content
     /// </summary>
-    [Obsolete('This method is deprecated. Please use EmbedReport instead.', '24.0')]
-    procedure InitializeReport(ReportLink: Text; ReportId: Text; AuthToken: Text; PowerBIApi: Text);
-#pragma warning restore AS0105
+    procedure SetToken(AuthToken: Text);
 
     /// <summary>
     /// Initializes the Power BI embed Report into the page
     /// </summary>
-    procedure EmbedReport(ReportLink: Text; ReportId: Text; AuthToken: Text; PageName: Text);
-
-    /// <summary>
-    /// Initializes the Power BI embed Report into the page, with additional options
-    /// </summary>
-    procedure EmbedReportWithOptions(ReportLink: Text; ReportId: Text; AuthToken: Text; PageName: Text; ShowPanes: Boolean);
+    procedure EmbedPowerBIReport(ReportLink: Text; ReportId: Text; PageName: Text);
 
     /// <summary>
     /// Initializes the Power BI embed Dashboard into the page
     /// </summary>
-    procedure EmbedDashboard(DashboardLink: Text; DashboardId: Text; AuthToken: Text);
+    procedure EmbedPowerBIDashboard(DashboardLink: Text; DashboardId: Text);
 
     /// <summary>
     /// Initializes the Power BI embed Dashboard Tile into the page
     /// </summary>
-    procedure EmbedDashboardTile(DashboardTileLink: Text; DashboardId: Text; TileId: Text; AuthToken: Text);
+    procedure EmbedPowerBIDashboardTile(DashboardTileLink: Text; DashboardId: Text; TileId: Text);
 
     /// <summary>
     /// Initializes the Power BI embed Report Visual into the page
     /// </summary>
-    procedure EmbedReportVisual(ReportVisualLink: Text; ReportId: Text; PageName: Text; VisualName: Text; AuthToken: Text);
-
-    /// <summary>
-    /// Changes the current mode into View
-    /// </summary>
-    procedure ViewMode();
-
-    /// <summary>
-    /// Changes the current mode into Edit
-    /// </summary>
-    procedure EditMode();
+    procedure EmbedPowerBIReportVisual(ReportVisualLink: Text; ReportId: Text; PageName: Text; VisualName: Text);
 
     /// <summary>
     /// Enters full screen mode for the current embed
@@ -142,7 +124,70 @@ controladdin PowerBIManagement
     procedure SetPage(PageName: Text);
 
     /// <summary>
+    /// Sets the properties for the embed experience
+    /// </summary>
+    ///<param name="ShowBookmarkSelection">Shows the bookmark selection pane.</param>
+    ///<param name="ShowFilterSelection">Shows the filter pane to filter embed.</param>
+    ///<param name="ShowPageSelection">Shows the pane to select the report page.</param>
+    ///<param name="ShowZoomSelection">Shows the bar that allows manual zoom in and zoom out for the embed.</param>
+    ///<param name="ForceTransparentBackground">Forces a transparent background to the embed.</param>
+    ///<param name="ForceFitToPage">Forces the Fit To Page behaviour for the embed.</param>
+    ///<param name="AddBottomPadding">Controls whether a padding is needed on the bottom of the page (useful in case the embed is the only element displayed on the page).</param>
+    procedure SetSettings(ShowBookmarkSelection: Boolean; ShowFilters: Boolean; ShowPageSelection: Boolean; ShowZoomBar: Boolean; ForceTransparentBackground: Boolean; ForceFitToPage: Boolean; AddBottomPadding: Boolean);
+
+#if not CLEAN25
+    /// <summary>
     /// Sets the properties for the browser frame containing the embed
     /// </summary>
+    [Obsolete('Use SetSettings, SetToken and then EmbedReport instead.', '25.0')]
     procedure InitializeFrame(FullPage: Boolean; Ratio: Text);
+
+    /// <summary>
+    /// Initializes the Power BI Embed into the page
+    /// </summary>
+    [Obsolete('Use SetSettings, SetToken and then EmbedReport instead.', '24.0')]
+    procedure InitializeReport(ReportLink: Text; ReportId: Text; AuthToken: Text; PowerBIApi: Text);
+
+    /// <summary>
+    /// Initializes the Power BI embed Report into the page, with additional options
+    /// </summary>
+    [Obsolete('Use SetSettings, SetToken and then EmbedReport instead.', '25.0')]
+    procedure EmbedReportWithOptions(ReportLink: Text; ReportId: Text; AuthToken: Text; PageName: Text; ShowPanes: Boolean);
+
+    /// <summary>
+    /// Changes the current mode into View
+    /// </summary>
+    [Obsolete('Switching between edit more and view mode is no longer supported. Only view mode will be supported going forward.', '25.0')]
+    procedure ViewMode();
+
+    /// <summary>
+    /// Changes the current mode into Edit
+    /// </summary>
+    [Obsolete('Switching between edit more and view mode is no longer supported. Only view mode will be supported going forward.', '25.0')]
+    procedure EditMode();
+
+    /// <summary>
+    /// Initializes the Power BI embed Report into the page
+    /// </summary>
+    [Obsolete('Call the procedure SetToken, and then use EmbedPowerBIReport instead.', '25.0')]
+    procedure EmbedReport(ReportLink: Text; ReportId: Text; AuthToken: Text; PageName: Text);
+
+    /// <summary>
+    /// Initializes the Power BI embed Dashboard into the page
+    /// </summary>
+    [Obsolete('Call the procedure SetToken, and then use EmbedPowerBIDashboard instead.', '25.0')]
+    procedure EmbedDashboard(DashboardLink: Text; DashboardId: Text; AuthToken: Text);
+
+    /// <summary>
+    /// Initializes the Power BI embed Dashboard Tile into the page
+    /// </summary>
+    [Obsolete('Call the procedure SetToken, and then use the EmbedPowerBIDashboardTile instead.', '25.0')]
+    procedure EmbedDashboardTile(DashboardTileLink: Text; DashboardId: Text; TileId: Text; AuthToken: Text);
+
+    /// <summary>
+    /// Initializes the Power BI embed Report Visual into the page
+    /// </summary>
+    [Obsolete('Call the procedure SetToken, and then use EmbedPowerBIReportVisual instead.', '25.0')]
+    procedure EmbedReportVisual(ReportVisualLink: Text; ReportId: Text; PageName: Text; VisualName: Text; AuthToken: Text);
+#endif
 }

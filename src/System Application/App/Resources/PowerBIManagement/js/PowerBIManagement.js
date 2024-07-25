@@ -9,20 +9,13 @@
 
 var embed = null;
 var activePage = null;
-var fullPageMode = false;
-
+var settingsObject = null;
 var models = null;
-var embedWidth = null;
-var embedHeight = null;
-var manifestWidth = null;
-var manifestHeight = null;
+var pbiAuthToken = null;
 
 function Initialize() {
     models = window['powerbi-client'].models;
 
-    var controlAddInElement = document.getElementById('controlAddIn');
-    manifestWidth = controlAddInElement.offsetWidth;
-    manifestHeight = controlAddInElement.offsetHeight;
     RaiseAddInReady();
 }
 
@@ -63,15 +56,39 @@ function InitializeReport(reportLink, reportId, authToken, powerBIEnv) {
     EmbedReport(reportLink, reportId, authToken, '');
 }
 
-function EmbedReport(reportLink, reportId, authToken, pageName) {
-     // OBSOLETE
-     EmbedReportWithOptions(reportLink, reportId, authToken, pageName, false)
+function EmbedReportWithOptions(reportLink, reportId, authToken, pageName, showPanes) {
+    // OBSOLETE
+    EmbedReport(reportLink, reportId, authToken, pageName)
 }
 
-function EmbedReportWithOptions(reportLink, reportId, authToken, pageName, showPanes) {
+function EmbedReport(reportLink, reportId, authToken, pageName) {
+    // OBSOLETE
+    pbiAuthToken = authToken;
+    EmbedPowerBIReport(reportLink, reportId, pageName);
+}
+
+function EmbedDashboard(dashboardLink, dashboardId, authToken) {
+    // OBSOLETE
+    pbiAuthToken = authToken;
+    EmbedPowerBIDashboard(dashboardLink, dashboardId);
+}
+
+function EmbedDashboardTile(dashboardTileLink, dashboardId, tileId, authToken) {
+    // OBSOLETE
+    pbiAuthToken = authToken;
+    EmbedPowerBIDashboardTile(dashboardTileLink, dashboardId, tileId);
+}
+
+function EmbedReportVisual(reportVisualLink, reportId, pageName, visualName, authToken) {
+    // OBSOLETE
+    pbiAuthToken = authToken;
+    EmbedPowerBIReportVisual(reportVisualLink, reportId, pageName, visualName);
+}
+
+function EmbedPowerBIReport(reportLink, reportId, pageName) {
     ClearEmbedGlobals();
 
-    var embedConfiguration = InitializeEmbedConfig(authToken, showPanes);
+    var embedConfiguration = InitializeEmbedConfig();
     embedConfiguration.type = 'report';
     embedConfiguration.id = SanitizeId(reportId);
     embedConfiguration.embedUrl = reportLink;
@@ -133,10 +150,10 @@ function EmbedReportWithOptions(reportLink, reportId, authToken, pageName, showP
     });
 }
 
-function EmbedDashboard(dashboardLink, dashboardId, authToken) {
+function EmbedPowerBIDashboard(dashboardLink, dashboardId) {
     ClearEmbedGlobals();
     
-    var embedConfiguration = InitializeEmbedConfig(authToken, false);
+    var embedConfiguration = InitializeEmbedConfig();
     embedConfiguration.type = 'dashboard';
     embedConfiguration.id = SanitizeId(dashboardId);
     embedConfiguration.embedUrl = dashboardLink;
@@ -155,10 +172,10 @@ function EmbedDashboard(dashboardLink, dashboardId, authToken) {
     });
 }
 
-function EmbedDashboardTile(dashboardTileLink, dashboardId, tileId, authToken) {
+function EmbedPowerBIDashboardTile(dashboardTileLink, dashboardId, tileId) {
     ClearEmbedGlobals();
     
-    var embedConfiguration = InitializeEmbedConfig(authToken, false);
+    var embedConfiguration = InitializeEmbedConfig();
     embedConfiguration.type = 'tile';
     embedConfiguration.id = SanitizeId(tileId);
     embedConfiguration.dashboardId = SanitizeId(dashboardId); 
@@ -178,10 +195,10 @@ function EmbedDashboardTile(dashboardTileLink, dashboardId, tileId, authToken) {
     });
 }
 
-function EmbedReportVisual(reportVisualLink, reportId, pageName, visualName, authToken) {
+function EmbedPowerBIReportVisual(reportVisualLink, reportId, pageName, visualName) {
     ClearEmbedGlobals();
 
-    var embedConfiguration = InitializeEmbedConfig(authToken, false);
+    var embedConfiguration = InitializeEmbedConfig();
     embedConfiguration.type = 'visual';
     embedConfiguration.id = SanitizeId(reportId);
     embedConfiguration.pageName = SanitizeId(pageName);
@@ -200,6 +217,65 @@ function EmbedReportVisual(reportVisualLink, reportId, pageName, visualName, aut
             ProcessError('LoadReportVisualCorrelationId', error);
         });
     });
+}
+
+function SetToken(authToken) {
+    pbiAuthToken = authToken;
+}
+
+function SetSettings(showBookmarkSelection, showFilters, showPageSelection, showZoomBar, forceTransparentBackground, forceFitToPage, addBottomPadding) {
+    if (addBottomPadding) {
+        var iframe = window.frameElement;
+        iframe.style.paddingBottom = '42px';
+    }
+    else {
+        var iframe = window.frameElement;
+        iframe.style.removeProperty('paddingBottom');
+    }
+
+    settingsObject = {
+        panes: {
+            bookmarks: {
+                visible: showBookmarkSelection
+            },
+            filters: {
+                visible: showFilters,
+                expanded: false
+            },
+            pageNavigation: {
+                visible: showPageSelection
+            },
+            fields: { // In edit mode, allows selecting fields to add to the report
+                visible: false
+            },
+            selection: { // In edit mode, allows selecting visuals from a list instead of clicking in the UI
+                visible: false
+            },
+            syncSlicers: { // In edit mode, allows syncing slicers through pages
+                visible: false
+            },
+            visualizations: { // In edit mode, allows adding new visualizations
+                visible: false
+            }
+        },
+
+        bars: {
+            statusBar: {
+                visible: showZoomBar
+            }
+        }
+    }
+
+    if (forceTransparentBackground) {
+        settingsObject.background = models.BackgroundType.Transparent;
+    }
+
+    if (forceFitToPage) {
+        settingsObject.layoutType = models.LayoutType.Custom;
+        settingsObject.customLayout = {
+            displayOption: models.DisplayOption.FitToPage
+        }
+    }
 }
 
 function ViewMode() {
@@ -262,42 +338,42 @@ function SetPage(pageName) {
     });
 }
 
-function InitializeFrame(fullpage, ratio){
-    fullPageMode = fullpage;
-    if (!ratio) ratio = '16:9'; // Default according to Power BI documentation
+function InitializeFrame(fullpage, ratio) {
+    settingsObject = {
+        panes: {
+            bookmarks: {
+                visible: false
+            },
+            fields: {
+                visible: fullpage,
+                expanded: false
+            },
+            filters: {
+                visible: fullpage,
+                expanded: fullpage
+            },
+            pageNavigation: {
+                visible: fullpage
+            },
+            selection: {
+                visible: fullpage
+            },
+            syncSlicers: {
+                visible: fullpage
+            },
+            visualizations: {
+                visible: fullpage,
+                expanded: false
+            }
+        },
 
-    var iframe = window.frameElement;
+        background: models.BackgroundType.Transparent,
 
-    var maximumAllowedHeight = manifestHeight;
-    var maximumAllowedWidth = manifestWidth;
-    if (fullPageMode) {
-        // When opening a report fullscreen, maximize the real estate instead
-        iframe.style.removeProperty('max-height');
-        iframe.style.removeProperty('max-width');
-        maximumAllowedHeight = 720;
-        maximumAllowedWidth = 1280;
+        layoutType: models.LayoutType.Custom,
+        customLayout: {
+            displayOption: models.DisplayOption.FitToPage
+        }
     }
-
-    var arr = ratio.split(":");
-    var ratioWidth = arr[0];
-    var ratioHeight = arr[1];
-
-    var computedWidth = (maximumAllowedHeight / ratioHeight) * ratioWidth;
-    var computedHeight = (maximumAllowedWidth / ratioWidth) * ratioHeight;
-
-    if (computedWidth <= maximumAllowedWidth) {
-        // Fit to width
-        embedWidth = computedWidth;
-        embedHeight = maximumAllowedHeight;
-    }
-    else {
-        // Fit to height instead
-        embedWidth = maximumAllowedWidth;
-        embedHeight = computedHeight;
-    }
-
-    iframe.style.height = Math.floor(embedHeight).toString() + 'px';
-    iframe.style.width = Math.floor(embedWidth).toString() + 'px';
 }
 
 // Internal functions
@@ -307,48 +383,18 @@ function ClearEmbedGlobals() {
     activePage = null;
 }
 
-function InitializeEmbedConfig(authToken, showPanes) {
+function InitializeEmbedConfig() {
+    if (!pbiAuthToken || (pbiAuthToken == '')) {
+        RaiseErrorOccurred('Initialize Config', 'No token was provided');
+    }
+
     var embedConfiguration = {
         tokenType: models.TokenType.Aad,
-        accessToken: authToken,
+        accessToken: pbiAuthToken,
 
         viewMode: models.ViewMode.View,
         permissions: models.Permissions.All,
-        settings: {
-            panes: {
-                bookmarks: {
-                    visible: false
-                },
-                fields: {
-                    visible: fullPageMode && showPanes,
-                    expanded: false
-                },
-                filters: {
-                    visible: fullPageMode && showPanes,
-                    expanded: fullPageMode && showPanes
-                },
-                pageNavigation: {
-                    visible: showPanes
-                },
-                selection: {
-                    visible: fullPageMode && showPanes
-                },
-                syncSlicers: {
-                    visible: fullPageMode && showPanes
-                },
-                visualizations: {
-                    visible: fullPageMode && showPanes,
-                    expanded: false
-                }
-            },
-
-            background: models.BackgroundType.Transparent,
-
-            layoutType: models.LayoutType.Custom,
-            customLayout: {
-                displayOption: models.DisplayOption.FitToPage
-            }
-        }
+        settings: settingsObject
     };
 
     return embedConfiguration;
