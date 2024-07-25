@@ -409,7 +409,7 @@ codeunit 324 "No. Series Copilot Impl."
         end;
     end;
 
-    local procedure ReAssembleDuplicates(var NoSeriesArrText: Text)
+    local procedure ReassembleDuplicates(var NoSeriesArrText: Text)
     var
         Json: Codeunit Json;
         i: Integer;
