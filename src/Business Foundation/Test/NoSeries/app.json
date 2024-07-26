@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Test suite for the No. Series module",
   "description": "Contains an expansive set tests for the No. Series module.",
-  "version": "24.4.0.0",
+  "version": "24.5.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2131960",
@@ -15,43 +15,43 @@
       "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
       "name": "System Application",
       "publisher": "Microsoft",
-      "version": "24.4.0.0"
+      "version": "24.5.0.0"
     },
     {
       "id": "d098b816-22fd-477f-9602-9122f5465527",
       "name": "No. Series",
       "publisher": "Microsoft",
-      "version": "24.4.0.0"
+      "version": "24.5.0.0"
     },
     {
       "id": "f7277dc2-cc73-4b81-b7c6-4a58bfb33806",
       "name": "No. Series Test Library",
       "publisher": "Microsoft",
-      "version": "24.4.0.0"
+      "version": "24.5.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
       "publisher": "Microsoft",
-      "version": "24.4.0.0"
+      "version": "24.5.0.0"
     },
     {
       "id": "40860557-a18d-42ad-aecb-22b7dd80dc80",
       "name": "Permissions Mock",
       "publisher": "Microsoft",
-      "version": "24.4.0.0"
+      "version": "24.5.0.0"
     },
     {
       "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
       "name": "Any",
       "publisher": "Microsoft",
-      "version": "24.4.0.0"
+      "version": "24.5.0.0"
     },
     {
       "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
       "name": "Library Variable Storage",
       "publisher": "Microsoft",
-      "version": "24.4.0.0"
+      "version": "24.5.0.0"
     }
   ],
   "internalsVisibleTo": [],

@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Looks up and plays videos.",
   "description": "Provides a page where you look up and select videos. For example, use this to access video tutorials.",
-  "version": "24.4.0.0",
+  "version": "24.5.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
@@ -15,7 +15,7 @@
       "id": "a3964a53-9345-458a-af20-d13f7eab7bd8",
       "name": "Control Add-Ins",
       "publisher": "Microsoft",
-      "version": "24.4.0.0"
+      "version": "24.5.0.0"
     }
   ],
   "screenshots": [],

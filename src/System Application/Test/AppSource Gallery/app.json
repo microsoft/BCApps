@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "",
   "description": "Tests for the AppSource Gallery module",
-  "version": "24.4.0.0",
+  "version": "24.5.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "",
@@ -15,19 +15,19 @@
       "id": "ba17b564-d600-44d5-be0b-ca7ff7ac28fc",
       "name": "AppSource Gallery Test Library",
       "publisher": "Microsoft",
-      "version": "24.4.0.0"
+      "version": "24.5.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
       "publisher": "Microsoft",
-      "version": "24.4.0.0"
+      "version": "24.5.0.0"
     },
     {
       "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
       "name": "Library Variable Storage",
       "publisher": "Microsoft",
-      "version": "24.4.0.0"
+      "version": "24.5.0.0"
     }
   ],
   "screenshots": [],
