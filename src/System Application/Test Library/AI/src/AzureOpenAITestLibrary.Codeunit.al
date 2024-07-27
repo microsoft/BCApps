@@ -33,4 +33,20 @@ codeunit 132933 "Azure OpenAI Test Library"
         AOAIFunctionResponse.SetFunctionCallingResponse(NewIsFunctionCall, NewFunctionCallSuccess, NewFunctionCalled, NewFunctionId, NewFunctionResult, NewFunctionError, NewFunctionErrorCallStack);
     end;
 
+    procedure AddAOAIFunctionResponse(var AOAIOperationResponse: Codeunit "AOAI Operation Response"; var AOAIFunctionResponse: Codeunit "AOAI Function Response"; NewIsFunctionCall: Boolean; NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionId: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
+    begin
+        SetAOAIFunctionResponse(AOAIFunctionResponse, NewIsFunctionCall, NewFunctionCallSuccess, NewFunctionCalled, NewFunctionId, NewFunctionResult, NewFunctionError, NewFunctionErrorCallStack);
+        AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
+    end;
+
+    procedure SetToolCalls(AOAIChatMessages: Codeunit "AOAI Chat Messages"; ToolCallId: Text; FunctionName: Text)
+    var
+        ToolCalls: JsonArray;
+        ToolSelectionResponseLbl: Label '[{"id":"%1","type":"function","function":{"name":"%2","arguments":"{}"}}]', Locked = true;
+    begin
+        ToolCalls.ReadFrom(StrSubstNo(ToolSelectionResponseLbl, ToolCallId, FunctionName));
+
+        AOAIChatMessages.AddToolCalls(ToolCalls);
+    end;
+
 }

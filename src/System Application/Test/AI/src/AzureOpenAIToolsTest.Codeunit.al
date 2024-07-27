@@ -394,7 +394,6 @@ codeunit 132686 "Azure OpenAI Tools Test"
         TestFunction1: Codeunit "Test Function 1";
         TestFunction2: Codeunit "Test Function 2";
         ToolCallId: Text;
-        ToolSelectionResponseLbl: Label '[{"id":"%1","type":"function","function":{"name":"%2","arguments":"{}"}}]', Locked = true;
         FunctionExecutionResult: Text;
     begin
         AOAIChatMessages.AddTool(TestFunction1);
@@ -405,12 +404,11 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Function is been selected by LLM
         ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
-        AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
-        AOAIChatMessages.AddAssistantMessage(StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()));
+        AzureOpenAITestLibrary.SetToolCalls(AOAIChatMessages, ToolCallId, TestFunction1.GetName());
 
         // Selected function was executed by system
         FunctionExecutionResult := 'test function execution result';
-        AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
 
         LibraryAssert.IsTrue(AOAIOperationResponse.IsFunctionCall(), 'Function call should be true.');
         LibraryAssert.AreEqual(AOAIFunctionResponse.GetFunctionName(), TestFunction1.GetName(), 'Function name should be the same as the value set.');
@@ -427,7 +425,6 @@ codeunit 132686 "Azure OpenAI Tools Test"
         TestFunction1: Codeunit "Test Function 1";
         TestFunction2: Codeunit "Test Function 2";
         ToolCallId: Text;
-        ToolSelectionResponseLbl: Label '[{"id":"%1","type":"function","function":{"name":"%2","arguments":"{}"}}]', Locked = true;
         FunctionExecutionResult: Text;
     begin
         AOAIChatMessages.AddTool(TestFunction1);
@@ -438,7 +435,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Function is been selected by LLM
         ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
-        AOAIChatMessages.AddAssistantMessage(StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()));
+        AzureOpenAITestLibrary.SetToolCalls(AOAIChatMessages, ToolCallId, TestFunction1.GetName());
 
         // Selected function was executed by system
         FunctionExecutionResult := 'test function execution result';
@@ -460,7 +457,6 @@ codeunit 132686 "Azure OpenAI Tools Test"
         TestFunction2: Codeunit "Test Function 2";
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
         ToolCallId: Text;
-        ToolSelectionResponseLbl: Label '[{"id":"%1","type":"function","function":{"name":"%2","arguments":"{}"}}]', Locked = true;
         FunctionExecutionResult: Text;
     begin
         AOAIChatMessages.AddTool(TestFunction1);
@@ -471,7 +467,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Function is been selected by LLM
         ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
-        AOAIChatMessages.AddAssistantMessage(StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()));
+        AzureOpenAITestLibrary.SetToolCalls(AOAIChatMessages, ToolCallId, TestFunction1.GetName());
 
         // Selected function was executed by system
         FunctionExecutionResult := 'test function execution result';
@@ -510,7 +506,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Function is been selected by LLM
         ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
-        AOAIChatMessages.AddAssistantMessage(StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()));
+        AzureOpenAITestLibrary.SetToolCalls(AOAIChatMessages, ToolCallId, TestFunction1.GetName());
 
         // Selected function was executed by system
         FunctionExecutionResult := 'test function execution result';
@@ -566,6 +562,161 @@ codeunit 132686 "Azure OpenAI Tools Test"
         LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), ToolCallId, 'Tool call id should be the same as the value set.');
     end;
 
+    [Test]
+    procedure TestAppendToolResultFailIfNoToolCalls()
+    var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        TestFunction1: Codeunit "Test Function 1";
+        TestFunction2: Codeunit "Test Function 2";
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        ToolCallId: Text;
+        FunctionExecutionResult: Text;
+    begin
+        AOAIChatMessages.AddTool(TestFunction1);
+        AOAIChatMessages.AddTool(TestFunction2);
+
+        AOAIChatMessages.AddSystemMessage('test system message');
+        AOAIChatMessages.AddUserMessage('test user message');
+
+        AOAIChatMessages.AddAssistantMessage('an assistant message instead of a tool calls result');
+
+        // Create some operation and function response for a tool call that did not happen
+        ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
+        FunctionExecutionResult := 'test function execution result';
+        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+
+        // Append the incorrect function response
+        asserterror AOAIOperationResponse.AppendFunctionResponsesToChatMessages(AOAIChatMessages);
+
+        LibraryAssert.ExpectedError('does not contain any tool calls');
+    end;
+
+    [Test]
+    procedure TestAppendToolResultFailIfNoToolCallsWithIncorrectRole()
+    var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        TestFunction1: Codeunit "Test Function 1";
+        TestFunction2: Codeunit "Test Function 2";
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        ToolCallId: Text;
+        FunctionExecutionResult: Text;
+    begin
+        AOAIChatMessages.AddTool(TestFunction1);
+        AOAIChatMessages.AddTool(TestFunction2);
+
+        AOAIChatMessages.AddSystemMessage('test system message');
+        AOAIChatMessages.AddUserMessage('test user message');
+
+        // Function is been selected by LLM
+        ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
+        AzureOpenAITestLibrary.SetToolCalls(AOAIChatMessages, ToolCallId, TestFunction1.GetName());
+
+        AOAIChatMessages.AddSystemMessage('another system message that was placed after the tool calls response');
+
+        // Create some operation and function response for a tool call that did not happen
+        FunctionExecutionResult := 'test function execution result';
+        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+
+        // Append the incorrect function response
+        asserterror AOAIOperationResponse.AppendFunctionResponsesToChatMessages(AOAIChatMessages);
+
+        LibraryAssert.ExpectedError('must have a role of assistant');
+    end;
+
+    [Test]
+    procedure TestAppendToolResultFailIfNoMatchingToolCalls()
+    var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        TestFunction1: Codeunit "Test Function 1";
+        TestFunction2: Codeunit "Test Function 2";
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        ToolCallId: Text;
+        FunctionExecutionResult: Text;
+    begin
+        AOAIChatMessages.AddTool(TestFunction1);
+        AOAIChatMessages.AddTool(TestFunction2);
+
+        AOAIChatMessages.AddSystemMessage('test system message');
+        AOAIChatMessages.AddUserMessage('test user message');
+
+        // Function is been selected by LLM
+        ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
+        AzureOpenAITestLibrary.SetToolCalls(AOAIChatMessages, ToolCallId, TestFunction1.GetName());
+
+        // Create some operation and function response for a tool call that did not happen
+        ToolCallId := 'call_anothertoolcallid';
+        FunctionExecutionResult := 'test function execution result';
+        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, true, TestFunction2.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+
+        // Append the incorrect function response
+        asserterror AOAIOperationResponse.AppendFunctionResponsesToChatMessages(AOAIChatMessages);
+
+        LibraryAssert.ExpectedError('does not exist in the tool calls');
+    end;
+
+    [Test]
+    procedure TestAppendToolResultFromToolCalls()
+    var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        TestFunction1: Codeunit "Test Function 1";
+        TestFunction2: Codeunit "Test Function 2";
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        ToolCallId: Text;
+        ToolSelectionResponseLbl: Label '[{"id":"%1","type":"function","function":{"name":"%2","arguments":"{}"}}]', Locked = true;
+        FunctionExecutionResult: Text;
+        HistoryJsonArray: JsonArray;
+        MessageJsonTok: JsonToken;
+        JsonTok: JsonToken;
+        TextValue: Text;
+    begin
+        AOAIChatMessages.AddTool(TestFunction1);
+        AOAIChatMessages.AddTool(TestFunction2);
+
+        AOAIChatMessages.AddSystemMessage('test system message');
+        AOAIChatMessages.AddUserMessage('test user message');
+
+        // Function is been selected by LLM
+        ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
+        AzureOpenAITestLibrary.SetToolCalls(AOAIChatMessages, ToolCallId, TestFunction1.GetName());
+
+        // Create an operation and function response for the tool call
+        FunctionExecutionResult := 'test function execution result';
+        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, true, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+
+        // Append the function response
+        AOAIOperationResponse.AppendFunctionResponsesToChatMessages(AOAIChatMessages);
+
+        // Check Json representation of the chat messages history
+        HistoryJsonArray := AzureOpenAITestLibrary.GetAOAIHistory(5, AOAIChatMessages);
+        LibraryAssert.AreEqual(4, HistoryJsonArray.Count, 'History should have 4 items.');
+
+        HistoryJsonArray.Get(2, MessageJsonTok);
+        MessageJsonTok.AsObject().Get('tool_calls', JsonTok);
+        JsonTok.WriteTo(TextValue);
+        LibraryAssert.AreEqual(TextValue, StrSubstNo(ToolSelectionResponseLbl, ToolCallId, TestFunction1.GetName()), 'Tool call should be the same as the value set.');
+
+        // Check tool message
+        HistoryJsonArray.Get(3, MessageJsonTok);
+        MessageJsonTok.AsObject().Get('role', JsonTok);
+        LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), 'tool', 'Role should be tool');
+
+        MessageJsonTok.AsObject().Get('content', JsonTok);
+        LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), FunctionExecutionResult, 'Content should be the function execution result');
+
+        MessageJsonTok.AsObject().Get('name', JsonTok);
+        LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), TestFunction1.GetName(), 'Function name should be the same as the value set.');
+
+        MessageJsonTok.AsObject().Get('tool_call_id', JsonTok);
+        LibraryAssert.AreEqual(JsonTok.AsValue().AsText(), ToolCallId, 'Tool call id should be the same as the value set.');
+    end;
 
     local procedure GetTestFunction1Tool(): JsonObject
     var
