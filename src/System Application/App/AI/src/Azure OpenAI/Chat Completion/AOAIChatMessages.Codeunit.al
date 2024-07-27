@@ -69,6 +69,12 @@ codeunit 7763 "AOAI Chat Messages"
         AOAIChatMessagesImpl.AddAssistantMessage(NewMessage);
     end;
 
+    [NonDebuggable]
+    internal procedure AddToolCalls(ToolCalls: JsonArray)
+    begin
+        AOAIChatMessagesImpl.AddToolCalls(ToolCalls);
+    end;
+
     /// <summary>
     /// Adds a tool result to the chat messages history.
     /// </summary>
@@ -164,6 +170,16 @@ codeunit 7763 "AOAI Chat Messages"
     procedure GetLastName(): Text[2048]
     begin
         exit(AOAIChatMessagesImpl.GetLastName());
+    end;
+
+    /// <summary>
+    /// Gets a copy of the last chat message tool calls array.
+    /// </summary>
+    /// <returns>The last tool calls array.</returns>
+    [NonDebuggable]
+    procedure GetLastToolCalls(): JsonArray
+    begin
+        exit(AOAIChatMessagesImpl.GetLastToolCalls());
     end;
 
     /// <summary>

@@ -75,6 +75,15 @@ codeunit 7758 "AOAI Function Response"
         exit(ErrorCallStack);
     end;
 
+    /// <summary>
+    /// Appends the function result to the provided AOAIChatMessages instance.
+    /// </summary>
+    /// <param name="AOAIChatMessages">The chat messages instance to append the result to.</param>
+    internal procedure AppendResultToChatMessages(var AOAIChatMessages: Codeunit "AOAI Chat Messages")
+    begin
+        AOAIChatMessages.AddToolMessage(GetFunctionId(), GetFunctionName(), Format(GetResult()));
+    end;
+
     internal procedure IsFunctionCall(): Boolean
     begin
         exit(FunctionCall);

@@ -405,7 +405,6 @@ codeunit 7772 "Azure OpenAI Impl"
     var
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
         CustomDimensions: Dictionary of [Text, Text];
-        ToolsCall: Text;
         Response: JsonObject;
         CompletionToken: JsonToken;
         XPathLbl: Label '$.content', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
@@ -416,24 +415,47 @@ codeunit 7772 "Azure OpenAI Impl"
             if not CompletionToken.AsValue().IsNull() then
                 ChatMessages.AddAssistantMessage(CompletionToken.AsValue().AsText());
         if Response.SelectToken(XPathToolCallsLbl, CompletionToken) then begin
-            CompletionToken.AsArray().WriteTo(ToolsCall);
-            ChatMessages.AddAssistantMessage(ToolsCall);
+            ChatMessages.AddToolCalls(CompletionToken.AsArray());
 
-            AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
-            if not ProcessFunctionCall(CompletionToken.AsArray(), ChatMessages, AOAIFunctionResponse) then
+            if not ProcessToolCalls(CompletionToken.AsArray(), ChatMessages, AOAIOperationResponse) then begin
                 AOAIFunctionResponse.SetFunctionCallingResponse(true, false, '', '', '', '', '');
+                AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
+            end;
 
             AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
-            if not AOAIFunctionResponse.IsSuccess() then
+            foreach AOAIFunctionResponse in AOAIOperationResponse.GetFunctionResponses() do
                 FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), Enum::"AL Telemetry Scope"::All, CustomDimensions);
+
+            AOAIOperationResponse.AppendFunctionResponsesToChatMessages(ChatMessages);
 
             Telemetry.LogMessage('0000MFH', TelemetryChatCompletionToolCallLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
         end;
     end;
 
-    local procedure ProcessFunctionCall(Functions: JsonArray; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIFunctionResponse: Codeunit "AOAI Function Response"): Boolean
+    local procedure ProcessToolCalls(Tools: JsonArray; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Boolean
     var
-        Function: JsonObject;
+        Tool: JsonToken;
+        ToolObject: JsonObject;
+        ToolType: JsonToken;
+    begin
+        if Tools.Count = 0 then
+            exit(false);
+
+        foreach Tool in Tools do
+            if Tool.IsObject() then begin
+                ToolObject := Tool.AsObject();
+                if ToolObject.Get('type', ToolType) then
+                    if ToolType.AsValue().AsText() = 'function' then
+                        if not ProcessFunctionCall(ToolObject, ChatMessages, AOAIOperationResponse) then
+                            exit(false);
+            end;
+
+        exit(true);
+    end;
+
+    local procedure ProcessFunctionCall(Function: JsonObject; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Boolean
+    var
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
         Arguments: JsonObject;
         Token: JsonToken;
         FunctionName: Text;
@@ -441,18 +463,6 @@ codeunit 7772 "Azure OpenAI Impl"
         AOAIFunction: Interface "AOAI Function";
         FunctionResult: Variant;
     begin
-        if Functions.Count = 0 then
-            exit(false);
-
-        Functions.Get(0, Token);
-        Function := Token.AsObject();
-
-        if Function.Get('type', Token) then begin
-            if Token.AsValue().AsText() <> 'function' then
-                exit(false);
-        end else
-            exit(false);
-
         if Function.Get('id', Token) then
             FunctionId := Token.AsValue().AsText()
         else
@@ -475,13 +485,16 @@ codeunit 7772 "Azure OpenAI Impl"
         if ChatMessages.GetFunctionTool(FunctionName, AOAIFunction) then
             if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then begin
                 AOAIFunctionResponse.SetFunctionCallingResponse(true, true, AOAIFunction.GetName(), FunctionId, FunctionResult, '', '');
+                AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
                 exit(true);
             end else begin
                 AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionId, FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
+                AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
                 exit(true);
             end
         else begin
             AOAIFunctionResponse.SetFunctionCallingResponse(true, false, FunctionName, FunctionId, FunctionResult, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
+            AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
             exit(true);
         end;
     end;
