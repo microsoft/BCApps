@@ -43,7 +43,7 @@ codeunit 1482 "Edit in Excel Impl."
         CreateEndpointForObjectTxt: Label 'Creating endpoint for %1 %2.', Locked = true;
         EditInExcelHandledTxt: Label 'Edit in excel has been handled.', Locked = true;
         EditInExcelOnlySupportPageWebServicesTxt: Label 'Edit in Excel only support web services created from pages.', Locked = true;
-        EditInExcelInvalidFilterErr: Label 'We had to remove the filters applied to the following fields, because they are not available in the Office Add-In. Please notice that as a result of this the number of rows you exported to Excel could vary.\ %1', Comment = '%1 = The field filters we had to remove because they are not exposed through OData';
+        EditInExcelInvalidFilterErr: Label 'We had to remove the filters applied to the following fields because they are not available in the Office Add-In. As a result, the number of rows you see in Excel may differ from what you see in Dynamics 365 Business Central.\ \ Removed filters: %1', Comment = '%1 = The field filters we had to remove because they are not exposed through OData';
         DialogTitleTxt: Label 'Export';
         ExcelFileNameTxt: Text;
         XmlByteEncodingTok: Label '_x00%1_%2', Locked = true;
