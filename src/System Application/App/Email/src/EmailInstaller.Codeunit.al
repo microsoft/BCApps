@@ -46,6 +46,7 @@ codeunit 1596 "Email Installer"
 
         RetenPolAllowedTables.AddAllowedTable(Database::"Email Outbox", Field.FieldNo(SystemCreatedAt), 7);
         RetenPolAllowedTables.AddAllowedTable(Database::"Sent Email", Field.FieldNo(SystemCreatedAt), 7);
+        RetenPolAllowedTables.AddAllowedTable(Database::"Email Inbox", Field.FieldNo(SystemCreatedAt), 7);
 
         if IsInitialSetup then
             UpgradeTag.SetUpgradeTag(GetEmailTablesAddedToAllowedListUpgradeTag());
