@@ -327,15 +327,29 @@ codeunit 310 "No. Series"
     end;
 
     /// <summary>
-    /// Use this method to check if number series is marked for date order.
+    /// Returns true if the number series has Date Order set.
     /// </summary>
     /// <param name="NoSeriesCode">The No. Series code to check.</param>
     /// <returns>True if the number series is marked for date order, false otherwise.</returns>
+    /// <Remarks>If Date Order is true, numbers must be retrieved in chronological order.</Remarks>
     procedure IsNoSeriesInDateOrder(NoSeriesCode: Code[20]): Boolean
     var
         NoSeriesImpl: Codeunit "No. Series - Impl.";
     begin
         exit(NoSeriesImpl.IsNoSeriesInDateOrder(NoSeriesCode));
+    end;
+
+    /// <summary>
+    /// Returns true if the number series has Date Order set.
+    /// </summary>
+    /// <param name="NoSeries">The No. Series to check.</param>
+    /// <returns>True if the number series is marked for date order, false otherwise.</returns>
+    /// <Remarks>If Date Order is true, numbers must be retrieved in chronological order.</Remarks>
+    procedure IsNoSeriesInDateOrder(NoSeries: Record "No. Series"): Boolean
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.IsNoSeriesInDateOrder(NoSeries));
     end;
 
     /// <summary>

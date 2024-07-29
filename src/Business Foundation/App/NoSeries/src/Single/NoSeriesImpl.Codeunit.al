@@ -433,7 +433,14 @@ codeunit 304 "No. Series - Impl."
     var
         NoSeries: Record "No. Series";
     begin
-        exit(NoSeries.Get(NoSeriesCode) and NoSeries."Date Order")
+        if not NoSeries.Get(NoSeriesCode) then
+            exit(false);
+        exit(NoSeries."Date Order");
+    end;
+
+    procedure IsNoSeriesInDateOrder(NoSeries: Record "No. Series"): Boolean
+    begin
+        exit(NoSeries."Date Order");
     end;
 
     local procedure ValidateCanGetNextNo(var NoSeriesLine: Record "No. Series Line"; SeriesDate: Date; HideErrorsAndWarnings: Boolean): Boolean
