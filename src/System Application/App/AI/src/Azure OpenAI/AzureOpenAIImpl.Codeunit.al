@@ -427,7 +427,8 @@ codeunit 7772 "Azure OpenAI Impl"
 
             AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
             foreach AOAIFunctionResponse in AOAIOperationResponse.GetFunctionResponses() do
-                FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), Enum::"AL Telemetry Scope"::All, CustomDimensions);
+                if not AOAIOperationResponse.IsSuccess() then
+                    FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), Enum::"AL Telemetry Scope"::All, CustomDimensions);
 
             if ChatMessages.GetToolInvokePreference() in [Enum::"AOAI Tool Invoke Preference"::InvokeToolsOnly, Enum::"AOAI Tool Invoke Preference"::Automatic] then
                 AOAIOperationResponse.AppendFunctionResponsesToChatMessages(ChatMessages);
