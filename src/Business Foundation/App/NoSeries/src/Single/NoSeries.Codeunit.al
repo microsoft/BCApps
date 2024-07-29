@@ -327,6 +327,18 @@ codeunit 310 "No. Series"
     end;
 
     /// <summary>
+    /// Use this method to check if number series is marked for date order.
+    /// </summary>
+    /// <param name="NoSeriesCode">The No. Series code to check.</param>
+    /// <returns>True if the number series is marked for date order, false otherwise.</returns>
+    procedure IsNoSeriesInDateOrder(NoSeriesCode: Code[20]): Boolean
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.IsNoSeriesInDateOrder(NoSeriesCode));
+    end;
+
+    /// <summary>
     /// Use this event to change the filters set on the No. Series Line record. These filters are used when viewing the No. Series page and when drilling down from a No. Series record.
     /// </summary>
     /// <param name="NoSeries">The No. Series record to drill down on.</param>
