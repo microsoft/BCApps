@@ -12,6 +12,7 @@ codeunit 7778 "AOAI Tools Impl"
     InherentPermissions = X;
 
     var
+        AOAIToolInvokePreference: Enum "AOAI Tool Invoke Preference";
         Functions: array[20] of Interface "AOAI Function";
         FunctionNames: Dictionary of [Text, Integer];
         Initialized: Boolean;
@@ -171,12 +172,16 @@ codeunit 7778 "AOAI Tools Impl"
 
     procedure SetAddToolToPayload(AddToolsToPayload: Boolean)
     begin
+        Initialize();
+
         AddToolToPayload := AddToolsToPayload;
     end;
 
     [NonDebuggable]
     procedure SetToolChoice(NewToolChoice: Text)
     begin
+        Initialize();
+
         ToolChoice := NewToolChoice;
     end;
 
@@ -190,6 +195,8 @@ codeunit 7778 "AOAI Tools Impl"
         ToolChoiceObject: JsonObject;
         FunctionObject: JsonObject;
     begin
+        Initialize();
+
         ToolChoiceObject.add('type', 'function');
         FunctionObject.add('name', FunctionName);
         ToolChoiceObject.add('function', FunctionObject);
@@ -202,6 +209,18 @@ codeunit 7778 "AOAI Tools Impl"
         exit(ToolChoice);
     end;
 
+    procedure SetToolInvokePreference(NewAOAIToolInvokePreference: Enum "AOAI Tool Invoke Preference")
+    begin
+        Initialize();
+
+        AOAIToolInvokePreference := NewAOAIToolInvokePreference;
+    end;
+
+    procedure GetToolInvokePreference(): Enum "AOAI Tool Invoke Preference"
+    begin
+        exit(AOAIToolInvokePreference);
+    end;
+
     local procedure Initialize()
     begin
         if Initialized then
@@ -209,6 +228,8 @@ codeunit 7778 "AOAI Tools Impl"
 
         AddToolToPayload := true;
         ToolChoice := 'auto';
+        AOAIToolInvokePreference := Enum::"AOAI Tool Invoke Preference"::InvokeToolsOnly;
+
         Initialized := true;
     end;
 

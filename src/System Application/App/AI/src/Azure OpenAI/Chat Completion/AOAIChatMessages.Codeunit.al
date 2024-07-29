@@ -383,6 +383,23 @@ codeunit 7763 "AOAI Chat Messages"
     end;
 
     /// <summary>
+    /// Sets the tool invocation preference, controls how a tool calls response should be handled.
+    /// </summary>
+    /// <remarks>The default behavior is to execute the tools and append the results to the chat history.</remarks>
+    procedure SetToolInvokePreference(AOAIToolInvokePreference: Enum "AOAI Tool Invoke Preference")
+    begin
+        AOAIToolsImpl.SetToolInvokePreference(AOAIToolInvokePreference);
+    end;
+
+    /// <summary>
+    /// Gets the tool invocation preference, controls how a tool calls response should be handled.
+    /// </summary>
+    procedure GetToolInvokePreference(): Enum "AOAI Tool Invoke Preference"
+    begin
+        exit(AOAIToolsImpl.GetToolInvokePreference());
+    end;
+
+    /// <summary>
     /// Prepares the Tools to be sent to the deployment model.
     /// </summary>
     /// <returns>Tools in a JsonArray.</returns>

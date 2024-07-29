@@ -372,6 +372,9 @@ codeunit 7772 "Azure OpenAI Impl"
         ProcessChatCompletionResponse(ChatMessages, AOAIOperationResponse, CallerModuleInfo);
 
         FeatureTelemetry.LogUsage('0000KVN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+
+        if (AOAIOperationResponse.GetFunctionResponses().Count() > 0) and (ChatMessages.GetToolInvokePreference() = Enum::"AOAI Tool Invoke Preference"::Automatic) then
+            GenerateChatCompletion(ChatMessages, AOAIChatCompletionParams, AOAIOperationResponse, CallerModuleInfo);
     end;
 
     local procedure CheckJsonModeCompatibility(Payload: JsonObject)
@@ -426,7 +429,8 @@ codeunit 7772 "Azure OpenAI Impl"
             foreach AOAIFunctionResponse in AOAIOperationResponse.GetFunctionResponses() do
                 FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), Enum::"AL Telemetry Scope"::All, CustomDimensions);
 
-            AOAIOperationResponse.AppendFunctionResponsesToChatMessages(ChatMessages);
+            if ChatMessages.GetToolInvokePreference() in [Enum::"AOAI Tool Invoke Preference"::InvokeToolsOnly, Enum::"AOAI Tool Invoke Preference"::Automatic] then
+                AOAIOperationResponse.AppendFunctionResponsesToChatMessages(ChatMessages);
 
             Telemetry.LogMessage('0000MFH', TelemetryChatCompletionToolCallLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
         end;
@@ -483,12 +487,18 @@ codeunit 7772 "Azure OpenAI Impl"
             Arguments.ReadFrom(Token.AsValue().AsText());
 
         if ChatMessages.GetFunctionTool(FunctionName, AOAIFunction) then
-            if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then begin
+            if ChatMessages.GetToolInvokePreference() in [Enum::"AOAI Tool Invoke Preference"::InvokeToolsOnly, Enum::"AOAI Tool Invoke Preference"::Automatic] then
+                if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then begin
+                    AOAIFunctionResponse.SetFunctionCallingResponse(true, true, AOAIFunction.GetName(), FunctionId, FunctionResult, '', '');
+                    AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
+                    exit(true);
+                end else begin
+                    AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionId, FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
+                    AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
+                    exit(true);
+                end
+            else begin
                 AOAIFunctionResponse.SetFunctionCallingResponse(true, true, AOAIFunction.GetName(), FunctionId, FunctionResult, '', '');
-                AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
-                exit(true);
-            end else begin
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionId, FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
                 AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
                 exit(true);
             end
