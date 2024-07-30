@@ -24,7 +24,7 @@ codeunit 7770 "AOAI Operation Response"
         Error: Text;
         IncorrectRoleErr: Label 'The last chat message must have a role of assistant.';
         IncorrectToolCallsErr: Label 'The last chat message does not contain any tool calls to respond to.';
-        IncorrectToolCountsErr: Label 'The provided number of tool calls to not match the number of function calls. There may be unsupported tool call types.';
+        IncorrectToolCountsErr: Label 'The provided number of tool calls do not match the number of function calls. There may be unsupported tool call types.';
         FunctionCallDoesNotExistErr: Label 'The provided function response (%1 - %2) does not exist in the tool calls property', Comment = '%1 = the tool call id, e.g. call_1234567890, %2 = the function name, e.g. GetWeather';
 
     /// <summary>

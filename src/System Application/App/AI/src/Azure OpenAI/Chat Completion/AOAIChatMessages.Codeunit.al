@@ -69,6 +69,10 @@ codeunit 7763 "AOAI Chat Messages"
         AOAIChatMessagesImpl.AddAssistantMessage(NewMessage);
     end;
 
+    /// <summary>
+    /// Adds a assistant message containing the tool calls returned from the model to the chat messages history.
+    /// </summary>
+    /// <param name="ToolCalls">The tool calls to add.</param>
     [NonDebuggable]
     internal procedure AddToolCalls(ToolCalls: JsonArray)
     begin
