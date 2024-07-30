@@ -58,7 +58,7 @@ codeunit 339 "No. Series Cop. Generate" implements "AOAI Function"
         AzureKeyVault: Codeunit "Azure Key Vault";
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool4Definition', Definition) then begin
-            Telemetry.LogMessage('', TelemetryTool4DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+            Telemetry.LogMessage('0000ND8', TelemetryTool4DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
             Error(ToolLoadingErr);
         end;
     end;

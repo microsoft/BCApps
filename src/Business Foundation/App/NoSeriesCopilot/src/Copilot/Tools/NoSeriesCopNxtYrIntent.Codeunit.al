@@ -46,7 +46,7 @@ codeunit 349 "No. Series Cop. Nxt Yr. Intent" implements "AOAI Function"
         AzureKeyVault: Codeunit "Azure Key Vault";
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool3Definition', Definition) then begin
-            Telemetry.LogMessage('', TelemetryTool3DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+            Telemetry.LogMessage('0000ND9', TelemetryTool3DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
             Error(ToolLoadingErr);
         end;
     end;

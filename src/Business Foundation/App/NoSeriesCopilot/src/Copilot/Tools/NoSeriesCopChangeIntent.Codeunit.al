@@ -173,7 +173,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
     local procedure GetToolPrompt() Prompt: Text
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool2Prompt', Prompt) then begin
-            Telemetry.LogMessage('', TelemetryTool2PromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+            Telemetry.LogMessage('0000ND6', TelemetryTool2PromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
             Error(ToolLoadingErr);
         end;
     end;
@@ -182,7 +182,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
     local procedure GetTool2Definition() Definition: Text
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool2Definition', Definition) then begin
-            Telemetry.LogMessage('', TelemetryTool2DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+            Telemetry.LogMessage('0000ND7', TelemetryTool2DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
             Error(ToolLoadingErr);
         end;
     end;
