@@ -7,7 +7,8 @@ namespace Microsoft.Foundation.NoSeries;
 
 using System.Telemetry;
 using System.Globalization;
-// using System.Environment;
+using System.Azure.KeyVault;
+using System.Environment;
 using System.AI;
 using System.Text.Json;
 
@@ -16,6 +17,7 @@ codeunit 324 "No. Series Copilot Impl."
     Access = Internal;
 
     var
+        Telemetry: Codeunit Telemetry;
         IncorrectCompletionErr: Label 'Incorrect completion. The property %1 is empty', Comment = '%1 = property name';
         IncorrectCompletionNumberOfGeneratedNoSeriesErr: Label 'Incorrect completion. The number of generated number series is incorrect. Expected %1, but got %2', Comment = '%1 = Expected Number, %2 = Actual Number';
         TextLengthIsOverMaxLimitErr: Label 'The property %1 exceeds the maximum length of %2', Comment = '%1 = property name, %2 = maximum length';
@@ -24,6 +26,8 @@ codeunit 324 "No. Series Copilot Impl."
         ChatCompletionResponseErr: Label 'Sorry, something went wrong. Please rephrase and try again.';
         GeneratingNoSeriesForLbl: Label 'Generating number series %1', Comment = '%1 = No. Series';
         FeatureNameLbl: Label 'Number Series with AI', Locked = true;
+        TelemetryToolsSelectionPromptRetrievalErr: Label 'Unable to retrieve the prompt for No. Series Copilot Tools Selection from Azure Key Vault.', Locked = true;
+        ToolLoadingErr: Label 'Unable to load the No. Series Copilot Tool. Please try again later.';
 
     procedure GetNoSeriesSuggestions()
     var
@@ -37,12 +41,13 @@ codeunit 324 "No. Series Copilot Impl."
 
         FeatureTelemetry.LogUptake('0000LF4', FeatureName(), Enum::"Feature Uptake Status"::Discovered); //TODO: Update signal id
 
-        Page.Run(Page::"No. Series Generation");
+        Page.Run(Page::"No. Series Proposal");
     end;
 
-    procedure Generate(var NoSeriesGeneration: Record "No. Series Generation"; var ResponseText: Text; var GeneratedNoSeries: Record "No. Series Generation Detail"; InputText: Text)
+    procedure Generate(var NoSeriesProposal: Record "No. Series Proposal"; var ResponseText: Text; var GeneratedNoSeries: Record "No. Series Proposal Line"; InputText: Text)
     var
         TokenCountImpl: Codeunit "AOAI Token";
+        NotificationManager: Codeunit "No. Ser. Cop. Notific. Manager";
         SystemPromptTxt: SecretText;
         CompletePromptTokenCount: Integer;
         Completion: Text;
@@ -54,15 +59,15 @@ codeunit 324 "No. Series Copilot Impl."
         if CompletePromptTokenCount <= MaxInputTokens() then begin
             Completion := GenerateNoSeries(SystemPromptTxt, InputText);
             if CheckIfCompletionMeetAllRequirements(Completion) then begin
-                SaveGenerationHistory(NoSeriesGeneration, InputText);
-                CreateNoSeries(NoSeriesGeneration, GeneratedNoSeries, Completion);
+                SaveGenerationHistory(NoSeriesProposal, InputText);
+                CreateNoSeries(NoSeriesProposal, GeneratedNoSeries, Completion);
             end else
                 ResponseText := Completion;
         end else
-            SendNotification(GetChatCompletionResponseErr());
+            NotificationManager.SendNotification(GetChatCompletionResponseErr());
     end;
 
-    procedure ApplyGeneratedNoSeries(var GeneratedNoSeries: Record "No. Series Generation Detail")
+    procedure ApplyProposedNoSeries(var GeneratedNoSeries: Record "No. Series Proposal Line")
     begin
         if GeneratedNoSeries.FindSet() then
             repeat
@@ -71,13 +76,13 @@ codeunit 324 "No. Series Copilot Impl."
             until GeneratedNoSeries.Next() = 0;
     end;
 
-    local procedure InsertNoSeriesWithLines(var GeneratedNoSeries: Record "No. Series Generation Detail")
+    local procedure InsertNoSeriesWithLines(var GeneratedNoSeries: Record "No. Series Proposal Line")
     begin
         InsertNoSeries(GeneratedNoSeries);
         InsertNoSeriesLine(GeneratedNoSeries);
     end;
 
-    local procedure InsertNoSeries(var GeneratedNoSeries: Record "No. Series Generation Detail")
+    local procedure InsertNoSeries(var GeneratedNoSeries: Record "No. Series Proposal Line")
     var
         NoSeries: Record "No. Series";
     begin
@@ -91,7 +96,7 @@ codeunit 324 "No. Series Copilot Impl."
             NoSeries.Modify(true);
     end;
 
-    local procedure InsertNoSeriesLine(var GeneratedNoSeries: Record "No. Series Generation Detail")
+    local procedure InsertNoSeriesLine(var GeneratedNoSeries: Record "No. Series Proposal Line")
     var
         NoSeriesLine: Record "No. Series Line";
         Implementation: Enum "No. Series Implementation";
@@ -124,7 +129,7 @@ codeunit 324 "No. Series Copilot Impl."
         exit(NoSeriesLine."Line No.");
     end;
 
-    local procedure ApplyNoSeriesToSetup(var GeneratedNoSeries: Record "No. Series Generation Detail")
+    local procedure ApplyNoSeriesToSetup(var GeneratedNoSeries: Record "No. Series Proposal Line")
     var
         RecRef: RecordRef;
         FieldRef: FieldRef;
@@ -138,14 +143,18 @@ codeunit 324 "No. Series Copilot Impl."
         RecRef.Modify(true);
     end;
 
+    [NonDebuggable]
     local procedure GetToolsSelectionSystemPrompt() ToolsSelectionSystemPrompt: SecretText
     var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        ToolsSelectionPrompt: Text;
     begin
-        // This is a temporary solution to get the system prompt. The system prompt should be retrieved from the Azure Key Vault.
-        // TODO: Retrieve the system prompt from the Azure Key Vault, when passed all tests.
-        NoSeriesCopilotSetup.Get();
-        ToolsSelectionSystemPrompt := NoSeriesCopilotSetup.GetToolsSelectionPromptFromIsolatedStorage().Replace(DateSpecificPlaceholderLbl, Format(Today(), 0, 4));
+        if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotToolsSelectionPrompt', ToolsSelectionPrompt) then begin
+            Telemetry.LogMessage('', TelemetryToolsSelectionPromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+            Error(ToolLoadingErr);
+        end;
+
+        ToolsSelectionSystemPrompt := ToolsSelectionPrompt.Replace(DateSpecificPlaceholderLbl, Format(Today(), 0, 4));
     end;
 
     local procedure GenerateNoSeries(SystemPromptTxt: SecretText; InputText: Text): Text
@@ -213,6 +222,7 @@ codeunit 324 "No. Series Copilot Impl."
             CurrentAICallNumber += 1;
 
             AOAIChatCompletionParams.SetTemperature(0);
+            AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
             AOAIChatMessages.SetPrimarySystemMessage(SystemPrompt);
             AOAIChatMessages.AddUserMessage(InputText);
             AOAIChatMessages.AddTool(NoSeriesGenerateTool);
@@ -382,15 +392,15 @@ codeunit 324 "No. Series Copilot Impl."
         exit(NoSeriesJArray);
     end;
 
-    local procedure SaveGenerationHistory(var NoSeriesGeneration: Record "No. Series Generation"; InputText: Text)
+    local procedure SaveGenerationHistory(var NoSeriesProposal: Record "No. Series Proposal"; InputText: Text)
     begin
-        NoSeriesGeneration.Init();
-        NoSeriesGeneration."No." := NoSeriesGeneration.Count + 1;
-        NoSeriesGeneration.SetInputText(InputText);
-        NoSeriesGeneration.Insert(true);
+        NoSeriesProposal.Init();
+        NoSeriesProposal."No." := NoSeriesProposal.Count + 1;
+        NoSeriesProposal.SetInputText(InputText);
+        NoSeriesProposal.Insert(true);
     end;
 
-    local procedure CreateNoSeries(var NoSeriesGeneration: Record "No. Series Generation"; var GeneratedNoSeries: Record "No. Series Generation Detail"; Completion: Text)
+    local procedure CreateNoSeries(var NoSeriesProposal: Record "No. Series Proposal"; var GeneratedNoSeries: Record "No. Series Proposal Line"; Completion: Text)
     var
         Json: Codeunit Json;
         NoSeriesArrText: Text;
@@ -398,18 +408,18 @@ codeunit 324 "No. Series Copilot Impl."
         i: Integer;
     begin
         ReadGeneratedNumberSeriesJArray(Completion).WriteTo(NoSeriesArrText);
-        ReassembleDuplicates(NoSeriesArrText);
+        ReAssembleDuplicates(NoSeriesArrText);
 
         Json.InitializeCollection(NoSeriesArrText);
 
         for i := 0 to Json.GetCollectionCount() - 1 do begin
             Json.GetObjectFromCollectionByIndex(i, NoSeriesObj);
 
-            InsertGeneratedNoSeries(GeneratedNoSeries, NoSeriesObj, NoSeriesGeneration."No.");
+            InsertGeneratedNoSeries(GeneratedNoSeries, NoSeriesObj, NoSeriesProposal."No.");
         end;
     end;
 
-    local procedure ReassembleDuplicates(var NoSeriesArrText: Text)
+    local procedure ReAssembleDuplicates(var NoSeriesArrText: Text)
     var
         Json: Codeunit Json;
         i: Integer;
@@ -457,7 +467,7 @@ codeunit 324 "No. Series Copilot Impl."
     end;
 
 
-    local procedure InsertGeneratedNoSeries(var GeneratedNoSeries: Record "No. Series Generation Detail"; NoSeriesObj: Text; GenerationNo: Integer)
+    local procedure InsertGeneratedNoSeries(var GeneratedNoSeries: Record "No. Series Proposal Line"; NoSeriesObj: Text; ProposalNo: Integer)
     var
         Json: Codeunit Json;
         RecRef: RecordRef;
@@ -466,7 +476,7 @@ codeunit 324 "No. Series Copilot Impl."
 
         RecRef.GetTable(GeneratedNoSeries);
         RecRef.Init();
-        SetGenerationNo(RecRef, GenerationNo, GeneratedNoSeries.FieldNo("Generation No."));
+        SetProposalNo(RecRef, ProposalNo, GeneratedNoSeries.FieldNo("Proposal No."));
         Json.GetValueAndSetToRecFieldNo(RecRef, 'seriesCode', GeneratedNoSeries.FieldNo("Series Code"));
         Json.GetValueAndSetToRecFieldNo(RecRef, 'description', GeneratedNoSeries.FieldNo(Description));
         Json.GetValueAndSetToRecFieldNo(RecRef, 'startingNo', GeneratedNoSeries.FieldNo("Starting No."));
@@ -483,7 +493,7 @@ codeunit 324 "No. Series Copilot Impl."
 
     local procedure ValidateGeneratedNoSeries(var RecRef: RecordRef)
     var
-        GeneratedNoSeries: Record "No. Series Generation Detail";
+        GeneratedNoSeries: Record "No. Series Proposal Line";
     begin
         ValidateRecFieldNo(RecRef, GeneratedNoSeries.FieldNo("Is Next Year"));
         RecRef.Modify(true);
@@ -497,7 +507,7 @@ codeunit 324 "No. Series Copilot Impl."
         FieldRef.Validate();
     end;
 
-    local procedure SetGenerationNo(var RecRef: RecordRef; GenerationId: Integer; FieldNo: Integer)
+    local procedure SetProposalNo(var RecRef: RecordRef; GenerationId: Integer; FieldNo: Integer)
     var
         FieldRef: FieldRef;
     begin
@@ -527,10 +537,10 @@ codeunit 324 "No. Series Copilot Impl."
 
     procedure IsCopilotVisible(): Boolean
     var
-    // EnvironmentInformation: Codeunit "Environment Information";
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
-        // if not EnvironmentInformation.IsSaaSInfrastructure() then //TODO: Check how to keep IsSaaSInfrastructure but be able to test in Docker Environment
-        //     exit(false);
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit(false);
 
         if not IsSupportedLanguage() then
             exit(false);
@@ -555,30 +565,6 @@ codeunit 324 "No. Series Copilot Impl."
     procedure GetChatCompletionResponseErr(): Text
     begin
         exit(ChatCompletionResponseErr);
-    end;
-
-    local procedure GetNotificationId(): Guid
-    begin
-        exit('1fd2bfd6-6542-4574-8a88-f8247f4b8334');
-    end;
-
-    procedure RecallNotification()
-    var
-        Notification: Notification;
-    begin
-        Notification.Id := GetNotificationId();
-        Notification.Recall();
-    end;
-
-    procedure SendNotification(NotificationMessage: Text)
-    var
-        Notification: Notification;
-    begin
-        Notification.Id := GetNotificationId();
-        Notification.Scope := NotificationScope::LocalScope;
-        Notification.Recall();
-        Notification.Message := NotificationMessage;
-        Notification.Send();
     end;
 
     procedure FeatureName(): Text

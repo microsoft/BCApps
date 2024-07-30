@@ -5,20 +5,29 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+using System.Azure.KeyVault;
 using System.AI;
 using System.Reflection;
+using System.Telemetry;
 
 codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 {
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Access = Internal;
 
     var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        Telemetry: Codeunit Telemetry;
         ToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
         FunctionNameLbl: Label 'CreateNewNumberSeries', Locked = true;
         DateSpecificPlaceholderLbl: Label '{current_date}', Locked = true;
         CustomPatternsPlaceholderLbl: Label '{custom_patterns}', Locked = true;
         TablesYamlFormatPlaceholderLbl: Label '{tables_yaml_format}', Locked = true;
         NumberOfAddedTablesPlaceholderLbl: Label '{number_of_tables}', Locked = true;
+        TelemetryTool1PromptRetrievalErr: Label 'Unable to retrieve the prompt for No. Series Copilot Tool 1 from Azure Key Vault.', Locked = true;
+        TelemetryTool1DefinitionRetrievalErr: Label 'Unable to retrieve the definition for No. Series Copilot Tool 1 from Azure Key Vault.', Locked = true;
+        ToolLoadingErr: Label 'Unable to load the No. Series Copilot Tool 1. Please try again later.';
 
     procedure GetName(): Text
     begin
@@ -150,26 +159,21 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
     end;
 
     [NonDebuggable]
-    local procedure GetToolPrompt(): Text
-    var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    local procedure GetToolPrompt() Prompt: Text
     begin
-        // This is a temporary solution to get the tool prompt. The tool should be retrieved from the Azure Key Vault.
-        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
-        NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool1PromptFromIsolatedStorage())
+        if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool1Prompt', Prompt) then begin
+            Telemetry.LogMessage('', TelemetryTool1PromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+            Error(ToolLoadingErr);
+        end;
     end;
 
-
     [NonDebuggable]
-    local procedure GetToolDefinition(): Text
-    var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+    local procedure GetToolDefinition() Definition: Text
     begin
-        // This is a temporary solution to get the tool definition. The tool should be retrieved from the Azure Key Vault.
-        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
-        NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool1DefinitionFromIsolatedStorage())
+        if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool1Definition', Definition) then begin
+            Telemetry.LogMessage('', TelemetryTool1DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+            Error(ToolLoadingErr);
+        end;
     end;
 
 }

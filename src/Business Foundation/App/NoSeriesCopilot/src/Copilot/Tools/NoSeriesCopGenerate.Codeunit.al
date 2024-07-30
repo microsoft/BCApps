@@ -6,13 +6,20 @@
 namespace Microsoft.Foundation.NoSeries;
 
 using System.AI;
+using System.Azure.KeyVault;
+using System.Telemetry;
 
 codeunit 339 "No. Series Cop. Generate" implements "AOAI Function"
 {
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Access = Internal;
 
     var
+        Telemetry: Codeunit Telemetry;
         FunctionNameLbl: Label 'GenerateNumberSeries', Locked = true;
+        TelemetryTool4DefinitionRetrievalErr: Label 'Unable to retrieve the definition for No. Series Copilot Tool 4 from Azure Key Vault.', Locked = true;
+        ToolLoadingErr: Label 'Unable to load the No. Series Copilot Tool 4. Please try again later.';
 
     procedure GetName(): Text
     begin
@@ -45,16 +52,15 @@ codeunit 339 "No. Series Cop. Generate" implements "AOAI Function"
         exit('{"type": "function", "function": {"name": "GenerateNumberSeries"}}');
     end;
 
-
     [NonDebuggable]
-    local procedure GetTool4Definition(): Text
+    local procedure GetTool4Definition() Definition: Text
     var
-        NoSeriesCopilotSetup: Record "No. Series Copilot Setup";
+        AzureKeyVault: Codeunit "Azure Key Vault";
     begin
-        // This is a temporary solution to get the tool definition. The tool should be retrieved from the Azure Key Vault.
-        // TODO: Retrieve the tools from the Azure Key Vault, when passed all tests.
-        NoSeriesCopilotSetup.Get();
-        exit(NoSeriesCopilotSetup.GetTool4DefinitionFromIsolatedStorage())
+        if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool4Definition', Definition) then begin
+            Telemetry.LogMessage('', TelemetryTool4DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+            Error(ToolLoadingErr);
+        end;
     end;
 
     [TryFunction]
