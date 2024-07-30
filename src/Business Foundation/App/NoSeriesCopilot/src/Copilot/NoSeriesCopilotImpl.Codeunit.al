@@ -231,8 +231,6 @@ codeunit 324 "No. Series Copilot Impl."
 
             FinalResults.Add(GeneratedNoSeriesArray);
 
-            if CurrentAICallNumber < TotalAICallsRequired then
-                Sleep(1000); // sleep for 1000ms, as the model has tokens per minute rate limit
             Clear(AOAIChatMessages);
             Progress.Close();
         end;
