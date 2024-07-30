@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
 
       - name: Run Credential Scanning
-        uses: microsoft/security-devops-action@7e3060ae1e6a9347dd7de6b28195099f39852fe2 # v1.10.0
+        uses: microsoft/security-devops-action@cc007d020261b84193ccd49fa298eb8ba2408893 # v1.11.0
         id: credscan
         with:
           policy: Microsoft
