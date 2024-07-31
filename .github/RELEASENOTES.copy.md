@@ -27,6 +27,11 @@ All authentication context secrets now supports managed identities and federated
 
 In the summary after a Test Run, you now also have the result of performance tests.
 
+### Support Ubuntu runners for all AL-Go workflows
+
+Previously, the workflows "Update AL-Go System Files" and "TroubleShooting" were hardcoded to always run on `windows-latest` to prevent deadlocks and security issues.
+From now on, `ubuntu-lates` will also be allowed for these mission critical workflows, when changing the `runs-on` setting. Additionally, only the value `pwsh` for `shell` setting is allowed when using `ubuntu-latest` runners.
+
 ### New Settings
 
 - `deployTo<environmentName>`: is not really new, but has a new property:
