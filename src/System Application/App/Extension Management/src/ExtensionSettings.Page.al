@@ -98,9 +98,9 @@ page 2511 "Extension Settings"
                 }
             }
 
-            group("Source control details")
+            group("Source Control details")
             {
-                Caption = 'The source control details for the extension';
+                Caption = 'Source Control details';
                 Visible = IsSourceInformationAvailable;
 
                 field(RepositoryUrl; RepositoryUrl)
