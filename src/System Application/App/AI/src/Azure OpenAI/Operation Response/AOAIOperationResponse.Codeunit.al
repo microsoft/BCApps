@@ -14,11 +14,18 @@ codeunit 7770 "AOAI Operation Response"
     InherentPermissions = X;
 
     var
-        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+#if not CLEAN25
+        LastAOAIFunctionResponse: Codeunit "AOAI Function Response";
+#endif
+        AOAIFunctionResponses: List of [Codeunit "AOAI Function Response"];
         StatusCode: Integer;
         Success: Boolean;
         Result: Text;
         Error: Text;
+        IncorrectRoleErr: Label 'The last chat message must have a role of assistant.';
+        IncorrectToolCallsErr: Label 'The last chat message does not contain any tool calls to respond to.';
+        IncorrectToolCountsErr: Label 'The provided number of tool calls do not match the number of function calls. There may be unsupported tool call types.';
+        FunctionCallDoesNotExistErr: Label 'The provided function response (%1 - %2) does not exist in the tool calls property', Comment = '%1 = the tool call id, e.g. call_1234567890, %2 = the function name, e.g. GetWeather';
 
     /// <summary>
     /// Check whether the operation was successful.
@@ -61,21 +68,93 @@ codeunit 7770 "AOAI Operation Response"
     /// </summary>
     /// <returns>True if it was a function call, false otherwise.</returns>
     procedure IsFunctionCall(): Boolean
+    var
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
     begin
+        if not AOAIFunctionResponses.Get(1, AOAIFunctionResponse) then
+            exit(false);
+
         exit(AOAIFunctionResponse.IsFunctionCall());
     end;
 
+#if not CLEAN25
     /// <summary>
     /// Get the function response codeunit which contains the response details.
     /// </summary>
     /// <returns>The codeunit which contains response details for the function call.</returns>
+    [Obsolete('There could be multiple function responses, use GetFunctionResponses to iterate through them all. For compatibility, GetFunctionResponse will return the last function returned by the model', '25.0')]
     procedure GetFunctionResponse(): Codeunit "AOAI Function Response"
+    var
+        FunctionCount: Integer;
     begin
-        exit(AOAIFunctionResponse);
+        FunctionCount := AOAIFunctionResponses.Count();
+
+        if FunctionCount <= 0 then
+            exit(LastAOAIFunctionResponse);
+
+        AOAIFunctionResponses.Get(FunctionCount, LastAOAIFunctionResponse);
+        exit(LastAOAIFunctionResponse);
+    end;
+#endif
+
+    procedure GetFunctionResponses(): List of [Codeunit "AOAI Function Response"]
+    begin
+        exit(AOAIFunctionResponses);
+    end;
+
+    /// <summary>
+    /// Appends all of the successful function results to the provided AOAIChatMessages instance.
+    /// </summary>
+    /// <remarks>The last chat message in the history must contain the tool calls from this operation.</remarks>
+    /// <param name="AOAIChatMessages">The chat messages instance to append the result to.</param>
+    procedure AppendFunctionResponsesToChatMessages(var AOAIChatMessages: Codeunit "AOAI Chat Messages")
+    var
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        ToolCallType: JsonToken;
+        ToolCallId: JsonToken;
+        ToolCalls: JsonArray;
+        ToolCall: JsonToken;
+        ToolCallIds: List of [Text];
+    begin
+        if AOAIChatMessages.GetLastRole() <> ENum::"AOAI Chat Roles"::Assistant then
+            Error(IncorrectRoleErr);
+
+        ToolCalls := AOAIChatMessages.GetLastToolCalls();
+
+        if ToolCalls.Count() <= 0 then
+            Error(IncorrectToolCallsErr);
+
+        // Build the set of ids
+        foreach ToolCall in ToolCalls do
+            if ToolCall.AsObject().Get('type', ToolCallType) and (ToolCallType.AsValue().AsText() = 'function') then
+                if ToolCall.AsObject().Get('id', ToolCallId) then
+                    ToolCallIds.Add(ToolCallId.AsValue().AsText());
+
+        if (ToolCalls.Count() <> ToolCallIds.Count()) or (ToolCallIds.Count() <> AOAIFunctionResponses.Count()) then
+            Error(IncorrectToolCountsErr);
+
+        // append the tool call results, while validating that they exist in the tool calls
+        foreach AOAIFunctionResponse in AOAIFunctionResponses do begin
+            if not ToolCallIds.Contains(AOAIFunctionResponse.GetFunctionId()) then
+                Error(FunctionCallDoesNotExistErr, AOAIFunctionResponse.GetFunctionId(), AOAIFunctionResponse.GetFunctionName());
+
+            if AOAIFunctionResponse.IsSuccess() then
+                AOAIFunctionResponse.AppendResultToChatMessages(AOAIChatMessages);
+        end;
+    end;
+
+    internal procedure AddFunctionResponse(var AOAIFunctionResponse: Codeunit "AOAI Function Response")
+    begin
+        AOAIFunctionResponses.Add(AOAIFunctionResponse);
     end;
 
     internal procedure SetOperationResponse(NewSuccess: Boolean; NewStatusCode: Integer; NewResult: Text; NewError: Text)
     begin
+        Clear(AOAIFunctionResponses);
+#if not CLEAN25
+        Clear(LastAOAIFunctionResponse);
+#endif
+
         Success := NewSuccess;
         StatusCode := NewStatusCode;
         Result := NewResult;

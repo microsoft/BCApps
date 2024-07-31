@@ -329,6 +329,7 @@ codeunit 2012 "Entity Text Impl."
         GenerateProdMktAdFunction: Codeunit "Generate Prod Mkt Ad Function";
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        AOAIFunctionResponses: List of [Codeunit "AOAI Function Response"];
         TelemetryCD: Dictionary of [Text, Text];
         StartDateTime: DateTime;
         DurationAsBigInt: BigInteger;
@@ -371,15 +372,19 @@ codeunit 2012 "Entity Text Impl."
 
         if AOAIOperationResponse.IsSuccess() then
             if AOAIOperationResponse.IsFunctionCall() then begin
-                AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
+                AOAIFunctionResponses := AOAIOperationResponse.GetFunctionResponses();
                 FeatureTelemetry.LogUsage('0000N5C', GetFeatureName(), 'Call Chat Completion API', TelemetryCD);
-                if AOAIFunctionResponse.IsSuccess() then begin
+
+                foreach AOAIFunctionResponse in AOAIFunctionResponses do begin
+                    if not AOAIFunctionResponse.IsSuccess() then begin
+                        FeatureTelemetry.LogError('0000N5Z', GetFeatureName(), 'Call Chat Completion API', 'AOAI Function response is not sucessfull', '', TelemetryCD);
+                        exit('');
+                    end;
+
                     Result := AOAIFunctionResponse.GetResult();
+
                     if AOAIFunctionResponse.GetFunctionName() = MagicFunction.GetName() then
-                        Error(Result)
-                end else begin
-                    Clear(Result);
-                    FeatureTelemetry.LogError('0000N5Z', GetFeatureName(), 'Call Chat Completion API', 'AOAI Function response is not sucessfull', '', TelemetryCD);
+                        Error(Result);
                 end;
             end else begin
                 Clear(Result);
@@ -392,6 +397,7 @@ codeunit 2012 "Entity Text Impl."
 
         if EntityTextAOAISettings.ContainsWordsInDenyList(Result) then
             Clear(Result);
+
         exit(Result);
     end;
 
