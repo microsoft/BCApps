@@ -122,7 +122,7 @@ function OpenPR {
 
     git push -u origin $branch | Out-Null
 
-    $prDescription += "`n`nFixes AB#420000." # Add link to a work item
+    $prDescription += "`n`nAB#539394" # Add link to a work item
     return New-GitHubPullRequest -Repository $Repository -BranchName $branch -TargetBranch $TargetBranch -Title $prTitle -Description $prDescription
 }
 

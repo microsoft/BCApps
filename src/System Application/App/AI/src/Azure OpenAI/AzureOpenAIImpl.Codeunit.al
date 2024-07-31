@@ -374,6 +374,7 @@ codeunit 7772 "Azure OpenAI Impl"
         FeatureTelemetry.LogUsage('0000KVN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
     end;
 
+    [NonDebuggable]
     local procedure CheckJsonModeCompatibility(Payload: JsonObject)
     var
         ResponseFormatToken: JsonToken;

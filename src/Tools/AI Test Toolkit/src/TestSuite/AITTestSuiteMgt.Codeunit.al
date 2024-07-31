@@ -7,6 +7,7 @@ namespace System.TestTools.AITestToolkit;
 
 using System.Reflection;
 using System.TestTools.TestRunner;
+using System.Utilities;
 
 codeunit 149034 "AIT Test Suite Mgt."
 {
@@ -46,8 +47,6 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         AITTestMethodLine: Record "AIT Test Method Line";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-        StatusDialog: Dialog;
-        RunningStatusMsg: Label 'Running test...\#1#########################################################################################', Comment = '#1 = Test codeunit name';
     begin
         ValidateAITestSuite(AITTestSuite);
         AITTestSuite.RunID := CreateGuid();
@@ -67,20 +66,16 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ", true);
 
-        if AITTestMethodLine.FindSet() then begin
-            StatusDialog.Open(RunningStatusMsg);
+        if AITTestMethodLine.FindSet() then
             repeat
-                AITTestMethodLine.CalcFields("Codeunit Name");
-                StatusDialog.Update(1, AITTestMethodLine."Codeunit Name");
                 RunAITestLine(AITTestMethodLine, false);
             until AITTestMethodLine.Next() = 0;
-            StatusDialog.Close();
-        end;
     end;
 
     internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; UpdateSuiteVersion: Boolean)
     var
         AITTestSuite: Record "AIT Test Suite";
+        TestRunnerProgressDialog: Codeunit "Test Runner - Progress Dialog";
     begin
         if UpdateSuiteVersion then begin
             AITTestSuite.Get(AITTestMethodLine."Test Suite Code");
@@ -91,7 +86,10 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Running);
         AITTestMethodLine.Modify(true);
         Commit();
+
+        BindSubscription(TestRunnerProgressDialog);
         Codeunit.Run(Codeunit::"AIT Test Run Iteration", AITTestMethodLine);
+
         if AITTestMethodLine.Find() then begin
             AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Completed);
             AITTestMethodLine.Modify(true);
@@ -365,9 +363,9 @@ codeunit 149034 "AIT Test Suite Mgt."
 
     internal procedure GetAvgDuration(AITTestMethodLine: Record "AIT Test Method Line"): Integer
     begin
-        if AITTestMethodLine."No. of Tests" = 0 then
+        if AITTestMethodLine."No. of Tests Executed" = 0 then
             exit(0);
-        exit(AITTestMethodLine."Total Duration (ms)" div AITTestMethodLine."No. of Tests");
+        exit(AITTestMethodLine."Total Duration (ms)" div AITTestMethodLine."No. of Tests Executed");
     end;
 
     internal procedure SetTestOutput(Scenario: Text; OutputValue: Text)
@@ -388,6 +386,23 @@ codeunit 149034 "AIT Test Suite Mgt."
             exit(OutputValue);
         end else
             exit('');
+    end;
+
+    internal procedure ExportAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
+    var
+        TempBlob: Codeunit "Temp Blob";
+        AITSuiteXMLPort: XmlPort "AIT Test Suite Import/Export";
+        FileNameTxt: Text;
+        AITTestSuiteOutStream: OutStream;
+        AITTestSuiteInStream: InStream;
+        TestOutputFileNameTxt: Label '%1.xml', Comment = '%1 = Filename', Locked = true;
+    begin
+        TempBlob.CreateOutStream(AITTestSuiteOutStream, AITSuiteXMLPort.TextEncoding);
+        Xmlport.Export(Xmlport::"AIT Test Suite Import/Export", AITTestSuiteOutStream, AITTestSuite);
+        TempBlob.CreateInStream(AITTestSuiteInStream, AITSuiteXMLPort.TextEncoding);
+
+        FileNameTxt := StrSubstNo(TestOutputFileNameTxt, AITTestSuite.Code);
+        DownloadFromStream(AITTestSuiteInStream, '', '', '.xml', FileNameTxt);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Suite", OnBeforeDeleteEvent, '', false, false)]

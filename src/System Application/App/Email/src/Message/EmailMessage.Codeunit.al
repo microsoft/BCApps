@@ -61,6 +61,26 @@ codeunit 8904 "Email Message"
         EmailMessageImpl.Create(ToRecipients, Subject, Body, HtmlFormatted, CCRecipients, BCCRecipients);
     end;
 
+    procedure CreateReply(ToRecipients: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    begin
+        EmailMessageImpl.CreateReply(ToRecipients, Body, HtmlFormatted, ExternalId);
+    end;
+
+    procedure CreateReply(ToRecipients: List of [Text]; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    begin
+        EmailMessageImpl.CreateReply(ToRecipients, Body, HtmlFormatted, ExternalId);
+    end;
+
+    procedure CreateReply(ToRecipients: List of [Text]; Body: Text; HtmlFormatted: Boolean; ExternalId: Text; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
+    begin
+        EmailMessageImpl.CreateReply(ToRecipients, Body, HtmlFormatted, ExternalId, CCRecipients, BCCRecipients);
+    end;
+
+    procedure CreateReplyAll(Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    begin
+        EmailMessageImpl.CreateReplyAll(Body, HtmlFormatted, ExternalId);
+    end;
+
     /// <summary>
     /// Gets the email message with the given ID.
     /// </summary>
@@ -108,6 +128,11 @@ codeunit 8904 "Email Message"
     procedure AppendToBody(Value: Text)
     begin
         EmailMessageImpl.AppendToBody(Value);
+    end;
+
+    procedure GetExternalId(): Text[2048]
+    begin
+        exit(EmailMessageImpl.GetExternalId());
     end;
 
     /// <summary>

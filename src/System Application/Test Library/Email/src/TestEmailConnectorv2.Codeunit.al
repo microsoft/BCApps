@@ -7,8 +7,12 @@ namespace System.TestLibraries.Email;
 
 using System.Email;
 
-codeunit 134687 "Test Email Connector" implements "Email Connector"
+codeunit 134682 "Test Email Connector v2" implements "Email Connector v2", "Email Connector" // Temporary bug #540622
 {
+
+    var
+        ConnectorMock: Codeunit "Connector Mock";
+
     procedure Send(EmailMessage: Codeunit "Email Message"; AccountId: Guid)
     begin
         ConnectorMock.SetEmailMessageID(EmailMessage.GetId());
@@ -19,7 +23,7 @@ codeunit 134687 "Test Email Connector" implements "Email Connector"
 
     procedure GetAccounts(var Accounts: Record "Email Account")
     begin
-        ConnectorMock.GetAccounts(Accounts, Enum::"Email Connector"::"Test Email Connector");
+        ConnectorMock.GetAccounts(Accounts, Enum::"Email Connector"::"Test Email Connector v2");
     end;
 
     procedure ShowAccountInformation(AccountId: Guid)
@@ -61,6 +65,26 @@ codeunit 134687 "Test Email Connector" implements "Email Connector"
         exit('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis ornare ante a est commodo interdum. Pellentesque eu diam maximus, faucibus neque ut, viverra leo. Praesent ullamcorper nibh ut pretium dapibus. Nullam eu dui libero. Etiam ac cursus metus.')
     end;
 
-    var
-        ConnectorMock: Codeunit "Connector Mock";
+    procedure Reply(var EmailMessage: Codeunit "Email Message"; AccountId: Guid)
+    begin
+        if ConnectorMock.FailOnReply() then
+            Error('Failed to send email');
+    end;
+
+    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox")
+    begin
+        if ConnectorMock.FailOnRetrieveEmails() then
+            Error('Failed to retrieve emails');
+
+        ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v2", EmailInbox);
+        EmailInbox.Mark(true);
+        ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v2", EmailInbox);
+        EmailInbox.Mark(true);
+    end;
+
+    procedure MarkAsRead(AccountId: Guid; ConversationId: Text)
+    begin
+        if ConnectorMock.FailOnMarkAsRead() then
+            Error('Failed to mark email as read');
+    end;
 }
