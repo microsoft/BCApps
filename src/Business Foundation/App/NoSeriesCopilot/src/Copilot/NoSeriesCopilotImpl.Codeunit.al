@@ -6,7 +6,6 @@
 namespace Microsoft.Foundation.NoSeries;
 
 using System.Telemetry;
-using System.Globalization;
 using System.Azure.KeyVault;
 using System.Environment;
 using System.AI;
@@ -144,10 +143,11 @@ codeunit 324 "No. Series Copilot Impl."
     local procedure GetToolsSelectionSystemPrompt() ToolsSelectionSystemPrompt: SecretText
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
+        Telemetry: Codeunit Telemetry;
         ToolsSelectionPrompt: Text;
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotToolsSelectionPrompt', ToolsSelectionPrompt) then begin
-            Telemetry.LogMessage('', TelemetryToolsSelectionPromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
+            Telemetry.LogMessage('0000NDY', TelemetryToolsSelectionPromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
             Error(ToolLoadingErr);
         end;
 
@@ -204,7 +204,6 @@ codeunit 324 "No. Series Copilot Impl."
         ToolResponse: Dictionary of [Text, Integer]; // tool response can be a list of strings, as the response can be too long and exceed the token limit. In this case each string would be a separate message, each of them should be called separately. The integer is the number of tables used in the prompt, so we can test if the LLM answer covers all tables
         GeneratedNoSeriesArray: Text;
         FinalResults: List of [Text]; // The final response will be the concatenation of all the LLM responses (final results).
-        CurrentAICallNumber, TotalAICallsRequired : Integer;
         Progress: Dialog;
     begin
         AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
@@ -212,11 +211,9 @@ codeunit 324 "No. Series Copilot Impl."
             Error(AOAIFunctionResponse.GetError());
 
         ToolResponse := AOAIFunctionResponse.GetResult();
-        TotalAICallsRequired := ToolResponse.Count();
 
         foreach SystemPrompt in ToolResponse.Keys() do begin
             Progress.Open(StrSubstNo(GeneratingNoSeriesForLbl, NoSeriesCopToolsImpl.ExtractAreaWithPrefix(SystemPrompt)));
-            CurrentAICallNumber += 1;
 
             AOAIChatCompletionParams.SetTemperature(0);
             AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
