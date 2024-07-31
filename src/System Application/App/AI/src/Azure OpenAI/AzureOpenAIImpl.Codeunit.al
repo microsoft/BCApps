@@ -421,7 +421,7 @@ codeunit 7772 "Azure OpenAI Impl"
             ChatMessages.AddToolCalls(CompletionToken.AsArray());
 
             if not ProcessToolCalls(CompletionToken.AsArray(), ChatMessages, AOAIOperationResponse) then begin
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::FunctionInvalid, '', '', '', '', '');
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::"Function Invalid", '', '', '', '', '');
                 AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
             end;
 
@@ -430,7 +430,7 @@ codeunit 7772 "Azure OpenAI Impl"
                 if not AOAIFunctionResponse.IsSuccess() then
                     FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), Enum::"AL Telemetry Scope"::All, CustomDimensions);
 
-            if ChatMessages.GetToolInvokePreference() in [Enum::"AOAI Tool Invoke Preference"::InvokeToolsOnly, Enum::"AOAI Tool Invoke Preference"::Automatic] then
+            if ChatMessages.GetToolInvokePreference() in [Enum::"AOAI Tool Invoke Preference"::"Invoke Tools Only", Enum::"AOAI Tool Invoke Preference"::Automatic] then
                 AOAIOperationResponse.AppendFunctionResponsesToChatMessages(ChatMessages);
 
             Telemetry.LogMessage('0000MFH', TelemetryChatCompletionToolCallLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
@@ -488,23 +488,23 @@ codeunit 7772 "Azure OpenAI Impl"
             Arguments.ReadFrom(Token.AsValue().AsText());
 
         if ChatMessages.GetFunctionTool(FunctionName, AOAIFunction) then
-            if ChatMessages.GetToolInvokePreference() in [Enum::"AOAI Tool Invoke Preference"::InvokeToolsOnly, Enum::"AOAI Tool Invoke Preference"::Automatic] then
+            if ChatMessages.GetToolInvokePreference() in [Enum::"AOAI Tool Invoke Preference"::"Invoke Tools Only", Enum::"AOAI Tool Invoke Preference"::Automatic] then
                 if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then begin
-                    AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::InvokeSuccess, AOAIFunction.GetName(), FunctionId, FunctionResult, '', '');
+                    AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::"Invoke Success", AOAIFunction.GetName(), FunctionId, FunctionResult, '', '');
                     AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
                     exit(true);
                 end else begin
-                    AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::InvokeError, AOAIFunction.GetName(), FunctionId, FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
+                    AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::"Invoke Error", AOAIFunction.GetName(), FunctionId, FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
                     AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
                     exit(true);
                 end
             else begin
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::NotInvoked, AOAIFunction.GetName(), FunctionId, FunctionResult, '', '');
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::"Not Invoked", AOAIFunction.GetName(), FunctionId, FunctionResult, '', '');
                 AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
                 exit(true);
             end
         else begin
-            AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::FunctionNotFound, FunctionName, FunctionId, FunctionResult, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
+            AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::"Function Not Found", FunctionName, FunctionId, FunctionResult, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
             AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
             exit(true);
         end;

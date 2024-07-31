@@ -228,7 +228,7 @@ codeunit 7778 "AOAI Tools Impl"
 
         AddToolToPayload := true;
         ToolChoice := 'auto';
-        AOAIToolInvokePreference := Enum::"AOAI Tool Invoke Preference"::InvokeToolsOnly;
+        AOAIToolInvokePreference := Enum::"AOAI Tool Invoke Preference"::"Invoke Tools Only";
 
         Initialized := true;
     end;

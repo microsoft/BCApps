@@ -17,7 +17,7 @@ enum 7776 "AOAI Tool Invoke Preference"
     /// Appends the tool results to the chat history.
     /// </summary>
     /// <remarks>This is the default preference.</remarks>
-    value(0; InvokeToolsOnly)
+    value(0; "Invoke Tools Only")
     {
         Caption = 'Invoke Tools Only';
     }

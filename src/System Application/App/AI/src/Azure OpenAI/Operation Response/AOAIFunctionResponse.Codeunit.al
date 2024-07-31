@@ -28,7 +28,7 @@ codeunit 7758 "AOAI Function Response"
     /// <returns>True if the call was successful, false otherwise.</returns>
     procedure IsSuccess(): Boolean
     begin
-        exit(AOAIFunctionResponseStatus = Enum::"AOAI Function Response Status"::InvokeSuccess);
+        exit(AOAIFunctionResponseStatus = Enum::"AOAI Function Response Status"::"Invoke Success");
     end;
 
     /// <summary>

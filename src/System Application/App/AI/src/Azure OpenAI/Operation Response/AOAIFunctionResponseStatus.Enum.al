@@ -15,7 +15,7 @@ enum 7777 "AOAI Function Response Status"
     /// <summary>
     /// The function has not been invoked.
     /// </summary>
-    value(0; NotInvoked)
+    value(0; "Not Invoked")
     {
         Caption = 'Not Invoked';
     }
@@ -23,7 +23,7 @@ enum 7777 "AOAI Function Response Status"
     /// <summary>
     /// The function was invoked and completed without error.
     /// </summary>
-    value(1; InvokeSuccess)
+    value(1; "Invoke Success")
     {
         Caption = 'Invoke Success';
     }
@@ -31,7 +31,7 @@ enum 7777 "AOAI Function Response Status"
     /// <summary>
     /// The function was invoked and completed with error.
     /// </summary>
-    value(2; InvokeError)
+    value(2; "Invoke Error")
     {
         Caption = 'Invoke Error';
     }
@@ -39,7 +39,7 @@ enum 7777 "AOAI Function Response Status"
     /// <summary>
     /// The requested function could not be found.
     /// </summary>
-    value(3; FunctionNotFound)
+    value(3; "Function Not Found")
     {
         Caption = 'Function Not Found';
     }
@@ -47,7 +47,7 @@ enum 7777 "AOAI Function Response Status"
     /// <summary>
     /// The requested function was invalid.
     /// </summary>
-    value(4; FunctionInvalid)
+    value(4; "Function Invalid")
     {
         Caption = 'Function Invalid';
     }
