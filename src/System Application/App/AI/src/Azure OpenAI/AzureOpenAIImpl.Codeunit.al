@@ -134,9 +134,7 @@ codeunit 7772 "Azure OpenAI Impl"
                     exit(false);
                 end;
             else
-                // Privacy notice not set, we will not cross geo-boundries
                 exit(true);
-
         end;
     end;
 
