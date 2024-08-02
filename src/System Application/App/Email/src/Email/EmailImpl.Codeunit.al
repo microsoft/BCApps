@@ -17,7 +17,7 @@ codeunit 8900 "Email Impl"
     InherentEntitlements = X;
     Permissions = tabledata "Sent Email" = rimd,
                   tabledata "Email Outbox" = rimd,
-                  tabledata "Email Inbox" = rimd,
+                  tabledata "Email Inbox" = rid,
                   tabledata "Email Related Record" = rid,
                   tabledata "Email Message" = r,
                   tabledata "Email Error" = r,

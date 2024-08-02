@@ -204,32 +204,36 @@ codeunit 324 "No. Series Copilot Impl."
         ToolResponse: Dictionary of [Text, Integer]; // tool response can be a list of strings, as the response can be too long and exceed the token limit. In this case each string would be a separate message, each of them should be called separately. The integer is the number of tables used in the prompt, so we can test if the LLM answer covers all tables
         GeneratedNoSeriesArray: Text;
         FinalResults: List of [Text]; // The final response will be the concatenation of all the LLM responses (final results).
+        FunctionResponses: List of [Codeunit "AOAI Function Response"];
         Progress: Dialog;
     begin
-        AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
-        if not AOAIFunctionResponse.IsSuccess() then
-            Error(AOAIFunctionResponse.GetError());
+        FunctionResponses := AOAIOperationResponse.GetFunctionResponses();
 
-        ToolResponse := AOAIFunctionResponse.GetResult();
+        foreach AOAIFunctionResponse in FunctionResponses do begin
+            if not AOAIFunctionResponse.IsSuccess() then
+                Error(AOAIFunctionResponse.GetError());
 
-        foreach SystemPrompt in ToolResponse.Keys() do begin
-            Progress.Open(StrSubstNo(GeneratingNoSeriesForLbl, NoSeriesCopToolsImpl.ExtractAreaWithPrefix(SystemPrompt)));
+            ToolResponse := AOAIFunctionResponse.GetResult();
 
-            AOAIChatCompletionParams.SetTemperature(0);
-            AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
-            AOAIChatMessages.SetPrimarySystemMessage(SystemPrompt);
-            AOAIChatMessages.AddUserMessage(InputText);
-            AOAIChatMessages.AddTool(NoSeriesGenerateTool);
-            AOAIChatMessages.SetToolChoice(NoSeriesGenerateTool.GetDefaultToolChoice());
+            foreach SystemPrompt in ToolResponse.Keys() do begin
+                Progress.Open(StrSubstNo(GeneratingNoSeriesForLbl, NoSeriesCopToolsImpl.ExtractAreaWithPrefix(SystemPrompt)));
 
-            // call the API again to get the final response from the model
-            if not GenerateAndReviewToolCompletionWithRetry(AzureOpenAI, AOAIChatMessages, AOAIChatCompletionParams, GeneratedNoSeriesArray, GetExpectedNoSeriesCount(ToolResponse, SystemPrompt)) then
-                Error(GetLastErrorText());
+                AOAIChatCompletionParams.SetTemperature(0);
+                AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
+                AOAIChatMessages.SetPrimarySystemMessage(SystemPrompt);
+                AOAIChatMessages.AddUserMessage(InputText);
+                AOAIChatMessages.AddTool(NoSeriesGenerateTool);
+                AOAIChatMessages.SetToolChoice(NoSeriesGenerateTool.GetDefaultToolChoice());
 
-            FinalResults.Add(GeneratedNoSeriesArray);
+                // call the API again to get the final response from the model
+                if not GenerateAndReviewToolCompletionWithRetry(AzureOpenAI, AOAIChatMessages, AOAIChatCompletionParams, GeneratedNoSeriesArray, GetExpectedNoSeriesCount(ToolResponse, SystemPrompt)) then
+                    Error(GetLastErrorText());
 
-            Clear(AOAIChatMessages);
-            Progress.Close();
+                FinalResults.Add(GeneratedNoSeriesArray);
+
+                Clear(AOAIChatMessages);
+                Progress.Close();
+            end;
         end;
 
         exit(ConcatenateToolResponse(FinalResults));
@@ -258,7 +262,7 @@ codeunit 324 "No. Series Copilot Impl."
             if not AOAIOperationResponse.IsFunctionCall() then
                 Error(TheResponseShouldBeAFunctionCallErr);
 
-            AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
+            AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponses().Get(1); // There is only one tool
             if not AOAIFunctionResponse.IsSuccess() then
                 Error(AOAIFunctionResponse.GetError());
 
