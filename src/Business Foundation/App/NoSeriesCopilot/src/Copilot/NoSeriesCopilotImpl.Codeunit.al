@@ -204,9 +204,11 @@ codeunit 324 "No. Series Copilot Impl."
         ToolResponse: Dictionary of [Text, Integer]; // tool response can be a list of strings, as the response can be too long and exceed the token limit. In this case each string would be a separate message, each of them should be called separately. The integer is the number of tables used in the prompt, so we can test if the LLM answer covers all tables
         GeneratedNoSeriesArray: Text;
         FinalResults: List of [Text]; // The final response will be the concatenation of all the LLM responses (final results).
+        FunctionResponses: List of [Codeunit "AOAI Function Response"];
         Progress: Dialog;
     begin
-        AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
+        FunctionResponses := AOAIOperationResponse.GetFunctionResponses();
+        if FunctionResponses.Get(1, AOAIFunctionResponse) then;
         if not AOAIFunctionResponse.IsSuccess() then
             Error(AOAIFunctionResponse.GetError());
 
@@ -246,6 +248,7 @@ codeunit 324 "No. Series Copilot Impl."
     var
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        FunctionResponses: List of [Codeunit "AOAI Function Response"];
         MaxAttempts: Integer;
         Attempt: Integer;
     begin
@@ -258,7 +261,8 @@ codeunit 324 "No. Series Copilot Impl."
             if not AOAIOperationResponse.IsFunctionCall() then
                 Error(TheResponseShouldBeAFunctionCallErr);
 
-            AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
+            FunctionResponses := AOAIOperationResponse.GetFunctionResponses();
+            if FunctionResponses.Get(1, AOAIFunctionResponse) then;
             if not AOAIFunctionResponse.IsSuccess() then
                 Error(AOAIFunctionResponse.GetError());
 
