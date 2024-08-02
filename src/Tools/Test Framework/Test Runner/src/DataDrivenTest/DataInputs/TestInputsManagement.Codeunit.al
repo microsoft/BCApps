@@ -132,7 +132,7 @@ codeunit 130458 "Test Inputs Management"
         TestInput.SetRange("Test Input Group Code", TestInputGroup.Code);
         TelemetryCD.Add('File Type', FileType);
         TelemetryCD.Add('No. of entries', Format(TestInput.Count()));
-        Session.LogMessage('', 'Data Driven Test: Test Input Imported', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCD);
+        Session.LogMessage('0000NF1', 'Data Driven Test: Test Input Imported', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCD);
     end;
 
     procedure UploadAndImportDataInputsFromJson(var TestInputGroup: Record "Test Input Group")

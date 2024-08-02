@@ -69,7 +69,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         FeatureTelemetryCD.Add('RunID', Format(AITTestSuite.RunID));
         FeatureTelemetryCD.Add('Version', Format(AITTestSuite.Version));
         FeatureTelemetryCD.Add('No. of test method lines', Format(AITTestMethodLine.Count()));
-        FeatureTelemetry.LogUptake('', FeatureNameLbl, Enum::"Feature Uptake Status"::"Set up", FeatureTelemetryCD);
+        FeatureTelemetry.LogUptake('0000NEW', FeatureNameLbl, Enum::"Feature Uptake Status"::"Set up", FeatureTelemetryCD);
 
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ", true);
 
@@ -94,7 +94,7 @@ codeunit 149034 "AIT Test Suite Mgt."
 
             // Log the feature telemetry when executed from the test method line
             TelemetryCustomDimensions.Add('Version', Format(AITTestSuite.Version));
-            FeatureTelemetry.LogUptake('', GetFeatureName(), Enum::"Feature Uptake Status"::"Set up", TelemetryCustomDimensions);
+            FeatureTelemetry.LogUptake('0000NEX', GetFeatureName(), Enum::"Feature Uptake Status"::"Set up", TelemetryCustomDimensions);
         end;
 
         AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Running);
@@ -114,7 +114,7 @@ codeunit 149034 "AIT Test Suite Mgt."
                 AITTestMethodLine.SetRange("Version Filter", AITTestSuite.Version);
                 AITTestMethodLine.CalcFields("No. of Tests Executed", "No. of Tests Passed", "Total Duration (ms)");
                 TelemetryCustomDimensions := GetFeatureUsedInsights(EmptyGuid, AITTestSuite.Version, AITTestMethodLine."No. of Tests Executed", AITTestMethodLine."No. of Tests Passed", AITTestMethodLine."Total Duration (ms)");
-                FeatureTelemetry.LogUptake('', GetFeatureName(), Enum::"Feature Uptake Status"::Used, TelemetryCustomDimensions);
+                FeatureTelemetry.LogUptake('0000NEY', GetFeatureName(), Enum::"Feature Uptake Status"::Used, TelemetryCustomDimensions);
             end;
         end;
     end;
@@ -225,7 +225,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         if AITTestSuite.Status = AITTestSuite.Status::Completed then begin
             AITTestSuite.CalcFields("No. of Tests Executed", "No. of Tests Passed", "Total Duration (ms)");
             TelemetryCustomDimensions := GetFeatureUsedInsights(AITTestSuite.RunID, AITTestSuite.Version, AITTestSuite."No. of Tests Executed", AITTestSuite."No. of Tests Passed", AITTestSuite."Total Duration (ms)");
-            FeatureTelemetry.LogUptake('', FeatureNameLbl, Enum::"Feature Uptake Status"::Used, TelemetryCustomDimensions);
+            FeatureTelemetry.LogUptake('0000NEZ', FeatureNameLbl, Enum::"Feature Uptake Status"::Used, TelemetryCustomDimensions);
         end;
     end;
 

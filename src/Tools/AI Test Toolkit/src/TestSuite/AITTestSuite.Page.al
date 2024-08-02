@@ -274,7 +274,7 @@ page 149031 "AIT Test Suite"
     begin
         EnableActions := (EnvironmentInformation.IsSaaS() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
         if EnableActions then
-            FeatureTelemetry.LogUptake('', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
+            FeatureTelemetry.LogUptake('0000NEV', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
