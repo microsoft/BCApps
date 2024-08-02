@@ -109,18 +109,30 @@ codeunit 130458 "Test Inputs Management"
     procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream)
     var
         TestInputGroup: Record "Test Input Group";
+        TestInput: Record "Test Input";
         InputText: Text;
+        FileType: Text;
+        TelemetryCD: Dictionary of [Text, Text];
     begin
         if not TestInputGroup.Find() then
             CreateTestInputGroup(TestInputGroup, FileName);
 
         if FileName.EndsWith(JsonFileExtensionTxt) then begin
+            FileType := JsonFileExtensionTxt;
             TestInputInStream.Read(InputText);
             ParseDataInputs(InputText, TestInputGroup)
         end;
 
-        if FileName.EndsWith(JsonlFileExtensionTxt) then
+        if FileName.EndsWith(JsonlFileExtensionTxt) then begin
+            FileType := JsonlFileExtensionTxt;
             ParseDataInputsJsonl(TestInputInStream, TestInputGroup);
+        end;
+
+        // Log telemetry for the number of lines imported and the file type
+        TestInput.SetRange("Test Input Group Code", TestInputGroup.Code);
+        TelemetryCD.Add('File Type', FileType);
+        TelemetryCD.Add('No. of entries', Format(TestInput.Count()));
+        Session.LogMessage('0000NF1', 'Data Driven Test: Test Input Imported', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCD);
     end;
 
     procedure UploadAndImportDataInputsFromJson(var TestInputGroup: Record "Test Input Group")
