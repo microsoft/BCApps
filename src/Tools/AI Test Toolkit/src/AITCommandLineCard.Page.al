@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Environment;
+using System.Telemetry;
 using System.TestTools.TestRunner;
 using System.Utilities;
 
@@ -208,8 +209,12 @@ page 149042 "AIT CommandLine Card"
     trigger OnOpenPage()
     var
         EnvironmentInformation: Codeunit "Environment Information";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
         EnableActions := (EnvironmentInformation.IsSaaS() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
+        if EnableActions then
+            FeatureTelemetry.LogUptake('', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
     end;
 
     var
@@ -243,7 +248,7 @@ page 149042 "AIT CommandLine Card"
         AITTestMethodLine.SetRange("Test Suite Code", AITCode);
         AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::" ");
         if AITTestMethodLine.FindFirst() then
-            AITTestSuiteMgt.RunAITestLine(AITTestMethodLine, true);
+            AITTestSuiteMgt.RunAITestLine(AITTestMethodLine, false);
 
         RefreshNoOfPendingTests();
     end;

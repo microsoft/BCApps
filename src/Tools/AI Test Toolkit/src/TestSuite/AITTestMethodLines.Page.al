@@ -152,7 +152,7 @@ page 149034 "AIT Test Method Lines"
                 begin
                     if Rec."Codeunit ID" = 0 then
                         exit;
-                    AITTestSuiteMgt.RunAITestLine(Rec, true);
+                    AITTestSuiteMgt.RunAITestLine(Rec, false);
                     CurrPage.Update(false);
                 end;
             }
