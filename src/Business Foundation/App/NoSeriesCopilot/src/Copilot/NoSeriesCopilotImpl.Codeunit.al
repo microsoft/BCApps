@@ -208,30 +208,32 @@ codeunit 324 "No. Series Copilot Impl."
         Progress: Dialog;
     begin
         FunctionResponses := AOAIOperationResponse.GetFunctionResponses();
-        if FunctionResponses.Get(1, AOAIFunctionResponse) then;
-        if not AOAIFunctionResponse.IsSuccess() then
-            Error(AOAIFunctionResponse.GetError());
 
-        ToolResponse := AOAIFunctionResponse.GetResult();
+        foreach AOAIFunctionResponse in FunctionResponses do begin
+            if not AOAIFunctionResponse.IsSuccess() then
+                Error(AOAIFunctionResponse.GetError());
 
-        foreach SystemPrompt in ToolResponse.Keys() do begin
-            Progress.Open(StrSubstNo(GeneratingNoSeriesForLbl, NoSeriesCopToolsImpl.ExtractAreaWithPrefix(SystemPrompt)));
+            ToolResponse := AOAIFunctionResponse.GetResult();
 
-            AOAIChatCompletionParams.SetTemperature(0);
-            AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
-            AOAIChatMessages.SetPrimarySystemMessage(SystemPrompt);
-            AOAIChatMessages.AddUserMessage(InputText);
-            AOAIChatMessages.AddTool(NoSeriesGenerateTool);
-            AOAIChatMessages.SetToolChoice(NoSeriesGenerateTool.GetDefaultToolChoice());
+            foreach SystemPrompt in ToolResponse.Keys() do begin
+                Progress.Open(StrSubstNo(GeneratingNoSeriesForLbl, NoSeriesCopToolsImpl.ExtractAreaWithPrefix(SystemPrompt)));
 
-            // call the API again to get the final response from the model
-            if not GenerateAndReviewToolCompletionWithRetry(AzureOpenAI, AOAIChatMessages, AOAIChatCompletionParams, GeneratedNoSeriesArray, GetExpectedNoSeriesCount(ToolResponse, SystemPrompt)) then
-                Error(GetLastErrorText());
+                AOAIChatCompletionParams.SetTemperature(0);
+                AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
+                AOAIChatMessages.SetPrimarySystemMessage(SystemPrompt);
+                AOAIChatMessages.AddUserMessage(InputText);
+                AOAIChatMessages.AddTool(NoSeriesGenerateTool);
+                AOAIChatMessages.SetToolChoice(NoSeriesGenerateTool.GetDefaultToolChoice());
 
-            FinalResults.Add(GeneratedNoSeriesArray);
+                // call the API again to get the final response from the model
+                if not GenerateAndReviewToolCompletionWithRetry(AzureOpenAI, AOAIChatMessages, AOAIChatCompletionParams, GeneratedNoSeriesArray, GetExpectedNoSeriesCount(ToolResponse, SystemPrompt)) then
+                    Error(GetLastErrorText());
 
-            Clear(AOAIChatMessages);
-            Progress.Close();
+                FinalResults.Add(GeneratedNoSeriesArray);
+
+                Clear(AOAIChatMessages);
+                Progress.Close();
+            end;
         end;
 
         exit(ConcatenateToolResponse(FinalResults));
@@ -248,7 +250,6 @@ codeunit 324 "No. Series Copilot Impl."
     var
         AOAIOperationResponse: Codeunit "AOAI Operation Response";
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
-        FunctionResponses: List of [Codeunit "AOAI Function Response"];
         MaxAttempts: Integer;
         Attempt: Integer;
     begin
@@ -261,8 +262,7 @@ codeunit 324 "No. Series Copilot Impl."
             if not AOAIOperationResponse.IsFunctionCall() then
                 Error(TheResponseShouldBeAFunctionCallErr);
 
-            FunctionResponses := AOAIOperationResponse.GetFunctionResponses();
-            if FunctionResponses.Get(1, AOAIFunctionResponse) then;
+            AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponses().Get(1); // There is only one tool
             if not AOAIFunctionResponse.IsSuccess() then
                 Error(AOAIFunctionResponse.GetError());
 
