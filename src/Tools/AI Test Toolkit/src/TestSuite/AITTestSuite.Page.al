@@ -6,6 +6,7 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.Environment;
+using System.Telemetry;
 using System.TestTools.TestRunner;
 
 page 149031 "AIT Test Suite"
@@ -269,8 +270,11 @@ page 149031 "AIT Test Suite"
     trigger OnOpenPage()
     var
         EnvironmentInformation: Codeunit "Environment Information";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         EnableActions := (EnvironmentInformation.IsSaaS() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
+        if EnableActions then
+            FeatureTelemetry.LogUptake('0000NEV', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
