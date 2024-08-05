@@ -10,7 +10,8 @@ using System.TestLibraries.Utilities;
 
 codeunit 134688 "Connector Mock"
 {
-    Permissions = tabledata "Email Rate Limit" = rimd;
+    Permissions = tabledata "Email Rate Limit" = rimd,
+                  tabledata "Email Inbox" = rimd;
 
     var
         Any: Codeunit Any;
@@ -26,6 +27,10 @@ codeunit 134688 "Connector Mock"
         TestEmailConnectorSetup.Id := Any.GuidValue();
         TestEmailConnectorSetup."Fail On Send" := false;
         TestEmailConnectorSetup."Fail On Register Account" := false;
+        TestEmailConnectorSetup."Fail On Mark As Read" := false;
+        TestEmailConnectorSetup."Fail On Reply" := false;
+        TestEmailConnectorSetup."Fail On Retrieve Emails" := false;
+        TestEmailConnectorSetup."Fail On Send" := false;
         TestEmailConnectorSetup."Unsuccessful Register" := false;
         TestEmailConnectorSetup.Insert();
 
@@ -33,21 +38,28 @@ codeunit 134688 "Connector Mock"
         EmailRateLimit.DeleteAll();
     end;
 
-    procedure GetAccounts(var EmailAccount: Record "Email Account")
+    procedure GetAccounts(var EmailAccount: Record "Email Account"; Connector: Enum "Email Connector")
     var
         TestEmailAccount: Record "Test Email Account";
     begin
+        TestEmailAccount.SetRange("Connector", Connector);
         if TestEmailAccount.FindSet() then
             repeat
                 EmailAccount.Init();
                 EmailAccount."Account Id" := TestEmailAccount.Id;
                 EmailAccount.Name := TestEmailAccount.Name;
                 EmailAccount."Email Address" := TestEmailAccount.Email;
+                EmailAccount.Connector := Connector;
                 EmailAccount.Insert();
             until TestEmailAccount.Next() = 0;
     end;
 
     procedure AddAccount(var EmailAccount: Record "Email Account")
+    begin
+        AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector");
+    end;
+
+    procedure AddAccount(var EmailAccount: Record "Email Account"; Connector: Enum "Email Connector")
     var
         EmailRateLimit: Record "Email Rate Limit";
         TestEmailAccount: Record "Test Email Account";
@@ -55,12 +67,13 @@ codeunit 134688 "Connector Mock"
         TestEmailAccount.Id := Any.GuidValue();
         TestEmailAccount.Name := CopyStr(Any.AlphanumericText(250), 1, 250);
         TestEmailAccount.Email := CopyStr(Any.Email(), 1, 250);
+        TestEmailAccount.Connector := Connector;
         TestEmailAccount.Insert();
 
         EmailAccount."Account Id" := TestEmailAccount.Id;
         EmailAccount.Name := TestEmailAccount.Name;
         EmailAccount."Email Address" := TestEmailAccount.Email;
-        EmailAccount.Connector := Enum::"Email Connector"::"Test Email Connector";
+        EmailAccount.Connector := Connector;
 
         EmailRateLimit."Account Id" := EmailAccount."Account Id";
         EmailRateLimit.Connector := EmailAccount.Connector;
@@ -70,6 +83,11 @@ codeunit 134688 "Connector Mock"
     end;
 
     procedure AddAccount(var Id: Guid)
+    begin
+        AddAccount(Id, Enum::"Email Connector"::"Test Email Connector");
+    end;
+
+    procedure AddAccount(var Id: Guid; Connector: Enum "Email Connector")
     var
         EmailRateLimit: Record "Email Rate Limit";
         TestEmailAccount: Record "Test Email Account";
@@ -77,6 +95,7 @@ codeunit 134688 "Connector Mock"
         TestEmailAccount.Id := Any.GuidValue();
         TestEmailAccount.Name := CopyStr(Any.AlphanumericText(250), 1, 250);
         TestEmailAccount.Email := CopyStr(Any.Email(), 1, 250);
+        TestEmailAccount.Connector := Connector;
         TestEmailAccount.Insert();
 
         Id := TestEmailAccount.Id;
@@ -86,6 +105,16 @@ codeunit 134688 "Connector Mock"
         EmailRateLimit."Email Address" := TestEmailAccount.Email;
         EmailRateLimit."Rate Limit" := 0;
         EmailRateLimit.Insert();
+    end;
+
+    procedure CreateEmailInbox(AccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox")
+    begin
+        EmailInbox.Init();
+        EmailInbox.Id := 0;
+        EmailInbox."Account Id" := AccountId;
+        EmailInbox.Connector := Connector;
+        EmailInbox.Insert();
+        Commit();
     end;
 
     procedure FailOnSend(): Boolean
@@ -102,6 +131,57 @@ codeunit 134688 "Connector Mock"
     begin
         TestEmailConnectorSetup.FindFirst();
         TestEmailConnectorSetup."Fail On Send" := Fail;
+        TestEmailConnectorSetup.Modify();
+    end;
+
+    procedure FailOnReply(): Boolean
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        exit(TestEmailConnectorSetup."Fail On Reply");
+    end;
+
+    procedure FailOnReply(Fail: Boolean)
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        TestEmailConnectorSetup."Fail On Reply" := Fail;
+        TestEmailConnectorSetup.Modify();
+    end;
+
+    procedure FailOnRetrieveEmails(): Boolean
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        exit(TestEmailConnectorSetup."Fail On Retrieve Emails");
+    end;
+
+    procedure FailOnRetrieveEmails(Fail: Boolean)
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        TestEmailConnectorSetup."Fail On Retrieve Emails" := Fail;
+        TestEmailConnectorSetup.Modify();
+    end;
+
+    procedure FailOnMarkAsRead(): Boolean
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        exit(TestEmailConnectorSetup."Fail On Mark As Read");
+    end;
+
+    procedure FailOnMarkAsRead(Fail: Boolean)
+    var
+        TestEmailConnectorSetup: Record "Test Email Connector Setup";
+    begin
+        TestEmailConnectorSetup.FindFirst();
+        TestEmailConnectorSetup."Fail On Mark As Read" := Fail;
         TestEmailConnectorSetup.Modify();
     end;
 

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestLibraries.Email;
+using System.Email;
 
 table 134686 "Test Email Account"
 {
@@ -25,6 +26,11 @@ table 134686 "Test Email Account"
         field(3; Name; Text[250])
         {
             Caption = 'Name';
+        }
+
+        field(4; Connector; Enum "Email Connector")
+        {
+            Caption = 'Connector';
         }
     }
 

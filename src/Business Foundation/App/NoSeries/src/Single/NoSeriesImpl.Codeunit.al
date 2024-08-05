@@ -429,6 +429,20 @@ codeunit 304 "No. Series - Impl."
         exit(OriginalNoSeriesCode);
     end;
 
+    procedure IsNoSeriesInDateOrder(NoSeriesCode: Code[20]): Boolean
+    var
+        NoSeries: Record "No. Series";
+    begin
+        if not NoSeries.Get(NoSeriesCode) then
+            exit(false);
+        exit(NoSeries."Date Order");
+    end;
+
+    procedure IsNoSeriesInDateOrder(NoSeries: Record "No. Series"): Boolean
+    begin
+        exit(NoSeries."Date Order");
+    end;
+
     local procedure ValidateCanGetNextNo(var NoSeriesLine: Record "No. Series Line"; SeriesDate: Date; HideErrorsAndWarnings: Boolean): Boolean
     var
         NoSeriesErrorsImpl: Codeunit "No. Series - Errors Impl.";

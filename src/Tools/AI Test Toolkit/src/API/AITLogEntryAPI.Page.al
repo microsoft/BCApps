@@ -48,7 +48,7 @@ page 149038 "AIT Log Entry API"
                 }
                 field("version"; Rec.Version)
                 {
-                    Caption = 'Version No.';
+                    Caption = 'Version';
                 }
                 field(modelVersion; Rec."Model Version")
                 {
