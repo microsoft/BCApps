@@ -163,7 +163,7 @@ codeunit 1489 "Edit in Excel Workbook Impl."
         ConnectionInfo.HostName := HostName;
 
         DataEntityExportInfo.Connection := ConnectionInfo;
-        DataEntityExportInfo.Language := LanguageIDToCultureName(WindowsLanguage);
+        DataEntityExportInfo.Language := LanguageIDToCultureName(GlobalLanguage());
         DataEntityExportInfo.EnableDesign := true;
         DataEntityExportInfo.RefreshOnOpen := true;
         DataEntityExportInfo.DateCreated := CurrentDateTime();
@@ -238,5 +238,4 @@ codeunit 1489 "Edit in Excel Workbook Impl."
         CultureInfo := CultureInfo.GetCultureInfo(LanguageID);
         exit(CultureInfo.Name);
     end;
-
 }

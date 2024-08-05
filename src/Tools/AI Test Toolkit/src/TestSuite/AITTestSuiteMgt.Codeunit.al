@@ -7,6 +7,8 @@ namespace System.TestTools.AITestToolkit;
 
 using System.Reflection;
 using System.TestTools.TestRunner;
+using System.Utilities;
+using System.Telemetry;
 
 codeunit 149034 "AIT Test Suite Mgt."
 {
@@ -14,9 +16,6 @@ codeunit 149034 "AIT Test Suite Mgt."
 
     var
         GlobalAITTestSuite: Record "AIT Test Suite";
-        AITRunStartedLbl: Label 'AI Test Suite run started.', Locked = true;
-        AITRunFinishedLbl: Label 'AI Test Suite run finished.', Locked = true;
-        AITRunCancelledLbl: Label 'AI Test Suite run cancelled.', Locked = true;
         EmptyDatasetSuiteErr: Label 'Please provide a dataset for the AI Test Suite %1.', Comment = '%1 is the AI Test Suite code';
         NoDatasetInSuiteErr: Label 'The dataset %1 specified for AI Test Suite %2 does not exist.', Comment = '%1 is the Dataset name, %2 is the AI Test Suite code';
         NoInputsInSuiteErr: Label 'The dataset %1 specified for AI Test Suite %2 has no input lines.', Comment = '%1 is the Dataset name, %2 is the AI Test Suite code.';
@@ -27,6 +26,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         ScenarioNotStartedErr: Label 'Scenario %1 in codeunit %2 was not started.', Comment = '%1 = method name, %2 = codeunit name';
         NothingToRunErr: Label 'There is nothing to run. Please add test lines to the test suite.';
         CannotRunMultipleSuitesInParallelErr: Label 'There is already a test run in progress. You need to wait for it to finish or cancel it before starting a new test run.';
+        FeatureNameLbl: Label 'AI Test Toolkit', Locked = true;
 
     procedure StartAITSuite(var AITTestSuite: Record "AIT Test Suite")
     var
@@ -46,8 +46,8 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         AITTestMethodLine: Record "AIT Test Method Line";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-        StatusDialog: Dialog;
-        RunningStatusMsg: Label 'Running test...\#1#########################################################################################', Comment = '#1 = Test codeunit name';
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        FeatureTelemetryCD: Dictionary of [Text, Text];
     begin
         ValidateAITestSuite(AITTestSuite);
         AITTestSuite.RunID := CreateGuid();
@@ -65,37 +65,57 @@ codeunit 149034 "AIT Test Suite Mgt."
         if AITTestMethodLine.IsEmpty() then
             exit;
 
+        // Log the feature telemetry when executed from test suite header
+        FeatureTelemetryCD.Add('RunID', Format(AITTestSuite.RunID));
+        FeatureTelemetryCD.Add('Version', Format(AITTestSuite.Version));
+        FeatureTelemetryCD.Add('No. of test method lines', Format(AITTestMethodLine.Count()));
+        FeatureTelemetry.LogUptake('0000NEW', FeatureNameLbl, Enum::"Feature Uptake Status"::"Set up", FeatureTelemetryCD);
+
         AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ", true);
 
-        if AITTestMethodLine.FindSet() then begin
-            StatusDialog.Open(RunningStatusMsg);
+        if AITTestMethodLine.FindSet() then
             repeat
-                AITTestMethodLine.CalcFields("Codeunit Name");
-                StatusDialog.Update(1, AITTestMethodLine."Codeunit Name");
-                RunAITestLine(AITTestMethodLine, false);
+                RunAITestLine(AITTestMethodLine, true);
             until AITTestMethodLine.Next() = 0;
-            StatusDialog.Close();
-        end;
     end;
 
-    internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; UpdateSuiteVersion: Boolean)
+    internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; IsExecutedFromTestSuiteHeader: Boolean)
     var
         AITTestSuite: Record "AIT Test Suite";
+        TestRunnerProgressDialog: Codeunit "Test Runner - Progress Dialog";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        TelemetryCustomDimensions: Dictionary of [Text, Text];
+        EmptyGuid: Guid;
     begin
-        if UpdateSuiteVersion then begin
+        if not IsExecutedFromTestSuiteHeader then begin
             AITTestSuite.Get(AITTestMethodLine."Test Suite Code");
             AITTestSuite.Version += 1;
             AITTestSuite.Modify(true);
+
+            // Log the feature telemetry when executed from the test method line
+            TelemetryCustomDimensions.Add('Version', Format(AITTestSuite.Version));
+            FeatureTelemetry.LogUptake('0000NEX', GetFeatureName(), Enum::"Feature Uptake Status"::"Set up", TelemetryCustomDimensions);
         end;
 
         AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Running);
         AITTestMethodLine.Modify(true);
         Commit();
+
+        BindSubscription(TestRunnerProgressDialog);
         Codeunit.Run(Codeunit::"AIT Test Run Iteration", AITTestMethodLine);
+
         if AITTestMethodLine.Find() then begin
             AITTestMethodLine.Validate(Status, AITTestMethodLine.Status::Completed);
             AITTestMethodLine.Modify(true);
             Commit();
+
+            // Log the feature telemetry when execution from the test method line has completed
+            if not IsExecutedFromTestSuiteHeader then begin
+                AITTestMethodLine.SetRange("Version Filter", AITTestSuite.Version);
+                AITTestMethodLine.CalcFields("No. of Tests Executed", "No. of Tests Passed", "Total Duration (ms)");
+                TelemetryCustomDimensions := GetFeatureUsedInsights(EmptyGuid, AITTestSuite.Version, AITTestMethodLine."No. of Tests Executed", AITTestMethodLine."No. of Tests Passed", AITTestMethodLine."Total Duration (ms)");
+                FeatureTelemetry.LogUptake('0000NEY', GetFeatureName(), Enum::"Feature Uptake Status"::Used, TelemetryCustomDimensions);
+            end;
         end;
     end;
 
@@ -191,31 +211,22 @@ codeunit 149034 "AIT Test Suite Mgt."
 
     internal procedure SetRunStatus(var AITTestSuite: Record "AIT Test Suite"; AITTestSuiteStatus: Enum "AIT Test Suite Status")
     var
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         TelemetryCustomDimensions: Dictionary of [Text, Text];
-        SuiteExecutionDuration: Integer;
     begin
-        TelemetryCustomDimensions.Add('RunID', Format(AITTestSuite.RunID));
-        TelemetryCustomDimensions.Add('Code', AITTestSuite.Code);
-        if AITTestSuiteStatus <> AITTestSuiteStatus::Running then begin
+        if AITTestSuiteStatus <> AITTestSuiteStatus::Running then
             AITTestSuite."Ended at" := CurrentDateTime();
-            SuiteExecutionDuration := AITTestSuite."Ended at" - AITTestSuite."Started at";
-            TelemetryCustomDimensions.Add('DurationInMilliseconds', Format(SuiteExecutionDuration));
-        end;
-        TelemetryCustomDimensions.Add('Version', Format(AITTestSuite.Version));
 
         AITTestSuite.Status := AITTestSuiteStatus;
-        AITTestSuite.CalcFields("No. of Tests Executed", "Total Duration (ms)");
-
-        case AITTestSuiteStatus of
-            AITTestSuiteStatus::Running:
-                Session.LogMessage('0000DHR', AITRunStartedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
-            AITTestSuiteStatus::Completed:
-                Session.LogMessage('0000DHS', AITRunFinishedLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
-            AITTestSuiteStatus::Cancelled:
-                Session.LogMessage('0000DHT', AITRunCancelledLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCustomDimensions);
-        end;
         AITTestSuite.Modify(true);
         Commit();
+
+        // Log feature telemetry when execution from the test suite header has completed
+        if AITTestSuite.Status = AITTestSuite.Status::Completed then begin
+            AITTestSuite.CalcFields("No. of Tests Executed", "No. of Tests Passed", "Total Duration (ms)");
+            TelemetryCustomDimensions := GetFeatureUsedInsights(AITTestSuite.RunID, AITTestSuite.Version, AITTestSuite."No. of Tests Executed", AITTestSuite."No. of Tests Passed", AITTestSuite."Total Duration (ms)");
+            FeatureTelemetry.LogUptake('0000NEZ', FeatureNameLbl, Enum::"Feature Uptake Status"::Used, TelemetryCustomDimensions);
+        end;
     end;
 
     internal procedure StartScenario(ScenarioOperation: Text)
@@ -335,42 +346,24 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry.Insert(true);
 
         Commit();
-        AddLogAppInsights(AITLogEntry);
         AITTestRunIteration.AddToNoOfLogEntriesInserted();
     end;
 
-    local procedure AddLogAppInsights(var AITLogEntry: Record "AIT Log Entry")
-    var
-        Dimensions: Dictionary of [Text, Text];
-        TelemetryLogLbl: Label 'AI Test Tool - %1 - %2 - %3', Locked = true;
+    local procedure GetFeatureUsedInsights(RunId: Guid; Version: Integer; NoOfTestsExecuted: Integer; NoOfTestsPassed: Integer; TotalDurationInMs: Integer) TelemetryCustomDimensions: Dictionary of [Text, Text];
     begin
-        Dimensions.Add('RunID', AITLogEntry."Run ID");
-        Dimensions.Add('Code', AITLogEntry."Test Suite Code");
-        Dimensions.Add('LineNo', Format(AITLogEntry."Test Method Line No."));
-        Dimensions.Add('Version', Format(AITLogEntry.Version));
-        Dimensions.Add('CodeunitId', Format(AITLogEntry."Codeunit ID"));
-        AITLogEntry.CalcFields("Codeunit Name");
-        Dimensions.Add('CodeunitName', AITLogEntry."Codeunit Name");
-        Dimensions.Add('Operation', AITLogEntry.Operation);
-        Dimensions.Add('Status', Format(AITLogEntry.Status));
-        Dimensions.Add('StartTime', Format(AITLogEntry."Start Time"));
-        Dimensions.Add('EndTime', Format(AITLogEntry."End Time"));
-        Dimensions.Add('DurationInMs', Format(AITLogEntry."Duration (ms)"));
-
-        Session.LogMessage(
-            '0000DGF',
-            StrSubstNo(TelemetryLogLbl, AITLogEntry."Test Suite Code", AITLogEntry.Operation, AITLogEntry.Status),
-            Verbosity::Normal,
-            DataClassification::SystemMetadata,
-            TelemetryScope::All,
-            Dimensions)
+        if not IsNullGuid(RunId) then
+            TelemetryCustomDimensions.Add('RunID', Format(RunId));
+        TelemetryCustomDimensions.Add('Version', Format(Version));
+        TelemetryCustomDimensions.Add('NoOfTestsExecuted', Format(NoOfTestsExecuted));
+        TelemetryCustomDimensions.Add('NoOfTestsPassed', Format(NoOfTestsPassed));
+        TelemetryCustomDimensions.Add('TotalDurationInMs', Format(TotalDurationInMs));
     end;
 
     internal procedure GetAvgDuration(AITTestMethodLine: Record "AIT Test Method Line"): Integer
     begin
-        if AITTestMethodLine."No. of Tests" = 0 then
+        if AITTestMethodLine."No. of Tests Executed" = 0 then
             exit(0);
-        exit(AITTestMethodLine."Total Duration (ms)" div AITTestMethodLine."No. of Tests");
+        exit(AITTestMethodLine."Total Duration (ms)" div AITTestMethodLine."No. of Tests Executed");
     end;
 
     internal procedure SetTestOutput(Scenario: Text; OutputValue: Text)
@@ -391,6 +384,28 @@ codeunit 149034 "AIT Test Suite Mgt."
             exit(OutputValue);
         end else
             exit('');
+    end;
+
+    internal procedure ExportAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
+    var
+        TempBlob: Codeunit "Temp Blob";
+        AITSuiteXMLPort: XmlPort "AIT Test Suite Import/Export";
+        FileNameTxt: Text;
+        AITTestSuiteOutStream: OutStream;
+        AITTestSuiteInStream: InStream;
+        TestOutputFileNameTxt: Label '%1.xml', Comment = '%1 = Filename', Locked = true;
+    begin
+        TempBlob.CreateOutStream(AITTestSuiteOutStream, AITSuiteXMLPort.TextEncoding);
+        Xmlport.Export(Xmlport::"AIT Test Suite Import/Export", AITTestSuiteOutStream, AITTestSuite);
+        TempBlob.CreateInStream(AITTestSuiteInStream, AITSuiteXMLPort.TextEncoding);
+
+        FileNameTxt := StrSubstNo(TestOutputFileNameTxt, AITTestSuite.Code);
+        DownloadFromStream(AITTestSuiteInStream, '', '', '.xml', FileNameTxt);
+    end;
+
+    internal procedure GetFeatureName(): Text
+    begin
+        exit(FeatureNameLbl);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Suite", OnBeforeDeleteEvent, '', false, false)]

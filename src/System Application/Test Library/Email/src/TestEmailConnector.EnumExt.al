@@ -13,4 +13,8 @@ enumextension 134684 "Test Email Connector" extends "Email Connector"
     {
         Implementation = "Email Connector" = "Test Email Connector";
     }
+    value(134685; "Test Email Connector v2")
+    {
+        Implementation = "Email Connector" = "Test Email Connector v2";
+    }
 }

@@ -32,6 +32,18 @@ table 134687 "Test Email Connector Setup"
         {
             Caption = 'Email Message ID';
         }
+        field(6; "Fail On Reply"; Boolean)
+        {
+            Caption = 'Fail On Reply';
+        }
+        field(7; "Fail On Retrieve Emails"; Boolean)
+        {
+            Caption = 'Fail On Retrieve Emails';
+        }
+        field(8; "Fail On Mark As Read"; Boolean)
+        {
+            Caption = 'Fail On Retrieve Emails';
+        }
     }
 
     keys

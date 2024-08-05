@@ -83,7 +83,7 @@ page 149035 "AIT Test Method Lines Compare"
                     group("Latest Version")
                     {
                         Caption = 'Latest Version';
-                        field("No. of Tests"; Rec."No. of Tests")
+                        field("No. of Tests Executed"; Rec."No. of Tests Executed")
                         {
                             ShowCaption = false;
                         }
@@ -92,7 +92,7 @@ page 149035 "AIT Test Method Lines Compare"
                             Style = Favorable;
                             ShowCaption = false;
                         }
-                        field("No. of Tests Failed"; Rec."No. of Tests" - Rec."No. of Tests Passed")
+                        field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
                         {
                             Editable = false;
                             Caption = 'Number of Tests Failed';
@@ -120,7 +120,7 @@ page 149035 "AIT Test Method Lines Compare"
                     group("Base Version")
                     {
                         Caption = 'Base Version';
-                        field("No. of Tests - Base"; Rec."No. of Tests - Base")
+                        field("No. of Tests Executed - Base"; Rec."No. of Tests Executed - Base")
                         {
                             ToolTip = 'Specifies the number of tests in this Line for the base version.';
                             ShowCaption = false;
@@ -130,7 +130,7 @@ page 149035 "AIT Test Method Lines Compare"
                             Style = Favorable;
                             ShowCaption = false;
                         }
-                        field("No. of Tests Failed - Base"; Rec."No. of Tests - Base" - Rec."No. of Tests Passed - Base")
+                        field("No. of Tests Failed - Base"; Rec."No. of Tests Executed - Base" - Rec."No. of Tests Passed - Base")
                         {
                             Editable = false;
                             Caption = 'No. of Tests Failed - Base';

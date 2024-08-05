@@ -327,6 +327,32 @@ codeunit 310 "No. Series"
     end;
 
     /// <summary>
+    /// Returns true if the number series has Date Order set.
+    /// </summary>
+    /// <param name="NoSeriesCode">The No. Series code to check.</param>
+    /// <returns>True if the number series is marked for date order, false otherwise.</returns>
+    /// <Remarks>If Date Order is true, numbers must be retrieved in chronological order.</Remarks>
+    procedure IsNoSeriesInDateOrder(NoSeriesCode: Code[20]): Boolean
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.IsNoSeriesInDateOrder(NoSeriesCode));
+    end;
+
+    /// <summary>
+    /// Returns true if the number series has Date Order set.
+    /// </summary>
+    /// <param name="NoSeries">The No. Series to check.</param>
+    /// <returns>True if the number series is marked for date order, false otherwise.</returns>
+    /// <Remarks>If Date Order is true, numbers must be retrieved in chronological order.</Remarks>
+    procedure IsNoSeriesInDateOrder(NoSeries: Record "No. Series"): Boolean
+    var
+        NoSeriesImpl: Codeunit "No. Series - Impl.";
+    begin
+        exit(NoSeriesImpl.IsNoSeriesInDateOrder(NoSeries));
+    end;
+
+    /// <summary>
     /// Use this event to change the filters set on the No. Series Line record. These filters are used when viewing the No. Series page and when drilling down from a No. Series record.
     /// </summary>
     /// <param name="NoSeries">The No. Series record to drill down on.</param>

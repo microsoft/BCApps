@@ -15,9 +15,18 @@ codeunit 8890 "Send Email"
     trigger OnRun()
     var
         EmailMessage: Codeunit "Email Message";
+        EmailImpl: Codeunit "Email Impl";
+        IEmailConnector: Interface "Email Connector";
+        IEmailConnectorv2: Interface "Email Connector v2";
     begin
         EmailMessage.Get(Rec.Id);
-        EmailConnector.Send(EmailMessage, AccountId);
+
+        if EmailMessage.GetExternalId() <> '' then begin
+            IEmailConnector := EmailConnector;
+            if EmailImpl.CheckAndGetEmailConnectorv2(IEmailConnector, IEmailConnectorv2) then
+                IEmailConnectorv2.Reply(EmailMessage, AccountId);
+        end else
+            EmailConnector.Send(EmailMessage, AccountId);
     end;
 
     procedure SetConnector(NewEmailConnector: Interface "Email Connector")
