@@ -18,13 +18,23 @@ codeunit 1931 "Scheduled Perf. Profiler"
         ScheduledPerfProfilerImpl: Codeunit "Scheduled Perf. Profiler Impl.";
 
     /// <summary>
-    /// Validate dates for the "Performance Profile Scheduler" record
+    /// Validate dates for the "Performance Profile Scheduler" record with all validations.
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record</param>
     /// <param name="MaxRetentionPeriod">The maximum retention period</param>
     procedure ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler: Record "Performance Profile Scheduler"; MaxRetentionPeriod: Duration)
     begin
         ScheduledPerfProfilerImpl.ValidatePerformanceProfileSchedulerDates(PerformanceProfileScheduler, MaxRetentionPeriod);
+    end;
+
+    /// <summary>
+    /// Validate the relation between the dates for the "Performance Profile Scheduler" record.
+    /// </summary>
+    /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record</param>
+    /// <param name="MaxRetentionPeriod">The maximum retention period</param>
+    procedure ValidatePerformanceProfileSchedulerDatesRelation(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
+    begin
+        ScheduledPerfProfilerImpl.ValidatePerformanceProfileSchedulerDatesRelation(PerformanceProfileScheduler);
     end;
 
     /// <summary>
@@ -37,7 +47,7 @@ codeunit 1931 "Scheduled Perf. Profiler"
     end;
 
     /// <summary>
-    /// Maps an activity type to a session type
+    /// Maps an activity type to a session type.
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>
     /// <param name="ActivityType">The activity enum type</param>

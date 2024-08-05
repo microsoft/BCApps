@@ -20,6 +20,22 @@ function GetRootedFolder {
     return $folder
 }
 
+<#
+    .SYNOPSIS
+    Creates a new Business Central container.
+    .PARAMETER ContainerName
+    The name of the container to create.
+    .PARAMETER Authentication
+    The authentication type to use. Can be 'Windows' or 'NavUserPassword'.
+    .PARAMETER Credential
+    The credential to use when creating the container.
+    .PARAMETER backgroundJob
+    If specified, the container creation will be done in a background job.
+    .OUTPUTS
+    The job that was started if the backgroundJob parameter was specified.
+    .EXAMPLE
+    Create-BCContainer -ContainerName "MyContainer" -Authentication "Windows" -Credential (Get-Credential)
+#>
 function Create-BCContainer {
     param(
         [string] $ContainerName,
@@ -388,9 +404,39 @@ function Get-CredentialForContainer($AuthenticationType) {
     }
 }
 
+<#
+    .Synopsis
+    Installs the AL extension in VSCode.
+
+    .Parameter ContainerName
+    The name of the container for which to install the extension.
+
+    .Parameter Force
+    If specified, the extension will be installed even there is a newer version already installed.
+#>
+function Install-ALExtension([string] $ContainerName, [switch] $Force) {
+    if (-not (Get-Command code -ErrorAction SilentlyContinue)) {
+        Write-Host "VSCode is not installed or 'code' is not in the PATH. See https://code.visualstudio.com/docs/setup/windows for installation instructions." -ForegroundColor Red
+        return
+    }
+
+    Write-Host "Installing VSCode extension..." -ForegroundColor Magenta
+    # Kill VSCode to avoid issues with the extension installation
+    Stop-Process -Name code -Force -ErrorAction SilentlyContinue
+
+    $vsixPath = Get-ChildItem "$($bcContainerHelperConfig.containerHelperFolder)\Extensions\$ContainerName\*.vsix" | Select-Object -ExpandProperty FullName
+    if ($Force) {
+        code --install-extension $vsixPath --force
+    } else {
+        code --install-extension $vsixPath
+    }
+    Write-Host "VSCode extension installed." -ForegroundColor Magenta
+}
+
 Export-ModuleMember -Function Create-BCContainer
 Export-ModuleMember -Function Resolve-ProjectPaths
 Export-ModuleMember -Function Build-Apps
 Export-ModuleMember -Function Publish-Apps
 Export-ModuleMember -Function Test-ContainerExists
 Export-ModuleMember -Function Get-CredentialForContainer
+Export-ModuleMember -Function Install-ALExtension

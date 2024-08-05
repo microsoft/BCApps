@@ -14,7 +14,7 @@ codeunit 7758 "AOAI Function Response"
     InherentPermissions = X;
 
     var
-        Success: Boolean;
+        AOAIFunctionResponseStatus: Enum "AOAI Function Response Status";
         FunctionCall: Boolean;
         FunctionName: Text;
         FunctionId: Text;
@@ -28,7 +28,16 @@ codeunit 7758 "AOAI Function Response"
     /// <returns>True if the call was successful, false otherwise.</returns>
     procedure IsSuccess(): Boolean
     begin
-        exit(Success);
+        exit(AOAIFunctionResponseStatus = Enum::"AOAI Function Response Status"::"Invoke Success");
+    end;
+
+    /// <summary>
+    /// Gets the function response status.
+    /// </summary>
+    /// <returns>The function response status</returns>
+    procedure GetStatus(): Enum "AOAI Function Response Status"
+    begin
+        exit(AOAIFunctionResponseStatus);
     end;
 
     /// <summary>
@@ -75,15 +84,24 @@ codeunit 7758 "AOAI Function Response"
         exit(ErrorCallStack);
     end;
 
+    /// <summary>
+    /// Appends the function result to the provided AOAIChatMessages instance.
+    /// </summary>
+    /// <param name="AOAIChatMessages">The chat messages instance to append the result to.</param>
+    internal procedure AppendResultToChatMessages(var AOAIChatMessages: Codeunit "AOAI Chat Messages")
+    begin
+        AOAIChatMessages.AddToolMessage(GetFunctionId(), GetFunctionName(), Format(GetResult()));
+    end;
+
     internal procedure IsFunctionCall(): Boolean
     begin
         exit(FunctionCall);
     end;
 
-    internal procedure SetFunctionCallingResponse(NewIsFunctionCall: Boolean; NewFunctionCallSuccess: Boolean; NewFunctionCalled: Text; NewFunctionId: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
+    internal procedure SetFunctionCallingResponse(NewIsFunctionCall: Boolean; NewAOAIFunctionResponseStatus: Enum "AOAI Function Response Status"; NewFunctionCalled: Text; NewFunctionId: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
     begin
         FunctionCall := NewIsFunctionCall;
-        Success := NewFunctionCallSuccess;
+        AOAIFunctionResponseStatus := NewAOAIFunctionResponseStatus;
         FunctionName := NewFunctionCalled;
         FunctionId := NewFunctionId;
         Result := NewFunctionResult;
