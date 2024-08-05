@@ -64,12 +64,11 @@ codeunit 132933 "Azure OpenAI Test Library"
         UnbindSubscription(this);
     end;
 
+    [NonDebuggable]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"AOAI Authorization", OnBeforeGetDeployment, '', false, false)]
     local procedure OverrideOnBeforeGetDeployment(var Deployment: Text)
     begin
         case DeploymentOverride of
-            DeploymentOverride::Default:
-                Deployment := Deployment;
             DeploymentOverride::Latest:
                 Deployment := Deployment.Replace('preview', 'latest');
             DeploymentOverride::Preview:

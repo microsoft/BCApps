@@ -133,6 +133,7 @@ codeunit 7767 "AOAI Authorization"
         Clear(ResourceUtilization);
     end;
 
+    [NonDebuggable]
     [InternalEvent(false)]
     local procedure OnBeforeGetDeployment(var Deployment: Text)
     begin
