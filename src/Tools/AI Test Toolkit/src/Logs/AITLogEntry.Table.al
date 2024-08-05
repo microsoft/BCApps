@@ -161,7 +161,8 @@ table 149034 "AIT Log Entry"
         field(40; "Model Version"; Option)
         {
             Caption = 'AOAI Model Version';
-            OptionMembers = Latest,Preview;
+            OptionMembers = Default,Latest,Preview;
+            OptionCaption = 'Default,Latest,Preview';
         }
     }
 

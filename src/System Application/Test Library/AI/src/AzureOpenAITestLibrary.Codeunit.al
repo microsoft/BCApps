@@ -11,7 +11,7 @@ codeunit 132933 "Azure OpenAI Test Library"
     EventSubscriberInstance = Manual;
 
     var
-        DeploymentOverride: Option Latest,Preview;
+        DeploymentOverride: Option Default,Latest,Preview;
 
     procedure GetAOAIHistory(HistoryLength: Integer; var AOAIChatMessages: Codeunit "AOAI Chat Messages"): JsonArray
     var
@@ -53,7 +53,7 @@ codeunit 132933 "Azure OpenAI Test Library"
         AOAIChatMessages.AddToolCalls(ToolCalls);
     end;
 
-    procedure SetDeploymentOverride(OptionMembers: Option Latest,Preview)
+    procedure SetDeploymentOverride(OptionMembers: Option Default,Latest,Preview)
     begin
         BindSubscription(this);
         this.DeploymentOverride := OptionMembers;
@@ -67,10 +67,14 @@ codeunit 132933 "Azure OpenAI Test Library"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"AOAI Authorization", OnBeforeGetDeployment, '', false, false)]
     local procedure OverrideOnBeforeGetDeployment(var Deployment: Text)
     begin
-        if DeploymentOverride = DeploymentOverride::Latest then
-            Deployment := Deployment.Replace('preview', 'latest')
-        else
-            Deployment := Deployment.Replace('latest', 'preview');
+        case DeploymentOverride of
+            DeploymentOverride::Default:
+                Deployment := Deployment;
+            DeploymentOverride::Latest:
+                Deployment := Deployment.Replace('preview', 'latest');
+            DeploymentOverride::Preview:
+                Deployment := Deployment.Replace('latest', 'preview');
+        end;
     end;
 
 }
