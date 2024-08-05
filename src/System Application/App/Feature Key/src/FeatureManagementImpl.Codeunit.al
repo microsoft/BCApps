@@ -335,6 +335,28 @@ codeunit 2610 "Feature Management Impl."
         end;
     end;
 
+    /// <summary>
+    /// Returns true if the feature is enabled and data update, if required, is complete.
+    /// </summary>
+    /// <param name="FeatureId">the feature id in the system table "Feature Key"</param>
+    /// <param name="AllowInsert">specifies if inserts are allowed while checking for feature being enabled</param>
+    /// <returns>if the feature is fully enabled</returns>
+    procedure IsEnabled(FeatureId: Text[50]; AllowInsert: Boolean): Boolean;
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+    begin
+        if AllowInsert then
+            exit(IsEnabled(FeatureId));
+
+        if FeatureKey.Get(FeatureId) then begin
+            if FeatureDataUpdateStatus.Get(FeatureKey.ID, CompanyName()) then
+                exit(FeatureDataUpdateStatus."Feature Status" in ["Feature Status"::Complete, "Feature Status"::Enabled]);
+
+            exit((FeatureKey.Enabled = FeatureKey.Enabled::"All Users") and (not FeatureKey."Data Update Required"));
+        end;
+    end;
+
     local procedure IsSessionActive(FeatureDataUpdateStatus: Record "Feature Data Update Status"): Boolean;
     var
         ActiveSession: Record "Active Session";
