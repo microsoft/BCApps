@@ -53,4 +53,14 @@ codeunit 7759 "AOAI Token"
     begin
         exit(AzureOpenAIImpl.GetTokenCount(Input, Encodingp50kbaseLbl));
     end;
+
+    /// <summary>
+    /// Gets the total tokens used till now for the server session.
+    /// The total tokens used is aggregated for all the models.
+    /// </summary>
+    /// <returns>The total token consumed.</returns>
+    internal procedure GetTotalServerSessionTokensConsumed(): Integer
+    begin
+        exit(AzureOpenAIImpl.GetTotalServerSessionTokensConsumed());
+    end;
 }
