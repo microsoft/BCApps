@@ -2,13 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-
 namespace System.Integration;
 
 using System;
-using System.Text;
-using System.Reflection;
 using System.Environment;
+using System.Reflection;
+using System.Text;
 
 /// <summary>
 /// Implements functionality to get summary data for a given object.
@@ -29,7 +28,7 @@ codeunit 2717 "Page Summary Provider Impl."
         ResultJsonObject: JsonObject;
     begin
         // Add header
-        AddPageSummaryHeader(PageId, ResultJsonObject);
+        this.AddPageSummaryHeader(PageId, ResultJsonObject);
 
         // If show summary record is false, then exit with summary type caption
         if not PageSummarySettings.IsShowRecordSummaryEnabled() then
@@ -40,10 +39,13 @@ codeunit 2717 "Page Summary Provider Impl."
 
         // Initialize variables
         if not Evaluate(RecId, Bookmark, 10) then begin // 10 = Evaluate string into RecordId
-            AddErrorMessage(ResultJsonObject, InvalidBookmarkErrorCodeTok, InvalidBookmarkErrorMessageTxt);
+            this.AddErrorMessage(ResultJsonObject, this.InvalidBookmarkErrorCodeTok, this.InvalidBookmarkErrorMessageTxt);
             exit(Format(ResultJsonObject)); // Bookmark is invalid, so returning the information we actually have about the page
         end;
-        exit(GetFieldsSummary(PageId, RecId, Bookmark, ResultJsonObject));
+
+        this.GetFieldsSummary(PageId, RecId, Bookmark, ResultJsonObject);
+        this.GetRecordFields(PageId, Bookmark, ResultJsonObject);
+        exit(Format(ResultJsonObject));
     end;
 
     procedure GetPageSummary(PageId: Integer; SystemId: Guid): Text
@@ -55,7 +57,7 @@ codeunit 2717 "Page Summary Provider Impl."
         Bookmark: Text;
     begin
         // Add header
-        AddPageSummaryHeader(PageId, ResultJsonObject);
+        this.AddPageSummaryHeader(PageId, ResultJsonObject);
 
         // Initialize variables
         if not PageMetadata.Get(PageId) then
@@ -64,11 +66,11 @@ codeunit 2717 "Page Summary Provider Impl."
         SourceRecordRef.Open(PageMetadata.SourceTable);
 
         if not SourceRecordRef.GetBySystemId(SystemId) then begin
-            AddErrorMessage(ResultJsonObject, InvalidSystemIdErrorCodeTok, InvalidSystemIdErrorMessageTxt);
+            this.AddErrorMessage(ResultJsonObject, this.InvalidSystemIdErrorCodeTok, this.InvalidSystemIdErrorMessageTxt);
             exit(Format(ResultJsonObject)); // System ID is invalid, so returning the information we actually have about the page
         end;
 
-        AddUrl(ResultJsonObject, PageId, SourceRecordRef);
+        this.AddUrl(ResultJsonObject, PageId, SourceRecordRef);
 
         // If show summary record is false, then exit with summary type caption
         if not PageSummarySettings.IsShowRecordSummaryEnabled() then
@@ -78,7 +80,10 @@ codeunit 2717 "Page Summary Provider Impl."
         Bookmark := Format(RecId, 0, 10); // 10 = Format RecordId into string
         if Bookmark = '' then
             exit(Format(ResultJsonObject));
-        exit(GetFieldsSummary(PageId, RecId, Bookmark, ResultJsonObject));
+
+        this.GetFieldsSummary(PageId, RecId, Bookmark, ResultJsonObject);
+        this.GetRecordFields(PageId, Bookmark, ResultJsonObject);
+        exit(Format(ResultJsonObject));
     end;
 
     procedure GetPageUrlBySystemID(PageId: Integer; SystemId: Guid): Text
@@ -101,12 +106,12 @@ codeunit 2717 "Page Summary Provider Impl."
             exit(Format(ResultJsonObject));
         end;
 
-        AddUrl(ResultJsonObject, PageId, SourceRecordRef);
+        this.AddUrl(ResultJsonObject, PageId, SourceRecordRef);
         Session.LogMessage('0000JAT', StrSubstNo(GetPageUrlSuccessTelemetryTxt, PageId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
         exit(Format(ResultJsonObject));
     end;
 
-    procedure GetFieldsSummary(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject): Text
+    local procedure GetFieldsSummary(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject)
     var
         PageSummaryProvider: Codeunit "Page Summary Provider";
         FieldsJsonArray: JsonArray;
@@ -115,25 +120,56 @@ codeunit 2717 "Page Summary Provider Impl."
         // Allow partner to override returned fields
         PageSummaryProvider.OnBeforeGetPageSummary(PageId, RecId, FieldsJsonArray, Handled);
         if Handled then begin // Partner overrode fields
-            Session.LogMessage('0000D73', StrSubstNo(OnBeforeGetPageSummaryWasHandledTxt, PageId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
-            AddFieldsToResult(FieldsJsonArray, ResultJsonObject);
-            exit(Format(ResultJsonObject));
+            Session.LogMessage('0000D73', StrSubstNo(this.OnBeforeGetPageSummaryWasHandledTxt, PageId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.PageSummaryCategoryLbl);
+            this.AddFieldsToResult(FieldsJsonArray, ResultJsonObject);
+            exit;
         end;
 
         // Get summary fields
-        if not TryGetPageSummaryFields(PageId, RecId, Bookmark, ResultJsonObject) then begin
-            AddErrorMessage(ResultJsonObject, FailedGetSummaryFieldsCodeTok, GetLastErrorText());
-            exit(Format(ResultJsonObject));
+        if not this.TryGetPageSummaryFields(PageId, RecId, Bookmark, ResultJsonObject) then
+            this.AddErrorMessage(ResultJsonObject, this.FailedGetSummaryFieldsCodeTok, GetLastErrorText());
+    end;
+
+    local procedure GetRecordFields(PageId: Integer; Bookmark: Text; var ResultJsonObject: JsonObject)
+    begin
+        // Get all visible and available table fields that back the controls that are visible on the page
+        if TryGetAvailableRecordFieldsData(PageId, Bookmark, ResultJsonObject) then;
+    end;
+
+    [TryFunction]
+    local procedure TryGetAvailableRecordFieldsData(PageId: Integer; Bookmark: Text; var ResultJsonObject: JsonObject)
+    var
+        GenericList: DotNet GenericList1;
+        NavPageSummaryALFunctions: DotNet NavPageSummaryALFunctions;
+        NavPageSummaryALResponse: DotNet NavPageSummaryALResponse;
+        NavPageSummaryALField: DotNet NavPageSummaryALField;
+        RecordFieldsJsonArray: JsonArray;
+    begin
+        GenericList := NavPageSummaryALFunctions.GetAvailableTableFields(PageId);
+        if IsNull(GenericList) then begin
+            Session.LogMessage('0000NCO', StrSubstNo(NoRecordFieldsFoundTelemetryTxt, PageId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
+            exit;
         end;
 
-        exit(Format(ResultJsonObject));
+        if (GenericList.Count() > 0) then begin
+            NavPageSummaryALResponse := NavPageSummaryALFunctions.GetSummary(PageId, Bookmark, GenericList);
+            if not NavPageSummaryALResponse.Success then begin
+                Session.LogMessage('0000NCX', StrSubstNo(this.SummaryFailureTelemetryTxt, PageId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.PageSummaryCategoryLbl);
+                exit;
+            end;
+
+            // Get field values
+            foreach NavPageSummaryALField in NavPageSummaryALResponse.SummaryFields do
+                AddFieldToFieldsJsonArray(NavPageSummaryALField, RecordFieldsJsonArray, true, false);
+        end;
+        ResultJsonObject.Add('recordFields', RecordFieldsJsonArray);
     end;
 
     local procedure AddErrorMessage(var ResultJsonObject: JsonObject; ErrorCode: Text; ErrorMessage: Text)
     var
         ErrorJsonObject: JsonObject;
     begin
-        Session.LogMessage('0000EAX', ErrorCode, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
+        Session.LogMessage('0000EAX', ErrorCode, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.PageSummaryCategoryLbl);
         ErrorJsonObject.Add('code', ErrorCode);
         ErrorJsonObject.Add('message', ErrorMessage);
         ResultJsonObject.Add('error', ErrorJsonObject);
@@ -155,11 +191,11 @@ codeunit 2717 "Page Summary Provider Impl."
         if PageMetadata.Get(PageId) then
             PageCaption := PageMetadata.Caption
         else
-            PageCaption := StrSubstNo(PageTxt, PageId);
-        ResultJsonObject.Add('version', GetVersion());
+            PageCaption := StrSubstNo(this.PageTxt, PageId);
+        ResultJsonObject.Add('version', this.GetVersion());
         ResultJsonObject.Add('pageCaption', PageCaption);
         ResultJsonObject.Add('pageType', format(PageMetadata.PageType));
-        ResultJsonObject.Add('summaryType', GetSummaryName(Enum::"Summary Type"::Caption)); // default summary type is caption
+        ResultJsonObject.Add('summaryType', this.GetSummaryName(Enum::"Summary Type"::Caption)); // default summary type is caption
         ResultJsonObject.Add('cardPageId', PageMetadata.CardPageID);
     end;
 
@@ -182,7 +218,7 @@ codeunit 2717 "Page Summary Provider Impl."
 
         foreach PageSummaryField in GenericList do
             PageSummaryFieldList.Add(PageSummaryField);
-        CorrectFieldOrderingOfBrick(PageSummaryFieldList);
+        this.CorrectFieldOrderingOfBrick(PageSummaryFieldList);
 
         // Allow partners to override fields to be shown + order
         PageSummaryProvider.OnAfterGetSummaryFields(PageId, RecId, PageSummaryFieldList);
@@ -192,20 +228,19 @@ codeunit 2717 "Page Summary Provider Impl."
 
         if (GenericList.Count() > 0) then begin
             NavPageSummaryALResponse := NavPageSummaryALFunctions.GetSummary(PageId, Bookmark, GenericList);
-
             if not NavPageSummaryALResponse.Success then begin
-                Session.LogMessage('0000DGV', StrSubstNo(SummaryFailureTelemetryTxt, PageId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
+                Session.LogMessage('0000DGV', StrSubstNo(this.SummaryFailureTelemetryTxt, PageId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.PageSummaryCategoryLbl);
                 ErrorMessage := NavPageSummaryALResponse.ErrorMessage;
                 Error(ErrorMessage);
             end;
             // Get field values
             foreach NavPageSummaryALField in NavPageSummaryALResponse.SummaryFields do
-                AddPageSummaryFieldToJsonArray(NavPageSummaryALField, FieldsJsonArray);
+                this.AddFieldToFieldsJsonArray(NavPageSummaryALField, FieldsJsonArray, false, true);
         end;
 
         // Allow partner to finally override field names and values
         PageSummaryProvider.OnAfterGetPageSummary(PageId, RecId, FieldsJsonArray);
-        AddFieldsToResult(FieldsJsonArray, ResultJsonObject);
+        this.AddFieldsToResult(FieldsJsonArray, ResultJsonObject);
     end;
 
     local procedure GetSummaryName(SummaryType: Enum "Summary Type"): Text;
@@ -219,7 +254,7 @@ codeunit 2717 "Page Summary Provider Impl."
     local procedure AddFieldsToResult(var FieldsJsonArray: JsonArray; var ResultJsonObject: JsonObject)
     begin
         if FieldsJsonArray.Count() > 0 then
-            ResultJsonObject.Replace('summaryType', GetSummaryName(Enum::"Summary Type"::Brick));
+            ResultJsonObject.Replace('summaryType', this.GetSummaryName(Enum::"Summary Type"::Brick));
         ;
 
         ResultJsonObject.Add('fields', FieldsJsonArray);
@@ -238,7 +273,7 @@ codeunit 2717 "Page Summary Provider Impl."
         PageSummaryFieldList.Insert(2, TempValue);
     end;
 
-    local procedure AddPageSummaryFieldToJsonArray(NavPageSummaryALField: DotNet NavPageSummaryALField; var FieldsJsonArray: JsonArray)
+    local procedure AddFieldToFieldsJsonArray(NavPageSummaryALField: DotNet NavPageSummaryALField; var FieldsJsonArray: JsonArray; OnlyIncludeNonEmptyFieldValues: Boolean; IncludePictures: Boolean)
     var
         FieldsJsonObject: JsonObject;
         FieldValue: Text;
@@ -250,11 +285,21 @@ codeunit 2717 "Page Summary Provider Impl."
         FieldValue := NavPageSummaryALField.Value.ToString();
         FieldType := NavPageSummaryALField.FieldType.ToString();
 
+        if OnlyIncludeNonEmptyFieldValues then
+            if FieldValue = '' then
+                exit;
+
         // Handle pictures - 26209 == MediaSet, 26208 == Media
-        if NavPageSummaryALField.FieldType = 26208 then
-            ExtractPictureFromMedia(NavPageSummaryALField.Value.ToString(), FieldValue, MimeType, FieldType);
-        if NavPageSummaryALField.FieldType = 26209 then
-            ExtractPictureFromMediaSet(NavPageSummaryALField.Value.ToString(), FieldValue, MimeType, FieldType);
+        if NavPageSummaryALField.FieldType = 26208 then begin
+            if not IncludePictures then
+                exit;
+            this.ExtractPictureFromMedia(NavPageSummaryALField.Value.ToString(), FieldValue, MimeType, FieldType);
+        end;
+        if NavPageSummaryALField.FieldType = 26209 then begin
+            if not IncludePictures then
+                exit;
+            this.ExtractPictureFromMediaSet(NavPageSummaryALField.Value.ToString(), FieldValue, MimeType, FieldType);
+        end;
 
         // Add the actual field
         FieldsJsonObject.Add('caption', NavPageSummaryALField.Caption);
@@ -262,6 +307,7 @@ codeunit 2717 "Page Summary Provider Impl."
             FieldsJsonObject.Add('extendedType', NavPageSummaryALField.ExtendedType.ToString());
         FieldsJsonObject.Add('fieldValue', FieldValue);
         FieldsJsonObject.Add('fieldType', FieldType);
+        FieldsJsonObject.Add('tooltip', NavPageSummaryALField.Tooltip);
         if MimeType <> '' then
             FieldsJsonObject.Add('mimeType', MimeType);
         FieldsJsonArray.Add(FieldsJsonObject);
@@ -271,7 +317,7 @@ codeunit 2717 "Page Summary Provider Impl."
     var
         TenantMediaThumbnails: Record "Tenant Media Thumbnails";
         Base64Convert: Codeunit "Base64 Convert";
-        Data: InStream;
+        InStr: InStream;
     begin
         FieldType := 'Media';
         // Filter on large image thumbnail
@@ -286,8 +332,8 @@ codeunit 2717 "Page Summary Provider Impl."
         end;
 
         TenantMediaThumbnails.CalcFields(Content);
-        TenantMediaThumbnails.Content.CreateInStream(Data);
-        FieldValue := Base64Convert.ToBase64(Data);
+        TenantMediaThumbnails.Content.CreateInStream(InStr);
+        FieldValue := Base64Convert.ToBase64(InStr);
         MimeType := TenantMediaThumbnails."Mime Type";
     end;
 
@@ -297,7 +343,7 @@ codeunit 2717 "Page Summary Provider Impl."
     begin
         TenantMediaSet.SetRange(Id, ImageGuid);
         if TenantMediaSet.FindFirst() then;
-        ExtractPictureFromMedia(TenantMediaSet."Media ID".MediaId, FieldValue, MimeType, FieldType);
+        this.ExtractPictureFromMedia(TenantMediaSet."Media ID".MediaId, FieldValue, MimeType, FieldType);
     end;
 
     procedure GetVersion(): Text[30]
@@ -319,4 +365,5 @@ codeunit 2717 "Page Summary Provider Impl."
         PageNotFoundErrorCodeTok: Label 'PageNotFound', Locked = true;
         PageNotFoundErrorMessageTxt: Label 'Page %1 is not found.', Comment = '%1 is a whole number, ex. 10';
         GetPageUrlSuccessTelemetryTxt: Label 'Successfully added url for page %1.', Locked = true;
+        NoRecordFieldsFoundTelemetryTxt: Label 'No record fields found for page %1.', Locked = true;
 }

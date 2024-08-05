@@ -26,12 +26,25 @@ codeunit 2718 "Page Summary Provider"
     ///   "pageType":"Card",
     ///   "summaryType":"Brick",
     ///   "cardPageId": "0",
+    ///   "url":"https://businesscentral.dynamics.com/?company=CRONUS%20International%20Ltd.&amp;page=22&amp;bookmark=27%3bEgAAAAJ7CDAAMQA5ADAANQA4ADkAMw%3d%3",
     ///   "fields":[
-    ///      {"caption":"No.","fieldValue":"01445544","type":"Code"},
-    ///      {"caption":"Name","fieldValue":"Progressive Home Furnishings","type":"Text"},
-    ///      {"caption":"Contact","fieldValue":"Mr. Scott Mitchell","type":"Text"},
-    ///      {"caption":"Balance Due (LCY)","fieldValue":"1.499,03","type":"Decimal"}]
-    ///   }
+    ///      {"caption":"No.","fieldValue":"01445544","fieldType":"Code", "tooltip":"Specifies the number of the customer."},
+    ///      {"caption":"Name","fieldValue":"Progressive Home Furnishings","fieldType":"Text","tooltip":"Specifies the customer's name. This name will appear on all sales documents for the customer."},
+    ///      {"caption":"Contact","fieldValue":"Mr. Scott Mitchell","fieldType":"Text", "tooltip":"Specifies the name of the person you regularly contact when you do business with this customer."},
+    ///      {"caption":"Balance Due (LCY)","fieldValue":"1.499,03","fieldType":"Decimal","tooltip":"Specifies the payment amount that the customer owes for completed sales."}]
+    ///   "recordFields":[
+    ///      {"caption":"No.","fieldValue":"01121212","fieldType":"Code","tooltip":"Specifies the number of the customer."},
+    ///      {"caption":"Name","fieldValue":"Spotsmeyer's Furnishings","fieldType":"Text","tooltip":"Specifies the customer's name. This name will appear on all sales documents for the customer."},
+    ///      {"caption":"Balance (LCY)","fieldValue":"0","fieldType":"Decimal","tooltip":"Specifies the payment amount that the customer owes for completed sales. This value is also known as the customer's balance."},
+    ///      {"caption":"Balance Due (LCY)","fieldValue":"0","fieldType":"Decimal","tooltip":"Specifies payments from the customer that are overdue per today's date."},
+    ///      {"caption":"Credit Limit (LCY)","fieldValue":"0","fieldType":"Decimal","tooltip":"Specifies the maximum amount you allow the customer to exceed the payment balance before warnings are issued."},
+    ///      {"caption":"Blocked","fieldValue":" ","fieldType":"Option","tooltip":"Specifies which transactions with the customer that cannot be processed, for example, because the customer is insolvent."},
+    ///      {"caption":"Privacy Blocked","fieldValue":"No","fieldType":"Boolean","tooltip":"Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review."},
+    ///      {"caption":"Salesperson Code","fieldValue":"JR","fieldType":"Code","tooltip":"Specifies a code for the salesperson who normally handles this customer's account."},
+    ///      {"caption":"Service Zone Code","fieldValue":"X","fieldType":"Code","tooltip":"Specifies the code for the service zone that is assigned to the customer."},
+    ///      {"caption":"Address","fieldValue":"612 South Sunset Drive","fieldType":"Text","tooltip":"Specifies the customer's address. This address will appear on all sales documents for the customer."}
+    ///      {"caption":"Payments This Year","fieldValue":"0","fieldType":"Decimal","tooltip":"Specifies the sum of payments received from the customer in the current fiscal year."},
+    ///      {"caption":"Last Date Modified","fieldValue":"08/02/24","fieldType":"Date","tooltip":"Specifies when the customer card was last modified."}]
     /// }
     ///
     /// In case of an error:
@@ -72,11 +85,23 @@ codeunit 2718 "Page Summary Provider"
     ///   "cardPageId": "0",
     ///   "url":"https://businesscentral.dynamics.com/?company=CRONUS%20International%20Ltd.&amp;page=22&amp;bookmark=27%3bEgAAAAJ7CDAAMQA5ADAANQA4ADkAMw%3d%3",
     ///   "fields":[
-    ///      {"caption":"No.","fieldValue":"01445544","type":"Code"},
-    ///      {"caption":"Name","fieldValue":"Progressive Home Furnishings","type":"Text"},
-    ///      {"caption":"Contact","fieldValue":"Mr. Scott Mitchell","type":"Text"},
-    ///      {"caption":"Balance Due (LCY)","fieldValue":"1.499,03","type":"Decimal"}]
-    ///   }
+    ///      {"caption":"No.","fieldValue":"01445544","fieldType":"Code", "tooltip":"Specifies the number of the customer."},
+    ///      {"caption":"Name","fieldValue":"Progressive Home Furnishings","fieldType":"Text","tooltip":"Specifies the customer's name. This name will appear on all sales documents for the customer."},
+    ///      {"caption":"Contact","fieldValue":"Mr. Scott Mitchell","fieldType":"Text", "tooltip":"Specifies the name of the person you regularly contact when you do business with this customer."},
+    ///      {"caption":"Balance Due (LCY)","fieldValue":"1.499,03","fieldType":"Decimal","tooltip":"Specifies the payment amount that the customer owes for completed sales."}]
+    ///   "recordFields":[
+    ///      {"caption":"No.","fieldValue":"01121212","fieldType":"Code","tooltip":"Specifies the number of the customer."},
+    ///      {"caption":"Name","fieldValue":"Spotsmeyer's Furnishings","fieldType":"Text","tooltip":"Specifies the customer's name. This name will appear on all sales documents for the customer."},
+    ///      {"caption":"Balance (LCY)","fieldValue":"0","fieldType":"Decimal","tooltip":"Specifies the payment amount that the customer owes for completed sales. This value is also known as the customer's balance."},
+    ///      {"caption":"Balance Due (LCY)","fieldValue":"0","fieldType":"Decimal","tooltip":"Specifies payments from the customer that are overdue per today's date."},
+    ///      {"caption":"Credit Limit (LCY)","fieldValue":"0","fieldType":"Decimal","tooltip":"Specifies the maximum amount you allow the customer to exceed the payment balance before warnings are issued."},
+    ///      {"caption":"Blocked","fieldValue":" ","fieldType":"Option","tooltip":"Specifies which transactions with the customer that cannot be processed, for example, because the customer is insolvent."},
+    ///      {"caption":"Privacy Blocked","fieldValue":"No","fieldType":"Boolean","tooltip":"Specifies whether to limit access to data for the data subject during daily operations. This is useful, for example, when protecting data from changes while it is under privacy review."},
+    ///      {"caption":"Salesperson Code","fieldValue":"JR","fieldType":"Code","tooltip":"Specifies a code for the salesperson who normally handles this customer's account."},
+    ///      {"caption":"Service Zone Code","fieldValue":"X","fieldType":"Code","tooltip":"Specifies the code for the service zone that is assigned to the customer."},
+    ///      {"caption":"Address","fieldValue":"612 South Sunset Drive","fieldType":"Text","tooltip":"Specifies the customer's address. This address will appear on all sales documents for the customer."}
+    ///      {"caption":"Payments This Year","fieldValue":"0","fieldType":"Decimal","tooltip":"Specifies the sum of payments received from the customer in the current fiscal year."},
+    ///      {"caption":"Last Date Modified","fieldValue":"08/02/24","fieldType":"Date","tooltip":"Specifies when the customer card was last modified."}]
     /// }
     ///
     /// In case of an error:
