@@ -48,34 +48,59 @@ codeunit 130453 "ALTestRunner Reset Environment"
 #pragma warning restore AA0207
 #else
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterCodeunitRun', '', false, false)]
-    local procedure AfterTestMethod(var TestMethodLine: Record "Test Method Line")
+    local procedure OnAfterCodeunit(var TestMethodLine: Record "Test Method Line")
 #endif
     begin
         WorkDate(CurrentWorkDate);
         ApplicationArea('');
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Test Runner - Mgt", 'OnAfterTestMethodRun', '', false, false)]
+    local procedure OnAfterTestMethodRun(FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
+    begin
+        VerifyPermissions(FunctionTestPermissions, IsSuccess);
+    end;
+
     local procedure ClearLegacyLibraries(FunctionTestPermissions: TestPermissions)
     var
-        AllObj: Record AllObj;
         ResetStateCodeunit: Integer;
         SetPermissionsCodeunit: Integer;
     begin
         ResetStateCodeunit := 130301; // codeunit 130301 "Reset State Before Test Run"
-        AllObj.SetRange("Object Type", AllObj."Object Type"::Codeunit);
-        AllObj.SetRange("Object ID", ResetStateCodeunit);
-        if not AllObj.IsEmpty() then
+        if CodeunitExists(ResetStateCodeunit) then
             Codeunit.Run(ResetStateCodeunit);
 
-        if FunctionTestPermissions = TESTPERMISSIONS::Disabled then
+        if FunctionTestPermissions = TestPermissions::Disabled then
             exit;
 
-        Clear(AllObj);
         SetPermissionsCodeunit := 130302; // codeunit 130302 "Set Permissions State Before Test Run"
-        AllObj.SetRange("Object Type", AllObj."Object Type"::Codeunit);
-        AllObj.SetRange("Object ID", SetPermissionsCodeunit);
-        if not AllObj.IsEmpty() then
+        if CodeunitExists(SetPermissionsCodeunit) then
             Codeunit.Run(SetPermissionsCodeunit);
+    end;
+
+    local procedure VerifyPermissions(FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
+    var
+        VerifyPermissionsCodeunit: Integer;
+    begin
+        if not IsSuccess then
+            exit; // Do not verify permissions if the test already failed, otherwise we will overwrite the test error with a permission error. This would make it difficult to troubleshoot your test.
+
+        if FunctionTestPermissions <> TestPermissions::Restrictive then
+            exit;
+
+        VerifyPermissionsCodeunit := 132219; // codeunit 132219 "Restrictive Permissions Verification"
+        if CodeunitExists(VerifyPermissionsCodeunit) then
+            if not Codeunit.Run(VerifyPermissionsCodeunit) then
+                Error(GetLastErrorText());
+    end;
+
+    local procedure CodeunitExists(CodeunitId: Integer): Boolean
+    var
+        AllObj: Record AllObj;
+    begin
+        AllObj.SetRange("Object Type", AllObj."Object Type"::Codeunit);
+        AllObj.SetRange("Object ID", CodeunitId);
+        exit(not AllObj.IsEmpty());
     end;
 
     local procedure BindStopSystemTableChanges()
