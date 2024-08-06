@@ -49,4 +49,11 @@ codeunit 132933 "Azure OpenAI Test Library"
         AOAIChatMessages.AddToolCalls(ToolCalls);
     end;
 
+    procedure GetTotalServerSessionTokensConsumed(): Integer
+    var
+        AOAIToken: Codeunit "AOAI Token";
+    begin
+        exit(AOAIToken.GetTotalServerSessionTokensConsumed());
+    end;
+
 }
