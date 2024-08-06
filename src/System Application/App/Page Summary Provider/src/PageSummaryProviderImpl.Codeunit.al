@@ -43,8 +43,9 @@ codeunit 2717 "Page Summary Provider Impl."
             exit(Format(ResultJsonObject)); // Bookmark is invalid, so returning the information we actually have about the page
         end;
 
-        GetFieldsSummary(PageId, RecId, Bookmark, ResultJsonObject);
-        GetRecordFields(PageId, Bookmark, ResultJsonObject);
+        // Add header
+        AddFields(PageId, RecId, Bookmark, ResultJsonObject);
+
         exit(Format(ResultJsonObject));
     end;
 
@@ -81,8 +82,9 @@ codeunit 2717 "Page Summary Provider Impl."
         if Bookmark = '' then
             exit(Format(ResultJsonObject));
 
-        GetFieldsSummary(PageId, RecId, Bookmark, ResultJsonObject);
-        GetRecordFields(PageId, Bookmark, ResultJsonObject);
+        // Add header
+        AddFields(PageId, RecId, Bookmark, ResultJsonObject);
+
         exit(Format(ResultJsonObject));
     end;
 
@@ -111,6 +113,16 @@ codeunit 2717 "Page Summary Provider Impl."
         exit(Format(ResultJsonObject));
     end;
 
+    local procedure AddFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject)
+    begin
+        // Add Summary fields
+        GetFieldsSummary(PageId, RecId, Bookmark, ResultJsonObject);
+
+        // Add Record fields
+        if not ResultJsonObject.Contains('error') then
+            GetRecordFields(PageId, Bookmark, ResultJsonObject);
+    end;
+
     local procedure GetFieldsSummary(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject)
     var
         PageSummaryProvider: Codeunit "Page Summary Provider";
@@ -121,7 +133,7 @@ codeunit 2717 "Page Summary Provider Impl."
         PageSummaryProvider.OnBeforeGetPageSummary(PageId, RecId, FieldsJsonArray, Handled);
         if Handled then begin // Partner overrode fields
             Session.LogMessage('0000D73', StrSubstNo(OnBeforeGetPageSummaryWasHandledTxt, PageId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
-            AddFieldsToResult(FieldsJsonArray, ResultJsonObject);
+            AddFieldsJsonArrayToResult(FieldsJsonArray, ResultJsonObject);
             exit;
         end;
 
@@ -133,7 +145,9 @@ codeunit 2717 "Page Summary Provider Impl."
     local procedure GetRecordFields(PageId: Integer; Bookmark: Text; var ResultJsonObject: JsonObject)
     begin
         // Get all visible and available table fields that back the controls that are visible on the page
-        if TryGetAvailableRecordFieldsData(PageId, Bookmark, ResultJsonObject) then;
+        if TryGetAvailableRecordFieldsData(PageId, Bookmark, ResultJsonObject) then
+            Session.LogMessage('', StrSubstNo(GetRecordFieldsFailureTelemetryTxt, PageId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
+        exit;
     end;
 
     [TryFunction]
@@ -240,7 +254,7 @@ codeunit 2717 "Page Summary Provider Impl."
 
         // Allow partner to finally override field names and values
         PageSummaryProvider.OnAfterGetPageSummary(PageId, RecId, FieldsJsonArray);
-        AddFieldsToResult(FieldsJsonArray, ResultJsonObject);
+        AddFieldsJsonArrayToResult(FieldsJsonArray, ResultJsonObject);
     end;
 
     local procedure GetSummaryName(SummaryType: Enum "Summary Type"): Text;
@@ -251,11 +265,10 @@ codeunit 2717 "Page Summary Provider Impl."
         exit(SummaryType.Names().Get(Index));
     end;
 
-    local procedure AddFieldsToResult(var FieldsJsonArray: JsonArray; var ResultJsonObject: JsonObject)
+    local procedure AddFieldsJsonArrayToResult(var FieldsJsonArray: JsonArray; var ResultJsonObject: JsonObject)
     begin
         if FieldsJsonArray.Count() > 0 then
             ResultJsonObject.Replace('summaryType', GetSummaryName(Enum::"Summary Type"::Brick));
-        ;
 
         ResultJsonObject.Add('fields', FieldsJsonArray);
     end;
@@ -366,4 +379,5 @@ codeunit 2717 "Page Summary Provider Impl."
         PageNotFoundErrorMessageTxt: Label 'Page %1 is not found.', Comment = '%1 is a whole number, ex. 10';
         GetPageUrlSuccessTelemetryTxt: Label 'Successfully added url for page %1.', Locked = true;
         NoRecordFieldsFoundTelemetryTxt: Label 'No record fields found for page %1.', Locked = true;
+        GetRecordFieldsFailureTelemetryTxt: Label 'Failure to get record fields for page %1.', Locked = true;
 }
