@@ -8,6 +8,8 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 337 "Record Match Impl."
 {
     Access = Internal;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     /// <summary>
     /// Computes a nearness score between strings. Nearness is based on repeatedly finding longest common substrings.
