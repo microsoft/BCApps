@@ -43,7 +43,7 @@ codeunit 2717 "Page Summary Provider Impl."
             exit(Format(ResultJsonObject)); // Bookmark is invalid, so returning the information we actually have about the page
         end;
 
-        // Add header
+        // Add summary fields and record fields
         AddFields(PageId, RecId, Bookmark, ResultJsonObject);
 
         exit(Format(ResultJsonObject));
@@ -82,7 +82,7 @@ codeunit 2717 "Page Summary Provider Impl."
         if Bookmark = '' then
             exit(Format(ResultJsonObject));
 
-        // Add header
+        // Add summary fields and record fields
         AddFields(PageId, RecId, Bookmark, ResultJsonObject);
 
         exit(Format(ResultJsonObject));
@@ -116,9 +116,11 @@ codeunit 2717 "Page Summary Provider Impl."
     local procedure AddFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject)
     begin
         // Add Summary fields
+        // Fields summary is a "summary" of the fields (i.e. it could be the brick definition, or some custom AL could provide its own summary).
         GetFieldsSummary(PageId, RecId, Bookmark, ResultJsonObject);
 
         // Add Record fields
+        // Record fields are the backing record fields that are visible on the page.
         if not ResultJsonObject.Contains('error') then
             GetRecordFields(PageId, Bookmark, ResultJsonObject);
     end;
@@ -146,7 +148,7 @@ codeunit 2717 "Page Summary Provider Impl."
     begin
         // Get all visible and available table fields that back the controls that are visible on the page
         if TryGetAvailableRecordFieldsData(PageId, Bookmark, ResultJsonObject) then
-            Session.LogMessage('', StrSubstNo(GetRecordFieldsFailureTelemetryTxt, PageId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
+            Session.LogMessage('0000NFZ', StrSubstNo(GetRecordFieldsFailureTelemetryTxt, PageId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
         exit;
     end;
 

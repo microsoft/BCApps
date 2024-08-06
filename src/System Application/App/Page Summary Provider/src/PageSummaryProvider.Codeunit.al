@@ -31,7 +31,7 @@ codeunit 2718 "Page Summary Provider"
     ///      {"caption":"No.","fieldValue":"01445544","fieldType":"Code", "tooltip":"Specifies the number of the customer."},
     ///      {"caption":"Name","fieldValue":"Progressive Home Furnishings","fieldType":"Text","tooltip":"Specifies the customer's name. This name will appear on all sales documents for the customer."},
     ///      {"caption":"Contact","fieldValue":"Mr. Scott Mitchell","fieldType":"Text", "tooltip":"Specifies the name of the person you regularly contact when you do business with this customer."},
-    ///      {"caption":"Balance Due (LCY)","fieldValue":"1.499,03","fieldType":"Decimal","tooltip":"Specifies the payment amount that the customer owes for completed sales."}]
+    ///      {"caption":"Balance Due (LCY)","fieldValue":"1.499,03","fieldType":"Decimal","tooltip":"Specifies the payment amount that the customer owes for completed sales."}],
     ///   "recordFields":[
     ///      {"caption":"No.","fieldValue":"01121212","fieldType":"Code","tooltip":"Specifies the number of the customer."},
     ///      {"caption":"Name","fieldValue":"Spotsmeyer's Furnishings","fieldType":"Text","tooltip":"Specifies the customer's name. This name will appear on all sales documents for the customer."},
@@ -88,7 +88,7 @@ codeunit 2718 "Page Summary Provider"
     ///      {"caption":"No.","fieldValue":"01445544","fieldType":"Code", "tooltip":"Specifies the number of the customer."},
     ///      {"caption":"Name","fieldValue":"Progressive Home Furnishings","fieldType":"Text","tooltip":"Specifies the customer's name. This name will appear on all sales documents for the customer."},
     ///      {"caption":"Contact","fieldValue":"Mr. Scott Mitchell","fieldType":"Text", "tooltip":"Specifies the name of the person you regularly contact when you do business with this customer."},
-    ///      {"caption":"Balance Due (LCY)","fieldValue":"1.499,03","fieldType":"Decimal","tooltip":"Specifies the payment amount that the customer owes for completed sales."}]
+    ///      {"caption":"Balance Due (LCY)","fieldValue":"1.499,03","fieldType":"Decimal","tooltip":"Specifies the payment amount that the customer owes for completed sales."}],
     ///   "recordFields":[
     ///      {"caption":"No.","fieldValue":"01121212","fieldType":"Code","tooltip":"Specifies the number of the customer."},
     ///      {"caption":"Name","fieldValue":"Spotsmeyer's Furnishings","fieldType":"Text","tooltip":"Specifies the customer's name. This name will appear on all sales documents for the customer."},
