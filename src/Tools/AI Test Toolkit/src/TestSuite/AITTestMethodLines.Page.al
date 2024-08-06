@@ -224,10 +224,4 @@ page 149034 "AIT Test Method Lines"
             exit(0);
         exit(Round((100 * (No - BaseNo)) / BaseNo, 0.1));
     end;
-
-    internal procedure Refresh()
-    begin
-        CurrPage.Update(false);
-        if Rec.Find() then;
-    end;
 }
