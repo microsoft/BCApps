@@ -322,7 +322,7 @@ function Update-BCArtifactVersion {
         } else {
             $latestArtifactUrl = "bcinsider/Sandbox/$currentVersion/base/latest"
         }
-    } 
+    }
 
     $result = $null
     if($latestArtifactUrl -ne $currentArtifactUrl) {
