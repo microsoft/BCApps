@@ -31,11 +31,13 @@ page 1931 "Performance Profile List"
                 {
                     Caption = 'Start Time';
                     ToolTip = 'Specifies the time the profile was started.';
+                    AboutText = 'The time the profile was started.';
                 }
                 field("User Name"; Rec."User Name")
                 {
                     Caption = 'User Name';
                     ToolTip = 'Specifies the name of the user that was profiled.';
+                    AboutText = 'The username of the user that was profiled.';
                 }
                 field(Activity; ActivityType)
                 {
@@ -47,36 +49,51 @@ page 1931 "Performance Profile List"
                 {
                     Caption = 'Activity Description';
                     ToolTip = 'Specifies a short description of the activity that was profiled.';
+                    AboutText = 'A description of the activity that was profiled.';
                 }
-                field("Object Display Name"; Rec."Object Display Name")
+                field(ActivityDuration; Rec."Activity Duration")
                 {
-                    Caption = 'Object';
-                    ToolTip = 'Specifies the object that contains the entry point for this profile.';
+                    Caption = 'Activity Duration (ms)';
+                    ToolTip = 'Specifies the duration of the recorded activity including system operations and waiting for input.';
+                    AboutText = 'The duration of the recorded activity including system operations and waiting for input.';
                 }
-                field(Duration; Rec.Duration)
+                field(ALExecutionTime; Rec.Duration)
                 {
-                    Caption = 'Activity Duration';
-                    ToolTip = 'Specifies the duration of the activity that was profiled in milliseconds.';
+                    Caption = 'AL Execution Duration (ms)';
+                    ToolTip = 'Specifies the total duration of the sampled AL code in the recorded activity. This measurement is approximate as it depends on the selected sampling frequency.';
+                    AboutText = 'The duration of the sampled AL code in this activity.';
                 }
                 field("Http Call Duration"; Rec."Http Call Duration")
                 {
                     Caption = 'Duration of Http Calls';
                     ToolTip = 'Specifies the duration of the http calls during the activity that was profiled in milliseconds.';
+                    AboutText = 'The duration of external http calls during the activity that was profiled.';
+                    Visible = false;
                 }
                 field("Http Call Number"; Rec."Http Call Number")
                 {
                     Caption = 'Number of Http Calls';
                     ToolTip = 'Specifies the number of http calls during the activity that was profiled.';
+                    AboutText = 'The number of external http calls during the activity that was profiled.';
+                    Visible = false;
+                }
+                field("Correlation ID"; Rec."Activity ID")
+                {
+                    Caption = 'Correlation ID';
+                    ToolTip = 'Specifies the ID of the activity that was profiled.';
+                    AboutText = 'The ID of the activity that was profiled.';
                 }
                 field("Client Session ID"; Rec."Client Session ID")
                 {
                     Caption = 'Client Session ID';
                     ToolTip = 'Specifies the ID of the client session that was profiled.';
+                    AboutText = 'The ID of the client session that was profiled.';
                 }
                 field("Schedule ID"; Rec."Schedule ID")
                 {
                     Caption = 'Schedule ID';
                     ToolTip = 'Specifies the ID of the schedule that was used to profile the activity.';
+                    AboutText = 'The ID of the schedule that was used to profile the activity.';
                     TableRelation = "Performance Profile Scheduler"."Schedule ID";
                     DrillDown = true;
 

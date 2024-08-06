@@ -9,12 +9,14 @@ using System.PerformanceProfile;
 using System.DataAdministration;
 using System.Security.AccessControl;
 using System.Security.User;
+using System.Environment;
 
 codeunit 1932 "Scheduled Perf. Profiler Impl."
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    SingleInstance = true;
 
     procedure MapActivityTypeToRecord(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; ActivityType: Enum "Perf. Profile Activity Type")
     var
@@ -84,11 +86,7 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
     var
         ScheduleDuration: Duration;
     begin
-        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Ending Date-Time" < CurrentDateTime())) then
-            Error(ProfileCannotBeInThePastErr);
-
-        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Starting Date-Time" > PerformanceProfileScheduler."Ending Date-Time")) then
-            Error(ProfileStartingDateLessThenEndingDateErr);
+        this.ValidatePerformanceProfileSchedulerDatesRelation(PerformanceProfileScheduler);
 
         if (MaxRetentionPeriod = 0) then
             exit;
@@ -96,6 +94,15 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         ScheduleDuration := PerformanceProfileScheduler."Ending Date-Time" - PerformanceProfileScheduler."Starting Date-Time";
         if (ScheduleDuration > MaxRetentionPeriod) then
             Error(ScheduleDurationCannotExceedRetentionPeriodErr);
+    end;
+
+    procedure ValidatePerformanceProfileSchedulerDatesRelation(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
+    begin
+        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Ending Date-Time" < CurrentDateTime())) then
+            Error(ProfileCannotBeInThePastErr);
+
+        if ((PerformanceProfileScheduler."Ending Date-Time" <> 0DT) and (PerformanceProfileScheduler."Starting Date-Time" > PerformanceProfileScheduler."Ending Date-Time")) then
+            Error(ProfileStartingDateLessThenEndingDateErr);
     end;
 
     procedure ValidatePerformanceProfileEndTime(PerformanceProfileScheduler: Record "Performance Profile Scheduler")
@@ -147,8 +154,8 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         RetentionPolicySetupRec: Record "Retention Policy Setup";
         RetentionPolicySetup: Codeunit "Retention Policy Setup";
     begin
-        this.CreateRetentionPolicySetup(Database::"Performance Profiles", RetentionPolicySetup.FindOrCreateRetentionPeriod("Retention Period Enum"::"1 Week"));
-        if RetentionPolicySetupRec.Get(Database::"Performance Profiles") then
+        this.CreateRetentionPolicySetup(Database::"Performance Profile Scheduler", RetentionPolicySetup.FindOrCreateRetentionPeriod("Retention Period Enum"::"1 Week"));
+        if RetentionPolicySetupRec.Get(Database::"Performance Profile Scheduler") then
             Page.Run(Page::"Retention Policy Setup Card", RetentionPolicySetupRec);
     end;
 
@@ -188,6 +195,23 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
             exit(false);
 
         exit(true);
+    end;
+
+    internal procedure IsProfilingEnabled(var ScheduleId: Guid): Boolean
+    var
+        ProfilerHelper: DotNet ProfilerHelper;
+        PerformanceProfileSchedulerRecord: DotNet PerformanceProfileSchedulerRecord;
+    begin
+        PerformanceProfileSchedulerRecord := ProfilerHelper.GetScheduleBasedProfilingStatus();
+        ScheduleId := PerformanceProfileSchedulerRecord.ScheduleId;
+        exit(PerformanceProfileSchedulerRecord.IsProfiling());
+    end;
+
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetProfilerSchedulesPageId, '', false, false)]
+    local procedure GetProfilerSchedulesPageId(var PageId: Integer)
+    begin
+        PageId := Page::"Perf. Profiler Schedules List";
     end;
 
     var
