@@ -5,6 +5,7 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.TestLibraries.AI;
 using System.TestTools.TestRunner;
 
 codeunit 149042 "AIT Test Run Iteration"
@@ -132,6 +133,7 @@ codeunit 149042 "AIT Test Run Iteration"
     local procedure OnBeforeTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions)
     var
         AITContextCU: Codeunit "AIT Test Context Impl.";
+        AOAITestLibrary: Codeunit "Azure OpenAI Test Library";
     begin
         if ActiveAITTestSuite.Code = '' then
             exit;
@@ -142,7 +144,7 @@ codeunit 149042 "AIT Test Run Iteration"
 
         // Update AI Token Consumption
         GlobalAITokenUsedByLastTestMethodLine := 0;
-        GlobalSessionAITokenUsed := SessionInformation.AITokensUsed;
+        GlobalSessionAITokenUsed := AOAITestLibrary.GetTotalServerSessionTokensConsumed();
 
         AITContextCU.StartRunProcedureScenario();
     end;
@@ -151,6 +153,7 @@ codeunit 149042 "AIT Test Run Iteration"
     local procedure OnAfterTestMethodRun(var CurrentTestMethodLine: Record "Test Method Line"; CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions; IsSuccess: Boolean)
     var
         AITContextCU: Codeunit "AIT Test Context Impl.";
+        AOAITestLibrary: Codeunit "Azure OpenAI Test Library";
     begin
         if ActiveAITTestSuite.Code = '' then
             exit;
@@ -160,7 +163,7 @@ codeunit 149042 "AIT Test Run Iteration"
 
         GlobalTestMethodLine := CurrentTestMethodLine;
         // Update AI Token Consumption
-        GlobalAITokenUsedByLastTestMethodLine := SessionInformation.AITokensUsed - GlobalSessionAITokenUsed;
+        GlobalAITokenUsedByLastTestMethodLine := AOAITestLibrary.GetTotalServerSessionTokensConsumed() - GlobalSessionAITokenUsed;
 
         AITContextCU.EndRunProcedureScenario(CurrentTestMethodLine, IsSuccess);
         Commit();
