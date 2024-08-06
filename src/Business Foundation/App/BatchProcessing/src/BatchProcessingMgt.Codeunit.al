@@ -9,6 +9,7 @@ using Microsoft.Intercompany.Outbox;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
+using System.Security.User;
 using System.Utilities;
 
 codeunit 1380 "Batch Processing Mgt."
@@ -385,22 +386,36 @@ codeunit 1380 "Batch Processing Mgt."
     end;
 
     procedure SetParametersForPageID(PageID: Integer)
+    var
+        UserSetup: Record "User Setup";
+        DoInvoicePurchase: Boolean;
+        DoInvoiceSales: Boolean;
     begin
         IsHandled := false;
         OnBeforeSetParametersForPageID(PageID, IsHandled);
         if IsHandled then
             exit;
 
+        DoInvoicePurchase := true;
+        DoInvoiceSales := true;
+        if UserId <> '' then begin
+            UserSetup.SetLoadFields("Purch. Invoice Posting Policy", "Sales Invoice Posting Policy");
+            if UserSetup.Get(UserId) then begin
+                DoInvoicePurchase := UserSetup."Purch. Invoice Posting Policy" <> UserSetup."Purch. Invoice Posting Policy"::Prohibited;
+                DoInvoiceSales := UserSetup."Sales Invoice Posting Policy" <> UserSetup."Sales Invoice Posting Policy"::Prohibited;
+            end;
+        end;
+
         case PageID of
             Page::"Purchase Order List", Page::"Sales Return Order List":
                 begin
-                    SetParameter("Batch Posting Parameter Type"::Invoice, true);
+                    SetParameter("Batch Posting Parameter Type"::Invoice, ((PageID = Page::"Purchase Order List") and DoInvoicePurchase) or ((PageID = Page::"Sales Return Order List") and DoInvoiceSales));
                     SetParameter("Batch Posting Parameter Type"::Receive, true);
                 end;
 
             Page::"Sales Order List", Page::"Purchase Return Order List":
                 begin
-                    SetParameter("Batch Posting Parameter Type"::Invoice, true);
+                    SetParameter("Batch Posting Parameter Type"::Invoice, ((PageID = Page::"Purchase Return Order List") and DoInvoicePurchase) or ((PageID = Page::"Sales Order List") and DoInvoiceSales));
                     SetParameter("Batch Posting Parameter Type"::Ship, true);
                 end;
         end;
