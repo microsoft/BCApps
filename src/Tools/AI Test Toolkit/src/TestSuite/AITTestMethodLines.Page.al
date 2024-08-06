@@ -210,4 +210,24 @@ page 149034 "AIT Test Method Lines"
         if Rec."Test Suite Code" <> AITTestSuite.Code then
             if AITTestSuite.Get(Rec."Test Suite Code") then;
     end;
+
+    local procedure GetAvg(NumIterations: Integer; TotalNo: Integer): Integer
+    begin
+        if NumIterations = 0 then
+            exit(0);
+        exit(TotalNo div NumIterations);
+    end;
+
+    local procedure GetDiffPct(BaseNo: Integer; No: Integer): Decimal
+    begin
+        if BaseNo = 0 then
+            exit(0);
+        exit(Round((100 * (No - BaseNo)) / BaseNo, 0.1));
+    end;
+
+    internal procedure Refresh()
+    begin
+        CurrPage.Update(false);
+        if Rec.Find() then;
+    end;
 }
