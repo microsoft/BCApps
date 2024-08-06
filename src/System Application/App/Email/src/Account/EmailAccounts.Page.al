@@ -414,7 +414,7 @@ page 8887 "Email Accounts"
             if not (IConnector is "Email Connector v2") then
                 EmailAccounts.Delete();
         until EmailAccounts.Next() = 0;
-        EmailAccounts.FindSet();
+        if EmailAccounts.FindSet() then;
     end;
 
     local procedure ShowAccountInformation()
