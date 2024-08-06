@@ -10,5 +10,6 @@ permissionset 1 "Bus. Found. - Obj."
     Caption = 'Business Foundation - Objects';
 
     IncludedPermissionSets = "Audit Codes - Objects",
-                            "No. Series - Objects";
+                            "No. Series - Objects",
+                            "No. Series Copilot - Objects";
 }
