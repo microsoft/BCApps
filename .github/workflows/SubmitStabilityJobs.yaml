@@ -19,7 +19,7 @@ jobs:
         id: getOfficialBranches
         uses: microsoft/BCApps/.github/actions/GetGitBranches@main
         with:
-          include: "['main', 'releases/*']"
+          include: "['releases/*']"
 
   SubmitStabilityJobs:
     name: "[${{ matrix.branch }}] Submit Stability Job"
