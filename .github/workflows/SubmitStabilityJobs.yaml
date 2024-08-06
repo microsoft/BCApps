@@ -9,8 +9,8 @@ permissions: read-all
 
 jobs:
   GetBranches:
-    if: github.repository_owner == 'microsoft'
     name: Get Official Branches
+    if: github.repository_owner == 'microsoft'
     runs-on: ubuntu-latest
     outputs:
       officialBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
@@ -22,8 +22,8 @@ jobs:
           include: "['main', 'releases/*']"
 
   SubmitStabilityJobs:
-    if: github.repository_owner == 'microsoft'
     name: "[${{ matrix.branch }}] Submit Stability Job"
+    if: github.repository_owner == 'microsoft'
     runs-on: ubuntu-latest
     environment: Official-Build
     needs: GetBranches
