@@ -163,7 +163,7 @@ codeunit 2610 "Feature Management Impl."
             if FeatureDataUpdateStatus."Background Task" then
                 UpdateBackgroundTaskStatus(FeatureDataUpdateStatus);
         end else
-            InitializeFeatureDataUpdateStatus(FeatureKey, FeatureDataUpdateStatus, false);
+            InitializeFeatureDataUpdateStatus(FeatureKey, FeatureDataUpdateStatus, true);
     end;
 
     /// <summary>
