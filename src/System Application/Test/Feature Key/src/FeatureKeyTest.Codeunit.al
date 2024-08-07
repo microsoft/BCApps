@@ -583,15 +583,6 @@ codeunit 135003 "Feature Key Test"
         exit(FeatureKey.ID);
     end;
 
-    local procedure SetFeatureEnabled(ID: Text[50]; Enabled: Option "None","All Users")
-    var
-        FeatureKey: Record "Feature Key";
-    begin
-        FeatureKey.Get(ID);
-        FeatureKey.Enabled := Enabled;
-        FeatureKey.Modify();
-    end;
-
     local procedure MockFeatureStatus(ID: Text[50]; Enabled: Option "None","All Users"; Status: Enum "Feature Status")
     var
         FeatureDataUpdateStatus: Record "Feature Data Update Status";
@@ -604,6 +595,15 @@ codeunit 135003 "Feature Key Test"
             CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name"));
         FeatureDataUpdateStatus."Feature Status" := Status;
         FeatureDataUpdateStatus.Insert();
+    end;
+
+    local procedure SetFeatureEnabled(ID: Text[50]; Enabled: Option "None","All Users")
+    var
+        FeatureKey: Record "Feature Key";
+    begin
+        FeatureKey.Get(ID);
+        FeatureKey.Enabled := Enabled;
+        FeatureKey.Modify();
     end;
 
     local procedure MockStatusInAnotherCompany(ID: Text[50]; DataUpdateRequired: Boolean; FeatureStatus: Enum "Feature Status") Name: Text[30]
