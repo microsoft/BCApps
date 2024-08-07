@@ -514,7 +514,7 @@ codeunit 135003 "Feature Key Test"
         Initialize();
         ID := 'SalesPrices';
         // [GIVEN] Feature Key 'X', where "Enabled" is 'All Users' with data update required
-        SetFeatureParams(ID, Enabled::"All Users");
+        SetFeatureEnabled(ID, Enabled::"All Users");
 
         // [GIVEN] FeatureDataUpdateStatus for Company 'A' does not exist
         FeatureDataUpdateStatus.DeleteAll();
@@ -542,7 +542,7 @@ codeunit 135003 "Feature Key Test"
         Initialize();
         ID := 'SalesPrices';
         // [GIVEN] Feature Key 'X', where "Enabled" is 'All Users' with data update required
-        SetFeatureParams(ID, Enabled::"All Users");
+        SetFeatureEnabled(ID, Enabled::"All Users");
 
         // [GIVEN] FeatureDataUpdateStatus for Company 'A' does not exist
         FeatureDataUpdateStatus.DeleteAll();
@@ -583,7 +583,7 @@ codeunit 135003 "Feature Key Test"
         exit(FeatureKey.ID);
     end;
 
-    local procedure SetFeatureParams(ID: Text[50]; Enabled: Option "None","All Users")
+    local procedure SetFeatureEnabled(ID: Text[50]; Enabled: Option "None","All Users")
     var
         FeatureKey: Record "Feature Key";
     begin
@@ -596,7 +596,7 @@ codeunit 135003 "Feature Key Test"
     var
         FeatureDataUpdateStatus: Record "Feature Data Update Status";
     begin
-        SetFeatureParams(ID, Enabled);
+        SetFeatureEnabled(ID, Enabled);
 
         FeatureDataUpdateStatus.DeleteAll();
         FeatureDataUpdateStatus."Feature Key" := ID;
