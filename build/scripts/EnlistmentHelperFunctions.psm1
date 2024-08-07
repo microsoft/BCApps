@@ -282,7 +282,9 @@ function Get-LatestBCArtifactUrl
     [Parameter(Mandatory=$true)]
     $minimumVersion,
     [Parameter(Mandatory=$false)]
-    $storageAccountOrder = @("bcartifacts", "bcinsider")
+    $storageAccountOrder = @("bcartifacts", "bcinsider"),
+    [Parameter(Mandatory=$false)]
+    [switch] $asPattern
 )
 {
     $artifactUrl = Get-BCArtifactUrl -type Sandbox -country base -version $minimumVersion -select Latest -storageAccount $storageAccountOrder[0] -accept_insiderEula
@@ -296,6 +298,14 @@ function Get-LatestBCArtifactUrl
         throw "No artifact found for version $minimumVersion"
     }
 
+    if ($asPattern) {
+        if ($artifactUrl -contains $storageAccountOrder[0]) {
+            $artifactUrl = "$($storageAccountOrder[0])/Sandbox/$minimumVersion/base/latest"
+        } else {
+            $artifactUrl = "$($storageAccountOrder[1])/Sandbox/$minimumVersion/base/latest"
+        }
+    }
+
     return $artifactUrl
 }
 
@@ -307,22 +317,17 @@ function Get-LatestBCArtifactUrl
 #>
 function Update-BCArtifactVersion {
     $currentArtifactUrl = Get-ConfigValue -Key "artifact" -ConfigType AL-Go
-
+    $currentVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
     Write-Host "Current BCArtifact URL: $currentArtifactUrl"
 
-    $currentVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
-    $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $currentVersion
-
-    Write-Host "Latest BCArtifact URL: $latestArtifactUrl"
-
     if ($currentArtifactUrl -notlike "https*") {
-        Write-Host "Using latest BCArtifact version for the current repo version: $currentVersion"
-        if ($latestArtifactUrl -contains "bcartifacts") {
-            $latestArtifactUrl = "bcartifacts/Sandbox/$currentVersion/base/latest"
-        } else {
-            $latestArtifactUrl = "bcinsider/Sandbox/$currentVersion/base/latest"
-        }
+        Write-Host "Getting latest BCArtifact version as pattern with minimum version $currentVersion"
+        $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $currentVersion -asPattern
+    } else {
+        Write-Host "Getting latest BCArtifact version as URL with minimum version $currentVersion"
+        $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $currentVersion
     }
+    Write-Host "Latest BCArtifact URL: $latestArtifactUrl"
 
     $result = $null
     if($latestArtifactUrl -ne $currentArtifactUrl) {
