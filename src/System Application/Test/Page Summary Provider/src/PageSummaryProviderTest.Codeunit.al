@@ -47,6 +47,7 @@ codeunit 132548 "Page Summary Provider Test"
         PageProviderSummaryTest.TestInteger := 1;
         PageProviderSummaryTest.TestText := 'Page Summary';
         PageProviderSummaryTest.TestCode := 'PROVIDER';
+        PageProviderSummaryTest.TestBoolean := true; // Boolean is not part of brick
         PageProviderSummaryTest.TestDateTime := CurrentDateTime();
         PageProviderSummaryTest.Insert();
 
@@ -58,11 +59,27 @@ codeunit 132548 "Page Summary Provider Test"
         // [Then] The summary reflects the page and record
         ValidateSummaryHeader(PageSummaryJsonObject, 'Page summary', 'Card', 'Brick');
         LibraryAssert.AreEqual('132549', ReadJsonString(PageSummaryJsonObject, 'cardPageId'), 'Incorrect cardPageId');
+        // fieldgroup(Brick; TestInteger, TestText, TestCode, TestDateTime) defines 4 fields
         LibraryAssert.AreEqual(4, GetNumberOfFields(PageSummaryJsonObject), 'Incorrect number of fields returned.');
         ValidateSummaryField(PageSummaryJsonObject, 0, 'TestText', PageProviderSummaryTest.TestText, 'Text');
         ValidateSummaryField(PageSummaryJsonObject, 1, 'TestInteger', format(PageProviderSummaryTest.TestInteger), 'Integer');
         ValidateSummaryField(PageSummaryJsonObject, 2, 'TestCode', PageProviderSummaryTest.TestCode, 'Code');
         ValidateSummaryField(PageSummaryJsonObject, 3, 'TestDateTime', format(PageProviderSummaryTest.TestDateTime), 'DateTime');
+
+        // [Then] The summary contains the page fields data that are visible and has value
+        LibraryAssert.AreEqual(10, GetNumberOfFieldsInAvailableRecordFieldsData(PageSummaryJsonObject), 'Incorrect number of fields in page data returned.');
+        ValidateAvailablePageField(PageSummaryJsonObject, 0, 'TestBigInteger', format(PageProviderSummaryTest.TestBigInteger), 'BigInteger');
+        ValidateAvailablePageField(PageSummaryJsonObject, 1, 'TestBoolean', format(PageProviderSummaryTest.TestBoolean), 'Boolean');
+        ValidateAvailablePageField(PageSummaryJsonObject, 2, 'TestCode', PageProviderSummaryTest.TestCode, 'Code');
+        ValidateAvailablePageField(PageSummaryJsonObject, 3, 'TestDateTime', format(PageProviderSummaryTest.TestDateTime), 'DateTime');
+        ValidateAvailablePageField(PageSummaryJsonObject, 4, 'TestDecimal', format(PageProviderSummaryTest.TestDecimal), 'Decimal');
+        ValidateAvailablePageField(PageSummaryJsonObject, 5, 'TestText', PageProviderSummaryTest.TestText, 'Text');
+        ValidateAvailablePageField(PageSummaryJsonObject, 6, 'TestOption', format(PageProviderSummaryTest.TestOption), 'Option');
+        ValidateAvailablePageField(PageSummaryJsonObject, 7, 'TestInteger', format(PageProviderSummaryTest.TestInteger), 'Integer');
+        ValidateAvailablePageField(PageSummaryJsonObject, 8, 'TestGuid', format(PageProviderSummaryTest.TestGuid), 'GUID');
+        // The extendedType for Enum is Option
+        ValidateAvailablePageField(PageSummaryJsonObject, 9, 'TestEnum', format(PageProviderSummaryTest.TestEnum), 'Option');
+
 
         // [Then] There are no error object
         LibraryAssert.IsFalse(PageSummaryJsonObject.Contains('error'), 'Page summary json should not contain an error object');
@@ -589,9 +606,35 @@ codeunit 132548 "Page Summary Provider Test"
         LibraryAssert.IsTrue(fieldsArrayJsonToken.AsArray().Get(FieldNumber, fieldJsonToken), 'Could not find field number ' + format(FieldNumber));
         fieldJsonObject := fieldJsonToken.AsObject();
 
-        LibraryAssert.AreEqual(ExpectedFieldCaption, ReadJsonString(fieldJsonObject, 'caption'), 'Incorrect field caption');
-        LibraryAssert.AreEqual(ExpectedFieldValue, ReadJsonString(fieldJsonObject, 'fieldValue'), 'Incorrect fieldValue');
-        LibraryAssert.AreEqual(ExpectedFieldtype, ReadJsonString(fieldJsonObject, 'fieldType'), 'Incorrect fieldType');
+        ValidateSummaryField(fieldJsonObject, ExpectedFieldCaption, ExpectedFieldValue, ExpectedFieldType, 'Specifies a test field ' + ExpectedFieldType)
+    end;
+
+    local procedure ValidateAvailablePageField(PageSummaryJsonObject: JsonObject; FieldNumber: Integer; ExpectedFieldCaption: Text; ExpectedFieldValue: Text; ExpectedFieldType: Text)
+    var
+        fieldsArrayJsonToken: JsonToken;
+        fieldJsonToken: JsonToken;
+        fieldJsonObject: JsonObject;
+    begin
+        PageSummaryJsonObject.Get('recordFields', fieldsArrayJsonToken);
+        LibraryAssert.IsTrue(fieldsArrayJsonToken.AsArray().Get(FieldNumber, fieldJsonToken), 'Could not find field number ' + format(FieldNumber));
+        fieldJsonObject := fieldJsonToken.AsObject();
+        ValidateSummaryField(fieldJsonObject, ExpectedFieldCaption, ExpectedFieldValue, ExpectedFieldType, 'Specifies a test field ' + ExpectedFieldType)
+    end;
+
+    local procedure GetNumberOfFieldsInAvailableRecordFieldsData(PageSummaryJsonObject: JsonObject): Integer
+    var
+        pageFieldsDataJsonToken: JsonToken;
+    begin
+        PageSummaryJsonObject.Get('recordFields', pageFieldsDataJsonToken);
+        exit(pageFieldsDataJsonToken.AsArray().Count());
+    end;
+
+    local procedure ValidateSummaryField(FieldJsonObject: JsonObject; ExpectedFieldCaption: Text; ExpectedFieldValue: Text; ExpectedFieldType: Text; ExpectedFieldTooltip: Text)
+    begin
+        LibraryAssert.AreEqual(ExpectedFieldCaption, ReadJsonString(FieldJsonObject, 'caption'), 'Incorrect field caption');
+        LibraryAssert.AreEqual(ExpectedFieldValue, ReadJsonString(FieldJsonObject, 'fieldValue'), 'Incorrect fieldValue');
+        LibraryAssert.AreEqual(ExpectedFieldtype, ReadJsonString(FieldJsonObject, 'fieldType'), 'Incorrect fieldType');
+        LibraryAssert.AreEqual(ExpectedFieldTooltip, ReadJsonString(FieldJsonObject, 'tooltip'), 'Incorrect field tooltip');
     end;
 
     local procedure GetNumberOfFields(PageSummaryJsonObject: JsonObject): Integer
@@ -631,13 +674,14 @@ codeunit 132548 "Page Summary Provider Test"
         exit(format(RecordId, 0, 10))
     end;
 
-    local procedure AddField(var FieldsJsonArray: JsonArray; Caption: Text; FieldValue: Text; FieldType: Text)
+    local procedure AddField(var FieldsJsonArray: JsonArray; Caption: Text; FieldValue: Text; FieldType: Text; Tooltip: Text)
     var
         FieldsJsonObject: JsonObject;
     begin
         FieldsJsonObject.Add('caption', Caption);
         FieldsJsonObject.Add('fieldValue', FieldValue);
         FieldsJsonObject.Add('fieldType', FieldType);
+        FieldsJsonObject.Add('tooltip', Tooltip);
         FieldsJsonArray.Add(FieldsJsonObject);
     end;
 
@@ -661,9 +705,9 @@ codeunit 132548 "Page Summary Provider Test"
 
         RecordRef.Get(RecId);
         if PageId = Page::"Page Summary Test Card" then begin
-            AddField(FieldsJsonArray, 'TestCaption', 'FieldValue', 'Text');
-            AddField(FieldsJsonArray, RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDateTime)).Caption, RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDateTime)).Value, format(RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDateTime)).Type));
-            AddField(FieldsJsonArray, RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDecimal)).Caption, format(RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDecimal)).Value) + '10', format(RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDecimal)).Type));
+            AddField(FieldsJsonArray, 'TestCaption', 'FieldValue', 'Text', 'Specifies a test field Text');
+            AddField(FieldsJsonArray, RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDateTime)).Caption, RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDateTime)).Value, format(RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDateTime)).Type), 'Specifies a test field DateTime');
+            AddField(FieldsJsonArray, RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDecimal)).Caption, format(RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDecimal)).Value) + '10', format(RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDecimal)).Type), 'Specifies a test field Decimal');
         end;
 
         Handled := true;
@@ -683,8 +727,7 @@ codeunit 132548 "Page Summary Provider Test"
 
         RecordRef.Get(RecId);
         if PageId = Page::"Page Summary Test Card" then begin
-            AddField(FieldsJsonArray, RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDecimal)).Caption, format(RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDecimal)).Value) + '10', format(RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDecimal)).Type));
-
+            AddField(FieldsJsonArray, RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDecimal)).Caption, format(RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDecimal)).Value) + '10', format(RecordRef.Field(PageProviderSummaryTest.FieldNo(TestDecimal)).Type), 'Specifies a test field Decimal');
             // Change value of field caption
             for fieldNo := 0 to FieldsJsonArray.Count() - 1 do begin
                 FieldsJsonArray.Get(fieldNo, FieldJsonToken);

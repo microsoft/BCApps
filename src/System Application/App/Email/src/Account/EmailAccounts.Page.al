@@ -387,6 +387,8 @@ page 8887 "Email Accounts"
         IsSelected := not IsNullGuid(SelectedAccountId);
 
         EmailAccount.GetAllAccounts(true, Rec); // Refresh the email accounts
+        if V2Filter then
+            FilterToConnectorv2Accounts(Rec);
         EmailScenario.GetDefaultEmailAccount(DefaultEmailAccount); // Refresh the default email account
 
         if IsSelected then begin
@@ -398,6 +400,20 @@ page 8887 "Email Accounts"
         HasEmailAccount := not Rec.IsEmpty();
 
         CurrPage.Update(false);
+    end;
+
+    local procedure FilterToConnectorv2Accounts(var EmailAccounts: Record "Email Account")
+    var
+        IConnector: Interface "Email Connector";
+    begin
+        if EmailAccounts.IsEmpty() then
+            exit;
+
+        repeat
+            IConnector := EmailAccounts.Connector;
+            if not (IConnector is "Email Connector v2") then
+                EmailAccounts.Delete();
+        until EmailAccounts.Next() = 0;
     end;
 
     local procedure ShowAccountInformation()
@@ -440,6 +456,15 @@ page 8887 "Email Accounts"
         CurrPage.LookupMode(true);
     end;
 
+    /// <summary>
+    /// Filters the email accounts to only show accounts that are using the Email Connector v2.
+    /// </summary>
+    /// <param name="Filter">True to filter the email accounts, false to show all email accounts</param>
+    procedure FilterConnectorV2Accounts(Filter: Boolean)
+    begin
+        V2Filter := Filter;
+    end;
+
     var
         DefaultEmailAccount: Record "Email Account";
         EmailAccountImpl: Codeunit "Email Account Impl.";
@@ -452,5 +477,6 @@ page 8887 "Email Accounts"
         ShowLogo: Boolean;
         IsLookupMode: Boolean;
         HasEmailAccount: Boolean;
+        V2Filter: Boolean;
         EmailConnectorHasBeenUninstalledMsg: Label 'The selected email extension has been uninstalled. To view information about the email account, you must reinstall the extension.';
 }
