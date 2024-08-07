@@ -503,6 +503,63 @@ codeunit 135003 "Feature Key Test"
         asserterror error('') // roll back
     end;
 
+    [Test]
+    procedure T108_IsEnabledAllowInsertTrue()
+    var
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        Enabled: Option "None","All Users";
+        ID: Text[50];
+    begin
+        PermissionsMock.Set('Feature Key Admin');
+        Initialize();
+        ID := 'SalesPrices';
+        // [GIVEN] Feature Key 'X', where "Enabled" is 'All Users' with data update required
+        SetFeatureParams(ID, Enabled::"All Users");
+
+        // [GIVEN] FeatureDataUpdateStatus for Company 'A' does not exist
+        FeatureDataUpdateStatus.DeleteAll();
+
+        // [WHEN] run IsEnabled() with AllowInsert = true
+        // [THEN] result is False, because it requires data update
+        Assert.IsFalse(FeatureManagementFacade.IsEnabled(ID, true), 'should be disabled');
+
+        // [THEN] FeatureDataUpdateStatus for Company 'A' is created
+        FeatureDataUpdateStatus.SetRange("Feature Key", ID);
+        FeatureDataUpdateStatus.SetRange("Company Name", CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name")));
+        Assert.RecordIsNotEmpty(FeatureDataUpdateStatus);
+
+        asserterror error('') // roll back
+    end;
+
+    [Test]
+    procedure T109_IsEnabledAllowInsertFalse()
+    var
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+        Enabled: Option "None","All Users";
+        ID: Text[50];
+    begin
+        PermissionsMock.Set('Feature Key Admin');
+        Initialize();
+        ID := 'SalesPrices';
+        // [GIVEN] Feature Key 'X', where "Enabled" is 'All Users' with data update required
+        SetFeatureParams(ID, Enabled::"All Users");
+
+        // [GIVEN] FeatureDataUpdateStatus for Company 'A' does not exist
+        FeatureDataUpdateStatus.DeleteAll();
+
+        // [WHEN] run IsEnabled() with AllowInsert = false
+        // [THEN] result is False, because it requires data update
+        Assert.IsFalse(FeatureManagementFacade.IsEnabled(ID, false), 'should be disabled');
+
+        // [THEN] FeatureDataUpdateStatus for Company 'A' is not created
+        FeatureDataUpdateStatus.SetRange("Feature Key", ID);
+        FeatureDataUpdateStatus.SetRange("Company Name", CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name")));
+        Assert.RecordIsEmpty(FeatureDataUpdateStatus);
+
+        asserterror error('') // roll back
+    end;
+
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
@@ -526,14 +583,20 @@ codeunit 135003 "Feature Key Test"
         exit(FeatureKey.ID);
     end;
 
-    local procedure MockFeatureStatus(ID: Text[50]; Enabled: Option "None","All Users"; Status: Enum "Feature Status")
+    local procedure SetFeatureParams(ID: Text[50]; Enabled: Option "None","All Users")
     var
         FeatureKey: Record "Feature Key";
-        FeatureDataUpdateStatus: Record "Feature Data Update Status";
     begin
         FeatureKey.Get(ID);
         FeatureKey.Enabled := Enabled;
         FeatureKey.Modify();
+    end;
+
+    local procedure MockFeatureStatus(ID: Text[50]; Enabled: Option "None","All Users"; Status: Enum "Feature Status")
+    var
+        FeatureDataUpdateStatus: Record "Feature Data Update Status";
+    begin
+        SetFeatureParams(ID, Enabled);
 
         FeatureDataUpdateStatus.DeleteAll();
         FeatureDataUpdateStatus."Feature Key" := ID;
