@@ -29,11 +29,11 @@ codeunit 132932 "Copilot Test Library"
         CopilotCapability.RegisterCapability(Capability, '');
     end;
 
-    procedure RegisterCopilotCapabilityForSpecificAppId(Capability: Enum "Copilot Capability"; AppId: Guid)
+    procedure RegisterCopilotCapabilityWithAppId(Capability: Enum "Copilot Capability"; AppId: Guid)
     var
         CopilotSettings: Record "Copilot Settings";
     begin
-        CopilotCapability.RegisterCapability(Capability, '');
+        RegisterCopilotCapability(Capability);
 
         CopilotSettings.SetRange(Capability, Capability);
         CopilotSettings.FindFirst();
