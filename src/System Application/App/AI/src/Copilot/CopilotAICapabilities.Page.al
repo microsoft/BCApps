@@ -178,7 +178,7 @@ page 7775 "Copilot AI Capabilities"
             Enum::"Privacy Notice Approval State"::Disagreed:
                 AllowDataMovement := false;
             else
-                AllowDataMovement := WithinGeo or WithinEuropeGeo;
+                AllowDataMovement := true;
         end;
 
         AllowDataMovementEditable := CopilotCapabilityImpl.IsAdmin();
