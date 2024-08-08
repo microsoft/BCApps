@@ -5,7 +5,7 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "https://bcartifacts-exdbf9fwegejdqak.b02.azurefd.net/sandbox/24.4.22295.22671/base",
+  "artifact": "https://bcartifacts-exdbf9fwegejdqak.b02.azurefd.net/sandbox/24.4.22295.22724/base",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "24.4",
