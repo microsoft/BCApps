@@ -528,7 +528,7 @@ codeunit 135003 "Feature Key Test"
         FeatureDataUpdateStatus.SetRange("Company Name", CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name")));
         Assert.RecordIsNotEmpty(FeatureDataUpdateStatus);
 
-        asserterror error('') // roll back
+        asserterror Error('') // roll back
     end;
 
     [Test]
@@ -556,7 +556,7 @@ codeunit 135003 "Feature Key Test"
         FeatureDataUpdateStatus.SetRange("Company Name", CopyStr(CompanyName(), 1, MaxStrLen(FeatureDataUpdateStatus."Company Name")));
         Assert.RecordIsEmpty(FeatureDataUpdateStatus);
 
-        asserterror error('') // roll back
+        asserterror Error('') // roll back
     end;
 
 
