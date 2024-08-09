@@ -5,6 +5,7 @@
 
 namespace System.Integration.Excel;
 
+using System;
 using System.Integration;
 
 /// <summary>
@@ -13,6 +14,42 @@ using System.Integration;
 codeunit 1481 "Edit in Excel"
 {
     Access = Public;
+
+    procedure CreateMetadataWebRequest()
+    var
+        EnvironmentInfo: Codeunit "Environment Information";
+        Token: Text;
+    begin
+        Token := 'herpderp';
+
+
+    end;
+
+    procedure IsMetadataGeneratedForWebService(): Boolean
+    var
+        HttpClient: HttpClient;
+        HttpResponseMessage: HttpResponseMessage;
+        MetadataUrl: Text;
+        EntitySetXml: Text;
+        Document: DotNet XmlDocument;
+        NodeList: DotNet XmlNodeList;
+        NameSpaceManager: DotNet XmlNamespaceManager;
+        EntitySetName: Text;
+    begin
+        MetadataUrl := 'https://metadatastoragexyz.blob.core.windows.net/metadata/metadata.xml?sp=r&st=2024-08-02T09:38:22Z&se=2024-08-02T17:38:22Z&spr=https&sv=2022-11-02&sr=b&sig=eP4pvx1m1OiiGVhYVD4haMIYvSgOAWIUysk3mD7h8Ds%3D';
+        EntitySetName := 'Company';
+        if HttpClient.Get(MetadataUrl, HttpResponseMessage) then
+            if HttpResponseMessage.IsSuccessStatusCode then begin
+                HttpResponseMessage.Content().ReadAs(EntitySetXml);
+                Document := Document.XmlDocument();
+                Document.LoadXml(EntitySetXml);
+                NameSpaceManager := NameSpaceManager.XmlNamespaceManager(Document.NameTable());
+                NameSpaceManager.AddNamespace('edm', 'http://docs.oasis-open.org/odata/ns/edm');
+                NodeList := Document.SelectNodes('//edm:EntitySet[@Name="' + EntitySetName + '"]', NameSpaceManager);
+                exit(NodeList.Count() > 0);
+            end;
+        exit(false);
+    end;
 
 #if not CLEAN22
     /// <summary>
