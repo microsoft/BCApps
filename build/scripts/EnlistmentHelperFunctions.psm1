@@ -299,7 +299,7 @@ function Get-LatestBCArtifactUrl
     }
 
     if ($asPattern) {
-        if ($artifactUrl -contains $storageAccountOrder[0]) {
+        if ($artifactUrl -match $storageAccountOrder[0]) {
             $artifactUrl = "$($storageAccountOrder[0])/Sandbox/$minimumVersion/base/latest"
         } else {
             $artifactUrl = "$($storageAccountOrder[1])/Sandbox/$minimumVersion/base/latest"
