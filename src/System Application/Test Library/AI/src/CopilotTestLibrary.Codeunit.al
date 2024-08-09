@@ -33,12 +33,22 @@ codeunit 132932 "Copilot Test Library"
     var
         CopilotSettings: Record "Copilot Settings";
     begin
+        if CopilotSettings.Get(Capability, AppId) then
+            if CopilotSettings.Status = CopilotSettings.Status::Active then
+                exit
+            else begin
+                CopilotSettings.Status := CopilotSettings.Status::Active;
+                CopilotSettings.Modify();
+                exit;
+            end;
+
         RegisterCopilotCapability(Capability);
 
-        CopilotSettings.SetRange(Capability, Capability);
-        CopilotSettings.FindFirst();
-        CopilotSettings."App Id" := AppId;
-        CopilotSettings.Modify();
+        NavApp.GetCurrentModuleInfo(ModuleInfo);
+        if CopilotSettings.Get(Capability, ModuleInfo.Id) then begin
+            CopilotSettings."App Id" := AppId;
+            CopilotSettings.Modify();
+        end;
     end;
 
     procedure UnregisterCopilotCapability(Capability: Enum "Copilot Capability")
