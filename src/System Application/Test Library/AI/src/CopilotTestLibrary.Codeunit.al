@@ -32,6 +32,7 @@ codeunit 132932 "Copilot Test Library"
     procedure RegisterCopilotCapabilityWithAppId(Capability: Enum "Copilot Capability"; AppId: Guid)
     var
         CopilotSettings: Record "Copilot Settings";
+        ModuleInfo: ModuleInfo;
     begin
         if CopilotSettings.Get(Capability, AppId) then
             if CopilotSettings.Status = CopilotSettings.Status::Active then
