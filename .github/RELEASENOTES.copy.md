@@ -32,6 +32,10 @@ In the summary after a Test Run, you now also have the result of performance tes
 Previously, the workflows "Update AL-Go System Files" and "TroubleShooting" were hardcoded to always run on `windows-latest` to prevent deadlocks and security issues.
 From now on, `ubuntu-lates` will also be allowed for these mission critical workflows, when changing the `runs-on` setting. Additionally, only the value `pwsh` for `shell` setting is allowed when using `ubuntu-latest` runners.
 
+### Updated AL-Go telemetry
+
+AL-Go for GitHub now includes a new telemetry module. For detailed information on how to enable or disable telemetry and to see what data AL-Go logs, check out [this article](https://github.com/microsoft/AL-Go/blob/main/Scenarios/EnablingTelemetry.md).
+
 ### New Settings
 
 - `deployTo<environmentName>`: is not really new, but has a new property:
