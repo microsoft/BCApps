@@ -136,4 +136,13 @@ codeunit 7761 "AOAI Chat Completion Params"
     begin
         AOAIChatComplParamsImpl.AddChatCompletionsParametersToPayload(Payload);
     end;
+
+    /// <summary>
+    /// Sets the data_sources array in the payload. The data sources can be used to provide additional search data to the model.
+    /// </summary>
+    /// <param name="DataSourceArray">JsonArray to add parameters relevant for the data sources to be included.</param>
+    procedure SetDataSourcesArrayToPayload(var DataSourcesArray: JsonArray)
+    begin
+        AOAIChatComplParamsImpl.SetDataSourcesArrayToPayload(DataSourcesArray);
+    end;
 }
