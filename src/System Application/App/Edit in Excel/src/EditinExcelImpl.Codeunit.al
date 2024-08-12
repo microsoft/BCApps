@@ -1010,13 +1010,8 @@ codeunit 1482 "Edit in Excel Impl."
     [NonDebuggable]
     local procedure GetScope(): Text
     var
-        AzureKeyVault: Codeunit "Azure Key Vault";
-        Scope: Text;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(ScopeAKVSecretNameLbl, Scope) then
-            Session.LogMessage('0000JRJ', MissingScopeTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok)
-        else
-            exit(Scope);
+        exit('https://api.businesscentral.dynamics.com/.default');
     end;
 
     [NonDebuggable]
