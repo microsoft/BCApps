@@ -1,9 +1,9 @@
-name: Update AL-Go On Official Branches
+name: Submit Stability Job On Official Branches
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "55 08 * * 3" # Run at 08:55 UTC on Wednesday
+    - cron: "0 04 * * *" # Run at 04:00 UTC every day
 
 permissions: read-all
 
@@ -13,29 +13,29 @@ jobs:
     if: github.repository_owner == 'microsoft'
     runs-on: ubuntu-latest
     outputs:
-      updateBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
+      officialBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
     steps:
       - name: Get Official Branches
         id: getOfficialBranches
         uses: microsoft/BCApps/.github/actions/GetGitBranches@main
         with:
-          include: "['main', 'releases/*']"
+          include: "['releases/*']"
 
-  UpdateALGo:
-    name: "[${{ matrix.branch }}] Update AL-Go"
+  SubmitStabilityJobs:
+    name: "[${{ matrix.branch }}] Submit Stability Job"
     if: github.repository_owner == 'microsoft'
     runs-on: ubuntu-latest
     environment: Official-Build
     needs: GetBranches
     strategy:
       matrix:
-        branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
+        branch: ${{ fromJson(needs.GetBranches.outputs.officialBranches) }}
       fail-fast: false
     steps:
-      - name: Update AL-Go System Files
+      - name: Submit Stability Job
         env:
           GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
         uses: microsoft/BCApps/.github/actions/RunAutomation@main
         with:
-          automations: UpdateALGo
+          automations: SubmitStabilityJob
           targetBranch: ${{ matrix.branch }}
