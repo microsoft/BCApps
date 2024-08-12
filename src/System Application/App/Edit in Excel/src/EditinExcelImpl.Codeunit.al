@@ -940,7 +940,7 @@ codeunit 1482 "Edit in Excel Impl."
     begin
         MetadataUrl := 'https://api.businesscentral.dynamics-tie.com/v2.0/Production/ODataV4/$metadata';
         HttpRequestMessage := CreateMetadataWebRequest(MetadataUrl);
-        if not HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+        if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
             if HttpResponseMessage.IsSuccessStatusCode then begin
                 HttpResponseMessage.Content().ReadAs(EntitySetXml);
                 Document := Document.XmlDocument();
