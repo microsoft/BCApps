@@ -9,8 +9,8 @@ on:
         default: false
 
 permissions:
-  contents: read
   actions: read
+  contents: read
 
 defaults:
   run:
@@ -25,12 +25,12 @@ jobs:
     runs-on: [ windows-latest ]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           lfs: true
 
       - name: Troubleshooting
-        uses: microsoft/AL-Go/Actions/Troubleshooting@5eeeec54ab7e6a9d97701effe420ef74bda08c67
+        uses: microsoft/AL-Go/Actions/Troubleshooting@6e2d05ca0fcb62e51e403cbd0539c6b1ad7f3080
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}

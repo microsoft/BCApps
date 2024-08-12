@@ -14,6 +14,7 @@ permissions: read-all
 jobs:
   GetBranches:
     name: Get Official Branches
+    if: github.repository_owner == 'microsoft'
     runs-on: ubuntu-latest
     outputs:
       updateBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
@@ -26,6 +27,7 @@ jobs:
 
   UpdatePackageVersions:
     name: "[${{ matrix.branch }}] Update Package Versions"
+    if: github.repository_owner == 'microsoft'
     permissions:
       contents: write
     runs-on: windows-latest
@@ -37,7 +39,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           ref: ${{ matrix.branch }}
 

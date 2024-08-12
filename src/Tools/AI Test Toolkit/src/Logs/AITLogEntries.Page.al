@@ -161,7 +161,7 @@ page 149033 "AIT Log Entries"
             {
                 Caption = 'Delete entries within filter';
                 Image = Delete;
-                ToolTip = 'Deletes all the log entries.';
+                ToolTip = 'Deletes all the log entries within the specified filters.';
 
                 trigger OnAction()
                 begin
