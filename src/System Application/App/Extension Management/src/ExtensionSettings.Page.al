@@ -108,6 +108,7 @@ page 2511 "Extension Settings"
                     Caption = 'Repository URL';
                     Editable = false;
                     ToolTip = 'Specifies the URL of the repository where the source code of the project can be found.';
+                    ExtendedDatatype = URL;
                 }
                 field(CommitId; CommitId)
                 {
