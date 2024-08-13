@@ -97,6 +97,11 @@ page 1932 "Perf. Profiler Schedule Card"
                     AboutText = 'The ID of the user who created the schedule.';
                     TableRelation = User."User Security ID";
                     Lookup = true;
+
+                    trigger OnValidate()
+                    begin
+                        ScheduledPerfProfiler.ValidateScheduleCreationPermissions(UserSecurityId(), Rec."User ID");
+                    end;
                 }
                 field(Activity; Activity)
                 {
