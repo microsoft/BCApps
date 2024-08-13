@@ -56,8 +56,6 @@ codeunit 1482 "Edit in Excel Impl."
         BearerLbl: Label 'Bearer %1', Locked = true, Comment = '%1 - Bearer token';
         ClientCertificateAKVSecretNameLbl: Label 'bctocesappcertificatename', Locked = true;
         MissingClientIdOrCertificateTelemetryTxt: Label 'The client id or certificate have not been initialized.', Locked = true;
-        MissingScopeTelemetryTxt: Label 'The scope have not been initialized.', Locked = true;
-        ScopeAKVSecretNameLbl: Label 'bctocesappscope', Locked = true;
         ClientIdAKVSecretNameLbl: Label 'bctocesappid', Locked = true;
         CategoryTok: Label 'Customer Experience Survey', Locked = true;
 
