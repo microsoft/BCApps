@@ -231,5 +231,5 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         ProfileCannotBeInThePastErr: Label 'A schedule cannot be set to run in the past.';
         ScheduleDurationCannotExceedRetentionPeriodErr: Label 'The performance profile schedule duration cannot exceed the retention period.';
         ScheduleEndTimeCannotBeEmptyErr: Label 'The performance profile schedule must have an end time.';
-        CannotCreateSchedulesForOtherUsersErr: Label 'Only user admins can create schedules for other users.';
+        CannotCreateSchedulesForOtherUsersErr: Label 'You do not have sufficient permissions to create profiler schedules for other users. Please contact your administrator.';
 }
