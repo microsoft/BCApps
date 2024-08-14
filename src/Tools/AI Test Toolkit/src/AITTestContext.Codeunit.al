@@ -12,6 +12,15 @@ using System.TestTools.TestRunner;
 codeunit 149044 "AIT Test Context"
 {
     /// <summary>
+    /// Sets to next turn.
+    /// </summary>
+    /// <returns>True if another turn exists</returns>
+    procedure SetNextTurn(): Boolean
+    begin
+        exit(AITTestContextImpl.SetNextTurn());
+    end;
+
+    /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
     /// </summary>
     /// <returns>Test Input Json for the current test.</returns>
