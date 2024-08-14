@@ -83,8 +83,7 @@ page 1932 "Perf. Profiler Schedule Card"
 
                     trigger OnValidate()
                     begin
-                        if Rec.Description = '' then
-                            Error(NotEmptyDescriptionErr);
+                        this.ValidateDescription();
                     end;
                 }
             }
@@ -223,6 +222,7 @@ page 1932 "Perf. Profiler Schedule Card"
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
         this.ValidateRecord();
+        this.ValidateDescription();
     end;
 
     var
@@ -233,11 +233,17 @@ page 1932 "Perf. Profiler Schedule Card"
         MaxRetentionPeriod: Duration;
         NoRetentionPolicySetupErr: Label 'No retention policy setup found for the performance profiles table.';
         CreateRetentionPolicySetupTxt: Label 'Create a retention policy setup';
-        NotEmptyDescriptionErr: Label 'Description must be filled in.';
+        NotEmptyDescriptionErr: Label 'The description must be filled in.';
 
     local procedure ValidateRecord()
     begin
         ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec, MaxRetentionPeriod);
         ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(Rec, Activity);
+    end;
+
+    local procedure ValidateDescription()
+    begin
+        if Rec.Description = '' then
+            Error(NotEmptyDescriptionErr);
     end;
 }
