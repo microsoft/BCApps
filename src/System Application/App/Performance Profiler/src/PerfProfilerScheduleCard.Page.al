@@ -80,7 +80,12 @@ page 1932 "Perf. Profiler Schedule Card"
                     Caption = 'Description';
                     ToolTip = 'Specifies the description of the schedule.';
                     AboutText = 'The description of the schedule.';
-                    NotBlank = true;
+
+                    trigger OnValidate()
+                    begin
+                        if Rec.Description = '' then
+                            Error(NotEmptyDescriptionErr);
+                    end;
                 }
             }
 
@@ -228,6 +233,7 @@ page 1932 "Perf. Profiler Schedule Card"
         MaxRetentionPeriod: Duration;
         NoRetentionPolicySetupErr: Label 'No retention policy setup found for the performance profiles table.';
         CreateRetentionPolicySetupTxt: Label 'Create a retention policy setup';
+        NotEmptyDescriptionErr: Label 'Description must be filled in.';
 
     local procedure ValidateRecord()
     begin
