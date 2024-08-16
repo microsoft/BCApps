@@ -5,7 +5,7 @@ param (
 
 $repository = $runParameters.Repository
 $targetBranch = $runParameters.TargetBranch
-$workflowName = " Update AL-Go System Files"
+$workflowName = " CI/CD"
 $workflowRunTime = Get-Date -AsUTC
 
 Write-Host "Running the workflow '$workflowName' on branch $targetBranch"

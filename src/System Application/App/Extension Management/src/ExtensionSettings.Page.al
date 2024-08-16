@@ -77,7 +77,7 @@ page 2511 "Extension Settings"
             {
                 Caption = 'Resource Protection Policies defined by the extension';
                 Visible = IsTenantExtension;
-                
+
                 field(AppAllowsDebuggging; AppAllowsDebuggging)
                 {
                     Caption = 'Allow Debugging';
@@ -95,6 +95,26 @@ page 2511 "Extension Settings"
                     Caption = 'Source In Symbols Download';
                     Editable = false;
                     ToolTip = 'Specifies if the publisher allows a symbol package download will contain the source code and all other resources that were part of the extension package.';
+                }
+            }
+
+            group("Source control details")
+            {
+                Caption = 'Source control details';
+                Visible = IsSourceInformationAvailable;
+
+                field(RepositoryUrl; RepositoryUrl)
+                {
+                    Caption = 'Repository URL';
+                    Editable = false;
+                    ToolTip = 'Specifies the URL of the repository where the source code of the project can be found.';
+                    ExtendedDatatype = URL;
+                }
+                field(CommitId; CommitId)
+                {
+                    Caption = 'Commit ID';
+                    Editable = false;
+                    ToolTip = 'Specifies the commit ID of the source code for the current version of the project.';
                 }
             }
         }
@@ -118,6 +138,9 @@ page 2511 "Extension Settings"
             AppAllowsDebuggging := IsTenantExtension and ExtensionInstallationImpl.AllowsDebug(PublishedApplication."Resource Exposure Policy");
             AppAllowsDownloadSource := IsTenantExtension and ExtensionInstallationImpl.AllowsDownloadSource(PublishedApplication."Resource Exposure Policy");
             AppAllowsDownloadSourceInSymbols := IsTenantExtension and ExtensionInstallationImpl.AllowsDownloadSourceInSymbols(PublishedApplication."Resource Exposure Policy");
+            RepositoryUrl := PublishedApplication."Source Repository Url";
+            CommitId := PublishedApplication."Source Commit ID";
+            IsSourceInformationAvailable := PublishedApplication."Source Repository Url" <> '';
         end;
     end;
 
@@ -142,10 +165,13 @@ page 2511 "Extension Settings"
         AppIdValue: Text;
         AppVersionDisplay: Text;
         PublishedAs: Text;
+        RepositoryUrl: Text;
+        CommitId: Text;
         AppIsInstalled: Boolean;
         IsTenantExtension: Boolean;
         AppAllowsDebuggging: Boolean;
         AppAllowsDownloadSource: Boolean;
         AppAllowsDownloadSourceInSymbols: Boolean;
         CanManageExtensions: Boolean;
+        IsSourceInformationAvailable: Boolean;
 }
