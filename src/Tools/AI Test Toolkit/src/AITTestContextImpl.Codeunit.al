@@ -235,7 +235,7 @@ codeunit 149043 "AIT Test Context Impl."
         TestOutputCU: Codeunit "Test Output";
     begin
         if IsMultiTurn then begin
-            if IsMultiTurn and not TestOutputCU.TestData().ElementExists(TurnsTok) then
+            if not TestOutputCU.TestData().ElementExists(TurnsTok) then
                 TestOutputCU.TestData().AddArray(TurnsTok);
 
             TestOutputCU.TestData().Element(TurnsTok).Add(Output);
