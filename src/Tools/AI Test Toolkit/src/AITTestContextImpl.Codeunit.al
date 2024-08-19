@@ -33,47 +33,47 @@ codeunit 149043 "AIT Test Context Impl."
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
     /// </summary>
     /// <returns>Test Input Json for the current test.</returns>
-    procedure GetInput() TestInputJson: Codeunit "Test Input Json"
+    procedure GetInput(): Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";
     begin
-        TestInputJson := TestInput.GetTestInput();
+        exit(TestInput.GetTestInput());
     end;
 
     /// <summary>
     /// Get the Test Setup from the input dataset for the current iteration.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the test_setup element.</returns>
-    procedure GetTestSetup() TestInputJson: Codeunit "Test Input Json"
+    procedure GetTestSetup(): Codeunit "Test Input Json"
     begin
-        TestInputJson := GetTestInput(TestSetupTok);
+        exit(GetTestInput(TestSetupTok));
     end;
 
     /// <summary>
     /// Get the Context from the input dataset for the current iteration.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the context element.</returns>
-    procedure GetContext() TestInputJson: Codeunit "Test Input Json"
+    procedure GetContext(): Codeunit "Test Input Json"
     begin
-        TestInputJson := GetTestInput(ContextTok);
+        exit(GetTestInput(ContextTok));
     end;
 
     /// <summary>
     /// Get the Question from the input dataset for the current iteration.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the question element.</returns>
-    procedure GetQuestion() TestInputJson: Codeunit "Test Input Json"
+    procedure GetQuestion(): Codeunit "Test Input Json"
     begin
-        TestInputJson := GetTestInput(QuestionTok);
+        exit(GetTestInput(QuestionTok));
     end;
 
     /// <summary>
     /// Get the Ground Truth from the input dataset for the current iteration.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the ground_truth element.</returns>
-    procedure GetGroundTruth() TestInputJson: Codeunit "Test Input Json"
+    procedure GetGroundTruth(): Codeunit "Test Input Json"
     begin
-        TestInputJson := GetTestInput(GroundTruthTok);
+        exit(GetTestInput(GroundTruthTok));
     end;
 
     /// <summary>
@@ -81,9 +81,9 @@ codeunit 149043 "AIT Test Context Impl."
     /// Expected data is used for internal validation if the test was successful.
     /// </summary>
     /// <returns>Test Input Json for the expected data</returns>
-    procedure GetExpectedData() TestInputJson: Codeunit "Test Input Json"
+    procedure GetExpectedData(): Codeunit "Test Input Json"
     begin
-        TestInputJson := GetTestInput(ExpectedDataTok);
+        exit(GetTestInput(ExpectedDataTok));
     end;
 
     /// <summary>
@@ -157,7 +157,7 @@ codeunit 149043 "AIT Test Context Impl."
     /// Sets to next turn for multiturn testing.
     /// </summary>
     /// <returns>True if another turn exists, otherwise false.</returns>
-    procedure SetNextTurn(): Boolean
+    procedure NextTurn(): Boolean
     begin
         if not IsMultiTurn then
             exit(false);
@@ -201,20 +201,21 @@ codeunit 149043 "AIT Test Context Impl."
     local procedure InitializeGlobalVariables()
     var
         TestInput: Codeunit "Test Input";
-        TestInputJson: Codeunit "Test Input Json";
+        TurnsInputJson: Codeunit "Test Input Json";
     begin
         CurrentTurn := 0;
         GlobalTestOutputJson.Initialize();
-        TestInputJson := TestInput.GetTestInput().ElementExists(TurnsTok, IsMultiTurn);
+        TurnsInputJson := TestInput.GetTestInput().ElementExists(TurnsTok, IsMultiTurn);
 
         if IsMultiTurn then
-            NumberOfTurns := TestInputJson.GetElementCount() - 1;
+            NumberOfTurns := TurnsInputJson.GetElementCount() - 1;
     end;
 
     /// <summary>
-    /// Sets to next turn for multiturn testing.
+    /// Gets the test input for the provided element.
     /// </summary>
-    /// <returns>True if another turn exists, otherwise false.</returns>
+    /// <param name="ElementName">Element name to get from test input.</param>
+    /// <returns>Test Input Json for the element</returns>
     local procedure GetTestInput(ElementName: Text) TestInputJson: Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";

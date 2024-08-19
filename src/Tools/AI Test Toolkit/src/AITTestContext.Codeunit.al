@@ -15,9 +15,9 @@ codeunit 149044 "AIT Test Context"
     /// Sets to next turn.
     /// </summary>
     /// <returns>True if another turn exists</returns>
-    procedure SetNextTurn(): Boolean
+    procedure NextTurn(): Boolean
     begin
-        exit(AITTestContextImpl.SetNextTurn());
+        exit(AITTestContextImpl.NextTurn());
     end;
 
     /// <summary>
