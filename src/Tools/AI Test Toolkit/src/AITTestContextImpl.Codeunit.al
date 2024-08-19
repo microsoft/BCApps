@@ -16,6 +16,10 @@ codeunit 149043 "AIT Test Context Impl."
 
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+        GlobalTestOutputJson: Codeunit "Test Output Json";
+        CurrentTurn: Integer;
+        NumberOfTurns: Integer;
+        IsMultiTurn: Boolean;
         AnswerTok: Label 'answer', Locked = true;
         ContextTok: Label 'context', Locked = true;
         GroundTruthTok: Label 'ground_truth', Locked = true;
@@ -23,13 +27,13 @@ codeunit 149043 "AIT Test Context Impl."
         TestMetricsTok: Label 'test_metrics', Locked = true;
         TestSetupTok: Label 'test_setup', Locked = true;
         QuestionTok: Label 'question', Locked = true;
-
+        TurnsTok: Label 'turns', Locked = true;
 
     /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
     /// </summary>
     /// <returns>Test Input Json for the current test.</returns>
-    procedure GetInput() TestInputJson: Codeunit "Test Input Json"
+    procedure GetInput(): Codeunit "Test Input Json"
     var
         TestInput: Codeunit "Test Input";
     begin
@@ -40,44 +44,36 @@ codeunit 149043 "AIT Test Context Impl."
     /// Get the Test Setup from the input dataset for the current iteration.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the test_setup element.</returns>
-    procedure GetTestSetup() TestInputJson: Codeunit "Test Input Json"
-    var
-        TestInput: Codeunit "Test Input";
+    procedure GetTestSetup(): Codeunit "Test Input Json"
     begin
-        TestInputJson := TestInput.GetTestInput(TestSetupTok);
+        exit(GetTestInput(TestSetupTok));
     end;
 
     /// <summary>
     /// Get the Context from the input dataset for the current iteration.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the context element.</returns>
-    procedure GetContext() TestInputJson: Codeunit "Test Input Json"
-    var
-        TestInput: Codeunit "Test Input";
+    procedure GetContext(): Codeunit "Test Input Json"
     begin
-        TestInputJson := TestInput.GetTestInput(ContextTok);
+        exit(GetTestInput(ContextTok));
     end;
 
     /// <summary>
     /// Get the Question from the input dataset for the current iteration.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the question element.</returns>
-    procedure GetQuestion() TestInputJson: Codeunit "Test Input Json"
-    var
-        TestInput: Codeunit "Test Input";
+    procedure GetQuestion(): Codeunit "Test Input Json"
     begin
-        TestInputJson := TestInput.GetTestInput(QuestionTok);
+        exit(GetTestInput(QuestionTok));
     end;
 
     /// <summary>
     /// Get the Ground Truth from the input dataset for the current iteration.
     /// </summary>
     /// <returns>A Test Input Json codeunit for the ground_truth element.</returns>
-    procedure GetGroundTruth() TestInputJson: Codeunit "Test Input Json"
-    var
-        TestInput: Codeunit "Test Input";
+    procedure GetGroundTruth(): Codeunit "Test Input Json"
     begin
-        TestInputJson := TestInput.GetTestInput(GroundTruthTok);
+        exit(GetTestInput(GroundTruthTok));
     end;
 
     /// <summary>
@@ -85,11 +81,9 @@ codeunit 149043 "AIT Test Context Impl."
     /// Expected data is used for internal validation if the test was successful.
     /// </summary>
     /// <returns>Test Input Json for the expected data</returns>
-    procedure GetExpectedData() TestInputJson: Codeunit "Test Input Json"
-    var
-        TestInput: Codeunit "Test Input";
+    procedure GetExpectedData(): Codeunit "Test Input Json"
     begin
-        TestInputJson := TestInput.GetTestInput(ExpectedDataTok);
+        exit(GetTestInput(ExpectedDataTok));
     end;
 
     /// <summary>
@@ -111,14 +105,13 @@ codeunit 149043 "AIT Test Context Impl."
     /// <param name="Answer">The answer as text.</param>
     procedure SetAnswerForQnAEvaluation(Answer: Text)
     var
-        TestOutputCU: Codeunit "Test Output";
-        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+        CurrentTestOutputJson: Codeunit "Test Output Json";
     begin
-        TestOutputCU.TestData().Add(AnswerTok, Answer);
-        CopyElementToOutput(ContextTok);
-        CopyElementToOutput(QuestionTok);
-        CopyElementToOutput(GroundTruthTok);
-        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+        CurrentTestOutputJson.Add(AnswerTok, Answer);
+        CopyElementToOutput(ContextTok, CurrentTestOutputJson);
+        CopyElementToOutput(QuestionTok, CurrentTestOutputJson);
+        CopyElementToOutput(GroundTruthTok, CurrentTestOutputJson);
+        SetSuiteTestOutput(CurrentTestOutputJson.ToText());
     end;
 
     /// <summary>
@@ -126,10 +119,8 @@ codeunit 149043 "AIT Test Context Impl."
     /// </summary>
     /// <param name="TestOutputText">The test output as text.</param>
     procedure SetTestOutput(TestOutputText: Text)
-    var
-        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
-        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputText);
+        SetSuiteTestOutput(TestOutputText);
     end;
 
     /// <summary>
@@ -140,13 +131,13 @@ codeunit 149043 "AIT Test Context Impl."
     /// <param name="Answer">The answer as text.</param>
     procedure SetTestOutput(Context: Text; Question: Text; Answer: Text)
     var
-        TestOutputCU: Codeunit "Test Output";
-        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+        CurrentTestOutputJson: Codeunit "Test Output Json";
     begin
-        TestOutputCU.TestData().Add(ContextTok, Context);
-        TestOutputCU.TestData().Add(QuestionTok, Question);
-        TestOutputCU.TestData().Add(AnswerTok, Answer);
-        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+        CurrentTestOutputJson.Initialize();
+        CurrentTestOutputJson.Add(ContextTok, Context);
+        CurrentTestOutputJson.Add(QuestionTok, Question);
+        CurrentTestOutputJson.Add(AnswerTok, Answer);
+        SetSuiteTestOutput(CurrentTestOutputJson.ToText());
     end;
 
     /// <summary>
@@ -155,21 +146,48 @@ codeunit 149043 "AIT Test Context Impl."
     /// <param name="TestMetric">The test metric as text.</param>
     procedure SetTestMetric(TestMetric: Text)
     var
-        TestOutputCU: Codeunit "Test Output";
-        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+        CurrentTestOutputJson: Codeunit "Test Output Json";
     begin
-        TestOutputCU.TestData().Add(TestMetricsTok, TestMetric);
-        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.TestData().ToText());
+        CurrentTestOutputJson.Initialize();
+        CurrentTestOutputJson.Add(TestMetricsTok, TestMetric);
+        SetSuiteTestOutput(CurrentTestOutputJson.ToText());
+    end;
+
+    /// <summary>
+    /// Sets to next turn for multiturn testing.
+    /// </summary>
+    /// <returns>True if another turn exists, otherwise false.</returns>
+    procedure NextTurn(): Boolean
+    begin
+        if not IsMultiTurn then
+            exit(false);
+
+        if CurrentTurn + 1 > NumberOfTurns then
+            exit(false);
+
+        CurrentTurn := CurrentTurn + 1;
+
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Gets the current turn for multiturn testing. Turns start from turn 0.
+    /// </summary>
+    /// <returns>The current turn number.</returns>
+    procedure GetCurrentTurn(): Integer
+    begin
+        exit(CurrentTurn);
     end;
 
     /// <summary>
     /// This method starts the scope of the Run Procedure scenario.
     /// </summary>
-    internal procedure StartRunProcedureScenario()
+    procedure StartRunProcedureScenario()
     var
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
         AITTestSuiteMgt.StartScenario(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
+        InitializeGlobalVariables();
     end;
 
     /// <summary>
@@ -177,13 +195,63 @@ codeunit 149043 "AIT Test Context Impl."
     /// </summary>
     /// <param name="TestMethodLine">Record containing the result of the test execution.</param>
     /// <param name="ExecutionSuccess">Result of the test execution.</param>
-    internal procedure EndRunProcedureScenario(TestMethodLine: Record "Test Method Line"; ExecutionSuccess: Boolean)
+    procedure EndRunProcedureScenario(TestMethodLine: Record "Test Method Line"; ExecutionSuccess: Boolean)
     var
         AITTestMethodLine: Record "AIT Test Method Line";
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
     begin
         GetAITTestMethodLine(AITTestMethodLine);
         AITTestSuiteMgt.EndRunProcedureScenario(AITTestMethodLine, AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestMethodLine, ExecutionSuccess);
+    end;
+
+    /// <summary>
+    /// Initializes global variables for the iteration.
+    /// </summary>
+    local procedure InitializeGlobalVariables()
+    var
+        TestInput: Codeunit "Test Input";
+        TurnsInputJson: Codeunit "Test Input Json";
+    begin
+        CurrentTurn := 0;
+        GlobalTestOutputJson.Initialize();
+        TurnsInputJson := TestInput.GetTestInput().ElementExists(TurnsTok, IsMultiTurn);
+
+        if IsMultiTurn then
+            NumberOfTurns := TurnsInputJson.GetElementCount() - 1;
+    end;
+
+    /// <summary>
+    /// Gets the test input for the provided element.
+    /// </summary>
+    /// <param name="ElementName">Element name to get from test input.</param>
+    /// <returns>Test Input Json for the element</returns>
+    local procedure GetTestInput(ElementName: Text) TestInputJson: Codeunit "Test Input Json"
+    var
+        TestInput: Codeunit "Test Input";
+    begin
+        if IsMultiTurn then
+            TestInputJson := TestInput.GetTestInput(TurnsTok).ElementAt(CurrentTurn).Element(ElementName)
+        else
+            TestInputJson := TestInput.GetTestInput(ElementName);
+    end;
+
+    /// <summary>
+    /// Sets the test output for the current iteration.
+    /// </summary>
+    local procedure SetSuiteTestOutput(Output: Text)
+    var
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+        TestOutputCU: Codeunit "Test Output";
+    begin
+        if IsMultiTurn then begin
+            if not TestOutputCU.TestData().ElementExists(TurnsTok) then
+                TestOutputCU.TestData().AddArray(TurnsTok);
+
+            TestOutputCU.TestData().Element(TurnsTok).Add(Output);
+        end else
+            TestOutputCU.TestData().Initialize(Output);
+
+        AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.Testdata().ToText());
     end;
 
     /// <summary>
@@ -212,14 +280,13 @@ codeunit 149043 "AIT Test Context Impl."
     /// Copies an element for the test input to the test output.
     /// </summary>
     /// <param name="ElementName">The name of the element to copy.</param>
-    local procedure CopyElementToOutput(ElementName: Text)
+    local procedure CopyElementToOutput(ElementName: Text; var CurrentTestOutputJson: Codeunit "Test Output Json")
     var
-        TestOutputCU: Codeunit "Test Output";
         TestInput: Codeunit "Test Input";
     begin
         if TestInput.GetTestInput(ElementName).ElementValue().IsNull() then
             exit;
 
-        TestOutputCU.TestData().Add(ElementName, TestInput.GetTestInput(ElementName).ValueAsText());
+        CurrentTestOutputJson.Add(ElementName, TestInput.GetTestInput(ElementName).ValueAsText());
     end;
 }
