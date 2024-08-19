@@ -109,13 +109,23 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure IsCapabilityRegistered(CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
-        exit(IsCapabilityRegistered(CopilotCapability, CallerModuleInfo.Id()));
+        exit(IsCapabilityRegistered(CopilotCapability, CallerModuleInfo.Id(), false));
     end;
 
-    procedure IsCapabilityRegistered(CopilotCapability: Enum "Copilot Capability"; AppId: Guid): Boolean
+    procedure IsCapabilityRegisteredSaaS(CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
+    begin
+        exit(IsCapabilityRegistered(CopilotCapability, CallerModuleInfo.Id(), true))
+    end;
+
+    procedure IsCapabilityRegistered(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; CheckIsSaaS: Boolean): Boolean
     var
         CopilotSettings: Record "Copilot Settings";
+        EnvironmentInformation: Codeunit "Environment Information";
     begin
+        if CheckIsSaaS then
+            if not EnvironmentInformation.IsSaaS() then
+                exit(false);
+
         CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
         CopilotSettings.SetRange("Capability", CopilotCapability);
         CopilotSettings.SetRange("App Id", AppId);

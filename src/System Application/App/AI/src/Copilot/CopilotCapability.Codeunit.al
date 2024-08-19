@@ -92,7 +92,21 @@ codeunit 7773 "Copilot Capability"
     /// <remarks>Capabilities are tied to the module registering it. Checking for a capability will check if the enum and app id of the module exists.</remarks>
     procedure IsCapabilityRegistered(CopilotCapability: Enum "Copilot Capability"; AppId: Guid): Boolean
     begin
-        exit(CopilotCapabilityImpl.IsCapabilityRegistered(CopilotCapability, AppId));
+        exit(CopilotCapabilityImpl.IsCapabilityRegistered(CopilotCapability, AppId, false));
+    end;
+
+    /// <summary>
+    /// Check if your capability has been registered and the environment is on SaaS.
+    /// </summary>
+    /// <param name="CopilotCapability">The capability.</param>
+    /// <returns>True if the capability has been registered.</returns>
+    /// <remarks>Capabilities are tied to the module registering it. Checking for a capability will check if the enum and app id of your module exists.</remarks>
+    procedure IsCapabilityRegisteredSaaS(CopilotCapability: Enum "Copilot Capability"): Boolean
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(CopilotCapabilityImpl.IsCapabilityRegisteredSaaS(CopilotCapability, CallerModuleInfo));
     end;
 
     /// <summary>
