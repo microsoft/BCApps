@@ -171,6 +171,15 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
+    /// Gets the current turn for multiturn testing. Turns start from turn 0.
+    /// </summary>
+    /// <returns>The current turn number.</returns>
+    procedure GetCurrentTurn(): Integer
+    begin
+        exit(CurrentTurn);
+    end;
+
+    /// <summary>
     /// This method starts the scope of the Run Procedure scenario.
     /// </summary>
     procedure StartRunProcedureScenario()
