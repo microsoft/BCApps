@@ -135,6 +135,9 @@ page 3903 "Retention Policy Setup List"
             {
                 Caption = 'Refresh Allowed Tables';
                 ApplicationArea = All;
+                Promoted = true;
+                PromotedOnly = true;
+                PromotedCategory = Process;
                 Image = Refresh;
                 ToolTip = 'Refreshes the list of tables that can be selected.';
 
