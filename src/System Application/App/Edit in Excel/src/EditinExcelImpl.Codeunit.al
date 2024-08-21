@@ -934,7 +934,7 @@ codeunit 1482 "Edit in Excel Impl."
         NodeList: DotNet XmlNodeList;
         NameSpaceManager: DotNet XmlNamespaceManager;
     begin
-        MetadataUrl := 'https://api.businesscentral.dynamics-tie.com/v2.0/Production/ODataV4/$metadata';
+        MetadataUrl := 'https://api.businesscentral.dynamics.com/v2.0/Production/ODataV4/$metadata';
         HttpRequestMessage := CreateMetadataWebRequest(MetadataUrl);
         if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
             if HttpResponseMessage.IsSuccessStatusCode then begin
