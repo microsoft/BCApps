@@ -18,7 +18,7 @@ pageextension 2515 AppSourceExtensionManagement extends "Extension Management"
                 Enabled = IsSaas;
                 Image = NewItem;
                 ToolTip = 'Browse the Microsoft AppSource Gallery for new extensions to install.';
-                Visible = IsOnPremDisplay;
+                Visible = not IsOnPremDisplay;
                 RunObject = Page "AppSource Product List";
                 RunPageMode = View;
             }

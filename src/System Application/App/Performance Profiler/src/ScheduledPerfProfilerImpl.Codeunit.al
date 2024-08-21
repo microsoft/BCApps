@@ -65,6 +65,17 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         RecordRef.FilterGroup(0);
     end;
 
+    procedure ValidateScheduleCreationPermissions(UserID: Guid; ScheduleUserID: Guid)
+    var
+        UserPermissions: Codeunit "User Permissions";
+    begin
+        if (UserID = ScheduleUserID) then
+            exit;
+
+        if (not UserPermissions.CanManageUsersOnTenant(UserID)) then
+            Error(CannotCreateSchedulesForOtherUsersErr);
+    end;
+
     procedure InitializeFields(var PerformanceProfileScheduler: Record "Performance Profile Scheduler"; var ActivityType: Enum "Perf. Profile Activity Type")
     var
         OneHour: Duration;
@@ -220,4 +231,5 @@ codeunit 1932 "Scheduled Perf. Profiler Impl."
         ProfileCannotBeInThePastErr: Label 'A schedule cannot be set to run in the past.';
         ScheduleDurationCannotExceedRetentionPeriodErr: Label 'The performance profile schedule duration cannot exceed the retention period.';
         ScheduleEndTimeCannotBeEmptyErr: Label 'The performance profile schedule must have an end time.';
+        CannotCreateSchedulesForOtherUsersErr: Label 'You do not have sufficient permissions to create profiler schedules for other users. Please contact your administrator.';
 }
