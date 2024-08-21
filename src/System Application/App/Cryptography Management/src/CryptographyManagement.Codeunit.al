@@ -111,7 +111,7 @@ codeunit 1266 "Cryptography Management"
     /// <param name="InputString">Input string.</param>
     /// <param name="HashAlgorithmType">The available hash algorithms include MD5, SHA1, SHA256, SHA384, and SHA512.</param>
     /// <returns>Hashed value.</returns>
-    procedure GenerateHash(InputString: SecretText; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
+    procedure GenerateHash(InputString: SecretText; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): SecretText
     begin
         exit(CryptographyManagementImpl.GenerateHash(InputString, HashAlgorithmType));
     end;
@@ -150,7 +150,7 @@ codeunit 1266 "Cryptography Management"
     /// <param name="Key">Key to use in the hash algorithm.</param>
     /// <param name="HashAlgorithmType">The available hash algorithms include HMACMD5, HMACSHA1, HMACSHA256, HMACSHA384, and HMACSHA512.</param>
     /// <returns>Hashed value.</returns>
-    procedure GenerateHash(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    procedure GenerateHash(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): SecretText
     begin
         exit(CryptographyManagementImpl.GenerateHash(InputString, Key, HashAlgorithmType));
     end;
@@ -184,7 +184,7 @@ codeunit 1266 "Cryptography Management"
     /// <param name="InputString">Input string.</param>
     /// <param name="HashAlgorithmType">The available hash algorithms include MD5, SHA1, SHA256, SHA384, and SHA512.</param>
     /// <returns>Base64 hashed value.</returns>
-    procedure GenerateHashAsBase64String(InputString: SecretText; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
+    procedure GenerateHashAsBase64String(InputString: SecretText; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): SecretText
     begin
         exit(CryptographyManagementImpl.GenerateHashAsBase64String(InputString, HashAlgorithmType));
     end;
@@ -223,7 +223,7 @@ codeunit 1266 "Cryptography Management"
     /// <param name="Key">Key to use in the hash algorithm.</param>
     /// <param name="HashAlgorithmType">The available hash algorithms include HMACMD5, HMACSHA1, HMACSHA256, HMACSHA384, and HMACSHA512.</param>
     /// <returns>Base64 hashed value.</returns>
-    procedure GenerateHashAsBase64String(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    procedure GenerateHashAsBase64String(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): SecretText
     begin
         exit(CryptographyManagementImpl.GenerateHashAsBase64String(InputString, Key, HashAlgorithmType));
     end;
@@ -263,7 +263,7 @@ codeunit 1266 "Cryptography Management"
     /// <param name="Key">Key to use in the hash algorithm.</param>
     /// <param name="HashAlgorithmType">The available hash algorithms include HMACMD5, HMACSHA1, HMACSHA256, HMACSHA384, and HMACSHA512.</param>
     /// <returns>Base64 hashed value.</returns>
-    procedure GenerateBase64KeyedHashAsBase64String(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    procedure GenerateBase64KeyedHashAsBase64String(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): SecretText
     begin
         exit(CryptographyManagementImpl.GenerateBase64KeyedHashAsBase64String(InputString, Key, HashAlgorithmType));
     end;
@@ -303,7 +303,7 @@ codeunit 1266 "Cryptography Management"
     /// <param name="Key">Key to use in the hash algorithm.</param>
     /// <param name="HashAlgorithmType">The available hash algorithms include HMACMD5, HMACSHA1, HMACSHA256, HMACSHA384, and HMACSHA512.</param>
     /// <returns>Hashed value.</returns>
-    procedure GenerateBase64KeyedHash(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    procedure GenerateBase64KeyedHash(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): SecretText
     begin
         exit(CryptographyManagementImpl.GenerateBase64KeyedHash(InputString, Key, HashAlgorithmType));
     end;

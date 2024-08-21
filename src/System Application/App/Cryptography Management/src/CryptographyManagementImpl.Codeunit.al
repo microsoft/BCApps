@@ -235,14 +235,6 @@ codeunit 1279 "Cryptography Management Impl."
 
     procedure GenerateHash(InputString: Text; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
     var
-        InputStringSecretText: SecretText;
-    begin
-        InputStringSecretText := InputString;
-        exit(GenerateHash(InputStringSecretText, HashAlgorithmType));
-    end;
-
-    procedure GenerateHash(InputString: SecretText; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
-    var
         HashBytes: DotNet Array;
     begin
         if not GenerateHashBytes(HashBytes, InputString, HashAlgorithmType) then
@@ -250,20 +242,30 @@ codeunit 1279 "Cryptography Management Impl."
         exit(ConvertByteHashToString(HashBytes));
     end;
 
-    procedure GenerateHashAsBase64String(InputString: Text; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
+    procedure GenerateHash(InputString: SecretText; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): SecretText
     var
-        InputStringSecretText: SecretText;
+        HashBytes: DotNet Array;
     begin
-        InputStringSecretText := InputString;
-        exit(GenerateHashAsBase64String(InputStringSecretText, HashAlgorithmType));
+        if not GenerateHashBytes(HashBytes, InputString, HashAlgorithmType) then
+            exit;
+        exit(ConvertByteHashToString(HashBytes));
     end;
 
-    procedure GenerateHashAsBase64String(InputString: SecretText; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
+    procedure GenerateHashAsBase64String(InputString: Text; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): Text
     var
         HashBytes: DotNet Array;
     begin
         if not GenerateHashBytes(HashBytes, InputString, HashAlgorithmType) then
             exit('');
+        exit(ConvertByteHashToBase64String(HashBytes));
+    end;
+
+    procedure GenerateHashAsBase64String(InputString: SecretText; HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512): SecretText
+    var
+        HashBytes: DotNet Array;
+    begin
+        if not GenerateHashBytes(HashBytes, InputString, HashAlgorithmType) then
+            exit;
         exit(ConvertByteHashToBase64String(HashBytes));
     end;
 
@@ -290,15 +292,6 @@ codeunit 1279 "Cryptography Management Impl."
     [NonDebuggable]
     procedure GenerateHash(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     var
-        InputStringSecretText: SecretText;
-    begin
-        InputStringSecretText := InputString;
-        exit(GenerateHash(InputStringSecretText, Key, HashAlgorithmType));
-    end;
-
-    [NonDebuggable]
-    procedure GenerateHash(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
-    var
         HashBytes: DotNet Array;
         Encoding: DotNet Encoding;
     begin
@@ -308,16 +301,18 @@ codeunit 1279 "Cryptography Management Impl."
     end;
 
     [NonDebuggable]
-    procedure GenerateHashAsBase64String(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    procedure GenerateHash(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): SecretText
     var
-        InputStringSecretText: SecretText;
+        HashBytes: DotNet Array;
+        Encoding: DotNet Encoding;
     begin
-        InputStringSecretText := InputString;
-        exit(GenerateHashAsBase64String(InputStringSecretText, Key, HashAlgorithmType));
+        if not GenerateKeyedHashBytes(HashBytes, InputString, Encoding.UTF8().GetBytes(Key.Unwrap()), HashAlgorithmType) then
+            exit;
+        exit(ConvertByteHashToString(HashBytes));
     end;
 
     [NonDebuggable]
-    procedure GenerateHashAsBase64String(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    procedure GenerateHashAsBase64String(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     var
         HashBytes: DotNet Array;
         Encoding: DotNet Encoding;
@@ -328,22 +323,35 @@ codeunit 1279 "Cryptography Management Impl."
     end;
 
     [NonDebuggable]
-    procedure GenerateBase64KeyedHashAsBase64String(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    procedure GenerateHashAsBase64String(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): SecretText
     var
-        InputStringSecretText: SecretText;
+        HashBytes: DotNet Array;
+        Encoding: DotNet Encoding;
     begin
-        InputStringSecretText := InputString;
-        exit(GenerateBase64KeyedHashAsBase64String(InputStringSecretText, Key, HashAlgorithmType));
+        if not GenerateKeyedHashBytes(HashBytes, InputString, Encoding.UTF8().GetBytes(Key.Unwrap()), HashAlgorithmType) then
+            exit;
+        exit(ConvertByteHashToBase64String(HashBytes));
     end;
 
     [NonDebuggable]
-    procedure GenerateBase64KeyedHashAsBase64String(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
+    procedure GenerateBase64KeyedHashAsBase64String(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     var
         HashBytes: DotNet Array;
         Convert: DotNet Convert;
     begin
         if not GenerateKeyedHashBytes(HashBytes, InputString, Convert.FromBase64String(Key.Unwrap()), HashAlgorithmType) then
             exit('');
+        exit(ConvertByteHashToBase64String(HashBytes));
+    end;
+
+    [NonDebuggable]
+    procedure GenerateBase64KeyedHashAsBase64String(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): SecretText
+    var
+        HashBytes: DotNet Array;
+        Convert: DotNet Convert;
+    begin
+        if not GenerateKeyedHashBytes(HashBytes, InputString, Convert.FromBase64String(Key.Unwrap()), HashAlgorithmType) then
+            exit;
         exit(ConvertByteHashToBase64String(HashBytes));
     end;
 
@@ -407,20 +415,22 @@ codeunit 1279 "Cryptography Management Impl."
     [NonDebuggable]
     procedure GenerateBase64KeyedHash(InputString: Text; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
     var
-        InputStringSecretText: SecretText;
-    begin
-        InputStringSecretText := InputString;
-        exit(GenerateBase64KeyedHash(InputStringSecretText, Key, HashAlgorithmType));
-    end;
-
-    [NonDebuggable]
-    procedure GenerateBase64KeyedHash(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): Text
-    var
         HashBytes: DotNet Array;
         Convert: DotNet Convert;
     begin
         if not GenerateKeyedHashBytes(HashBytes, InputString, Convert.FromBase64String(Key.Unwrap()), HashAlgorithmType) then
             exit('');
+        exit(ConvertByteHashToString(HashBytes));
+    end;
+
+    [NonDebuggable]
+    procedure GenerateBase64KeyedHash(InputString: SecretText; "Key": SecretText; HashAlgorithmType: Option HMACMD5,HMACSHA1,HMACSHA256,HMACSHA384,HMACSHA512): SecretText
+    var
+        HashBytes: DotNet Array;
+        Convert: DotNet Convert;
+    begin
+        if not GenerateKeyedHashBytes(HashBytes, InputString, Convert.FromBase64String(Key.Unwrap()), HashAlgorithmType) then
+            exit;
         exit(ConvertByteHashToString(HashBytes));
     end;
 
