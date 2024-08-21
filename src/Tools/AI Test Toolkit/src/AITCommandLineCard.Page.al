@@ -44,7 +44,7 @@ page 149042 "AIT CommandLine Card"
                 field("Model Version"; ModelVersion)
                 {
                     Caption = 'AOAI Model Version';
-                    OptionCaption = 'Latest,Preview';
+                    OptionCaption = 'Default,Latest,Preview';
                     ToolTip = 'Specifies the model version to be used by the tests.';
 
                     trigger OnValidate()
@@ -242,7 +242,7 @@ page 149042 "AIT CommandLine Card"
         InputDataset: Text;
         SuiteDefinition: Text;
         InputDatasetFilename: Text;
-        ModelVersion: Option Latest,Preview;
+        ModelVersion: Option Default,Latest,Preview;
 
     local procedure StartAITSuite()
     var
