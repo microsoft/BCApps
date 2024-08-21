@@ -81,8 +81,10 @@ codeunit 9175 "User Settings Impl."
     begin
         TempAllProfile.Reset();
         TempAllProfile.DeleteAll();
+
         AllProfile.SetRange(Enabled, true);
         AllProfile.SetFilter(Description, '<> %1', DescriptionFilterTxt);
+
         if AllProfile.FindSet() then
             repeat
                 TempAllProfile := AllProfile;
@@ -90,6 +92,8 @@ codeunit 9175 "User Settings Impl."
                     TempAllProfile."App Name" := UserCreatedAppNameTxt;
                 TempAllProfile.Insert();
             until AllProfile.Next() = 0;
+
+        TempAllProfile.SetCurrentKey(Caption, "Profile ID");
     end;
 
     procedure GetUserSettings(UserSecurityID: Guid; var UserSettingsRec: Record "User Settings")

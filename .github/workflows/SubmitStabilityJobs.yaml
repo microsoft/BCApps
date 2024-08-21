@@ -1,0 +1,41 @@
+name: Submit Stability Job On Official Branches
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 04 * * *" # Run at 04:00 UTC every day
+
+permissions: read-all
+
+jobs:
+  GetBranches:
+    name: Get Official Branches
+    if: github.repository_owner == 'microsoft'
+    runs-on: ubuntu-latest
+    outputs:
+      officialBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
+    steps:
+      - name: Get Official Branches
+        id: getOfficialBranches
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        with:
+          include: "['releases/*']"
+
+  SubmitStabilityJobs:
+    name: "[${{ matrix.branch }}] Submit Stability Job"
+    if: github.repository_owner == 'microsoft'
+    runs-on: ubuntu-latest
+    environment: Official-Build
+    needs: GetBranches
+    strategy:
+      matrix:
+        branch: ${{ fromJson(needs.GetBranches.outputs.officialBranches) }}
+      fail-fast: false
+    steps:
+      - name: Submit Stability Job
+        env:
+          GH_TOKEN: ${{ secrets.GHTOKENWORKFLOW }}
+        uses: microsoft/BCApps/.github/actions/RunAutomation@main
+        with:
+          automations: SubmitStabilityJob
+          targetBranch: ${{ matrix.branch }}

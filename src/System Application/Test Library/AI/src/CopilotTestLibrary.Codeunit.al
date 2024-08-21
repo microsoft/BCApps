@@ -29,6 +29,29 @@ codeunit 132932 "Copilot Test Library"
         CopilotCapability.RegisterCapability(Capability, '');
     end;
 
+    procedure RegisterCopilotCapabilityWithAppId(Capability: Enum "Copilot Capability"; AppId: Guid)
+    var
+        CopilotSettings: Record "Copilot Settings";
+        ModuleInfo: ModuleInfo;
+    begin
+        if CopilotSettings.Get(Capability, AppId) then
+            if CopilotSettings.Status = CopilotSettings.Status::Active then
+                exit
+            else begin
+                CopilotSettings.Status := CopilotSettings.Status::Active;
+                CopilotSettings.Modify();
+                exit;
+            end;
+
+        RegisterCopilotCapability(Capability);
+
+        NavApp.GetCurrentModuleInfo(ModuleInfo);
+        if CopilotSettings.Get(Capability, ModuleInfo.Id) then begin
+            CopilotSettings."App Id" := AppId;
+            CopilotSettings.Modify();
+        end;
+    end;
+
     procedure UnregisterCopilotCapability(Capability: Enum "Copilot Capability")
     begin
         CopilotCapability.UnregisterCapability(Capability);

@@ -3,14 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.Foundation.NoSeries;
+namespace System.Security.AccessControl;
 
-permissionset 330 "No. Series Copilot - Objects"
+using Microsoft.Foundation;
+
+entitlement "Dynamics 365 Business Central for IWs"
 {
-    Access = Internal;
-    Assignable = false;
-    Permissions =
-        codeunit "No. Series Copilot Impl." = X,
-        codeunit "Record Match Impl." = X;
+    Type = PerUserServicePlan;
+    Id = '3f2afeed-6fb5-4bf9-998f-f2912133aead';
 
+    ObjectEntitlements = "Bus. Found. - Admin";
 }

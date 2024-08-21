@@ -1,6 +1,4 @@
-## preview
-
-Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+## v5.3
 
 ### Issues
 
@@ -14,6 +12,7 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 - Fix issue with github ref when running reusable workflows
 - Issue 1098 Support for specifying the name of the AZURE_CREDENTIALS secret by adding a AZURE_CREDENTIALSSecretName setting
 - Fix placeholder syntax for git ref in PullRequestHandler.yaml
+- Issue 1164 Getting secrets from Azure key vault fails in Preview
 
 ### Dependencies to PowerShell modules
 
@@ -31,6 +30,10 @@ In the summary after a Test Run, you now also have the result of performance tes
 
 Previously, the workflows "Update AL-Go System Files" and "TroubleShooting" were hardcoded to always run on `windows-latest` to prevent deadlocks and security issues.
 From now on, `ubuntu-lates` will also be allowed for these mission critical workflows, when changing the `runs-on` setting. Additionally, only the value `pwsh` for `shell` setting is allowed when using `ubuntu-latest` runners.
+
+### Updated AL-Go telemetry
+
+AL-Go for GitHub now includes a new telemetry module. For detailed information on how to enable or disable telemetry and to see what data AL-Go logs, check out [this article](https://github.com/microsoft/AL-Go/blob/main/Scenarios/EnablingTelemetry.md).
 
 ### New Settings
 

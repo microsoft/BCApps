@@ -9,8 +9,8 @@ on:
         default: false
 
 permissions:
-  contents: read
   actions: read
+  contents: read
 
 defaults:
   run:
@@ -30,7 +30,7 @@ jobs:
           lfs: true
 
       - name: Troubleshooting
-        uses: microsoft/AL-Go/Actions/Troubleshooting@381a1e2d859ecafd242ca80a45449caf3c8b7fd5
+        uses: microsoft/AL-Go-Actions/Troubleshooting@v5.3
         with:
           shell: powershell
           gitHubSecrets: ${{ toJson(secrets) }}
