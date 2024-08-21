@@ -22,7 +22,7 @@ codeunit 2717 "Page Summary Provider Impl."
                   tabledata "Tenant Media Set" = r,
                   tabledata "Tenant Media Thumbnails" = r;
 
-    procedure GetPageSummary(PageId: Integer; Bookmark: Text): Text
+    procedure GetPageSummary(PageId: Integer; Bookmark: Text; ExcludeBinaryData: Boolean): Text
     var
         RecId: RecordId;
         ResultJsonObject: JsonObject;
@@ -44,12 +44,12 @@ codeunit 2717 "Page Summary Provider Impl."
         end;
 
         // Add summary fields and record fields
-        AddFields(PageId, RecId, Bookmark, ResultJsonObject);
+        AddFields(PageId, RecId, Bookmark, ResultJsonObject, ExcludeBinaryData);
 
         exit(Format(ResultJsonObject));
     end;
 
-    procedure GetPageSummary(PageId: Integer; SystemId: Guid): Text
+    procedure GetPageSummary(PageId: Integer; SystemId: Guid; ExcludeBinaryData: Boolean): Text
     var
         PageMetadata: Record "Page Metadata";
         RecId: RecordId;
@@ -83,7 +83,7 @@ codeunit 2717 "Page Summary Provider Impl."
             exit(Format(ResultJsonObject));
 
         // Add summary fields and record fields
-        AddFields(PageId, RecId, Bookmark, ResultJsonObject);
+        AddFields(PageId, RecId, Bookmark, ResultJsonObject, ExcludeBinaryData);
 
         exit(Format(ResultJsonObject));
     end;
@@ -113,11 +113,11 @@ codeunit 2717 "Page Summary Provider Impl."
         exit(Format(ResultJsonObject));
     end;
 
-    local procedure AddFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject)
+    local procedure AddFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject; ExcludeBinaryData: Boolean)
     begin
         // Add Summary fields
         // Fields summary is a "summary" of the fields (i.e. it could be the brick definition, or some custom AL could provide its own summary).
-        GetFieldsSummary(PageId, RecId, Bookmark, ResultJsonObject);
+        GetFieldsSummary(PageId, RecId, Bookmark, ResultJsonObject, ExcludeBinaryData);
 
         // Add Record fields
         // Record fields are the backing record fields that are visible on the page.
@@ -125,7 +125,7 @@ codeunit 2717 "Page Summary Provider Impl."
             GetRecordFields(PageId, Bookmark, ResultJsonObject);
     end;
 
-    local procedure GetFieldsSummary(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject)
+    local procedure GetFieldsSummary(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject; ExcludeBinaryData: Boolean)
     var
         PageSummaryProvider: Codeunit "Page Summary Provider";
         FieldsJsonArray: JsonArray;
@@ -140,7 +140,7 @@ codeunit 2717 "Page Summary Provider Impl."
         end;
 
         // Get summary fields
-        if not TryGetPageSummaryFields(PageId, RecId, Bookmark, ResultJsonObject) then
+        if not TryGetPageSummaryFields(PageId, RecId, Bookmark, ResultJsonObject, ExcludeBinaryData) then
             AddErrorMessage(ResultJsonObject, FailedGetSummaryFieldsCodeTok, GetLastErrorText());
     end;
 
@@ -216,7 +216,7 @@ codeunit 2717 "Page Summary Provider Impl."
     end;
 
     [TryFunction]
-    local procedure TryGetPageSummaryFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject)
+    local procedure TryGetPageSummaryFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject; ExcludeBinaryData: Boolean)
     var
         PageSummaryProvider: Codeunit "Page Summary Provider";
         NavPageSummaryALFunctions: DotNet NavPageSummaryALFunctions;
@@ -234,6 +234,10 @@ codeunit 2717 "Page Summary Provider Impl."
 
         foreach PageSummaryField in GenericList do
             PageSummaryFieldList.Add(PageSummaryField);
+
+        if ExcludeBinaryData then
+            RemoveMediaAndBlobFields(RecId, PageSummaryFieldList);
+
         CorrectFieldOrderingOfBrick(PageSummaryFieldList);
 
         // Allow partners to override fields to be shown + order
@@ -241,6 +245,7 @@ codeunit 2717 "Page Summary Provider Impl."
         GenericList.Clear();
         foreach PageSummaryField in PageSummaryFieldList do
             GenericList.Add(PageSummaryField);
+
 
         if (GenericList.Count() > 0) then begin
             NavPageSummaryALResponse := NavPageSummaryALFunctions.GetSummary(PageId, Bookmark, GenericList);
@@ -257,6 +262,28 @@ codeunit 2717 "Page Summary Provider Impl."
         // Allow partner to finally override field names and values
         PageSummaryProvider.OnAfterGetPageSummary(PageId, RecId, FieldsJsonArray);
         AddFieldsJsonArrayToResult(FieldsJsonArray, ResultJsonObject);
+    end;
+
+    local procedure RemoveMediaAndBlobFields(RecId: RecordId; var PageSummaryFieldList: List of [Integer])
+    var
+        RecordField: Record Field;
+        Index: Integer;
+        PageSummaryField: Integer;
+    begin
+        if PageSummaryFieldList.Count() = 0 then
+            exit;
+
+        Index := 1;
+
+        repeat
+            PageSummaryField := PageSummaryFieldList.Get(Index);
+            RecordField.Get(RecId.TableNo, PageSummaryField);
+
+            if (RecordField.Type in [RecordField.Type::Media, RecordField.Type::MediaSet, RecordField.Type::Blob]) then
+                PageSummaryFieldList.RemoveAt(Index)
+            else
+                Index += 1;
+        until Index > PageSummaryFieldList.Count();
     end;
 
     local procedure GetSummaryName(SummaryType: Enum "Summary Type"): Text;
@@ -288,7 +315,12 @@ codeunit 2717 "Page Summary Provider Impl."
         PageSummaryFieldList.Insert(2, TempValue);
     end;
 
-    local procedure AddFieldToFieldsJsonArray(NavPageSummaryALField: DotNet NavPageSummaryALField; var FieldsJsonArray: JsonArray; OnlyIncludeNonEmptyFieldValues: Boolean; IncludePictures: Boolean)
+    local procedure AddFieldToFieldsJsonArray(NavPageSummaryALField: DotNet NavPageSummaryALField;
+
+    var
+        FieldsJsonArray: JsonArray;
+        OnlyIncludeNonEmptyFieldValues: Boolean;
+        IncludePictures: Boolean)
     var
         FieldsJsonObject: JsonObject;
         FieldValue: Text;
