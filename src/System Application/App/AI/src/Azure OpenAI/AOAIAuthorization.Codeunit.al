@@ -97,6 +97,7 @@ codeunit 7767 "AOAI Authorization"
             OnBeforeGetDeployment(CurrentDeployment);
             exit(CurrentDeployment);
         end;
+
         exit(Deployment);
     end;
 
@@ -116,6 +117,7 @@ codeunit 7767 "AOAI Authorization"
             OnBeforeGetDeployment(CurrentDeployment);
             exit(CurrentDeployment);
         end;
+
         exit(ManagedResourceDeployment);
     end;
 

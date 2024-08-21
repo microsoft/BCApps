@@ -6,13 +6,14 @@
 namespace System.TestTools.AITestToolkit;
 
 using System.TestTools.TestRunner;
-using System.TestLibraries.AI;
+using System.AI;
 
 codeunit 149042 "AIT Test Run Iteration"
 {
     TableNo = "AIT Test Method Line";
     SingleInstance = true;
     Access = Internal;
+    EventSubscriberInstance = Manual;
 
     var
         GlobalAITTestMethodLine: Record "AIT Test Method Line";
@@ -20,10 +21,9 @@ codeunit 149042 "AIT Test Run Iteration"
         ActiveAITTestSuite: Record "AIT Test Suite";
         GlobalTestMethodLine: Record "Test Method Line";
         NoOfInsertedLogEntries: Integer;
+        DeploymentOverride: Option Default,Latest,Preview;
 
     trigger OnRun()
-    var
-        AOAITestLibrary: Codeunit "Azure OpenAI Test Library";
     begin
         if Rec."Codeunit ID" = 0 then
             exit;
@@ -34,11 +34,11 @@ codeunit 149042 "AIT Test Run Iteration"
         InitializeAITTestMethodLineForRun(Rec, ActiveAITTestSuite);
         SetAITTestSuite(ActiveAITTestSuite);
 
-        AOAITestLibrary.SetDeploymentOverride(ActiveAITTestSuite."Model Version");
+        SetDeploymentOverride(ActiveAITTestSuite."Model Version");
 
         RunAITTestMethodLine(Rec, ActiveAITTestSuite);
 
-        AOAITestLibrary.ClearSubscription();
+        ClearSubscription();
     end;
 
     local procedure InitializeAITTestMethodLineForRun(var AITTestMethodLine: Record "AIT Test Method Line"; var AITTestSuite: Record "AIT Test Suite")
@@ -156,5 +156,29 @@ codeunit 149042 "AIT Test Run Iteration"
         GlobalTestMethodLine := CurrentTestMethodLine;
         AITContextCU.EndRunProcedureScenario(CurrentTestMethodLine, IsSuccess);
         Commit();
+    end;
+
+    local procedure SetDeploymentOverride(DeploymentOverrideValue: Option Default,Latest,Preview)
+    begin
+        BindSubscription(this);
+        DeploymentOverride := DeploymentOverrideValue;
+    end;
+
+    local procedure ClearSubscription()
+    begin
+        Clear(DeploymentOverride);
+        UnbindSubscription(this);
+    end;
+
+    [NonDebuggable]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"AOAI Authorization", OnBeforeGetDeployment, '', false, false)]
+    local procedure OverrideOnBeforeGetDeployment(var Deployment: Text)
+    begin
+        case DeploymentOverride of
+            DeploymentOverride::Latest:
+                Deployment := Deployment.Replace('preview', 'latest');
+            DeploymentOverride::Preview:
+                Deployment := Deployment.Replace('latest', 'preview');
+        end;
     end;
 }
