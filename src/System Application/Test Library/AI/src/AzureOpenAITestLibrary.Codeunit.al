@@ -40,7 +40,8 @@ codeunit 132933 "Azure OpenAI Test Library"
 
     procedure AddAOAIFunctionResponse(var AOAIOperationResponse: Codeunit "AOAI Operation Response"; var AOAIFunctionResponse: Codeunit "AOAI Function Response"; NewIsFunctionCall: Boolean; NewAOAIFunctionResponseStatus: Enum "AOAI Function Response Status"; NewFunctionCalled: Text; NewFunctionId: Text; NewArguments: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
     begin
-        AOAIOperationResponse.SetOperationResponse(true, 200, '', '');
+        if AOAIOperationResponse.GetStatusCode() = 0 then
+            AOAIOperationResponse.SetOperationResponse(true, 200, '', '');
         SetAOAIFunctionResponse(AOAIFunctionResponse, NewIsFunctionCall, NewAOAIFunctionResponseStatus, NewFunctionCalled, NewFunctionId, NewArguments, NewFunctionResult, NewFunctionError, NewFunctionErrorCallStack);
         AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
     end;
