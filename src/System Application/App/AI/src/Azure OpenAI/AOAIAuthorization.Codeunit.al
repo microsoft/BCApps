@@ -5,6 +5,7 @@
 namespace System.AI;
 
 using System;
+using System.Environment;
 
 /// <summary>
 /// Store the authorization information for the AOAI service.
@@ -16,6 +17,7 @@ codeunit 7767 "AOAI Authorization"
     InherentPermissions = X;
 
     var
+        EnvironmentInformation: Codeunit "Environment Information";
         [NonDebuggable]
         Endpoint: Text;
         [NonDebuggable]
@@ -87,7 +89,15 @@ codeunit 7767 "AOAI Authorization"
 
     [NonDebuggable]
     procedure GetDeployment(): SecretText
+    var
+        CurrentDeployment: Text;
     begin
+        CurrentDeployment := ManagedResourceDeployment;
+        if EnvironmentInformation.IsSandbox() or EnvironmentInformation.IsOnPrem() then begin
+            OnBeforeGetDeployment(CurrentDeployment);
+            exit(CurrentDeployment);
+        end;
+
         exit(Deployment);
     end;
 
@@ -99,7 +109,15 @@ codeunit 7767 "AOAI Authorization"
 
     [NonDebuggable]
     procedure GetManagedResourceDeployment(): SecretText
+    var
+        CurrentDeployment: Text;
     begin
+        CurrentDeployment := ManagedResourceDeployment;
+        if EnvironmentInformation.IsSandbox() or EnvironmentInformation.IsOnPrem() then begin
+            OnBeforeGetDeployment(CurrentDeployment);
+            exit(CurrentDeployment);
+        end;
+
         exit(ManagedResourceDeployment);
     end;
 
@@ -115,5 +133,11 @@ codeunit 7767 "AOAI Authorization"
         Clear(Deployment);
         Clear(ManagedResourceDeployment);
         Clear(ResourceUtilization);
+    end;
+
+    [NonDebuggable]
+    [InternalEvent(false)]
+    local procedure OnBeforeGetDeployment(var Deployment: Text)
+    begin
     end;
 }

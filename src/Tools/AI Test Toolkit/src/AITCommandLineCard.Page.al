@@ -41,6 +41,23 @@ page 149042 "AIT CommandLine Card"
                         RefreshNoOfPendingTests();
                     end;
                 }
+                field("Model Version"; ModelVersion)
+                {
+                    Caption = 'AOAI Model Version';
+                    OptionCaption = 'Default,Latest,Preview';
+                    ToolTip = 'Specifies the model version to be used by the tests.';
+
+                    trigger OnValidate()
+                    var
+                        AITTestSuite: Record "AIT Test Suite";
+                    begin
+                        if not AITTestSuite.Get(AITCode) then
+                            Error(CannotFindAITSuiteErr, AITCode);
+
+                        AITTestSuite."Model Version" := ModelVersion;
+                        AITTestSuite.Modify();
+                    end;
+                }
                 field("No. of Pending Tests"; NoOfPendingTests)
                 {
                     Caption = 'No. of Pending Tests';
@@ -225,6 +242,7 @@ page 149042 "AIT CommandLine Card"
         InputDataset: Text;
         SuiteDefinition: Text;
         InputDatasetFilename: Text;
+        ModelVersion: Option Default,Latest,Preview;
 
     local procedure StartAITSuite()
     var
