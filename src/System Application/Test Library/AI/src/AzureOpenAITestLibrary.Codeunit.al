@@ -60,4 +60,5 @@ codeunit 132933 "Azure OpenAI Test Library"
 
         AOAIChatMessages.AddToolCalls(ToolCalls);
     end;
+
 }
