@@ -14,6 +14,7 @@ permissions: read-all
 jobs:
   GetBranches:
     name: Get Official Branches
+    if: github.repository_owner == 'microsoft'
     runs-on: ubuntu-latest
     outputs:
       updateBranches: ${{ steps.getOfficialBranches.outputs.branchesJson }}
@@ -27,6 +28,7 @@ jobs:
 
   UpdateBCArtifactVersion:
     name: "[${{ matrix.branch }}] Update BC Artifact Version"
+    if: github.repository_owner == 'microsoft'
     permissions:
       contents: write
     environment: Official-Build

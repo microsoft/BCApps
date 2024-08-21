@@ -14,6 +14,8 @@ using System.Text.Json;
 codeunit 324 "No. Series Copilot Impl."
 {
     Access = Internal;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     var
         IncorrectCompletionErr: Label 'Incorrect completion. The property %1 is empty', Comment = '%1 = property name';
