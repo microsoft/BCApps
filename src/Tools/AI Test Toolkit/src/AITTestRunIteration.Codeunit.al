@@ -5,8 +5,8 @@
 
 namespace System.TestTools.AITestToolkit;
 
-using System.TestTools.TestRunner;
 using System.AI;
+using System.TestTools.TestRunner;
 
 codeunit 149042 "AIT Test Run Iteration"
 {
@@ -122,6 +122,18 @@ codeunit 149042 "AIT Test Run Iteration"
         exit(GlobalTestMethodLine);
     end;
 
+    local procedure SetDeploymentOverride(DeploymentOverrideValue: Option Default,Latest,Preview)
+    begin
+        BindSubscription(this);
+        DeploymentOverride := DeploymentOverrideValue;
+    end;
+
+    local procedure ClearSubscription()
+    begin
+        Clear(DeploymentOverride);
+        UnbindSubscription(this);
+    end;
+
     [InternalEvent(false)]
     procedure OnBeforeRunIteration(var AITTestSuite: Record "AIT Test Suite"; var AITTestMethodLine: Record "AIT Test Method Line")
     begin
@@ -156,18 +168,6 @@ codeunit 149042 "AIT Test Run Iteration"
         GlobalTestMethodLine := CurrentTestMethodLine;
         AITContextCU.EndRunProcedureScenario(CurrentTestMethodLine, IsSuccess);
         Commit();
-    end;
-
-    local procedure SetDeploymentOverride(DeploymentOverrideValue: Option Default,Latest,Preview)
-    begin
-        BindSubscription(this);
-        DeploymentOverride := DeploymentOverrideValue;
-    end;
-
-    local procedure ClearSubscription()
-    begin
-        Clear(DeploymentOverride);
-        UnbindSubscription(this);
     end;
 
     [NonDebuggable]
