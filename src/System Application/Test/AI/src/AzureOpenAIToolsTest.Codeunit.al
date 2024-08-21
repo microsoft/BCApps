@@ -408,7 +408,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Selected function was executed by system
         FunctionExecutionResult := 'test function execution result';
-        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, '', FunctionExecutionResult, '', '');
 
         LibraryAssert.IsTrue(AOAIOperationResponse.IsFunctionCall(), 'Function call should be true.');
         LibraryAssert.AreEqual(AOAIFunctionResponse.GetFunctionName(), TestFunction1.GetName(), 'Function name should be the same as the value set.');
@@ -439,7 +439,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Selected function was executed by system
         FunctionExecutionResult := 'test function execution result';
-        AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+        AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, '', FunctionExecutionResult, '', '');
 
         // Save the function execution result to the chat messages
         AOAIChatMessages.AddToolMessage(AOAIFunctionResponse.GetFunctionId(), AOAIFunctionResponse.GetFunctionName(), AOAIFunctionResponse.GetResult());
@@ -471,7 +471,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Selected function was executed by system
         FunctionExecutionResult := 'test function execution result';
-        AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+        AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, '', FunctionExecutionResult, '', '');
 
         // Save the function execution result to the chat messages
         AOAIChatMessages.AddToolMessage(AOAIFunctionResponse.GetFunctionId(), AOAIFunctionResponse.GetFunctionName(), AOAIFunctionResponse.GetResult());
@@ -510,7 +510,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Selected function was executed by system
         FunctionExecutionResult := 'test function execution result';
-        AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+        AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, '', FunctionExecutionResult, '', '');
 
         // Save the function execution result to the chat messages
         AOAIChatMessages.AddToolMessage(AOAIFunctionResponse.GetFunctionId(), AOAIFunctionResponse.GetFunctionName(), AOAIFunctionResponse.GetResult());
@@ -585,7 +585,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
         // Create some operation and function response for a tool call that did not happen
         ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
         FunctionExecutionResult := 'test function execution result';
-        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, '', FunctionExecutionResult, '', '');
 
         // Append the incorrect function response
         asserterror AOAIOperationResponse.AppendFunctionResponsesToChatMessages(AOAIChatMessages);
@@ -619,7 +619,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Create some operation and function response for a tool call that did not happen
         FunctionExecutionResult := 'test function execution result';
-        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, '', FunctionExecutionResult, '', '');
 
         // Append the incorrect function response
         asserterror AOAIOperationResponse.AppendFunctionResponsesToChatMessages(AOAIChatMessages);
@@ -652,7 +652,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
         // Create some operation and function response for a tool call that did not happen
         ToolCallId := 'call_anothertoolcallid';
         FunctionExecutionResult := 'test function execution result';
-        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction2.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction2.GetName(), ToolCallId, '', FunctionExecutionResult, '', '');
 
         // Append the incorrect function response
         asserterror AOAIOperationResponse.AppendFunctionResponsesToChatMessages(AOAIChatMessages);
@@ -689,7 +689,7 @@ codeunit 132686 "Azure OpenAI Tools Test"
 
         // Create an operation and function response for the tool call
         FunctionExecutionResult := 'test function execution result';
-        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Invoke Success", TestFunction1.GetName(), ToolCallId, '', FunctionExecutionResult, '', '');
 
         // Append the function response
         AOAIOperationResponse.AppendFunctionResponsesToChatMessages(AOAIChatMessages);
@@ -745,10 +745,61 @@ codeunit 132686 "Azure OpenAI Tools Test"
         // Enumerate the function response statuses
         foreach AOAIFunctionRepsonseStatusCode in Enum::"AOAI Function Response Status".Ordinals() do begin
             AOAIFunctionResponseStatus := Enum::"AOAI Function Response Status".FromInteger(AOAIFunctionRepsonseStatusCode);
-            AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, AOAIFunctionResponseStatus, TestFunction1.GetName(), ToolCallId, FunctionExecutionResult, '', '');
+            AzureOpenAITestLibrary.SetAOAIFunctionResponse(AOAIFunctionResponse, true, AOAIFunctionResponseStatus, TestFunction1.GetName(), ToolCallId, '', FunctionExecutionResult, '', '');
 
             LibraryAssert.AreEqual(AOAIFunctionResponseStatus in [Enum::"AOAI Function Response Status"::"Invoke Success"], AOAIFunctionResponse.IsSuccess(), 'IsSuccess did not return the expected result for the given response status');
         end;
+    end;
+
+    [Test]
+    procedure TestFunctionCallInvokedManually()
+    var
+        AzureOpenAITestLibrary: Codeunit "Azure OpenAI Test Library";
+        AOAIChatMessages: Codeunit "AOAI Chat Messages";
+        TestFunction1: Codeunit "Test Function 1";
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+        AOAIOperationResponse: Codeunit "AOAI Operation Response";
+        ToolCallId: Text;
+        FunctionExecutionResult: Text;
+        ToolCall: JsonToken;
+        ArgumentToken: JsonToken;
+        ParsedArguments: JsonObject;
+    begin
+        AOAIChatMessages.AddTool(TestFunction1);
+
+        AOAIChatMessages.AddSystemMessage('test system message');
+        AOAIChatMessages.AddUserMessage('test user message');
+
+        AOAIChatMessages.SetToolInvokePreference(Enum::"AOAI Tool Invoke Preference"::Manual);
+
+        // Function is been selected by LLM
+        ToolCallId := 'call_of7GnOMuBT4H95XkuN14qfai';
+        AzureOpenAITestLibrary.SetToolCalls(AOAIChatMessages, ToolCallId, TestFunction1.GetName(), '{\"TestParameter\": \"TestValue\"}');
+
+        // Create an operation and function response for the tool call
+        AOAIChatMessages.GetLastToolCalls().Get(0, ToolCall);
+        ToolCall.SelectToken('$.function.arguments', ArgumentToken);
+        FunctionExecutionResult := ''; // the function is not invoked
+
+        AzureOpenAITestLibrary.AddAOAIFunctionResponse(AOAIOperationResponse, AOAIFunctionResponse, true, Enum::"AOAI Function Response Status"::"Not Invoked", TestFunction1.GetName(), ToolCallId, ArgumentToken.AsValue().AsText(), FunctionExecutionResult, '', '');
+
+        // Assert the operation and result
+        LibraryAssert.AreEqual(true, AOAIOperationResponse.IsFunctionCall(), 'Expected function call');
+        LibraryAssert.AreEqual(true, AOAIOperationResponse.IsSuccess(), 'The operation did not succeed');
+        LibraryAssert.AreEqual(1, AOAIOperationResponse.GetFunctionResponses().Count(), 'There was not exactly one function response');
+
+        AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponses().Get(1);
+
+        LibraryAssert.AreEqual(false, AOAIFunctionResponse.IsSuccess(), 'The function was invoked successfully when the invoke preference was manual');
+        LibraryAssert.AreEqual(Enum::"AOAI Function Response Status"::"Not Invoked", AOAIFunctionResponse.GetStatus(), 'The function is not in the expected status');
+        LibraryAssert.AreEqual(TestFunction1.GetName(), AOAIFunctionResponse.GetFunctionName(), 'The function returned was not the expected name');
+
+        ParsedArguments := AOAIFunctionResponse.GetArguments();
+        LibraryAssert.IsTrue(ParsedArguments.Get('TestParameter', ArgumentToken), 'Could not find argument parameter');
+        LibraryAssert.AreEqual('TestValue', ArgumentToken.AsValue().AsText(), 'Could not read argument parameter');
+
+        FunctionExecutionResult := TestFunction1.Execute(ParsedArguments);
+        LibraryAssert.AreNotEqual('', FunctionExecutionResult, 'The function was not invoked successfully');
     end;
 
     local procedure GetTestFunction1Tool(): JsonObject
