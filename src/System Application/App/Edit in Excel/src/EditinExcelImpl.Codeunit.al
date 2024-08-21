@@ -29,9 +29,7 @@ codeunit 1482 "Edit in Excel Impl."
 #endif
 
     var
-#if not CLEAN22
         EnvironmentInformation: Codeunit "Environment Information";
-#endif
         EditinExcel: Codeunit "Edit in Excel";
 #if not CLEAN22
         TenantWebserviceDoesNotExistTxt: Label 'Tenant web service does not exist.', Locked = true;
