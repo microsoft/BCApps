@@ -47,9 +47,9 @@ codeunit 8722 "Unix Timestamp"
     /// </summary>
     /// <param name="DateTimeFrom">The DateTime that should be used to create the Unix timestamp</param>
     /// <returns>A Unix timestamp in miliseconds representing the specified date and time</returns>
-    procedure CreateTimestampMiliseconds(DateTimeFrom: DateTime): BigInteger
+    procedure CreateTimestampMilliseconds(DateTimeFrom: DateTime): BigInteger
     begin
-        exit(UnixTimestampImpl.CreateTimestampMiliseconds(DateTimeFrom));
+        exit(UnixTimestampImpl.CreateTimestampMilliseconds(DateTimeFrom));
     end;
 
     /// <summary>

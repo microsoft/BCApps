@@ -21,10 +21,10 @@ codeunit 8723 "Unix Timestamp Impl."
     begin
         RoundTripDateTime := Format(DateTimeFrom, 0, 9);
         DateTimeOffset := DateTimeOffset.Parse(RoundTripDateTime, DateTimeFormatInfo, DateTimeStyles.RoundtripKind);
-        exit(DateTimeOffset.ToUniversalTime().ToUnixTimeSeconds());
+        exit(DateTimeOffset.ToUnixTimeSeconds());
     end;
 
-    procedure CreateTimestampMiliseconds(DateTimeFrom: DateTime): BigInteger
+    procedure CreateTimestampMilliseconds(DateTimeFrom: DateTime): BigInteger
     var
         DateTimeOffset: DotNet DateTimeOffset;
         DateTimeStyles: DotNet DateTimeStyles;
@@ -33,7 +33,7 @@ codeunit 8723 "Unix Timestamp Impl."
     begin
         RoundTripDateTime := Format(DateTimeFrom, 0, 9);
         DateTimeOffset := DateTimeOffset.Parse(RoundTripDateTime, DateTimeFormatInfo, DateTimeStyles.RoundtripKind);
-        exit(DateTimeOffset.ToUniversalTime().ToUnixTimeMilliseconds());
+        exit(DateTimeOffset.ToUnixTimeMilliseconds());
     end;
 
     procedure EvaluateTimestamp(Timestamp: BigInteger) Result: DateTime

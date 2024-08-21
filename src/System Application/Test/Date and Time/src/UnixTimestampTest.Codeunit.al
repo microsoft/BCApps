@@ -39,7 +39,7 @@ codeunit 132980 "Unix Timestamp Test"
     end;
 
     [Test]
-    procedure GivenDateTimeCreatesGivenTimestampMiliseconds()
+    procedure GivenDateTimeCreatesGivenTimestampMilliseconds()
     var
         UnixTimestamp: Codeunit "Unix Timestamp";
         TimeZone: Codeunit "Time Zone";
@@ -55,7 +55,7 @@ codeunit 132980 "Unix Timestamp Test"
         Offset := TimeZone.GetTimezoneOffset(CurrentDateTime);
 
         // [WHEN] Given DateTime is converted to a Unix timestamp after a correction for timezone offset
-        ResultTimestamp := UnixTimestamp.CreateTimestampMiliseconds(GivenDateTime + Offset);
+        ResultTimestamp := UnixTimestamp.CreateTimestampMilliseconds(GivenDateTime + Offset);
 
         // [THEN] The timestamp in miliseconds is 1719815430000
         LibraryAssert.AreEqual(ResultTimestamp, 1719815430000L, 'Given DateTime does not create the correct Unix timestamp');
