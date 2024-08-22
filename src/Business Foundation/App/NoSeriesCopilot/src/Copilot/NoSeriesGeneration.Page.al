@@ -42,20 +42,6 @@ page 332 "No. Series Generation"
         }
         area(Content)
         {
-            group(AIResponse)
-            {
-                ShowCaption = false;
-                Visible = IsResponseTextVisible;
-                field(ResponseText; ResponseText)
-                {
-                    Caption = 'AI Response';
-                    MultiLine = true;
-                    ApplicationArea = All;
-                    ShowCaption = false;
-                    Editable = false;
-                    Enabled = false;
-                }
-            }
             part(GenerationDetails; "No. Series Generation Sub")
             {
                 Caption = 'Generated No. Series';
@@ -186,9 +172,7 @@ page 332 "No. Series Generation"
 
     var
         InputText: Text;
-        ResponseText: Text;
         PageCaptionLbl: text;
-        IsResponseTextVisible: Boolean;
         IsGenerationDetailsVisible: Boolean;
         CreateNoSeriesForLbl: Label 'Create number series for ';
         CreateNoSeriesForModuleWithPatternLbl: Label 'Create number series for [specify here] module in the format ';
@@ -214,9 +198,8 @@ page 332 "No. Series Generation"
         GeneratedNoSeries: Record "No. Series Generation Detail";
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
     begin
-        NoSeriesCopilotImpl.Generate(Rec, ResponseText, GeneratedNoSeries, InputText);
+        NoSeriesCopilotImpl.Generate(Rec, GeneratedNoSeries, InputText);
         CurrPage.GenerationDetails.Page.Load(GeneratedNoSeries);
-        IsResponseTextVisible := ResponseText <> '';
         IsGenerationDetailsVisible := not GeneratedNoSeries.IsEmpty;
     end;
 
