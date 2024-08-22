@@ -34,19 +34,19 @@ codeunit 8722 "Unix Timestamp"
     end;
 
     /// <summary>
-    /// Create a Unix timestamp in seconds for the current date and time
+    /// Create a Unix timestamp in milliseconds for the current date and time
     /// </summary>
-    /// <returns>A Unix timestamp in seconds representing the current date and time</returns>
-    procedure CreateTimestampMiliseconds(): BigInteger
+    /// <returns>A Unix timestamp in milliseconds representing the current date and time</returns>
+    procedure CreateTimestampMilliseconds(): BigInteger
     begin
-        exit(CreateTimestampMiliseconds(CurrentDateTime));
+        exit(CreateTimestampMilliseconds(CurrentDateTime));
     end;
 
     /// <summary>
-    /// Create a Unix timestamp in miliseconds for the specified date and time
+    /// Create a Unix timestamp in milliseconds for the specified date and time
     /// </summary>
     /// <param name="DateTimeFrom">The DateTime that should be used to create the Unix timestamp</param>
-    /// <returns>A Unix timestamp in miliseconds representing the specified date and time</returns>
+    /// <returns>A Unix timestamp in milliseconds representing the specified date and time</returns>
     procedure CreateTimestampMilliseconds(DateTimeFrom: DateTime): BigInteger
     begin
         exit(UnixTimestampImpl.CreateTimestampMilliseconds(DateTimeFrom));

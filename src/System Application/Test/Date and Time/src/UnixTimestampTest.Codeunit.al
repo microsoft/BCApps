@@ -16,7 +16,7 @@ codeunit 132980 "Unix Timestamp Test"
         LibraryAssert: Codeunit "Library Assert";
 
     [Test]
-    procedure GivenDateTimeCreatesGivenTimestampSeconds()
+    procedure DateTimeCreatesUnixTimestampSeconds()
     var
         UnixTimestamp: Codeunit "Unix Timestamp";
         TimeZone: Codeunit "Time Zone";
@@ -39,7 +39,7 @@ codeunit 132980 "Unix Timestamp Test"
     end;
 
     [Test]
-    procedure GivenDateTimeCreatesGivenTimestampMilliseconds()
+    procedure DateTimeCreatesUnixTimestampMilliseconds()
     var
         UnixTimestamp: Codeunit "Unix Timestamp";
         TimeZone: Codeunit "Time Zone";
@@ -71,7 +71,7 @@ codeunit 132980 "Unix Timestamp Test"
         // [SCENARIO #0003] A given DateTime that is converted to Unix timestamp and then evaluated back to a result DateTime are equal
 
         // [GIVEN] The current date time
-        GivenDateTime := CurrentDateTime();
+        GivenDateTime := CreateDateTime(20240701D, 063030T);
 
         // [WHEN] Given DateTime is converted to a Unix timestamp and then evaluated back to DateTime
         ResultTimestamp := UnixTimestamp.CreateTimestampSeconds(GivenDateTime);
