@@ -102,7 +102,7 @@ codeunit 9013 "User Login Time Tracker Impl."
     begin
         Now := CurrentDateTime();
 
-        SelectLatestVersion();
+        SelectLatestVersion(Database::"User Login");
         UserLogin.ReadIsolation := UserLogin.ReadIsolation::ReadUncommitted;
         if UserLogin.Get(UserSecurityId()) and (UserLogin."Last Login Date" <> 0DT) then // 0DT is a null datetime and cannot be added with 60.000 below
             if (Now < UserLogin."Last Login Date" + 60000) and (DT2Date(Now) = DT2Date(UserLogin."Last Login Date")) then // every 1 min on same day must be enough
