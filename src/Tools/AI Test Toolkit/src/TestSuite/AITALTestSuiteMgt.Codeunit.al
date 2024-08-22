@@ -74,17 +74,21 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         TempTestMethodLine: Record "Test Method Line" temporary;
         ALTestSuite: Record "AL Test Suite";
         TestInputsManagement: Codeunit "Test Inputs Management";
+        Iteration: Integer;
     begin
         ALTestSuite := GetOrCreateALTestSuite(AITTestMethodLine);
 
-        TempTestMethodLine."Line Type" := TempTestMethodLine."Line Type"::Codeunit;
-        TempTestMethodLine."Test Codeunit" := AITTestMethodLine."Codeunit ID";
-        TempTestMethodLine."Test Suite" := AITTestMethodLine."AL Test Suite";
-        TempTestMethodLine."Data Input Group Code" := TestInput."Test Input Group Code";
-        TempTestMethodLine."Data Input" := TestInput.Code;
-        TempTestMethodLine.Insert();
+        for Iteration := 0 to AITTestMethodLine.Iterations - 1 do begin
+            TempTestMethodLine."Line Type" := TempTestMethodLine."Line Type"::Codeunit;
+            TempTestMethodLine."Test Codeunit" := AITTestMethodLine."Codeunit ID";
+            TempTestMethodLine."Test Suite" := AITTestMethodLine."AL Test Suite";
+            TempTestMethodLine."Data Input Group Code" := TestInput."Test Input Group Code";
+            TempTestMethodLine."Data Input" := TestInput.Code;
+            TempTestMethodLine.Insert();
 
-        TestInputsManagement.InsertTestMethodLines(TempTestMethodLine, ALTestSuite);
+            TestInputsManagement.InsertTestMethodLines(TempTestMethodLine, ALTestSuite);
+            TempTestMethodLine.DeleteAll();
+        end;
     end;
 
     internal procedure RemoveTestMethods(var AITTestMethodLine: Record "AIT Test Method Line")

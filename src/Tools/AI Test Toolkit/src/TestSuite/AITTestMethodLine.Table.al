@@ -166,6 +166,18 @@ table 149032 "AIT Test Method Line"
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter")));
         }
+        field(32; Iterations; Integer)
+        {
+            Caption = 'No. of Iterations';
+            ToolTip = 'Specifies the number of iterations to execute.';
+            InitValue = 1;
+
+            trigger OnValidate()
+            begin
+                if Iterations < 1 then
+                    Error(IterationsMustBePositiveErr)
+            end;
+        }
         field(101; "AL Test Suite"; Code[10])
         {
             Caption = 'AL Test Suite';
@@ -208,5 +220,6 @@ table 149032 "AIT Test Method Line"
 
     var
         NotSupportedCodeunitErr: Label 'Codeunit %1 can not be used for testing.', Comment = '%1 = codeunit name';
+        IterationsMustBePositiveErr: Label 'Number of iterations must be larger than or equal to 1.', Comment = '%1 = codeunit name';
 
 }
