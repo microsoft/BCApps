@@ -231,7 +231,7 @@ codeunit 8900 "Email Impl"
 
         CustomDimensions.Add('AppsAndPublishers', AppsAndPublishers);
         CustomDimensions.Add('Category', EmailCategoryLbl);
-        Telemetry.LogMessage('', Message, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        Telemetry.LogMessage('0000NIG', Message, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
     end;
 
     procedure MarkAsRead(EmailAccountId: Guid; Connector: Enum "Email Connector"; ExternalId: Text)
@@ -445,7 +445,7 @@ codeunit 8900 "Email Impl"
         if LastModifiedNo < EmailMessage.GetNoOfModifies() then begin
             Dimensions.Add('Category', EmailCategoryLbl);
             Dimensions.Add('EmailMessageId', EmailMessage.GetId());
-            Telemetry.LogMessage('', EmailModifiedByEventTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+            Telemetry.LogMessage('0000NIH', EmailModifiedByEventTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
         end;
     end;
 
