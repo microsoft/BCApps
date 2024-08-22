@@ -87,18 +87,6 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Get the AOAI Model Version for the AI Test Suite.
-    /// </summary>
-    /// <returns>The AOAI Model Version as an Option.</returns>
-    procedure GetAOAIModelVersion(): Option
-    var
-        AITTestSuite: Record "AIT Test Suite";
-    begin
-        GetAITTestSuite(AITTestSuite);
-        exit(AITTestSuite."Model Version");
-    end;
-
-    /// <summary>
     /// Sets the answer for a question and answer evaluation.
     /// This will also copy the context, question and ground truth to the output dataset.
     /// </summary>
@@ -252,17 +240,6 @@ codeunit 149043 "AIT Test Context Impl."
             TestOutputCU.TestData().Initialize(Output);
 
         AITTestSuiteMgt.SetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), TestOutputCU.Testdata().ToText());
-    end;
-
-    /// <summary>
-    /// Returns the AITTestSuite associated with the sessions.
-    /// </summary>
-    /// <param name="AITTestMethodLine">AITTestMethodLine associated with the session.</param>
-    local procedure GetAITTestSuite(var AITTestSuite: Record "AIT Test Suite")
-    var
-        AITTestRunIteration: Codeunit "AIT Test Run Iteration";
-    begin
-        AITTestRunIteration.GetAITTestSuite(AITTestSuite);
     end;
 
     /// <summary>
