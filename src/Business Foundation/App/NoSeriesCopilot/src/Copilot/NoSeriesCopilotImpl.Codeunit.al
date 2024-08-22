@@ -182,7 +182,7 @@ codeunit 324 "No. Series Copilot Impl."
         AOAIChatMessages.AddTool(ChangeNoSeriesIntent);
         AOAIChatMessages.AddTool(NextYearNoSeriesIntent);
 
-        AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);       
+        AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
         if not AOAIOperationResponse.IsSuccess() then
             Error(AOAIOperationResponse.GetError());
 
