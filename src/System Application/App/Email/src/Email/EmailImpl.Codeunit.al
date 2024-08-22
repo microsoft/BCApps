@@ -44,6 +44,7 @@ codeunit 8900 "Email Impl"
         EmailConnectorDoesNotSupportMarkAsReadErr: Label 'The selected email connector does not support marking emails as read.';
         EmailconnectorDoesNotSupportReplyingErr: Label 'The selected email connector does not support replying to emails.';
         ExternalIdCannotBeEmptyErr: Label 'The external ID cannot be empty.';
+        TelemetryRetrieveEmailsUsedTxt: Label 'Retrieving emails is used', Locked = true;
 
     #region API
 
@@ -202,12 +203,35 @@ codeunit 8900 "Email Impl"
     begin
         CheckRequiredPermissions();
 
-        if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then
-            IEmailConnectorv2.RetrieveEmails(EmailAccountId, EmailInbox)
-        else
+        if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then begin
+            TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
+            IEmailConnectorv2.RetrieveEmails(EmailAccountId, EmailInbox);
+        end else
             Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
 
         EmailInbox.MarkedOnly(true);
+    end;
+
+    local procedure TelemetryAppsAndPublishers(Message: Text)
+    var
+        Telemetry: Codeunit Telemetry;
+        CallerCallStackModuleInfos: List of [ModuleInfo];
+        CallerModuleInfo: ModuleInfo;
+        CustomDimensions: Dictionary of [Text, Text];
+        AppsAndPublishersDict: Dictionary of [Text, Boolean];
+        AppsAndPublishers: Text;
+    begin
+        CallerCallStackModuleInfos := NavApp.GetCallerCallstackModuleInfos();
+
+        foreach CallerModuleInfo in CallerCallStackModuleInfos do
+            if not AppsAndPublishersDict.ContainsKey(CallerModuleInfo.Id) then begin
+                AppsAndPublishersDict.Add(CallerModuleInfo.Id, true);
+                AppsAndPublishers := StrSubstNo('%1, %2 - (%3 - %4)', AppsAndPublishers, CallerModuleInfo.Id, CallerModuleInfo.Name, CallerModuleInfo.Publisher);
+            end;
+
+        CustomDimensions.Add('AppsAndPublishers', AppsAndPublishers);
+        CustomDimensions.Add('Category', EmailCategoryLbl);
+        Telemetry.LogMessage('', Message, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
     end;
 
     procedure MarkAsRead(EmailAccountId: Guid; Connector: Enum "Email Connector"; ExternalId: Text)

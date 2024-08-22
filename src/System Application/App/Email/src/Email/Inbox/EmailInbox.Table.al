@@ -9,6 +9,7 @@ namespace System.Email;
 table 8886 "Email Inbox"
 {
     Access = Public;
+    TableType = Temporary;
 
     fields
     {
