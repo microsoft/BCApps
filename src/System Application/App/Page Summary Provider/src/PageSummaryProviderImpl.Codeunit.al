@@ -469,7 +469,7 @@ codeunit 2717 "Page Summary Provider Impl."
         GetRecordFieldsFailureTelemetryTxt: Label 'Failure to get record fields for page %1.', Locked = true;
         PageIDMustBeSpecifiedErr: Label 'Page ID must be specified.', Locked = true;
         PageIDTok: Label 'pageId', Locked = true;
-        RecordSystemIdTok: Label 'recordSystemID', Locked = true;
+        RecordSystemIdTok: Label 'recordSystemId', Locked = true;
         BookmarkTok: Label 'bookmark', Locked = true;
         IncludeBinaryDataTok: Label 'includeBinaryData', Locked = true;
 }
