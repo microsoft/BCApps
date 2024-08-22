@@ -175,6 +175,13 @@ table 3901 "Retention Policy Setup"
         RetentionPolicySetupImpl.DeleteRetentionPolicySetup(Rec);
     end;
 
+    trigger OnInsert()
+    var
+        NewRetentionPolicyCreatedLbl: Label 'The new Retention Policy record with Table ID %1 is created by the UserSecurityId %2.', Locked = true;
+    begin
+        Session.LogAuditMessage(StrSubstNo(NewRetentionPolicyCreatedLbl, Rec."Table ID", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+    end;
+
     local procedure LogCategory() RetentionPolicyLogCategory: Enum "Retention Policy Log Category"
     begin
         exit(RetentionPolicyLogCategory::"Retention Policy - Setup")
