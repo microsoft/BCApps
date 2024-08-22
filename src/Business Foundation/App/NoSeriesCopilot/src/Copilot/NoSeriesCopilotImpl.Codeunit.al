@@ -61,8 +61,7 @@ codeunit 324 "No. Series Copilot Impl."
                 SaveGenerationHistory(NoSeriesGeneration, InputText);
                 CreateNoSeries(NoSeriesGeneration, GeneratedNoSeries, Completion);
             end else
-                if Completion <> '' then
-                    Error(InvalidPromptTxt);
+                Error(InvalidPromptTxt);
         end else
             SendNotification(GetChatCompletionResponseErr());
     end;
@@ -172,7 +171,7 @@ codeunit 324 "No. Series Copilot Impl."
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"No. Series Copilot") then
             exit;
 
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT35TurboPreview());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT4oMiniLatest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"No. Series Copilot");
         AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
         AOAIChatCompletionParams.SetTemperature(0);
@@ -529,7 +528,7 @@ codeunit 324 "No. Series Copilot Impl."
 
     local procedure MaxModelTokens(): Integer
     begin
-        exit(16385); //gpt-3.5-turbo-latest
+        exit(16385); //gpt-4o-mini-latest
     end;
 
     procedure IsCopilotVisible(): Boolean
