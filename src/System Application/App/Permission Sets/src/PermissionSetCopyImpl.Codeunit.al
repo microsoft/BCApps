@@ -260,7 +260,7 @@ codeunit 9863 "Permission Set Copy Impl."
             TenantPermission."Execute Permission" := AddExecute;
             TenantPermission.Insert();
             Session.LogAuditMessage(StrSubstNo(PermissionsInsertedLbl, AppID, CopyStr(RoleID, 1, MaxStrLen(TenantPermission."Role ID"), ObjectType, ObjectID,
-                AddRead, AddInsert, AddModify, AddDelete, AddExecute, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+                AddRead, AddInsert, AddModify, AddDelete, AddExecute, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0));
         end else begin
             TenantPermission."Read Permission" := LogActivityPermissions.GetMaxPermission(TenantPermission."Read Permission", AddRead);
             TenantPermission."Insert Permission" := LogActivityPermissions.GetMaxPermission(TenantPermission."Insert Permission", AddInsert);
@@ -269,7 +269,7 @@ codeunit 9863 "Permission Set Copy Impl."
             TenantPermission."Execute Permission" := LogActivityPermissions.GetMaxPermission(TenantPermission."Execute Permission", AddExecute);
             TenantPermission.Modify();
             Session.LogAuditMessage(StrSubstNo(PermissionsUpdatedLbl, AppID, CopyStr(RoleID, 1, MaxStrLen(TenantPermission."Role ID"), ObjectType, ObjectID,
-                AddRead, AddInsert, AddModify, AddDelete, AddExecute, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+                AddRead, AddInsert, AddModify, AddDelete, AddExecute, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0));
         end;
     end;
 
