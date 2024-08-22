@@ -77,6 +77,43 @@ codeunit 7770 "AOAI Operation Response"
         exit(AOAIFunctionResponse.IsFunctionCall());
     end;
 
+    /// <summary>
+    /// Get whether there are any function responses for a given function name.
+    /// </summary>
+    /// <param name="FunctionName">The case sensitive function name to search for.</param>
+    /// <returns>True if any function responses were found</returns>
+    procedure HasFunctionResponsesByName(FunctionName: Text): Boolean
+    var
+        MatchedAOAIFunctionResponses: List of [Codeunit "AOAI Function Response"];
+    begin
+        exit(TryGetFunctionReponsesByName(FunctionName, MatchedAOAIFunctionResponses));
+    end;
+
+    /// <summary>
+    /// Get all the function responses for a specified function name.
+    /// </summary>
+    /// <param name="FunctionName">The case sensitive function name to search for.</param>
+    /// <param name="MatchedAOAIFunctionResponses">The function responses that match the given function name</param>
+    /// <returns>True if any function responses were found</returns>
+    procedure TryGetFunctionReponsesByName(FunctionName: Text; var MatchedAOAIFunctionResponses: List of [Codeunit "AOAI Function Response"]): Boolean
+    var
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
+    begin
+        Clear(MatchedAOAIFunctionResponses);
+
+        if FunctionName = '' then
+            exit(false);
+
+        if not IsFunctionCall() then
+            exit(false);
+
+        foreach AOAIFunctionResponse in AOAIFunctionResponses do
+            if AOAIFunctionResponse.GetFunctionName() = FunctionName then
+                MatchedAOAIFunctionResponses.Add(AOAIFunctionResponse);
+
+        exit(MatchedAOAIFunctionResponses.Count() > 0);
+    end;
+
 #if not CLEAN25
     /// <summary>
     /// Get the function response codeunit which contains the response details.
