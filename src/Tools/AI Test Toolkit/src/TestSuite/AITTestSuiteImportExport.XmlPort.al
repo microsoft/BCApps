@@ -30,10 +30,6 @@ xmlport 149031 "AIT Test Suite Import/Export"
                 {
                     Occurrence = Optional;
                 }
-                fieldattribute(ModelVersion; "AITSuite"."Model Version")
-                {
-                    Occurrence = Optional;
-                }
                 fieldattribute(Dataset; "AITSuite"."Input Dataset")
                 {
                     Occurrence = Required;
