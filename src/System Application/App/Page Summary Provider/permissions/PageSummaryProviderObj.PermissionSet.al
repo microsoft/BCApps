@@ -11,6 +11,7 @@ permissionset 2716 "Page Summary Provider - Obj."
     Assignable = false;
 
     Permissions = table "Page Summary Settings" = X,
+                  table "Page Summary Parameters" = X,
                   codeunit "Page Summary Provider" = X,
                   codeunit "Page Summary Settings" = X,
                   page "Page Summary Settings" = X;
