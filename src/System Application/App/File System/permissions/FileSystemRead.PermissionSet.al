@@ -7,14 +7,16 @@ namespace System.FileSystem;
 
 using System.Environment;
 
-permissionset 9453 "File System - Edit"
+permissionset 9451 "File System - Read"
 {
-    Access = Public;
+    Access = Internal;
     Assignable = false;
-    Caption = 'File System - Edit';
 
-    IncludedPermissionSets = "File System - Read";
-
-    Permissions = tabledata "File System Connector Logo" = imd,
-                  tabledata "Tenant Media" = imd;
+    Permissions =
+        tabledata "File System Connector" = r,
+        tabledata "File System Connector Logo" = r,
+        tabledata "File Account Scenario" = r,
+        tabledata "File Scenario" = r,
+        tabledata "File Account Content" = r,
+        tabledata Media = r; // File System Account Wizard requires this
 }

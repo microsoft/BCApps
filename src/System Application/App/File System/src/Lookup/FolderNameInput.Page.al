@@ -21,6 +21,7 @@ page 9456 "Folder Name Input"
             field(FolderNameField; FolderName)
             {
                 Caption = 'Folder Name';
+                ToolTip = 'Specifies the Name of the directory.';
             }
         }
     }

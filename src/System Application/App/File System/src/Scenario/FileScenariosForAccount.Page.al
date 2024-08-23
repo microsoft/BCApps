@@ -22,6 +22,7 @@ page 9454 "File Scenarios for Account"
     LinksAllowed = false;
     InherentPermissions = X;
     InherentEntitlements = X;
+    UsageCategory = None;
 
     layout
     {

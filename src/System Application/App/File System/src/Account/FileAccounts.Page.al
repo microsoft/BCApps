@@ -279,14 +279,11 @@ page 9450 "File Accounts"
         end else
             if Rec.FindFirst() then;
 
-        HasFileAccount := not Rec.IsEmpty();
-
         CurrPage.Update(false);
     end;
 
     local procedure ShowAccountInformation()
     var
-        FileAccountImpl: Codeunit "File Account Impl.";
         Connector: Interface "File System Connector";
     begin
         UpdateAccounts := true;
@@ -331,7 +328,6 @@ page 9450 "File Accounts"
         DefaultFileAccount: Record "File Account";
         FileAccountImpl: Codeunit "File Account Impl.";
         CanUserManageFileSetup: Boolean;
-        HasFileAccount: Boolean;
         IsDefault: Boolean;
         IsInLookupMode: Boolean;
         ShowLogo: Boolean;

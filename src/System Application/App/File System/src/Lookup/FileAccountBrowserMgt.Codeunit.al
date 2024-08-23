@@ -45,9 +45,11 @@ codeunit 9458 "File Account Browser Mgt."
     procedure DownloadFile(var TempFileAccountContent: Record "File Account Content" temporary)
     var
         Stream: InStream;
+        FileName: Text;
     begin
         FileSystem.GetFile(FileSystem.CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name), Stream);
-        DownloadFromStream(Stream, '', '', '', TempFileAccountContent.Name);
+        FileName := TempFileAccountContent.Name;
+        DownloadFromStream(Stream, '', '', '', FileName);
     end;
 
     procedure UploadFile(Path: Text)
@@ -74,9 +76,9 @@ codeunit 9458 "File Account Browser Mgt."
         FileSystem.CreateDirectory(FileSystem.CombinePath(Path, FolderName));
     end;
 
-    local procedure ListFiles(var FileAccountContent: Record "File Account Content" temporary; var Path: Text; DoNotLoadFields: Boolean; CurrentPath: Text; FileNameFilter: Text)
+    local procedure ListFiles(var FileAccountContent: Record "File Account Content" temporary; Path: Text; DoNotLoadFields: Boolean; CurrentPath: Text; FileNameFilter: Text)
     var
-        FileAccountContentToAdd: Record "File Account Content" temporary;
+        TempFileAccountContentToAdd: Record "File Account Content" temporary;
         FilePaginationData: Codeunit "File Pagination Data";
     begin
         if DoNotLoadFields then
@@ -86,7 +88,7 @@ codeunit 9458 "File Account Browser Mgt."
             FileSystem.ListFiles(Path, FilePaginationData, FileAccountContent);
         until FilePaginationData.IsEndOfListing();
 
-        AddFiles(FileAccountContent, FileAccountContentToAdd, CurrentPath, FileNameFilter);
+        AddFiles(FileAccountContent, TempFileAccountContentToAdd, CurrentPath, FileNameFilter);
     end;
 
     local procedure AddFiles(var FileAccountContent: Record "File Account Content" temporary; var FileAccountContentToAdd: Record "File Account Content" temporary; CurrentPath: Text; FileNameFilter: Text)
@@ -104,7 +106,7 @@ codeunit 9458 "File Account Browser Mgt."
         FileAccountContent.Init();
         FileAccountContent.Name := '..';
         FileAccountContent.Type := FileAccountContent.Type::Directory;
-        FileAccountContent."Parent Directory" := FileSystem.GetParentPath(CurrentPath);
+        FileAccountContent."Parent Directory" := CopyStr(FileSystem.GetParentPath(CurrentPath), 1, MaxStrLen(FileAccountContent."Parent Directory"));
         FileAccountContent.Insert();
     end;
 

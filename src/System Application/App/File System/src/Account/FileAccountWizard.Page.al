@@ -398,7 +398,6 @@ page 9451 "File Account Wizard"
     local procedure ShowRegisterAccountStep()
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        DefaultFileRateLimit: Integer;
         AccountWasRegistered: Boolean;
         ConnectorSucceeded: Boolean;
     begin
@@ -442,7 +441,6 @@ page 9451 "File Account Wizard"
         NextActionVisible := false;
         CancelActionVisible := false;
         FinishActionVisible := true;
-        TestFileActionVisible := true;
     end;
 
     local procedure SetDefaultControls()
@@ -454,7 +452,6 @@ page 9451 "File Account Wizard"
         NextActionEnabled := true;
         CancelActionVisible := true;
         FinishActionVisible := false;
-        TestFileActionVisible := false;
 
         // Groups
         WelcomeVisible := false;
@@ -479,7 +476,6 @@ page 9451 "File Account Wizard"
         [RunOnClient]
         AppSource: DotNet AppSource;
         Step: Option Welcome,"Choose Connector","Register Account",Done;
-        RateLimit: Integer;
         AppSourceTok: Label 'AppSource';
         ExtensionManagementTok: Label 'Extension Management';
         FileCategoryLbl: Label 'File', Locked = true;
@@ -497,7 +493,6 @@ page 9451 "File Account Wizard"
         NextActionEnabled: Boolean;
         CancelActionVisible: Boolean;
         FinishActionVisible: Boolean;
-        TestFileActionVisible: Boolean;
         WelcomeVisible: Boolean;
         ChooseConnectorVisible: Boolean;
         DoneVisible: Boolean;

@@ -17,6 +17,7 @@ page 9455 "File Account Browser"
     Extensible = false;
     InherentPermissions = X;
     InherentEntitlements = X;
+    UsageCategory = None;
 
     layout
     {
@@ -62,6 +63,7 @@ page 9455 "File Account Browser"
                 field(SaveFileNameField; SaveFileName)
                 {
                     Caption = 'Filename';
+                    ToolTip = 'Specifies the Name of the File.';
                 }
             }
         }
@@ -84,6 +86,7 @@ page 9455 "File Account Browser"
                 Ellipsis = true;
                 Visible = not IsInLookupMode;
                 Enabled = not IsInLookupMode;
+                ToolTip = 'Uploads a file to the current directory.';
 
                 trigger OnAction()
                 begin
@@ -98,6 +101,7 @@ page 9455 "File Account Browser"
                 Ellipsis = true;
                 Visible = not IsInLookupMode;
                 Enabled = not IsInLookupMode;
+                ToolTip = 'Creates a new directory in the current directory.';
 
                 trigger OnAction()
                 begin
@@ -112,6 +116,7 @@ page 9455 "File Account Browser"
                 Ellipsis = true;
                 Visible = not IsInLookupMode;
                 Enabled = not IsInLookupMode;
+                ToolTip = 'Deletes the selected file or directory.';
 
                 trigger OnAction()
                 begin

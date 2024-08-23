@@ -12,8 +12,8 @@ codeunit 9455 "File System Impl."
     InherentEntitlements = X;
 
     var
-        FileSystemConnector: Interface "File System Connector";
         CurrFileAccount: Record "File Account";
+        FileSystemConnector: Interface "File System Connector";
         IsInitialized: Boolean;
 
     procedure Initialize(Scenario: Enum "File Scenario")
@@ -182,7 +182,6 @@ codeunit 9455 "File System Impl."
 
     procedure SaveFileUI(Path: Text; FileExtension: Text; DialogTitle: Text): Text
     var
-        FileAccountContent: Record "File Account Content";
         FileAccountBrowser: Page "File Account Browser";
         FileName, FileNameWithExtenion : Text;
         PleaseProvideFileExtensionErr: Label 'Please provide a valid file extension.';
