@@ -50,10 +50,6 @@ page 149038 "AIT Log Entry API"
                 {
                     Caption = 'Version';
                 }
-                field(modelVersion; Rec."Model Version")
-                {
-                    Caption = 'AOAI Model Version';
-                }
                 field("startTime"; Rec."Start Time")
                 {
                     Caption = 'Start Time';

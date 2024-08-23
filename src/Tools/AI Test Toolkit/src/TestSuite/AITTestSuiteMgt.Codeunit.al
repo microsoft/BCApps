@@ -301,7 +301,6 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry.Operation := CopyStr(ModifiedOperation, 1, MaxStrLen(AITLogEntry.Operation));
         AITLogEntry."Original Operation" := CopyStr(Operation, 1, MaxStrLen(AITLogEntry."Original Operation"));
         AITLogEntry.Tag := AITTestRunIteration.GetAITTestSuiteTag();
-        AITLogEntry."Model Version" := GlobalAITTestSuite."Model Version";
         AITLogEntry."Entry No." := 0;
 
         if ModifiedExecutionSuccess then

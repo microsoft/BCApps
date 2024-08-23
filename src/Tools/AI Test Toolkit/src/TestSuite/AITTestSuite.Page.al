@@ -39,9 +39,6 @@ page 149031 "AIT Test Suite"
                     ShowMandatory = true;
                     NotBlank = true;
                 }
-                field("Model Version"; Rec."Model Version")
-                {
-                }
                 field("Test Runner Id"; TestRunnerDisplayName)
                 {
                     Caption = 'Test Runner';
