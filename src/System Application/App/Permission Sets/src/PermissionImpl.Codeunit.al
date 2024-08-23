@@ -153,7 +153,7 @@ codeunit 9864 "Permission Impl."
                             if TenantPermission."Execute Permission" <> PermissionOption then begin
                                 TenantPermission."Execute Permission" := PermissionOption;
                                 ModifyPermissionLine := true;
-                                Session.LogAuditMessage(StrSubstNo(MultiplePermissionsUpdatedLbl, RIMDX, TenantPermission."App ID", CopyStr(TenantPermission."Role ID", 1, MaxStrLen(TenantPermission."Role ID")), TenantPermission."Object Type", TenantPermission."Object ID",
+                                Session.LogAuditMessage(StrSubstNo(PermissionUpdatedLbl, RIMDX, TenantPermission."App ID", CopyStr(TenantPermission."Role ID", 1, MaxStrLen(TenantPermission."Role ID")), TenantPermission."Object Type", TenantPermission."Object ID",
                                     TenantPermission."Execute Permission", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
                             end;
                 end;
