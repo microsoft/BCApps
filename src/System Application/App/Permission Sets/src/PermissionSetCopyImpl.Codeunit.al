@@ -20,6 +20,7 @@ codeunit 9863 "Permission Set Copy Impl."
         ComposablePermissionSetsTok: Label 'Composable Permission Sets', Locked = true;
         PermissionsUpdatedLbl: Label 'The tenant permissions for the App Id %1, Role %2, ObjectType %3, ObjectId %4  have been updated with the following values - Read "%5", Insert "%6", Modify "%7", Delete "%8" and Execute "%9"  by the UserSecurityId %10.', Locked = true;
         PermissionsInsertedLbl: Label 'The tenant permissions for the App Id %1, Role %2, ObjectType %3, ObjectId %4  have been inserted with the following values - Read "%5", Insert "%6", Modify "%7", Delete "%8" and Execute "%9"  by the UserSecurityId %10.', Locked = true;
+        ReadAccessAddedToRelatedTablesLbl: Label 'The Read Permission for the App Id %1, Role %2, ObjectType %3, ObjectId %4  have been granted by the UserSecurityId %5.', Locked = true;
 
     procedure CopyPermissionSet(NewRoleId: Code[30]; NewName: Text; SourceRoleId: Code[30]; SourceAppId: Guid; SourceScope: Option System,Tenant; CopyType: Enum "Permission Set Copy Type")
     begin
@@ -289,7 +290,8 @@ codeunit 9863 "Permission Set Copy Impl."
                 AddToTenantPermission(
                   AppID, RoleID, TempTenantPermission."Object Type"::"Table Data", TableRelationsMetadata."Related Table ID", TempTenantPermission."Read Permission"::Yes,
                   TempTenantPermission."Insert Permission"::" ", TempTenantPermission."Modify Permission"::" ", TempTenantPermission."Delete Permission"::" ", TempTenantPermission."Execute Permission"::" ");
-                Session.LogAuditMessage(StrSubstNo(ReadAccessAddedToRelatedTablesLbl, AppID, RoleID, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+                Session.LogAuditMessage(StrSubstNo(ReadAccessAddedToRelatedTablesLbl, AppID, RoleID, TempTenantPermission."Object Type"::"Table Data", TempTenantPermission."Object ID", UserSecurityId()),
+                    SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
             until TableRelationsMetadata.Next() = 0;
     end;
 
