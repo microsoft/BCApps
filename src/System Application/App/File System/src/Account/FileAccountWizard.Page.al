@@ -400,15 +400,17 @@ page 9451 "File Account Wizard"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         AccountWasRegistered: Boolean;
         ConnectorSucceeded: Boolean;
+        CTHTok: Label '%1 account has been setup.', Locked = true;
+        CTITok: Label '%1 account has failed to setup. Error: %2', Locked = true;
     begin
         ConnectorSucceeded := TryRegisterAccount(AccountWasRegistered);
 
         if AccountWasRegistered then begin
             FeatureTelemetry.LogUptake('0000CTF', 'File Access', Enum::"Feature Uptake Status"::"Set up");
-            Session.LogMessage('0000CTH', Format(Rec.Connector) + ' account has been setup.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
+            Session.LogMessage('0000CTH', StrSubstNo(CTHTok, Rec.Connector), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
             NextStep(false);
         end else begin
-            Session.LogMessage('0000CTI', StrSubstNo(Format(Rec.Connector) + ' account has failed to setup. Error: %1', GetLastErrorCallStack()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
+            Session.LogMessage('0000CTI', StrSubstNo(CTITok, Rec.Connector, GetLastErrorCallStack()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
             NextStep(true);
         end;
 
