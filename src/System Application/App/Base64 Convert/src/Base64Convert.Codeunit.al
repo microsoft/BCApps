@@ -29,6 +29,16 @@ codeunit 4110 "Base64 Convert"
     end;
 
     /// <summary>
+    /// Converts the value of the input secret string to its equivalent secret string representation that is encoded with base-64 digits.
+    /// </summary>
+    /// <param name="SecretString">The secret string to convert.</param>
+    /// <returns>The secret string representation, in base-64, of the input secret string.</returns>
+    procedure ToBase64(SecretString: SecretText): SecretText
+    begin
+        exit(Base64ConvertImpl.ToBase64(SecretString));
+    end;
+
+    /// <summary>
     /// Converts the value of the input string to its equivalent string representation that is encoded with base-64 digits.
     /// </summary>
     /// <param name="String">The string to convert.</param>
@@ -109,6 +119,19 @@ codeunit 4110 "Base64 Convert"
     procedure FromBase64(Base64String: Text): Text
     begin
         exit(Base64ConvertImpl.FromBase64(Base64String));
+    end;
+
+    /// <summary>
+    /// Converts the specified secret string, which encodes binary data as base-64 digits, to an equivalent regular secret string.
+    /// </summary>
+    /// <param name="Base64SecretString">The secret string to convert.</param>
+    /// <returns>Regular secret string that is equivalent to the input base-64 secret string.</returns>
+    /// <error>The length of Base64SecretString, ignoring white-space characters, is not zero or a multiple of 4.</error>
+    /// <error>The format of Base64SecretString is invalid. Base64String contains a non-base-64 character, more than two padding characters,
+    /// or a non-white space-character among the padding characters.</error>
+    procedure FromBase64(Base64SecretString: SecretText): SecretText
+    begin
+        exit(Base64ConvertImpl.FromBase64(Base64SecretString));
     end;
 
     /// <summary>

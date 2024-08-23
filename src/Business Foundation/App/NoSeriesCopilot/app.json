@@ -1,6 +1,6 @@
 {
     "id":  "7efce506-def2-4195-9d1e-bc538e729242",
-    "name":  "No. Series Copilot",
+    "name":  "No. Series Suggestions",
     "publisher":  "Microsoft",
     "brief":  "",
     "description":  "",
@@ -25,6 +25,11 @@
                         }
                      ],
     "internalsVisibleTo":  [
+                        {
+                            "id": "ecb647bf-6fae-45b9-b136-28aa313f5e97",
+                            "name": "No. Series Suggestions Test Library",
+                            "publisher":  "Microsoft"
+                        }
                            ],
     "screenshots":  [
 

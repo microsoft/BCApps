@@ -22,7 +22,29 @@ codeunit 2717 "Page Summary Provider Impl."
                   tabledata "Tenant Media Set" = r,
                   tabledata "Tenant Media Thumbnails" = r;
 
-    procedure GetPageSummary(PageId: Integer; Bookmark: Text): Text
+    procedure GetPageSummary(Parameters: Text): Text
+    var
+        PageSummaryParameters: Record "Page Summary Parameters";
+    begin
+        PageSummaryParameters.FromJson(Parameters);
+        exit(GetPageSummary(PageSummaryParameters));
+    end;
+
+    procedure GetPageSummary(PageSummaryParameters: Record "Page Summary Parameters"): Text
+    begin
+        if PageSummaryParameters."Page ID" = 0 then
+            ThrowPageMustBeSpecifiedError();
+
+        if PageSummaryParameters.Bookmark <> '' then
+            exit(GetPageSummary(PageSummaryParameters."Page ID", PageSummaryParameters.Bookmark, PageSummaryParameters."Include Binary Data"));
+
+        if not IsNullGuid(PageSummaryParameters."Record SystemID") then
+            exit(GetPageSummary(PageSummaryParameters."Page ID", PageSummaryParameters."Record SystemID", PageSummaryParameters."Include Binary Data"));
+
+        exit(GetPageSummary(PageSummaryParameters."Page ID", '', PageSummaryParameters."Include Binary Data"));
+    end;
+
+    procedure GetPageSummary(PageId: Integer; Bookmark: Text; IncludeBinaryData: Boolean): Text
     var
         RecId: RecordId;
         ResultJsonObject: JsonObject;
@@ -44,12 +66,12 @@ codeunit 2717 "Page Summary Provider Impl."
         end;
 
         // Add summary fields and record fields
-        AddFields(PageId, RecId, Bookmark, ResultJsonObject);
+        AddFields(PageId, RecId, Bookmark, ResultJsonObject, IncludeBinaryData);
 
         exit(Format(ResultJsonObject));
     end;
 
-    procedure GetPageSummary(PageId: Integer; SystemId: Guid): Text
+    procedure GetPageSummary(PageId: Integer; SystemId: Guid; IncludeBinaryData: Boolean): Text
     var
         PageMetadata: Record "Page Metadata";
         RecId: RecordId;
@@ -83,7 +105,7 @@ codeunit 2717 "Page Summary Provider Impl."
             exit(Format(ResultJsonObject));
 
         // Add summary fields and record fields
-        AddFields(PageId, RecId, Bookmark, ResultJsonObject);
+        AddFields(PageId, RecId, Bookmark, ResultJsonObject, IncludeBinaryData);
 
         exit(Format(ResultJsonObject));
     end;
@@ -113,11 +135,42 @@ codeunit 2717 "Page Summary Provider Impl."
         exit(Format(ResultJsonObject));
     end;
 
-    local procedure AddFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject)
+
+    procedure GetVersion(): Text[30]
+    begin
+        exit('1.1');
+    end;
+
+    procedure InitializePageSummarySettingsFromJson(JsonText: Text; var PageSummaryParameters: Record "Page Summary Parameters")
+    var
+        PageSummaryJsonObject: JsonObject;
+        ParsedJsonToken: JsonToken;
+    begin
+        Clear(PageSummarySettings);
+
+        PageSummaryJsonObject.ReadFrom(JsonText);
+        if not PageSummaryJsonObject.Get(PageIDTok, ParsedJsonToken) then
+            ThrowPageMustBeSpecifiedError();
+
+        PageSummaryParameters."Page ID" := ParsedJsonToken.AsValue().AsInteger();
+
+        if PageSummaryJsonObject.Get(BookmarkTok, ParsedJsonToken) then
+#pragma warning disable AA0139
+            PageSummaryParameters.Bookmark := ParsedJsonToken.AsValue().AsText()
+#pragma warning restore AA0139
+        else
+            if PageSummaryJsonObject.Get(RecordSystemIdTok, ParsedJsonToken) then
+                PageSummaryParameters."Record SystemID" := ParsedJsonToken.AsValue().AsText();
+
+        if PageSummaryJsonObject.Get(IncludeBinaryDataTok, ParsedJsonToken) then
+            PageSummaryParameters."Include Binary Data" := ParsedJsonToken.AsValue().AsBoolean();
+    end;
+
+    local procedure AddFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject; IncludeBinaryData: Boolean)
     begin
         // Add Summary fields
         // Fields summary is a "summary" of the fields (i.e. it could be the brick definition, or some custom AL could provide its own summary).
-        GetFieldsSummary(PageId, RecId, Bookmark, ResultJsonObject);
+        GetFieldsSummary(PageId, RecId, Bookmark, ResultJsonObject, IncludeBinaryData);
 
         // Add Record fields
         // Record fields are the backing record fields that are visible on the page.
@@ -125,7 +178,7 @@ codeunit 2717 "Page Summary Provider Impl."
             GetRecordFields(PageId, Bookmark, ResultJsonObject);
     end;
 
-    local procedure GetFieldsSummary(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject)
+    local procedure GetFieldsSummary(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject; IncludeBinaryData: Boolean)
     var
         PageSummaryProvider: Codeunit "Page Summary Provider";
         FieldsJsonArray: JsonArray;
@@ -140,7 +193,7 @@ codeunit 2717 "Page Summary Provider Impl."
         end;
 
         // Get summary fields
-        if not TryGetPageSummaryFields(PageId, RecId, Bookmark, ResultJsonObject) then
+        if not TryGetPageSummaryFields(PageId, RecId, Bookmark, ResultJsonObject, IncludeBinaryData) then
             AddErrorMessage(ResultJsonObject, FailedGetSummaryFieldsCodeTok, GetLastErrorText());
     end;
 
@@ -216,7 +269,7 @@ codeunit 2717 "Page Summary Provider Impl."
     end;
 
     [TryFunction]
-    local procedure TryGetPageSummaryFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject)
+    local procedure TryGetPageSummaryFields(PageId: Integer; RecId: RecordId; Bookmark: Text; var ResultJsonObject: JsonObject; IncludeBinaryData: Boolean)
     var
         PageSummaryProvider: Codeunit "Page Summary Provider";
         NavPageSummaryALFunctions: DotNet NavPageSummaryALFunctions;
@@ -234,6 +287,10 @@ codeunit 2717 "Page Summary Provider Impl."
 
         foreach PageSummaryField in GenericList do
             PageSummaryFieldList.Add(PageSummaryField);
+
+        if not IncludeBinaryData then
+            RemoveMediaAndBlobFields(RecId, PageSummaryFieldList);
+
         CorrectFieldOrderingOfBrick(PageSummaryFieldList);
 
         // Allow partners to override fields to be shown + order
@@ -241,6 +298,7 @@ codeunit 2717 "Page Summary Provider Impl."
         GenericList.Clear();
         foreach PageSummaryField in PageSummaryFieldList do
             GenericList.Add(PageSummaryField);
+
 
         if (GenericList.Count() > 0) then begin
             NavPageSummaryALResponse := NavPageSummaryALFunctions.GetSummary(PageId, Bookmark, GenericList);
@@ -257,6 +315,28 @@ codeunit 2717 "Page Summary Provider Impl."
         // Allow partner to finally override field names and values
         PageSummaryProvider.OnAfterGetPageSummary(PageId, RecId, FieldsJsonArray);
         AddFieldsJsonArrayToResult(FieldsJsonArray, ResultJsonObject);
+    end;
+
+    local procedure RemoveMediaAndBlobFields(RecId: RecordId; var PageSummaryFieldList: List of [Integer])
+    var
+        RecordField: Record Field;
+        Index: Integer;
+        PageSummaryField: Integer;
+    begin
+        if PageSummaryFieldList.Count() = 0 then
+            exit;
+
+        Index := 1;
+
+        repeat
+            PageSummaryField := PageSummaryFieldList.Get(Index);
+            RecordField.Get(RecId.TableNo, PageSummaryField);
+
+            if (RecordField.Type in [RecordField.Type::Media, RecordField.Type::MediaSet, RecordField.Type::Blob]) then
+                PageSummaryFieldList.RemoveAt(Index)
+            else
+                Index += 1;
+        until Index > PageSummaryFieldList.Count();
     end;
 
     local procedure GetSummaryName(SummaryType: Enum "Summary Type"): Text;
@@ -361,9 +441,14 @@ codeunit 2717 "Page Summary Provider Impl."
         ExtractPictureFromMedia(TenantMediaSet."Media ID".MediaId, FieldValue, MimeType, FieldType);
     end;
 
-    procedure GetVersion(): Text[30]
+    local procedure ThrowPageMustBeSpecifiedError()
+    var
+        ProgrammingErrorInfo: ErrorInfo;
     begin
-        exit('1.1');
+        ProgrammingErrorInfo.Verbosity := Verbosity::Error;
+        ProgrammingErrorInfo.ErrorType := ProgrammingErrorInfo.ErrorType::Internal;
+        ProgrammingErrorInfo.Message := PageIDMustBeSpecifiedErr;
+        Error(ProgrammingErrorInfo);
     end;
 
     var
@@ -382,4 +467,9 @@ codeunit 2717 "Page Summary Provider Impl."
         GetPageUrlSuccessTelemetryTxt: Label 'Successfully added url for page %1.', Locked = true;
         NoRecordFieldsFoundTelemetryTxt: Label 'No record fields found for page %1.', Locked = true;
         GetRecordFieldsFailureTelemetryTxt: Label 'Failure to get record fields for page %1.', Locked = true;
+        PageIDMustBeSpecifiedErr: Label 'Page ID must be specified.', Locked = true;
+        PageIDTok: Label 'pageId', Locked = true;
+        RecordSystemIdTok: Label 'recordSystemId', Locked = true;
+        BookmarkTok: Label 'bookmark', Locked = true;
+        IncludeBinaryDataTok: Label 'includeBinaryData', Locked = true;
 }
