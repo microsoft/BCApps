@@ -156,7 +156,7 @@ codeunit 9454 "File System"
     /// <returns>Correctly combined path.</returns>
     procedure CombinePath(Path: Text; ChildPath: Text): Text
     begin
-        Exit(FileSystemImpl.CombinePath(Path, ChildPath));
+        exit(FileSystemImpl.CombinePath(Path, ChildPath));
     end;
 
     /// <summary>

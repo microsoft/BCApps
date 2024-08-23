@@ -131,7 +131,7 @@ page 9451 "File Account Wizard"
                         Caption = ' ';
                         Editable = false;
                         Visible = ChooseConnectorVisible;
-                        ToolTip = 'Select the type of account you want to create.';
+                        ToolTip = 'Specifies the type of the account you want to create.';
                         ShowCaption = false;
                         Width = 1;
                     }
@@ -243,7 +243,7 @@ page 9451 "File Account Wizard"
                         Editable = true;
                         Enabled = true;
                         Caption = 'Set as default';
-                        ToolTip = 'Use this account for all scenarios for which an account is not specified. Scenarios are processes that involve sending documents or notifications by file.';
+                        ToolTip = 'Specifies the the account for all scenarios.';
                     }
                 }
             }
