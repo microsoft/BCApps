@@ -23,8 +23,8 @@ codeunit 9864 "Permission Impl."
         IncludeDescriptionOption: Option "Specifies no permission","Specifies direct permission","Specifies indirect permission";
         ExcludeOption: Option " ",Exclude,"Reduce to indirect";
         ExcludeDescriptionOption: Option "No change to permission","Excludes any permission","Excludes any direct permission";
-        PermissionUpdatedLbl: Label 'The tenant %1 permission for the App Id %2, Role %3, ObjectType %4, ObjectId %5  has been updated with the value: "%6", by the UserSecurityId %7.', Locked = true;
-        MultiplePermissionsUpdatedLbl: Label 'The tenant permissions for the App Id %1, Role %2, ObjectType %3, ObjectId %4  have been updated with the following values - Read "%5", Insert "%6", Modify "%7" and Delete "%8" by the UserSecurityId %9.', Locked = true;
+        PermissionUpdatedLbl: Label 'The tenant %1 permission for the App Id %2, Role %3, ObjectType %4, ObjectId %5 has been updated with the value: %6, by the UserSecurityId %7.', Locked = true;
+        MultiplePermissionsUpdatedLbl: Label 'The tenant permissions for the App Id %1, Role %2, ObjectType %3, ObjectId %4 have been updated with the following values - Read %5, Insert %6, Modify %7 and Delete %8 by the UserSecurityId %9.', Locked = true;
 
     procedure SelectPermissions(CurrAppId: Guid; CurrRoleID: Code[20]): Boolean
     var
@@ -108,7 +108,7 @@ codeunit 9864 "Permission Impl."
                                 TenantPermission."Insert Permission" := PermissionOption;
                                 ModifyPermissionLine := true;
                                 Session.LogAuditMessage(StrSubstNo(PermissionUpdatedLbl, RIMDX, TenantPermission."App ID", CopyStr(TenantPermission."Role ID", 1, MaxStrLen(TenantPermission."Role ID")), TenantPermission."Object Type", TenantPermission."Object ID",
-                                    TenantPermission."Insert Permission", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+                                    GetPermissionAsTxt(TenantPermission.Type, TenantPermission."Insert Permission"), UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
                             end;
                     'M':
                         if TenantPermission."Object Type" = TenantPermission."Object Type"::"Table Data" then
@@ -116,7 +116,7 @@ codeunit 9864 "Permission Impl."
                                 TenantPermission."Modify Permission" := PermissionOption;
                                 ModifyPermissionLine := true;
                                 Session.LogAuditMessage(StrSubstNo(PermissionUpdatedLbl, RIMDX, TenantPermission."App ID", CopyStr(TenantPermission."Role ID", 1, MaxStrLen(TenantPermission."Role ID")), TenantPermission."Object Type", TenantPermission."Object ID",
-                                    TenantPermission."Modify Permission", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+                                    GetPermissionAsTxt(TenantPermission.Type, TenantPermission."Modify Permission"), UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
                             end;
                     'D':
                         if TenantPermission."Object Type" = TenantPermission."Object Type"::"Table Data" then
@@ -124,7 +124,7 @@ codeunit 9864 "Permission Impl."
                                 TenantPermission."Delete Permission" := PermissionOption;
                                 ModifyPermissionLine := true;
                                 Session.LogAuditMessage(StrSubstNo(PermissionUpdatedLbl, RIMDX, TenantPermission."App ID", CopyStr(TenantPermission."Role ID", 1, MaxStrLen(TenantPermission."Role ID")), TenantPermission."Object Type", TenantPermission."Object ID",
-                                    TenantPermission."Delete Permission", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+                                    GetPermissionAsTxt(TenantPermission.Type, TenantPermission."Delete Permission"), UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
                             end;
                     'X':
                         if TenantPermission."Object Type" <> TenantPermission."Object Type"::"Table Data" then
@@ -132,7 +132,7 @@ codeunit 9864 "Permission Impl."
                                 TenantPermission."Execute Permission" := PermissionOption;
                                 ModifyPermissionLine := true;
                                 Session.LogAuditMessage(StrSubstNo(PermissionUpdatedLbl, RIMDX, TenantPermission."App ID", CopyStr(TenantPermission."Role ID", 1, MaxStrLen(TenantPermission."Role ID")), TenantPermission."Object Type", TenantPermission."Object ID",
-                                    TenantPermission."Execute Permission", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+                                    GetPermissionAsTxt(TenantPermission.Type, TenantPermission."Execute Permission"), UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
                             end;
                     '*':
                         if TenantPermission."Object Type" = TenantPermission."Object Type"::"Table Data" then begin
@@ -147,14 +147,18 @@ codeunit 9864 "Permission Impl."
                                 TenantPermission."Delete Permission" := PermissionOption;
                                 ModifyPermissionLine := true;
                                 Session.LogAuditMessage(StrSubstNo(MultiplePermissionsUpdatedLbl, TenantPermission."App ID", CopyStr(TenantPermission."Role ID", 1, MaxStrLen(TenantPermission."Role ID")), TenantPermission."Object Type", TenantPermission."Object ID",
-                                    TenantPermission."Read Permission", TenantPermission."Insert Permission", TenantPermission."Modify Permission", TenantPermission."Delete Permission", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+                                    GetPermissionAsTxt(TenantPermission.Type, TenantPermission."Read Permission"),
+                                    GetPermissionAsTxt(TenantPermission.Type, TenantPermission."Insert Permission"),
+                                    GetPermissionAsTxt(TenantPermission.Type, TenantPermission."Modify Permission"),
+                                    GetPermissionAsTxt(TenantPermission.Type, TenantPermission."Delete Permission"),
+                                    UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
                             end;
                         end else
                             if TenantPermission."Execute Permission" <> PermissionOption then begin
                                 TenantPermission."Execute Permission" := PermissionOption;
                                 ModifyPermissionLine := true;
                                 Session.LogAuditMessage(StrSubstNo(MultiplePermissionsUpdatedLbl, RIMDX, TenantPermission."App ID", CopyStr(TenantPermission."Role ID", 1, MaxStrLen(TenantPermission."Role ID")), TenantPermission."Object Type", TenantPermission."Object ID",
-                                    TenantPermission."Execute Permission", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+                                    GetPermissionAsTxt(TenantPermission.Type, TenantPermission."Execute Permission"), UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
                             end;
                 end;
                 if ModifyPermissionLine then
