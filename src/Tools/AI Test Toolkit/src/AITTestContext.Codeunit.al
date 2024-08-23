@@ -85,15 +85,6 @@ codeunit 149044 "AIT Test Context"
     end;
 
     /// <summary>
-    /// Get the AOAI Model Version for the AI Test Suite.
-    /// </summary>
-    /// <returns>The AOAI Model Version as an Option.</returns>
-    procedure GetAOAIModelVersion(): Option
-    begin
-        exit(AITTestContextImpl.GetAOAIModelVersion());
-    end;
-
-    /// <summary>
     /// Sets the answer for a question and answer evaluation.
     /// This will also copy the context, question and ground truth to the output dataset.
     /// </summary>

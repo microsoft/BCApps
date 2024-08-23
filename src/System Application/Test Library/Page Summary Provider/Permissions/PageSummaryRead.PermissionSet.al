@@ -15,5 +15,6 @@ permissionset 132548 "Page Summary Read"
 
     // Include Test Tables
     Permissions = tabledata "Page Provider Summary Test" = RIMD,
-                  tabledata "Page Provider Summary Test2" = RIMD;
+                  tabledata "Page Provider Summary Test2" = RIMD,
+                  tabledata "Page Provider Summary Test3" = RIMD;
 }

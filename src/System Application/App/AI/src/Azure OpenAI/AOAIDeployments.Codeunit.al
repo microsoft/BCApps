@@ -55,12 +55,12 @@ codeunit 7768 "AOAI Deployments"
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         exit(AOAIDeploymentsImpl.GetTurbo0613(CallerModuleInfo));
     end;
-#endif
 
     /// <summary>
     /// Returns the name of the latest AOAI deployment model of GPT3.5 Turbo.
     /// </summary>
     /// <returns>The deployment name.</returns>
+    [Obsolete('GPT35 Turbo is no longer supported. Use GetGPT4oMiniLatest instead (or GetGPT4oMiniPreview for testing upcoming versions).', '25.0')]
     procedure GetGPT35TurboLatest(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -73,6 +73,7 @@ codeunit 7768 "AOAI Deployments"
     /// Returns the name of preview AOAI deployment model of GPT3.5 Turbo.
     /// </summary>
     /// <returns>The deployment name.</returns>
+    [Obsolete('GPT35 Turbo is no longer supported. Use GetGPT4oMiniLatest instead (or GetGPT4oMiniPreview for testing upcoming versions).', '25.0')]
     procedure GetGPT35TurboPreview(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -85,6 +86,7 @@ codeunit 7768 "AOAI Deployments"
     /// Returns the name of the latest AOAI deployment model of GPT4.
     /// </summary>
     /// <returns>The deployment name.</returns>
+    [Obsolete('Generic GPT4 deployment name is no longer supported. Use GetGPT4oLatest instead (or GetGPT4oPreview for testing upcoming versions).', '25.0')]
     procedure GetGPT4Latest(): Text
     var
         CallerModuleInfo: ModuleInfo;
@@ -97,11 +99,61 @@ codeunit 7768 "AOAI Deployments"
     /// Returns the name of preview AOAI deployment model of GPT4.
     /// </summary>
     /// <returns>The deployment name.</returns>
+    [Obsolete('Generic GPT4 deployment name is no longer supported. Use GetGPT4oLatest instead (or GetGPT4oPreview for testing upcoming versions).', '25.0')]
     procedure GetGPT4Preview(): Text
     var
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         exit(AOAIDeploymentsImpl.GetGPT4Preview(CallerModuleInfo));
+    end;
+#endif
+
+    /// <summary>
+    /// Returns the name of the latest AOAI deployment model of GPT4o.
+    /// </summary>
+    /// <returns>The deployment name.</returns>
+    procedure GetGPT4oLatest(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT4oLatest(CallerModuleInfo));
+    end;
+
+    /// <summary>
+    /// Returns the name of preview AOAI deployment model of GPT4o.
+    /// </summary>
+    /// <returns>The deployment name.</returns>
+    procedure GetGPT4oPreview(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT4oPreview(CallerModuleInfo));
+    end;
+
+    /// <summary>
+    /// Returns the name of the latest AOAI deployment model of GPT4o-Mini.
+    /// </summary>
+    /// <returns>The deployment name.</returns>
+    procedure GetGPT4oMiniLatest(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT4oMiniLatest(CallerModuleInfo));
+    end;
+
+    /// <summary>
+    /// Returns the name of preview AOAI deployment model of GPT4o-Mini.
+    /// </summary>
+    /// <returns>The deployment name.</returns>
+    procedure GetGPT4oMiniPreview(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(AOAIDeploymentsImpl.GetGPT4oMiniPreview(CallerModuleInfo));
     end;
 }
