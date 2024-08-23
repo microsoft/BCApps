@@ -146,7 +146,7 @@ page 4308 "Agent Task Message Card"
             exit;
 
         repeat
-            if not AgentTaskFile.Get(AgentTaskMessageAttachment."File ID") then
+            if not AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then
                 exit;
             FileName := AgentTaskFile."File Name";
             AgentTaskFile.CalcFields(Content);

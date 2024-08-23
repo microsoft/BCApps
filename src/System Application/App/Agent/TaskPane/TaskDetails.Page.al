@@ -30,7 +30,6 @@ page 4313 "TaskDetails"
                 }
             }
         }
-
     }
 
     actions
@@ -62,6 +61,9 @@ page 4313 "TaskDetails"
     var
         InStream: InStream;
     begin
+        // Clear old value
+        Clear(ClientContext);
+
         if Rec.CalcFields("Client Context") then
             if Rec."Client Context".HasValue() then begin
                 Rec."Client Context".CreateInStream(InStream);

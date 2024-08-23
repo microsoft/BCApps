@@ -46,7 +46,7 @@ page 4316 "Agent List"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Setup';
-                ToolTip = 'Set up agent';
+                ToolTip = 'Set up the agent';
                 Image = SetupLines;
 
                 trigger OnAction()

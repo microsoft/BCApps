@@ -5,7 +5,6 @@
 
 namespace System.Agents;
 
-using System.Security.User;
 using System.Environment.Configuration;
 
 page 4315 "Agent Card"
@@ -72,13 +71,6 @@ page 4315 "Agent Card"
                     Caption = 'State';
                     ToolTip = 'Specifies if the agent is enabled or disabled.';
                 }
-            }
-
-            part(Permissions; "User Subform")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Agent Permission Sets';
-                SubPageLink = "User Security ID" = field("User Security ID");
             }
             part(UserAccess; "Agent Access Control")
             {

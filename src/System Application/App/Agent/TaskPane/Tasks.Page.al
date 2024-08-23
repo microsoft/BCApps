@@ -27,9 +27,11 @@ page 4306 Tasks
                 Editable = false;
                 field(TaskId; Rec.ID)
                 {
+                    Caption = 'Task ID';
                 }
                 field(TaskIndicator; Rec.Status)
                 {
+                    Caption = 'Indicator';
                 }
                 field(TaskStatus; TaskStatus)
                 {
@@ -53,6 +55,7 @@ page 4306 Tasks
                 }
                 field(TaskLastStepCompletedOn; Rec."Last Step Timestamp")
                 {
+                    Caption = 'Last Step Completed On';
                 }
                 field(TaskStepType; TaskStepType)
                 {
@@ -112,7 +115,13 @@ page 4306 Tasks
         TaskTimelineEntry: Record "Agent Task Timeline Entry";
         InStream: InStream;
     begin
-        TaskTimelineEntry.SetLoadFields("Primary Page Summary", Status, Title, Type, "Last Step Number");
+        TaskTimelineEntry.SetLoadFields("Primary Page Summary", Status, Type, "Last Step Number");
+
+        // Clear old values
+        TaskStatus := '';
+        TaskStepType := TaskTimelineEntry.Type::Default;
+        Clear(TaskSummary);
+
         TaskTimelineEntry.SetRange("Task ID", Rec.ID);
         TaskTimelineEntry.SetFilter(Category, '%1|%2', TaskTimelineEntry.Category::Present, TaskTimelineEntry.Category::Past);
         if TaskTimelineEntry.FindLast() then begin

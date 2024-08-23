@@ -27,14 +27,18 @@ page 4307 "TaskTimeline"
             {
                 field(Header; Rec.Title)
                 {
+                    Caption = 'Header';
+                    ToolTip = 'Specifies the header of the timeline entry.';
                 }
                 field(Summary; PageSummary)
                 {
                     Caption = 'Summary';
                     ToolTip = 'Specifies the summary of the timeline entry.';
                 }
-                field(PrimaryPageQuery; Rec."Primary Page Query")
+                field(PrimaryPageQuery; PageQuery)
                 {
+                    Caption = 'Primary Page Query';
+                    ToolTip = 'Specifies the primary page query of the timeline entry.';
                 }
                 field(Description; Rec.Description)
                 {
@@ -53,12 +57,12 @@ page 4307 "TaskTimeline"
                 }
                 field(ConfirmedBy; ConfirmedBy)
                 {
-                    Caption = 'Confirmed by';
+                    Caption = 'Confirmed By';
                     ToolTip = 'Specifies the user who confirmed the timeline entry.';
                 }
                 field(ConfirmedAt; ConfirmedAt)
                 {
-                    Caption = 'Confirmed at';
+                    Caption = 'Confirmed At';
                     ToolTip = 'Specifies the date and time when the timeline entry was confirmed.';
                 }
             }
@@ -76,14 +80,23 @@ page 4307 "TaskTimeline"
         User: Record User;
         InStream: InStream;
     begin
+        // Clear old values
         ConfirmedBy := '';
         ConfirmedAt := 0DT;
+        Clear(PageSummary);
+        Clear(PageQuery);
 
-        if Rec.CalcFields("Primary Page Summary") then
+        if Rec.CalcFields("Primary Page Summary", "Primary Page Query") then begin
             if Rec."Primary Page Summary".HasValue then begin
-                Rec."Primary Page Summary".CreateInStream(InStream);
+                Rec."Primary Page Summary".CreateInStream(InStream, TextEncoding::UTF8);
                 PageSummary.Read(InStream);
+                Clear(InStream);
             end;
+            if Rec."Primary Page Query".HasValue() then begin
+                Rec."Primary Page Query".CreateInStream(InStream, TextEncoding::UTF8);
+                PageQuery.Read(InStream);
+            end;
+        end;
 
         case
             Rec."Last Step Type" of
@@ -113,6 +126,7 @@ page 4307 "TaskTimeline"
 
     var
         PageSummary: BigText;
+        PageQuery: BigText;
         ConfirmedBy: Text[250];
         ConfirmedAt: DateTime;
         ConfirmationStatusOption: Option " ",Confirmed,ConfirmationRequired,ConfirmationNotRequired;

@@ -84,6 +84,7 @@ codeunit 4300 "Agent Monitoring Impl."
             AgentTask."Created By" := UserSecurityId();
             AgentTask.Status := AgentTask.Status::Paused;
             AgentTask.Title := CurrentAgentTask.Title;
+            AgentTask."External ID" := CurrentAgentTask."External ID";
             AgentTask.Insert();
         end;
 
