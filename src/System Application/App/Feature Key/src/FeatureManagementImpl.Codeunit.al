@@ -107,10 +107,9 @@ codeunit 2610 "Feature Management Impl."
             end;
         // If the table extension is not in sync during upgrade then Get() always returns False,
         // so the following insert will fail if the record does exist.
-        if AllowInsert then begin
+        if AllowInsert then
             if FeatureDataUpdateStatus.Insert() then
                 Session.LogAuditMessage(StrSubstNo(FeatureKeyStatusChangedLbl, FeatureDataUpdateStatus."Feature Key", FeatureDataUpdateStatus."Feature Status", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
-        end;
     end;
 
     /// <summary>
