@@ -297,7 +297,7 @@ page 9515 "Azure AD User Update Wizard"
                     Rec.DeleteAll();
 
                     GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Azure AD User Update Wizard");
-                    Session.LogAuditMessage(StrSubstNo(UpdateUsersfromMicrosoft365RunLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+                    Session.LogAuditMessage(StrSubstNo(UpdateUsersfromMicrosoft365RunLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
 
                     MakeAllGroupsInvisible();
                     FinishedVisible := true;

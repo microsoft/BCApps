@@ -177,7 +177,7 @@ page 9855 "Permission Set"
                             exit;
 
                         AddLoggedPermissions(TempTablePermissionBuffer);
-                        Session.LogAuditMessage(StrSubstNo(PermissionSetModifiedLbl, Rec."Role ID", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+                        Session.LogAuditMessage(StrSubstNo(PermissionSetModifiedLbl, Rec."Role ID", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::RoleManagement, 2, 0);
                         CurrPage.MetadataPermissions.Page.Update(false);
                     end;
                 }
