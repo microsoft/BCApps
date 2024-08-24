@@ -10,7 +10,7 @@ permissionset 4300 "Agent - Objects"
     Access = Internal;
     Assignable = false;
 
-    Permissions = codeunit "Agent Monitoring Impl." = X,
+    Permissions = codeunit "Agent Task Impl." = X,
                   page "Agent Access Control" = X,
                   page "Agent Card" = X,
                   page "Agent List" = X,
@@ -18,6 +18,5 @@ permissionset 4300 "Agent - Objects"
                   page "Agent Task Message Card" = X,
                   page "Agent Task Message List" = X,
                   page "Agent Task Step List" = X,
-                  page "Agent New Task Message" = X,
                   codeunit "Agent Impl." = X;
 }

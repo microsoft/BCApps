@@ -120,10 +120,10 @@ page 4308 "Agent Task Message Card"
     local procedure UpdateControls()
     var
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
-        AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        GlobalMessageText := AgentMonitoringImpl.GetMessageText(Rec);
-        IsMessageEditable := AgentMonitoringImpl.IsMessageEditable(Rec);
+        GlobalMessageText := AgentTaskImpl.GetMessageText(Rec);
+        IsMessageEditable := AgentTaskImpl.IsMessageEditable(Rec);
 
         AgentTaskMessageAttachment.SetRange("Task ID", Rec."Task ID");
         AgentTaskMessageAttachment.SetRange("Message ID", Rec.ID);
@@ -135,7 +135,7 @@ page 4308 "Agent Task Message Card"
     var
         AgentTaskFile: Record "Agent Task File";
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
-        AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
         InStream: InStream;
         FileName: Text;
         DownloadDialogTitleLbl: Label 'Download Email Attachment';
@@ -150,7 +150,7 @@ page 4308 "Agent Task Message Card"
                 exit;
             FileName := AgentTaskFile."File Name";
             AgentTaskFile.CalcFields(Content);
-            AgentTaskFile.Content.CreateInStream(InStream, AgentMonitoringImpl.GetDefaultEncoding());
+            AgentTaskFile.Content.CreateInStream(InStream, AgentTaskImpl.GetDefaultEncoding());
             File.DownloadFromStream(InStream, DownloadDialogTitleLbl, '', '', FileName);
         until AgentTaskMessageAttachment.Next() = 0;
     end;

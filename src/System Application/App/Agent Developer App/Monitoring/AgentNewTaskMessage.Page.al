@@ -43,13 +43,13 @@ page 4302 "Agent New Task Message"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
-        AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
         if not (CloseAction in [Action::Ok, Action::LookupOK, Action::Yes]) then
             exit(true);
 
         AgentTask.Title := TitleText;
-        AgentMonitoringImpl.CreateTaskMessage(MessageText, AgentTask);
+        AgentMessageImpl.CreateTaskMessage(MessageText, AgentTask);
         exit(true);
     end;
 

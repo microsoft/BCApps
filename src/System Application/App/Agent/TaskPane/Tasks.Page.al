@@ -97,9 +97,9 @@ page 4306 Tasks
                 Scope = Repeater;
                 trigger OnAction()
                 var
-                    AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
+                    AgentTaskImpl: Codeunit "Agent Task Impl.";
                 begin
-                    AgentMonitoringImpl.StopTask(Rec, Rec."Status"::"Stopped by User", false);
+                    AgentTaskImpl.StopTask(Rec, Rec."Status"::"Stopped by User", false);
                 end;
             }
         }

@@ -56,23 +56,23 @@ page 4305 "Agent User Intervention"
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
-        AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
     begin
         if not (CloseAction in [Action::Ok, Action::LookupOK, Action::Yes]) then
             exit(true);
 
-        AgentMonitoringImpl.CreateUserInterventionTaskStep(UserInterventionRequestStep, UserInput);
+        AgentMessageImpl.CreateUserInterventionTaskStep(UserInterventionRequestStep, UserInput);
         exit(true);
     end;
 
     procedure SetUserInterventionRequestStep(var InterventionRequestStep: Record "Agent Task Step")
     var
-        AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
         DetailsJson: JsonObject;
         JsonToken: JsonToken;
     begin
         UserInterventionRequestStep := InterventionRequestStep;
-        DetailsJson.ReadFrom(AgentMonitoringImpl.GetDetailsForAgentTaskStep(UserInterventionRequestStep));
+        DetailsJson.ReadFrom(AgentMessageImpl.GetDetailsForAgentTaskStep(UserInterventionRequestStep));
         DetailsJson.Get('type', JsonToken);
         RequestType := JsonToken.AsValue().AsText();
         DetailsJson.Get('title', JsonToken);

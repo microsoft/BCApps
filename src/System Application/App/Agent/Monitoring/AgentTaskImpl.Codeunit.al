@@ -5,40 +5,13 @@
 
 namespace System.Agents;
 
-codeunit 4300 "Agent Monitoring Impl."
+using System.Environment;
+
+codeunit 4300 "Agent Task Impl."
 {
     Access = Internal;
 
-    internal procedure GetMessageText(var AgentTaskMessage: Record "Agent Task Message"): Text
-    var
-        ContentInStream: InStream;
-        ContentText: Text;
-    begin
-        AgentTaskMessage.CalcFields(Content);
-        AgentTaskMessage.Content.CreateInStream(ContentInStream, GetDefaultEncoding());
-        ContentInStream.Read(ContentText);
-        exit(ContentText);
-    end;
-
-    internal procedure IsMessageEditable(var AgentTaskMessage: Record "Agent Task Message"): Boolean
-    begin
-        if AgentTaskMessage.Type <> AgentTaskMessage.Type::Output then
-            exit(false);
-
-        exit(AgentTaskMessage.Status = AgentTaskMessage.Status::Draft);
-    end;
-
-    internal procedure SetMessageText(var AgentTaskMessage: Record "Agent Task Message"; MessageText: Text)
-    var
-        ContentOutStream: OutStream;
-    begin
-        Clear(AgentTaskMessage.Content);
-        AgentTaskMessage.Content.CreateOutStream(ContentOutStream, GetDefaultEncoding());
-        ContentOutStream.Write(MessageText);
-        AgentTaskMessage.Modify(true);
-    end;
-
-    internal procedure GetStepsDoneCount(var AgentTask: Record "Agent Task"): Integer
+    procedure GetStepsDoneCount(var AgentTask: Record "Agent Task"): Integer
     var
         AgentTaskStep: Record "Agent Task Step";
     begin
@@ -47,7 +20,7 @@ codeunit 4300 "Agent Monitoring Impl."
         exit(AgentTaskStep.Count());
     end;
 
-    internal procedure GetDetailsForAgentTaskStep(var AgentTaskStep: Record "Agent Task Step"): Text
+    procedure GetDetailsForAgentTaskStep(var AgentTaskStep: Record "Agent Task Step"): Text
     var
         ContentInStream: InStream;
         ContentText: Text;
@@ -58,7 +31,7 @@ codeunit 4300 "Agent Monitoring Impl."
         exit(ContentText);
     end;
 
-    internal procedure ShowTaskSteps(var AgentTask: Record "Agent Task")
+    procedure ShowTaskSteps(var AgentTask: Record "Agent Task")
     var
         AgentTaskStep: Record "Agent Task Step";
     begin
@@ -66,12 +39,17 @@ codeunit 4300 "Agent Monitoring Impl."
         Page.Run(Page::"Agent Task Step List", AgentTaskStep);
     end;
 
-    internal procedure CreateTaskMessage(MessageText: Text; var CurrentAgentTask: Record "Agent Task")
+    procedure StopTask(var AgentTask: Record "Agent Task"; AgentTaskStatus: enum "Agent Task Status"; UserConfirm: Boolean)
     begin
-        CreateTaskMessage(MessageText, '', CurrentAgentTask);
+        if UserConfirm then
+            if not Confirm(AreYouSureThatYouWantToStopTheTaskQst) then
+                exit;
+
+        AgentTask.Status := AgentTaskStatus;
+        AgentTask.Modify(true);
     end;
 
-    internal procedure CreateTaskMessage(MessageText: Text; ExternalMessageId: Text[2048]; var CurrentAgentTask: Record "Agent Task")
+    procedure CreateTaskMessage(MessageText: Text; ExternalMessageId: Text[2048]; var CurrentAgentTask: Record "Agent Task")
     var
         AgentTask: Record "Agent Task";
         AgentTaskMessage: Record "Agent Task Message";
@@ -99,7 +77,36 @@ codeunit 4300 "Agent Monitoring Impl."
         AgentTask.Modify(true);
     end;
 
-    internal procedure CreateUserInterventionTaskStep(UserInterventionRequestStep: Record "Agent Task Step"; UserInput: Text)
+    procedure GetMessageText(var AgentTaskMessage: Record "Agent Task Message"): Text
+    var
+        ContentInStream: InStream;
+        ContentText: Text;
+    begin
+        AgentTaskMessage.CalcFields(Content);
+        AgentTaskMessage.Content.CreateInStream(ContentInStream, GetDefaultEncoding());
+        ContentInStream.Read(ContentText);
+        exit(ContentText);
+    end;
+
+    procedure IsMessageEditable(var AgentTaskMessage: Record "Agent Task Message"): Boolean
+    begin
+        if AgentTaskMessage.Type <> AgentTaskMessage.Type::Output then
+            exit(false);
+
+        exit(AgentTaskMessage.Status = AgentTaskMessage.Status::Draft);
+    end;
+
+    procedure SetMessageText(var AgentTaskMessage: Record "Agent Task Message"; MessageText: Text)
+    var
+        ContentOutStream: OutStream;
+    begin
+        Clear(AgentTaskMessage.Content);
+        AgentTaskMessage.Content.CreateOutStream(ContentOutStream, GetDefaultEncoding());
+        ContentOutStream.Write(MessageText);
+        AgentTaskMessage.Modify(true);
+    end;
+
+    procedure CreateUserInterventionTaskStep(UserInterventionRequestStep: Record "Agent Task Step"; UserInput: Text)
     var
         AgentTask: Record "Agent Task";
         AgentTaskStep: Record "Agent Task Step";
@@ -121,54 +128,6 @@ codeunit 4300 "Agent Monitoring Impl."
         AgentTaskStep.Insert();
     end;
 
-    internal procedure StopTask(var AgentTask: Record "Agent Task"; AgentTaskStatus: enum "Agent Task Status"; UserConfirm: Boolean)
-    begin
-        if UserConfirm then
-            if not Confirm(AreYouSureThatYouWantToStopTheTaskQst) then
-                exit;
-
-        AgentTask.Status := AgentTaskStatus;
-        AgentTask.Modify(true);
-    end;
-
-    internal procedure RestartTask(var AgentTask: Record "Agent Task"; UserConfirm: Boolean)
-    begin
-        if UserConfirm then
-            if not Confirm(AreYouSureThatYouWantToRestartTheTaskQst) then
-                exit;
-
-        AgentTask.Status := AgentTask.Status::Ready;
-        AgentTask.Modify(true);
-    end;
-
-    internal procedure SelectAgent(var Agent: Record "Agent")
-    begin
-        Agent.SetRange(State, Agent.State::Enabled);
-        if Agent.Count() = 0 then
-            Error(NoActiveAgentsErr);
-
-        if Agent.Count() = 1 then begin
-            Agent.FindFirst();
-            exit;
-        end;
-
-        if not (Page.RunModal(Page::"Agent List", Agent) in [Action::LookupOK, Action::OK]) then
-            Error('');
-    end;
-
-    procedure IsAgentEnabled(AgentSecurityId: Guid): Boolean
-    var
-        Agent: Record "Agent";
-    begin
-        Agent.SetRange("User Security ID", AgentSecurityId);
-        Agent.SetRange(State, Agent.State::Enabled);
-
-        if Agent.IsEmpty() then
-            exit(false);
-
-        exit(true);
-    end;
-
     procedure UpdateAgentTaskMessageStatus(var AgentTaskMessage: Record "Agent Task Message"; Status: Option)
     begin
         AgentTaskMessage.Status := Status;
@@ -180,9 +139,13 @@ codeunit 4300 "Agent Monitoring Impl."
         exit(TextEncoding::UTF8);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAgentTaskMessagePageId, '', true, true)]
+    local procedure OnGetAgentTaskMessagePageId(var PageId: Integer)
+    begin
+        PageId := Page::"Agent Task Message Card";
+    end;
+
     var
         MessageTextMustBeProvidedErr: Label 'You must provide a message text.';
-        AreYouSureThatYouWantToRestartTheTaskQst: Label 'Are you sure that you want to restart the task?';
         AreYouSureThatYouWantToStopTheTaskQst: Label 'Are you sure that you want to stop the task?';
-        NoActiveAgentsErr: Label 'There are no active agents setup on the system.';
 }

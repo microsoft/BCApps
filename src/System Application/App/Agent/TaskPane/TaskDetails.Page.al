@@ -91,12 +91,12 @@ page 4313 "TaskDetails"
             UserInterventionRequestStep.SetRange("Task ID", Rec."Task ID");
             UserInterventionRequestStep.SetRange(Type, UserInterventionRequestStep.Type::"User Intervention Request");
             if UserInterventionRequestStep.FindLast() then
-                AgentMonitoringImpl.CreateUserInterventionTaskStep(UserInterventionRequestStep, UserInput);
+                AgentTaskImpl.CreateUserInterventionTaskStep(UserInterventionRequestStep, UserInput);
         end;
     end;
 
     var
-        AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
         ClientContext: BigText;
         UserMessage: Text;
 }

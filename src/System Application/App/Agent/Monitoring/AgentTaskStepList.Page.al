@@ -69,9 +69,9 @@ page 4303 "Agent Task Step List"
 
     local procedure UpdateControls()
     var
-        AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        DetailsTxt := AgentMonitoringImpl.GetDetailsForAgentTaskStep(Rec);
+        DetailsTxt := AgentTaskImpl.GetDetailsForAgentTaskStep(Rec);
     end;
 
     var

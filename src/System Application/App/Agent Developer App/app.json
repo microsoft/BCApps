@@ -1,0 +1,31 @@
+{
+    "id": "23433b68-4901-441a-a237-bdfeca57575a",
+    "name": "Agent",
+    "publisher": "Microsoft",
+    "brief": "Enables managing of agents",
+    "description": "Provides functionality for setting up, enabling and disabling, interacting and auditing agents.",
+    "version": "25.0.0.0",
+    "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
+    "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+    "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
+    "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+    "logo": "",
+    "dependencies": [
+        {
+            "id":  "7b9b59f5-a68d-4271-b11a-0d3b9c0938dd",
+            "name":  "User Settings",
+            "publisher":  "Microsoft",
+            "version":  "25.0.0.0"
+        }
+    ],
+    "screenshots": [],
+    "platform": "25.0.0.0",
+    "idRanges": [
+        {
+            "from": 4300,
+            "to": 4500
+        }
+    ],
+    "target": "OnPrem",
+    "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
+}

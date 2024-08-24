@@ -71,39 +71,6 @@ page 4301 "Agent Task Message List"
             }
         }
     }
-    actions
-    {
-        area(Processing)
-        {
-            action(AddMessage)
-            {
-                ApplicationArea = All;
-                Caption = 'Create new message';
-                ToolTip = 'Create a new message.';
-                Image = Task;
-
-                trigger OnAction()
-                var
-                    CurrentAgentTask: Record "Agent Task";
-                    AgentNewTaskMessage: Page "Agent New Task Message";
-                begin
-                    CurrentAgentTask.Get(Rec."Task ID");
-                    AgentNewTaskMessage.SetAgentTask(CurrentAgentTask);
-                    AgentNewTaskMessage.RunModal();
-                    CurrPage.Update(false);
-                end;
-            }
-        }
-        area(Promoted)
-        {
-            group(Category_Process)
-            {
-                actionref(AddMessage_Promoted; AddMessage)
-                {
-                }
-            }
-        }
-    }
 
     trigger OnAfterGetRecord()
     begin
@@ -117,9 +84,9 @@ page 4301 "Agent Task Message List"
 
     local procedure UpdateControls()
     var
-        AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        GlobalMessageText := AgentMonitoringImpl.GetMessageText(Rec);
+        GlobalMessageText := AgentTaskImpl.GetMessageText(Rec);
     end;
 
     var

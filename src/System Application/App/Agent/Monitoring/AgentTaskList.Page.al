@@ -60,9 +60,9 @@ page 4300 "Agent Task List"
 
                     trigger OnDrillDown()
                     var
-                        AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
+                        AgentTaskImpl: Codeunit "Agent Task Impl.";
                     begin
-                        AgentMonitoringImpl.ShowTaskSteps(Rec);
+                        AgentTaskImpl.ShowTaskSteps(Rec);
                     end;
                 }
                 field("Created By"; Rec."Created By Full Name")
@@ -90,32 +90,6 @@ page 4300 "Agent Task List"
     {
         area(Processing)
         {
-            action(CreateTask)
-            {
-                ApplicationArea = All;
-                Caption = 'Create task';
-                ToolTip = 'Create a new task.';
-                Image = New;
-
-                trigger OnAction()
-                var
-                    Agent: Record Agent;
-                    NewAgentTask: Record "Agent Task";
-                    AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
-                    AgentNewTask: Page "Agent New Task Message";
-                begin
-                    if Rec.GetFilter("Agent User Security ID") <> '' then begin
-                        Agent.SetRange("User Security ID", Rec.GetFilter("Agent User Security ID"));
-                        Agent.FindFirst();
-                    end else
-                        AgentMonitoringImpl.SelectAgent(Agent);
-
-                    NewAgentTask."Agent User Security ID" := Agent."User Security ID";
-                    AgentNewTask.SetAgentTask(NewAgentTask);
-                    AgentNewTask.RunModal();
-                    CurrPage.Update(false);
-                end;
-            }
             action(ViewTaskMessage)
             {
                 ApplicationArea = All;
@@ -137,58 +111,9 @@ page 4300 "Agent Task List"
 
                 trigger OnAction()
                 var
-                    AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
+                    AgentTaskImpl: Codeunit "Agent Task Impl.";
                 begin
-                    AgentMonitoringImpl.ShowTaskSteps(Rec);
-                end;
-            }
-            action(Stop)
-            {
-                ApplicationArea = All;
-                Caption = 'Stop';
-                ToolTip = 'Stop the selected task.';
-                Image = Stop;
-
-                trigger OnAction()
-                var
-                    AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
-                begin
-                    AgentMonitoringImpl.StopTask(Rec, Rec."Status"::"Stopped by User", true);
-                    CurrPage.Update(false);
-                end;
-            }
-            action(Restart)
-            {
-                ApplicationArea = All;
-                Caption = 'Restart';
-                ToolTip = 'Restart the selected task.';
-                Image = Restore;
-
-                trigger OnAction()
-                var
-                    AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
-                begin
-                    AgentMonitoringImpl.RestartTask(Rec, true);
-                    CurrPage.Update(false);
-                end;
-            }
-            action(UserIntervention)
-            {
-                ApplicationArea = All;
-                Caption = 'User Intervention';
-                ToolTip = 'Provide the required user intervention.';
-                Image = Restore;
-                Enabled = UserInterventionEnabled;
-
-                trigger OnAction()
-                var
-                    UserInterventionRequestStep: Record "Agent Task Step";
-                    AgentUserIntervention: Page "Agent User Intervention";
-                begin
-                    UserInterventionRequestStep.Get(Rec.ID, Rec."Last Step Number");
-                    AgentUserIntervention.SetUserInterventionRequestStep(UserInterventionRequestStep);
-                    AgentUserIntervention.RunModal();
-                    CurrPage.Update(false);
+                    AgentTaskImpl.ShowTaskSteps(Rec);
                 end;
             }
         }
@@ -200,12 +125,6 @@ page 4300 "Agent Task List"
                 {
                 }
                 actionref(ViewTaskSteps_Promoted; ViewTaskSteps)
-                {
-                }
-                actionref(CreateTask_Promoted; CreateTask)
-                {
-                }
-                actionref(UserIntervention_Promoted; UserIntervention)
                 {
                 }
             }
@@ -224,9 +143,9 @@ page 4300 "Agent Task List"
 
     local procedure UpdateControls()
     var
-        AgentMonitoringImpl: Codeunit "Agent Monitoring Impl.";
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
     begin
-        NumberOfStepsDone := AgentMonitoringImpl.GetStepsDoneCount(Rec);
+        NumberOfStepsDone := AgentTaskImpl.GetStepsDoneCount(Rec);
         UserInterventionEnabled := Rec.Status = Rec.Status::"Pending User Intervention";
     end;
 
