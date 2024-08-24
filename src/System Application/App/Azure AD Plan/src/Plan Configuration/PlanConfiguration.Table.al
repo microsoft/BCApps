@@ -56,17 +56,17 @@ table 9017 "Plan Configuration"
     }
     trigger OnDelete()
     begin
-        Session.LogAuditMessage(StrSubstNo(PlanConfigurationDeletedLbl, Rec.Id, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+        Session.LogAuditMessage(StrSubstNo(PlanConfigurationDeletedLbl, Rec.Id, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::EntitlementManagement, 2, 0);
     end;
 
     trigger OnInsert()
     begin
-        Session.LogAuditMessage(StrSubstNo(PlanConfigurationCreatedLbl, Rec.Id, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+        Session.LogAuditMessage(StrSubstNo(PlanConfigurationCreatedLbl, Rec.Id, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::EntitlementManagement, 2, 0);
     end;
 
     trigger OnModify()
     begin
-        Session.LogAuditMessage(StrSubstNo(PlanConfigurationModifiedLbl, Rec.Id, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+        Session.LogAuditMessage(StrSubstNo(PlanConfigurationModifiedLbl, Rec.Id, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::EntitlementManagement, 2, 0);
     end;
 
     var
