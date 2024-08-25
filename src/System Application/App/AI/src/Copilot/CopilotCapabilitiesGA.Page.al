@@ -93,6 +93,7 @@ page 7774 "Copilot Capabilities GA"
                     Rec.Modify(true);
 
                     CopilotCapabilityImpl.SendActivateTelemetry(Rec.Capability, Rec."App Id");
+                    Session.LogAuditMessage(StrSubstNo(CopilotFeatureActivatedLbl, Rec.Capability, Rec."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
                 end;
             }
             action(Deactivate)
@@ -114,6 +115,7 @@ page 7774 "Copilot Capabilities GA"
                         Rec.Modify(true);
 
                         CopilotCapabilityImpl.SendDeactivateTelemetry(Rec.Capability, Rec."App Id", CopilotDeactivate.GetReason());
+                        Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, Rec.Capability, Rec."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
                     end;
                 end;
             }
@@ -162,6 +164,8 @@ page 7774 "Copilot Capabilities GA"
         CapabilityEnabled: Boolean;
         DataMovementEnabled: Boolean;
         SupplementalTermsLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2236010', Locked = true;
+        CopilotFeatureDeactivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been deactivated by the UserSecurityId %3.', Locked = true;
+        CopilotFeatureActivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been activated by the UserSecurityId %3.', Locked = true;
 
     internal procedure SetDataMovement(Value: Boolean)
     begin

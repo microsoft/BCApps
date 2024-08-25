@@ -116,6 +116,8 @@ page 9868 "Security Group Permission Sets"
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
+        if Rec."Role ID" <> '' then
+            Session.LogAuditMessage(StrSubstNo(PermissionSetAddedToSecurityGroupLbl, Rec."Role ID", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
         exit(Rec."Role ID" <> '');
     end;
 
@@ -138,5 +140,6 @@ page 9868 "Security Group Permission Sets"
 
     var
         PageCaptionExpression: Text;
+        PermissionSetAddedToSecurityGroupLbl: Label 'The permission set %1 has been added to the security group by UserSecurityId %2.', Locked = true;
 }
 

@@ -47,6 +47,13 @@ page 9069 "Plan Configuration Card"
                         Importance = Promoted;
                         Caption = 'Customize permissions';
                         ToolTip = 'Specifies whether the default permissions are customized.';
+
+                        trigger OnValidate()
+                        begin
+                            if Rec.Customized then
+                                Session.LogAuditMessage(StrSubstNo(PlanConfigurationCustomizedLbl, Rec.Id, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+
+                        end;
                     }
                 }
             }
@@ -122,6 +129,7 @@ page 9069 "Plan Configuration Card"
 
     var
         IsSaaS: Boolean;
+        PlanConfigurationCustomizedLbl: Label 'The Plan configuration %1, has been customized by the UserSecurityId %2.', Locked = true;
 
     trigger OnAfterGetCurrRecord()
     var
