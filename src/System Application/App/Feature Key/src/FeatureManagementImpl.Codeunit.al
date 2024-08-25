@@ -85,6 +85,7 @@ codeunit 2610 "Feature Management Impl."
     var
         FeatureManagementFacade: Codeunit "Feature Management Facade";
         InitializeHandled: Boolean;
+        FeatureKeyStatusChangedLbl: Label 'The status of the feature key %1 has been set to %2 by UserSecurityId %3.', Locked = true;
     begin
         if FeatureDataUpdateStatus.Get(FeatureKey.ID, CompanyName()) then
             exit;
@@ -107,7 +108,8 @@ codeunit 2610 "Feature Management Impl."
         // If the table extension is not in sync during upgrade then Get() always returns False,
         // so the following insert will fail if the record does exist.
         if AllowInsert then
-            if FeatureDataUpdateStatus.Insert() then;
+            if FeatureDataUpdateStatus.Insert() then
+                Session.LogAuditMessage(StrSubstNo(FeatureKeyStatusChangedLbl, FeatureDataUpdateStatus."Feature Key", FeatureDataUpdateStatus."Feature Status", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
     end;
 
     /// <summary>

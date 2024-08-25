@@ -177,6 +177,7 @@ page 9855 "Permission Set"
                             exit;
 
                         AddLoggedPermissions(TempTablePermissionBuffer);
+                        Session.LogAuditMessage(StrSubstNo(PermissionSetModifiedLbl, Rec."Role ID", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::RoleManagement, 2, 0);
                         CurrPage.MetadataPermissions.Page.Update(false);
                     end;
                 }
@@ -277,5 +278,6 @@ page 9855 "Permission Set"
         CannotManagePermissionsErr: Label 'Only users with the SUPER or the SECURITY permission set can delete permission sets.';
         CannotDeletePermissionSetErr: Label 'You can only delete user-created or copied permission sets.';
         PermissionSetCaptionTok: Label '%1 (%2)', Locked = true;
+        PermissionSetModifiedLbl: Label 'The permission set %1 has been modified by the UserSecurityId %2.', Locked = true;
         PermissionLoggingRunning: Boolean;
 }
