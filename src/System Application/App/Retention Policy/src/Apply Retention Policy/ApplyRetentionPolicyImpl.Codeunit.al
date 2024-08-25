@@ -30,6 +30,7 @@ codeunit 3904 "Apply Retention Policy Impl."
         StartApplyRetentionPoliciesInfoLbl: Label 'Started applying all retention policies.';
         EndApplyRetentionPoliciesInfoLbl: Label 'Finished applying all retention policies.';
         StartApplyRetentionPolicyInfoLbl: Label 'Started applying the retention policy defined for table %1, %2. ', Comment = '%1 = a id of a table (integer), %2 = the caption of the table.';
+        RetentionPolicyAppliedLbl: Label 'The retention policy defined for table %1, %2 applied by the UserSecurityId %3. ', Locked = true;
         EndApplyRetentionPolicyInfoLbl: Label 'Finished applying the retention policy defined for table: %1, %2.', Comment = '%1 = a id of a table (integer), %2 = the caption of the table.';
         DisabledRetentionPolicyOnMissingTableLbl: Label 'Table %1 was not found. The retention policy has been disabled.', Comment = '%1 = a id of a table (integer)';
         StartRetentionPolicyRecordCountLbl: Label 'Started counting the number of expired records in table %1, %2. ', Comment = '%1 = a id of a table (integer), %2 = table caption';
@@ -132,6 +133,7 @@ codeunit 3904 "Apply Retention Policy Impl."
 
         RetentionPolicySetup.CalcFields("Table Name", "Table Caption");
         RetentionPolicyLog.LogInfo(LogCategory(), AppendStartedByUserMessage(StrSubstNo(StartApplyRetentionPolicyInfoLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"), UserInvokedRun));
+        Session.LogAuditMessage(StrSubstNo(RetentionPolicyAppliedLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
 
         if GetExpiredRecords(RetentionPolicySetup, RecordRef, ExpiredRecordExpirationDate) then
             DeleteExpiredRecords(RecordRef)

@@ -289,6 +289,7 @@ page 9515 "Azure AD User Update Wizard"
                     AzureADUserSyncImpl: Codeunit "Azure AD User Sync Impl.";
                     GuidedExperience: Codeunit "Guided Experience";
                     SuccessCount: Integer;
+                    UpdateUsersfromMicrosoft365RunLbl: Label 'Update users from Microsoft 365 wizard has been run by the UserSecurityId %1.', Locked = true;
                 begin
                     Rec.Reset();
                     SuccessCount := AzureADUserSyncImpl.ApplyUpdatesFromAzureGraph(Rec);
@@ -296,6 +297,7 @@ page 9515 "Azure AD User Update Wizard"
                     Rec.DeleteAll();
 
                     GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Azure AD User Update Wizard");
+                    Session.LogAuditMessage(StrSubstNo(UpdateUsersfromMicrosoft365RunLbl, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
 
                     MakeAllGroupsInvisible();
                     FinishedVisible := true;

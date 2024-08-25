@@ -31,6 +31,7 @@ codeunit 9175 "User Settings Impl."
         UserCreatedAppNameTxt: Label '(User-created)';
         DescriptionFilterTxt: Label 'Navigation menu only.';
         NotEnoughPermissionsErr: Label 'You cannot open this page. Only administrators can access settings for other users.';
+        UserSettingsUpdatedLbl: Label 'The user settings (UserSecurityId %1) has been updated with the values: Language ID %2, Locale ID %3, Company %4, Time Zone %5, Profile ID %6 by UserSecurityId %7 ', Locked = true;
 
     procedure GetPageId(): Integer
     var
@@ -179,6 +180,8 @@ codeunit 9175 "User Settings Impl."
         ApplicationUserSettings."Teaching Tips" := NewUserSettings."Teaching Tips";
         ApplicationUserSettings."Legacy Action Bar" := NewUserSettings."Legacy Action Bar";
         ApplicationUserSettings.Modify();
+        Session.LogAuditMessage(StrSubstNo(UserSettingsUpdatedLbl, UserPersonalization."User SID", UserPersonalization."Language ID", UserPersonalization."Locale ID",
+            UserPersonalization.Company, UserPersonalization."Time Zone", UserPersonalization."Profile ID", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
     end;
 
     local procedure UpdateCurrentUsersSettings(OldUserSettings: Record "User Settings"; NewUserSettings: Record "User Settings")
