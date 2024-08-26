@@ -19,7 +19,6 @@ codeunit 134750 "File Accounts Test"
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
         AccountToSelect: Guid;
-        AccountNameLbl: Label '%1 (%2)', Locked = true;
 
     [Test]
     [Scope('OnPrem')]

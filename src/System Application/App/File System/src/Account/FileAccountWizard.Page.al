@@ -398,19 +398,22 @@ page 9451 "File Account Wizard"
     local procedure ShowRegisterAccountStep()
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        Telemetry: Codeunit Telemetry;
         AccountWasRegistered: Boolean;
         ConnectorSucceeded: Boolean;
-        CTHTok: Label '%1 account has been setup.', Locked = true;
-        CTITok: Label '%1 account has failed to setup. Error: %2', Locked = true;
+        CustomDimensions: Dictionary of [Text, Text];
+        CTHLbl: Label '%1 account has been setup.', Locked = true;
+        CTILbl: Label '%1 account has failed to setup. Error: %2', Locked = true;
     begin
         ConnectorSucceeded := TryRegisterAccount(AccountWasRegistered);
+        CustomDimensions.Add('Category', FileCategoryLbl);
 
         if AccountWasRegistered then begin
             FeatureTelemetry.LogUptake('0000CTF', 'File Access', Enum::"Feature Uptake Status"::"Set up");
-            Session.LogMessage('0000CTH', StrSubstNo(CTHTok, Rec.Connector), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
+            Telemetry.LogMessage('0000CTH', StrSubstNo(CTHLbl, Rec.Connector), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             NextStep(false);
         end else begin
-            Session.LogMessage('0000CTI', StrSubstNo(CTITok, Rec.Connector, GetLastErrorCallStack()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
+            Telemetry.LogMessage('0000CTI', StrSubstNo(CTILbl, Rec.Connector, GetLastErrorCallStack()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             NextStep(true);
         end;
 
