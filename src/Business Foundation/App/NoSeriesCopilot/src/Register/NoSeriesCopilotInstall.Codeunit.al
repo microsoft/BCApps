@@ -13,10 +13,11 @@ codeunit 290 "No. Series Copilot Install"
     InherentPermissions = X;
     InherentEntitlements = X;
 
-    trigger OnInstallAppPerDatabase()
-    var
-        NoSeriesCopilotRegister: Codeunit "No. Series Copilot Register";
-    begin
-        NoSeriesCopilotRegister.RegisterCapability();
-    end;
+    // TODO: Implement this trigger when all green lights are given.
+    // trigger OnInstallAppPerDatabase()
+    // var
+    //     NoSeriesCopilotRegister: Codeunit "No. Series Copilot Register";
+    // begin
+    //     NoSeriesCopilotRegister.RegisterCapability();
+    // end;
 }
