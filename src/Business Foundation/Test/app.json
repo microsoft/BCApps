@@ -58,6 +58,12 @@
                           "publisher": "Microsoft",
                           "name": "AI Test Toolkit",
                           "version": "25.0.0.0"
+                        },
+                        {
+                            "id": "23de40a6-dfe8-4f80-80db-d70f83ce8caf",
+                            "publisher": "Microsoft",
+                            "name": "Test Runner",
+                            "version": "25.0.0.0"
                         }
                     ],
     "internalsVisibleTo":  [
