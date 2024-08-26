@@ -11,6 +11,8 @@ using System.PerformanceProfile;
 codeunit 1930 "Performance Profiler Delete"
 {
     Access = Internal;
+    InherentPermissions = X;
+    InherentEntitlements = X;
     Permissions = tabledata "Performance Profile Scheduler" = rd;
 
     var
