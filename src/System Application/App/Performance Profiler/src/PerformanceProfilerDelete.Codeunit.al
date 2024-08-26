@@ -7,7 +7,7 @@ namespace System.Tooling;
 
 using System.DataAdministration;
 
-codeunit 1930 "Shpfy Log Entries Delete"
+codeunit 1930 "Performance Profiler Delete"
 {
     Access = Internal;
     Permissions = tabledata "Performance Profile Scheduler" = rd;
