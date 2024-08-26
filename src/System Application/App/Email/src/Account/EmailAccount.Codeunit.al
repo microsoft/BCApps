@@ -15,24 +15,6 @@ codeunit 8894 "Email Account"
     /// <summary>
     /// Gets all of the email accounts registered in Business Central.
     /// </summary>
-    /// <param name="TempEmailAccount">Out parameter holding the email accounts.</param>
-    procedure GetAllAccounts(var TempEmailAccount: Record "Email Account" temporary)
-    begin
-        EmailAccountImpl.GetAllAccounts(false, TempEmailAccount);
-    end;
-
-    /// <summary>
-    /// Gets all of the email accounts which implement the v2 interface registered in Business Central.
-    /// </summary>
-    /// <param name="TempEmailAccount">Out parameter holding the email accounts.</param>
-    procedure GetAllV2Accounts(var TempEmailAccount: Record "Email Account" temporary)
-    begin
-        EmailAccountImpl.GetAllV2Accounts(false, TempEmailAccount);
-    end;
-
-    /// <summary>
-    /// Gets all of the email accounts registered in Business Central.
-    /// </summary>
     /// <param name="LoadLogos">Flag, used to determine whether to load the logos for the accounts.</param>
     /// <param name="TempEmailAccount">Out parameter holding the email accounts.</param>
     procedure GetAllAccounts(LoadLogos: Boolean; var TempEmailAccount: Record "Email Account" temporary)
