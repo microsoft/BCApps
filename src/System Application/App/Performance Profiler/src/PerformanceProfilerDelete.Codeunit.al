@@ -6,6 +6,7 @@
 namespace System.Tooling;
 
 using System.DataAdministration;
+using System.PerformanceProfile;
 
 codeunit 1930 "Performance Profiler Delete"
 {
