@@ -28,6 +28,7 @@ codeunit 324 "No. Series Copilot Impl."
         FeatureNameLbl: Label 'Number Series with AI', Locked = true;
         TelemetryToolsSelectionPromptRetrievalErr: Label 'Unable to retrieve the prompt for No. Series Copilot Tools Selection from Azure Key Vault.', Locked = true;
         ToolLoadingErr: Label 'Unable to load the No. Series Copilot Tool. Please try again later.';
+        InvalidPromptTxt: Label 'Sorry, I couldn''t generate a good result from your input. Please rephrase and try again.';
 
     procedure GetNoSeriesSuggestions()
     var
@@ -44,14 +45,13 @@ codeunit 324 "No. Series Copilot Impl."
         Page.Run(Page::"No. Series Generation");
     end;
 
-    procedure Generate(var NoSeriesGeneration: Record "No. Series Generation"; var ResponseText: Text; var GeneratedNoSeries: Record "No. Series Generation Detail"; InputText: Text)
+    procedure Generate(var NoSeriesGeneration: Record "No. Series Generation"; var GeneratedNoSeries: Record "No. Series Generation Detail"; InputText: Text)
     var
         TokenCountImpl: Codeunit "AOAI Token";
         SystemPromptTxt: SecretText;
         CompletePromptTokenCount: Integer;
         Completion: Text;
     begin
-        Clear(ResponseText);
         SystemPromptTxt := GetToolsSelectionSystemPrompt();
 
         CompletePromptTokenCount := TokenCountImpl.GetGPT35TokenCount(SystemPromptTxt) + TokenCountImpl.GetGPT35TokenCount(InputText);
@@ -61,7 +61,7 @@ codeunit 324 "No. Series Copilot Impl."
                 SaveGenerationHistory(NoSeriesGeneration, InputText);
                 CreateNoSeries(NoSeriesGeneration, GeneratedNoSeries, Completion);
             end else
-                ResponseText := Completion;
+                Error(InvalidPromptTxt);
         end else
             SendNotification(GetChatCompletionResponseErr());
     end;
@@ -171,7 +171,7 @@ codeunit 324 "No. Series Copilot Impl."
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"No. Series Copilot") then
             exit;
 
-        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT35TurboLatest());
+        AzureOpenAI.SetAuthorization(Enum::"AOAI Model Type"::"Chat Completions", AOAIDeployments.GetGPT4oMiniLatest());
         AzureOpenAI.SetCopilotCapability(Enum::"Copilot Capability"::"No. Series Copilot");
         AOAIChatCompletionParams.SetMaxTokens(MaxOutputTokens());
         AOAIChatCompletionParams.SetTemperature(0);
@@ -246,7 +246,6 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         ToolResponse.Get(Message, ExpectedNoSeriesCount);
     end;
-
 
     local procedure GenerateAndReviewToolCompletionWithRetry(var AzureOpenAI: Codeunit "Azure OpenAI"; var AOAIChatMessages: Codeunit "AOAI Chat Messages"; var AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params"; var GeneratedNoSeriesArrayText: Text; ExpectedNoSeriesCount: Integer): Boolean
     var
@@ -464,7 +463,6 @@ codeunit 324 "No. Series Copilot Impl."
         exit(MinInt - 1 + Random(MaxInt - MinInt + 1));
     end;
 
-
     local procedure InsertGeneratedNoSeries(var GeneratedNoSeries: Record "No. Series Generation Detail"; NoSeriesObj: Text; GenerationNo: Integer)
     var
         Json: Codeunit Json;
@@ -530,7 +528,7 @@ codeunit 324 "No. Series Copilot Impl."
 
     local procedure MaxModelTokens(): Integer
     begin
-        exit(16385); //gpt-3.5-turbo-latest
+        exit(16385); //gpt-4o-mini-latest
     end;
 
     procedure IsCopilotVisible(): Boolean
@@ -542,7 +540,6 @@ codeunit 324 "No. Series Copilot Impl."
 
         exit(true);
     end;
-
 
     procedure GetChatCompletionResponseErr(): Text
     begin

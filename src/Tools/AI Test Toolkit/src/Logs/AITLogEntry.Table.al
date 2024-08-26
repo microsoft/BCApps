@@ -158,11 +158,6 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Output Data';
         }
-        field(40; "Model Version"; Option)
-        {
-            Caption = 'AOAI Model Version';
-            OptionMembers = Latest,Preview;
-        }
     }
 
     keys

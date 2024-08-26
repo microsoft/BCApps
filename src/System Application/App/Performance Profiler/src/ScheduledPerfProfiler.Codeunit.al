@@ -88,6 +88,16 @@ codeunit 1931 "Scheduled Perf. Profiler"
     end;
 
     /// <summary>
+    /// Returns true if the user can make schedules for other users.
+    /// </summary>
+    /// <param name="UserID">The current user ID.</param>
+    /// <param name="ScheduleUserId">The schedule user ID.</param>
+    procedure ValidateScheduleCreationPermissions(UserID: Guid; ScheduleUserId: Guid)
+    begin
+        ScheduledPerfProfilerImpl.ValidateScheduleCreationPermissions(UserID, ScheduleUserId);
+    end;
+
+    /// <summary>
     /// Maps a session type to an activity type.
     /// </summary>
     /// <param name="PerformanceProfileScheduler">The "Performance Profile Scheduler" record </param>

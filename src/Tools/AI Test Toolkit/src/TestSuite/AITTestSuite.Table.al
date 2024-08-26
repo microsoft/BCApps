@@ -127,12 +127,6 @@ table 149030 "AIT Test Suite"
             Caption = 'Unique RunID';
             Editable = false;
         }
-        field(20; "Model Version"; Option)
-        {
-            Caption = 'AOAI Model Version';
-            ToolTip = 'Specifies the model version to be used by the tests in the test suite.';
-            OptionMembers = Latest,Preview;
-        }
         field(21; "No. of Tests Executed"; Integer)
         {
             Caption = 'No. of Tests Executed';

@@ -18,9 +18,10 @@ codeunit 7758 "AOAI Function Response"
         FunctionCall: Boolean;
         FunctionName: Text;
         FunctionId: Text;
-        Result: Variant;
         Error: Text;
         ErrorCallStack: Text;
+        Arguments: JsonObject;
+        Result: Variant;
 
     /// <summary>
     /// Get whether the function call was successful.
@@ -47,6 +48,15 @@ codeunit 7758 "AOAI Function Response"
     procedure GetResult(): Variant
     begin
         exit(Result);
+    end;
+
+    /// <summary>
+    /// Get the arguments for the function call.
+    /// </summary>
+    /// <returns>The arguments for the function</returns>
+    procedure GetArguments(): JsonObject
+    begin
+        exit(Arguments);
     end;
 
     /// <summary>
@@ -98,12 +108,13 @@ codeunit 7758 "AOAI Function Response"
         exit(FunctionCall);
     end;
 
-    internal procedure SetFunctionCallingResponse(NewIsFunctionCall: Boolean; NewAOAIFunctionResponseStatus: Enum "AOAI Function Response Status"; NewFunctionCalled: Text; NewFunctionId: Text; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
+    internal procedure SetFunctionCallingResponse(NewIsFunctionCall: Boolean; NewAOAIFunctionResponseStatus: Enum "AOAI Function Response Status"; NewFunctionCalled: Text; NewFunctionId: Text; NewArguments: JsonObject; NewFunctionResult: Variant; NewFunctionError: Text; NewFunctionErrorCallStack: Text)
     begin
         FunctionCall := NewIsFunctionCall;
         AOAIFunctionResponseStatus := NewAOAIFunctionResponseStatus;
         FunctionName := NewFunctionCalled;
         FunctionId := NewFunctionId;
+        Arguments := NewArguments;
         Result := NewFunctionResult;
         Error := NewFunctionError;
         ErrorCallStack := NewFunctionErrorCallStack;

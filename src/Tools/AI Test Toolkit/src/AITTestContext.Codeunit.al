@@ -12,6 +12,24 @@ using System.TestTools.TestRunner;
 codeunit 149044 "AIT Test Context"
 {
     /// <summary>
+    /// Sets to next turn.
+    /// </summary>
+    /// <returns>True if another turn exists</returns>
+    procedure NextTurn(): Boolean
+    begin
+        exit(AITTestContextImpl.NextTurn());
+    end;
+
+    /// <summary>
+    /// Gets the current turn. Turns start from turn 0.
+    /// </summary>
+    /// <returns>The current turn number.</returns>
+    procedure GetCurrentTurn(): Integer
+    begin
+        exit(AITTestContextImpl.GetCurrentTurn());
+    end;
+
+    /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
     /// </summary>
     /// <returns>Test Input Json for the current test.</returns>
@@ -64,15 +82,6 @@ codeunit 149044 "AIT Test Context"
     procedure GetExpectedData(): Codeunit "Test Input Json"
     begin
         exit(AITTestContextImpl.GetExpectedData());
-    end;
-
-    /// <summary>
-    /// Get the AOAI Model Version for the AI Test Suite.
-    /// </summary>
-    /// <returns>The AOAI Model Version as an Option.</returns>
-    procedure GetAOAIModelVersion(): Option
-    begin
-        exit(AITTestContextImpl.GetAOAIModelVersion());
     end;
 
     /// <summary>
