@@ -7,36 +7,37 @@ namespace Microsoft.Foundation.NoSeries;
 
 pageextension 324 "No. Series Ext." extends "No. Series"
 {
-    actions
-    {
-        addfirst(Prompting)
-        {
-            action("Generate With Copilot Prompting")
-            {
-                Caption = 'Generate';
-                ToolTip = 'Generate No. Series using Copilot';
-                Image = Sparkle;
-                ApplicationArea = All;
-                Visible = CopilotActionsVisible;
+    // TODO: Enable when all green lights have been given.
+    // actions
+    // {
+    //     addfirst(Prompting)
+    //     {
+    //         action("Generate With Copilot Prompting")
+    //         {
+    //             Caption = 'Generate';
+    //             ToolTip = 'Generate No. Series using Copilot';
+    //             Image = Sparkle;
+    //             ApplicationArea = All;
+    //             Visible = CopilotActionsVisible;
 
-                trigger OnAction()
-                var
-                    NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
-                begin
-                    NoSeriesCopilotImpl.GetNoSeriesSuggestions();
-                end;
-            }
-        }
-    }
+    //             trigger OnAction()
+    //             var
+    //                 NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
+    //             begin
+    //                 NoSeriesCopilotImpl.GetNoSeriesSuggestions();
+    //             end;
+    //         }
+    //     }
+    // }
 
-    trigger OnOpenPage()
-    var
-        NumberSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
-    begin
-        CopilotActionsVisible := NumberSeriesCopilotImpl.IsCopilotVisible();
-    end;
+    // trigger OnOpenPage()
+    // var
+    //     NumberSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
+    // begin
+    //     CopilotActionsVisible := NumberSeriesCopilotImpl.IsCopilotVisible();
+    // end;
 
-    var
-        CopilotActionsVisible: Boolean;
+    // var
+    //     CopilotActionsVisible: Boolean;
 
 }
