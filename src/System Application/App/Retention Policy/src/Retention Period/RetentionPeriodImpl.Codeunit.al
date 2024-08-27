@@ -24,6 +24,8 @@ codeunit 3900 "Retention Period Impl." implements "Retention Period"
         case RetentionPeriod of
             RetentionPeriod::"Never Delete":
                 Evaluate(PeriodDateFormula, StrSubstNo(MaxDateDateFormulaTxt, 9999 - Date2DMY(Today(), 3)));
+            RetentionPeriod::"2 Days":
+                Evaluate(PeriodDateFormula, '<-2D>');
             RetentionPeriod::"1 Week":
                 Evaluate(PeriodDateFormula, '<-1W>');
             RetentionPeriod::"28 Days":

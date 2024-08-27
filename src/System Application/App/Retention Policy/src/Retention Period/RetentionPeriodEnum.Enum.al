@@ -29,6 +29,14 @@ enum 3900 "Retention Period Enum" implements "Retention Period"
         Caption = 'Custom';
     }
     /// <Summary>
+    /// The "2 Days" value results in a retention period where records that are older than 2 days are deleted.
+    /// </Summary>
+    value(10; "2 Days")
+    {
+        Implementation = "Retention Period" = "Retention Period Impl.";
+        Caption = '2 Days';
+    }
+    /// <Summary>
     /// The "1 Week" value results in a retention period where records that are older than seven days are deleted.
     /// </Summary>
     value(2; "1 Week")
