@@ -75,6 +75,7 @@ codeunit 1596 "Email Installer"
         RetentionPolicySetup: Record "Retention Policy Setup";
         RetentionPolicySetupCU: Codeunit "Retention Policy Setup";
         UpgradeTag: Codeunit "Upgrade Tag";
+        DateFormula: DateFormula;
         IsInitialSetup: Boolean;
     begin
         IsInitialSetup := not UpgradeTag.HasUpgradeTag(GetEmailInboxPolicyAddedToAllowedListUpgradeTag());
@@ -85,9 +86,11 @@ codeunit 1596 "Email Installer"
         if not RetentionPolicySetup.IsEmpty() then
             exit;
 
+        Evaluate(DateFormula, '<-2D>');
+
         RetentionPolicySetup.Validate("Table Id", Database::"Email Inbox");
         RetentionPolicySetup.Validate("Apply to all records", true);
-        RetentionPolicySetup.Validate("Retention Period", RetentionPolicySetupCU.FindOrCreateRetentionPeriod("Retention Period Enum"::"2 Days"));
+        RetentionPolicySetup.Validate("Retention Period", RetentionPolicySetupCU.FindOrCreateRetentionPeriod('2 DAYS', "Retention Period Enum"::"Custom", DateFormula));
         RetentionPolicySetup.Validate(Enabled, true);
         RetentionPolicySetup.Insert(true);
 

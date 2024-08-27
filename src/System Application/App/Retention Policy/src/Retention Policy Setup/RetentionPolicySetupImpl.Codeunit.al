@@ -355,7 +355,20 @@ codeunit 3903 "Retention Policy Setup Impl."
         end;
     end;
 
+    procedure FindOrCreateRetentionPeriod(RetentionPeriodEnum: Enum "Retention Period Enum"): Code[20]
+    var
+        RetPeriodCalc: DateFormula;
+    begin
+        Evaluate(RetPeriodCalc, '');
+        exit(FindOrCreateRetentionPeriod(RetentionPeriodEnum, RetPeriodCalc))
+    end;
+
     procedure FindOrCreateRetentionPeriod(RetentionPeriodEnum: Enum "Retention Period Enum"; RetPeriodCalc: DateFormula): Code[20]
+    begin
+        exit(FindOrCreateRetentionPeriod('', RetentionPeriodEnum, RetPeriodCalc))
+    end;
+
+    procedure FindOrCreateRetentionPeriod(CodeName: Code[20]; RetentionPeriodEnum: Enum "Retention Period Enum"; RetPeriodCalc: DateFormula): Code[20]
     var
         RetentionPeriod: Record "Retention Period";
     begin
@@ -367,21 +380,16 @@ codeunit 3903 "Retention Policy Setup Impl."
             exit(RetentionPeriod.Code);
 
         // create
-        RetentionPeriod.Code := CreateUniqueRetentionPeriodCode(RetentionPeriodEnum);
+        if CodeName = '' then
+            RetentionPeriod.Code := CreateUniqueRetentionPeriodCode(RetentionPeriodEnum)
+        else
+            RetentionPeriod.Code := CodeName;
         RetentionPeriod.Description := CopyStr(Format(RetentionPeriodEnum), 1, MaxStrLen(RetentionPeriod.Description));
         RetentionPeriod.Validate("Retention Period", RetentionPeriodEnum);
         if RetentionPeriod."Retention Period" = RetentionPeriod."Retention Period"::Custom then
             RetentionPeriod.Validate("Ret. Period Calculation", RetPeriodCalc);
         RetentionPeriod.Insert(true);
         exit(RetentionPeriod.Code);
-    end;
-
-    procedure FindOrCreateRetentionPeriod(RetentionPeriodEnum: Enum "Retention Period Enum"): Code[20]
-    var
-        RetPeriodCalc: DateFormula;
-    begin
-        Evaluate(RetPeriodCalc, '');
-        exit(FindOrCreateRetentionPeriod(RetentionPeriodEnum, RetPeriodCalc))
     end;
 
     local procedure CreateUniqueRetentionPeriodCode(RetentionPeriodEnum: Enum "Retention Period Enum") RetentionPeriodCode: Code[20]
