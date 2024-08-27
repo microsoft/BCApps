@@ -30,6 +30,19 @@ page 7775 "Copilot AI Capabilities"
     {
         area(Content)
         {
+            group(AllowedDataMovementOffInfo)
+            {
+                ShowCaption = false;
+                Visible = not AllowDataMovement and (not IsWithinAlwaysOnRegion);
+                InstructionalText = 'Copilot uses the Azure OpenAI Service, which isn’t available in your region. To activate Copilot capabilities, you must allow data movement.';
+            }
+
+            group(AllowedDataMovementOnInfo)
+            {
+                ShowCaption = false;
+                Visible = AllowDataMovement and (not IsWithinAlwaysOnRegion);
+                InstructionalText = 'Copilot uses the Azure OpenAI Service, which isn’t available in your region. To keep using Copilot capabilities, you must allow data movement.';
+            }
 
             group(AlwaysConnected)
             {
@@ -46,7 +59,6 @@ page 7775 "Copilot AI Capabilities"
                         Hyperlink('https://go.microsoft.com/fwlink/?linkid=2249575');
                     end;
                 }
-
             }
 
             group(NotAlwaysConnected)
@@ -140,25 +152,11 @@ page 7775 "Copilot AI Capabilities"
                     Hyperlink('https://aka.ms/azurestatus');
                 end;
             }
-            action("Learn about Copilot")
-            {
-                ApplicationArea = All;
-                Image = Info;
-                ToolTip = 'Learn more about Copilot in Business Central.';
-
-                trigger OnAction()
-                begin
-                    Hyperlink('https://aka.ms/bcai');
-                end;
-            }
         }
 
         area(Promoted)
         {
             actionref(PromotedServiceHealth; "Check service health")
-            {
-            }
-            actionref(PromotedLearnAbout; "Learn about Copilot")
             {
             }
         }
@@ -167,6 +165,7 @@ page 7775 "Copilot AI Capabilities"
     trigger OnOpenPage()
     var
         EnvironmentInformation: Codeunit "Environment Information";
+        ApplicationFamily: Text;
     begin
         OnRegisterCopilotCapability();
 
@@ -180,6 +179,9 @@ page 7775 "Copilot AI Capabilities"
             else
                 AllowDataMovement := true;
         end;
+
+        ApplicationFamily := EnvironmentInformation.GetApplicationFamily();
+        IsWithinAlwaysOnRegion := ApplicationFamily.ToUpper() in ['US', 'GB', 'IN', 'AU'];
 
         AllowDataMovementEditable := CopilotCapabilityImpl.IsAdmin();
 
@@ -221,5 +223,6 @@ page 7775 "Copilot AI Capabilities"
         AllowDataMovement: Boolean;
         AllowDataMovementEditable: Boolean;
         CopilotGovernDataLbl: Label 'How do I govern my Copilot data?';
-        AOAIServiceLocatedLbl: Label 'Where is Azure OpenAI Service Located?';
+        AOAIServiceLocatedLbl: Label 'In which region will my data be stored and processed?';
+        IsWithinAlwaysOnRegion: Boolean;
 }
