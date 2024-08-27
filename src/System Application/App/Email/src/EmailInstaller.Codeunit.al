@@ -89,7 +89,8 @@ codeunit 1596 "Email Installer"
         RetentionPolicySetup.Validate("Apply to all records", true);
         RetentionPolicySetup.Validate("Retention Period", RetentionPolicySetupCU.FindOrCreateRetentionPeriod("Retention Period Enum"::"2 Days"));
         RetentionPolicySetup.Validate(Enabled, true);
-        RetentionPolicySetup.Insert(true);
+        if not RetentionPolicySetup.Insert(true) then
+            RetentionPolicySetup.Modify(true);
 
         if IsInitialSetup then
             UpgradeTag.SetUpgradeTag(GetEmailInboxPolicyAddedToAllowedListUpgradeTag());
