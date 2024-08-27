@@ -115,6 +115,7 @@ codeunit 1596 "Email Installer"
     begin
         AddRetentionPolicyAllowedTables(true);
         AddRetentionPolicyEmailInboxAllowedTable(true);
+        CreateRetentionPolicySetup(true);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Initialization", OnAfterLogin, '', false, false)]
