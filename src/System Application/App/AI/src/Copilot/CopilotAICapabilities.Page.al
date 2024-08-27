@@ -33,14 +33,14 @@ page 7775 "Copilot AI Capabilities"
             group(AllowedDataMovementOffInfo)
             {
                 ShowCaption = false;
-                Visible = not AllowDataMovement and (not IsWithinAlwaysOnRegion);
+                Visible = ((not WithinGeo) or WithinEuropeGeo) and (not AllowDataMovement);
                 InstructionalText = 'Copilot uses the Azure OpenAI Service, which isn’t available in your region. To activate Copilot capabilities, you must allow data movement.';
             }
 
             group(AllowedDataMovementOnInfo)
             {
                 ShowCaption = false;
-                Visible = AllowDataMovement and (not IsWithinAlwaysOnRegion);
+                Visible = ((not WithinGeo) or WithinEuropeGeo) and AllowDataMovement;
                 InstructionalText = 'Copilot uses the Azure OpenAI Service, which isn’t available in your region. To keep using Copilot capabilities, you must allow data movement.';
             }
 
@@ -165,7 +165,6 @@ page 7775 "Copilot AI Capabilities"
     trigger OnOpenPage()
     var
         EnvironmentInformation: Codeunit "Environment Information";
-        ApplicationFamily: Text;
     begin
         OnRegisterCopilotCapability();
 
@@ -179,9 +178,6 @@ page 7775 "Copilot AI Capabilities"
             else
                 AllowDataMovement := true;
         end;
-
-        ApplicationFamily := EnvironmentInformation.GetApplicationFamily();
-        IsWithinAlwaysOnRegion := ApplicationFamily.ToUpper() in ['US', 'GB', 'IN', 'AU'];
 
         AllowDataMovementEditable := CopilotCapabilityImpl.IsAdmin();
 
@@ -224,5 +220,4 @@ page 7775 "Copilot AI Capabilities"
         AllowDataMovementEditable: Boolean;
         CopilotGovernDataLbl: Label 'How do I govern my Copilot data?';
         AOAIServiceLocatedLbl: Label 'In which region will my data be stored and processed?';
-        IsWithinAlwaysOnRegion: Boolean;
 }
