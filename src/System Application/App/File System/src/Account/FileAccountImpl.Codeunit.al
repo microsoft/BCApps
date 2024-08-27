@@ -156,7 +156,7 @@ codeunit 9451 "File Account Impl."
         exit(not FileAccount.IsEmpty());
     end;
 
-    internal procedure IsUserFileAdmin(): Boolean
+    procedure IsUserFileAdmin(): Boolean
     var
         FileScenario: Record "File Scenario";
     begin
@@ -215,7 +215,7 @@ codeunit 9451 "File Account Impl."
         FileAccountBrowser.Run();
     end;
 
-    internal procedure CheckPermissions()
+    procedure CheckPermissions()
     begin
         if not IsUserFileAdmin() then
             Error(CannotManageSetupErr);
@@ -236,7 +236,7 @@ codeunit 9451 "File Account Impl."
     end;
 
     [InternalEvent(false)]
-    internal procedure OnAfterSetSelectionFilter(var FileAccount: Record "File Account")
+    procedure OnAfterSetSelectionFilter(var FileAccount: Record "File Account")
     begin
     end;
 
