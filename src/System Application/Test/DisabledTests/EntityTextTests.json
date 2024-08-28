@@ -1,0 +1,14 @@
+[
+    {
+        "bug": "",
+        "codeunitId": 134640,
+        "codeunitName": "Mkt Text Accuracy AIT",
+        "method": "*"
+    },
+    {
+        "bug": "",
+        "codeunitId": 134641,
+        "codeunitName": "Mkt Text RedTeam AIT",
+        "method": "*"
+    }
+]
