@@ -1,44 +1,42 @@
 {
-    "id":  "ba17b564-d600-44d5-be0b-ca7ff7ac28fc",
-    "name":  "AppSource Gallery Test Library",
-    "publisher":  "Microsoft",
-    "brief":  "Test objects for the AppSource Gallery module.",
-    "description":  "Test objects for the AppSource Gallery module.",
-    "version":  "25.0.0.0",
-    "privacyStatement":  "https://go.microsoft.com/fwlink/?LinkId=724009",
-    "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
-    "help":  "",
-    "url":  "https://go.microsoft.com/fwlink/?LinkId=724011",
-    "logo":  "",
-    "dependencies":  [
-                         {
-                            "id": "79952567-63d7-4586-8b47-ba13a11a8a18",
-                            "name": "AppSource Product Gallery",
-                            "publisher": "Microsoft",
-                            "version": "25.0.0.0"
-                         },
-                         {
-                            "id": "812b339d-a9db-4a6e-84e4-fe35cbef0c44",
-                            "name": "Rest Client",
-                            "publisher": "Microsoft",
-                            "version": "25.0.0.0"
-                         },
-                         {
-                            "id":  "7b9b59f5-a68d-4271-b11a-0d3b9c0938dd",
-                            "name":  "User Settings",
-                            "publisher":  "Microsoft",
-                            "version": "25.0.0.0"
-                         }
-                     ],
-    "screenshots":  [
-
-                    ],
-    "idRanges":  [
-                     {
-                        "from":  132935,
-                        "to":  132936
-                    }
-                 ],
-    "platform":  "24.0.0.0",
-    "target":  "OnPrem"
+  "id": "ba17b564-d600-44d5-be0b-ca7ff7ac28fc",
+  "name": "AppSource Gallery Test Library",
+  "publisher": "Microsoft",
+  "brief": "Test objects for the AppSource Gallery module.",
+  "description": "Test objects for the AppSource Gallery module.",
+  "version": "25.1.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "logo": "",
+  "dependencies": [
+    {
+      "id": "79952567-63d7-4586-8b47-ba13a11a8a18",
+      "name": "AppSource Product Gallery",
+      "publisher": "Microsoft",
+      "version": "25.1.0.0"
+    },
+    {
+      "id": "812b339d-a9db-4a6e-84e4-fe35cbef0c44",
+      "name": "Rest Client",
+      "publisher": "Microsoft",
+      "version": "25.1.0.0"
+    },
+    {
+      "id": "7b9b59f5-a68d-4271-b11a-0d3b9c0938dd",
+      "name": "User Settings",
+      "publisher": "Microsoft",
+      "version": "25.1.0.0"
+    }
+  ],
+  "screenshots": [],
+  "idRanges": [
+    {
+      "from": 132935,
+      "to": 132936
+    }
+  ],
+  "platform": "24.0.0.0",
+  "target": "OnPrem"
 }
