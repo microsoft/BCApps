@@ -277,6 +277,10 @@ codeunit 7774 "Copilot Capability Impl"
     begin
         CopilotCapability := Enum::"Copilot Capability".FromInteger(Capability);
 
+        if (CopilotCapability <> Enum::"Copilot Capability"::Chat) or
+            (CopilotCapability <> Enum::"Copilot Capability"::"Analyze List") then
+            exit;
+
         if CopilotCapability = Enum::"Copilot Capability"::Chat then
             Silent := true;
 
