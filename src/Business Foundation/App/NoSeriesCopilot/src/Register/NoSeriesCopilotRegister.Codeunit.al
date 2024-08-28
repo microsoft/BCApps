@@ -15,12 +15,11 @@ codeunit 327 "No. Series Copilot Register"
     InherentPermissions = X;
     InherentEntitlements = X;
 
-    // TODO: Implement this trigger when all green lights are given.
-    // [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", 'OnRegisterCopilotCapability', '', false, false)]
-    // local procedure HandleOnRegisterCopilotCapability()
-    // begin
-    //     RegisterCapability();
-    // end;
+    [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", 'OnRegisterCopilotCapability', '', false, false)]
+    local procedure HandleOnRegisterCopilotCapability()
+    begin
+        RegisterCapability();
+    end;
 
     procedure RegisterCapability()
     var
