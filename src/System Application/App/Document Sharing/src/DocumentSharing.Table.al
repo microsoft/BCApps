@@ -121,6 +121,15 @@ table 9560 "Document Sharing"
             DataClassification = SystemMetadata;
             InitValue = Ask;
         }
+
+        /// <summary>
+        /// Specifies the state of the document sharing operation.
+        /// </summary>
+        field(13; State; Enum "Document Sharing State")
+        {
+            DataClassification = SystemMetadata;
+            InitValue = Success;
+        }
     }
 
     keys
