@@ -1,45 +1,43 @@
 {
-    "id":  "645965f7-95bf-4ee9-bf97-84e45dc6c6d1",
-    "name":  "Json",
-    "publisher":  "Microsoft",
-    "brief":  "Provides tools for working with JSON data.",
-    "description":  "Provides tools for working with JSON data such as reading, writing and parsing JSON.",
-    "version":  "25.0.0.0",
-    "privacyStatement":  "https://go.microsoft.com/fwlink/?linkid=724009",
-    "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
-    "help":  "https://go.microsoft.com/fwlink/?linkid=2103698",
-    "url":  "https://go.microsoft.com/fwlink/?linkid=724011",
-    "logo":  "",
-    "dependencies":  [
-                        {
-                            "id":  "e31ad830-3d46-472e-afeb-1d3d35247943",
-                            "name":  "BLOB Storage",
-                            "publisher":  "Microsoft",
-                            "version":  "25.0.0.0"
-                        },
-                        {
-                            "id":  "0846d207-5dec-4c1b-afd8-6a25e1e14b9d",
-                            "name":  "Base64 Convert",
-                            "publisher":  "Microsoft",
-                            "version":  "25.0.0.0"
-                        },
-                        {
-                            "id":  "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
-                            "name":  "DotNet Aliases",
-                            "publisher":  "Microsoft",
-                            "version":  "25.0.0.0"
-                        }
-                     ],
-    "screenshots":  [
-
-                    ],
-    "platform":  "24.0.0.0",
-    "idRanges":  [
-                     {
-                         "from":  5460,
-                         "to":  5461
-                     }
-                 ],
-    "target":  "OnPrem",
-    "contextSensitiveHelpUrl":  "https://learn.microsoft.com/dynamics365/business-central/"
+  "id": "645965f7-95bf-4ee9-bf97-84e45dc6c6d1",
+  "name": "Json",
+  "publisher": "Microsoft",
+  "brief": "Provides tools for working with JSON data.",
+  "description": "Provides tools for working with JSON data such as reading, writing and parsing JSON.",
+  "version": "25.1.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
+  "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+  "logo": "",
+  "dependencies": [
+    {
+      "id": "e31ad830-3d46-472e-afeb-1d3d35247943",
+      "name": "BLOB Storage",
+      "publisher": "Microsoft",
+      "version": "25.1.0.0"
+    },
+    {
+      "id": "0846d207-5dec-4c1b-afd8-6a25e1e14b9d",
+      "name": "Base64 Convert",
+      "publisher": "Microsoft",
+      "version": "25.1.0.0"
+    },
+    {
+      "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
+      "name": "DotNet Aliases",
+      "publisher": "Microsoft",
+      "version": "25.1.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "24.0.0.0",
+  "idRanges": [
+    {
+      "from": 5460,
+      "to": 5461
+    }
+  ],
+  "target": "OnPrem",
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
 }

@@ -1,40 +1,36 @@
 {
-    "id":  "88dda422-d220-415c-bd1c-6240e5a9ceee",
-    "name":  "Audit Codes",
-    "publisher":  "Microsoft",
-    "brief":  "",
-    "description":  "",
-    "version":  "25.0.0.0",
-    "privacyStatement":  "https://go.microsoft.com/fwlink/?linkid=724009",
-    "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
-    "help":  "https://go.microsoft.com/fwlink/?linkid=2103698",
-    "url":  "https://go.microsoft.com/fwlink/?linkid=724011",
-    "logo":  "",
-    "dependencies":  [
-                     ],
-    "internalsVisibleTo":  [
-                           ],
-    "screenshots":  [
-
-                    ],
-    "platform":  "25.0.0.0",
-    "target":  "OnPrem",
-    "idRanges":  [
-                     {
-                         "from":  1,
-                         "to":  9999
-                     }
-                 ],
-    "features":  [
-                     "TranslationFile",
-                     "GenerateCaptions",
-                     "NoImplicitWith",
-                     "NoPromotedActionProperties"
-                 ],
-    "resourceExposurePolicy":  {
-                                   "allowDebugging":  true,
-                                   "allowDownloadingSource":  true,
-                                   "includeSourceInSymbolFile":  true
-                               },
-    "contextSensitiveHelpUrl":  "https://learn.microsoft.com/dynamics365/business-central/"
+  "id": "88dda422-d220-415c-bd1c-6240e5a9ceee",
+  "name": "Audit Codes",
+  "publisher": "Microsoft",
+  "brief": "",
+  "description": "",
+  "version": "25.1.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2103698",
+  "url": "https://go.microsoft.com/fwlink/?linkid=724011",
+  "logo": "",
+  "dependencies": [],
+  "internalsVisibleTo": [],
+  "screenshots": [],
+  "platform": "25.0.0.0",
+  "target": "OnPrem",
+  "idRanges": [
+    {
+      "from": 1,
+      "to": 9999
+    }
+  ],
+  "features": [
+    "TranslationFile",
+    "GenerateCaptions",
+    "NoImplicitWith",
+    "NoPromotedActionProperties"
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
 }
