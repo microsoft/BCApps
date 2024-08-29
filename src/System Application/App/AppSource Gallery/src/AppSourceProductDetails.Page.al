@@ -341,13 +341,13 @@ page 2516 "AppSource Product Details"
 
         if FreeTrial then begin
             if Monthly > 0 then begin
-                PriceText := StrSubstNo(PlanLinePrUserPrMonthLbl, Currency, Format(Monthly, 12, 2));
+                PriceText := StrSubstNo(PlanLinePrUserPrMonthLbl, Currency, Format(Monthly, 12, 0));
                 MonthlyPriceText := StrSubstNo(PlanLineFirstMonthIsFreeLbl, PriceText)
             end
             else
                 MonthlyPriceText := StrSubstNo(PlanLineFirstMonthIsFreeLbl, PlanLinePriceVariesLbl);
             if Yearly > 0 then begin
-                PriceText := StrSubstNo(PlanLinePrUserPrYearLbl, Currency, Format(Yearly, 12, 2));
+                PriceText := StrSubstNo(PlanLinePrUserPrYearLbl, Currency, Format(Yearly, 12, 0));
                 YearlyPriceText := StrSubstNo(PlanLineFirstMonthIsFreeLbl, PriceText)
             end
             else
@@ -355,9 +355,9 @@ page 2516 "AppSource Product Details"
         end
         else begin
             if Monthly > 0 then
-                MonthlyPriceText := StrSubstNo(PlanLinePrUserPrMonthLbl, Currency, Format(Monthly, 12, 2));
+                MonthlyPriceText := StrSubstNo(PlanLinePrUserPrMonthLbl, Currency, Format(Monthly, 12, 0));
             if Yearly > 0 then
-                YearlyPriceText := StrSubstNo(PlanLinePrUserPrYearLbl, Currency, Format(Yearly, 12, 2));
+                YearlyPriceText := StrSubstNo(PlanLinePrUserPrYearLbl, Currency, Format(Yearly, 12, 0));
         end;
 
         exit(true);
