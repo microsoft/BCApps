@@ -78,32 +78,32 @@ codeunit 8905 "Email Message Impl."
         UpdateMessage(Recipients, Subject, Body, HtmlFormatted, '', CCRecipients, BCCRecipients);
     end;
 
-    procedure CreateReply(ToRecipients: Text; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    procedure CreateReply(ToRecipients: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
     var
         EmptyList: List of [Text];
     begin
-        CreateReply(EmptyList, Subject, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
+        CreateReply(EmptyList, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
         SetRecipients(Enum::"Email Recipient Type"::"To", ToRecipients);
     end;
 
-    procedure CreateReply(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    procedure CreateReply(ToRecipients: List of [Text]; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
     var
         EmptyList: List of [Text];
     begin
-        CreateReply(ToRecipients, Subject, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
+        CreateReply(ToRecipients, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
     end;
 
-    procedure CreateReplyAll(Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    procedure CreateReplyAll(Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
     var
         EmptyList: List of [Text];
     begin
-        CreateReply(EmptyList, Subject, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
+        CreateReply(EmptyList, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
     end;
 
-    procedure CreateReply(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
+    procedure CreateReply(ToRecipients: List of [Text]; Body: Text; HtmlFormatted: Boolean; ExternalId: Text; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
     begin
         InitializeCreation();
-        UpdateMessage(ToRecipients, Subject, Body, HtmlFormatted, ExternalId, CCRecipients, BCCRecipients);
+        UpdateMessage(ToRecipients, '', Body, HtmlFormatted, ExternalId, CCRecipients, BCCRecipients);
     end;
 
     local procedure InitializeCreation()
