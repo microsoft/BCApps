@@ -161,17 +161,6 @@ codeunit 9027 "Plan Ids"
         exit(D365AdminGUIDTxt);
     end;
 
-#if not CLEAN23
-    /// <summary>
-    /// Returns the ID for the Internal Administrator plan.
-    /// </summary>
-    /// <returns>The ID for the Internal Administrator plan.</returns>
-    [Obsolete('Replaced by GetGlobalAdminPlanId()', '23.0')]
-    procedure GetInternalAdminPlanId(): Guid
-    begin
-        exit(GlobalAdminGUIDTxt);
-    end;
-#endif
 
     /// <summary>
     /// Returns the ID for the Global Administrator plan.

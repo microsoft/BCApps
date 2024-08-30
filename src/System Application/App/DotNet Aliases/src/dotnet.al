@@ -800,43 +800,6 @@ dotnet
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
-#if not CLEAN23
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportedReport"; "ImportedReport")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportedReportRequestList"; "ImportedReportRequestList")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportedReportResponse"; "ImportedReportResponse")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportedReportResponseList"; "ImportedReportResponseList")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportReportRequest"; "ImportReportRequest")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportReportRequestList"; "ImportReportRequestList")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportReportResponse"; "ImportReportResponse")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportReportResponseList"; "ImportReportResponseList")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.ServiceWrapper"; "ServiceWrapper")
-        {
-        }
-#endif
         type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ReturnedReport"; "ReturnedReport")
         {
         }
@@ -2201,4 +2164,3 @@ dotnet
         }
     }
 }
-
