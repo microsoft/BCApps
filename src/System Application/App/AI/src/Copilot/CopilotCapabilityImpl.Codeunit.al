@@ -57,7 +57,10 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings.Publisher := CopyStr(CallerModuleInfo.Publisher, 1, MaxStrLen(CopilotSettings.Publisher));
         CopilotSettings.Availability := CopilotAvailability;
         CopilotSettings."Learn More Url" := LearnMoreUrl;
-        CopilotSettings.Status := Enum::"Copilot Status"::Active;
+        if CopilotSettings.Availability = Enum::"Copilot Availability"::"Early Preview" then
+            CopilotSettings.Status := Enum::"Copilot Status"::Inactive
+        else
+            CopilotSettings.Status := Enum::"Copilot Status"::Active;
         CopilotSettings.Insert();
         Commit();
 

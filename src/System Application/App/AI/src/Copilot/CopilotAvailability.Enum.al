@@ -27,4 +27,12 @@ enum 7774 "Copilot Availability"
     {
         Caption = 'Generally Available';
     }
+
+    /// <summary>
+    /// The Copilot Capability is in early preview.
+    /// </summary>
+    value(2; "Early Preview")
+    {
+        Caption = 'Early preview';
+    }
 }
