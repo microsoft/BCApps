@@ -13,6 +13,5 @@ permissionset 166 "User Permissions - Objects"
     Assignable = false;
 
     Permissions = page "Lookup Permission Set" = X,
-                  page "User Security Groups Part" = X,
                   page "User Subform" = X;
 }

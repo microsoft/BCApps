@@ -105,27 +105,6 @@ page 9801 "User Subform"
         }
     }
 
-    actions
-    {
-        area(processing)
-        {
-            action(Permissions)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Permissions';
-                Image = Permission;
-                ToolTip = 'View or edit which feature objects that users need to access and set up the related permissions in permission sets that you can assign to the users of the database.';
-
-                trigger OnAction()
-                var
-                    PermissionSetRelation: Codeunit "Permission Set Relation";
-                begin
-                    PermissionSetRelation.OpenPermissionSetPage(Rec."Role Name", Rec."Role ID", Rec."App ID", Rec.Scope);
-                end;
-            }
-        }
-    }
-
     var
         User: Record User;
         MultipleRoleIDErr: Label 'The permission set %1 is defined multiple times in this context. Use the lookup button to select the relevant permission set.', Comment = '%1 will be replaced with a Role ID code value from the Permission Set table';
