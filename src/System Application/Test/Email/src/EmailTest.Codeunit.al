@@ -1782,21 +1782,21 @@ codeunit 134685 "Email Test"
     var
         Any: Codeunit Any;
     begin
-        EmailMessage.CreateReply(Any.Email(), Any.UnicodeText(250), Any.UnicodeText(50), true, Any.UnicodeText(250));
+        EmailMessage.CreateReply(Any.Email(), Any.UnicodeText(50), true, Any.UnicodeText(250));
     end;
 
     local procedure CreateEmailReply(var EmailMessage: Codeunit "Email Message"; Recipients: Text)
     var
         Any: Codeunit Any;
     begin
-        EmailMessage.CreateReply(Recipients, Any.UnicodeText(250), Any.UnicodeText(50), true, Any.UnicodeText(250));
+        EmailMessage.CreateReply(Recipients, Any.UnicodeText(50), true, Any.UnicodeText(250));
     end;
 
     local procedure CreateEmailReplyAll(var EmailMessage: Codeunit "Email Message")
     var
         Any: Codeunit Any;
     begin
-        EmailMessage.CreateReplyAll(Any.UnicodeText(250), Any.UnicodeText(50), true, Any.UnicodeText(250));
+        EmailMessage.CreateReplyAll(Any.UnicodeText(50), true, Any.UnicodeText(250));
     end;
 
     [StrMenuHandler]
