@@ -14,6 +14,13 @@ codeunit 1481 "Edit in Excel"
 {
     Access = Public;
 
+    procedure IsMetadataGeneratedForWebService(WebServiceName: Text): Boolean
+    var
+        EditInExcelImpl: Codeunit "Edit in Excel Impl.";
+    begin
+        exit(EditInExcelImpl.IsMetadataGeneratedForWebService(WebServiceName))
+    end;
+
 #if not CLEAN22
     /// <summary>
     /// Creates web service for the specified page, and uses the web service to prepare and download an Excel file for the Edit in Excel functionality.

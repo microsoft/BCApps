@@ -12,6 +12,8 @@ using System.Environment;
 using System.Azure.Identity;
 #endif
 using System.Reflection;
+using System.Security.Authentication;
+using System.Azure.KeyVault;
 
 codeunit 1482 "Edit in Excel Impl."
 {
@@ -27,9 +29,7 @@ codeunit 1482 "Edit in Excel Impl."
 #endif
 
     var
-#if not CLEAN22
         EnvironmentInformation: Codeunit "Environment Information";
-#endif
         EditinExcel: Codeunit "Edit in Excel";
 #if not CLEAN22
         TenantWebserviceDoesNotExistTxt: Label 'Tenant web service does not exist.', Locked = true;
@@ -48,6 +48,14 @@ codeunit 1482 "Edit in Excel Impl."
         ExcelFileNameTxt: Text;
         XmlByteEncodingTok: Label '_x00%1_%2', Locked = true;
         XmlByteEncoding2Tok: Label '%1_x00%2_%3', Locked = true;
+        // Retrieving Metadata related:
+        AcquiredCESTokenLbl: Label 'AcquireTokensWithCertificate call was successful.', Locked = true;
+        AuthorityLbl: Label 'https://login.microsoftonline.com/microsoft.onmicrosoft.com', Locked = true;
+        BearerLbl: Label 'Bearer %1', Locked = true, Comment = '%1 - Bearer token';
+        ClientCertificateAKVSecretNameLbl: Label 'bctocesappcertificatename', Locked = true;
+        MissingClientIdOrCertificateTelemetryTxt: Label 'The client id or certificate have not been initialized.', Locked = true;
+        ClientIdAKVSecretNameLbl: Label 'bctocesappid', Locked = true;
+        CategoryTok: Label 'Customer Experience Survey', Locked = true;
 
     procedure EditPageInExcel(PageCaption: Text[240]; PageId: Integer; EditinExcelFilters: Codeunit "Edit in Excel Filters"; FileName: Text)
     var
@@ -348,6 +356,10 @@ codeunit 1482 "Edit in Excel Impl."
         TenantWebService.ExcludeNonEditableFlowFields := true;
         TenantWebService.Published := true;
         TenantWebService.Insert(true);
+
+        if not IsMetadataGeneratedForWebService(ServiceName) then
+            Message('Service was not generated');
+
         exit(ServiceName);
     end;
 
@@ -888,5 +900,125 @@ codeunit 1482 "Edit in Excel Impl."
         if StrLen(ConcatenatedErrors) > 0 then
             ConcatenatedErrors := DelStr(ConcatenatedErrors, StrLen(ConcatenatedErrors) - 1);
         exit(ConcatenatedErrors);
+    end;
+
+    procedure CreateMetadataWebRequest(MetadataUrl: Text): HttpRequestMessage
+    var
+        AccessToken: SecretText;
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpHeaders: HttpHeaders;
+        ErrorMessage: Text;
+    begin
+        if EnvironmentInformation.IsSaaS() then begin
+            AccessToken := AcquireToken(ErrorMessage);
+            if not AccessToken.IsEmpty() then begin
+                HttpRequestMessage.Method('GET');
+                HttpRequestMessage.SetRequestUri(MetadataUrl);
+                HttpHeaders := HttpClient.DefaultRequestHeaders();
+                HttpHeaders.Add('Accept', 'application/json');
+                HttpHeaders.Add('Authorization', SecretStrSubstNo(BearerLbl, AccessToken));
+                exit(HttpRequestMessage);
+            end;
+        end;
+    end;
+
+    procedure IsMetadataGeneratedForWebService(EntitySetName: Text): Boolean
+    var
+        HttpClient: HttpClient;
+        HttpResponseMessage: HttpResponseMessage;
+        HttpRequestMessage: HttpRequestMessage;
+        MetadataUrl: Text;
+        EntitySetXml: Text;
+        Document: DotNet XmlDocument;
+        NodeList: DotNet XmlNodeList;
+        NameSpaceManager: DotNet XmlNamespaceManager;
+    begin
+        MetadataUrl := 'https://api.businesscentral.dynamics.com/v2.0/Production/ODataV4/$metadata';
+        HttpRequestMessage := CreateMetadataWebRequest(MetadataUrl);
+        if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            if HttpResponseMessage.IsSuccessStatusCode then begin
+                HttpResponseMessage.Content().ReadAs(EntitySetXml);
+                Document := Document.XmlDocument();
+                Document.LoadXml(EntitySetXml);
+                NameSpaceManager := NameSpaceManager.XmlNamespaceManager(Document.NameTable());
+                NameSpaceManager.AddNamespace('edm', 'http://docs.oasis-open.org/odata/ns/edm');
+                NodeList := Document.SelectNodes('//edm:EntitySet[@Name="' + EntitySetName + '"]', NameSpaceManager);
+                exit(NodeList.Count() > 0);
+            end;
+            Message('It looks like the HTTP request was sent but it didnt have a successful status code');
+            exit(false);
+        end;
+        Message('The HttpClient could not even sent the request!');
+        exit(false);
+    end;
+
+    local procedure AcquireToken(var ErrorMessage: Text): SecretText
+    var
+        OAuth2: Codeunit OAuth2;
+        Scopes: List of [Text];
+        ClientId: Text;
+        ClientCertificate: SecretText;
+        AccessToken: SecretText;
+        IdToken: Text;
+    begin
+        ClientId := GetClientId();
+        ClientCertificate := GetClientCertificate();
+        Scopes.Add(GetScope());
+
+        if (ClientId <> '') and (not ClientCertificate.IsEmpty()) then
+            if OAuth2.AcquireTokensWithCertificate(ClientId, ClientCertificate, GetRedirectURL(), AuthorityLbl, Scopes, AccessToken, IdToken) then begin
+                Session.LogMessage('0000J9B', AcquiredCESTokenLbl, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+                exit(AccessToken);
+            end;
+
+        ErrorMessage := GetLastErrorText();
+    end;
+
+    [NonDebuggable]
+    local procedure GetClientCertificate(): SecretText
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        Certificate: SecretText;
+        CertificateName: Text;
+    begin
+        if not AzureKeyVault.GetAzureKeyVaultSecret(ClientCertificateAKVSecretNameLbl, CertificateName) then begin
+            Session.LogMessage('0000J9E', MissingClientIdOrCertificateTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+            exit(Certificate);
+        end;
+
+        if not AzureKeyVault.GetAzureKeyVaultCertificate(CertificateName, Certificate) then
+            Session.LogMessage('0000J9F', MissingClientIdOrCertificateTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+
+        exit(Certificate);
+    end;
+
+    [NonDebuggable]
+    local procedure GetRedirectURL(): Text
+    var
+        OAuth2: Codeunit OAuth2;
+        RedirectURL: Text;
+    begin
+        OAuth2.GetDefaultRedirectURL(RedirectURL);
+        exit(RedirectURL)
+    end;
+
+    [NonDebuggable]
+    local procedure GetScope(): Text
+    var
+    begin
+        exit('https://api.businesscentral.dynamics.com/.default');
+    end;
+
+    [NonDebuggable]
+    local procedure GetClientId(): Text
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        ClientId: Text;
+    begin
+        if not AzureKeyVault.GetAzureKeyVaultSecret(ClientIdAKVSecretNameLbl, ClientId) then
+            Session.LogMessage('0000J9D', MissingClientIdOrCertificateTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok)
+        else
+            exit(ClientId);
     end;
 }
