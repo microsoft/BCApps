@@ -18,10 +18,9 @@ table 9451 "File System Connector"
         {
             DataClassification = SystemMetadata;
         }
-        field(2; Logo; Blob)
+        field(2; Logo; Media)
         {
             DataClassification = SystemMetadata;
-            Subtype = Bitmap;
         }
         field(3; Description; Text[250])
         {

@@ -36,10 +36,8 @@ codeunit 9451 "File Account Impl."
                     TempFileAccount := FileAccounts;
                     TempFileAccount.Connector := Connector;
 
-                    if LoadLogos then begin
+                    if LoadLogos then
                         ImportLogo(TempFileAccount, Connector);
-                        ImportLogoBlob(TempFileAccount, Connector);
-                    end;
 
                     if not TempFileAccount.Insert() then;
                 until FileAccounts.Next() = 0;
@@ -140,11 +138,12 @@ codeunit 9451 "File Account Impl."
             TempBlob.CreateOutStream(OutStream);
             Base64Convert.FromBase64(ConnectorLogoBase64, OutStream);
             TempBlob.CreateInStream(InStream);
+            FileConnectorLogo.Init();
             FileConnectorLogo.Connector := FileAccount.Connector;
             FileConnectorLogo.Logo.ImportStream(InStream, StrSubstNo(ConnectorLogoDescriptionTxt, FileAccount.Connector));
             if FileConnectorLogo.Insert() then;
         end;
-        FileAccount.Logo := FileConnectorLogo.Logo
+        FileAccount.Logo := FileConnectorLogo.Logo;
     end;
 
     procedure IsAnyAccountRegistered(): Boolean
@@ -165,21 +164,16 @@ codeunit 9451 "File Account Impl."
 
     procedure FindAllConnectors(var FileConnector: Record "File System Connector")
     var
-        Base64Convert: Codeunit "Base64 Convert";
+        FileConnectorLogo: Record "File System Connector Logo";
         ConnectorInterface: Interface "File System Connector";
         FileSystemConnector: Enum "File System Connector";
-        ConnectorLogoBase64: Text;
-        OutStream: Outstream;
     begin
         foreach FileSystemConnector in Enum::"File System Connector".Ordinals() do begin
             ConnectorInterface := FileSystemConnector;
-            ConnectorLogoBase64 := ConnectorInterface.GetLogoAsBase64();
             FileConnector.Connector := FileSystemConnector;
             FileConnector.Description := ConnectorInterface.GetDescription();
-            if ConnectorLogoBase64 <> '' then begin
-                FileConnector.Logo.CreateOutStream(OutStream);
-                Base64Convert.FromBase64(ConnectorLogoBase64, OutStream);
-            end;
+            if FileConnectorLogo.Get(FileConnector.Connector) then
+                FileConnector.Logo := FileConnectorLogo.Logo;
             FileConnector.Insert();
         end;
     end;
@@ -219,20 +213,6 @@ codeunit 9451 "File Account Impl."
     begin
         if not IsUserFileAdmin() then
             Error(CannotManageSetupErr);
-    end;
-
-    local procedure ImportLogoBlob(var FileAccount: Record "File Account"; FileSystemConnector: Interface "File System Connector")
-    var
-        Base64Convert: Codeunit "Base64 Convert";
-        ConnectorLogoBase64: Text;
-        OutStream: Outstream;
-    begin
-        ConnectorLogoBase64 := FileSystemConnector.GetLogoAsBase64();
-
-        if ConnectorLogoBase64 <> '' then begin
-            FileAccount.LogoBlob.CreateOutStream(OutStream);
-            Base64Convert.FromBase64(ConnectorLogoBase64, OutStream);
-        end;
     end;
 
     [InternalEvent(false)]

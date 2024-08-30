@@ -35,13 +35,6 @@ table 9450 "File Account"
             Access = Internal;
             DataClassification = SystemMetadata;
         }
-
-        field(6; LogoBlob; Blob)
-        {
-            Access = Internal;
-            DataClassification = SystemMetadata;
-            Subtype = Bitmap;
-        }
     }
 
     keys

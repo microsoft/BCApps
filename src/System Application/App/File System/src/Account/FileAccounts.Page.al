@@ -36,7 +36,7 @@ page 9450 "File Accounts"
             {
                 Visible = ShowLogo;
                 FreezeColumn = NameField;
-                field(LogoField; Rec.LogoBlob)
+                field(LogoField; Rec.Logo)
                 {
                     ShowCaption = false;
                     Caption = ' ';
