@@ -361,19 +361,6 @@ codeunit 9987 "Word Template"
         exit(WordTemplateFieldSelection.IsFieldSupported(Field));
     end;
 
-#if not CLEAN22
-    /// <summary>
-    /// Remove a related or unrelated table.
-    /// </summary>
-    /// <param name="WordTemplateCode">The code of the parent Word template.</param>
-    /// <param name="RelatedTableID">The ID of the related table to remove. This table must not have tables depending on it, otherwise an error will be thrown.</param>
-    /// <returns>True if the table was removed, false otherwise.</returns>
-    [Obsolete('Replaced by RemoveTable below', '22.0')]
-    procedure RemoveRelatedTable(WordTemplateCode: Code[30]; TableId: Integer): Boolean
-    begin
-        WordTemplateImpl.RemoveTable(WordTemplateCode, TableId);
-    end;
-#endif
 
     /// <summary>
     /// Remove a related or unrelated table.

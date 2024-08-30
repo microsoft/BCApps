@@ -25,15 +25,6 @@ page 9058 "Custom Permission Set In Plan"
     {
         area(Content)
         {
-#if not CLEAN22
-            group("Assigned Permission Sets")
-            {
-                ShowCaption = false;
-                ObsoleteState = Pending;
-                ObsoleteReason = 'This group is not needed.';
-                ObsoleteTag = '22.0';
-            }
-#endif
 
             repeater(Group)
             {

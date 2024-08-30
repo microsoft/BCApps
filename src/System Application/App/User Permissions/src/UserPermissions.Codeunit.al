@@ -69,20 +69,6 @@ codeunit 152 "User Permissions"
         exit(UserPermissionsImpl.HasUserPermissionSetAssigned(UserSecurityId, Company, RoleId, Scope, AppId));
     end;
 
-#if not CLEAN22
-    /// <summary>
-    /// Checks whether custom permissions are assigned to the user.
-    /// </summary>
-    /// <param name="UserSecurityId">The security ID of the user to check for.</param>
-    /// <returns>True if the user with the given user security ID has custom permissions; false otherwise.</returns>
-    [Obsolete('Replaced with the ArePermissionsCustomized procedure in codeunit Azure AD User Management.', '22.0')]
-    procedure HasUserCustomPermissions(UserSecurityId: Guid): Boolean
-    var
-        UserPermissionsImpl: Codeunit "User Permissions Impl.";
-    begin
-        exit(UserPermissionsImpl.HasUserCustomPermissions(UserSecurityId));
-    end;
-#endif
 
     /// <summary>
     /// Gets the effective permissions for the current user in the current company.
@@ -107,4 +93,3 @@ codeunit 152 "User Permissions"
         exit(UserPermissionsImpl.GetEffectivePermission(PermissionObjectType, ObjectId));
     end;
 }
-

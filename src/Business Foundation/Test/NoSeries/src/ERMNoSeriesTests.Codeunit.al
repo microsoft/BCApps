@@ -686,7 +686,7 @@ codeunit 134370 "ERM No. Series Tests"
         CreateNewNumberSeries(NewName, IncrementBy, false, NoSeriesLine);
     end;
 
-#IF NOT clean24
+#if not CLEAN24
     local procedure CreateNewNumberSeries(NewName: Code[20]; IncrementBy: Integer; AllowGaps: Boolean; var NoSeriesLine: Record "No. Series Line")
     begin
         if AllowGaps then
