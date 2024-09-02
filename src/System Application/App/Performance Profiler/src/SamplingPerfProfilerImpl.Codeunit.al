@@ -95,17 +95,26 @@ codeunit 1925 "Sampling Perf. Profiler Impl."
 
     local procedure InitializeCpuProfile()
     var
-        JsonSerializer: DotNet JsonSerializer;
-        StreamReader: DotNet StreamReader;
         ProfilingResultsInStream: InStream;
     begin
         TempBlob.CreateInStream(ProfilingResultsInStream);
+        if TryDeserializeCpuProfile(ProfilingResultsInStream) then begin
+            if (not IsNull(CpuProfile)) then
+                if CpuProfile.Kind <> CpuProfile.Kind::Sampling then
+                    Error(NotSupportedCpuProfileKindErr);
+        end else
+            Error(NotSupportedCpuProfileKindErr);
+    end;
+
+    [TryFunction]
+    local procedure TryDeserializeCpuProfile(CpuProfileInStream: InStream)
+    var
+        JsonSerializer: DotNet JsonSerializer;
+        StreamReader: DotNet StreamReader;
+    begin
         JsonSerializer := JsonSerializer.JsonSerializer();
-        StreamReader := StreamReader.StreamReader(ProfilingResultsInStream);
+        StreamReader := StreamReader.StreamReader(CpuProfileInStream);
         CpuProfile := JsonSerializer.Deserialize(StreamReader, GetDotNetType(CpuProfile));
-        if (not IsNull(CpuProfile)) then
-            if CpuProfile.Kind <> CpuProfile.Kind::Sampling then
-                Error(NotSupportedCpuProfileKindErr);
     end;
 
     procedure GetProfilingNodes(var ProfilingNode: Record "Profiling Node")
