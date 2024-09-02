@@ -493,8 +493,14 @@ codeunit 1996 "Checklist Banner Impl."
     end;
 
     local procedure GetExpectedDurationInMiliseconds(ExpectedDurationInMinutes: Integer): Integer
+    var
+        MaxInt: Integer;
     begin
-        exit(ExpectedDurationInMinutes * 60000);
+        MaxInt := 2147483647;
+        if MaxInt div 60000 < ExpectedDurationInMinutes then
+            exit(MaxInt)
+        else
+            exit(ExpectedDurationInMinutes * 60000);
     end;
 
     local procedure ShouldModifyStatus(OldStatus: Enum "Checklist Item Status"; NewStatus: Enum "Checklist Item Status"): Boolean
