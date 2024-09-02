@@ -13,17 +13,20 @@ permissionset 149031 "AI Test Toolkit - Obj"
     Permissions = table "AIT Test Suite" = X,
         table "AIT Test Method Line" = X,
         table "AIT Log Entry" = X,
-        codeunit "AIT Test Suite Mgt." = X,
+        codeunit "AIT AL Test Suite Mgt" = X,
         codeunit "AIT Install" = X,
+        codeunit "AIT Log Entry" = X,
+        codeunit "AIT Test Suite Mgt." = X,
         codeunit "AIT Test Run Iteration" = X,
         codeunit "AIT Test Context" = X,
         codeunit "AIT Test Context Impl." = X,
         xmlport "AIT Test Suite Import/Export" = X,
         page "AIT CommandLine Card" = X,
         page "AIT Test Method Lines" = X,
-        page "AIT Test Method Lines Compare" = X,
         page "AIT Log Entries" = X,
+        page "AIT Log Entries Part" = X,
         page "AIT Log Entry API" = X,
         page "AIT Test Suite" = X,
-        page "AIT Test Suite List" = X;
+        page "AIT Test Suite List" = X,
+        page "AIT Test Suite Compare" = X;
 }

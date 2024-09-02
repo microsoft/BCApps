@@ -182,17 +182,9 @@ page 149031 "AIT Test Suite"
 
                 trigger OnAction()
                 var
-                    TemporaryAITTestSuiteRec: Record "AIT Test Suite" temporary;
                     AITTestSuiteComparePage: Page "AIT Test Suite Compare";
                 begin
-                    TemporaryAITTestSuiteRec.Code := Rec.Code;
-                    TemporaryAITTestSuiteRec.Version := Rec.Version;
-                    TemporaryAITTestSuiteRec."Base Version" := Rec."Version" - 1;
-                    TemporaryAITTestSuiteRec.Insert();
-
-                    AITTestSuiteComparePage.SetBaseVersion(Rec."Version" - 1);
-                    AITTestSuiteComparePage.SetVersion(Rec.Version);
-                    AITTestSuiteComparePage.SetRecord(TemporaryAITTestSuiteRec);
+                    AITTestSuiteComparePage.SetRecord(Rec);
                     AITTestSuiteComparePage.Run();
                 end;
             }
@@ -296,7 +288,7 @@ page 149031 "AIT Test Suite"
 
     local procedure UpdateAverageExecutionTime()
     begin
-        Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)", "No. of Tests Executed - Base", "Total Duration (ms) - Base");
+        Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)");
         if Rec."No. of Tests Executed" > 0 then
             AvgTimeDuration := Rec."Total Duration (ms)" div Rec."No. of Tests Executed"
         else

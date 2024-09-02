@@ -280,34 +280,13 @@ page 149033 "AIT Log Entries"
         ShowSensitiveData: Boolean;
 
     trigger OnAfterGetRecord()
+    var
+        AITLogEntryCU: Codeunit "AIT Log Entry";
     begin
         TestRunDuration := Rec."Duration (ms)";
         SetInputOutputDataFields();
-        SetErrorFields();
-        SetStatusStyleExpr();
-    end;
-
-    local procedure SetStatusStyleExpr()
-    begin
-        case Rec.Status of
-            Rec.Status::Success:
-                StatusStyleExpr := 'Favorable';
-            Rec.Status::Error:
-                StatusStyleExpr := 'Unfavorable';
-            else
-                StatusStyleExpr := '';
-        end;
-    end;
-
-    local procedure SetErrorFields()
-    begin
-        ErrorMessage := '';
-        ErrorCallStack := '';
-
-        if Rec.Status = Rec.Status::Error then begin
-            ErrorCallStack := Rec.GetErrorCallStack();
-            ErrorMessage := Rec.GetMessage();
-        end;
+        AITLogEntryCU.SetErrorFields(Rec, ErrorMessage, ErrorCallStack);
+        AITLogEntryCU.SetStatusStyleExpr(Rec, StatusStyleExpr);
     end;
 
     local procedure SetInputOutputDataFields()
