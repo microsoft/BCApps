@@ -197,6 +197,14 @@ table 149032 "AIT Test Method Line"
         exit(AITTestSuite."Input Dataset");
     end;
 
+    trigger OnInsert()
+    var
+        AITTestSuite: Record "AIT Test Suite";
+    begin
+        if AITTestSuite.Get(Rec."Test Suite Code") then
+            Rec."Input Dataset" := AITTestSuite."Input Dataset";
+    end;
+
     trigger OnDelete()
     var
         ALTestSuite: Record "AL Test Suite";
