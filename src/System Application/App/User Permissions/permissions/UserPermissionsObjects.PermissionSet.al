@@ -12,5 +12,6 @@ permissionset 166 "User Permissions - Objects"
     Access = Internal;
     Assignable = false;
 
-    Permissions = page "Lookup Permission Set" = X;
+    Permissions = page "Lookup Permission Set" = X,
+                  page "User Subform" = X;
 }
