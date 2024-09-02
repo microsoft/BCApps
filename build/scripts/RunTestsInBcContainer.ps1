@@ -4,24 +4,11 @@ Param(
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
-function Get-DisabledTestsFolder
+function Get-DisabledTests
 {
     $baseFolder = Get-BaseFolder
-    return "$baseFolder\src\System Application\Test\DisabledTests"
-}
 
-function Get-DisabledTests
-(
-    [string] $DisabledTestsFolder = (Get-DisabledTestsFolder)
-)
-{
-    if(-not (Test-Path $DisabledTestsFolder))
-    {
-        return
-    }
-
-    $disabledCodeunits = Get-ChildItem -Filter "*.json" -Path $DisabledTestsFolder
-
+    $disabledCodeunits = Get-ChildItem -Path $baseFolder -Filter "DisabledTests" -Recurse -Directory | ForEach-Object { Get-ChildItem -Path $_.FullName -Filter "*.json" }
     $disabledTests = @()
     foreach($disabledCodeunit in $disabledCodeunits)
     {
