@@ -107,7 +107,7 @@ page 9821 "Inherited Permission Sets Part"
     end;
 
     [Scope('OnPrem')]
-    internal procedure SetInitializedByCaller()
+    procedure SetInitializedByCaller()
     begin
         IsInitializedByCaller := true;
     end;
