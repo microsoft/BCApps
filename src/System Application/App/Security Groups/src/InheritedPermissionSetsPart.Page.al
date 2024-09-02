@@ -58,7 +58,8 @@ page 9821 "Inherited Permission Sets Part"
             Refresh();
     end;
 
-    internal procedure Refresh()
+    [Scope('OnPrem')]
+    procedure Refresh()
     var
         SecurityGroupMemberBuffer: Record "Security Group Member Buffer";
         SecurityGroup: Codeunit "Security Group";
@@ -68,7 +69,8 @@ page 9821 "Inherited Permission Sets Part"
         Refresh(SecurityGroupMemberBuffer);
     end;
 
-    internal procedure Refresh(var SecurityGroupMemberBuffer: Record "Security Group Member Buffer")
+    [Scope('OnPrem')]
+    procedure Refresh(var SecurityGroupMemberBuffer: Record "Security Group Member Buffer")
     var
         AccessControl: Record "Access Control";
         TempDummyAccessControl: Record "Access Control" temporary;
@@ -98,12 +100,14 @@ page 9821 "Inherited Permission Sets Part"
         CurrPage.Update(false);
     end;
 
-    internal procedure SetRecordToRefresh(var SecurityGroupMemberBuffer: Record "Security Group Member Buffer")
+    [Scope('OnPrem')]
+    procedure SetRecordToRefresh(var SecurityGroupMemberBuffer: Record "Security Group Member Buffer")
     begin
         SecurityGroupMemberBufferToRefresh.Copy(SecurityGroupMemberBuffer, true);
     end;
 
-    internal procedure SetInitializedByCaller()
+    [Scope('OnPrem')]
+    procedure SetInitializedByCaller()
     begin
         IsInitializedByCaller := true;
     end;
