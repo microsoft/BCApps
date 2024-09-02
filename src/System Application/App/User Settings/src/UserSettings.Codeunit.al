@@ -92,6 +92,40 @@ codeunit 9176 "User Settings"
     end;
 
     /// <summary>
+    /// Allows the user to select the new profile for given User Settings
+    /// </summary>
+    /// <param name="UserSettingsRec">User settings to update with the new profile</param>
+    procedure LookupProfile(var UserSettingsRec: Record "User Settings")
+    var
+        UserSettingsImpl: Codeunit "User Settings Impl.";
+    begin
+        UserSettingsImpl.ProfileLookup(UserSettingsRec);
+    end;
+
+    /// <summary>
+    /// Gets a profile name for the given user settings.
+    /// </summary>
+    /// <param name="UserSettingsRec">User settings to get the profile name.</param>
+    /// <returns></returns>
+    procedure GetProfileName(UserSettingsRec: Record "User Settings"): Text
+    var
+        UserSettingsImpl: Codeunit "User Settings Impl.";
+    begin
+        UserSettingsImpl.GetProfileName(UserSettingsRec.Scope, UserSettingsRec."App ID", UserSettingsRec."Profile ID");
+    end;
+
+    /// <summary>
+    /// Updates the user settings for given user
+    /// </summary>
+    /// <param name="UserSettings"></param>
+    procedure UpdateUserSettings(var UserSettings: Record "User Settings")
+    var
+        UserSettingsImpl: Codeunit "User Settings Impl.";
+    begin
+        UserSettingsImpl.UpdateUserSettings(UserSettings);
+    end;
+
+    /// <summary>
     /// Integration event to get the default profile.
     /// </summary>
     /// <param name="AllProfile">The return record that holds the default profile.</param>

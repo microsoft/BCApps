@@ -5,6 +5,8 @@
 
 namespace System.Security.AccessControl;
 
+using System.Security.User;
+
 /// <summary>
 /// View and edit the permission sets associated with a security group.
 /// </summary>
@@ -81,22 +83,13 @@ page 9868 "Security Group Permission Sets"
                 trigger OnAction()
                 var
                     TempAggregatePermissionSet: Record "Aggregate Permission Set" temporary;
-                    AccessControl: Record "Access Control";
                     PermissionSetRelation: Codeunit "Permission Set Relation";
+                    UserPermissions: Codeunit "User Permissions";
                 begin
                     if not PermissionSetRelation.LookupPermissionSet(true, TempAggregatePermissionSet) then
                         exit;
 
-                    if TempAggregatePermissionSet.FindSet() then
-                        repeat
-                            if not AccessControl.Get(Rec."User Security ID", TempAggregatePermissionSet."Role ID", '', TempAggregatePermissionSet.Scope, TempAggregatePermissionSet."App ID") then begin
-                                AccessControl."User Security ID" := Rec."User Security ID";
-                                AccessControl."Role ID" := TempAggregatePermissionSet."Role ID";
-                                AccessControl.Scope := TempAggregatePermissionSet.Scope;
-                                AccessControl."App ID" := TempAggregatePermissionSet."App ID";
-                                AccessControl.Insert();
-                            end;
-                        until TempAggregatePermissionSet.Next() = 0;
+                    UserPermissions.AssignPermissionSets(Rec."User Security ID", '', TempAggregatePermissionSet);
                 end;
             }
         }
