@@ -20,6 +20,7 @@ codeunit 135013 "Sampling Perf. Profiler Test"
         SamplingPerformanceProfiler: Codeunit "Sampling Performance Profiler";
         PerfProfilerTestLibrary: Codeunit "Perf. Profiler Test Library";
         NoRecordingErr: Label 'There is no performance profiling data.';
+        NotSupportedCpuProfileKindErr: Label 'This type of .alcpuprofile file is not supported. Please upload a sampling-based CPU profile file.';
 
     [Test]
     procedure TestGetDataFailsWhenNoDataIsSet()
