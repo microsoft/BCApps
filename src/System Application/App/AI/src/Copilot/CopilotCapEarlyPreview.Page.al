@@ -7,7 +7,7 @@ namespace System.AI;
 /// <summary>
 /// Page for listing the Copilot Capabilities which are in Early Preview.
 /// </summary>
-page 7770 "Copilot Capabilities Early P"
+page 7770 "Copilot Cap. Early Preview"
 {
     PageType = ListPart;
     ApplicationArea = All;
@@ -122,7 +122,7 @@ page 7770 "Copilot Capabilities Early P"
             action(SupplementalTerms)
             {
                 Caption = 'Supplemental Terms of Use';
-                ToolTip = 'Opens the supplemental terms of use for production ready preview capabilities.';
+                ToolTip = 'Opens the supplemental terms of use for early preview capabilities.';
                 Image = Info;
 
                 trigger OnAction()
