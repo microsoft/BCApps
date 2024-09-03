@@ -7,10 +7,10 @@ name: PSScriptAnalyzer
 on:
   push:
     branches: [ "main", "releases/*" ]
-    paths: ["**.ps1", "**.psm1", "**.psd1" ]
+    paths: ["**.ps1", "**.psm1", "**.psd1", ".github/workflows/powershell.yaml" ]
   pull_request:
     branches: [ "main", "releases/*" ]
-    paths: ["**.ps1", "**.psm1", "**.psd1" ]
+    paths: ["**.ps1", "**.psm1", "**.psd1", ".github/workflows/powershell.yaml" ]
 
 permissions:
   contents: read
