@@ -20,6 +20,7 @@ codeunit 135013 "Sampling Perf. Profiler Test"
         SamplingPerformanceProfiler: Codeunit "Sampling Performance Profiler";
         PerfProfilerTestLibrary: Codeunit "Perf. Profiler Test Library";
         NoRecordingErr: Label 'There is no performance profiling data.';
+        NotSupportedCpuProfileKindErr: Label 'This type of .alcpuprofile file is not supported. Please upload a sampling-based CPU profile file.';
 
     [Test]
     procedure TestGetDataFailsWhenNoDataIsSet()
@@ -96,6 +97,48 @@ codeunit 135013 "Sampling Perf. Profiler Test"
         GetDataInStr := SamplingPerformanceProfiler.GetData();
         GetDataInStr.Read(GetDataText);
         Assert.AreEqual(PerfProfilerTestLibrary.GetTestPerformanceProfile(), GetDataText, 'The performance profiler modified the underlying data.');
+
+        PerfProfilerTestLibrary.ClearData();
+    end;
+
+[Test]
+    procedure TestSetInvalidJsonData()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        SetDataInStr: InStream;
+        OutStr: OutStream;
+    begin
+        // [GIVEN] Test performance profiling data
+        TempBlob.CreateOutStream(OutStr);
+        OutStr.Write('{"invalid": "json"}');
+        TempBlob.CreateInStream(SetDataInStr);
+
+        // [WHEN] The performance profiling data has been set.
+        asserterror SamplingPerformanceProfiler.SetData(SetDataInStr);
+
+        // [THEN] The not supported profile error is thrown.
+        Assert.ExpectedError(NotSupportedCpuProfileKindErr);
+
+        PerfProfilerTestLibrary.ClearData();
+    end;
+
+    [Test]
+    procedure TestSetNonJsonData()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        SetDataInStr: InStream;
+        OutStr: OutStream;
+    begin
+        // [GIVEN] Test performance profiling data
+        TempBlob.CreateOutStream(OutStr);
+        OutStr.Write('non-json-data');
+        TempBlob.CreateInStream(SetDataInStr);
+
+        // [WHEN] The performance profiling data has been set.
+        asserterror SamplingPerformanceProfiler.SetData(SetDataInStr);
+
+        // [THEN] The not supported profile error is thrown.
+        Assert.ExpectedError(NotSupportedCpuProfileKindErr);
 
         PerfProfilerTestLibrary.ClearData();
     end;

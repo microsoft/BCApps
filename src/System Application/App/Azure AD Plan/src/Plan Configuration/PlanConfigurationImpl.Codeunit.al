@@ -104,10 +104,6 @@ codeunit 9822 "Plan Configuration Impl."
         CustomPermissionSetInPlan: Record "Custom Permission Set In Plan";
         CustomPermissionSetInOtherPlans: Record "Custom Permission Set In Plan";
         AccessControl: Record "Access Control";
-#if not CLEAN22
-        PlanConfiguration: Codeunit "Plan Configuration";
-        IsAssignedViaUserGroups: Boolean;
-#endif
         PlanIdFilter: Text;
     begin
         CustomPermissionSetInPlan.SetRange("Plan ID", PlanId);
@@ -116,15 +112,6 @@ codeunit 9822 "Plan Configuration Impl."
 
         repeat
             if AccessControl.Get(UserSecurityId, CustomPermissionSetInPlan."Role ID", CustomPermissionSetInPlan."Company Name", CustomPermissionSetInPlan.Scope, CustomPermissionSetInPlan."App ID") then
-#if not CLEAN22
-#pragma warning disable AA0013
-            begin
-#pragma warning restore AA0013
-#pragma warning disable AL0432
-                PlanConfiguration.OnBeforeRemoveCustomPermissionsFromUser(AccessControl, IsAssignedViaUserGroups);
-#pragma warning restore AL0432
-                if not IsAssignedViaUserGroups then
-#endif
                     if not GetUserPlansAsFilter(UserSecurityId, PlanId, PlanIdFilter) then
                         AccessControl.Delete() // there are no plans assigned to this user or we are deleting permissions for the only assigned plan
                     else begin
@@ -139,9 +126,6 @@ codeunit 9822 "Plan Configuration Impl."
                         if CustomPermissionSetInOtherPlans.IsEmpty() then
                             AccessControl.Delete();
                     end;
-#if not CLEAN22
-            end;
-#endif
         until CustomPermissionSetInPlan.Next() = 0;
     end;
 
@@ -199,10 +183,6 @@ codeunit 9822 "Plan Configuration Impl."
         DefaultPermissionSetInPlan: Record "Default Permission Set In Plan";
         DefaultPermissionSetInOtherPlans: Record "Default Permission Set In Plan";
         AccessControl: Record "Access Control";
-#if not CLEAN22
-        PlanConfiguration: Codeunit "Plan Configuration";
-        IsAssignedViaUserGroups: Boolean;
-#endif
         PlanIdFilter: Text;
     begin
         DefaultPermissionSetInPlan.SetRange("Plan ID", PlanId);
@@ -216,15 +196,6 @@ codeunit 9822 "Plan Configuration Impl."
             AccessControl.SetRange("App ID", DefaultPermissionSetInPlan."App ID");
 
             if AccessControl.FindFirst() then
-#if not CLEAN22
-#pragma warning disable AA0013
-            begin
-#pragma warning restore AA0013
-#pragma warning disable AL0432
-                PlanConfiguration.OnBeforeRemoveDefaultPermissionsFromUser(AccessControl, IsAssignedViaUserGroups);
-#pragma warning restore AL0432
-                if not IsAssignedViaUserGroups then
-#endif
                     if not GetUserPlansAsFilter(UserSecurityId, PlanId, PlanIdFilter) then
                         AccessControl.DeleteAll() // there are no plans assigned to this user or we are deleting permissions for the only assigned plan
                     else begin
@@ -238,9 +209,6 @@ codeunit 9822 "Plan Configuration Impl."
                         if DefaultPermissionSetInOtherPlans.IsEmpty() then
                             AccessControl.DeleteAll();
                     end;
-#if not CLEAN22
-            end;
-#endif
         until DefaultPermissionSetInPlan.Next() = 0;
     end;
 
@@ -325,21 +293,8 @@ codeunit 9822 "Plan Configuration Impl."
     internal procedure TransferPermissions(PlanId: Guid)
     var
         CustomPermissionSetInPlan: Record "Custom Permission Set In Plan";
-#if not CLEAN22
-#pragma warning disable AL0432
-        DefaultPermissionSetInPlan: Record "Permission Set In Plan Buffer";
-        DefaultPermissionSetInPlanController: Codeunit "Default Permission Set In Plan";
-#pragma warning restore AL0432
-#else
         DefaultPermissionSetInPlan: Record "Default Permission Set In Plan";
-#endif
-#if not CLEAN22
-        PlanConfiguration: Codeunit "Plan Configuration";
-#endif
     begin
-#if not CLEAN22
-        DefaultPermissionSetInPlanController.GetPermissionSets(PlanId, DefaultPermissionSetInPlan);
-#endif
         DefaultPermissionSetInPlan.SetRange("Plan ID", PlanId);
         if DefaultPermissionSetInPlan.FindSet() then
             repeat
@@ -351,27 +306,14 @@ codeunit 9822 "Plan Configuration Impl."
 
                 if CustomPermissionSetInPlan.Insert() then;
             until DefaultPermissionSetInPlan.Next() = 0;
-#if not CLEAN22
-#pragma warning disable AL0432
-        PlanConfiguration.OnAfterTransferPermissions(PlanId);
-#pragma warning restore AL0432
-#endif
     end;
 
     local procedure DeleteCustomizations(PlanId: Guid)
     var
         CustomPermissionSetInPlan: Record "Custom Permission Set In Plan";
-#if not CLEAN22
-        PlanConfiguration: Codeunit "Plan Configuration";
-#endif
     begin
         CustomPermissionSetInPlan.SetRange("Plan ID", PlanId);
         CustomPermissionSetInPlan.DeleteAll();
-#if not CLEAN22
-#pragma warning disable AL0432
-        PlanConfiguration.OnAfterDeleteCustomPermissions(PlanId);
-#pragma warning restore AL0432
-#endif
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Plan Configuration Card", OnAfterValidateEvent, Customized, false, false)]

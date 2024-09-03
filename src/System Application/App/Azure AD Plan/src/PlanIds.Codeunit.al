@@ -59,17 +59,6 @@ codeunit 9027 "Plan Ids"
         exit(TeamMemberPlanGUIDTxt);
     end;
 
-#if not CLEAN22
-    /// <summary>
-    /// Returns the ID for the Microsoft 365 Collaboration plan.
-    /// </summary>
-    /// <returns>The ID for the Microsoft 365 Collaboration plan.</returns>
-    [Obsolete('Replaced by GetMicrosoft365PlanId()', '22.0')]
-    procedure GetM365CollaborationPlanId(): Guid
-    begin
-        exit(Microsoft365PlanGUIDTxt);
-    end;
-#endif
 
     /// <summary>
     /// Returns the ID for the Microsoft 365 plan.

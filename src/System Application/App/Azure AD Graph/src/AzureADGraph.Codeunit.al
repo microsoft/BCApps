@@ -151,20 +151,6 @@ codeunit 9012 "Azure AD Graph"
         exit(AzureADGraphImpl.IsM365CollaborationEnabled());
     end;
 
-#if not CLEAN22
-    /// <summary>
-    /// Gets the name of the Microsoft Entra security group defined in tenant admin center.
-    /// For more info, see https://learn.microsoft.com/en-us/dynamics365/business-central/dev-itpro/administration/tenant-admin-center-environments#manage-access-using-azure-active-directory-groups
-    /// </summary>
-    /// <returns>The name of the Microsoft Entra security group defined in tenant admin center.</returns>
-    [Scope('OnPrem')]
-    [NonDebuggable]
-    [Obsolete('Renamed to GetEnvironmentSecurityGroupId()', '22.0')]
-    procedure GetEnvironmentDirectoryGroup(): Text
-    begin
-        exit(AzureADGraphImpl.GetEnvironmentSecurityGroupId());
-    end;
-#endif
 
     /// <summary>
     /// Gets the name of the Microsoft Entra security group defined in tenant admin center.
