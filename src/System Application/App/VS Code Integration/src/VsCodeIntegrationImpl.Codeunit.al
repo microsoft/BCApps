@@ -128,7 +128,7 @@ codeunit 8333 "VS Code Integration Impl."
 
             if AllObjWithCaption.FindFirst() then begin
                 NavAppInstalledApp.Reset();
-                NavAppInstalledApp.SetRange("Package ID", AllObjWithCaption."App Runtime Package ID");
+                NavAppInstalledApp.SetRange("Package ID", AllObjWithCaption."App Package ID");
                 if NavAppInstalledApp.FindFirst() then
                     exit(NavAppInstalledApp."App ID");
             end;
