@@ -2,7 +2,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-
 namespace Microsoft.Test.Foundation.NoSeries;
 
 using System.TestLibraries.Utilities;
@@ -35,7 +34,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeries: Codeunit "No. Series";
     begin
         Initialize();
-        CreateNewNumberSeries('TEST', 1, false, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 1, Enum::"No. Series Implementation"::Normal, NoSeriesLine);
         LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesLine."Series Code"), 'lastUsedNo function before taking a number');
         LibraryAssert.AreEqual(0D, NoSeriesLine."Last Date Used", 'Last Date used should be 0D');
 
@@ -57,7 +56,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeries: Codeunit "No. Series";
     begin
         Initialize();
-        CreateNewNumberSeries('TEST', 1, true, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 1, Enum::"No. Series Implementation"::Sequence, NoSeriesLine);
         LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesLine."Series Code"), 'lastUsedNo function before taking a number');
         LibraryAssert.AreEqual(ToBigInt(10), NoSeriesLine."Starting Sequence No.", 'Starting Sequence No. is wrong');
         LibraryAssert.AreEqual(ToBigInt(9), NumberSequence.Current(NoSeriesLine."Sequence Name"), 'Current value wrong');
@@ -117,7 +116,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeries: Codeunit "No. Series";
     begin
         Initialize();
-        CreateNewNumberSeries('TEST', 10, false, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 10, Enum::"No. Series Implementation"::Normal, NoSeriesLine);
         LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesLine."Series Code"), 'lastUsedNo function before taking a number');
         LibraryAssert.AreEqual(ToBigInt(0), NoSeriesLine."Starting Sequence No.", 'Starting Sequence No. is wrong');
 
@@ -168,7 +167,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeriesLine: Record "No. Series Line";
     begin
         Initialize();
-        CreateNewNumberSeries('TEST', 10, false, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 10, Enum::"No. Series Implementation"::Normal, NoSeriesLine);
         NoSeries.Get('TEST');
         NoSeries."Date Order" := true;
         NoSeries.Modify();
@@ -214,7 +213,7 @@ codeunit 134370 "ERM No. Series Tests"
         FormattedNo: Code[20];
     begin
         Initialize();
-        CreateNewNumberSeries('TEST', 10, false, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 10, Enum::"No. Series Implementation"::Normal, NoSeriesLine);
         NoSeriesLine."Starting No." := 'A000001';
         NoSeriesLine."Last No. Used" := 'A900001';
         NoSeriesLine.Validate(Implementation, Enum::"No. Series Implementation"::Sequence);
@@ -268,7 +267,7 @@ codeunit 134370 "ERM No. Series Tests"
         FormattedNo: Code[20];
     begin
         Initialize();
-        CreateNewNumberSeries('TEST', 10, false, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 10, Enum::"No. Series Implementation"::Normal, NoSeriesLine);
         NoSeriesLine."Starting No." := 'ABC00000000000000001';
         NoSeriesLine."Ending No." := 'ABC10000000000000900';
         NoSeriesLine."Last No. Used" := 'ABC10000000000000001';
@@ -335,7 +334,7 @@ codeunit 134370 "ERM No. Series Tests"
         Initialize();
 
         // [GIVEN] Created No Series with Implementation = Sequence and "Last No. Used"
-        CreateNewNumberSeries('TEST', 10, false, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 10, Enum::"No. Series Implementation"::Normal, NoSeriesLine);
         NoSeriesLine."Starting No." := '1000001';
         LastNoUsed := '1000023';
         NoSeriesLine."Last No. Used" := LastNoUsed;
@@ -393,7 +392,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeries: Codeunit "No. Series";
     begin
         Initialize();
-        CreateNewNumberSeries('TEST', 1, false, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 1, Enum::"No. Series Implementation"::Normal, NoSeriesLine);
         // Simulate that NoSeriesLine was inserted programmatically without triggering creation of Sequence
         NoSeriesLine.Implementation := Enum::"No. Series Implementation"::Sequence;
         NoSeriesLine."Sequence Name" := Format(CreateGuid());
@@ -411,23 +410,23 @@ codeunit 134370 "ERM No. Series Tests"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestModifyNoGetNextWithoutGaps()
     begin
-        ModifyNoGetNext(false);
+        ModifyNoGetNext(Enum::"No. Series Implementation"::Normal);
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestModifyNoGetNextWithGaps()
     begin
-        ModifyNoGetNext(true);
+        ModifyNoGetNext(Enum::"No. Series Implementation"::Sequence);
     end;
 
-    local procedure ModifyNoGetNext(AllowGaps: Boolean)
+    local procedure ModifyNoGetNext(NoSeriesImplementation: Enum "No. Series Implementation")
     var
         NoSeriesLine: Record "No. Series Line";
         NoSeries: Codeunit "No. Series";
     begin
         Initialize();
-        CreateNewNumberSeries('TEST', 1, AllowGaps, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 1, NoSeriesImplementation, NoSeriesLine);
 
         // test
         LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetNextNo(NoSeriesLine."Series Code", Today, false), 'Gaps diff - first');
@@ -442,7 +441,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeriesBatch: Codeunit "No. Series - Batch";
     begin
         Initialize();
-        CreateNewNumberSeriesWithAllowGaps('TEST', 1, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 1, Enum::"No. Series Implementation"::Sequence, NoSeriesLine);
 
         // test
         LibraryAssert.AreEqual(StartingNumberTxt, NoSeriesBatch.GetNextNo(NoSeriesLine."Series Code", Today), 'Gaps diff');
@@ -462,7 +461,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeriesBatch: Codeunit "No. Series - Batch";
     begin
         Initialize();
-        CreateNewNumberSeriesWithoutAllowGaps('TEST', 1, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 1, Enum::"No. Series Implementation"::Normal, NoSeriesLine);
 
         // test
         LibraryAssert.AreEqual(StartingNumberTxt, NoSeriesBatch.GetNextNo(NoSeriesLine."Series Code", Today), 'Gaps diff');
@@ -478,23 +477,23 @@ codeunit 134370 "ERM No. Series Tests"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestCurrentAndNextDifferWithOutGaps()
     begin
-        CurrentAndNextDiffer(false);
+        CurrentAndNextDiffer(Enum::"No. Series Implementation"::Normal);
     end;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestCurrentAndNextDifferWithGaps()
     begin
-        CurrentAndNextDiffer(true);
+        CurrentAndNextDiffer(Enum::"No. Series Implementation"::Sequence);
     end;
 
-    local procedure CurrentAndNextDiffer(AllowGaps: Boolean)
+    local procedure CurrentAndNextDiffer(NoSeriesImplementation: Enum "No. Series Implementation")
     var
         NoSeriesLine: Record "No. Series Line";
         NoSeries: Codeunit "No. Series";
     begin
         Initialize();
-        CreateNewNumberSeries('TEST', 1, AllowGaps, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 1, NoSeriesImplementation, NoSeriesLine);
 
         // test
         LibraryAssert.AreEqual('', NoSeries.GetLastNoUsed(NoSeriesLine), 'Wrong last no.');
@@ -510,7 +509,7 @@ codeunit 134370 "ERM No. Series Tests"
     begin
         // Create no. series without no. series line
         Initialize();
-        CreateNewNumberSeries('TEST', 1, true, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 1, Enum::"No. Series Implementation"::Sequence, NoSeriesLine);
         NoSeriesLine.Delete();
 
         // Invoke TestNoSeries action
@@ -531,7 +530,7 @@ codeunit 134370 "ERM No. Series Tests"
     begin
         // Create no. series without no. series line
         Initialize();
-        CreateNewNumberSeries('TEST', 1, true, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 1, Enum::"No. Series Implementation"::Sequence, NoSeriesLine);
         NoSeriesLine.Validate("Starting Date", CalcDate('<+1M>', WorkDate()));
         NoSeriesLine.Modify(true);
 
@@ -554,7 +553,7 @@ codeunit 134370 "ERM No. Series Tests"
     begin
         // Create no. series without no. series line
         Initialize();
-        CreateNewNumberSeries('TEST', 1, true, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 1, Enum::"No. Series Implementation"::Sequence, NoSeriesLine);
 
         // Invoke TestNoSeries action succeeds
         NoSeriesPage.OpenEdit();
@@ -573,7 +572,7 @@ codeunit 134370 "ERM No. Series Tests"
     begin
         // Create no. series without no. series line
         Initialize();
-        CreateNewNumberSeries('TEST', 1, true, NoSeriesLine); // todo: test fails when using sequence. Not sure how it passed before
+        CreateNewNumberSeries('TEST', 1, Enum::"No. Series Implementation"::Sequence, NoSeriesLine);
 
         // Invoke TestNoSeries action succeeds
         NoSeriesPage.OpenEdit();
@@ -648,7 +647,7 @@ codeunit 134370 "ERM No. Series Tests"
         Initialize();
 
         // [GIVEN] Created No Series with Implementation = Sequence and "Last No. Used" = '1000023'
-        CreateNewNumberSeries('TEST', 10, false, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 1, Enum::"No. Series Implementation"::Normal, NoSeriesLine);
         NoSeriesLine."Starting No." := '1000001';
         LastNoUsed := '1000023';
         NoSeriesLine."Last No. Used" := LastNoUsed;
@@ -676,17 +675,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeriesLine.TestField("Last No. Used", '');
     end;
 
-    local procedure CreateNewNumberSeriesWithAllowGaps(NewName: Code[20]; IncrementBy: Integer; var NoSeriesLine: Record "No. Series Line")
-    begin
-        CreateNewNumberSeries(NewName, IncrementBy, true, NoSeriesLine);
-    end;
-
-    local procedure CreateNewNumberSeriesWithoutAllowGaps(NewName: Code[20]; IncrementBy: Integer; var NoSeriesLine: Record "No. Series Line")
-    begin
-        CreateNewNumberSeries(NewName, IncrementBy, false, NoSeriesLine);
-    end;
-
-#IF NOT clean24
+#if not CLEAN24
     local procedure CreateNewNumberSeries(NewName: Code[20]; IncrementBy: Integer; AllowGaps: Boolean; var NoSeriesLine: Record "No. Series Line")
     begin
         if AllowGaps then
@@ -873,7 +862,7 @@ codeunit 134370 "ERM No. Series Tests"
         NoSeries: Codeunit "No. Series";
     begin
         Initialize();
-        CreateNewNumberSeries('TEST', 1, true, NoSeriesLine);
+        CreateNewNumberSeries('TEST', 1, Enum::"No. Series Implementation"::Sequence, NoSeriesLine);
 
         // test
         LibraryAssert.AreEqual(StartingNumberTxt, NoSeries.GetNextNo(NoSeriesLine."Series Code", Today, true), 'With gaps diff');

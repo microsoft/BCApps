@@ -97,8 +97,8 @@ page 1932 "Perf. Profiler Schedule Card"
                 {
                     ApplicationArea = All;
                     Caption = 'User ID';
-                    ToolTip = 'Specifies the ID of the user who created the schedule.';
-                    AboutText = 'The ID of the user who created the schedule.';
+                    ToolTip = 'Specifies the ID of the user associated with the schedule.';
+                    AboutText = 'The ID of the user associated with the schedule.';
                     TableRelation = User."User Security ID";
                     Lookup = true;
 

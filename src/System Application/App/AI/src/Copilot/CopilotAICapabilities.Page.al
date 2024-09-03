@@ -133,7 +133,7 @@ page 7775 "Copilot AI Capabilities"
                 ApplicationArea = All;
                 Editable = false;
             }
-            part(EarlyPreviewCapabilities; "Copilot Capabilities Early P")
+            part(EarlyPreviewCapabilities; "Copilot Cap. Early Preview")
             {
                 Caption = 'Early previews (not for production)';
                 ApplicationArea = All;

@@ -20,5 +20,7 @@ permissionset 9031 "Security Groups - Objects"
                   page "Security Group Members Part" = X,
                   page "Security Group Permission Sets" = X,
                   page "Security Groups" = X,
+                  page "User Security Groups Part" = X,
+                  page "Inherited Permission Sets Part" = X,
                   xmlport "Export/Import Security Groups" = X;
 }

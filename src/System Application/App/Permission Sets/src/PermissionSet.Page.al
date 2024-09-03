@@ -97,25 +97,6 @@ page 9855 "Permission Set"
             }
         }
 
-#if not CLEAN22
-        area(FactBoxes)
-        {
-            part(PermissionsRelated; "Expanded Permissions Factbox")
-            {
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Factbox no longer used. Use the "View Permissions In Set" actions on the Permission Set parts instead.';
-                ObsoleteTag = '22.0';
-                Visible = false;
-                ApplicationArea = All;
-                Caption = 'Included permissions';
-                ShowFilter = true;
-                SubPageLink = "Role ID" = field("Related Role ID"), "App ID" = field("Related App ID");
-                Provider = PermissionSetTree;
-                AboutTitle = 'About included permissions factbox';
-                AboutText = 'The Included permissions FactBox lists the permissions that are included in permissions sets that have been added to this set.';
-            }
-        }
-#endif
     }
 
     actions
