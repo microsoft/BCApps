@@ -161,13 +161,6 @@ codeunit 1996 "Checklist Banner Impl."
             exit(UserChecklistStatus."Checklist Status" = UserChecklistStatus."Checklist Status"::Completed);
     end;
 
-#if not CLEAN22
-    [Obsolete('Replaced by ExecuteChecklistItem without IsEvaluationCompany as parameter.', '22.0')]
-    procedure ExecuteChecklistItem(var ChecklistItemBuffer: Record "Checklist Item Buffer"; Tour: DotNet Tour; IsLastChecklistItem: Boolean; IsEvaluationCompany: Boolean): Boolean
-    begin
-        ExecuteChecklistItem(ChecklistItemBuffer, Tour, IsLastChecklistItem);
-    end;
-#endif
 
     procedure ExecuteChecklistItem(var ChecklistItemBuffer: Record "Checklist Item Buffer"; Tour: DotNet Tour; IsLastChecklistItem: Boolean): Boolean
     var

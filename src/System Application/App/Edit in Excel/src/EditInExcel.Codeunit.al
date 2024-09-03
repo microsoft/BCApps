@@ -14,21 +14,6 @@ codeunit 1481 "Edit in Excel"
 {
     Access = Public;
 
-#if not CLEAN22
-    /// <summary>
-    /// Creates web service for the specified page, and uses the web service to prepare and download an Excel file for the Edit in Excel functionality.
-    /// </summary>
-    /// <param name="PageCaption">The name of the page. This will be used for the name of the downloaded excel file, additionally the web service will be called [PageCaption]_Excel. Note if the PageCaption starts with a digit, the web service name will be WS[PageCaption]_Excel.</param>
-    /// <param name="PageId">The ID of the page, for example, "21".</param>
-    /// <param name="Filter">The Business Central filter to be applied in Edit in Excel.</param>
-    [Obsolete('Filters are now provided through EditinExcelFilters', '22.0')]
-    procedure EditPageInExcel(PageCaption: Text[240]; PageId: Text; Filter: Text)
-    var
-        EditInExcelImpl: Codeunit "Edit in Excel Impl.";
-    begin
-        EditInExcelImpl.EditPageInExcel(PageCaption, PageId, Filter, '');
-    end;
-#endif
 
     /// <summary>
     /// Creates web service for the specified page, and uses the web service to prepare and download an Excel file for the Edit in Excel functionality.
@@ -56,22 +41,6 @@ codeunit 1481 "Edit in Excel"
         EditInExcelImpl.EditPageInExcel(PageCaption, PageId, EditinExcelFilters, '');
     end;
 
-#if not CLEAN22
-    /// <summary>
-    /// Creates web service for the specified page, and uses the web service to prepare and download an Excel file for the Edit in Excel functionality.
-    /// </summary>
-    /// <param name="PageCaption">The name of the page. This will be used for the name of the downloaded excel file, if the FileName parameter is not set. Additionally, the web service will be called [PageCaption]_Excel. Note if the PageCaption starts with a digit, the web service name will be WS[PageCaption]_Excel.</param>
-    /// <param name="PageId">The ID of the page, for example, "21".</param>
-    /// <param name="Filter">The Business Central filter to be applied in Edit in Excel.</param>
-    /// <param name="FileName">The name of the downloaded excel file.</param>
-    [Obsolete('Filters are now provided through EditinExcelFilters', '22.0')]
-    procedure EditPageInExcel(PageCaption: Text[240]; PageId: Text; Filter: Text; FileName: Text)
-    var
-        EditInExcelImpl: Codeunit "Edit in Excel Impl.";
-    begin
-        EditInExcelImpl.EditPageInExcel(PageCaption, PageId, Filter, FileName);
-    end;
-#endif
 
     /// <summary>
     /// Creates web service for the specified page, and uses the web service to prepare and download an Excel file for the Edit in Excel functionality.
@@ -112,20 +81,6 @@ codeunit 1481 "Edit in Excel"
         EditInExcelImpl.GetEndPointAndCreateWorkbookWStructuredFilter(TenantWebService."Service Name", EditinExcelFilters, '');
     end;
 
-#if not CLEAN22
-    /// <summary>
-    /// This event is called when Edit in Excel is invoked, accepting Filter in Text format. It allows overriding the Edit in Excel functionality.
-    /// </summary>
-    /// <param name="ServiceName">The name of the web service already created for use with Edit in Excel.</param>
-    /// <param name="Filter">The Business Central filter to be applied in Edit in Excel.</param>
-    /// <param name="SearchFilter">The search filter of the user.</param>
-    //  <param name="Handled">Specifies whether the event has been handled and no further execution should occur.</param>
-    [IntegrationEvent(false, false)]
-    [Obsolete('This event has been replaced by OnEditInExcelWithFilters', '22.0')]
-    internal procedure OnEditInExcel(ServiceName: Text[240]; ODataFilter: Text; SearchFilter: Text; var Handled: Boolean)
-    begin
-    end;
-#endif
 
     /// <summary>
     /// This event is called when Edit in Excel is invoked, handling JSON structured filters. It also allows overriding the Edit in Excel functionality.

@@ -11,13 +11,7 @@ permissionset 774 "Azure AD Plan - Objects"
     Assignable = false;
 
     Permissions = page "Custom Permission Set In Plan" = X,
-#if not CLEAN22
-#pragma warning disable AL0432
-#endif
                   page "Default Permission Set In Plan" = X,
-#if not CLEAN22
-#pragma warning restore AL0432
-#endif
                   page "Plan Configuration Card" = X,
                   page "Plan Configuration List" = X,
                   page "Plan Configurations Part" = X,

@@ -1203,31 +1203,6 @@ codeunit 1991 "Guided Experience Impl."
         GlobalLanguage(CurrentLanguage);
     end;
 
-#if not CLEAN22
-    [Obsolete('Use Telemetry.LogMessage to add common custom dimensions, like CompanyName.', '22.0')]
-    procedure AddCompanyNameDimension(var Dimensions: Dictionary of [Text, Text])
-    begin
-        Dimensions.Add('CompanyName', CompanyName);
-    end;
-
-    [Obsolete('Use Telemetry.LogMessage to add common custom dimensions, like UserRole.', '22.0')]
-    procedure AddRoleDimension(var Dimensions: Dictionary of [Text, Text]; var UserPersonalization: Record "User Personalization")
-    var
-        Language: Codeunit Language;
-        CurrentLanguage: Integer;
-    begin
-        if not (UserPersonalization.Scope = UserPersonalization.Scope::System) then
-            exit;
-        CurrentLanguage := GlobalLanguage();
-        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
-
-        Dimensions.Add('Role', UserPersonalization."Profile ID");
-        Dimensions.Add('RoleExtension', UserPersonalization."App ID");
-        Dimensions.Add('RoleScope', Format(UserPersonalization.Scope));
-
-        GlobalLanguage(CurrentLanguage);
-    end;
-#endif
 
     local procedure RaiseOnRegisterSetupEvents()
     var
