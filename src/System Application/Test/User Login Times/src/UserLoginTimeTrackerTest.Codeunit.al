@@ -22,7 +22,6 @@ codeunit 130044 "User Login Time Tracker Test"
         LibraryAssert: Codeunit "Library Assert";
         UserLoginTimeTracker: Codeunit "User Login Time Tracker";
         UserLoginTestLibrary: Codeunit "User Login Test Library";
-        PermissionsMock: Codeunit "Permissions Mock";
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
