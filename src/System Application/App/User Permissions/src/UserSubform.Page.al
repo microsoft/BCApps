@@ -3,54 +3,44 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Azure.Identity;
+namespace System.Security.User;
 
-using System.Apps;
 using System.Security.AccessControl;
 
-/// <summary>
-/// List part that holds the custom permission sets assigned to a plan.
-/// </summary>
-page 9058 "Custom Permission Set In Plan"
+page 9801 "User Subform"
 {
-    Caption = 'Permission Set Plan Assignment';
-    PageType = ListPart;
+    Caption = 'User Permission Sets';
     DelayedInsert = true;
-    SourceTable = "Custom Permission Set In Plan";
-    Editable = true;
-    Permissions = tabledata "Custom Permission Set In Plan" = rimd,
-                  tabledata "Published Application" = r;
+    PageType = ListPart;
+    SourceTable = "Access Control";
 
     layout
     {
-        area(Content)
+        area(content)
         {
-
             repeater(Group)
             {
-                field("Plan Id"; Rec."Plan ID")
+                Caption = 'User Permissions';
+                field(PermissionSet; Rec."Role ID")
                 {
-                    ApplicationArea = All;
-                    Visible = false;
-                    Editable = false;
-                    Caption = 'License';
-                    ToolTip = 'Specifies the ID of the license.';
-                }
-
-                field(PermissionSetId; Rec."Role ID")
-                {
-                    ApplicationArea = All;
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Permission Set';
-                    ToolTip = 'Specifies the ID of the permission set that will be assigned to users with this license.';
+                    ToolTip = 'Specifies the ID of a security role that has been assigned to this Windows login in the current database.';
                     Style = Unfavorable;
                     StyleExpr = PermissionSetNotFound;
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
                         PermissionSetLookupRecord: Record "Aggregate Permission Set";
-                        PlanConfigurationImpl: Codeunit "Plan Configuration Impl.";
+                        LookupPermissionSet: Page "Lookup Permission Set";
                     begin
-                        if PlanConfigurationImpl.LookupPermissionSet(false, Rec, PermissionSetLookupRecord) then begin
+                        LookupPermissionSet.LookupMode := true;
+                        if LookupPermissionSet.RunModal() = ACTION::LookupOK then begin
+                            LookupPermissionSet.GetRecord(PermissionSetLookupRecord);
+                            Rec.Scope := PermissionSetLookupRecord.Scope;
+                            Rec."App ID" := PermissionSetLookupRecord."App ID";
+                            Rec."Role ID" := PermissionSetLookupRecord."Role ID";
+                            Rec.CalcFields("App Name", "Role Name");
                             SkipValidation := true;
                             PermissionScope := Format(PermissionSetLookupRecord.Scope);
                         end;
@@ -84,29 +74,29 @@ page 9058 "Custom Permission Set In Plan"
                 }
                 field(Description; Rec."Role Name")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Description';
                     DrillDown = false;
                     Editable = false;
-                    ToolTip = 'Specifies the description of the permission set.';
+                    ToolTip = 'Specifies the name of the security role that has been given to this Windows login in the current database.';
                 }
                 field(Company; Rec."Company Name")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Company';
-                    ToolTip = 'Specifies the name of the company that this permission set is limited to for this plan.';
+                    ToolTip = 'Specifies the name of the company that this role is limited to for this Windows login.';
                 }
                 field(ExtensionName; Rec."App Name")
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Extension Name';
                     DrillDown = false;
                     Editable = false;
-                    ToolTip = 'Specifies the name of the extension from which the permission set originates.';
+                    ToolTip = 'Specifies the name of the extension.';
                 }
                 field(PermissionScope; PermissionScope)
                 {
-                    ApplicationArea = All;
+                    ApplicationArea = Basic, Suite;
                     Caption = 'Permission Scope';
                     Editable = false;
                     ToolTip = 'Specifies the scope of the permission set.';
@@ -115,48 +105,52 @@ page 9058 "Custom Permission Set In Plan"
         }
     }
 
-    internal procedure SetPlanId(PlanId: Guid)
-    begin
-        LocalPlanId := PlanId;
-    end;
+    var
+        User: Record User;
+        MultipleRoleIDErr: Label 'The permission set %1 is defined multiple times in this context. Use the lookup button to select the relevant permission set.', Comment = '%1 will be replaced with a Role ID code value from the Permission Set table';
+        SkipValidation: Boolean;
+        PermissionScope: Text;
+        PermissionSetNotFound: Boolean;
 
     trigger OnAfterGetRecord()
     var
         AggregatePermissionSet: Record "Aggregate Permission Set";
     begin
+        if User."User Name" <> '' then
+            CurrPage.Caption := User."User Name";
+
         PermissionScope := Format(Rec.Scope);
 
         PermissionSetNotFound := false;
-        if not (Rec."Role ID" in ['SUPER', 'SECURITY']) then
+        if not (Rec."Role ID" in ['SUPER', 'SECURITY']) then begin
             PermissionSetNotFound := not AggregatePermissionSet.Get(Rec.Scope, Rec."App ID", Rec."Role ID");
+
+            if PermissionSetNotFound then
+                OnPermissionSetNotFound();
+        end;
     end;
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
-        Rec."Plan ID" := LocalPlanId;
-        Rec.CalcFields("App Name", "Role Name");
+        User.TestField("User Name");
+        Rec.CalcFields("App Name", Rec."Role Name");
     end;
 
     trigger OnModifyRecord(): Boolean
     begin
-        Rec.CalcFields("App Name", "Role Name");
+        Rec.CalcFields("App Name", Rec."Role Name");
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        Rec.CalcFields("App Name", "Role Name");
+        if User.Get(Rec."User Security ID") then;
+        Rec.CalcFields("App Name", Rec."Role Name");
         PermissionScope := '';
     end;
 
-    trigger OnAfterGetCurrRecord()
+    [IntegrationEvent(false, false)]
+    local procedure OnPermissionSetNotFound()
     begin
-        Rec.CalcFields("App Name", "Role Name");
     end;
-
-    var
-        MultipleRoleIDErr: Label 'The permission set %1 is defined multiple times in this context. Use the lookup button to select the relevant permission set.', Comment = '%1 will be replaced with a Role ID code value from the Permission Set table';
-        LocalPlanId: Guid;
-        SkipValidation: Boolean;
-        PermissionScope: Text;
-        PermissionSetNotFound: Boolean;
 }
+
