@@ -272,12 +272,17 @@ codeunit 7774 "Copilot Capability Impl"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetCopilotCapabilityStatus', '', false, false)]
-    local procedure GetCopilotCapabilityStatus(Capability: Integer; var IsEnabled: Boolean)
+    local procedure GetCopilotCapabilityStatus(Capability: Integer; var IsEnabled: Boolean; AppId: Guid)
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
+        CurrentModuleInfo: ModuleInfo;
         CopilotCapability: Enum "Copilot Capability";
         Silent: Boolean;
     begin
+        NavApp.GetCallerModuleInfo(CurrentModuleInfo);
+        if AppId <> CurrentModuleInfo.Id() then
+            exit;
+
         CopilotCapability := Enum::"Copilot Capability".FromInteger(Capability);
 
         if CopilotCapability = Enum::"Copilot Capability"::Chat then
