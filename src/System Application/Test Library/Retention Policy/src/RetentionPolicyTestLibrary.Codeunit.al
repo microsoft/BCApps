@@ -35,9 +35,21 @@ codeunit 138709 "Retention Policy Test Library"
 
     procedure MaxNumberOfRecordsToDeleteBuffer(): Integer
     var
-        RetenPolDeleteImpl: Codeunit "Reten. Pol. Delete. Impl.";
+        ApplyRetentionPolicyImpl: Codeunit "Apply Retention Policy Impl.";
     begin
-        exit(RetenPolDeleteImpl.NumberOfRecordsToDeleteBuffer());
+        exit(ApplyRetentionPolicyImpl.NumberOfRecordsToDeleteBuffer());
+    end;
+
+    procedure RetentionPolicyLogEntryTableId(): Integer
+    begin
+        exit(Database::"Retention Policy Log Entry")
+    end;
+
+    procedure RetentionPolicyLogEntrySystemCreatedAtFieldNo(): Integer
+    var
+        RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
+    begin
+        exit(RetentionPolicyLogEntry.FieldNo(SystemCreatedAt))
     end;
 
     procedure RetenionPolicyLogLastEntryNo(): Integer
