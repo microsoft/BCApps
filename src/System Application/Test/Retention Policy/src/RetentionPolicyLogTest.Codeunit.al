@@ -15,7 +15,6 @@ using System.TestLibraries.Security.AccessControl;
 codeunit 138705 "Retention Policy Log Test"
 {
     Subtype = Test;
-    Permissions = tabledata "Retention Policy Log Entry" = r;
 
     var
         Assert: Codeunit "Library Assert";
@@ -183,7 +182,7 @@ codeunit 138705 "Retention Policy Log Test"
     var
         FieldValues: Dictionary of [Text, Text];
     begin
-        RetentionPolicyTestLibrary.GetRetentionPolicyLogEntry(EntryNo);
+        FieldValues := RetentionPolicyTestLibrary.GetRetentionPolicyLogEntry(EntryNo);
         Assert.AreEqual(Format(MessageType), FieldValues.Get('MessageType'), 'wrong message type');
         Assert.AreEqual(Format(Category), FieldValues.Get('Category'), 'wrong category');
         Assert.AreEqual(Message, FieldValues.Get('Message'), 'wrong message');

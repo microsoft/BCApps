@@ -10,6 +10,7 @@ using System.DataAdministration;
 codeunit 138709 "Retention Policy Test Library"
 {
     EventSubscriberInstance = Manual;
+    Permissions = tabledata "Retention Policy Log Entry" = r;
 
     var
         RecordLimitExceededSubscriberCount: Integer;
