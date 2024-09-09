@@ -74,9 +74,11 @@ codeunit 3916 "Reten. Pol. Delete. Impl." implements "Reten. Pol. Deleting"
         RecordRef.FilterGroup := 0;
     end;
 
-    internal procedure NumberOfRecordsToDeleteBuffer(): Integer
+    local procedure NumberOfRecordsToDeleteBuffer(): Integer
+    var
+        ApplyRetentionPolicyImpl: Codeunit "Apply Retention Policy Impl.";
     begin
-        exit(0)
+        exit(ApplyRetentionPolicyImpl.NumberOfRecordsToDeleteBuffer())
     end;
 
     local procedure LogCategory(): Enum "Retention Policy Log Category"

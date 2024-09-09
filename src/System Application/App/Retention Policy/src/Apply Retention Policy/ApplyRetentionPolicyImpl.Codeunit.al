@@ -432,6 +432,11 @@ codeunit 3904 "Apply Retention Policy Impl."
         exit(10000)
     end;
 
+    internal procedure NumberOfRecordsToDeleteBuffer(): Integer
+    begin
+        exit(0)
+    end;
+
     local procedure Count(RecordRef: RecordRef): Integer;
     begin
         if RecordRef.ReadPermission() then
