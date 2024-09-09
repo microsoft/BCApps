@@ -39,4 +39,23 @@ codeunit 138709 "Retention Policy Test Library"
         exit(RetenPolDeleteImpl.NumberOfRecordsToDeleteBuffer());
     end;
 
+    procedure RetenionPolicyLogLastEntryNo(): Integer
+    var
+        RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
+    begin
+        if RetentionPolicyLogEntry.FindLast() then;
+        exit(RetentionPolicyLogEntry."Entry No.");
+    end;
+
+    procedure GetRetentionPolicyLogEntry(EntryNo: Integer) FieldValues: Dictionary of [Text, Text]
+    var
+        RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
+    begin
+        SelectLatestVersion(Database::"Retention Policy Log Entry");
+        RetentionPolicyLogEntry.Get(EntryNo);
+        FieldValues.Add('MessageType', Format(RetentionPolicyLogEntry."Message Type"));
+        FieldValues.Add('Category', Format(RetentionPolicyLogEntry.Category));
+        FieldValues.Add('Message', RetentionPolicyLogEntry.Message);
+    end;
+
 }
