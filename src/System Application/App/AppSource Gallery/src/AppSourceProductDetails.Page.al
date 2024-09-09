@@ -61,6 +61,12 @@ page 2516 "AppSource Product Details"
                     Caption = 'Publisher Type';
                     ToolTip = 'Specifies whether the offer is a Microsoft or third party product.';
                 }
+                field(Offer_LastModifiedDateTime; AppSourceJsonUtilities.GetStringValue(ProductObject, 'lastModifiedDateTime'))
+                {
+                    Caption = 'Last Modified Date Time';
+                    ToolTip = 'Specifies the date the offer was last updated.';
+                    Visible = false;
+                }
             }
             group(DescriptionGroup)
             {
@@ -131,12 +137,6 @@ page 2516 "AppSource Product Details"
                     Caption = 'Support Uri';
                     ToolTip = 'Specifies the support Uri of the offer.';
                     ExtendedDatatype = URL;
-                }
-                field(Offer_LastModifiedDateTime; AppSourceJsonUtilities.GetStringValue(ProductObject, 'lastModifiedDateTime'))
-                {
-                    Caption = 'Last Modified Date Time';
-                    ToolTip = 'Specifies the date the offer was last updated.';
-                    Visible = false;
                 }
             }
         }
