@@ -132,6 +132,12 @@ page 2516 "AppSource Product Details"
                     ToolTip = 'Specifies the support Uri of the offer.';
                     ExtendedDatatype = URL;
                 }
+                field(Offer_LastModifiedDateTime; AppSourceJsonUtilities.GetStringValue(ProductObject, 'lastModifiedDateTime'))
+                {
+                    Caption = 'Last Modified Date Time';
+                    ToolTip = 'Specifies the date the offer was last updated.';
+                    Visible = false;
+                }
             }
         }
     }
