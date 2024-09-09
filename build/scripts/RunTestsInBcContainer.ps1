@@ -25,4 +25,9 @@ if ($disabledTests)
     $parameters["disabledTests"] = $disabledTests
 }
 
+$testIsolationModules = @('489a0bcb-0619-4bd1-b626-9f30dbe8af4d','0d60b215-6ee1-4789-8e53-866cfa50c23c') # Retention Policy Tests, System Application Tests
+if ($testIsolationModules -contains $parameters["extensionId"] ) {
+    $parameters["testRunnerCodeunitId"] = "138705"
+}
+
 Run-TestsInBcContainer @parameters
