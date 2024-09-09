@@ -190,7 +190,7 @@ page 2515 "AppSource Product List"
         ReloadAllProducts();
     end;
 
-    trigger OnAfterGetCurrRecord()
+    trigger OnAfterGetRecord()
     begin
         CurrentRecordCanBeUninstalled := false;
         if (not IsNullGuid(Rec.AppID)) then

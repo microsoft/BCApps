@@ -789,13 +789,7 @@ codeunit 9988 "Word Template Impl."
     begin
         TableLookup.LookupMode(true);
         if TableLookup.RunModal() = Action::LookupOK then begin
-#if not CLEAN22
-#pragma warning disable AL0432
-#endif
             TableLookup.GetRecord(AllowedTables);
-#if not CLEAN22
-#pragma warning restore AL0432
-#endif
             exit(AllowedTables."Table ID");
         end;
     end;
