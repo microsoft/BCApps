@@ -77,6 +77,11 @@
       "id": "33003b8a-f6d8-4efe-af22-1a8cb8fbacbe",
       "name": "Retencion Policy Test Library",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "489a0bcb-0619-4bd1-b626-9f30dbe8af4d",
+      "name": "Retention Policy Test",
+      "publisher": "Microsoft"
     }
   ],
   "screenshots": [],
