@@ -24,4 +24,19 @@ codeunit 138709 "Retention Policy Test Library"
     begin
         RecordLimitExceededSubscriberCount += 1;
     end;
+
+    procedure MaxNumberOfRecordsToDelete(): Integer
+    var
+        ApplyRetentionPolicyImpl: Codeunit "Apply Retention Policy Impl.";
+    begin
+        exit(ApplyRetentionPolicyImpl.MaxNumberOfRecordsToDelete());
+    end;
+
+    procedure MaxNumberOfRecordsToDeleteBuffer(): Integer
+    var
+        RetenPolDeleteImpl: Codeunit "Reten. Pol. Delete. Impl.";
+    begin
+        exit(RetenPolDeleteImpl.NumberOfRecordsToDeleteBuffer());
+    end;
+
 }
