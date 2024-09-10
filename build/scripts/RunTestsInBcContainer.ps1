@@ -32,7 +32,7 @@ function Get-TestsInGroup {
     $testsInGroup = @()
     foreach($groupFile in $groupFiles)
     {
-        $testsInGroup += Get-Content -Raw -Path $groupFile.FullName | ConvertFrom-Json | Where-Object { $_.Name -eq $groupName }
+        $testsInGroup += Get-Content -Raw -Path $groupFile.FullName | ConvertFrom-Json | Where-Object { $_.group -eq $groupName }
     }
 
     return $testsInGroup
