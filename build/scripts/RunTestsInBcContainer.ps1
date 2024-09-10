@@ -1,5 +1,6 @@
 Param(
-    [Hashtable]$parameters
+    [Hashtable] $parameters,
+    [switch] $DisableTestIsolation
 )
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
@@ -18,14 +19,9 @@ function Get-DisabledTests
     return @($disabledTests)
 }
 
-$disabledTests = Get-DisabledTests
+$disabledTests = @(Get-DisabledTests)
 
-if ($disabledTests)
-{
-    $parameters["disabledTests"] = $disabledTests
-}
-
-if ($parameters["testRunnerCodeunitId"] -ne "138705")
+if (-not $DisableTestIsolation)
 {
     # The follwoing test codeunits need to run without test isolation
     $retentionPolicyTestCodeunits = @(
@@ -61,6 +57,15 @@ if ($parameters["testRunnerCodeunitId"] -ne "138705")
     }
 }
 
-Write-Host "Disabled tests: $($disabledTests | ConvertTo-Json -Depth 100)"
+if($DisableTestIsolation)
+{
+    $parameters["testRunnerCodeunitId"] = "138705" # Disables the test isolation
+}
+
+if ($disabledTests)
+{
+    $parameters["disabledTests"] = $disabledTests
+    Write-Host "Disabled tests: $($disabledTests | ConvertTo-Json -Depth 100)"
+}
 
 Run-TestsInBcContainer @parameters
