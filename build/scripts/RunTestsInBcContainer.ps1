@@ -47,7 +47,6 @@ if ($DisableTestIsolation)
 
     # When test isolation is disabled, only tests from the "No Test Isolation" group should be run
     $parameters["testCodeunitRange"] = @($noIsolationTests | ForEach-Object { $_.codeunitId }) -join "|"
-    $parameters["extensionId"] = "" # extensionId and testCodeunitRange are mutually exclusive, so extensionId should be empty
 }
 else { # Test isolation is enabled
     # Manually disable the test codeunits, as they need to be run without test isolation
