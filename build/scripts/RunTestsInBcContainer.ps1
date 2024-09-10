@@ -59,7 +59,7 @@ if (-not $DisableTestIsolation)
 
 if($DisableTestIsolation)
 {
-    $parameters["testRunnerCodeunitId"] = "138705" # Disables the test isolation
+    $parameters["testRunnerCodeunitId"] = "130451" # Test Runner with disabled test isolation
 }
 
 if ($disabledTests)
