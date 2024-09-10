@@ -52,10 +52,11 @@ codeunit 7771 "Azure OpenAI"
     /// <returns>True if API and capability is enabled for environment.</returns>
     procedure IsEnabled(CopilotCapability: Enum "Copilot Capability"; Silent: Boolean; AppId: Guid): Boolean
     var
-        CallerModuleInfo: ModuleInfo;
+        AppModuleInfo: ModuleInfo;
     begin
-        NavApp.GetModuleInfo(AppId, CallerModuleInfo);
-        exit(AzureOpenAIImpl.IsEnabled(CopilotCapability, Silent, CallerModuleInfo));
+        if not NavApp.GetModuleInfo(AppId, AppModuleInfo) then
+            exit(false);
+        exit(AzureOpenAIImpl.IsEnabled(CopilotCapability, Silent, AppModuleInfo));
     end;
 
     /// <summary>
