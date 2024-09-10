@@ -65,7 +65,6 @@ if($DisableTestIsolation)
 if ($disabledTests)
 {
     $parameters["disabledTests"] = $disabledTests
-    Write-Host "Disabled tests: $($disabledTests | ConvertTo-Json -Depth 100)"
 }
 
 Run-TestsInBcContainer @parameters
