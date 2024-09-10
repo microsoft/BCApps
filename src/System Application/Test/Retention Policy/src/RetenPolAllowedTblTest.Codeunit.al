@@ -96,7 +96,7 @@ codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
             RetenPolAllowedTables.RemoveAllowedTable(OldAllowedTables.Get(TableIndex));
 
         // [WHEN] Tables are refreshed
-        RetenPolAllowedTables.OnRefreshAllowedTables();
+        RetentionPolicyTestLibrary.RaiseOnRefreshAllowedTables();
 
         // [THEN] The same tables exist
         RetenPolAllowedTables.GetAllowedTables(NewAllowedTables);
@@ -105,7 +105,7 @@ codeunit 138703 "Reten. Pol. Allowed Tbl. Test"
             Assert.AreEqual(OldAllowedTables.Get(TableIndex), NewAllowedTables.Get(TableIndex), 'Not all allowed tables were refreshed.');
 
         // [THEN] It's possible to refresh the table again, even though entries already exist
-        RetenPolAllowedTables.OnRefreshAllowedTables();
+        RetentionPolicyTestLibrary.RaiseOnRefreshAllowedTables();
     end;
 
     [Test]

@@ -142,7 +142,7 @@ codeunit 138705 "Retention Policy Log Test"
         ClearLastError();
 
         // Exercise
-        if not Codeunit.Run(Codeunit::"Apply Retention Policy Impl.", RetentionPolicySetup) then
+        if not RetentionPolicyTestLibrary.RunApplyRetentionPolicyImpl(RetentionPolicySetup) then
             RetentionPolicyLog.LogError(RetentionPolicyLogCategory::"Retention Policy - Apply", StrSubstNo(ErrorOccuredDuringApplyErrLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Name", GetLastErrorText()), false);
 
         // Verify
@@ -168,7 +168,7 @@ codeunit 138705 "Retention Policy Log Test"
         ClearLastError();
 
         // Exercise
-        if not Codeunit.Run(Codeunit::"Apply Retention Policy Impl.", TempRetentionPolicySetup) then
+        if not RetentionPolicyTestLibrary.RunApplyRetentionPolicyImpl(TempRetentionPolicySetup) then
             RetentionPolicyLog.LogError(RetentionPolicyLogCategory::"Retention Policy - Apply", StrSubstNo(ErrorOccuredDuringApplyErrLbl, TempRetentionPolicySetup."Table Id", TempRetentionPolicySetup."Table Name", GetLastErrorText()), false);
 
         // Verify
