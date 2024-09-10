@@ -52,7 +52,8 @@ codeunit 2500 "Extension Installation Impl"
         exit(not NAVAppInstalledApp.IsEmpty());
     end;
 
-    procedure IsInstalledByAppId(AppID: Guid): Boolean
+
+    procedure IsInstalledByAppId(AppId: Guid): Boolean
     var
         NAVAppInstalledApp: Record "NAV App Installed App";
     begin
@@ -207,7 +208,7 @@ codeunit 2500 "Extension Installation Impl"
         exit(UninstallExtensionSilently(PackageID, ClearSchema, ClearSchema));
     end;
 
-    procedure DeleteOrphanData(PackageID: Guid; ExtensionName: Text): Boolean
+    procedure DeleteOrphanData(AppId: Guid; ExtensionName: Text): Boolean
     var
         ConfirmManagement: Codeunit "Confirm Management";
     begin
@@ -215,7 +216,7 @@ codeunit 2500 "Extension Installation Impl"
 
         if not ConfirmManagement.GetResponse(StrSubstNo(ClearExtensionSchemaOrphanMsg, ExtensionName), false) then exit(false);
 
-        exit(UninstallExtensionSilently(PackageID, false, true));
+        exit(UninstallExtensionSilentlyByAppId(AppId, false, true));
     end;
 
     procedure RunOrphanDeletion(OrphanedApplication: Record "Extension Database Snapshot"): Boolean
@@ -226,7 +227,6 @@ codeunit 2500 "Extension Installation Impl"
         exit(OrphanedExtensionDetails.RunModal() = Action::OK);
     end;
 
-
     local procedure UninstallExtensionSilently(PackageID: Guid; ClearData: Boolean; ClearSchema: Boolean): Boolean
     begin
         CheckPermissions();
@@ -234,6 +234,18 @@ codeunit 2500 "Extension Installation Impl"
         DotNetNavAppALInstaller.ALUninstallNavApp(PackageID, ClearData, ClearSchema);
 
         if IsInstalledByPackageId(PackageID) then
+            exit(false);
+
+        exit(true);
+    end;
+
+    local procedure UninstallExtensionSilentlyByAppId(AppId: Guid; ClearData: Boolean; ClearSchema: Boolean): Boolean
+    begin
+        CheckPermissions();
+        AssertIsInitialized();
+        DotNetNavAppALInstaller.ALUninstallNavAppByAppId(AppId, ClearData, ClearSchema);
+
+        if IsInstalledByAppId(AppId) then
             exit(false);
 
         exit(true);
