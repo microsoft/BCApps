@@ -81,6 +81,9 @@ page 149034 "AIT Test Method Lines"
                 field(Duration; Rec."Total Duration (ms)")
                 {
                 }
+                field("Tokens Consumed"; Rec."Tokens Consumed")
+                {
+                }
                 field(AvgDuration; AITTestSuiteMgt.GetAvgDuration(Rec))
                 {
                     Caption = 'Average Duration (ms)';

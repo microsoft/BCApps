@@ -50,6 +50,10 @@ page 149038 "AIT Log Entry API"
                 {
                     Caption = 'Version';
                 }
+                field(tokensConsumed; Rec."Tokens Consumed")
+                {
+                    Caption = 'Total Tokens Consumed';
+                }
                 field("startTime"; Rec."Start Time")
                 {
                     Caption = 'Start Time';

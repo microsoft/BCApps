@@ -151,6 +151,14 @@ table 149030 "AIT Test Suite"
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version")));
         }
+        field(24; "Tokens Consumed"; Integer)
+        {
+            Caption = 'Total Tokens Consumed';
+            ToolTip = 'Specifies the aggregated number of tokens consumed by the test in the current version. This is applicable only when using Microsoft AI Module.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+        }
         field(31; "No. of Tests Executed - Base"; Integer)
         {
             Caption = 'No. of Tests Executed';
@@ -182,6 +190,14 @@ table 149030 "AIT Test Suite"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Code"), Version = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+        }
+        field(35; "Tokens Consumed - Base"; Integer)
+        {
+            Caption = 'Tokens Consumed - Base';
+            ToolTip = 'Specifies the aggregated number of tokens consumed by the test in the base version. This is applicable only when using Microsoft AI Module.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Code"), Version = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(50; "Test Runner Id"; Integer)
         {

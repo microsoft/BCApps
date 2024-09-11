@@ -158,6 +158,11 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Output Data';
         }
+        field(50; "Tokens Consumed"; Integer)
+        {
+            Caption = 'Total Tokens Consumed';
+            ToolTip = 'Specifies the aggregated number of tokens consumed by the test. This is applicable only when using Microsoft AI Module.';
+        }
     }
 
     keys
