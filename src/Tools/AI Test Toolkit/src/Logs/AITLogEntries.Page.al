@@ -238,7 +238,6 @@ page 149033 "AIT Log Entries"
                 begin
                     AITALTestSuiteMgt.DownloadTestOutputFromLogToFile(Rec);
                 end;
-
             }
         }
         area(Promoted)
@@ -270,6 +269,7 @@ page 149033 "AIT Log Entries"
     var
         ClickToShowLbl: Label 'Show data input';
         DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
+        NoRecSelectedErr: Label 'You must choose at least one log entry to view test data for.';
         InputText: Text;
         OutputText: Text;
         ErrorMessage: Text;
@@ -285,15 +285,37 @@ page 149033 "AIT Log Entries"
     begin
         TestRunDuration := Rec."Duration (ms)";
         SetInputOutputDataFields();
-        AITLogEntryCU.SetErrorFields(Rec, ErrorMessage, ErrorCallStack);
-        AITLogEntryCU.SetStatusStyleExpr(Rec, StatusStyleExpr);
+        SetErrorFields();
+        SetStatusStyleExpr();
+    end;
+
+    local procedure SetStatusStyleExpr()
+    begin
+        case Rec.Status of
+            Rec.Status::Success:
+                StatusStyleExpr := 'Favorable';
+            Rec.Status::Error:
+                StatusStyleExpr := 'Unfavorable';
+            else
+                StatusStyleExpr := '';
+        end;
+    end;
+
+    local procedure SetErrorFields()
+    begin
+        ErrorMessage := '';
+        ErrorCallStack := '';
+
+        if Rec.Status = Rec.Status::Error then begin
+            ErrorCallStack := Rec.GetErrorCallStack();
+            ErrorMessage := Rec.GetMessage();
+        end;
     end;
 
     local procedure SetInputOutputDataFields()
     begin
         InputText := '';
         OutputText := '';
-
         if Rec.Sensitive and not ShowSensitiveData then begin
             Rec.CalcFields("Input Data", "Output Data");
             if Rec."Input Data".Length > 0 then

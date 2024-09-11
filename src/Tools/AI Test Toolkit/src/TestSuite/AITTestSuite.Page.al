@@ -182,10 +182,10 @@ page 149031 "AIT Test Suite"
 
                 trigger OnAction()
                 var
-                    AITTestSuiteComparePage: Page "AIT Test Suite Compare";
+                    AITRunHistory: Page "AIT Run History";
                 begin
-                    AITTestSuiteComparePage.SetRecord(Rec);
-                    AITTestSuiteComparePage.Run();
+                    AITRunHistory.SetTestSuite(Rec.Code);
+                    AITRunHistory.Run();
                 end;
             }
             action(ExportAIT)

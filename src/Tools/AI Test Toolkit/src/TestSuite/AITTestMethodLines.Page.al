@@ -175,18 +175,16 @@ page 149034 "AIT Test Method Lines"
                 var
                     AITTestMethodLine: Record "AIT Test Method Line";
                     AITTestSuiteRec: Record "AIT Test Suite";
-                    AITTestMethodLineComparePage: Page "AIT Test Suite Compare";
+                    AITRunHistory: Page "AIT Run History";
                 begin
                     CurrPage.SetSelectionFilter(AITTestMethodLine);
 
                     if not AITTestMethodLine.FindFirst() then
                         Error(NoLineSelectedErr);
 
-                    AITTestSuiteRec.Get(Rec."Test Suite Code");
-
-                    AITTestMethodLineComparePage.SetRecord(AITTestSuiteRec);
-                    AITTestMethodLineComparePage.FilterToLine(AITTestMethodLine."Line No.");
-                    AITTestMethodLineComparePage.Run();
+                    AITRunHistory.SetTestSuite(AITTestMethodLine."Test Suite Code");
+                    AITRunHistory.FilterToLine(AITTestMethodLine."Line No.");
+                    AITRunHistory.Run();
                 end;
             }
         }
