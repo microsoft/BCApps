@@ -27,6 +27,14 @@ codeunit 9029 "Azure AD User Sync Impl."
         ProcessedUsers: List of [Text];
         UserSetupCategoryTxt: Label 'User Setup', Locked = true;
         AuthenticationEmailUpdateShouldBeTheFirstForANewUserErr: Label 'Authentication email should be the first entity to update.';
+        ApplyingChangesTxt: Label 'Applying changes from user sync.', Locked = true;
+        UserWithNoPlansTxt: Label 'User with authentication object ID [%1] has no plans.', Comment = '%1 = authentication object ID (guid)', Locked = true;
+        SkippedUserTxt: Label 'User with authentication object ID [%1] and security ID [%2] was skipped and licenses will be removed.', Comment = '%1 = authentication object ID (guid); %2 = user security ID (guid)', Locked = true;
+        FetchingUpdatesTxt: Label 'Fetching updates from graph.', Locked = true;
+        FetchingUpdatesForSecurityGroupTxt: Label 'Fetching updates for environment security group.', Locked = true;
+        FetchingUpdatesForSkippedUsersTxt: Label 'Fetching updates for skipped users.', Locked = true;
+        FetchingUpdatesForLicensedUsersGroupTxt: Label 'Fetching updates for licensed users.', Locked = true;
+        FetchingUpdatesForDeviceGroupTxt: Label 'Fetching updates for device group.', Locked = true;
         ApplyingUserUpdateTxt: Label 'Applying update for user security ID [%1] with authentication object ID [%2]. Blank Guids indicate users not present in BC.', Comment = '%1 = user security ID (guid) and %2 = authentication object ID (guid)', Locked = true;
         UserCreatedTxt: Label 'A new user with authentication object ID [%1] and security ID [%2] has been created.', Comment = '%1 = authentication object ID (guid); %2 = user security ID (guid)', Locked = true;
         ApplyingEntityUpdateTxt: Label 'Updating %1 for user [%2]', Comment = '%1 = the update entity e.g. Full name, Plan etc.; %2 = user security ID (guid)', Locked = true;
@@ -47,6 +55,8 @@ codeunit 9029 "Azure AD User Sync Impl."
     var
         OfficeUsersInBC: List of [Guid];
     begin
+        Session.LogMessage('0000NMK', FetchingUpdatesTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+
         Clear(AzureADUserUpdate);
         AzureADUserUpdate.DeleteAll();
         Clear(ProcessedUsers);
@@ -72,6 +82,8 @@ codeunit 9029 "Azure AD User Sync Impl."
         AllPlanIds: List of [Guid];
         UsersPerPage: Integer;
     begin
+        Session.LogMessage('0000NML', FetchingUpdatesForLicensedUsersGroupTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+
         UsersPerPage := 50;
 
         AllPlanIds := AzureADPlan.GetAllPlanIds();
@@ -98,6 +110,7 @@ codeunit 9029 "Azure AD User Sync Impl."
         DeviceGroupMembers: DotNet IEnumerable;
         GraphUserInfo: DotNet UserInfo;
     begin
+        Session.LogMessage('0000NMM', FetchingUpdatesForDeviceGroupTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
         AzureADGraph.GetGroupMembers(DeviceGroupNameTxt, DeviceGroupMembers);
 
         if IsNull(DeviceGroupMembers) then
@@ -114,6 +127,8 @@ codeunit 9029 "Azure AD User Sync Impl."
         GraphUserInfo: DotNet UserInfo;
         CurrUserPlanIDs: List of [Guid];
     begin
+        Session.LogMessage('0000NMN', FetchingUpdatesForSecurityGroupTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+
         // Get all the group members of the environment group and fetch updates for those that have a BC plan
         AzureADGraph.GetMembersPageForGroupId(AzureADGraph.GetEnvironmentSecurityGroupId(), 50, GraphUserInfoPage);
 
@@ -125,6 +140,8 @@ codeunit 9029 "Azure AD User Sync Impl."
                 AzureADPlan.GetPlanIDs(GraphUserInfo, CurrUserPlanIDs);
                 if CurrUserPlanIDs.Count() > 0 then
                     GetUpdatesFromGraphUserInfo(GraphUserInfo, AzureADUserUpdate, OfficeUsersInBC)
+                else
+                    Session.LogMessage('0000NMO', StrSubstNo(UserWithNoPlansTxt, Format(GraphUserInfo.ObjectId())), Verbosity::Normal, DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
             end;
         until (not GraphUserInfoPage.GetNextMembersPageForGroupId(AzureADGraph.GetEnvironmentSecurityGroupId()));
     end;
@@ -139,6 +156,8 @@ codeunit 9029 "Azure AD User Sync Impl."
         GraphUserInfo: DotNet UserInfo;
         AuthenticationObjectId: Text;
     begin
+        Session.LogMessage('0000NMP', FetchingUpdatesForSkippedUsersTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+
         // If the environment is not defined, update global admins and Teams users, as they are not pulled in automatically
         // If the environment is defined, only update the global admins, as they are still allowed to access the environment
 
@@ -160,7 +179,10 @@ codeunit 9029 "Azure AD User Sync Impl."
                                 UserPlanIds.Contains(PlanIds.GetBCAdminPlanId()) or // BC admins are not affected by the environment security group
                                 ((not AzureADGraph.IsEnvironmentSecurityGroupDefined()) and UserPlanIds.Contains(PlanIds.GetMicrosoft365PlanId()))
                             then
-                                GetUpdatesFromGraphUserInfo(GraphUserInfo, AzureADUserUpdate, OfficeUsersInBC);
+                                GetUpdatesFromGraphUserInfo(GraphUserInfo, AzureADUserUpdate, OfficeUsersInBC)
+                            else
+                                Session.LogMessage('0000NMQ', StrSubstNo(SkippedUserTxt, Format(GraphUserInfo.ObjectId()), Format(User."User Security ID")), Verbosity::Normal, DataClassification::EndUserPseudonymousIdentifiers, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
+
                         end;
         until User.Next() = 0;
     end;
@@ -427,6 +449,7 @@ codeunit 9029 "Azure AD User Sync Impl."
     var
         PlanNamesPerUserFromGraph: Dictionary of [Text, List of [Text]];
     begin
+        Session.LogMessage('0000NMR', ApplyingChangesTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', UserSetupCategoryTxt);
         ConsolidatePlansNamesFromGraph(AzureADUserUpdate, PlanNamesPerUserFromGraph);
 
         // The updates are stored in the table as [all the changes for the first user], [all the changes for the next user] etc.
