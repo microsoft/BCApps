@@ -236,6 +236,7 @@ codeunit 1928 "Media Cleanup Impl."
         FilterText := FilterText.TrimEnd('|');
     end;
 
+    // 322, 100 will result in [[1, 100], [101, 200], [201, 300], [301, 322]]
     local procedure SplitListIntoSubLists(var InputList: List of [Guid]; SubListCount: Integer; var SplitList: List of [List of [Guid]])
     var
         Math: Codeunit Math;
@@ -244,7 +245,7 @@ codeunit 1928 "Media Cleanup Impl."
         From: Integer;
         ToInt: Integer;
     begin
-        for ListNumber := 0 to Round(InputList.Count() / SubListCount, 1) - 1 do begin
+        for ListNumber := 0 to Round(InputList.Count() / SubListCount, 1) do begin
             Clear(SubList);
             From := ListNumber * SubListCount + 1;
             ToInt := Math.Min(SubListCount, InputList.Count() - ListNumber * SubListCount);
