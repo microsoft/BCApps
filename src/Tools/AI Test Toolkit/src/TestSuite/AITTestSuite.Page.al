@@ -5,7 +5,6 @@
 
 namespace System.TestTools.AITestToolkit;
 
-using System.Environment;
 using System.Telemetry;
 using System.TestTools.TestRunner;
 
@@ -145,7 +144,7 @@ page 149031 "AIT Test Suite"
         {
             action(Start)
             {
-                Enabled = (EnableActions and (Rec.Status <> Rec.Status::Running));
+                Enabled = Rec.Status <> Rec.Status::Running;
                 Caption = 'Start';
                 Image = Start;
                 ToolTip = 'Starts running the AI Test Suite.';
@@ -267,7 +266,6 @@ page 149031 "AIT Test Suite"
 
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-        EnableActions: Boolean;
         AvgTimeDuration: Duration;
         AvgTokensConsumed: Integer;
         TotalDuration: Duration;
@@ -276,12 +274,9 @@ page 149031 "AIT Test Suite"
 
     trigger OnOpenPage()
     var
-        EnvironmentInformation: Codeunit "Environment Information";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        EnableActions := (EnvironmentInformation.IsSaaS() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
-        if EnableActions then
-            FeatureTelemetry.LogUptake('0000NEV', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
+        FeatureTelemetry.LogUptake('0000NEV', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
