@@ -38,6 +38,7 @@ codeunit 9056 "Plan Installer"
         CreatePlan(PlanIds.GetHelpDeskPlanId(), 'Delegated Helpdesk agent - Partner', 9022, '8884DDCA-27B8-E911-BB26-000D3A2B005C');
         CreatePlan(PlanIds.GetGlobalAdminPlanId(), 'Internal Administrator', 9022, '9B84DDCA-27B8-E911-BB26-000D3A2B005C'); // Global admin
         CreatePlan(PlanIds.GetD365AdminPlanId(), 'Dynamics 365 Administrator', 9022, 'F67B9B96-C667-4DD2-B370-FA065A895C9D');
+        CreatePlan(PlanIds.GetD365AdminPartnerPlanId(), 'Delegated Dynamics 365 Admin agent - Partner', 9022, '5C28E514-8AFD-4158-B8C0-93A5915938F9');
         CreatePlan(PlanIds.GetEssentialISVPlanId(), 'Dynamics 365 Business Central Essential - Embedded', 9022, '2E84DDCA-27B8-E911-BB26-000D3A2B005C');
         CreatePlan(PlanIds.GetTeamMemberPlanId(), 'Dynamics 365 Business Central Team Member', 9028, '5784DDCA-27B8-E911-BB26-000D3A2B005C');
         CreatePlan(PlanIds.GetMicrosoft365PlanId(), 'Microsoft 365', 8999, '57ff2da0-773e-42df-b2af-ffb7a2317929');
