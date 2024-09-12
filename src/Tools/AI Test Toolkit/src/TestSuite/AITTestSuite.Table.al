@@ -193,7 +193,7 @@ table 149030 "AIT Test Suite"
         }
         field(35; "Tokens Consumed - Base"; Integer)
         {
-            Caption = 'Tokens Consumed - Base';
+            Caption = 'Total Tokens Consumed - Base';
             ToolTip = 'Specifies the aggregated number of tokens consumed by the test in the base version. This is applicable only when using Microsoft AI Module.';
             Editable = false;
             FieldClass = FlowField;
