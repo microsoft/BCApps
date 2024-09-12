@@ -20,6 +20,7 @@ codeunit 138702 "Retention Policy Test"
         Assert: Codeunit "Library Assert";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         PermissionsMock: Codeunit "Permissions Mock";
+        RetentionPolicyTestLibrary: Codeunit "Retention Policy Test Library";
         DateFieldNoMustHaveAValueErr: Label 'The field Date Field No. must have a value in the retention policy for table %1, %2', Comment = '%1 = table number, %2 = table caption';
 
     trigger OnRun()
@@ -1142,6 +1143,95 @@ codeunit 138702 "Retention Policy Test"
 
     [HandlerFunctions('RetentionPolicyFilterPageHandler')]
     [Test]
+    procedure TestApplyRetentionPolicyConflictWithBlankFilter()
+    var
+        RetentionPeriod: Record "Retention Period";
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        RetentionPolicyTestData: Record "Retention Policy Test Data";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+    begin
+        PermissionsMock.Set('Retention Pol. Admin');
+        // Setup
+        ClearTestData();
+        InsertEnabledRetentionPolicySetupForSubsets(RetentionPolicySetup, RetentionPolicyTestData.FieldNo("Date Field"));
+        InsertOneWeekRetentionPeriod(RetentionPeriod);
+        InsertEnabledRetentionPolicySetupLine(RetentionPolicySetup, RetentionPeriod, RetentionPolicySetup."Date Field No.", 'Subset A', RetentionPolicyTestData.FieldNo(Description));
+        InsertOneMonthRetentionPeriod(RetentionPeriod);
+        InsertEnabledRetentionPolicySetupLine(RetentionPolicySetup, RetentionPeriod, RetentionPolicySetup."Date Field No.", 'Subset D', RetentionPolicyTestData.FieldNo("Description 2"));
+        InsertEnabledRetentionPolicySetupLine(RetentionPolicySetup, RetentionPeriod, RetentionPolicySetup."Date Field No.");
+
+        InsertRetentionPolicyTestData('<-3D>', 'Subset A', 'Subset D'); // keep because of A, D and ''
+        InsertRetentionPolicyTestData('<-5D>', 'Subset B', 'Subset D'); // keep because of D and ''
+        InsertRetentionPolicyTestData('<-2W>', 'Subset B', 'Subset E'); // keep because of ''
+        InsertRetentionPolicyTestData('<-3W>', 'Subset A', 'Subset E'); // keep because of ''
+        InsertRetentionPolicyTestData('<-5W>', 'Subset B', 'Subset D'); // delete because of D
+        InsertRetentionPolicyTestData('<-6W>', 'Subset A', 'Subset E'); // delete because of A 
+        InsertRetentionPolicyTestData('<-2Y>', 'Subset B', 'Subset E'); // delete because of ''
+
+        Assert.AreEqual(7, RetentionPolicyTestData.Count(), 'Incorrect number of records before applying retention policy');
+
+        // Exercise
+        ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, false);
+
+        // Verify
+        Assert.RecordIsNotEmpty(RetentionPolicyTestData);
+        Assert.AreEqual(4, RetentionPolicyTestData.Count(), 'Incorrect total number of records after applying retention policy');
+        RetentionPolicyTestData.SetRange(Description, 'Subset A');
+        Assert.AreEqual(2, RetentionPolicyTestData.Count(), 'Incorrect number of records for Subset A after applying retention policy for Subset A');
+        RetentionPolicyTestData.SetRange(Description);
+        RetentionPolicyTestData.SetRange("Description 2", 'Subset D');
+        Assert.AreEqual(2, RetentionPolicyTestData.Count(), 'Incorrect number of records for Subset D after applying retention policy');
+        RetentionPolicyTestData.SetRange(Description, 'Subset A');
+        RetentionPolicyTestData.SetRange("Description 2", 'Subset E');
+        Assert.AreEqual(1, RetentionPolicyTestData.Count(), 'Incorrect number of records for Subset A, E after applying retention policy');
+    end;
+
+    [HandlerFunctions('RetentionPolicyFilterPageHandler')]
+    [Test]
+    procedure TestApplyRetentionPolicyConflictWithoutBlankFilter()
+    var
+        RetentionPeriod: Record "Retention Period";
+        RetentionPolicySetup: Record "Retention Policy Setup";
+        RetentionPolicyTestData: Record "Retention Policy Test Data";
+        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
+    begin
+        PermissionsMock.Set('Retention Pol. Admin');
+        // Setup
+        ClearTestData();
+        InsertEnabledRetentionPolicySetupForSubsets(RetentionPolicySetup, RetentionPolicyTestData.FieldNo("Date Field"));
+        InsertOneWeekRetentionPeriod(RetentionPeriod);
+        InsertEnabledRetentionPolicySetupLine(RetentionPolicySetup, RetentionPeriod, RetentionPolicySetup."Date Field No.", 'Subset A', RetentionPolicyTestData.FieldNo(Description));
+        InsertOneMonthRetentionPeriod(RetentionPeriod);
+        InsertEnabledRetentionPolicySetupLine(RetentionPolicySetup, RetentionPeriod, RetentionPolicySetup."Date Field No.", 'Subset D', RetentionPolicyTestData.FieldNo("Description 2"));
+
+        InsertRetentionPolicyTestData('<-3D>', 'Subset A', 'Subset D'); // keep because of A and D
+        InsertRetentionPolicyTestData('<-5D>', 'Subset B', 'Subset D'); // keep because of D
+        InsertRetentionPolicyTestData('<-2W>', 'Subset B', 'Subset E'); // keep (no policy)
+        InsertRetentionPolicyTestData('<-3W>', 'Subset A', 'Subset E'); // delete because of A
+        InsertRetentionPolicyTestData('<-5W>', 'Subset B', 'Subset D'); // delete because of D
+        InsertRetentionPolicyTestData('<-6W>', 'Subset A', 'Subset E'); // delete because of A
+        InsertRetentionPolicyTestData('<-2Y>', 'Subset B', 'Subset E'); // keep (no policy)
+
+        Assert.AreEqual(7, RetentionPolicyTestData.Count(), 'Incorrect number of records before applying retention policy');
+
+        // Exercise
+        ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, false);
+
+        // Verify
+        Assert.RecordIsNotEmpty(RetentionPolicyTestData);
+        Assert.AreEqual(4, RetentionPolicyTestData.Count(), 'Incorrect total number of records after applying retention policy');
+        RetentionPolicyTestData.SetRange(Description, 'Subset A');
+        Assert.AreEqual(1, RetentionPolicyTestData.Count(), 'Incorrect number of records for Subset A after applying retention policy for');
+        RetentionPolicyTestData.SetRange(Description);
+        RetentionPolicyTestData.SetRange("Description 2", 'Subset D');
+        Assert.AreEqual(2, RetentionPolicyTestData.Count(), 'Incorrect number of records for Subset D after applying retention policy');
+        RetentionPolicyTestData.SetRange(Description, 'Subset A');
+        RetentionPolicyTestData.SetRange("Description 2", 'Subset E');
+        Assert.RecordIsEmpty(RetentionPolicyTestData);
+    end;
+
+    [HandlerFunctions('RetentionPolicyFilterPageHandler')]
+    [Test]
     procedure TestApplyRetentionPolicy1KLines()
     var
         RetentionPeriod: Record "Retention Period";
@@ -1235,13 +1325,13 @@ codeunit 138702 "Retention Policy Test"
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         // Setup
-        MaxRecordsToDelete := 250000;
-        Buffer := 1000;
+        MaxRecordsToDelete := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDelete();
+        Buffer := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDeleteBuffer() + 10000;
         ClearTestData();
         InsertOneMonthRetentionPeriod(RetentionPeriod);
         InsertEnabledRetentionPolicySetupForAllRecords(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData.FieldNo("Date Field"));
 
-        for i := 1 to (MaxRecordsToDelete + Buffer) do // must exceed the hardcoded limit by >1k
+        for i := 1 to (MaxRecordsToDelete + Buffer) do // must exceed the hardcoded limit by > Buffer
             InsertRetentionPolicyTestData('<-2M>');
 
         Assert.AreEqual((MaxRecordsToDelete + Buffer), RetentionPolicyTestData.Count(), 'Incorrect number of records before applying retention policy');
@@ -1267,13 +1357,13 @@ codeunit 138702 "Retention Policy Test"
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         // Setup
-        MaxRecordsToDelete := 250000;
-        Buffer := 999;
+        MaxRecordsToDelete := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDelete();
+        Buffer := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDeleteBuffer() - 1;
         ClearTestData();
         InsertOneMonthRetentionPeriod(RetentionPeriod);
         InsertEnabledRetentionPolicySetupForAllRecords(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData.FieldNo("Date Field"));
 
-        for i := 1 to (MaxRecordsToDelete + Buffer) do // must exceed the hardcoded limit by <1k
+        for i := 1 to (MaxRecordsToDelete + Buffer) do // must exceed the hardcoded limit by < Buffer
             InsertRetentionPolicyTestData('<-2M>');
 
         Assert.AreEqual(MaxRecordsToDelete + Buffer, RetentionPolicyTestData.Count(), 'Incorrect number of records before applying retention policy');
@@ -1300,9 +1390,9 @@ codeunit 138702 "Retention Policy Test"
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         // Setup
-        MaxRecordsToDelete := 250000;
-        RecordsTableOne := 150000;
-        Buffer := 1000;
+        MaxRecordsToDelete := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDelete();
+        RecordsTableOne := Round(MaxRecordsToDelete * (2 / 3), 1, '>');
+        Buffer := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDeleteBuffer() + 1;
         ClearTestData();
         InsertOneMonthRetentionPeriod(RetentionPeriod);
         InsertEnabledRetentionPolicySetupForAllRecords(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData.FieldNo("Date Field"));
@@ -1315,8 +1405,6 @@ codeunit 138702 "Retention Policy Test"
 
         Assert.AreEqual(RecordsTableOne, RetentionPolicyTestData.Count(), 'Incorrect number of records before applying retention policy');
         Assert.AreEqual(MaxRecordsToDelete + Buffer - RecordsTableOne, RetentionPolicyTestData3.Count(), 'Incorrect number of records before applying retention policy');
-        Assert.AreEqual(150000, RetentionPolicyTestData.Count(), 'Incorrect number of records before applying retention policy');
-        Assert.AreEqual(101000, RetentionPolicyTestData3.Count(), 'Incorrect number of records before applying retention policy');
 
         // Exercise
         ApplyRetentionPolicy.ApplyRetentionPolicy(false);
@@ -1342,9 +1430,9 @@ codeunit 138702 "Retention Policy Test"
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         // Setup
-        MaxRecordsToDelete := 250000;
-        RecordsTableOne := 150000;
-        Buffer := 999;
+        MaxRecordsToDelete := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDelete();
+        RecordsTableOne := Round(MaxRecordsToDelete * (2 / 3), 1, '>');
+        Buffer := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDeleteBuffer() - 1;
 
         ClearTestData();
         InsertOneMonthRetentionPeriod(RetentionPeriod);
@@ -1381,13 +1469,13 @@ codeunit 138702 "Retention Policy Test"
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         // Setup
-        MaxRecordsToDelete := 250000;
-        Buffer := 1500;
+        MaxRecordsToDelete := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDelete();
+        Buffer := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDeleteBuffer() + 500;
         ClearTestData();
         InsertOneMonthRetentionPeriod(RetentionPeriod);
         InsertEnabledRetentionPolicySetupForAllRecords(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData.FieldNo("Date Field"));
 
-        for i := 1 to (MaxRecordsToDelete + Buffer) do // must exceed the hardcoded limit by >1k
+        for i := 1 to (MaxRecordsToDelete + Buffer) do // must exceed the hardcoded limit by > Buffer
             InsertRetentionPolicyTestData('<-2M>');
 
         Assert.AreEqual((MaxRecordsToDelete + Buffer), RetentionPolicyTestData.Count(), 'Incorrect number of records before applying retention policy');
@@ -1413,13 +1501,13 @@ codeunit 138702 "Retention Policy Test"
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         // Setup
-        MaxRecordsToDelete := 250000;
-        Buffer := 1500;
+        MaxRecordsToDelete := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDelete();
+        Buffer := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDeleteBuffer() + 500;
         ClearTestData();
         InsertOneMonthRetentionPeriod(RetentionPeriod);
         InsertEnabledRetentionPolicySetupForAllRecords(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData.FieldNo("Date Field"));
 
-        for i := 1 to (MaxRecordsToDelete + Buffer) do // must exceed the hardcoded limit by >1k
+        for i := 1 to (MaxRecordsToDelete + Buffer) do // must exceed the hardcoded limit by > Buffer
             InsertRetentionPolicyTestData('<-2M>');
 
         Assert.AreEqual((MaxRecordsToDelete + Buffer), RetentionPolicyTestData.Count(), 'Incorrect number of records before applying retention policy');
@@ -1439,15 +1527,15 @@ codeunit 138702 "Retention Policy Test"
         RetentionPolicyTestData: Record "Retention Policy Test Data";
         RetentionPolicyTestData3: Record "Retention Policy Test Data 3";
         ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
-        RetentionPolicyTestLibrary: Codeunit "Retention Policy Test Library";
+        RetentionPolicyTestLibrarySubs: Codeunit "Retention Policy Test Library";
         RecordsTableOne: Integer;
         RecordsTableThree: Integer;
         i: Integer;
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         // Setup
-        RecordsTableOne := 50000;
-        RecordsTableThree := 60000;
+        RecordsTableOne := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDelete() * 2;
+        RecordsTableThree := RetentionPolicyTestLibrary.MaxNumberOfRecordsToDelete() * 2;
         ClearTestData();
         InsertOneMonthRetentionPeriod(RetentionPeriod);
         InsertEnabledRetentionPolicySetupForAllRecords(RetentionPolicySetup, RetentionPeriod, RetentionPolicyTestData.FieldNo("Date Field"));
@@ -1462,102 +1550,14 @@ codeunit 138702 "Retention Policy Test"
         Assert.AreEqual(RecordsTableThree, RetentionPolicyTestData3.Count(), 'Incorrect number of records before applying retention policy');
 
         // Exercise
-        BindSubscription(RetentionPolicyTestLibrary);
+        BindSubscription(RetentionPolicyTestLibrarySubs);
         ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, false);
-        UnbindSubscription(RetentionPolicyTestLibrary);
+        UnbindSubscription(RetentionPolicyTestLibrarySubs);
 
         // Verify
         Assert.RecordIsNotEmpty(RetentionPolicyTestData);
-        Assert.AreEqual(1, RetentionPolicyTestLibrary.GetRecordLimitExceededSubscriberCount(), 'OnApplyRetentionPolicyRecordLimitExceeded event called more than once.');
-    end;
-
-    [HandlerFunctions('RetentionPolicyFilterPageHandler')]
-    [Test]
-    procedure TestApplyRetentionPolicyConflictWithBlankFilter()
-    var
-        RetentionPeriod: Record "Retention Period";
-        RetentionPolicySetup: Record "Retention Policy Setup";
-        RetentionPolicyTestData: Record "Retention Policy Test Data";
-        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
-    begin
-        PermissionsMock.Set('Retention Pol. Admin');
-        // Setup
-        ClearTestData();
-        InsertEnabledRetentionPolicySetupForSubsets(RetentionPolicySetup, RetentionPolicyTestData.FieldNo("Date Field"));
-        InsertOneWeekRetentionPeriod(RetentionPeriod);
-        InsertEnabledRetentionPolicySetupLine(RetentionPolicySetup, RetentionPeriod, RetentionPolicySetup."Date Field No.", 'Subset A', RetentionPolicyTestData.FieldNo(Description));
-        InsertOneMonthRetentionPeriod(RetentionPeriod);
-        InsertEnabledRetentionPolicySetupLine(RetentionPolicySetup, RetentionPeriod, RetentionPolicySetup."Date Field No.", 'Subset D', RetentionPolicyTestData.FieldNo("Description 2"));
-        InsertEnabledRetentionPolicySetupLine(RetentionPolicySetup, RetentionPeriod, RetentionPolicySetup."Date Field No.");
-
-        InsertRetentionPolicyTestData('<-3D>', 'Subset A', 'Subset D'); // keep because of A, D and ''
-        InsertRetentionPolicyTestData('<-5D>', 'Subset B', 'Subset D'); // keep because of D and ''
-        InsertRetentionPolicyTestData('<-2W>', 'Subset B', 'Subset E'); // keep because of ''
-        InsertRetentionPolicyTestData('<-3W>', 'Subset A', 'Subset E'); // keep because of ''
-        InsertRetentionPolicyTestData('<-5W>', 'Subset B', 'Subset D'); // delete because of D
-        InsertRetentionPolicyTestData('<-6W>', 'Subset A', 'Subset E'); // delete because of A 
-        InsertRetentionPolicyTestData('<-2Y>', 'Subset B', 'Subset E'); // delete because of ''
-
-        Assert.AreEqual(7, RetentionPolicyTestData.Count(), 'Incorrect number of records before applying retention policy');
-
-        // Exercise
-        ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, false);
-
-        // Verify
-        Assert.RecordIsNotEmpty(RetentionPolicyTestData);
-        Assert.AreEqual(4, RetentionPolicyTestData.Count(), 'Incorrect total number of records after applying retention policy');
-        RetentionPolicyTestData.SetRange(Description, 'Subset A');
-        Assert.AreEqual(2, RetentionPolicyTestData.Count(), 'Incorrect number of records for Subset A after applying retention policy for Subset A');
-        RetentionPolicyTestData.SetRange(Description);
-        RetentionPolicyTestData.SetRange("Description 2", 'Subset D');
-        Assert.AreEqual(2, RetentionPolicyTestData.Count(), 'Incorrect number of records for Subset D after applying retention policy');
-        RetentionPolicyTestData.SetRange(Description, 'Subset A');
-        RetentionPolicyTestData.SetRange("Description 2", 'Subset E');
-        Assert.AreEqual(1, RetentionPolicyTestData.Count(), 'Incorrect number of records for Subset A, E after applying retention policy');
-    end;
-
-    [HandlerFunctions('RetentionPolicyFilterPageHandler')]
-    [Test]
-    procedure TestApplyRetentionPolicyConflictWithoutBlankFilter()
-    var
-        RetentionPeriod: Record "Retention Period";
-        RetentionPolicySetup: Record "Retention Policy Setup";
-        RetentionPolicyTestData: Record "Retention Policy Test Data";
-        ApplyRetentionPolicy: Codeunit "Apply Retention Policy";
-    begin
-        PermissionsMock.Set('Retention Pol. Admin');
-        // Setup
-        ClearTestData();
-        InsertEnabledRetentionPolicySetupForSubsets(RetentionPolicySetup, RetentionPolicyTestData.FieldNo("Date Field"));
-        InsertOneWeekRetentionPeriod(RetentionPeriod);
-        InsertEnabledRetentionPolicySetupLine(RetentionPolicySetup, RetentionPeriod, RetentionPolicySetup."Date Field No.", 'Subset A', RetentionPolicyTestData.FieldNo(Description));
-        InsertOneMonthRetentionPeriod(RetentionPeriod);
-        InsertEnabledRetentionPolicySetupLine(RetentionPolicySetup, RetentionPeriod, RetentionPolicySetup."Date Field No.", 'Subset D', RetentionPolicyTestData.FieldNo("Description 2"));
-
-        InsertRetentionPolicyTestData('<-3D>', 'Subset A', 'Subset D'); // keep because of A and D
-        InsertRetentionPolicyTestData('<-5D>', 'Subset B', 'Subset D'); // keep because of D
-        InsertRetentionPolicyTestData('<-2W>', 'Subset B', 'Subset E'); // keep (no policy)
-        InsertRetentionPolicyTestData('<-3W>', 'Subset A', 'Subset E'); // delete because of A
-        InsertRetentionPolicyTestData('<-5W>', 'Subset B', 'Subset D'); // delete because of D
-        InsertRetentionPolicyTestData('<-6W>', 'Subset A', 'Subset E'); // delete because of A
-        InsertRetentionPolicyTestData('<-2Y>', 'Subset B', 'Subset E'); // keep (no policy)
-
-        Assert.AreEqual(7, RetentionPolicyTestData.Count(), 'Incorrect number of records before applying retention policy');
-
-        // Exercise
-        ApplyRetentionPolicy.ApplyRetentionPolicy(RetentionPolicySetup, false);
-
-        // Verify
-        Assert.RecordIsNotEmpty(RetentionPolicyTestData);
-        Assert.AreEqual(4, RetentionPolicyTestData.Count(), 'Incorrect total number of records after applying retention policy');
-        RetentionPolicyTestData.SetRange(Description, 'Subset A');
-        Assert.AreEqual(1, RetentionPolicyTestData.Count(), 'Incorrect number of records for Subset A after applying retention policy for');
-        RetentionPolicyTestData.SetRange(Description);
-        RetentionPolicyTestData.SetRange("Description 2", 'Subset D');
-        Assert.AreEqual(2, RetentionPolicyTestData.Count(), 'Incorrect number of records for Subset D after applying retention policy');
-        RetentionPolicyTestData.SetRange(Description, 'Subset A');
-        RetentionPolicyTestData.SetRange("Description 2", 'Subset E');
-        Assert.RecordIsEmpty(RetentionPolicyTestData);
+        Assert.RecordIsNotEmpty(RetentionPolicyTestData3);
+        Assert.AreEqual(1, RetentionPolicyTestLibrarySubs.GetRecordLimitExceededSubscriberCount(), 'OnApplyRetentionPolicyRecordLimitExceeded event called more than once.');
     end;
 
     [HandlerFunctions('RetentionPolicyFilterPageHandler')]
