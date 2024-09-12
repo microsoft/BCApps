@@ -75,7 +75,7 @@
   "internalsVisibleTo": [
     {
       "id": "33003b8a-f6d8-4efe-af22-1a8cb8fbacbe",
-      "name": "Retencion Policy Test Library",
+      "name": "Retention Policy Test Library",
       "publisher": "Microsoft"
     }
   ],
