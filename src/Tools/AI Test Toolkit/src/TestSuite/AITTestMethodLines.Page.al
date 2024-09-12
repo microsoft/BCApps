@@ -174,7 +174,6 @@ page 149034 "AIT Test Method Lines"
                 trigger OnAction()
                 var
                     AITTestMethodLine: Record "AIT Test Method Line";
-                    AITTestSuiteRec: Record "AIT Test Suite";
                     AITRunHistory: Page "AIT Run History";
                 begin
                     CurrPage.SetSelectionFilter(AITTestMethodLine);

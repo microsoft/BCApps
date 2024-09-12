@@ -269,7 +269,6 @@ page 149033 "AIT Log Entries"
     var
         ClickToShowLbl: Label 'Show data input';
         DoYouWantToDeleteQst: Label 'Do you want to delete all entries within the filter?';
-        NoRecSelectedErr: Label 'You must choose at least one log entry to view test data for.';
         InputText: Text;
         OutputText: Text;
         ErrorMessage: Text;
@@ -280,8 +279,6 @@ page 149033 "AIT Log Entries"
         ShowSensitiveData: Boolean;
 
     trigger OnAfterGetRecord()
-    var
-        AITLogEntryCU: Codeunit "AIT Log Entry";
     begin
         TestRunDuration := Rec."Duration (ms)";
         SetInputOutputDataFields();

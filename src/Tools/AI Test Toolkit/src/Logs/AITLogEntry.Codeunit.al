@@ -37,7 +37,7 @@ codeunit 149032 "AIT Log Entry"
         AITLogEntry.Run();
     end;
 
-    procedure UpdateRunHistory(Code: Code[20]; LineNo: Integer; AITViewBy: Enum "AIT Run History - View By"; var TempAITRunHistory: Record "AIT Run History" temporary)
+    procedure UpdateRunHistory(Code: Code[100]; LineNo: Integer; AITViewBy: Enum "AIT Run History - View By"; var TempAITRunHistory: Record "AIT Run History" temporary)
     var
         AITRunHistory: Record "AIT Run History";
         SeenTags: List of [Text[20]];

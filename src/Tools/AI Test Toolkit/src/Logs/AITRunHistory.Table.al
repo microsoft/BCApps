@@ -56,7 +56,9 @@ table 149036 "AIT Run History"
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Version" = field("Version"), "Test Method Line No." = field("Line No. Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
         }
+#pragma warning disable AA0232
         field(12; "Total Duration (ms)"; Integer)
+#pragma warning restore AA0232
         {
             Caption = 'Total Duration (ms)';
             ToolTip = 'Specifies the time taken for executing the tests in the test suite.';
