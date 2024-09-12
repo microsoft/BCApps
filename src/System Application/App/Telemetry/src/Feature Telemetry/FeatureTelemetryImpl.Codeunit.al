@@ -42,6 +42,19 @@ codeunit 8704 "Feature Telemetry Impl."
         LogMessage(EventId, EventName, Verbosity::Normal, CallerCustomDimensions, UsageCustomDimensions, CallerModuleInfo, CallerCallStackModuleInfos);
     end;
 
+    procedure LogWarning(EventId: Text; FeatureName: Text; EventName: Text; WarningText: Text; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
+    var
+        WarningCustomDimensions: Dictionary of [Text, Text];
+    begin
+        WarningCustomDimensions.Add('Category', 'FeatureTelemetry');
+        WarningCustomDimensions.Add('SubCategory', 'Warning');
+        WarningCustomDimensions.Add('FeatureName', FeatureName);
+        WarningCustomDimensions.Add('EventName', EventName);
+        WarningCustomDimensions.Add('WarningText', WarningText);
+
+        LogMessage(EventId, WarningText, Verbosity::Warning, CallerCustomDimensions, WarningCustomDimensions, CallerModuleInfo);
+    end;
+
     procedure LogError(EventId: Text; FeatureName: Text; EventName: Text; ErrorText: Text; ErrorCallStack: Text; CallerCustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     var
         ErrorCustomDimensions: Dictionary of [Text, Text];

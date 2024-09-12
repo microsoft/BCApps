@@ -96,6 +96,51 @@ codeunit 8703 "Feature Telemetry"
     end;
 
     /// <summary>
+    /// Sends telemetry about warnings happening during feature usage.
+    /// </summary>
+    /// <param name="EventId">A unique ID of the warning.</param>
+    /// <param name="FeatureName">The name of the feature.</param>
+    /// <param name="EventName">The name of the event.</param>
+    /// <param name="WarningText">The text of the warning.</param>
+    /// <example>
+    /// if not Success then
+    ///     FeatureTelemetry.LogWarning('0000XYZ', 'Retention policies', 'Applying a policy', 'Warning text');
+    /// </example>
+    procedure LogWarning(EventId: Text; FeatureName: Text; EventName: Text; WarningText: Text)
+    var
+        CallerModuleInfo: ModuleInfo;
+        DummyCustomDimensions: Dictionary of [Text, Text];
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        FeatureTelemetryImpl.LogWarning(EventId, FeatureName, EventName, WarningText, DummyCustomDimensions, CallerModuleInfo);
+    end;
+
+    /// <summary>
+    /// Sends telemetry about warnings happening during feature usage.
+    /// </summary>
+    /// <param name="EventId">A unique ID of the warning.</param>
+    /// <param name="FeatureName">The name of the feature.</param>
+    /// <param name="EventName">The name of the event.</param>
+    /// <param name="WarningText">The text of the warning.</param>
+    /// <param name="CustomDimensions">A dictionary containing additional information about the warning.</param>
+    /// <remarks>Custom dimensions often contain infromation translated in different languages. It is a common practice to send telemetry in the default language (see example).</remarks>
+    /// <example>
+    /// if not Success then begin
+    ///     TranslationHelper.SetGlobalLanguageToDefault();
+    ///     CustomDimensions.Add('UpdateEntity', Format(AzureADUserUpdateBuffer."Update Entity"));
+    ///     FeatureTelemetry.LogWarning('0000XYZ', 'User management', 'Syncing users with M365', 'Warning text', CustomDimensions);
+    ///     TranslationHelper.RestoreGlobalLanguage();
+    /// end;
+    /// </example>
+    procedure LogWarning(EventId: Text; FeatureName: Text; EventName: Text; WarningText: Text; CustomDimensions: Dictionary of [Text, Text])
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        FeatureTelemetryImpl.LogWarning(EventId, FeatureName, EventName, WarningText, CustomDimensions, CallerModuleInfo);
+    end;
+
+    /// <summary>
     /// Sends telemetry about errors happening during feature usage.
     /// </summary>
     /// <param name="EventId">A unique ID of the error.</param>
