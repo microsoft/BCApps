@@ -61,24 +61,57 @@ codeunit 8904 "Email Message"
         EmailMessageImpl.Create(ToRecipients, Subject, Body, HtmlFormatted, CCRecipients, BCCRecipients);
     end;
 
-    procedure CreateReply(ToRecipients: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    /// <summary>
+    /// Creates the email reply with recipients, subject, and body.
+    /// </summary>
+    /// <param name="ToRecipients">The recipient(s) of the email. A string containing the email addresses of the recipients separated by semicolon.</param>
+    /// <param name="Subject">The subject of the email.</param>
+    /// <param name="Body">The body of the email.</param>
+    /// <param name="HtmlFormatted">Whether the body is HTML formatted.</param>
+    /// <param name="ExternalId">The external message id to reply to.</param>
+    procedure CreateReply(ToRecipients: Text; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
     begin
-        EmailMessageImpl.CreateReply(ToRecipients, Body, HtmlFormatted, ExternalId);
+        EmailMessageImpl.CreateReply(ToRecipients, Subject, Body, HtmlFormatted, ExternalId);
     end;
 
-    procedure CreateReply(ToRecipients: List of [Text]; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    /// <summary>
+    /// Creates the email reply with recipients, subject, and body.
+    /// </summary>
+    /// <param name="ToRecipients">The recipient(s) of the email. A list of email addresses the email will be send directly to.</param>
+    /// <param name="Subject">The subject of the email.</param>
+    /// <param name="Body">The body of the email.</param>
+    /// <param name="HtmlFormatted">Whether the body is HTML formatted.</param>
+    /// <param name="ExternalId">The external message id to reply to.</param>
+    procedure CreateReply(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
     begin
-        EmailMessageImpl.CreateReply(ToRecipients, Body, HtmlFormatted, ExternalId);
+        EmailMessageImpl.CreateReply(ToRecipients, Subject, Body, HtmlFormatted, ExternalId);
     end;
 
-    procedure CreateReply(ToRecipients: List of [Text]; Body: Text; HtmlFormatted: Boolean; ExternalId: Text; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
+    /// <summary>
+    /// Creates the email reply with recipients, subject, and body.
+    /// </summary>
+    /// <param name="ToRecipients">The recipient(s) of the email. A list of email addresses the email will be send directly to.</param>
+    /// <param name="Subject">The subject of the email.</param>
+    /// <param name="Body">The body of the email.</param>
+    /// <param name="HtmlFormatted">Whether the body is HTML formatted.</param>
+    /// <param name="ExternalId">The external message id to reply to.</param>
+    /// <param name="CCRecipients">The CC recipient(s) of the email. A list of email addresses that will be listed as CC.</param>
+    /// <param name="BCCRecipients">TThe BCC recipient(s) of the email. A list of email addresses that will be listed as BCC.</param>
+    procedure CreateReply(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
     begin
-        EmailMessageImpl.CreateReply(ToRecipients, Body, HtmlFormatted, ExternalId, CCRecipients, BCCRecipients);
+        EmailMessageImpl.CreateReply(ToRecipients, Subject, Body, HtmlFormatted, ExternalId, CCRecipients, BCCRecipients);
     end;
 
-    procedure CreateReplyAll(Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    /// <summary>
+    /// Creates the email replying to all existing recipents on the mail thread, subject, and body.
+    /// </summary>
+    /// <param name="Subject">The subject of the email.</param>
+    /// <param name="Body">The body of the email.</param>
+    /// <param name="HtmlFormatted">Whether the body is HTML formatted.</param>
+    /// <param name="ExternalId">The external message id to reply to.</param>
+    procedure CreateReplyAll(Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
     begin
-        EmailMessageImpl.CreateReplyAll(Body, HtmlFormatted, ExternalId);
+        EmailMessageImpl.CreateReplyAll(Subject, Body, HtmlFormatted, ExternalId);
     end;
 
     /// <summary>
