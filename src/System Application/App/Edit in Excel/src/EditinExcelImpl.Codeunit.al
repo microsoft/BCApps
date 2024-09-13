@@ -224,7 +224,9 @@ codeunit 1482 "Edit in Excel Impl."
         CurrentPosition := 1;
 
         while CurrentPosition <= StrLen(ConvertedName) do begin
-            if ConvertedName[CurrentPosition] in ['''', '+'] then begin
+            // Notice in the following line that – (en dash) is not a normal dash (em dash).
+            // We need to handle this here because at least the norwegian translation uses en dash.
+            if ConvertedName[CurrentPosition] in ['''', '+', '–'] then begin
                 ByteValue := Convert.ToByte(ConvertedName[CurrentPosition]);
                 StartStr := CopyStr(ConvertedName, 1, CurrentPosition - 1);
                 EndStr := CopyStr(ConvertedName, CurrentPosition + 1);
