@@ -28,40 +28,62 @@ page 333 "No. Series Generation Sub"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Series Code field.';
+                    Enabled = IsEnabled;
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Description field.';
+                    Enabled = IsEnabled;
                 }
                 field("Starting No."; Rec."Starting No.")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Starting No. field.';
+                    Enabled = IsEnabled;
                 }
                 field("Increment-by No."; Rec."Increment-by No.")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Increment-by No. field.';
+                    Enabled = IsEnabled;
                 }
                 field("Ending No."; Rec."Ending No.")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Ending No. field.';
+                    Enabled = IsEnabled;
                 }
                 field("Warning No."; Rec."Warning No.")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Warning No. field.';
+                    Enabled = IsEnabled;
                 }
                 field("Starting Date"; Rec."Starting Date")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the value of the Starting Date field.';
+                    Enabled = IsEnabled;
+                }
+                field(Message; Rec.Message)
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Message field.';
+                    Style = Attention;
+                    Editable = false;
                 }
             }
         }
     }
+
+    var
+        IsEnabled: Boolean;
+
+    trigger OnAfterGetRecord()
+    begin
+        IsEnabled := not Rec.Exists;
+    end;
 
     internal procedure Load(var GeneratedNoSeries: Record "No. Series Generation Detail")
     begin

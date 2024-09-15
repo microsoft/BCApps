@@ -76,6 +76,14 @@ table 392 "No. Series Generation Detail"
         {
             Caption = 'Starting Date';
         }
+        field(13; "Exists"; Boolean)
+        {
+            Caption = 'Exists';
+        }
+        field(14; Message; Text[1024])
+        {
+            Caption = 'Message';
+        }
     }
 
     keys
