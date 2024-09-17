@@ -73,6 +73,19 @@ page 333 "No. Series Generation Sub"
                     Style = Attention;
                     Editable = false;
                 }
+                field("Setup Table Name"; Rec."Setup Table Name")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Setup Table Name field.';
+                    Enabled = IsEnabled;
+                }
+                field("Setup Field Name"; Rec."Setup Field Name")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the value of the Setup Field Name field.';
+                    Enabled = IsEnabled;
+                }
+
             }
         }
     }

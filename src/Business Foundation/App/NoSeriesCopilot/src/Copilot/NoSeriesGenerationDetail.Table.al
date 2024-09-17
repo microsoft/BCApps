@@ -84,6 +84,21 @@ table 392 "No. Series Generation Detail"
         {
             Caption = 'Message';
         }
+
+        field(20; "Setup Table Name"; Text[80])
+        {
+            Caption = 'Setup Table';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Table Metadata".Caption where(ID = field("Setup Table No.")));
+            Editable = false;
+        }
+        field(21; "Setup Field Name"; Text[250])
+        {
+            Caption = 'Setup Field';
+            FieldClass = FlowField;
+            CalcFormula = lookup(Field."Field Caption" where(TableNo = field("Setup Table No."), "No." = field("Setup Field No.")));
+            Editable = false;
+        }
     }
 
     keys

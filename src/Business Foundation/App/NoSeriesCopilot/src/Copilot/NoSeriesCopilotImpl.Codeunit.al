@@ -211,6 +211,9 @@ codeunit 324 "No. Series Copilot Impl."
         FunctionResponses: List of [Codeunit "AOAI Function Response"];
         Progress: Dialog;
     begin
+        if ExistingNoSeriesArray <> '' then
+            FinalResults.Add(ExistingNoSeriesArray);
+
         FunctionResponses := AOAIOperationResponse.GetFunctionResponses();
 
         foreach AOAIFunctionResponse in FunctionResponses do begin
@@ -238,12 +241,9 @@ codeunit 324 "No. Series Copilot Impl."
                 Clear(AOAIChatMessages);
                 Progress.Close();
             end;
-
-            if ExistingNoSeriesArray <> '' then
-                FinalResults.Add(ExistingNoSeriesArray);
-
-            exit(ConcatenateToolResponse(FinalResults));
         end;
+        exit(ConcatenateToolResponse(FinalResults));
+    end;
 
     [NonDebuggable]
     local procedure GetExpectedNoSeriesCount(ToolResponse: Dictionary of [Text, Integer]; Message: Text) ExpectedNoSeriesCount: Integer
@@ -431,25 +431,34 @@ codeunit 324 "No. Series Copilot Impl."
     var
         Json: Codeunit Json;
         i: Integer;
-        NoSeriesObj: Text;
         NoSeriesCodes: List of [Text];
-        NoSeriesCode: Text;
     begin
         Json.InitializeCollection(NoSeriesArrText);
 
         for i := 0 to Json.GetCollectionCount() - 1 do begin
-            Json.GetObjectFromCollectionByIndex(i, NoSeriesObj);
-            Json.InitializeObject(NoSeriesObj);
-            Json.GetStringPropertyValueByName('seriesCode', NoSeriesCode);
-            if NoSeriesCodes.Contains(NoSeriesCode) then begin
-                Json.ReplaceOrAddJPropertyInJObject('seriesCode', GenerateNewSeriesCodeValue(NoSeriesCodes, NoSeriesCode));
-                NoSeriesObj := Json.GetObjectAsText();
-                Json.ReplaceJObjectInCollection(i, NoSeriesObj);
-            end;
-            NoSeriesCodes.Add(NoSeriesCode);
+            ProcessNoSeries(i, NoSeriesCodes, Json);
         end;
 
         NoSeriesArrText := Json.GetCollectionAsText()
+    end;
+
+    local procedure ProcessNoSeries(i: Integer; var NoSeriesCodes: List of [Text]; var Json: Codeunit Json)
+    var
+        NoSeriesCode: Text;
+        NoSeriesObj: Text;
+        IsExists: Boolean;
+    begin
+        Json.GetObjectFromCollectionByIndex(i, NoSeriesObj);
+        Json.InitializeObject(NoSeriesObj);
+        Json.GetBoolPropertyValueFromJObjectByName('exists', IsExists);
+        Json.GetStringPropertyValueByName('seriesCode', NoSeriesCode);
+
+        if NoSeriesCodes.Contains(NoSeriesCode) and (not IsExists) then begin
+            Json.ReplaceOrAddJPropertyInJObject('seriesCode', GenerateNewSeriesCodeValue(NoSeriesCodes, NoSeriesCode));
+            NoSeriesObj := Json.GetObjectAsText();
+            Json.ReplaceJObjectInCollection(i, NoSeriesObj);
+        end;
+        NoSeriesCodes.Add(NoSeriesCode);
     end;
 
     local procedure GenerateNewSeriesCodeValue(var NoSeriesCodes: List of [Text]; var NoSeriesCode: Text): Text
