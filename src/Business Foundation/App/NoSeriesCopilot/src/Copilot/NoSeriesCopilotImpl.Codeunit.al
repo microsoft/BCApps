@@ -481,7 +481,7 @@ codeunit 324 "No. Series Copilot Impl."
         Json.GetValueAndSetToRecFieldNo(RecRef, 'nextYear', GeneratedNoSeries.FieldNo("Is Next Year"));
         Json.GetValueAndSetToRecFieldNo(RecRef, 'exists', GeneratedNoSeries.FieldNo(Exists));
         Json.GetValueAndSetToRecFieldNo(RecRef, 'message', GeneratedNoSeries.FieldNo(Message));
-        RecRef.Insert(true);
+        if RecRef.Insert(true) then;
 
         ValidateGeneratedNoSeries(RecRef);
     end;
