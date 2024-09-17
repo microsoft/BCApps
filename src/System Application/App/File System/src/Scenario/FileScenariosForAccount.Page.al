@@ -32,7 +32,7 @@ page 9454 "File Scenarios for Account"
             {
                 field(Name; Rec."Display Name")
                 {
-                    ToolTip = 'The file scenario.';
+                    ToolTip = 'Specifies the name of the file scenario.';
                     Caption = 'File scenario';
                     Editable = false;
                 }

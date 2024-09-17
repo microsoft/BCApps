@@ -32,7 +32,7 @@ page 9453 "File Scenarios FactBox"
             {
                 field(Name; Format(Rec.Scenario))
                 {
-                    ToolTip = 'The file scenario.';
+                    ToolTip = 'Specifies the name of the file scenario.';
                     Caption = 'File scenario';
                     Editable = false;
                 }
