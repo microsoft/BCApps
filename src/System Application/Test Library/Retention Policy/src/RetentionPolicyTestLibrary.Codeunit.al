@@ -93,7 +93,7 @@ codeunit 138709 "Retention Policy Test Library"
     var
         RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
     begin
-        SelectLatestVersion(Database::"Retention Policy Log Entry");
+        SelectLatestVersion();
         RetentionPolicyLogEntry.Get(EntryNo);
         FieldValues.Add('MessageType', Format(RetentionPolicyLogEntry."Message Type"));
         FieldValues.Add('Category', Format(RetentionPolicyLogEntry.Category));
