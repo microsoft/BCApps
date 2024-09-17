@@ -243,7 +243,7 @@ codeunit 336 "No. Series Cop. Tools Impl."
 
     local procedure GetMatchLengthTreshold(): Decimal
     begin
-        exit(4);
+        exit(2);
     end;
 
     local procedure RequiredNearness(): Decimal

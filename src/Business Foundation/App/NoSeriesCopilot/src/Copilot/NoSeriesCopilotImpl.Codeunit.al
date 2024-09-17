@@ -454,33 +454,10 @@ codeunit 324 "No. Series Copilot Impl."
         Json.GetStringPropertyValueByName('seriesCode', NoSeriesCode);
 
         if NoSeriesCodes.Contains(NoSeriesCode) and (not IsExists) then begin
-            Json.ReplaceOrAddJPropertyInJObject('seriesCode', GenerateNewSeriesCodeValue(NoSeriesCodes, NoSeriesCode));
-            NoSeriesObj := Json.GetObjectAsText();
-            Json.ReplaceJObjectInCollection(i, NoSeriesObj);
+            Json.RemoveJObjectFromCollection(i);
+            exit;
         end;
         NoSeriesCodes.Add(NoSeriesCode);
-    end;
-
-    local procedure GenerateNewSeriesCodeValue(var NoSeriesCodes: List of [Text]; var NoSeriesCode: Text): Text
-    var
-        NewNoSeriesCode: Text;
-    begin
-        repeat
-            NewNoSeriesCode := CopyStr(NoSeriesCode, 1, 18) + '-' + RandomCharacter();
-        until not NoSeriesCodes.Contains(NewNoSeriesCode);
-
-        NoSeriesCode := NewNoSeriesCode;
-        exit(NewNoSeriesCode);
-    end;
-
-    local procedure RandomCharacter(): Char
-    begin
-        exit(RandIntInRange(33, 126)); // ASCII: ! (33) to ~ (126)
-    end;
-
-    local procedure RandIntInRange(MinInt: Integer; MaxInt: Integer): Integer
-    begin
-        exit(MinInt - 1 + Random(MaxInt - MinInt + 1));
     end;
 
     local procedure InsertGeneratedNoSeries(var GeneratedNoSeries: Record "No. Series Generation Detail"; NoSeriesObj: Text; GenerationNo: Integer)
