@@ -160,9 +160,9 @@ codeunit 3904 "Apply Retention Policy Impl."
         RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(StartRetentionPolicyRecordCountLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
 
         if GetExpiredRecords(RetentionPolicySetup, RecordRef, ExpiredRecordExpirationDate) then begin
-            ExpiredRecordCount := this.Count(RecordRef);
+            ExpiredRecordCount := Count(RecordRef);
             RecordRef.Reset();
-            TotalRecordCount := this.Count(RecordRef);
+            TotalRecordCount := Count(RecordRef);
         end;
         RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(EndRetentionPolicyRecordCountLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
         RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(NumberOfExpiredRecordsLbl, ExpiredRecordCount, TotalRecordCount, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Caption"));
@@ -263,7 +263,7 @@ codeunit 3904 "Apply Retention Policy Impl."
 
     local procedure FillTempRetenPolDeletingParamTable(var TempRetenPolDeletingParam: Record "Reten. Pol. Deleting Param" temporary; var RecordRef: RecordRef)
     begin
-        TempRetenPolDeletingParam."Record Count Before Delete" := this.Count(RecordRef);
+        TempRetenPolDeletingParam."Record Count Before Delete" := Count(RecordRef);
         TempRetenPolDeletingParam."Indirect Permission Required" := VerifyIndirectDeletePermission(RecordRef.Number);
         TempRetenPolDeletingParam."Skip Event Indirect Perm. Req." := not TempRetenPolDeletingParam."Indirect Permission Required";
         TempRetenPolDeletingParam."Max. Number of Rec. to Delete" := MaxNumberOfRecordsToDelete() - TotalNumberOfRecordsDeleted;
