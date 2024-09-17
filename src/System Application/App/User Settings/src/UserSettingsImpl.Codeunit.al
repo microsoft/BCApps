@@ -541,7 +541,7 @@ codeunit 9175 "User Settings Impl."
         end;
     end;
 
-    //[EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetIsLegacyActionBarEnabled', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetIsLegacyActionBarEnabled', '', false, false)]
     local procedure GetIsLegacyActionBarEnabled(var IsEnabled: Boolean)
     begin
         IsEnabled := IsLegacyActionBarEnabled(UserSecurityId());
