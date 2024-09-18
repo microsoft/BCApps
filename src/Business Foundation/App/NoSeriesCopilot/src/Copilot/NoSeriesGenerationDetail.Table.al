@@ -5,6 +5,8 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+using System.Reflection;
+
 table 392 "No. Series Generation Detail"
 {
     TableType = Temporary;
@@ -75,6 +77,28 @@ table 392 "No. Series Generation Detail"
         field(12; "Starting Date"; Date)
         {
             Caption = 'Starting Date';
+        }
+        field(13; "Exists"; Boolean)
+        {
+            Caption = 'Exists';
+        }
+        field(14; Message; Text[1024])
+        {
+            Caption = 'Message';
+        }
+        field(20; "Setup Table Name"; Text[80])
+        {
+            Caption = 'Setup Table';
+            FieldClass = FlowField;
+            CalcFormula = lookup("Table Metadata".Caption where(ID = field("Setup Table No.")));
+            Editable = false;
+        }
+        field(21; "Setup Field Name"; Text[250])
+        {
+            Caption = 'Setup Field';
+            FieldClass = FlowField;
+            CalcFormula = lookup(Field."Field Caption" where(TableNo = field("Setup Table No."), "No." = field("Setup Field No.")));
+            Editable = false;
         }
     }
 

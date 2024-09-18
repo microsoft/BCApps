@@ -195,7 +195,7 @@ codeunit 2717 "Page Summary Provider Impl."
     local procedure GetRecordFields(PageId: Integer; Bookmark: Text; var ResultJsonObject: JsonObject)
     begin
         // Get all visible and available table fields that back the controls that are visible on the page
-        if TryGetAvailableRecordFieldsData(PageId, Bookmark, ResultJsonObject) then
+        if not TryGetAvailableRecordFieldsData(PageId, Bookmark, ResultJsonObject) then
             Session.LogMessage('0000NFZ', StrSubstNo(GetRecordFieldsFailureTelemetryTxt, PageId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
         exit;
     end;
