@@ -435,9 +435,8 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         Json.InitializeCollection(NoSeriesArrText);
 
-        for i := 0 to Json.GetCollectionCount() - 1 do begin
+        for i := 0 to Json.GetCollectionCount() - 1 do
             ProcessNoSeries(i, NoSeriesCodes, Json);
-        end;
 
         NoSeriesArrText := Json.GetCollectionAsText()
     end;
