@@ -14,6 +14,7 @@ table 149034 "AIT Log Entry"
     DataClassification = SystemMetadata;
     DrillDownPageId = "AIT Log Entries";
     LookupPageId = "AIT Log Entries";
+    DataCaptionFields = "Codeunit Name", "Procedure Name", "Test Input Code";
     Extensible = false;
     Access = Internal;
     ReplicateData = false;

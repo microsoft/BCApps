@@ -166,9 +166,9 @@ page 149034 "AIT Test Method Lines"
             }
             action(Compare)
             {
-                Caption = 'Compare Versions';
-                Image = CompareCOA;
-                ToolTip = 'Compare results of the line to a base version.';
+                Caption = 'View Runs';
+                Image = History;
+                ToolTip = 'View the run history of the suite, for the selected line.';
                 Scope = Repeater;
 
                 trigger OnAction()

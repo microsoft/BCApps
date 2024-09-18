@@ -65,15 +65,15 @@ page 149036 "AIT Run History"
                 Caption = 'Test Line Filter';
                 Visible = ApplyLineFilter;
 
-                field("Line No."; LineNo)
+                field("Line No."; LineNoFilter)
                 {
                     Caption = 'Test Line';
                     ToolTip = 'Specifies the line to filter to.';
-                    TableRelation = "AIT Test Method Line"."Line No." where("Test Suite Code" = field("Test Suite Code"));
+                    Editable = false;
 
-                    trigger OnValidate()
+                    trigger OnAssistEdit()
                     begin
-                        UpdateRunHistory();
+                        LookupTestMethodLine();
                     end;
                 }
             }
@@ -171,6 +171,7 @@ page 149036 "AIT Run History"
         ViewBy: Enum "AIT Run History - View By";
         LineNo: Integer;
         ApplyLineFilter: Boolean;
+        LineNoFilter: Text;
 
     trigger OnOpenPage()
     begin
@@ -186,6 +187,14 @@ page 149036 "AIT Run History"
     begin
         ApplyLineFilter := true;
         LineNo := Line;
+    end;
+
+    local procedure LookupTestMethodLine()
+    var
+        AITLogEntry: Codeunit "AIT Log Entry";
+    begin
+        AITLogEntry.LookupTestMethodLine(TestSuiteCode, LineNoFilter, LineNo);
+        UpdateRunHistory();
     end;
 
     local procedure UpdateRunHistory()

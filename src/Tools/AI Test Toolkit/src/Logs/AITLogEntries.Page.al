@@ -87,8 +87,11 @@ page 149033 "AIT Log Entries"
                     ToolTip = 'Specifies the test input of the test.';
 
                     trigger OnDrillDown()
+                    var
+                        AITTestData: Page "AIT Test Data Compare";
                     begin
-                        Message(Rec.GetInputBlob());
+                        AITTestData.SetRecord(Rec);
+                        AITTestData.Run();
                     end;
                 }
                 field("Output Text"; OutputText)
@@ -97,8 +100,11 @@ page 149033 "AIT Log Entries"
                     ToolTip = 'Specifies the test output of the test.';
 
                     trigger OnDrillDown()
+                    var
+                        AITTestData: Page "AIT Test Data Compare";
                     begin
-                        Message(Rec.GetOutputBlob());
+                        AITTestData.SetRecord(Rec);
+                        AITTestData.Run();
                     end;
                 }
                 field(TestRunDuration; TestRunDuration)
@@ -239,6 +245,20 @@ page 149033 "AIT Log Entries"
                     AITALTestSuiteMgt.DownloadTestOutputFromLogToFile(Rec);
                 end;
             }
+            action("View Test Data")
+            {
+                Caption = 'View Test Data';
+                Image = CompareCOA;
+                ToolTip = 'View Test Data.';
+
+                trigger OnAction()
+                var
+                    AITTestData: Page "AIT Test Data Compare";
+                begin
+                    AITTestData.SetRecord(Rec);
+                    AITTestData.Run();
+                end;
+            }
         }
         area(Promoted)
         {
@@ -260,6 +280,9 @@ page 149033 "AIT Log Entries"
                 {
                 }
                 actionref("Download Test Output_Promoted"; "Download Test Output")
+                {
+                }
+                actionref("View Test Data_Promoted"; "View Test Data")
                 {
                 }
             }

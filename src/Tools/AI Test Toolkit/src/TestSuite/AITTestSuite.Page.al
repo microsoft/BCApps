@@ -175,9 +175,9 @@ page 149031 "AIT Test Suite"
 
             action(Compare)
             {
-                Caption = 'Compare Versions';
-                Image = CompareCOA;
-                ToolTip = 'Compare results of the suite to a base version.';
+                Caption = 'View Runs';
+                Image = History;
+                ToolTip = 'View the run history of the suite.';
                 Scope = Repeater;
 
                 trigger OnAction()
