@@ -121,8 +121,14 @@ controladdin PowerBIManagement
     /// <summary>
     /// Changes the active page of the report
     /// </summary>
-    /// <param name="pageName">The name of the new page to set as active</param>
+    /// <param name="PageName">The name of the new page to set as active</param>
     procedure SetPage(PageName: Text);
+
+    /// <summary>
+    /// Changes the locale used to render the embedded element. If not specified, it will use the default Power BI language.
+    /// </summary>
+    /// <param name="NewLocale">The locale to use, for example "en-us".</param>
+    procedure SetLocale(NewLocale: Text);
 
     /// <summary>
     /// Sets the properties for the embed experience
