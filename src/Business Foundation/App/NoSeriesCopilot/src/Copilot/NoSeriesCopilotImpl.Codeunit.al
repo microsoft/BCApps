@@ -19,6 +19,7 @@ codeunit 324 "No. Series Copilot Impl."
 
     var
         IncorrectCompletionErr: Label 'Incorrect completion. The property %1 is empty', Comment = '%1 = property name';
+        EmptyCompletionErr: Label 'Incorrect completion. The completion is empty.';
         IncorrectCompletionNumberOfGeneratedNoSeriesErr: Label 'Incorrect completion. The number of generated number series is incorrect. Expected %1, but got %2', Comment = '%1 = Expected Number, %2 = Actual Number';
         TextLengthIsOverMaxLimitErr: Label 'The property %1 exceeds the maximum length of %2', Comment = '%1 = property name, %2 = maximum length';
         DateSpecificPlaceholderLbl: Label '{current_date}', Locked = true;
@@ -68,6 +69,7 @@ codeunit 324 "No. Series Copilot Impl."
 
     procedure ApplyGeneratedNoSeries(var GeneratedNoSeries: Record "No. Series Generation Detail")
     begin
+        GeneratedNoSeries.SetRange(Exists, false);
         if GeneratedNoSeries.FindSet() then
             repeat
                 InsertNoSeriesWithLines(GeneratedNoSeries);
@@ -189,13 +191,13 @@ codeunit 324 "No. Series Copilot Impl."
         CompletionAnswerTxt := AOAIChatMessages.GetLastMessage(); // the model can answer to rephrase the question, if the user input is not clear
 
         if AOAIOperationResponse.IsFunctionCall() then
-            CompletionAnswerTxt := GenerateNoSeriesUsingToolResult(AzureOpenAI, InputText, AOAIOperationResponse);
+            CompletionAnswerTxt := GenerateNoSeriesUsingToolResult(AzureOpenAI, InputText, AOAIOperationResponse, AddNoSeriesIntent.GetExistingNoSeries());
 
         exit(CompletionAnswerTxt);
     end;
 
     [NonDebuggable]
-    local procedure GenerateNoSeriesUsingToolResult(var AzureOpenAI: Codeunit "Azure OpenAI"; InputText: Text; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Text
+    local procedure GenerateNoSeriesUsingToolResult(var AzureOpenAI: Codeunit "Azure OpenAI"; InputText: Text; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; ExistingNoSeriesArray: Text): Text
     var
         AOAIChatCompletionParams: Codeunit "AOAI Chat Completion Params";
         AOAIChatMessages: Codeunit "AOAI Chat Messages";
@@ -209,6 +211,9 @@ codeunit 324 "No. Series Copilot Impl."
         FunctionResponses: List of [Codeunit "AOAI Function Response"];
         Progress: Dialog;
     begin
+        if ExistingNoSeriesArray <> '' then
+            FinalResults.Add(ExistingNoSeriesArray);
+
         FunctionResponses := AOAIOperationResponse.GetFunctionResponses();
 
         foreach AOAIFunctionResponse in FunctionResponses do begin
@@ -237,7 +242,6 @@ codeunit 324 "No. Series Copilot Impl."
                 Progress.Close();
             end;
         end;
-
         exit(ConcatenateToolResponse(FinalResults));
     end;
 
@@ -337,6 +341,7 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         ReadGeneratedNumberSeriesJArray(GeneratedNoSeriesArrayText).WriteTo(NoSeriesArrText);
         Json.InitializeCollection(NoSeriesArrText);
+        CheckIfArrayIsNotEmpty(Json.GetCollectionCount());
 
         for i := 0 to Json.GetCollectionCount() - 1 do begin
             Json.GetObjectFromCollectionByIndex(i, NoSeriesObj);
@@ -354,6 +359,12 @@ codeunit 324 "No. Series Copilot Impl."
             CheckIntegerPropertyExistAndCheckIfNotEmpty('tableId', Json);
             CheckIntegerPropertyExistAndCheckIfNotEmpty('fieldId', Json);
         end;
+    end;
+
+    local procedure CheckIfArrayIsNotEmpty(NumberOfGeneratedNoSeries: Integer)
+    begin
+        if NumberOfGeneratedNoSeries = 0 then
+            Error(EmptyCompletionErr);
     end;
 
     local procedure CheckTextPropertyExistAndCheckIfNotEmpty(propertyName: Text; var Json: Codeunit Json)
@@ -420,47 +431,32 @@ codeunit 324 "No. Series Copilot Impl."
     var
         Json: Codeunit Json;
         i: Integer;
-        NoSeriesObj: Text;
         NoSeriesCodes: List of [Text];
-        NoSeriesCode: Text;
     begin
         Json.InitializeCollection(NoSeriesArrText);
 
-        for i := 0 to Json.GetCollectionCount() - 1 do begin
-            Json.GetObjectFromCollectionByIndex(i, NoSeriesObj);
-            Json.InitializeObject(NoSeriesObj);
-            Json.GetStringPropertyValueByName('seriesCode', NoSeriesCode);
-            if NoSeriesCodes.Contains(NoSeriesCode) then begin
-                Json.ReplaceOrAddJPropertyInJObject('seriesCode', GenerateNewSeriesCodeValue(NoSeriesCodes, NoSeriesCode));
-                NoSeriesObj := Json.GetObjectAsText();
-                Json.ReplaceJObjectInCollection(i, NoSeriesObj);
-            end;
-            NoSeriesCodes.Add(NoSeriesCode);
-        end;
+        for i := 0 to Json.GetCollectionCount() - 1 do
+            ProcessNoSeries(i, NoSeriesCodes, Json);
 
         NoSeriesArrText := Json.GetCollectionAsText()
     end;
 
-    local procedure GenerateNewSeriesCodeValue(var NoSeriesCodes: List of [Text]; var NoSeriesCode: Text): Text
+    local procedure ProcessNoSeries(i: Integer; var NoSeriesCodes: List of [Text]; var Json: Codeunit Json)
     var
-        NewNoSeriesCode: Text;
+        NoSeriesCode: Text;
+        NoSeriesObj: Text;
+        IsExists: Boolean;
     begin
-        repeat
-            NewNoSeriesCode := CopyStr(NoSeriesCode, 1, 18) + '-' + RandomCharacter();
-        until not NoSeriesCodes.Contains(NewNoSeriesCode);
+        Json.GetObjectFromCollectionByIndex(i, NoSeriesObj);
+        Json.InitializeObject(NoSeriesObj);
+        Json.GetBoolPropertyValueFromJObjectByName('exists', IsExists);
+        Json.GetStringPropertyValueByName('seriesCode', NoSeriesCode);
 
-        NoSeriesCode := NewNoSeriesCode;
-        exit(NewNoSeriesCode);
-    end;
-
-    local procedure RandomCharacter(): Char
-    begin
-        exit(RandIntInRange(33, 126)); // ASCII: ! (33) to ~ (126)
-    end;
-
-    local procedure RandIntInRange(MinInt: Integer; MaxInt: Integer): Integer
-    begin
-        exit(MinInt - 1 + Random(MaxInt - MinInt + 1));
+        if NoSeriesCodes.Contains(NoSeriesCode) and (not IsExists) then begin
+            Json.RemoveJObjectFromCollection(i);
+            exit;
+        end;
+        NoSeriesCodes.Add(NoSeriesCode);
     end;
 
     local procedure InsertGeneratedNoSeries(var GeneratedNoSeries: Record "No. Series Generation Detail"; NoSeriesObj: Text; GenerationNo: Integer)
@@ -482,7 +478,9 @@ codeunit 324 "No. Series Copilot Impl."
         Json.GetValueAndSetToRecFieldNo(RecRef, 'tableId', GeneratedNoSeries.FieldNo("Setup Table No."));
         Json.GetValueAndSetToRecFieldNo(RecRef, 'fieldId', GeneratedNoSeries.FieldNo("Setup Field No."));
         Json.GetValueAndSetToRecFieldNo(RecRef, 'nextYear', GeneratedNoSeries.FieldNo("Is Next Year"));
-        RecRef.Insert(true);
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'exists', GeneratedNoSeries.FieldNo(Exists));
+        Json.GetValueAndSetToRecFieldNo(RecRef, 'message', GeneratedNoSeries.FieldNo(Message));
+        if RecRef.Insert(true) then;
 
         ValidateGeneratedNoSeries(RecRef);
     end;
@@ -528,7 +526,7 @@ codeunit 324 "No. Series Copilot Impl."
 
     local procedure MaxModelTokens(): Integer
     begin
-        exit(16385); //gpt-4o-mini-latest
+        exit(16385); //gpt-4o-latest
     end;
 
     procedure IsCopilotVisible(): Boolean

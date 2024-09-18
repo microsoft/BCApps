@@ -20,6 +20,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
         AzureKeyVault: Codeunit "Azure Key Vault";
         Telemetry: Codeunit Telemetry;
         ToolsImpl: Codeunit "No. Series Cop. Tools Impl.";
+        ExistingNoSeriesJArr: JsonArray;
         FunctionNameLbl: Label 'CreateNewNumberSeries', Locked = true;
         DateSpecificPlaceholderLbl: Label '{current_date}', Locked = true;
         CustomPatternsPlaceholderLbl: Label '{custom_patterns}', Locked = true;
@@ -28,6 +29,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
         TelemetryTool1PromptRetrievalErr: Label 'Unable to retrieve the prompt for No. Series Copilot Tool 1 from Azure Key Vault.', Locked = true;
         TelemetryTool1DefinitionRetrievalErr: Label 'Unable to retrieve the definition for No. Series Copilot Tool 1 from Azure Key Vault.', Locked = true;
         ToolLoadingErr: Label 'Unable to load the No. Series Copilot Tool 1. Please try again later.';
+        ExistingNoSeriesMessageLbl: Label 'Number series already configured. If you wish to modify the existing series, please use the `Modify number series` prompt.';
 
     procedure GetName(): Text
     begin
@@ -148,14 +150,52 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
             exit;
 
         FieldRef := RecRef.Field(Field."No.");
-        if Format(FieldRef.Value) <> '' then
+        if Format(FieldRef.Value) <> '' then begin
+            SaveExistingNoSeries(TempTableMetadata, FieldRef);
             exit; // No need to generate number series if it already created and configured
+        end;
 
         TempSetupTable := TempTableMetadata;
         if TempSetupTable.Insert() then;
 
         TempNoSeriesField := Field;
         TempNoSeriesField.Insert();
+    end;
+
+    local procedure SaveExistingNoSeries(TempTableMetadata: Record "Table Metadata" temporary; FieldRef: FieldRef)
+    var
+        NoSeries: Record "No. Series";
+        NoSeriesLine: Record "No. Series Line";
+        NoSeriesManagement: Codeunit "No. Series";
+        ExistingNoSeriesJObj: JsonObject;
+    begin
+        if not NoSeries.Get(Format(FieldRef.Value)) then
+            exit;
+
+        NoSeriesManagement.GetNoSeriesLine(NoSeriesLine, NoSeries.Code, Today(), false);
+
+        Clear(ExistingNoSeriesJObj);
+        ExistingNoSeriesJObj.Add('seriesCode', NoSeries.Code);
+        ExistingNoSeriesJObj.Add('description', NoSeries.Description);
+        ExistingNoSeriesJObj.Add('startingNo', NoSeriesLine."Starting No.");
+        ExistingNoSeriesJObj.Add('endingNo', NoSeriesLine."Ending No.");
+        ExistingNoSeriesJObj.Add('warningNo', NoSeriesLine."Warning No.");
+        ExistingNoSeriesJObj.Add('incrementByNo', NoSeriesLine."Increment-by No.");
+        ExistingNoSeriesJObj.Add('tableId', TempTableMetadata.ID);
+        ExistingNoSeriesJObj.Add('fieldId', FieldRef.Number);
+        ExistingNoSeriesJObj.Add('nextYear', false);
+        ExistingNoSeriesJObj.Add('exists', true);
+        ExistingNoSeriesJObj.Add('message', ExistingNoSeriesMessageLbl);
+
+        ExistingNoSeriesJArr.Add(ExistingNoSeriesJObj);
+    end;
+
+    procedure GetExistingNoSeries() ExistingNoSeries: Text
+    begin
+        if ExistingNoSeriesJArr.Count() = 0 then
+            exit('');
+
+        ExistingNoSeriesJArr.WriteTo(ExistingNoSeries);
     end;
 
     [NonDebuggable]
