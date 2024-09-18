@@ -123,7 +123,7 @@ page 7775 "Copilot AI Capabilities"
 
             part(PreviewCapabilities; "Copilot Capabilities Preview")
             {
-                Caption = 'Production ready previews';
+                Caption = 'Production-ready previews';
                 ApplicationArea = All;
                 Editable = false;
             }
@@ -132,6 +132,13 @@ page 7775 "Copilot AI Capabilities"
                 Caption = 'Generally available';
                 ApplicationArea = All;
                 Editable = false;
+            }
+            part(EarlyPreviewCapabilities; "Copilot Cap. Early Preview")
+            {
+                Caption = 'Early previews (not for production)';
+                ApplicationArea = All;
+                Editable = false;
+                Visible = HasEarlyPreview;
             }
         }
     }
@@ -183,6 +190,7 @@ page 7775 "Copilot AI Capabilities"
 
         CurrPage.GenerallyAvailableCapabilities.Page.SetDataMovement(AllowDataMovement);
         CurrPage.PreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
+        CurrPage.EarlyPreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
 
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             CopilotCapabilityImpl.ShowCapabilitiesNotAvailableOnPremNotification();
@@ -191,6 +199,16 @@ page 7775 "Copilot AI Capabilities"
             CopilotCapabilityImpl.ShowPrivacyNoticeDisagreedNotification();
 
         CopilotCapabilityImpl.UpdateGuidedExperience(AllowDataMovement);
+
+        HasEarlyPreview := HasEarlyPreviewCapabilities();
+    end;
+
+    local procedure HasEarlyPreviewCapabilities(): Boolean
+    var
+        CopilotSettings: Record "Copilot Settings";
+    begin
+        CopilotSettings.SetRange(Availability, Enum::"Copilot Availability"::"Early Preview");
+        exit(not CopilotSettings.IsEmpty());
     end;
 
     local procedure UpdateAllowDataMovement()
@@ -218,6 +236,7 @@ page 7775 "Copilot AI Capabilities"
         WithinEuropeGeo: Boolean;
         AllowDataMovement: Boolean;
         AllowDataMovementEditable: Boolean;
+        HasEarlyPreview: Boolean;
         CopilotGovernDataLbl: Label 'How do I govern my Copilot data?';
         AOAIServiceLocatedLbl: Label 'In which region will my data be stored and processed?';
 }

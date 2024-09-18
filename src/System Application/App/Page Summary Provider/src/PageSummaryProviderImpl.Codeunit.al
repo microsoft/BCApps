@@ -32,9 +32,6 @@ codeunit 2717 "Page Summary Provider Impl."
 
     procedure GetPageSummary(PageSummaryParameters: Record "Page Summary Parameters"): Text
     begin
-        if PageSummaryParameters."Page ID" = 0 then
-            ThrowPageMustBeSpecifiedError();
-
         if PageSummaryParameters.Bookmark <> '' then
             exit(GetPageSummary(PageSummaryParameters."Page ID", PageSummaryParameters.Bookmark, PageSummaryParameters."Include Binary Data"));
 
@@ -149,10 +146,8 @@ codeunit 2717 "Page Summary Provider Impl."
         Clear(PageSummarySettings);
 
         PageSummaryJsonObject.ReadFrom(JsonText);
-        if not PageSummaryJsonObject.Get(PageIDTok, ParsedJsonToken) then
-            ThrowPageMustBeSpecifiedError();
-
-        PageSummaryParameters."Page ID" := ParsedJsonToken.AsValue().AsInteger();
+        if PageSummaryJsonObject.Get(PageIDTok, ParsedJsonToken) then
+            PageSummaryParameters."Page ID" := ParsedJsonToken.AsValue().AsInteger();
 
         if PageSummaryJsonObject.Get(BookmarkTok, ParsedJsonToken) then
 #pragma warning disable AA0139
@@ -200,7 +195,7 @@ codeunit 2717 "Page Summary Provider Impl."
     local procedure GetRecordFields(PageId: Integer; Bookmark: Text; var ResultJsonObject: JsonObject)
     begin
         // Get all visible and available table fields that back the controls that are visible on the page
-        if TryGetAvailableRecordFieldsData(PageId, Bookmark, ResultJsonObject) then
+        if not TryGetAvailableRecordFieldsData(PageId, Bookmark, ResultJsonObject) then
             Session.LogMessage('0000NFZ', StrSubstNo(GetRecordFieldsFailureTelemetryTxt, PageId), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PageSummaryCategoryLbl);
         exit;
     end;
@@ -441,16 +436,6 @@ codeunit 2717 "Page Summary Provider Impl."
         ExtractPictureFromMedia(TenantMediaSet."Media ID".MediaId, FieldValue, MimeType, FieldType);
     end;
 
-    local procedure ThrowPageMustBeSpecifiedError()
-    var
-        ProgrammingErrorInfo: ErrorInfo;
-    begin
-        ProgrammingErrorInfo.Verbosity := Verbosity::Error;
-        ProgrammingErrorInfo.ErrorType := ProgrammingErrorInfo.ErrorType::Internal;
-        ProgrammingErrorInfo.Message := PageIDMustBeSpecifiedErr;
-        Error(ProgrammingErrorInfo);
-    end;
-
     var
         PageSummarySettings: Codeunit "Page Summary Settings";
         PageTxt: Label 'Page %1', Comment = '%1 is a whole number, ex. 10';
@@ -467,7 +452,6 @@ codeunit 2717 "Page Summary Provider Impl."
         GetPageUrlSuccessTelemetryTxt: Label 'Successfully added url for page %1.', Locked = true;
         NoRecordFieldsFoundTelemetryTxt: Label 'No record fields found for page %1.', Locked = true;
         GetRecordFieldsFailureTelemetryTxt: Label 'Failure to get record fields for page %1.', Locked = true;
-        PageIDMustBeSpecifiedErr: Label 'Page ID must be specified.', Locked = true;
         PageIDTok: Label 'pageId', Locked = true;
         RecordSystemIdTok: Label 'recordSystemId', Locked = true;
         BookmarkTok: Label 'bookmark', Locked = true;

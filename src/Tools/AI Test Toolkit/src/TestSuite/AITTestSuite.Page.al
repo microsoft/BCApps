@@ -5,7 +5,6 @@
 
 namespace System.TestTools.AITestToolkit;
 
-using System.Environment;
 using System.Telemetry;
 using System.TestTools.TestRunner;
 
@@ -126,6 +125,15 @@ page 149031 "AIT Test Suite"
                     Caption = 'Average Duration';
                     ToolTip = 'Specifies the average time taken by the tests in the test suite.';
                 }
+                field("Tokens Consumed"; Rec."Tokens Consumed")
+                {
+                }
+                field("Average Tokens Consumed"; AvgTokensConsumed)
+                {
+                    Editable = false;
+                    Caption = 'Average Tokens Consumed';
+                    ToolTip = 'Specifies the average number of tokens consumed by the tests in the last run.';
+                }
             }
 
         }
@@ -136,7 +144,7 @@ page 149031 "AIT Test Suite"
         {
             action(Start)
             {
-                Enabled = (EnableActions and (Rec.Status <> Rec.Status::Running));
+                Enabled = Rec.Status <> Rec.Status::Running;
                 Caption = 'Start';
                 Image = Start;
                 ToolTip = 'Starts running the AI Test Suite.';
@@ -250,20 +258,17 @@ page 149031 "AIT Test Suite"
 
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-        EnableActions: Boolean;
         AvgTimeDuration: Duration;
+        AvgTokensConsumed: Integer;
         TotalDuration: Duration;
         PageCaptionLbl: Label 'AI Test';
         TestRunnerDisplayName: Text;
 
     trigger OnOpenPage()
     var
-        EnvironmentInformation: Codeunit "Environment Information";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        EnableActions := (EnvironmentInformation.IsSaaS() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
-        if EnableActions then
-            FeatureTelemetry.LogUptake('0000NEV', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
+        FeatureTelemetry.LogUptake('0000NEV', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -276,7 +281,7 @@ page 149031 "AIT Test Suite"
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
     begin
         UpdateTotalDuration();
-        UpdateAverageExecutionTime();
+        UpdateAverages();
         TestRunnerDisplayName := TestSuiteMgt.GetTestRunnerDisplayName(Rec."Test Runner Id");
     end;
 
@@ -286,12 +291,17 @@ page 149031 "AIT Test Suite"
         TotalDuration := Rec."Total Duration (ms)";
     end;
 
-    local procedure UpdateAverageExecutionTime()
+    local procedure UpdateAverages()
     begin
-        Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)");
+        Rec.CalcFields("No. of Tests Executed", "Total Duration (ms)", "Tokens Consumed");
         if Rec."No. of Tests Executed" > 0 then
             AvgTimeDuration := Rec."Total Duration (ms)" div Rec."No. of Tests Executed"
         else
             AvgTimeDuration := 0;
+
+        if Rec."No. of Tests Executed" > 0 then
+            AvgTokensConsumed := Rec."Tokens Consumed" div Rec."No. of Tests Executed"
+        else
+            AvgTokensConsumed := 0;
     end;
 }

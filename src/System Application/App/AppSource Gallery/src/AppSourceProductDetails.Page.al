@@ -14,7 +14,7 @@ page 2516 "AppSource Product Details"
     PageType = Card;
     ApplicationArea = All;
     Editable = false;
-    Caption = 'App Overview';
+    Caption = 'App overview';
     DataCaptionExpression = AppSourceJsonUtilities.GetStringValue(ProductObject, 'displayName');
 
     InherentEntitlements = X;
@@ -65,6 +65,7 @@ page 2516 "AppSource Product Details"
                 {
                     Caption = 'Last Modified Date Time';
                     ToolTip = 'Specifies the date the offer was last updated.';
+                    Visible = false;
                 }
             }
             group(DescriptionGroup)
@@ -155,10 +156,10 @@ page 2516 "AppSource Product Details"
         {
             action(OpenInAppSource)
             {
-                Caption = 'View in AppSource';
+                Caption = 'View on AppSource';
                 Scope = Page;
-                Image = Open;
-                ToolTip = 'Opens the app offer in the AppSource marketplace.';
+                Image = Info;
+                ToolTip = 'Opens the app on AppSource.';
 
                 trigger OnAction()
                 begin
@@ -188,9 +189,9 @@ page 2516 "AppSource Product Details"
 
             action(InstallFromAppSource)
             {
-                Caption = 'Install From AppSource';
+                Caption = 'Install from AppSource';
                 Scope = Page;
-                Image = Insert;
+                Image = Download;
                 ToolTip = 'Installs the app from Microsoft AppSource.';
                 Enabled = (not CurrentRecordCanBeUninstalled) and (not CurrentRecordCanBeInstalled);
                 Visible = (not CurrentRecordCanBeUninstalled) and (not CurrentRecordCanBeInstalled);
@@ -341,13 +342,13 @@ page 2516 "AppSource Product Details"
 
         if FreeTrial then begin
             if Monthly > 0 then begin
-                PriceText := StrSubstNo(PlanLinePrUserPrMonthLbl, Currency, Format(Monthly, 12, 2));
+                PriceText := StrSubstNo(PlanLinePrUserPrMonthLbl, Currency, Format(Monthly, 12, 0));
                 MonthlyPriceText := StrSubstNo(PlanLineFirstMonthIsFreeLbl, PriceText)
             end
             else
                 MonthlyPriceText := StrSubstNo(PlanLineFirstMonthIsFreeLbl, PlanLinePriceVariesLbl);
             if Yearly > 0 then begin
-                PriceText := StrSubstNo(PlanLinePrUserPrYearLbl, Currency, Format(Yearly, 12, 2));
+                PriceText := StrSubstNo(PlanLinePrUserPrYearLbl, Currency, Format(Yearly, 12, 0));
                 YearlyPriceText := StrSubstNo(PlanLineFirstMonthIsFreeLbl, PriceText)
             end
             else
@@ -355,9 +356,9 @@ page 2516 "AppSource Product Details"
         end
         else begin
             if Monthly > 0 then
-                MonthlyPriceText := StrSubstNo(PlanLinePrUserPrMonthLbl, Currency, Format(Monthly, 12, 2));
+                MonthlyPriceText := StrSubstNo(PlanLinePrUserPrMonthLbl, Currency, Format(Monthly, 12, 0));
             if Yearly > 0 then
-                YearlyPriceText := StrSubstNo(PlanLinePrUserPrYearLbl, Currency, Format(Yearly, 12, 2));
+                YearlyPriceText := StrSubstNo(PlanLinePrUserPrYearLbl, Currency, Format(Yearly, 12, 0));
         end;
 
         exit(true);

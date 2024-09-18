@@ -135,9 +135,6 @@ page 9069 "Plan Configuration Card"
     var
         PlanConfigurationImpl: Codeunit "Plan Configuration Impl.";
     begin
-#if not CLEAN22
-        CurrPage.DefaultPermissionSets.Page.Refresh(Rec."Plan ID");
-#endif
         CurrPage.CustomPermissionSets.Page.SetPlanId(Rec."Plan ID");
 
         PlanConfigurationImpl.ShowCustomPermissionsEffectNotification(Rec);

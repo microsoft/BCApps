@@ -57,7 +57,10 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings.Publisher := CopyStr(CallerModuleInfo.Publisher, 1, MaxStrLen(CopilotSettings.Publisher));
         CopilotSettings.Availability := CopilotAvailability;
         CopilotSettings."Learn More Url" := LearnMoreUrl;
-        CopilotSettings.Status := Enum::"Copilot Status"::Active;
+        if CopilotSettings.Availability = Enum::"Copilot Availability"::"Early Preview" then
+            CopilotSettings.Status := Enum::"Copilot Status"::Inactive
+        else
+            CopilotSettings.Status := Enum::"Copilot Status"::Active;
         CopilotSettings.Insert();
         Commit();
 
@@ -269,17 +272,12 @@ codeunit 7774 "Copilot Capability Impl"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetCopilotCapabilityStatus', '', false, false)]
-    local procedure GetCopilotCapabilityStatus(Capability: Integer; var IsEnabled: Boolean)
+    local procedure GetCopilotCapabilityStatus(Capability: Integer; var IsEnabled: Boolean; AppId: Guid; Silent: Boolean)
     var
         AzureOpenAI: Codeunit "Azure OpenAI";
         CopilotCapability: Enum "Copilot Capability";
-        Silent: Boolean;
     begin
         CopilotCapability := Enum::"Copilot Capability".FromInteger(Capability);
-
-        if CopilotCapability = Enum::"Copilot Capability"::Chat then
-            Silent := true;
-
-        IsEnabled := AzureOpenAI.IsEnabled(CopilotCapability, Silent);
+        IsEnabled := AzureOpenAI.IsEnabled(CopilotCapability, Silent, AppId);
     end;
 }

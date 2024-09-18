@@ -5,7 +5,6 @@
 
 namespace System.TestTools.AITestToolkit;
 
-using System.Environment;
 using System.Telemetry;
 using System.TestTools.TestRunner;
 using System.Utilities;
@@ -129,7 +128,6 @@ page 149042 "AIT CommandLine Card"
         {
             action(RunSuite)
             {
-                Enabled = EnableActions;
                 Caption = 'Run Suite';
                 Image = Start;
                 ToolTip = 'Starts running the AI test suite.';
@@ -141,7 +139,6 @@ page 149042 "AIT CommandLine Card"
             }
             action(RunNextTest)
             {
-                Enabled = EnableActions;
                 Caption = 'Run Next Test';
                 Image = TestReport;
                 ToolTip = 'Starts running the next test in the AI test suite.';
@@ -153,7 +150,6 @@ page 149042 "AIT CommandLine Card"
             }
             action(ResetTestSuite)
             {
-                Enabled = EnableActions;
                 Caption = 'Reset Test Suite';
                 Image = Restore;
                 ToolTip = 'Resets the test method lines status to run them again.';
@@ -208,18 +204,14 @@ page 149042 "AIT CommandLine Card"
 
     trigger OnOpenPage()
     var
-        EnvironmentInformation: Codeunit "Environment Information";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
-        EnableActions := (EnvironmentInformation.IsSaaS() and EnvironmentInformation.IsSandbox()) or EnvironmentInformation.IsOnPrem();
-        if EnableActions then
-            FeatureTelemetry.LogUptake('0000NF0', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
+        FeatureTelemetry.LogUptake('0000NF0', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
     end;
 
     var
         CannotFindAITSuiteErr: Label 'The specified Test Suite with code %1 cannot be found.', Comment = '%1 = Test Suite id.';
-        EnableActions: Boolean;
         AITCode: Code[100];
         NoOfPendingTests: Integer;
         InputDataset: Text;

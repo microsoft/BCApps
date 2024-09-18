@@ -107,6 +107,9 @@ page 149033 "AIT Log Entries"
                         AITTestData.Run();
                     end;
                 }
+                field("Tokens Consumed"; Rec."Tokens Consumed")
+                {
+                }
                 field(TestRunDuration; TestRunDuration)
                 {
                     Caption = 'Duration';
