@@ -3,6 +3,4 @@ Param(
 )
 
 $scriptPath = Join-Path $PSScriptRoot "../../../scripts/CompileAppInBcContainer.ps1" -Resolve
-$projectFolder = Join-Path $PSScriptRoot "../../System Application Tests"
-
-. $scriptPath -parameters $parameters -currentProjectFolder $projectFolder
+. $scriptPath -parameters $parameters
