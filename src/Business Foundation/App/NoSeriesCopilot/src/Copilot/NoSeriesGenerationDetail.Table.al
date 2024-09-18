@@ -5,6 +5,8 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+using System.Reflection;
+
 table 392 "No. Series Generation Detail"
 {
     TableType = Temporary;
