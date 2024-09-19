@@ -164,6 +164,9 @@ codeunit 9175 "User Settings Impl."
     var
         UserPersonalization: Record "User Personalization";
         ApplicationUserSettings: Record "Application User Settings";
+        MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+        MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+        MyALAuditCategory: DotNet ALAuditCategory;
     begin
         UserPersonalization.Get(NewUserSettings."User Security ID");
 
@@ -180,8 +183,8 @@ codeunit 9175 "User Settings Impl."
         ApplicationUserSettings."Teaching Tips" := NewUserSettings."Teaching Tips";
         ApplicationUserSettings."Legacy Action Bar" := NewUserSettings."Legacy Action Bar";
         ApplicationUserSettings.Modify();
-        Session.LogAuditMessage(StrSubstNo(UserSettingsUpdatedLbl, UserPersonalization."User SID", UserPersonalization."Language ID", UserPersonalization."Locale ID",
-            UserPersonalization.Company, UserPersonalization."Time Zone", UserPersonalization."Profile ID", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+        MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(UserSettingsUpdatedLbl, UserPersonalization."User SID", UserPersonalization."Language ID", UserPersonalization."Locale ID",
+            UserPersonalization.Company, UserPersonalization."Time Zone", UserPersonalization."Profile ID", UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::ApplicationManagement, 2, 0);
     end;
 
     local procedure UpdateCurrentUsersSettings(OldUserSettings: Record "User Settings"; NewUserSettings: Record "User Settings")

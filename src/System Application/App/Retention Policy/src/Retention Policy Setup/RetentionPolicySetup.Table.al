@@ -5,6 +5,7 @@
 
 namespace System.DataAdministration;
 
+using System;
 using System.Reflection;
 
 /// <summary>
@@ -178,9 +179,12 @@ table 3901 "Retention Policy Setup"
 
     trigger OnInsert()
     var
+        MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+        MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+        MyALAuditCategory: DotNet ALAuditCategory;
         NewRetentionPolicyCreatedLbl: Label 'The new Retention Policy record with Table ID %1 is created by the UserSecurityId %2.', Locked = true;
     begin
-        Session.LogAuditMessage(StrSubstNo(NewRetentionPolicyCreatedLbl, Rec."Table ID", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+        MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(NewRetentionPolicyCreatedLbl, Rec."Table ID", UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::ApplicationManagement, 3, 0);
     end;
 
     local procedure LogCategory() RetentionPolicyLogCategory: Enum "Retention Policy Log Category"
