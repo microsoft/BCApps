@@ -5,6 +5,7 @@
 
 namespace System.Security.AccessControl;
 
+using System;
 using System.Telemetry;
 using System.Security.User;
 
@@ -170,6 +171,9 @@ page 9855 "Permission Set"
                     trigger OnAction()
                     var
                         TempTablePermissionBuffer: Record "Tenant Permission" temporary;
+                        MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+                        MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+                        MyALAuditCategory: DotNet ALAuditCategory;
                     begin
                         LogTablePermissions.Stop(TempTablePermissionBuffer);
                         PermissionLoggingRunning := false;
@@ -177,7 +181,7 @@ page 9855 "Permission Set"
                             exit;
 
                         AddLoggedPermissions(TempTablePermissionBuffer);
-                        Session.LogAuditMessage(StrSubstNo(PermissionSetModifiedLbl, Rec."Role ID", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::RoleManagement, 2, 0);
+                        MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(PermissionSetModifiedLbl, Rec."Role ID", UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::RoleManagement, 2, 0);
                         CurrPage.MetadataPermissions.Page.Update(false);
                     end;
                 }

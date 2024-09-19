@@ -5,6 +5,7 @@
 
 namespace System.Security.AccessControl;
 
+using System;
 using System.Telemetry;
 using System.Reflection;
 
@@ -247,6 +248,9 @@ codeunit 9863 "Permission Set Copy Impl."
     var
         TenantPermission: Record "Tenant Permission";
         LogActivityPermissions: Codeunit "Log Activity Permissions";
+        MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+        MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+        MyALAuditCategory: DotNet ALAuditCategory;
     begin
         TenantPermission.LockTable();
         if not TenantPermission.Get(AppID, RoleID, ObjectType, ObjectID) then begin
@@ -260,8 +264,8 @@ codeunit 9863 "Permission Set Copy Impl."
             TenantPermission."Delete Permission" := AddDelete;
             TenantPermission."Execute Permission" := AddExecute;
             TenantPermission.Insert();
-            Session.LogAuditMessage(StrSubstNo(PermissionsInsertedLbl, AppID, CopyStr(RoleID, 1, MaxStrLen(TenantPermission."Role ID")), ObjectType, ObjectID,
-                AddRead, AddInsert, AddModify, AddDelete, AddExecute, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+            MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(PermissionsInsertedLbl, AppID, CopyStr(RoleID, 1, MaxStrLen(TenantPermission."Role ID")), ObjectType, ObjectID,
+                AddRead, AddInsert, AddModify, AddDelete, AddExecute, UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::ApplicationManagement, 2, 0);
         end else begin
             TenantPermission."Read Permission" := LogActivityPermissions.GetMaxPermission(TenantPermission."Read Permission", AddRead);
             TenantPermission."Insert Permission" := LogActivityPermissions.GetMaxPermission(TenantPermission."Insert Permission", AddInsert);
@@ -269,14 +273,17 @@ codeunit 9863 "Permission Set Copy Impl."
             TenantPermission."Delete Permission" := LogActivityPermissions.GetMaxPermission(TenantPermission."Delete Permission", AddDelete);
             TenantPermission."Execute Permission" := LogActivityPermissions.GetMaxPermission(TenantPermission."Execute Permission", AddExecute);
             TenantPermission.Modify();
-            Session.LogAuditMessage(StrSubstNo(PermissionsUpdatedLbl, AppID, CopyStr(RoleID, 1, MaxStrLen(TenantPermission."Role ID")), ObjectType, ObjectID,
-                AddRead, AddInsert, AddModify, AddDelete, AddExecute, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+            MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(PermissionsUpdatedLbl, AppID, CopyStr(RoleID, 1, MaxStrLen(TenantPermission."Role ID")), ObjectType, ObjectID,
+                AddRead, AddInsert, AddModify, AddDelete, AddExecute, UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::ApplicationManagement, 2, 0);
         end;
     end;
 
     internal procedure AddReadAccessToRelatedTables(var TempTenantPermission: Record "Tenant Permission" temporary; AppID: Guid; RoleID: Code[30])
     var
         TableRelationsMetadata: Record "Table Relations Metadata";
+        MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+        MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+        MyALAuditCategory: DotNet ALAuditCategory;
     begin
         if TempTenantPermission."Object Type" <> TempTenantPermission."Object Type"::"Table Data" then
             exit;
@@ -290,8 +297,8 @@ codeunit 9863 "Permission Set Copy Impl."
                 AddToTenantPermission(
                   AppID, RoleID, TempTenantPermission."Object Type"::"Table Data", TableRelationsMetadata."Related Table ID", TempTenantPermission."Read Permission"::Yes,
                   TempTenantPermission."Insert Permission"::" ", TempTenantPermission."Modify Permission"::" ", TempTenantPermission."Delete Permission"::" ", TempTenantPermission."Execute Permission"::" ");
-                Session.LogAuditMessage(StrSubstNo(ReadAccessAddedToRelatedTablesLbl, AppID, RoleID, TempTenantPermission."Object Type"::"Table Data", TempTenantPermission."Object ID", UserSecurityId()),
-                    SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+                MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(ReadAccessAddedToRelatedTablesLbl, AppID, RoleID, TempTenantPermission."Object Type"::"Table Data", TempTenantPermission."Object ID", UserSecurityId()),
+                    MyALSecurityOperationResult::Success, MyALAuditCategory::ApplicationManagement, 2, 0);
             until TableRelationsMetadata.Next() = 0;
     end;
 

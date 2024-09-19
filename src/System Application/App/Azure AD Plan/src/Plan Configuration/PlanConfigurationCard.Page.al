@@ -5,6 +5,7 @@
 
 namespace System.Azure.Identity;
 
+using System;
 using System.Environment;
 
 /// <summary>
@@ -49,9 +50,13 @@ page 9069 "Plan Configuration Card"
                         ToolTip = 'Specifies whether the default permissions are customized.';
 
                         trigger OnValidate()
+                        var
+                            MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+                            MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+                            MyALAuditCategory: DotNet ALAuditCategory;
                         begin
                             if Rec.Customized then
-                                Session.LogAuditMessage(StrSubstNo(PlanConfigurationCustomizedLbl, Rec.Id, UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
+                                MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(PlanConfigurationCustomizedLbl, Rec.Id, UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::ApplicationManagement, 2, 0);
 
                         end;
                     }

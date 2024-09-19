@@ -5,6 +5,7 @@
 
 namespace System.Privacy;
 
+using System;
 using System.Reflection;
 
 codeunit 1753 "Data Classification Mgt. Impl."
@@ -40,6 +41,9 @@ codeunit 1753 "Data Classification Mgt. Impl."
     procedure InsertDataSensitivityForField(TableNo: Integer; FieldNo: Integer; DataSensitivityOption: Option)
     var
         DataSensitivity: Record "Data Sensitivity";
+        MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+        MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+        MyALAuditCategory: DotNet ALAuditCategory;
     begin
         if IsSupportedTable(TableNo) then begin
             DataSensitivity.Init();
@@ -48,13 +52,16 @@ codeunit 1753 "Data Classification Mgt. Impl."
             DataSensitivity."Field No" := FieldNo;
             DataSensitivity."Data Sensitivity" := DataSensitivityOption;
             DataSensitivity.Insert();
-            Session.LogAuditMessage(StrSubstNo(DataSensitivitySetLbl, DataSensitivity."Data Sensitivity", DataSensitivity."Company Name",
-                DataSensitivity."Table No", DataSensitivity."Field No", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+            MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(DataSensitivitySetLbl, DataSensitivity."Data Sensitivity", DataSensitivity."Company Name",
+                DataSensitivity."Table No", DataSensitivity."Field No", UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::ApplicationManagement, 3, 0);
         end;
     end;
 
     procedure SetSensitivities(var DataSensitivity: Record "Data Sensitivity"; Sensitivity: Option)
     var
+        MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+        MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+        MyALAuditCategory: DotNet ALAuditCategory;
         Now: DateTime;
     begin
         // MODIFYALL does not result in a bulk query for this table,looping through the records performs faster
@@ -66,8 +73,8 @@ codeunit 1753 "Data Classification Mgt. Impl."
                 DataSensitivity."Last Modified By" := UserSecurityId();
                 DataSensitivity."Last Modified" := Now;
                 DataSensitivity.Modify();
-                Session.LogAuditMessage(StrSubstNo(DataSensitivitySetLbl, DataSensitivity."Data Sensitivity", DataSensitivity."Company Name",
-                    DataSensitivity."Table No", DataSensitivity."Field No", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 3, 0);
+                MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(DataSensitivitySetLbl, DataSensitivity."Data Sensitivity", DataSensitivity."Company Name",
+                    DataSensitivity."Table No", DataSensitivity."Field No", UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::ApplicationManagement, 3, 0);
             until DataSensitivity.Next() = 0;
     end;
 
