@@ -18,13 +18,17 @@ codeunit 8890 "Send Email"
         EmailImpl: Codeunit "Email Impl";
         IEmailConnector: Interface "Email Connector";
         IEmailConnectorv2: Interface "Email Connector v2";
+        IEmailConnectorv3: Interface "Email Connector v3";
     begin
         EmailMessage.Get(Rec.Id);
 
         if EmailMessage.GetExternalId() <> '' then begin
             IEmailConnector := EmailConnector;
             if EmailImpl.CheckAndGetEmailConnectorv2(IEmailConnector, IEmailConnectorv2) then
-                IEmailConnectorv2.Reply(EmailMessage, AccountId);
+                IEmailConnectorv2.Reply(EmailMessage, AccountId)
+            else
+                if EmailImpl.CheckAndGetEmailConnectorv3(IEmailConnector, IEmailConnectorv3) then
+                    IEmailConnectorv3.Reply(EmailMessage, AccountId);
         end else
             EmailConnector.Send(EmailMessage, AccountId);
     end;

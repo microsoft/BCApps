@@ -242,23 +242,27 @@ codeunit 8900 "Email Impl"
     procedure MarkAsRead(EmailAccountId: Guid; Connector: Enum "Email Connector"; ExternalId: Text)
     var
         IEmailConnectorv2: Interface "Email Connector v2";
+        IEmailConnectorv3: Interface "Email Connector v3";
     begin
         CheckRequiredPermissions();
 
         if ExternalId = '' then
             Error(ExternalIdCannotBeEmptyErr);
-
         if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then
             IEmailConnectorv2.MarkAsRead(EmailAccountId, ExternalId)
         else
-            Error(EmailConnectorDoesNotSupportMarkAsReadErr);
+            if CheckAndGetEmailConnectorv3(Connector, IEmailConnectorv3) then
+                IEmailConnectorv3.MarkAsRead(EmailAccountId, ExternalId)
+            else
+                Error(EmailConnectorDoesNotSupportMarkAsReadErr)
     end;
 
     procedure CheckReplySupported(Connector: Enum "Email Connector"): Boolean
     var
         IEmailConnectorv2: Interface "Email Connector v2";
+        IEmailConnectorv3: Interface "Email Connector v3";
     begin
-        if not CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then
+        if (not CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2)) and (not CheckAndGetEmailConnectorv3(Connector, IEmailConnectorv3)) then
             Error(EmailconnectorDoesNotSupportReplyingErr);
 
         exit(true);
