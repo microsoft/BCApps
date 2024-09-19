@@ -1,4 +1,4 @@
-name: VerifY App Changes
+name: Verify App Changes
 author: Microsoft Corporation
 description: Verifies the changes on AL files changed in a PR
 runs:
