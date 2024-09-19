@@ -7,9 +7,9 @@ namespace System.TestLibraries.FileSystem;
 
 using System.FileSystem;
 
-enumextension 80200 "Test File Scenario" extends "File Scenario"
+enumextension 135810 "Test File Scenario" extends "File Scenario"
 {
-    value(80200; "Test File Scenario")
+    value(135810; "Test File Scenario")
     {
     }
 }

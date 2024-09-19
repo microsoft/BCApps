@@ -7,9 +7,9 @@ namespace System.TestLibraries.FileSystem;
 
 using System.FileSystem;
 
-enumextension 80201 "Test File System Connector" extends "File System Connector"
+enumextension 135815 "Test File System Connector" extends "File System Connector"
 {
-    value(80200; "Test File System Connector")
+    value(135810; "Test File System Connector")
     {
         Implementation = "File System Connector" = "Test File System Connector";
     }

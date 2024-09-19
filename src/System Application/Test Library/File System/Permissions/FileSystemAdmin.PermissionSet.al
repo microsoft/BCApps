@@ -7,7 +7,7 @@ namespace System.TestLibraries.FileSystem;
 
 using System.FileSystem;
 
-permissionset 80200 "File System Admin"
+permissionset 135810 "File System Admin"
 {
     Assignable = true;
     IncludedPermissionSets = "File System - Admin";

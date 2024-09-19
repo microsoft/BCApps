@@ -5,7 +5,7 @@
 
 namespace System.TestLibraries.FileSystem;
 
-table 80200 "Test File Account"
+table 135810 "Test File Account"
 {
     DataClassification = SystemMetadata;
     ReplicateData = false;

@@ -7,7 +7,7 @@ namespace System.TestLibraries.FileSystem;
 
 using System.FileSystem;
 
-codeunit 80204 "File System Test Lib."
+codeunit 135813 "File System Test Lib."
 {
     Permissions = tabledata "File Scenario" = rid;
 

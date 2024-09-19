@@ -5,7 +5,7 @@
 
 namespace System.TestLibraries.FileSystem;
 
-table 80201 "Test File Connector Setup"
+table 135811 "Test File Connector Setup"
 {
     DataClassification = SystemMetadata;
     ReplicateData = false;

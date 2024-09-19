@@ -8,7 +8,7 @@ namespace System.TestLibraries.FileSystem;
 using System.FileSystem;
 using System.Environment;
 
-permissionset 80201 "File System Edit"
+permissionset 135811 "File System Edit"
 {
     Assignable = true;
     IncludedPermissionSets = "File System - Edit";

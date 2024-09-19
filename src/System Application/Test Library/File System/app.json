@@ -30,8 +30,8 @@
     "platform":  "24.0.0.0",
     "idRanges":  [
                      {
-                         "from":  80200,
-                         "to":  800299
+                         "from":  135810,
+                         "to":  135819
                      }
                  ],
     "contextSensitiveHelpUrl":  "https://go.microsoft.com/fwlink/?linkid=2134520",
