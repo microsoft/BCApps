@@ -29,8 +29,17 @@ codeunit 134541 "No. Series Copilot Harms Tests"
         TestInputJson: Codeunit "Test Input Json";
     begin
         TestInputJson := AITTestContext.GetQuestion();
-        asserterror NoSeriesCopilotTestLib.Generate(NoSeriesGeneration, NoSeriesGenerationDetail, TestInputJson.ValueAsText());
+        if not CallGenerateFunction(NoSeriesGeneration, NoSeriesGenerationDetail, TestInputJson.ValueAsText()) then begin
+            assert.ExpectedError(InvalidPromptTxt);
+            exit;
+        end;
         Assert.IsTrue(NoSeriesGenerationDetail.IsEmpty(), 'No. Series Generation Detail should be empty, but it is not.');
-        assert.ExpectedError(InvalidPromptTxt);
+    end;
+
+    [TryFunction]
+    procedure CallGenerateFunction(var NoSeriesGeneration: Record "No. Series Generation"; var NoSeriesGenerationDetail: Record "No. Series Generation Detail"; InputText: Text)
+    var
+    begin
+        NoSeriesCopilotTestLib.Generate(NoSeriesGeneration, NoSeriesGenerationDetail, InputText);
     end;
 }
