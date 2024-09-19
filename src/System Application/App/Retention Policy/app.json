@@ -74,13 +74,13 @@
   ],
   "internalsVisibleTo": [
     {
-      "id": "489a0bcb-0619-4bd1-b626-9f30dbe8af4d",
-      "name": "Retention Policy Test",
+      "id": "33003b8a-f6d8-4efe-af22-1a8cb8fbacbe",
+      "name": "Retention Policy Test Library",
       "publisher": "Microsoft"
     }
   ],
   "screenshots": [],
-  "platform": "25.0.0.0",
+  "platform": "26.0.0.0",
   "idRanges": [
     {
       "from": 3900,

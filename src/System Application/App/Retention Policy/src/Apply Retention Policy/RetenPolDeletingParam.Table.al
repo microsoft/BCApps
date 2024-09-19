@@ -84,6 +84,14 @@ table 3907 "Reten. Pol. Deleting Param"
         {
             DataClassification = SystemMetadata;
         }
+        /// <summary>
+        /// The number of records in the table before the deletion.
+        /// The count is calculated once before passing this table to the deletion implementation and is used to limit the number of records to be deleted as well as record the number of records actually deleted.
+        /// </summary>
+        field(8; "Record Count Before Delete"; Integer)
+        {
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys

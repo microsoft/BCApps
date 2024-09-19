@@ -44,6 +44,22 @@ codeunit 7771 "Azure OpenAI"
     end;
 
     /// <summary>
+    /// Checks if the Azure OpenAI API is enabled for the environment and if the capability is active on the environment.
+    /// </summary>
+    /// <param name="CopilotCapability">The copilot capability to check.</param>
+    /// <param name="Silent">If true, no error message will be shown if API is not enabled.</param>
+    /// <param name="AppId">The id of the app, which registered the copilot capability.</param>
+    /// <returns>True if API and capability is enabled for environment.</returns>
+    procedure IsEnabled(CopilotCapability: Enum "Copilot Capability"; Silent: Boolean; AppId: Guid): Boolean
+    var
+        AppModuleInfo: ModuleInfo;
+    begin
+        if not NavApp.GetModuleInfo(AppId, AppModuleInfo) then
+            exit(false);
+        exit(AzureOpenAIImpl.IsEnabled(CopilotCapability, Silent, AppModuleInfo));
+    end;
+
+    /// <summary>
     /// Checks if the Azure OpenAI API authorization is configured for the environment.
     /// </summary>
     /// <param name="ModelType">The model type to check authorization for.</param>

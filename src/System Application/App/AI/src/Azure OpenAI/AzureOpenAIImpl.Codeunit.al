@@ -705,6 +705,11 @@ codeunit 7772 "Azure OpenAI Impl"
         TokenCount := ALCopilotFunctions.GptTokenCount(Input, Encoding);
     end;
 
+    procedure GetTotalServerSessionTokensConsumed(): Integer
+    begin
+        exit(SessionInformation.AITokensUsed);
+    end;
+
     [NonDebuggable]
     internal procedure IsTenantAllowlistedForFirstPartyCopilotCalls(): Boolean
     var

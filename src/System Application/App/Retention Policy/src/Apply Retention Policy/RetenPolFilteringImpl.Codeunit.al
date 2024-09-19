@@ -275,13 +275,18 @@ codeunit 3915 "Reten. Pol. Filtering Impl." implements "Reten. Pol. Filtering"
 
     // Keep track of the result set of expired records in a hash set (in addition to marks on the RecordRef) for performance reasons (i. e. to have efficient Count() calls).
     local procedure SetSelectedSystemId(SelectedSystemId: Guid; IsSelected: Boolean; var SelectedSystemIds: Dictionary of [Guid, Boolean])
+    var
+        ContainsKey: Boolean;
     begin
-        if IsSelected then
-            if not SelectedSystemIds.ContainsKey(SelectedSystemId) then
-                SelectedSystemIds.Add(SelectedSystemId, true)
-            else
-                if SelectedSystemIds.ContainsKey(SelectedSystemId) then
-                    SelectedSystemIds.Remove(SelectedSystemId)
+        ContainsKey := SelectedSystemIds.ContainsKey(SelectedSystemId);
+        case true of
+            // Selected, not yet added -> add
+            IsSelected and (not ContainsKey):
+                SelectedSystemIds.Add(SelectedSystemId, true);
+            // Not selected, already added -> remove
+            (not IsSelected) and ContainsKey:
+                SelectedSystemIds.Remove(SelectedSystemId);
+        end;
     end;
 
     local procedure SetRetentionPolicyLineTableFilter(TableFilterView: Text; var RecordRef: RecordRef; FilterGroup: Integer);

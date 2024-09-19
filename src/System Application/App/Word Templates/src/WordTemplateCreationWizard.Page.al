@@ -58,17 +58,6 @@ page 9995 "Word Template Creation Wizard"
                     Caption = 'You can also merge data from fields on entities that are related to the source entity. For example, if the source is the Customer entity, your template can include data from the Salesperson/Purchaser entity.​';
                 }
 
-#if not CLEAN22
-                label(RelatedEntityOptions)
-                {
-                    ApplicationArea = All;
-                    Visible = false;
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '22.0';
-                    ObsoleteReason = 'Moved to Word Templates Related Card.';
-                    Caption = 'Related entities share a field, typically an identifier such as its name, code, or ID, with the source entity. When adding a related entity the list is filtered to predefined relations that are available. To define a relation, if you know the shared field, you can remove the filtering and define the relation.​';
-                }
-#endif
 
                 part(RelatedTables; "Word Templates Related Part")
                 {

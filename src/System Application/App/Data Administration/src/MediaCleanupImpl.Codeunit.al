@@ -74,8 +74,8 @@ codeunit 1928 "Media Cleanup Impl."
                 repeat
                     if TenantMedia.Get(TenantMediaSet."Media ID".MediaId()) then begin
                         TempTenantMediaVar := TenantMedia;
-                        TempTenantMediaVar.Insert();
-                        MediaLoaded += 1;
+                        if TempTenantMediaVar.Insert() then
+                            MediaLoaded += 1;
                         if MediaLoaded >= RecordLimit then
                             exit(false);
                     end;
@@ -162,16 +162,19 @@ codeunit 1928 "Media Cleanup Impl."
     var
         [SecurityFiltering(SecurityFilter::Ignored)]
         TenantMediaSet: Record "Tenant Media Set";
+        SplitList: List of [List of [Guid]];
         MediaSetOrphans: List of [Guid];
-        Orphan: Guid;
+        MediaOrphanSubList: List of [Guid];
     begin
         if not TenantMediaSet.WritePermission() then
             exit;
 
         MediaSetOrphans := MediaSet.FindOrphans();
-        foreach Orphan in MediaSetOrphans do begin
-            TenantMediaSet.SetRange(ID, Orphan);
+        SplitListIntoSubLists(MediaSetOrphans, 10, SplitList);
+        foreach MediaOrphanSubList in SplitList do begin
+            TenantMediaSet.SetFilter(ID, CreateOrFilter(MediaOrphanSubList));
             TenantMediaSet.DeleteAll();
+            Commit(); // Ensure we keep the progress even on timeout (in case of large amounts of detached media).
         end;
     end;
 
@@ -233,6 +236,7 @@ codeunit 1928 "Media Cleanup Impl."
         FilterText := FilterText.TrimEnd('|');
     end;
 
+    // 322, 100 will result in [[1, 100], [101, 200], [201, 300], [301, 322]]
     local procedure SplitListIntoSubLists(var InputList: List of [Guid]; SubListCount: Integer; var SplitList: List of [List of [Guid]])
     var
         Math: Codeunit Math;
@@ -241,7 +245,7 @@ codeunit 1928 "Media Cleanup Impl."
         From: Integer;
         ToInt: Integer;
     begin
-        for ListNumber := 0 to Round(InputList.Count() / SubListCount, 1) - 1 do begin
+        for ListNumber := 0 to Round(InputList.Count() / SubListCount, 1) do begin
             Clear(SubList);
             From := ListNumber * SubListCount + 1;
             ToInt := Math.Min(SubListCount, InputList.Count() - ListNumber * SubListCount);

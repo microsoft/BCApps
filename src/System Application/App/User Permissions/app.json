@@ -32,7 +32,7 @@
     }
   ],
   "screenshots": [],
-  "platform": "25.0.0.0",
+  "platform": "26.0.0.0",
   "idRanges": [
     {
       "from": 152,
@@ -41,6 +41,10 @@
     {
       "from": 166,
       "to": 166
+    },
+    {
+      "from": 9801,
+      "to": 9801
     },
     {
       "from": 9854,
