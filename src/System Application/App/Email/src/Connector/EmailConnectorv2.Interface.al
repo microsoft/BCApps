@@ -22,7 +22,7 @@ interface "Email Connector v2" extends "Email Connector"
     /// </summary>
     /// <param name="AccountId">The email account ID which is used to send out the email.</param>
     /// <param name="EmailInbox">The email inbox record that will store the emails.</param>
-    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox");
+    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox"; AsHTML: Boolean);
 
     /// <summary>
     /// Mark an e-mail as read in the provided account.

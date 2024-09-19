@@ -50,7 +50,7 @@ codeunit 8998 "Default Email Connector v2" implements "Email Connector v2"
 
     end;
 
-    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox")
+    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox"; AsHTML: Boolean)
     begin
 
     end;

@@ -260,9 +260,10 @@ codeunit 8901 Email
     /// <param name="EmailAccountId">The ID of the email account to use for sending the email.</param>
     /// <param name="EmailConnector">The email connector to use for sending the email.</param>
     /// <param name="EmailInbox">The return record of all new emails that were retrieved.</param>
-    procedure RetrieveEmails(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox")
+    /// <param name="AsHtml">True if the email body should be retrieved as HTML.</param>
+    procedure RetrieveEmails(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox"; AsHtml: Boolean)
     begin
-        EmailImpl.RetrieveEmails(EmailAccountId, EmailConnector, EmailInbox);
+        EmailImpl.RetrieveEmails(EmailAccountId, EmailConnector, EmailInbox, AsHtml);
     end;
 
     #endregion

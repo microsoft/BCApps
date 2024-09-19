@@ -197,7 +197,7 @@ codeunit 8900 "Email Impl"
         end;
     end;
 
-    procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox")
+    procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox"; AsHtml: Boolean)
     var
         IEmailConnectorv2: Interface "Email Connector v2";
     begin
@@ -205,7 +205,7 @@ codeunit 8900 "Email Impl"
 
         if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then begin
             TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
-            IEmailConnectorv2.RetrieveEmails(EmailAccountId, EmailInbox);
+            IEmailConnectorv2.RetrieveEmails(EmailAccountId, EmailInbox, AsHtml);
         end else
             Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
 
