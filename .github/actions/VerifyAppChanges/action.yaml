@@ -1,0 +1,13 @@
+name: VerifY App Changes
+author: Microsoft Corporation
+description: Verifies the changes on AL files changed in a PR
+runs:
+  using: composite
+  steps:
+    - name: Test Preprocessor Symbols
+      shell: pwsh
+      run: |
+        ${{ github.action_path }}/TestPreprocessorSymbols.ps1
+branding:
+  icon: terminal
+  color: blue
