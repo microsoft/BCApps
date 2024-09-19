@@ -6,9 +6,9 @@
 namespace System.Email;
 
 /// <summary>
-/// This is the default implementation of the Email Connector v2 interface which adds the reply, retrievial of emails and marking them as read functionalities.
+/// This is the default implementation of the Email Connector v3 interface which adds the reply, retrievial of emails and marking them as read functionalities.
 /// </summary>
-codeunit 8998 "Default Email Connector v2" implements "Email Connector v2"
+codeunit 8997 "Default Email Connector v3" implements "Email Connector v3"
 {
     procedure Send(EmailMessage: Codeunit "Email Message"; AccountId: Guid)
     begin
@@ -50,7 +50,7 @@ codeunit 8998 "Default Email Connector v2" implements "Email Connector v2"
 
     end;
 
-    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox")
+    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox"; AsHTML: Boolean)
     begin
 
     end;

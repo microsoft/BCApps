@@ -8,7 +8,7 @@ namespace System.Email;
 /// <summary>
 /// An e-mail connector interface enhances the "Email Connector" with reading, replying to e-mails and marking emails as read.
 /// </summary>
-interface "Email Connector v2" extends "Email Connector"
+interface "Email Connector v3" extends "Email Connector"
 {
     /// <summary>
     /// Reply to an e-mail using the provided account.
@@ -22,7 +22,8 @@ interface "Email Connector v2" extends "Email Connector"
     /// </summary>
     /// <param name="AccountId">The email account ID which is used to send out the email.</param>
     /// <param name="EmailInbox">The email inbox record that will store the emails.</param>
-    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox");
+    /// <param name="AsHTML">A boolean value that indicates if the email body should be retrieved as HTML.</param>
+    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox"; AsHTML: Boolean);
 
     /// <summary>
     /// Mark an e-mail as read in the provided account.
