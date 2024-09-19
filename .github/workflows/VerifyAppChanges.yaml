@@ -1,0 +1,21 @@
+name: 'Verify App Changes'
+
+on:
+  pull_request:
+    branches: [ 'main', 'releases/*']
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  VerifyAppChanges:
+    runs-on: windows-latest
+    name: Verify App Changes
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - uses: microsoft/BCApps/.github/actions/VerifyAppChanges@main
