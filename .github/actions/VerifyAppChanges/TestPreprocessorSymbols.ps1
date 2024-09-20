@@ -2,12 +2,12 @@
 
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\GuardingV2ExtensionsHelper.psm1" -DisableNameChecking
-Import-Module "$PSScriptRoot\..\..\..\build\scripts\TestPreprocessorSymbols.psm1" -Force 
+Import-Module "$PSScriptRoot\..\..\..\build\scripts\TestPreprocessorSymbols.psm1" -Force
 
-# Get the major build version from the main branch 
+# Get the major build version from the main branch
 $mainVersion = Get-MaxAllowedObsoleteVersion
 
-# Get the major build version from the current branch 
+# Get the major build version from the current branch
 $currentVersion = (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go) -split '\.' | Select-Object -First 1
 
 # CLEANSCHEMA is on a 5y cycle starting from 26
