@@ -1,6 +1,11 @@
 <#
-- Ensures preprocessor symbols have uppercase stems.
-- Ensures there is no space after the '#' character.
+.DESCRIPTION
+    This script checks the preprocessor symbols in an AL file for the following:
+    - Ensures there is no space after the '#' character.
+    - Ensures preprocessor symbols have uppercase stems.
+    - Ensures preprocessor symbols are within a specified range.
+    - Ensures preprocessor symbols are in the correct format.
+    - Ensures preprocessor symbols are not in lowercase.
 
 .PARAMETER filePath
     The path to the file to be checked.
@@ -36,7 +41,7 @@ function Test-PreprocessorSymbols {
     # check if extension is .al, else return $null
     if ('.al' -ne [system.io.path]::GetExtension($filePath)) {
         return $null
-    } 
+    }
 
     # Define the regex pattern for disallowing a space after #
     $noSpaceAfterHashPattern = "^#\s"
@@ -89,7 +94,7 @@ function Test-PreprocessorSymbols {
         if (($line -match $lowercaseNotPattern) -and ($line -cnotmatch $lowercaseNotPattern)) {
             $invalidLowercaseSymbols += "${filePath}:${lineNumber}: $line"
         }
-    
+
         # Check for strict pattern match
         $isValidPattern = $false
         foreach ($pattern in $symbolPattern) {
@@ -116,7 +121,7 @@ function Test-PreprocessorSymbols {
         return @{ "invalidLowercaseSymbols" = $invalidLowercaseSymbols; "invalidPatternSymbols" = $invalidPatternSymbols; "invalidStemSymbols" = $invalidStemSymbols }
     } else {
         return $null
-    } 
+    }
 }
 
 Export-ModuleMember -Function Test-PreprocessorSymbols
