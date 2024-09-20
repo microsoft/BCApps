@@ -18,4 +18,4 @@ jobs:
         with:
           ref: ${{ github.sha }}
 
-      - uses: mazhelez/BCApps/.github/actions/VerifyAppChanges@main
+      - uses: microsoft/BCApps/.github/actions/VerifyAppChanges@main
