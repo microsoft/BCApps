@@ -1,4 +1,7 @@
 <#
+.SYNOPSIS
+    This script checks the preprocessor symbols in an AL file.
+
 .DESCRIPTION
     This script checks the preprocessor symbols in an AL file for the following:
     - Ensures there is no space after the '#' character.
@@ -11,7 +14,7 @@
     The path to the file to be checked.
 
 .PARAMETER symbolConfigs
-    An array of hash tables where each entry has a stem, an upper, and a lower bound.
+    An array of objects where each entry has a stem, an upper, and a lower bound.
 
 .EXAMPLE
     $alfiles = Get-ChildItem -Recurse -Filter *.al -Path .\App\
