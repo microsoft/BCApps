@@ -11,7 +11,7 @@
     The path to the file to be checked.
 
 .PARAMETER symbolConfigs
-    An array of hash tables where each entry has a stem, an upper, and a lower bound.
+    An array of objects where each entry has a stem, an upper, and a lower bound.
 
 .EXAMPLE
     $alfiles = Get-ChildItem -Recurse -Filter *.al -Path .\App\
