@@ -1,6 +1,7 @@
 # Current path is .github/actions/VerifyAppChanges
-# Import EnlistmentHelperFunctions module from build/scripts
+
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot\..\..\..\build\scripts\GuardingV2ExtensionsHelper.psm1" -DisableNameChecking
 
 <#
 .SYNOPSIS
@@ -129,20 +130,12 @@ function Test-PreprocessorSymbols {
     }
 }
 
-$baseFolder = Get-BaseFolder
-
-# Get the version from the main branch
-Push-Location $baseFolder
-$majorVerionOnMain = $(git show origin/main:.github/AL-Go-Settings.json) | ConvertFrom-Json | Select-Object -ExpandProperty repoVersion
-Pop-Location
-
-# Get the current major version
-$currentMajorVerion = (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go) -split '.' | Select-Object -First 1
 
 $symbolStems = @("CLEAN")
+# Get the current major version
+$currentMajorVerion = (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go) -split '.' | Select-Object -First 1 # TODO: do better
 
-# Set the upper bound to the major version on the main branch
-$upperBound = $majorVerionOnMain
+$upperBound = GetMaxAllowedObsoleteVersion
 # Set the lower bound to the current version minus 4
 $lowerBound = $currentMajorVerion - 4
 
