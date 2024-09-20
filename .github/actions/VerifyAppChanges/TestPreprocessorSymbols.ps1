@@ -133,7 +133,7 @@ $baseFolder = Get-BaseFolder
 
 # Get the version from the main branch
 Push-Location $baseFolder
-$majorVerionOnMain = $(git show main:.github\AL-Go-Settings.json) | ConvertFrom-Json | Select-Object -ExpandProperty repoVersion
+$majorVerionOnMain = $(git show origin/main:.github/AL-Go-Settings.json) | ConvertFrom-Json | Select-Object -ExpandProperty repoVersion
 Pop-Location
 
 # Get the current major version
@@ -145,6 +145,8 @@ $symbolStems = @("CLEAN")
 $upperBound = $majorVerionOnMain
 # Set the lower bound to the current version minus 4
 $lowerBound = $currentMajorVerion - 4
+
+Write-Host "Checking preprocessor symbols in the range $symbolStems with a lower bound of $lowerBound and an upper bound of $upperBound"
 
 #initialize arrays to store any invalid preprocessor symbols with line numbers
 $invalidLowercaseSymbols = @()
