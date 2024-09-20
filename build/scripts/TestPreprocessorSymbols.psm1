@@ -1,4 +1,7 @@
 <#
+.SYNOPSIS
+    This script checks the preprocessor symbols in an AL file.
+
 .DESCRIPTION
     This script checks the preprocessor symbols in an AL file for the following:
     - Ensures there is no space after the '#' character.
