@@ -8,7 +8,7 @@ Describe "Test-PreprocessorSymbols" {
         $result | Should -Be $null
     }
 
-    It 'returns empty invalidLowercaseSymbols, invalidPatternSymbols and invalidStemSymbols when the file contains lowercase preprocessors with correct symbols and versions' {
+    It 'returns $null when the file contains lowercase preprocessors with correct symbols and versions' {
         $alcontent = @(
 'codeunit 123 TestPreprocessors
 {
@@ -31,17 +31,10 @@ Describe "Test-PreprocessorSymbols" {
 
         $result = Test-PreprocessorSymbols -filePath 'TestDrive:\dummy.al' -symbolConfigs @(@{'stem' = "CLEAN"; 'lowerBound' = 1; 'upperBound' = 5})
 
-        $result.count | Should -Be 0
-        $result.invalidLowercaseSymbols.Count | Should -Be 0
-        $result.invalidPatternSymbols.Count | Should -Be 0
-        $result.invalidStemSymbols.Count | Should -Be 0
-
-        $result.invalidLowercaseSymbols | Should -Be @().
-        $result.invalidPatternSymbols | Should -Be @().
-        $result.invalidStemSymbols | Should -Be @().
+        $result | Should -Be $null
     }
 
-    It 'returns empty invalidLowercaseSymbols, invalidPatternSymbols and invalidStemSymbols when the file contains lowercase preprocessors with multiple correct symbolstems and versions' {
+    It 'returns $null when the file contains lowercase preprocessors with multiple correct symbolstems and versions' {
         $alcontent = @(
 'codeunit 123 TestPreprocessors
 {
@@ -65,14 +58,7 @@ Describe "Test-PreprocessorSymbols" {
         )
         $result = Test-PreprocessorSymbols -filePath 'TestDrive:\dummy.al' -symbolConfigs $symbolConfigs
 
-        $result.count | Should -Be 0
-        $result.invalidLowercaseSymbols.Count | Should -Be 0
-        $result.invalidPatternSymbols.Count | Should -Be 0
-        $result.invalidStemSymbols.Count | Should -Be 0
-
-        $result.invalidLowercaseSymbols | Should -Be @().
-        $result.invalidPatternSymbols | Should -Be @().
-        $result.invalidStemSymbols | Should -Be @().
+        $result | Should -Be $null
     }
 
     It 'returns invalidLowercaseSymbols when the file contains not lowercase preprocessor symbols' {
