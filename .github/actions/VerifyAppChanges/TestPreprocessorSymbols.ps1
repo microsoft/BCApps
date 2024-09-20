@@ -133,13 +133,13 @@ function Test-PreprocessorSymbols {
 
 $symbolStems = @("CLEAN")
 # Get the current major version
-$currentMajorVerion = (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go) -split '\.' | Select-Object -First 1 # TODO: do better
+$currentMajorVerion = (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go) -split '\.' | Select-Object -First 1
 
 $upperBound = Get-MaxAllowedObsoleteVersion
 # Set the lower bound to the current version minus 4
 $lowerBound = $currentMajorVerion - 4
 
-Write-Host "Checking preprocessor symbols in the range $symbolStems with a lower bound of $lowerBound and an upper bound of $upperBound"
+Write-Host "Checking preprocessor symbols $symbolStems with a lower bound of $lowerBound and an upper bound of $upperBound"
 
 #initialize arrays to store any invalid preprocessor symbols with line numbers
 $invalidLowercaseSymbols = @()
