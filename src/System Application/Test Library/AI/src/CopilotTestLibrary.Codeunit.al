@@ -47,8 +47,8 @@ codeunit 132932 "Copilot Test Library"
 
         NavApp.GetCurrentModuleInfo(ModuleInfo);
         if CopilotSettings.Get(Capability, ModuleInfo.Id) then begin
-            CopilotSettings."App Id" := AppId;
-            CopilotSettings.Modify();
+            CopilotSettings.Rename(Capability, AppId);
+            Commit();
         end;
     end;
 
