@@ -151,7 +151,7 @@ $invalidLowercaseSymbols = @()
 $invalidPatternSymbols = @()
 $invalidStemSymbols = @()
 
-$alfiles = (Get-ChildItem -Filter '*.al' -Recurse) | Select-Object -ExpandProperty LocalPath
+$alfiles = (Get-ChildItem -Filter '*.al' -Recurse) | Select-Object -ExpandProperty FullName
 foreach ($file in $alfiles) {
     # Call the Test-PreprocessorSymbols function with the file path and calculated version bounds
     $result = Test-PreprocessorSymbols -filePath $file -symbolStems $symbolStems -lowerBound $lowerBound -upperBound $upperBound
