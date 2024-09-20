@@ -135,7 +135,7 @@ $symbolStems = @("CLEAN")
 # Get the current major version
 $currentMajorVerion = (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go) -split '.' | Select-Object -First 1 # TODO: do better
 
-$upperBound = GetMaxAllowedObsoleteVersion
+$upperBound = Get-MaxAllowedObsoleteVersion
 # Set the lower bound to the current version minus 4
 $lowerBound = $currentMajorVerion - 4
 
