@@ -1,6 +1,7 @@
 # Current path is .github/actions/VerifyAppChanges
-# Import EnlistmentHelperFunctions module from build/scripts
+
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot\..\..\..\build\scripts\GuardingV2ExtensionsHelper.psm1" -DisableNameChecking
 
 <#
 .SYNOPSIS
@@ -129,29 +130,23 @@ function Test-PreprocessorSymbols {
     }
 }
 
-$baseFolder = Get-BaseFolder
-
-# Get the version from the main branch
-Push-Location $baseFolder
-$majorVerionOnMain = $(git show main:.github\AL-Go-Settings.json) | ConvertFrom-Json | Select-Object -ExpandProperty repoVersion
-Pop-Location
-
-# Get the current major version
-$currentMajorVerion = (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go) -split '.' | Select-Object -First 1
 
 $symbolStems = @("CLEAN")
+# Get the current major version
+$currentMajorVerion = (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go) -split '\.' | Select-Object -First 1
 
-# Set the upper bound to the major version on the main branch
-$upperBound = $majorVerionOnMain
+$upperBound = Get-MaxAllowedObsoleteVersion
 # Set the lower bound to the current version minus 4
 $lowerBound = $currentMajorVerion - 4
+
+Write-Host "Checking preprocessor symbols $symbolStems with a lower bound of $lowerBound and an upper bound of $upperBound"
 
 #initialize arrays to store any invalid preprocessor symbols with line numbers
 $invalidLowercaseSymbols = @()
 $invalidPatternSymbols = @()
 $invalidStemSymbols = @()
 
-$alfiles = (Get-ChildItem -Filter '*.al' -Recurse) | Select-Object -ExpandProperty LocalPath
+$alfiles = (Get-ChildItem -Filter '*.al' -Recurse) | Select-Object -ExpandProperty FullName
 foreach ($file in $alfiles) {
     # Call the Test-PreprocessorSymbols function with the file path and calculated version bounds
     $result = Test-PreprocessorSymbols -filePath $file -symbolStems $symbolStems -lowerBound $lowerBound -upperBound $upperBound
