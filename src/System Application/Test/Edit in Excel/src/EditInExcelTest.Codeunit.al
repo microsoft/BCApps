@@ -194,16 +194,55 @@ codeunit 132525 "Edit in Excel Test"
         PlusFieldName: Text;
         RegularFieldName: Text;
         FieldNameStartingWDigit: Text;
+        EnDashFieldName: Text;
+        EnDashFieldName2: Text;
+        EnDashFieldName3: Text;
+        EnDashFieldName4: Text;
+        ForwardSlashesFieldName: Text;
+        ManyForwardSlashesFieldName: Text;
+        ForwardSlashesEmDashesAndUnderscoresFieldName: Text;
     begin
         Init();
         FieldNameStartingWDigit := EditinExcelTestLibrary.ExternalizeODataObjectName('3field');
         RegularFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('field');
         ApostropheFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('new vendor''s name');
         PlusFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('c+c field');
+
+        // Both spaces will be converted to underscore and the `en dash` will be converted to _x2013_
+        EnDashFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('lager – reklassfication field');
+
+        // The special symbol `en dash` will be converted to _x2013_ and the first prefixed space will be a converted
+        // to an underscore.
+        EnDashFieldName2 := EditinExcelTestLibrary.ExternalizeODataObjectName('lager –reklassfication field');
+
+        // The special symbol `en dash` will be converted to _x2013_.
+        EnDashFieldName3 := EditinExcelTestLibrary.ExternalizeODataObjectName('lager–reklassfication field');
+
+        // The two forward slashes will be converted to underscores and the `en dash` will be converted to _x2013_.
+        EnDashFieldName4 := EditinExcelTestLibrary.ExternalizeODataObjectName('lager/–/reklassfication field');
+
+        // Two forward slashes will have the first replaced with an underscore and the second removed.
+        ForwardSlashesFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('lager//reklassfication field');
+
+        // When we have a lot of forward slashes it only replaces the first one with an underscore and the rest are truncated.
+        ManyForwardSlashesFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('lager////////reklassfication field');
+
+        // The first forward slash will be converted to an underscore, the next underscore does not hit any special case so just
+        // stays as an underscore, the next forward slash is removed because it follows the rule of not allowing two underscores
+        // when converting from a special symbol to underscore(unless that special character is translated to a byte value).
+        ForwardSlashesEmDashesAndUnderscoresFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('lager/_/-reklassfication field');
+
         LibraryAssert.AreEqual('field', RegularFieldName, 'Conversion alters name that does not begin with a string');
         LibraryAssert.AreEqual('_x0033_field', FieldNameStartingWDigit, 'Did not convert the name with number correctly');
         LibraryAssert.AreEqual('new_vendor_x0027_s_name', ApostropheFieldName, 'Did not convert the name with an apostrophe correctly');
         LibraryAssert.AreEqual('c_x002b_c_field', PlusFieldName, 'Did not convert the name with a plus correctly');
+        LibraryAssert.AreEqual('lager__x2013__reklassfication_field', EnDashFieldName, 'Did not convert the name with an `en dash` with two surrounding spaces correctly');
+        LibraryAssert.AreEqual('lager__x2013_reklassfication_field', EnDashFieldName2, 'Did not convert the name with a space before an `en dash` correctly');
+        LibraryAssert.AreEqual('lager_x2013_reklassfication_field', EnDashFieldName3, 'Did not convert the name with an `en dash` correctly');
+        LibraryAssert.AreEqual('lager__x2013__reklassfication_field', EnDashFieldName4, 'Did not convert the name with forward slashes around `en dash` correctly');
+        LibraryAssert.AreEqual('lager_reklassfication_field', ForwardSlashesFieldName, 'Did not convert the name with 2 forward slashes correctly');
+        LibraryAssert.AreEqual('lager_reklassfication_field', ManyForwardSlashesFieldName, 'Did not convert the name with many forward slashes correctly');
+        LibraryAssert.AreEqual('lager__reklassfication_field', ForwardSlashesEmDashesAndUnderscoresFieldName, 'Did not convert the name with forward slashes, em dash and underscores correctly');
     end;
 
     [Test]

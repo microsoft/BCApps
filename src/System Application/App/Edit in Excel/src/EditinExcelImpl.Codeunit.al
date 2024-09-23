@@ -48,6 +48,7 @@ codeunit 1482 "Edit in Excel Impl."
         ExcelFileNameTxt: Text;
         XmlByteEncodingTok: Label '_x00%1_%2', Locked = true;
         XmlByteEncoding2Tok: Label '%1_x00%2_%3', Locked = true;
+        XmlByteEncoding3Tok: Label '%1_%2_%3', Locked = true;
 
     procedure EditPageInExcel(PageCaption: Text[240]; PageId: Integer; EditinExcelFilters: Codeunit "Edit in Excel Filters"; FileName: Text)
     var
@@ -142,7 +143,7 @@ codeunit 1482 "Edit in Excel Impl."
             VarFieldRef := VarKeyRef.FieldIndex(KeyFieldNumber);
 
             if not AddedFields.Contains(VarFieldRef.Number) then begin // Make sure we don't add the same field twice
-                // Add missing key fields at the beginning
+                                                                       // Add missing key fields at the beginning
                 EditinExcelWorkbook.InsertColumn(0, VarFieldRef.Caption, ExternalizeODataObjectName(VarFieldRef.Name));
                 AddedFields.Add(VarFieldRef.Number);
             end;
@@ -714,6 +715,7 @@ codeunit 1482 "Edit in Excel Impl."
         StartStr: Text;
         EndStr: Text;
         ByteValue: DotNet Byte;
+        IsByteValueUnderscore: Dictionary of [Integer, Boolean];
     begin
         ConvertedName := Name;
 
@@ -734,17 +736,33 @@ codeunit 1482 "Edit in Excel Impl."
         CurrentPosition := 1;
 
         while CurrentPosition <= StrLen(ConvertedName) do begin
-            if ConvertedName[CurrentPosition] in ['''', '+'] then begin
-                ByteValue := Convert.ToByte(ConvertedName[CurrentPosition]);
-                StartStr := CopyStr(ConvertedName, 1, CurrentPosition - 1);
-                EndStr := CopyStr(ConvertedName, CurrentPosition + 1);
-                ConvertedName := StrSubstNo(XmlByteEncoding2Tok, StartStr, Convert.ToString(ByteValue, 16), EndStr);
+            // Notice in the following line that – (en dash) is not a normal dash (em dash).
+            // We need to handle this here because at least the norwegian translation uses en dash.
+            if ConvertedName[CurrentPosition] in ['''', '+', '–'] then begin
+                if ConvertedName[CurrentPosition] in ['–'] then begin
+                    StartStr := CopyStr(ConvertedName, 1, CurrentPosition - 1);
+                    EndStr := CopyStr(ConvertedName, CurrentPosition + 1);
+                    ConvertedName := StrSubstNo(XmlByteEncoding3Tok, StartStr, 'x2013', EndStr);
+                    // length of _x00nn_ minus one that will be added later
+                end else begin
+                    ByteValue := Convert.ToByte(ConvertedName[CurrentPosition]);
+                    StartStr := CopyStr(ConvertedName, 1, CurrentPosition - 1);
+                    EndStr := CopyStr(ConvertedName, CurrentPosition + 1);
+                    ConvertedName := StrSubstNo(XmlByteEncoding2Tok, StartStr, Convert.ToString(ByteValue, 16), EndStr);
+                end;
                 // length of _x00nn_ minus one that will be added later
                 CurrentPosition += 6;
+
+                IsByteValueUnderscore.Add(CurrentPosition, true);
             end else
                 if ConvertedName[CurrentPosition] in [' ', '\', '/', '"', '.', '(', ')', '-', ':'] then
                     if CurrentPosition > 1 then begin
-                        if ConvertedName[CurrentPosition - 1] = '_' then begin
+                        // The only cases where we allow 2 underscores in succession is when
+                        // we have substituted a symbol with its byte value and when we have an actual underscore
+                        // prefixed with a symbol that should be replaced with underscore.
+                        // This code below removes duplicate underscores but
+                        // needs to not remove underscores that was added via a byte value.
+                        if (ConvertedName[CurrentPosition - 1] = '_') and not IsByteValueUnderscore.ContainsKey(CurrentPosition - 1) then begin
                             ConvertedName := DelStr(ConvertedName, CurrentPosition, 1);
                             CurrentPosition -= 1;
                         end else
