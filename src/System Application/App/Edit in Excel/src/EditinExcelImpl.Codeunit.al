@@ -232,8 +232,6 @@ codeunit 1482 "Edit in Excel Impl."
                 if ConvertedName[CurrentPosition] in ['–'] then begin
                     StartStr := CopyStr(ConvertedName, 1, CurrentPosition - 1);
                     EndStr := CopyStr(ConvertedName, CurrentPosition + 1);
-                    // TODO: Have a look at these edge cases around spaces,
-                    // make it behave like the other code we have.
                     ConvertedName := StrSubstNo(XmlByteEncoding3Tok, StartStr, 'x2013', EndStr);
                     // length of _x00nn_ minus one that will be added later
                 end else begin
