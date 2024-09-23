@@ -1,4 +1,4 @@
-name: 'PowerShell tests'
+name: 'PowerShell'
 
 on:
   push:
