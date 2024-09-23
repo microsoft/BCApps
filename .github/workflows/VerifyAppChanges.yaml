@@ -18,4 +18,4 @@ jobs:
         with:
           ref: ${{ github.sha }}
 
-      - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@features/549296
+      - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@cedb78a7972da09fcdaf9ccaa86aef0ded2b5da7
