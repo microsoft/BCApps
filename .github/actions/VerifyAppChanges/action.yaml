@@ -1,6 +1,6 @@
-name: Verify App Changes
+name: Test Preprocessor Symbols
 author: Microsoft Corporation
-description: Verifies the changes on AL files changed in a PR
+description: Verifies the preprocessor symbols on .al files changed in a PR
 runs:
   using: composite
   steps:

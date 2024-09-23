@@ -1,4 +1,4 @@
-name: 'PS Goodies'
+name: 'PowerShell tests'
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   PSScriptAnalyzer:
-    # https://github.com/microsoft/action-psscriptanalyzer
+    # https://github.com/microsoft/psscriptanalyzer-action
     # For more information on PSScriptAnalyzer in general, see
     # https://github.com/PowerShell/PSScriptAnalyzer
     name: Run PSScriptAnalyzer

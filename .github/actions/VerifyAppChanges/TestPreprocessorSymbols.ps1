@@ -14,7 +14,7 @@ $currentVersion = (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go) -split 
 if ($CurrentVersion -le 26) {
     $schemaLowerBound = 15
 } else {
-    $schemaLowerBound = ([math]::Floor(($CurrentVersion - 2) / 5) * 5) - 2
+    $schemaLowerBound = ([math]::Floor(($CurrentVersion - 2) / 5) * 5) - 2 # makes a series: 23, 28, 33, 38, 43 etc. This is the version is which we clean up (26, 31, 36, etc.) - 3.
 }
 
 # Define the preprocessor symbols to check for
