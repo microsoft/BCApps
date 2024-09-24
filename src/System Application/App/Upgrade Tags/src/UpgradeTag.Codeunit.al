@@ -47,7 +47,7 @@ codeunit 9999 "Upgrade Tag"
     /// Verifies if the database upgrade tag exists.
     /// </summary>
     /// <param name="Tag">Tag code to check</param>
-    /// <returns>True if the Tag with given code exist.</returns>
+    /// <returns>True if the Tag with the given code exists.</returns>
     procedure HasDatabaseUpgradeTag(Tag: Code[250]): Boolean
     begin
         exit(UpgradeTagImpl.HasDatabaseUpgradeTag(Tag));
