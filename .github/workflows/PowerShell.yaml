@@ -1,8 +1,4 @@
-# https://github.com/microsoft/action-psscriptanalyzer
-# For more information on PSScriptAnalyzer in general, see
-# https://github.com/PowerShell/PSScriptAnalyzer
-
-name: PSScriptAnalyzer
+name: 'PowerShell'
 
 on:
   push:
@@ -16,8 +12,11 @@ permissions:
   contents: read
 
 jobs:
-  build:
-    name: PSScriptAnalyzer
+  PSScriptAnalyzer:
+    # https://github.com/microsoft/psscriptanalyzer-action
+    # For more information on PSScriptAnalyzer in general, see
+    # https://github.com/PowerShell/PSScriptAnalyzer
+    name: Run PSScriptAnalyzer
     runs-on: ubuntu-latest
     permissions:
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
@@ -37,3 +36,13 @@ jobs:
         uses: github/codeql-action/upload-sarif@294a9d92911152fe08befb9ec03e240add280cb3 # v3.26.8
         with:
           sarif_file: results.sarif
+
+  RunTests:
+    name: Run PS Tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Run PS Tests
+        run: |
+          . (Join-Path "." "build/scripts/tests/runTests.ps1")

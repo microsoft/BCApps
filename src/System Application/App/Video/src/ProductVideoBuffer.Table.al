@@ -40,6 +40,7 @@ table 1470 "Product Video Buffer"
             DataClassification = SystemMetadata;
             Editable = false;
         }
+#if not CLEANSCHEMA18
         field(4; "Assisted Setup ID"; Integer)
         {
             Caption = 'Assisted Setup ID';
@@ -56,6 +57,7 @@ table 1470 "Product Video Buffer"
             ObsoleteReason = 'Product videos are no more grouped.';
             ObsoleteTag = '18.0';
         }
+#endif
         field(6; "Table Num"; Integer)
         {
             DataClassification = SystemMetadata;
