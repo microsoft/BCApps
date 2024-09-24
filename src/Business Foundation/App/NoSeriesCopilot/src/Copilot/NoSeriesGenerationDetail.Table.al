@@ -5,6 +5,8 @@
 
 namespace Microsoft.Foundation.NoSeries;
 
+using System.Reflection;
+
 table 392 "No. Series Generation Detail"
 {
     TableType = Temporary;
@@ -84,7 +86,6 @@ table 392 "No. Series Generation Detail"
         {
             Caption = 'Message';
         }
-
         field(20; "Setup Table Name"; Text[80])
         {
             Caption = 'Setup Table';

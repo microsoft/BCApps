@@ -234,14 +234,14 @@ codeunit 336 "No. Series Cop. Tools Impl."
         foreach Entity in Entities do begin
             String1 := RecordMatchMgtCopy.RemoveShortWords(RemoveTextPart(TableMetadata.Caption, ' Setup') + ' ' + RemoveTextParts(Field.FieldName, GetNoSeriesAbbreviations()));
             String2 := RecordMatchMgtCopy.RemoveShortWords(Entity);
-            Score := RecordMatchMgtCopy.CalculateStringNearness(String1, String2, GetMatchLengthTreshold(), 100) / 100;
+            Score := RecordMatchMgtCopy.CalculateStringNearness(String1, String2, GetMatchLengthThreshold(), 100) / 100;
             if Score >= RequiredNearness() then
                 exit(true);
         end;
         exit(false);
     end;
 
-    local procedure GetMatchLengthTreshold(): Decimal
+    local procedure GetMatchLengthThreshold(): Decimal
     begin
         exit(2);
     end;

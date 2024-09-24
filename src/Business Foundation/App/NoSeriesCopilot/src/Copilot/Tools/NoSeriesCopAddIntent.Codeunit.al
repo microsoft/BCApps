@@ -164,10 +164,10 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
 
     local procedure SaveExistingNoSeries(TempTableMetadata: Record "Table Metadata" temporary; FieldRef: FieldRef)
     var
-        ExistingNoSeriesJObj: JsonObject;
         NoSeries: Record "No. Series";
         NoSeriesLine: Record "No. Series Line";
         NoSeriesManagement: Codeunit "No. Series";
+        ExistingNoSeriesJObj: JsonObject;
     begin
         if not NoSeries.Get(Format(FieldRef.Value)) then
             exit;

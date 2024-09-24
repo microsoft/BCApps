@@ -19,7 +19,7 @@ codeunit 324 "No. Series Copilot Impl."
 
     var
         IncorrectCompletionErr: Label 'Incorrect completion. The property %1 is empty', Comment = '%1 = property name';
-        EmptyCompletionErr: Label 'Incorrect completion. The completion is empty';
+        EmptyCompletionErr: Label 'Incorrect completion. The completion is empty.';
         IncorrectCompletionNumberOfGeneratedNoSeriesErr: Label 'Incorrect completion. The number of generated number series is incorrect. Expected %1, but got %2', Comment = '%1 = Expected Number, %2 = Actual Number';
         TextLengthIsOverMaxLimitErr: Label 'The property %1 exceeds the maximum length of %2', Comment = '%1 = property name, %2 = maximum length';
         DateSpecificPlaceholderLbl: Label '{current_date}', Locked = true;
@@ -435,9 +435,8 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         Json.InitializeCollection(NoSeriesArrText);
 
-        for i := 0 to Json.GetCollectionCount() - 1 do begin
+        for i := 0 to Json.GetCollectionCount() - 1 do
             ProcessNoSeries(i, NoSeriesCodes, Json);
-        end;
 
         NoSeriesArrText := Json.GetCollectionAsText()
     end;
