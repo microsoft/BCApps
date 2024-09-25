@@ -119,8 +119,13 @@ codeunit 8333 "VS Code Integration Impl."
     [Scope('OnPrem')]
     local procedure GetAppIdForObject(ObjectType: Option; ObjectId: Integer): Text
     var
-        NavAppInstalledApp: Record "NAV App Installed App";
+        NavAppInstalledApp: Record;
+        EmptyGuid: Guid;
     begin
+        // Objects in the system app range
+        if ObjectId >= '2000000000' then
+            exit(EmptyGuid);
+
         if AllObjWithCaption.ReadPermission() then begin
             AllObjWithCaption.Reset();
             AllObjWithCaption.SetRange("Object Type", ObjectType);
