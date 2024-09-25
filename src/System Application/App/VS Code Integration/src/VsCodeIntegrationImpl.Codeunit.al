@@ -123,7 +123,7 @@ codeunit 8333 "VS Code Integration Impl."
         EmptyGuid: Guid;
     begin
         // Objects in the system app range
-        if ObjectId >= '2000000000' then
+        if ObjectId >= 2000000000 then
             exit(EmptyGuid);
 
         if AllObjWithCaption.ReadPermission() then begin
