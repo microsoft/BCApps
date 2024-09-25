@@ -93,7 +93,7 @@ jobs:
           lfs: true
 
       - name: Read settings
-        uses: microsoft/AL-Go/Actions/ReadSettings@a2a51be438318a7e355fa9044815cf7890ffed1a
+        uses: microsoft/AL-Go/Actions/ReadSettings@c198d5ffe9434dda2087ec2c5a9edc61e5118f28
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
@@ -102,14 +102,14 @@ jobs:
       - name: Read secrets
         id: ReadSecrets
         if: github.event_name != 'pull_request'
-        uses: microsoft/AL-Go/Actions/ReadSecrets@a2a51be438318a7e355fa9044815cf7890ffed1a
+        uses: microsoft/AL-Go/Actions/ReadSecrets@c198d5ffe9434dda2087ec2c5a9edc61e5118f28
         with:
           shell: ${{ inputs.shell }}
           gitHubSecrets: ${{ toJson(secrets) }}
-          getSecrets: '${{ inputs.secrets }},appDependencyProbingPathsSecrets,AZURE_CREDENTIALS'
+          getSecrets: '${{ inputs.secrets }},appDependencySecrets,AZURE_CREDENTIALS'
 
       - name: Determine ArtifactUrl
-        uses: microsoft/AL-Go/Actions/DetermineArtifactUrl@a2a51be438318a7e355fa9044815cf7890ffed1a
+        uses: microsoft/AL-Go/Actions/DetermineArtifactUrl@c198d5ffe9434dda2087ec2c5a9edc61e5118f28
         id: determineArtifactUrl
         with:
           shell: ${{ inputs.shell }}
@@ -124,7 +124,7 @@ jobs:
 
       - name: Download Project Dependencies
         id: DownloadProjectDependencies
-        uses: microsoft/AL-Go/Actions/DownloadProjectDependencies@a2a51be438318a7e355fa9044815cf7890ffed1a
+        uses: microsoft/AL-Go/Actions/DownloadProjectDependencies@c198d5ffe9434dda2087ec2c5a9edc61e5118f28
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
@@ -135,7 +135,7 @@ jobs:
           baselineWorkflowRunId: ${{ inputs.baselineWorkflowRunId }}
 
       - name: Build
-        uses: microsoft/AL-Go/Actions/RunPipeline@a2a51be438318a7e355fa9044815cf7890ffed1a
+        uses: microsoft/AL-Go/Actions/RunPipeline@c198d5ffe9434dda2087ec2c5a9edc61e5118f28
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
           BuildMode: ${{ inputs.buildMode }}
@@ -150,7 +150,7 @@ jobs:
       - name: Sign
         if: inputs.signArtifacts && env.doNotSignApps == 'False' && env.keyVaultCodesignCertificateName != ''
         id: sign
-        uses: microsoft/AL-Go/Actions/Sign@a2a51be438318a7e355fa9044815cf7890ffed1a
+        uses: microsoft/AL-Go/Actions/Sign@c198d5ffe9434dda2087ec2c5a9edc61e5118f28
         with:
           shell: ${{ inputs.shell }}
           azureCredentialsJson: '${{ fromJson(steps.ReadSecrets.outputs.Secrets).AZURE_CREDENTIALS }}'
@@ -158,7 +158,7 @@ jobs:
 
       - name: Calculate Artifact names
         id: calculateArtifactsNames
-        uses: microsoft/AL-Go/Actions/CalculateArtifactNames@a2a51be438318a7e355fa9044815cf7890ffed1a
+        uses: microsoft/AL-Go/Actions/CalculateArtifactNames@c198d5ffe9434dda2087ec2c5a9edc61e5118f28
         if: success() || failure()
         with:
           shell: ${{ inputs.shell }}
@@ -252,14 +252,14 @@ jobs:
       - name: Analyze Test Results
         id: analyzeTestResults
         if: (success() || failure()) && env.doNotRunTests == 'False'
-        uses: microsoft/AL-Go/Actions/AnalyzeTests@a2a51be438318a7e355fa9044815cf7890ffed1a
+        uses: microsoft/AL-Go/Actions/AnalyzeTests@c198d5ffe9434dda2087ec2c5a9edc61e5118f28
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
 
       - name: Cleanup
         if: always()
-        uses: microsoft/AL-Go/Actions/PipelineCleanup@a2a51be438318a7e355fa9044815cf7890ffed1a
+        uses: microsoft/AL-Go/Actions/PipelineCleanup@c198d5ffe9434dda2087ec2c5a9edc61e5118f28
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
