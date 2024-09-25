@@ -119,7 +119,7 @@ codeunit 8333 "VS Code Integration Impl."
     [Scope('OnPrem')]
     local procedure GetAppIdForObject(ObjectType: Option; ObjectId: Integer): Text
     var
-        NavAppInstalledApp: Record;
+        NavAppInstalledApp: Record "NAV App Installed App";
         EmptyGuid: Guid;
     begin
         // Objects in the system app range
