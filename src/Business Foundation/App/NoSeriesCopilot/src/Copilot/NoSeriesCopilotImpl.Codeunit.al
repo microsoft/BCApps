@@ -29,7 +29,7 @@ codeunit 324 "No. Series Copilot Impl."
         FeatureNameLbl: Label 'Number Series with AI', Locked = true;
         TelemetryToolsSelectionPromptRetrievalErr: Label 'Unable to retrieve the prompt for No. Series Copilot Tools Selection from Azure Key Vault.', Locked = true;
         ToolLoadingErr: Label 'Unable to load the No. Series Copilot Tool. Please try again later.';
-        InvalidPromptTxt: Label 'Sorry, I couldn''t generate a good result from your input. Please rephrase and try again.';
+        InvalidPromptTxt: Label 'Sorry, I couldn''t generate a good result from your input. Please rephrase and try again.\Error details: %1', Comment = '%1 = Error details';
 
     procedure GetNoSeriesSuggestions()
     var
@@ -62,7 +62,7 @@ codeunit 324 "No. Series Copilot Impl."
                 SaveGenerationHistory(NoSeriesGeneration, InputText);
                 CreateNoSeries(NoSeriesGeneration, GeneratedNoSeries, Completion);
             end else
-                Error(InvalidPromptTxt);
+                Error(InvalidPromptTxt, GetLastErrorText());
         end else
             SendNotification(GetChatCompletionResponseErr());
     end;
