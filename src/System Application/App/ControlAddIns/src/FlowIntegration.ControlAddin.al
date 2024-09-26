@@ -20,7 +20,7 @@ controladdin FlowIntegration
     HorizontalStretch = true;
     HorizontalShrink = true;
 
-    Scripts = 'Resources\FlowIntegration\js\msflowsdk-1.1.1.144.min.js',
+    Scripts = 'https://bc-cdn.dynamics.com/common/js/msflowsdk-1.1.1.144.min.js',
               'Resources\FlowIntegration\js\FlowIntegration.js';
     StartupScript = 'Resources\FlowIntegration\js\Startup.js';
     RecreateScript = 'Resources\FlowIntegration\js\Recreate.js';
