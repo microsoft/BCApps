@@ -428,7 +428,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry.DeleteAll(true);
 
         AITRunHistory.SetRange("Test Suite Code", Rec."Code");
-        AITLogEntry.DeleteAll(true);
+        AITRunHistory.DeleteAll(true);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Method Line", OnBeforeInsertEvent, '', false, false)]
