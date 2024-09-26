@@ -156,6 +156,30 @@ page 149031 "AIT Test Suite"
                     CurrPage.Update(false);
                 end;
             }
+            action(StartBatch)
+            {
+                Enabled = Rec.Status <> Rec.Status::Running;
+                Caption = 'Start Batch';
+                Image = ExecuteBatch;
+                ToolTip = 'Starts running the AI Test Suite, the specified number of times.';
+
+                trigger OnAction()
+                var
+                    AITBatchRunDialog: Page "AIT Batch Run Dialog";
+                    Iterations: Integer;
+                begin
+                    CurrPage.Update(false);
+
+                    AITBatchRunDialog.LookupMode := true;
+                    if not (AITBatchRunDialog.RunModal() = ACTION::LookupOK) then
+                        exit;
+
+                    Iterations := AITBatchRunDialog.GetNumberOfIterations();
+                    AITTestSuiteMgt.StartAITSuite(Iterations, Rec);
+
+                    CurrPage.Update(false);
+                end;
+            }
             action(RefreshStatus)
             {
                 Caption = 'Refresh';
@@ -246,6 +270,9 @@ page 149031 "AIT Test Suite"
             group(Category_Process)
             {
                 actionref(Start_Promoted; Start)
+                {
+                }
+                actionref(StartBatch_Promoted; StartBatch)
                 {
                 }
                 actionref(LogEntries_Promoted; LogEntries)
