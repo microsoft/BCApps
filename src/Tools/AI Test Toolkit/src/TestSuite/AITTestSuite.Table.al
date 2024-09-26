@@ -46,6 +46,18 @@ table 149030 "AIT Test Suite"
             TableRelation = "Test Input Group".Code;
             ValidateTableRelation = true;
             ToolTip = 'Specifies the dataset to be used by the test suite.';
+
+            trigger OnValidate()
+            var
+                AITTestMethodLine: Record "AIT Test Method Line";
+            begin
+                if GuiAllowed() then
+                    if not Dialog.Confirm(InputDatasetChangedQst) then
+                        exit;
+
+                AITTestMethodLine.SetRange("Test Suite Code", Rec.Code);
+                AITTestMethodLine.ModifyAll("Input Dataset", Rec."Input Dataset", true);
+            end;
         }
         field(8; "Ended at"; DateTime)
         {
@@ -240,4 +252,5 @@ table 149030 "AIT Test Suite"
 
     var
         BaseVersionMustBeLessThanVersionErr: Label 'Base Version must be less than or equal to Version';
+        InputDatasetChangedQst: Label 'You have modified the input dataset.\\Do you want to update the lines?';
 }
