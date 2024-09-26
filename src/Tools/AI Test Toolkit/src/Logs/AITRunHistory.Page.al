@@ -127,6 +127,12 @@ page 149036 "AIT Run History"
                         Caption = 'Total Duration (ms)';
                         ToolTip = 'Specifies Total Duration of the tests for the base version.';
                     }
+                    field("Tokens - By Version"; Rec."Tokens Consumed")
+                    {
+                        Visible = ViewBy = ViewBy::Version;
+                        Caption = 'Total Tokens Consumed';
+                        ToolTip = 'Specifies the aggregated number of tokens consumed by the test in the current version. This is applicable only when using Microsoft AI Module.';
+                    }
                     field("No. of Tests - By Tag"; Rec."No. of Tests Executed - By Tag")
                     {
                         Visible = ViewBy = ViewBy::Tag;
@@ -160,6 +166,12 @@ page 149036 "AIT Run History"
                         Visible = ViewBy = ViewBy::Tag;
                         Caption = 'Total Duration (ms)';
                         ToolTip = 'Specifies Total Duration of the tests for the base version.';
+                    }
+                    field("Tokens - By Tag"; Rec."Tokens Consumed - By Tag")
+                    {
+                        Visible = ViewBy = ViewBy::Tag;
+                        Caption = 'Total Tokens Consumed';
+                        ToolTip = 'Specifies the aggregated number of tokens consumed by the test in the current version. This is applicable only when using Microsoft AI Module.';
                     }
                 }
             }
