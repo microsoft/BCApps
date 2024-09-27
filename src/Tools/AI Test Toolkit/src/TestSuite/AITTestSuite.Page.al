@@ -171,7 +171,7 @@ page 149031 "AIT Test Suite"
                     CurrPage.Update(false);
 
                     AITBatchRunDialog.LookupMode := true;
-                    if not (AITBatchRunDialog.RunModal() = ACTION::LookupOK) then
+                    if AITBatchRunDialog.RunModal() <> ACTION::LookupOK then
                         exit;
 
                     Iterations := AITBatchRunDialog.GetNumberOfIterations();
