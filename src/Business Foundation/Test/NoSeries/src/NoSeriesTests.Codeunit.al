@@ -957,6 +957,53 @@ codeunit 134530 "No. Series Tests"
         Assert.AreEqual('', NoSeries.GetLastNoUsed(''), 'GetLastNoUsed should return empty code if argument supplied is empty code');
     end;
 
+    [Test]
+    [HandlerFunctions('NoSeriesLinesPageHandler')]
+    procedure TestEditNoSeriesLinePreservesFilter()
+    var
+        NoSeriesPage: TestPage "No. Series";
+        NoSeriesCode, NoSeriesCode2 : Code[20];
+    begin
+        // [SCENARIO] When a user opens the No. Series page and drills down on a line and edits it, the filter on the line must be preserved.
+        Initialize();
+
+        // [GIVEN] Multiple No. Series with lines exist
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode := CopyStr('A' + UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode))), 1, MaxStrLen(NoSeriesCode));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode, 1, '1', '10');
+        // [GIVEN] A No. Series with 10 numbers
+        NoSeriesCode2 := CopyStr('B' + UpperCase(Any.AlphabeticText(MaxStrLen(NoSeriesCode2))), 1, MaxStrLen(NoSeriesCode2));
+        LibraryNoSeries.CreateNoSeries(NoSeriesCode2);
+        LibraryNoSeries.CreateSequenceNoSeriesLine(NoSeriesCode2, 1, '1', '10');
+
+        // [WHEN] Open the No. Series page
+        NoSeriesPage.OpenView();
+        NoSeriesPage.GoToKey(NoSeriesCode);
+
+        // [WHEN] drill down on a line and close the page
+        NoSeriesPage.StartNo.Drilldown(); // pagehandler
+
+        // [THEN] You can still drill down
+        ClearLastError();
+        asserterror
+        begin
+            NoSeriesPage.StartNo.Drilldown(); // pagehandler
+            error('');
+        end;
+        LibraryAssert.ExpectedError('');
+    end;
+
+    [ModalPageHandler]
+    procedure NoSeriesLinesPageHandler(var NoSeriesLines: TestPage "No. Series Lines")
+    begin
+        // [WHEN] Editing the line
+        NoSeriesLines."Last No. Used".SetValue(IncStr(NoSeriesLines."Starting No.".Value()));
+
+        NoSeriesLines.Next();
+        LibraryAssert.AreEqual('', NoSeriesLines."Starting No.".Value(), 'The next line should not exist. The filter was removed.');
+    end;
+
     local procedure Initialize()
     begin
         Any.SetDefaultSeed();
