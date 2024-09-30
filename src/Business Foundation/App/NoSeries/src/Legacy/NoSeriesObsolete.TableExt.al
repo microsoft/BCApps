@@ -12,6 +12,7 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
 {
     fields
     {
+#if not CLEANSCHEMA18
         field(11790; Mask; Text[20]) // CZ Functionality
         {
             Caption = 'Mask';
@@ -20,6 +21,7 @@ tableextension 308 NoSeriesObsolete extends "No. Series"
             ObsoleteState = Removed;
             ObsoleteTag = '18.0';
         }
+#endif
 #pragma warning disable AL0432
         field(12100; "No. Series Type"; Integer)
 #pragma warning restore AL0432

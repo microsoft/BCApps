@@ -25,6 +25,7 @@ table 8904 "Email Message Attachment"
             DataClassification = SystemMetadata;
             TableRelation = "Email Message".Id;
         }
+#if not CLEANSCHEMA18
         field(3; Attachment; Blob)
         {
             DataClassification = CustomerContent;
@@ -32,6 +33,7 @@ table 8904 "Email Message Attachment"
             ObsoleteReason = 'Field has been replaced with the media field, Data.';
             ObsoleteTag = '18.1';
         }
+#endif
         field(4; "Attachment Name"; Text[250])
         {
             DataClassification = CustomerContent;
