@@ -14,6 +14,8 @@ using System.TestLibraries.Security.AccessControl;
 codeunit 135018 "Media Cleanup Test"
 {
     Subtype = Test;
+    Permissions = tabledata "Tenant Media" = r,
+                  tabledata "Tenant Media Set" = r;
 
     var
         LibraryAssert: Codeunit "Library Assert";
@@ -170,7 +172,7 @@ codeunit 135018 "Media Cleanup Test"
         MediaOutStream: OutStream;
         i: Integer;
     begin
-        PermissionsMock.Set('SUPER');
+        PermissionsMock.Set('Data Cleanup - Admin');
 
         TestMediaClean.Insert();
 
@@ -195,8 +197,6 @@ codeunit 135018 "Media Cleanup Test"
 
         LibraryAssert.IsFalse(TenantMedia.IsEmpty(), 'Normal tenant media is also affected.');
         LibraryAssert.IsFalse(TenantMediaSetup.IsEmpty(), 'Normal tenant media set is also affected.');
-
-        PermissionsMock.ClearAssignments();
     end;
 
 
