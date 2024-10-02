@@ -405,6 +405,27 @@ codeunit 149034 "AIT Test Suite Mgt."
         exit(FeatureNameLbl);
     end;
 
+    internal procedure GetCallerModuleInfo(var CallerModuleInfo: ModuleInfo)
+    var
+        CurrentModuleInfo: ModuleInfo;
+        CallerCallStackModuleInfos: List of [ModuleInfo];
+        ModuleInfo: ModuleInfo;
+    begin
+        // Determine the caller module info from the call stack
+        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+        CallerCallStackModuleInfos := NavApp.GetCallerCallstackModuleInfos();
+
+        if CallerCallStackModuleInfos.Count = 1 then
+            CallerModuleInfo := CallerCallStackModuleInfos.Get(1)
+        else
+            // From the list of call stack module infos, get the app id of the last module which is calling the current module
+            foreach ModuleInfo in CallerCallStackModuleInfos do
+                if ModuleInfo.Id <> CurrentModuleInfo.Id then begin
+                    CallerModuleInfo := ModuleInfo;
+                    exit;
+                end;
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Suite", OnBeforeDeleteEvent, '', false, false)]
     local procedure DeleteLinesOnDeleteAITTestSuite(var Rec: Record "AIT Test Suite"; RunTrigger: Boolean)
     var

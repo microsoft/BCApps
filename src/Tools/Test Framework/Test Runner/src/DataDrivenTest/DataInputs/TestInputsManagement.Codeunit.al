@@ -108,6 +108,13 @@ codeunit 130458 "Test Inputs Management"
 
     procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream)
     var
+        EmptyGuid: Guid;
+    begin
+        UploadAndImportDataInputsFromJson(FileName, TestInputInStream, EmptyGuid);
+    end;
+
+    procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream; ImportedByAppId: Guid)
+    var
         TestInputGroup: Record "Test Input Group";
         TestInput: Record "Test Input";
         InputText: Text;
@@ -115,7 +122,7 @@ codeunit 130458 "Test Inputs Management"
         TelemetryCD: Dictionary of [Text, Text];
     begin
         if not TestInputGroup.Find() then
-            CreateTestInputGroup(TestInputGroup, FileName);
+            CreateTestInputGroup(TestInputGroup, FileName, ImportedByAppId);
 
         if FileName.EndsWith(JsonFileExtensionTxt) then begin
             FileType := JsonFileExtensionTxt;
@@ -153,7 +160,9 @@ codeunit 130458 "Test Inputs Management"
         ParseDataInputs(DataInputText, TestInputGroup);
     end;
 
-    local procedure CreateTestInputGroup(var TestInputGroup: Record "Test Input Group"; FileName: Text)
+    local procedure CreateTestInputGroup(var TestInputGroup: Record "Test Input Group"; FileName: Text; ImportedByAppId: Guid)
+    var
+        EmptyGuid: Guid;
     begin
 #pragma warning disable AA0139
         TestInputGroup.Code := FileName;
@@ -162,6 +171,8 @@ codeunit 130458 "Test Inputs Management"
 
         TestInputGroup.Description := FileName;
 #pragma warning restore AA0139
+        if ImportedByAppId <> EmptyGuid then
+            TestInputGroup."Imported by AppId" := ImportedByAppId;
 
         TestInputGroup.Insert();
     end;

@@ -123,6 +123,25 @@ codeunit 149044 "AIT Test Context"
         AITTestContextImpl.SetTestMetric(TestMetric);
     end;
 
+    /// <summary>
+    /// Import the Test Input Dataset from the resource file.
+    /// </summary>
+    /// <param name="ResourceFileName">The file name of the resource file which will be used in the description of the dataset.</param>
+    /// <param name="ResourceDataset">The InStream of the resource file.</param>
+    procedure ImportTestInputsOnInstall(ResourceFileName: Text; var ResourceDataset: InStream)
+    begin
+        AITTestContextImpl.ImportTestInputsOnInstall(ResourceFileName, ResourceDataset);
+    end;
+
+    /// <summary>
+    /// Import the AI Test Suite from the resource file.
+    /// </summary>
+    /// <param name="XMLSetupInStream">The InStream of the resource file.</param>
+    procedure ImportAITestSuiteOnInstall(var XMLSetupInStream: InStream)
+    begin
+        AITTestContextImpl.ImportAITestSuiteOnInstall(XMLSetupInStream);
+    end;
+
     var
         AITTestContextImpl: Codeunit "AIT Test Context Impl.";
 }

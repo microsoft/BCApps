@@ -21,6 +21,37 @@ xmlport 149031 "AIT Test Suite Import/Export"
                 fieldattribute(Code; AITSuite.Code)
                 {
                     Occurrence = Required;
+
+                    trigger OnAfterAssignField()
+                    var
+                        AITTestSuiteRec: Record "AIT Test Suite";
+                        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+                        CallerModuleInfo: ModuleInfo;
+                        SameSuiteDifferentXMLErr: Label 'The test suite %1 is already imported with a different XML by the same app. Please delete the test suite and import again.', Comment = '%1 = Test Suite Code';
+                        SameSuiteDifferentAppErr: Label 'The test suite %1 is already imported by a different app. Please rename the test suite and import again.', Comment = '%1 = Test Suite Code';
+                    begin
+                        // Skip if the same suite is already imported by the same app
+                        // Error if the same suite is already imported with a different XML
+                        // Error if the same suite is already imported by a different app
+                        AITTestSuiteMgt.GetCallerModuleInfo(CallerModuleInfo);
+                        AITSuite."Imported by AppId" := CallerModuleInfo.Id;
+
+                        AITSuite."Imported XML's MD5" := MD5FileHash;
+
+                        AITTestSuiteRec.SetLoadFields(Code, "Imported by AppId", "Imported XML's MD5");
+                        AITTestSuiteRec.SetRange(Code, AITSuite.Code);
+
+                        if AITTestSuiteRec.FindFirst() then
+                            if AITTestSuiteRec."Imported by AppId" = CallerModuleInfo.Id then
+                                if AITTestSuiteRec."Imported XML's MD5" = AITSuite."Imported XML's MD5" then begin
+                                    SkipTestSuites.Add(AITSuite.Code);
+                                    currXMLport.Skip();
+                                end
+                                else
+                                    Error(SameSuiteDifferentXMLErr, AITSuite.Code)
+                            else
+                                Error(SameSuiteDifferentAppErr, AITSuite.Code);
+                    end;
                 }
                 fieldattribute(Description; "AITSuite".Description)
                 {
@@ -59,6 +90,12 @@ xmlport 149031 "AIT Test Suite Import/Export"
                         XmlName = 'Evaluator';
                     }
 
+                    trigger OnAfterInitRecord()
+                    begin
+                        if SkipTestSuites.Contains(AITSuite.Code) then
+                            currXMLport.Skip();
+                    end;
+
                     trigger OnBeforeInsertRecord()
                     var
                         AITTestMethodLine: Record "AIT Test Method Line";
@@ -69,8 +106,25 @@ xmlport 149031 "AIT Test Suite Import/Export"
                         AITestMethodLine."Line No." := AITTestMethodLine."Line No." + 10000;
                     end;
                 }
+
+                trigger OnBeforeInsertRecord()
+                begin
+                    if SkipTestSuites.Contains(AITSuite.Code) then
+                        currXMLport.Skip();
+                end;
             }
         }
     }
+
+    trigger OnInitXmlPort()
+    var
+        AITTestContextImpl: Codeunit "AIT Test Context Impl.";
+    begin
+        MD5FileHash := AITTestContextImpl.GetAndClearMD5HashForTheImportedXML();
+    end;
+
+    var
+        SkipTestSuites: List of [Code[100]];
+        MD5FileHash: Code[32];
 }
 
