@@ -729,6 +729,18 @@ dotnet
         type("Microsoft.Dynamics.Nav.Runtime.Designer.NavDesignerALCopyResponse"; "NavDesignerALCopyResponse")
         {
         }
+
+        type("Microsoft.Dynamics.Nav.Runtime.CustomerAudit.CustomerAuditLoggerALHelper"; "CustomerAuditLoggerALHelper")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.ALSecurityOperationResult"; "ALSecurityOperationResult")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.Runtime.ALAuditCategory"; "ALAuditCategory")
+        {
+        }
     }
 
     assembly("Microsoft.Dynamics.Nav.OAuth")
