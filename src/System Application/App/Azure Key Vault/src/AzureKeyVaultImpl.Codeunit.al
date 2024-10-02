@@ -79,13 +79,6 @@ codeunit 2202 "Azure Key Vault Impl."
         IsKeyVaultClientInitialized := false;
     end;
 
-    [TryFunction]
-    [NonDebuggable]
-    local procedure TryGetSecretFromClient(SecretName: Text; var Secret: Text)
-    begin
-        Secret := GetSecretFromClient(SecretName);
-    end;
-
     [NonDebuggable]
     local procedure GetSecretFromClient(SecretName: Text) Secret: Text
     begin
