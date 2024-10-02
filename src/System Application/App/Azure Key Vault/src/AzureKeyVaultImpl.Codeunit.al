@@ -27,8 +27,6 @@ codeunit 2202 "Azure Key Vault Impl."
         CachedSecretsDictionary: Dictionary of [Text, Text];
         [NonDebuggable]
         CachedCertificatesDictionary: Dictionary of [Text, Text];
-        [NonDebuggable]
-        AllowedSecretNamesList: List of [Text];
         IsKeyVaultClientInitialized: Boolean;
         AzureKeyVaultTxt: Label 'Azure Key Vault', Locked = true;
         CertificateInfoTxt: Label 'Successfully constructed certificate from secret %1. Certificate thumbprint %2', Locked = true;
