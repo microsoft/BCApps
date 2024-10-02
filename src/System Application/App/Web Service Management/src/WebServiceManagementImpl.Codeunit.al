@@ -700,6 +700,10 @@ codeunit 9751 "Web Service Management Impl."
     var
         WebService: Record "Web Service";
         TenantWebService: Record "Tenant Web Service";
+        MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+        MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+        MyALAuditCategory: DotNet ALAuditCategory;
+        WebServiceCreatedLbl: Label 'The Web Service record with Object Type %1, Service Name %2 has been created by UserSecurityId %3.', Locked = true;
     begin
         if WebServiceAggregate."All Tenants" then begin
             Clear(WebService);
@@ -709,7 +713,8 @@ codeunit 9751 "Web Service Management Impl."
             Clear(TenantWebService);
             TenantWebService.TransferFields(WebServiceAggregate);
             TenantWebService.Insert();
-        end
+        end;
+        MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(WebServiceCreatedLbl, WebServiceAggregate."Object Type", WebServiceAggregate."Service Name", UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::ApplicationManagement, 4, 0);
     end;
 
     procedure RemoveUnselectedColumnsFromFilter(var TenantWebService: Record "Tenant Web Service"; DataItemNumber: Integer; DataItemView: Text): Text
