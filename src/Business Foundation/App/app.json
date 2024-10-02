@@ -49,5 +49,6 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/",
+  "alternateIds": ["437dbf0e-84ff-417a-965d-ed2bb9650972"]
 }
