@@ -5,6 +5,7 @@
 
 namespace System.Environment.Configuration;
 
+using System;
 using System.DateTime;
 using System.Utilities;
 using System.Environment;
@@ -84,7 +85,11 @@ codeunit 2610 "Feature Management Impl."
     local procedure InitializeFeatureDataUpdateStatus(FeatureKey: Record "Feature Key"; var FeatureDataUpdateStatus: Record "Feature Data Update Status")
     var
         FeatureManagementFacade: Codeunit "Feature Management Facade";
+        MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+        MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+        MyALAuditCategory: DotNet ALAuditCategory;
         InitializeHandled: Boolean;
+        FeatureKeyStatusChangedLbl: Label 'The status of the feature key %1 has been set to %2 by UserSecurityId %3.', Locked = true;
     begin
         if FeatureDataUpdateStatus.Get(FeatureKey.ID, CompanyName()) then
             exit;
@@ -106,7 +111,8 @@ codeunit 2610 "Feature Management Impl."
             end;
         // If the table extension is not in sync during upgrade then Get() always returns False,
         // so the following insert will fail if the record does exist.
-        if FeatureDataUpdateStatus.Insert() then;
+        if FeatureDataUpdateStatus.Insert() then
+            MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(FeatureKeyStatusChangedLbl, FeatureDataUpdateStatus."Feature Key", FeatureDataUpdateStatus."Feature Status", UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::ApplicationManagement, 4, 0);
     end;
 
     /// <summary>
