@@ -5,6 +5,7 @@
 
 namespace System.Security.AccessControl;
 
+using System;
 using System.Telemetry;
 using System.Security.User;
 
@@ -170,6 +171,9 @@ page 9855 "Permission Set"
                     trigger OnAction()
                     var
                         TempTablePermissionBuffer: Record "Tenant Permission" temporary;
+                        MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+                        MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+                        MyALAuditCategory: DotNet ALAuditCategory;
                     begin
                         LogTablePermissions.Stop(TempTablePermissionBuffer);
                         PermissionLoggingRunning := false;
@@ -177,6 +181,7 @@ page 9855 "Permission Set"
                             exit;
 
                         AddLoggedPermissions(TempTablePermissionBuffer);
+                        MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(PermissionSetModifiedLbl, Rec."Role ID", UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::RoleManagement, 2, 0);
                         CurrPage.MetadataPermissions.Page.Update(false);
                     end;
                 }
@@ -277,5 +282,6 @@ page 9855 "Permission Set"
         CannotManagePermissionsErr: Label 'Only users with the SUPER or the SECURITY permission set can delete permission sets.';
         CannotDeletePermissionSetErr: Label 'You can only delete user-created or copied permission sets.';
         PermissionSetCaptionTok: Label '%1 (%2)', Locked = true;
+        PermissionSetModifiedLbl: Label 'The permission set %1 has been modified by the UserSecurityId %2.', Locked = true;
         PermissionLoggingRunning: Boolean;
 }

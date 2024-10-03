@@ -5,6 +5,8 @@
 
 namespace System.Azure.Identity;
 
+using System;
+
 table 9017 "Plan Configuration"
 {
     Access = Internal;
@@ -54,4 +56,36 @@ table 9017 "Plan Configuration"
             Unique = true;
         }
     }
+    trigger OnDelete()
+    var
+        MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+        MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+        MyALAuditCategory: DotNet ALAuditCategory;
+    begin
+        MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(PlanConfigurationDeletedLbl, Rec.Id, UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::EntitlementManagement, 2, 0);
+    end;
+
+    trigger OnInsert()
+    var
+        MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+        MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+        MyALAuditCategory: DotNet ALAuditCategory;
+    begin
+        MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(PlanConfigurationCreatedLbl, Rec.Id, UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::EntitlementManagement, 2, 0);
+    end;
+
+    trigger OnModify()
+    var
+        MyCustomerAuditLoggerALHelper: DotNet CustomerAuditLoggerALHelper;
+        MyALSecurityOperationResult: DotNet ALSecurityOperationResult;
+        MyALAuditCategory: DotNet ALAuditCategory;
+    begin
+        MyCustomerAuditLoggerALHelper.LogAuditMessage(StrSubstNo(PlanConfigurationModifiedLbl, Rec.Id, UserSecurityId()), MyALSecurityOperationResult::Success, MyALAuditCategory::EntitlementManagement, 2, 0);
+    end;
+
+    var
+        PlanConfigurationDeletedLbl: Label 'The license configuration ID %1, has been deleted by the UserSecurityId %2.', Locked = true;
+        PlanConfigurationModifiedLbl: Label 'The license configuration ID %1, has been modified by the UserSecurityId %2.', Locked = true;
+        PlanConfigurationCreatedLbl: Label 'The license configuration ID %1, has been created by the UserSecurityId %2.', Locked = true;
+
 }
