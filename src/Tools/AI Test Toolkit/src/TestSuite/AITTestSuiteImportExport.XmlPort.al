@@ -65,6 +65,10 @@ xmlport 149031 "AIT Test Suite Import/Export"
                 {
                     Occurrence = Required;
                 }
+                fieldattribute(TestRunnerId; "AITSuite"."Test Runner Id")
+                {
+                    Occurrence = Optional;
+                }
                 tableelement(AITestMethodLine; "AIT Test Method Line")
                 {
                     LinkFields = "Test Suite Code" = field("Code");
