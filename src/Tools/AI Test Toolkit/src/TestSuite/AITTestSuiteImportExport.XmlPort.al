@@ -5,6 +5,8 @@
 
 namespace System.TestTools.AITestToolkit;
 
+using System.Security.Encryption;
+
 xmlport 149031 "AIT Test Suite Import/Export"
 {
     Caption = 'AI Import/Export';
@@ -25,25 +27,18 @@ xmlport 149031 "AIT Test Suite Import/Export"
                     trigger OnAfterAssignField()
                     var
                         AITTestSuiteRec: Record "AIT Test Suite";
-                        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
-                        CallerModuleInfo: ModuleInfo;
                         SameSuiteDifferentXMLErr: Label 'The test suite %1 is already imported with a different XML by the same app. Please delete the test suite and import again.', Comment = '%1 = Test Suite Code';
                         SameSuiteDifferentAppErr: Label 'The test suite %1 is already imported by a different app. Please rename the test suite and import again.', Comment = '%1 = Test Suite Code';
                     begin
                         // Skip if the same suite is already imported by the same app
                         // Error if the same suite is already imported with a different XML
                         // Error if the same suite is already imported by a different app
-                        AITTestSuiteMgt.GetCallerModuleInfo(CallerModuleInfo);
-                        AITSuite."Imported by AppId" := CallerModuleInfo.Id;
-
-                        AITSuite."Imported XML's MD5" := MD5FileHash;
-
                         AITTestSuiteRec.SetLoadFields(Code, "Imported by AppId", "Imported XML's MD5");
                         AITTestSuiteRec.SetRange(Code, AITSuite.Code);
 
                         if AITTestSuiteRec.FindFirst() then
-                            if AITTestSuiteRec."Imported by AppId" = CallerModuleInfo.Id then
-                                if AITTestSuiteRec."Imported XML's MD5" = AITSuite."Imported XML's MD5" then begin
+                            if AITTestSuiteRec."Imported by AppId" = GlobalCallerModuleInfo.Id then
+                                if AITTestSuiteRec."Imported XML's MD5" = GlobalMD5FileHash then begin
                                     SkipTestSuites.Add(AITSuite.Code);
                                     currXMLport.Skip();
                                 end
@@ -51,6 +46,9 @@ xmlport 149031 "AIT Test Suite Import/Export"
                                     Error(SameSuiteDifferentXMLErr, AITSuite.Code)
                             else
                                 Error(SameSuiteDifferentAppErr, AITSuite.Code);
+
+                        AITSuite."Imported by AppId" := GlobalCallerModuleInfo.Id;
+                        AITSuite."Imported XML's MD5" := GlobalMD5FileHash;
                     end;
                 }
                 fieldattribute(Description; "AITSuite".Description)
@@ -120,15 +118,24 @@ xmlport 149031 "AIT Test Suite Import/Export"
         }
     }
 
-    trigger OnInitXmlPort()
+    internal procedure SetMD5HashForTheImportedXML(XMLSetupInStream: InStream)
     var
-        AITTestContextImpl: Codeunit "AIT Test Context Impl.";
+        CryptographyManagement: Codeunit "Cryptography Management";
+        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
+        MD5Hash: Text;
     begin
-        MD5FileHash := AITTestContextImpl.GetAndClearMD5HashForTheImportedXML();
+        MD5Hash := CryptographyManagement.GenerateHash(XMLSetupInStream, HashAlgorithmType::MD5);
+        GlobalMD5FileHash := CopyStr(MD5Hash, 1, 32);
+    end;
+
+    internal procedure SetCallerModuleInfo(var CallerModuleInfo: ModuleInfo)
+    begin
+        GlobalCallerModuleInfo := CallerModuleInfo;
     end;
 
     var
         SkipTestSuites: List of [Code[100]];
-        MD5FileHash: Code[32];
+        GlobalMD5FileHash: Code[32];
+        GlobalCallerModuleInfo: ModuleInfo;
 }
 

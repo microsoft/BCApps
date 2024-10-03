@@ -5,7 +5,6 @@
 
 namespace System.TestTools.AITestToolkit;
 
-using System.Security.Encryption;
 using System.TestTools.TestRunner;
 
 /// <summary>
@@ -22,7 +21,6 @@ codeunit 149043 "AIT Test Context Impl."
         CurrentTurn: Integer;
         NumberOfTurns: Integer;
         IsMultiTurn: Boolean;
-        GlobalMD5HashOfImportedXML: Code[32];
         AnswerTok: Label 'answer', Locked = true;
         ContextTok: Label 'context', Locked = true;
         GroundTruthTok: Label 'ground_truth', Locked = true;
@@ -31,7 +29,6 @@ codeunit 149043 "AIT Test Context Impl."
         TestSetupTok: Label 'test_setup', Locked = true;
         QuestionTok: Label 'question', Locked = true;
         TurnsTok: Label 'turns', Locked = true;
-        SameDatasetNameErr: Label 'The test input dataset %1 with the same name already exists. The dataset was uploaded by AppId %2. Please rename the current dataset or delete the existing dataset.', Comment = '%1 = test input dataset Name, %2 = application id';
 
     /// <summary>
     /// Returns the Test Input value as Test Input Json Codeunit from the input dataset for the current iteration.
@@ -273,60 +270,5 @@ codeunit 149043 "AIT Test Context Impl."
             exit;
 
         CurrentTestOutputJson.Add(ElementName, TestInput.GetTestInput(ElementName).ValueAsText());
-    end;
-
-    /// <summary>
-    /// Import the Test Input Dataset from the resource file.
-    /// </summary>
-    /// <param name="ResourceFileName">The file name of the resource file which will be used in the description of the dataset.</param>
-    /// <param name="ResourceDataset">The InStream of the resource file.</param>
-    procedure ImportTestInputsOnInstall(ResourceFileName: Text; var ResourceDataset: InStream)
-    var
-        TestInputGroup: Record "Test Input Group";
-        TestInputsManagement: Codeunit "Test Inputs Management";
-        CallerModuleInfo: ModuleInfo;
-    begin
-        // Check if the dataset with the same description exists
-        AITTestSuiteMgt.GetCallerModuleInfo(CallerModuleInfo);
-        TestInputGroup.SetLoadFields(Description, "Imported by AppId");
-        TestInputGroup.SetRange(Description, ResourceFileName);
-
-        if TestInputGroup.FindFirst() then
-            if TestInputGroup."Imported by AppId" = CallerModuleInfo.Id then
-                TestInputGroup.Delete(true) // Overwrite the dataset
-            else
-                Error(SameDatasetNameErr, ResourceFileName, TestInputGroup."Imported by AppId");
-
-        TestInputsManagement.UploadAndImportDataInputsFromJson(ResourceFileName, ResourceDataset, CallerModuleInfo.Id);
-    end;
-
-    /// <summary>
-    /// Import the AI Test Suite from the resource file.
-    /// </summary>
-    /// <param name="XMLSetupInStream">The InStream of the resource file.</param>
-    procedure ImportAITestSuiteOnInstall(var XMLSetupInStream: InStream)
-    var
-        AITTestSuiteImportExport: XmlPort "AIT Test Suite Import/Export";
-    begin
-        // Set MD5 hash for the XML file being imported
-        SetMD5HashForTheImportedXML(XMLSetupInStream);
-        AITTestSuiteImportExport.SetSource(XMLSetupInStream);
-        AITTestSuiteImportExport.Import();
-    end;
-
-    internal procedure SetMD5HashForTheImportedXML(XMLSetupInStream: InStream)
-    var
-        CryptographyManagement: Codeunit "Cryptography Management";
-        HashAlgorithmType: Option MD5,SHA1,SHA256,SHA384,SHA512;
-        MD5Hash: Text;
-    begin
-        MD5Hash := CryptographyManagement.GenerateHash(XMLSetupInStream, HashAlgorithmType::MD5);
-        GlobalMD5HashOfImportedXML := MD5Hash.Substring(1, 32);
-    end;
-
-    internal procedure GetAndClearMD5HashForTheImportedXML() Result: Code[32]
-    begin
-        Result := GlobalMD5HashOfImportedXML;
-        Clear(GlobalMD5HashOfImportedXML);
     end;
 }

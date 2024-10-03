@@ -162,15 +162,20 @@ codeunit 130458 "Test Inputs Management"
 
     local procedure CreateTestInputGroup(var TestInputGroup: Record "Test Input Group"; FileName: Text; ImportedByAppId: Guid)
     var
+        FileNameLengthErr: Label 'File name length exceeds 100 characters';
         EmptyGuid: Guid;
     begin
-#pragma warning disable AA0139
-        TestInputGroup.Code := FileName;
-        if FileName.Contains('.') then
-            TestInputGroup.Code := FileName.Substring(1, FileName.IndexOf('.') - 1);
+        if StrLen(FileName) > 100 then
+            Error(FileNameLengthErr);
 
-        TestInputGroup.Description := FileName;
-#pragma warning restore AA0139
+        TestInputGroup."File Name" := CopyStr(FileName, 1, 100);
+
+        TestInputGroup.Code := TestInputGroup."File Name";
+        if FileName.Contains('.') then
+            TestInputGroup.Code := CopyStr(TestInputGroup."File Name".Substring(1, TestInputGroup."File Name".LastIndexOf('.') - 1), 1, 100);
+
+        TestInputGroup.Description := TestInputGroup."File Name";
+
         if ImportedByAppId <> EmptyGuid then
             TestInputGroup."Imported by AppId" := ImportedByAppId;
 
