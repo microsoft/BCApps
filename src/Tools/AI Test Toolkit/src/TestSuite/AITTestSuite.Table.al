@@ -250,7 +250,8 @@ table 149030 "AIT Test Suite"
 
     trigger OnInsert()
     begin
-        AssignDefaultTestRunner();
+        if Rec."Test Runner Id" = 0 then
+            AssignDefaultTestRunner();
     end;
 
     internal procedure AssignDefaultTestRunner()
