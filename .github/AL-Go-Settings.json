@@ -8,7 +8,7 @@
   "artifact": "bcinsider/Sandbox/24.6/base/latest",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "24.6",
+  "repoVersion": "24.7",
   "cleanModePreprocessorSymbols": [
     "CLEAN17",
     "CLEAN18",
