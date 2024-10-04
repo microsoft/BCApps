@@ -1,10 +1,9 @@
-## preview
-
-Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+## v6.0
 
 ### Issues
 
 - Issue 1184 Publish to Environment fails on 'Permission Denied'
+- AL Language extension in 25.0 doesn't contain the linux executable, use dotnet to invoke the dll instead.
 
 ### New Settings
 
