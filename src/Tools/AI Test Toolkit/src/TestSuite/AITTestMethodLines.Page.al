@@ -169,29 +169,24 @@ page 149034 "AIT Test Method Lines"
             }
             action(Compare)
             {
-                Caption = 'Compare Versions';
-                Image = CompareCOA;
-                ToolTip = 'Compare results of the line to a base version.';
+                Caption = 'View Runs';
+                Image = History;
+                ToolTip = 'View the run history of the suite, for the selected line.';
                 Scope = Repeater;
 
                 trigger OnAction()
                 var
                     AITTestMethodLine: Record "AIT Test Method Line";
-                    AITTestSuiteRec: Record "AIT Test Suite";
-                    AITTestMethodLineComparePage: Page "AIT Test Method Lines Compare";
+                    AITRunHistory: Page "AIT Run History";
                 begin
                     CurrPage.SetSelectionFilter(AITTestMethodLine);
 
                     if not AITTestMethodLine.FindFirst() then
                         Error(NoLineSelectedErr);
 
-                    AITTestSuiteRec.SetLoadFields(Version);
-                    AITTestSuiteRec.Get(Rec."Test Suite Code");
-
-                    AITTestMethodLineComparePage.SetBaseVersion(AITTestSuiteRec.Version - 1);
-                    AITTestMethodLineComparePage.SetVersion(AITTestSuiteRec.Version);
-                    AITTestMethodLineComparePage.SetRecord(AITTestMethodLine);
-                    AITTestMethodLineComparePage.Run();
+                    AITRunHistory.SetTestSuite(AITTestMethodLine."Test Suite Code");
+                    AITRunHistory.FilterToLine(AITTestMethodLine."Line No.");
+                    AITRunHistory.Run();
                 end;
             }
         }

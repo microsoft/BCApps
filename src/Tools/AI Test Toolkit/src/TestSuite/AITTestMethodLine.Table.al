@@ -202,6 +202,13 @@ table 149032 "AIT Test Method Line"
         }
     }
 
+    fieldgroups
+    {
+        fieldgroup(DropDown; "Line No.", "Codeunit ID", "Codeunit Name", "Input Dataset", Description)
+        {
+        }
+    }
+
     internal procedure GetTestInputCode(): Code[100]
     var
         AITTestSuite: Record "AIT Test Suite";

@@ -45,6 +45,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     local procedure RunAITests(AITTestSuite: Record "AIT Test Suite")
     var
         AITTestMethodLine: Record "AIT Test Method Line";
+        AITRunHistory: Record "AIT Run History";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         FeatureTelemetryCD: Dictionary of [Text, Text];
@@ -77,6 +78,11 @@ codeunit 149034 "AIT Test Suite Mgt."
             repeat
                 RunAITestLine(AITTestMethodLine, true);
             until AITTestMethodLine.Next() = 0;
+
+        AITRunHistory."Test Suite Code" := AITTestSuite.Code;
+        AITRunHistory.Version := AITTestSuite.Version;
+        AITRunHistory.Tag := AITTestSuite.Tag;
+        AITRunHistory.Insert();
     end;
 
     internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; IsExecutedFromTestSuiteHeader: Boolean)
@@ -410,6 +416,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         AITTestMethodLine: Record "AIT Test Method Line";
         AITLogEntry: Record "AIT Log Entry";
+        AITRunHistory: Record "AIT Run History";
     begin
         if Rec.IsTemporary() then
             exit;
@@ -419,6 +426,9 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITLogEntry.SetRange("Test Suite Code", Rec."Code");
         AITLogEntry.DeleteAll(true);
+
+        AITRunHistory.SetRange("Test Suite Code", Rec."Code");
+        AITRunHistory.DeleteAll(true);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Method Line", OnBeforeInsertEvent, '', false, false)]
