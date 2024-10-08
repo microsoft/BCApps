@@ -8,7 +8,6 @@ namespace System.Environment.Configuration;
 using System;
 using System.Azure.Identity;
 using System.Environment;
-using System.Feedback;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
@@ -421,22 +420,9 @@ codeunit 9175 "User Settings Impl."
     var
         ApplicationUserSettings: Record "Application User Settings";
     begin
-        ShowLegacyActionBarSurvey();
         GetAppSettings(UserSecurityID, ApplicationUserSettings);
         ApplicationUserSettings."Legacy Action Bar" := true;
         ApplicationUserSettings.Modify();
-    end;
-
-    procedure ShowLegacyActionBarSurvey()
-    var
-        CustomerExperienceSurvey: Codeunit "Customer Experience Survey";
-        FormsProId: Text;
-        FormsProEligibilityId: Text;
-        IsEligible: Boolean;
-    begin
-        if CustomerExperienceSurvey.RegisterEventAndGetEligibility('modernactionbar_event', 'modernactionbar', FormsProId, FormsProEligibilityId, IsEligible) then
-            if IsEligible then
-                CustomerExperienceSurvey.RenderSurvey('modernactionbar', FormsProId, FormsProEligibilityId);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAutoStartTours, '', false, false)]
