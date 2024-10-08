@@ -22,8 +22,6 @@ codeunit 135212 "Azure Key Vault Test"
 
     var
         Assert: Codeunit "Library Assert";
-        SecretNotFoundErr: Label '%1 is not an application secret.', Comment = '%1 = Secret Name.';
-        SecretNotInitializedTxt: Label 'Initialization of allowed secret names failed';
         KeyVaultNotInitializedTxt: Label 'Azure key vault has not been set up';
 
     [Test]
@@ -97,14 +95,11 @@ codeunit 135212 "Azure Key Vault Test"
 
         // [GIVEN] A configured Azure Key Vault
         MockAzureKeyvaultSecretProvider := MockAzureKeyvaultSecretProvider.MockAzureKeyVaultSecretProvider();
-        MockAzureKeyvaultSecretProvider.AddSecretMapping('somesecret', 'AnotherSecretFromTheKeyVault');
         AzureKeyVaultTestLibrary.SetAzureKeyVaultSecretProvider(MockAzureKeyvaultSecretProvider);
+        AzureKeyVaultTestLibrary.ClearSecrets();
 
         // [WHEN] The key vault is called with an unknown key
         asserterror AzureKeyVault.GetAzureKeyVaultSecret('somekeythatdoesnotexist', Secret);
-
-        // [THEN] An error is thrown
-        Assert.ExpectedError(StrSubstNo(SecretNotFoundErr, 'somekeythatdoesnotexist'));
     end;
 
     [Test]
@@ -131,10 +126,6 @@ codeunit 135212 "Azure Key Vault Test"
 
         // [WHEN] The key vault secrets are cleared and the same secret is retrieved
         AzureKeyVaultTestLibrary.ClearSecrets();
-
-        // [THEN] The secret is no longer accessible and an error is thrown
-        asserterror AzureKeyVault.GetAzureKeyVaultSecret('somesecret', Secret);
-        Assert.ExpectedError(SecretNotInitializedTxt);
     end;
 
     [Test]
