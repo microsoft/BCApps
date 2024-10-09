@@ -217,8 +217,9 @@ table 149032 "AIT Test Method Line"
     var
         AITTestSuite: Record "AIT Test Suite";
     begin
-        if AITTestSuite.Get(Rec."Test Suite Code") then
-            Rec."Input Dataset" := AITTestSuite."Input Dataset";
+        if Rec."Input Dataset" = '' then
+            if AITTestSuite.Get(Rec."Test Suite Code") then
+                Rec."Input Dataset" := AITTestSuite."Input Dataset";
     end;
 
     trigger OnDelete()
