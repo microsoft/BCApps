@@ -239,7 +239,7 @@ page 2516 "AppSource Product Details"
         PlansOverview: Text;
         PlansAreVisible: Boolean;
         PurchaseLicensesElsewhereLbl: Label 'Installing this app might lead to undesired behavior if licenses are not purchased before use. You must purchase licenses through Microsoft AppSource.\Do you want to continue with the installation?';
-        InstallNewAppWarningLbl: Label 'You''re installing a new AppSource app.\If this is a Contact Me app, make sure that you have contacted the publisher before proceeding to ensure that you have the proper licensing, guidance, and app dependencies in place. If this is a transactable plan, you will need to have purchased appropriate licenses on the online AppSource Marketplace to be able to use the app.\Do you want to continue with the installation?';
+        InstallNewAppWarningLbl: Label 'You''re installing a new AppSource app.\If this is a Contact Me app, make sure that you have contacted the publisher before proceeding to ensure that you have the proper licensing, guidance, and app dependencies in place. If this is a transactable plan, the customer will need to purchase appropriate licenses on Microsoft AppSource to be able to use the app.\Do you want to continue with the installation?';
         PlanLinePrUserPrMonthLbl: Label '%1 %2 user/month', Comment = 'Price added a plan line, %1 is the currency code, such as USD or IDR, %2 is the price';
         PlanLinePrUserPrYearLbl: Label '%1 %2 user/year', Comment = 'Price added a plan line, %1 is the currency code, such as USD or IDR, %2 is the price';
         PlanLineFirstMonthIsFreeLbl: Label 'First month free, then %1.', Comment = 'Added to the plan line when the first month is free, %1 is the plan after the trial period.';
