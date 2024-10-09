@@ -103,8 +103,8 @@ codeunit 2515 "AppSource Product Manager"
         PricingTypes: JsonArray;
         PricingType: JsonToken;
     begin
-        if (AzureADUserManagement.IsUserDelegated(Database.UserSecurityId())) then
-            exit(true); // Delgated admins are always allowed to install.
+        if AzureADUserManagement.IsUserDelegated(Database.UserSecurityId()) then
+            exit(true); // Delegated admins are always allowed to install.
 
         foreach PlanToken in Plans do begin
             PlanObject := PlanToken.AsObject();
