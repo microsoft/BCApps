@@ -3,24 +3,6 @@
         "bug":  "488815",
         "codeunitId":  132684,
         "CodeunitName": "Azure OpenAI Test",
-        "Method": "TestIsEnabledRejectPrivacyNotice"
-    },
-    {
-        "bug":  "488815",
-        "codeunitId":  132684,
-        "CodeunitName": "Azure OpenAI Test",
-        "Method": "TestIsEnabledPrivacyNoticeAccepted"
-    },
-    {
-        "bug":  "488815",
-        "codeunitId":  132684,
-        "CodeunitName": "Azure OpenAI Test",
-        "Method": "TestIsEnabledPrivacyNoticeDisagreed"
-    },
-    {
-        "bug":  "488815",
-        "codeunitId":  132684,
-        "CodeunitName": "Azure OpenAI Test",
         "Method": "GenerateTextCompletionsAuthorizationNotSet"
     },
     {
