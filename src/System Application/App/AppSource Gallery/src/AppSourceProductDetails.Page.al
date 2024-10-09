@@ -187,7 +187,7 @@ page 2516 "AppSource Product Details"
                         if not Confirm(InstallNewAppWarningLbl) then
                             exit;
                     end else
-                        if (PlansAreVisible) then
+                        if PlansAreVisible then
                             if not Confirm(PurchaseLicensesElsewhereLbl) then
                                 exit;
 
