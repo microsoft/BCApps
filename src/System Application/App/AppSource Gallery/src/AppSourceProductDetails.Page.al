@@ -5,6 +5,7 @@
 namespace System.Apps.AppSource;
 
 using System.Apps;
+using System.Azure.Identity;
 
 /// <summary>
 /// Single AppSource Product Details Page
