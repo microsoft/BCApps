@@ -160,21 +160,21 @@ codeunit 130458 "Test Inputs Management"
         ParseDataInputs(DataInputText, TestInputGroup);
     end;
 
+    procedure GetTestInputGroupCodeFromFileName(FileName: Text) TestInputGroupCode: Code[100]
+    begin
+        if FileName.EndsWith(JsonlFileExtensionTxt) or FileName.EndsWith(JsonFileExtensionTxt) then
+            TestInputGroupCode := CopyStr(FileName.Substring(1, FileName.LastIndexOf('.') - 1), 1, MaxStrLen(TestInputGroupCode))
+        else
+            TestInputGroupCode := CopyStr(FileName, 1, MaxStrLen(TestInputGroupCode));
+    end;
+
     local procedure CreateTestInputGroup(var TestInputGroup: Record "Test Input Group"; FileName: Text; ImportedByAppId: Guid)
     var
-        FileNameLengthErr: Label 'File name length exceeds 100 characters';
         EmptyGuid: Guid;
     begin
-        if StrLen(FileName) > 100 then
-            Error(FileNameLengthErr);
+        TestInputGroup.Code := GetTestInputGroupCodeFromFileName(FileName);
 
-        TestInputGroup."File Name" := CopyStr(FileName, 1, 100);
-
-        TestInputGroup.Code := TestInputGroup."File Name";
-        if FileName.Contains('.') then
-            TestInputGroup.Code := CopyStr(TestInputGroup."File Name".Substring(1, TestInputGroup."File Name".LastIndexOf('.') - 1), 1, 100);
-
-        TestInputGroup.Description := TestInputGroup."File Name";
+        TestInputGroup.Description := CopyStr(FileName, 1, MaxStrLen(TestInputGroup.Description));
 
         if ImportedByAppId <> EmptyGuid then
             TestInputGroup."Imported by AppId" := ImportedByAppId;

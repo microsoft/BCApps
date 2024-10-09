@@ -213,10 +213,9 @@ codeunit 149037 "AIT AL Test Suite Mgt"
     begin
         // Check if the dataset with the same filename exists
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        TestInputGroup.SetLoadFields("File Name", "Imported by AppId");
-        TestInputGroup.SetRange("File Name", DatasetFileName);
+        TestInputGroup.SetLoadFields(Code, "Imported by AppId");
 
-        if TestInputGroup.FindFirst() then
+        if TestInputGroup.Get(TestInputsManagement.GetTestInputGroupCodeFromFileName(DatasetFileName)) then
             if TestInputGroup."Imported by AppId" = CallerModuleInfo.Id then
                 TestInputGroup.Delete(true) // Overwrite the dataset
             else

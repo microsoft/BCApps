@@ -51,22 +51,12 @@ table 130454 "Test Input Group"
             ToolTip = 'Specifies the AppId from which the test input group was imported.';
             DataClassification = SystemMetadata;
         }
-        field(70; "File Name"; Text[100])
-        {
-            Caption = 'File Name';
-            ToolTip = 'Specifies the name of the file from which the test input group was imported.';
-            Editable = false;
-        }
     }
     keys
     {
         key(Key1; "Code")
         {
             Clustered = true;
-        }
-        key(FileNameUniqueKey; "File Name")
-        {
-            Unique = true;
         }
     }
 
