@@ -96,12 +96,16 @@ codeunit 2515 "AppSource Product Manager"
     /// <returns>True if the product can be installed, otherwise false</returns>
     internal procedure CanInstallProductWithPlans(Plans: JsonArray): Boolean
     var
+        AzureADUserManagement: Codeunit "Azure AD User Management";
         PlanToken: JsonToken;
         PlanObject: JsonObject;
         PricingTypesToken: JsonToken;
         PricingTypes: JsonArray;
         PricingType: JsonToken;
     begin
+        if AzureADUserManagement.IsUserDelegated(Database.UserSecurityId()) then
+            exit(true); // Delegated admins are always allowed to install.
+
         foreach PlanToken in Plans do begin
             PlanObject := PlanToken.AsObject();
 
