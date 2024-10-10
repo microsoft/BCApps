@@ -8,6 +8,8 @@ namespace Microsoft.Foundation.NoSeries;
 codeunit 337 "No. Series Text Match Impl."
 {
     Access = Internal;
+    InherentPermissions = X;
+    InherentEntitlements = X;
 
     procedure IsRelevant(FirstString: Text; SecondString: Text): Boolean
     var
@@ -108,11 +110,11 @@ codeunit 337 "No. Series Text Match Impl."
         exit(MinThreshold <= Length);
     end;
 
-    local procedure RemoveShortWords(OriginalText: Text[250]): Text[250];
+    local procedure RemoveShortWords(OriginalText: Text): Text;
     var
         Words: List of [Text];
-        Word: Text[250];
-        Result: Text[250];
+        Word: Text;
+        Result: Text;
     begin
         Words := OriginalText.Split(' '); // split the text by spaces into a list of words
         foreach Word in Words do // loop through each word in the list
