@@ -130,7 +130,7 @@ codeunit 9175 "User Settings Impl."
         UserSettingsRec."Locale ID" := UserPersonalization."Locale ID";
         UserSettingsRec."Time Zone" := UserPersonalization."Time Zone";
 
-        if CompanyName() <> '' then
+        if (UserPersonalization.Company = '') and (CompanyName() <> '') then
             UserSettingsRec.Company := CopyStr(CompanyName(), 1, 30)
         else
             UserSettingsRec.Company := UserPersonalization.Company;
