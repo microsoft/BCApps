@@ -49,7 +49,7 @@ page 149042 "AIT CommandLine Card"
             }
             group(DatasetGroup)
             {
-                ShowCaption = false;
+                Caption = 'Test Inputs';
 
                 field("Input Dataset Filename"; InputDatasetFilename)
                 {
@@ -86,7 +86,7 @@ page 149042 "AIT CommandLine Card"
             }
             group(SuiteDefinitionGroup)
             {
-                ShowCaption = false;
+                Caption = 'Suite Definition';
 
                 field("Suite Definition"; SuiteDefinition)
                 {

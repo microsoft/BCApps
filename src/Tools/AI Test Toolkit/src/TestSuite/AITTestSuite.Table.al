@@ -226,6 +226,16 @@ table 149030 "AIT Test Suite"
                 end;
             end;
         }
+        field(60; "Imported by AppId"; Guid)
+        {
+            Caption = 'Imported from AppId';
+            ToolTip = 'Specifies the application id from which the test suite was created.';
+        }
+        field(70; "Imported XML's MD5"; Code[32])
+        {
+            Caption = 'Imported XML''s MD5';
+            ToolTip = 'Specifies the MD5 hash of the XML file from which the test suite was imported.';
+        }
     }
     keys
     {
@@ -240,7 +250,8 @@ table 149030 "AIT Test Suite"
 
     trigger OnInsert()
     begin
-        AssignDefaultTestRunner();
+        if Rec."Test Runner Id" = 0 then
+            AssignDefaultTestRunner();
     end;
 
     internal procedure AssignDefaultTestRunner()

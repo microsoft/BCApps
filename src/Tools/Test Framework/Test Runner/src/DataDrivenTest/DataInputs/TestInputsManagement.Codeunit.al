@@ -108,6 +108,13 @@ codeunit 130458 "Test Inputs Management"
 
     procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream)
     var
+        EmptyGuid: Guid;
+    begin
+        UploadAndImportDataInputsFromJson(FileName, TestInputInStream, EmptyGuid);
+    end;
+
+    procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream; ImportedByAppId: Guid)
+    var
         TestInputGroup: Record "Test Input Group";
         TestInput: Record "Test Input";
         InputText: Text;
@@ -115,7 +122,7 @@ codeunit 130458 "Test Inputs Management"
         TelemetryCD: Dictionary of [Text, Text];
     begin
         if not TestInputGroup.Find() then
-            CreateTestInputGroup(TestInputGroup, FileName);
+            CreateTestInputGroup(TestInputGroup, FileName, ImportedByAppId);
 
         if FileName.EndsWith(JsonFileExtensionTxt) then begin
             FileType := JsonFileExtensionTxt;
@@ -153,15 +160,24 @@ codeunit 130458 "Test Inputs Management"
         ParseDataInputs(DataInputText, TestInputGroup);
     end;
 
-    local procedure CreateTestInputGroup(var TestInputGroup: Record "Test Input Group"; FileName: Text)
+    procedure GetTestInputGroupCodeFromFileName(FileName: Text) TestInputGroupCode: Code[100]
     begin
-#pragma warning disable AA0139
-        TestInputGroup.Code := FileName;
-        if FileName.Contains('.') then
-            TestInputGroup.Code := FileName.Substring(1, FileName.IndexOf('.') - 1);
+        if FileName.EndsWith(JsonlFileExtensionTxt) or FileName.EndsWith(JsonFileExtensionTxt) then
+            TestInputGroupCode := CopyStr(FileName.Substring(1, FileName.LastIndexOf('.') - 1), 1, MaxStrLen(TestInputGroupCode))
+        else
+            TestInputGroupCode := CopyStr(FileName, 1, MaxStrLen(TestInputGroupCode));
+    end;
 
-        TestInputGroup.Description := FileName;
-#pragma warning restore AA0139
+    local procedure CreateTestInputGroup(var TestInputGroup: Record "Test Input Group"; FileName: Text; ImportedByAppId: Guid)
+    var
+        EmptyGuid: Guid;
+    begin
+        TestInputGroup.Code := GetTestInputGroupCodeFromFileName(FileName);
+
+        TestInputGroup.Description := CopyStr(FileName, 1, MaxStrLen(TestInputGroup.Description));
+
+        if ImportedByAppId <> EmptyGuid then
+            TestInputGroup."Imported by AppId" := ImportedByAppId;
 
         TestInputGroup.Insert();
     end;
