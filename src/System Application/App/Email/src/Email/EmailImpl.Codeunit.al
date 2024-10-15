@@ -198,14 +198,19 @@ codeunit 8900 "Email Impl"
     end;
 
     procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox")
+    begin
+        RetrieveEmails(EmailAccountId, Connector, EmailInbox, false);
+    end;
+
+    procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox"; AsHtml: Boolean)
     var
-        IEmailConnectorv2: Interface "Email Connector v2";
+        IEmailConnectorv3: Interface "Email Connector v3";
     begin
         CheckRequiredPermissions();
 
-        if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then begin
+        if CheckAndGetEmailConnectorv3(Connector, IEmailConnectorv3) then begin
             TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
-            IEmailConnectorv2.RetrieveEmails(EmailAccountId, EmailInbox);
+            IEmailConnectorv3.RetrieveEmails(EmailAccountId, EmailInbox, AsHtml);
         end else
             Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
 
@@ -237,23 +242,27 @@ codeunit 8900 "Email Impl"
     procedure MarkAsRead(EmailAccountId: Guid; Connector: Enum "Email Connector"; ExternalId: Text)
     var
         IEmailConnectorv2: Interface "Email Connector v2";
+        IEmailConnectorv3: Interface "Email Connector v3";
     begin
         CheckRequiredPermissions();
 
         if ExternalId = '' then
             Error(ExternalIdCannotBeEmptyErr);
-
         if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then
             IEmailConnectorv2.MarkAsRead(EmailAccountId, ExternalId)
         else
-            Error(EmailConnectorDoesNotSupportMarkAsReadErr);
+            if CheckAndGetEmailConnectorv3(Connector, IEmailConnectorv3) then
+                IEmailConnectorv3.MarkAsRead(EmailAccountId, ExternalId)
+            else
+                Error(EmailConnectorDoesNotSupportMarkAsReadErr)
     end;
 
     procedure CheckReplySupported(Connector: Enum "Email Connector"): Boolean
     var
         IEmailConnectorv2: Interface "Email Connector v2";
+        IEmailConnectorv3: Interface "Email Connector v3";
     begin
-        if not CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then
+        if (not CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2)) and (not CheckAndGetEmailConnectorv3(Connector, IEmailConnectorv3)) then
             Error(EmailconnectorDoesNotSupportReplyingErr);
 
         exit(true);
@@ -263,6 +272,15 @@ codeunit 8900 "Email Impl"
     begin
         if Connector is "Email Connector v2" then begin
             Connectorv2 := Connector as "Email Connector v2";
+            exit(true);
+        end else
+            exit(false);
+    end;
+
+    procedure CheckAndGetEmailConnectorv3(Connector: Interface "Email Connector"; var Connectorv3: Interface "Email Connector v3"): Boolean
+    begin
+        if Connector is "Email Connector v3" then begin
+            Connectorv3 := Connector as "Email Connector v3";
             exit(true);
         end else
             exit(false);

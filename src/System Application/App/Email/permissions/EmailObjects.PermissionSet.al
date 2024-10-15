@@ -23,6 +23,7 @@ permissionset 8906 "Email - Objects"
                   codeunit "Email Account" = X,
                   codeunit "Email Address Lookup" = X,
                   codeunit "Default Email Connector v2" = X,
+                  codeunit "Default Email Connector v3" = X,
                   codeunit "Email Dispatcher" = X,
                   codeunit "Email Message" = X,
                   codeunit "Email Scenario" = X,
