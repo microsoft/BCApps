@@ -25,12 +25,6 @@
       "version": "26.0.0.0"
     },
     {
-      "id": "574d5c26-62d4-4541-bc36-0fbbaed0072a",
-      "name": "Azure AD User Management",
-      "publisher": "Microsoft",
-      "version": "26.0.0.0"
-    }, 
-    {
       "id": "812b339d-a9db-4a6e-84e4-fe35cbef0c44",
       "name": "Rest Client",
       "publisher": "Microsoft",

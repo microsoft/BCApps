@@ -28,6 +28,7 @@ codeunit 2515 "AppSource Product Manager"
         CatalogProductsUriLbl: Label 'https://catalogapi.azure.com/products', Locked = true;
         CatalogApiVersionQueryParamNameLbl: Label 'api-version', Locked = true;
         CatalogApiVersionQueryParamValueLbl: Label '2023-05-01-preview', Locked = true;
+        CatalogApiVersionOldQueryParamValueLbl: Label '2018-08-01-beta', Locked = true;
         CatalogApiOrderByQueryParamNameLbl: Label '$orderby', Locked = true;
         CatalogMarketQueryParamNameLbl: Label 'market', Locked = true;
         CatalogLanguageQueryParamNameLbl: Label 'language', Locked = true;
@@ -92,41 +93,27 @@ codeunit 2515 "AppSource Product Manager"
     /// <summary>
     /// Checks if the product can be installed or your are required to perform operations on AppSource before you can install the product.
     /// </summary>
-    /// <param name="Plans">JSonArray representing the product plans</param>
-    /// <returns>True if the product can be installed, otherwise false</returns>
-    internal procedure CanInstallProductWithPlans(Plans: JsonArray): Boolean
+    internal procedure CanInstallProductWithPlans(UniqieProductIDValue: Text): Boolean
     var
-        AzureADUserManagement: Codeunit "Azure AD User Management";
+        LegacyProductObject: JsonObject;
+        LegacyPlansToken: JsonToken;
+        LegacyPlans: JsonArray;
         PlanToken: JsonToken;
         PlanObject: JsonObject;
-        PricingTypesToken: JsonToken;
-        PricingTypes: JsonArray;
-        PricingType: JsonToken;
+        CallToActionToken: JsonToken;
     begin
-        if AzureADUserManagement.IsUserDelegated(Database.UserSecurityId()) then
-            exit(true); // Delegated admins are always allowed to install.
-
-        foreach PlanToken in Plans do begin
+        // Query legacy api toget all the plan and test if there is a contact me call to action.
+        LegacyProductObject := GetProductDetails(UniqieProductIDValue, ConstructProductUri(UniqieProductIDValue, CatalogApiVersionOldQueryParamValueLbl));
+        LegacyProductObject.Get('plans', LegacyPlansToken);
+        LegacyPlans := LegacyPlansToken.AsArray();
+        foreach PlanToken in LegacyPlans do begin
             PlanObject := PlanToken.AsObject();
-
-            if PlanObject.Get('pricingTypes', PricingTypesToken) then
-                if (PricingTypesToken.IsArray()) then begin
-                    PricingTypes := PricingTypesToken.AsArray();
-                    if PricingTypes.Count() = 0 then
-                        exit(false); // No price structure, you need to contact the publisher
-
-                    foreach PricingType in PricingTypes do
-                        case LowerCase(PricingType.AsValue().AsText()) of
-                            'free', // Free
-                            'freetrial', // Free trial
-                            'payg', // Pay as you go
-                            'byol': // Bring your own license
-                                exit(true);
-                        end;
-                end;
+            if PlanObject.Get('callToAction', CallToActionToken) then
+                if LowerCase(CallToActionToken.AsValue().AsText()) = 'contactme' then
+                    exit(false);
         end;
 
-        exit(false);
+        exit(true);
     end;
     #endregion
 
@@ -233,14 +220,20 @@ codeunit 2515 "AppSource Product Manager"
     /// </summary>
     local procedure GetProductDetails(UniqueProductIDValue: Text): JsonObject
     var
-        RestClient: Codeunit "Rest Client";
         RequestUri: Text;
+    begin
+        RequestUri := ConstructProductUri(UniqueProductIDValue);
+        exit(GetProductDetails(UniqueProductIDValue, RequestUri));
+    end;
+
+    local procedure GetProductDetails(UniqueProductIDValue: Text; RequestUri: Text): JsonObject
+    var
+        RestClient: Codeunit "Rest Client";
         ClientRequestID: Guid;
         TelemetryDictionary: Dictionary of [Text, Text];
     begin
         Init();
         ClientRequestID := CreateGuid();
-        RequestUri := ConstructProductUri(UniqueProductIDValue);
 
         PopulateTelemetryDictionary(ClientRequestID, UniqueProductIDValue, RequestUri, TelemetryDictionary);
         Session.LogMessage('AL:AppSource-GetProduct', 'Requesting product details.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDictionary);
@@ -319,6 +312,11 @@ codeunit 2515 "AppSource Product Manager"
     end;
 
     local procedure ConstructProductUri(UniqueIdentifier: Text): Text
+    begin
+        exit(ConstructProductUri(UniqueIdentifier, CatalogApiVersionQueryParamValueLbl));
+    end;
+
+    local procedure ConstructProductUri(UniqueIdentifier: Text; ApiVersion: Text): Text
     var
         UriBuilder: Codeunit "Uri Builder";
         Uri: Codeunit Uri;
@@ -328,7 +326,7 @@ codeunit 2515 "AppSource Product Manager"
         ResolveMarketAndLanguage(Market, Language);
         UriBuilder.Init(CatalogProductsUriLbl);
         UriBuilder.SetPath('products/' + UniqueIdentifier);
-        UriBuilder.AddQueryParameter(CatalogApiVersionQueryParamNameLbl, CatalogApiVersionQueryParamValueLbl);
+        UriBuilder.AddQueryParameter(CatalogApiVersionQueryParamNameLbl, ApiVersion);
         UriBuilder.AddQueryParameter(CatalogMarketQueryParamNameLbl, Market);
         UriBuilder.AddQueryParameter(CatalogLanguageQueryParamNameLbl, Language);
         UriBuilder.GetUri(Uri);
