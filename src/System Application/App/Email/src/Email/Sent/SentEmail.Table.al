@@ -110,4 +110,13 @@ table 8889 "Sent Email"
         exit(Rec."Message Id");
     end;
 
+    /// <summary>
+    /// Get the account id of the sent email.
+    /// </summary>
+    /// <returns>Account id.</returns>
+    procedure GetAccountId(): Guid
+    begin
+        exit(Rec."Account Id");
+    end;
+
 }
