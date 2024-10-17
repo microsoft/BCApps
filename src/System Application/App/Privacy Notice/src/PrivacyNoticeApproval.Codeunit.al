@@ -15,7 +15,7 @@ codeunit 1564 "Privacy Notice Approval"
     procedure SetApprovalState(PrivacyNoticeId: Code[50]; UserSID: Guid; PrivacyNoticeApprovalState: Enum "Privacy Notice Approval State")
     var
         PrivacyNoticeApproval: Record "Privacy Notice Approval";
-        PrivacyNoticeApprovedLbl: Label 'Privacy Notice Approval ID %1 provided by User SID %2.', Locked = true;
+        PrivacyNoticeApprovedLbl: Label 'Privacy Notice Approval ID %1 provided by UserSecurityId %2.', Locked = true;
     begin
         if PrivacyNoticeApprovalState = "Privacy Notice Approval State"::"Not set" then begin
             ResetApproval(PrivacyNoticeId, UserSID);
@@ -35,7 +35,7 @@ codeunit 1564 "Privacy Notice Approval"
     procedure ResetApproval(PrivacyNoticeId: Code[50]; UserSID: Guid)
     var
         PrivacyNoticeApproval: Record "Privacy Notice Approval";
-        PrivacyNoticeResetLbl: Label 'Privacy Notice Approval ID %1 has been reset by User SID %2.', Locked = true;
+        PrivacyNoticeResetLbl: Label 'Privacy Notice Approval ID %1 has been reset by UserSecurityId %2.', Locked = true;
     begin
         PrivacyNoticeApproval.SetRange(ID, PrivacyNoticeId);
         PrivacyNoticeApproval.SetRange("User SID", UserSID);

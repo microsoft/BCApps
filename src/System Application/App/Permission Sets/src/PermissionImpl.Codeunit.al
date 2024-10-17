@@ -23,7 +23,7 @@ codeunit 9864 "Permission Impl."
         IncludeDescriptionOption: Option "Specifies no permission","Specifies direct permission","Specifies indirect permission";
         ExcludeOption: Option " ",Exclude,"Reduce to indirect";
         ExcludeDescriptionOption: Option "No change to permission","Excludes any permission","Excludes any direct permission";
-        PermissionUpdatedLbl: Label 'The tenant %1 permission for the App Id %2, Role %3, ObjectType %4, ObjectId %5  has been updated with the value: "%6", by the UserSecurityId %7.', Locked = true;
+        PermissionUpdatedLbl: Label 'Tenant %1 permission for the App Id %2, Role %3, ObjectType %4, ObjectId %5  has been updated with the value: "%6", by the UserSecurityId %7.', Locked = true;
         MultiplePermissionsUpdatedLbl: Label 'The tenant permissions for the App Id %1, Role %2, ObjectType %3, ObjectId %4  have been updated with the following values - Read "%5", Insert "%6", Modify "%7" and Delete "%8" by the UserSecurityId %9.', Locked = true;
 
     procedure SelectPermissions(CurrAppId: Guid; CurrRoleID: Code[20]): Boolean
