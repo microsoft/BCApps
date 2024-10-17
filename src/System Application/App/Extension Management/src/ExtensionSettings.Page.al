@@ -127,13 +127,13 @@ page 2511 "Extension Settings"
                 {
                     Caption = 'Build by';
                     Editable = false;
-                    ToolTip = 'Specifies the name of the system that assisted in the compilation of this extension.';
+                    ToolTip = 'Specifies the name of the system that orchestrated the build.';
                 }
                 field(BuildUrl; BuildUrl)
                 {
                     Caption = 'Build URL';
                     Editable = false;
-                    ToolTip = 'Specifies the URL of where the package can be found.';
+                    ToolTip = 'Specifies the URL to the build system invocation where the build can be found.';
                     ExtendedDatatype = URL;
                 }
             }
