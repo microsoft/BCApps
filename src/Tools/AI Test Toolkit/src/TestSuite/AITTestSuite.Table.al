@@ -51,11 +51,18 @@ table 149030 "AIT Test Suite"
             var
                 AITTestMethodLine: Record "AIT Test Method Line";
             begin
+                if Rec."Input Dataset" = xRec."Input Dataset" then
+                    exit;
+
+                AITTestMethodLine.SetRange("Test Suite Code", Rec.Code);
+
+                if AITTestMethodLine.IsEmpty() then
+                    exit;
+
                 if GuiAllowed() then
                     if not Dialog.Confirm(InputDatasetChangedQst) then
                         exit;
 
-                AITTestMethodLine.SetRange("Test Suite Code", Rec.Code);
                 AITTestMethodLine.ModifyAll("Input Dataset", Rec."Input Dataset", true);
             end;
         }
