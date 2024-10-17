@@ -32,6 +32,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         NumberOfAddedTablesPlaceholderLbl: Label '{number_of_tables}', Locked = true;
         TelemetryTool2PromptRetrievalErr: Label 'Unable to retrieve the prompt for No. Series Copilot Tool 2 from Azure Key Vault.', Locked = true;
         TelemetryTool2DefinitionRetrievalErr: Label 'Unable to retrieve the definition for No. Series Copilot Tool 2 from Azure Key Vault.', Locked = true;
+        ToolProgressDialogTextLbl: Label 'Searching for tables with number series related to your query';
         ToolLoadingErr: Label 'Unable to load the No. Series Copilot Tool 2. Please try again later.';
 
     procedure GetName(): Text
@@ -71,12 +72,14 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         ChangeNoSeriesPrompt, CustomPatternsPromptList, TablesYamlList, ExistingNoSeriesToChangeList : List of [Text];
         NumberOfToolResponses, i, ActualTablesChunkSize : Integer;
         NumberOfChangedTables: Integer;
+        Progress: Dialog;
     begin
         if not CheckIfUserSpecifiedNoSeriesToChange(Arguments) then begin
             NoSeriesCopilotImpl.SendNotification(GetLastErrorText());
             exit;
         end;
 
+        Progress.Open(ToolProgressDialogTextLbl);
         GetTablesWithNoSeries(Arguments, TempSetupTable, TempNoSeriesField, ExistingNoSeriesToChangeList);
         ToolsImpl.GetUserSpecifiedOrExistingNumberPatternsGuidelines(Arguments, CustomPatternsPromptList, ExistingNoSeriesToChangeList, UpdateForNextYear);
 
@@ -97,7 +100,8 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
                                                         .Replace(NumberOfAddedTablesPlaceholderLbl, Format(ActualTablesChunkSize)));
 
                 ToolResults.Add(ToolsImpl.ConvertListToText(ChangeNoSeriesPrompt), ActualTablesChunkSize);
-            end
+            end;
+        Progress.Close();
     end;
 
     [TryFunction]
