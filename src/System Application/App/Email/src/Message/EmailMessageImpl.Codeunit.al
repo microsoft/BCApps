@@ -550,6 +550,11 @@ codeunit 8905 "Email Message Impl."
         exit(GlobalEmailMessageAttachment.Next());
     end;
 
+    procedure Attachments_GetId(): BigInteger
+    begin
+        exit(GlobalEmailMessageAttachment.Id);
+    end;
+
     procedure Attachments_GetName(): Text[250]
     begin
         exit(GlobalEmailMessageAttachment."Attachment Name");
