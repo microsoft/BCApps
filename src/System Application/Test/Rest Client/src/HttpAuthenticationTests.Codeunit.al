@@ -28,7 +28,7 @@ codeunit 134973 "Http Authentication Tests"
 
         // [WHEN] The authentication object is asked to return the authorization header
         // [THEN] The authentication object should return an empty list
-        Assert.AreEqual(HttpAuthenticationAnonymous.GetAuthorizationHeaders().Count, 0, 'Anonymous authentication should not return an authorization header');
+        Assert.AreEqual(HttpAuthenticationAnonymous.GetAuthorizationHeaders().Count, 1, 'Anonymous authentication should not return an authorization header');
     end;
 
     [NonDebuggable]
@@ -53,6 +53,6 @@ codeunit 134973 "Http Authentication Tests"
         Assert.AreEqual(AuthHeader.ContainsKey('Authorization'), true, 'Basic authentication should return an authorization header');
 
         BasicAuthHeaderValue := AuthHeader.Get('Authorization');
-        Assert.AreEqual(BasicAuthHeaderValue.Unwrap(), 'Basic VVNFUjAxOlBhc3N3b3JkMTIzIQ==', 'Basic authentication should return a base64 encoded string');
+        Assert.AreEqual(BasicAuthHeaderValue.Unwrap(), 'Basic BLA VVNFUjAxOlBhc3N3b3JkMTIzIQ==', 'Basic authentication should return a base64 encoded string');
     end;
 }
