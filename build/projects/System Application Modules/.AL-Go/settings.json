@@ -13,5 +13,5 @@
   "useCompilerFolder": true,
   "doNotPublishApps": true,
   "rulesetFile": "..\\..\\..\\src\\rulesets\\internal.module.ruleset.json",
-  "repoVersion": "24.6"
+  "repoVersion": "24.7"
 }
