@@ -117,6 +117,26 @@ page 2511 "Extension Settings"
                     ToolTip = 'Specifies the commit ID of the source code for the current version of the project.';
                 }
             }
+
+            group("Build app metadata")
+            {
+                Caption = 'Build app metadata';
+                Visible = IsBuildInformationAvailable;
+
+                field(BuildBy; BuildBy)
+                {
+                    Caption = 'Build by';
+                    Editable = false;
+                    ToolTip = 'Specifies the name of the system that orchestrated the build.';
+                }
+                field(BuildUrl; BuildUrl)
+                {
+                    Caption = 'Build URL';
+                    Editable = false;
+                    ToolTip = 'Specifies the URL to the build system invocation where the build can be found.';
+                    ExtendedDatatype = URL;
+                }
+            }
         }
     }
 
@@ -140,7 +160,10 @@ page 2511 "Extension Settings"
             AppAllowsDownloadSourceInSymbols := IsTenantExtension and ExtensionInstallationImpl.AllowsDownloadSourceInSymbols(PublishedApplication."Resource Exposure Policy");
             RepositoryUrl := PublishedApplication."Source Repository Url";
             CommitId := PublishedApplication."Source Commit ID";
-            IsSourceInformationAvailable := PublishedApplication."Source Repository Url" <> '';
+            IsSourceInformationAvailable := RepositoryUrl <> '';
+            BuildBy := PublishedApplication."Build By";
+            BuildUrl := PublishedApplication."Build Url";
+            IsBuildInformationAvailable := BuildBy + BuildUrl <> '';
         end;
     end;
 
@@ -167,6 +190,8 @@ page 2511 "Extension Settings"
         PublishedAs: Text;
         RepositoryUrl: Text;
         CommitId: Text;
+        BuildBy: Text;
+        BuildUrl: Text;
         AppIsInstalled: Boolean;
         IsTenantExtension: Boolean;
         AppAllowsDebuggging: Boolean;
@@ -174,4 +199,5 @@ page 2511 "Extension Settings"
         AppAllowsDownloadSourceInSymbols: Boolean;
         CanManageExtensions: Boolean;
         IsSourceInformationAvailable: Boolean;
+        IsBuildInformationAvailable: Boolean;
 }
