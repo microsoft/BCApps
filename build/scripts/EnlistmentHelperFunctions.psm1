@@ -237,7 +237,11 @@ function Get-PackageLatestVersion() {
             if ($PackageName -eq "AppBaselines-BCArtifacts") {
                 # For app baselines, use the previous minor version as minimum version
                 if ($majorMinorVersion.Minor -gt 0) {
-                    $minimumVersion = "$($majorMinorVersion.Major).$($majorMinorVersion.Minor - 1)"
+                    if ($majorMinorVersion.Minor -gt 5) {
+                        $minimumVersion = "$($majorMinorVersion.Major).5" 
+                    } else {
+                        $minimumVersion = "$($majorMinorVersion.Major).$($majorMinorVersion.Minor - 1)"
+                    }
                 } else {
                     $minimumVersion = "$($majorMinorVersion.Major - 1)"
                 }
