@@ -31,7 +31,7 @@ codeunit 9175 "User Settings Impl."
         UserCreatedAppNameTxt: Label '(User-created)';
         DescriptionFilterTxt: Label 'Navigation menu only.';
         NotEnoughPermissionsErr: Label 'You cannot open this page. Only administrators can access settings for other users.';
-        UserSettingsUpdatedLbl: Label 'The user settings (UserSecurityId %1) has been updated with the values: Language ID %2, Locale ID %3, Company %4, Time Zone %5, Profile ID %6 by UserSecurityId %7 ', Locked = true;
+        UserSettingsUpdatedLbl: Label 'User settings (UserSecurityId %1) have been updated with the values: Language ID %2, Locale ID %3, Company %4, Time Zone %5, Profile ID %6 by UserSecurityId %7 ', Locked = true;
 
     procedure GetPageId(): Integer
     var
