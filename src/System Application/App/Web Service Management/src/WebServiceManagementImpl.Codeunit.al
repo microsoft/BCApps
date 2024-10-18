@@ -700,7 +700,7 @@ codeunit 9751 "Web Service Management Impl."
     var
         WebService: Record "Web Service";
         TenantWebService: Record "Tenant Web Service";
-        WebServiceCreatedLbl: Label 'The Web Service record with Object Type %1, Service Name %2 has been created by UserSecurityId %3.', Locked = true;
+        WebServiceCreatedLbl: Label 'Web Service record with Object Type %1, Service Name %2 has been created by UserSecurityId %3.', Locked = true;
     begin
         if WebServiceAggregate."All Tenants" then begin
             Clear(WebService);
