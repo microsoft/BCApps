@@ -20,4 +20,8 @@ enum 3903 "Reten. Pol. Filtering" implements "Reten. Pol. Filtering"
     {
         Implementation = "Reten. Pol. Filtering" = "Reten. Pol. Filtering Impl.";
     }
+    value(1; "Try Something")
+    {
+        Implementation = "Reten. Pol. Filtering" = "Reten. Pol. Filtering Try";
+    }
 }
