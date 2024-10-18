@@ -348,7 +348,6 @@ codeunit 3904 "Apply Retention Policy Impl."
         end;
 
         RecordsToDelete := RetenPolFiltering.ApplyRetentionPolicySubSetFilters(RetentionPolicySetup, RecordRef, TempRetenPolFilteringParam);
-        RecordRef.MarkedOnly(true);
         RecordReference.Initialize(RecordRef, RecordReferenceIndirectPermission);
         if RecordsToDelete and RecordReferenceIndirectPermission.IsEmpty(RecordRef) then begin
             RetentionPolicyLog.LogWarning(LogCategory(), StrSubstNo(NoFiltersReturnedErr, RecordRef.Number, RecordRef.Caption));
