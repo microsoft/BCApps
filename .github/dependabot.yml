@@ -5,6 +5,10 @@ version: 2
 updates:
 - package-ecosystem: github-actions
   directory: ".github/workflows/"
+  groups:
+    External-Dependencies:
+      applies-to: version-updates
+      dependency-type: "production"
   schedule:
     interval: weekly
   ignore:
