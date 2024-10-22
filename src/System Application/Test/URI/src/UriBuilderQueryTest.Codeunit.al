@@ -514,4 +514,195 @@ codeunit 135072 "Uri Builder Query Test"
         UriBuilder.GetUri(Uri);
         Assert.AreEqual('https://microsoft.com/?c=', Uri.GetAbsoluteUri(), 'Unexpected URL.');
     end;
+
+    [Test]
+    procedure TestRemoveQueryFlagWithDuplicateAction()
+    var
+        UriBuilder: Codeunit UriBuilder;
+    begin
+        // [Given] A URL with query flags
+        UriBuilder.Init('https://microsoft.com?flag1&flag2');
+
+        // [When] Removing a query flag with a specified duplicate action
+        UriBuilder.RemoveQueryFlag('flag1', Enum::"Uri Query Duplicate Behaviour"::"Throw Error");
+
+        // [Then] The query flag is removed correctly
+        Assert.AreEqual('https://microsoft.com?flag2', UriBuilder.ToString());
+    end;
+
+    [Test]
+    procedure TestRemoveQueryFlagNotFound()
+    var
+        UriBuilder: Codeunit UriBuilder;
+    begin
+        // [Given] A URL with query flags
+        UriBuilder.Init('https://microsoft.com?flag1&flag2');
+
+        // [When] Removing a query flag that does not exist
+        UriBuilder.RemoveQueryFlag('flag3');
+
+        // [Then] The URL is unchanged
+        Assert.AreEqual('https://microsoft.com?flag1&flag2', UriBuilder.ToString());
+    end;
+
+    [Test]
+    procedure TestRemoveQueryFlagNotFoundThrowError()
+    var
+        UriBuilder: Codeunit UriBuilder;
+    begin
+        // [Given] A URL with query flags
+        UriBuilder.Init('https://microsoft.com?flag1&flag2');
+
+        // [When] Removing a query flag that does not exist with throw error
+        asserterror UriBuilder.RemoveQueryFlag('flag3', Enum::"Uri Query Duplicate Behaviour"::"Throw Error");
+
+        // [Then] An error is thrown
+        Assert.ExpectedError('The provided query flag is not present in the URI.');
+    end;
+
+    [Test]
+    procedure TestRemoveQueryFlag()
+    var
+        UriBuilder: Codeunit UriBuilder;
+    begin
+        // [Given] A URL with query flags
+        UriBuilder.Init('https://microsoft.com?flag1&flag2');
+
+        // [When] Removing a query flag
+        UriBuilder.RemoveQueryFlag('flag1');
+
+        // [Then] The query flag is removed correctly
+        Assert.AreEqual('https://microsoft.com?flag2', UriBuilder.ToString());
+    end;
+
+    [Test]
+    procedure TestRemoveQueryParameterWithDuplicateAction()
+    var
+        UriBuilder: Codeunit UriBuilder;
+    begin
+        // [Given] A URL with query parameters
+        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+
+        // [When] Removing a query parameter with a specified duplicate action
+        UriBuilder.RemoveQueryParameter('param1', 'value1', Enum::"Uri Query Duplicate Behaviour"::"Throw Error");
+
+        // [Then] The query parameter is removed correctly
+        Assert.AreEqual('https://microsoft.com?param2=value2', UriBuilder.ToString());
+    end;
+
+    [Test]
+    procedure TestRemoveQueryParameterNotFoundThrowError()
+    var
+        UriBuilder: Codeunit UriBuilder;
+    begin
+        // [Given] A URL with query parameters
+        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+
+        // [When] Removing a query parameter that does not exist with throw error
+        asserterror UriBuilder.RemoveQueryParameter('param3', 'value3', Enum::"Uri Query Duplicate Behaviour"::"Throw Error");
+
+        // [Then] An error is thrown
+        Assert.ExpectedError('The provided query parameter is not present in the URI.');
+    end;
+
+    [Test]
+    procedure TestRemoveQueryParameter()
+    var
+        UriBuilder: Codeunit UriBuilder;
+    begin
+        // [Given] A URL with query parameters
+        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+
+        // [When] Removing a query parameter
+        UriBuilder.RemoveQueryParameter('param1', 'value1');
+
+        // [Then] The query parameter is removed correctly
+        Assert.AreEqual('https://microsoft.com?param2=value2', UriBuilder.ToString());
+    end;
+
+    [Test]
+    procedure TestRemoveQueryParameters()
+    var
+        UriBuilder: Codeunit UriBuilder;
+    begin
+        // [Given] A URL with multiple query parameters
+        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+
+        // [When] Removing all query parameters
+        UriBuilder.RemoveQueryParameters();
+
+        // [Then] All query parameters are removed
+        Assert.AreEqual('https://microsoft.com', UriBuilder.ToString());
+    end;
+
+    [Test]
+    procedure TestGetQueryFlags()
+    var
+        UriBuilder: Codeunit UriBuilder;
+        Flags: List of [Text];
+    begin
+        // [Given] A URL with query flags
+        UriBuilder.Init('https://microsoft.com?flag1&flag2');
+
+        // [When] Getting query flags
+        Flags := UriBuilder.GetQueryFlags();
+
+        // [Then] The list of query flags is correct
+        Assert.AreEqual(2, Flags.Count());
+        Assert.IsTrue(Flags.Contains('flag1'));
+        Assert.IsTrue(Flags.Contains('flag2'));
+    end;
+
+    [Test]
+    procedure TestGetQueryParameters()
+    var
+        UriBuilder: Codeunit UriBuilder;
+        Params: Dictionary of [Text, List of [Text]];
+    begin
+        // [Given] A URL with query parameters
+        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+
+        // [When] Getting query parameters
+        Params := UriBuilder.GetQueryParameters();
+
+        // [Then] The dictionary of query parameters is correct
+        Assert.AreEqual(2, Params.Count());
+        Assert.IsTrue(Params.ContainsKey('param1'));
+        Assert.IsTrue(Params.ContainsKey('param2'));
+        Assert.AreEqual('value1', Params.Get('param1').Get(1));
+        Assert.AreEqual('value2', Params.Get('param2').Get(1));
+    end;
+
+    [Test]
+    procedure TestGetQueryParameter()
+    var
+        UriBuilder: Codeunit UriBuilder;
+        ParamValues: List of [Text];
+    begin
+        // [Given] A URL with query parameters
+        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+
+        // [When] Getting a specific query parameter
+        ParamValues := UriBuilder.GetQueryParameter('param1');
+
+        // [Then] The value of the query parameter is correct
+        Assert.AreEqual(1, ParamValues.Count());
+        Assert.AreEqual('value1', ParamValues.Get(1));
+    end;
+
+    [Test]
+    procedure TestGetQueryParameterNotFound()
+    var
+        UriBuilder: Codeunit UriBuilder;
+        Params: Dictionary of [Text, List of [Text]];
+    begin
+        // [Given] A URL with query parameters
+        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+
+        // [When] Getting query parameters that do not exist
+        Params := UriBuilder.GetQueryParameter('param3');
+
+        // [Then] The dictionary of query parameters is empty
+        Assert.AreEqual(0, Params.Count());
+    end;
 }
