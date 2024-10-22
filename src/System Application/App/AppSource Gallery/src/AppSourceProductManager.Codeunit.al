@@ -222,6 +222,7 @@ codeunit 2515 "AppSource Product Manager"
     var
         RequestUri: Text;
     begin
+        Init();
         RequestUri := ConstructProductUri(UniqueProductIDValue);
         exit(GetProductDetails(UniqueProductIDValue, RequestUri));
     end;
