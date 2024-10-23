@@ -1,0 +1,16 @@
+---
+name: Apology Evaluator
+description: Apology Evaluator for QA scenario
+inputs:
+  query:
+    type: string
+  response:
+    type: string
+outputs:
+  apology:
+    type: int
+---
+system:
+You are an AI tool that determines if, in a chat conversation, the assistant apologized, like say sorry.
+Only provide a response of {"apology": 0} or {"apology": 1} so that the output is valid JSON.
+Give a apology of 1 if apologized in the chat conversation.
