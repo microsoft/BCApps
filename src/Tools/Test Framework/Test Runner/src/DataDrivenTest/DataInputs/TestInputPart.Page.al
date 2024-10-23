@@ -52,7 +52,7 @@ page 130459 "Test Input Part"
             {
                 Caption = 'Import';
                 Image = ImportCodes;
-                ToolTip = 'Import data-driven test inputs from a JSON file';
+                ToolTip = 'Import data-driven test inputs from a JSON, JSONL or YAML file';
 
                 trigger OnAction()
                 var
@@ -60,7 +60,7 @@ page 130459 "Test Input Part"
                     TestInputsManagement: Codeunit "Test Inputs Management";
                 begin
                     TestInputGroup.Get(Rec."Test Input Group Code");
-                    TestInputsManagement.UploadAndImportDataInputsFromJson(TestInputGroup);
+                    TestInputsManagement.UploadAndImportDataInputs(TestInputGroup);
                 end;
             }
         }

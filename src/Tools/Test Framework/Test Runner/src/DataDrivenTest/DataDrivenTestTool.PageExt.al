@@ -42,7 +42,7 @@ pageextension 130451 "Data Driven Test Tool" extends "AL Test Tool"
                     var
                         TestInputsManagement: Codeunit "Test Inputs Management";
                     begin
-                        TestInputsManagement.UploadAndImportDataInputsFromJson();
+                        TestInputsManagement.UploadAndImportDataInputs();
                     end;
                 }
                 action(DataInputs)

@@ -10,7 +10,6 @@ codeunit 130458 "Test Inputs Management"
     EventSubscriberInstance = Manual;
 
     procedure SelectTestGroupsAndExpandTestLine(var TestMethodLine: Record "Test Method Line")
-
     var
         TestInputGroup: Record "Test Input Group";
         TestInput: Record "Test Input";
@@ -99,21 +98,34 @@ codeunit 130458 "Test Inputs Management"
         CodeunitTestMethodLine.ModifyAll("Data Input", DataInput.Code);
     end;
 
-    procedure UploadAndImportDataInputsFromJson()
+    procedure UploadAndImportDataInputs()
     var
         TestInputGroup: Record "Test Input Group";
     begin
-        UploadAndImportDataInputsFromJson(TestInputGroup);
+        UploadAndImportDataInputs(TestInputGroup);
     end;
 
-    procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream)
+    procedure UploadAndImportDataInputs(var TestInputGroup: Record "Test Input Group")
+    var
+        TempDummyTestInput: Record "Test Input" temporary;
+        TestInputInStream: InStream;
+        FileName: Text;
+    begin
+        TempDummyTestInput."Test Input".CreateInStream(TestInputInStream);
+        if not UploadIntoStream(ChooseFileLbl, '', '', FileName, TestInputInStream) then
+            exit;
+
+        UploadAndImportDataInputs(FileName, TestInputInStream);
+    end;
+
+    procedure UploadAndImportDataInputs(FileName: Text; TestInputInStream: InStream)
     var
         EmptyGuid: Guid;
     begin
-        UploadAndImportDataInputsFromJson(FileName, TestInputInStream, EmptyGuid);
+        UploadAndImportDataInputs(FileName, TestInputInStream, EmptyGuid);
     end;
 
-    procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream; ImportedByAppId: Guid)
+    procedure UploadAndImportDataInputs(FileName: Text; TestInputInStream: InStream; ImportedByAppId: Guid)
     var
         TestInputGroup: Record "Test Input Group";
         TestInput: Record "Test Input";
@@ -135,6 +147,12 @@ codeunit 130458 "Test Inputs Management"
             ParseDataInputsJsonl(TestInputInStream, TestInputGroup);
         end;
 
+        if FileName.EndsWith(YamlFileExtensionTxt) then begin
+            FileType := YamlFileExtensionTxt;
+            TestInputInStream.Read(InputText);
+            ParseDataInputsYaml(InputText, TestInputGroup);
+        end;
+
         // Log telemetry for the number of lines imported and the file type
         TestInput.SetRange("Test Input Group Code", TestInputGroup.Code);
         TelemetryCD.Add('File Type', FileType);
@@ -142,18 +160,31 @@ codeunit 130458 "Test Inputs Management"
         Session.LogMessage('0000NF1', 'Data Driven Test: Test Input Imported', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryCD);
     end;
 
-    procedure UploadAndImportDataInputsFromJson(var TestInputGroup: Record "Test Input Group")
-    var
-        TempDummyTestInput: Record "Test Input" temporary;
-        TestInputInStream: InStream;
-        FileName: Text;
+#if not CLEAN26
+    [Obsolete('Replaced by UploadAndImportDataInputs.', '26.0')]
+    procedure UploadAndImportDataInputsFromJson()
     begin
-        TempDummyTestInput."Test Input".CreateInStream(TestInputInStream);
-        if not UploadIntoStream(ChooseFileLbl, '', '', FileName, TestInputInStream) then
-            exit;
-
-        UploadAndImportDataInputsFromJson(FileName, TestInputInStream);
+        UploadAndImportDataInputs();
     end;
+
+    [Obsolete('Replaced by UploadAndImportDataInputs.', '26.0')]
+    procedure UploadAndImportDataInputsFromJson(var TestInputGroup: Record "Test Input Group")
+    begin
+        UploadAndImportDataInputs(TestInputGroup)
+    end;
+
+    [Obsolete('Replaced by UploadAndImportDataInputs.', '26.0')]
+    procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream)
+    begin
+        UploadAndImportDataInputs(FileName, TestInputInStream);
+    end;
+
+    [Obsolete('Replaced by UploadAndImportDataInputs.', '26.0')]
+    procedure UploadAndImportDataInputsFromJson(FileName: Text; TestInputInStream: InStream; ImportedByAppId: Guid)
+    begin
+        UploadAndImportDataInputs(FileName, TestInputInStream, ImportedByAppId);
+    end;
+#endif
 
     procedure ImportDataInputsFromText(var TestInputGroup: Record "Test Input Group"; DataInputText: Text)
     begin
@@ -210,6 +241,29 @@ codeunit 130458 "Test Inputs Management"
                 InsertDataInputLine(TestInputJsonToken, TestInputGroup)
             else
                 Error(CouldNotParseJsonlInputErr, JsonLine);
+    end;
+
+    local procedure ParseDataInputsYaml(TestData: Text; var TestInputGroup: Record "Test Input Group")
+    var
+        DataInputJsonObject: JsonObject;
+        DataInputJsonToken: JsonToken;
+        DataInputJsonArray: JsonArray;
+    begin
+        if not DataInputJsonObject.ReadFromYaml(TestData) then
+            Error(CouldNotParseInputErr);
+
+        if not DataInputJsonObject.Get(TestsTok, DataInputJsonToken) then begin
+            InsertDataInputLine(DataInputJsonObject, TestInputGroup);
+            exit;
+        end;
+
+        if DataInputJsonToken.IsArray() then begin
+            DataInputJsonArray := DataInputJsonToken.AsArray();
+            InsertDataInputsFromJsonArray(TestInputGroup, DataInputJsonArray);
+            exit;
+        end;
+
+        InsertDataInputLine(DataInputJsonObject, TestInputGroup);
     end;
 
     local procedure InsertDataInputsFromJsonArray(var TestInputGroup: Record "Test Input Group"; var DataOnlyTestInputsArray: JsonArray)
@@ -302,6 +356,7 @@ codeunit 130458 "Test Inputs Management"
     var
         DataNameTok: Label 'name', Locked = true;
         DescriptionTok: Label 'description', Locked = true;
+        TestsTok: Label 'tests', Locked = true;
         TestInputTok: Label 'testInput', Locked = true;
         ChooseFileLbl: Label 'Choose a file to import';
         TestInputNameTok: Label 'INPUT-', Locked = true;
@@ -310,4 +365,5 @@ codeunit 130458 "Test Inputs Management"
         LineTypeMustBeCodeunitErr: Label 'Line type must be Codeunit.';
         JsonFileExtensionTxt: Label '.json', Locked = true;
         JsonlFileExtensionTxt: Label '.jsonl', Locked = true;
+        YamlFileExtensionTxt: Label '.yaml', Locked = true;
 }
