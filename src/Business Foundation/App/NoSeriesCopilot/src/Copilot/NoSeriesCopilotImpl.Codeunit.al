@@ -150,7 +150,7 @@ codeunit 324 "No. Series Copilot Impl."
         Telemetry: Codeunit Telemetry;
         ToolsSelectionPrompt: Text;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotToolsSelectionPromptV2', ToolsSelectionPrompt) then begin // TODO: As the prompt should be different for v25.0 and v25.1, we need to add a new secret for v25.1 and update the code to get the correct prompt based on the version
+        if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotToolsSelectionPromptV2', ToolsSelectionPrompt) then begin
             Telemetry.LogMessage('0000NDY', TelemetryToolsSelectionPromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
             Error(ToolLoadingErr);
         end;

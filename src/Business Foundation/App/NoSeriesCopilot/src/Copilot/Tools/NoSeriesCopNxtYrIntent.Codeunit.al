@@ -45,7 +45,7 @@ codeunit 349 "No. Series Cop. Nxt Yr. Intent" implements "AOAI Function"
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool3DefinitionV2', Definition) then begin // TODO: As the prompt should be different for v25.0 and v25.1, we need to add a new secret for v25.1 and update the code to get the correct prompt based on the version
+        if not AzureKeyVault.GetAzureKeyVaultSecret('NoSeriesCopilotTool3DefinitionV2', Definition) then begin
             Telemetry.LogMessage('0000ND9', TelemetryTool3DefinitionRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
             Error(ToolLoadingErr);
         end;
