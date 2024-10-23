@@ -115,6 +115,11 @@ codeunit 3062 "Uri Builder Impl."
         AddQueryParameterInternal(ParameterKey, ParameterValue, Enum::"Uri Query Duplicate Behaviour"::"Overwrite All Matching", true, false);
     end;
 
+    procedure RemoveQueryParameter(ParameterKey: Text; ParameterValue: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour")
+    begin
+        AddQueryParameterInternal(ParameterKey, ParameterValue, DuplicateAction, false, true);
+    end;
+
     local procedure AddQueryParameterInternal(ParameterKey: Text; ParameterValue: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour"; UseODataEncoding: Boolean; ShouldRemove: Boolean)
     var
         KeysWithValueList: Dictionary of [Text, List of [Text]];
@@ -189,11 +194,14 @@ codeunit 3062 "Uri Builder Impl."
             DuplicateAction::Skip:
                 ; // Do nothing
             DuplicateAction::"Keep All":
-                if not ShouldRemove then
-                    Values.Add(QueryValue)
-                else if Values.Contains(QueryValue) then
-                    Values.Remove(QueryValue);
-                KeysWithValueList.Set(QueryKey, Values);
+                begin
+                    if not ShouldRemove then
+                        Values.Add(QueryValue)
+                    else
+                        if Values.Contains(QueryValue) then
+                            Values.Remove(QueryValue);
+                    KeysWithValueList.Set(QueryKey, Values);
+                end;
             DuplicateAction::"Throw Error":
                 if not ShouldRemove then
                     Error(DuplicateParameterErr);

@@ -224,9 +224,9 @@ codeunit 3061 "Uri Builder"
     end;
 
     /// <summary>
-    /// Removes a flag to the query string of this UriBuilder. In case the same query flag exists already, the action in <paramref name="DuplicateAction"/> is taken.
+    /// Removes a flag from the query string of this UriBuilder. In case the same query flag exists already, the action in <paramref name="DuplicateAction"/> is taken.
     /// </summary>
-    /// <param name="Flag">A flag to Remove to the query string of this UriBuilder. This value will be encoded before being Removed to the URI query string. Cannot be empty.</param>
+    /// <param name="Flag">A flag to Remove from the query string of this UriBuilder. This value will be encoded before being Removed to the URI query string. Cannot be empty.</param>
     /// <param name="DuplicateAction">Specifies which action to take if the flag specified already exist.</param>
     /// <error>If the provided <paramref name="Flag"/> is empty.</error>
     /// <error>If the provided <paramref name="DuplicateAction"/> is <c>"Throw Error"</c> and the flag does not exist in the URI.</error>
@@ -238,9 +238,9 @@ codeunit 3061 "Uri Builder"
     end;
 
     /// <summary>
-    /// Removes a flag to the query string of this UriBuilder. In case the same query flag exists already, only one occurrence is kept.
+    /// Removes a flag from the query string of this UriBuilder. In case the same query flag exists already, only one occurrence is kept.
     /// </summary>
-    /// <param name="Flag">A flag to Remove to the query string of this UriBuilder. This value will be encoded before being Removed to the URI query string. Cannot be empty.</param>
+    /// <param name="Flag">A flag to Remove from the query string of this UriBuilder. This value will be encoded before being Removed to the URI query string. Cannot be empty.</param>
     /// <error>If the provided <paramref name="Flag"/> is empty.</error>
     /// <remarks>This function could alter the order of the existing query string parts. For example, if the previous URL was "https://microsoft.com?foo=bar&amp;john=doe" and the new flag is "contoso", the result could be "https://microsoft.com?john=doe&amp;foo=bar&amp;contoso".</remarks>
     procedure RemoveQueryFlag(Flag: Text)
@@ -249,7 +249,7 @@ codeunit 3061 "Uri Builder"
     end;
 
     /// <summary>
-    /// Removes a parameter key-value pair to the query string of this UriBuilder (in the form <c>ParameterKey=ParameterValue</c>). In case the same query key exists already, the action in <paramref name="DuplicateAction"/> is taken.
+    /// Removes a parameter key-value pair from the query string of this UriBuilder (in the form <c>ParameterKey=ParameterValue</c>). In case the same query key exists already, the action in <paramref name="DuplicateAction"/> is taken.
     /// </summary>
     /// <param name="ParameterKey">The key for the new query parameter. This value will be encoded before being Removed to the URI query string. Cannot be empty.</param>
     /// <param name="ParameterValue">The value for the new query parameter. This value will be encoded before being Removed to the URI query string. Can be empty.</param>
@@ -260,11 +260,11 @@ codeunit 3061 "Uri Builder"
     /// <remarks>This function could alter the order of the existing query string parts. For example, if the previous URL was "https://microsoft.com?foo=bar&amp;john=doe" and the new flag is "contoso=42", the result could be "https://microsoft.com?john=doe&amp;foo=bar&amp;contoso=42".</remarks>
     procedure RemoveQueryParameter(ParameterKey: Text; ParameterValue: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour")
     begin
-        UriBuilderImpl.AddQueryParameter(ParameterKey, ParameterValue, DuplicateAction, true);
+        UriBuilderImpl.RemoveQueryParameter(ParameterKey, ParameterValue, DuplicateAction);
     end;
 
     /// <summary>
-    /// Removes a parameter key-value pair to the query string of this UriBuilder (in the form <c>ParameterKey=ParameterValue</c>). In case the same query key exists already, its value is overwritten.
+    /// Removes a parameter key-value pair from the query string of this UriBuilder (in the form <c>ParameterKey=ParameterValue</c>). In case the same query key exists already, its value is overwritten.
     /// </summary>
     /// <param name="ParameterKey">The key for the new query parameter. This value will be encoded before being Removed to the URI query string. Cannot be empty.</param>
     /// <param name="ParameterValue">The value for the new query parameter. This value will be encoded before being Removed to the URI query string. Can be empty.</param>
@@ -272,11 +272,11 @@ codeunit 3061 "Uri Builder"
     /// <remarks>This function could alter the order of the existing query string parts. For example, if the previous URL was "https://microsoft.com?foo=bar&amp;john=doe" and the new flag is "contoso=42", the result could be "https://microsoft.com?john=doe&amp;foo=bar&amp;contoso=42".</remarks>
     procedure RemoveQueryParameter(ParameterKey: Text; ParameterValue: Text)
     begin
-        UriBuilderImpl.AddQueryParameter(ParameterKey, ParameterValue, Enum::"Uri Query Duplicate Behaviour"::"Overwrite All Matching", true);
+        UriBuilderImpl.RemoveQueryParameter(ParameterKey, ParameterValue, Enum::"Uri Query Duplicate Behaviour"::"Overwrite All Matching");
     end;
 
     /// <summary>
-    /// Removes a parameter key-value pair to the query string of this UriBuilder (in the form <c>ParameterKey=ParameterValue</c>). In case the same query key exists already, the action in <paramref name="DuplicateAction"/> is taken.
+    /// Removes a parameter key-value pair from the query string of this UriBuilder (in the form <c>ParameterKey=ParameterValue</c>). In case the same query key exists already, the action in <paramref name="DuplicateAction"/> is taken.
     /// </summary>
     /// <param name="ParameterKey">The key for the new query parameter. This value will be encoded before being Removed to the URI query string. Cannot be empty.</param>
     /// <param name="DuplicateAction">Specifies which action to take if the ParameterKey specified already exist.</param>
