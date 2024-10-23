@@ -46,6 +46,18 @@ table 149030 "AIT Test Suite"
             TableRelation = "Test Input Group".Code;
             ValidateTableRelation = true;
             ToolTip = 'Specifies the dataset to be used by the test suite.';
+
+            trigger OnValidate()
+            var
+                AITTestMethodLine: Record "AIT Test Method Line";
+            begin
+                if GuiAllowed() then
+                    if not Dialog.Confirm(InputDatasetChangedQst) then
+                        exit;
+
+                AITTestMethodLine.SetRange("Test Suite Code", Rec.Code);
+                AITTestMethodLine.ModifyAll("Input Dataset", Rec."Input Dataset", true);
+            end;
         }
         field(8; "Ended at"; DateTime)
         {
@@ -174,6 +186,16 @@ table 149030 "AIT Test Suite"
                 end;
             end;
         }
+        field(60; "Imported by AppId"; Guid)
+        {
+            Caption = 'Imported from AppId';
+            ToolTip = 'Specifies the application id from which the test suite was created.';
+        }
+        field(70; "Imported XML's MD5"; Code[32])
+        {
+            Caption = 'Imported XML''s MD5';
+            ToolTip = 'Specifies the MD5 hash of the XML file from which the test suite was imported.';
+        }
     }
     keys
     {
@@ -188,7 +210,8 @@ table 149030 "AIT Test Suite"
 
     trigger OnInsert()
     begin
-        AssignDefaultTestRunner();
+        if Rec."Test Runner Id" = 0 then
+            AssignDefaultTestRunner();
     end;
 
     internal procedure AssignDefaultTestRunner()
@@ -200,4 +223,5 @@ table 149030 "AIT Test Suite"
 
     var
         BaseVersionMustBeLessThanVersionErr: Label 'Base Version must be less than or equal to Version';
+        InputDatasetChangedQst: Label 'You have modified the input dataset.\\Do you want to update the lines?';
 }

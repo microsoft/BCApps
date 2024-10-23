@@ -31,45 +31,31 @@ page 9801 "User Subform"
 
                     trigger OnLookup(var Text: Text): Boolean
                     var
-                        PermissionSetLookupRecord: Record "Aggregate Permission Set";
                         LookupPermissionSet: Page "Lookup Permission Set";
                     begin
                         LookupPermissionSet.LookupMode := true;
                         if LookupPermissionSet.RunModal() = ACTION::LookupOK then begin
                             LookupPermissionSet.GetRecord(PermissionSetLookupRecord);
-                            Rec.Scope := PermissionSetLookupRecord.Scope;
-                            Rec."App ID" := PermissionSetLookupRecord."App ID";
-                            Rec."Role ID" := PermissionSetLookupRecord."Role ID";
-                            Rec.CalcFields("App Name", "Role Name");
-                            SkipValidation := true;
-                            PermissionScope := Format(PermissionSetLookupRecord.Scope);
+                            Text := PermissionSetLookupRecord."Role ID";
+                            PermissionSetLookupRecord.SetRecFilter();
+                            exit(true);
                         end;
                     end;
 
                     trigger OnValidate()
-                    var
-                        AggregatePermissionSet: Record "Aggregate Permission Set";
                     begin
-                        // If the user used the lookup, skip validation
-                        if SkipValidation then begin
-                            SkipValidation := false;
-                            exit;
-                        end;
+                        PermissionSetLookupRecord.SetRange("Role ID", Rec."Role ID");
+                        PermissionSetLookupRecord.FindFirst();
 
-                        // Get the Scope and App ID for a matching Role ID
-                        AggregatePermissionSet.SetRange("Role ID", Rec."Role ID");
-                        AggregatePermissionSet.FindFirst();
-
-                        if AggregatePermissionSet.Count > 1 then
+                        if PermissionSetLookupRecord.Count > 1 then
                             Error(MultipleRoleIDErr, Rec."Role ID");
 
-                        Rec.Scope := AggregatePermissionSet.Scope;
-                        Rec."App ID" := AggregatePermissionSet."App ID";
-                        PermissionScope := Format(AggregatePermissionSet.Scope);
+                        Rec.Scope := PermissionSetLookupRecord.Scope;
+                        Rec."App ID" := PermissionSetLookupRecord."App ID";
+                        PermissionScope := Format(PermissionSetLookupRecord.Scope);
 
                         Rec.CalcFields("App Name", "Role Name");
-
-                        SkipValidation := false; // re-enable validation
+                        PermissionSetLookupRecord.Reset();
                     end;
                 }
                 field(Description; Rec."Role Name")
@@ -106,9 +92,9 @@ page 9801 "User Subform"
     }
 
     var
+        PermissionSetLookupRecord: Record "Aggregate Permission Set";
         User: Record User;
         MultipleRoleIDErr: Label 'The permission set %1 is defined multiple times in this context. Use the lookup button to select the relevant permission set.', Comment = '%1 will be replaced with a Role ID code value from the Permission Set table';
-        SkipValidation: Boolean;
         PermissionScope: Text;
         PermissionSetNotFound: Boolean;
 

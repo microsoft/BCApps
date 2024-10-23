@@ -25,6 +25,7 @@ permissionset 149031 "AI Test Toolkit - Obj"
         page "AIT CommandLine Card" = X,
         page "AIT Test Data" = X,
         page "AIT Test Data Compare" = X,
+        page "AIT Batch Run Dialog" = X,
         page "AIT Test Method Lines" = X,
         page "AIT Test Method Lines Lookup" = X,
         page "AIT Log Entries" = X,

@@ -41,6 +41,6 @@ codeunit 327 "No. Series Copilot Register"
     end;
 
     var
-        LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=[id]', Locked = true; //TODO: replace 'id' when docs page is ready
+        LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2294514', Locked = true;
 
 }

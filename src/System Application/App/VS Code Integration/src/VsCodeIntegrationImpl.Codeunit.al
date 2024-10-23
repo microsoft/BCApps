@@ -11,7 +11,6 @@ codeunit 8333 "VS Code Integration Impl."
     InherentPermissions = X;
 
     var
-        AllObjWithCaption: Record AllObjWithCaption;
         UriBuilder: Codeunit "Uri Builder";
         VSCodeRequestHelper: DotNet VSCodeRequestHelper;
         AlExtensionUriTxt: Label 'vscode://ms-dynamics-smb.al', Locked = true;
@@ -105,6 +104,8 @@ codeunit 8333 "VS Code Integration Impl."
 
     [Scope('OnPrem')]
     local procedure FormatObjectType(ObjectType: Option): Text
+    var
+        AllObjWithCaption: Record AllObjWithCaption;
     begin
         case ObjectType of
             AllObjWithCaption."Object Type"::Page:
@@ -119,10 +120,15 @@ codeunit 8333 "VS Code Integration Impl."
     [Scope('OnPrem')]
     local procedure GetAppIdForObject(ObjectType: Option; ObjectId: Integer): Text
     var
+        AllObjWithCaption: Record AllObjWithCaption;
         NavAppInstalledApp: Record "NAV App Installed App";
+        EmptyGuid: Guid;
     begin
+        // Objects in the system app range
+        if ObjectId >= 2000000000 then
+            exit(EmptyGuid);
+
         if AllObjWithCaption.ReadPermission() then begin
-            AllObjWithCaption.Reset();
             AllObjWithCaption.SetRange("Object Type", ObjectType);
             AllObjWithCaption.SetRange("Object ID", ObjectId);
 

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
+
 using System.TestTools.TestRunner;
 
 /// <summary>

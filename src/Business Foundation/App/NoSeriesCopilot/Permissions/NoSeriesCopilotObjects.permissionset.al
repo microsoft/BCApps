@@ -1,17 +1,15 @@
-#if not CLEAN23
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Upgrade;
+namespace Microsoft.Foundation.NoSeries;
 
-permissionset 9992 "Upgrade Tags - Read"
+permissionset 330 "No. Series Copilot - Objects"
 {
-    Access = Public;
+    Access = Internal;
     Assignable = false;
-    ObsoleteState = Pending;
-    ObsoleteReason = 'This permission set is replaced with inherent permissions and is no longer needed';
-    ObsoleteTag = '23.0';
+    Permissions =
+        codeunit "No. Series Copilot Impl." = X,
+        codeunit "No. Series Text Match Impl." = X;
 }
-#endif

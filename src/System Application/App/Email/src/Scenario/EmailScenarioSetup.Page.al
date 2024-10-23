@@ -205,7 +205,7 @@ page 8893 "Email Scenario Setup"
     local procedure SetSelectedRecord()
     begin
         if not Rec.Get(SelectedEmailAccountScenario.Scenario, SelectedEmailAccountScenario."Account Id", SelectedEmailAccountScenario.Connector) then
-            Rec.FindFirst();
+            if Rec.FindFirst() then;
     end;
 
     var

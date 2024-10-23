@@ -357,6 +357,15 @@ codeunit 8904 "Email Message"
     end;
 
     /// <summary>
+    /// Gets the Id of the current attachment
+    /// </summary>
+    /// <returns>The ID of the current attachment.</returns>
+    procedure Attachments_GetId(): BigInteger
+    begin
+        exit(EmailMessageImpl.Attachments_GetId());
+    end;
+
+    /// <summary>
     /// Gets the name of the current attachment.
     /// </summary>
     /// <returns>The name of the current attachment.</returns>

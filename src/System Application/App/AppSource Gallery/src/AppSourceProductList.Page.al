@@ -143,7 +143,7 @@ page 2515 "AppSource Product List"
         {
             action(UpdateProducts)
             {
-                Caption = 'Refresh list from Microsoft AppSource';
+                Caption = 'Refresh apps';
                 Scope = Page;
                 ToolTip = 'Refreshes the list by downloading the latest apps from Microsoft AppSource';
                 Image = Refresh;

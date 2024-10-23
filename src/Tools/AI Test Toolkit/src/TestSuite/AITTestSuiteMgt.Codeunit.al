@@ -28,6 +28,14 @@ codeunit 149034 "AIT Test Suite Mgt."
         CannotRunMultipleSuitesInParallelErr: Label 'There is already a test run in progress. You need to wait for it to finish or cancel it before starting a new test run.';
         FeatureNameLbl: Label 'AI Test Toolkit', Locked = true;
 
+    procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
+    var
+        CurrentIteration: Integer;
+    begin
+        for CurrentIteration := 1 to Iterations do
+            StartAITSuite(AITTestSuite);
+    end;
+
     procedure StartAITSuite(var AITTestSuite: Record "AIT Test Suite")
     var
         AITTestSuite2: Record "AIT Test Suite";
