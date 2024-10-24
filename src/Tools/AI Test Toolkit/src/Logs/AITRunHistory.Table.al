@@ -35,7 +35,6 @@ table 149036 "AIT Run History"
         }
         field(5; "Line No. Filter"; Integer)
         {
-
             Caption = 'Line No. Filter';
             ToolTip = 'Specifies the line to filter results to.';
             FieldClass = FlowFilter;

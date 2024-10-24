@@ -87,11 +87,8 @@ page 149033 "AIT Log Entries"
                     ToolTip = 'Specifies the test input of the test.';
 
                     trigger OnDrillDown()
-                    var
-                        AITTestData: Page "AIT Test Data Compare";
                     begin
-                        AITTestData.SetRecord(Rec);
-                        AITTestData.Run();
+                        Page.Run(Page::"AIT Test Data Compare", Rec);
                     end;
                 }
                 field("Output Text"; OutputText)
@@ -100,11 +97,8 @@ page 149033 "AIT Log Entries"
                     ToolTip = 'Specifies the test output of the test.';
 
                     trigger OnDrillDown()
-                    var
-                        AITTestData: Page "AIT Test Data Compare";
                     begin
-                        AITTestData.SetRecord(Rec);
-                        AITTestData.Run();
+                        Page.Run(Page::"AIT Test Data Compare", Rec);
                     end;
                 }
                 field("Tokens Consumed"; Rec."Tokens Consumed")
@@ -255,11 +249,8 @@ page 149033 "AIT Log Entries"
                 ToolTip = 'View Test Data.';
 
                 trigger OnAction()
-                var
-                    AITTestData: Page "AIT Test Data Compare";
                 begin
-                    AITTestData.SetRecord(Rec);
-                    AITTestData.Run();
+                    Page.Run(Page::"AIT Test Data Compare", Rec);
                 end;
             }
         }

@@ -177,6 +177,12 @@ table 149034 "AIT Log Entry"
             IncludedFields = Status;
             SumIndexFields = "Duration (ms)";
         }
+        key(Key3; Tag)
+        {
+        }
+        key(Key4; Version)
+        {
+        }
     }
 
     trigger OnInsert()

@@ -216,7 +216,7 @@ page 149036 "AIT Run History"
         if not ApplyLineFilter then
             LineNo := 0;
 
-        AITLogEntry.UpdateRunHistory(TestSuiteCode, LineNo, ViewBy, Rec);
+        AITLogEntry.GetRunHistory(TestSuiteCode, LineNo, ViewBy, Rec);
         CurrPage.Update();
     end;
 }

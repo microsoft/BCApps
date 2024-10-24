@@ -42,7 +42,7 @@ codeunit 149032 "AIT Log Entry"
         AITLogEntry.Run();
     end;
 
-    procedure UpdateRunHistory(Code: Code[100]; LineNo: Integer; AITViewBy: Enum "AIT Run History - View By"; var TempAITRunHistory: Record "AIT Run History" temporary)
+    procedure GetRunHistory(Code: Code[100]; LineNo: Integer; AITViewBy: Enum "AIT Run History - View By"; var TempAITRunHistory: Record "AIT Run History" temporary)
     var
         AITRunHistory: Record "AIT Run History";
         SeenTags: List of [Text[20]];
@@ -81,7 +81,7 @@ codeunit 149032 "AIT Log Entry"
         AITTestMethodLines.SetTableView(AITTestMethodLine);
         AITTestMethodLines.LookupMode(true);
 
-        if not (AITTestMethodLines.RunModal() = Action::LookupOK) then
+        if AITTestMethodLines.RunModal() <> Action::LookupOK then
             exit;
 
         AITTestMethodLines.GetRecord(AITTestMethodLine);
