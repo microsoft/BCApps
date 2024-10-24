@@ -226,25 +226,17 @@ page 149031 "AIT Test Suite"
 
             action(Compare)
             {
-                Caption = 'Compare Versions';
-                Image = CompareCOA;
-                ToolTip = 'Compare results of the suite to a base version.';
+                Caption = 'View Runs';
+                Image = History;
+                ToolTip = 'View the run history of the suite.';
                 Scope = Repeater;
 
                 trigger OnAction()
                 var
-                    TemporaryAITTestSuiteRec: Record "AIT Test Suite" temporary;
-                    AITTestSuiteComparePage: Page "AIT Test Suite Compare";
+                    AITRunHistory: Page "AIT Run History";
                 begin
-                    TemporaryAITTestSuiteRec.Code := Rec.Code;
-                    TemporaryAITTestSuiteRec.Version := Rec.Version;
-                    TemporaryAITTestSuiteRec."Base Version" := Rec."Version" - 1;
-                    TemporaryAITTestSuiteRec.Insert();
-
-                    AITTestSuiteComparePage.SetBaseVersion(Rec."Version" - 1);
-                    AITTestSuiteComparePage.SetVersion(Rec.Version);
-                    AITTestSuiteComparePage.SetRecord(TemporaryAITTestSuiteRec);
-                    AITTestSuiteComparePage.Run();
+                    AITRunHistory.SetTestSuite(Rec.Code);
+                    AITRunHistory.Run();
                 end;
             }
             action(ExportAIT)
