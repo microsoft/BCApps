@@ -116,9 +116,9 @@ page 149036 "AIT Run History"
 
                         trigger OnDrillDown()
                         var
-                            AITLogEntryCU: Codeunit "AIT Log Entry";
+                            AITLogEntryCodeunit: Codeunit "AIT Log Entry";
                         begin
-                            AITLogEntryCU.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No. Filter", Rec.Version);
+                            AITLogEntryCodeunit.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No. Filter", Rec.Version);
                         end;
                     }
                     field("Duration - By Version"; Rec."Total Duration (ms)")
@@ -156,9 +156,9 @@ page 149036 "AIT Run History"
 
                         trigger OnDrillDown()
                         var
-                            AITLogEntryCU: Codeunit "AIT Log Entry";
+                            AITLogEntryCodeunit: Codeunit "AIT Log Entry";
                         begin
-                            AITLogEntryCU.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No. Filter", Rec.Tag);
+                            AITLogEntryCodeunit.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No. Filter", Rec.Tag);
                         end;
                     }
                     field("Duration - By Tag"; Rec."Total Duration (ms) - By Tag")
@@ -203,20 +203,20 @@ page 149036 "AIT Run History"
 
     local procedure LookupTestMethodLine()
     var
-        AITLogEntry: Codeunit "AIT Log Entry";
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
-        AITLogEntry.LookupTestMethodLine(TestSuiteCode, LineNoFilter, LineNo);
+        AITTestSuiteMgt.LookupTestMethodLine(TestSuiteCode, LineNoFilter, LineNo);
         UpdateRunHistory();
     end;
 
     local procedure UpdateRunHistory()
     var
-        AITLogEntry: Codeunit "AIT Log Entry";
+        AITRunHistory: Codeunit "AIT Run History";
     begin
         if not ApplyLineFilter then
             LineNo := 0;
 
-        AITLogEntry.GetRunHistory(TestSuiteCode, LineNo, ViewBy, Rec);
+        AITRunHistory.GetHistory(TestSuiteCode, LineNo, ViewBy, Rec);
         CurrPage.Update();
     end;
 }

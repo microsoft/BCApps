@@ -41,6 +41,7 @@ page 149035 "AIT Test Data Compare"
 
                         part("Data Input"; "AIT Test Data")
                         {
+                            Caption = 'Output Data';
                         }
                     }
 
@@ -61,6 +62,7 @@ page 149035 "AIT Test Data Compare"
 
                         part("Data Output"; "AIT Test Data")
                         {
+                            Caption = 'Input Data';
                         }
                     }
 
@@ -77,12 +79,12 @@ page 149035 "AIT Test Data Compare"
 
     local procedure UpdateTestData()
     var
-        AITLogEntry: Codeunit "AIT Log Entry";
+        AITTestData: Codeunit "AIT Test Data";
         TestInput: Text;
         TestOutput: Text;
     begin
-        TestInput := AITLogEntry.UpdateTestInput(Rec.GetInputBlob(), TestInputView);
-        TestOutput := AITLogEntry.UpdateTestOutput(Rec.GetOutputBlob(), TestOutputView);
+        TestInput := AITTestData.UpdateTestInput(Rec.GetInputBlob(), TestInputView);
+        TestOutput := AITTestData.UpdateTestOutput(Rec.GetOutputBlob(), TestOutputView);
 
         CurrPage."Data Input".Page.SetTestData(TestInput);
         CurrPage."Data Output".Page.SetTestData(TestOutput);

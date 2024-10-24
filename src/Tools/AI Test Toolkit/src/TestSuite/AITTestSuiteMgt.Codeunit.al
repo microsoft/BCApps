@@ -27,6 +27,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         NothingToRunErr: Label 'There is nothing to run. Please add test lines to the test suite.';
         CannotRunMultipleSuitesInParallelErr: Label 'There is already a test run in progress. You need to wait for it to finish or cancel it before starting a new test run.';
         FeatureNameLbl: Label 'AI Test Toolkit', Locked = true;
+        LineNoFilterLbl: Label 'Codeunit %1 "%2" (Input: %3)', Locked = true;
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
     var
@@ -412,6 +413,26 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         FileNameTxt := StrSubstNo(TestOutputFileNameTxt, AITTestSuite.Code);
         DownloadFromStream(AITTestSuiteInStream, '', '', '.xml', FileNameTxt);
+    end;
+
+    procedure LookupTestMethodLine(TestSuiteCode: Code[100]; var LineNoFilter: Text; var LineNo: Integer)
+    var
+        AITTestMethodLine: Record "AIT Test Method Line";
+        AITTestMethodLines: Page "AIT Test Method Lines Lookup";
+    begin
+        AITTestMethodLine.SetRange("Test Suite Code", TestSuiteCode);
+
+        AITTestMethodLines.SetTableView(AITTestMethodLine);
+        AITTestMethodLines.LookupMode(true);
+
+        if AITTestMethodLines.RunModal() <> Action::LookupOK then
+            exit;
+
+        AITTestMethodLines.GetRecord(AITTestMethodLine);
+
+        AITTestMethodLine.CalcFields("Codeunit Name");
+        LineNoFilter := StrSubstNo(LineNoFilterLbl, AITTestMethodLine."Codeunit ID", AITTestMethodLine."Codeunit Name", AITTestMethodLine."Input Dataset");
+        LineNo := AITTestMethodLine."Line No.";
     end;
 
     internal procedure GetFeatureName(): Text
