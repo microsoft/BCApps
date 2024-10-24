@@ -27,6 +27,16 @@ codeunit 1475 "RSA"
     end;
 
     /// <summary>
+    /// Initializes a new instance of RSA with the specified key size and a pem private Key.
+    /// </summary>
+    /// <param name="KeySize">The size of the key in bits.</param>
+    /// <param name="PrivateKey">The private key as text.</param>
+    procedure InitializeRSA(KeySize: Integer; PrivateKey: Text)
+    begin
+        RSAImpl.InitializeRSA(KeySize, PrivateKey);
+    end;
+
+    /// <summary>
     /// Creates and returns an XML string containing the key of the current RSA object.
     /// </summary>
     /// <param name="IncludePrivateParameters">true to include a public and private RSA key; false to include only the public key.</param>
