@@ -37,6 +37,25 @@ page 149031 "AIT Test Suite"
                 {
                     ShowMandatory = true;
                     NotBlank = true;
+
+                    trigger OnValidate()
+                    var
+                        AITTestMethodLine: Record "AIT Test Method Line";
+                    begin
+                        if Rec."Input Dataset" = xRec."Input Dataset" then
+                            exit;
+
+                        AITTestMethodLine.SetRange("Test Suite Code", Rec.Code);
+
+                        if AITTestMethodLine.IsEmpty() then
+                            exit;
+
+                        if GuiAllowed() then
+                            if not Dialog.Confirm(InputDatasetChangedQst) then
+                                exit;
+
+                        AITTestMethodLine.ModifyAll("Input Dataset", Rec."Input Dataset", true);
+                    end;
                 }
                 field("Test Runner Id"; TestRunnerDisplayName)
                 {
@@ -298,6 +317,7 @@ page 149031 "AIT Test Suite"
         TotalDuration: Duration;
         PageCaptionLbl: Label 'AI Test';
         TestRunnerDisplayName: Text;
+        InputDatasetChangedQst: Label 'You have modified the input dataset.\\Do you want to update the lines?';
 
     trigger OnOpenPage()
     var
