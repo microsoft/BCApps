@@ -60,6 +60,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
     var
         TempNoSeriesField: Record "Field" temporary;
         TempSetupTable: Record "Table Metadata" temporary;
+        NoSeriesCopilotTelemetry: Codeunit "No. Series Copilot Telemetry";
         NewNoSeriesPrompt, CustomPatternsPromptList, TablesYamlList, EmptyList : List of [Text];
         NumberOfToolResponses, i, ActualTablesChunkSize : Integer;
         NumberOfAddedTables: Integer;
@@ -85,6 +86,7 @@ codeunit 331 "No. Series Cop. Add Intent" implements "AOAI Function"
                 ToolResults.Add(ToolsImpl.ConvertListToText(NewNoSeriesPrompt), ActualTablesChunkSize);
             end;
         Progress.Close();
+        NoSeriesCopilotTelemetry.LogCreateNewNumberSeriesToolUsage(ToolsImpl.GetEntities(Arguments).Count, CustomPatternsPromptList.Count > 0, NumberOfToolResponses, NumberOfAddedTables);
     end;
 
     local procedure GetTablesRequireNoSeries(var Arguments: JsonObject; var TempSetupTable: Record "Table Metadata" temporary; var TempNoSeriesField: Record "Field" temporary)
