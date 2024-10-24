@@ -82,6 +82,4 @@ codeunit 149035 "AIT Test Data"
         else
             exit('');
     end;
-
-
 }
