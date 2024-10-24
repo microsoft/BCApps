@@ -8,10 +8,14 @@ namespace System.TestTools.AITestToolkit;
 page 149036 "AIT Run History"
 {
     Caption = 'AI Test Suite Run History';
+#pragma warning disable AS0035
     PageType = Worksheet;
+#pragma warning restore AS0035
     ApplicationArea = All;
     UsageCategory = None;
+#pragma warning disable AS0035
     SourceTable = "AIT Run History";
+#pragma warning restore AS0035
     SourceTableTemporary = true;
     InsertAllowed = false;
     ModifyAllowed = false;

@@ -7,7 +7,9 @@ namespace System.TestTools.AITestToolkit;
 
 using System.TestTools.TestRunner;
 
+#pragma warning disable AS0002
 table 149030 "AIT Test Suite"
+#pragma warning restore AS0002
 {
     Caption = 'AI Test Suite';
     DataClassification = SystemMetadata;

@@ -3,6 +3,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
+namespace System.TestTools.AITestToolkit;
+
 page 149035 "AIT Test Data Compare"
 {
     Caption = 'AI Test Data';
