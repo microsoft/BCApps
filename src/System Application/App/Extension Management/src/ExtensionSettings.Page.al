@@ -118,14 +118,14 @@ page 2511 "Extension Settings"
                 }
             }
 
-            group("Build app metadata")
+            group("Build information")
             {
-                Caption = 'Build app metadata';
+                Caption = 'Build information';
                 Visible = IsBuildInformationAvailable;
 
-                field(BuildBy; BuildBy)
+                field(BuiltBy; BuiltBy)
                 {
-                    Caption = 'Build by';
+                    Caption = 'Built by';
                     Editable = false;
                     ToolTip = 'Specifies the name of the system that orchestrated the build.';
                 }
@@ -161,9 +161,9 @@ page 2511 "Extension Settings"
             RepositoryUrl := PublishedApplication."Source Repository Url";
             CommitId := PublishedApplication."Source Commit ID";
             IsSourceInformationAvailable := RepositoryUrl <> '';
-            BuildBy := PublishedApplication."Build By";
+            BuiltBy := PublishedApplication."Build By";
             BuildUrl := PublishedApplication."Build Url";
-            IsBuildInformationAvailable := BuildBy + BuildUrl <> '';
+            IsBuildInformationAvailable := BuiltBy + BuildUrl <> '';
         end;
     end;
 
@@ -190,7 +190,7 @@ page 2511 "Extension Settings"
         PublishedAs: Text;
         RepositoryUrl: Text;
         CommitId: Text;
-        BuildBy: Text;
+        BuiltBy: Text;
         BuildUrl: Text;
         AppIsInstalled: Boolean;
         IsTenantExtension: Boolean;
