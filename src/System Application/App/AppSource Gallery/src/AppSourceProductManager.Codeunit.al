@@ -103,6 +103,8 @@ codeunit 2515 "AppSource Product Manager"
         PlanObject: JsonObject;
         CallToActionToken: JsonToken;
     begin
+        Init();
+
         // Query legacy api toget all the plan and test if there is a contact me call to action.
         LegacyProductObject := GetProductDetails(UniqieProductIDValue, ConstructProductUri(UniqieProductIDValue, CatalogApiVersionOldQueryParamValueLbl));
         LegacyProductObject.Get('plans', LegacyPlansToken);
