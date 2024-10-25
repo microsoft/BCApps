@@ -696,15 +696,15 @@ codeunit 135072 "Uri Builder Query Test"
     procedure TestGetQueryParameterNotFound()
     var
         Uri: Codeunit Uri;
-        Params: Dictionary of [Text, List of [Text]];
+        ParamValues: List of [Text];
     begin
         // [Given] A URL with query parameters
         UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
 
         // [When] Getting query parameters that do not exist
-        Params := UriBuilder.GetQueryParameter('param3');
+        ParamValues := UriBuilder.GetQueryParameter('param3');
 
-        // [Then] The dictionary of query parameters is empty
-        Assert.AreEqual(0, Params.Count(), 'Unexpected number of parameters.');
+        // [Then] The list of query parameters is empty
+        Assert.AreEqual(0, ParamValues.Count(), 'Unexpected number of parameters.');
     end;
 }
