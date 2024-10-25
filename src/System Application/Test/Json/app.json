@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "",
   "description": "Tests for the Json module",
-  "version": "25.1.0.0",
+  "version": "25.2.0.0",
   "privacyStatement": "",
   "EULA": "",
   "help": "",
@@ -15,13 +15,13 @@
       "id": "645965f7-95bf-4ee9-bf97-84e45dc6c6d1",
       "name": "Json",
       "publisher": "Microsoft",
-      "version": "25.1.0.0"
+      "version": "25.2.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
       "publisher": "Microsoft",
-      "version": "25.1.0.0"
+      "version": "25.2.0.0"
     }
   ],
   "platform": "24.0.0.0",
