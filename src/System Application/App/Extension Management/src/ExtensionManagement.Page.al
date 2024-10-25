@@ -274,8 +274,25 @@ page 2500 "Extension Management"
                 }
             }
         }
+        area("Navigation")
+        {
+            action("Develop in VS Code")
+            {
+                ApplicationArea = All;
+                Caption = 'Develop in VS Code';
+                Image = Edit;
+                ToolTip = 'Launch VS Code to create a new or configure an AL project for this environment.';
+
+                trigger OnAction()
+                begin
+                    VsCodeIntegration.DevelopExtensionSourceInVSCode();
+                end;
+            }
+        }
         area(Promoted)
         {
+            actionref("Develop in VS Code_Promoted"; "Develop in VS Code") { }
+
             group(Category_Category5)
             {
                 Caption = 'Manage', Comment = 'Generated from the PromotedActionCategories property index 4.';

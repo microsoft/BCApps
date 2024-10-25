@@ -43,6 +43,17 @@ codeunit 8333 "VS Code Integration Impl."
     end;
 
     [Scope('OnPrem')]
+    procedure DevelopExtensionSourceInVSCode()
+    begin
+        CheckPermissions();
+
+        UriBuilder.Init(AlExtensionUriTxt + '/develop');
+        UriBuilder.SetQuery(VSCodeRequestHelper.GetLaunchInformationQueryPart());
+        UriBuilder.AddQueryParameter('sessionId', Format(SessionId()));
+        HyperLink(GetAbsoluteUri());
+    end;
+
+    [Scope('OnPrem')]
     procedure NavigateToObjectDefinitionInVSCode(ObjectType: Option; ObjectId: Integer; ObjectName: Text; ControlName: Text; var NavAppInstalledApp: Record "NAV App Installed App")
     var
         Url: Text;

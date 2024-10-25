@@ -34,6 +34,16 @@ codeunit 8334 "VS Code Integration"
     end;
 
     /// <summary>
+    /// Opens an URL that sends a request to VS Code to create a new or configure an existing AL project for this environment.
+    /// </summary>
+    /// <param name="PublishedApplication">The extension to open in VS Code.</param>
+    [Scope('OnPrem')]
+    procedure DevelopExtensionSourceInVSCode()
+    begin
+        VsCodeIntegrationImpl.DevelopExtensionSourceInVSCode();
+    end;
+
+    /// <summary>
     /// Opens an URL that sends a request to VS Code to navigate to the source definition of the given page and to download the dependent symbols.
     /// </summary>
     /// <param name="PageInfoAndFields">The page to navigate to.</param>
