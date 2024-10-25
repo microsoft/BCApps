@@ -1404,6 +1404,7 @@ codeunit 134685 "Email Test"
         EmailAccount: Record "Email Account";
         EmailInbox: Record "Email Inbox";
         ConnectorMock: Codeunit "Connector Mock";
+        EmailRetrievalFilters: Codeunit "Email Retrieval Filters";
     begin
         // [Scenario] Retrieving emails with a V1 connector should fail
         // [Given] An email account with a V1 connector
@@ -1412,12 +1413,14 @@ codeunit 134685 "Email Test"
 
         // [When] Retrieving emails
         // [Then] An error is thrown that the connector does not support this operation
-        asserterror Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
+        asserterror Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox, EmailRetrievalFilters);
         Assert.ExpectedError('The selected email connector does not support retrieving emails');
     end;
 
+#if not CLEAN26
     [Test]
-    procedure RetrieveEmails()
+    [Obsolete('v2 connector is replaced by v3 connector.', '26.0')]
+    procedure RetrieveEmailsv2()
     var
         EmailAccount: Record "Email Account";
         EmailInbox: Record "Email Inbox";
@@ -1438,7 +1441,9 @@ codeunit 134685 "Email Test"
         InitialId := EmailInbox.Id;
 
         // [When] Retrieving emails
+#pragma warning disable AL0432
         Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
+#pragma warning restore AL0432
 
         // [Then] The EmailInbox will be filled only with new emails and not existing ones
         EmailInbox.FindSet();
@@ -1450,7 +1455,8 @@ codeunit 134685 "Email Test"
     end;
 
     [Test]
-    procedure RetrieveEmailsFail()
+    [Obsolete('v2 connector is replaced by v3 connector.', '26.0')]
+    procedure RetrieveEmailsFailv2()
     var
         EmailAccount: Record "Email Account";
         EmailInbox: Record "Email Inbox";
@@ -1472,7 +1478,73 @@ codeunit 134685 "Email Test"
         ConnectorMock.FailOnRetrieveEmails(true);
 
         // [When] Retrieving emails
+#pragma warning disable AL0432
         asserterror Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
+#pragma warning restore AL0432
+
+        // [Then] The EmailInbox will be filled only with new emails and not existing ones
+        Assert.ExpectedError('Failed to retrieve emails');
+    end;
+#endif
+    [Test]
+    procedure RetrieveEmailsv3()
+    var
+        EmailAccount: Record "Email Account";
+        EmailInbox: Record "Email Inbox";
+        ConnectorMock: Codeunit "Connector Mock";
+        EmailRetrievalFilters: Codeunit "Email Retrieval Filters";
+        InitialId: Integer;
+    begin
+        // [Scenario] Retrieving emails with a V3 connector will succeed and the EmailInbox will be filled only with new emails and not existing ones
+        PermissionsMock.Set('Email Edit');
+
+        // [Given] An email account with a V3 connector
+        // [Given] Existing emails in Email Inbox
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v3");
+
+        EmailInbox.DeleteAll();
+        ConnectorMock.CreateEmailInbox(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
+        Assert.AreEqual(1, EmailInbox.Count(), 'Wrong number of emails in the inbox');
+        InitialId := EmailInbox.Id;
+
+        // [When] Retrieving emails
+        Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox, EmailRetrievalFilters);
+
+        // [Then] The EmailInbox will be filled only with new emails and not existing ones
+        EmailInbox.FindSet();
+        Assert.AreEqual(2, EmailInbox.Count(), 'Wrong number of emails in the inbox');
+
+        repeat
+            Assert.AreNotEqual(InitialId, EmailInbox.Id, 'The email should not be the same as the initial one');
+        until EmailInbox.Next() = 0;
+    end;
+
+    [Test]
+    procedure RetrieveEmailsFailv3()
+    var
+        EmailAccount: Record "Email Account";
+        EmailInbox: Record "Email Inbox";
+        ConnectorMock: Codeunit "Connector Mock";
+        EmailRetrievalFilters: Codeunit "Email Retrieval Filters";
+    begin
+        // [Scenario] Retrieving emails with a V3 connector fails due to some error
+        PermissionsMock.Set('Email Edit');
+
+        // [Given] An email account with a V3 connector
+        // [Given] Existing emails in Email Inbox
+        ConnectorMock.Initialize();
+        ConnectorMock.AddAccount(EmailAccount, Enum::"Email Connector"::"Test Email Connector v3");
+
+        EmailInbox.DeleteAll();
+        ConnectorMock.CreateEmailInbox(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox);
+        Assert.AreEqual(1, EmailInbox.Count(), 'Wrong number of emails in the inbox');
+
+        // [Given] An error occurs when retrieving emails
+        ConnectorMock.FailOnRetrieveEmails(true);
+
+        // [When] Retrieving emails
+        asserterror Email.RetrieveEmails(EmailAccount."Account Id", EmailAccount.Connector, EmailInbox, EmailRetrievalFilters);
 
         // [Then] The EmailInbox will be filled only with new emails and not existing ones
         Assert.ExpectedError('Failed to retrieve emails');
