@@ -186,6 +186,14 @@ codeunit 1476 "RSA Impl." implements "Signature Algorithm v2"
         DotNetRSA.FromXmlString(XmlString);
     end;
 #endif
+
+    procedure ToSecretXmlString(PrivateKey: SecretText; IncludePrivateParameters: Boolean): SecretText
+    begin
+        DotNetRSA := DotNetRSA.Create(2048);
+        DotNetRSA.ImportFromPem(PrivateKey);
+        exit(ToSecretXmlString(IncludePrivateParameters));
+    end;
+
     procedure ToSecretXmlString(IncludePrivateParameters: Boolean): SecretText
     begin
         exit(DotNetRSA.ToXmlString(IncludePrivateParameters));
