@@ -640,7 +640,6 @@ codeunit 135072 "Uri Builder Query Test"
     [Test]
     procedure TestGetQueryFlags()
     var
-        Uri: Codeunit Uri;
         Flags: List of [Text];
     begin
         // [Given] A URL with query flags
@@ -658,7 +657,6 @@ codeunit 135072 "Uri Builder Query Test"
     [Test]
     procedure TestGetQueryParameters()
     var
-        Uri: Codeunit Uri;
         Params: Dictionary of [Text, List of [Text]];
     begin
         // [Given] A URL with query parameters
@@ -678,7 +676,6 @@ codeunit 135072 "Uri Builder Query Test"
     [Test]
     procedure TestGetQueryParameter()
     var
-        Uri: Codeunit Uri;
         ParamValues: List of [Text];
     begin
         // [Given] A URL with query parameters
@@ -695,7 +692,6 @@ codeunit 135072 "Uri Builder Query Test"
     [Test]
     procedure TestGetQueryParameterNotFound()
     var
-        Uri: Codeunit Uri;
         ParamValues: List of [Text];
     begin
         // [Given] A URL with query parameters
