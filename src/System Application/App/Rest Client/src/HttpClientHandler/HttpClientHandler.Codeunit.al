@@ -14,6 +14,6 @@ codeunit 2360 "Http Client Handler" implements "Http Client Handler"
         ResponseMessage: HttpResponseMessage;
     begin
         Success := HttpClient.Send(HttpRequestMessage.GetHttpRequestMessage(), ResponseMessage);
-        HttpResponseMessage.SetResponseMessage(ResponseMessage);
+        HttpResponseMessage := HttpResponseMessage.Create(ResponseMessage);
     end;
 }

@@ -13,6 +13,17 @@ codeunit 2356 "Http Response Message"
     var
         HttpResponseMessageImpl: Codeunit "Http Response Message Impl.";
 
+    #region Constructors
+    /// <summary>Initializes a new instance of the HttpResponseMessage class.</summary>
+    /// <param name="HttpResponseMessage">The HTTP response message.</param>
+    /// <returns>The HttpResponseMessage object.</returns>
+    procedure Create(HttpResponseMessage: HttpResponseMessage): Codeunit "Http Response Message"
+    begin
+        HttpResponseMessageImpl := HttpResponseMessageImpl.Create(HttpResponseMessage);
+        exit(this);
+    end;
+    #endregion
+
     #region IsBlockedByEnvironment
     /// <summary>Sets whether the request is blocked by the environment.</summary>
     /// <param name="Value">True if the request is blocked by the environment; otherwise, false.</param>
@@ -127,6 +138,47 @@ codeunit 2356 "Http Response Message"
     end;
     #endregion
 
+    #region Cookies
+    /// <summary>Sets the cookies in the HTTP response message.</summary>
+    /// <param name="Cookies">The cookies to set.</param>
+    procedure SetCookies(Cookies: Dictionary of [Text, Cookie])
+    begin
+        HttpResponseMessageImpl.SetCookies(Cookies);
+    end;
+
+    /// <summary>Gets the cookies in the HTTP response message.</summary>
+    /// <returns>The cookies in the HTTP response message.</returns>
+    procedure GetCookies() ReturnValue: Dictionary of [Text, Cookie]
+    begin
+        ReturnValue := HttpResponseMessageImpl.GetCookies();
+    end;
+
+    /// <summary>Gets the names of the cookies that are set in the HTTP response message.</summary>
+    /// <returns>The names of the cookies that are set in the HTTP response message.</returns>
+    procedure GetCookieNames() ReturnValue: List of [Text]
+    begin
+        ReturnValue := HttpResponseMessageImpl.GetCookieNames();
+    end;
+
+    /// <summary>Gets the cookie with the given name from the HTTP response message.</summary>
+    /// <param name="Name">The name of the cookie to get.</param>
+    /// <returns>The cookie object.</returns>
+    /// <remarks>If the cookie is not found, an empty cookie object is returned.</remarks>
+    procedure GetCookie(Name: Text) ReturnValue: Cookie
+    begin
+        ReturnValue := HttpResponseMessageImpl.GetCookie(Name);
+    end;
+
+    /// <summary>Gets the cookie with the given name from the HTTP response message.</summary>
+    /// <param name="Name">The name of the cookie to get.</param>
+    /// <param name="Cookie">The cookie object to get.</param>
+    /// <returns>True if the cookie was found, false otherwise.</returns>
+    procedure GetCookie(Name: Text; var Cookie: Cookie) Success: Boolean
+    begin
+        Success := HttpResponseMessageImpl.GetCookie(Name, Cookie);
+    end;
+    #endregion
+
     #region ErrorMessage
     /// <summary>Sets an error message when the request failed.</summary>
     /// <param name="Value">The error message.</param>
@@ -140,6 +192,30 @@ codeunit 2356 "Http Response Message"
     procedure GetErrorMessage() ReturnValue: Text
     begin
         ReturnValue := HttpResponseMessageImpl.GetErrorMessage();
+    end;
+
+    /// <summary>Sets the exception information when the request failed.</summary>
+    /// <param name="Exception">The exception information.</param>
+    procedure SetException(Exception: ErrorInfo)
+    begin
+        HttpResponseMessageImpl.SetException(Exception);
+    end;
+
+    /// <summary>Gets the exception information when the request failed.</summary>
+    /// <returns>The exception information.</returns>
+    procedure GetException() Exception: ErrorInfo
+    begin
+        Exception := HttpResponseMessageImpl.GetException();
+    end;
+
+    procedure GetExceptionCode() ReturnValue: Enum "Rest Client Exception"
+    begin
+        ReturnValue := HttpResponseMessageImpl.GetExceptionCode();
+    end;
+
+    procedure GetExceptionName() ReturnValue: Text
+    begin
+        ReturnValue := HttpResponseMessageImpl.GetExceptionName();
     end;
     #endregion
 }

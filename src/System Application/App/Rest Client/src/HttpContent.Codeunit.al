@@ -20,18 +20,20 @@ codeunit 2354 "Http Content"
     /// <param name="Content">The content to send to the server.</param>
     /// <returns>The Http Content object.</returns>
     /// <remarks>The Content-Type header will be set to 'text/plain'.</remarks>
-    procedure Create(Content: Text) HttpContent: Codeunit "Http Content"
+    procedure Create(Content: Text): Codeunit "Http Content"
     begin
-        HttpContent := Create(Content, '');
+        HttpContentImpl := HttpContentImpl.Create(Content);
+        exit(this);
     end;
 
     /// <summary>Initializes a new instance of the Http Content class with the specified SecretText content.</summary>
     /// <param name="Content">The content to send to the server.</param>
     /// <returns>The Http Content object.</returns>
     /// <remarks>The Content-Type header will be set to 'text/plain'.</remarks>
-    procedure Create(Content: SecretText) HttpContent: Codeunit "Http Content"
+    procedure Create(Content: SecretText): Codeunit "Http Content"
     begin
-        HttpContent := Create(Content, '');
+        HttpContentImpl := HttpContentImpl.Create(Content);
+        exit(this);
     end;
 
     /// <summary>Initializes a new instance of the Http Content class with the specified Text content and content type.</summary>
@@ -39,10 +41,10 @@ codeunit 2354 "Http Content"
     /// <param name="ContentType">The content type of the content to send to the server.</param>
     /// <returns>The Http Content object.</returns>
     /// <remarks>If the ContentType parameter is not specified, it will be set to 'text/plain'.</remarks>
-    procedure Create(Content: Text; ContentType: Text) HttpContent: Codeunit "Http Content"
+    procedure Create(Content: Text; ContentType: Text): Codeunit "Http Content"
     begin
-        SetContent(Content, ContentType);
-        HttpContent.SetHttpContentImpl(HttpContentImpl);
+        HttpContentImpl := HttpContentImpl.Create(Content, ContentType);
+        exit(this);
     end;
 
     /// <summary>Initializes a new instance of the Http Content class with the specified SecretText content and content type.</summary>
@@ -50,59 +52,60 @@ codeunit 2354 "Http Content"
     /// <param name="ContentType">The content type of the content to send to the server.</param>
     /// <returns>The Http Content object.</returns>
     /// <remarks>If the ContentType parameter is not specified, it will be set to 'text/plain'.</remarks>
-    procedure Create(Content: SecretText; ContentType: Text) HttpContent: Codeunit "Http Content"
+    procedure Create(Content: SecretText; ContentType: Text): Codeunit "Http Content"
     begin
-        SetContent(Content, ContentType);
-        HttpContent.SetHttpContentImpl(HttpContentImpl);
+        HttpContentImpl := HttpContentImpl.Create(Content, ContentType);
+        exit(this);
     end;
 
     /// <summary>Initializes a new instance of the Http Content class with the specified JsonObject content.</summary>
     /// <param name="Content">The content to send to the server.</param>
     /// <returns>The Http Content object.</returns>
     /// <remarks>The Content-Type header will be set to 'application/json'.</remarks>
-    procedure Create(Content: JsonObject) HttpContent: Codeunit "Http Content"
+    procedure Create(Content: JsonObject): Codeunit "Http Content"
     begin
-        SetContent(Content);
-        HttpContent.SetHttpContentImpl(HttpContentImpl);
+        HttpContentImpl := HttpContentImpl.Create(Content);
+        exit(this);
     end;
 
     /// <summary>Initializes a new instance of the Http Content class with the specified JsonArray content.</summary>
     /// <param name="Content">The content to send to the server.</param>
     /// <returns>The Http Content object.</returns>
     /// <remarks>The Content-Type header will be set to 'application/json'.</remarks>
-    procedure Create(Content: JsonArray) HttpContent: Codeunit "Http Content"
+    procedure Create(Content: JsonArray): Codeunit "Http Content"
     begin
-        SetContent(Content);
-        HttpContent.SetHttpContentImpl(HttpContentImpl);
+        HttpContentImpl := HttpContentImpl.Create(Content);
+        exit(this);
     end;
 
     /// <summary>Initializes a new instance of the Http Content class with the specified JsonToken content.</summary>
     /// <param name="Content">The content to send to the server.</param>
     /// <returns>The Http Content object.</returns>
     /// <remarks>The Content-Type header will be set to 'application/json'.</remarks>
-    procedure Create(Content: JsonToken) HttpContent: Codeunit "Http Content"
+    procedure Create(Content: JsonToken): Codeunit "Http Content"
     begin
-        SetContent(Content);
-        HttpContent.SetHttpContentImpl(HttpContentImpl);
+        HttpContentImpl := HttpContentImpl.Create(Content);
+        exit(this);
     end;
 
     /// <summary>Initializes a new instance of the Http Content class with the specified XmlDocument content.</summary>
     /// <param name="Content">The content to send to the server.</param>
     /// <returns>The Http Content object.</returns>
     /// <remarks>The Content-Type header will be set to 'text/xml'.</remarks>
-    procedure Create(Content: XmlDocument) HttpContent: Codeunit "Http Content"
+    procedure Create(Content: XmlDocument): Codeunit "Http Content"
     begin
-        SetContent(Content);
-        HttpContent.SetHttpContentImpl(HttpContentImpl);
+        HttpContentImpl := HttpContentImpl.Create(Content);
+        exit(this);
     end;
 
     /// <summary>Initializes a new instance of the Http Content class with the specified "Temp Blob" Codeunit content.</summary>
     /// <param name="Content">The content to send to the server.</param>
     /// <returns>The Http Content object.</returns>
     /// <remarks>The Content-Type header will be set to 'application/octet-stream'.</remarks>
-    procedure Create(Content: Codeunit "Temp Blob") HttpContent: Codeunit "Http Content"
+    procedure Create(Content: Codeunit "Temp Blob"): Codeunit "Http Content"
     begin
-        HttpContent := Create(Content, '');
+        HttpContentImpl := HttpContentImpl.Create(Content);
+        exit(this);
     end;
 
     /// <summary>Initializes a new instance of the Http Content class with the specified "Temp Blob" Codeunit content and content type.</summary>
@@ -110,19 +113,20 @@ codeunit 2354 "Http Content"
     /// <param name="ContentType">The content type of the content to send to the server.</param>
     /// <returns>The Http Content object.</returns>
     /// <remarks>If the ContentType parameter is not specified, it will be set to 'application/octet-stream'.</remarks>
-    procedure Create(Content: Codeunit "Temp Blob"; ContentType: Text) HttpContent: Codeunit "Http Content"
+    procedure Create(Content: Codeunit "Temp Blob"; ContentType: Text): Codeunit "Http Content"
     begin
-        SetContent(Content, ContentType);
-        HttpContent.SetHttpContentImpl(HttpContentImpl);
+        HttpContentImpl := HttpContentImpl.Create(Content, ContentType);
+        exit(this);
     end;
 
     /// <summary>Initializes a new instance of the Http Content class with the specified InStream content.</summary>
     /// <param name="Content">The content to send to the server.</param>
     /// <returns>The Http Content object.</returns>
     /// <remarks>The Content-Type header will be set to 'application/octet-stream'.</remarks>
-    procedure Create(Content: InStream) HttpContent: Codeunit "Http Content"
+    procedure Create(Content: InStream): Codeunit "Http Content"
     begin
-        HttpContent := Create(Content, '');
+        HttpContentImpl := HttpContentImpl.Create(Content);
+        exit(this);
     end;
 
     /// <summary>Initializes a new instance of the Http Content class with the specified InStream content and content type.</summary>
@@ -130,20 +134,20 @@ codeunit 2354 "Http Content"
     /// <param name="ContentType">The content type of the content to send to the server.</param>
     /// <returns>The Http Content object.</returns>
     /// <remarks>If the ContentType parameter is not specified, it will be set to 'application/octet-stream'.</remarks>
-    procedure Create(Content: InStream; ContentType: Text) HttpContent: Codeunit "Http Content"
+    procedure Create(Content: InStream; ContentType: Text): Codeunit "Http Content"
     begin
-        SetContent(Content, ContentType);
-        HttpContent.SetHttpContentImpl(HttpContentImpl);
+        HttpContentImpl := HttpContentImpl.Create(Content, ContentType);
+        exit(this);
     end;
 
     /// <summary>Initializes a new instance of the Http Content object with the specified HttpContent object.</summary>
     /// <param name="Content">The HttpContent object.</param>
     /// <returns>The HttpContent object.</returns>
     /// <remarks>The HttpContent must be properly prepared including the Content-Type header.</remarks>
-    procedure Create(Content: HttpContent) HttpContent: Codeunit "Http Content"
+    procedure Create(Content: HttpContent): Codeunit "Http Content"
     begin
-        SetContent(Content);
-        HttpContent.SetHttpContentImpl(HttpContentImpl);
+        HttpContentImpl := HttpContentImpl.Create(Content);
+        exit(this);
     end;
     #endregion
 
@@ -231,58 +235,6 @@ codeunit 2354 "Http Content"
     procedure AsJson() JsonToken: JsonToken
     begin
         JsonToken := HttpContentImpl.AsJson();
-    end;
-    #endregion
-
-    #region Internal Methods
-    internal procedure SetContent(Content: Text; ContentType: Text)
-    begin
-        HttpContentImpl.SetContent(Content, ContentType);
-    end;
-
-    internal procedure SetContent(Content: SecretText; ContentType: Text)
-    begin
-        HttpContentImpl.SetContent(Content, ContentType);
-    end;
-
-    internal procedure SetContent(Content: InStream; ContentType: Text)
-    begin
-        HttpContentImpl.SetContent(Content, ContentType);
-    end;
-
-    internal procedure SetContent(TempBlob: Codeunit "Temp Blob"; ContentType: Text)
-    begin
-        HttpContentImpl.SetContent(TempBlob, ContentType);
-    end;
-
-    internal procedure SetContent(Content: XmlDocument)
-    begin
-        HttpContentImpl.SetContent(Content);
-    end;
-
-    internal procedure SetContent(Content: JsonObject)
-    begin
-        SetContent(Content.AsToken());
-    end;
-
-    internal procedure SetContent(Content: JsonArray)
-    begin
-        SetContent(Content.AsToken());
-    end;
-
-    internal procedure SetContent(Content: JsonToken)
-    begin
-        HttpContentImpl.SetContent(Content);
-    end;
-
-    internal procedure SetContent(var Value: HttpContent)
-    begin
-        HttpContentImpl.SetContent(Value);
-    end;
-
-    internal procedure SetHttpContentImpl(Value: Codeunit "Http Content Impl.")
-    begin
-        HttpContentImpl := Value;
     end;
     #endregion
 }

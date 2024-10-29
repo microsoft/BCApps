@@ -4,11 +4,21 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.RestClient;
 
+using System.RestClient;
+
 codeunit 2357 "Http Response Message Impl."
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+
+    #region Constructors
+    procedure Create(HttpResponseMessage: HttpResponseMessage): Codeunit "Http Response Message Impl."
+    begin
+        this.SetResponseMessage(HttpResponseMessage);
+        exit(this);
+    end;
+    #endregion
 
     #region IsBlockedByEnvironment
     var
@@ -16,12 +26,12 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure SetIsBlockedByEnvironment(Value: Boolean)
     begin
-        IsBlockedByEnvironment := Value;
+        this.IsBlockedByEnvironment := Value;
     end;
 
     procedure GetIsBlockedByEnvironment() ReturnValue: Boolean
     begin
-        ReturnValue := IsBlockedByEnvironment;
+        ReturnValue := this.IsBlockedByEnvironment;
     end;
     #endregion
 
@@ -31,13 +41,13 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure SetHttpStatusCode(Value: Integer)
     begin
-        HttpStatusCode := Value;
-        IsSuccessStatusCode := Value in [200 .. 299];
+        this.HttpStatusCode := Value;
+        this.IsSuccessStatusCode := Value in [200 .. 299];
     end;
 
     procedure GetHttpStatusCode() ReturnValue: Integer
     begin
-        ReturnValue := HttpStatusCode
+        ReturnValue := this.HttpStatusCode
     end;
     #endregion
 
@@ -47,12 +57,12 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure GetIsSuccessStatusCode() Result: Boolean
     begin
-        Result := HttpResponseMessage.IsSuccessStatusCode;
+        Result := this.IsSuccessStatusCode;
     end;
 
     procedure SetIsSuccessStatusCode(Value: Boolean)
     begin
-        IsSuccessStatusCode := Value;
+        this.IsSuccessStatusCode := Value;
     end;
     #endregion
 
@@ -62,12 +72,12 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure SetReasonPhrase(Value: Text)
     begin
-        ReasonPhrase := Value;
+        this.ReasonPhrase := Value;
     end;
 
     procedure GetReasonPhrase() ReturnValue: Text
     begin
-        ReturnValue := HttpResponseMessage.ReasonPhrase;
+        ReturnValue := this.ReasonPhrase;
     end;
     #endregion
 
@@ -77,12 +87,12 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure SetContent(Content: Codeunit "Http Content")
     begin
-        HttpContent := Content;
+        this.HttpContent := Content;
     end;
 
     procedure GetContent() ReturnValue: Codeunit "Http Content"
     begin
-        ReturnValue := HttpContent;
+        ReturnValue := this.HttpContent;
     end;
     #endregion
 
@@ -91,19 +101,29 @@ codeunit 2357 "Http Response Message Impl."
         HttpResponseMessage: HttpResponseMessage;
 
     procedure SetResponseMessage(var ResponseMessage: HttpResponseMessage)
+    var
+        Cookie: Cookie;
+        Cookies: Dictionary of [Text, Cookie];
+        CookieName: Text;
     begin
-        HttpResponseMessage := ResponseMessage;
+        ClearAll();
+        this.HttpResponseMessage := ResponseMessage;
         SetIsBlockedByEnvironment(ResponseMessage.IsBlockedByEnvironment);
         SetHttpStatusCode(ResponseMessage.HttpStatusCode);
         SetReasonPhrase(ResponseMessage.ReasonPhrase);
         SetIsSuccessStatusCode(ResponseMessage.IsSuccessStatusCode);
         SetHeaders(ResponseMessage.Headers);
         SetContent(HttpContent.Create(ResponseMessage.Content));
+        foreach CookieName in ResponseMessage.GetCookieNames() do begin
+            ResponseMessage.GetCookie(CookieName, Cookie);
+            Cookies.Add(CookieName, Cookie);
+        end;
+        SetCookies(Cookies);
     end;
 
     procedure GetResponseMessage() ReturnValue: HttpResponseMessage
     begin
-        ReturnValue := HttpResponseMessage;
+        ReturnValue := this.HttpResponseMessage;
     end;
     #endregion
 
@@ -113,30 +133,96 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure SetHeaders(Headers: HttpHeaders)
     begin
-        HttpHeaders := Headers;
+        this.HttpHeaders := Headers;
     end;
 
     procedure GetHeaders() ReturnValue: HttpHeaders
     begin
-        ReturnValue := HttpHeaders;
+        ReturnValue := this.HttpHeaders;
+    end;
+    #endregion
+
+    #region Cookies
+    var
+        Cookies: Dictionary of [Text, Cookie];
+
+    procedure SetCookies(Cookies: Dictionary of [Text, Cookie])
+    begin
+        this.Cookies := Cookies;
+    end;
+
+    procedure GetCookies() Cookies: Dictionary of [Text, Cookie]
+    begin
+        Cookies := this.Cookies;
+    end;
+
+    procedure GetCookieNames() CookieNames: List of [Text]
+    begin
+        CookieNames := this.Cookies.Keys;
+    end;
+
+    procedure GetCookie(Name: Text) Cookie: Cookie
+    begin
+        if this.Cookies.Get(Name, Cookie) then;
+    end;
+
+    procedure GetCookie(Name: Text; var Cookie: Cookie) Success: Boolean
+    begin
+        Success := this.Cookies.Get(Name, Cookie);
     end;
     #endregion
 
     #region ErrorMessage
     var
         ErrorMessage: Text;
+        Exception: ErrorInfo;
 
     procedure SetErrorMessage(Value: Text)
     begin
-        ErrorMessage := Value;
+        this.ErrorMessage := Value;
     end;
 
-    procedure GetErrorMessage() ReturnValue: Text
+    procedure GetErrorMessage(): Text
     begin
-        if ErrorMessage <> '' then
-            ReturnValue := ErrorMessage
-        else
-            ReturnValue := GetLastErrorText();
+        if this.Exception.Message <> '' then
+            exit(this.Exception.Message);
+
+        if this.ErrorMessage <> '' then
+            exit(this.ErrorMessage);
+
+        exit(GetLastErrorText());
     end;
+
+    procedure SetException(Exception: ErrorInfo)
+    begin
+        this.Exception := Exception;
+    end;
+
+    procedure GetException() Exception: ErrorInfo
+    var
+        RestClientExceptionBuilder: Codeunit "Rest Client Exception Builder";
+    begin
+        if this.Exception.Message = '' then
+            Exception := RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::UnknownException, GetErrorMessage())
+    end;
+
+    procedure GetExceptionCode() ReturnValue: Enum "Rest Client Exception"
+    var
+        IntValue: Integer;
+        Execption: ErrorInfo;
+    begin
+        Exception := this.GetException();
+        Evaluate(IntValue, Exception.CustomDimensions.Get('ExceptionCode'));
+        ReturnValue := Enum::"Rest Client Exception".FromInteger(IntValue);
+    end;
+
+    procedure GetExceptionName() ReturnValue: Text
+    var
+        Exception: ErrorInfo;
+    begin
+        Exception := this.GetException();
+        ReturnValue := Exception.CustomDimensions.Get('ExceptionName');
+    end;
+
     #endregion
 }
