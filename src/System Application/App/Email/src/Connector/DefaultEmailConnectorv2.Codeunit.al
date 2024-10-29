@@ -65,7 +65,7 @@ codeunit 8998 "Default Email Connector v2" implements "Email Connector v3"
     end;
 #endif
 
-    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox"; var Filters: Codeunit "Email Retrieval Filters")
+    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox"; Filters: Codeunit "Email Retrieval Filters")
     begin
 
     end;
