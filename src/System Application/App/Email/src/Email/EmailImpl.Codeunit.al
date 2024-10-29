@@ -199,12 +199,13 @@ codeunit 8900 "Email Impl"
 
     procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox")
     var
-        Filters: Codeunit "Email Retrieval Filters";
+        Filters: Record "Email Retrieval Filters";
     begin
+        Filters.Insert();
         RetrieveEmails(EmailAccountId, Connector, EmailInbox, Filters);
     end;
 
-    procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox"; Filters: Codeunit "Email Retrieval Filters")
+    procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox"; var Filters: Record "Email Retrieval Filters" temporary)
     var
 #if not CLEAN26
 #pragma warning disable AL0432

@@ -23,7 +23,7 @@ interface "Email Connector v3" extends "Email Connector"
     /// <param name="AccountId">The email account ID which is used to send out the email.</param>
     /// <param name="EmailInbox">The email inbox record that will store the emails.</param>
     /// <param name="Filters">Filters to be used when retrieving emails.</param>
-    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox"; Filters: Codeunit "Email Retrieval Filters");
+    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox"; var Filters: Record "Email Retrieval Filters" temporary);
 
     /// <summary>
     /// Mark an e-mail as read in the provided account.

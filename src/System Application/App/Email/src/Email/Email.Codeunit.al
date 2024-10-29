@@ -273,7 +273,7 @@ codeunit 8901 Email
     /// <param name="EmailConnector">The email connector to use for sending the email.</param>
     /// <param name="EmailInbox">The return record of all new emails that were retrieved.</param>
     /// <param name="Filters">Filters to be used when retrieving emails.</param>
-    procedure RetrieveEmails(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox"; Filters: Codeunit "Email Retrieval Filters")
+    procedure RetrieveEmails(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox"; var Filters: Record "Email Retrieval Filters" temporary)
     begin
         EmailImpl.RetrieveEmails(EmailAccountId, EmailConnector, EmailInbox, Filters);
     end;
