@@ -38,6 +38,21 @@ codeunit 8904 "Email Message"
     /// <summary>
     /// Creates the email with recipients, subject, and body.
     /// </summary>
+    /// <param name="ToRecipients">The recipient(s) of the email. A string containing the email addresses of the recipients separated by semicolon.</param>
+    /// <param name="Subject">The subject of the email.</param>
+    /// <param name="Body">The body of the email.</param>
+    /// <param name="HtmlFormatted">Whether the body is HTML formatted.</param>
+    /// <param name="Sanitize">If the body is of HTML formatting, most of it will be sanitized. Keeping only tags and no styling.</param>
+    /// <remarks>Sanitize is only applicable if the body is HTML formatted. It also helps prevent potential email messages from hiding images and text from the user.</remarks>
+    procedure Create(ToRecipients: Text; Subject: Text; Body: Text; HtmlFormatted: Boolean; Sanitize: Boolean)
+    begin
+        EmailMessageImpl.Create(ToRecipients, Subject, Body, HtmlFormatted, Sanitize);
+    end;
+
+
+    /// <summary>
+    /// Creates the email with recipients, subject, and body.
+    /// </summary>
     /// <param name="ToRecipients">The recipient(s) of the email. A list of email addresses the email will be send directly to.</param>
     /// <param name="Subject">The subject of the email.</param>
     /// <param name="Body">The body of the email</param>
