@@ -11,7 +11,7 @@ namespace System.Email;
 /// </summary>
 interface "Email Connector v2" extends "Email Connector"
 {
-    ObsoleteReason = 'Replaced by EmailConnectorv3 which adds filtering for retrieval of emails';
+    ObsoleteReason = 'Replaced by "Email Connector v3" which adds filtering capability for retrieval of emails';
     ObsoleteState = Pending;
     ObsoleteTag = '26.0';
 

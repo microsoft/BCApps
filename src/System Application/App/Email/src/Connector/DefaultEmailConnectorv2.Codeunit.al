@@ -58,7 +58,7 @@ codeunit 8998 "Default Email Connector v2" implements "Email Connector v3"
     end;
 
 #if not CLEAN26
-    [Obsolete('Replaced by RetrieveEmails with an additional Filter parameter.', '26.0')]
+    [Obsolete('Replaced by RetrieveEmails with an additional Filters parameter of type Record "Email Retrieval Filters".', '26.0')]
     procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox")
     begin
 

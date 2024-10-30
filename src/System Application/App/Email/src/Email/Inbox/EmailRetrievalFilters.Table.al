@@ -10,46 +10,40 @@ table 8885 "Email Retrieval Filters"
 {
     Access = Public;
     TableType = Temporary;
+    DataClassification = SystemMetadata;
 
     fields
     {
         field(1; Id; Integer)
         {
-            DataClassification = SystemMetadata;
             AutoIncrement = true;
         }
 
         field(2; "Load Attachments"; Boolean)
         {
-            DataClassification = SystemMetadata;
         }
 
         field(3; "Unread Emails"; Boolean)
         {
-            DataClassification = SystemMetadata;
         }
 
         field(4; "Draft Emails"; Boolean)
         {
-            DataClassification = SystemMetadata;
         }
 
         field(5; "Max No. of Emails"; Integer)
         {
-            DataClassification = SystemMetadata;
             InitValue = 20;
         }
 
         field(6; "Body Type"; Option)
         {
             OptionMembers = "HTML","Text";
-            DataClassification = SystemMetadata;
             InitValue = "HTML";
         }
 
         field(7; "Earliest Email"; DateTime)
         {
-            DataClassification = SystemMetadata;
         }
     }
 

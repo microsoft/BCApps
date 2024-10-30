@@ -310,7 +310,7 @@ codeunit 8900 "Email Impl"
     end;
 #if not CLEAN26
 #pragma warning disable AL0432
-    [Obsolete('Connector v2 is replaced by v3.', '26.0')]
+    [Obsolete('Replaced by CheckAndGetEmailConnectorv3.', '26.0')]
     procedure CheckAndGetEmailConnectorv2(Connector: Interface "Email Connector"; var Connectorv2: Interface "Email Connector v2"): Boolean
 #pragma warning restore AL0432
     begin

@@ -260,7 +260,7 @@ codeunit 8901 Email
     /// <param name="EmailAccountId">The ID of the email account to use for sending the email.</param>
     /// <param name="EmailConnector">The email connector to use for sending the email.</param>
     /// <param name="EmailInbox">The return record of all new emails that were retrieved.</param>
-    [Obsolete('Replaced by RetrieveEmails with an additional Filter parameter.', '26.0')]
+    [Obsolete('Replaced by RetrieveEmails with an additional Filters parameter of type Record "Email Retrieval Filters".', '26.0')]
     procedure RetrieveEmails(EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox")
     begin
         EmailImpl.RetrieveEmails(EmailAccountId, EmailConnector, EmailInbox);
