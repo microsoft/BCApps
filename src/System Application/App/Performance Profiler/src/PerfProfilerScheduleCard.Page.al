@@ -80,7 +80,11 @@ page 1932 "Perf. Profiler Schedule Card"
                     Caption = 'Description';
                     ToolTip = 'Specifies the description of the schedule.';
                     AboutText = 'The description of the schedule.';
-                    NotBlank = true;
+
+                    trigger OnValidate()
+                    begin
+                        this.ValidateDescription();
+                    end;
                 }
             }
 
@@ -93,10 +97,15 @@ page 1932 "Perf. Profiler Schedule Card"
                 {
                     ApplicationArea = All;
                     Caption = 'User ID';
-                    ToolTip = 'Specifies the ID of the user who created the schedule.';
-                    AboutText = 'The ID of the user who created the schedule.';
+                    ToolTip = 'Specifies the ID of the user associated with the schedule.';
+                    AboutText = 'The ID of the user associated with the schedule.';
                     TableRelation = User."User Security ID";
                     Lookup = true;
+
+                    trigger OnValidate()
+                    begin
+                        ScheduledPerfProfiler.ValidateScheduleCreationPermissions(UserSecurityId(), Rec."User ID");
+                    end;
                 }
                 field(Activity; Activity)
                 {
@@ -213,6 +222,7 @@ page 1932 "Perf. Profiler Schedule Card"
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean
     begin
         this.ValidateRecord();
+        this.ValidateDescription();
     end;
 
     var
@@ -223,10 +233,17 @@ page 1932 "Perf. Profiler Schedule Card"
         MaxRetentionPeriod: Duration;
         NoRetentionPolicySetupErr: Label 'No retention policy setup found for the performance profiles table.';
         CreateRetentionPolicySetupTxt: Label 'Create a retention policy setup';
+        EmptyDescriptionErr: Label 'The description must be filled in.';
 
     local procedure ValidateRecord()
     begin
         ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerDates(Rec, MaxRetentionPeriod);
         ScheduledPerfProfiler.ValidatePerformanceProfileSchedulerRecord(Rec, Activity);
+    end;
+
+    local procedure ValidateDescription()
+    begin
+        if Rec.Description = '' then
+            Error(EmptyDescriptionErr);
     end;
 }

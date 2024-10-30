@@ -17,7 +17,7 @@ codeunit 8900 "Email Impl"
     InherentEntitlements = X;
     Permissions = tabledata "Sent Email" = rimd,
                   tabledata "Email Outbox" = rimd,
-                  tabledata "Email Inbox" = rimd,
+                  tabledata "Email Inbox" = rid,
                   tabledata "Email Related Record" = rid,
                   tabledata "Email Message" = r,
                   tabledata "Email Error" = r,
@@ -44,6 +44,7 @@ codeunit 8900 "Email Impl"
         EmailConnectorDoesNotSupportMarkAsReadErr: Label 'The selected email connector does not support marking emails as read.';
         EmailconnectorDoesNotSupportReplyingErr: Label 'The selected email connector does not support replying to emails.';
         ExternalIdCannotBeEmptyErr: Label 'The external ID cannot be empty.';
+        TelemetryRetrieveEmailsUsedTxt: Label 'Retrieving emails is used', Locked = true;
 
     #region API
 
@@ -202,12 +203,35 @@ codeunit 8900 "Email Impl"
     begin
         CheckRequiredPermissions();
 
-        if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then
-            IEmailConnectorv2.RetrieveEmails(EmailAccountId, EmailInbox)
-        else
+        if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then begin
+            TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
+            IEmailConnectorv2.RetrieveEmails(EmailAccountId, EmailInbox);
+        end else
             Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
 
         EmailInbox.MarkedOnly(true);
+    end;
+
+    local procedure TelemetryAppsAndPublishers(Message: Text)
+    var
+        Telemetry: Codeunit Telemetry;
+        CallerCallStackModuleInfos: List of [ModuleInfo];
+        CallerModuleInfo: ModuleInfo;
+        CustomDimensions: Dictionary of [Text, Text];
+        AppsAndPublishersDict: Dictionary of [Text, Boolean];
+        AppsAndPublishers: Text;
+    begin
+        CallerCallStackModuleInfos := NavApp.GetCallerCallstackModuleInfos();
+
+        foreach CallerModuleInfo in CallerCallStackModuleInfos do
+            if not AppsAndPublishersDict.ContainsKey(CallerModuleInfo.Id) then begin
+                AppsAndPublishersDict.Add(CallerModuleInfo.Id, true);
+                AppsAndPublishers := StrSubstNo('%1, %2 - (%3 - %4)', AppsAndPublishers, CallerModuleInfo.Id, CallerModuleInfo.Name, CallerModuleInfo.Publisher);
+            end;
+
+        CustomDimensions.Add('AppsAndPublishers', AppsAndPublishers);
+        CustomDimensions.Add('Category', EmailCategoryLbl);
+        Telemetry.LogMessage('0000NIG', Message, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
     end;
 
     procedure MarkAsRead(EmailAccountId: Guid; Connector: Enum "Email Connector"; ExternalId: Text)
@@ -421,7 +445,7 @@ codeunit 8900 "Email Impl"
         if LastModifiedNo < EmailMessage.GetNoOfModifies() then begin
             Dimensions.Add('Category', EmailCategoryLbl);
             Dimensions.Add('EmailMessageId', EmailMessage.GetId());
-            Telemetry.LogMessage('', EmailModifiedByEventTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
+            Telemetry.LogMessage('0000NIH', EmailModifiedByEventTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, Dimensions);
         end;
     end;
 

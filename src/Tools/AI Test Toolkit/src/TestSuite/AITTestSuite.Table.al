@@ -127,12 +127,6 @@ table 149030 "AIT Test Suite"
             Caption = 'Unique RunID';
             Editable = false;
         }
-        field(20; "Model Version"; Option)
-        {
-            Caption = 'AOAI Model Version';
-            ToolTip = 'Specifies the model version to be used by the tests in the test suite.';
-            OptionMembers = Latest,Preview;
-        }
         field(21; "No. of Tests Executed"; Integer)
         {
             Caption = 'No. of Tests Executed';
@@ -156,6 +150,14 @@ table 149030 "AIT Test Suite"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Version")));
+        }
+        field(24; "Tokens Consumed"; Integer)
+        {
+            Caption = 'Total Tokens Consumed';
+            ToolTip = 'Specifies the aggregated number of tokens consumed by the test in the current version. This is applicable only when using Microsoft AI Module.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(31; "No. of Tests Executed - Base"; Integer)
         {
@@ -189,6 +191,14 @@ table 149030 "AIT Test Suite"
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Code"), Version = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
+        field(35; "Tokens Consumed - Base"; Integer)
+        {
+            Caption = 'Total Tokens Consumed - Base';
+            ToolTip = 'Specifies the aggregated number of tokens consumed by the test in the base version. This is applicable only when using Microsoft AI Module.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Code"), Version = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+        }
         field(50; "Test Runner Id"; Integer)
         {
             Caption = 'Test Runner Id';
@@ -204,6 +214,16 @@ table 149030 "AIT Test Suite"
                 end;
             end;
         }
+        field(60; "Imported by AppId"; Guid)
+        {
+            Caption = 'Imported from AppId';
+            ToolTip = 'Specifies the application id from which the test suite was created.';
+        }
+        field(70; "Imported XML's MD5"; Code[32])
+        {
+            Caption = 'Imported XML''s MD5';
+            ToolTip = 'Specifies the MD5 hash of the XML file from which the test suite was imported.';
+        }
     }
     keys
     {
@@ -218,7 +238,8 @@ table 149030 "AIT Test Suite"
 
     trigger OnInsert()
     begin
-        AssignDefaultTestRunner();
+        if Rec."Test Runner Id" = 0 then
+            AssignDefaultTestRunner();
     end;
 
     internal procedure AssignDefaultTestRunner()

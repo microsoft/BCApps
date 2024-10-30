@@ -5,10 +5,10 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/25.0.22268.0/base",
+  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/26.0.26081.0/base",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "25.0",
+  "repoVersion": "26.0",
   "cleanModePreprocessorSymbols": [
     "CLEAN17",
     "CLEAN18",
@@ -18,7 +18,8 @@
     "CLEAN22",
     "CLEAN23",
     "CLEAN24",
-    "CLEAN25"
+    "CLEAN25",
+    "CLEAN26"
   ],
   "unusedALGoSystemFiles": [
     "AddExistingAppOrTestApp.yaml",
@@ -56,7 +57,6 @@
   "enableCodeAnalyzersOnTestApps": true,
   "rulesetFile": "../../../src/rulesets/ruleset.json",
   "skipUpgrade": true,
-  "PartnerTelemetryConnectionString": "InstrumentationKey=403ba4d3-ad2b-4ca1-8602-b7746de4c048;IngestionEndpoint=https://swedencentral-0.in.applicationinsights.azure.com/",
   "fullBuildPatterns": [
     "build/*",
     "src/rulesets/*",
@@ -73,5 +73,5 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "e23536e3e226943446586ba1222608a2025935d7"
+  "templateSha": "aae02ad59c6f4cd9d551a613b1d230d93e5a3098"
 }

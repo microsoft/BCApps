@@ -75,6 +75,11 @@ page 149036 "AIT Test Suite Compare"
                             Caption = 'Total Duration (ms)';
                             ToolTip = 'Specifies Total Duration of the tests for the version.';
                         }
+                        label(TokensConsumed)
+                        {
+                            Caption = 'Total Tokens Consumed';
+                            ToolTip = 'Specifies the aggregated number of tokens consumed by the test. This is applicable only when using Microsoft AI Module.';
+                        }
                     }
                     group("Latest Version")
                     {
@@ -108,6 +113,10 @@ page 149036 "AIT Test Suite Compare"
                         field(Duration; Rec."Total Duration (ms)")
                         {
                             ToolTip = 'Specifies Total Duration of the tests for this version.';
+                            ShowCaption = false;
+                        }
+                        field("Tokens Consumed"; Rec."Tokens Consumed")
+                        {
                             ShowCaption = false;
                         }
                     }
@@ -144,6 +153,10 @@ page 149036 "AIT Test Suite Compare"
                         {
                             ToolTip = 'Specifies Total Duration of the tests for the version.';
                             Caption = 'Total Duration Base (ms)';
+                            ShowCaption = false;
+                        }
+                        field("Tokens Consumed - Base"; Rec."Tokens Consumed - Base")
+                        {
                             ShowCaption = false;
                         }
                     }

@@ -93,33 +93,16 @@ table 9018 "Custom Permission Set In Plan"
     trigger OnDelete()
     begin
         PlanConfiguration.VerifyUserHasRequiredPermissionSet(Rec."Role ID", Rec."App ID", Rec.Scope, Rec."Company Name");
-#if not CLEAN22
-#pragma warning disable AL0432
-        PlanConfiguration.OnCustomPermissionSetChange(Rec."Plan ID", Rec."Role ID", Rec."App ID", Rec.Scope, Rec."Company Name");
-#pragma warning restore AL0432
-#endif
     end;
 
     trigger OnModify()
     begin
         PlanConfiguration.VerifyUserHasRequiredPermissionSet(Rec."Role ID", Rec."App ID", Rec.Scope, Rec."Company Name");
-#if not CLEAN22
-#pragma warning disable AL0432
-        if (Rec."Company Name" <> xRec."Company Name") or (Rec."Role ID" <> xRec."Role ID") then
-            PlanConfiguration.OnCustomPermissionSetChange(xRec."Plan ID", xRec."Role ID", xRec."App ID", xRec.Scope, xRec."Company Name");
-#pragma warning restore AL0432
-#endif
     end;
 
     trigger OnRename()
     begin
         PlanConfiguration.VerifyUserHasRequiredPermissionSet(Rec."Role ID", Rec."App ID", Rec.Scope, Rec."Company Name");
-#if not CLEAN22
-#pragma warning disable AL0432
-        if (Rec."Company Name" <> xRec."Company Name") or (Rec."Role ID" <> xRec."Role ID") then
-            PlanConfiguration.OnCustomPermissionSetChange(xRec."Plan ID", xRec."Role ID", xRec."App ID", xRec.Scope, xRec."Company Name");
-#pragma warning restore AL0432
-#endif
     end;
 
     var

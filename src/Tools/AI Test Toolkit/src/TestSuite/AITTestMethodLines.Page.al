@@ -81,6 +81,9 @@ page 149034 "AIT Test Method Lines"
                 field(Duration; Rec."Total Duration (ms)")
                 {
                 }
+                field("Tokens Consumed"; Rec."Tokens Consumed")
+                {
+                }
                 field(AvgDuration; AITTestSuiteMgt.GetAvgDuration(Rec))
                 {
                     Caption = 'Average Duration (ms)';
@@ -152,7 +155,7 @@ page 149034 "AIT Test Method Lines"
                 begin
                     if Rec."Codeunit ID" = 0 then
                         exit;
-                    AITTestSuiteMgt.RunAITestLine(Rec, true);
+                    AITTestSuiteMgt.RunAITestLine(Rec, false);
                     CurrPage.Update(false);
                 end;
             }

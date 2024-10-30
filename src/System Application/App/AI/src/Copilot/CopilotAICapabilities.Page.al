@@ -30,6 +30,19 @@ page 7775 "Copilot AI Capabilities"
     {
         area(Content)
         {
+            group(AllowedDataMovementOffInfo)
+            {
+                ShowCaption = false;
+                Visible = ((not WithinGeo) or WithinEuropeGeo) and (not AllowDataMovement);
+                InstructionalText = 'Copilot uses the Azure OpenAI Service, which isn’t available in your region. To activate Copilot capabilities, you must allow data movement.';
+            }
+
+            group(AllowedDataMovementOnInfo)
+            {
+                ShowCaption = false;
+                Visible = ((not WithinGeo) or WithinEuropeGeo) and AllowDataMovement;
+                InstructionalText = 'Copilot uses the Azure OpenAI Service, which isn’t available in your region. To keep using Copilot capabilities, you must allow data movement.';
+            }
 
             group(AlwaysConnected)
             {
@@ -46,7 +59,6 @@ page 7775 "Copilot AI Capabilities"
                         Hyperlink('https://go.microsoft.com/fwlink/?linkid=2249575');
                     end;
                 }
-
             }
 
             group(NotAlwaysConnected)
@@ -111,7 +123,7 @@ page 7775 "Copilot AI Capabilities"
 
             part(PreviewCapabilities; "Copilot Capabilities Preview")
             {
-                Caption = 'Production ready previews';
+                Caption = 'Production-ready previews';
                 ApplicationArea = All;
                 Editable = false;
             }
@@ -120,6 +132,13 @@ page 7775 "Copilot AI Capabilities"
                 Caption = 'Generally available';
                 ApplicationArea = All;
                 Editable = false;
+            }
+            part(EarlyPreviewCapabilities; "Copilot Cap. Early Preview")
+            {
+                Caption = 'Early previews (not for production)';
+                ApplicationArea = All;
+                Editable = false;
+                Visible = HasEarlyPreview;
             }
         }
     }
@@ -140,25 +159,11 @@ page 7775 "Copilot AI Capabilities"
                     Hyperlink('https://aka.ms/azurestatus');
                 end;
             }
-            action("Learn about Copilot")
-            {
-                ApplicationArea = All;
-                Image = Info;
-                ToolTip = 'Learn more about Copilot in Business Central.';
-
-                trigger OnAction()
-                begin
-                    Hyperlink('https://aka.ms/bcai');
-                end;
-            }
         }
 
         area(Promoted)
         {
             actionref(PromotedServiceHealth; "Check service health")
-            {
-            }
-            actionref(PromotedLearnAbout; "Learn about Copilot")
             {
             }
         }
@@ -178,13 +183,14 @@ page 7775 "Copilot AI Capabilities"
             Enum::"Privacy Notice Approval State"::Disagreed:
                 AllowDataMovement := false;
             else
-                AllowDataMovement := WithinGeo or WithinEuropeGeo;
+                AllowDataMovement := true;
         end;
 
         AllowDataMovementEditable := CopilotCapabilityImpl.IsAdmin();
 
         CurrPage.GenerallyAvailableCapabilities.Page.SetDataMovement(AllowDataMovement);
         CurrPage.PreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
+        CurrPage.EarlyPreviewCapabilities.Page.SetDataMovement(AllowDataMovement);
 
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             CopilotCapabilityImpl.ShowCapabilitiesNotAvailableOnPremNotification();
@@ -193,6 +199,16 @@ page 7775 "Copilot AI Capabilities"
             CopilotCapabilityImpl.ShowPrivacyNoticeDisagreedNotification();
 
         CopilotCapabilityImpl.UpdateGuidedExperience(AllowDataMovement);
+
+        HasEarlyPreview := HasEarlyPreviewCapabilities();
+    end;
+
+    local procedure HasEarlyPreviewCapabilities(): Boolean
+    var
+        CopilotSettings: Record "Copilot Settings";
+    begin
+        CopilotSettings.SetRange(Availability, Enum::"Copilot Availability"::"Early Preview");
+        exit(not CopilotSettings.IsEmpty());
     end;
 
     local procedure UpdateAllowDataMovement()
@@ -220,6 +236,7 @@ page 7775 "Copilot AI Capabilities"
         WithinEuropeGeo: Boolean;
         AllowDataMovement: Boolean;
         AllowDataMovementEditable: Boolean;
+        HasEarlyPreview: Boolean;
         CopilotGovernDataLbl: Label 'How do I govern my Copilot data?';
-        AOAIServiceLocatedLbl: Label 'Where is Azure OpenAI Service Located?';
+        AOAIServiceLocatedLbl: Label 'In which region will my data be stored and processed?';
 }

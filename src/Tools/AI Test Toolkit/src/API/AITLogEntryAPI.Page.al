@@ -50,9 +50,9 @@ page 149038 "AIT Log Entry API"
                 {
                     Caption = 'Version';
                 }
-                field(modelVersion; Rec."Model Version")
+                field(tokensConsumed; Rec."Tokens Consumed")
                 {
-                    Caption = 'AOAI Model Version';
+                    Caption = 'Total Tokens Consumed';
                 }
                 field("startTime"; Rec."Start Time")
                 {

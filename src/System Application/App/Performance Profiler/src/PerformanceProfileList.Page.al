@@ -53,13 +53,13 @@ page 1931 "Performance Profile List"
                 }
                 field(ActivityDuration; Rec."Activity Duration")
                 {
-                    Caption = 'Activity Duration (ms)';
+                    Caption = 'Activity Duration';
                     ToolTip = 'Specifies the duration of the recorded activity including system operations and waiting for input.';
                     AboutText = 'The duration of the recorded activity including system operations and waiting for input.';
                 }
                 field(ALExecutionTime; Rec.Duration)
                 {
-                    Caption = 'AL Execution Duration (ms)';
+                    Caption = 'AL Execution Duration';
                     ToolTip = 'Specifies the total duration of the sampled AL code in the recorded activity. This measurement is approximate as it depends on the selected sampling frequency.';
                     AboutText = 'The duration of the sampled AL code in this activity.';
                 }

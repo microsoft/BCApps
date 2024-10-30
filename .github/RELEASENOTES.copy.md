@@ -1,6 +1,29 @@
-## preview
+## v6.0
 
-Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+### Issues
+
+- Issue 1184 Publish to Environment fails on 'Permission Denied'
+- AL Language extension in 25.0 doesn't contain the linux executable, use dotnet to invoke the dll instead.
+
+### New Settings
+
+- `deliverTo<deliverytarget>` now has an additional property called `ContinuousDelivery`, indicating whether or not to run continuous delivery to this deliveryTarget. Default is true.
+- `trustMicrosoftNuGetFeeds` Unless this setting is set to false, AL-Go for GitHub will trust the NuGet feeds provided by Microsoft. The feeds provided by Microsoft contains all Microsoft apps, all Microsoft symbols and symbols for all AppSource apps.
+- `trustedNuGetFeeds` - can be an array of NuGet feed specifications, which AL-Go for GitHub will use for dependency resolution. Every feed specification must include a URL property and can optionally include a few other properties:
+  - url - The URL of the feed (examples: https://pkgs.dev.azure.com/myorg/apps/\_packaging/myrepo/nuget/v3/index.json or https://nuget.pkg.github.com/mygithuborg/index.json").
+  - patterns - AL-Go for GitHub will only trust packages, where the ID matches this pattern. Default is all packages (\*).
+  - fingerprints - If specified, AL-Go for GitHub will only trust packages signed with a certificate with a fingerprint matching one of the fingerprints in this array.
+  - authTokenSecret - If the NuGet feed specified by URL is private, the authTokenSecret must be the name of a secret containing the authentication token with permissions to search and read packages from the NuGet feed.
+
+### Support for delivering to GitHub Packages and NuGet
+
+With this release the implementation for delivering to NuGet packages (by adding the NuGetContext secret), is similar to the functionality behind delivering to GitHub packages and the implementation is no longer in preview.
+
+### Allow GitHubRunner and GitHubRunnerShell as project settings
+
+Previously, AL-Go required the GitHubRunner and GitHubRunnerShell settings to be set on repository level. This has now been changed such that they can be set on project level.
+
+## v5.3
 
 ### Issues
 
@@ -14,6 +37,7 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 - Fix issue with github ref when running reusable workflows
 - Issue 1098 Support for specifying the name of the AZURE_CREDENTIALS secret by adding a AZURE_CREDENTIALSSecretName setting
 - Fix placeholder syntax for git ref in PullRequestHandler.yaml
+- Issue 1164 Getting secrets from Azure key vault fails in Preview
 
 ### Dependencies to PowerShell modules
 
@@ -26,6 +50,15 @@ All authentication context secrets now supports managed identities and federated
 ### Business Central Performance Toolkit Test Result Viewer
 
 In the summary after a Test Run, you now also have the result of performance tests.
+
+### Support Ubuntu runners for all AL-Go workflows
+
+Previously, the workflows "Update AL-Go System Files" and "TroubleShooting" were hardcoded to always run on `windows-latest` to prevent deadlocks and security issues.
+From now on, `ubuntu-lates` will also be allowed for these mission critical workflows, when changing the `runs-on` setting. Additionally, only the value `pwsh` for `shell` setting is allowed when using `ubuntu-latest` runners.
+
+### Updated AL-Go telemetry
+
+AL-Go for GitHub now includes a new telemetry module. For detailed information on how to enable or disable telemetry and to see what data AL-Go logs, check out [this article](https://github.com/microsoft/AL-Go/blob/main/Scenarios/EnablingTelemetry.md).
 
 ### New Settings
 

@@ -71,7 +71,7 @@ codeunit 7772 "Azure OpenAI Impl"
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; Silent: Boolean; CallerModuleInfo: ModuleInfo): Boolean
     var
-        CoplilotNotAvailable: Page "Copilot Not Available";
+        CopilotNotAvailable: Page "Copilot Not Available";
     begin
         if not IsTenantAllowed() then begin
             if not Silent then
@@ -82,8 +82,8 @@ codeunit 7772 "Azure OpenAI Impl"
 
         if not CopilotCapabilityCU.IsCapabilityActive(Capability, CallerModuleInfo.Id()) then begin
             if not Silent then begin
-                CoplilotNotAvailable.SetCopilotCapability(Capability);
-                CoplilotNotAvailable.Run();
+                CopilotNotAvailable.SetCopilotCapability(Capability);
+                CopilotNotAvailable.Run();
             end;
 
             exit(false);
@@ -120,8 +120,6 @@ codeunit 7772 "Azure OpenAI Impl"
     var
         PrivacyNotice: Codeunit "Privacy Notice";
         CopilotNotAvailable: Page "Copilot Not Available";
-        WithinGeo: Boolean;
-        WithinEuropeGeo: Boolean;
     begin
         case PrivacyNotice.GetPrivacyNoticeApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), false) of
             Enum::"Privacy Notice Approval State"::Agreed:
@@ -135,20 +133,8 @@ codeunit 7772 "Azure OpenAI Impl"
 
                     exit(false);
                 end;
-            else begin
-                // Privacy notice not set, we will not cross geo-boundries
-                CopilotCapabilityImpl.CheckGeo(WithinGeo, WithinEuropeGeo);
-                WithinGeo := WithinGeo or WithinEuropeGeo;
-
-                if not Silent then
-                    if not WithinGeo then begin
-                        CopilotNotAvailable.SetCopilotCapability(Capability);
-                        CopilotNotAvailable.Run();
-                    end;
-
-                exit(WithinGeo);
-            end;
-
+            else
+                exit(true);
         end;
     end;
 
@@ -372,8 +358,12 @@ codeunit 7772 "Azure OpenAI Impl"
         ProcessChatCompletionResponse(ChatMessages, AOAIOperationResponse, CallerModuleInfo);
 
         FeatureTelemetry.LogUsage('0000KVN', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateChatCompletionLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+
+        if (AOAIOperationResponse.GetFunctionResponses().Count() > 0) and (ChatMessages.GetToolInvokePreference() = Enum::"AOAI Tool Invoke Preference"::Automatic) then
+            GenerateChatCompletion(ChatMessages, AOAIChatCompletionParams, AOAIOperationResponse, CallerModuleInfo);
     end;
 
+    [NonDebuggable]
     local procedure CheckJsonModeCompatibility(Payload: JsonObject)
     var
         ResponseFormatToken: JsonToken;
@@ -405,8 +395,8 @@ codeunit 7772 "Azure OpenAI Impl"
     var
         AOAIFunctionResponse: Codeunit "AOAI Function Response";
         CustomDimensions: Dictionary of [Text, Text];
-        ToolsCall: Text;
         Response: JsonObject;
+        EmptyArguments: JsonObject;
         CompletionToken: JsonToken;
         XPathLbl: Label '$.content', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
         XPathToolCallsLbl: Label '$.tool_calls', Comment = 'For more details on response, see https://aka.ms/AAlrz36', Locked = true;
@@ -416,24 +406,49 @@ codeunit 7772 "Azure OpenAI Impl"
             if not CompletionToken.AsValue().IsNull() then
                 ChatMessages.AddAssistantMessage(CompletionToken.AsValue().AsText());
         if Response.SelectToken(XPathToolCallsLbl, CompletionToken) then begin
-            CompletionToken.AsArray().WriteTo(ToolsCall);
-            ChatMessages.AddAssistantMessage(ToolsCall);
+            ChatMessages.AddToolCalls(CompletionToken.AsArray());
 
-            AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponse();
-            if not ProcessFunctionCall(CompletionToken.AsArray(), ChatMessages, AOAIFunctionResponse) then
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, '', '', '', '', '');
+            if not ProcessToolCalls(CompletionToken.AsArray(), ChatMessages, AOAIOperationResponse) then begin
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::"Function Invalid", '', '', EmptyArguments, '', '', '');
+                AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
+            end;
 
             AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
-            if not AOAIFunctionResponse.IsSuccess() then
-                FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            foreach AOAIFunctionResponse in AOAIOperationResponse.GetFunctionResponses() do
+                if not AOAIFunctionResponse.IsSuccess() then
+                    FeatureTelemetry.LogError('0000MTB', CopilotCapabilityImpl.GetAzureOpenAICategory(), StrSubstNo(TelemetryFunctionCallingFailedErr, AOAIFunctionResponse.GetFunctionName()), AOAIFunctionResponse.GetError(), AOAIFunctionResponse.GetErrorCallstack(), Enum::"AL Telemetry Scope"::All, CustomDimensions);
+
+            if ChatMessages.GetToolInvokePreference() in [Enum::"AOAI Tool Invoke Preference"::"Invoke Tools Only", Enum::"AOAI Tool Invoke Preference"::Automatic] then
+                AOAIOperationResponse.AppendFunctionResponsesToChatMessages(ChatMessages);
 
             Telemetry.LogMessage('0000MFH', TelemetryChatCompletionToolCallLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
         end;
     end;
 
-    local procedure ProcessFunctionCall(Functions: JsonArray; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIFunctionResponse: Codeunit "AOAI Function Response"): Boolean
+    local procedure ProcessToolCalls(Tools: JsonArray; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Boolean
     var
-        Function: JsonObject;
+        Tool: JsonToken;
+        ToolObject: JsonObject;
+        ToolType: JsonToken;
+    begin
+        if Tools.Count = 0 then
+            exit(false);
+
+        foreach Tool in Tools do
+            if Tool.IsObject() then begin
+                ToolObject := Tool.AsObject();
+                if ToolObject.Get('type', ToolType) then
+                    if ToolType.AsValue().AsText() = 'function' then
+                        if not ProcessFunctionCall(ToolObject, ChatMessages, AOAIOperationResponse) then
+                            exit(false);
+            end;
+
+        exit(true);
+    end;
+
+    local procedure ProcessFunctionCall(Function: JsonObject; var ChatMessages: Codeunit "AOAI Chat Messages"; var AOAIOperationResponse: Codeunit "AOAI Operation Response"): Boolean
+    var
+        AOAIFunctionResponse: Codeunit "AOAI Function Response";
         Arguments: JsonObject;
         Token: JsonToken;
         FunctionName: Text;
@@ -441,18 +456,6 @@ codeunit 7772 "Azure OpenAI Impl"
         AOAIFunction: Interface "AOAI Function";
         FunctionResult: Variant;
     begin
-        if Functions.Count = 0 then
-            exit(false);
-
-        Functions.Get(0, Token);
-        Function := Token.AsObject();
-
-        if Function.Get('type', Token) then begin
-            if Token.AsValue().AsText() <> 'function' then
-                exit(false);
-        end else
-            exit(false);
-
         if Function.Get('id', Token) then
             FunctionId := Token.AsValue().AsText()
         else
@@ -473,15 +476,24 @@ codeunit 7772 "Azure OpenAI Impl"
             Arguments.ReadFrom(Token.AsValue().AsText());
 
         if ChatMessages.GetFunctionTool(FunctionName, AOAIFunction) then
-            if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then begin
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, true, AOAIFunction.GetName(), FunctionId, FunctionResult, '', '');
-                exit(true);
-            end else begin
-                AOAIFunctionResponse.SetFunctionCallingResponse(true, false, AOAIFunction.GetName(), FunctionId, FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
+            if ChatMessages.GetToolInvokePreference() in [Enum::"AOAI Tool Invoke Preference"::"Invoke Tools Only", Enum::"AOAI Tool Invoke Preference"::Automatic] then
+                if TryExecuteFunction(AOAIFunction, Arguments, FunctionResult) then begin
+                    AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::"Invoke Success", AOAIFunction.GetName(), FunctionId, Arguments, FunctionResult, '', '');
+                    AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
+                    exit(true);
+                end else begin
+                    AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::"Invoke Error", AOAIFunction.GetName(), FunctionId, Arguments, FunctionResult, GetLastErrorText(), GetLastErrorCallStack());
+                    AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
+                    exit(true);
+                end
+            else begin
+                AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::"Not Invoked", AOAIFunction.GetName(), FunctionId, Arguments, FunctionResult, '', '');
+                AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
                 exit(true);
             end
         else begin
-            AOAIFunctionResponse.SetFunctionCallingResponse(true, false, FunctionName, FunctionId, FunctionResult, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
+            AOAIFunctionResponse.SetFunctionCallingResponse(true, Enum::"AOAI Function Response Status"::"Function Not Found", FunctionName, FunctionId, Arguments, FunctionResult, StrSubstNo(FunctionCallingFunctionNotFoundErr, FunctionName), '');
+            AOAIOperationResponse.AddFunctionResponse(AOAIFunctionResponse);
             exit(true);
         end;
     end;
@@ -691,6 +703,11 @@ codeunit 7772 "Azure OpenAI Impl"
         ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin
         TokenCount := ALCopilotFunctions.GptTokenCount(Input, Encoding);
+    end;
+
+    procedure GetTotalServerSessionTokensConsumed(): Integer
+    begin
+        exit(SessionInformation.AITokensUsed);
     end;
 
     [NonDebuggable]

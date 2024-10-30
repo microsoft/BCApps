@@ -161,13 +161,6 @@ codeunit 1996 "Checklist Banner Impl."
             exit(UserChecklistStatus."Checklist Status" = UserChecklistStatus."Checklist Status"::Completed);
     end;
 
-#if not CLEAN22
-    [Obsolete('Replaced by ExecuteChecklistItem without IsEvaluationCompany as parameter.', '22.0')]
-    procedure ExecuteChecklistItem(var ChecklistItemBuffer: Record "Checklist Item Buffer"; Tour: DotNet Tour; IsLastChecklistItem: Boolean; IsEvaluationCompany: Boolean): Boolean
-    begin
-        ExecuteChecklistItem(ChecklistItemBuffer, Tour, IsLastChecklistItem);
-    end;
-#endif
 
     procedure ExecuteChecklistItem(var ChecklistItemBuffer: Record "Checklist Item Buffer"; Tour: DotNet Tour; IsLastChecklistItem: Boolean): Boolean
     var
@@ -493,8 +486,14 @@ codeunit 1996 "Checklist Banner Impl."
     end;
 
     local procedure GetExpectedDurationInMiliseconds(ExpectedDurationInMinutes: Integer): Integer
+    var
+        MaxInt: Integer;
     begin
-        exit(ExpectedDurationInMinutes * 60000);
+        MaxInt := 2147483647;
+        if MaxInt div 60000 < ExpectedDurationInMinutes then
+            exit(MaxInt)
+        else
+            exit(ExpectedDurationInMinutes * 60000);
     end;
 
     local procedure ShouldModifyStatus(OldStatus: Enum "Checklist Item Status"; NewStatus: Enum "Checklist Item Status"): Boolean

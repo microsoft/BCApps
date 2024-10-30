@@ -14,6 +14,8 @@ using System.TestLibraries.Security.AccessControl;
 codeunit 135018 "Media Cleanup Test"
 {
     Subtype = Test;
+    Permissions = tabledata "Tenant Media" = r,
+                  tabledata "Tenant Media Set" = r;
 
     var
         LibraryAssert: Codeunit "Library Assert";
@@ -159,6 +161,44 @@ codeunit 135018 "Media Cleanup Test"
         LibraryAssert.AreEqual(0, TempTenantMedia.Count(), 'Tenant media does not contain all detached media.');
         LibraryAssert.IsTrue(TempTenantMedia.IsEmpty(), 'Detached Tenant media was not cleaned up properly.');
     end;
+
+    [Test]
+    procedure EnsureNormalMediaArePersisted()
+    var
+        TenantMedia: Record "Tenant Media";
+        TenantMediaSetup: Record "Tenant Media Set";
+        TestMediaClean: Record "Test Media Cleanup";
+        TempBlob: Codeunit "Temp Blob";
+        MediaOutStream: OutStream;
+        i: Integer;
+    begin
+        PermissionsMock.Set('Data Cleanup - Admin');
+
+        TestMediaClean.Insert();
+
+        TempBlob.CreateOutStream(MediaOutStream);
+        MediaOutStream.WriteText('123');
+        TestMediaClean."Test Media".ImportStream(TempBlob.CreateInStream(), '');
+        TestMediaClean.Modify();
+
+        clear(TempBlob);
+        TempBlob.CreateOutStream(MediaOutStream);
+        for i := 0 to 99 do
+            MediaOutStream.WriteText('123');
+        TestMediaClean."Test Media Set".ImportStream(TempBlob.CreateInStream(), '');
+        TestMediaClean.Modify();
+
+        LibraryAssert.IsTrue(TestMediaClean."Test Media".HasValue(), 'Tenant Media is not correctly inserted.');
+        LibraryAssert.IsTrue(TestMediaClean."Test Media Set".Count() > 0, 'Tenant Media Set is not correctly inserted.');
+        LibraryAssert.IsFalse(TenantMedia.IsEmpty(), 'Tenant Media is not correctly inserted.');
+        LibraryAssert.IsFalse(TenantMediaSetup.IsEmpty(), 'Tenant Media Set is not correctly inserted.');
+
+        Codeunit.Run(Codeunit::"Media Cleanup Runner");
+
+        LibraryAssert.IsFalse(TenantMedia.IsEmpty(), 'Normal tenant media is also affected.');
+        LibraryAssert.IsFalse(TenantMediaSetup.IsEmpty(), 'Normal tenant media set is also affected.');
+    end;
+
 
     local procedure GetDetachedTenantMedia(var TempTenantMedia: Record "Tenant Media" temporary)
     var
