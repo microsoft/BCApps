@@ -277,7 +277,7 @@ codeunit 7774 "Copilot Capability Impl"
     begin
         CopilotCapability := Enum::"Copilot Capability".FromInteger(Capability);
 
-        if CopilotCapability = Enum::"Copilot Capability"::Chat then
+        if CopilotCapability in [Enum::"Copilot Capability"::Chat, Enum::"Copilot Capability"::Summarize] then
             Silent := true;
 
         IsEnabled := AzureOpenAI.IsEnabled(CopilotCapability, Silent);
