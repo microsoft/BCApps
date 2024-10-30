@@ -11,6 +11,8 @@ table 8885 "Email Retrieval Filters"
     Access = Public;
     TableType = Temporary;
     DataClassification = SystemMetadata;
+    InherentEntitlements = RIMDX;
+    InherentPermissions = RIMDX;
 
     fields
     {
