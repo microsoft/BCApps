@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
+using System.Telemetry;
 #if not CLEAN25
 using System.Environment;
 #endif
@@ -15,11 +16,15 @@ codeunit 7769 "AOAI Deployments Impl"
     InherentPermissions = X;
 
     var
+        Telemetry: Codeunit Telemetry;
         UnableToGetDeploymentNameErr: Label 'Unable to get deployment name, if this is a third party capability you must specify your own deployment name. You may need to contact your partner.';
         GPT4oLatestLbl: Label 'gpt-4o-latest', Locked = true;
         GPT4oPreviewLbl: Label 'gpt-4o-preview', Locked = true;
         GPT4oMiniLatestLbl: Label 'gpt-4o-mini-latest', Locked = true;
         GPT4oMiniPreviewLbl: Label 'gpt-4o-mini-preview', Locked = true;
+        DeploymentDeprecationDates: Dictionary of [Text, Date];
+        DeprecationDatesInitialized: Boolean;
+        DeprecationMessageLbl: Label 'Deployment %1 deprecated from %2. Check out code unit 7768 AOAI Deployments', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
 #if not CLEAN25
         GPT4LatestLbl: Label 'gpt-4-latest', Locked = true;
         GPT4PreviewLbl: Label 'gpt-4-preview', Locked = true;
@@ -31,6 +36,7 @@ codeunit 7769 "AOAI Deployments Impl"
         Turbo0301Lbl: Label 'chatGPT_GPT35-turbo-0301', Locked = true;
         GPT40613Lbl: Label 'gpt-4-32k', Locked = true;
         Turbo031316kLbl: Label 'gpt-35-turbo-16k', Locked = true;
+
 
     procedure GetTurbo0301(CallerModuleInfo: ModuleInfo): Text
     var
@@ -103,12 +109,39 @@ codeunit 7769 "AOAI Deployments Impl"
         exit(GetDeploymentName(GPT4oMiniLatestLbl, CallerModuleInfo));
     end;
 
+    local procedure InitializeDeploymentDeprecationDates()
+    begin
+        if DeprecationDatesInitialized then
+            exit;
+
+        // Add deprecated deployments with their deprecation dates here
+        DeploymentDeprecationDates.Add(GPT4LatestLbl, DMY2Date(31, 12, 2023));
+        DeploymentDeprecationDates.Add(GPT35TurboLatestLbl, DMY2Date(31, 12, 2023));
+
+        DeprecationDatesInitialized := true;
+    end;
+
     local procedure GetDeploymentName(DeploymentName: Text; CallerModuleInfo: ModuleInfo): Text
     var
         AzureOpenAiImpl: Codeunit "Azure OpenAI Impl";
         CurrentModuleInfo: ModuleInfo;
+        IsDeprecated: Boolean;
+        CustomDimensions: Dictionary of [Text, Text];
+        DeprecatedDate: Date;
     begin
+        InitializeDeploymentDeprecationDates();
+
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
+
+        IsDeprecated := DeploymentDeprecationDates.ContainsKey(DeploymentName);
+        if IsDeprecated then begin
+            DeprecatedDate := DeploymentDeprecationDates.Get(DeploymentName);
+            CustomDimensions.Add('DeploymentName', DeploymentName);
+            CustomDimensions.Add('DeprecationDate', Format(DeprecatedDate));
+            //add date, check out code unit codeunit 7768 "AOAI Deployments", 
+            Telemetry.LogMessage('', StrSubstNo(DeprecationMessageLbl, DeploymentName, DeprecatedDate), Verbosity::Warning, DataClassification::SystemMetadata, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+        end;
+
         if (CallerModuleInfo.Publisher <> CurrentModuleInfo.Publisher) and not AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls() then
             Error(UnableToGetDeploymentNameErr);
 
