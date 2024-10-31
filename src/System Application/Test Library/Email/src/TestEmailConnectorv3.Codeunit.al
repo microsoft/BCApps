@@ -71,7 +71,7 @@ codeunit 134702 "Test Email Connector v3" implements "Email Connector v3"
             Error('Failed to send email');
     end;
 
-    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox"; var Filter: Codeunit "Email Retrieval Filters")
+    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox"; var Filter: Record "Email Retrieval Filters" temporary)
     begin
         if ConnectorMock.FailOnRetrieveEmails() then
             Error('Failed to retrieve emails');
