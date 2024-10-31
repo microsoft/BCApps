@@ -309,7 +309,7 @@ codeunit 135072 "Uri Builder Query Test"
         Uri: Codeunit Uri;
     begin
         // [Given] A Url
-        UriBuilder.Init('https://microsoft.com?è=éNotEncoded&%C3%A8=%C3%A9Encoded');
+        UriBuilder.Init('https://microsoft.com/?è=éNotEncoded&%C3%A8=%C3%A9Encoded');
 
         // [When] Adding a query parameter that needs encoding
         UriBuilder.AddQueryParameter('è', 'éAddedNotEncoded', Enum::"Uri Query Duplicate Behaviour"::"Keep All");
@@ -333,7 +333,7 @@ codeunit 135072 "Uri Builder Query Test"
         Uri: Codeunit Uri;
     begin
         // [Given] A Url
-        UriBuilder.Init('https://microsoft.com?è=éNotEncoded&%C3%A8=%C3%A9Encoded');
+        UriBuilder.Init('https://microsoft.com/?è=éNotEncoded&%C3%A8=%C3%A9Encoded');
 
         // [When] Adding OData parameters that don't include the $ sign
         UriBuilder.AddODataQueryParameter('è', 'éAddedNotEncoded');
@@ -357,7 +357,7 @@ codeunit 135072 "Uri Builder Query Test"
         Uri: Codeunit Uri;
     begin
         // [Given] A Url
-        UriBuilder.Init('https://microsoft.com?$top=33&%24skip=41&$filter=nothing&è=éNotEncoded&%C3%A8=%C3%A9Encoded');
+        UriBuilder.Init('https://microsoft.com/?$top=33&%24skip=41&$filter=nothing&è=éNotEncoded&%C3%A8=%C3%A9Encoded');
 
         // [When] Adding OData parameters that include the $ sign
         UriBuilder.AddODataQueryParameter('$filter', 'Name eq ''&Contoso''');
@@ -381,7 +381,7 @@ codeunit 135072 "Uri Builder Query Test"
         Uri: Codeunit Uri;
     begin
         // [Given] A Url
-        UriBuilder.Init('https://microsoft.com?$top=33&%24skip=41&$filter=nothing&è=éNotEncoded&%C3%A8=%C3%A9Encoded');
+        UriBuilder.Init('https://microsoft.com/?$top=33&%24skip=41&$filter=nothing&è=éNotEncoded&%C3%A8=%C3%A9Encoded');
 
         // [When] Adding OData parameters that include the $ sign
         UriBuilder.AddODataQueryParameter('$filter', 'Name eq ''&Contoso''');
@@ -409,7 +409,7 @@ codeunit 135072 "Uri Builder Query Test"
         Uri: Codeunit Uri;
     begin
         // [Given] A Url
-        UriBuilder.Init('https://microsoft.com?éNotEncoded&%C3%A9Encoded');
+        UriBuilder.Init('https://microsoft.com/?éNotEncoded&%C3%A9Encoded');
 
         // [When] Adding a flag that needs encoding
         UriBuilder.AddQueryFlag('éAddedAsNotEncoded', Enum::"Uri Query Duplicate Behaviour"::"Throw Error");
@@ -521,14 +521,14 @@ codeunit 135072 "Uri Builder Query Test"
         Uri: Codeunit Uri;
     begin
         // [Given] A URL with query flags
-        UriBuilder.Init('https://microsoft.com?flag1&flag2');
+        UriBuilder.Init('https://microsoft.com/?flag1&flag2');
 
         // [When] Removing a query flag with a specified duplicate action
         UriBuilder.RemoveQueryFlag('flag1', Enum::"Uri Query Duplicate Behaviour"::"Throw Error");
 
         // [Then] The query flag is removed correctly
         UriBuilder.GetUri(Uri);
-        Assert.AreEqual('https://microsoft.com?flag2', Uri.GetAbsoluteUri(), 'Unexpected URL.');
+        Assert.AreEqual('https://microsoft.com/?flag2', Uri.GetAbsoluteUri(), 'Unexpected URL.');
     end;
 
     [Test]
@@ -537,21 +537,21 @@ codeunit 135072 "Uri Builder Query Test"
         Uri: Codeunit Uri;
     begin
         // [Given] A URL with query flags
-        UriBuilder.Init('https://microsoft.com?flag1&flag2');
+        UriBuilder.Init('https://microsoft.com/?flag1&flag2');
 
         // [When] Removing a query flag that does not exist
         UriBuilder.RemoveQueryFlag('flag3');
 
         // [Then] The URL is unchanged
         UriBuilder.GetUri(Uri);
-        Assert.AreEqual('https://microsoft.com?flag1&flag2', Uri.GetAbsoluteUri(), 'Unexpected URL.');
+        Assert.AreEqual('https://microsoft.com/?flag1&flag2', Uri.GetAbsoluteUri(), 'Unexpected URL.');
     end;
 
     [Test]
     procedure TestRemoveQueryFlagNotFoundThrowError()
     begin
         // [Given] A URL with query flags
-        UriBuilder.Init('https://microsoft.com?flag1&flag2');
+        UriBuilder.Init('https://microsoft.com/?flag1&flag2');
 
         // [When] Removing a query flag that does not exist with throw error
         asserterror UriBuilder.RemoveQueryFlag('flag3', Enum::"Uri Query Duplicate Behaviour"::"Throw Error");
@@ -566,14 +566,14 @@ codeunit 135072 "Uri Builder Query Test"
         Uri: Codeunit Uri;
     begin
         // [Given] A URL with query flags
-        UriBuilder.Init('https://microsoft.com?flag1&flag2');
+        UriBuilder.Init('https://microsoft.com/?flag1&flag2');
 
         // [When] Removing a query flag
         UriBuilder.RemoveQueryFlag('flag1');
 
         // [Then] The query flag is removed correctly
         UriBuilder.GetUri(Uri);
-        Assert.AreEqual('https://microsoft.com?flag2', Uri.GetAbsoluteUri(), 'Unexpected URL.');
+        Assert.AreEqual('https://microsoft.com/?flag2', Uri.GetAbsoluteUri(), 'Unexpected URL.');
     end;
 
     [Test]
@@ -582,21 +582,21 @@ codeunit 135072 "Uri Builder Query Test"
         Uri: Codeunit Uri;
     begin
         // [Given] A URL with query parameters
-        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+        UriBuilder.Init('https://microsoft.com/?param1=value1&param2=value2');
 
         // [When] Removing a query parameter with a specified duplicate action
         UriBuilder.RemoveQueryParameter('param1', 'value1', Enum::"Uri Query Duplicate Behaviour"::"Throw Error");
 
         // [Then] The query parameter is removed correctly
         UriBuilder.GetUri(Uri);
-        Assert.AreEqual('https://microsoft.com?param2=value2', Uri.GetAbsoluteUri(), 'Unexpected URL.');
+        Assert.AreEqual('https://microsoft.com/?param2=value2', Uri.GetAbsoluteUri(), 'Unexpected URL.');
     end;
 
     [Test]
     procedure TestRemoveQueryParameterNotFoundThrowError()
     begin
         // [Given] A URL with query parameters
-        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+        UriBuilder.Init('https://microsoft.com/?param1=value1&param2=value2');
 
         // [When] Removing a query parameter that does not exist with throw error
         asserterror UriBuilder.RemoveQueryParameter('param3', 'value3', Enum::"Uri Query Duplicate Behaviour"::"Throw Error");
@@ -611,14 +611,14 @@ codeunit 135072 "Uri Builder Query Test"
         Uri: Codeunit Uri;
     begin
         // [Given] A URL with query parameters
-        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+        UriBuilder.Init('https://microsoft.com/?param1=value1&param2=value2');
 
         // [When] Removing a query parameter
         UriBuilder.RemoveQueryParameter('param1', 'value1');
 
         // [Then] The query parameter is removed correctly
         UriBuilder.GetUri(Uri);
-        Assert.AreEqual('https://microsoft.com?param2=value2', Uri.GetAbsoluteUri(), 'Unexpected URL.');
+        Assert.AreEqual('https://microsoft.com/?param2=value2', Uri.GetAbsoluteUri(), 'Unexpected URL.');
     end;
 
     [Test]
@@ -627,7 +627,7 @@ codeunit 135072 "Uri Builder Query Test"
         Uri: Codeunit Uri;
     begin
         // [Given] A URL with multiple query parameters
-        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+        UriBuilder.Init('https://microsoft.com/?param1=value1&param2=value2');
 
         // [When] Removing all query parameters
         UriBuilder.RemoveQueryParameters();
@@ -643,7 +643,7 @@ codeunit 135072 "Uri Builder Query Test"
         Flags: List of [Text];
     begin
         // [Given] A URL with query flags
-        UriBuilder.Init('https://microsoft.com?flag1&flag2');
+        UriBuilder.Init('https://microsoft.com/?flag1&flag2');
 
         // [When] Getting query flags
         Flags := UriBuilder.GetQueryFlags();
@@ -660,7 +660,7 @@ codeunit 135072 "Uri Builder Query Test"
         Params: Dictionary of [Text, List of [Text]];
     begin
         // [Given] A URL with query parameters
-        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+        UriBuilder.Init('https://microsoft.com/?param1=value1&param2=value2');
 
         // [When] Getting query parameters
         Params := UriBuilder.GetQueryParameters();
@@ -679,7 +679,7 @@ codeunit 135072 "Uri Builder Query Test"
         ParamValues: List of [Text];
     begin
         // [Given] A URL with query parameters
-        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+        UriBuilder.Init('https://microsoft.com/?param1=value1&param2=value2');
 
         // [When] Getting a specific query parameter
         ParamValues := UriBuilder.GetQueryParameter('param1');
@@ -695,7 +695,7 @@ codeunit 135072 "Uri Builder Query Test"
         ParamValues: List of [Text];
     begin
         // [Given] A URL with query parameters
-        UriBuilder.Init('https://microsoft.com?param1=value1&param2=value2');
+        UriBuilder.Init('https://microsoft.com/?param1=value1&param2=value2');
 
         // [When] Getting query parameters that do not exist
         ParamValues := UriBuilder.GetQueryParameter('param3');
