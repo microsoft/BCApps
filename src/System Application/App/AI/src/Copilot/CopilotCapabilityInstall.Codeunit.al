@@ -22,15 +22,8 @@ codeunit 7760 "Copilot Capability Install"
         AnalyzeListLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2252783', Locked = true;
 
     internal procedure RegisterCapabilities()
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
-        ApplicationFamily: Text;
     begin
-        ApplicationFamily := EnvironmentInformation.GetApplicationFamily();
-
-        if ApplicationFamily = 'US' then
-            RegisterSaaSCapability(Enum::"Copilot Capability"::Chat, Enum::"Copilot Availability"::Preview, ChatLearnMoreLbl);
-
+        RegisterSaaSCapability(Enum::"Copilot Capability"::Chat, Enum::"Copilot Availability"::Preview, ChatLearnMoreLbl);
         RegisterSaaSCapability(Enum::"Copilot Capability"::"Analyze List", Enum::"Copilot Availability"::Preview, AnalyzeListLearnMoreLbl);
     end;
 
