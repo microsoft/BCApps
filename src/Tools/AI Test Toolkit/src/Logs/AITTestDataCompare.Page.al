@@ -5,7 +5,7 @@
 
 namespace System.TestTools.AITestToolkit;
 
-page 149035 "AIT Test Data Compare"
+page 149039 "AIT Test Data Compare"
 {
     Caption = 'AI Test Data';
     PageType = Card;
