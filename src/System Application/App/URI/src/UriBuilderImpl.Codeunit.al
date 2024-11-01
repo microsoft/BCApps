@@ -173,8 +173,8 @@ codeunit 3062 "Uri Builder Impl."
     begin
         if not KeysWithValueList.ContainsKey(QueryKey) then begin
             if ShouldRemove then begin
-            if DuplicateAction = DuplicateAction::"Throw Error" then
-                Error(ParameterNotFoundErr);
+                if DuplicateAction = DuplicateAction::"Throw Error" then
+                    Error(ParameterNotFoundErr);
                 exit;
             end;
             Values.Add(QueryValue);
@@ -183,6 +183,13 @@ codeunit 3062 "Uri Builder Impl."
         end;
 
         KeysWithValueList.Get(QueryKey, Values);
+
+        if ShouldRemove then
+            if Values.Contains(QueryValue) then begin
+                Values.Remove(QueryValue); // Remove first-occurrence from List
+                KeysWithValueList.Set(QueryKey, Values);
+            end;
+
         case DuplicateAction of
             DuplicateAction::"Overwrite All Matching":
                 begin
@@ -222,6 +229,9 @@ codeunit 3062 "Uri Builder Impl."
                     Error(FlagNotFoundErr);
             exit;
         end;
+
+        if ShouldRemove then
+            Flags.Remove(Flag); // Remove first occurence from List
 
         case DuplicateAction of
             DuplicateAction::Skip:
