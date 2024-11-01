@@ -2014,7 +2014,7 @@ codeunit 134685 "Email Test"
 #endif
 
     [Test]
-    procedure EnqueueReplyAllToEmailFail()
+    procedure EnqueueReplyAllToEmailFailv3()
     var
         EmailAccount: Record "Email Account";
         EmailOutbox: Record "Email Outbox";
