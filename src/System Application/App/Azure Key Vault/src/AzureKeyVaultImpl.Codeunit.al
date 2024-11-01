@@ -39,7 +39,7 @@ codeunit 2202 "Azure Key Vault Impl."
         Secret := GetSecretFromClient(SecretName);
 
         if Secret = '' then
-            Error(MissingSecretErr);
+            Error(MissingSecretErr, SecretName);
     end;
 
     [NonDebuggable]
@@ -48,7 +48,7 @@ codeunit 2202 "Azure Key Vault Impl."
         Secret := GetSecretFromClient(SecretName);
 
         if Secret.IsEmpty() then
-            Error(MissingSecretErr);
+            Error(MissingSecretErr, SecretName);
     end;
 
     [NonDebuggable]

@@ -23,6 +23,7 @@ codeunit 135212 "Azure Key Vault Test"
     var
         Assert: Codeunit "Library Assert";
         KeyVaultNotInitializedTxt: Label 'Azure key vault has not been set up';
+        MissingSecretErr: Label '%1 is either missing or empty', Locked = true;
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -95,11 +96,12 @@ codeunit 135212 "Azure Key Vault Test"
 
         // [GIVEN] A configured Azure Key Vault
         MockAzureKeyvaultSecretProvider := MockAzureKeyvaultSecretProvider.MockAzureKeyVaultSecretProvider();
+        MockAzureKeyvaultSecretProvider.AddSecretMapping('some-secret', 'SecretFromKeyVault');
         AzureKeyVaultTestLibrary.SetAzureKeyVaultSecretProvider(MockAzureKeyvaultSecretProvider);
-        AzureKeyVaultTestLibrary.ClearSecrets();
 
         // [WHEN] The key vault is called with an unknown key
         asserterror AzureKeyVault.GetAzureKeyVaultSecret('somekeythatdoesnotexist', Secret);
+        Assert.ExpectedError(StrSubstNo(MissingSecretErr, 'somekeythatdoesnotexist'));
     end;
 
     [Test]
