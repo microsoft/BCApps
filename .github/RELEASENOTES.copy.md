@@ -1,3 +1,33 @@
+## preview
+
+Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+
+### Issues
+
+- Issue 1241 Increment Version Number might produce wrong app.json
+- `deployTo<environment>` now has an additional property called DependencyInstallMode, which determines how dependencies are deployed if GenerateDependencyArtifact is true. Default value is `install` to install dependencies if not already installed. Other values are `ignore` for ignoring dependencies, `upgrade` for upgrading dependencies if possible and `forceUpgrade` for force upgrading dependencies.
+
+### New Project Settings
+
+- `pageScriptingTests` should be an array of page scripting test file specifications, relative to the AL-Go project. Examples of file specifications: `recordings/my*.yml` (for all yaml files in the recordings subfolder matching my\*.yml), `recordings` (for all \*.yml files in the recordings subfolder) or `recordings/test.yml` (for a single yml file)
+- `doNotRunPageScriptingTests` can force the pipeline to NOT run the page scripting tests specified in pageScriptingTests. Note this setting can be set in a [workflow specific settings file](#where-are-the-settings-located) to only apply to that workflow
+- `restoreDatabases` should be an array of events, indicating when you want to start with clean databases in the container. Possible events are: `BeforeBcpTests`, `BeforePageScriptingTests`, `BeforeEachTestApp`, `BeforeEachBcptTestApp`, `BeforeEachPageScriptingTest`
+
+### New Repository Settings
+
+- `trustedSigning` is a structure defining `Account`, `EndPoint` and `CertificateProfile` if you want to use trusted signing. Note that your Azure_Credentials secret (Microsoft Entra ID App or Managed identity) still needs to provide access to your azure subscription and be assigned the `Trusted Signing Certificate Profile Signer` role in the Trusted Signing Account.
+
+### Support for Azure Trusted Signing
+
+Read https://learn.microsoft.com/en-us/azure/trusted-signing/ for more information about Trusted Signing and how to set it up. After setting up your trusted signing account and certificate profile, you need to create a setting called [trustedSigning](https://aka.ms/algosettings#trustedSigning) for AL-Go to sign your apps using Azure Trusted Signing.
+
+### Support for Page Scripting Tests
+
+Page Scripting tests are now supported as part of CI/CD. By specifying pageScriptingTests in your project settings file, AL-Go for GitHub will automatically run these page scripting tests as part of your CI/CD workflow, generating the following build artifacts:
+
+- `PageScriptingTestResults` is a JUnit test results file with all results combined.
+- `PageScriptingTestResultDetails` are the detailed test results (including videos) when any of the page scripting tests have failures. If the page scripting tests succeed - the details are not published.
+
 ## v6.0
 
 ### Issues
@@ -648,7 +678,7 @@ Setting the repo setting "runs-on" to "Ubuntu-Latest", followed by running Updat
 ### CI/CD and Publish To New Environment
 
 - Base functionality for selecting a specific GitHub runner for an environment
-- Include dependencies artifacts when deploying (if generateDependencyArtifacts is true)
+- Include dependencies artifacts when deploying (if generateDependencyArtifact is true)
 
 ### localDevEnv.ps1 and cloudDevEnv.ps1
 
