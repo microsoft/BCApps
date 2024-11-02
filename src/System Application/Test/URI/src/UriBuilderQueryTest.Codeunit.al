@@ -634,7 +634,7 @@ codeunit 135072 "Uri Builder Query Test"
 
         // [Then] All query parameters are removed
         UriBuilder.GetUri(Uri);
-        Assert.AreEqual('https://microsoft.com', Uri.GetAbsoluteUri(), 'Unexpected URL.');
+        Assert.AreEqual('https://microsoft.com/', Uri.GetAbsoluteUri(), 'Unexpected URL.');
     end;
 
     [Test]
