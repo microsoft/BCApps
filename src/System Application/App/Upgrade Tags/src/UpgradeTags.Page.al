@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Upgrade;
-page 9998 PageName
+page 9998 "Upgrade Tags"
 {
     PageType = List;
     ApplicationArea = All;
@@ -21,9 +21,9 @@ page 9998 PageName
         {
             repeater(GroupName)
             {
-                field(Tag; rec.Tag) { }
-                field("Tag Timestamp"; rec."Tag Timestamp") { }
-                field(Company; rec.Company) { }
+                field(Tag; Rec.Tag) { }
+                field("Tag Timestamp"; Rec."Tag Timestamp") { }
+                field(Company; Rec.Company) { }
             }
         }
     }
