@@ -20,16 +20,19 @@ table 9999 "Upgrade Tags"
         {
             Caption = 'Tag';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the tag that is used to identify the upgrade.';
         }
         field(2; "Tag Timestamp"; DateTime)
         {
             Caption = 'Tag Timestamp';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the date and time when the upgrade is executed was created.';
         }
         field(3; Company; Code[30])
         {
             Caption = 'Company';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the company that the upgrade is executed for.';
         }
 
         field(4; "Skipped Upgrade"; Boolean)
