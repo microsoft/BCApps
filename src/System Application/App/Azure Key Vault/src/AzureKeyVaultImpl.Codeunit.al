@@ -30,7 +30,7 @@ codeunit 2202 "Azure Key Vault Impl."
         IsKeyVaultClientInitialized: Boolean;
         AzureKeyVaultTxt: Label 'Azure Key Vault', Locked = true;
         CertificateInfoTxt: Label 'Successfully constructed certificate from secret %1. Certificate thumbprint %2', Locked = true;
-        MissingSecretErr: Label '%1 is either missing or empty', Comment = '%1 = Secret Name.';
+        MissingSecretErr: Label 'The secret %1 is either missing or empty.', Comment = '%1 = Secret Name.';
 
     [NonDebuggable]
     procedure GetAzureKeyVaultSecret(SecretName: Text; var Secret: Text)
@@ -38,7 +38,7 @@ codeunit 2202 "Azure Key Vault Impl."
         // Gets the secret as a Text from the key vault, given a SecretName.
         Secret := GetSecretFromClient(SecretName);
 
-        if Secret = '' then
+        if Secret.Trim() = '' then
             Error(MissingSecretErr, SecretName);
     end;
 
