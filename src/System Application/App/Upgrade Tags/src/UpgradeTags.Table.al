@@ -26,13 +26,13 @@ table 9999 "Upgrade Tags"
         {
             Caption = 'Tag Timestamp';
             DataClassification = SystemMetadata;
-            ToolTip = 'Specifies the date and time when the upgrade is executed was created.';
+            ToolTip = 'Specifies the date and time when the upgrade is executed.';
         }
         field(3; Company; Code[30])
         {
             Caption = 'Company';
             DataClassification = SystemMetadata;
-            ToolTip = 'Specifies the company that the upgrade is executed for.';
+            ToolTip = 'Specifies the company where the upgrade is executed.';
         }
 
         field(4; "Skipped Upgrade"; Boolean)
