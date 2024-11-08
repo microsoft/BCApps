@@ -5,14 +5,32 @@
 
 namespace System.TestTools.AITestToolkit;
 
-permissionset 149033 "AI Test Toolkit - Read"
+enum 149034 "AIT Test Output - View"
 {
-    Access = Internal;
+    Extensible = false;
 
-    IncludedPermissionSets = "AI Test Toolkit - Obj";
+    value(0; "Full Output")
+    {
+        Caption = 'Full Output';
+    }
 
-    Permissions = tabledata "AIT Run History" = R,
-        tabledata "AIT Test Suite" = R,
-        tabledata "AIT Test Method Line" = R,
-        tabledata "AIT Log Entry" = R;
+    value(1; Answer)
+    {
+        Caption = 'Answer';
+    }
+
+    value(2; Question)
+    {
+        Caption = 'Question';
+    }
+
+    value(3; Context)
+    {
+        Caption = 'Context';
+    }
+
+    value(4; "Ground Truth")
+    {
+        Caption = 'Ground Truth';
+    }
 }

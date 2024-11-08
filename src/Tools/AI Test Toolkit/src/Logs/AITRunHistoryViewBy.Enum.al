@@ -5,14 +5,17 @@
 
 namespace System.TestTools.AITestToolkit;
 
-permissionset 149033 "AI Test Toolkit - Read"
+enum 149032 "AIT Run History - View By"
 {
-    Access = Internal;
+    Extensible = false;
 
-    IncludedPermissionSets = "AI Test Toolkit - Obj";
+    value(0; Version)
+    {
+        Caption = 'Version';
+    }
 
-    Permissions = tabledata "AIT Run History" = R,
-        tabledata "AIT Test Suite" = R,
-        tabledata "AIT Test Method Line" = R,
-        tabledata "AIT Log Entry" = R;
+    value(1; Tag)
+    {
+        Caption = 'Tag';
+    }
 }
