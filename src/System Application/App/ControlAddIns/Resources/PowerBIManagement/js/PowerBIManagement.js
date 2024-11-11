@@ -16,9 +16,7 @@ var pbiAuthToken = null;
 var _showBookmarkSelection = false;
 var _showFilters = false;
 var _showPageSelection = false;
-var _showZoomBar = false;
-var _forceTransparentBackground = false;
-var _forceFitToPage = false;
+var _showZoomBar = true;
 var _addBottomPadding = false;
 var _localeSettings = {};
 
@@ -145,6 +143,15 @@ function InitializeFrame(fullpage, ratio) {
             displayOption: models.DisplayOption.FitToPage
         }
     }
+}
+
+function SetSettings(showBookmarkSelection, showFilters, showPageSelection, showZoomBar, forceTransparentBackground, forceFitToPage, addBottomPadding) {
+    // OBSOLETE
+    _showBookmarkSelection = showBookmarkSelection;
+    _showFilters = showFilters;
+    _showPageSelection = showPageSelection;
+    _showZoomBar = showZoomBar;
+    _addBottomPadding = addBottomPadding;
 }
 
 // Exposed Functions
@@ -345,14 +352,21 @@ function SetToken(authToken) {
     pbiAuthToken = authToken;
 }
 
-function SetSettings(showBookmarkSelection, showFilters, showPageSelection, showZoomBar, forceTransparentBackground, forceFitToPage, addBottomPadding) {
-    _showBookmarkSelection = showBookmarkSelection;
-    _showFilters = showFilters;
-    _showPageSelection = showPageSelection;
-    _showZoomBar = showZoomBar;
-    _forceTransparentBackground = forceTransparentBackground;
-    _forceFitToPage = forceFitToPage;
-    _addBottomPadding = addBottomPadding;
+function SetBookmarksVisible(visible) {
+    _showBookmarkSelection = visible;
+}
+
+function SetFiltersVisible(visible) {
+    _showFilters = visible;
+}
+
+function SetPageSelectionVisible(visible) {
+    _showPageSelection = visible;
+}
+
+function SetStatusBarVisible(visible) {
+    _showZoomBar = visible;
+    _addBottomPadding = visible;
 }
 
 // Internal functions
@@ -405,17 +419,6 @@ function CompileSettings() {
         },
 
         localeSettings: _localeSettings
-    }
-
-    if (_forceTransparentBackground) {
-        settingsObject.background = models.BackgroundType.Transparent;
-    }
-
-    if (_forceFitToPage) {
-        settingsObject.layoutType = models.LayoutType.Custom;
-        settingsObject.customLayout = {
-            displayOption: models.DisplayOption.FitToPage
-        }
     }
 
     return settingsObject;

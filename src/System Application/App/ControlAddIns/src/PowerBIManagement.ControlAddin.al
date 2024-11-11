@@ -131,6 +131,31 @@ controladdin PowerBIManagement
     procedure SetLocale(NewLocale: Text);
 
     /// <summary>
+    /// Controls whether the bookmark selection pane will be visible in the embed experience. Defaults to false.
+    /// </summary>
+    /// <param name="Visible">Whether bookmarks should be visible.</param>
+    procedure SetBookmarksVisible(Visible: Boolean);
+
+    /// <summary>
+    /// Controls whether the filter pane will be visible in the embed experience. Defaults to false.
+    /// </summary>
+    /// <param name="Visible">Whether filters should be visible.</param>
+    procedure SetFiltersVisible(Visible: Boolean);
+
+    /// <summary>
+    /// Controls whether the page selection bar will be visible in the embed experience. Defaults to false.
+    /// </summary>
+    /// <param name="Visible">Whether page selection should be visible.</param>
+    procedure SetPageSelectionVisible(Visible: Boolean);
+
+    /// <summary>
+    /// Controls whether the status bar (that includes zoom contols) will be visible in the embed experience. Defaults to true.
+    /// </summary>
+    /// <param name="Visible">Whether status bar should be visible.</param>
+    procedure SetStatusBarVisible(Visible: Boolean);
+
+#if not CLEAN26
+    /// <summary>
     /// Sets the properties for the embed experience
     /// </summary>
     ///<param name="ShowBookmarkSelection">Shows the bookmark selection pane.</param>
@@ -140,7 +165,9 @@ controladdin PowerBIManagement
     ///<param name="ForceTransparentBackground">Forces a transparent background to the embed.</param>
     ///<param name="ForceFitToPage">Forces the Fit To Page behaviour for the embed.</param>
     ///<param name="AddBottomPadding">Controls whether a padding is needed on the bottom of the page (useful in case the embed is the only element displayed on the page).</param>
+    [Obsolete('Use SetBookmarksVisible, SetFiltersVisible, SetStatusBarVisible, and SetPageSelectionVisible instead. The other options are no longer supported.', '26.0')]
     procedure SetSettings(ShowBookmarkSelection: Boolean; ShowFilters: Boolean; ShowPageSelection: Boolean; ShowZoomBar: Boolean; ForceTransparentBackground: Boolean; ForceFitToPage: Boolean; AddBottomPadding: Boolean);
+#endif
 
 #if not CLEAN25
     /// <summary>
