@@ -17,6 +17,7 @@ var _showBookmarkSelection = false;
 var _showFilters = false;
 var _showPageSelection = false;
 var _showZoomBar = true;
+var _forceTransparentBackground = false;
 var _addBottomPadding = false;
 var _localeSettings = {};
 
@@ -151,6 +152,7 @@ function SetSettings(showBookmarkSelection, showFilters, showPageSelection, show
     _showFilters = showFilters;
     _showPageSelection = showPageSelection;
     _showZoomBar = showZoomBar;
+    _forceTransparentBackground = forceTransparentBackground;
     _addBottomPadding = addBottomPadding;
 }
 
@@ -362,6 +364,10 @@ function SetFiltersVisible(visible) {
 
 function SetPageSelectionVisible(visible) {
     _showPageSelection = visible;
+}
+
+function SetTransparentBackground(transparent) {
+    _forceTransparentBackground = transparent;
 }
 
 function SetStatusBarVisible(visible) {
