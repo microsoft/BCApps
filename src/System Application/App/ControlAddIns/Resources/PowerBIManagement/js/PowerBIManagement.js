@@ -18,7 +18,7 @@ var _showFilters = false;
 var _showPageSelection = false;
 var _showZoomBar = true;
 var _forceTransparentBackground = false;
-var _addBottomPadding = false;
+var _addBottomPadding = true;
 var _localeSettings = {};
 
 function Initialize() {
