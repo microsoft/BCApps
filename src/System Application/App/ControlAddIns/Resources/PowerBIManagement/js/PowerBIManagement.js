@@ -427,6 +427,10 @@ function CompileSettings() {
         localeSettings: _localeSettings
     }
 
+    if (_forceTransparentBackground) {
+        settingsObject.background = models.BackgroundType.Transparent;
+    }
+
     return settingsObject;
 }
 
