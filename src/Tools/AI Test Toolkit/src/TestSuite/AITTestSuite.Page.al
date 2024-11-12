@@ -37,6 +37,25 @@ page 149031 "AIT Test Suite"
                 {
                     ShowMandatory = true;
                     NotBlank = true;
+
+                    trigger OnValidate()
+                    var
+                        AITTestMethodLine: Record "AIT Test Method Line";
+                    begin
+                        if Rec."Input Dataset" = xRec."Input Dataset" then
+                            exit;
+
+                        AITTestMethodLine.SetRange("Test Suite Code", Rec.Code);
+
+                        if AITTestMethodLine.IsEmpty() then
+                            exit;
+
+                        if GuiAllowed() then
+                            if not Dialog.Confirm(InputDatasetChangedQst) then
+                                exit;
+
+                        AITTestMethodLine.ModifyAll("Input Dataset", Rec."Input Dataset", true);
+                    end;
                 }
                 field("Test Runner Id"; TestRunnerDisplayName)
                 {
@@ -207,25 +226,17 @@ page 149031 "AIT Test Suite"
 
             action(Compare)
             {
-                Caption = 'Compare Versions';
-                Image = CompareCOA;
-                ToolTip = 'Compare results of the suite to a base version.';
+                Caption = 'View Runs';
+                Image = History;
+                ToolTip = 'View the run history of the suite.';
                 Scope = Repeater;
 
                 trigger OnAction()
                 var
-                    TemporaryAITTestSuiteRec: Record "AIT Test Suite" temporary;
-                    AITTestSuiteComparePage: Page "AIT Test Suite Compare";
+                    AITRunHistory: Page "AIT Run History";
                 begin
-                    TemporaryAITTestSuiteRec.Code := Rec.Code;
-                    TemporaryAITTestSuiteRec.Version := Rec.Version;
-                    TemporaryAITTestSuiteRec."Base Version" := Rec."Version" - 1;
-                    TemporaryAITTestSuiteRec.Insert();
-
-                    AITTestSuiteComparePage.SetBaseVersion(Rec."Version" - 1);
-                    AITTestSuiteComparePage.SetVersion(Rec.Version);
-                    AITTestSuiteComparePage.SetRecord(TemporaryAITTestSuiteRec);
-                    AITTestSuiteComparePage.Run();
+                    AITRunHistory.SetTestSuite(Rec.Code);
+                    AITRunHistory.Run();
                 end;
             }
             action(ExportAIT)
@@ -298,6 +309,7 @@ page 149031 "AIT Test Suite"
         TotalDuration: Duration;
         PageCaptionLbl: Label 'AI Test';
         TestRunnerDisplayName: Text;
+        InputDatasetChangedQst: Label 'You have modified the input dataset.\\Do you want to update the lines?';
 
     trigger OnOpenPage()
     var
