@@ -517,12 +517,16 @@ function LogErrorToConsole(operation, error) {
 }
 
 function GetErrorMessage(error) {
-    if (error && error.message) {
-        return error.message;
+    if (error && error.detail && error.detail.detailedMessage) {
+        return error.detail.detailedMessage;
     }
 
     if (error && error.detail && error.detail.message) {
         return error.detail.message;
+    }
+
+    if (error && error.message) {
+        return error.message;
     }
 
     return error.toString();
