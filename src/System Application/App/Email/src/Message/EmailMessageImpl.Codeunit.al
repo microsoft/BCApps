@@ -54,45 +54,18 @@ codeunit 8905 "Email Message Impl."
 
     procedure Create(ToRecipients: Text; Subject: Text; Body: Text; HtmlFormatted: Boolean)
     begin
-#pragma warning disable AA0205
         Create(ToRecipients, Subject, Body, HtmlFormatted, false);
-#pragma warning restore AA0205
     end;
 
     procedure Create(ToRecipients: Text; Subject: Text; Body: Text; HtmlFormatted: Boolean; Sanitize: Boolean)
     var
-        EmptyList: List of [Text];
+        Recipients: List of [Text];
+        CCRecipients: List of [Text];
+        BCCRecipients: List of [Text];
     begin
-#pragma warning disable AA0205
-        Create(EmptyList, Subject, Body, HtmlFormatted, Sanitize);
-#pragma warning restore AA0205
+        Create(Recipients, Subject, Body, HtmlFormatted, CCRecipients, BCCRecipients, Sanitize);
 
         SetRecipients(Enum::"Email Recipient Type"::"To", ToRecipients);
-    end;
-
-    procedure Create(Recipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean)
-    var
-        EmptyList: List of [Text];
-    begin
-#pragma warning disable AA0205
-        Create(Recipients, Subject, Body, HtmlFormatted, EmptyList, EmptyList, false);
-#pragma warning restore AA0205
-    end;
-
-    procedure Create(Recipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; Sanitize: Boolean)
-    var
-        EmptyList: List of [Text];
-    begin
-#pragma warning disable AA0205
-        Create(Recipients, Subject, Body, HtmlFormatted, EmptyList, EmptyList, Sanitize);
-#pragma warning restore AA0205
-    end;
-
-    procedure Create(Recipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
-    var
-        EmptyList: List of [Text];
-    begin
-        Create(Recipients, Subject, Body, HtmlFormatted, EmptyList, EmptyList, false);
     end;
 
     procedure Create(Recipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; CCRecipients: List of [Text]; BCCRecipients: List of [Text]; Sanitize: Boolean)
@@ -103,30 +76,27 @@ codeunit 8905 "Email Message Impl."
 
     procedure CreateReply(ToRecipients: Text; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
     var
-        EmptyList: List of [Text];
+        Recipients: List of [Text];
+        CCRecipients: List of [Text];
+        BCCRecipients: List of [Text];
     begin
-        CreateReply(EmptyList, Subject, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
+        CreateReply(Recipients, Subject, Body, HtmlFormatted, ExternalId, CCRecipients, BCCRecipients);
         SetRecipients(Enum::"Email Recipient Type"::"To", ToRecipients);
-    end;
-
-    procedure CreateReply(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
-    var
-        EmptyList: List of [Text];
-    begin
-        CreateReply(ToRecipients, Subject, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
-    end;
-
-    procedure CreateReplyAll(Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
-    var
-        EmptyList: List of [Text];
-    begin
-        CreateReply(EmptyList, Subject, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
     end;
 
     procedure CreateReply(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
     begin
         InitializeCreation();
         UpdateMessage(ToRecipients, Subject, Body, HtmlFormatted, ExternalId, CCRecipients, BCCRecipients, false);
+    end;
+
+    procedure CreateReplyAll(Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    var
+        ToRecipients: List of [Text];
+        CCRecipients: List of [Text];
+        BCCRecipients: List of [Text];
+    begin
+        CreateReply(ToRecipients, Subject, Body, HtmlFormatted, ExternalId, CCRecipients, BCCRecipients);
     end;
 
     local procedure InitializeCreation()
