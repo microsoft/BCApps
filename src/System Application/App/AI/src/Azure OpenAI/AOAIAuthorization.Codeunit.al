@@ -48,6 +48,18 @@ codeunit 7767 "AOAI Authorization"
     end;
 
     [NonDebuggable]
+    procedure SetMicrosoftManagedAuthorization(NewEndpoint: Text; NewDeployment: Text; NewApiKey: SecretText; NewManagedResourceDeployment: Text)
+    begin
+        ClearVariables();
+
+        ResourceUtilization := Enum::"AOAI Resource Utilization"::"Microsoft Managed";
+        Endpoint := NewEndpoint;
+        Deployment := NewDeployment;
+        ApiKey := NewApiKey;
+        ManagedResourceDeployment := NewManagedResourceDeployment;
+    end;
+
+    [NonDebuggable]
     procedure SetMicrosoftManagedAuthorization(AOAIAccountName: Text; NewApiKey: SecretText; NewManagedResourceDeployment: Text)
     var
         IsVerified: Boolean;
@@ -121,6 +133,7 @@ codeunit 7767 "AOAI Authorization"
         Clear(ResourceUtilization);
     end;
 
+    [NonDebuggable]
     local procedure VerifyAOAIAccount(AOAIAccountName: Text; NewApiKey: Text): Boolean
     var
         HttpClient: HttpClient;
@@ -130,8 +143,9 @@ codeunit 7767 "AOAI Authorization"
         ContentHeaders: HttpHeaders;
         Url: Text;
         IsSuccessful: Boolean;
+        UrlFormatTxt: Label 'https://%1.openai.azure.com/openai/models?api-version=2024-06-01', Locked = true;
     begin
-        Url := 'https://' + AOAIAccountName + '.openai.azure.com/openai/models?api-version=2024-06-01';
+        Url := StrSubstNo(UrlFormatTxt, AOAIAccountName);
 
         HttpContent.GetHeaders(ContentHeaders);
         if ContentHeaders.Contains('Content-Type') then
