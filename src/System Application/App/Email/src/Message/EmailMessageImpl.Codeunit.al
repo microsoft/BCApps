@@ -53,11 +53,9 @@ codeunit 8905 "Email Message Impl."
     end;
 
     procedure Create(ToRecipients: Text; Subject: Text; Body: Text; HtmlFormatted: Boolean)
-    var
-        EmptyList: List of [Text];
     begin
 #pragma warning disable AA0205
-        Create(EmptyList, Subject, Body, HtmlFormatted, false);
+        Create(ToRecipients, Subject, Body, HtmlFormatted, false);
 #pragma warning restore AA0205
     end;
 

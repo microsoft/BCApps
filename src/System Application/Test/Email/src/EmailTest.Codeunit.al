@@ -390,7 +390,6 @@ codeunit 134685 "Email Test"
         Assert.ExpectedError(EmailMessageCannotBeEditedErr);
     end;
 
-
     [Test]
     [HandlerFunctions('EmailEditorHandler,OnEmailEditorClose')]
     procedure OpenInEditorModallyDiscardAOptionTest()
