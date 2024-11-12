@@ -1,3 +1,4 @@
+#if not CLEAN26
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -16,6 +17,9 @@ page 149036 "AIT Test Suite Compare"
     InsertAllowed = false;
     DeleteAllowed = false;
     UsageCategory = None;
+    ObsoleteState = Pending;
+    ObsoleteTag = '26.0';
+    ObsoleteReason = 'Replaced with page AIT Run History';
 
     layout
     {
@@ -123,18 +127,18 @@ page 149036 "AIT Test Suite Compare"
                     group("Base Version")
                     {
                         Caption = 'Base Version';
-                        field("No. of Tests - Base"; Rec."No. of Tests Executed - Base")
+                        field("No. of Tests - Base"; Rec."No. of Tests Executed")
                         {
                             ToolTip = 'Specifies the number of tests in this Line for the base version.';
                             ShowCaption = false;
                         }
-                        field("No. of Tests Passed - Base"; Rec."No. of Tests Passed - Base")
+                        field("No. of Tests Passed - Base"; Rec."No. of Tests Passed")
                         {
                             ToolTip = 'Specifies the number of tests passed in the base Version.';
                             Style = Favorable;
                             ShowCaption = false;
                         }
-                        field("No. of Tests Failed - Base"; Rec."No. of Tests Executed - Base" - Rec."No. of Tests Passed - Base")
+                        field("No. of Tests Failed - Base"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
                         {
                             Editable = false;
                             Caption = 'Number of Tests Failed - Base';
@@ -149,13 +153,13 @@ page 149036 "AIT Test Suite Compare"
                                 AITLogEntryCU.DrillDownFailedAITLogEntries(Rec.Code, 0, BaseVersion);
                             end;
                         }
-                        field(DurationBase; Rec."Total Duration (ms) - Base")
+                        field(DurationBase; Rec."Total Duration (ms)")
                         {
                             ToolTip = 'Specifies Total Duration of the tests for the version.';
                             Caption = 'Total Duration Base (ms)';
                             ShowCaption = false;
                         }
-                        field("Tokens Consumed - Base"; Rec."Tokens Consumed - Base")
+                        field("Tokens Consumed - Base"; Rec."Tokens Consumed")
                         {
                             ShowCaption = false;
                         }
@@ -190,3 +194,4 @@ page 149036 "AIT Test Suite Compare"
         CurrPage.Update();
     end;
 }
+#endif
