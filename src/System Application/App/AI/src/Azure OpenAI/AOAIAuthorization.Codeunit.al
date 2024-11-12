@@ -48,15 +48,19 @@ codeunit 7767 "AOAI Authorization"
     end;
 
     [NonDebuggable]
-    procedure SetMicrosoftManagedAuthorization(NewEndpoint: Text; NewDeployment: Text; NewApiKey: SecretText; NewManagedResourceDeployment: Text)
+    procedure SetMicrosoftManagedAuthorization(AOAIAccountName: Text; NewApiKey: SecretText; NewManagedResourceDeployment: Text)
+    var
+        IsVerified: Boolean;
     begin
         ClearVariables();
+        IsVerified := VerifyAOAIAccount(AOAIAccountName, NewApiKey.Unwrap());
 
-        ResourceUtilization := Enum::"AOAI Resource Utilization"::"Microsoft Managed";
-        Endpoint := NewEndpoint;
-        Deployment := NewDeployment;
-        ApiKey := NewApiKey;
-        ManagedResourceDeployment := NewManagedResourceDeployment;
+        if IsVerified then begin
+            ResourceUtilization := Enum::"AOAI Resource Utilization"::"Microsoft Managed";
+            Endpoint := "endpoint";//NewEndpoint;
+            ApiKey := NewApiKey;
+            ManagedResourceDeployment := NewManagedResourceDeployment;
+        end;
     end;
 
     [NonDebuggable]
@@ -115,5 +119,38 @@ codeunit 7767 "AOAI Authorization"
         Clear(Deployment);
         Clear(ManagedResourceDeployment);
         Clear(ResourceUtilization);
+    end;
+
+    local procedure VerifyAOAIAccount(AOAIAccountName: Text; NewApiKey: Text): Boolean
+    var
+        HttpClient: HttpClient;
+        HttpRequestMessage: HttpRequestMessage;
+        HttpResponseMessage: HttpResponseMessage;
+        HttpContent: HttpContent;
+        ContentHeaders: HttpHeaders;
+        Url: Text;
+        IsSuccessful: Boolean;
+    begin
+        Url := 'https://' + AOAIAccountName + '.openai.azure.com/openai/models?api-version=2024-06-01';
+
+        HttpContent.GetHeaders(ContentHeaders);
+        if ContentHeaders.Contains('Content-Type') then
+            ContentHeaders.Remove('Content-Type');
+        ContentHeaders.Add('Content-Type', 'application/json');
+        ContentHeaders.Add('api-key', NewApiKey);
+
+        HttpRequestMessage.Method := 'GET';
+        HttpRequestMessage.SetRequestUri(Url);
+        HttpRequestMessage.Content(HttpContent);
+
+        IsSuccessful := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+
+        if not IsSuccessful then
+            exit(false);
+
+        if not HttpResponseMessage.IsSuccessStatusCode() then
+            exit(false);
+
+        exit(true);
     end;
 }
