@@ -69,8 +69,6 @@ codeunit 7767 "AOAI Authorization"
 
         if IsVerified then begin
             ResourceUtilization := Enum::"AOAI Resource Utilization"::"Microsoft Managed";
-            Endpoint := "endpoint";//NewEndpoint;
-            ApiKey := NewApiKey;
             ManagedResourceDeployment := NewManagedResourceDeployment;
         end;
     end;
