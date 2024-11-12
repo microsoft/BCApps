@@ -27,6 +27,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         NothingToRunErr: Label 'There is nothing to run. Please add test lines to the test suite.';
         CannotRunMultipleSuitesInParallelErr: Label 'There is already a test run in progress. You need to wait for it to finish or cancel it before starting a new test run.';
         FeatureNameLbl: Label 'AI Test Toolkit', Locked = true;
+        LineNoFilterLbl: Label 'Codeunit %1 "%2" (Input: %3)', Locked = true;
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
     var
@@ -53,6 +54,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     local procedure RunAITests(AITTestSuite: Record "AIT Test Suite")
     var
         AITTestMethodLine: Record "AIT Test Method Line";
+        AITRunHistory: Record "AIT Run History";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         FeatureTelemetryCD: Dictionary of [Text, Text];
@@ -85,6 +87,11 @@ codeunit 149034 "AIT Test Suite Mgt."
             repeat
                 RunAITestLine(AITTestMethodLine, true);
             until AITTestMethodLine.Next() = 0;
+
+        AITRunHistory."Test Suite Code" := AITTestSuite.Code;
+        AITRunHistory.Version := AITTestSuite.Version;
+        AITRunHistory.Tag := AITTestSuite.Tag;
+        AITRunHistory.Insert();
     end;
 
     internal procedure RunAITestLine(AITTestMethodLine: Record "AIT Test Method Line"; IsExecutedFromTestSuiteHeader: Boolean)
@@ -408,6 +415,26 @@ codeunit 149034 "AIT Test Suite Mgt."
         DownloadFromStream(AITTestSuiteInStream, '', '', '.xml', FileNameTxt);
     end;
 
+    procedure LookupTestMethodLine(TestSuiteCode: Code[100]; var LineNoFilter: Text; var LineNo: Integer)
+    var
+        AITTestMethodLine: Record "AIT Test Method Line";
+        AITTestMethodLines: Page "AIT Test Method Lines Lookup";
+    begin
+        AITTestMethodLine.SetRange("Test Suite Code", TestSuiteCode);
+
+        AITTestMethodLines.SetTableView(AITTestMethodLine);
+        AITTestMethodLines.LookupMode(true);
+
+        if AITTestMethodLines.RunModal() <> Action::LookupOK then
+            exit;
+
+        AITTestMethodLines.GetRecord(AITTestMethodLine);
+
+        AITTestMethodLine.CalcFields("Codeunit Name");
+        LineNoFilter := StrSubstNo(LineNoFilterLbl, AITTestMethodLine."Codeunit ID", AITTestMethodLine."Codeunit Name", AITTestMethodLine."Input Dataset");
+        LineNo := AITTestMethodLine."Line No.";
+    end;
+
     internal procedure GetFeatureName(): Text
     begin
         exit(FeatureNameLbl);
@@ -418,6 +445,7 @@ codeunit 149034 "AIT Test Suite Mgt."
     var
         AITTestMethodLine: Record "AIT Test Method Line";
         AITLogEntry: Record "AIT Log Entry";
+        AITRunHistory: Record "AIT Run History";
     begin
         if Rec.IsTemporary() then
             exit;
@@ -427,6 +455,9 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITLogEntry.SetRange("Test Suite Code", Rec."Code");
         AITLogEntry.DeleteAll(true);
+
+        AITRunHistory.SetRange("Test Suite Code", Rec."Code");
+        AITRunHistory.DeleteAll(true);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Method Line", OnBeforeInsertEvent, '', false, false)]

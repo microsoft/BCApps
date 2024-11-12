@@ -7,7 +7,9 @@ namespace System.TestTools.AITestToolkit;
 
 using System.TestTools.TestRunner;
 
+#pragma warning disable AS0002
 table 149030 "AIT Test Suite"
+#pragma warning restore AS0002
 {
     Caption = 'AI Test Suite';
     DataClassification = SystemMetadata;
@@ -46,18 +48,6 @@ table 149030 "AIT Test Suite"
             TableRelation = "Test Input Group".Code;
             ValidateTableRelation = true;
             ToolTip = 'Specifies the dataset to be used by the test suite.';
-
-            trigger OnValidate()
-            var
-                AITTestMethodLine: Record "AIT Test Method Line";
-            begin
-                if GuiAllowed() then
-                    if not Dialog.Confirm(InputDatasetChangedQst) then
-                        exit;
-
-                AITTestMethodLine.SetRange("Test Suite Code", Rec.Code);
-                AITTestMethodLine.ModifyAll("Input Dataset", Rec."Input Dataset", true);
-            end;
         }
         field(8; "Ended at"; DateTime)
         {
@@ -115,7 +105,7 @@ table 149030 "AIT Test Suite"
             ToolTip = 'Specifies the time taken for executing the tests in the test suite.';
             Editable = false;
             FieldClass = FlowField;
-            CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+            CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Code"), "Version" = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
         field(13; Version; Integer)
         {
@@ -171,46 +161,6 @@ table 149030 "AIT Test Suite"
             FieldClass = FlowField;
             CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Code"), Version = field("Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
         }
-        field(31; "No. of Tests Executed - Base"; Integer)
-        {
-            Caption = 'No. of Tests Executed';
-            ToolTip = 'Specifies the number of tests executed for the base version of the test suite.';
-            Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
-        }
-        field(32; "No. of Tests Passed - Base"; Integer)
-        {
-            Caption = 'No. of Tests Passed';
-            ToolTip = 'Specifies the number of tests passed for the base version of the test suite.';
-            Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> ''), Status = const(0)));
-        }
-        field(33; "No. of Operations - Base"; Integer)
-        {
-            Caption = 'No. of Operations';
-            ToolTip = 'Specifies the number of operations executed including "Run Procedure" operation for the base version of the test suite.';
-            Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Code"), "Version" = field("Base Version")));
-        }
-        field(34; "Total Duration (ms) - Base"; Integer)
-        {
-            Caption = 'Total Duration (ms) - Base';
-            ToolTip = 'Specifies the time taken for executing the tests for the base version of the test suite.';
-            Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = sum("AIT Log Entry"."Duration (ms)" where("Test Suite Code" = field("Code"), Version = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
-        }
-        field(35; "Tokens Consumed - Base"; Integer)
-        {
-            Caption = 'Total Tokens Consumed - Base';
-            ToolTip = 'Specifies the aggregated number of tokens consumed by the test in the base version. This is applicable only when using Microsoft AI Module.';
-            Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Code"), Version = field("Base Version"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
-        }
         field(50; "Test Runner Id"; Integer)
         {
             Caption = 'Test Runner Id';
@@ -263,5 +213,4 @@ table 149030 "AIT Test Suite"
 
     var
         BaseVersionMustBeLessThanVersionErr: Label 'Base Version must be less than or equal to Version';
-        InputDatasetChangedQst: Label 'You have modified the input dataset.\\Do you want to update the lines?';
 }
