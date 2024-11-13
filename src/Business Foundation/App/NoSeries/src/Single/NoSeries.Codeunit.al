@@ -362,4 +362,13 @@ codeunit 310 "No. Series"
     internal procedure OnAfterSetNoSeriesCurrentLineFilters(NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; IsDrillDown: Boolean);
     begin
     end;
+
+    /// <summary>
+    /// Use this event to change the filters set on the No. Series Line record. These filters are used when searching the No. Series.
+    /// </summary>
+    /// <param name="NoSeriesLine">The No. Series Line to set filters on.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnGetNoSeriesLineOnBeforeFindLast(var NoSeriesLine: Record "No. Series Line");
+    begin
+    end;
 }

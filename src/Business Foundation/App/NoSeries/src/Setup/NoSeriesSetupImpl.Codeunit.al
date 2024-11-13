@@ -101,6 +101,7 @@ codeunit 305 "No. Series - Setup Impl."
         NoSeriesLine.SetCurrentKey("Series Code", "Starting Date");
         NoSeriesLine.SetRange("Series Code", NoSeriesRec.Code);
         NoSeriesLine.SetRange("Starting Date", 0D, WorkDate());
+        NoSeries.OnGetNoSeriesLineOnBeforeFindLast(NoSeriesLine);
 #if not CLEAN24
 #pragma warning disable AL0432
         NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
