@@ -209,9 +209,10 @@ codeunit 304 "No. Series - Impl."
         end;
 #pragma warning restore AL0432
 #else
-        if not LineFound then
+        if not LineFound then begin
             NoSeries.OnGetNoSeriesLineOnBeforeFindLast(NoSeriesLine);
             LineFound := NoSeriesLine.FindLast();
+        end;
 #endif
 
         if LineFound and NoSeries.MayProduceGaps(NoSeriesLine) then begin
