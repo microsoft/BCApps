@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.TestTools.AITestToolkit;
+
 using System.TestTools.TestRunner;
 
 /// <summary>
@@ -107,8 +108,12 @@ codeunit 149043 "AIT Test Context Impl."
     /// </summary>
     /// <param name="TestOutputText">The test output as text.</param>
     procedure SetTestOutput(TestOutputText: Text)
+    var
+        CurrentTestOutputJson: Codeunit "Test Output Json";
     begin
-        SetSuiteTestOutput(TestOutputText);
+        CurrentTestOutputJson.Initialize();
+        CurrentTestOutputJson.Add(AnswerTok, TestOutputText);
+        SetSuiteTestOutput(CurrentTestOutputJson.ToText());
     end;
 
     /// <summary>

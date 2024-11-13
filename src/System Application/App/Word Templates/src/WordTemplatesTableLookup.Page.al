@@ -40,14 +40,4 @@ page 9988 "Word Templates Table Lookup"
         }
     }
 
-#if not CLEAN22
-    [Obsolete('Use Page.GetRecord instead.', '22.0')]
-#pragma warning disable AL0523, AL0749, AL0755
-    procedure GetRecord(var SelectedWordTemplatesTable: Record "Word Templates Table")
-#pragma warning restore AL0523, AL0749, AL0755
-    begin
-        SelectedWordTemplatesTable := Rec;
-    end;
-#endif
 }
-

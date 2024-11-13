@@ -14,6 +14,7 @@ table 149034 "AIT Log Entry"
     DataClassification = SystemMetadata;
     DrillDownPageId = "AIT Log Entries";
     LookupPageId = "AIT Log Entries";
+    DataCaptionFields = "Codeunit Name", "Procedure Name", "Test Input Code";
     Extensible = false;
     Access = Internal;
     ReplicateData = false;
@@ -158,6 +159,11 @@ table 149034 "AIT Log Entry"
         {
             Caption = 'Output Data';
         }
+        field(50; "Tokens Consumed"; Integer)
+        {
+            Caption = 'Total Tokens Consumed';
+            ToolTip = 'Specifies the aggregated number of tokens consumed by the test. This is applicable only when using Microsoft AI Module.';
+        }
     }
 
     keys
@@ -170,6 +176,12 @@ table 149034 "AIT Log Entry"
         {
             IncludedFields = Status;
             SumIndexFields = "Duration (ms)";
+        }
+        key(Key3; Tag)
+        {
+        }
+        key(Key4; Version)
+        {
         }
     }
 

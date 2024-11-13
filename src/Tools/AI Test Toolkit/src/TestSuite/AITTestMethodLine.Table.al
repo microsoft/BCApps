@@ -171,6 +171,22 @@ table 149032 "AIT Test Method Line"
             Caption = 'AL Test Suite';
             Editable = false;
         }
+        field(120; "Tokens Consumed"; Integer)
+        {
+            Caption = 'Total Tokens Consumed';
+            ToolTip = 'Specifies the number of tokens consumed by the test in the current version. This is applicable only when using Microsoft AI Module.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+        }
+        field(121; "Tokens Consumed - Base"; Integer)
+        {
+            Caption = 'Tokens Consumed - Base';
+            ToolTip = 'Specifies the number of tokens consumed by the test in the base version. This is applicable only when using Microsoft AI Module.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("AIT Log Entry"."Tokens Consumed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+        }
     }
 
     keys
@@ -186,6 +202,13 @@ table 149032 "AIT Test Method Line"
         }
     }
 
+    fieldgroups
+    {
+        fieldgroup(DropDown; "Line No.", "Codeunit ID", "Codeunit Name", "Input Dataset", Description)
+        {
+        }
+    }
+
     internal procedure GetTestInputCode(): Code[100]
     var
         AITTestSuite: Record "AIT Test Suite";
@@ -195,6 +218,15 @@ table 149032 "AIT Test Method Line"
 
         AITTestSuite.Get(Rec."Test Suite Code");
         exit(AITTestSuite."Input Dataset");
+    end;
+
+    trigger OnInsert()
+    var
+        AITTestSuite: Record "AIT Test Suite";
+    begin
+        if Rec."Input Dataset" = '' then
+            if AITTestSuite.Get(Rec."Test Suite Code") then
+                Rec."Input Dataset" := AITTestSuite."Input Dataset";
     end;
 
     trigger OnDelete()

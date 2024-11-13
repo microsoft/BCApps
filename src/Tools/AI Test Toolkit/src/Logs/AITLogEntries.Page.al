@@ -88,7 +88,7 @@ page 149033 "AIT Log Entries"
 
                     trigger OnDrillDown()
                     begin
-                        Message(Rec.GetInputBlob());
+                        Page.Run(Page::"AIT Test Data Compare", Rec);
                     end;
                 }
                 field("Output Text"; OutputText)
@@ -98,8 +98,11 @@ page 149033 "AIT Log Entries"
 
                     trigger OnDrillDown()
                     begin
-                        Message(Rec.GetOutputBlob());
+                        Page.Run(Page::"AIT Test Data Compare", Rec);
                     end;
+                }
+                field("Tokens Consumed"; Rec."Tokens Consumed")
+                {
                 }
                 field(TestRunDuration; TestRunDuration)
                 {
@@ -238,7 +241,17 @@ page 149033 "AIT Log Entries"
                 begin
                     AITALTestSuiteMgt.DownloadTestOutputFromLogToFile(Rec);
                 end;
+            }
+            action("View Test Data")
+            {
+                Caption = 'View Test Data';
+                Image = CompareCOA;
+                ToolTip = 'View Test Data.';
 
+                trigger OnAction()
+                begin
+                    Page.Run(Page::"AIT Test Data Compare", Rec);
+                end;
             }
         }
         area(Promoted)
@@ -261,6 +274,9 @@ page 149033 "AIT Log Entries"
                 {
                 }
                 actionref("Download Test Output_Promoted"; "Download Test Output")
+                {
+                }
+                actionref("View Test Data_Promoted"; "View Test Data")
                 {
                 }
             }
@@ -314,7 +330,6 @@ page 149033 "AIT Log Entries"
     begin
         InputText := '';
         OutputText := '';
-
         if Rec.Sensitive and not ShowSensitiveData then begin
             Rec.CalcFields("Input Data", "Output Data");
             if Rec."Input Data".Length > 0 then

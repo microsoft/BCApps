@@ -26,15 +26,7 @@ codeunit 4470 "Record Link Impl."
     procedure CopyLinks(FromRecordVariant: Variant; ToRecordVariant: Variant)
     var
         RecordRefTo: RecordRef;
-#if not CLEAN23
-        SkipReset: Boolean;
-#endif
     begin
-#if not CLEAN23
-#pragma warning disable AL0432
-        RecordLinkManagement.OnBeforeCopyLinks(FromRecordVariant, ToRecordVariant, SkipReset);
-#pragma warning restore AL0432
-#endif
         RecordRefTo.GetTable(ToRecordVariant);
         RecordRefTo.CopyLinks(FromRecordVariant);
         RecordLinkManagement.OnAfterCopyLinks(FromRecordVariant, ToRecordVariant);
@@ -138,4 +130,3 @@ codeunit 4470 "Record Link Impl."
             WindowDialog.Close();
     end;
 }
-
