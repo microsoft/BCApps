@@ -209,25 +209,25 @@ codeunit 8900 "Email Impl"
     var
 #if not CLEAN26
 #pragma warning disable AL0432
-        IEmailConnectorv2: Interface "Email Connector v2";
+        EmailConnectorv2: Interface "Email Connector v2";
 #pragma warning restore AL0432
 #endif
-        IEmailConnectorv3: Interface "Email Connector v3";
+        EmailConnectorv3: Interface "Email Connector v3";
     begin
         CheckRequiredPermissions();
 
-        if CheckAndGetEmailConnectorv3(Connector, IEmailConnectorv3) then begin
+        if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then begin
             TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
-            IEmailConnectorv3.RetrieveEmails(EmailAccountId, EmailInbox, Filters);
+            EmailConnectorv3.RetrieveEmails(EmailAccountId, EmailInbox, Filters);
             EmailInbox.MarkedOnly(true);
             exit;
         end;
 #if not CLEAN26
 #pragma warning disable AL0432
-        if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then begin
+        if CheckAndGetEmailConnectorv2(Connector, EmailConnectorv2) then begin
 #pragma warning restore AL0432
             TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
-            IEmailConnectorv2.RetrieveEmails(EmailAccountId, EmailInbox);
+            EmailConnectorv2.RetrieveEmails(EmailAccountId, EmailInbox);
             EmailInbox.MarkedOnly(true);
             exit;
         end;
@@ -262,25 +262,25 @@ codeunit 8900 "Email Impl"
     var
 #if not CLEAN26
 #pragma warning disable AL0432
-        IEmailConnectorv2: Interface "Email Connector v2";
+        EmailConnectorv2: Interface "Email Connector v2";
 #pragma warning restore AL0432
 #endif
-        IEmailConnectorv3: Interface "Email Connector v3";
+        EmailConnectorv3: Interface "Email Connector v3";
     begin
         CheckRequiredPermissions();
 
         if ExternalId = '' then
             Error(ExternalIdCannotBeEmptyErr);
 
-        if CheckAndGetEmailConnectorv3(Connector, IEmailConnectorv3) then begin
-            IEmailConnectorv3.MarkAsRead(EmailAccountId, ExternalId);
+        if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then begin
+            EmailConnectorv3.MarkAsRead(EmailAccountId, ExternalId);
             exit;
         end;
 #if not CLEAN26
 #pragma warning disable AL0432
-        if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then begin
+        if CheckAndGetEmailConnectorv2(Connector, EmailConnectorv2) then begin
 #pragma warning restore AL0432
-            IEmailConnectorv2.MarkAsRead(EmailAccountId, ExternalId);
+            EmailConnectorv2.MarkAsRead(EmailAccountId, ExternalId);
             exit;
         end;
 #endif
@@ -292,16 +292,16 @@ codeunit 8900 "Email Impl"
     var
 #if not CLEAN26
 #pragma warning disable AL0432
-        IEmailConnectorv2: Interface "Email Connector v2";
+        EmailConnectorv2: Interface "Email Connector v2";
 #pragma warning restore AL0432
 #endif
-        IEmailConnectorv3: Interface "Email Connector v3";
+        EmailConnectorv3: Interface "Email Connector v3";
     begin
-        if CheckAndGetEmailConnectorv3(Connector, IEmailConnectorv3) then
+        if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then
             exit(true);
 #if not CLEAN26
 #pragma warning disable AL0432
-        if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then
+        if CheckAndGetEmailConnectorv2(Connector, EmailConnectorv2) then
             exit(true);
 #pragma warning restore AL0432
 #endif
