@@ -189,7 +189,8 @@ codeunit 2350 "Rest Client"
 
     #region BasicMethods
     /// <summary>Sends a GET request to the specified Uri and returns the response message.</summary>
-    /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.</remarks>
+    /// <remarks>The function fails with a collectible error if the request could not be sent or a response was not received.
+    /// If a response was received, then the response message object contains information about the status.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <returns>The response message object</returns>
     procedure Get(RequestUri: Text) HttpResponseMessage: Codeunit "Http Response Message"
@@ -197,19 +198,8 @@ codeunit 2350 "Rest Client"
         HttpResponseMessage := Send(Enum::"Http Method"::GET, RequestUri);
     end;
 
-    /// <summary>Sends a GET request to the specified Uri and returns the response message.</summary>
-    /// <remarks>The function returns true if a response was received, otherwise it returns false.
-    /// If a response was received, then the response message object contains information about the HTTP status.</remarks>
-    /// <param name="RequestUri">The Uri the request is sent to.</param>
-    /// <param name="HttpResponseMessage">The response message object</param>
-    /// <returns>True if a response was received, otherwise false</returns>
-    procedure Get(RequestUri: Text; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean
-    begin
-        Success := Send(Enum::"Http Method"::GET, RequestUri, HttpResponseMessage);
-    end;
-
     /// <summary>Sends a POST request to the specified Uri and returns the response message.</summary>
-    /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
+    /// <remarks>The function fails with a collectible error if the request could not be sent or a response was not received.
     /// If a response was received, then the response message object contains information about the status.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send.</param>
@@ -219,20 +209,8 @@ codeunit 2350 "Rest Client"
         HttpResponseMessage := Send(Enum::"Http Method"::POST, RequestUri, Content);
     end;
 
-    /// <summary>Sends a POST request to the specified Uri and returns the response message.</summary>
-    /// <remarks>The function returns true if a response was received, otherwise it returns false.
-    /// If a response was received, then the response message object contains information about the HTTP status.</remarks>
-    /// <param name="RequestUri">The Uri the request is sent to.</param>
-    /// <param name="Content">The content to send.</param>
-    /// <param name="HttpResponseMessage">The response message object</param>
-    /// <returns>True if a response was received, otherwise false</returns>
-    procedure Post(RequestUri: Text; Content: Codeunit "Http Content"; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean
-    begin
-        Success := Send(Enum::"Http Method"::POST, RequestUri, Content, HttpResponseMessage);
-    end;
-
     /// <summary>Sends a PATCH request to the specified Uri and returns the response message.</summary>
-    /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
+    /// <remarks>The function fails with a collectible error if the request could not be sent or a response was not received.
     /// If a response was received, then the response message object contains information about the status.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send.</param>
@@ -242,20 +220,8 @@ codeunit 2350 "Rest Client"
         HttpResponseMessage := Send(Enum::"Http Method"::PATCH, RequestUri, Content);
     end;
 
-    /// <summary>Sends a PATCH request to the specified Uri and returns the response message.</summary>
-    /// <remarks>The function returns true if a response was received, otherwise it returns false.
-    /// If a response was received, then the response message object contains information about the HTTP status.</remarks>
-    /// <param name="RequestUri">The Uri the request is sent to.</param>
-    /// <param name="Content">The content to send.</param>
-    /// <param name="HttpResponseMessage">The response message object</param>
-    /// <returns>True if a response was received, otherwise false</returns>
-    procedure Patch(RequestUri: Text; Content: Codeunit "Http Content"; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean
-    begin
-        Success := Send(Enum::"Http Method"::PATCH, RequestUri, Content, HttpResponseMessage);
-    end;
-
     /// <summary>Sends a PUT request to the specified Uri and returns the response message.</summary>
-    /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
+    /// <remarks>The function fails with a collectible error if the request could not be sent or a response was not received.
     /// If a response was received, then the response message object contains information about the status.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <param name="Content">The content to send.</param>
@@ -265,20 +231,8 @@ codeunit 2350 "Rest Client"
         HttpResponseMessage := Send(Enum::"Http Method"::PUT, RequestUri, Content);
     end;
 
-    /// <summary>Sends a PUT request to the specified Uri and returns the response message.</summary>
-    /// <remarks>The function returns true if a response was received, otherwise it returns false.
-    /// If a response was received, then the response message object contains information about the HTTP status.</remarks>
-    /// <param name="RequestUri">The Uri the request is sent to.</param>
-    /// <param name="Content">The content to send.</param>
-    /// <param name="HttpResponseMessage">The response message object</param>
-    /// <returns>True if a response was received, otherwise false</returns>
-    procedure Put(RequestUri: Text; Content: Codeunit "Http Content"; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean
-    begin
-        Success := Send(Enum::"Http Method"::PUT, RequestUri, Content, HttpResponseMessage);
-    end;
-
     /// <summary>Sends a DELETE request to the specified Uri and returns the response message.</summary>
-    /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
+    /// <remarks>The function fails with a collectible error if the request could not be sent or a response was not received.
     /// If a response was received, then the response message object contains information about the status.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
     /// <returns>The response message object</returns>
@@ -286,35 +240,12 @@ codeunit 2350 "Rest Client"
     begin
         HttpResponseMessage := Send(Enum::"Http Method"::DELETE, RequestUri);
     end;
-
-    /// <summary>Sends a DELETE request to the specified Uri and returns the response message.</summary>
-    /// <remarks>The function returns true if a response was received, otherwise it returns false.
-    /// If a response was received, then the response message object contains information about the HTTP status.</remarks>
-    /// <param name="RequestUri">The Uri the request is sent to.</param>
-    /// <param name="HttpResponseMessage">The response message object</param>
-    /// <returns>True if a response was received, otherwise false</returns>
-    procedure Delete(RequestUri: Text; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean
-    begin
-        Success := Send(Enum::"Http Method"::DELETE, RequestUri, HttpResponseMessage);
-    end;
     #endregion
-
-    [ErrorBehavior(ErrorBehavior::Collect)]
-    procedure demo()
-    var
-        Value: Text;
-        JsonToken: JsonToken;
-    begin
-        JsonToken := GetAsJson('');
-        if HasCollectedErrors() then begin
-
-        end;
-    end;
 
     #region BasicMethodsAsJson
     /// <summary>Sends a GET request to the specified Uri and returns the response content as JsonToken.</summary>
-    /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code.
+    /// <remarks>The function fails with a collectible error if the request could not be sent or a response was not received.
+    /// The function also fails with a collectible error in case the response does not contain a success status code.
     /// In case the response contains no content, an empty JsonToken is returned. 
     /// In case the response contains content, then the function fails with a collectible error if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
@@ -324,22 +255,9 @@ codeunit 2350 "Rest Client"
         JsonToken := RestClientImpl.GetAsJson(RequestUri);
     end;
 
-    /// <summary>Sends a GET request to the specified Uri and returns the response content as JsonToken.</summary>
-    /// <remarks>The function returns true if a response was received, otherwise it returns false.
-    /// If a response was received, then the response content is returned as JsonToken.
-    /// In case the response contains no content, an empty JsonToken is returned. 
-    /// In case the response contains content, then the function fails with a collectible errorif the content is invalid JSON.</remarks>
-    /// <param name="RequestUri">The Uri the request is sent to.</param>
-    /// <param name="JsonToken">The response content as JsonToken</param>
-    /// <returns>True if a response was received, otherwise false</returns>
-    procedure GetAsJson(RequestUri: Text; var JsonToken: JsonToken) Success: Boolean
-    begin
-        Success := RestClientImpl.GetAsJson(RequestUri, JsonToken);
-    end;
-
     /// <summary>Sends a POST request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code.
+    /// The function also fails with a collectible error in case the response does not contain a success status code.
     /// In case the response contains no content, an empty JsonToken is returned. 
     /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
@@ -352,7 +270,7 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a POST request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code.
+    /// The function also fails with a collectible error in case the response does not contain a success status code.
     /// In case the response contains no content, an empty JsonToken is returned. 
     /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
@@ -365,7 +283,7 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a POST request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code.
+    /// The function also fails with a collectible error in case the response does not contain a success status code.
     /// In case the response contains no content, an empty JsonToken is returned. 
     /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
@@ -378,7 +296,7 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a PATCH request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code.
+    /// The function also fails with a collectible error in case the response does not contain a success status code.
     /// In case the response contains no content, an empty JsonToken is returned. 
     /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
@@ -391,7 +309,7 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a PATCH request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code.
+    /// The function also fails with a collectible error in case the response does not contain a success status code.
     /// In case the response contains no content, an empty JsonToken is returned. 
     /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
@@ -404,7 +322,7 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a PATCH request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code.
+    /// The function also fails with a collectible error in case the response does not contain a success status code.
     /// In case the response contains no content, an empty JsonToken is returned. 
     /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
@@ -417,7 +335,7 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a PUT request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code.
+    /// The function also fails with a collectible error in case the response does not contain a success status code.
     /// In case the response contains no content, an empty JsonToken is returned. 
     /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
@@ -430,7 +348,7 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a PUT request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code.
+    /// The function also fails with a collectible error in case the response does not contain a success status code.
     /// In case the response contains no content, an empty JsonToken is returned. 
     /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
@@ -443,7 +361,7 @@ codeunit 2350 "Rest Client"
 
     /// <summary>Sends a PUT request to the specified Uri and returns the response content as JsonToken.</summary>
     /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
-    /// The function also fails in case the response does not contain a success status code.
+    /// The function also fails with a collectible error in case the response does not contain a success status code.
     /// In case the response contains no content, an empty JsonToken is returned. 
     /// In case the response contains content, then the function fails if the content is invalid JSON.</remarks>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
@@ -457,7 +375,7 @@ codeunit 2350 "Rest Client"
 
     #region GenericSendMethods
     /// <summary>Sends a request with the specific Http method and an empty content to the specified Uri and returns the response message.</summary>
-    /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
+    /// <remarks>The function fails with a collectible error if the request could not be sent or a response was not received.
     /// If a response was received, then the response message object contains information about the status.</remarks>
     /// <param name="Method">The HTTP method to use.</param>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
@@ -468,7 +386,7 @@ codeunit 2350 "Rest Client"
     end;
 
     /// <summary>Sends a request with the specific Http method and the given content to the specified Uri and returns the response message.</summary>
-    /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.
+    /// <remarks>The function fails with a collectible error if the request could not be sent or a response was not received.
     /// If a response was received, then the response message object contains information about the status.</remarks>
     /// <param name="Method">The HTTP method to use.</param>
     /// <param name="RequestUri">The Uri the request is sent to.</param>
@@ -480,7 +398,7 @@ codeunit 2350 "Rest Client"
     end;
 
     /// <summary>Sends the given request message and returns the response message.</summary>
-    /// <remarks>The function fails with an error message if the request could not be sent or a response was not received.</remarks>
+    /// <remarks>The function fails with a collectible error if the request could not be sent or a response was not received.</remarks>
     /// <param name="HttpRequestMessage">The request message to send.</param>
     /// <returns>The response message object</returns>
     procedure Send(var HttpRequestMessage: Codeunit "Http Request Message") HttpResponseMessage: Codeunit "Http Response Message"
@@ -488,26 +406,5 @@ codeunit 2350 "Rest Client"
         HttpResponseMessage := RestClientImpl.Send(HttpRequestMessage);
     end;
 
-    /// <summary>Sends a request with the specific Http method and an empty content to the specified Uri and returns the response message.</summary>
-    /// <remarks>The function returns true if a response was received, otherwise it returns false.
-    /// If a response was received, then the response message object contains information about the HTTP status.</remarks>
-    /// <param name="Method">The HTTP method to use.</param>
-    /// <param name="RequestUri">The Uri the request is sent to.</param>
-    /// <param name="HttpResponseMessage">The response message object</param>
-    /// <returns>True if a response was received, otherwise false</returns>
-    procedure Send(Method: Enum "Http Method"; RequestUri: Text; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean
-    begin
-        Success := RestClientImpl.Send(Method, RequestUri, HttpResponseMessage);
-    end;
-
-    procedure Send(Method: Enum "Http Method"; RequestUri: Text; Content: Codeunit "Http Content"; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean
-    begin
-        Success := RestClientImpl.Send(Method, RequestUri, Content, HttpResponseMessage);
-    end;
-
-    procedure Send(var HttpRequestMessage: Codeunit "Http Request Message"; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean
-    begin
-        Success := RestClientImpl.Send(HttpRequestMessage, HttpResponseMessage);
-    end;
     #endregion
 }

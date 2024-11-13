@@ -18,6 +18,7 @@ codeunit 2351 "Rest Client Impl."
         RestClientExceptionBuilder: Codeunit "Rest Client Exception Builder";
         HttpAuthentication: Interface "Http Authentication";
         HttpClientHandler: Interface "Http Client Handler";
+        HttpResponseMessage: Codeunit "Http Response Message";
         HttpClient: HttpClient;
         IsInitialized: Boolean;
         BlockedByEnvironmentErrorTok: Label 'BlockedByEnvironmentError', Locked = true;
@@ -59,7 +60,6 @@ codeunit 2351 "Rest Client Impl."
         Initialize(DefaultHttpClientHandler, HttpAuthenticationAnonymous);
     end;
 
-#pragma warning disable AA0244
     procedure Initialize(HttpClientHandler: Interface "Http Client Handler")
     begin
         Initialize(HttpClientHandler, HttpAuthenticationAnonymous);
@@ -69,7 +69,6 @@ codeunit 2351 "Rest Client Impl."
     begin
         Initialize(DefaultHttpClientHandler, HttpAuthentication);
     end;
-#pragma warning restore AA0244
 
     procedure Initialize(HttpClientHandlerInstance: Interface "Http Client Handler"; HttpAuthenticationInstance: Interface "Http Authentication")
     begin
@@ -153,36 +152,21 @@ codeunit 2351 "Rest Client Impl."
     end;
     #endregion
 
-
     #region BasicMethodsAsJson
     procedure GetAsJson(RequestUri: Text) JsonToken: JsonToken
     var
         HttpResponseMessage: Codeunit "Http Response Message";
     begin
         HttpResponseMessage := Send(Enum::"Http Method"::GET, RequestUri);
+        if HasCollectedErrors() then
+            exit;
+
         if not HttpResponseMessage.GetIsSuccessStatusCode() then begin
             Error(HttpResponseMessage.GetException());
-        end;
-
-        JsonToken := HttpResponseMessage.GetContent().AsJson();
-    end;
-
-    procedure GetAsJson(RequestUri: Text; var JsonToken: JsonToken) Success: Boolean
-    var
-        HttpResponseMessage: Codeunit "Http Response Message";
-    begin
-        Clear(JsonToken);
-        Success := Send(Enum::"Http Method"::GET, RequestUri, HttpResponseMessage);
-        if not Success then begin
             exit;
         end;
 
-        if Success and HttpResponseMessage.GetIsSuccessStatusCode() then
-            JsonToken := HttpResponseMessage.GetContent().AsJson()
-        else
-            Error(ErrorInfo.Create(HttpResponseMessage.GetErrorMessage(), true));
-
-        Success := not HasCollectedErrors();
+        JsonToken := HttpResponseMessage.GetContent().AsJson();
     end;
 
     procedure PostAsJson(RequestUri: Text; Content: JsonToken) Response: JsonToken
@@ -191,9 +175,13 @@ codeunit 2351 "Rest Client Impl."
         HttpContent: Codeunit "Http Content";
     begin
         HttpResponseMessage := Send(Enum::"Http Method"::POST, RequestUri, HttpContent.Create(Content));
+        if HasCollectedErrors() then
+            exit;
 
-        if not HttpResponseMessage.GetIsSuccessStatusCode() then
-            Error(HttpResponseMessage.GetErrorMessage());
+        if not HttpResponseMessage.GetIsSuccessStatusCode() then begin
+            Error(HttpResponseMessage.GetException());
+            exit;
+        end;
 
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -204,9 +192,13 @@ codeunit 2351 "Rest Client Impl."
         HttpContent: Codeunit "Http Content";
     begin
         HttpResponseMessage := Send(Enum::"Http Method"::PATCH, RequestUri, HttpContent.Create(Content));
+        if HasCollectedErrors() then
+            exit;
 
-        if not HttpResponseMessage.GetIsSuccessStatusCode() then
-            Error(HttpResponseMessage.GetErrorMessage());
+        if not HttpResponseMessage.GetIsSuccessStatusCode() then begin
+            Error(HttpResponseMessage.GetException());
+            exit;
+        end;
 
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -217,9 +209,13 @@ codeunit 2351 "Rest Client Impl."
         HttpContent: Codeunit "Http Content";
     begin
         HttpResponseMessage := Send(Enum::"Http Method"::PUT, RequestUri, HttpContent.Create(Content));
+        if HasCollectedErrors() then
+            exit;
 
-        if not HttpResponseMessage.GetIsSuccessStatusCode() then
-            Error(HttpResponseMessage.GetErrorMessage());
+        if not HttpResponseMessage.GetIsSuccessStatusCode() then begin
+            Error(HttpResponseMessage.GetException());
+            exit;
+        end;
 
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -246,28 +242,7 @@ codeunit 2351 "Rest Client Impl."
         CheckInitialized();
 
         if not SendRequest(HttpRequestMessage, HttpResponseMessage) then
-            Error(HttpResponseMessage.GetErrorMessage());
-    end;
-
-    procedure Send(Method: Enum "Http Method"; RequestUri: Text; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean
-    var
-        EmptyHttpContent: Codeunit "Http Content";
-    begin
-        Success := Send(Method, RequestUri, EmptyHttpContent, HttpResponseMessage);
-    end;
-
-    procedure Send(Method: Enum "Http Method"; RequestUri: Text; Content: Codeunit "Http Content"; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean
-    var
-        HttpRequestMessage: Codeunit "Http Request Message";
-    begin
-        HttpRequestMessage := CreateHttpRequestMessage(Method, RequestUri, Content);
-        Success := Send(HttpRequestMessage, HttpResponseMessage);
-    end;
-
-    procedure Send(var HttpRequestMessage: Codeunit "Http Request Message"; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean
-    begin
-        CheckInitialized();
-        Success := SendRequest(HttpRequestMessage, HttpResponseMessage);
+            Error(HttpResponseMessage.GetException());
     end;
 
     #endregion
@@ -299,28 +274,30 @@ codeunit 2351 "Rest Client Impl."
 
     local procedure SendRequest(var HttpRequestMessage: Codeunit "Http Request Message"; var HttpResponseMessage: Codeunit "Http Response Message"): Boolean
     begin
-        Clear(HttpResponseMessage);
+        Clear(this.HttpResponseMessage);
 
         if HttpAuthentication.IsAuthenticationRequired() then
             Authorize(HttpRequestMessage);
 
-        if not HttpClientHandler.Send(HttpClient, HttpRequestMessage, HttpResponseMessage) then begin
-            if HttpResponseMessage.GetIsBlockedByEnvironment() then
-                HttpResponseMessage.SetException(
+        if not HttpClientHandler.Send(HttpClient, HttpRequestMessage, this.HttpResponseMessage) then begin
+            if this.HttpResponseMessage.GetIsBlockedByEnvironment() then
+                this.HttpResponseMessage.SetException(
                     RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::BlockedByEnvironment,
                                                                StrSubstNo(EnvironmentBlocksErr, HttpRequestMessage.GetRequestUri())))
             else
-                HttpResponseMessage.SetException(
-                    RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::ConnectionFailed, 
+                this.HttpResponseMessage.SetException(
+                    RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::ConnectionFailed,
                                                                StrSubstNo(ConnectionErr, HttpRequestMessage.GetRequestUri())));
+            HttpResponseMessage := this.HttpResponseMessage;
             exit(false);
         end;
 
-        if not HttpResponseMessage.GetIsSuccessStatusCode() then
-            HttpResponseMessage.SetException(
-                RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::RequestFailed, 
+        if not this.HttpResponseMessage.GetIsSuccessStatusCode() then
+            this.HttpResponseMessage.SetException(
+                RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::RequestFailed,
                                                            StrSubstNo(RequestFailedErr, HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase())));
 
+        HttpResponseMessage := this.HttpResponseMessage;
         exit(true);
     end;
 
