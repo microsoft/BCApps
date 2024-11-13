@@ -1,11 +1,9 @@
-## preview
-
-Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+## v6.1
 
 ### Issues
 
 - Issue 1241 Increment Version Number might produce wrong app.json
-- `deployTo<environment>` now has an additional property called DependencyInstallMode, which determines how dependencies are deployed if GenerateDependencyArtifact is true. Default value is `install` to install dependencies if not already installed. Other values are `ignore` for ignoring dependencies, `upgrade` for upgrading dependencies if possible and `forceUpgrade` for force upgrading dependencies.
+- When auto discovering appFolders, testFolders and bcptTestFolders - if a BCPT Test app has a dependency to a test framework app, it is added to testFolders as well as bcptTestFolders and will cause a failure.
 
 ### New Project Settings
 
@@ -16,6 +14,7 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 ### New Repository Settings
 
 - `trustedSigning` is a structure defining `Account`, `EndPoint` and `CertificateProfile` if you want to use trusted signing. Note that your Azure_Credentials secret (Microsoft Entra ID App or Managed identity) still needs to provide access to your azure subscription and be assigned the `Trusted Signing Certificate Profile Signer` role in the Trusted Signing Account.
+- `deployTo<environment>` now has an additional property called DependencyInstallMode, which determines how dependencies are deployed if GenerateDependencyArtifact is true. Default value is `install` to install dependencies if not already installed. Other values are `ignore` for ignoring dependencies, `upgrade` for upgrading dependencies if possible and `forceUpgrade` for force upgrading dependencies.
 
 ### Support for Azure Trusted Signing
 
@@ -27,6 +26,10 @@ Page Scripting tests are now supported as part of CI/CD. By specifying pageScrip
 
 - `PageScriptingTestResults` is a JUnit test results file with all results combined.
 - `PageScriptingTestResultDetails` are the detailed test results (including videos) when any of the page scripting tests have failures. If the page scripting tests succeed - the details are not published.
+
+### Experimental support for Git submodule
+
+[Git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules) is now supported as part of CI/CD on your project.
 
 ## v6.0
 
