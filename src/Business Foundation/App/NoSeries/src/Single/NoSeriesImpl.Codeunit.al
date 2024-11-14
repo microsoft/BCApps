@@ -190,7 +190,6 @@ codeunit 304 "No. Series - Impl."
         if (NoSeriesLine."Line No." <> 0) and (NoSeriesLine."Series Code" = NoSeriesCode) and (NoSeriesLine."Starting Date" = NoSeriesLine2."Starting Date") then begin
             NoSeriesLine.CopyFilters(NoSeriesLine2);
             NoSeriesLine.SetRange("Line No.", NoSeriesLine."Line No.");
-            NoSeries.OnGetNoSeriesLineOnBeforeFindLast(NoSeriesLine);
 #if not CLEAN24
 #pragma warning disable AL0432
             NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
@@ -202,17 +201,14 @@ codeunit 304 "No. Series - Impl."
         end;
 #if not CLEAN24
 #pragma warning disable AL0432
-        if not LineFound then begin     
-            NoSeries.OnGetNoSeriesLineOnBeforeFindLast(NoSeriesLine);       
+        if not LineFound then begin
             NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
             LineFound := NoSeriesLine.FindLast();
         end;
 #pragma warning restore AL0432
 #else
-        if not LineFound then begin
-            NoSeries.OnGetNoSeriesLineOnBeforeFindLast(NoSeriesLine);
+        if not LineFound then
             LineFound := NoSeriesLine.FindLast();
-        end;
 #endif
 
         if LineFound and NoSeries.MayProduceGaps(NoSeriesLine) then begin
