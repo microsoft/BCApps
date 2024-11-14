@@ -9,6 +9,7 @@ page 9998 "Upgrade Tags"
     PageType = List;
     ApplicationArea = All;
     Caption = 'Upgrade Tags';
+    Extensible = false;
     UsageCategory = Lists;
     SourceTable = "Upgrade Tags";
     InsertAllowed = false;
@@ -24,6 +25,7 @@ page 9998 "Upgrade Tags"
                 field(Tag; Rec.Tag) { }
                 field("Tag Timestamp"; Rec."Tag Timestamp") { }
                 field(Company; Rec.Company) { }
+                field("Skipped Upgrade"; Rec."Skipped Upgrade") { }
             }
         }
     }

@@ -39,6 +39,7 @@ table 9999 "Upgrade Tags"
         {
             Caption = 'Skipped Upgrade';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies whether the upgrade is skipped.';
         }
     }
 
