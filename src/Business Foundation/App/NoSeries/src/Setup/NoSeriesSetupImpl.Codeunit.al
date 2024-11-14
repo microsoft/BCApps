@@ -98,10 +98,7 @@ codeunit 305 "No. Series - Setup Impl."
 #endif
     begin
         NoSeriesLine.Reset();
-        NoSeriesLine.SetCurrentKey("Series Code", "Starting Date");
-        NoSeriesLine.SetRange("Series Code", NoSeriesRec.Code);
-        NoSeriesLine.SetRange("Starting Date", 0D, WorkDate());
-        NoSeries.OnGetNoSeriesLineOnBeforeFindLast(NoSeriesLine);
+        GetNoSeriesLineFilters(NoSeriesLine, NoSeriesRec.Code, WorkDate());
 #if not CLEAN24
 #pragma warning disable AL0432
         NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
@@ -136,6 +133,23 @@ codeunit 305 "No. Series - Setup Impl."
     begin
         NoSeriesSingle := NoSeriesLine.Implementation;
         exit(NoSeriesSingle.MayProduceGaps());
+    end;
+
+    local procedure GetNoSeriesLineFilters(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; StartingDate: Date)
+    var
+        NoSeries: Codeunit "No. Series";
+        NoSeriesLine2: Record "No. Series Line";
+        CodeFieldChangedErr: Label 'Change of Series Code Field is on this Record not allowed.';
+    begin
+        NoSeriesLine2.SetCurrentKey("Series Code", "Starting Date");
+        NoSeriesLine2.SetRange("Starting Date", 0D, StartingDate);
+        NoSeriesLine2.SetRange("Series Code", NoSeriesCode);
+        RaiseSetAdditionalNoSeriesLineFilters(NoSeriesLine2);
+        If NoSeriesLine2."Series Code" <> NoSeriesCode then
+            Error(CodeFieldChangedErr); // Extensions should never change the code field range, this is a bug that developers should know immediately.
+
+        NoSeriesLine.SetCurrentKey("Series Code", "Starting Date");
+        NoSeriesLine.CopyFilters(NoSeriesLine2);
     end;
 
     procedure CalculateOpen(NoSeriesLine: Record "No. Series Line"): Boolean
@@ -389,5 +403,10 @@ codeunit 305 "No. Series - Setup Impl."
         if Rec."Sequence Name" <> '' then
             if NumberSequence.Exists(Rec."Sequence Name") then
                 NumberSequence.Delete(Rec."Sequence Name");
+    end;
+
+    [IntegrationEvent(false, false)]
+    internal procedure RaiseSetAdditionalNoSeriesLineFilters(var NoSeriesLine: Record "No. Series Line");
+    begin
     end;
 }
