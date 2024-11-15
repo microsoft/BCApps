@@ -6,6 +6,7 @@
 namespace System.DataAdministration;
 
 using System.Environment;
+using System.Reflection;
 
 codeunit 8700 "Table Information Cache Impl."
 {
