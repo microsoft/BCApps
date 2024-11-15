@@ -223,6 +223,101 @@ codeunit 3061 "Uri Builder"
         UriBuilderImpl.AddODataQueryParameter(ParameterKey, ParameterValue);
     end;
 
+    /// <summary>
+    /// Removes a flag from the query string of this UriBuilder. In case the same query flag exists already, the action in <paramref name="DuplicateAction"/> is taken.
+    /// </summary>
+    /// <param name="Flag">A flag to Remove from the query string of this UriBuilder. This value will be encoded before being Removed to the URI query string. Cannot be empty.</param>
+    /// <param name="DuplicateAction">Specifies which action to take if the flag specified already exist.</param>
+    /// <error>If the provided <paramref name="Flag"/> is empty.</error>
+    /// <error>If the provided <paramref name="DuplicateAction"/> is <c>"Throw Error"</c> and the flag does not exist in the URI.</error>
+    /// <error>If the provided <paramref name="DuplicateAction"/> is not a valid value for the enum.</error>
+    /// <remarks>This function could alter the order of the existing query string parts. For example, if the previous URL was "https://microsoft.com?foo=bar&amp;john=doe" and the new flag is "contoso", the result could be "https://microsoft.com?john=doe&amp;foo=bar&amp;contoso".</remarks>
+    procedure RemoveQueryFlag(Flag: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour")
+    begin
+        UriBuilderImpl.AddQueryFlag(Flag, DuplicateAction, true);
+    end;
+
+    /// <summary>
+    /// Removes a flag from the query string of this UriBuilder. In case the same query flag exists already, only one occurrence is kept.
+    /// </summary>
+    /// <param name="Flag">A flag to Remove from the query string of this UriBuilder. This value will be encoded before being Removed to the URI query string. Cannot be empty.</param>
+    /// <error>If the provided <paramref name="Flag"/> is empty.</error>
+    /// <remarks>This function could alter the order of the existing query string parts. For example, if the previous URL was "https://microsoft.com?foo=bar&amp;john=doe" and the new flag is "contoso", the result could be "https://microsoft.com?john=doe&amp;foo=bar&amp;contoso".</remarks>
+    procedure RemoveQueryFlag(Flag: Text)
+    begin
+        UriBuilderImpl.AddQueryFlag(Flag, Enum::"Uri Query Duplicate Behaviour"::"Overwrite All Matching", true);
+    end;
+
+    /// <summary>
+    /// Removes a parameter key-value pair from the query string of this UriBuilder (in the form <c>ParameterKey=ParameterValue</c>). In case the same query key exists already, the action in <paramref name="DuplicateAction"/> is taken.
+    /// </summary>
+    /// <param name="ParameterKey">The key for the new query parameter. This value will be encoded before being Removed to the URI query string. Cannot be empty.</param>
+    /// <param name="ParameterValue">The value for the new query parameter. This value will be encoded before being Removed to the URI query string. Can be empty.</param>
+    /// <param name="DuplicateAction">Specifies which action to take if the ParameterKey specified already exist.</param>
+    /// <error>If the provided <paramref name="ParameterKey"/> is empty.</error>
+    /// <error>If the provided <paramref name="DuplicateAction"/> is <c>"Throw Error"</c>.</error>
+    /// <error>If the provided <paramref name="DuplicateAction"/> is not a valid value for the enum.</error>
+    /// <remarks>This function could alter the order of the existing query string parts. For example, if the previous URL was "https://microsoft.com?foo=bar&amp;john=doe" and the new flag is "contoso=42", the result could be "https://microsoft.com?john=doe&amp;foo=bar&amp;contoso=42".</remarks>
+    procedure RemoveQueryParameter(ParameterKey: Text; ParameterValue: Text; DuplicateAction: Enum "Uri Query Duplicate Behaviour")
+    begin
+        UriBuilderImpl.RemoveQueryParameter(ParameterKey, ParameterValue, DuplicateAction);
+    end;
+
+    /// <summary>
+    /// Removes a parameter key-value pair from the query string of this UriBuilder (in the form <c>ParameterKey=ParameterValue</c>). In case the same query key exists already, its value is overwritten.
+    /// </summary>
+    /// <param name="ParameterKey">The key for the new query parameter. This value will be encoded before being Removed to the URI query string. Cannot be empty.</param>
+    /// <param name="ParameterValue">The value for the new query parameter. This value will be encoded before being Removed to the URI query string. Can be empty.</param>
+    /// <error>If the provided <paramref name="ParameterKey"/> is empty.</error>
+    /// <remarks>This function could alter the order of the existing query string parts. For example, if the previous URL was "https://microsoft.com?foo=bar&amp;john=doe" and the new flag is "contoso=42", the result could be "https://microsoft.com?john=doe&amp;foo=bar&amp;contoso=42".</remarks>
+    procedure RemoveQueryParameter(ParameterKey: Text; ParameterValue: Text)
+    begin
+        UriBuilderImpl.RemoveQueryParameter(ParameterKey, ParameterValue, Enum::"Uri Query Duplicate Behaviour"::"Overwrite All Matching");
+    end;
+
+    /// <summary>
+    /// Removes a parameter key-value pair from the query string of this UriBuilder (in the form <c>ParameterKey=ParameterValue</c>). In case the same query key exists already, the action in <paramref name="DuplicateAction"/> is taken.
+    /// </summary>
+    /// <param name="ParameterKey">The key for the new query parameter. This value will be encoded before being Removed to the URI query string. Cannot be empty.</param>
+    /// <param name="DuplicateAction">Specifies which action to take if the ParameterKey specified already exist.</param>
+    /// <error>If the provided <paramref name="ParameterKey"/> is empty.</error>
+    /// <error>If the provided <paramref name="DuplicateAction"/> is <c>"Throw Error"</c>.</error>
+    /// <error>If the provided <paramref name="DuplicateAction"/> is not a valid value for the enum.</error>
+    /// <remarks>This function could alter the order of the existing query string parts. For example, if the previous URL was "https://microsoft.com?foo=bar&amp;john=doe" and the new flag is "contoso=42", the result could be "https://microsoft.com?john=doe&amp;foo=bar&amp;contoso=42".</remarks>
+    procedure RemoveQueryParameters()
+    begin
+        UriBuilderImpl.RemoveQueryParameters();
+    end;
+
+    /// <summary>
+    /// Gets the flags in the query string of this UriBuilder.
+    /// </summary>
+    /// <returns>A list of flags in the query string of this UriBuilder.</returns>
+    procedure GetQueryFlags(): List of [Text]
+    begin
+        exit(UriBuilderImpl.GetQueryFlags());
+    end;
+
+    /// <summary>
+    /// Gets the parameters in the query string of this UriBuilder.
+    /// </summary>
+    /// <returns>A dictionary of parameters in the query string of this UriBuilder.</returns>
+    procedure GetQueryParameters(): Dictionary of [Text, List of [Text]]
+    begin
+        exit(UriBuilderImpl.GetQueryParameters());
+    end;
+
+    /// <summary>
+    /// Gets the value of the specified query parameter.
+    /// </summary>
+    /// <param name="ParameterKey">The key of the query parameter to get the value of.</param>
+    /// <returns>The value of the specified query parameter.</returns>
+    procedure GetQueryParameter(ParameterKey: Text): List of [Text]
+    begin
+        exit(UriBuilderImpl.GetQueryParameter(ParameterKey));
+    end;
+
+
     var
         UriBuilderImpl: Codeunit "Uri Builder Impl.";
 }
