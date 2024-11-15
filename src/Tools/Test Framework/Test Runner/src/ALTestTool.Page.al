@@ -9,7 +9,7 @@ using System.TestTools.CodeCoverage;
 
 page 130451 "AL Test Tool"
 {
-    AccessByPermission = TableData "Test Method Line" = RIMD;
+    AccessByPermission = tabledata "Test Method Line" = RIMD;
     ApplicationArea = All;
     AutoSplitKey = true;
     Caption = 'AL Test Tool';
@@ -21,7 +21,8 @@ page 130451 "AL Test Tool"
     SaveValues = true;
     SourceTable = "Test Method Line";
     UsageCategory = Administration;
-    Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;
+    Permissions = tabledata "AL Test Suite" = rimd,
+                  tabledata "Test Method Line" = rimd;
 
     layout
     {
@@ -95,7 +96,7 @@ page 130451 "AL Test Tool"
                 {
                     ApplicationArea = All;
                     Caption = 'Code Coverage Track All Sessions';
-                    ToolTip = 'Specifies should all seesions be tracked';
+                    ToolTip = 'Specifies should all sessions be tracked';
 
                     trigger OnValidate()
                     var
@@ -115,7 +116,7 @@ page 130451 "AL Test Tool"
                 field(LineType; Rec."Line Type")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the line type.';
+                    ToolTip = 'Specifies the line type.';
                     Caption = 'Line Type';
                     Editable = false;
                     Style = Strong;
@@ -124,7 +125,7 @@ page 130451 "AL Test Tool"
                 field(TestCodeunit; Rec."Test Codeunit")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the ID of the test codeunit.';
+                    ToolTip = 'Specifies the ID of the test codeunit.';
                     BlankZero = true;
                     Caption = 'Codeunit ID';
                     Editable = false;
@@ -143,7 +144,7 @@ page 130451 "AL Test Tool"
                 field(Run; Rec.Run)
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies whether the tests should be executed.';
+                    ToolTip = 'Specifies whether the tests should be executed.';
                     Caption = 'Run';
 
                     trigger OnValidate()
@@ -154,7 +155,7 @@ page 130451 "AL Test Tool"
                 field(Result; Rec.Result)
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies whether the tests passed, failed or were skipped.';
+                    ToolTip = 'Specifies whether the tests passed, failed or were skipped.';
                     BlankZero = true;
                     Caption = 'Result';
                     Editable = false;
@@ -244,9 +245,9 @@ page 130451 "AL Test Tool"
                     trigger OnAction()
                     var
                         TestSuiteMgt: Codeunit "Test Suite Mgt.";
-                        TestRunnerProgessDialog: Codeunit "Test Runner - Progress Dialog";
+                        TestRunnerProgressDialog: Codeunit "Test Runner - Progress Dialog";
                     begin
-                        BindSubscription(TestRunnerProgessDialog);
+                        BindSubscription(TestRunnerProgressDialog);
                         TestSuiteMgt.RunTestSuiteSelection(Rec);
                         CurrPage.Update(false);
                     end;
@@ -384,7 +385,7 @@ page 130451 "AL Test Tool"
                     PromotedCategory = Process;
                     PromotedIsBig = true;
                     PromotedOnly = true;
-                    RunObject = Page "AL Code Coverage";
+                    RunObject = page "AL Code Coverage";
                     ToolTip = 'Specifies the action for invoking Code Coverage page';
                 }
             }
@@ -493,7 +494,9 @@ page 130451 "AL Test Tool"
         NameIndent := Rec."Line Type";
         LineTypeEmphasize := Rec."Line Type" = Rec."Line Type"::Codeunit;
         TestCodeunitEmphasize := Rec."Line Type" = Rec."Line Type"::Codeunit;
+#pragma warning disable AA0205
         ResultEmphasize := Rec.Result = Rec.Result::Success;
+#pragma warning restore AA0205
     end;
 
     local procedure UpdateCalculatedFields()

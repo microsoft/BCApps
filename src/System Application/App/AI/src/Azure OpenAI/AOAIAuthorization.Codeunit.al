@@ -22,33 +22,61 @@ codeunit 7767 "AOAI Authorization"
         Deployment: Text;
         [NonDebuggable]
         ApiKey: SecretText;
+        [NonDebuggable]
+        ManagedResourceDeployment: Text;
+        ResourceUtilization: Enum "AOAI Resource Utilization";
 
     [NonDebuggable]
     procedure IsConfigured(CallerModule: ModuleInfo): Boolean
     var
+        AzureOpenAiImpl: Codeunit "Azure OpenAI Impl";
         CurrentModule: ModuleInfo;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin
         NavApp.GetCurrentModuleInfo(CurrentModule);
 
-        if Deployment = '' then
-            exit(false);
+        case ResourceUtilization of
+            Enum::"AOAI Resource Utilization"::"First Party":
+                exit((ManagedResourceDeployment <> '') and ALCopilotFunctions.IsPlatformAuthorizationConfigured(CallerModule.Publisher(), CurrentModule.Publisher()));
+            Enum::"AOAI Resource Utilization"::"Self-Managed":
+                exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()));
+            Enum::"AOAI Resource Utilization"::"Microsoft Managed":
+                exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()) and (ManagedResourceDeployment <> '') and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls());
+        end;
 
-        if (Endpoint = '') and ApiKey.IsEmpty() then
-            exit(ALCopilotFunctions.IsPlatformAuthorizationConfigured(CallerModule.Publisher(), CurrentModule.Publisher()));
-
-        if (Endpoint = '') or ApiKey.IsEmpty() then
-            exit(false);
-
-        exit(true);
+        exit(false);
     end;
 
     [NonDebuggable]
-    procedure SetAuthorization(NewEndpoint: Text; NewDeployment: Text; NewApiKey: SecretText)
+    procedure SetMicrosoftManagedAuthorization(NewEndpoint: Text; NewDeployment: Text; NewApiKey: SecretText; NewManagedResourceDeployment: Text)
     begin
+        ClearVariables();
+
+        ResourceUtilization := Enum::"AOAI Resource Utilization"::"Microsoft Managed";
         Endpoint := NewEndpoint;
         Deployment := NewDeployment;
         ApiKey := NewApiKey;
+        ManagedResourceDeployment := NewManagedResourceDeployment;
+    end;
+
+    [NonDebuggable]
+    procedure SetSelfManagedAuthorization(NewEndpoint: Text; NewDeployment: Text; NewApiKey: SecretText)
+    begin
+        ClearVariables();
+
+        ResourceUtilization := Enum::"AOAI Resource Utilization"::"Self-Managed";
+        Endpoint := NewEndpoint;
+        Deployment := NewDeployment;
+        ApiKey := NewApiKey;
+    end;
+
+    [NonDebuggable]
+    procedure SetFirstPartyAuthorization(NewDeployment: Text)
+    begin
+        ClearVariables();
+
+        ResourceUtilization := Enum::"AOAI Resource Utilization"::"First Party";
+        ManagedResourceDeployment := NewDeployment;
     end;
 
     [NonDebuggable]
@@ -67,5 +95,25 @@ codeunit 7767 "AOAI Authorization"
     procedure GetApiKey(): SecretText
     begin
         exit(ApiKey);
+    end;
+
+    [NonDebuggable]
+    procedure GetManagedResourceDeployment(): SecretText
+    begin
+        exit(ManagedResourceDeployment);
+    end;
+
+    procedure GetResourceUtilization(): Enum "AOAI Resource Utilization"
+    begin
+        exit(ResourceUtilization);
+    end;
+
+    local procedure ClearVariables()
+    begin
+        Clear(Endpoint);
+        Clear(ApiKey);
+        Clear(Deployment);
+        Clear(ManagedResourceDeployment);
+        Clear(ResourceUtilization);
     end;
 }

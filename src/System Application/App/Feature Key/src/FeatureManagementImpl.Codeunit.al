@@ -81,10 +81,11 @@ codeunit 2610 "Feature Management Impl."
     /// <summary>
     /// Inserts record to "Feature Data Update Status" table to show the feature status per company.
     /// </summary>
-    local procedure InitializeFeatureDataUpdateStatus(FeatureKey: Record "Feature Key"; var FeatureDataUpdateStatus: Record "Feature Data Update Status")
+    local procedure InitializeFeatureDataUpdateStatus(FeatureKey: Record "Feature Key"; var FeatureDataUpdateStatus: Record "Feature Data Update Status"; AllowInsert: Boolean)
     var
         FeatureManagementFacade: Codeunit "Feature Management Facade";
         InitializeHandled: Boolean;
+        FeatureKeyStatusChangedLbl: Label 'The status of the feature key %1 has been set to %2 by UserSecurityId %3.', Locked = true;
     begin
         if FeatureDataUpdateStatus.Get(FeatureKey.ID, CompanyName()) then
             exit;
@@ -106,7 +107,9 @@ codeunit 2610 "Feature Management Impl."
             end;
         // If the table extension is not in sync during upgrade then Get() always returns False,
         // so the following insert will fail if the record does exist.
-        if FeatureDataUpdateStatus.Insert() then;
+        if AllowInsert then
+            if FeatureDataUpdateStatus.Insert() then
+                Session.LogAuditMessage(StrSubstNo(FeatureKeyStatusChangedLbl, FeatureDataUpdateStatus."Feature Key", FeatureDataUpdateStatus."Feature Status", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
     end;
 
     /// <summary>
@@ -162,7 +165,7 @@ codeunit 2610 "Feature Management Impl."
             if FeatureDataUpdateStatus."Background Task" then
                 UpdateBackgroundTaskStatus(FeatureDataUpdateStatus);
         end else
-            InitializeFeatureDataUpdateStatus(FeatureKey, FeatureDataUpdateStatus);
+            InitializeFeatureDataUpdateStatus(FeatureKey, FeatureDataUpdateStatus, true);
     end;
 
     /// <summary>
@@ -322,15 +325,26 @@ codeunit 2610 "Feature Management Impl."
     /// <summary>
     /// Returns true if the feature is enabled and data update, if required, is complete.
     /// </summary>
-    /// <param name="FeatureId">the feature id in the system table "Feature Key"</param>
-    /// <returns>if the feature is fully enabled</returns>
+    /// <param name="FeatureId">The feature id in the system table "Feature Key"</param>
+    /// <returns>If the feature is fully enabled</returns>
     procedure IsEnabled(FeatureId: Text[50]): Boolean;
+    begin
+        exit(IsEnabled(FeatureId, true));
+    end;
+
+    /// <summary>
+    /// Returns true if the feature is enabled and data update, if required, is complete.
+    /// </summary>
+    /// <param name="FeatureId">The feature id in the system table "Feature Key"</param>
+    /// <param name="AllowInsert">Specifies if inserts are allowed while checking for feature being enabled</param>
+    /// <returns>If the feature is fully enabled</returns>
+    procedure IsEnabled(FeatureId: Text[50]; AllowInsert: Boolean): Boolean;
     var
         FeatureKey: Record "Feature Key";
         FeatureDataUpdateStatus: Record "Feature Data Update Status";
     begin
         if FeatureKey.Get(FeatureId) then begin
-            InitializeFeatureDataUpdateStatus(FeatureKey, FeatureDataUpdateStatus);
+            InitializeFeatureDataUpdateStatus(FeatureKey, FeatureDataUpdateStatus, AllowInsert);
             exit(FeatureDataUpdateStatus."Feature Status" in ["Feature Status"::Complete, "Feature Status"::Enabled])
         end;
     end;
@@ -559,5 +573,20 @@ codeunit 2610 "Feature Management Impl."
             RenameFeatureDataUpdateStatus.GetBySystemId(FeatureDataUpdateStatus.SystemId);
             RenameFeatureDataUpdateStatus.Rename(RenameFeatureDataUpdateStatus."Feature Key", Rec.Name);
         until FeatureDataUpdateStatus.Next() = 0;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Feature Management Triggers", OpenFeatureManagement, '', false, false)]
+    local procedure DefaultOpenFeatureManagement()
+    var
+        FeatureManagementFacade: Codeunit "Feature Management Facade";
+        IsHandled: Boolean;
+        FeatureManagementPageID: Integer;
+    begin
+        FeatureManagementPageID := Page::"Feature Management";
+        FeatureManagementFacade.OnBeforeOpenFeatureManagement(FeatureManagementPageID, IsHandled);
+        if not IsHandled then
+            Page.Run(Page::"Feature Management")
+        else
+            Page.Run(FeatureManagementPageID);
     end;
 }

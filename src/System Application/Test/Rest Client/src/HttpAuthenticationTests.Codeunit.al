@@ -50,8 +50,8 @@ codeunit 134973 "Http Authentication Tests"
         // [THEN] THe authentication object should return a dictionary with one element that is a base64 encoded string
         AuthHeader := HttpAuthenticationBasic.GetAuthorizationHeaders();
         Assert.AreEqual(AuthHeader.Count, 1, 'Basic authentication should return one authorization header');
-        Assert.AreEqual(AuthHeader.ContainsKey('Authorization'), true, 'Basic authentication should return an authorization header');  
-        
+        Assert.AreEqual(AuthHeader.ContainsKey('Authorization'), true, 'Basic authentication should return an authorization header');
+
         BasicAuthHeaderValue := AuthHeader.Get('Authorization');
         Assert.AreEqual(BasicAuthHeaderValue.Unwrap(), 'Basic VVNFUjAxOlBhc3N3b3JkMTIzIQ==', 'Basic authentication should return a base64 encoded string');
     end;

@@ -11,7 +11,8 @@ table 130450 "Test Method Line"
 {
     DataClassification = CustomerContent;
     ReplicateData = false;
-    Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;
+    Permissions = tabledata "AL Test Suite" = rimd,
+                  tabledata "Test Method Line" = rimd;
 
     fields
     {
@@ -114,17 +115,24 @@ table 130450 "Test Method Line"
         {
             DataClassification = CustomerContent;
         }
-        field(52; "Error Message"; BLOB)
+        field(52; "Error Message"; Blob)
         {
             DataClassification = CustomerContent;
         }
-        field(53; "Error Call Stack"; BLOB)
+        field(53; "Error Call Stack"; Blob)
         {
             DataClassification = CustomerContent;
         }
         field(55; "Skip Logging Results"; Boolean)
         {
             DataClassification = CustomerContent;
+        }
+        field(56; "No. of Functions"; Integer)
+        {
+            FieldClass = FlowField;
+            Caption = 'No. of Functions';
+            CalcFormula = count("Test Method Line" where("Test Suite" = field("Test Suite"), "Test Codeunit" = field("Test Codeunit"), "Line Type" = const(Function)));
+            Editable = false;
         }
     }
 

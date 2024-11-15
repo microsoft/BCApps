@@ -15,11 +15,11 @@ using System.TestLibraries.Security.AccessControl;
 codeunit 138705 "Retention Policy Log Test"
 {
     Subtype = Test;
-    Permissions = tabledata "Retention Policy Log Entry" = r;
 
     var
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
+        RetentionPolicyTestLibrary: Codeunit "Retention Policy Test Library";
         RetentionPolicyLogCategory: Enum "Retention Policy Log Category";
         ErrorOccuredDuringApplyErrLbl: Label 'An error occured while applying the retention policy for table %1 %2.\\%3', Comment = '%1 = table number, %2 = table name, %3 = error message';
         TestLogMessageLbl: Label 'TestLog %1 Entry No. %2', Locked = true;
@@ -29,139 +29,126 @@ codeunit 138705 "Retention Policy Log Test"
     [Test]
     procedure TestLogInfo()
     var
-        RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
         RetentionPolicyLog: Codeunit "Retention Policy Log";
         LastRetentionPolicyLogEntryNo: BigInteger;
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         //Setup
-        if RetentionPolicyLogEntry.FindLast() then;
-        LastRetentionPolicyLogEntryNo := RetentionPolicyLogEntry."Entry No.";
+        LastRetentionPolicyLogEntryNo := RetentionPolicyTestLibrary.RetenionPolicyLogLastEntryNo();
 
         //Exercise
-        RetentionPolicyLog.LogInfo(RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Info, LastRetentionPolicyLogEntryNo + 1)); // runs a background task
+        RetentionPolicyLog.LogInfo(RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, enum::"Retention Policy Log Message Type"::Info, LastRetentionPolicyLogEntryNo + 1)); // runs a background task
         sleep(50); // need some time for background session
-        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, RetentionPolicyLogEntry."Message Type"::Info, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Info, LastRetentionPolicyLogEntryNo + 1));
+        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, enum::"Retention Policy Log Message Type"::Info, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, enum::"Retention Policy Log Message Type"::Info, LastRetentionPolicyLogEntryNo + 1));
 
         // verify
         asserterror
             error('An error to ensure rollback');
 
-        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, RetentionPolicyLogEntry."Message Type"::Info, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Info, LastRetentionPolicyLogEntryNo + 1));
+        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, enum::"Retention Policy Log Message Type"::Info, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, enum::"Retention Policy Log Message Type"::Info, LastRetentionPolicyLogEntryNo + 1));
     end;
 
     [Test]
     procedure TestLogWarning()
     var
-        RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
         RetentionPolicyLog: Codeunit "Retention Policy Log";
         LastRetentionPolicyLogEntryNo: BigInteger;
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         //Setup
-        if RetentionPolicyLogEntry.FindLast() then;
-        LastRetentionPolicyLogEntryNo := RetentionPolicyLogEntry."Entry No.";
+        LastRetentionPolicyLogEntryNo := RetentionPolicyTestLibrary.RetenionPolicyLogLastEntryNo();
 
         //Exercise
-        RetentionPolicyLog.LogWarning(RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Warning, LastRetentionPolicyLogEntryNo + 1)); // runs a background task
+        RetentionPolicyLog.LogWarning(RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, enum::"Retention Policy Log Message Type"::Warning, LastRetentionPolicyLogEntryNo + 1)); // runs a background task
         sleep(50); // need some time for background session
-        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, RetentionPolicyLogEntry."Message Type"::Warning, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Warning, LastRetentionPolicyLogEntryNo + 1));
+        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, enum::"Retention Policy Log Message Type"::Warning, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, enum::"Retention Policy Log Message Type"::Warning, LastRetentionPolicyLogEntryNo + 1));
 
         // verify
         asserterror
             error('An error to ensure rollback');
 
-        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, RetentionPolicyLogEntry."Message Type"::Warning, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Warning, LastRetentionPolicyLogEntryNo + 1));
+        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, enum::"Retention Policy Log Message Type"::Warning, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, enum::"Retention Policy Log Message Type"::Warning, LastRetentionPolicyLogEntryNo + 1));
     end;
 
     [Test]
     procedure TestLogError()
     var
-        RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
         RetentionPolicyLog: Codeunit "Retention Policy Log";
         LastRetentionPolicyLogEntryNo: BigInteger;
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         //Setup
-        if RetentionPolicyLogEntry.FindLast() then;
-        LastRetentionPolicyLogEntryNo := RetentionPolicyLogEntry."Entry No.";
+        LastRetentionPolicyLogEntryNo := RetentionPolicyTestLibrary.RetenionPolicyLogLastEntryNo();
 
         //Exercise
         asserterror
-    RetentionPolicyLog.LogError(RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Error, LastRetentionPolicyLogEntryNo + 1)); // runs a background task
+    RetentionPolicyLog.LogError(RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, enum::"Retention Policy Log Message Type"::Error, LastRetentionPolicyLogEntryNo + 1)); // runs a background task
 
         // Verify
         sleep(50); // need some time for background session
-        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, RetentionPolicyLogEntry."Message Type"::Error, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Error, LastRetentionPolicyLogEntryNo + 1));
+        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, enum::"Retention Policy Log Message Type"::Error, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, enum::"Retention Policy Log Message Type"::Error, LastRetentionPolicyLogEntryNo + 1));
     end;
 
     [Test]
     procedure TestLogErrorWithDisplay()
     var
-        RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
         RetentionPolicyLog: Codeunit "Retention Policy Log";
         LastRetentionPolicyLogEntryNo: BigInteger;
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         //Setup
-        if RetentionPolicyLogEntry.FindLast() then;
-        LastRetentionPolicyLogEntryNo := RetentionPolicyLogEntry."Entry No.";
+        LastRetentionPolicyLogEntryNo := RetentionPolicyTestLibrary.RetenionPolicyLogLastEntryNo();
 
         //Exercise
         asserterror
-    RetentionPolicyLog.LogError(RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Error, LastRetentionPolicyLogEntryNo + 1), true); // runs a background task
+    RetentionPolicyLog.LogError(RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, enum::"Retention Policy Log Message Type"::Error, LastRetentionPolicyLogEntryNo + 1), true); // runs a background task
 
         // Verify
         sleep(50); // need some time for background session
-        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, RetentionPolicyLogEntry."Message Type"::Error, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Error, LastRetentionPolicyLogEntryNo + 1));
+        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, enum::"Retention Policy Log Message Type"::Error, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, enum::"Retention Policy Log Message Type"::Error, LastRetentionPolicyLogEntryNo + 1));
     end;
 
     [Test]
     procedure TestLogErrorWithoutDisplay()
     var
-        RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
         RetentionPolicyLog: Codeunit "Retention Policy Log";
         LastRetentionPolicyLogEntryNo: BigInteger;
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         //Setup
-        if RetentionPolicyLogEntry.FindLast() then;
-        LastRetentionPolicyLogEntryNo := RetentionPolicyLogEntry."Entry No.";
+        LastRetentionPolicyLogEntryNo := RetentionPolicyTestLibrary.RetenionPolicyLogLastEntryNo();
 
         //Exercise
-        RetentionPolicyLog.LogError(RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Error, LastRetentionPolicyLogEntryNo + 1), false); // runs a background task
+        RetentionPolicyLog.LogError(RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, enum::"Retention Policy Log Message Type"::Error, LastRetentionPolicyLogEntryNo + 1), false); // runs a background task
 
         // Verify
         sleep(50); // need some time for background session
-        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, RetentionPolicyLogEntry."Message Type"::Error, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, RetentionPolicyLogEntry."Message Type"::Error, LastRetentionPolicyLogEntryNo + 1));
+        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, enum::"Retention Policy Log Message Type"::Error, RetentionPolicyLogCategory::"Retention Policy - Period", StrSubstNo(TestLogMessageLbl, enum::"Retention Policy Log Message Type"::Error, LastRetentionPolicyLogEntryNo + 1));
     end;
 
     [Test]
     procedure TestApplyRetentionPolicyRecordMustBeTemp()
     var
         RetentionPolicySetup: Record "Retention Policy Setup";
-        RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
         RetentionPolicyLog: Codeunit "Retention Policy Log";
         LastRetentionPolicyLogEntryNo: BigInteger;
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         // Setup
-        if RetentionPolicyLogEntry.FindLast() then;
-        LastRetentionPolicyLogEntryNo := RetentionPolicyLogEntry."Entry No.";
+        LastRetentionPolicyLogEntryNo := RetentionPolicyTestLibrary.RetenionPolicyLogLastEntryNo();
         RetentionPolicySetup.SystemId := CreateGuid();
         RetentionPolicySetup."Table Id" := Database::"Retention Policy Test Data";
         RetentionPolicySetup.CalcFields("Table Name");
         ClearLastError();
 
         // Exercise
-        if not Codeunit.Run(Codeunit::"Apply Retention Policy Impl.", RetentionPolicySetup) then
+        if not RetentionPolicyTestLibrary.RunApplyRetentionPolicyImpl(RetentionPolicySetup) then
             RetentionPolicyLog.LogError(RetentionPolicyLogCategory::"Retention Policy - Apply", StrSubstNo(ErrorOccuredDuringApplyErrLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Name", GetLastErrorText()), false);
 
         // Verify
         sleep(50);
         Assert.ExpectedError(RetentionPolicySetupRecordNotTempErr);
-        RetentionPolicyLogEntry.FindLast();
-        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, RetentionPolicyLogEntry."Message Type"::Error, RetentionPolicyLogCategory::"Retention Policy - Apply",
+        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, enum::"Retention Policy Log Message Type"::Error, RetentionPolicyLogCategory::"Retention Policy - Apply",
             StrSubstNo(ErrorOccuredDuringApplyErrLbl, RetentionPolicySetup."Table Id", RetentionPolicySetup."Table Name", RetentionPolicySetupRecordNotTempErr));
     end;
 
@@ -169,39 +156,35 @@ codeunit 138705 "Retention Policy Log Test"
     procedure TestApplyRetentionPolicyRecordMustExist()
     var
         TempRetentionPolicySetup: Record "Retention Policy Setup" temporary;
-        RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
         RetentionPolicyLog: Codeunit "Retention Policy Log";
         LastRetentionPolicyLogEntryNo: BigInteger;
     begin
         PermissionsMock.Set('Retention Pol. Admin');
         // Setup
-        if RetentionPolicyLogEntry.FindLast() then;
-        LastRetentionPolicyLogEntryNo := RetentionPolicyLogEntry."Entry No.";
+        LastRetentionPolicyLogEntryNo := RetentionPolicyTestLibrary.RetenionPolicyLogLastEntryNo();
         TempRetentionPolicySetup.SystemId := CreateGuid();
         TempRetentionPolicySetup."Table Id" := Database::"Retention Policy Test Data";
         TempRetentionPolicySetup.CalcFields("Table Name");
         ClearLastError();
 
         // Exercise
-        if not Codeunit.Run(Codeunit::"Apply Retention Policy Impl.", TempRetentionPolicySetup) then
+        if not RetentionPolicyTestLibrary.RunApplyRetentionPolicyImpl(TempRetentionPolicySetup) then
             RetentionPolicyLog.LogError(RetentionPolicyLogCategory::"Retention Policy - Apply", StrSubstNo(ErrorOccuredDuringApplyErrLbl, TempRetentionPolicySetup."Table Id", TempRetentionPolicySetup."Table Name", GetLastErrorText()), false);
 
         // Verify
         sleep(50);
         Assert.ExpectedError(StrSubstNo(RecordDoesNotExistErr, TempRetentionPolicySetup.SystemId));
-        RetentionPolicyLogEntry.FindLast();
-        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, RetentionPolicyLogEntry."Message Type"::Error, RetentionPolicyLogCategory::"Retention Policy - Apply",
+        VerifyLogEntry(LastRetentionPolicyLogEntryNo + 1, enum::"Retention Policy Log Message Type"::Error, RetentionPolicyLogCategory::"Retention Policy - Apply",
             StrSubstNo(ErrorOccuredDuringApplyErrLbl, TempRetentionPolicySetup."Table Id", TempRetentionPolicySetup."Table Name", StrSubstNo(RecordDoesNotExistErr, TempRetentionPolicySetup.SystemId)));
     end;
 
     local procedure VerifyLogEntry(EntryNo: BigInteger; MessageType: Enum "Retention Policy Log Message Type"; Category: Enum "Retention Policy Log Category"; Message: Text)
     var
-        RetentionPolicyLogEntry: Record "Retention Policy Log Entry";
+        FieldValues: Dictionary of [Text, Text];
     begin
-        SelectLatestVersion();
-        RetentionPolicyLogEntry.Get(EntryNo);
-        Assert.AreEqual(MessageType, RetentionPolicyLogEntry."Message Type", 'wrong message type');
-        Assert.AreEqual(Category, RetentionPolicyLogEntry.Category, 'wrong category');
-        Assert.AreEqual(Message, RetentionPolicyLogEntry.Message, 'wrong message');
+        FieldValues := RetentionPolicyTestLibrary.GetRetentionPolicyLogEntry(EntryNo);
+        Assert.AreEqual(Format(MessageType), FieldValues.Get('MessageType'), 'wrong message type');
+        Assert.AreEqual(Format(Category), FieldValues.Get('Category'), 'wrong category');
+        Assert.AreEqual(Message, FieldValues.Get('Message'), 'wrong message');
     end;
 }

@@ -17,6 +17,7 @@ codeunit 8905 "Email Message Impl."
     InherentPermissions = X;
     InherentEntitlements = X;
     Permissions = tabledata "Sent Email" = r,
+                  tabledata "Email Inbox" = r,
                   tabledata "Email Outbox" = rim,
                   tabledata "Email Message" = rimd,
                   tabledata "Email Error" = rd,
@@ -73,20 +74,53 @@ codeunit 8905 "Email Message Impl."
 
     procedure Create(Recipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
     begin
+        InitializeCreation();
+        UpdateMessage(Recipients, Subject, Body, HtmlFormatted, '', CCRecipients, BCCRecipients);
+    end;
+
+    procedure CreateReply(ToRecipients: Text; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    var
+        EmptyList: List of [Text];
+    begin
+        CreateReply(EmptyList, Subject, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
+        SetRecipients(Enum::"Email Recipient Type"::"To", ToRecipients);
+    end;
+
+    procedure CreateReply(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    var
+        EmptyList: List of [Text];
+    begin
+        CreateReply(ToRecipients, Subject, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
+    end;
+
+    procedure CreateReplyAll(Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
+    var
+        EmptyList: List of [Text];
+    begin
+        CreateReply(EmptyList, Subject, Body, HtmlFormatted, ExternalId, EmptyList, EmptyList);
+    end;
+
+    procedure CreateReply(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
+    begin
+        InitializeCreation();
+        UpdateMessage(ToRecipients, Subject, Body, HtmlFormatted, ExternalId, CCRecipients, BCCRecipients);
+    end;
+
+    local procedure InitializeCreation()
+    begin
         Clear(GlobalEmailMessageAttachment);
         Clear(GlobalEmailMessage);
 
         GlobalEmailMessage.Id := CreateGuid();
         GlobalEmailMessage.Insert();
-
-        UpdateMessage(Recipients, Subject, Body, HtmlFormatted, CCRecipients, BCCRecipients);
     end;
 
-    procedure UpdateMessage(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
+    procedure UpdateMessage(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
     begin
         SetBodyValue(Body);
         SetSubjectValue(Subject);
         SetBodyHTMLFormattedValue(HtmlFormatted);
+        SetExternalId(ExternalId);
         Modify();
 
         SetRecipients(Enum::"Email Recipient Type"::"To", ToRecipients);
@@ -141,6 +175,16 @@ codeunit 8905 "Email Message Impl."
 
         ExistingBodyText := GetBody();
         SetBody(ExistingBodyText + BodyText);
+    end;
+
+    procedure GetExternalId(): Text[2048]
+    begin
+        exit(GlobalEmailMessage."External Id");
+    end;
+
+    local procedure SetExternalId(ExternalId: Text)
+    begin
+        GlobalEmailMessage."External Id" := CopyStr(ExternalId, 1, MaxStrLen(GlobalEmailMessage."External Id"));
     end;
 
     procedure GetSubject(): Text[2048]
@@ -506,6 +550,11 @@ codeunit 8905 "Email Message Impl."
         exit(GlobalEmailMessageAttachment.Next());
     end;
 
+    procedure Attachments_GetId(): BigInteger
+    begin
+        exit(GlobalEmailMessageAttachment.Id);
+    end;
+
     procedure Attachments_GetName(): Text[250]
     begin
         exit(GlobalEmailMessageAttachment."Attachment Name");
@@ -599,6 +648,44 @@ codeunit 8905 "Email Message Impl."
         exit(GlobalEmailMessage.Get(MessageId));
     end;
 
+    procedure DeleteOrphanedMessages(StartMessageId: Guid; MessagesToIterate: Integer) NextMessageId: Guid
+    var
+        EmailMessage: Record "Email Message";
+        EmptyGuid: Guid;
+        MessageNo: Integer;
+    begin
+        EmailMessage.SetLoadFields(Id);
+        EmailMessage.ReadIsolation(IsolationLevel::ReadCommitted);
+        EmailMessage.SetFilter(Id, '>=%1', StartMessageId);
+        if not EmailMessage.FindSet() then
+            exit(EmptyGuid);
+
+        for MessageNo := 1 to MessagesToIterate do begin
+            DeleteIfOrphaned(EmailMessage);
+
+            if EmailMessage.Next() = 0 then
+                exit(EmptyGuid);
+        end;
+
+        exit(EmailMessage.Id);
+    end;
+
+    local procedure DeleteIfOrphaned(var EmailMessage: Record "Email Message")
+    var
+        EmailOutbox: Record "Email Outbox";
+        SentEmail: Record "Sent Email";
+    begin
+        EmailOutbox.SetRange("Message Id", EmailMessage.Id);
+        if not EmailOutbox.IsEmpty() then
+            exit;
+
+        SentEmail.SetRange("Message Id", EmailMessage.Id);
+        if not SentEmail.IsEmpty() then
+            exit;
+
+        EmailMessage.Delete();
+    end;
+
     procedure ValidateRecipients()
     var
         EmailAccount: Codeunit "Email Account";
@@ -655,6 +742,27 @@ codeunit 8905 "Email Message Impl."
     [InternalEvent(false)]
     local procedure OnBeforeDeleteSentEmailAttachment(var BypassSentCheck: Boolean)
     begin
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Email Inbox", OnBeforeInsertEvent, '', false, false)]
+    local procedure OnBeforeInsertEventEmailInbox(var Rec: Record "Email Inbox"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        Rec."User Security Id" := UserSecurityId();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Email Inbox", OnAfterDeleteEvent, '', false, false)]
+    local procedure OnAfterDeleteEmailInbox(var Rec: Record "Email Inbox"; RunTrigger: Boolean)
+    var
+        EmailMessage: Record "Email Message";
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if EmailMessage.Get(Rec."Message Id") then
+            EmailMessage.Delete();
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sent Email", OnAfterDeleteEvent, '', false, false)]
@@ -728,6 +836,7 @@ codeunit 8905 "Email Message Impl."
     [EventSubscriber(ObjectType::Table, Database::"Email Message", OnBeforeModifyEvent, '', false, false)]
     local procedure OnBeforeModifyEmailMessage(var Rec: Record "Email Message"; var xRec: Record "Email Message"; RunTrigger: Boolean)
     var
+        EmailInbox: Record "Email Inbox";
         EmailOutbox: Record "Email Outbox";
         EmailMessageOld: Record "Email Message";
         BypassSentCheck: Boolean;
@@ -740,6 +849,11 @@ codeunit 8905 "Email Message Impl."
 
         if not EmailOutbox.IsEmpty() then
             Error(EmailMessageQueuedCannotModifyErr);
+
+        EmailInbox.SetRange("Message Id", Rec.Id);
+
+        if not EmailInbox.IsEmpty() then
+            Error(EmailMessageRetrievedCannotModifyErr);
 
         OnBeforeDeleteSentEmailAttachment(BypassSentCheck);
 
@@ -850,6 +964,7 @@ codeunit 8905 "Email Message Impl."
         EmailCategoryLbl: Label 'Email', Locked = true;
         EmailMessageQueuedCannotModifyErr: Label 'Cannot edit the email because it has been queued to be sent.';
         EmailMessageSentCannotModifyErr: Label 'Cannot edit the message because it has already been sent.';
+        EmailMessageRetrievedCannotModifyErr: Label 'Cannot edit the message because it is from an external source.';
         EmailMessageQueuedCannotDeleteAttachmentErr: Label 'Cannot delete the attachment because the email has been queued to be sent.';
         EmailMessageSentCannotDeleteAttachmentErr: Label 'Cannot delete the attachment because the email has already been sent.';
         EmailMessageQueuedCannotInsertAttachmentErr: Label 'Cannot add the attachment because the email is queued to be sent.';

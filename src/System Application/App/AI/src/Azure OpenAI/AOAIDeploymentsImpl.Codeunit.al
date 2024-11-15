@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
+#if not CLEAN25
 using System.Environment;
+#endif
 
 codeunit 7769 "AOAI Deployments Impl"
 {
@@ -13,20 +15,26 @@ codeunit 7769 "AOAI Deployments Impl"
     InherentPermissions = X;
 
     var
-        EnviromentInformation: Codeunit "Environment Information";
         UnableToGetDeploymentNameErr: Label 'Unable to get deployment name, if this is a third party capability you must specify your own deployment name. You may need to contact your partner.';
+        GPT4oLatestLbl: Label 'gpt-4o-latest', Locked = true;
+        GPT4oPreviewLbl: Label 'gpt-4o-preview', Locked = true;
+        GPT4oMiniLatestLbl: Label 'gpt-4o-mini-latest', Locked = true;
+        GPT4oMiniPreviewLbl: Label 'gpt-4o-mini-preview', Locked = true;
+#if not CLEAN25
+        GPT4LatestLbl: Label 'gpt-4-latest', Locked = true;
+        GPT4PreviewLbl: Label 'gpt-4-preview', Locked = true;
+        GPT35TurboLatestLbl: Label 'gpt-35-turbo-latest', Locked = true;
+        GPT35TurboPreviewLbl: Label 'gpt-35-turbo-preview', Locked = true;
         Turbo0301SaasLbl: Label 'turbo-0301', Locked = true;
         GPT40613SaasLbl: Label 'gpt4-0613', Locked = true;
         Turbo0613SaasLbl: Label 'turbo-0613', Locked = true;
         Turbo0301Lbl: Label 'chatGPT_GPT35-turbo-0301', Locked = true;
         GPT40613Lbl: Label 'gpt-4-32k', Locked = true;
         Turbo031316kLbl: Label 'gpt-35-turbo-16k', Locked = true;
-        GPT4LatestLbl: Label 'gpt-4-latest', Locked = true;
-        GPT4PreviewLbl: Label 'gpt-4-preview', Locked = true;
-        GPT35TurboLatestLbl: Label 'gpt-35-turbo-latest', Locked = true;
-        GPT35TurboPreviewLbl: Label 'gpt-35-turbo-preview', Locked = true;
 
     procedure GetTurbo0301(CallerModuleInfo: ModuleInfo): Text
+    var
+        EnviromentInformation: Codeunit "Environment Information";
     begin
         if EnviromentInformation.IsSaaS() then
             exit(GetDeploymentName(Turbo0301SaasLbl, CallerModuleInfo));
@@ -35,6 +43,8 @@ codeunit 7769 "AOAI Deployments Impl"
     end;
 
     procedure GetGPT40613(CallerModuleInfo: ModuleInfo): Text
+    var
+        EnviromentInformation: Codeunit "Environment Information";
     begin
         if EnviromentInformation.IsSaaS() then
             exit(GetDeploymentName(GPT40613SaasLbl, CallerModuleInfo));
@@ -43,6 +53,8 @@ codeunit 7769 "AOAI Deployments Impl"
     end;
 
     procedure GetTurbo0613(CallerModuleInfo: ModuleInfo): Text
+    var
+        EnviromentInformation: Codeunit "Environment Information";
     begin
         if EnviromentInformation.IsSaaS() then
             exit(GetDeploymentName(Turbo0613SaasLbl, CallerModuleInfo));
@@ -69,13 +81,35 @@ codeunit 7769 "AOAI Deployments Impl"
     begin
         exit(GetDeploymentName(GPT4LatestLbl, CallerModuleInfo));
     end;
+#endif
+
+    procedure GetGPT4oPreview(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT4oPreviewLbl, CallerModuleInfo));
+    end;
+
+    procedure GetGPT4oLatest(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT4oLatestLbl, CallerModuleInfo));
+    end;
+
+    procedure GetGPT4oMiniPreview(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT4oMiniPreviewLbl, CallerModuleInfo));
+    end;
+
+    procedure GetGPT4oMiniLatest(CallerModuleInfo: ModuleInfo): Text
+    begin
+        exit(GetDeploymentName(GPT4oMiniLatestLbl, CallerModuleInfo));
+    end;
 
     local procedure GetDeploymentName(DeploymentName: Text; CallerModuleInfo: ModuleInfo): Text
     var
+        AzureOpenAiImpl: Codeunit "Azure OpenAI Impl";
         CurrentModuleInfo: ModuleInfo;
     begin
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
-        if (CallerModuleInfo.Publisher <> CurrentModuleInfo.Publisher) then
+        if (CallerModuleInfo.Publisher <> CurrentModuleInfo.Publisher) and not AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls() then
             Error(UnableToGetDeploymentNameErr);
 
         exit(DeploymentName);

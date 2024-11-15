@@ -53,7 +53,7 @@ codeunit 9351 "Graph Client Impl."
         GraphUriBuilder: Codeunit "Graph Uri Builder";
     begin
         Clear(HttpResponseMessage);
-        GraphUriBuilder.Initialize(MicrosoftGraphBaseUrl, GraphAPIVersion, RelativeUriToResource, GraphOptionalParameters.GetQueryParameters());
+        GraphUriBuilder.Initialize(MicrosoftGraphBaseUrl, GraphAPIVersion, RelativeUriToResource, GraphOptionalParameters.GetQueryParameters(), GraphOptionalParameters.GetODataQueryParameters());
         GraphRequestHelper.SetRestClient(RestClient);
         HttpResponseMessage := GraphRequestHelper.Get(GraphUriBuilder, GraphOptionalParameters);
         exit(HttpResponseMessage.GetIsSuccessStatusCode());
@@ -63,7 +63,7 @@ codeunit 9351 "Graph Client Impl."
     var
         GraphUriBuilder: Codeunit "Graph Uri Builder";
     begin
-        GraphUriBuilder.Initialize(MicrosoftGraphBaseUrl, GraphAPIVersion, RelativeUriToResource, GraphOptionalParameters.GetQueryParameters());
+        GraphUriBuilder.Initialize(MicrosoftGraphBaseUrl, GraphAPIVersion, RelativeUriToResource, GraphOptionalParameters.GetQueryParameters(), GraphOptionalParameters.GetODataQueryParameters());
         GraphRequestHelper.SetRestClient(RestClient);
         HttpResponseMessage := GraphRequestHelper.Post(GraphUriBuilder, GraphOptionalParameters, RequestHttpContent);
         exit(HttpResponseMessage.GetIsSuccessStatusCode());
@@ -73,9 +73,19 @@ codeunit 9351 "Graph Client Impl."
     var
         GraphUriBuilder: Codeunit "Graph Uri Builder";
     begin
-        GraphUriBuilder.Initialize(MicrosoftGraphBaseUrl, GraphAPIVersion, RelativeUriToResource, GraphOptionalParameters.GetQueryParameters());
+        GraphUriBuilder.Initialize(MicrosoftGraphBaseUrl, GraphAPIVersion, RelativeUriToResource, GraphOptionalParameters.GetQueryParameters(), GraphOptionalParameters.GetODataQueryParameters());
         GraphRequestHelper.SetRestClient(RestClient);
         HttpResponseMessage := GraphRequestHelper.Patch(GraphUriBuilder, GraphOptionalParameters, RequestHttpContent);
+        exit(HttpResponseMessage.GetIsSuccessStatusCode());
+    end;
+
+    procedure Put(RelativeUriToResource: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; RequestHttpContent: Codeunit "Http Content"; var HttpResponseMessage: Codeunit "Http Response Message"): Boolean
+    var
+        GraphUriBuilder: Codeunit "Graph Uri Builder";
+    begin
+        GraphUriBuilder.Initialize(MicrosoftGraphBaseUrl, GraphAPIVersion, RelativeUriToResource, GraphOptionalParameters.GetQueryParameters(), GraphOptionalParameters.GetODataQueryParameters());
+        GraphRequestHelper.SetRestClient(RestClient);
+        HttpResponseMessage := GraphRequestHelper.Put(GraphUriBuilder, GraphOptionalParameters, RequestHttpContent);
         exit(HttpResponseMessage.GetIsSuccessStatusCode());
     end;
 

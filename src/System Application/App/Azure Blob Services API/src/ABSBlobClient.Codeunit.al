@@ -20,7 +20,6 @@ codeunit 9053 "ABS Blob Client"
     /// <param name="StorageAccount">The name of Storage Account to use.</param>
     /// <param name="Container">The name of the container to use.</param>
     /// <param name="Authorization">The authorization to use.</param>
-    [NonDebuggable]
     procedure Initialize(StorageAccount: Text; Container: Text; Authorization: Interface "Storage Service Authorization")
     var
         StorageServiceAuthorization: Codeunit "Storage Service Authorization";
@@ -35,7 +34,6 @@ codeunit 9053 "ABS Blob Client"
     /// <param name="Container">The name of the container to use.</param>
     /// <param name="Authorization">The authorization to use.</param>
     /// <param name="APIVersion">The used API version to use.</param>
-    [NonDebuggable]
     procedure Initialize(StorageAccount: Text; Container: Text; Authorization: Interface "Storage Service Authorization"; APIVersion: Enum "Storage Service API Version")
     begin
         ABSClientImpl.Initialize(StorageAccount, Container, '', Authorization, APIVersion);
@@ -577,8 +575,23 @@ codeunit 9053 "ABS Blob Client"
     /// <param name="FoundBlobs">An XmlDocument containing the results of the identified blobs.</param>
     /// <returns>An operation response object</returns>
     procedure FindBlobsByTags(SearchTags: Dictionary of [Text, Text]; var FoundBlobs: XmlDocument): Codeunit "ABS Operation Response"
+    var
+        OptionalParameters: Codeunit "ABS Optional Parameters";
     begin
-        exit(ABSClientImpl.FindBlobsByTags(SearchTags, FoundBlobs));
+        exit(ABSClientImpl.FindBlobsByTags(SearchTags, FoundBlobs, OptionalParameters));
+    end;
+
+    /// <summary>
+    /// The Find Blobs By Tags operation retrieves blobs based on user-defined tags for the specified blob, represented as one or more key-value pairs.
+    /// see: https://learn.microsoft.com/rest/api/storageservices/find-blobs-by-tags?tabs=azure-ad
+    /// </summary>
+    /// <param name="SearchTags">A Dictionary of [Text, Text] with tags to search on.</param>
+    /// <param name="FoundBlobs">An XmlDocument containing the results of the identified blobs.</param>
+    /// <param name="OptionalParameters">Optional parameters to pass.</param>
+    /// <returns>An operation response object</returns>
+    procedure FindBlobsByTags(SearchTags: Dictionary of [Text, Text]; var FoundBlobs: XmlDocument; OptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.FindBlobsByTags(SearchTags, FoundBlobs, OptionalParameters));
     end;
 
     /// <summary>
@@ -771,7 +784,70 @@ codeunit 9053 "ABS Blob Client"
     /// <returns>An operation response object</returns>
     procedure PutBlockList(CommitedBlocks: Dictionary of [Text, Integer]; UncommitedBlocks: Dictionary of [Text, Integer]): Codeunit "ABS Operation Response"
     begin
-        exit(ABSClientImpl.PutBlockList(CommitedBlocks, UncommitedBlocks));
+        exit(ABSClientImpl.PutBlockList('', CommitedBlocks, UncommitedBlocks));
+    end;
+
+    /// <summary>
+    /// The Put Block List operation writes a blob by specifying the list of block IDs that make up the blob.
+    /// see: https://go.microsoft.com/fwlink/?linkid=2210392
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="CommitedBlocks">Dictionary of [Text, Integer] containing the list of commited blocks that should be put to the Blob</param>
+    /// <param name="UncommitedBlocks">Dictionary of [Text, Integer] containing the list of uncommited blocks that should be put to the Blob</param>
+    /// <returns>An operation response object</returns>
+    procedure PutBlockList(BlobName: Text; CommitedBlocks: Dictionary of [Text, Integer]; UncommitedBlocks: Dictionary of [Text, Integer]): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.PutBlockList(BlobName, CommitedBlocks, UncommitedBlocks));
+    end;
+
+    /// <summary>
+    /// The Put Block operation creates a new block to be committed as part of a blob.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="SourceText">The Content of the Block as Text.</param>
+    /// <param name="BlockId">Specifies the BlockId that should be put.</param>
+    /// <returns>An operation response object</returns>
+    procedure PutBlockText(BlobName: Text; SourceText: Text; BlockId: Text): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.PutBlock(BlobName, SourceText, BlockId));
+    end;
+
+    /// <summary>
+    /// The Put Block operation creates a new block to be committed as part of a blob.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="SourceText">The Content of the Block as Text.</param>
+    /// <returns>An operation response object</returns>
+    procedure PutBlockText(BlobName: Text; SourceText: Text): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.PutBlock(BlobName, SourceText));
+    end;
+
+    /// <summary>
+    /// The Put Block operation creates a new block to be committed as part of a blob.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="SourceInStream">The Content of the Block as InStream.</param>
+    /// <returns>An operation response object</returns>
+    procedure PutBlockStream(BlobName: Text; SourceInStream: InStream): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.PutBlock(BlobName, SourceInStream));
+    end;
+
+    /// <summary>
+    /// The Put Block operation creates a new block to be committed as part of a blob.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/put-block
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="SourceInStream">The Content of the Block as InStream.</param>
+    /// <param name="BlockId">Specifies the BlockId that should be put.</param>
+    /// <returns>An operation response object</returns>
+    procedure PutBlockStream(BlobName: Text; SourceInStream: InStream; BlockId: Text): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.PutBlock(BlobName, SourceInStream, BlockId));
     end;
 
     /// <summary>
@@ -1047,6 +1123,45 @@ codeunit 9053 "ABS Blob Client"
     procedure ChangeLease(BlobName: Text; LeaseId: Guid; ProposedLeaseId: Guid; ABSOptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
     begin
         exit(ABSClientImpl.BlobChangeLease(BlobName, ABSOptionalParameters, LeaseId, ProposedLeaseId));
+    end;
+
+    /// <summary>
+    /// The GetBlobMetadata operation gets user-defined Metadata for the specified blob as one or more key-value pairs.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-metadata?tabs=microsoft-entra-id
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="Metadata">The result Dictionary of [Text, Text] with blob metadata.</param>
+    /// <returns>An operation response object</returns>
+    procedure GetBlobMetadata(BlobName: Text; var Metadata: Dictionary of [Text, Text]): Codeunit "ABS Operation Response"
+    var
+        OptionalParameters: Codeunit "ABS Optional Parameters";
+    begin
+        exit(ABSClientImpl.GetBlobMetadata(BlobName, Metadata, OptionalParameters))
+    end;
+
+    /// <summary>
+    /// The GetBlobMetadata operation gets user-defined Metadata for the specified blob as one or more key-value pairs.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/get-blob-metadata?tabs=microsoft-entra-id
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="Metadata">The result Dictionary of [Text, Text] with blob metadata.</param>
+    /// <param name="OptionalParameters">Optional parameters to pass.</param>
+    /// <returns>An operation response object</returns>
+    procedure GetBlobMetaData(BlobName: Text; var Metadata: Dictionary of [Text, Text]; OptionalParameters: Codeunit "ABS Optional Parameters"): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.GetBlobMetadata(BlobName, MetaData, OptionalParameters))
+    end;
+
+    /// <summary>
+    /// The SetBlobMetadata operation sets user-defined Metadata for the specified blob as one or more key-value pairs.
+    /// see: https://learn.microsoft.com/en-us/rest/api/storageservices/set-blob-metadata?tabs=microsoft-entra-id
+    /// </summary>
+    /// <param name="BlobName">The name of the blob.</param>
+    /// <param name="Metadata">The result Dictionary of [Text, Text] with blob metadata.</param>
+    /// <returns>An operation response object</returns>
+    procedure SetBlobMetadata(BlobName: Text; Metadata: Dictionary of [Text, Text]): Codeunit "ABS Operation Response"
+    begin
+        exit(ABSClientImpl.SetBlobMetadata(BlobName, MetaData));
     end;
 
     var

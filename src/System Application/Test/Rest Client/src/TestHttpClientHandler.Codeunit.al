@@ -11,7 +11,7 @@ codeunit 134974 "Test Http Client Handler" implements "Http Client Handler"
 {
     SingleInstance = true;
 
-    procedure Send(HttpClient: HttpClient; HttpRequestMessage: codeunit "Http Request Message"; var HttpResponseMessage: codeunit "Http Response Message") Success: Boolean;
+    procedure Send(HttpClient: HttpClient; HttpRequestMessage: Codeunit "Http Request Message"; var HttpResponseMessage: Codeunit "Http Response Message") Success: Boolean;
     var
         ResponseMessage: HttpResponseMessage;
     begin

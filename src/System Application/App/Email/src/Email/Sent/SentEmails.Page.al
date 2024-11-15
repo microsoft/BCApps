@@ -184,6 +184,8 @@ page 8883 "Sent Emails"
         Rec.SetCurrentKey("Date Time Sent");
         NoSentEmails := Rec.IsEmpty();
         Rec.Ascending(false);
+
+        EmailImpl.ShowAdminViewPolicyInEffectNotification();
     end;
 
     trigger OnAfterGetCurrRecord()

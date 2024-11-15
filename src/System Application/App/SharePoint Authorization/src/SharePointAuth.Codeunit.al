@@ -59,7 +59,7 @@ codeunit 9142 "SharePoint Auth."
     /// <param name="ClientId">The Application (client) ID that the Azure portal - App registrations experience assigned to your app.</param>
     /// <param name="ClientSecret">The Application (client) secret configured in the "Azure Portal - Certificates &amp; Secrets".</param>
     /// <param name="Scope">A scope that you want the user to consent to.</param>
-    /// <returns>Codeunit instance implementing authorization interface</returns>
+    /// <returns>Codeunit instance implementing authorization interface</returns>    
     procedure CreateAuthorizationCode(EntraTenantId: Text; ClientId: Text; ClientSecret: SecretText; Scope: Text): Interface "SharePoint Authorization";
     var
         Scopes: List of [Text];
@@ -81,5 +81,38 @@ codeunit 9142 "SharePoint Auth."
         SharePointAuthImpl: Codeunit "SharePoint Auth. - Impl.";
     begin
         exit(SharePointAuthImpl.CreateAuthorizationCode(EntraTenantId, ClientId, ClientSecret, Scopes));
+    end;
+
+    /// <summary>
+    /// Creates an authorization mechanism with the Client Credentials Grant Flow.
+    /// </summary>
+    /// <param name="AadTenantId">Azure Active Directory tenant ID</param>
+    /// <param name="ClientId">The Application (client) ID that the Azure portal - App registrations experience assigned to your app.</param>        
+    /// <param name="Certificate">The Base64-encoded certificate for the Application (client) configured in the Azure Portal - Certificates &amp; Secrets.</param>
+    /// <param name="CertificatePassword">Password for the certificate.</param>
+    /// <param name="Scope">A scope that you want the user to consent to.</param>
+    /// <returns>Codeunit instance implementing authorization interface</returns>
+    procedure CreateClientCredentials(AadTenantId: Text; ClientId: Text; Certificate: SecretText; CertificatePassword: SecretText; Scope: Text): Interface "SharePoint Authorization";
+    var
+        Scopes: List of [Text];
+    begin
+        Scopes.Add(Scope);
+        exit(CreateClientCredentials(AadTenantId, ClientId, Certificate, CertificatePassword, Scopes));
+    end;
+
+    /// <summary>
+    /// Creates an authorization mechanism with the Client Credentials Grant Flow.
+    /// </summary>
+    /// <param name="AadTenantId">Azure Active Directory tenant ID</param>
+    /// <param name="ClientId">The Application (client) ID that the Azure portal - App registrations experience assigned to your app.</param>        
+    /// <param name="Certificate">The Base64-encoded certificate for the Application (client) configured in the Azure Portal - Certificates &amp; Secrets.</param>
+    /// <param name="CertificatePassword">Password for the certificate.</param>
+    /// <param name="Scopes">A list of scopes that you want the user to consent to.</param>
+    /// <returns>Codeunit instance implementing authorization interface</returns>
+    procedure CreateClientCredentials(AadTenantId: Text; ClientId: Text; Certificate: SecretText; CertificatePassword: SecretText; Scopes: List of [Text]): Interface "SharePoint Authorization";
+    var
+        SharePointAuthImpl: Codeunit "SharePoint Auth. - Impl.";
+    begin
+        exit(SharePointAuthImpl.CreateClientCredentials(AadTenantId, ClientId, Certificate, CertificatePassword, Scopes));
     end;
 }

@@ -162,18 +162,39 @@ codeunit 8906 "Email Editor"
     var
         FileName: Text;
         Instream: InStream;
-        AttachmentName, ContentType : Text[250];
-        AttachamentSize: Integer;
     begin
         UploadIntoStream('', '', '', FileName, Instream);
         if FileName = '' then
             exit;
 
+        UploadAttachment(EmailMessageImpl, FileName, Instream);
+    end;
+
+    procedure UploadAttachment(EmailMessageImpl: Codeunit "Email Message Impl."; SingleFile: FileUpload)
+    begin
+        // Default to MS-DOS encoding to keep consistent with the old behavior
+        UploadAttachment(EmailMessageImpl, SingleFile, TextEncoding::MSDos);
+    end;
+
+    procedure UploadAttachment(EmailMessageImpl: Codeunit "Email Message Impl."; SingleFile: FileUpload; EncodeType: TextEncoding)
+    var
+        TempInStream: InStream;
+    begin
+        SingleFile.CreateInStream(TempInStream, EncodeType);
+        if SingleFile.FileName <> '' then
+            UploadAttachment(EmailMessageImpl, SingleFile.FileName, TempInStream);
+    end;
+
+    procedure UploadAttachment(EmailMessageImpl: Codeunit "Email Message Impl."; FileName: Text; Instream: InStream)
+    var
+        AttachmentName, ContentType : Text[250];
+        AttachmentSize: Integer;
+    begin
         AttachmentName := CopyStr(FileName, 1, 250);
         ContentType := EmailMessageImpl.GetContentTypeFromFilename(FileName);
-        AttachamentSize := EmailMessageImpl.AddAttachmentInternal(AttachmentName, ContentType, Instream);
+        AttachmentSize := EmailMessageImpl.AddAttachmentInternal(AttachmentName, ContentType, Instream);
 
-        Session.LogMessage('0000CTX', StrSubstNo(UploadingAttachmentMsg, AttachamentSize, ContentType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
+        Session.LogMessage('0000CTX', StrSubstNo(UploadingAttachmentMsg, AttachmentSize, ContentType), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
     end;
 
     procedure DownloadAttachment(MediaID: Guid; FileName: Text)

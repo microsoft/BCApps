@@ -72,4 +72,25 @@ codeunit 7800 "Azure Functions Authentication"
         exit(AzureFunctionsCodeAuth);
     end;
 
+    /// <summary>
+    /// Creates an instance of OAuth2 authentication with certificate of Azure function interface.
+    /// </summary>
+    /// <param name="Endpoint">Azure function endpoint</param>
+    /// <param name="AuthenticationCode">Azure function authentication code, empty if anonymous.</param>
+    /// <param name="ClientId">The Application (client) ID that the Azure portal – App registrations experience assigned to your app.</param>
+    /// <param name="Cert">The Application (client) certificate configured in the Azure Portal.</param>
+    /// <param name="OAuthAuthorityUrl">The identity authorization provider URL.</param>
+    /// <param name="RedirectURL">The redirectURL of your app, for azure function this could be empty</param>
+    /// <param name="Scope">The scope for the token, example: "api://(app id)/.default"</param>
+    /// <returns>Instance of Azure function response object.</returns>
+    [NonDebuggable]
+    procedure CreateOAuth2WithCert(Endpoint: Text; AuthenticationCode: Text; ClientId: Text; Cert: SecretText; OAuthAuthorityUrl: Text; RedirectURL: Text; Scope: Text): Interface "Azure Functions Authentication"
+    var
+        AzureFunctionsOAuth2Cert: Codeunit "Azure Functions OAuth2 Cert";
+        Scopes: List of [Text];
+    begin
+        Scopes.Add(Scope);
+        AzureFunctionsOAuth2Cert.SetAuthParameters(Endpoint, AuthenticationCode, ClientId, Cert, OAuthAuthorityUrl, RedirectURL, Scopes);
+        exit(AzureFunctionsOAuth2Cert);
+    end;
 }

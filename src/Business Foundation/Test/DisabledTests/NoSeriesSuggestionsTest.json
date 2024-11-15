@@ -1,0 +1,12 @@
+[
+    {
+        "codeunitId":  134540,
+        "CodeunitName": "No. Series Copilot Accu. Tests",
+        "Method": "*"
+    },
+    {
+        "codeunitId":  134541,
+        "CodeunitName": "No. Series Copilot Harms Tests",
+        "Method": "*"
+    }
+]

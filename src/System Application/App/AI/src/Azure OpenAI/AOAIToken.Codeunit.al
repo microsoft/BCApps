@@ -21,7 +21,7 @@ codeunit 7759 "AOAI Token"
     /// <returns>The token count.</returns>
     procedure GetGPT35TokenCount(Input: SecretText): Integer
     begin
-        AzureOpenAIImpl.GetTokenCount(Input, Encodingcl100kbaseLbl);
+        exit(AzureOpenAIImpl.GetTokenCount(Input, Encodingcl100kbaseLbl));
     end;
 
     /// <summary>
@@ -31,7 +31,7 @@ codeunit 7759 "AOAI Token"
     /// <returns>The token count.</returns>
     procedure GetGPT4TokenCount(Input: SecretText): Integer
     begin
-        AzureOpenAIImpl.GetTokenCount(Input, Encodingcl100kbaseLbl);
+        exit(AzureOpenAIImpl.GetTokenCount(Input, Encodingcl100kbaseLbl));
     end;
 
     /// <summary>
@@ -41,7 +41,7 @@ codeunit 7759 "AOAI Token"
     /// <returns>The token count.</returns>
     procedure GetAdaTokenCount(Input: SecretText): Integer
     begin
-        AzureOpenAIImpl.GetTokenCount(Input, Encodingcl100kbaseLbl);
+        exit(AzureOpenAIImpl.GetTokenCount(Input, Encodingcl100kbaseLbl));
     end;
 
     /// <summary>
@@ -51,6 +51,18 @@ codeunit 7759 "AOAI Token"
     /// <returns>The token count.</returns>
     procedure GetDavinciTokenCount(Input: SecretText): Integer
     begin
-        AzureOpenAIImpl.GetTokenCount(Input, Encodingp50kbaseLbl);
+        exit(AzureOpenAIImpl.GetTokenCount(Input, Encodingp50kbaseLbl));
+    end;
+
+
+    /// <summary>
+    /// Gets the total tokens used till now for the server session.
+    /// The total tokens used is aggregated for all the models.
+    /// Note: this method is expected to change in future.
+    /// </summary>
+    /// <returns>The total token consumed for the session.</returns>
+    procedure GetTotalServerSessionTokensConsumed(): Integer
+    begin
+        exit(AzureOpenAIImpl.GetTotalServerSessionTokensConsumed());
     end;
 }

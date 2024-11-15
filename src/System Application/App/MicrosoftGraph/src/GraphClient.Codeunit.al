@@ -17,7 +17,6 @@ codeunit 9350 "Graph Client"
     InherentPermissions = X;
 
     var
-        [NonDebuggable]
         GraphClientImpl: Codeunit "Graph Client Impl.";
 
     /// <summary>
@@ -110,6 +109,21 @@ codeunit 9350 "Graph Client"
     procedure Patch(RelativeUriToResource: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; RequestHttpContent: Codeunit "Http Content"; var HttpResponseMessage: Codeunit "Http Response Message"): Boolean
     begin
         exit(GraphClientImpl.Patch(RelativeUriToResource, GraphOptionalParameters, RequestHttpContent, HttpResponseMessage));
+    end;
+
+    /// <summary>
+    /// Put any request to the microsoft graph API
+    /// </summary>
+    /// <remarks>Does not require UI interaction.</remarks>
+    /// <param name="RelativeUriToResource">A relativ uri including the resource segment</param>
+    /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters</param>
+    /// <param name="RequestHttpContent">The HttpContent object for the request.</param>
+    /// <param name="HttpResponseMessage">The response message object.</param>
+    /// <returns>True if the operation was successful; otherwise - false.</returns>
+    /// <error>Authentication failed.</error>
+    procedure Put(RelativeUriToResource: Text; GraphOptionalParameters: Codeunit "Graph Optional Parameters"; RequestHttpContent: Codeunit "Http Content"; var HttpResponseMessage: Codeunit "Http Response Message"): Boolean
+    begin
+        exit(GraphClientImpl.Put(RelativeUriToResource, GraphOptionalParameters, RequestHttpContent, HttpResponseMessage));
     end;
 
     /// <summary>

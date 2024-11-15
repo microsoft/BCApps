@@ -131,6 +131,23 @@ page 3903 "Retention Policy Setup List"
                     ApplyRetentionPolicy.ApplyRetentionPolicy(true);
                 end;
             }
+            action(RestoreAllowedTables)
+            {
+                Caption = 'Refresh Allowed Tables';
+                ApplicationArea = All;
+                Promoted = true;
+                PromotedOnly = true;
+                PromotedCategory = Process;
+                Image = Refresh;
+                ToolTip = 'Refreshes the list of tables that can be selected.';
+
+                trigger OnAction()
+                var
+                    RetenPolAllowedTables: Codeunit "Reten. Pol. Allowed Tables";
+                begin
+                    RetenPolAllowedTables.OnRefreshAllowedTables();
+                end;
+            }
         }
     }
 

@@ -11,7 +11,7 @@ using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
 codeunit 134706 "Email Retention Policy Tests"
 {
-    Subtype = test;
+    Subtype = Test;
     TestPermissions = Restrictive;
     Permissions = tabledata "Sent Email" = rimd,
                   tabledata "Email Outbox" = rimd;
@@ -72,7 +72,7 @@ codeunit 134706 "Email Retention Policy Tests"
         LibraryAssert.TableIsEmpty(Database::"Sent Email");
     end;
 
-    local procedure CreateSentEmailRecord(DatetimeSent: datetime)
+    local procedure CreateSentEmailRecord(DatetimeSent: DateTime)
     var
         SentEmail: Record "Sent Email";
     begin
@@ -80,14 +80,14 @@ codeunit 134706 "Email Retention Policy Tests"
         SentEmail.Insert();
     end;
 
-    local procedure CreateOrFindRetentionPeriod(RetentionPeriodEnum: enum "Retention Period Enum"): Code[20]
+    local procedure CreateOrFindRetentionPeriod(RetentionPeriodEnum: Enum "Retention Period Enum"): Code[20]
     var
         RetentionPolicySetup: Codeunit "Retention Policy Setup";
     begin
         exit(RetentionPolicySetup.FindOrCreateRetentionPeriod(RetentionPeriodEnum))
     end;
 
-    local procedure CreateRetentionPolicySetup(var RetentionPolicySetup: Record "Retention Policy Setup"; TableId: Integer; DateFieldNo: integer; RetentionPeriod: Code[20])
+    local procedure CreateRetentionPolicySetup(var RetentionPolicySetup: Record "Retention Policy Setup"; TableId: Integer; DateFieldNo: Integer; RetentionPeriod: Code[20])
     begin
         RetentionPolicySetup.SetRange("Table Id", TableId);
         RetentionPolicySetup.DeleteAll(true);
@@ -101,7 +101,7 @@ codeunit 134706 "Email Retention Policy Tests"
         RetentionPolicySetup.Insert(true);
     end;
 
-    local procedure CreateRetentionPolicySetupWithLine(var RetentionPolicySetup: Record "Retention Policy Setup"; TableId: Integer; DateFieldNo: integer; RetentionPeriod: Code[20])
+    local procedure CreateRetentionPolicySetupWithLine(var RetentionPolicySetup: Record "Retention Policy Setup"; TableId: Integer; DateFieldNo: Integer; RetentionPeriod: Code[20])
     var
         RetentionPolicySetupLine: Record "Retention Policy Setup Line";
     begin

@@ -112,6 +112,7 @@ codeunit 323 "No. Series - Errors Impl."
 
     local procedure UserCanEditNoSeries(): Boolean
     var
+        [SecurityFiltering(SecurityFilter::Ignored)]
         NoSeries: Record "No. Series";
     begin
         exit(NoSeries.WritePermission());

@@ -11,7 +11,6 @@ codeunit 9055 "ABS Container Helper"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    [NonDebuggable]
     procedure AddNewEntryFromNode(var ABSContainer: Record "ABS Container"; var Node: XmlNode; XPathName: Text)
     var
         ABSHelperLibrary: Codeunit "ABS Helper Library";
@@ -30,7 +29,6 @@ codeunit 9055 "ABS Container Helper"
             AddNewEntry(ABSContainer, NameFromXml, OuterXml, ChildNodes);
     end;
 
-    [NonDebuggable]
     procedure AddNewEntry(var ABSContainer: Record "ABS Container"; NameFromXml: Text; OuterXml: Text)
     var
         ChildNodes: XmlNodeList;
@@ -38,7 +36,6 @@ codeunit 9055 "ABS Container Helper"
         AddNewEntry(ABSContainer, NameFromXml, OuterXml, ChildNodes);
     end;
 
-    [NonDebuggable]
     procedure AddNewEntry(var ABSContainer: Record "ABS Container"; NameFromXml: Text; OuterXml: Text; ChildNodes: XmlNodeList)
     var
         Output: OutStream;
@@ -51,7 +48,6 @@ codeunit 9055 "ABS Container Helper"
         ABSContainer.Insert(true);
     end;
 
-    [NonDebuggable]
     local procedure SetPropertyFields(var ABSContainer: Record "ABS Container"; ChildNodes: XmlNodeList)
     var
         ABSFormatHelper: Codeunit "ABS Format Helper";

@@ -27,6 +27,7 @@ table 1432 "Net Promoter Score Setup"
         {
             DataClassification = SystemMetadata;
         }
+#if not CLEANSCHEMA18
         field(4; "Time Between Requests"; Integer)
         {
             DataClassification = SystemMetadata;
@@ -34,6 +35,7 @@ table 1432 "Net Promoter Score Setup"
             ObsoleteState = Removed;
             ObsoleteTag = '18.0';
         }
+#endif
         field(5; "Request Timeout"; Integer)
         {
             DataClassification = SystemMetadata;

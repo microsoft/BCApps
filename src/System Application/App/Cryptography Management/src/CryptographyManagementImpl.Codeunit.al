@@ -406,6 +406,30 @@ codeunit 1279 "Cryptography Management Impl."
         SignData(DataInStream, SignatureKey.ToXmlString(), HashAlgorithm, SignatureOutStream);
     end;
 
+    procedure SignData(InputString: Text; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; RSASignaturePadding: Enum "RSA Signature Padding"; SignatureOutStream: OutStream)
+    var
+        TempBlob: Codeunit "Temp Blob";
+        DataOutStream: OutStream;
+        DataInStream: InStream;
+    begin
+        if InputString = '' then
+            exit;
+        TempBlob.CreateOutStream(DataOutStream, TextEncoding::UTF8);
+        TempBlob.CreateInStream(DataInStream, TextEncoding::UTF8);
+        DataOutStream.WriteText(InputString);
+        SignData(DataInStream, XmlString, HashAlgorithm, SignatureOutStream);
+    end;
+
+    procedure SignData(DataInStream: InStream; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; RSASignaturePadding: Enum "RSA Signature Padding"; SignatureOutStream: OutStream)
+    var
+        RSAImpl: Codeunit "RSA Impl.";
+    begin
+        if DataInStream.EOS() then
+            exit;
+
+        RSAImpl.SignData(XmlString, DataInStream, HashAlgorithm, RSASignaturePadding, SignatureOutStream);
+    end;
+
     procedure VerifyData(InputString: Text; XmlString: SecretText; HashAlgorithm: Enum "Hash Algorithm"; SignatureInStream: InStream): Boolean
     var
         TempBlob: Codeunit "Temp Blob";

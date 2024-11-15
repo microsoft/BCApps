@@ -17,4 +17,12 @@ codeunit 9356 "Graph Authorization - Impl."
         GraphAuthClientCredentials.SetParameters(AadTenantId, ClientId, ClientSecret, Scopes);
         exit(GraphAuthClientCredentials);
     end;
+
+    procedure CreateAuthorizationWithClientCredentials(AadTenantId: Text; ClientId: Text; Certificate: SecretText; CertificatePassword: SecretText; Scopes: List of [Text]): Interface "Graph Authorization";
+    var
+        GraphAuthClientCredentials: Codeunit "Graph Auth. Client Credentials";
+    begin
+        GraphAuthClientCredentials.SetParameters(AadTenantId, ClientId, Certificate, CertificatePassword, Scopes);
+        exit(GraphAuthClientCredentials);
+    end;
 }

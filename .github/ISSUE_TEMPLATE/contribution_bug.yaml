@@ -1,0 +1,54 @@
+name: Report a bug in the contribution process
+description: Report a bug in the contribution process
+title: "[Contribution Process Bug]: "
+labels: ["Contribution-Bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+
+        This bug report is intended for reporting issues in the contribution process such as:
+        ✅ Documentation defects in this repository
+        ✅ Tooling defects (e.g. Creating development environments, building apps, etc.)
+        ✅ Other defects in the contribution process to this repository
+
+        This bug report is **not** intended for
+        🛑 Product defects of any kind
+
+        Before you create a new issue, please check the following:
+        🔎 Search existing issues to avoid creating duplicates.
+
+        Read more about what and how to contribute in the CONTRIBUTIONS document of this repository: https://github.com/microsoft/BCApps/blob/main/CONTRIBUTING.md.
+  - type: textarea
+    id: describe-the-issue
+    attributes:
+      label: Describe the issue
+      description: A clear and concise description of what the issue is
+      placeholder: Describe the issue
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: Describe what behavior you expected
+      placeholder: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to reproduce
+      description: List of steps to reproduce
+      placeholder: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: If needed add any other context about the problem here or include screenshots
+      placeholder: Additional context, screenshots, log output, etc.
+    validations:
+      required: false

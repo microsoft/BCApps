@@ -368,7 +368,7 @@ codeunit 135092 "Upgrade Tag Test"
         Assert.IsFalse(UpgradeTags.Get(NewUpgradeTag3, CompanyName()), 'Second upgrade tag was not restored');
     end;
 
-    local procedure AddUpgradeTagToBuffer(var TempUpgradeTag: Record "Upgrade Tags" temporary; UpgradeTag: code[250]; TagCompanyName: Text)
+    local procedure AddUpgradeTagToBuffer(var TempUpgradeTag: Record "Upgrade Tags" temporary; UpgradeTag: Code[250]; TagCompanyName: Text)
     var
         UpgradeTags: Record "Upgrade Tags";
     begin

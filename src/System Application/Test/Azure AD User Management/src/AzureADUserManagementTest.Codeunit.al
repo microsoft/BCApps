@@ -15,8 +15,8 @@ using System.TestLibraries.Utilities;
 
 codeunit 132909 "Azure AD User Management Test"
 {
-    Permissions = TableData "User Property" = rimd,
-                  TableData "User" = r;
+    Permissions = tabledata "User Property" = rimd,
+                  tabledata "User" = r;
     Subtype = Test;
 
     trigger OnRun()

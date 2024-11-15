@@ -21,9 +21,6 @@ codeunit 132525 "Edit in Excel Test"
         EditInExcel: Codeunit "Edit in Excel";
         IsInitialized: Boolean;
         EventServiceName: Text[240];
-#if not CLEAN22
-        WebServiceHasBeenDisabledErr: Label 'You can''t edit this page in Excel because it''s not set up for it. To use the Edit in Excel feature, you must publish the web service called ''%1''. Contact your system administrator for help.', Comment = '%1 = Web service name';
-#endif
 
     [Test]
     procedure TestEditInExcelCreatesWebService()
@@ -36,7 +33,7 @@ codeunit 132525 "Edit in Excel Test"
         TenantWebService.SetRange("Object ID", Page::"Edit in Excel List");
         TenantWebService.DeleteAll();
 
-        EditinExcelFilters.AddField('Id', Enum::"Edit in Excel Filter Type"::Equal, 'test', Enum::"Edit in Excel Edm Type"::"Edm.String");
+        EditinExcelFilters.AddFieldV2('Id', Enum::"Edit in Excel Filter Type"::Equal, 'test', Enum::"Edit in Excel Edm Type"::"Edm.String");
 
         EditInExcel.EditPageInExcel(CopyStr(EditInExcelList.Caption, 1, 240), Page::"Edit in Excel List", EditinExcelFilters);
 
@@ -45,45 +42,6 @@ codeunit 132525 "Edit in Excel Test"
         LibraryAssert.AreEqual(EditInExcelList.Caption + '_Excel', TenantWebService."Service Name", 'The tenant web service has incorrect name');
     end;
 
-#if not CLEAN22
-#pragma warning disable AL0432
-    [Test]
-    procedure TestEditInExcelCreatesWebServiceOld()
-    var
-        TenantWebService: Record "Tenant Web Service";
-        EditInExcelList: Page "Edit in Excel List";
-    begin
-        TenantWebService.SetRange("Object Type", TenantWebService."Object Type"::Page);
-        TenantWebService.SetRange("Object ID", Page::"Edit in Excel List");
-        TenantWebService.DeleteAll();
-
-        EditInExcel.EditPageInExcel(CopyStr(EditInExcelList.Caption, 1, 240), EditInExcelList.ObjectId(false), '');
-
-        LibraryAssert.RecordCount(TenantWebService, 1);
-        TenantWebService.FindFirst();
-        LibraryAssert.AreEqual(EditInExcelList.Caption + '_Excel', TenantWebService."Service Name", 'The tenant web service has incorrect name');
-    end;
-
-    [Test]
-    procedure TestEditInExcelDisabledWebServiceOld() // New test now exist under workbook tests
-    var
-        TenantWebService: Record "Tenant Web Service";
-        EditInExcelList: Page "Edit in Excel List";
-        PageName: Text[100];
-    begin
-        Init();
-
-        TenantWebService.SetRange("Object Type", TenantWebService."Object Type"::Page);
-        TenantWebService.SetRange("Object ID", Page::"Edit in Excel List");
-        TenantWebService.DeleteAll();
-        PageName := 'TestServiceName';
-        InsertTenantWebService(Page::"Edit in Excel List", PageName + '_Excel', false, false, false);
-
-        asserterror EditInExcel.EditPageInExcel(PageName, EditInExcelList.ObjectId(false), '');
-        LibraryAssert.ExpectedError(StrSubstNo(WebServiceHasBeenDisabledErr, PageName + '_Excel'));
-    end;
-#pragma warning restore AL0432
-#endif
 
     [Test]
     procedure TestEditInExcelReuseWebService()
@@ -108,32 +66,6 @@ codeunit 132525 "Edit in Excel Test"
         LibraryAssert.AreEqual(PageName + '_Excel', EditInExcelTest.GetServiceName(), 'The service name given to the edit in excel event is incorrect');
     end;
 
-#if not CLEAN22
-#pragma warning disable AL0432
-    [Test]
-    procedure TestEditInExcelReuseWebServiceOld()
-    var
-        TenantWebService: Record "Tenant Web Service";
-        EditInExcelList: Page "Edit in Excel List";
-        PageName: Text[100];
-    begin
-        Init();
-
-        TenantWebService.SetRange("Object Type", TenantWebService."Object Type"::Page);
-        TenantWebService.SetRange("Object ID", Page::"Edit in Excel List");
-        TenantWebService.DeleteAll();
-        PageName := 'TestServiceName';
-        InsertTenantWebService(Page::"Edit in Excel List", PageName + '_Excel', false, false, true);
-
-        EditInExcel.EditPageInExcel(PageName, EditInExcelList.ObjectId(false), '');
-
-        LibraryAssert.RecordCount(TenantWebService, 1);
-        TenantWebService.FindFirst();
-        LibraryAssert.AreEqual(PageName + '_Excel', TenantWebService."Service Name", 'The tenant web service name has changed');
-        LibraryAssert.AreEqual(PageName + '_Excel', EditInExcelTest.GetServiceName(), 'The service name given to the edit in excel event is incorrect');
-    end;
-#pragma warning restore AL0432
-#endif
 
     [Test]
     procedure TestEditInExcelReuseSpecificWebService()
@@ -159,32 +91,6 @@ codeunit 132525 "Edit in Excel Test"
         LibraryAssert.AreEqual(ServiceName, EditInExcelTest.GetServiceName(), 'The service name used is wrong'); // if there's a service called pageCaption_Excel then always use that one
     end;
 
-#if not CLEAN22
-#pragma warning disable AL0432
-    [Test]
-    procedure TestEditInExcelReuseSpecificWebServiceOld()
-    var
-        TenantWebService: Record "Tenant Web Service";
-        EditInExcelList: Page "Edit in Excel List";
-        ServiceName: Text[100];
-    begin
-        Init();
-
-        TenantWebService.SetRange("Object Type", TenantWebService."Object Type"::Page);
-        TenantWebService.SetRange("Object ID", Page::"Edit in Excel List");
-        TenantWebService.DeleteAll();
-        ServiceName := EditInExcelList.Caption + '_Excel';
-        InsertTenantWebService(Page::"Edit in Excel List", 'aaa', true, true, true);
-        InsertTenantWebService(Page::"Edit in Excel List", ServiceName, false, false, true);
-        InsertTenantWebService(Page::"Edit in Excel List", 'zzz', true, true, true);
-
-        EditInExcel.EditPageInExcel(CopyStr(EditInExcelList.Caption, 1, 240), EditInExcelList.ObjectId(false), '');
-
-        LibraryAssert.RecordCount(TenantWebService, 3);
-        LibraryAssert.AreEqual(ServiceName, EditInExcelTest.GetServiceName(), 'The service name used is wrong'); // if there's a service called pageCaption_Excel then always use that one
-    end;
-#pragma warning restore AL0432
-#endif
 
     [Test]
     procedure TestEditInExcelNumberInFieldNameReplacement()
@@ -194,16 +100,55 @@ codeunit 132525 "Edit in Excel Test"
         PlusFieldName: Text;
         RegularFieldName: Text;
         FieldNameStartingWDigit: Text;
+        EnDashFieldName: Text;
+        EnDashFieldName2: Text;
+        EnDashFieldName3: Text;
+        EnDashFieldName4: Text;
+        ForwardSlashesFieldName: Text;
+        ManyForwardSlashesFieldName: Text;
+        ForwardSlashesEmDashesAndUnderscoresFieldName: Text;
     begin
         Init();
         FieldNameStartingWDigit := EditinExcelTestLibrary.ExternalizeODataObjectName('3field');
         RegularFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('field');
         ApostropheFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('new vendor''s name');
         PlusFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('c+c field');
+
+        // Both spaces will be converted to underscore and the `en dash` will be converted to _x2013_
+        EnDashFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('lager – reklassfication field');
+
+        // The special symbol `en dash` will be converted to _x2013_ and the first prefixed space will be a converted
+        // to an underscore.
+        EnDashFieldName2 := EditinExcelTestLibrary.ExternalizeODataObjectName('lager –reklassfication field');
+
+        // The special symbol `en dash` will be converted to _x2013_.
+        EnDashFieldName3 := EditinExcelTestLibrary.ExternalizeODataObjectName('lager–reklassfication field');
+
+        // The two forward slashes will be converted to underscores and the `en dash` will be converted to _x2013_.
+        EnDashFieldName4 := EditinExcelTestLibrary.ExternalizeODataObjectName('lager/–/reklassfication field');
+
+        // Two forward slashes will have the first replaced with an underscore and the second removed.
+        ForwardSlashesFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('lager//reklassfication field');
+
+        // When we have a lot of forward slashes it only replaces the first one with an underscore and the rest are truncated.
+        ManyForwardSlashesFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('lager////////reklassfication field');
+
+        // The first forward slash will be converted to an underscore, the next underscore does not hit any special case so just
+        // stays as an underscore, the next forward slash is removed because it follows the rule of not allowing two underscores
+        // when converting from a special symbol to underscore(unless that special character is translated to a byte value).
+        ForwardSlashesEmDashesAndUnderscoresFieldName := EditinExcelTestLibrary.ExternalizeODataObjectName('lager/_/-reklassfication field');
+
         LibraryAssert.AreEqual('field', RegularFieldName, 'Conversion alters name that does not begin with a string');
         LibraryAssert.AreEqual('_x0033_field', FieldNameStartingWDigit, 'Did not convert the name with number correctly');
         LibraryAssert.AreEqual('new_vendor_x0027_s_name', ApostropheFieldName, 'Did not convert the name with an apostrophe correctly');
         LibraryAssert.AreEqual('c_x002b_c_field', PlusFieldName, 'Did not convert the name with a plus correctly');
+        LibraryAssert.AreEqual('lager__x2013__reklassfication_field', EnDashFieldName, 'Did not convert the name with an `en dash` with two surrounding spaces correctly');
+        LibraryAssert.AreEqual('lager__x2013_reklassfication_field', EnDashFieldName2, 'Did not convert the name with a space before an `en dash` correctly');
+        LibraryAssert.AreEqual('lager_x2013_reklassfication_field', EnDashFieldName3, 'Did not convert the name with an `en dash` correctly');
+        LibraryAssert.AreEqual('lager__x2013__reklassfication_field', EnDashFieldName4, 'Did not convert the name with forward slashes around `en dash` correctly');
+        LibraryAssert.AreEqual('lager_reklassfication_field', ForwardSlashesFieldName, 'Did not convert the name with 2 forward slashes correctly');
+        LibraryAssert.AreEqual('lager_reklassfication_field', ManyForwardSlashesFieldName, 'Did not convert the name with many forward slashes correctly');
+        LibraryAssert.AreEqual('lager__reklassfication_field', ForwardSlashesEmDashesAndUnderscoresFieldName, 'Did not convert the name with forward slashes, em dash and underscores correctly');
     end;
 
     [Test]
@@ -223,26 +168,6 @@ codeunit 132525 "Edit in Excel Test"
         LibraryAssert.AreEqual('WS3Service_Excel', TenantWebService."Service Name", 'The tenant web service has incorrect name');
     end;
 
-#if not CLEAN22
-#pragma warning disable AL0432
-    [Test]
-    procedure TestEditInExcelWebServiceStartsWithNumberOld()
-    var
-        TenantWebService: Record "Tenant Web Service";
-        EditInExcelList: Page "Edit in Excel List";
-    begin
-        TenantWebService.SetRange("Object Type", TenantWebService."Object Type"::Page);
-        TenantWebService.SetRange("Object ID", Page::"Edit in Excel List");
-        TenantWebService.DeleteAll();
-
-        EditInExcel.EditPageInExcel('3Service', EditInExcelList.ObjectId(false), '');
-
-        LibraryAssert.RecordCount(TenantWebService, 1);
-        TenantWebService.FindFirst();
-        LibraryAssert.AreEqual('WS3Service_Excel', TenantWebService."Service Name", 'The tenant web service has incorrect name');
-    end;
-#pragma warning restore AL0432
-#endif
 
     [Test]
     procedure TestEditInExcelInvalidFilterObject()
@@ -355,14 +280,14 @@ codeunit 132525 "Edit in Excel Test"
         // [Given] Invalid json filter object (missing last bracket)
         // [Given] A Json Structured filter and Payload
         JsonFilter := '{"type":"and","childNodes":[{"type":"or","childNodes":[{"type":"or","childNodes":' +
-                        '[{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":{"type":"Edm.String constant",' +
-                        '"value":"10000"}},{"type":"eq","leftNode":{"type":"var","name":"No"},' +
+                        '[{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":{"type":"Edm.String constant",' +
+                        '"value":"10000"}},{"type":"eq","leftNode":{"type":"var","name":"Id"},' +
                         '"rightNode":{"type":"Edm.String constant","value":"20000"}}]},' +
-                        '{"type":"or","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"No"}' +
+                        '{"type":"or","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"Id"}' +
                         ',"rightNode":{"type":"Edm.String constant","value":"30000"}},' +
-                        '{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":' +
+                        '{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":' +
                         '{"type":"Edm.String constant","value":"40000"}}]}]}]}';
-        JsonPayload := '{ "fieldPayload": { "No": { "alName": "No.", "validInODataFilter": true, "edmType": "Edm.String" }}}';
+        JsonPayload := '{ "fieldPayload": { "Id": { "alName": "Id", "validInODataFilter": true, "edmType": "Edm.String" }}}';
 
         FilterJsonObject.ReadFrom(JsonFilter);
         PayloadJsonObject.ReadFrom(JsonPayload);
@@ -372,9 +297,9 @@ codeunit 132525 "Edit in Excel Test"
 
         // [Then] The filters match expectations
         EditinExcelTestLibrary.GetFilters(EditinExcelFilters, FieldFilters);
-        NumberKey := 'No';
+        NumberKey := 'Id';
         LibraryAssert.IsTrue(FieldFilters.TryGetValue(NumberKey, FieldFilter), 'Could not find the "No" key in the filters');
-        ExpectedFilter := '((No eq ''10000'') or (No eq ''20000'') or (No eq ''30000'') or (No eq ''40000''))';
+        ExpectedFilter := '((Id eq ''10000'') or (Id eq ''20000'') or (Id eq ''30000'') or (Id eq ''40000''))';
         LibraryAssert.AreEqual(ExpectedFilter, FieldFilter.ToString(), 'The actual and expected filters are not equal');
     end;
 
@@ -389,7 +314,7 @@ codeunit 132525 "Edit in Excel Test"
         PayloadJsonObject: JsonObject;
         FieldFilters: DotNet GenericDictionary2;
         NumberKey: Text;
-        SalesKey: Text;
+        CountryRegionCodeKey: Text;
         ExpectedNumberFilter: Text;
         ExpectedSalesFilter: Text;
         NumberFieldFilter: DotNet FilterCollectionNode;
@@ -400,10 +325,10 @@ codeunit 132525 "Edit in Excel Test"
         Init();
 
         // [Given] A Json Structured filter and Payload
-        JsonFilter := '{"type":"and","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":{"type":"Edm.String constant",' +
-                      '"value":"10000"}},{"type":"eq","leftNode":{"type":"var","name":"Global_Dimension_1_Code"},"rightNode"' +
-                      ':{"type":"Edm.String constant","value":"SALES"}}]}';
-        JsonPayload := '{ "fieldPayload": { "No": { "alName": "No.", "validInODataFilter": true, "edmType": "Edm.String" }, "Global_Dimension_1_Code": {"alName": "Global Dimension 1 Code","validInODataFilter": true, "edmType": "Edm.String" }}}';
+        JsonFilter := '{"type":"and","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":{"type":"Edm.String constant",' +
+                      '"value":"10000"}},{"type":"eq","leftNode":{"type":"var","name":"Country_Region_Code"},"rightNode"' +
+                      ':{"type":"Edm.String constant","value":"GB"}}]}';
+        JsonPayload := '{ "fieldPayload": { "Id": { "alName": "Id", "validInODataFilter": true, "edmType": "Edm.String" }, "Country_Region_Code": { "alName": "Country/Region Code", "ValidInODataFilter": true, "edmType": "Edm.String" }}}';
         LibraryAssert.IsTrue(FilterJsonObject.ReadFrom(JsonFilter), 'Could not read json filter');
         LibraryAssert.IsTrue(PayloadJsonObject.ReadFrom(JsonPayload), 'Could not read json payload');
 
@@ -413,16 +338,16 @@ codeunit 132525 "Edit in Excel Test"
         // [Then] The filters match expectations
         EditinExcelTestLibrary.GetFilters(EditinExcelFilters, FieldFilters);
 
-        NumberKey := 'No';
-        SalesKey := 'Global_Dimension_1_Code';
+        NumberKey := 'Id';
+        CountryRegionCodeKey := 'Country_Region_Code';
 
         LibraryAssert.IsTrue(FieldFilters.TryGetValue(NumberKey, NumberFieldFilter), 'Could not find the "' + NumberKey + '" key in the filters');
-        LibraryAssert.IsTrue(FieldFilters.TryGetValue(SalesKey, SalesFieldFilter), 'Could not find the "' + SalesKey + '" key in the filters');
+        LibraryAssert.IsTrue(FieldFilters.TryGetValue(CountryRegionCodeKey, SalesFieldFilter), 'Could not find the "' + CountryRegionCodeKey + '" key in the filters');
 
-        ExpectedNumberFilter := '((No eq ''10000''))';
-        ExpectedSalesFilter := '((Global_Dimension_1_Code eq ''SALES''))';
+        ExpectedNumberFilter := '((Id eq ''10000''))';
+        ExpectedSalesFilter := '((Country_Region_Code eq ''GB''))';
 
-        // We expect this: ( (No eq '10000') and (Global_Dimension_1_Code eq 'SALES'))
+        // We expect this: ( (No eq '10000') and (Country_Region_Code eq 'GB'))
         LibraryAssert.AreEqual(ExpectedNumberFilter, NumberFieldFilter.ToString(), 'The actual and expected filters are not equal');
         LibraryAssert.AreEqual(ExpectedSalesFilter, SalesFieldFilter.ToString(), 'The actual and expected filters are not equal');
     end;
@@ -443,16 +368,15 @@ codeunit 132525 "Edit in Excel Test"
         ExpectedCountryRegionCodeFilter: Text;
         NumberFieldFilter: DotNet FilterCollectionNode;
         CountryRegionCodeFieldFilter: DotNet FilterCollectionNode;
-
     begin
         // [Scenario] User clicks "Edit in Excel" with filter on "No" field - 4 or filters and one other filter
         Init();
 
         // [Given] A Json Structured filter and Payload
-        JsonFilter := '{"type":"and","childNodes":[{"type":"or","childNodes":[{"type":"or","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":' +
-         '{"type":"Edm.String constant","value":"10000"}},{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":{"type":"Edm.String constant","value":"20000"}}]},' +
-         '{"type":"or","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":{"type":"Edm.String constant","value":"30000"}},{"type":"eq","leftNode":{"type":"var","name":"No"},"rightNode":{"type":"Edm.String constant","value":"40000"}}]}]},{"type":"eq","leftNode":{"type":"var","name":"Country_Region_Code"},"rightNode":{"type":"Edm.String constant","value":"GB"}}]}';
-        JsonPayload := '{ "fieldPayload": { "No": { "alName": "No.", "validInODataFilter": true, "edmType": "Edm.String" }, "Country_Region_Code": { "alName": "Country/Region Code", "ValidInODataFilter": true, "edmType": "Edm.String" } }}';
+        JsonFilter := '{"type":"and","childNodes":[{"type":"or","childNodes":[{"type":"or","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":' +
+         '{"type":"Edm.String constant","value":"10000"}},{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":{"type":"Edm.String constant","value":"20000"}}]},' +
+         '{"type":"or","childNodes":[{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":{"type":"Edm.String constant","value":"30000"}},{"type":"eq","leftNode":{"type":"var","name":"Id"},"rightNode":{"type":"Edm.String constant","value":"40000"}}]}]},{"type":"eq","leftNode":{"type":"var","name":"Country_Region_Code"},"rightNode":{"type":"Edm.String constant","value":"GB"}}]}';
+        JsonPayload := '{ "fieldPayload": { "Id": { "alName": "Id", "validInODataFilter": true, "edmType": "Edm.String" }, "Country_Region_Code": { "alName": "Country/Region Code", "ValidInODataFilter": true, "edmType": "Edm.String" } }}';
         LibraryAssert.IsTrue(FilterJsonObject.ReadFrom(JsonFilter), 'Could not read json filter');
         LibraryAssert.IsTrue(PayloadJsonObject.ReadFrom(JsonPayload), 'Could not read json payload');
 
@@ -462,17 +386,16 @@ codeunit 132525 "Edit in Excel Test"
         // [Then] The filters match expectations
         EditinExcelTestLibrary.GetFilters(EditinExcelFilters, FieldFilters);
 
-        NumberKey := 'No';
+        NumberKey := 'Id';
         CountryRegionCodeKey := 'Country_Region_Code';
 
         LibraryAssert.IsTrue(FieldFilters.TryGetValue(NumberKey, NumberFieldFilter), 'Could not find the "' + NumberKey + '" key in the filters');
         LibraryAssert.IsTrue(FieldFilters.TryGetValue(CountryRegionCodeKey, CountryRegionCodeFieldFilter), 'Could not find the "' + CountryRegionCodeKey + '" key in the filters');
 
-        // We expect this: (((No eq '10000') or (No eq '20000') or (No eq '30000') or (No eq '40000')) and (Country_Region_Code eq 'GB'))
-        ExpectedNumberFilter := '((No eq ''10000'') or (No eq ''20000'') or (No eq ''30000'') or (No eq ''40000''))';
+        // We expect this: (((Id eq '10000') or (Id eq '20000') or (Id eq '30000') or (Id eq '40000')) and (Country_Region_Code eq 'GB'))
+        ExpectedNumberFilter := '((Id eq ''10000'') or (Id eq ''20000'') or (Id eq ''30000'') or (Id eq ''40000''))';
         ExpectedCountryRegionCodeFilter := '((Country_Region_Code eq ''GB''))';
 
-        // We expect this: ( (No eq '10000') and (Global_Dimension_1_Code eq 'SALES'))
         LibraryAssert.AreEqual(ExpectedNumberFilter, NumberFieldFilter.ToString(), 'The actual and expected filters are not equal');
         LibraryAssert.AreEqual(ExpectedCountryRegionCodeFilter, CountryRegionCodeFieldFilter.ToString(), 'The actual and expected filters are not equal');
     end;

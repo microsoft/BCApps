@@ -20,7 +20,7 @@ permissionset 1994 "Guided Experience - Objects"
                   page "Checklist Item Roles" = X,
                   page "Checklist Item Users" = X,
                   page "Checklist Resurfacing" = X,
-		  page "Guided Experience Item Cleanup" = X,
+                  page "Guided Experience Item Cleanup" = X,
                   page "Guided Experience Item List" = X,
                   page "Manual Setup" = X;
 }

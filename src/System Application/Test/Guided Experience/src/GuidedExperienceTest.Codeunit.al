@@ -870,6 +870,34 @@ codeunit 132594 "Guided Experience Test"
         Assert.AreEqual(1, TempGuidedExperienceItem.Count, GuidedExperienceRecordCountErr);
     end;
 
+    [Test]
+    procedure TestResetAssistedSetupConsiderFilter()
+    var
+        GuidedExperience: Codeunit "Guided Experience";
+    begin
+        // [SCENARIO] When more than one assisted setup is completed and reset is called on one of them, only the one that has been reset has status incomplete.
+
+        // [GIVEN] The Guided Experience Item table contains 2 assisted setups
+        GuidedExperience.InsertAssistedSetup('My Assisted Setup Test Page', 'My Assisted Setup Test Page', 'Description of Setup Page', 0, ObjectType::Page,
+            Page::"My Assisted Setup Test Page", Enum::"Assisted Setup Group"::WithLinks, 'http://youtube.com', "Video Category"::Uncategorized, 'https://docs.microsoft.com/');
+
+        GuidedExperience.InsertAssistedSetup('Other Assisted Setup Test Page', 'Other Assisted Setup Test Page', '', 0, ObjectType::Page,
+            Page::"Other Assisted Setup Test Page", Enum::"Assisted Setup Group"::WithoutLinks, '', "Video Category"::Uncategorized, '');
+
+        // [WHEN] Both assisted setups are completed
+        GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"My Assisted Setup Test Page");
+        GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Other Assisted Setup Test Page");
+
+        // [WHEN] Reset is called on one of them
+        GuidedExperience.ResetAssistedSetup(ObjectType::Page, Page::"Other Assisted Setup Test Page");
+
+        // [THEN] Only the one that has been reset has status incomplete
+        Assert.IsFalse(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"Other Assisted Setup Test Page"), 'The assisted setup that has been reset should be incomplete.');
+
+        // [THEN] The other one is still completed
+        Assert.IsTrue(GuidedExperience.IsAssistedSetupComplete(ObjectType::Page, Page::"My Assisted Setup Test Page"), 'The assisted setup that has not been reset should still be completed.');
+    end;
+
     local procedure VerifyGuidedExperienceItemFields(GuidedExperienceItem: Record "Guided Experience Item"; Code: Code[300]; Version: Integer; ObjectTypeToRun: Enum "Guided Experience Object Type"; ObjectID: Integer; Link: Text[250]; Title: Text[2048]; ShortTitle: Text[2048]; Description: Text[1024]; ExpectedDuration: Integer; Completed: Boolean; GuidedExperienceType: Enum "Guided Experience Type"; AssistedSetupGroup: Enum "Assisted Setup Group"; HelpUrl: Text[250]; VideoUrl: Text[250]; VideoCategory: Enum "Video Category"; ManualSetupCategory: Enum "Manual Setup Category"; Keywords: Text[250]; SpotlightTourType: Enum "Spotlight Tour Type"; SpotlightTourTexts: Dictionary of [Enum "Spotlight Tour Text", Text])
     begin
         Assert.AreEqual(Code, GuidedExperienceItem.Code, 'The Code field of the Guided Experience Item is incorrect.');

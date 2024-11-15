@@ -9,7 +9,8 @@ codeunit 130452 "Test Runner - Get Methods"
 {
     Subtype = TestRunner;
     TableNo = "Test Method Line";
-    Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;
+    Permissions = tabledata "AL Test Suite" = rimd,
+                  tabledata "Test Method Line" = rimd;
 
     trigger OnRun()
     var
@@ -58,6 +59,7 @@ codeunit 130452 "Test Runner - Get Methods"
     local procedure AddTestMethod(CodeunitID: Integer; FunctionName: Text[128])
     var
         TestMethodLine: Record "Test Method Line";
+        Handled: Boolean;
     begin
         if UpdateTests then
             MaxLineNo += 100
@@ -70,11 +72,25 @@ codeunit 130452 "Test Runner - Get Methods"
         TestMethodLine.Validate("Line Type", TestMethodLine."Line Type"::"Function");
         TestMethodLine.Validate("Function", FunctionName);
         TestMethodLine.Validate(Run, CurrentTestMethodLine.Run);
-        TestMethodLine.Insert(true);
+        OnBeforeAddTestMethodLine(TestMethodLine, Handled);
+        if not Handled then
+            TestMethodLine.Insert(true);
+
+        OnAfterAddTestMethodLine(TestMethodLine, MaxLineNo);
     end;
 
     [IntegrationEvent(false, false)]
     local procedure OnGetTestMethods(CodeunitID: Integer; CodeunitName: Text[30]; FunctionName: Text[128]; FunctionTestPermissions: TestPermissions)
+    begin
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnBeforeAddTestMethodLine(var TestMethodLine: Record "Test Method Line"; var Handled: Boolean)
+    begin
+    end;
+
+    [InternalEvent(false, false)]
+    local procedure OnAfterAddTestMethodLine(var TestMethodLine: Record "Test Method Line"; var MaxLineNo: Integer)
     begin
     end;
 }

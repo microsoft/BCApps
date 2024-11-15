@@ -8,7 +8,7 @@ namespace System.Test.Environment.Configuration;
 report 132610 "Checklist Test Report"
 {
     ProcessingOnly = true;
-    
+
     trigger OnPostReport()
     begin
         OnChecklistTestReportPostRun();

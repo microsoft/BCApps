@@ -12,8 +12,8 @@ var
     EditinExcelFilters: Codeunit "Edit in Excel Filters";
     FileName: Text;
 begin
-    EditinExcelFilters.AddField('Journal_Batch_Name', Enum::"Edit in Excel Filter Type"::Equal, JournalBatchName, Enum::"Edit in Excel Edm Type"::"Edm.String");
-    EditinExcelFilters.AddField('Journal_Template_Name', Enum::"Edit in Excel Filter Type"::Equal, JournalTemplateName, Enum::"Edit in Excel Edm Type"::"Edm.String");
+    EditinExcelFilters.AddFieldV2('Journal_Batch_Name', Enum::"Edit in Excel Filter Type"::Equal, JournalBatchName, Enum::"Edit in Excel Edm Type"::"Edm.String");
+    EditinExcelFilters.AddFieldV2('Journal_Template_Name', Enum::"Edit in Excel Filter Type"::Equal, JournalTemplateName, Enum::"Edit in Excel Edm Type"::"Edm.String");
     FileName := StrSubstNo('%1 (%2, %3)', CurrPage.Caption, JournalBatchName, JournalTemplateName);
     EditinExcel.EditPageInExcel(CopyStr(CurrPage.Caption, 1, 240), Page::"Example page", EditinExcelFilters, FileName);
 end;
@@ -60,15 +60,15 @@ var
     EditinExcelFilters: Codeunit "Edit in Excel Filters";
 begin
     // Let's add a simple filter "Blocked = False"
-    EditinExcelFilters.AddField('Blocked', Enum::"Edit in Excel Filter Type"::Equal, 'false', Enum::"Edit in Excel Edm Type"::"Edm.Boolean");
+    EditinExcelFilters.AddFieldV2('Blocked', Enum::"Edit in Excel Filter Type"::Equal, 'false', Enum::"Edit in Excel Edm Type"::"Edm.Boolean");
 
     // Now the filter "No. = 10000|20000"
-    EditinExcelFilters.AddField('No_', Enum::"Edit in Excel Filter Collection Type"::"or", Enum::"Edit in Excel Edm Type"::"Edm.String")
+    EditinExcelFilters.AddFieldV2('No_', Enum::"Edit in Excel Filter Collection Type"::"or", Enum::"Edit in Excel Edm Type"::"Edm.String")
                         .AddFilterValue(Enum::"Edit in Excel Filter Type"::Equal, '10000')
                         .AddFilterValue(Enum::"Edit in Excel Filter Type"::Equal, '20000');
 
     // Finally let's add a range, "Amount = 1000..2000"
-    EditinExcelFilters.AddField('Amount', Enum::"Edit in Excel Filter Collection Type"::"and", Enum::"Edit in Excel Edm Type"::"Edm.Decimal")
+    EditinExcelFilters.AddFieldV2('Amount', Enum::"Edit in Excel Filter Collection Type"::"and", Enum::"Edit in Excel Edm Type"::"Edm.Decimal")
                         .AddFilterValue(Enum::"Edit in Excel Filter Type"::"Greater or Equal", '1000')
                         .AddFilterValue(Enum::"Edit in Excel Filter Type"::"Less or Equal", '2000');
 

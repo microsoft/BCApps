@@ -19,6 +19,9 @@ DocNo := NoSeries.PeekNextNo(GenJnlBatch."No. Series", EndDateReq);
 
 ### GetNextNo with delayed modify
 
+> [!WARNING]  
+> The procedure ``GetNextNo(Code[20]; Date; Boolean)`` exists in the legacy and in the new codeunit with the same signature but **logically different behavior**: The boolean parameter within the legacy procedure controls whether the requested number of the No. Series should be saved in the database, while the boolean in the new procedure hides errors and warnings.
+
 Old:
 ```
 if DocNo = NoSeriesMgt.GetNextNo(GenJnlBatch."No. Series", EndDateReq, false) then
@@ -55,7 +58,7 @@ if "No." = '' then begin
     GLSetup.TestField("Bank Account Nos.");
     "No. Series" := GLSetup."Bank Account Nos.";
     if NoSeries.AreRelated(GLSetup."Bank Account Nos.", xRec."No. Series") then
-        "No. Series" := xRec."No. Series"
+        "No. Series" := xRec."No. Series";
     "No." := NoSeries.GetNextNo("No. Series");
 end;
 ```
@@ -70,7 +73,7 @@ if "No." = '' then begin
     if not IsHandled then begin
         "No. Series" := GLSetup."Bank Account Nos.";
         if NoSeries.AreRelated(GLSetup."Bank Account Nos.", xRec."No. Series") then
-            "No. Series" := xRec."No. Series"
+            "No. Series" := xRec."No. Series";
         "No." := NoSeries.GetNextNo("No. Series");
         NoSeriesManagement.RaiseObsoleteOnAfterInitSeries("No. Series", GLSetup."Bank Account Nos.", 0D, "No.");
     end;
@@ -132,7 +135,7 @@ end;
 ```
 New:
 ```
-"Document No." := NoSeriesBatch.SimulateGetNextNo(GenJnlBatch."No. Series", Rec."Posting Date", "Document No.")
+"Document No." := NoSeriesBatch.SimulateGetNextNo(GenJnlBatch."No. Series", Rec."Posting Date", "Document No.");
 ```
 
 This new function uses the details of the given number series to increment the document number. If the number series doesn't exist, the document number increases by one.

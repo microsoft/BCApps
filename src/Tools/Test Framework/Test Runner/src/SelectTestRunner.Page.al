@@ -25,7 +25,7 @@ page 130454 "Select TestRunner"
                 field("Object ID"; Rec."Object ID")
                 {
                     ApplicationArea = All;
-                    Tooltip = 'Specifies the Object ID';
+                    ToolTip = 'Specifies the Object ID';
                 }
                 field("Object Name"; Rec."Object Name")
                 {

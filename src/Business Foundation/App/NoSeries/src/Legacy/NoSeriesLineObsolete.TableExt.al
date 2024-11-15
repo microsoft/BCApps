@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA27
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -184,3 +185,4 @@ tableextension 309 NoSeriesLineObsolete extends "No. Series Line"
 #endif
 
 }
+#endif

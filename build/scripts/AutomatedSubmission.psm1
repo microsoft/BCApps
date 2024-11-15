@@ -115,9 +115,11 @@ function New-GitHubPullRequest
         [Parameter(Mandatory=$true)]
         [string] $TargetBranch,
         [Parameter(Mandatory=$false)]
-        [string] $label = "automation",
+        [string] $Title,
         [Parameter(Mandatory=$false)]
-        [string] $PullRequestDescription
+        [string] $Description,
+        [Parameter(Mandatory=$false)]
+        [string] $Label = "Automation"
     )
 
     if ([GitHubPullRequest]::GetFromBranch($BranchName, $Repository)) {
@@ -131,22 +133,28 @@ function New-GitHubPullRequest
         "--fill"
     )
 
-    if ($label) {
+    if ($Label) {
         $availableLabels = gh label list --json name | ConvertFrom-Json
-        if ($label -in $availableLabels.name) {
-            $params += "--label '$($label)'"
+        if ($Label -cin $availableLabels.name) {
+            $params += "--label '$($Label)'"
         }
     }
 
-    if ($PullRequestDescription) {
-        $params += "--body '$($PullRequestDescription)'"
+    if ($Title) {
+        $params += "--title '$($Title)'"
+    }
+
+    if ($Description) {
+        $params += "--body '$($Description)'"
     }
 
     $parameters = ($params -join " ")
 
     Write-Host "gh pr create $parameters"
-    Invoke-Expression "gh pr create $parameters"
-    gh pr merge --auto --squash --delete-branch
+    $prLink = Invoke-Expression "gh pr create $parameters"
+    gh pr merge --auto --squash --delete-branch | Out-Null
+
+    return $prLink
 }
 
 Export-ModuleMember -Function *-*

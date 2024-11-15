@@ -44,6 +44,22 @@ codeunit 7771 "Azure OpenAI"
     end;
 
     /// <summary>
+    /// Checks if the Azure OpenAI API is enabled for the environment and if the capability is active on the environment.
+    /// </summary>
+    /// <param name="CopilotCapability">The copilot capability to check.</param>
+    /// <param name="Silent">If true, no error message will be shown if API is not enabled.</param>
+    /// <param name="AppId">The id of the app, which registered the copilot capability.</param>
+    /// <returns>True if API and capability is enabled for environment.</returns>
+    procedure IsEnabled(CopilotCapability: Enum "Copilot Capability"; Silent: Boolean; AppId: Guid): Boolean
+    var
+        AppModuleInfo: ModuleInfo;
+    begin
+        if not NavApp.GetModuleInfo(AppId, AppModuleInfo) then
+            exit(false);
+        exit(AzureOpenAIImpl.IsEnabled(CopilotCapability, Silent, AppModuleInfo));
+    end;
+
+    /// <summary>
     /// Checks if the Azure OpenAI API authorization is configured for the environment.
     /// </summary>
     /// <param name="ModelType">The model type to check authorization for.</param>
@@ -68,6 +84,25 @@ codeunit 7771 "Azure OpenAI"
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
         exit(AzureOpenAIImpl.IsInitialized(CopilotCapability, ModelType, CallerModuleInfo));
+    end;
+
+    /// <summary>
+    /// Sets the managed Azure OpenAI API authorization to use for a specific model type.
+    /// This will send the Azure OpenAI call to the deployment specified in <paramref name="ManagedResourceDeployment"/>, and will use the other parameters to verify that you have access to Azure OpenAI.
+    /// </summary>
+    /// <param name="ModelType">The model type to set authorization for.</param>
+    /// <param name="Endpoint">The endpoint to use to verify access to Azure OpenAI. This is used only for verification, not for actual Azure OpenAI calls.</param>
+    /// <param name="Deployment">The deployment to use to verify access to Azure OpenAI. This is used only for verification, not for actual Azure OpenAI calls.</param>
+    /// <param name="ApiKey">The API key to use  to verify access to Azure OpenAI. This is used only for verification, not for actual Azure OpenAI calls.</param>
+    /// <param name="ManagedResourceDeployment">The managed deployment to use for the model type.</param>
+    /// <remarks> NOTE: This function is currently only available to selected partners.
+    /// Endpoint would look like: https://resource-name.openai.azure.com/
+    /// Deployment would look like: gpt-35-turbo-16k
+    /// </remarks>
+    [NonDebuggable]
+    procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text; Deployment: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
+    begin
+        AzureOpenAIImpl.SetManagedResourceAuthorization(ModelType, Endpoint, Deployment, ApiKey, ManagedResourceDeployment);
     end;
 
     /// <summary>

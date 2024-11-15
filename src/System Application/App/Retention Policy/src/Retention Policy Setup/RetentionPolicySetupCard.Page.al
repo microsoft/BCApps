@@ -190,7 +190,7 @@ page 3901 "Retention Policy Setup Card"
             }
             action(RestoreAllowedTables)
             {
-                Caption = 'Refresh allowed tables';
+                Caption = 'Refresh Allowed Tables';
                 ApplicationArea = All;
                 Image = Refresh;
                 ToolTip = 'Refreshes the list of tables that can be selected.';
@@ -290,6 +290,8 @@ page 3901 "Retention Policy Setup Card"
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
         RetentionPolicySetup: Record "Retention Policy Setup";
+        [SecurityFiltering(SecurityFilter::Ignored)]
+        RetentionPolicySetup2: Record "Retention Policy Setup";
     begin
         if CloseAction = CloseAction::Cancel then
             exit(true);
@@ -298,7 +300,7 @@ page 3901 "Retention Policy Setup Card"
             exit(true);
 
         if (not PrevEnabledState) and (not Rec.Enabled) then
-            if Rec.WritePermission() then
+            if RetentionPolicySetup2.WritePermission() then
                 if Confirm(PolicyNotEnabledQst, false) then begin
                     Rec.Validate(Enabled, true);
                     CurrPage.SaveRecord();

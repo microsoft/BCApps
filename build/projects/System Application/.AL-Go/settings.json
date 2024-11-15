@@ -1,7 +1,10 @@
 {
-    "projectName": "System Application",
+    "projectName": "System Application and Tools",
     "appFolders":  [
-        "..\\..\\..\\src\\System Application\\App"
+        "../../../src/System Application/App",
+        "../../../src/Tools/AI Test Toolkit",
+        "../../../src/Tools/Test Framework/Test Libraries/*",
+        "../../../src/Tools/Test Framework/Test Runner"
     ],
     "buildModes": [ "Translated" ],
     "doNotRunTests": true,

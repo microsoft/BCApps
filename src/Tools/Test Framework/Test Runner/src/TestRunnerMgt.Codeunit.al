@@ -10,11 +10,13 @@ using System.Reflection;
 
 codeunit 130454 "Test Runner - Mgt"
 {
-    Permissions = TableData "AL Test Suite" = rimd, TableData "Test Method Line" = rimd;
+    Permissions = tabledata "AL Test Suite" = rimd,
+                  tabledata "Test Method Line" = rimd;
 
     var
         ALTestRunnerResetEnvironment: Codeunit "ALTestRunner Reset Environment";
         SkipLoggingResults: Boolean;
+        CurrentTestFilter: Text;
 
     trigger OnRun()
     begin
@@ -24,6 +26,8 @@ codeunit 130454 "Test Runner - Mgt"
     var
         TestMethodLine: Record "Test Method Line";
         ALCodeCoverageMgt: Codeunit "AL Code Coverage Mgt.";
+        TestSuiteMgt: Codeunit "Test Suite Mgt.";
+        BackupTestFilter: Text;
     begin
         ALTestRunnerResetEnvironment.Initialize();
         TestMethodLine.Copy(NewTestMethodLine);
@@ -38,19 +42,23 @@ codeunit 130454 "Test Runner - Mgt"
         ALCodeCoverageMgt.Initialize(TestMethodLine."Test Suite");
         OnRunTestSuite(TestMethodLine);
 
+        BackupTestFilter := TestMethodLine.GetFilter("Line No.");
         if TestMethodLine.FindSet() then
             repeat
+                CurrentTestFilter := TestSuiteMgt.GetLineNoFilterForTestCodeunit(TestMethodLine);
+                TestMethodLine.SetFilter("Line No.", CurrentTestFilter);
                 OnBeforeCodeunitRun(TestMethodLine);
                 CODEUNIT.Run(TestMethodLine."Test Codeunit");
-                TestMethodLine.Find();
                 OnAfterCodeunitRun(TestMethodLine);
+                TestMethodLine.SetFilter("Line No.", BackupTestFilter);
+                TestMethodLine.Find();
             until TestMethodLine.Next() = 0;
 
         OnAfterRunTestSuite(TestMethodLine);
     end;
 
-    /// This method is called when the caller needs to run a test codeunit but do not want to log results or the caller has 
-    /// an alternateway to log the results. Currently, this is used by the Performance Toolkit
+    /// This method is called when the caller needs to run a test codeunit but does not want to log results or the caller has 
+    /// an alternately to log the results. Currently, this is used by the Performance Toolkit
     procedure RunTestsWithoutLoggingResults(var TestMethodLine: Record "Test Method Line")
     begin
         SkipLoggingResults := true;
@@ -107,10 +115,6 @@ codeunit 130454 "Test Runner - Mgt"
         TestMethodLine: Record "Test Method Line";
         CodeunitTestMethodLine: Record "Test Method Line";
     begin
-        // Stop Permisson Mock if installed
-        if (FunctionName <> '') and (FunctionName <> 'OnRun') then
-            StartStopPermissionMock();
-
         if SkipLoggingResults then begin
             OnAfterTestMethodRun(TestMethodLine, CodeunitID, CodeunitName, FunctionName, FunctionTestPermissions, IsSuccess);
             exit;
@@ -119,6 +123,8 @@ codeunit 130454 "Test Runner - Mgt"
         // Invoked by platform after every test method is run
         if (FunctionName = '') or (FunctionName = 'OnRun') then
             exit;
+
+        StartStopPermissionMock();
 
         GetTestFunction(TestMethodLine, FunctionName, TestSuite, CodeunitID, LineNoTestFilter);
         UpdateTestFunctionLine(TestMethodLine, IsSuccess);
@@ -139,10 +145,11 @@ codeunit 130454 "Test Runner - Mgt"
         DummyBlankDateTime: DateTime;
     begin
         if IsSuccess then begin
-            FunctionTestMethodLine.SETRANGE("Test Suite", CodeunitTestMethodLine."Test Suite");
-            FunctionTestMethodLine.SETRANGE("Test Codeunit", CodeunitTestMethodLine."Test Codeunit");
-            FunctionTestMethodLine.SETRANGE("Line Type", FunctionTestMethodLine."Line Type"::"Function");
-            FunctionTestMethodLine.SETRANGE(Result, FunctionTestMethodLine.Result::Failure);
+            FunctionTestMethodLine.SetRange("Test Suite", CodeunitTestMethodLine."Test Suite");
+            FunctionTestMethodLine.SetRange("Test Codeunit", CodeunitTestMethodLine."Test Codeunit");
+            FunctionTestMethodLine.SetRange("Line Type", FunctionTestMethodLine."Line Type"::"Function");
+            FunctionTestMethodLine.SetRange(Result, FunctionTestMethodLine.Result::Failure);
+            FunctionTestMethodLine.SetFilter("Line No.", CurrentTestFilter);
             if FunctionTestMethodLine.IsEmpty() then begin
                 CodeunitTestMethodLine.Result := CodeunitTestMethodLine.Result::Success;
                 TestSuiteMgt.ClearErrorOnLine(CodeunitTestMethodLine);
@@ -208,7 +215,10 @@ codeunit 130454 "Test Runner - Mgt"
         TestMethodLineFunction.SetRange("Function", FunctionName);
 
         if LineNoTestFilter <> '' then
-            TestMethodLineFunction.SetFilter("Line No.", LineNoTestFilter);
+            TestMethodLineFunction.SetFilter("Line No.", LineNoTestFilter)
+        else
+            if CurrentTestFilter <> '' then
+                TestMethodLineFunction.SetFilter("Line No.", CurrentTestFilter);
 
         if not TestMethodLineFunction.FindFirst() then
             exit(false);
@@ -221,6 +231,7 @@ codeunit 130454 "Test Runner - Mgt"
         CodeunitTestMethodLineFunction.SetRange("Test Suite", TestSuite);
         CodeunitTestMethodLineFunction.SetRange("Test Codeunit", TestCodeunit);
         CodeunitTestMethodLineFunction.SetRange("Line Type", CodeunitTestMethodLineFunction."Line Type"::Codeunit);
+        CodeunitTestMethodLineFunction.SetFilter("Line No.", CurrentTestFilter);
 
         exit(CodeunitTestMethodLineFunction.FindFirst());
     end;

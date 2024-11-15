@@ -61,7 +61,7 @@ codeunit 132588 "DESCryptoServiceProvider Test"
         LibraryAssert: Codeunit "Library Assert";
         Base64Convert: Codeunit "Base64 Convert";
         InputInstream: InStream;
-        OutputOutstream: Outstream;
+        OutputOutstream: OutStream;
         OutputInstream: InStream;
         Pixel: Text;
         ExpectedEncryptedText: Text;
@@ -95,7 +95,7 @@ codeunit 132588 "DESCryptoServiceProvider Test"
         DESCryptoServiceProvider: Codeunit "DESCryptoServiceProvider";
         Base64Convert: Codeunit "Base64 Convert";
         LibraryAssert: Codeunit "Library Assert";
-        OutputOutstream: Outstream;
+        OutputOutstream: OutStream;
         OutputInstream: InStream;
         EncryptedStreamText: Text;
         DecryptedStreamText: Text;

@@ -83,7 +83,9 @@ page 130460 "AL Code Coverage"
             {
                 Caption = 'Object';
                 Editable = false;
+#pragma warning disable AA0205
                 IndentationColumn = Indent;
+#pragma warning restore AA0205
                 ShowAsTree = true;
                 field(CodeLine; CodeLine)
                 {
@@ -226,7 +228,7 @@ page 130460 "AL Code Coverage"
 
                 trigger OnAction()
                 var
-                    CodeCoverageDetailed: XMLport "Code Coverage Detailed";
+                    CodeCoverageDetailed: XmlPort "Code Coverage Detailed";
                 begin
                     CodeCoverageDetailed.Run();
                 end;

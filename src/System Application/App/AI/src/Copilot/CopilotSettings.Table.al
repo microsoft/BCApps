@@ -4,9 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-using System.Telemetry;
-using System.Globalization;
-
 /// <summary>
 /// Table to keep track of each Copilot Capability settings.
 /// </summary>
@@ -54,28 +51,4 @@ table 7775 "Copilot Settings"
             Clustered = true;
         }
     }
-
-    trigger OnModify()
-    var
-        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
-        Language: Codeunit Language;
-        SavedGlobalLanguageId: Integer;
-        CustomDimensions: Dictionary of [Text, Text];
-    begin
-        SavedGlobalLanguageId := GlobalLanguage();
-        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
-
-        CustomDimensions.Add('Category', CopilotCapabilityImpl.GetCopilotCategory());
-        CustomDimensions.Add('Capability', Format(Rec.Capability));
-        CustomDimensions.Add('AppId', Format(Rec."App Id"));
-        CustomDimensions.Add('Enabled', Format(Rec.Status));
-        FeatureTelemetry.LogUsage('0000LE0', CopilotCapabilityImpl.GetCopilotCategory(), CopilotCapabilityModifiedLbl, CustomDimensions);
-
-        GlobalLanguage(SavedGlobalLanguageId);
-    end;
-
-    var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-        CopilotCapabilityModifiedLbl: Label 'Copilot capability has been modified.', Locked = true;
-
 }

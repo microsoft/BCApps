@@ -113,6 +113,11 @@ table 8950 "AFS Directory Content"
             DataClassification = SystemMetadata;
             Caption = 'URI', Locked = true;
         }
+        field(120; "Next Marker"; Text[2048])
+        {
+            DataClassification = CustomerContent;
+            Caption = 'NextMarker';
+        }
     }
 
     keys

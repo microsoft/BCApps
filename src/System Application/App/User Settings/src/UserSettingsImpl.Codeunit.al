@@ -8,7 +8,6 @@ namespace System.Environment.Configuration;
 using System;
 using System.Azure.Identity;
 using System.Environment;
-using System.Feedback;
 using System.Reflection;
 using System.Security.AccessControl;
 using System.Security.User;
@@ -31,6 +30,7 @@ codeunit 9175 "User Settings Impl."
         UserCreatedAppNameTxt: Label '(User-created)';
         DescriptionFilterTxt: Label 'Navigation menu only.';
         NotEnoughPermissionsErr: Label 'You cannot open this page. Only administrators can access settings for other users.';
+        UserSettingsUpdatedLbl: Label 'User settings (UserSecurityId %1) have been updated with the values: Language ID %2, Locale ID %3, Company %4, Time Zone %5, Profile ID %6 by UserSecurityId %7 ', Locked = true;
 
     procedure GetPageId(): Integer
     var
@@ -81,8 +81,10 @@ codeunit 9175 "User Settings Impl."
     begin
         TempAllProfile.Reset();
         TempAllProfile.DeleteAll();
+
         AllProfile.SetRange(Enabled, true);
         AllProfile.SetFilter(Description, '<> %1', DescriptionFilterTxt);
+
         if AllProfile.FindSet() then
             repeat
                 TempAllProfile := AllProfile;
@@ -90,6 +92,8 @@ codeunit 9175 "User Settings Impl."
                     TempAllProfile."App Name" := UserCreatedAppNameTxt;
                 TempAllProfile.Insert();
             until AllProfile.Next() = 0;
+
+        TempAllProfile.SetCurrentKey(Caption, "Profile ID");
     end;
 
     procedure GetUserSettings(UserSecurityID: Guid; var UserSettingsRec: Record "User Settings")
@@ -107,7 +111,9 @@ codeunit 9175 "User Settings Impl."
         UserSettingsRec."User ID" := UserPersonalization."User ID";
         UserSettingsRec."Profile ID" := UserPersonalization."Profile ID";
         UserSettingsRec."App ID" := UserPersonalization."App ID";
+#pragma warning disable AL0432 // All profiles are now in the tenant scope
         UserSettingsRec.Scope := UserPersonalization.Scope;
+#pragma warning restore AL0432
 
         if UserSettingsRec."Profile ID" = '' then begin
             AllProfile.SetRange("Default Role Center", true);
@@ -124,7 +130,7 @@ codeunit 9175 "User Settings Impl."
         UserSettingsRec."Locale ID" := UserPersonalization."Locale ID";
         UserSettingsRec."Time Zone" := UserPersonalization."Time Zone";
 
-        if CompanyName() <> '' then
+        if (UserPersonalization.Company = '') and (CompanyName() <> '') then
             UserSettingsRec.Company := CopyStr(CompanyName(), 1, 30)
         else
             UserSettingsRec.Company := UserPersonalization.Company;
@@ -145,6 +151,14 @@ codeunit 9175 "User Settings Impl."
     procedure RefreshUserSettings(var UserSettings: Record "User Settings")
     begin
         GetUserSettings(UserSettings."User Security ID", UserSettings);
+    end;
+
+    procedure UpdateUserSettings(NewUserSettings: Record "User Settings")
+    var
+        CurrentUserSettings: Record "User Settings";
+    begin
+        GetUserSettings(NewUserSettings."User Security ID", CurrentUserSettings);
+        UpdateCurrentUsersSettings(CurrentUserSettings, NewUserSettings);
     end;
 
     procedure UpdateUserSettings(OldUserSettings: Record "User Settings"; NewUserSettings: Record "User Settings")
@@ -171,13 +185,18 @@ codeunit 9175 "User Settings Impl."
         UserPersonalization.Company := NewUserSettings.Company;
         UserPersonalization."Time Zone" := NewUserSettings."Time Zone";
         UserPersonalization."Profile ID" := NewUserSettings."Profile ID";
+#pragma warning disable AL0432 // All profiles are now in the tenant scope
         UserPersonalization.Scope := NewUserSettings.Scope;
+#pragma warning restore AL0432
         UserPersonalization."App ID" := NewUserSettings."App ID";
         UserPersonalization.Modify();
 
         GetAppSettings(NewUserSettings."User Security ID", ApplicationUserSettings);
         ApplicationUserSettings."Teaching Tips" := NewUserSettings."Teaching Tips";
+        ApplicationUserSettings."Legacy Action Bar" := NewUserSettings."Legacy Action Bar";
         ApplicationUserSettings.Modify();
+        Session.LogAuditMessage(StrSubstNo(UserSettingsUpdatedLbl, UserPersonalization."User SID", UserPersonalization."Language ID", UserPersonalization."Locale ID",
+            UserPersonalization.Company, UserPersonalization."Time Zone", UserPersonalization."Profile ID", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 2, 0);
     end;
 
     local procedure UpdateCurrentUsersSettings(OldUserSettings: Record "User Settings"; NewUserSettings: Record "User Settings")
@@ -220,7 +239,9 @@ codeunit 9175 "User Settings Impl."
             ShouldRefreshSession := true;
             sessionSetting.ProfileId := NewUserSettings."Profile ID";
             sessionSetting.ProfileAppId := NewUserSettings."App ID";
+#pragma warning disable AL0667
             sessionSetting.ProfileSystemScope := NewUserSettings.Scope = NewUserSettings.Scope::System;
+#pragma warning disable AL0667
         end;
 
         if OldUserSettings."Work Date" <> NewUserSettings."Work Date" then
@@ -398,18 +419,10 @@ codeunit 9175 "User Settings Impl."
     procedure EnableLegacyActionBar(UserSecurityID: Guid)
     var
         ApplicationUserSettings: Record "Application User Settings";
-        CustomerExperienceSurvey: Codeunit "Customer Experience Survey";
-        FormsProId: Text;
-        FormsProEligibilityId: Text;
-        IsEligible: Boolean;
     begin
         GetAppSettings(UserSecurityID, ApplicationUserSettings);
         ApplicationUserSettings."Legacy Action Bar" := true;
         ApplicationUserSettings.Modify();
-
-        if CustomerExperienceSurvey.RegisterEventAndGetEligibility('modernactionbar_event', 'modernactionbar', FormsProId, FormsProEligibilityId, IsEligible) then
-            if IsEligible then
-                CustomerExperienceSurvey.RenderSurvey('modernactionbar', FormsProId, FormsProEligibilityId);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAutoStartTours, '', false, false)]
@@ -531,12 +544,15 @@ codeunit 9175 "User Settings Impl."
         TempAllProfile: Record "All Profile" temporary;
     begin
         PopulateProfiles(TempAllProfile);
-
+#pragma warning disable AL0432 // All profiles are now in the tenant scope
         if TempAllProfile.Get(UserPersonalization.Scope, UserPersonalization."App ID", UserPersonalization."Profile ID") then;
+#pragma warning restore AL0432
         if Page.RunModal(Page::Roles, TempAllProfile) = Action::LookupOK then begin
             UserPersonalization."Profile ID" := TempAllProfile."Profile ID";
             UserPersonalization."App ID" := TempAllProfile."App ID";
+#pragma warning disable AL0432 // All profiles are now in the tenant scope
             UserPersonalization.Scope := TempAllProfile.Scope;
+#pragma warning restore AL0432
             UserPersonalization.CalcFields("Role");
         end;
     end;

@@ -15,7 +15,7 @@ using System.TestLibraries.Security.AccessControl;
 #pragma warning disable AA0217
 codeunit 138706 "Record Reference Normal Test"
 {
-    Subtype = test;
+    Subtype = Test;
     TestPermissions = Restrictive;
     Permissions = tabledata "Record Reference Test" = rimd,
                   tabledata "Record Link" = rimd;

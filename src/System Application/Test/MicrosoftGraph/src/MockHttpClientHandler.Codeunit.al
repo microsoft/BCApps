@@ -13,13 +13,13 @@ codeunit 135142 "Mock Http Client Handler" implements "Http Client Handler"
     InherentPermissions = X;
 
     var
-        _httpRequestMessage: codeunit System.RestClient."Http Request Message";
-        _httpResponseMessage: codeunit System.RestClient."Http Response Message";
+        _httpRequestMessage: Codeunit System.RestClient."Http Request Message";
+        _httpResponseMessage: Codeunit System.RestClient."Http Response Message";
         _responseMessageSet: Boolean;
         _sendError: Text;
 
 
-    procedure Send(HttpClient: HttpClient; HttpRequestMessage: codeunit System.RestClient."Http Request Message"; var HttpResponseMessage: codeunit System.RestClient."Http Response Message") Success: Boolean;
+    procedure Send(HttpClient: HttpClient; HttpRequestMessage: Codeunit System.RestClient."Http Request Message"; var HttpResponseMessage: Codeunit System.RestClient."Http Response Message") Success: Boolean;
     begin
 
         ClearLastError();
@@ -31,19 +31,19 @@ codeunit 135142 "Mock Http Client Handler" implements "Http Client Handler"
         _sendError := SendError;
     end;
 
-    procedure SetResponse(var NewHttpResponseMessage: codeunit System.RestClient."Http Response Message")
+    procedure SetResponse(var NewHttpResponseMessage: Codeunit System.RestClient."Http Response Message")
     begin
         _httpResponseMessage := NewHttpResponseMessage;
         _responseMessageSet := true;
     end;
 
-    procedure GetHttpRequestMessage(var OutHttpRequestMessage: codeunit System.RestClient."Http Request Message")
+    procedure GetHttpRequestMessage(var OutHttpRequestMessage: Codeunit System.RestClient."Http Request Message")
     begin
         OutHttpRequestMessage := _httpRequestMessage;
     end;
 
     [TryFunction]
-    local procedure TrySend(HttpRequestMessage: codeunit System.RestClient."Http Request Message"; var HttpResponseMessage: codeunit System.RestClient."Http Response Message")
+    local procedure TrySend(HttpRequestMessage: Codeunit System.RestClient."Http Request Message"; var HttpResponseMessage: Codeunit System.RestClient."Http Response Message")
     begin
         _httpRequestMessage := HttpRequestMessage;
         if _sendError <> '' then

@@ -6,7 +6,7 @@
 namespace System.Test.Privacy;
 
 using System.Privacy;
-using System.Reflection;
+using System.TestLibraries.Privacy;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
 
@@ -18,6 +18,7 @@ codeunit 135159 "Data Class. Worksheet Tests"
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        LibraryDataClassification: Codeunit "Library - Data Classification";
         PermissionsMock: Codeunit "Permissions Mock";
         NotificationCount: Integer;
         FieldSyncStatusGetErr: Label 'The ID %1 cannot be found in the Field Sync Status table', Locked = true;
@@ -86,9 +87,7 @@ codeunit 135159 "Data Class. Worksheet Tests"
     procedure TestFindNewFieldsForEmptyDataSensitivityTable()
     var
         DataSensitivity: Record "Data Sensitivity";
-        Field: Record Field;
         FieldsSyncStatus: Record "Fields Sync Status";
-        DataClassificationMgtImpl: Codeunit "Data Classification Mgt. Impl.";
         DataClassificationWorksheet: TestPage "Data Classification Worksheet";
         FieldCount: Integer;
     begin
@@ -96,9 +95,7 @@ codeunit 135159 "Data Class. Worksheet Tests"
         PermissionsMock.Set('Data Class Edit');
 
         // [GIVEN] The number of enabled, sensitive, normal fields
-        Field.SetRange(Class, Field.Class::Normal);
-        DataClassificationMgtImpl.GetEnabledSensitiveFields(Field);
-        FieldCount := Field.Count();
+        FieldCount := LibraryDataClassification.GetNumberOfEnabledSensitiveFieldsForAllSupportedTables();
 
         // [GIVEN] The Data Classification Worksheet page is open for editing
         DataClassificationWorksheet.OpenEdit();
@@ -128,7 +125,6 @@ codeunit 135159 "Data Class. Worksheet Tests"
     var
         DataSensitivity: Record "Data Sensitivity";
         FieldsSyncStatus: Record "Fields Sync Status";
-        Field: Record Field;
         DataClassificationMgtImpl: Codeunit "Data Classification Mgt. Impl.";
         DataClassificationWorksheet: TestPage "Data Classification Worksheet";
         TableNo: Integer;
@@ -141,16 +137,14 @@ codeunit 135159 "Data Class. Worksheet Tests"
 
         // [GIVEN] The Data Sensitivity table contains two entries - one that is classified and one that isn't
         DataSensitivity.DeleteAll();
-        TableNo := 50000;
+        TableNo := Database::"Data Sensitivity";
         SensitiveFieldNo := 1;
         UnclassifiedFieldNo := 2;
         DataClassificationMgtImpl.InsertDataSensitivityForField(TableNo, SensitiveFieldNo, DataSensitivity."Data Sensitivity"::Personal);
         DataClassificationMgtImpl.InsertDataSensitivityForField(TableNo, UnclassifiedFieldNo, DataSensitivity."Data Sensitivity"::Unclassified);
 
         // [GIVEN] The number of enabled, sensitive, normal fields
-        Field.SetRange(Class, Field.Class::Normal);
-        DataClassificationMgtImpl.GetEnabledSensitiveFields(Field);
-        FieldCount := Field.Count();
+        FieldCount := LibraryDataClassification.GetNumberOfEnabledSensitiveFieldsForAllSupportedTables();
 
         // [GIVEN] The Data Classification Worksheet page is open for editing
         DataClassificationWorksheet.OpenEdit();

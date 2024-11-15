@@ -1,6 +1,6 @@
 var spinner = document.createElement("img");
 spinner.className = "spinner-image";
-spinner.src = Microsoft.Dynamics.NAV.GetImageResource("ControlAddIns/images/spinner.gif");
+spinner.src = Microsoft.Dynamics.NAV.GetImageResource("Resources/WaitSpinner/images/spinner.gif");
 
 var container = document.createElement("div");
 container.className = "spinner-container";

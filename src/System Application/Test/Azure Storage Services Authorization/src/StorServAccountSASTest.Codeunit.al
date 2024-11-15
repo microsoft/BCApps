@@ -26,6 +26,7 @@ codeunit 132918 "Stor. Serv. Account SAS Test"
         Services: List of [Enum "SAS Service Type"];
         Resources: List of [Enum "SAS Resource Type"];
         ExpiryDate: DateTime;
+        SecretAccountKey: SecretText;
     begin
         // [Given] A storage account and an HTTP request with random URI
         AccountKey := '8jOLRYYU9UOaxhW1yeVUbA==';
@@ -41,8 +42,8 @@ codeunit 132918 "Stor. Serv. Account SAS Test"
         Permissions.Add(Enum::"SAS Permission"::Read);
         Permissions.Add(Enum::"SAS Permission"::Write);
         Permissions.Add(Enum::"SAS Permission"::Tag);
-
-        SASAuthorization := StorageServiceAuthorization.CreateAccountSAS(AccountKey, Enum::"Storage Service API Version"::"2020-10-02", Services, Resources, Permissions, ExpiryDate);
+        SecretAccountKey := AccountKey;
+        SASAuthorization := StorageServiceAuthorization.CreateAccountSAS(SecretAccountKey, Enum::"Storage Service API Version"::"2020-10-02", Services, Resources, Permissions, ExpiryDate);
         SASAuthorization.Authorize(HttpRequest, StorageAccount);
 
         // [Then] The Authorization header is present on the HTTP request and nothing else has changed

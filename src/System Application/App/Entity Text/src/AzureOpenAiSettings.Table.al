@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA27
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -220,8 +221,7 @@ table 2010 "Azure OpenAi Settings"
         EnvironmentInformation: Codeunit "Environment Information";
         AzureKeyVault: Codeunit "Azure Key Vault";
         EntityTextModuleInfo: ModuleInfo;
-        [NonDebuggable]
-        Secret: Text;
+        Secret: SecretText;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then begin
             IsolatedStorage.Get(SecretTok, DataScope::Module, Secret);
@@ -232,7 +232,7 @@ table 2010 "Azure OpenAi Settings"
         NavApp.GetCurrentModuleInfo(EntityTextModuleInfo);
         if (not IsNullGuid(CallerModuleInfo.Id())) and (CallerModuleInfo.Publisher() = EntityTextModuleInfo.Publisher()) then
             if AzureKeyVault.GetAzureKeyVaultCertificate(SecretTok, Secret) then
-                if Secret <> '' then begin
+                if not Secret.IsEmpty() then begin
                     Session.LogMessage('0000JVY', TelemetrySecretKeyVaultTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
                     exit(GetOauthSecret(Secret));
                 end;
@@ -243,7 +243,7 @@ table 2010 "Azure OpenAi Settings"
     end;
 
     [NonDebuggable]
-    local procedure GetOauthSecret(Secret: Text): SecretText
+    local procedure GetOauthSecret(Secret: SecretText): SecretText
     var
         OAuth2: Codeunit OAuth2;
         Scopes: List of [Text];
@@ -371,3 +371,4 @@ table 2010 "Azure OpenAi Settings"
         TelemetryTotalIslandsInvalidTxt: Label 'The total islands config key is not set or is not a number.', Locked = true;
 #endif
 }
+#endif

@@ -55,7 +55,7 @@ class GitHubPullRequest {
     #>
     UpdateDescription() {
         $TempFile = New-TemporaryFile
-        Set-Content -Path $TempFile -Value $this.PullRequest.body
+        Set-Content -Path $TempFile -Value $this.PullRequest.body -Encoding utf8
 
         $params = @(
             "--body-file '$($TempFile)'" # body is the description

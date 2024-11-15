@@ -11,12 +11,19 @@ codeunit 9143 "SharePoint Auth. - Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    [NonDebuggable]
     procedure CreateAuthorizationCode(EntraTenantId: Text; ClientId: Text; ClientSecret: SecretText; Scopes: List of [Text]): Interface "SharePoint Authorization";
     var
         SharePointAuthorizationCode: Codeunit "SharePoint Authorization Code";
     begin
         SharePointAuthorizationCode.SetParameters(EntraTenantId, ClientId, ClientSecret, Scopes);
         exit(SharePointAuthorizationCode);
+    end;
+
+    procedure CreateClientCredentials(AadTenantId: Text; ClientId: Text; Certificate: SecretText; CertificatePassword: SecretText; Scopes: List of [Text]): Interface "SharePoint Authorization";
+    var
+        SharePointClientCredentials: Codeunit "SharePoint Client Credentials";
+    begin
+        SharePointClientCredentials.SetParameters(AadTenantId, ClientId, Certificate, CertificatePassword, Scopes);
+        exit(SharePointClientCredentials);
     end;
 }

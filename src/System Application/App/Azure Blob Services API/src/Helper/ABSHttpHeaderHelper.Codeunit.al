@@ -13,7 +13,6 @@ codeunit 9048 "ABS HttpHeader Helper"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    [NonDebuggable]
     procedure HandleRequestHeaders(HttpRequestType: Enum "Http Request Type"; var HttpRequestMessage: HttpRequestMessage; var ABSOperationPayload: Codeunit "ABS Operation Payload")
     var
         ABSFormatHelper: Codeunit "ABS Format Helper";
@@ -36,7 +35,6 @@ codeunit 9048 "ABS HttpHeader Helper"
         end;
     end;
 
-    [NonDebuggable]
     procedure HandleContentHeaders(var HttpContent: HttpContent; var ABSOperationPayload: Codeunit "ABS Operation Payload"): Boolean
     var
         Headers: HttpHeaders;

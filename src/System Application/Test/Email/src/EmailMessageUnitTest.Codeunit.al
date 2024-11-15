@@ -162,6 +162,7 @@ codeunit 134689 "Email Message Unit Test"
         Base64Convert: Codeunit "Base64 Convert";
         Recipients: List of [Text];
         Result: Text;
+        FirstAttachmentId, SecondAttachmentId, ThirdAttachmentId : BigInteger;
         InStream: InStream;
         OutStream: OutStream;
     begin
@@ -180,6 +181,8 @@ codeunit 134689 "Email Message Unit Test"
 
         // Verify
         Assert.IsTrue(Message.Attachments_First(), 'First attachment was not found');
+        FirstAttachmentId := Message.Attachments_GetId();
+        Assert.IsTrue(FirstAttachmentId <> 0, 'Attachment Id was not expected to be 0');
         Message.Attachments_GetContent(InStream);
         InStream.ReadText(Result);
         Assert.AreEqual('Attachment1', Message.Attachments_GetName(), 'A different attachment name was expected');
@@ -190,6 +193,8 @@ codeunit 134689 "Email Message Unit Test"
         Assert.AreEqual(7, Message.Attachments_GetLength(), 'A different attachment length was expected');
 
         Assert.IsTrue(Message.Attachments_Next() <> 0, 'Second attachment was not found');
+        SecondAttachmentId := Message.Attachments_GetId();
+        Assert.IsTrue(FirstAttachmentId <> SecondAttachmentId, 'Attachment Id of second attachment was not expected to be the same');
         Message.Attachments_GetContent(InStream);
         InStream.ReadText(Result);
         Assert.AreEqual('Attachment2', Message.Attachments_GetName(), 'A different attachment name was expected');
@@ -200,6 +205,8 @@ codeunit 134689 "Email Message Unit Test"
         Assert.AreEqual(7, Message.Attachments_GetLength(), 'A different attachment length was expected');
 
         Assert.IsTrue(Message.Attachments_Next() = 0, 'A third attachment was found.');
+        ThirdAttachmentId := Message.Attachments_GetId();
+        Assert.IsTrue(SecondAttachmentId = ThirdAttachmentId, 'Attachment Id of second attachment was expected to be the same as the third attachment');
     end;
 
     [Test]
@@ -952,7 +959,7 @@ codeunit 134689 "Email Message Unit Test"
     procedure TestEmailOnBeforeOpenEditorEventChangeSubject()
     var
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         EmailEditor: TestPage "Email Editor";
         LastModifiedNo: Integer;
     begin
@@ -983,7 +990,7 @@ codeunit 134689 "Email Message Unit Test"
     procedure TestEmailOnBeforeOpenEditorEventChangeBody()
     var
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         EmailEditor: TestPage "Email Editor";
         LastModifiedNo: Integer;
     begin
@@ -1014,7 +1021,7 @@ codeunit 134689 "Email Message Unit Test"
     procedure TestEmailOnBeforeOpenEditorEventChangeRecipient()
     var
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         EmailEditor: TestPage "Email Editor";
         LastModifiedNo: Integer;
         Recipients: List of [Text];
@@ -1099,7 +1106,7 @@ codeunit 134689 "Email Message Unit Test"
     var
         TempAccount: Record "Email Account" temporary;
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         ConnectorMock: Codeunit "Connector Mock";
         LastModifiedNo: Integer;
     begin
@@ -1133,7 +1140,7 @@ codeunit 134689 "Email Message Unit Test"
     var
         TempAccount: Record "Email Account" temporary;
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         ConnectorMock: Codeunit "Connector Mock";
         LastModifiedNo: Integer;
     begin
@@ -1167,7 +1174,7 @@ codeunit 134689 "Email Message Unit Test"
     var
         TempAccount: Record "Email Account" temporary;
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         ConnectorMock: Codeunit "Connector Mock";
         LastModifiedNo: Integer;
         Recipients: List of [Text];
@@ -1207,7 +1214,7 @@ codeunit 134689 "Email Message Unit Test"
         TempAccount: Record "Email Account" temporary;
         TempBlob: Codeunit "Temp Blob";
         EmailMessage: Codeunit "Email Message";
-        EmailMessageEventsMock: codeunit "Email Message Events Mock";
+        EmailMessageEventsMock: Codeunit "Email Message Events Mock";
         ConnectorMock: Codeunit "Connector Mock";
         LastModifiedNo: Integer;
         OutStream: OutStream;

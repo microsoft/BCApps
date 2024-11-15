@@ -50,6 +50,7 @@ codeunit 2503 "Extension Operation Impl"
     var
         NAVAppTenantOperation: Record "NAV App Tenant Operation";
         ExtensionOperationImpl: Codeunit "Extension Operation Impl";
+        ExtensionMarketplace: Codeunit "Extension Marketplace";
         ExtnInstallationProgress: Page "Extn. Installation Progress";
         ExtnDeploymentStatusDetail: Page "Extn Deployment Status Detail";
         OperationId: Guid;
@@ -76,6 +77,9 @@ codeunit 2503 "Extension Operation Impl"
                     Session.LogMessage('0000I2N', InstallationFailedDoNotOpenDetailsTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'Extensions');
                 exit;
             end;
+
+            if NAVAppTenantOperation.Status = NAVAppTenantOperation.Status::Completed then
+                ExtensionMarketplace.RunSetupForExtension(AppId);
         end;
     end;
 

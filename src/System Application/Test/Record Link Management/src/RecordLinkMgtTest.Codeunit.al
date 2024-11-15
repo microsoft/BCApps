@@ -272,7 +272,7 @@ codeunit 132508 "Record Link Mgt. Test"
     procedure TestRemoveOrphanedLinks();
     var
         RecordLink: Record "Record Link";
-        EmptyRecordId: RecordID;
+        EmptyRecordId: RecordId;
     begin
         PermissionsMock.Set('Record Link View');
         // [GIVEN] Some text is written to the record Link
@@ -375,7 +375,7 @@ codeunit 132508 "Record Link Mgt. Test"
         RecordLinkTestCrossCompany.Insert();
     end;
 
-    local procedure VerifyRecordHasNotifyLinks(RecordId: RecordID; CompanyName: Text; ExpectedCount: Integer)
+    local procedure VerifyRecordHasNotifyLinks(RecordId: RecordId; CompanyName: Text; ExpectedCount: Integer)
     var
         RecordLink: Record "Record Link";
     begin

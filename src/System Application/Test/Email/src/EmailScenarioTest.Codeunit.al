@@ -103,6 +103,29 @@ codeunit 134693 "Email Scenario Test"
     end;
 
     [Test]
+    procedure IsThereEmailAccountSetForScenarioTest()
+    var
+        AccountId: Guid;
+    begin
+        // [Scenario] IsThereEmailAccountSetForScenario will check whether an email account is set for a given scenario
+        PermissionsMock.Set('Email Admin');
+
+        // [Given] An email scenario is assigned an account
+        Initialize();
+        ConnectorMock.AddAccount(AccountId);
+
+        // [When] An email account is set for the default scenario
+        EmailScenarioMock.AddMapping(Enum::"Email Scenario"::Default, AccountId, Enum::"Email Connector"::"Test Email Connector");
+        // [Then] false is returned for the test scenario
+        Assert.IsFalse(EmailScenario.IsThereEmailAccountSetForScenario(Enum::"Email Scenario"::"Test Email Scenario"), 'No email account is set for the default scenario');
+
+        // [When] An email account is set for the test scenario
+        EmailScenarioMock.AddMapping(Enum::"Email Scenario"::"Test Email Scenario", AccountId, Enum::"Email Connector"::"Test Email Connector");
+        // [Then] true is returned for the test scenario
+        Assert.IsTrue(EmailScenario.IsThereEmailAccountSetForScenario(Enum::"Email Scenario"::"Test Email Scenario"), 'An email account is set for the test scenario');
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure GetEmailAccountExistsTest()
     var

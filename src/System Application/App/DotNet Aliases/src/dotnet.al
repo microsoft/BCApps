@@ -9,7 +9,6 @@ dotnet
 {
     assembly("DocumentFormat.OpenXml")
     {
-
         type("DocumentFormat.OpenXml.BooleanValue"; "BooleanValue")
         {
         }
@@ -35,10 +34,6 @@ dotnet
         }
 
         type("DocumentFormat.OpenXml.OpenXmlElement"; "OpenXmlElement")
-        {
-        }
-
-        type("DocumentFormat.OpenXml.OpenXmlUnknownElement"; "OpenXmlUnknownElement")
         {
         }
 
@@ -427,6 +422,10 @@ dotnet
         type("Microsoft.Dynamics.Nav.DocumentReport.WordReportManager"; "WordReportManager")
         {
         }
+
+        type("Microsoft.Dynamics.Nav.DocumentReport.ExcelReportManager"; "ExcelReportManager")
+        {
+        }
     }
 
     assembly("Microsoft.Dynamics.Nav.DocumentService")
@@ -527,42 +526,6 @@ dotnet
         PublicKeyToken = '31bf3856ad364e35';
 
         type("Microsoft.Dynamics.Nav.ImageProcessing.ImageHandler"; "ImageHandler")
-        {
-        }
-    }
-
-    assembly("Microsoft.Dynamics.Nav.Integration.Office")
-    {
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Outlook.IOutlookMessage"; "IOutlookMessage")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Outlook.IOutlookMessageFactory"; "IOutlookMessageFactory")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Outlook.OutlookHelper"; "OutlookHelper")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Outlook.OutlookMessageFactory"; "OutlookMessageFactory")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Outlook.OutlookStatusCode"; "OutlookStatusCode")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Word.MergeHandler"; "MergeHandler")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Word.WordHandler"; "WordHandler")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.Integration.Office.Word.WordHelper"; "WordHelper")
         {
         }
     }
@@ -837,43 +800,6 @@ dotnet
         Culture = 'neutral';
         PublicKeyToken = '31bf3856ad364e35';
 
-#if not CLEAN23
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportedReport"; "ImportedReport")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportedReportRequestList"; "ImportedReportRequestList")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportedReportResponse"; "ImportedReportResponse")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportedReportResponseList"; "ImportedReportResponseList")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportReportRequest"; "ImportReportRequest")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportReportRequestList"; "ImportReportRequestList")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportReportResponse"; "ImportReportResponse")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ImportReportResponseList"; "ImportReportResponseList")
-        {
-        }
-
-        type("Microsoft.Dynamics.Nav.PowerBIEmbedded.ServiceWrapper"; "ServiceWrapper")
-        {
-        }
-#endif
         type("Microsoft.Dynamics.Nav.PowerBIEmbedded.Models.ReturnedReport"; "ReturnedReport")
         {
         }
@@ -947,12 +873,8 @@ dotnet
         }
     }
 
-    assembly("Microsoft.Dynamics.Platform.Integration.Office")
+    assembly("Microsoft.Dynamics.Platform.BC.Integration.Office")
     {
-        Version = '7.0.0.0';
-        Culture = 'neutral';
-        PublicKeyToken = '31bf3856ad364e35';
-
         type("Microsoft.Dynamics.Platform.Integration.Office.AuthenticationOverrides"; "AuthenticationOverrides")
         {
         }
@@ -2201,6 +2123,44 @@ dotnet
         type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotOperationResponse"; ALCopilotOperationResponse)
         {
         }
+
+        type("Microsoft.Dynamics.Nav.Service.CopilotApi.AL.ALCopilotCapability"; ALCopilotCapability)
+        {
+        }
+    }
+    assembly("Microsoft.Dynamics.Nav.DataSearch")
+    {
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
+
+        type("Microsoft.Dynamics.Nav.DataSearch.AL.ALSearch"; "ALSearch")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchResult"; "ALSearchResult")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchOptions"; "ALSearchOptions")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchMode"; "ALSearchMode")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchRankingContext"; "ALSearchRankingContext")
+        {
+        }
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchQuery"; "ALSearchQuery")
+        {
+        }
+
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchQueryResult"; "ALSearchQueryResult")
+        {
+        }
+        type("Microsoft.Dynamics.Nav.DataSearch.Models.SearchFilter"; "SearchFilter")
+        {
+        }
     }
 }
-

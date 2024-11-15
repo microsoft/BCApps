@@ -14,7 +14,7 @@ using System.TestLibraries.Security.AccessControl;
 
 codeunit 134696 "Email Editor Validation Tests"
 {
-    SubType = Test;
+    Subtype = Test;
     Permissions = tabledata "Email Outbox" = rd,
                   tabledata "Email View Policy" = rid,
                   tabledata "Sent Email" = rd;

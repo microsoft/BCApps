@@ -10,6 +10,7 @@ using System.Azure.Identity;
 using System.Utilities;
 using System.Azure.KeyVault;
 using System.RestClient;
+using System.Environment;
 
 /// <summary>
 /// Library for managing AppSource product retrieval and usage.
@@ -23,20 +24,21 @@ codeunit 2515 "AppSource Product Manager"
     var
         AppSourceJsonUtilities: Codeunit "AppSource Json Utilities";
         AppSourceProductManagerDependencies: Interface "AppSource Product Manager Dependencies";
-        IsDependenciesInterfaceSet: boolean;
-        CatalogProductsUriLbl: label 'https://catalogapi.azure.com/products', Locked = true;
-        CatalogApiVersionQueryParamNameLbl: label 'api-version', Locked = true;
-        CatalogApiVersionQueryParamValueLbl: label '2023-05-01-preview', Locked = true;
-        CatalogApiOrderByQueryParamNameLbl: label '$orderby', Locked = true;
-        CatalogMarketQueryParamNameLbl: label 'market', Locked = true;
-        CatalogLanguageQueryParamNameLbl: label 'language', Locked = true;
+        IsDependenciesInterfaceSet: Boolean;
+        CatalogProductsUriLbl: Label 'https://catalogapi.azure.com/products', Locked = true;
+        CatalogApiVersionQueryParamNameLbl: Label 'api-version', Locked = true;
+        CatalogApiVersionQueryParamValueLbl: Label '2023-05-01-preview', Locked = true;
+        CatalogApiVersionOldQueryParamValueLbl: Label '2018-08-01-beta', Locked = true;
+        CatalogApiOrderByQueryParamNameLbl: Label '$orderby', Locked = true;
+        CatalogMarketQueryParamNameLbl: Label 'market', Locked = true;
+        CatalogListMarketNameLbl: label 'all', Locked = true;
+        CatalogLanguageQueryParamNameLbl: Label 'language', Locked = true;
         CatalogApiFilterQueryParamNameLbl: Label '$filter', Locked = true;
         CatalogApiSelectQueryParamNameLbl: Label '$select', Locked = true;
         AppSourceListingUriLbl: Label 'https://appsource.microsoft.com/%1/product/dynamics-365-business-central/%2', Comment = '%1=Language ID, such as en-US, %2=Url Query Content', Locked = true;
         AppSourceUriLbl: Label 'https://appsource.microsoft.com/%1/marketplace/apps?product=dynamics-365-business-central', Comment = '1%=Language ID, such as en-US', Locked = true;
         NotSupportedOnPremisesErrorLbl: Label 'Not supported on premises.';
         UnsupportedLanguageNotificationLbl: Label 'Language %1 is not supported by AppSource. Defaulting to "en". Change the language in the user profile to use another language.', Comment = '%1=Language ID, such as en';
-        UnsupportedMarketNotificationLbl: Label 'Market %1 is not supported by AppSource. Defaulting to "us". Change the region in the user profile to use another market.', Comment = '%1=Market ID, such as "us"';
 
     #region Product helpers
     /// <summary>
@@ -92,68 +94,49 @@ codeunit 2515 "AppSource Product Manager"
     /// <summary>
     /// Checks if the product can be installed or your are required to perform operations on AppSource before you can install the product.
     /// </summary>
-    /// <param name="Plans">JSonArray representing the product plans</param>
-    /// <returns>True if the product can be installed, otherwise false</returns>
-    internal procedure CanInstallProductWithPlans(Plans: JsonArray): Boolean
+    internal procedure CanInstallProductWithPlans(UniqieProductIDValue: Text): Boolean
     var
+        LegacyProductObject: JsonObject;
+        LegacyPlansToken: JsonToken;
+        LegacyPlans: JsonArray;
         PlanToken: JsonToken;
         PlanObject: JsonObject;
-        PricingTypesToken: JsonToken;
-        PricingTypes: JsonArray;
-        PricingType: JsonToken;
+        CallToActionToken: JsonToken;
     begin
-        foreach PlanToken in Plans do begin
+        Init();
+
+        // Query legacy api toget all the plan and test if there is a contact me call to action.
+        LegacyProductObject := GetProductDetails(UniqieProductIDValue, ConstructProductUri(UniqieProductIDValue, CatalogApiVersionOldQueryParamValueLbl));
+        LegacyProductObject.Get('plans', LegacyPlansToken);
+        LegacyPlans := LegacyPlansToken.AsArray();
+        foreach PlanToken in LegacyPlans do begin
             PlanObject := PlanToken.AsObject();
-
-            if PlanObject.Get('pricingTypes', PricingTypesToken) then
-                if (PricingTypesToken.IsArray()) then begin
-                    PricingTypes := PricingTypesToken.AsArray();
-                    if PricingTypes.Count() = 0 then
-                        exit(false); // No price structure, you need to contact the publisher
-
-                    foreach PricingType in PricingTypes do
-                        case LowerCase(PricingType.AsValue().AsText()) of
-                            'free', // Free
-                            'freetrial', // Free trial
-                            'payg', // Pay as you go
-                            'byol': // Bring your own license
-                                exit(true);
-                        end;
-                end;
+            if PlanObject.Get('callToAction', CallToActionToken) then
+                if LowerCase(CallToActionToken.AsValue().AsText()) = 'contactme' then
+                    exit(false);
         end;
 
-        exit(false);
+        exit(true);
     end;
     #endregion
 
     #region Market and language helper functions
-    procedure GetCurrentLanguageCultureName(): Text
+    local procedure GetCurrentLanguageCultureName(): Text
     var
         Language: Codeunit Language;
     begin
         exit(Language.GetCultureName(GetCurrentUserLanguageID()));
     end;
 
-    procedure ResolveMarketAndLanguage(var Market: Code[2]; var LanguageName: Text)
+    local procedure ResolveLanguageName() LanguageName: Text;
     var
         Language: Codeunit Language;
-        LanguageID, LocalID : integer;
+        LanguageID: Integer;
     begin
-        GetCurrentUserLanguageAndLocaleID(LanguageID, LocalID);
+        LanguageID := GetCurrentUserLanguageAndLocaleID();
 
         // Marketplace API only supports two letter languages.
         LanguageName := Language.GetTwoLetterISOLanguageName(LanguageID);
-
-        Market := '';
-        if LocalID <> 0 then
-            Market := ResolveMarketFromLanguageID(LocalID);
-        if Market = '' then
-            Market := CopyStr(AppSourceProductManagerDependencies.GetApplicationFamily(), 1, 2);
-        if (Market = '') or (Market = 'W1') then
-            if not TryGetEnvironmentCountryLetterCode(Market) then
-                Market := 'us';
-
-        Market := EnsureValidMarket(Market);
         LanguageName := EnsureValidLanguage(LanguageName);
     end;
 
@@ -165,76 +148,24 @@ codeunit 2515 "AppSource Product Manager"
     begin
         AppSourceProductManagerDependencies.GetUserSettings(Database.UserSecurityID(), TempUserSettings);
         LanguageID := TempUserSettings."Language ID";
-        if (LanguageID = 0) then
+        if ((LanguageID = 0) and AppSourceProductManagerDependencies.IsSaas()) then
             LanguageID := Language.GetLanguageIdFromCultureName(AppSourceProductManagerDependencies.GetPreferredLanguage());
         if (LanguageID = 0) then
             LanguageID := 1033; // Default to EN-US
         exit(LanguageID);
     end;
 
-    local procedure GetCurrentUserLanguageAndLocaleID(var LanguageID: Integer; var LocaleID: Integer)
+    local procedure GetCurrentUserLanguageAndLocaleID() LanguageID: Integer
     var
         TempUserSettings: Record "User Settings" temporary;
         Language: Codeunit Language;
     begin
         AppSourceProductManagerDependencies.GetUserSettings(Database.UserSecurityID(), TempUserSettings);
         LanguageID := TempUserSettings."Language ID";
-        if (LanguageID = 0) then
+        if ((LanguageID = 0) and AppSourceProductManagerDependencies.IsSaas()) then
             LanguageID := Language.GetLanguageIdFromCultureName(AppSourceProductManagerDependencies.GetPreferredLanguage());
         if (LanguageID = 0) then
             LanguageID := 1033; // Default to EN-US
-
-        LocaleID := TempUserSettings."Locale ID";
-    end;
-
-    [TryFunction]
-    local procedure TryGetEnvironmentCountryLetterCode(var CountryLetterCode: Code[2])
-    begin
-        CountryLetterCode := AppSourceProductManagerDependencies.GetCountryLetterCode();
-    end;
-
-    local procedure ResolveMarketFromLanguageID(LanguageID: Integer): Code[2]
-    var
-        Language: Codeunit Language;
-        SeperatorPos: Integer;
-        LanguageAndRequestRegion: Text;
-    begin
-        LanguageAndRequestRegion := 'en';
-        LanguageAndRequestRegion := Language.GetCultureName(LanguageID);
-        SeperatorPos := StrPos(LanguageAndRequestRegion, '-');
-        if SeperatorPos > 1 then
-            exit(CopyStr(LanguageAndRequestRegion, SeperatorPos + 1, 2));
-
-        exit('');
-    end;
-
-    /// <summary>
-    /// Ensures that the market is valid for AppSource.
-    /// </summary>
-    /// <param name="Market">Market requested</param>
-    /// <returns>The requested market if supported, otherwise us</returns>
-    /// <remarks>See https://learn.microsoft.com/en-us/partner-center/marketplace/marketplace-geo-availability-currencies for supported markets</remarks>
-    local procedure EnsureValidMarket(Market: Code[2]): Code[2]
-    var
-        NotSupportedNotification: Notification;
-    begin
-        case LowerCase(Market) of
-            'af', 'al', 'dz', 'ad', 'ao', 'ar', 'am', 'au', 'at', 'az', 'bh', 'bd', 'bb', 'by', 'be', 'bz', 'bm', 'bo', 'ba', 'bw'
-        , 'br', 'bn', 'bg', 'cv', 'cm', 'ca', 'ky', 'cl', 'cn', 'co', 'cr', 'ci', 'hr', 'cw', 'cy', 'cz', 'dk', 'do', 'ec', 'eg'
-        , 'sv', 'ee', 'et', 'fo', 'fj', 'fi', 'fr', 'ge', 'de', 'gh', 'gr', 'gt', 'hn', 'hk', 'hu', 'is', 'in', 'id', 'iq', 'ie'
-        , 'il', 'it', 'jm', 'jp', 'jo', 'kz', 'ke', 'kr', 'kw', 'kg', 'lv', 'lb', 'ly', 'li', 'lt', 'lu', 'mo', 'my', 'mt', 'mu'
-        , 'mx', 'md', 'mc', 'mn', 'me', 'ma', 'na', 'np', 'nl', 'nz', 'ni', 'ng', 'mk', 'no', 'om', 'pk', 'ps', 'pa', 'py', 'pe'
-        , 'ph', 'pl', 'pt', 'pr', 'qa', 'ro', 'ru', 'rw', 'kn', 'sa', 'sn', 'rs', 'sg', 'sk', 'si', 'za', 'es', 'lk', 'se', 'ch'
-        , 'tw', 'tj', 'tz', 'th', 'tt', 'tn', 'tr', 'tm', 'ug', 'ua', 'ae', 'gb', 'us', 'vi', 'uy', 'uz', 'va', 've', 'vn', 'ye'
-        , 'zm', 'zw':
-                exit(LowerCase(Market));
-            else begin
-                NotSupportedNotification.Id := '0c0f2e34-e72f-4da4-a7d5-80b33653d13d';
-                NotSupportedNotification.Message(StrSubstNo(UnsupportedMarketNotificationLbl, Market));
-                NotSupportedNotification.Send();
-                exit('us');
-            end;
-        end;
     end;
 
     /// <summary>
@@ -264,10 +195,10 @@ codeunit 2515 "AppSource Product Manager"
     /// <summary>
     /// Get all products from a remote server and adds them to the AppSource Product table.
     /// </summary>
-    internal procedure GetProductsAndPopulateRecord(var AppSourceProductRec: record "AppSource Product"): Text
+    internal procedure GetProductsAndPopulateRecord(var AppSourceProductRec: Record "AppSource Product"): Text
     var
         RestClient: Codeunit "Rest Client";
-        NextPageLink: text;
+        NextPageLink: Text;
     begin
         Init();
         NextPageLink := ConstructProductListUri();
@@ -289,14 +220,21 @@ codeunit 2515 "AppSource Product Manager"
     /// </summary>
     local procedure GetProductDetails(UniqueProductIDValue: Text): JsonObject
     var
-        RestClient: Codeunit "Rest Client";
         RequestUri: Text;
+    begin
+        Init();
+        RequestUri := ConstructProductUri(UniqueProductIDValue);
+        exit(GetProductDetails(UniqueProductIDValue, RequestUri));
+    end;
+
+    local procedure GetProductDetails(UniqueProductIDValue: Text; RequestUri: Text): JsonObject
+    var
+        RestClient: Codeunit "Rest Client";
         ClientRequestID: Guid;
         TelemetryDictionary: Dictionary of [Text, Text];
     begin
         Init();
         ClientRequestID := CreateGuid();
-        RequestUri := ConstructProductUri(UniqueProductIDValue);
 
         PopulateTelemetryDictionary(ClientRequestID, UniqueProductIDValue, RequestUri, TelemetryDictionary);
         Session.LogMessage('AL:AppSource-GetProduct', 'Requesting product details.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDictionary);
@@ -313,7 +251,7 @@ codeunit 2515 "AppSource Product Manager"
         exit(AppSourceProductManagerDependencies.GetAsJSon(RestClient, RequestUri).AsObject());
     end;
 
-    local procedure DownloadAndAddNextPageProducts(NextPageLink: Text; var AppSourceProductRec: record "AppSource Product"; var RestClient: Codeunit "Rest Client"): Text
+    local procedure DownloadAndAddNextPageProducts(NextPageLink: Text; var AppSourceProductRec: Record "AppSource Product"; var RestClient: Codeunit "Rest Client"): Text
     var
         ResponseObject: JsonObject;
         ProductArray: JsonArray;
@@ -357,13 +295,12 @@ codeunit 2515 "AppSource Product Manager"
         UriBuilder: Codeunit "Uri Builder";
         Uri: Codeunit Uri;
         Language: Text;
-        Market: Code[2];
     begin
-        ResolveMarketAndLanguage(Market, Language);
+        Language := ResolveLanguageName();
 
         UriBuilder.Init(CatalogProductsUriLbl);
         UriBuilder.AddQueryParameter(CatalogApiVersionQueryParamNameLbl, CatalogApiVersionQueryParamValueLbl);
-        UriBuilder.AddQueryParameter(CatalogMarketQueryParamNameLbl, Market);
+        UriBuilder.AddQueryParameter(CatalogMarketQueryParamNameLbl, CatalogListMarketNameLbl);
         UriBuilder.AddQueryParameter(CatalogLanguageQueryParamNameLbl, Language);
 
         UriBuilder.AddODataQueryParameter(CatalogApiFilterQueryParamNameLbl, 'productType eq ''DynamicsBC''');
@@ -375,16 +312,23 @@ codeunit 2515 "AppSource Product Manager"
     end;
 
     local procedure ConstructProductUri(UniqueIdentifier: Text): Text
+    begin
+        exit(ConstructProductUri(UniqueIdentifier, CatalogApiVersionQueryParamValueLbl));
+    end;
+
+    local procedure ConstructProductUri(UniqueIdentifier: Text; ApiVersion: Text): Text
     var
         UriBuilder: Codeunit "Uri Builder";
         Uri: Codeunit Uri;
         Language: Text;
-        Market: Code[2];
+        Market: Text;
     begin
-        ResolveMarketAndLanguage(Market, Language);
+        // For market in the product details we use the Entra ID country code.
+        Market := AppSourceProductManagerDependencies.GetCountryLetterCode();
+        Language := ResolveLanguageName();
         UriBuilder.Init(CatalogProductsUriLbl);
         UriBuilder.SetPath('products/' + UniqueIdentifier);
-        UriBuilder.AddQueryParameter(CatalogApiVersionQueryParamNameLbl, CatalogApiVersionQueryParamValueLbl);
+        UriBuilder.AddQueryParameter(CatalogApiVersionQueryParamNameLbl, ApiVersion);
         UriBuilder.AddQueryParameter(CatalogMarketQueryParamNameLbl, Market);
         UriBuilder.AddQueryParameter(CatalogLanguageQueryParamNameLbl, Language);
         UriBuilder.GetUri(Uri);
@@ -392,7 +336,7 @@ codeunit 2515 "AppSource Product Manager"
     end;
 
     #region Telemetry helpers
-    local procedure PopulateTelemetryDictionary(RequestID: Text; UniqueIdentifier: text; Uri: Text; var TelemetryDictionary: Dictionary of [Text, Text])
+    local procedure PopulateTelemetryDictionary(RequestID: Text; UniqueIdentifier: Text; Uri: Text; var TelemetryDictionary: Dictionary of [Text, Text])
     begin
         PopulateTelemetryDictionary(RequestID, telemetryDictionary);
         TelemetryDictionary.Add('UniqueIdentifier', UniqueIdentifier);
@@ -442,5 +386,11 @@ codeunit 2515 "AppSource Product Manager"
     begin
         AppSourceProductManagerDependencies := AppSourceProductManagerDependencyProvider;
         IsDependenciesInterfaceSet := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OpenAppSourceMarket, '', false, false)]
+    local procedure OpenAppSourceMarket()
+    begin
+        Page.Run(Page::"AppSource Product List");
     end;
 }

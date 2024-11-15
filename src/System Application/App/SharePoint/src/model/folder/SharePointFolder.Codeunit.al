@@ -11,7 +11,6 @@ codeunit 9105 "SharePoint Folder"
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    [NonDebuggable]
     procedure Parse(Payload: Text; var SharePointFolder: Record "SharePoint Folder" temporary)
     var
         JObject: JsonObject;
@@ -20,7 +19,6 @@ codeunit 9105 "SharePoint Folder"
             Parse(JObject, SharePointFolder);
     end;
 
-    [NonDebuggable]
     procedure Parse(Payload: JsonObject; var SharePointFolder: Record "SharePoint Folder" temporary)
     var
         JToken: JsonToken;
@@ -32,7 +30,6 @@ codeunit 9105 "SharePoint Folder"
             end;
     end;
 
-    [NonDebuggable]
     procedure ParseSingleReturnValue(Payload: Text; var SharePointFolder: Record "SharePoint Folder" temporary)
     var
         JObject: JsonObject;
@@ -46,7 +43,6 @@ codeunit 9105 "SharePoint Folder"
             end;
     end;
 
-    [NonDebuggable]
     procedure ParseSingle(Payload: Text; var SharePointFolder: Record "SharePoint Folder" temporary)
     var
         JObject: JsonObject;
@@ -57,7 +53,6 @@ codeunit 9105 "SharePoint Folder"
         end;
     end;
 
-    [NonDebuggable]
     local procedure ParseSingle(Payload: JsonObject) SharePointFolder: Record "SharePoint Folder" temporary
     var
         JToken: JsonToken;
