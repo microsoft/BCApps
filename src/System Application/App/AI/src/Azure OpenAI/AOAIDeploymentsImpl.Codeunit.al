@@ -120,8 +120,8 @@ codeunit 7769 "AOAI Deployments Impl"
         DeploymentDeprecationDates.Add(Turbo0613SaasLbl, DMY2Date(1, 11, 2024));
         DeploymentDeprecationDates.Add(GPT35TurboLatestLbl, DMY2Date(1, 11, 2024));
         DeploymentDeprecationDates.Add(GPT35TurboPreviewLbl, DMY2Date(1, 11, 2024));
-        DeploymentDeprecationDates.Add(GPT4oPreviewLbl, DMY2Date(1, 11, 2024));
-        DeploymentDeprecationDates.Add(GPT4oLatestLbl, DMY2Date(1, 11, 2024));
+        DeploymentDeprecationDates.Add(GPT4PreviewLbl, DMY2Date(1, 11, 2024));
+        DeploymentDeprecationDates.Add(GPT4LatestLbl, DMY2Date(1, 11, 2024));
 
         DeprecationDatesInitialized := true;
     end;
