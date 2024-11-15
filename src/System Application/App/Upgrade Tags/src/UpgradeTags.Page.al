@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Upgrade;
-page 9998 "Upgrade Tags"
+page 9985 "Upgrade Tags"
 {
     PageType = List;
     ApplicationArea = All;
