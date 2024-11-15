@@ -190,19 +190,6 @@ page 2500 "Extension Management"
                         ExtensionOperationImpl.DownloadExtensionSource(Rec."Package ID");
                     end;
                 }
-                action("Open Source in VS Code")
-                {
-                    Caption = 'Open Source in VS Code';
-                    Enabled = IsSourceSpecificationAvailable;
-                    Image = Download;
-                    Scope = Repeater;
-                    ToolTip = 'Open the source code for the extension based on the source control information.';
-
-                    trigger OnAction()
-                    begin
-                        VsCodeIntegration.OpenExtensionSourceInVSCode(Rec);
-                    end;
-                }
                 action("Learn More")
                 {
                     Caption = 'Learn More';
@@ -273,6 +260,56 @@ page 2500 "Extension Management"
                     ToolTip = 'Delete the data of orphaned extensions.';
                 }
             }
+
+            group("Develop in VS Code")
+            {
+                Caption = 'Develop in VS Code';
+                ToolTip = 'Set up your local of actions ';
+
+                action("Open Source in VS Code")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Open source from Git';
+                    Enabled = IsSourceSpecificationAvailable;
+                    Image = Open;
+                    Scope = Repeater;
+                    ToolTip = 'Open the source code for the extension based on the source control information.';
+
+                    trigger OnAction()
+                    begin
+                        VsCodeIntegration.OpenExtensionSourceInVSCode(Rec);
+                    end;
+                }
+                action("Update configurations")
+                {
+                    AccessByPermission = System "Tools, Zoom" = X;
+                    ApplicationArea = All;
+                    Caption = 'Generate launch configurations';
+                    Image = Setup;
+                    ToolTip = 'Generates the launh configurations in your local project in Visual Studio Code for an developing extension in this environment.';
+
+                    trigger OnAction()
+                    begin
+                        VSCodeIntegration.UpdateConfigurationsInVSCode();
+                    end;
+                }
+
+                action("Download dependencies")
+                {
+                    AccessByPermission = System "Tools, Zoom" = X;
+                    ApplicationArea = All;
+                    Caption = 'Download selected dependencies';
+                    Enabled = IsInstalled;
+                    Image = Download;
+                    ToolTip = 'Adds the selected extensions to your local project''s dependencies in Visual Studio Code and downloads the symbols for them.';
+
+                    trigger OnAction()
+                    begin
+                        CurrPage.SetSelectionFilter(Rec);
+                        VSCodeIntegration.UpdateDependenciesInVSCode(Rec);
+                    end;
+                }
+            }
         }
         area(Promoted)
         {
@@ -298,9 +335,18 @@ page 2500 "Extension Management"
                 actionref(Unpublish_Promoted; Unpublish) { }
                 actionref(SetupApp_Promoted; SetupApp) { }
                 actionref("Download Source_Promoted"; "Download Source") { }
-                actionref("Open Source in VS Code_Promoted"; "Open Source in VS Code") { }
                 actionref("Learn More_Promoted"; "Learn More") { }
                 actionref(Refresh_Promoted; Refresh) { }
+            }
+
+            group("Develop in VS Code_Promoted")
+            {
+                Caption = 'Develop in VS Code';
+                ToolTip = 'Sets up a new of configures your existing local AL project in VS Code for extension development.';
+
+                actionref("Open Source in VS Code_Promoted"; "Open Source in VS Code") { }
+                actionref("Update configurations_Promoted"; "Update configurations") { }
+                actionref("Update dependencies_Promoted"; "Download dependencies") { }
             }
         }
     }

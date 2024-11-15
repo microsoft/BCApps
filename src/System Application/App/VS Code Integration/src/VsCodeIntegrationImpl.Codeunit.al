@@ -43,6 +43,49 @@ codeunit 8333 "VS Code Integration Impl."
     end;
 
     [Scope('OnPrem')]
+    procedure UpdateConfigurationsInVSCode()
+    var
+        Url: Text;
+    begin
+        CheckPermissions();
+
+        UriBuilder.Init(AlExtensionUriTxt + '/configure');
+        UriBuilder.SetQuery(VSCodeRequestHelper.GetLaunchInformationQueryPart());
+        UriBuilder.AddQueryParameter('sessionId', Format(SessionId()));
+
+        Url := GetAbsoluteUri();
+        HyperLink(Url);
+    end;
+
+    [Scope('OnPrem')]
+    procedure UpdateDependenciesInVSCode(var PublishedApplication: Record "Published Application")
+    var
+        NavAppInstalledApp: Record "NAV App Installed App";
+        Url: Text;
+    begin
+        CheckPermissions();
+
+        NavAppInstalledApp.Reset();
+        if PublishedApplication.FindSet() then
+            repeat
+                if NavAppInstalledApp.Get(PublishedApplication.ID) then
+                    NavAppInstalledApp.Mark := true;
+            until PublishedApplication.Next() = 0;
+        NavAppInstalledApp.MarkedOnly(true);
+
+        UriBuilder.Init(AlExtensionUriTxt + '/addDependencies');
+        UriBuilder.SetQuery(VSCodeRequestHelper.GetLaunchInformationQueryPart());
+        UriBuilder.AddQueryParameter('dependencies', GetDependencies(NavAppInstalledApp));
+
+        Url := GetAbsoluteUri();
+        if DoesExceedCharLimit(Url) then
+            // If the URL length exceeds 2000 characters then it will crash the page, so we truncate it.
+            Error('The number of dependencies exceeds the limit that can be sent to VS Code.')
+        else
+            HyperLink(Url);
+    end;
+
+    [Scope('OnPrem')]
     procedure NavigateToObjectDefinitionInVSCode(ObjectType: Option; ObjectId: Integer; ObjectName: Text; ControlName: Text; var NavAppInstalledApp: Record "NAV App Installed App")
     var
         Url: Text;
