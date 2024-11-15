@@ -15,6 +15,8 @@ page 9998 "Upgrade Tags"
     InsertAllowed = false;
     DeleteAllowed = false;
     ModifyAllowed = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     layout
     {
