@@ -74,7 +74,7 @@ codeunit 8333 "VS Code Integration Impl."
     var
         DependencyList: TextBuilder;
     begin
-        if NavAppInstalledApp.FindFirst() then
+        if NavAppInstalledApp.FindSet() then
             repeat
                 DependencyList.Append(FormatDependency(NavAppInstalledApp));
             until NavAppInstalledApp.Next() = 0;
