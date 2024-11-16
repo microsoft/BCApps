@@ -15,12 +15,11 @@ codeunit 134751 "File Scenario Page Test"
     Subtype = Test;
 
     var
-        Assert: Codeunit "Library Assert";
         FileConnectorMock: Codeunit "File Connector Mock";
         FileScenarioMock: Codeunit "File Scenario Mock";
+        Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
         DisplayNameTxt: Label '%1', Locked = true;
-
 
     [Test]
     [Scope('OnPrem')]
@@ -112,7 +111,6 @@ codeunit 134751 "File Scenario Page Test"
 
         Assert.IsFalse(FileScenarioPage.Next(), 'There should not be another entry on the page');
     end;
-
 
     [Test]
     [Scope('OnPrem')]

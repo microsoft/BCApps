@@ -165,8 +165,8 @@ codeunit 134750 "File Accounts Test"
     [Test]
     procedure IsAnyAccountRegisteredTest()
     var
-        FileConnectorMock: Codeunit "File Connector Mock";
         FileAccount: Codeunit "File Account";
+        FileConnectorMock: Codeunit "File Connector Mock";
         AccountId: Guid;
     begin
         // [SCENARIO] File Account Exists works as expected

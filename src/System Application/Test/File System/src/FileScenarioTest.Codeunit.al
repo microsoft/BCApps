@@ -15,11 +15,11 @@ codeunit 134752 "File Scenario Test"
     Subtype = Test;
 
     var
-        Assert: Codeunit "Library Assert";
         Any: Codeunit Any;
         FileConnectorMock: Codeunit "File Connector Mock";
-        FileScenarioMock: Codeunit "File Scenario Mock";
         FileScenario: Codeunit "File Scenario";
+        FileScenarioMock: Codeunit "File Scenario Mock";
+        Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
 
     [Test]
@@ -157,8 +157,8 @@ codeunit 134752 "File Scenario Test"
     procedure GetFileAccountDefaultDifferentNotExistTest()
     var
         FileAccount: Record "File Account";
-        NonExistingAccountId: Guid;
         DefaultAccountId: Guid;
+        NonExistingAccountId: Guid;
     begin
         // [Scenario] When the File scenario is mapped to a non-existing account and the default scenario is mapped to an existing accounts, GetFileAccount returns the correct account
         PermissionsMock.Set('File System Admin');
@@ -253,14 +253,14 @@ codeunit 134752 "File Scenario Test"
     [Scope('OnPrem')]
     procedure UnassignScenarioTest()
     var
-        FileAccount: Record "File Account";
         DefaultAccount: Record "File Account";
+        FileAccount: Record "File Account";
         ResultAccount: Record "File Account";
     begin
         // [Scenario] When unassigning a scenario then it falls back to the default account.
         PermissionsMock.Set('File System Admin');
 
-        // [Given] Two accounts, one default and one not 
+        // [Given] Two accounts, one default and one not
         Initialize();
         FileConnectorMock.AddAccount(FileAccount);
         FileConnectorMock.AddAccount(DefaultAccount);
