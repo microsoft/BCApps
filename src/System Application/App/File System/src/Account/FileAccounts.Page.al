@@ -44,7 +44,6 @@ page 9450 "File Accounts"
                     ToolTip = 'Specifies the logo for the type of file account.';
                     Width = 1;
                 }
-
                 field(NameField; Rec.Name)
                 {
                     ToolTip = 'Specifies the name of the account.';
@@ -55,20 +54,17 @@ page 9450 "File Accounts"
                         ShowAccountInformation();
                     end;
                 }
-
                 field(NameFieldLookup; Rec.Name)
                 {
                     ToolTip = 'Specifies the name of the account.';
                     Visible = IsInLookupMode;
                 }
-
                 field(DefaultField; DefaultTxt)
                 {
                     Caption = 'Default';
                     ToolTip = 'Specifies whether the file account will be used for all scenarios for which an account is not specified. You must have a default file account, even if you have only one account.';
                     Visible = not IsInLookupMode;
                 }
-
                 field(FileConnector; Rec.Connector)
                 {
                     ToolTip = 'Specifies the type of file extension that the account is added to.';
@@ -77,7 +73,7 @@ page 9450 "File Accounts"
             }
         }
 
-        area(factboxes)
+        area(FactBoxes)
         {
             part(Scenarios; "File Scenarios FactBox")
             {
@@ -119,7 +115,6 @@ page 9450 "File Accounts"
                 end;
             }
         }
-
         area(Processing)
         {
             action(MakeDefault)
@@ -175,7 +170,6 @@ page 9450 "File Accounts"
                 end;
             }
         }
-
         area(Navigation)
         {
             action(FileScenarioSetup)
@@ -218,10 +212,7 @@ page 9450 "File Accounts"
                 {
                 }
             }
-            group(Category_Report)
-            {
-                Caption = 'Report';
-            }
+
             group(Category_Category4)
             {
                 Caption = 'Navigate';
@@ -263,8 +254,8 @@ page 9450 "File Accounts"
     var
         FileAccount: Codeunit "File Account";
         FileScenario: Codeunit "File Scenario";
-        SelectedAccountId: Guid;
         IsSelected: Boolean;
+        SelectedAccountId: Guid;
     begin
         // We need this code block to maintain the same selected record.
         SelectedAccountId := Rec."Account Id";
@@ -332,6 +323,6 @@ page 9450 "File Accounts"
         IsInLookupMode: Boolean;
         ShowLogo: Boolean;
         UpdateAccounts: Boolean;
-        DefaultTxt: Text;
         FileConnectorHasBeenUninstalledMsg: Label 'The selected file extension has been uninstalled. To view information about the file account, you must reinstall the extension.';
+        DefaultTxt: Text;
 }

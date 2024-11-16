@@ -21,33 +21,27 @@ table 9453 "File Account Scenario"
         {
             DataClassification = SystemMetadata;
         }
-
         field(2; Connector; Enum "File System Connector")
         {
             DataClassification = SystemMetadata;
         }
-
         field(3; "Account Id"; Guid)
         {
             DataClassification = SystemMetadata;
         }
-
         field(4; "Display Name"; Text[2048])
         {
             DataClassification = SystemMetadata;
         }
-
         field(5; Default; Boolean)
         {
             DataClassification = SystemMetadata;
         }
-
         field(6; EntryType; Option)
         {
             DataClassification = SystemMetadata;
             OptionMembers = Account,Scenario;
         }
-
         field(7; Position; Integer)
         {
             DataClassification = SystemMetadata;
@@ -60,12 +54,9 @@ table 9453 "File Account Scenario"
         {
             Clustered = true;
         }
-
         key(Position; Position)
         {
-
         }
-
         key(Name; "Display Name")
         {
             Description = 'Used for sorting by Dispay Name';

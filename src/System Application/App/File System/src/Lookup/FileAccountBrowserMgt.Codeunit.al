@@ -54,9 +54,9 @@ codeunit 9458 "File Account Browser Mgt."
 
     procedure UploadFile(Path: Text)
     var
+        Stream: InStream;
         UploadDialogTxt: Label 'Upload File';
         FromFile: Text;
-        Stream: InStream;
     begin
         if not UploadIntoStream(UploadDialogTxt, '', '', FromFile, Stream) then
             exit;
@@ -112,8 +112,8 @@ codeunit 9458 "File Account Browser Mgt."
 
     procedure DeleteFileOrDirectory(var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        PathToDelete: Text;
         DeleteQst: Label 'Delete %1?', Comment = '%1 - Path to Delete';
+        PathToDelete: Text;
     begin
         PathToDelete := FileSystem.CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name);
         if not Confirm(DeleteQst, false, PathToDelete) then

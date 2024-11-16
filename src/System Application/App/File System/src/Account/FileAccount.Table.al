@@ -19,17 +19,14 @@ table 9450 "File Account"
         {
             DataClassification = SystemMetadata;
         }
-
         field(2; Name; Text[250])
         {
             DataClassification = SystemMetadata; // Field only in Memory
         }
-
         field(4; Connector; Enum "File System Connector")
         {
             DataClassification = SystemMetadata;
         }
-
         field(5; Logo; Media)
         {
             Access = Internal;
@@ -43,7 +40,6 @@ table 9450 "File Account"
         {
             Clustered = true;
         }
-
         key(Name; Name)
         {
             Description = 'Used for sorting';
@@ -54,8 +50,6 @@ table 9450 "File Account"
     {
         fieldgroup(Brick; Logo, Name)
         {
-
         }
     }
-
 }

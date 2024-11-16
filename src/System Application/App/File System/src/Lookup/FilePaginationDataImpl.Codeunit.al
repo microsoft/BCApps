@@ -12,8 +12,8 @@ codeunit 9457 "File Pagination Data Impl."
     InherentEntitlements = X;
 
     var
-        Marker: Text;
         EndOfListing: Boolean;
+        Marker: Text;
 
     procedure SetMarker(NewMarker: Text)
     begin

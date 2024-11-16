@@ -31,5 +31,4 @@ table 9452 "File System Connector Logo"
             Clustered = true;
         }
     }
-
 }

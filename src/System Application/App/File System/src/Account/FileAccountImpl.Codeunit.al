@@ -123,12 +123,12 @@ codeunit 9451 "File Account Impl."
     local procedure ImportLogo(var FileAccount: Record "File Account"; Connector: Interface "File System Connector")
     var
         FileConnectorLogo: Record "File System Connector Logo";
-        TempBlob: Codeunit "Temp Blob";
         Base64Convert: Codeunit "Base64 Convert";
-        ConnectorLogoBase64: Text;
-        OutStream: Outstream;
+        TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         ConnectorLogoDescriptionTxt: Label '%1 Logo', Locked = true;
+        OutStream: OutStream;
+        ConnectorLogoBase64: Text;
     begin
         ConnectorLogoBase64 := Connector.GetLogoAsBase64();
 
@@ -221,7 +221,7 @@ codeunit 9451 "File Account Impl."
     end;
 
     var
-        ConfirmDeleteQst: Label 'Go ahead and delete?';
-        ChooseNewDefaultTxt: Label 'Choose a Default Account';
         CannotManageSetupErr: Label 'Your user account does not give you permission to set up file. Please contact your administrator.';
+        ChooseNewDefaultTxt: Label 'Choose a Default Account';
+        ConfirmDeleteQst: Label 'Go ahead and delete?';
 }

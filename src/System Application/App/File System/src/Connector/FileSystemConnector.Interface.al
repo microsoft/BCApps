@@ -35,7 +35,6 @@ interface "File System Connector"
     /// <param name="Stream">The Stream were the file is read from.</param>
     procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream);
 
-
     /// <summary>
     /// Copies as file inside the provided account.
     /// </summary>
@@ -43,7 +42,6 @@ interface "File System Connector"
     /// <param name="SourcePath">The source file path.</param>
     /// <param name="TargetPath">The target file path.</param>
     procedure CopyFile(AccountId: Guid; SourcePath: Text; TargetPath: Text);
-
 
     /// <summary>
     /// Move as file inside the provided account.

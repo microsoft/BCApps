@@ -12,12 +12,12 @@ codeunit 9453 "File Scenario Impl."
     Access = Internal;
     InherentPermissions = X;
     InherentEntitlements = X;
-    Permissions = TableData "File Scenario" = rimd;
+    Permissions = tabledata "File Scenario" = rimd;
 
     procedure GetFileAccount(Scenario: Enum "File Scenario"; var FileAccount: Record "File Account"): Boolean
     var
-        FileScenario: Record "File Scenario";
         AllFileAccounts: Record "File Account";
+        FileScenario: Record "File Scenario";
         FileAccounts: Codeunit "File Account";
     begin
         FileAccounts.GetAllAccounts(AllFileAccounts);
@@ -74,13 +74,13 @@ codeunit 9453 "File Scenario Impl."
     /// <param name="Result">A flatten tree structure representing the all the file accounts and the scenarios assigned to them.</param>
     procedure GetScenariosByFileAccount(var Result: Record "File Account Scenario")
     var
+        DefaultAccount: Record "File Account";
         FileAccounts: Record "File Account";
         FileAccountScenarios: Record "File Account Scenario";
-        DefaultAccount: Record "File Account";
         FileAccount: Codeunit "File Account";
-        DisplayName: Text[2048];
-        Position: Integer;
         Default: Boolean;
+        Position: Integer;
+        DisplayName: Text[2048];
     begin
         Result.Reset();
         Result.DeleteAll();
@@ -173,9 +173,9 @@ codeunit 9453 "File Scenario Impl."
 
     procedure AddScenarios(FileAccount: Record "File Account Scenario"): Boolean
     var
-        FileScenario: Record "File Scenario";
         SelectedScenarios: Record "File Account Scenario";
-        ScenariosForAccount: Page "File Scenarios For Account";
+        FileScenario: Record "File Scenario";
+        ScenariosForAccount: Page "File Scenarios for Account";
     begin
         FileAccountImpl.CheckPermissions();
 

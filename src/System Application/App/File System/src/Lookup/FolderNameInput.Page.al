@@ -16,7 +16,7 @@ page 9456 "Folder Name Input"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             field(FolderNameField; FolderName)
             {

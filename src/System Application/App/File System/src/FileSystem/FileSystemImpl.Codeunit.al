@@ -56,7 +56,6 @@ codeunit 9455 "File System Impl."
         FileSystemConnector.CreateFile(CurrFileAccount."Account Id", Path, Stream);
     end;
 
-
     procedure CopyFile(SourcePath: Text; TargetPath: Text)
     begin
         CheckPath(SourcePath);
@@ -227,9 +226,9 @@ codeunit 9455 "File System Impl."
 
     local procedure CheckPath(Path: Text)
     var
-        InvalidChars: Text;
         InvalidChar: Char;
         PathCannotStartWithSlashErr: Label 'The path %1 can not start with /.', Comment = '%1 - Path';
+        InvalidChars: Text;
 
     begin
         if Path.StartsWith('/') then
