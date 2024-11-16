@@ -214,8 +214,8 @@ codeunit 9453 "File Scenario Impl."
 
     procedure GetAvailableScenariosForAccount(FileAccountScenario: Record "File Account Scenario"; var FileAccountScenarios: Record "File Account Scenario")
     var
-        FileScenario: Record "File Scenario";
-        FileScenarioMgt: Codeunit "File Scenario Mgt.";
+        Scenario: Record "File Scenario";
+        FileScenario: Codeunit "File Scenario";
         CurrentScenario, i : Integer;
         IsAvailable: Boolean;
     begin
@@ -224,17 +224,17 @@ codeunit 9453 "File Scenario Impl."
         i := 1;
 
         foreach CurrentScenario in Enum::"File Scenario".Ordinals() do begin
-            Clear(FileScenario);
-            FileScenario.SetRange("Account Id", FileAccountScenarios."Account Id");
-            FileScenario.SetRange(Connector, FileAccountScenarios.Connector);
-            FileScenario.SetRange(Scenario, CurrentScenario);
+            Clear(Scenario);
+            Scenario.SetRange("Account Id", FileAccountScenarios."Account Id");
+            Scenario.SetRange(Connector, FileAccountScenarios.Connector);
+            Scenario.SetRange(Scenario, CurrentScenario);
 
             // If the scenario isn't already connected to the file account, then it's available. Natually, we skip the default scenario
-            IsAvailable := FileScenario.IsEmpty() and (not (CurrentScenario = Enum::"File Scenario"::Default.AsInteger()));
+            IsAvailable := Scenario.IsEmpty() and (not (CurrentScenario = Enum::"File Scenario"::Default.AsInteger()));
 
             // If the scenario is available, allow partner to determine if it should be shown
             if IsAvailable then
-                FileScenarioMgt.OnBeforeInsertAvailableFileScenario(Enum::"File Scenario".FromInteger(CurrentScenario), IsAvailable);
+                FileScenario.OnBeforeInsertAvailableFileScenario(Enum::"File Scenario".FromInteger(CurrentScenario), IsAvailable);
 
             if IsAvailable then begin
                 FileAccountScenarios."Account Id" := FileAccountScenarios."Account Id";

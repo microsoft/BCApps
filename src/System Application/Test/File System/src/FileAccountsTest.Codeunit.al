@@ -300,7 +300,7 @@ codeunit 134750 "File Accounts Test"
         SecondAccount: Record "File Account";
         FileConnectorMock: Codeunit "File Connector Mock";
         FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
-        FileScenarioMgt: Codeunit "File Scenario Mgt.";
+        FileScenario: Codeunit "File Scenario";
         FirstAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
     begin
@@ -314,7 +314,7 @@ codeunit 134750 "File Accounts Test"
         FileConnectorMock.AddAccount(ThirdAccountId);
 
         // [GIVEN] The second account is set as default
-        FileScenarioMgt.SetDefaultFileAccount(SecondAccount);
+        FileScenario.SetDefaultFileAccount(SecondAccount);
 
         // [WHEN] Open the File Accounts page
         FileAccountsTestPage.OpenView();
@@ -343,7 +343,7 @@ codeunit 134750 "File Accounts Test"
         SecondAccount: Record "File Account";
         FileConnectorMock: Codeunit "File Connector Mock";
         FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
-        FileScenarioMgt: Codeunit "File Scenario Mgt.";
+        FileScenario: Codeunit "File Scenario";
         FirstAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
     begin
@@ -357,7 +357,7 @@ codeunit 134750 "File Accounts Test"
         FileConnectorMock.AddAccount(ThirdAccountId);
 
         // [GIVEN] The second account is set as default
-        FileScenarioMgt.SetDefaultFileAccount(SecondAccount);
+        FileScenario.SetDefaultFileAccount(SecondAccount);
 
         // [WHEN] Open the File Accounts page
         FileAccountsTestPage.OpenView();
@@ -385,7 +385,7 @@ codeunit 134750 "File Accounts Test"
         SecondAccount: Record "File Account";
         FileConnectorMock: Codeunit "File Connector Mock";
         FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
-        FileScenarioMgt: Codeunit "File Scenario Mgt.";
+        FileScenario: Codeunit "File Scenario";
         FirstAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
     begin
@@ -399,7 +399,7 @@ codeunit 134750 "File Accounts Test"
         FileConnectorMock.AddAccount(ThirdAccountId);
 
         // [GIVEN] The second account is set as default
-        FileScenarioMgt.SetDefaultFileAccount(SecondAccount);
+        FileScenario.SetDefaultFileAccount(SecondAccount);
 
         // [WHEN] Open the File Accounts page
         FileAccountsTestPage.OpenView();
@@ -429,7 +429,7 @@ codeunit 134750 "File Accounts Test"
         SecondAccount: Record "File Account";
         FileConnectorMock: Codeunit "File Connector Mock";
         FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
-        FileScenarioMgt: Codeunit "File Scenario Mgt.";
+        FileScenario: Codeunit "File Scenario";
         FirstAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
     begin
@@ -443,7 +443,7 @@ codeunit 134750 "File Accounts Test"
         FileConnectorMock.AddAccount(ThirdAccountId);
 
         // [GIVEN] The second account is set as default
-        FileScenarioMgt.SetDefaultFileAccount(SecondAccount);
+        FileScenario.SetDefaultFileAccount(SecondAccount);
 
         // [WHEN] Open the File Accounts page
         FileAccountsTestPage.OpenView();

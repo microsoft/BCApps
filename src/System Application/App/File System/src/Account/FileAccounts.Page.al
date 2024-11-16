@@ -253,7 +253,7 @@ page 9450 "File Accounts"
     local procedure UpdateFileAccounts()
     var
         FileAccount: Codeunit "File Account";
-        FileScenarioMgt: Codeunit "File Scenario Mgt.";
+        FileScenario: Codeunit "File Scenario";
         IsSelected: Boolean;
         SelectedAccountId: Guid;
     begin
@@ -262,7 +262,7 @@ page 9450 "File Accounts"
         IsSelected := not IsNullGuid(SelectedAccountId);
 
         FileAccount.GetAllAccounts(true, Rec); // Refresh the file accounts
-        FileScenarioMgt.GetDefaultFileAccount(DefaultFileAccount); // Refresh the default file account
+        FileScenario.GetDefaultFileAccount(DefaultFileAccount); // Refresh the default file account
 
         if IsSelected then begin
             Rec."Account Id" := SelectedAccountId;

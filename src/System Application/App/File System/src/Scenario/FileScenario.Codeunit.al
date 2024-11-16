@@ -8,7 +8,7 @@ namespace System.FileSystem;
 /// <summary>
 /// Provides functionality to work with file scenarios.
 /// </summary>
-codeunit 9452 "File Scenario Mgt."
+codeunit 9452 "File Scenario"
 {
     InherentPermissions = X;
     InherentEntitlements = X;

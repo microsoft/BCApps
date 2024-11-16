@@ -51,7 +51,7 @@ codeunit 9451 "File Account Impl."
     var
         CurrentDefaultFileAccount: Record "File Account";
         ConfirmManagement: Codeunit "Confirm Management";
-        FileScenarioMgt: Codeunit "File Scenario Mgt.";
+        FileScenario: Codeunit "File Scenario";
         FileSystemConnector: Interface "File System Connector";
     begin
         CheckPermissions();
@@ -63,7 +63,7 @@ codeunit 9451 "File Account Impl."
             exit;
 
         // Get the current default account to track if it was deleted
-        FileScenarioMgt.GetDefaultFileAccount(CurrentDefaultFileAccount);
+        FileScenario.GetDefaultFileAccount(CurrentDefaultFileAccount);
 
         // Delete all selected accounts
         repeat
@@ -82,7 +82,7 @@ codeunit 9451 "File Account Impl."
     var
         AllFileAccounts: Record "File Account";
         NewDefaultFileAccount: Record "File Account";
-        FileScenarioMgt: Codeunit "File Scenario Mgt.";
+        FileScenario: Codeunit "File Scenario";
     begin
         GetAllAccounts(false, AllFileAccounts);
 
@@ -102,7 +102,7 @@ codeunit 9451 "File Account Impl."
         if PromptNewDefaultAccountChoice(NewDefaultFileAccount) then
             MakeDefault(NewDefaultFileAccount)
         else
-            FileScenarioMgt.UnassignScenario(Enum::"File Scenario"::Default); // remove the default scenario as it is pointing to a non-existent account
+            FileScenario.UnassignScenario(Enum::"File Scenario"::Default); // remove the default scenario as it is pointing to a non-existent account
     end;
 
     local procedure PromptNewDefaultAccountChoice(var NewDefaultFileAccount: Record "File Account"): Boolean
@@ -185,14 +185,14 @@ codeunit 9451 "File Account Impl."
 
     procedure MakeDefault(var FileAccount: Record "File Account")
     var
-        FileScenarioMgt: Codeunit "File Scenario Mgt.";
+        FileScenario: Codeunit "File Scenario";
     begin
         CheckPermissions();
 
         if IsNullGuid(FileAccount."Account Id") then
             exit;
 
-        FileScenarioMgt.SetDefaultFileAccount(FileAccount);
+        FileScenario.SetDefaultFileAccount(FileAccount);
     end;
 
     procedure BrowseAccount(var FileAccount: Record "File Account")

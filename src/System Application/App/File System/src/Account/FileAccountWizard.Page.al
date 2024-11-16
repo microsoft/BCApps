@@ -325,7 +325,7 @@ page 9451 "File Account Wizard"
     var
         DefaultAccount: Record "File Account";
         FileAccountImpl: Codeunit "File Account Impl.";
-        FileScenarioMgt: Codeunit "File Scenario Mgt.";
+        FileScenario: Codeunit "File Scenario";
     begin
         FileAccountImpl.CheckPermissions();
 
@@ -337,7 +337,7 @@ page 9451 "File Account Wizard"
 
         FileRateLimitDisplay := NoLimitTxt;
 
-        if not FileScenarioMgt.GetDefaultFileAccount(DefaultAccount) then
+        if not FileScenario.GetDefaultFileAccount(DefaultAccount) then
             SetAsDefault := true;
 
         ConnectorsAvailable := Rec.FindFirst(); // Set the focus on the first record

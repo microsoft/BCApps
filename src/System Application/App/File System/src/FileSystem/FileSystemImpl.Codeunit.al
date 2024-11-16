@@ -19,7 +19,7 @@ codeunit 9455 "File System Impl."
     procedure Initialize(Scenario: Enum "File Scenario")
     var
         FileAccount: Record "File Account";
-        FileScenarioMgt: Codeunit "File Scenario Mgt.";
+        FileScenarioMgt: Codeunit "File Scenario";
         NoFileAccountFoundErr: Label 'No default file account defined.';
     begin
         if not FileScenarioMgt.GetFileAccount(Scenario, FileAccount) then
