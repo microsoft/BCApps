@@ -18,5 +18,5 @@ permissionset 9451 "File System - Read"
         tabledata "File Account Scenario" = r,
         tabledata "File Scenario" = r,
         tabledata "File Account Content" = r,
-        tabledata Media = r; // File System Account Wizard requires this
+        tabledata Media = r; // This permission is required by File System Account Wizard
 }
