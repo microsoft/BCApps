@@ -51,7 +51,7 @@ codeunit 9451 "File Account Impl."
     var
         CurrentDefaultFileAccount: Record "File Account";
         ConfirmManagement: Codeunit "Confirm Management";
-        FileScenario: Codeunit "File Scenario";
+        FileScenarioMgt: Codeunit "File Scenario Mgt.";
         FileSystemConnector: Interface "File System Connector";
     begin
         CheckPermissions();
@@ -63,7 +63,7 @@ codeunit 9451 "File Account Impl."
             exit;
 
         // Get the current default account to track if it was deleted
-        FileScenario.GetDefaultFileAccount(CurrentDefaultFileAccount);
+        FileScenarioMgt.GetDefaultFileAccount(CurrentDefaultFileAccount);
 
         // Delete all selected accounts
         repeat
@@ -82,7 +82,7 @@ codeunit 9451 "File Account Impl."
     var
         AllFileAccounts: Record "File Account";
         NewDefaultFileAccount: Record "File Account";
-        FileScenario: Codeunit "File Scenario";
+        FileScenarioMgt: Codeunit "File Scenario Mgt.";
     begin
         GetAllAccounts(false, AllFileAccounts);
 
@@ -102,7 +102,7 @@ codeunit 9451 "File Account Impl."
         if PromptNewDefaultAccountChoice(NewDefaultFileAccount) then
             MakeDefault(NewDefaultFileAccount)
         else
-            FileScenario.UnassignScenario(Enum::"File Scenario"::Default); // remove the default scenario as it is pointing to a non-existent account
+            FileScenarioMgt.UnassignScenario(Enum::"File Scenario"::Default); // remove the default scenario as it is pointing to a non-existent account
     end;
 
     local procedure PromptNewDefaultAccountChoice(var NewDefaultFileAccount: Record "File Account"): Boolean
@@ -120,9 +120,9 @@ codeunit 9451 "File Account Impl."
         exit(false);
     end;
 
-    local procedure ImportLogo(var FileAccount: Record "File Account"; Connector: Interface "File System Connector")
+    local procedure ImportLogo(var FileAccount: Record "File Account"; FileSystemConnector: Interface "File System Connector")
     var
-        FileConnectorLogo: Record "File System Connector Logo";
+        FileSystemConnectorLogo: Record "File System Connector Logo";
         Base64Convert: Codeunit "Base64 Convert";
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
@@ -130,20 +130,20 @@ codeunit 9451 "File Account Impl."
         OutStream: OutStream;
         ConnectorLogoBase64: Text;
     begin
-        ConnectorLogoBase64 := Connector.GetLogoAsBase64();
+        ConnectorLogoBase64 := FileSystemConnector.GetLogoAsBase64();
 
         if ConnectorLogoBase64 = '' then
             exit;
-        if not FileConnectorLogo.Get(FileAccount.Connector) then begin
+        if not FileSystemConnectorLogo.Get(FileAccount.Connector) then begin
             TempBlob.CreateOutStream(OutStream);
             Base64Convert.FromBase64(ConnectorLogoBase64, OutStream);
             TempBlob.CreateInStream(InStream);
-            FileConnectorLogo.Init();
-            FileConnectorLogo.Connector := FileAccount.Connector;
-            FileConnectorLogo.Logo.ImportStream(InStream, StrSubstNo(ConnectorLogoDescriptionTxt, FileAccount.Connector));
-            if FileConnectorLogo.Insert() then;
+            FileSystemConnectorLogo.Init();
+            FileSystemConnectorLogo.Connector := FileAccount.Connector;
+            FileSystemConnectorLogo.Logo.ImportStream(InStream, StrSubstNo(ConnectorLogoDescriptionTxt, FileAccount.Connector));
+            if FileSystemConnectorLogo.Insert() then;
         end;
-        FileAccount.Logo := FileConnectorLogo.Logo;
+        FileAccount.Logo := FileSystemConnectorLogo.Logo;
     end;
 
     procedure IsAnyAccountRegistered(): Boolean
@@ -185,14 +185,14 @@ codeunit 9451 "File Account Impl."
 
     procedure MakeDefault(var FileAccount: Record "File Account")
     var
-        FileScenario: Codeunit "File Scenario";
+        FileScenarioMgt: Codeunit "File Scenario Mgt.";
     begin
         CheckPermissions();
 
         if IsNullGuid(FileAccount."Account Id") then
             exit;
 
-        FileScenario.SetDefaultFileAccount(FileAccount);
+        FileScenarioMgt.SetDefaultFileAccount(FileAccount);
     end;
 
     procedure BrowseAccount(var FileAccount: Record "File Account")

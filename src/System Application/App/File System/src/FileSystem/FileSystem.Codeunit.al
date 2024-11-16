@@ -43,7 +43,7 @@ codeunit 9454 "File System"
     end;
 
     /// <summary>
-    /// Retireves a file from the file account.
+    /// Retrieves a file from the file account.
     /// </summary>
     /// <param name="Path">File Path to open.</param>
     /// <param name="Stream">Stream which contains the file content.</param>

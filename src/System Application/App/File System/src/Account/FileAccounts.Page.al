@@ -253,7 +253,7 @@ page 9450 "File Accounts"
     local procedure UpdateFileAccounts()
     var
         FileAccount: Codeunit "File Account";
-        FileScenario: Codeunit "File Scenario";
+        FileScenarioMgt: Codeunit "File Scenario Mgt.";
         IsSelected: Boolean;
         SelectedAccountId: Guid;
     begin
@@ -262,7 +262,7 @@ page 9450 "File Accounts"
         IsSelected := not IsNullGuid(SelectedAccountId);
 
         FileAccount.GetAllAccounts(true, Rec); // Refresh the file accounts
-        FileScenario.GetDefaultFileAccount(DefaultFileAccount); // Refresh the default file account
+        FileScenarioMgt.GetDefaultFileAccount(DefaultFileAccount); // Refresh the default file account
 
         if IsSelected then begin
             Rec."Account Id" := SelectedAccountId;
@@ -279,9 +279,7 @@ page 9450 "File Accounts"
     begin
         UpdateAccounts := true;
 
-#pragma warning disable AL0603
-        if not FileAccountImpl.IsValidConnector(Rec.Connector.AsInteger()) then
-#pragma warning restore AL0603
+        if not FileAccountImpl.IsValidConnector(Rec.Connector) then
             Error(FileConnectorHasBeenUninstalledMsg);
 
         Connector := Rec.Connector;

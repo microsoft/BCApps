@@ -17,7 +17,7 @@ codeunit 134752 "File Scenario Test"
     var
         Any: Codeunit Any;
         FileConnectorMock: Codeunit "File Connector Mock";
-        FileScenario: Codeunit "File Scenario";
+        FileScenarioMgt: Codeunit "File Scenario Mgt.";
         FileScenarioMock: Codeunit "File Scenario Mock";
         Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
@@ -36,7 +36,7 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] false is returned
-        Assert.IsFalse(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should not be any account');
+        Assert.IsFalse(FileScenarioMgt.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should not be any account');
     end;
 
     [Test]
@@ -56,7 +56,7 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] false is returned
-        Assert.IsFalse(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should not be any account mapped to the scenario');
+        Assert.IsFalse(FileScenarioMgt.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should not be any account mapped to the scenario');
     end;
 
     [Test]
@@ -76,7 +76,7 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] false is returned
-        Assert.IsFalse(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should not be any account mapped to the scenario');
+        Assert.IsFalse(FileScenarioMgt.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should not be any account mapped to the scenario');
     end;
 
     [Test]
@@ -96,7 +96,7 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] true is returned and the File account is as expected
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
+        Assert.IsTrue(FileScenarioMgt.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
         Assert.AreEqual(AccountId, FileAccount."Account Id", 'Wrong account ID');
         Assert.AreEqual(Enum::"File System Connector"::"Test File System Connector", FileAccount.Connector, 'Wrong connector');
     end;
@@ -118,7 +118,7 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] true is returned and the File account is as expected
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
+        Assert.IsTrue(FileScenarioMgt.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
         Assert.AreEqual(AccountId, FileAccount."Account Id", 'Wrong account ID');
         Assert.AreEqual(Enum::"File System Connector"::"Test File System Connector", FileAccount.Connector, 'Wrong connector');
     end;
@@ -143,11 +143,11 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] true is returned and the File accounts are as expected
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
+        Assert.IsTrue(FileScenarioMgt.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
         Assert.AreEqual(AccountId, FileAccount."Account Id", 'Wrong account ID');
         Assert.AreEqual(Enum::"File System Connector"::"Test File System Connector", FileAccount.Connector, 'Wrong connector');
 
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::Default, FileAccount), 'There should be an File account');
+        Assert.IsTrue(FileScenarioMgt.GetFileAccount(Enum::"File Scenario"::Default, FileAccount), 'There should be an File account');
         Assert.AreEqual(DefaultAccountId, FileAccount."Account Id", 'Wrong account ID');
         Assert.AreEqual(Enum::"File System Connector"::"Test File System Connector", FileAccount.Connector, 'Wrong connector');
     end;
@@ -172,11 +172,11 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] true is returned and the File accounts are as expected
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
+        Assert.IsTrue(FileScenarioMgt.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
         Assert.AreEqual(DefaultAccountId, FileAccount."Account Id", 'Wrong account ID');
         Assert.AreEqual(Enum::"File System Connector"::"Test File System Connector", FileAccount.Connector, 'Wrong connector');
 
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::Default, FileAccount), 'There should be an File account for the default scenario');
+        Assert.IsTrue(FileScenarioMgt.GetFileAccount(Enum::"File Scenario"::Default, FileAccount), 'There should be an File account for the default scenario');
         Assert.AreEqual(DefaultAccountId, FileAccount."Account Id", 'Wrong default account ID');
         Assert.AreEqual(Enum::"File System Connector"::"Test File System Connector", FileAccount.Connector, 'Wrong default account connector');
     end;
@@ -201,12 +201,12 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] true is returned and the File account is as expected
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
+        Assert.IsTrue(FileScenarioMgt.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
         Assert.AreEqual(AccountId, FileAccount."Account Id", 'Wrong account ID');
         Assert.AreEqual(Enum::"File System Connector"::"Test File System Connector", FileAccount.Connector, 'Wrong connector');
 
         // [Then] there's no account for the default File scenario
-        Assert.IsFalse(FileScenario.GetFileAccount(Enum::"File Scenario"::Default, FileAccount), 'There should not be an File account for the default scenario');
+        Assert.IsFalse(FileScenarioMgt.GetFileAccount(Enum::"File Scenario"::Default, FileAccount), 'There should not be an File account for the default scenario');
     end;
 
     [Test]
@@ -230,7 +230,7 @@ codeunit 134752 "File Scenario Test"
         Scenario := Scenario::Default;
 
         // [When] Setting the File account for the scenario
-        FileScenario.SetFileAccount(Scenario, FileAccount);
+        FileScenarioMgt.SetFileAccount(Scenario, FileAccount);
 
         // [Then] The scenario exists and is as expected
         Assert.IsTrue(FileSystemTestLib.GetFileScenarioAccountIdAndFileConnector(Scenario, AccountId, FileSystemConnector), 'The File scenario should exist');
@@ -241,7 +241,7 @@ codeunit 134752 "File Scenario Test"
         AnotherAccount.Connector := Enum::"File System Connector"::"Test File System Connector";
 
         // [When] Setting overwriting the File account for the scenario
-        FileScenario.SetFileAccount(Scenario, AnotherAccount);
+        FileScenarioMgt.SetFileAccount(Scenario, AnotherAccount);
 
         // [Then] The scenario still exists and is as expected
         Assert.IsTrue(FileSystemTestLib.GetFileScenarioAccountIdAndFileConnector(Scenario, AccountId, FileSystemConnector), 'The File scenario should exist');
@@ -264,18 +264,18 @@ codeunit 134752 "File Scenario Test"
         Initialize();
         FileConnectorMock.AddAccount(FileAccount);
         FileConnectorMock.AddAccount(DefaultAccount);
-        FileScenario.SetDefaultFileAccount(DefaultAccount);
-        FileScenario.SetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount);
+        FileScenarioMgt.SetDefaultFileAccount(DefaultAccount);
+        FileScenarioMgt.SetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount);
 
         // mid-test verification
-        FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", ResultAccount);
+        FileScenarioMgt.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", ResultAccount);
         Assert.AreEqual(FileAccount."Account Id", ResultAccount."Account Id", 'Wrong account');
 
         // [When] Unassign the File scenario
-        FileScenario.UnassignScenario(Enum::"File Scenario"::"Test File Scenario");
+        FileScenarioMgt.UnassignScenario(Enum::"File Scenario"::"Test File Scenario");
 
         // [Then] The default account is returned for that account
-        FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", ResultAccount);
+        FileScenarioMgt.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", ResultAccount);
         Assert.AreEqual(DefaultAccount."Account Id", ResultAccount."Account Id", 'The default account should have been returned');
     end;
 
