@@ -39,7 +39,7 @@ codeunit 9451 "File Account Impl."
                     if LoadLogos then
                         ImportLogo(TempFileAccount, Connector);
 
-                    if not TempFileAccount.Insert() then;
+                    TempFileAccount.Insert();
                 until FileAccounts.Next() = 0;
         end;
 

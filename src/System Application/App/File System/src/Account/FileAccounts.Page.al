@@ -34,13 +34,11 @@ page 9450 "File Accounts"
         {
             repeater(Accounts)
             {
-                Visible = ShowLogo;
                 FreezeColumn = NameField;
                 field(LogoField; Rec.Logo)
                 {
                     ShowCaption = false;
                     Caption = ' ';
-                    Visible = ShowLogo;
                     ToolTip = 'Specifies the logo for the type of file account.';
                     Width = 1;
                 }
@@ -228,11 +226,10 @@ page 9450 "File Accounts"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000CTA', 'Fileing', Enum::"Feature Uptake Status"::Discovered);
+        FeatureTelemetry.LogUptake('0000CTA', 'File System', Enum::"Feature Uptake Status"::Discovered);
         CanUserManageFileSetup := FileAccountImpl.IsUserFileAdmin();
         Rec.SetCurrentKey("Account Id", Connector);
         UpdateFileAccounts();
-        ShowLogo := true;
     end;
 
     trigger OnAfterGetRecord()
@@ -319,7 +316,6 @@ page 9450 "File Accounts"
         CanUserManageFileSetup: Boolean;
         IsDefault: Boolean;
         IsInLookupMode: Boolean;
-        ShowLogo: Boolean;
         UpdateAccounts: Boolean;
         FileConnectorHasBeenUninstalledMsg: Label 'The selected file extension has been uninstalled. To view information about the file account, you must reinstall the extension.';
         DefaultTxt: Text;
