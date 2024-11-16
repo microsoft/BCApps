@@ -22,12 +22,10 @@ table 9454 "File Scenario"
         {
             DataClassification = SystemMetadata;
         }
-
         field(2; Connector; Enum "File System Connector")
         {
             DataClassification = SystemMetadata;
         }
-
         field(3; "Account Id"; Guid)
         {
             DataClassification = SystemMetadata;

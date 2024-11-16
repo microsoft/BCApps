@@ -21,7 +21,7 @@ page 9455 "File Account Browser"
 
     layout
     {
-        area(content)
+        area(Content)
         {
             field(CurrentPathField; CurrentPath)
             {

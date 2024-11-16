@@ -19,10 +19,10 @@ codeunit 9455 "File System Impl."
     procedure Initialize(Scenario: Enum "File Scenario")
     var
         FileAccount: Record "File Account";
-        FileScenario: Codeunit "File Scenario";
-        NoFileAccountFoundErr: Label 'No defaut file account defined.';
+        FileScenarioMgt: Codeunit "File Scenario Mgt.";
+        NoFileAccountFoundErr: Label 'No default file account defined.';
     begin
-        if not FileScenario.GetFileAccount(Scenario, FileAccount) then
+        if not FileScenarioMgt.GetFileAccount(Scenario, FileAccount) then
             Error(NoFileAccountFoundErr);
 
         Initialize(FileAccount);
@@ -55,7 +55,6 @@ codeunit 9455 "File System Impl."
         CheckInitialization();
         FileSystemConnector.CreateFile(CurrFileAccount."Account Id", Path, Stream);
     end;
-
 
     procedure CopyFile(SourcePath: Text; TargetPath: Text)
     begin
@@ -183,7 +182,7 @@ codeunit 9455 "File System Impl."
     procedure SaveFileUI(Path: Text; FileExtension: Text; DialogTitle: Text): Text
     var
         FileAccountBrowser: Page "File Account Browser";
-        FileName, FileNameWithExtenion : Text;
+        FileName, FileNameWithExtension : Text;
         PleaseProvideFileExtensionErr: Label 'Please provide a valid file extension.';
         FileNameTok: Label '%1.%2', Locked = true;
     begin
@@ -203,8 +202,8 @@ codeunit 9455 "File System Impl."
         if FileName = '' then
             exit('');
 
-        FileNameWithExtenion := StrSubstNo(FileNameTok, FileName, FileExtension);
-        exit(CombinePath(FileAccountBrowser.GetCurrentDirectory(), FileNameWithExtenion));
+        FileNameWithExtension := StrSubstNo(FileNameTok, FileName, FileExtension);
+        exit(CombinePath(FileAccountBrowser.GetCurrentDirectory(), FileNameWithExtension));
     end;
 
     procedure BrowseAccount()
@@ -217,7 +216,7 @@ codeunit 9455 "File System Impl."
 
     local procedure CheckInitialization()
     var
-        NotInitializedErr: Label 'Please call Initalize() first.';
+        NotInitializedErr: Label 'Please call Initialize() first.';
     begin
         if IsInitialized then
             exit;
@@ -227,9 +226,9 @@ codeunit 9455 "File System Impl."
 
     local procedure CheckPath(Path: Text)
     var
-        InvalidChars: Text;
         InvalidChar: Char;
         PathCannotStartWithSlashErr: Label 'The path %1 can not start with /.', Comment = '%1 - Path';
+        InvalidChars: Text;
 
     begin
         if Path.StartsWith('/') then

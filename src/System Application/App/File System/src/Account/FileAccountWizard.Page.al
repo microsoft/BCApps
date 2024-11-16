@@ -35,7 +35,6 @@ page 9451 "File Account Wizard"
     {
         area(Content)
         {
-
             group(Done)
             {
                 Editable = false;
@@ -73,7 +72,6 @@ page 9451 "File Account Wizard"
                     Caption = 'Welcome to file in Business Central';
                     InstructionalText = 'Make file communications easier by connecting file accounts to Business Central. For example, store sales quotes and orders pdfs without opening an file app.';
                 }
-
                 field(LearnMoreHeader; LearnMoreTok)
                 {
                     Editable = false;
@@ -86,13 +84,11 @@ page 9451 "File Account Wizard"
                         Hyperlink(LearnMoreURLTxt);
                     end;
                 }
-
                 group(Privacy)
                 {
                     Caption = 'Privacy notice';
-                    InstructionalText = 'By adding an file account you acknowledge that the file provider might be able to access the data you send in files from Business Central.';
+                    InstructionalText = 'By adding a file account you acknowledge that the file provider might be able to access the data you send in files from Business Central.';
                 }
-
                 group(GetStartedText)
                 {
                     Caption = 'Let''s go!';
@@ -118,7 +114,6 @@ page 9451 "File Account Wizard"
                 {
                     Caption = 'Specify the type of file account to add';
                 }
-
                 repeater(Connectors)
                 {
                     ShowCaption = false;
@@ -135,14 +130,12 @@ page 9451 "File Account Wizard"
                         ShowCaption = false;
                         Width = 1;
                     }
-
                     field(Name; Rec.Connector)
                     {
                         Caption = 'Account Type';
                         ToolTip = 'Specifies the type of the account you want to create.';
                         Editable = false;
                     }
-
                     field(Details; Rec.Description)
                     {
                         Caption = 'Details';
@@ -160,12 +153,10 @@ page 9451 "File Account Wizard"
                 {
                     Caption = 'There are no file apps available. To use this feature you must install an file app.';
                 }
-
                 label(NoConnectorsAvailable2)
                 {
                     Caption = 'File apps are available in Extension Management and AppSource.';
                 }
-
                 field(ExtensionManagement; ExtensionManagementTok)
                 {
                     Editable = false;
@@ -178,7 +169,6 @@ page 9451 "File Account Wizard"
                         Page.Run(Page::"Extension Management");
                     end;
                 }
-
                 field(AppSource; AppSourceTok)
                 {
                     Editable = false;
@@ -193,12 +183,10 @@ page 9451 "File Account Wizard"
                         AppSource.ShowAppSource();
                     end;
                 }
-
                 label(NoConnectorsAvailable3)
                 {
                     Caption = 'View a list of the available file apps';
                 }
-
                 field(LearnMore; LearnMoreTok)
                 {
                     Editable = false;
@@ -222,18 +210,16 @@ page 9451 "File Account Wizard"
                     Caption = 'Congratulations!';
                     InstructionalText = 'You have successfully added the file account. To check that it is working, send a test file.';
                 }
-
                 group(Account)
                 {
                     Caption = 'Account';
-                    field(Namefield; RegisteredAccount.Name)
+                    field(NameField; RegisteredAccount.Name)
                     {
                         Editable = false;
                         Caption = 'Name';
                         ToolTip = 'Specifies the name of the account registered.';
                     }
                 }
-
                 group(Default)
                 {
                     Caption = '';
@@ -254,7 +240,6 @@ page 9451 "File Account Wizard"
     {
         area(Processing)
         {
-
             action(Cancel)
             {
                 Visible = CancelActionVisible;
@@ -340,7 +325,7 @@ page 9451 "File Account Wizard"
     var
         DefaultAccount: Record "File Account";
         FileAccountImpl: Codeunit "File Account Impl.";
-        FileScenario: Codeunit "File Scenario";
+        FileScenarioMgt: Codeunit "File Scenario Mgt.";
     begin
         FileAccountImpl.CheckPermissions();
 
@@ -352,7 +337,7 @@ page 9451 "File Account Wizard"
 
         FileRateLimitDisplay := NoLimitTxt;
 
-        if not FileScenario.GetDefaultFileAccount(DefaultAccount) then
+        if not FileScenarioMgt.GetDefaultFileAccount(DefaultAccount) then
             SetAsDefault := true;
 
         ConnectorsAvailable := Rec.FindFirst(); // Set the focus on the first record
@@ -376,7 +361,7 @@ page 9451 "File Account Wizard"
                 ShowChooseConnectorStep();
             Step::"Register Account":
                 ShowRegisterAccountStep();
-            Step::"Done":
+            Step::Done:
                 ShowDoneStep();
         end;
     end;

@@ -43,7 +43,6 @@ page 9452 "File Scenario Setup"
                     Editable = false;
                     StyleExpr = Style;
                 }
-
                 field(Default; DefaultTxt)
                 {
                     Caption = 'Default';
@@ -63,7 +62,6 @@ page 9452 "File Scenario Setup"
                 action(AddScenario)
                 {
                     Visible = (TypeOfEntry = TypeOfEntry::Account) and CanUserManageFileSetup;
-
                     Caption = 'Assign scenarios';
                     ToolTip = 'Assign file scenarios for the selected file account. When assigned, everyone will use the account for the scenario. For example, if you assign the Sales Order scenario, everyone will use the account to send sales orders.';
                     Image = NewDocument;
@@ -85,7 +83,6 @@ page 9452 "File Scenario Setup"
                 action(ChangeAccount)
                 {
                     Visible = (TypeOfEntry = TypeOfEntry::Scenario) and CanUserManageFileSetup;
-
                     Caption = 'Reassign';
                     ToolTip = 'Reassign the selected scenarios to another file account.';
                     Image = Change;
@@ -101,11 +98,9 @@ page 9452 "File Scenario Setup"
                         SetSelectedRecord();
                     end;
                 }
-
                 action(Unassign)
                 {
                     Visible = (TypeOfEntry = TypeOfEntry::Scenario) and CanUserManageFileSetup;
-
                     Caption = 'Unassign';
                     ToolTip = 'Unassign the selected scenarios. Afterward, the default file account will be used to send files for the scenarios.';
                     Image = Delete;
@@ -172,7 +167,7 @@ page 9452 "File Scenario Setup"
         end;
     end;
 
-    // Used to set the focus on an file account
+    // Used to set the focus on a file account
     internal procedure SetFileAccountId(AccountId: Guid; Connector: Enum "File System Connector")
     begin
         FileAccountId := AccountId;

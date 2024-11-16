@@ -19,11 +19,11 @@ codeunit 9458 "File Account Browser Mgt."
         FileSystem.Initialize(FileAccount);
     end;
 
-    procedure StripNotsupportChrInFileName(InText: Text): Text
+    procedure StripNotSupportedCharsInFileName(InText: Text): Text
     var
-        InvalidChrStringTxt: Label '"#%&*:<>?\/{|}~', Locked = true;
+        InvalidCharsStringTxt: Label '"#%&*:<>?\/{|}~', Locked = true;
     begin
-        InText := DelChr(InText, '=', InvalidChrStringTxt);
+        InText := DelChr(InText, '=', InvalidCharsStringTxt);
         exit(InText);
     end;
 
@@ -54,9 +54,9 @@ codeunit 9458 "File Account Browser Mgt."
 
     procedure UploadFile(Path: Text)
     var
+        Stream: InStream;
         UploadDialogTxt: Label 'Upload File';
         FromFile: Text;
-        Stream: InStream;
     begin
         if not UploadIntoStream(UploadDialogTxt, '', '', FromFile, Stream) then
             exit;
@@ -72,7 +72,7 @@ codeunit 9458 "File Account Browser Mgt."
         if FolderNameInput.RunModal() <> Action::OK then
             exit;
 
-        FolderName := StripNotsupportChrInFileName(FolderNameInput.GetFolderName());
+        FolderName := StripNotSupportedCharsInFileName(FolderNameInput.GetFolderName());
         FileSystem.CreateDirectory(FileSystem.CombinePath(Path, FolderName));
     end;
 
@@ -112,8 +112,8 @@ codeunit 9458 "File Account Browser Mgt."
 
     procedure DeleteFileOrDirectory(var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        PathToDelete: Text;
         DeleteQst: Label 'Delete %1?', Comment = '%1 - Path to Delete';
+        PathToDelete: Text;
     begin
         PathToDelete := FileSystem.CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name);
         if not Confirm(DeleteQst, false, PathToDelete) then

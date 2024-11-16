@@ -12,12 +12,12 @@ codeunit 9453 "File Scenario Impl."
     Access = Internal;
     InherentPermissions = X;
     InherentEntitlements = X;
-    Permissions = TableData "File Scenario" = rimd;
+    Permissions = tabledata "File Scenario" = rimd;
 
     procedure GetFileAccount(Scenario: Enum "File Scenario"; var FileAccount: Record "File Account"): Boolean
     var
-        FileScenario: Record "File Scenario";
         AllFileAccounts: Record "File Account";
+        FileScenario: Record "File Scenario";
         FileAccounts: Codeunit "File Account";
     begin
         FileAccounts.GetAllAccounts(AllFileAccounts);
@@ -63,7 +63,7 @@ codeunit 9453 "File Scenario Impl."
     end;
 
     /// <summary>
-    /// Get a list of entries, representing a tree structure with file accounts and the scenarios, assigned to each accout.
+    /// Get a list of entries, representing a tree structure with file accounts and the scenarios, assigned to each account.
     /// </summary>
     /// <example>
     /// Account sales@cronus.com has scenarios "Sales Quote" and "Sales Credit Memo" assigned.
@@ -71,19 +71,19 @@ codeunit 9453 "File Scenario Impl."
     /// The result of calling the function will be:
     /// sales@cronus.com, "Sales Quote", "Sales Credit Memo", purchase@cronus.com, "Purchase Quote", "Purchase Invoice"
     /// </example>
-    /// <param name="Result">A flatten tree structure representing the all the file accounts and the scenarios assigned to them.</param>
-    procedure GetScenariosByFileAccount(var Result: Record "File Account Scenario")
+    /// <param name="FileAccountScenario">A flattened tree structure representing all the file accounts and the scenarios assigned to them.</param>
+    procedure GetScenariosByFileAccount(var FileAccountScenario: Record "File Account Scenario")
     var
+        DefaultFileAccount: Record "File Account";
         FileAccounts: Record "File Account";
         FileAccountScenarios: Record "File Account Scenario";
-        DefaultAccount: Record "File Account";
         FileAccount: Codeunit "File Account";
-        DisplayName: Text[2048];
-        Position: Integer;
         Default: Boolean;
+        Position: Integer;
+        DisplayName: Text[2048];
     begin
-        Result.Reset();
-        Result.DeleteAll();
+        FileAccountScenario.Reset();
+        FileAccountScenario.DeleteAll();
 
         FileAccount.GetAllAccounts(FileAccounts);
 
@@ -92,14 +92,14 @@ codeunit 9453 "File Scenario Impl."
 
         // The position is set in order to be able to properly sort the entries (by order of insertion)
         Position := 1;
-        GetDefaultAccount(DefaultAccount);
+        GetDefaultAccount(DefaultFileAccount);
 
         repeat
-            Default := (FileAccounts."Account Id" = DefaultAccount."Account Id") and (FileAccounts.Connector = DefaultAccount.Connector);
+            Default := (FileAccounts."Account Id" = DefaultFileAccount."Account Id") and (FileAccounts.Connector = DefaultFileAccount.Connector);
             DisplayName := FileAccounts.Name;
 
             // Add entry for the file account. Scenario is -1, because it isn't needed when displaying the file account.
-            AddEntry(Result, Result.EntryType::Account, -1, FileAccounts."Account Id", FileAccounts.Connector, DisplayName, Default, Position);
+            AddEntry(FileAccountScenario, FileAccountScenario.EntryType::Account, -1, FileAccounts."Account Id", FileAccounts.Connector, DisplayName, Default, Position);
 
             // Get the file scenarios assigned to the current file account, sorted by "Display Name"
             GetFileScenariosForAccount(FileAccounts, FileAccountScenarios);
@@ -107,12 +107,12 @@ codeunit 9453 "File Scenario Impl."
             if FileAccountScenarios.FindSet() then
                 repeat
                     // Add entry for every scenario that is assigned to the current file account
-                    AddEntry(Result, FileAccountScenarios.EntryType::Scenario, FileAccountScenarios.Scenario, FileAccountScenarios."Account Id", FileAccountScenarios.Connector, FileAccountScenarios."Display Name", false, Position);
+                    AddEntry(FileAccountScenario, FileAccountScenarios.EntryType::Scenario, FileAccountScenarios.Scenario, FileAccountScenarios."Account Id", FileAccountScenarios.Connector, FileAccountScenarios."Display Name", false, Position);
                 until FileAccountScenarios.Next() = 0;
         until FileAccounts.Next() = 0;
 
         // Order by position to show accurate results
-        Result.SetCurrentKey(Position);
+        FileAccountScenario.SetCurrentKey(Position);
     end;
 
     local procedure GetFileScenariosForAccount(FileAccount: Record "File Account"; var FileAccountScenarios: Record "File Account Scenario")
@@ -155,170 +155,170 @@ codeunit 9453 "File Scenario Impl."
         FileAccountScenarios.SetCurrentKey("Display Name"); // sort scenarios by "Display Name"
     end;
 
-    local procedure AddEntry(var Result: Record "File Account Scenario"; EntryType: Option; Scenario: Integer; AccountId: Guid; Connector: Enum "File System Connector"; DisplayName: Text[2048]; Default: Boolean; var Position: Integer)
+    local procedure AddEntry(var FileAccountScenario: Record "File Account Scenario"; EntryType: Option; Scenario: Integer; AccountId: Guid; FileSystemConnector: Enum "File System Connector"; DisplayName: Text[2048]; Default: Boolean; var Position: Integer)
     begin
-        // Add entry to the result while maintaining the position so that the tree represents the data correctly
-        Result.Init();
-        Result.EntryType := EntryType;
-        Result.Scenario := Scenario;
-        Result."Account Id" := AccountId;
-        Result.Connector := Connector;
-        Result."Display Name" := DisplayName;
-        Result.Default := Default;
-        Result.Position := Position;
-        Result.Insert();
+        // Add entry to the File Account Scenario while maintaining the position so that the tree represents the data correctly
+        FileAccountScenario.Init();
+        FileAccountScenario.EntryType := EntryType;
+        FileAccountScenario.Scenario := Scenario;
+        FileAccountScenario."Account Id" := AccountId;
+        FileAccountScenario.Connector := FileSystemConnector;
+        FileAccountScenario."Display Name" := DisplayName;
+        FileAccountScenario.Default := Default;
+        FileAccountScenario.Position := Position;
+        FileAccountScenario.Insert();
 
         Position := Position + 1;
     end;
 
-    procedure AddScenarios(FileAccount: Record "File Account Scenario"): Boolean
+    procedure AddScenarios(FileAccountScenario: Record "File Account Scenario"): Boolean
     var
+        SelectedFileAccScenarios: Record "File Account Scenario";
         FileScenario: Record "File Scenario";
-        SelectedScenarios: Record "File Account Scenario";
-        ScenariosForAccount: Page "File Scenarios For Account";
+        FileScenariosForAccount: Page "File Scenarios for Account";
     begin
         FileAccountImpl.CheckPermissions();
 
-        if FileAccount.EntryType <> FileAccount.EntryType::Account then // wrong entry, the entry should be of type "Account"
+        if FileAccountScenario.EntryType <> FileAccountScenario.EntryType::Account then // wrong entry, the entry should be of type "Account"
             exit;
 
-        ScenariosForAccount.Caption := StrSubstNo(ScenariosForAccountCaptionTxt, FileAccount."Display Name");
-        ScenariosForAccount.LookupMode(true);
-        ScenariosForAccount.SetRecord(FileAccount);
+        FileScenariosForAccount.Caption := StrSubstNo(ScenariosForAccountCaptionTxt, FileAccountScenario."Display Name");
+        FileScenariosForAccount.LookupMode(true);
+        FileScenariosForAccount.SetRecord(FileAccountScenario);
 
-        if ScenariosForAccount.RunModal() <> Action::LookupOK then
+        if FileScenariosForAccount.RunModal() <> Action::LookupOK then
             exit(false);
 
-        ScenariosForAccount.GetSelectedScenarios(SelectedScenarios);
+        FileScenariosForAccount.GetSelectedScenarios(SelectedFileAccScenarios);
 
-        if not SelectedScenarios.FindSet() then
+        if not SelectedFileAccScenarios.FindSet() then
             exit(false);
 
         repeat
-            if not FileScenario.Get(SelectedScenarios.Scenario) then begin
-                FileScenario."Account Id" := FileAccount."Account Id";
-                FileScenario.Connector := FileAccount.Connector;
-                FileScenario.Scenario := Enum::"File Scenario".FromInteger(SelectedScenarios.Scenario);
+            if not FileScenario.Get(SelectedFileAccScenarios.Scenario) then begin
+                FileScenario."Account Id" := FileAccountScenario."Account Id";
+                FileScenario.Connector := FileAccountScenario.Connector;
+                FileScenario.Scenario := Enum::"File Scenario".FromInteger(SelectedFileAccScenarios.Scenario);
 
                 FileScenario.Insert();
             end else begin
-                FileScenario."Account Id" := FileAccount."Account Id";
-                FileScenario.Connector := FileAccount.Connector;
+                FileScenario."Account Id" := FileAccountScenario."Account Id";
+                FileScenario.Connector := FileAccountScenario.Connector;
 
                 FileScenario.Modify();
             end;
-        until SelectedScenarios.Next() = 0;
+        until SelectedFileAccScenarios.Next() = 0;
 
         exit(true);
     end;
 
-    procedure GetAvailableScenariosForAccount(FileAccount: Record "File Account Scenario"; var FileScenarios: Record "File Account Scenario")
+    procedure GetAvailableScenariosForAccount(FileAccountScenario: Record "File Account Scenario"; var FileAccountScenarios: Record "File Account Scenario")
     var
-        Scenario: Record "File Scenario";
-        FileScenario: Codeunit "File Scenario";
+        FileScenario: Record "File Scenario";
+        FileScenarioMgt: Codeunit "File Scenario Mgt.";
         CurrentScenario, i : Integer;
         IsAvailable: Boolean;
     begin
-        FileScenarios.Reset();
-        FileScenarios.DeleteAll();
+        FileAccountScenarios.Reset();
+        FileAccountScenarios.DeleteAll();
         i := 1;
 
         foreach CurrentScenario in Enum::"File Scenario".Ordinals() do begin
-            Clear(Scenario);
-            Scenario.SetRange("Account Id", FileAccount."Account Id");
-            Scenario.SetRange(Connector, FileAccount.Connector);
-            Scenario.SetRange(Scenario, CurrentScenario);
+            Clear(FileScenario);
+            FileScenario.SetRange("Account Id", FileAccountScenarios."Account Id");
+            FileScenario.SetRange(Connector, FileAccountScenarios.Connector);
+            FileScenario.SetRange(Scenario, CurrentScenario);
 
             // If the scenario isn't already connected to the file account, then it's available. Natually, we skip the default scenario
-            IsAvailable := Scenario.IsEmpty() and (not (CurrentScenario = Enum::"File Scenario"::Default.AsInteger()));
+            IsAvailable := FileScenario.IsEmpty() and (not (CurrentScenario = Enum::"File Scenario"::Default.AsInteger()));
 
             // If the scenario is available, allow partner to determine if it should be shown
             if IsAvailable then
-                FileScenario.OnBeforeInsertAvailableFileScenario(Enum::"File Scenario".FromInteger(CurrentScenario), IsAvailable);
+                FileScenarioMgt.OnBeforeInsertAvailableFileScenario(Enum::"File Scenario".FromInteger(CurrentScenario), IsAvailable);
 
             if IsAvailable then begin
-                FileScenarios."Account Id" := FileAccount."Account Id";
-                FileScenarios.Connector := FileAccount.Connector;
-                FileScenarios.Scenario := CurrentScenario;
-                FileScenarios."Display Name" := Format(Enum::"File Scenario".FromInteger(Enum::"File Scenario".Ordinals().Get(i)));
+                FileAccountScenarios."Account Id" := FileAccountScenarios."Account Id";
+                FileAccountScenarios.Connector := FileAccountScenarios.Connector;
+                FileAccountScenarios.Scenario := CurrentScenario;
+                FileAccountScenarios."Display Name" := Format(Enum::"File Scenario".FromInteger(Enum::"File Scenario".Ordinals().Get(i)));
 
-                FileScenarios.Insert();
+                FileAccountScenarios.Insert();
             end;
 
             i += 1;
         end;
     end;
 
-    procedure ChangeAccount(var FileScenario: Record "File Account Scenario"): Boolean
+    procedure ChangeAccount(var FileAccountScenario: Record "File Account Scenario"): Boolean
     var
-        SelectedAccount: Record "File Account";
-        Scenario: Record "File Scenario";
+        SelectedFileAccount: Record "File Account";
+        FileScenario: Record "File Scenario";
         FileAccount: Codeunit "File Account";
         AccountsPage: Page "File Accounts";
     begin
         FileAccountImpl.CheckPermissions();
 
-        if not FileScenario.FindSet() then
+        if not FileAccountScenario.FindSet() then
             exit(false);
 
-        FileAccount.GetAllAccounts(false, SelectedAccount);
-        if SelectedAccount.Get(FileScenario."Account Id", FileScenario.Connector) then;
+        FileAccount.GetAllAccounts(false, SelectedFileAccount);
+        if SelectedFileAccount.Get(FileAccountScenario."Account Id", FileAccountScenario.Connector) then;
 
         AccountsPage.EnableLookupMode();
-        AccountsPage.SetRecord(SelectedAccount);
+        AccountsPage.SetRecord(SelectedFileAccount);
         AccountsPage.Caption := ChangeFileAccountForScenarioTxt;
 
         if AccountsPage.RunModal() <> Action::LookupOK then
             exit(false);
 
-        AccountsPage.GetAccount(SelectedAccount);
+        AccountsPage.GetAccount(SelectedFileAccount);
 
-        if IsNullGuid(SelectedAccount."Account Id") then // defensive check, no account was selected
+        if IsNullGuid(SelectedFileAccount."Account Id") then // defensive check, no account was selected
             exit;
 
         repeat
-            if Scenario.Get(FileScenario.Scenario) then begin
-                Scenario."Account Id" := SelectedAccount."Account Id";
-                Scenario.Connector := SelectedAccount.Connector;
+            if FileScenario.Get(FileAccountScenario.Scenario) then begin
+                FileScenario."Account Id" := SelectedFileAccount."Account Id";
+                FileScenario.Connector := SelectedFileAccount.Connector;
 
-                Scenario.Modify();
+                FileScenario.Modify();
             end;
-        until FileScenario.Next() = 0;
+        until FileAccountScenario.Next() = 0;
 
         exit(true);
     end;
 
-    procedure DeleteScenario(var FileScenario: Record "File Account Scenario"): Boolean
+    procedure DeleteScenario(var FileAccountScenario: Record "File Account Scenario"): Boolean
     var
-        Scenario: Record "File Scenario";
+        FileScenario: Record "File Scenario";
     begin
         FileAccountImpl.CheckPermissions();
 
-        if not FileScenario.FindSet() then
+        if not FileAccountScenario.FindSet() then
             exit(false);
 
         repeat
-            if FileScenario.EntryType = FileScenario.EntryType::Scenario then begin
-                Scenario.SetRange(Scenario, FileScenario.Scenario);
-                Scenario.SetRange("Account Id", FileScenario."Account Id");
-                Scenario.SetRange(Connector, FileScenario.Connector);
+            if FileAccountScenario.EntryType = FileAccountScenario.EntryType::Scenario then begin
+                FileScenario.SetRange(Scenario, FileAccountScenario.Scenario);
+                FileScenario.SetRange("Account Id", FileAccountScenario."Account Id");
+                FileScenario.SetRange(Connector, FileAccountScenario.Connector);
 
-                Scenario.DeleteAll();
+                FileScenario.DeleteAll();
             end;
-        until FileScenario.Next() = 0;
+        until FileAccountScenario.Next() = 0;
 
         exit(true);
     end;
 
     local procedure GetDefaultAccount(var FileAccount: Record "File Account")
     var
-        Scenario: Record "File Scenario";
+        FileScenario: Record "File Scenario";
     begin
-        if not Scenario.Get(Enum::"File Scenario"::Default) then
+        if not FileScenario.Get(Enum::"File Scenario"::Default) then
             exit;
 
-        FileAccount."Account Id" := Scenario."Account Id";
-        FileAccount.Connector := Scenario.Connector;
+        FileAccount."Account Id" := FileScenario."Account Id";
+        FileAccount.Connector := FileScenario.Connector;
     end;
 
     var

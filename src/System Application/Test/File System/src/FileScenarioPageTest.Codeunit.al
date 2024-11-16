@@ -15,12 +15,11 @@ codeunit 134751 "File Scenario Page Test"
     Subtype = Test;
 
     var
-        Assert: Codeunit "Library Assert";
         FileConnectorMock: Codeunit "File Connector Mock";
         FileScenarioMock: Codeunit "File Scenario Mock";
+        Assert: Codeunit "Library Assert";
         PermissionsMock: Codeunit "Permissions Mock";
         DisplayNameTxt: Label '%1', Locked = true;
-
 
     [Test]
     [Scope('OnPrem')]
@@ -113,7 +112,6 @@ codeunit 134751 "File Scenario Page Test"
         Assert.IsFalse(FileScenarioPage.Next(), 'There should not be another entry on the page');
     end;
 
-
     [Test]
     [Scope('OnPrem')]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -122,7 +120,7 @@ codeunit 134751 "File Scenario Page Test"
         FileAccount: Record "File Account";
         FileScenarioPage: TestPage "File Scenario Setup";
     begin
-        // [Scenario] Having one default account with a non-default scenario assigned displays propely on "File Scenario Setup"
+        // [Scenario] Having one default account with a non-default scenario assigned displays properly on "File Scenario Setup"
         PermissionsMock.Set('File System Admin');
 
         // [Given] One file account is registered and it's set as default.
@@ -152,7 +150,7 @@ codeunit 134751 "File Scenario Page Test"
         FileScenarioPage.Expand(true);
         Assert.IsTrue(FileScenarioPage.Next(), 'There should be another entry on the page');
 
-        // Properies are as expected
+        // Properties are as expected
         Assert.AreEqual(Format(Enum::"File Scenario"::"Test File Scenario"), FileScenarioPage.Name.Value, 'Wrong entry name');
         Assert.IsFalse(GetDefaultFieldValueAsBoolean(FileScenarioPage.Default.Value), 'The account should not be marked as default');
 
@@ -186,7 +184,7 @@ codeunit 134751 "File Scenario Page Test"
         FileScenarioPage.Trap();
         FileScenarioPage.OpenView();
 
-        // [Then] There are three entries on the page. One is set as dedault
+        // [Then] There are three entries on the page. One is set as default
         Assert.IsTrue(FileScenarioPage.GoToKey(-1, FirstFileAccount."Account Id", FirstFileAccount.Connector), 'There should be data on the page');
         Assert.AreEqual(StrSubstNo(DisplayNameTxt, FirstFileAccount.Name), FileScenarioPage.Name.Value, 'Wrong first entry name');
         Assert.IsTrue(GetDefaultFieldValueAsBoolean(FileScenarioPage.Default.Value), 'The account should be marked as default');

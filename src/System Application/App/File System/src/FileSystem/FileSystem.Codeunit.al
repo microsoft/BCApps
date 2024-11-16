@@ -14,7 +14,7 @@ codeunit 9454 "File System"
         FileSystemImpl: Codeunit "File System Impl.";
 
     /// <summary>
-    /// Initialized the File System for the give scenario.
+    /// Initialized the File System for the given scenario.
     /// </summary>
     /// <param name="Scenario">File Scenario to use.</param>
     procedure Initialize(Scenario: Enum "File Scenario")
@@ -43,7 +43,7 @@ codeunit 9454 "File System"
     end;
 
     /// <summary>
-    /// Retireves a file from the file account.
+    /// Retrieves a file from the file account.
     /// </summary>
     /// <param name="Path">File Path to open.</param>
     /// <param name="Stream">Stream which contains the file content.</param>
@@ -131,7 +131,7 @@ codeunit 9454 "File System"
     /// <summary>
     /// Checks if a specific directory exists in the file account.
     /// </summary>
-    /// <param name="Path">Path of the directry to check.</param>
+    /// <param name="Path">Path of the directory to check.</param>
     /// <returns>Returns true if directory exists.</returns>
     procedure DirectoryExists(Path: Text): Boolean
     begin
@@ -162,8 +162,8 @@ codeunit 9454 "File System"
     /// <summary>
     /// Gets the Parent Path of the given path.
     /// </summary>
-    /// <param name="Path">File or directoy path.</param>
-    /// <returns>The parent of the speicfied path.</returns>
+    /// <param name="Path">File or directory path.</param>
+    /// <returns>The parent of the specified path.</returns>
     procedure GetParentPath(Path: Text): Text
     begin
         exit(FileSystemImpl.GetParentPath(Path));
@@ -176,9 +176,9 @@ codeunit 9454 "File System"
     /// <returns>Returns the selected Folder.</returns>
     procedure SelectFolderUI(Path: Text): Text
     var
-        DefaulSelectFolderUILbl: Label 'Select a folder';
+        DefaultSelectFolderUILbl: Label 'Select a folder';
     begin
-        exit(SelectFolderUI(Path, DefaulSelectFolderUILbl));
+        exit(SelectFolderUI(Path, DefaultSelectFolderUILbl));
     end;
 
     /// <summary>
@@ -200,9 +200,9 @@ codeunit 9454 "File System"
     /// <returns>Returns the path of the selected file.</returns>
     procedure SelectFileUI(Path: Text; FileFilter: Text): Text
     var
-        DefaulSelectFileUILbl: Label 'Select a file';
+        DefaultSelectFileUILbl: Label 'Select a file';
     begin
-        exit(SelectFileUI(Path, FileFilter, DefaulSelectFileUILbl));
+        exit(SelectFileUI(Path, FileFilter, DefaultSelectFileUILbl));
     end;
 
     /// <summary>
@@ -221,8 +221,8 @@ codeunit 9454 "File System"
     /// Opens a save to dialog.
     /// </summary>
     /// <param name="Path">Start path of the dialog.</param>
-    /// <param name="FileExtension">The fileextion without dot (like pdf or txt).</param>
-    /// <returns>Returns the selecte file path.</returns>
+    /// <param name="FileExtension">The file extension without dot (like pdf or txt).</param>
+    /// <returns>Returns the selected file path.</returns>
     procedure SaveFileUI(Path: Text; FileExtension: Text): Text
     var
         DefaultSaveFileUITitleLbl: Label 'Save as';
@@ -234,9 +234,9 @@ codeunit 9454 "File System"
     /// Opens a save to dialog.
     /// </summary>
     /// <param name="Path">Start path of the dialog.</param>
-    /// <param name="FileExtension">The fileextion without dot (like pdf or txt).</param>
+    /// <param name="FileExtension">The file extension without dot (like pdf or txt).</param>
     ///  <param name="DialogTitle">Title of the selection dialog.</param>
-    /// <returns>Returns the selecte file path.</returns>
+    /// <returns>Returns the selected file path.</returns>
     procedure SaveFileUI(Path: Text; FileExtension: Text; DialogTitle: Text): Text
     begin
         exit(FileSystemImpl.SaveFileUI(Path, FileExtension, DialogTitle));

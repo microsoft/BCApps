@@ -14,7 +14,7 @@ enum 9452 "File Type"
     Extensible = false;
 
     /// <summary>
-    ///  Indicates if entry is a directory.
+    /// Indicates if entry is a directory.
     /// </summary>
     value(0; Directory)
     {
@@ -22,7 +22,7 @@ enum 9452 "File Type"
     }
 
     /// <summary>
-    ///  Indicates if entry is a file type.
+    /// Indicates if entry is a file type.
     /// </summary>
     value(1; File)
     {

@@ -24,52 +24,42 @@ codeunit 135814 "Test File System Connector" implements "File System Connector"
 
     procedure GetFile(AccountId: Guid; Path: Text; Stream: InStream);
     begin
-
     end;
 
     procedure CreateFile(AccountId: Guid; Path: Text; Stream: InStream);
     begin
-
     end;
 
     procedure CopyFile(AccountId: Guid; SourcePath: Text; TargetPath: Text);
     begin
-
     end;
 
     procedure MoveFile(AccountId: Guid; SourcePath: Text; TargetPath: Text);
     begin
-
     end;
 
     procedure FileExists(AccountId: Guid; Path: Text): Boolean;
     begin
-
     end;
 
     procedure DeleteFile(AccountId: Guid; Path: Text);
     begin
-
     end;
 
     procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary);
     begin
-
     end;
 
     procedure CreateDirectory(AccountId: Guid; Path: Text);
     begin
-
     end;
 
     procedure DirectoryExists(AccountId: Guid; Path: Text): Boolean;
     begin
-
     end;
 
     procedure DeleteDirectory(AccountId: Guid; Path: Text);
     begin
-
     end;
 
     procedure GetAccounts(var Accounts: Record "File Account")
@@ -108,7 +98,6 @@ codeunit 135814 "Test File System Connector" implements "File System Connector"
 
     procedure GetLogoAsBase64(): Text
     begin
-
     end;
 
     procedure GetDescription(): Text[250]

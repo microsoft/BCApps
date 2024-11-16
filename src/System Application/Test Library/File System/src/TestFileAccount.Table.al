@@ -16,7 +16,6 @@ table 135810 "Test File Account"
         {
             Caption = 'Primary Key';
         }
-
         field(2; Name; Text[250])
         {
             Caption = 'Name';
