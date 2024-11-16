@@ -15,8 +15,8 @@ codeunit 135810 "File Connector Mock"
 
     procedure Initialize()
     var
-        TestFileConnectorSetup: Record "Test File Connector Setup";
         TestFileAccount: Record "Test File Account";
+        TestFileConnectorSetup: Record "Test File Connector Setup";
     begin
         TestFileConnectorSetup.DeleteAll();
         TestFileConnectorSetup.Init();

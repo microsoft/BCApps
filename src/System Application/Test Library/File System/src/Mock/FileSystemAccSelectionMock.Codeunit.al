@@ -25,8 +25,8 @@ codeunit 135812 "File System Acc Selection Mock"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"File Account Impl.", 'OnAfterSetSelectionFilter', '', false, false)]
     local procedure SelectAccounts(var FileAccount: Record "File Account")
     var
-        SelectionFilter: Text;
         AccountId: Guid;
+        SelectionFilter: Text;
     begin
         FileAccount.Reset();
 

@@ -28,5 +28,4 @@ codeunit 135811 "File Scenario Mock"
     begin
         Scenario.DeleteAll();
     end;
-
 }
