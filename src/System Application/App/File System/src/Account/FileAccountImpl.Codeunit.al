@@ -5,8 +5,8 @@
 
 namespace System.FileSystem;
 
-using System.Utilities;
 using System.Text;
+using System.Utilities;
 
 codeunit 9451 "File Account Impl."
 {
