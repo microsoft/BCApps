@@ -6,7 +6,7 @@
 namespace System.FileSystem;
 
 /// <summary>
-/// A common representation of an file account.
+/// A common representation of a file account.
 /// </summary>
 table 9450 "File Account"
 {

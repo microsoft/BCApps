@@ -20,7 +20,7 @@ codeunit 9455 "File System Impl."
     var
         FileAccount: Record "File Account";
         FileScenario: Codeunit "File Scenario";
-        NoFileAccountFoundErr: Label 'No defaut file account defined.';
+        NoFileAccountFoundErr: Label 'No default file account defined.';
     begin
         if not FileScenario.GetFileAccount(Scenario, FileAccount) then
             Error(NoFileAccountFoundErr);
@@ -182,7 +182,7 @@ codeunit 9455 "File System Impl."
     procedure SaveFileUI(Path: Text; FileExtension: Text; DialogTitle: Text): Text
     var
         FileAccountBrowser: Page "File Account Browser";
-        FileName, FileNameWithExtenion : Text;
+        FileName, FileNameWithExtension : Text;
         PleaseProvideFileExtensionErr: Label 'Please provide a valid file extension.';
         FileNameTok: Label '%1.%2', Locked = true;
     begin
@@ -202,8 +202,8 @@ codeunit 9455 "File System Impl."
         if FileName = '' then
             exit('');
 
-        FileNameWithExtenion := StrSubstNo(FileNameTok, FileName, FileExtension);
-        exit(CombinePath(FileAccountBrowser.GetCurrentDirectory(), FileNameWithExtenion));
+        FileNameWithExtension := StrSubstNo(FileNameTok, FileName, FileExtension);
+        exit(CombinePath(FileAccountBrowser.GetCurrentDirectory(), FileNameWithExtension));
     end;
 
     procedure BrowseAccount()
@@ -216,7 +216,7 @@ codeunit 9455 "File System Impl."
 
     local procedure CheckInitialization()
     var
-        NotInitializedErr: Label 'Please call Initalize() first.';
+        NotInitializedErr: Label 'Please call Initialize() first.';
     begin
         if IsInitialized then
             exit;

@@ -19,11 +19,11 @@ codeunit 9458 "File Account Browser Mgt."
         FileSystem.Initialize(FileAccount);
     end;
 
-    procedure StripNotsupportChrInFileName(InText: Text): Text
+    procedure StripNotSupportedCharsInFileName(InText: Text): Text
     var
-        InvalidChrStringTxt: Label '"#%&*:<>?\/{|}~', Locked = true;
+        InvalidCharsStringTxt: Label '"#%&*:<>?\/{|}~', Locked = true;
     begin
-        InText := DelChr(InText, '=', InvalidChrStringTxt);
+        InText := DelChr(InText, '=', InvalidCharsStringTxt);
         exit(InText);
     end;
 
@@ -72,7 +72,7 @@ codeunit 9458 "File Account Browser Mgt."
         if FolderNameInput.RunModal() <> Action::OK then
             exit;
 
-        FolderName := StripNotsupportChrInFileName(FolderNameInput.GetFolderName());
+        FolderName := StripNotSupportedCharsInFileName(FolderNameInput.GetFolderName());
         FileSystem.CreateDirectory(FileSystem.CombinePath(Path, FolderName));
     end;
 

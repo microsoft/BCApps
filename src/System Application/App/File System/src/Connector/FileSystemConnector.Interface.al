@@ -6,7 +6,7 @@
 namespace System.FileSystem;
 
 /// <summary>
-/// An File System Connector interface used to creating file accounts and handle external files.
+/// A File System Connector interface used to create file accounts and handle external files.
 /// </summary>
 interface "File System Connector"
 {
@@ -104,13 +104,13 @@ interface "File System Connector"
     procedure GetAccounts(var Accounts: Record "File Account");
 
     /// <summary>
-    /// Shows the information for an file account.
+    /// Shows the information for a file account.
     /// </summary>
     /// <param name="AccountId">The ID of the file account</param>
     procedure ShowAccountInformation(AccountId: Guid);
 
     /// <summary>
-    /// Registers an file account for the connector.
+    /// Registers a file account for the connector.
     /// </summary>
     /// <remarks>The out parameter must hold the account ID of the added account.</remarks>
     /// <param name="Account">Out parameter with the details of the registered Account.</param>
@@ -118,7 +118,7 @@ interface "File System Connector"
     procedure RegisterAccount(var FileAccount: Record "File Account"): Boolean
 
     /// <summary>
-    /// Deletes an file account for the connector.
+    /// Deletes a file account for the connector.
     /// </summary>
     /// <param name="AccountId">The ID of the file account</param>
     /// <returns>True if an account was deleted.</returns>
@@ -128,7 +128,7 @@ interface "File System Connector"
     /// Provides a custom logo for the connector that shows in the Setup File Account Guide.
     /// </summary>
     /// <returns>Base64 encoded image.</returns>
-    /// <remarks>The recomended image size is 128x128.</remarks>
+    /// <remarks>The recommended image size is 128x128.</remarks>
     /// <returns>The logo of the connector is Base64 format</returns>
     procedure GetLogoAsBase64(): Text;
 

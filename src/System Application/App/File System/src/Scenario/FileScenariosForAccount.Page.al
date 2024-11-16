@@ -60,7 +60,7 @@ page 9454 "File Scenarios for Account"
     begin
         FileScenarioImpl.GetAvailableScenariosForAccount(Rec, Rec);
         Rec.SetCurrentKey("Display Name");
-        if Rec.FindFirst() then; // set the selection to the first record
+        if Rec.FindFirst() then; // Set the selection to the first record
     end;
 
     var

@@ -167,7 +167,7 @@ page 9452 "File Scenario Setup"
         end;
     end;
 
-    // Used to set the focus on an file account
+    // Used to set the focus on a file account
     internal procedure SetFileAccountId(AccountId: Guid; Connector: Enum "File System Connector")
     begin
         FileAccountId := AccountId;

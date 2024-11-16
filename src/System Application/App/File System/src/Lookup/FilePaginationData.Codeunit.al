@@ -14,7 +14,7 @@ codeunit 9456 "File Pagination Data"
         FilePaginationDataImpl: Codeunit "File Pagination Data Impl.";
 
     /// <summary>
-    /// Sets a marker if files and directories can be getted in batches.
+    /// Sets a marker to see if files and directories can be retrieved in batches.
     /// </summary>
     /// <param name="NewMarker">Marker value to set.</param>
     procedure SetMarker(NewMarker: Text)
@@ -32,7 +32,7 @@ codeunit 9456 "File Pagination Data"
     end;
 
     /// <summary>
-    /// Set this value to true, if all files or directoreis have beend read a from the File System.
+    /// Set this value to true, if all files or directories have been read a from the File System.
     /// </summary>
     /// <param name="NewEndOfListing">End of listing reached.</param>
     procedure SetEndOfListing(NewEndOfListing: Boolean)
@@ -41,7 +41,7 @@ codeunit 9456 "File Pagination Data"
     end;
 
     /// <summary>
-    /// Defines if all batches of directory or file listing has beend received.
+    /// Defines if all batches of directory or file listing has been received.
     /// </summary>
     /// <returns>End of listing reached.</returns>
     procedure IsEndOfListing(): Boolean

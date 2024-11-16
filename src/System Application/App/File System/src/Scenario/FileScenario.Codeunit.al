@@ -17,7 +17,7 @@ codeunit 9452 "File Scenario"
     /// Gets the default file account.
     /// </summary>
     /// <param name="FileAccount">Out parameter holding information about the default file account.</param>
-    /// <returns>True if an account for the the default scenario was found; otherwise - false.</returns>
+    /// <returns>True if an account for the default scenario was found; otherwise - false.</returns>
     procedure GetDefaultFileAccount(var FileAccount: Record "File Account"): Boolean
     begin
         exit(FileScenarioImpl.GetFileAccount(Enum::"File Scenario"::Default, FileAccount));
@@ -45,9 +45,9 @@ codeunit 9452 "File Scenario"
     end;
 
     /// <summary>
-    /// Sets an file account to be used by the given file scenario.
+    /// Sets a file account to be used by the given file scenario.
     /// </summary>
-    /// <param name="Scenario">The scenario for which to set an file account.</param>
+    /// <param name="Scenario">The scenario for which to set a file account.</param>
     /// <param name="FileAccount">The file account to use.</param>
     procedure SetFileAccount(Scenario: Enum "File Scenario"; FileAccount: Record "File Account")
     begin

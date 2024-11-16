@@ -65,7 +65,7 @@ codeunit 9451 "File Account Impl."
         // Get the current default account to track if it was deleted
         FileScenario.GetDefaultFileAccount(CurrentDefaultFileAccount);
 
-        // Delete all selected acounts
+        // Delete all selected accounts
         repeat
             // Check to validate that the connector is still installed
             // The connector could have been uninstalled by another user/session
@@ -98,7 +98,7 @@ codeunit 9451 "File Account Impl."
             exit;
         end;
 
-        Commit();  // Commit the accounts deletion in order to prompt for new default account
+        Commit();  // Commit the accounts deletion in order to prompt for a new default account
         if PromptNewDefaultAccountChoice(NewDefaultFileAccount) then
             MakeDefault(NewDefaultFileAccount)
         else

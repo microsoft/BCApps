@@ -87,7 +87,7 @@ page 9451 "File Account Wizard"
                 group(Privacy)
                 {
                     Caption = 'Privacy notice';
-                    InstructionalText = 'By adding an file account you acknowledge that the file provider might be able to access the data you send in files from Business Central.';
+                    InstructionalText = 'By adding a file account you acknowledge that the file provider might be able to access the data you send in files from Business Central.';
                 }
                 group(GetStartedText)
                 {
@@ -213,7 +213,7 @@ page 9451 "File Account Wizard"
                 group(Account)
                 {
                     Caption = 'Account';
-                    field(Namefield; RegisteredAccount.Name)
+                    field(NameField; RegisteredAccount.Name)
                     {
                         Editable = false;
                         Caption = 'Name';

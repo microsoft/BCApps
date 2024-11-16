@@ -63,7 +63,7 @@ codeunit 9453 "File Scenario Impl."
     end;
 
     /// <summary>
-    /// Get a list of entries, representing a tree structure with file accounts and the scenarios, assigned to each accout.
+    /// Get a list of entries, representing a tree structure with file accounts and the scenarios, assigned to each account.
     /// </summary>
     /// <example>
     /// Account sales@cronus.com has scenarios "Sales Quote" and "Sales Credit Memo" assigned.
@@ -71,7 +71,7 @@ codeunit 9453 "File Scenario Impl."
     /// The result of calling the function will be:
     /// sales@cronus.com, "Sales Quote", "Sales Credit Memo", purchase@cronus.com, "Purchase Quote", "Purchase Invoice"
     /// </example>
-    /// <param name="Result">A flatten tree structure representing the all the file accounts and the scenarios assigned to them.</param>
+    /// <param name="Result">A flattened tree structure representing all the file accounts and the scenarios assigned to them.</param>
     procedure GetScenariosByFileAccount(var Result: Record "File Account Scenario")
     var
         DefaultAccount: Record "File Account";

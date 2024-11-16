@@ -103,8 +103,8 @@ page 9450 "File Accounts"
             action(AddAccount)
             {
                 Image = Add;
-                Caption = 'Add an file account';
-                ToolTip = 'Opens a File Account Wizard setup page in order to add an File Account.';
+                Caption = 'Add a file account';
+                ToolTip = 'Opens a File Account Wizard setup page in order to add a file account.';
                 Visible = (not IsInLookupMode) and CanUserManageFileSetup;
 
                 trigger OnAction()
@@ -298,7 +298,7 @@ page 9450 "File Accounts"
     end;
 
     /// <summary>
-    /// Sets an file account to be selected.
+    /// Sets a file account to be selected.
     /// </summary>
     /// <param name="FileAccount">The file account to be initially selected on the page</param>
     procedure SetAccount(var FileAccount: Record "File Account")

@@ -6,7 +6,7 @@
 namespace System.FileSystem;
 
 /// <summary>
-/// Temporary table used to display the tree sctructure in "File Scenario Setup".
+/// Temporary table used to display the tree structure in "File Scenario Setup".
 /// </summary>
 table 9453 "File Account Scenario"
 {
@@ -59,7 +59,7 @@ table 9453 "File Account Scenario"
         }
         key(Name; "Display Name")
         {
-            Description = 'Used for sorting by Dispay Name';
+            Description = 'Used for sorting by Display Name';
         }
     }
 }
