@@ -2,7 +2,7 @@
     "id":  "c9c54414-80c3-4cc9-98c6-589158882774",
     "name":  "File System",
     "publisher":  "Microsoft",
-    "brief":  "Enables access to external file systems from Business Central.",
+    "brief":  "Access external file systems",
     "description":  "Enables access to external file systems from Business Central.",
     "version":  "26.0.0.0",
     "privacyStatement":  "https://go.microsoft.com/fwlink/?linkid=724009",
