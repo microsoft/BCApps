@@ -92,6 +92,12 @@ page 1565 "Privacy Notices"
                         SetRecordApprovalState();
                     end;
                 }
+                field(ApprovedByDefault; Rec.ApprovedByDefault)
+                {
+                    Caption = 'Agreed by Default';
+                    ToolTip = 'Specifies that the integration''s privacy notice has been agreed to by default. (the default state)';
+                    Editable = false;
+                }
 #pragma warning disable AA0218
                 field(Accepted2; Rec.Enabled)
                 {
@@ -158,9 +164,9 @@ page 1565 "Privacy Notices"
 
     trigger OnAfterGetRecord()
     begin
-        Accepted := Rec.Enabled;
-        Rejected := Rec.Disabled;
-        UserDecides := not (Accepted or Rejected);
+        Accepted := (Rec.ApprovedByDefault or Rec.Enabled);
+        Rejected := (not Rec.ApprovedByDefault and Rec.Disabled);
+        UserDecides := not Rec.ApprovedByDefault and not (Accepted or Rejected);
     end;
 
     local procedure SetRecordApprovalState()

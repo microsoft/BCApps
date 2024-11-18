@@ -15,6 +15,7 @@ codeunit 1564 "Privacy Notice Approval"
     procedure SetApprovalState(PrivacyNoticeId: Code[50]; UserSID: Guid; PrivacyNoticeApprovalState: Enum "Privacy Notice Approval State")
     var
         PrivacyNoticeApproval: Record "Privacy Notice Approval";
+        PrivacyNotice: Record "Privacy Notice";
         PrivacyNoticeApprovedLbl: Label 'Privacy Notice Approval ID %1 provided by UserSecurityId %2.', Locked = true;
     begin
         if PrivacyNoticeApprovalState = "Privacy Notice Approval State"::"Not set" then begin
@@ -30,10 +31,16 @@ codeunit 1564 "Privacy Notice Approval"
         PrivacyNoticeApproval.Approved := PrivacyNoticeApprovalState = "Privacy Notice Approval State"::Agreed;
         PrivacyNoticeApproval.Modify();
         Session.LogAuditMessage(StrSubstNo(PrivacyNoticeApprovedLbl, PrivacyNoticeId, UserSID), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+
+        if PrivacyNotice.Get(PrivacyNoticeId) then begin
+            PrivacyNotice.ApprovedByDefault := false;
+            PrivacyNotice.Modify();
+        end;
     end;
 
     procedure ResetApproval(PrivacyNoticeId: Code[50]; UserSID: Guid)
     var
+        PrivacyNotice: Record "Privacy Notice";
         PrivacyNoticeApproval: Record "Privacy Notice Approval";
         PrivacyNoticeResetLbl: Label 'Privacy Notice Approval ID %1 has been reset by UserSecurityId %2.', Locked = true;
     begin
@@ -41,5 +48,10 @@ codeunit 1564 "Privacy Notice Approval"
         PrivacyNoticeApproval.SetRange("User SID", UserSID);
         PrivacyNoticeApproval.DeleteAll();
         Session.LogAuditMessage(StrSubstNo(PrivacyNoticeResetLbl, PrivacyNoticeId, UserSID), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
+
+        if PrivacyNotice.Get(PrivacyNoticeId) then begin
+            PrivacyNotice.ApprovedByDefault := false;
+            PrivacyNotice.Modify();
+        end;
     end;
 }
