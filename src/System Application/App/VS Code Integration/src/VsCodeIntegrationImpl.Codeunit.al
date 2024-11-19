@@ -87,34 +87,6 @@ codeunit 8333 "VS Code Integration Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure NavigateToObjectDefinitionInVSCode(ObjectType: Text; ObjectId: Integer; ObjectName: Text; AppName: Text; LineNumber: Integer; ColumnNumber: Integer; FunctionName: Text)
-    var
-        NavAppInstalledApp: Record "NAV App Installed App";
-        Url: Text;
-        AppId: Text;
-    begin
-        CheckPermissions();
-
-        UriBuilder.Init(AlExtensionUriTxt + '/navigateTo');
-
-        UriBuilder.AddQueryParameter('type', ObjectType);
-        UriBuilder.AddQueryParameter('id', Format(ObjectId));
-        UriBuilder.AddQueryParameter('name', ObjectName);
-        NavAppInstalledApp.Reset();
-        NavAppInstalledApp.SetRange(Name, AppName);
-        if NavAppInstalledApp.FindFirst() then
-            AppId := NavAppInstalledApp."App ID";
-        UriBuilder.AddQueryParameter('appid', AppId);
-        UriBuilder.AddQueryParameter('lineNo', Format(LineNumber));
-        UriBuilder.AddQueryParameter('colNo', Format(ColumnNumber));
-        UriBuilder.AddQueryParameter('functionName', FunctionName);
-        UriBuilder.SetQuery(UriBuilder.GetQuery() + '&' + VSCodeRequestHelper.GetLaunchInformationQueryPart());
-
-        Url := GetAbsoluteUri();
-        HyperLink(Url);
-    end;
-
-    [Scope('OnPrem')]
     procedure NavigateToObjectDefinitionInVSCode(ObjectType: Option; ObjectId: Integer; ObjectName: Text; ControlName: Text; var NavAppInstalledApp: Record "NAV App Installed App")
     var
         Url: Text;

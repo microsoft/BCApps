@@ -43,7 +43,7 @@ codeunit 8334 "VS Code Integration"
     end;
 
     /// <summary>
-    /// Opens an URL that sends a request to VS Code to add the selected extensions as dependencies.
+    /// Opens an URL that sends a request to VS Code to add and download the selected extensions as dependencies.
     /// </summary>
     /// <param name="PublishedApplication">The selected extensions.</param>
     [Scope('OnPrem')]
@@ -53,9 +53,10 @@ codeunit 8334 "VS Code Integration"
     end;
 
     /// <summary>
-    /// Opens an URL that sends a request to VS Code to add the selected extensions as dependencies.
+    /// Returns the selected extensions as a JSON array of dependencies.
     /// </summary>
     /// <param name="PublishedApplication">The selected extensions.</param>
+    /// <returns>The JSON array.</returns>
     [Scope('OnPrem')]
     procedure GetDependenciesAsJson(var PublishedApplication: Record "Published Application"): Text
     begin
@@ -82,16 +83,5 @@ codeunit 8334 "VS Code Integration"
     procedure NavigateFieldDefinitionInVSCode(var PageInfoAndFields: Record "Page Info And Fields"; var NavAppInstalledApp: Record "NAV App Installed App")
     begin
         VsCodeIntegrationImpl.NavigateToObjectDefinitionInVSCode(AllObjWithCaption."Object Type"::Table, PageInfoAndFields."Source Table No.", PageInfoAndFields."Source Table Name", PageInfoAndFields."Field Name", NavAppInstalledApp);
-    end;
-
-    /// <summary>
-    /// Opens an URL that sends a request to VS Code to navigate to the source definition of the given table field and to download the dependent symbols.
-    /// </summary>
-    /// <param name="PageInfoAndFields">The table field to navigate to.</param>
-    /// <param name="NavAppInstalledApp">The dependency extensions for the table.</param>
-    [Scope('OnPrem')]
-    procedure NavigateToDefinitionInVSCodeByLocation(var ProfilingNode: Record "Profiling Node")
-    begin
-        VsCodeIntegrationImpl.NavigateToObjectDefinitionInVSCode(ProfilingNode."Object Type", ProfilingNode."Object ID", ProfilingNode."Object Name", ProfilingNode."App Name", ProfilingNode."Line No", ProfilingNode.Indentation, ProfilingNode."Method Name");
     end;
 }
