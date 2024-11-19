@@ -300,7 +300,7 @@ page 2500 "Extension Management"
                     {
                         AccessByPermission = System "Tools, Zoom" = X;
                         ApplicationArea = All;
-                        Caption = 'Download selected as dependencies';
+                        Caption = 'Download in VS Code';
                         Enabled = IsInstalled;
                         Image = Download;
                         ToolTip = 'Adds the selected extensions to your local project''s dependencies in Visual Studio Code and downloads the symbols for them.';
@@ -316,7 +316,7 @@ page 2500 "Extension Management"
                     {
                         AccessByPermission = System "Tools, Zoom" = X;
                         ApplicationArea = All;
-                        Caption = 'Copy selected as dependencies';
+                        Caption = 'Show and copy';
                         Enabled = IsInstalled;
                         Image = Copy;
                         ToolTip = 'Adds the selected extensions to your local project''s dependencies in Visual Studio Code and downloads the symbols for them.';
@@ -324,7 +324,7 @@ page 2500 "Extension Management"
                         trigger OnAction()
                         begin
                             CurrPage.SetSelectionFilter(Rec);
-                            VSCodeIntegration.CopyDependenciesInVSCode(Rec);
+                            Message(VSCodeIntegration.GetDependenciesAsJson(Rec));
                         end;
                     }
                 }
@@ -368,6 +368,8 @@ page 2500 "Extension Management"
 
                 group("Update dependencies")
                 {
+                    Caption = 'Get selected as dependencies';
+
                     actionref("Update dependencies_Promoted"; "Download dependencies") { }
                     actionref("Copy dependencies_Promoted"; "Copy dependencies") { }
                 }

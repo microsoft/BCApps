@@ -57,9 +57,9 @@ codeunit 8334 "VS Code Integration"
     /// </summary>
     /// <param name="PublishedApplication">The selected extensions.</param>
     [Scope('OnPrem')]
-    procedure CopyDependenciesInVSCode(var PublishedApplication: Record "Published Application")
+    procedure GetDependenciesAsJson(var PublishedApplication: Record "Published Application"): Text
     begin
-        VsCodeIntegrationImpl.GetDependenciesAsJson(PublishedApplication);
+        exit(VsCodeIntegrationImpl.GetDependenciesAsSerializedJsonArray(PublishedApplication));
     end;
 
     /// <summary>

@@ -3,7 +3,7 @@
 using System.Apps;
 using System.Reflection;
 using System.Utilities;
-using System;
+using System.Text.Json;
 
 codeunit 8333 "VS Code Integration Impl."
 {
@@ -174,29 +174,21 @@ codeunit 8333 "VS Code Integration Impl."
     end;
 
     [Scope('OnPrem')]
-    procedure GetDependenciesAsJson(var PublishedApplication: Record "Published Application")
+    procedure GetDependenciesAsSerializedJsonArray(var PublishedApplication: Record "Published Application"): Text
     var
-        //JsonText: Text;
-        //Json: Codeunit "Json";
-        JsonArrayDotNet: DotNet JArray;
-        //JToken: DotNet JToken;
-        JsonConvert: DotNet JsonConvert;
-        Formatting: DotNet Formatting;
-        Dependencies: JsonArray;
+        Json: Codeunit Json;
     begin
+        Json.InitializeCollection('');
         if PublishedApplication.FindSet() then
             repeat
-                Dependencies.Add(FormatDependencyAsJsonObject(PublishedApplication));
+                Json.AddJObjectToCollection(FormatDependencyAsSerializedJsonObject(PublishedApplication));
             until PublishedApplication.Next() = 0;
-        //Dependencies.AsToken().AsObject().WriteTo(JsonText); // true for formatted output
-        JsonArrayDotNet := JsonArrayDotNet.Parse(Format(Dependencies));
-        Message(JsonConvert.SerializeObject(JsonArrayDotNet, Formatting.Indented));
 
-        //JsonHelper.GetArrayAsText(Dependencies);
+        exit(Json.GetCollectionAsText(true));
     end;
 
     [Scope('OnPrem')]
-    local procedure FormatDependencyAsJsonObject(var PublishedApplication: Record "Published Application"): JsonObject
+    local procedure FormatDependencyAsSerializedJsonObject(var PublishedApplication: Record "Published Application") Value: Text
     var
         AppVersion: Text;
         Dependency: JsonObject;
@@ -206,7 +198,9 @@ codeunit 8333 "VS Code Integration Impl."
         Dependency.Add('publisher', PublishedApplication.Publisher);
         AppVersion := FormatDependencyVersion(PublishedApplication."Version Major", PublishedApplication."Version Minor", PublishedApplication."Version Build", PublishedApplication."Version Revision");
         Dependency.Add('version', AppVersion);
-        exit(Dependency);
+
+        Dependency.WriteTo(Value);
+        exit(Value);
     end;
 
     [Scope('OnPrem')]
