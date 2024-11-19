@@ -89,7 +89,7 @@ codeunit 305 "No. Series - Setup Impl."
         NoSeries.MarkedOnly(true);
     end;
 
-    procedure SetNoSeriesCurrentLineFilters(var NoSeriesRec: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; ResetForDrillDown: Boolean)
+    local procedure SetNoSeriesCurrentLineFilters(var NoSeriesRec: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; ResetForDrillDown: Boolean)
     var
         NoSeries: Codeunit "No. Series";
 #if not CLEAN24
