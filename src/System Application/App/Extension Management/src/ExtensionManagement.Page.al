@@ -294,20 +294,39 @@ page 2500 "Extension Management"
                     end;
                 }
 
-                action("Download dependencies")
+                group(Dependencies)
                 {
-                    AccessByPermission = System "Tools, Zoom" = X;
-                    ApplicationArea = All;
-                    Caption = 'Download selected dependencies';
-                    Enabled = IsInstalled;
-                    Image = Download;
-                    ToolTip = 'Adds the selected extensions to your local project''s dependencies in Visual Studio Code and downloads the symbols for them.';
+                    action("Download dependencies")
+                    {
+                        AccessByPermission = System "Tools, Zoom" = X;
+                        ApplicationArea = All;
+                        Caption = 'Download selected as dependencies';
+                        Enabled = IsInstalled;
+                        Image = Download;
+                        ToolTip = 'Adds the selected extensions to your local project''s dependencies in Visual Studio Code and downloads the symbols for them.';
 
-                    trigger OnAction()
-                    begin
-                        CurrPage.SetSelectionFilter(Rec);
-                        VSCodeIntegration.UpdateDependenciesInVSCode(Rec);
-                    end;
+                        trigger OnAction()
+                        begin
+                            CurrPage.SetSelectionFilter(Rec);
+                            VSCodeIntegration.UpdateDependenciesInVSCode(Rec);
+                        end;
+                    }
+
+                    action("Copy dependencies")
+                    {
+                        AccessByPermission = System "Tools, Zoom" = X;
+                        ApplicationArea = All;
+                        Caption = 'Copy selected as dependencies';
+                        Enabled = IsInstalled;
+                        Image = Copy;
+                        ToolTip = 'Adds the selected extensions to your local project''s dependencies in Visual Studio Code and downloads the symbols for them.';
+
+                        trigger OnAction()
+                        begin
+                            CurrPage.SetSelectionFilter(Rec);
+                            VSCodeIntegration.CopyDependenciesInVSCode(Rec);
+                        end;
+                    }
                 }
             }
         }
@@ -346,7 +365,12 @@ page 2500 "Extension Management"
 
                 actionref("Open Source in VS Code_Promoted"; "Open Source in VS Code") { }
                 actionref("Update configurations_Promoted"; "Update configurations") { }
-                actionref("Update dependencies_Promoted"; "Download dependencies") { }
+
+                group("Update dependencies")
+                {
+                    actionref("Update dependencies_Promoted"; "Download dependencies") { }
+                    actionref("Copy dependencies_Promoted"; "Copy dependencies") { }
+                }
             }
         }
     }

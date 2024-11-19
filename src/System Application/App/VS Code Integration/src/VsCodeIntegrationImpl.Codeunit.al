@@ -3,6 +3,7 @@
 using System.Apps;
 using System.Reflection;
 using System.Utilities;
+using System;
 
 codeunit 8333 "VS Code Integration Impl."
 {
@@ -75,7 +76,7 @@ codeunit 8333 "VS Code Integration Impl."
 
         UriBuilder.Init(AlExtensionUriTxt + '/addDependencies');
         UriBuilder.SetQuery(VSCodeRequestHelper.GetLaunchInformationQueryPart());
-        UriBuilder.AddQueryParameter('dependencies', GetDependencies(NavAppInstalledApp));
+        UriBuilder.AddQueryParameter('dependencies', GetDependenciesAsParameter(NavAppInstalledApp));
 
         Url := GetAbsoluteUri();
         if DoesExceedCharLimit(Url) then
@@ -83,6 +84,34 @@ codeunit 8333 "VS Code Integration Impl."
             Error('The number of dependencies exceeds the limit that can be sent to VS Code.')
         else
             HyperLink(Url);
+    end;
+
+    [Scope('OnPrem')]
+    procedure NavigateToObjectDefinitionInVSCode(ObjectType: Text; ObjectId: Integer; ObjectName: Text; AppName: Text; LineNumber: Integer; ColumnNumber: Integer; FunctionName: Text)
+    var
+        NavAppInstalledApp: Record "NAV App Installed App";
+        Url: Text;
+        AppId: Text;
+    begin
+        CheckPermissions();
+
+        UriBuilder.Init(AlExtensionUriTxt + '/navigateTo');
+
+        UriBuilder.AddQueryParameter('type', ObjectType);
+        UriBuilder.AddQueryParameter('id', Format(ObjectId));
+        UriBuilder.AddQueryParameter('name', ObjectName);
+        NavAppInstalledApp.Reset();
+        NavAppInstalledApp.SetRange(Name, AppName);
+        if NavAppInstalledApp.FindFirst() then
+            AppId := NavAppInstalledApp."App ID";
+        UriBuilder.AddQueryParameter('appid', AppId);
+        UriBuilder.AddQueryParameter('lineNo', Format(LineNumber));
+        UriBuilder.AddQueryParameter('colNo', Format(ColumnNumber));
+        UriBuilder.AddQueryParameter('functionName', FunctionName);
+        UriBuilder.SetQuery(UriBuilder.GetQuery() + '&' + VSCodeRequestHelper.GetLaunchInformationQueryPart());
+
+        Url := GetAbsoluteUri();
+        HyperLink(Url);
     end;
 
     [Scope('OnPrem')]
@@ -102,7 +131,7 @@ codeunit 8333 "VS Code Integration Impl."
             UriBuilder.AddQueryParameter('fieldName', Format(ControlName));
         UriBuilder.SetQuery(UriBuilder.GetQuery() + '&' + VSCodeRequestHelper.GetLaunchInformationQueryPart());
         UriBuilder.AddQueryParameter('sessionId', Format(SessionId()));
-        UriBuilder.AddQueryParameter('dependencies', GetDependencies(NavAppInstalledApp));
+        UriBuilder.AddQueryParameter('dependencies', GetDependenciesAsParameter(NavAppInstalledApp));
 
         Url := GetAbsoluteUri();
         if DoesExceedCharLimit(Url) then
@@ -113,13 +142,13 @@ codeunit 8333 "VS Code Integration Impl."
     end;
 
     [Scope('OnPrem')]
-    local procedure GetDependencies(var NavAppInstalledApp: Record "NAV App Installed App"): Text
+    local procedure GetDependenciesAsParameter(var NavAppInstalledApp: Record "NAV App Installed App"): Text
     var
         DependencyList: TextBuilder;
     begin
         if NavAppInstalledApp.FindSet() then
             repeat
-                DependencyList.Append(FormatDependency(NavAppInstalledApp));
+                DependencyList.Append(FormatDependencyAsParameter(NavAppInstalledApp));
             until NavAppInstalledApp.Next() = 0;
 
         if DoesExceedCharLimit(GetAbsoluteUri() + DependencyList.ToText()) then
@@ -129,10 +158,9 @@ codeunit 8333 "VS Code Integration Impl."
     end;
 
     [Scope('OnPrem')]
-    local procedure FormatDependency(var NavAppInstalledApp: Record "NAV App Installed App"): Text
+    local procedure FormatDependencyAsParameter(var NavAppInstalledApp: Record "NAV App Installed App"): Text
     var
         AppVersion: Text;
-        AppVersionLbl: Label '%1.%2.%3.%4', Comment = '%1 = major, %2 = minor, %3 = build, %4 = revision', Locked = true;
         DependencyFormatLbl: Label '%1,%2,%3,%4;', Comment = '%1 = Id, %2 = Name, %3 = Publisher, %4 = Version', Locked = true;
     begin
         // Skip System and Base app
@@ -140,9 +168,53 @@ codeunit 8333 "VS Code Integration Impl."
             SystemApplicationIdTxt, BaseApplicationIdTxt, ApplicationIdTxt:
                 exit('')
             else
-                AppVersion := StrSubstNo(AppVersionLbl, NavAppInstalledApp."Version Major", NavAppInstalledApp."Version Minor", NavAppInstalledApp."Version Build", NavAppInstalledApp."Version Revision");
+                AppVersion := FormatDependencyVersion(NavAppInstalledApp."Version Major", NavAppInstalledApp."Version Minor", NavAppInstalledApp."Version Build", NavAppInstalledApp."Version Revision");
                 exit(StrSubstNo(DependencyFormatLbl, Format(NavAppInstalledApp."App ID", 0, 4), NavAppInstalledApp.Name, NavAppInstalledApp.Publisher, AppVersion));
         end;
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetDependenciesAsJson(var PublishedApplication: Record "Published Application")
+    var
+        //JsonText: Text;
+        //Json: Codeunit "Json";
+        JsonArrayDotNet: DotNet JArray;
+        //JToken: DotNet JToken;
+        JsonConvert: DotNet JsonConvert;
+        Formatting: DotNet Formatting;
+        Dependencies: JsonArray;
+    begin
+        if PublishedApplication.FindSet() then
+            repeat
+                Dependencies.Add(FormatDependencyAsJsonObject(PublishedApplication));
+            until PublishedApplication.Next() = 0;
+        //Dependencies.AsToken().AsObject().WriteTo(JsonText); // true for formatted output
+        JsonArrayDotNet := JsonArrayDotNet.Parse(Format(Dependencies));
+        Message(JsonConvert.SerializeObject(JsonArrayDotNet, Formatting.Indented));
+
+        //JsonHelper.GetArrayAsText(Dependencies);
+    end;
+
+    [Scope('OnPrem')]
+    local procedure FormatDependencyAsJsonObject(var PublishedApplication: Record "Published Application"): JsonObject
+    var
+        AppVersion: Text;
+        Dependency: JsonObject;
+    begin
+        Dependency.Add('id', PublishedApplication.ID);
+        Dependency.Add('name', PublishedApplication.Name);
+        Dependency.Add('publisher', PublishedApplication.Publisher);
+        AppVersion := FormatDependencyVersion(PublishedApplication."Version Major", PublishedApplication."Version Minor", PublishedApplication."Version Build", PublishedApplication."Version Revision");
+        Dependency.Add('version', AppVersion);
+        exit(Dependency);
+    end;
+
+    [Scope('OnPrem')]
+    local procedure FormatDependencyVersion(Major: Integer; Minor: Integer; Build: Integer; Revision: Integer): Text
+    var
+        AppVersionLbl: Label '%1.%2.%3.%4', Comment = '%1 = major, %2 = minor, %3 = build, %4 = revision', Locked = true;
+    begin
+        exit(StrSubstNo(AppVersionLbl, Major, Minor, Build, Revision));
     end;
 
     [Scope('OnPrem')]

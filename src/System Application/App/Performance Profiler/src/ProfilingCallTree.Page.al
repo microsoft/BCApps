@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Tooling;
+using System.Integration;
 
 /// <summary>
 /// The list showing call tree of methods that occured during the performance profiler recording.
@@ -68,6 +69,27 @@ page 1921 "Profiling Call Tree"
                     Caption = 'App Name';
                     ToolTip = 'Specifies the name of the app that the application object belongs to.';
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action("Navigate in VS Code")
+            {
+                ApplicationArea = All;
+                Image = View;
+                ToolTip = 'lkxkx';
+                Scope = Repeater;
+
+                trigger OnAction()
+                var
+                    VSCodeIntegration: Codeunit "VS Code Integration";
+                begin
+                    VSCodeIntegration.NavigateToDefinitionInVSCodeByLocation(Rec);
+                end;
             }
         }
     }
