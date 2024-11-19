@@ -364,11 +364,11 @@ codeunit 310 "No. Series"
     end;
 
     /// <summary>
-    /// Use this event to change the filters set on the No. Series Line record. These filters are used when searching the No. Series.
+    /// Use this event to set additional filters set on the No. Series Line record. These filters are used when searching the No. Series.
     /// </summary>
     /// <param name="NoSeriesLine">The No. Series Line to set filters on.</param>
     [IntegrationEvent(false, false)]
-    internal procedure OnGetNoSeriesLineOnBeforeFindLast(var NoSeriesLine: Record "No. Series Line");
+    internal procedure OnSetNoSeriesLineFilters(var NoSeriesLine: Record "No. Series Line");
     begin
     end;
 }

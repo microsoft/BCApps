@@ -15,6 +15,7 @@ codeunit 305 "No. Series - Setup Impl."
         NumberFormatErr: Label 'The number format in %1 must be the same as the number format in %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
         UnIncrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
         NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
+        CodeFieldChangedErr: Label 'The filter on Series Code was altered by an event subscriber. This is a programming error. Please contact your partner to resolve the issue.\Original Series Code: %1\Modified Filter: %2';
 
     procedure SetImplementation(var NoSeries: Record "No. Series"; Implementation: Enum "No. Series Implementation")
     var
@@ -98,7 +99,7 @@ codeunit 305 "No. Series - Setup Impl."
 #endif
     begin
         NoSeriesLine.Reset();
-        GetNoSeriesLineFilters(NoSeriesLine, NoSeriesRec.Code, WorkDate());
+        SetNoSeriesLineFilters(NoSeriesLine, NoSeriesRec.Code, WorkDate());
 #if not CLEAN24
 #pragma warning disable AL0432
         NoSeriesManagement.RaiseObsoleteOnNoSeriesLineFilterOnBeforeFindLast(NoSeriesLine);
@@ -135,18 +136,17 @@ codeunit 305 "No. Series - Setup Impl."
         exit(NoSeriesSingle.MayProduceGaps());
     end;
 
-    local procedure GetNoSeriesLineFilters(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; StartingDate: Date)
+    internal procedure SetNoSeriesLineFilters(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; StartingDate: Date)
     var
         NoSeries: Codeunit "No. Series";
         NoSeriesLine2: Record "No. Series Line";
-        CodeFieldChangedErr: Label 'Change of Series Code Field is on this Record not allowed.';
     begin
         NoSeriesLine2.SetCurrentKey("Series Code", "Starting Date");
         NoSeriesLine2.SetRange("Starting Date", 0D, StartingDate);
         NoSeriesLine2.SetRange("Series Code", NoSeriesCode);
-        RaiseSetAdditionalNoSeriesLineFilters(NoSeriesLine2);
-        If NoSeriesLine2."Series Code" <> NoSeriesCode then
-            Error(CodeFieldChangedErr); // Extensions should never change the code field range, this is a bug that developers should know immediately.
+        NoSeries.OnSetNoSeriesLineFilters(NoSeriesLine2);
+        If NoSeriesLine2.GetFilter("Series Code") <> NoSeriesCode then
+            Error(CodeFieldChangedErr, NoSeriesCode, NoSeriesLine2.GetFilter("Series Code")); // Extensions should never change the code field range, this is a bug that developers should know immediately.
 
         NoSeriesLine.SetCurrentKey("Series Code", "Starting Date");
         NoSeriesLine.CopyFilters(NoSeriesLine2);
@@ -403,10 +403,5 @@ codeunit 305 "No. Series - Setup Impl."
         if Rec."Sequence Name" <> '' then
             if NumberSequence.Exists(Rec."Sequence Name") then
                 NumberSequence.Delete(Rec."Sequence Name");
-    end;
-
-    [IntegrationEvent(false, false)]
-    internal procedure RaiseSetAdditionalNoSeriesLineFilters(var NoSeriesLine: Record "No. Series Line");
-    begin
     end;
 }
