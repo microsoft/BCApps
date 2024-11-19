@@ -136,7 +136,7 @@ codeunit 305 "No. Series - Setup Impl."
         exit(NoSeriesSingle.MayProduceGaps());
     end;
 
-    internal procedure SetNoSeriesLineFilters(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; StartingDate: Date)
+    procedure SetNoSeriesLineFilters(var NoSeriesLine: Record "No. Series Line"; NoSeriesCode: Code[20]; StartingDate: Date)
     var
         NoSeries: Codeunit "No. Series";
         NoSeriesLine2: Record "No. Series Line";
