@@ -6,6 +6,7 @@
 namespace System.Security.Authentication;
 
 using System;
+using System.Text;
 using System.Environment;
 using System.Utilities;
 
@@ -1425,6 +1426,25 @@ codeunit 502 OAuth2Impl
         CompoundToken := AuthFlow.ALAcquireTokenWithUserCredentials(ScopesArray, UserName, Credential);
         AccessToken := CompoundToken.AccessToken;
         IdToken := CompoundToken.IdToken;
+    end;
+
+    [NonDebuggable]
+    procedure GetClaims(JWT: SecretText) Result: JsonObject
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        PlainTextJWT: Text;
+        Base64Text: Text;
+    begin
+        if JWT.IsEmpty() then
+            exit;
+        PlainTextJWT := JWT.Unwrap();
+        if PlainTextJWT.Split('.').Count() < 3 then
+            exit;
+        Base64Text := PlainTextJWT.Split('.').Get(2);
+        Base64Text := Base64Text.Replace('-', '+').Replace('_', '/');
+        if StrLen(Base64Text) mod 4 <> 0 then
+            Base64Text := PadStr(Base64Text, StrLen(Base64Text) + (4 - StrLen(Base64Text) mod 4), '=');
+        Result.ReadFrom(Base64Convert.FromBase64(Base64Text))
     end;
 
     procedure GetLastErrorMessage(): Text
