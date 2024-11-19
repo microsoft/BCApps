@@ -312,14 +312,14 @@ page 2500 "Extension Management"
                         end;
                     }
 
-                    action("Copy dependencies")
+                    action("Show dependencies")
                     {
                         AccessByPermission = System "Tools, Zoom" = X;
                         ApplicationArea = All;
                         Caption = 'Show and copy';
                         Enabled = IsInstalled;
                         Image = Copy;
-                        ToolTip = 'Adds the selected extensions to your local project''s dependencies in Visual Studio Code and downloads the symbols for them.';
+                        ToolTip = 'Formats the selected dependencies as a json array and displays them in a dialog window.';
 
                         trigger OnAction()
                         begin
@@ -366,12 +366,12 @@ page 2500 "Extension Management"
                 actionref("Open Source in VS Code_Promoted"; "Open Source in VS Code") { }
                 actionref("Update configurations_Promoted"; "Update configurations") { }
 
-                group("Update dependencies")
+                group("Get as dependencies")
                 {
                     Caption = 'Get selected as dependencies';
 
-                    actionref("Update dependencies_Promoted"; "Download dependencies") { }
-                    actionref("Copy dependencies_Promoted"; "Copy dependencies") { }
+                    actionref("Download dependencies_Promoted"; "Download dependencies") { }
+                    actionref("Show dependencies_Promoted"; "Show dependencies") { }
                 }
             }
         }
