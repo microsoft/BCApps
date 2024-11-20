@@ -32,11 +32,4 @@ enum 1563 "Privacy Notice Approval State"
     value(2; Disagreed)
     {
     }
-
-    /// <summary>
-    /// The Privacy Notice was disagreed by the admin.
-    /// </summary>
-    value(3; DisagreedAdmin)
-    {
-    }
 }

@@ -124,7 +124,7 @@ codeunit 7772 "Azure OpenAI Impl"
         case PrivacyNotice.GetPrivacyNoticeApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), false) of
             Enum::"Privacy Notice Approval State"::Agreed:
                 exit(true);
-            Enum::"Privacy Notice Approval State"::Disagreed, Enum::"Privacy Notice Approval State"::DisagreedAdmin:
+            Enum::"Privacy Notice Approval State"::Disagreed:
                 begin
                     if not Silent then begin
                         CopilotNotAvailable.SetCopilotCapability(Capability);

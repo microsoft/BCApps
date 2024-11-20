@@ -154,8 +154,8 @@ codeunit 1565 "Privacy Notice Impl."
             exit("Privacy Notice Approval State"::Agreed);
         end;
         if PrivacyNotice.Disabled then begin
-            Session.LogMessage('0000GKE', StrSubstNo(AdminPrivacyApprovalStateTelemetryTxt, "Privacy Notice Approval State"::DisagreedAdmin), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
-            exit("Privacy Notice Approval State"::DisagreedAdmin);
+            Session.LogMessage('0000GKE', StrSubstNo(AdminPrivacyApprovalStateTelemetryTxt, "Privacy Notice Approval State"::Disagreed), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+            exit("Privacy Notice Approval State"::Disagreed);
         end;
 
         // Admin did not make any decision
@@ -186,9 +186,6 @@ codeunit 1565 "Privacy Notice Impl."
         PrivacyNoticeApproval: Codeunit "Privacy Notice Approval";
     begin
         if CanCurrentUserApproveForOrganization() then begin
-            if PrivacyNoticeApprovalState = "Privacy Notice Approval State"::Disagreed then begin
-                PrivacyNoticeApprovalState := "Privacy Notice Approval State"::DisagreedAdmin;
-            end;
             PrivacyNoticeApproval.SetApprovalState(PrivacyNoticeId, EmptyGuid, PrivacyNoticeApprovalState);
         end else begin
             if not IsApprovalStateDisagreed(PrivacyNoticeApprovalState) then begin // We do not store rejected user approvals
@@ -341,7 +338,7 @@ codeunit 1565 "Privacy Notice Impl."
     /// <returns>Whether the Privacy Notice was disagreed to.</returns>
     procedure IsApprovalStateDisagreed(State: Enum "Privacy Notice Approval State"): Boolean
     begin
-        exit((State = "Privacy Notice Approval State"::Disagreed) or (State = "Privacy Notice Approval State"::DisagreedAdmin));
+        exit(State = "Privacy Notice Approval State"::Disagreed);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetPrivacyNoticeApprovalState, '', true, true)]
