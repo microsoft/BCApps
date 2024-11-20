@@ -48,14 +48,14 @@ codeunit 1565 "Privacy Notice Impl."
     var
         PrivacyNotice: Record "Privacy Notice";
     begin
-        exit(this.CreatePrivacyNotice(PrivacyNotice, Id, IntegrationName, Link, false));
+        exit(CreatePrivacyNotice(PrivacyNotice, Id, IntegrationName, Link, false));
     end;
 
     procedure CreatePrivacyNotice(Id: Code[50]; IntegrationName: Text[250]; Link: Text[2048]; ApproveByDefault: Boolean): Boolean
     var
         PrivacyNotice: Record "Privacy Notice";
     begin
-        exit(this.CreatePrivacyNotice(PrivacyNotice, Id, IntegrationName, Link, ApproveByDefault));
+        exit(CreatePrivacyNotice(PrivacyNotice, Id, IntegrationName, Link, ApproveByDefault));
     end;
 
     procedure CreatePrivacyNotice(Id: Code[50]; IntegrationName: Text[250]): Boolean
@@ -144,7 +144,7 @@ codeunit 1565 "Privacy Notice Impl."
         end;
 
         if PrivacyNotice.ApprovedByDefault then begin
-            Session.LogMessage('0000GKD', this.PrivacyNoticeApprovedByDefaultTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.TelemetryCategoryTxt);
+            Session.LogMessage('0000GKD', PrivacyNoticeApprovedByDefaultTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit("Privacy Notice Approval State"::Agreed);
         end;
 
@@ -154,7 +154,7 @@ codeunit 1565 "Privacy Notice Impl."
             exit("Privacy Notice Approval State"::Agreed);
         end;
         if PrivacyNotice.Disabled then begin
-            Session.LogMessage('0000GKE', StrSubstNo(this.AdminPrivacyApprovalStateTelemetryTxt, "Privacy Notice Approval State"::DisagreedAdmin), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.TelemetryCategoryTxt);
+            Session.LogMessage('0000GKE', StrSubstNo(AdminPrivacyApprovalStateTelemetryTxt, "Privacy Notice Approval State"::DisagreedAdmin), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit("Privacy Notice Approval State"::DisagreedAdmin);
         end;
 
@@ -185,11 +185,11 @@ codeunit 1565 "Privacy Notice Impl."
     var
         PrivacyNoticeApproval: Codeunit "Privacy Notice Approval";
     begin
-        if this.CanCurrentUserApproveForOrganization() then begin
+        if CanCurrentUserApproveForOrganization() then begin
             if PrivacyNoticeApprovalState = "Privacy Notice Approval State"::Disagreed then begin
                 PrivacyNoticeApprovalState := "Privacy Notice Approval State"::DisagreedAdmin;
             end;
-            PrivacyNoticeApproval.SetApprovalState(PrivacyNoticeId, this.EmptyGuid, PrivacyNoticeApprovalState);
+            PrivacyNoticeApproval.SetApprovalState(PrivacyNoticeId, EmptyGuid, PrivacyNoticeApprovalState);
         end else begin
             if not IsApprovalStateDisagreed(PrivacyNoticeApprovalState) then begin // We do not store rejected user approvals
                 PrivacyNoticeApproval.SetApprovalState(PrivacyNoticeId, UserSecurityId(), PrivacyNoticeApprovalState);
