@@ -15,7 +15,7 @@ codeunit 305 "No. Series - Setup Impl."
         NumberFormatErr: Label 'The number format in %1 must be the same as the number format in %2.', Comment = '%1=No. Series Code,%2=No. Series Code';
         UnIncrementableStringErr: Label 'The value in the %1 field must have a number so that we can assign the next number in the series.', Comment = '%1 = New Field Name';
         NumberLengthErr: Label 'The number %1 cannot be extended to more than 20 characters.', Comment = '%1=No.';
-        CodeFieldChangedErr: Label 'The filter on Series Code was altered by an event subscriber. This is a programming error. Please contact your partner to resolve the issue.\Original Series Code: %1\Modified Filter: %2';
+        CodeFieldChangedErr: Label 'The filter on %1 was altered by an event subscriber. This is a programming error. Please contact your partner to resolve the issue.\Original %1: %2\Modified Filter: %3';
 
     procedure SetImplementation(var NoSeries: Record "No. Series"; Implementation: Enum "No. Series Implementation")
     var
@@ -145,8 +145,8 @@ codeunit 305 "No. Series - Setup Impl."
         NoSeriesLine2.SetRange("Starting Date", 0D, StartingDate);
         NoSeriesLine2.SetRange("Series Code", NoSeriesCode);
         NoSeries.OnSetNoSeriesLineFilters(NoSeriesLine2);
-        If NoSeriesLine2.GetFilter("Series Code") <> NoSeriesCode then
-            Error(CodeFieldChangedErr, NoSeriesCode, NoSeriesLine2.GetFilter("Series Code")); // Extensions should never change the code field range, this is a bug that developers should know immediately.
+        if NoSeriesLine2.GetFilter("Series Code") <> NoSeriesCode then
+            Error(CodeFieldChangedErr, NoSeriesLine2.FieldCaption("Series Code"), NoSeriesCode, NoSeriesLine2.GetFilter("Series Code"));
 
         NoSeriesLine.SetCurrentKey("Series Code", "Starting Date");
         NoSeriesLine.CopyFilters(NoSeriesLine2);
