@@ -28,7 +28,7 @@ codeunit 1565 "Privacy Notice Impl."
         PrivacyNoticeAutoApprovedByAdminTelemetryTxt: Label 'The privacy notice was auto-approved by the admin', Locked = true;
         PrivacyNoticeAutoRejectedByAdminTelemetryTxt: Label 'The privacy notice was auto-rejected by the admin', Locked = true;
         PrivacyNoticeAutoApprovedByUserTelemetryTxt: Label 'The privacy notice was auto-approved by the user', Locked = true;
-        ShowingPrivacyNoticeTelemetryTxt: Label 'Showing privacy notice', Locked = true;
+        ShowingPrivacyNoticeTelemetryTxt: Label 'Showing privacy notice %1', Locked = true;
         PrivacyNoticeApprovalResultTelemetryTxt: Label 'Approval State after showing privacy notice: %1', Locked = true;
         CheckPrivacyNoticeApprovalStateTelemetryTxt: Label 'Checking privacy approval state for privacy notice %1', Locked = true;
         AdminPrivacyApprovalStateTelemetryTxt: Label 'Admin privacy approval state: %1 for privacy notice %2', Locked = true;
