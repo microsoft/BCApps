@@ -264,11 +264,10 @@ page 2500 "Extension Management"
             group("Develop in VS Code")
             {
                 Caption = 'Develop in VS Code';
-                ToolTip = 'Set up your local of actions ';
+                ToolTip = 'Set of actions to configure your local AL project in Visual Studio Code for extension development.';
 
                 action("Open Source in VS Code")
                 {
-                    ApplicationArea = All;
                     Caption = 'Open source from Git';
                     Enabled = IsSourceSpecificationAvailable;
                     Image = Open;
@@ -283,10 +282,9 @@ page 2500 "Extension Management"
                 action("Update configurations")
                 {
                     AccessByPermission = System "Tools, Zoom" = X;
-                    ApplicationArea = All;
                     Caption = 'Generate launch configurations';
                     Image = Setup;
-                    ToolTip = 'Generates the launh configurations in your local project in Visual Studio Code for an developing extension in this environment.';
+                    ToolTip = 'Generates the launch configurations in your local AL project in Visual Studio Code for extension development in this environment.';
 
                     trigger OnAction()
                     begin
@@ -294,16 +292,18 @@ page 2500 "Extension Management"
                     end;
                 }
 
-                group(Dependencies)
+                group("Get as dependencies")
                 {
+                    Caption = 'Get selected as dependencies';
+                    ToolTip = 'Set of actions to add the selected extensions as dependencies to your local project in Visual Studio Code.';
+
                     action("Download dependencies")
                     {
                         AccessByPermission = System "Tools, Zoom" = X;
-                        ApplicationArea = All;
                         Caption = 'Download in VS Code';
                         Enabled = IsInstalled;
                         Image = Download;
-                        ToolTip = 'Adds the selected extensions to your local project''s dependencies in Visual Studio Code and downloads the symbols for them.';
+                        ToolTip = 'Adds the selected extensions to your local project''s dependencies in Visual Studio Code, and downloads the symbols for them.';
 
                         trigger OnAction()
                         begin
@@ -361,12 +361,11 @@ page 2500 "Extension Management"
             group("Develop in VS Code_Promoted")
             {
                 Caption = 'Develop in VS Code';
-                ToolTip = 'Sets up a new of configures your existing local AL project in VS Code for extension development.';
 
                 actionref("Open Source in VS Code_Promoted"; "Open Source in VS Code") { }
                 actionref("Update configurations_Promoted"; "Update configurations") { }
 
-                group("Get as dependencies")
+                group("Get as dependencies_Promoted")
                 {
                     Caption = 'Get selected as dependencies';
 

@@ -58,8 +58,6 @@ codeunit 5461 "Json Impl."
             JsonArrayDotNet := JsonArrayDotNet.Parse(Value);
             Value := JsonConvert.SerializeObject(JsonArrayDotNet, Formatting.Indented)
         end;
-
-        exit(Value);
     end;
 
     procedure GetCollection() JArray: JsonArray

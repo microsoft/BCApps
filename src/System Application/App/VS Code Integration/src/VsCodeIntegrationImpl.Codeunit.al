@@ -172,7 +172,6 @@ codeunit 8333 "VS Code Integration Impl."
         Dependency.Add('version', AppVersion);
 
         Dependency.WriteTo(Value);
-        exit(Value);
     end;
 
     [Scope('OnPrem')]
