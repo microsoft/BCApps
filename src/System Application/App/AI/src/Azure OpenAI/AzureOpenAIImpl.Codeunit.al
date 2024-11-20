@@ -125,12 +125,14 @@ codeunit 7772 "Azure OpenAI Impl"
             Enum::"Privacy Notice Approval State"::Agreed:
                 exit(true);
             Enum::"Privacy Notice Approval State"::Disagreed, Enum::"Privacy Notice Approval State"::DisagreedAdmin:
-                if not Silent then begin
-                    CopilotNotAvailable.SetCopilotCapability(Capability);
-                    CopilotNotAvailable.Run();
-                end;
+                begin
+                    if not Silent then begin
+                        CopilotNotAvailable.SetCopilotCapability(Capability);
+                        CopilotNotAvailable.Run();
+                    end;
 
-                exit(false);
+                    exit(false);
+                end;
             else
                 exit(true);
         end;
