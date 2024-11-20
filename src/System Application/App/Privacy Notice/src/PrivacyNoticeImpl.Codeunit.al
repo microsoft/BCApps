@@ -184,7 +184,6 @@ codeunit 1565 "Privacy Notice Impl."
     procedure SetApprovalState(PrivacyNoticeId: Code[50]; PrivacyNoticeApprovalState: Enum "Privacy Notice Approval State")
     var
         PrivacyNoticeApproval: Codeunit "Privacy Notice Approval";
-        PrivacyNotice: Codeunit "Privacy Notice";
     begin
         if this.CanCurrentUserApproveForOrganization() then begin
             if PrivacyNoticeApprovalState = "Privacy Notice Approval State"::Disagreed then begin
@@ -352,21 +351,5 @@ codeunit 1565 "Privacy Notice Impl."
     begin
         PrivacyNoticeId := CopyStr(PrivacyNoticeIntegrationName, 1, 50);
         PrivacyNoticeApprovalState := CheckPrivacyNoticeApprovalState(PrivacyNoticeId).AsInteger();
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", CreatePrivacyNotice, '', false, false)]
-    local procedure OnCreatePrivacyNotice(PrivacyNoticeIntegrationName: Text; ApproveByDefault: Boolean; var PrivacyNoticeApprovalState: Integer)
-    var
-        PrivacyNoticeId: Code[50];
-        PrivacyNotice: Record "Privacy Notice";
-    begin
-        PrivacyNoticeId := CopyStr(PrivacyNoticeIntegrationName, 1, 50);
-
-        if PrivacyNotice.Get(PrivacyNoticeId) then begin
-            PrivacyNoticeApprovalState := CheckPrivacyNoticeApprovalState(PrivacyNoticeId).AsInteger();
-        end else begin
-            if CreatePrivacyNotice(PrivacyNoticeId, PrivacyNoticeIntegrationName, MicrosoftPrivacyLinkTxt, ApproveByDefault) then
-                PrivacyNoticeApprovalState := this.CheckPrivacyNoticeApprovalState(PrivacyNoticeId).AsInteger();
-        end;
     end;
 }
