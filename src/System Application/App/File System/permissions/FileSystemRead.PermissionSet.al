@@ -11,6 +11,7 @@ permissionset 9451 "File System - Read"
 {
     Access = Internal;
     Assignable = false;
+    IncludedPermissionSets = "File System - Objects";
 
     Permissions =
         tabledata "File System Connector" = r,
