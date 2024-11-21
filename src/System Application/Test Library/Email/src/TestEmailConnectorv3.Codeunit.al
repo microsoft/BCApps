@@ -1,4 +1,3 @@
-#if not CLEAN26
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,9 +7,7 @@ namespace System.TestLibraries.Email;
 
 using System.Email;
 
-#pragma warning disable AL0432
-codeunit 134682 "Test Email Connector v2" implements "Email Connector v2"
-#pragma warning restore AL0432
+codeunit 134702 "Test Email Connector v3" implements "Email Connector v3"
 {
 
     var
@@ -26,7 +23,7 @@ codeunit 134682 "Test Email Connector v2" implements "Email Connector v2"
 
     procedure GetAccounts(var Accounts: Record "Email Account")
     begin
-        ConnectorMock.GetAccounts(Accounts, Enum::"Email Connector"::"Test Email Connector v2");
+        ConnectorMock.GetAccounts(Accounts, Enum::"Email Connector"::"Test Email Connector v3");
     end;
 
     procedure ShowAccountInformation(AccountId: Guid)
@@ -74,14 +71,14 @@ codeunit 134682 "Test Email Connector v2" implements "Email Connector v2"
             Error('Failed to send email');
     end;
 
-    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox")
+    procedure RetrieveEmails(AccountId: Guid; var EmailInbox: Record "Email Inbox"; var Filter: Record "Email Retrieval Filters" temporary)
     begin
         if ConnectorMock.FailOnRetrieveEmails() then
             Error('Failed to retrieve emails');
 
-        ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v2", EmailInbox);
+        ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v3", EmailInbox);
         EmailInbox.Mark(true);
-        ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v2", EmailInbox);
+        ConnectorMock.CreateEmailInbox(AccountId, Enum::"Email Connector"::"Test Email Connector v3", EmailInbox);
         EmailInbox.Mark(true);
     end;
 
@@ -91,4 +88,3 @@ codeunit 134682 "Test Email Connector v2" implements "Email Connector v2"
             Error('Failed to mark email as read');
     end;
 }
-#endif
