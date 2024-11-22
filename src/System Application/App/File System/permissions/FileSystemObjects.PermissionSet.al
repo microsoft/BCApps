@@ -1,6 +1,4 @@
-namespace FileSystem.FileSystem;
-
-using System.FileSystem;
+namespace System.FileSystem;
 
 permissionset 9452 "File System - Objects"
 {
