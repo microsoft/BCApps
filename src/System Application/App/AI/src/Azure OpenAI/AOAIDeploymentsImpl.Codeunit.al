@@ -144,7 +144,7 @@ codeunit 7769 "AOAI Deployments Impl"
             CustomDimensions.Add('DeploymentName', DeploymentName);
             CustomDimensions.Add('DeprecationDate', Format(DeprecatedDate));
             //add date, check out code unit codeunit 7768 "AOAI Deployments", 
-            Telemetry.LogMessage('', StrSubstNo(DeprecationMessageLbl, DeploymentName, DeprecatedDate), Verbosity::Warning, DataClassification::SystemMetadata, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            Telemetry.LogMessage('0000AD1', StrSubstNo(DeprecationMessageLbl, DeploymentName, DeprecatedDate), Verbosity::Warning, DataClassification::SystemMetadata, Enum::"AL Telemetry Scope"::All, CustomDimensions);
         end;
 
         if (CallerModuleInfo.Publisher <> CurrentModuleInfo.Publisher) and not AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls() then
