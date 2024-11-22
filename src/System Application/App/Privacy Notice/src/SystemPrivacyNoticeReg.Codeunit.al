@@ -17,15 +17,18 @@ codeunit 1566 "System Privacy Notice Reg."
         PowerAutomateLabelTxt: Label 'Microsoft Power Automate', Locked = true; // Product names are not translated and it's important this entry exists.
         MicrosoftLearnTxt: Label 'Microsoft Learn', Locked = true; // Product names are not translated and it's important this entry exists.
 
+    procedure GetMicrosoftLearnID(): Text
+    begin
+        exit(MicrosoftLearnTxt);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", OnRegisterPrivacyNotices, '', false, false)]
     local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
     begin
         TempPrivacyNotice.Init();
         TempPrivacyNotice."ID" := MicrosoftLearnTxt;
         TempPrivacyNotice."Integration Service Name" := MicrosoftLearnTxt;
-        TempPrivacyNotice.ApprovedByDefault := true;
         if not TempPrivacyNotice.Insert() then;
-        TempPrivacyNotice.Init(); // re-init so that this record will not be approved by default.
         TempPrivacyNotice.ID := MicrosoftTeamsTxt;
         TempPrivacyNotice."Integration Service Name" := MicrosoftTeamsTxt;
         if not TempPrivacyNotice.Insert() then;

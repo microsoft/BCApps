@@ -31,11 +31,6 @@ codeunit 1564 "Privacy Notice Approval"
         PrivacyNoticeApproval.Approved := PrivacyNoticeApprovalState = "Privacy Notice Approval State"::Agreed;
         PrivacyNoticeApproval.Modify();
         Session.LogAuditMessage(StrSubstNo(PrivacyNoticeApprovedLbl, PrivacyNoticeId, UserSID), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
-
-        if PrivacyNotice.Get(PrivacyNoticeId) then begin
-            PrivacyNotice.ApprovedByDefault := false;
-            PrivacyNotice.Modify();
-        end;
     end;
 
     procedure ResetApproval(PrivacyNoticeId: Code[50]; UserSID: Guid)
@@ -48,10 +43,5 @@ codeunit 1564 "Privacy Notice Approval"
         PrivacyNoticeApproval.SetRange("User SID", UserSID);
         PrivacyNoticeApproval.DeleteAll();
         Session.LogAuditMessage(StrSubstNo(PrivacyNoticeResetLbl, PrivacyNoticeId, UserSID), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
-
-        if PrivacyNotice.Get(PrivacyNoticeId) then begin
-            PrivacyNotice.ApprovedByDefault := false;
-            PrivacyNotice.Modify();
-        end;
     end;
 }

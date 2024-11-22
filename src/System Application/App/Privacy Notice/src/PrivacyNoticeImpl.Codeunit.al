@@ -31,7 +31,6 @@ codeunit 1565 "Privacy Notice Impl."
         ShowingPrivacyNoticeTelemetryTxt: Label 'Showing privacy notice', Locked = true;
         PrivacyNoticeApprovalResultTelemetryTxt: Label 'Approval State after showing privacy notice: %1', Locked = true;
         CheckPrivacyNoticeApprovalStateTelemetryTxt: Label 'Checking privacy approval state', Locked = true;
-        PrivacyNoticeApprovedByDefaultTxt: Label 'The privacy notice was approved by default', Locked = true;
         AdminPrivacyApprovalStateTelemetryTxt: Label 'Admin privacy approval state: %1', Locked = true;
         UserPrivacyApprovalStateTelemetryTxt: Label 'User privacy approval state: %1', Locked = true;
         RegisteringPrivacyNoticesFailedTelemetryErr: Label 'Privacy notices could not be registered', Locked = true;
@@ -138,14 +137,9 @@ codeunit 1565 "Privacy Notice Impl."
 
         if not PrivacyNotice.Get(PrivacyNoticeId) then begin
             Session.LogMessage('0000GN7', StrSubstNo(PrivacyNoticeDoesNotExistTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
-            if SkipCheckInEval and Company.Get(CompanyName()) and Company."Evaluation Company" then
-                exit("Privacy Notice Approval State"::Agreed); // Auto-agree for evaluation companies if admin has not explicitly disagreed
+            if ShouldApproveByDefault(PrivacyNoticeId) or (SkipCheckInEval and Company.Get(CompanyName()) and Company."Evaluation Company") then
+                exit("Privacy Notice Approval State"::Agreed); // Auto-agree for evaluation companies if admin has not explicitly disagreed or approve by default
             exit("Privacy Notice Approval State"::"Not set"); // If there are no Privacy Notice then it is by default "Not set".
-        end;
-
-        if PrivacyNotice.ApprovedByDefault then begin
-            Session.LogMessage('0000GKD', PrivacyNoticeApprovedByDefaultTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
-            exit("Privacy Notice Approval State"::Agreed);
         end;
 
         // First check if admin has made decision on this privacy notice and return that
@@ -235,10 +229,27 @@ codeunit 1565 "Privacy Notice Impl."
                     PrivacyNotice := TempPrivacyNotice;
                     if PrivacyNotice.Link = '' then
                         PrivacyNotice.Link := MicrosoftPrivacyLinkTxt;
-                    if not PrivacyNotice.Insert() then
-                        Session.LogMessage('0000GMF', PrivacyNoticeNotCreatedTelemetryErr, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+                    if not PrivacyNotice.Insert() then begin
+                        Session.LogMessage('0000GMF', this.PrivacyNoticeNotCreatedTelemetryErr, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.TelemetryCategoryTxt);
+                    end else begin
+                        TryCreateDefaultApproval(PrivacyNotice);
+                    end;
                 end;
             until TempPrivacyNotice.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Creates a default approval for the given privacy notice if it can be approved by default and there is not already an approval record for it.
+    /// </summary>
+    /// <param name="PrivacyNotice">The notice to save approval under.</param>
+    local procedure TryCreateDefaultApproval(PrivacyNotice: Record "Privacy Notice")
+    var
+        PrivacyNoticeApproval: Codeunit "Privacy Notice Approval";
+    begin
+        if ShouldApproveByDefault(PrivacyNotice.ID) then begin
+            PrivacyNoticeApproval.SetApprovalState(PrivacyNotice.ID, this.EmptyGuid, "Privacy Notice Approval State"::Agreed);
+            PrivacyNotice.CalcFields(Enabled);
+        end;
     end;
 
     [TryFunction]
@@ -259,8 +270,15 @@ codeunit 1565 "Privacy Notice Impl."
         PrivacyNotice.Id := Id;
         PrivacyNotice."Integration Service Name" := IntegrationName;
         PrivacyNotice.Link := Link;
-        PrivacyNotice.ApprovedByDefault := ApproveByDefault;
-        exit(PrivacyNotice.Insert());
+
+        if PrivacyNotice.Insert() then begin
+            if ApproveByDefault then
+                this.TryCreateDefaultApproval(PrivacyNotice);
+
+            exit(true);
+        end;
+
+        exit(false);
     end;
 
     local procedure ShowPrivacyNotice(PrivacyNotice: Record "Privacy Notice"): Boolean
@@ -316,6 +334,24 @@ codeunit 1565 "Privacy Notice Impl."
 
         Session.LogMessage('0000GP9', SystemEventPrivacyNoticeNotCreatedTelemetryErr, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
         IsApproved := false;
+    end;
+
+    /// <summary>
+    /// Indicates if the integration should be enabled by default.
+    /// </summary>
+    /// <param name="IntegrationName"></param>
+    /// <returns></returns>
+    local procedure ShouldApproveByDefault(IntegrationName: Text): Boolean
+    var
+        ID: Code[50];
+        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
+    begin
+        ID := UpperCase(CopyStr(IntegrationName, 1, 50));
+
+        if ID = UpperCase(CopyStr(SystemPrivacyNoticeReg.GetMicrosoftLearnID(), 1, 50)) then
+            exit(true);
+
+        exit(false);
     end;
 
     /// <summary>

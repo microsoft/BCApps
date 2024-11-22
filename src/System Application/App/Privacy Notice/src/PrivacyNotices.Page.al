@@ -93,14 +93,6 @@ page 1565 "Privacy Notices"
                     end;
                 }
 
-                field(ApprovedByDefault; Rec.ApprovedByDefault)
-                {
-                    Caption = 'Agreed by Default';
-                    ApplicationArea = All;
-                    Editable = false;
-                    ToolTip = 'Indicates that the privacy notice has been agreed to by the system on behalf of users. An admin can enable/disable this notice later';
-                }
-
 #pragma warning disable AA0218
                 field(Accepted2; Rec.Enabled)
                 {
@@ -167,7 +159,7 @@ page 1565 "Privacy Notices"
 
     trigger OnAfterGetRecord()
     begin
-        Accepted := (Rec.ApprovedByDefault or Rec.Enabled);
+        Accepted := Rec.Enabled;
         Rejected := Rec.Disabled;
         UserDecides := not (Accepted or Rejected);
     end;
