@@ -66,32 +66,8 @@
     "platform":  "26.0.0.0",
     "idRanges":  [
                      {
-                         "from":  134487,
-                         "to":  134487
-                     },
-                     {
-                         "from":  134683,
-                         "to":  134689
-                     },
-                     {
-                         "from":  134692,
-                         "to":  134699
-                     },
-                     {
-                         "from":  134701,
-                         "to":  134701
-                     },
-                     {
-                         "from":  134852,
-                         "to":  134852
-                     },
-                     {
-                         "from":  134853,
-                         "to":  134853
-                     },
-                     {
-                         "from":  134705,
-                         "to":  134706
+                         "from":  134750,
+                         "to":  134754
                      }
                  ],
     "contextSensitiveHelpUrl":  "https://go.microsoft.com/fwlink/?linkid=2134520",
