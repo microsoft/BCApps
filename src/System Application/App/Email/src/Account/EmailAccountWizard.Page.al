@@ -7,6 +7,7 @@ namespace System.Email;
 
 using System.Telemetry;
 using System.Environment;
+using System.Environment.Configuration;
 using System.Apps;
 
 /// <summary>
@@ -40,7 +41,7 @@ page 8886 "Email Account Wizard"
                 Editable = false;
                 ShowCaption = false;
                 Visible = not DoneVisible and TopBannerVisible;
-                field(NotDoneIcon; MediaResourcesStandard."Media Reference")
+                field(NotDoneIcon; TenantMediaSetStandard."Media ID")
                 {
                     ApplicationArea = All;
                     Editable = false;
@@ -54,7 +55,7 @@ page 8886 "Email Account Wizard"
                 Editable = false;
                 ShowCaption = false;
                 Visible = DoneVisible and TopBannerVisible;
-                field(DoneIcon; MediaResourcesDone."Media Reference")
+                field(DoneIcon; TenantMediaSetCompleted."Media ID")
                 {
                     ApplicationArea = All;
                     Editable = false;
@@ -539,18 +540,16 @@ page 8886 "Email Account Wizard"
     end;
 
     local procedure LoadTopBanners()
+    var
+        GuidedExperience: Codeunit "Guided Experience";
     begin
-        if MediaResourcesStandard.Get('ASSISTEDSETUP-NOTEXT-400PX.PNG') and
-            MediaResourcesDone.Get('ASSISTEDSETUPDONE-NOTEXT-400PX.PNG') and (CurrentClientType() = ClientType::Web)
-        then
-            TopBannerVisible := MediaResourcesDone."Media Reference".HasValue();
+        TopBannerVisible := GuidedExperience.LoadTopBanners(TenantMediaSetStandard, TenantMediaSetCompleted, TenantMediaSetInfo);
     end;
 
     var
         RegisteredAccount: Record "Email Account";
         RegisteredRateLimit: Record "Email Rate Limit";
-        MediaResourcesStandard: Record "Media Resources";
-        MediaResourcesDone: Record "Media Resources";
+        TenantMediaSetStandard, TenantMediaSetCompleted, TenantMediaSetInfo : Record "Tenant Media Set";
         [RunOnClient]
         AppSource: DotNet AppSource;
         Step: Option Welcome,"Choose Connector","Register Account",Done;

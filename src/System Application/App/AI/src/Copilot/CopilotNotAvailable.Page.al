@@ -5,6 +5,7 @@
 namespace System.AI;
 
 using System.Environment;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Page for when copilot is unavailable due to various reasons. Fx capability disabled, cross region data movement is disabled.
@@ -27,7 +28,7 @@ page 7771 "Copilot Not Available"
                 ShowCaption = false;
                 Visible = BannerVisible;
 
-                field(Banner; MediaResources."Media Reference")
+                field(Banner; TenantMediaSet."Media ID")
                 {
                     ApplicationArea = All;
                     Editable = false;
@@ -86,7 +87,7 @@ page 7771 "Copilot Not Available"
     end;
 
     var
-        MediaResources: Record "Media Resources";
+        TenantMediaSet: Record "Tenant Media Set";
         CopilotCapability: Enum "Copilot Capability";
         BannerVisible: Boolean;
         OpenCopilotLbl: Label 'Overview Copilot & AI Capabilities';
@@ -104,8 +105,14 @@ page 7771 "Copilot Not Available"
     end;
 
     local procedure LoadBanner()
+    var
+        GuidedExperience: Codeunit "Guided Experience";
     begin
-        if MediaResources.Get('COPILOTNOTAVAILABLE.PNG') then
-            BannerVisible := MediaResources."Media Reference".HasValue;
+        BannerVisible := GuidedExperience.LoadFileFromTenantMediaSet(TenantMediaSet, 'CopilotNotAvailable.png');
+
+        if not BannerVisible then begin
+            GuidedExperience.InsertSystemFileToTenantMediaSet(TenantMediaSet, 'images/', 'CopilotNotAvailable.png');
+            BannerVisible := TenantMediaSet."Media ID".HasValue;
+        end;
     end;
 }

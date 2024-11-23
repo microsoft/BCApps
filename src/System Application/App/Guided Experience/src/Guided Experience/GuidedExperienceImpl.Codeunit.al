@@ -569,6 +569,44 @@ codeunit 1991 "Guided Experience Impl."
             InsertGuidedExperienceItemsInTempVar(GuidedExperienceItem, TempGuidedExperienceItem);
     end;
 
+    procedure LoadTopBanners(var TenantMediaSetStandard: Record "Tenant Media Set"; var TenantMediaSetCompleted: Record "Tenant Media Set"; var TenantMediaSetInfo: Record "Tenant Media Set"): Boolean
+    begin
+        if not LoadFileFromTenantMediaSet(TenantMediaSetStandard, 'AssistedSetup-NoText-400px.png') then
+            InsertSystemFileToTenantMediaSet(TenantMediaSetStandard, 'images/', 'AssistedSetup-NoText-400px.png');
+
+        if not LoadFileFromTenantMediaSet(TenantMediaSetCompleted, 'AssistedSetupDone-NoText-400px.png') then
+            InsertSystemFileToTenantMediaSet(TenantMediaSetCompleted, 'images/', 'AssistedSetupDone-NoText-400px.png');
+
+        if not LoadFileFromTenantMediaSet(TenantMediaSetInfo, 'AssistedSetupInfo-NoText.png') then
+            InsertSystemFileToTenantMediaSet(TenantMediaSetInfo, 'images/', 'AssistedSetupInfo-NoText.png');
+
+        exit((TenantMediaSetStandard."Media ID".HasValue) and (TenantMediaSetCompleted."Media ID".HasValue) and (TenantMediaSetInfo."Media ID".HasValue));
+    end;
+
+    procedure LoadFileFromTenantMediaSet(var TenantMediaSet: Record "Tenant Media Set"; FileName: Text[250]): Boolean
+    var
+        TenantMedia: Record "Tenant Media";
+    begin
+        TenantMedia.SetFilter(Description, FileName);
+        if TenantMedia.FindFirst() then
+            if TenantMediaSet.Get(TenantMedia.ID, TenantMedia.ID) then
+                exit(TenantMediaSet."Media ID".HasValue);
+    end;
+
+    procedure InsertSystemFileToTenantMediaSet(var TenantMediaSet: Record "Tenant Media Set"; FilePath: Text[100]; FileName: Text[250])
+    var
+        BannerInStream: InStream;
+    begin
+        NavApp.GetResource(FilePath + FileName, BannerInStream);
+        if BannerInStream.Length = 0 then
+            exit;
+
+        TenantMediaSet.Init();
+        TenantMediaSet."Media ID".ImportStream(BannerInStream, FileName);
+        TenantMediaSet.ID := TenantMediaSet."Media ID".MediaId;
+        TenantMediaSet.Insert();
+    end;
+
     local procedure InsertGuidedExperienceItemsInTempVar(var GuidedExperienceItem: Record "Guided Experience Item"; var TempGuidedExperienceItem: Record "Guided Experience Item" temporary)
     var
         PrevGuidedExperienceItem: Record "Guided Experience Item";

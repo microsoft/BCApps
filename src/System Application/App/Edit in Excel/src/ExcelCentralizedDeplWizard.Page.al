@@ -33,7 +33,7 @@ page 1480 "Excel Centralized Depl. Wizard"
                 Editable = false;
                 ShowCaption = false;
                 Visible = TopBannerVisible;
-                field(NotDoneIcon; MediaResourcesStandard."Media Reference")
+                field(NotDoneIcon; TenantMediaSet."Media ID")
                 {
                     ApplicationArea = All;
                     Editable = false;
@@ -315,14 +315,15 @@ page 1480 "Excel Centralized Depl. Wizard"
     end;
 
     local procedure LoadTopBanners()
+    var
+        TenantMediaSetCompleted, TenantMediaSetInfo : Record "Tenant Media Set";
+        GuidedExperience: Codeunit "Guided Experience";
     begin
-        if MediaResourcesStandard.Get('ASSISTEDSETUP-NOTEXT-400PX.PNG') and (CurrentClientType() = ClientType::Web)
-        then
-            TopBannerVisible := MediaResourcesStandard."Media Reference".HasValue();
+        TopBannerVisible := GuidedExperience.LoadTopBanners(TenantMediaSet, TenantMediaSetCompleted, TenantMediaSetInfo);
     end;
 
     var
-        MediaResourcesStandard: Record "Media Resources";
+        TenantMediaSet: Record "Tenant Media Set";
         TopBannerVisible: Boolean;
         Step: Option Start,Step2,Finish;
         BackActionEnabled: Boolean;

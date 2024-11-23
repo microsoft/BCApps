@@ -32,7 +32,7 @@ page 2718 "Page Summary Settings"
                 Editable = false;
                 ShowCaption = false;
                 Visible = TopBannerVisible and not DoneStepVisible and not TryItOutStepVisible;
-                field(NotDoneIcon; MediaResourcesStandard."Media Reference")
+                field(NotDoneIcon; TenantMediaSetStandard."Media ID")
                 {
                     ApplicationArea = All;
                     Editable = false;
@@ -44,8 +44,8 @@ page 2718 "Page Summary Settings"
             {
                 Editable = false;
                 ShowCaption = false;
-                Visible = CompletedBannerVisible and (DoneActionVisible or TryItOutStepVisible);
-                field(CompletedIcon; CompletedMediaResourcesStandard."Media Reference")
+                Visible = TopBannerVisible and (DoneActionVisible or TryItOutStepVisible);
+                field(CompletedIcon; TenantMediaSetCompleted."Media ID")
                 {
                     ApplicationArea = All;
                     Editable = false;
@@ -428,12 +428,10 @@ page 2718 "Page Summary Settings"
     end;
 
     local procedure LoadTopBanner()
+    var
+        GuidedExperience: Codeunit "Guided Experience";
     begin
-        if MediaResourcesStandard.Get('ASSISTEDSETUP-NOTEXT-400PX.PNG') and (CurrentClientType() = ClientType::Web) then
-            TopBannerVisible := MediaResourcesStandard."Media Reference".HasValue();
-
-        if CompletedMediaResourcesStandard.Get('ASSISTEDSETUPDONE-NOTEXT-400px.PNG') and (CurrentClientType() = ClientType::Web) then
-            CompletedBannerVisible := CompletedMediaResourcesStandard."Media Reference".HasValue();
+        TopBannerVisible := GuidedExperience.LoadTopBanners(TenantMediaSetStandard, TenantMediaSetCompleted, TenantMediaSetInfo);
     end;
 
     local procedure SaveSettings()
@@ -451,9 +449,9 @@ page 2718 "Page Summary Settings"
     end;
 
     var
-        MediaResourcesStandard, CompletedMediaResourcesStandard : Record "Media Resources";
+        TenantMediaSetStandard, TenantMediaSetCompleted, TenantMediaSetInfo : Record "Tenant Media Set";
         Step: Option Intro,Configure,Done,TryItOut;
-        TopBannerVisible, CompletedBannerVisible : Boolean;
+        TopBannerVisible: Boolean;
         IntroSaasStepVisible, IntroOnPremStepVisible, ConfigureStepVisible, DoneStepVisible, TryItOutStepVisible : Boolean;
         NextActionVisible, BackActionVisible, DoneActionVisible, CloseActionVisible, TryItOutActionVisible : Boolean;
         IsSaaS: Boolean;

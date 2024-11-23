@@ -5,6 +5,7 @@
 
 namespace System.Environment.Configuration;
 
+using System.Environment;
 using System.Media;
 
 /// <summary>
@@ -441,6 +442,37 @@ codeunit 1990 "Guided Experience"
         GuidedExperienceItemCleanup: Codeunit "Guided Experience Item Cleanup";
     begin
         GuidedExperienceItemCleanup.CleanupOldGuidedExperienceItems(OnlyFirstParty, Threshold);
+    end;
+
+    /// <summary> Loads Assisted Setup top banners from tenant media set.</summary>
+    /// <param name="TenantMediaSetStandard">Tenant Media set record by var for standard image.</param>
+    /// <param name="TenantMediaSetCompleted">Tenant Media set record by var for done image.</param>
+    /// <param name="TenantMediaSetInfo">Tenant Media set record by var for info image.</param>
+    /// <returns>True if the top banners are loaded successfuly</returns>
+    procedure LoadTopBanners(var TenantMediaSetStandard: Record "Tenant Media Set"; var TenantMediaSetCompleted: Record "Tenant Media Set"; var TenantMediaSetInfo: Record "Tenant Media Set"): Boolean
+    begin
+        exit(GuidedExperienceImpl.LoadTopBanners(TenantMediaSetStandard, TenantMediaSetCompleted, TenantMediaSetInfo));
+    end;
+
+    /// <summary> Loads an image from tenant media set.</summary>
+    /// <param name="TenantMediaSet">Tenant Media set record by var for standard image.</param>
+    /// <param name="FileName">Image name.</param>
+    /// <returns>True if the the image is loaded successfuly</returns>
+    procedure LoadFileFromTenantMediaSet(var TenantMediaSet: Record "Tenant Media Set"; FileName: Text[250]): Boolean
+    var
+    begin
+        exit(GuidedExperienceImpl.LoadFileFromTenantMediaSet(TenantMediaSet, FileName));
+    end;
+
+    /// <summary> Insert an image to tenant media set from system app resources.</summary>
+    /// <param name="TenantMediaSet">Tenant Media set record by var for standard image.</param>
+    /// <param name="FilePath">Path to file name.</param>
+    /// <param name="FileName">File name.</param>
+    /// <returns>True if the the image is loaded successfuly</returns>
+    internal procedure InsertSystemFileToTenantMediaSet(var TenantMediaSet: Record "Tenant Media Set"; FilePath: Text[100]; FileName: Text[250])
+    var
+    begin
+        GuidedExperienceImpl.InsertSystemFileToTenantMediaSet(TenantMediaSet, FilePath, FileName);
     end;
 
     /// <summary>Notifies that the list of assisted setups is being gathered, and that new items might be added.</summary>
