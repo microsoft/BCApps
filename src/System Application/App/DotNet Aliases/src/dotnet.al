@@ -261,6 +261,16 @@ dotnet
         }
     }
 
+    assembly("Microsoft.Dynamics.Nav.AppHTMLSanitizer")
+    {
+        Culture = 'neutral';
+        PublicKeyToken = '31bf3856ad364e35';
+
+        type("Microsoft.Dynamics.Nav.AppHTMLSanitizer.AppHtmlSanitizer"; "AppHtmlSanitizer")
+        {
+        }
+    }
+
     assembly("Microsoft.Dynamics.Nav.AzureADGraphClient")
     {
         type("Microsoft.Dynamics.Nav.AzureADGraphClient.GroupInfoPage"; "GroupInfoPage")
