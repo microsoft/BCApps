@@ -21,7 +21,9 @@ codeunit 1991 "Guided Experience Impl."
     Permissions = tabledata AllObj = r,
                   tabledata "Guided Experience Item" = rimd,
                   tabledata "Primary Guided Experience Item" = rimd,
-                  tabledata "Spotlight Tour Text" = rimd;
+                  tabledata "Spotlight Tour Text" = rimd,
+                  tabledata "Tenant Media Set" = rim,
+                  tabledata "Tenant Media" = rim;
 
     var
         TempBlob: Codeunit "Temp Blob";
