@@ -27,8 +27,7 @@ page 8886 "Email Account Wizard"
     Editable = true;
     ShowFilter = false;
     LinksAllowed = false;
-    Permissions = tabledata Media = r,
-                  tabledata "Media Resources" = r,
+    Permissions = tabledata "Tenant Media Set" = r,
                   tabledata "Email Rate Limit" = imd;
 
     layout

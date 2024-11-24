@@ -19,8 +19,8 @@ page 2718 "Page Summary Settings"
     PageType = NavigatePage;
     Extensible = false;
     AccessByPermission = tabledata "Page Summary Settings" = M;
-    Permissions = tabledata Media = r,
-                  tabledata "Media Resources" = r;
+    Permissions = tabledata "Tenant Media" = r,
+                  tabledata "Tenant Media Set" = r;
     UsageCategory = Administration;
 
     layout
