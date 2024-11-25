@@ -47,14 +47,7 @@ codeunit 1565 "Privacy Notice Impl."
     var
         PrivacyNotice: Record "Privacy Notice";
     begin
-        exit(CreatePrivacyNotice(PrivacyNotice, Id, IntegrationName, Link, false));
-    end;
-
-    procedure CreatePrivacyNotice(Id: Code[50]; IntegrationName: Text[250]; Link: Text[2048]; ApproveByDefault: Boolean): Boolean
-    var
-        PrivacyNotice: Record "Privacy Notice";
-    begin
-        exit(CreatePrivacyNotice(PrivacyNotice, Id, IntegrationName, Link, ApproveByDefault));
+        exit(CreatePrivacyNotice(PrivacyNotice, Id, IntegrationName, Link));
     end;
 
     procedure CreatePrivacyNotice(Id: Code[50]; IntegrationName: Text[250]): Boolean
@@ -196,7 +189,7 @@ codeunit 1565 "Privacy Notice Impl."
         TempPrivacyNotice: Record "Privacy Notice" temporary;
         PrivacyNoticePage: Page "Privacy Notice";
     begin
-        CreatePrivacyNotice(TempPrivacyNotice, '', IntegrationName, Link, false);
+        CreatePrivacyNotice(TempPrivacyNotice, '', IntegrationName, Link);
 
         PrivacyNoticePage.SetRecord(TempPrivacyNotice);
         PrivacyNoticePage.RunModal();
@@ -257,7 +250,7 @@ codeunit 1565 "Privacy Notice Impl."
         PrivacyNoticeInterface.OnRegisterPrivacyNotices(PrivacyNotice);
     end;
 
-    local procedure CreatePrivacyNotice(var PrivacyNotice: Record "Privacy Notice"; Id: Code[50]; IntegrationName: Text[250]; Link: Text[2048]; ApproveByDefault: Boolean): Boolean
+    local procedure CreatePrivacyNotice(var PrivacyNotice: Record "Privacy Notice"; Id: Code[50]; IntegrationName: Text[250]; Link: Text[2048]): Boolean
     begin
         Session.LogMessage('0000GK7', CreatePrivacyNoticeTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
 
@@ -269,8 +262,7 @@ codeunit 1565 "Privacy Notice Impl."
         PrivacyNotice.Link := Link;
 
         if PrivacyNotice.Insert() then begin
-            if ApproveByDefault then
-                this.TryCreateDefaultApproval(PrivacyNotice);
+            this.TryCreateDefaultApproval(PrivacyNotice);
 
             exit(true);
         end;

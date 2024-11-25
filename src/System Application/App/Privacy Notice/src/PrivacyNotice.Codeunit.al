@@ -41,21 +41,6 @@ codeunit 1563 "Privacy Notice"
     end;
 
     /// <summary>
-    /// Creates a privacy notice.
-    /// </summary>
-    /// <param name="Id">Identification of the privacy notice.</param>
-    /// <param name="IntegrationName">The name of the integration.</param>
-    /// <param name="Link">Link to the privacy terms.</param>
-    /// <param name="ApproveByDefault">Determines if the notice should be approved by default.</param>
-    /// <returns>Whether the privacy notice was created.</returns>
-    procedure CreatePrivacyNotice(Id: Code[50]; IntegrationName: Text[250]; Link: Text[2048]; ApproveByDefault: Boolean): Boolean
-    var
-        PrivacyNoticeImpl: Codeunit "Privacy Notice Impl.";
-    begin
-        exit(PrivacyNoticeImpl.CreatePrivacyNotice(Id, IntegrationName, Link, ApproveByDefault));
-    end;
-
-    /// <summary>
     ///  Gets the default text for the privacy notice.
     /// </summary>
     /// <returns>The default text for the privacy notice.</returns>
