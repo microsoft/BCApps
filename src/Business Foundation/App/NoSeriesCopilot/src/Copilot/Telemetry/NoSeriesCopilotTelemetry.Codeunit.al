@@ -25,7 +25,7 @@ codeunit 389 "No. Series Copilot Telemetry"
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
     begin
         FeatureTelemetry.LogUptake('0000LF4', NoSeriesCopilotImpl.FeatureName(), Enum::"Feature Uptake Status"::Discovered);
-        FeatureTelemetry.LogUptake('0000XXX', NoSeriesCopilotImpl.FeatureName(), Enum::"Feature Uptake Status"::"Set up"); // TODO: Replace with actual telemetry event
+        FeatureTelemetry.LogUptake('0000O9D', NoSeriesCopilotImpl.FeatureName(), Enum::"Feature Uptake Status"::"Set up");
     end;
 
     procedure LogApply(GeneratedNoSeries: Record "No. Series Generation Detail")
@@ -37,7 +37,7 @@ codeunit 389 "No. Series Copilot Telemetry"
         if TotalAppliedLines = 0 then
             exit;
 
-        FeatureTelemetry.LogUptake('0000XXX', NoSeriesCopilotImpl.FeatureName(), Enum::"Feature Uptake Status"::Used, GetFeatureUsedTelemetryCustomDimensions(GeneratedNoSeries)); // TODO: Replace with actual telemetry event
+        FeatureTelemetry.LogUptake('0000O9E', NoSeriesCopilotImpl.FeatureName(), Enum::"Feature Uptake Status"::Used, GetFeatureUsedTelemetryCustomDimensions(GeneratedNoSeries));
     end;
 
     procedure LogCreateNewNumberSeriesToolUsage(TotalUserSpecifiedEntities: Integer; CustomPatternsUsed: Boolean; TotalBatches: Integer; TotalFoundTables: Integer)
@@ -46,7 +46,7 @@ codeunit 389 "No. Series Copilot Telemetry"
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
         NoSeriesCopAddIntent: Codeunit "No. Series Cop. Add Intent";
     begin
-        FeatureTelemetry.LogUsage('0000XXX', NoSeriesCopilotImpl.FeatureName(), NoSeriesCopAddIntent.GetName(), GetToolUsageTelemetryCustomDimensions(TotalUserSpecifiedEntities, CustomPatternsUsed, TotalBatches, TotalFoundTables)); // TODO: Replace with actual telemetry event
+        FeatureTelemetry.LogUsage('0000O9F', NoSeriesCopilotImpl.FeatureName(), NoSeriesCopAddIntent.GetName(), GetToolUsageTelemetryCustomDimensions(TotalUserSpecifiedEntities, CustomPatternsUsed, TotalBatches, TotalFoundTables));
     end;
 
     procedure LogModifyExistingNumberSeriesToolUsage(TotalUserSpecifiedEntities: Integer; CustomPatternsUsed: Boolean; TotalBatches: Integer; TotalFoundTables: Integer; UpdateForNextYear: Boolean)
@@ -57,9 +57,9 @@ codeunit 389 "No. Series Copilot Telemetry"
         NoSeriesCopNxtYrIntent: Codeunit "No. Series Cop. Nxt Yr. Intent";
     begin
         if UpdateForNextYear then
-            FeatureTelemetry.LogUsage('0000XXX', NoSeriesCopilotImpl.FeatureName(), NoSeriesCopNxtYrIntent.GetName(), GetToolUsageTelemetryCustomDimensions(TotalUserSpecifiedEntities, CustomPatternsUsed, TotalBatches, TotalFoundTables)) // TODO: Replace with actual telemetry event
+            FeatureTelemetry.LogUsage('0000O9G', NoSeriesCopilotImpl.FeatureName(), NoSeriesCopNxtYrIntent.GetName(), GetToolUsageTelemetryCustomDimensions(TotalUserSpecifiedEntities, CustomPatternsUsed, TotalBatches, TotalFoundTables))
         else
-            FeatureTelemetry.LogUsage('0000XXX', NoSeriesCopilotImpl.FeatureName(), NoSeriesCopChangeIntent.GetName(), GetToolUsageTelemetryCustomDimensions(TotalUserSpecifiedEntities, CustomPatternsUsed, TotalBatches, TotalFoundTables)); // TODO: Replace with actual telemetry event
+            FeatureTelemetry.LogUsage('0000O9H', NoSeriesCopilotImpl.FeatureName(), NoSeriesCopChangeIntent.GetName(), GetToolUsageTelemetryCustomDimensions(TotalUserSpecifiedEntities, CustomPatternsUsed, TotalBatches, TotalFoundTables));
     end;
 
     local procedure GetToolUsageTelemetryCustomDimensions(TotalUserSpecifiedEntities: Integer; CustomPatternsUsed: Boolean; TotalBatches: Integer; TotalFoundTables: Integer) CustomDimension: Dictionary of [Text, Text]
@@ -80,7 +80,7 @@ codeunit 389 "No. Series Copilot Telemetry"
         if Durations.Count() = 0 then
             exit;
 
-        FeatureTelemetry.LogUsage('0000XXX', NoSeriesCopilotImpl.FeatureName(), 'Statistics', GetFeatureTelemetryCustomDimensions()); // TODO: Replace with actual telemetry event
+        FeatureTelemetry.LogUsage('0000O9I', NoSeriesCopilotImpl.FeatureName(), 'Statistics', GetFeatureTelemetryCustomDimensions());
     end;
 
     procedure LogGenerationCompletion(TotalGeneratedLines: Integer; TotalExpectedLines: Integer; Attempt: Integer)
@@ -94,7 +94,7 @@ codeunit 389 "No. Series Copilot Telemetry"
         TelemetryCD.Add('Attempt', Format(Attempt));
         TelemetryCD.Add('Response time', ConvertListOfDurationToString(Durations));
 
-        FeatureTelemetry.LogUsage('0000XXX', NoSeriesCopilotImpl.FeatureName(), 'Call Chat Completion API', TelemetryCD); // TODO: Replace with actual telemetry event
+        FeatureTelemetry.LogUsage('0000O9J', NoSeriesCopilotImpl.FeatureName(), 'Call Chat Completion API', TelemetryCD);
     end;
 
 
@@ -191,9 +191,9 @@ codeunit 389 "No. Series Copilot Telemetry"
             TelemetryCD.Add('Response time', ConvertListOfDurationToString(Durations));
 
         if AOAIOperationResponse.GetResult() = '' then
-            FeatureTelemetry.LogError('0000XXX', NoSeriesCopilotImpl.FeatureName(), 'Call Chat Completion API', 'Completion answer is empty', '', TelemetryCD) // TODO: Replace with actual telemetry event
+            FeatureTelemetry.LogError('0000O9B', NoSeriesCopilotImpl.FeatureName(), 'Call Chat Completion API', 'Completion answer is empty', '', TelemetryCD)
         else
-            FeatureTelemetry.LogError('0000XXX', NoSeriesCopilotImpl.FeatureName(), 'Process function_call', 'function_call not found in the completion answer'); // TODO: Replace with actual telemetry event
+            FeatureTelemetry.LogError('0000O9C', NoSeriesCopilotImpl.FeatureName(), 'Process function_call', 'function_call not found in the completion answer');
     end;
 
     procedure ResetDurationTracking()
