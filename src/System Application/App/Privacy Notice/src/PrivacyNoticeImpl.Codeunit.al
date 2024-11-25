@@ -221,7 +221,7 @@ codeunit 1565 "Privacy Notice Impl."
                     if PrivacyNotice.Link = '' then
                         PrivacyNotice.Link := MicrosoftPrivacyLinkTxt;
                     if not PrivacyNotice.Insert() then
-                        Session.LogMessage('0000GMF', this.PrivacyNoticeNotCreatedTelemetryErr, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.TelemetryCategoryTxt)
+                        Session.LogMessage('0000GMF', PrivacyNoticeNotCreatedTelemetryErr, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.TelemetryCategoryTxt)
                     else
                         TryCreateDefaultApproval(PrivacyNotice);
                 end;
@@ -237,7 +237,7 @@ codeunit 1565 "Privacy Notice Impl."
         PrivacyNoticeApproval: Codeunit "Privacy Notice Approval";
     begin
         if ShouldApproveByDefault(PrivacyNotice.ID) then begin
-            PrivacyNoticeApproval.SetApprovalState(PrivacyNotice.ID, this.EmptyGuid, "Privacy Notice Approval State"::Agreed);
+            PrivacyNoticeApproval.SetApprovalState(PrivacyNotice.ID, EmptyGuid, "Privacy Notice Approval State"::Agreed);
             PrivacyNotice.CalcFields(Enabled);
         end;
     end;
@@ -262,7 +262,7 @@ codeunit 1565 "Privacy Notice Impl."
         PrivacyNotice.Link := Link;
 
         if PrivacyNotice.Insert() then begin
-            this.TryCreateDefaultApproval(PrivacyNotice);
+            TryCreateDefaultApproval(PrivacyNotice);
 
             exit(true);
         end;
