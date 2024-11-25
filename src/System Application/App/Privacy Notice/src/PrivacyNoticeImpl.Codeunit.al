@@ -352,7 +352,6 @@ codeunit 1565 "Privacy Notice Impl."
     local procedure ShouldApproveByDefault(IntegrationID: Text): Boolean
     var
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
-        ID: Code[50];
     begin
         if CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftLearnID(), IntegrationID) then
             exit(true);
