@@ -179,13 +179,11 @@ codeunit 1565 "Privacy Notice Impl."
     var
         PrivacyNoticeApproval: Codeunit "Privacy Notice Approval";
     begin
-        if CanCurrentUserApproveForOrganization() then begin
-            PrivacyNoticeApproval.SetApprovalState(PrivacyNoticeId, EmptyGuid, PrivacyNoticeApprovalState);
-        end else begin
-            if not IsApprovalStateDisagreed(PrivacyNoticeApprovalState) then begin // We do not store rejected user approvals
-                PrivacyNoticeApproval.SetApprovalState(PrivacyNoticeId, UserSecurityId(), PrivacyNoticeApprovalState);
-            end;
-        end;
+        if CanCurrentUserApproveForOrganization() then
+            PrivacyNoticeApproval.SetApprovalState(PrivacyNoticeId, EmptyGuid, PrivacyNoticeApprovalState)
+        else
+            if not IsApprovalStateDisagreed(PrivacyNoticeApprovalState) then // We do not store rejected user approvals
+                PrivacyNoticeApproval.SetApprovalState(PrivacyNoticeId, UserSecurityId(), PrivacyNoticeApprovalState)
     end;
 
     procedure ShowOneTimePrivacyNotice(IntegrationName: Text[250]): Enum "Privacy Notice Approval State"
@@ -229,11 +227,10 @@ codeunit 1565 "Privacy Notice Impl."
                     PrivacyNotice := TempPrivacyNotice;
                     if PrivacyNotice.Link = '' then
                         PrivacyNotice.Link := MicrosoftPrivacyLinkTxt;
-                    if not PrivacyNotice.Insert() then begin
-                        Session.LogMessage('0000GMF', this.PrivacyNoticeNotCreatedTelemetryErr, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.TelemetryCategoryTxt);
-                    end else begin
+                    if not PrivacyNotice.Insert() then
+                        Session.LogMessage('0000GMF', this.PrivacyNoticeNotCreatedTelemetryErr, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.TelemetryCategoryTxt)
+                    else
                         TryCreateDefaultApproval(PrivacyNotice);
-                    end;
                 end;
             until TempPrivacyNotice.Next() = 0;
     end;
@@ -337,18 +334,27 @@ codeunit 1565 "Privacy Notice Impl."
     end;
 
     /// <summary>
+    /// Checks if the IDs are equal.
+    /// </summary>
+    /// <param name="ID">The first ID.</param>
+    /// <param name="IDToCheck">The ID to check against the first ID parameter.</param>
+    /// <returns>true if equal; otherwise false.</returns>
+    local procedure CheckIntegrationIDEquality(ID: Text; IDToCheck: Text): Boolean
+    begin
+        exit(CopyStr(UpperCase(ID), 1, 50) = CopyStr(UpperCase(IDToCheck), 1, 50));
+    end;
+
+    /// <summary>
     /// Indicates if the integration should be enabled by default.
     /// </summary>
-    /// <param name="IntegrationName"></param>
-    /// <returns></returns>
-    local procedure ShouldApproveByDefault(IntegrationName: Text): Boolean
+    /// <param name="IntegrationID">The integration ID/</param>
+    /// <returns>true if it should be approved by default; otherwise false.</returns>
+    local procedure ShouldApproveByDefault(IntegrationID: Text): Boolean
     var
-        ID: Code[50];
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
+        ID: Code[50];
     begin
-        ID := UpperCase(CopyStr(IntegrationName, 1, 50));
-
-        if ID = UpperCase(CopyStr(SystemPrivacyNoticeReg.GetMicrosoftLearnID(), 1, 50)) then
+        if CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftLearnID(), IntegrationID) then
             exit(true);
 
         exit(false);
