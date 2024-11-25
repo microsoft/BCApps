@@ -172,6 +172,7 @@ codeunit 1565 "Privacy Notice Impl."
     var
         PrivacyNoticeApproval: Codeunit "Privacy Notice Approval";
     begin
+        CreateDefaultPrivacyNotices(); // Ensure all default Privacy Notices are created
         if CanCurrentUserApproveForOrganization() then
             PrivacyNoticeApproval.SetApprovalState(PrivacyNoticeId, EmptyGuid, PrivacyNoticeApprovalState)
         else
