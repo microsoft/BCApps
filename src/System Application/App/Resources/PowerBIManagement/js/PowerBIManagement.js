@@ -370,10 +370,6 @@ function SetTransparentBackground(transparent) {
     _forceTransparentBackground = transparent;
 }
 
-function SetStatusBarVisible(visible) {
-    _showZoomBar = visible;
-}
-
 function AddBottomPadding(addPadding) {
     _addBottomPadding = addPadding;
 }

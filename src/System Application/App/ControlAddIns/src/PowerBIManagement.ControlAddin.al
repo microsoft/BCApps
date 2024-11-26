@@ -149,12 +149,6 @@ controladdin PowerBIManagement
     procedure SetPageSelectionVisible(Visible: Boolean);
 
     /// <summary>
-    /// Controls whether the status bar (that includes zoom contols) will be visible in the embed experience. Defaults to true.
-    /// </summary>
-    /// <param name="Visible">Whether the status bar should be visible.</param>
-    procedure SetStatusBarVisible(Visible: Boolean);
-
-    /// <summary>
     /// Controls whether the report background should be set to transparent regardless of the actual color. Defaults to false.
     /// </summary>
     /// <param name="Visible">Whether the background should be force to transparent.</param>
