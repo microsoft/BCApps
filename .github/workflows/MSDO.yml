@@ -17,16 +17,16 @@ jobs:
       security-events: write # This is required to upload SARIF files
     steps:
       - name: Checkout repository
-        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Run Credential Scanning
-        uses: microsoft/security-devops-action@cc007d020261b84193ccd49fa298eb8ba2408893 # v1.11.0
+        uses: microsoft/security-devops-action@08976cb623803b1b36d7112d4ff9f59eae704de0 # v1.12.0
         id: credscan
         with:
           policy: Microsoft
           tools: credscan
 
       - name: Upload results to Security tab
-        uses: github/codeql-action/upload-sarif@f779452ac5af1c261dce0346a8f964149f49322b # v3.26.13
+        uses: github/codeql-action/upload-sarif@f09c1c0a94de965c15400f5634aa42fac8fb8f88 # v3.27.5
         with:
           sarif_file: ${{ steps.credscan.outputs.sarifFile }}

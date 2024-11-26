@@ -45,6 +45,17 @@ codeunit 8950 "AFS File Client"
     end;
 
     /// <summary>
+    /// The base URL to use when constructing the final URI.
+    /// If not set, the base URL is https://%1.file.core.windows.net where %1 is the storage account name.
+    /// </summary>
+    /// <remarks>Use %1 as a placeholder for the storage account name.</remarks>
+    /// <param name="BaseUrl">A valid URL string</param>
+    procedure SetBaseUrl(BaseUrl: Text)
+    begin
+        AFSFileClientImpl.SetBaseUrl(BaseUrl);
+    end;
+
+    /// <summary>
     /// Creates a file in the file share.
     /// This does not fill in the file content, it only initializes the file.
     /// </summary>

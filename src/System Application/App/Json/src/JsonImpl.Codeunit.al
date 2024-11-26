@@ -47,6 +47,19 @@ codeunit 5461 "Json Impl."
         GetCollection().WriteTo(Value);
     end;
 
+    procedure GetCollectionAsText(Indentation: Boolean) Value: Text
+    var
+        JsonConvert: DotNet JsonConvert;
+        Formatting: DotNet Formatting;
+    begin
+        Value := GetCollectionAsText();
+
+        if Indentation then begin
+            JsonArrayDotNet := JsonArrayDotNet.Parse(Value);
+            Value := JsonConvert.SerializeObject(JsonArrayDotNet, Formatting.Indented)
+        end;
+    end;
+
     procedure GetCollection() JArray: JsonArray
     begin
         JArray.ReadFrom(JsonArrayDotNet.ToString());
