@@ -259,7 +259,7 @@ function Test-IsStrictModeEnabled
 
 function Get-MaxAllowedObsoleteVersion() {
     git fetch origin main
-    $alGoSettings = $(git show main:.github/AL-Go-Settings.json) | ConvertFrom-Json
+    $alGoSettings = $(git show origin/main:.github/AL-Go-Settings.json) | ConvertFrom-Json
     if (-not $alGoSettings.repoVersion) {
         throw "Unable to find repoVersion in AL-Go-Settings.json"
     }
