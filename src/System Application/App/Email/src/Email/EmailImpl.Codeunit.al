@@ -199,17 +199,41 @@ codeunit 8900 "Email Impl"
 
     procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox")
     var
-        IEmailConnectorv2: Interface "Email Connector v2";
+        Filters: Record "Email Retrieval Filters";
+    begin
+        Filters.Insert();
+        RetrieveEmails(EmailAccountId, Connector, EmailInbox, Filters);
+    end;
+
+    procedure RetrieveEmails(EmailAccountId: Guid; Connector: Enum "Email Connector"; var EmailInbox: Record "Email Inbox"; var Filters: Record "Email Retrieval Filters" temporary)
+    var
+#if not CLEAN26
+#pragma warning disable AL0432
+        EmailConnectorv2: Interface "Email Connector v2";
+#pragma warning restore AL0432
+#endif
+        EmailConnectorv3: Interface "Email Connector v3";
     begin
         CheckRequiredPermissions();
 
-        if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then begin
+        if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then begin
             TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
-            IEmailConnectorv2.RetrieveEmails(EmailAccountId, EmailInbox);
-        end else
-            Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
+            EmailConnectorv3.RetrieveEmails(EmailAccountId, EmailInbox, Filters);
+            EmailInbox.MarkedOnly(true);
+            exit;
+        end;
+#if not CLEAN26
+#pragma warning disable AL0432
+        if CheckAndGetEmailConnectorv2(Connector, EmailConnectorv2) then begin
+#pragma warning restore AL0432
+            TelemetryAppsAndPublishers(TelemetryRetrieveEmailsUsedTxt);
+            EmailConnectorv2.RetrieveEmails(EmailAccountId, EmailInbox);
+            EmailInbox.MarkedOnly(true);
+            exit;
+        end;
+#endif
 
-        EmailInbox.MarkedOnly(true);
+        Error(EmailConnectorDoesNotSupportRetrievingEmailsErr);
     end;
 
     local procedure TelemetryAppsAndPublishers(Message: Text)
@@ -236,33 +260,72 @@ codeunit 8900 "Email Impl"
 
     procedure MarkAsRead(EmailAccountId: Guid; Connector: Enum "Email Connector"; ExternalId: Text)
     var
-        IEmailConnectorv2: Interface "Email Connector v2";
+#if not CLEAN26
+#pragma warning disable AL0432
+        EmailConnectorv2: Interface "Email Connector v2";
+#pragma warning restore AL0432
+#endif
+        EmailConnectorv3: Interface "Email Connector v3";
     begin
         CheckRequiredPermissions();
 
         if ExternalId = '' then
             Error(ExternalIdCannotBeEmptyErr);
 
-        if CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then
-            IEmailConnectorv2.MarkAsRead(EmailAccountId, ExternalId)
-        else
-            Error(EmailConnectorDoesNotSupportMarkAsReadErr);
+        if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then begin
+            EmailConnectorv3.MarkAsRead(EmailAccountId, ExternalId);
+            exit;
+        end;
+#if not CLEAN26
+#pragma warning disable AL0432
+        if CheckAndGetEmailConnectorv2(Connector, EmailConnectorv2) then begin
+#pragma warning restore AL0432
+            EmailConnectorv2.MarkAsRead(EmailAccountId, ExternalId);
+            exit;
+        end;
+#endif
+
+        Error(EmailConnectorDoesNotSupportMarkAsReadErr);
     end;
 
     procedure CheckReplySupported(Connector: Enum "Email Connector"): Boolean
     var
-        IEmailConnectorv2: Interface "Email Connector v2";
+#if not CLEAN26
+#pragma warning disable AL0432
+        EmailConnectorv2: Interface "Email Connector v2";
+#pragma warning restore AL0432
+#endif
+        EmailConnectorv3: Interface "Email Connector v3";
     begin
-        if not CheckAndGetEmailConnectorv2(Connector, IEmailConnectorv2) then
-            Error(EmailconnectorDoesNotSupportReplyingErr);
+        if CheckAndGetEmailConnectorv3(Connector, EmailConnectorv3) then
+            exit(true);
+#if not CLEAN26
+#pragma warning disable AL0432
+        if CheckAndGetEmailConnectorv2(Connector, EmailConnectorv2) then
+            exit(true);
+#pragma warning restore AL0432
+#endif
 
-        exit(true);
+        Error(EmailconnectorDoesNotSupportReplyingErr);
     end;
-
+#if not CLEAN26
+#pragma warning disable AL0432
+    [Obsolete('Replaced by CheckAndGetEmailConnectorv3.', '26.0')]
     procedure CheckAndGetEmailConnectorv2(Connector: Interface "Email Connector"; var Connectorv2: Interface "Email Connector v2"): Boolean
+#pragma warning restore AL0432
     begin
         if Connector is "Email Connector v2" then begin
             Connectorv2 := Connector as "Email Connector v2";
+            exit(true);
+        end else
+            exit(false);
+    end;
+#endif
+
+    procedure CheckAndGetEmailConnectorv3(Connector: Interface "Email Connector"; var Connectorv3: Interface "Email Connector v3"): Boolean
+    begin
+        if Connector is "Email Connector v3" then begin
+            Connectorv3 := Connector as "Email Connector v3";
             exit(true);
         end else
             exit(false);

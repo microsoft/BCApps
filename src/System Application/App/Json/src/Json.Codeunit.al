@@ -51,6 +51,16 @@ codeunit 5460 Json
     end;
 
     /// <summary>
+    /// Returns the JSON array in text format.
+    /// </summary>
+    /// <param name="Indentation">Specified whether the text should be indented.</param>
+    /// <returns>The JSON array in text format</returns>
+    procedure GetCollectionAsText(Indentation: Boolean): Text
+    begin
+        exit(JsonImpl.GetCollectionAsText(Indentation));
+    end;
+
+    /// <summary>
     /// Returns the JSON array.
     /// </summary>
     /// <returns>The JSON array</returns>
