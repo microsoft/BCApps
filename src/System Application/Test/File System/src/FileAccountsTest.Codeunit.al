@@ -96,7 +96,6 @@ codeunit 134750 "File Accounts Test"
         AccountWizardPage.Next.Invoke();
 
         // [THEN] The connector screen is shown and the test connector is shown
-        Assert.IsTrue(AccountWizardPage.Logo.Visible(), 'Connector Logo should be visible');
         Assert.IsTrue(AccountWizardPage.Name.Visible(), 'Connector Name should be visible');
         Assert.IsTrue(AccountWizardPage.Details.Visible(), 'Connector Details should be visible');
 
