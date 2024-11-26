@@ -23,20 +23,20 @@ codeunit 1565 "Privacy Notice Impl."
         MissingLinkErr: Label 'No privacy notice link was specified';
         PrivacyNoticeDoesNotExistErr: Label 'The privacy notice %1 does not exist.', Comment = '%1 = the identifier of a privacy notice';
         TelemetryCategoryTxt: Label 'Privacy Notice', Locked = true;
-        CreatePrivacyNoticeTelemetryTxt: Label 'Creating privacy notice %1', Locked = true;
-        ConfirmPrivacyNoticeTelemetryTxt: Label 'Confirming privacy notice %1', Locked = true;
-        PrivacyNoticeAutoApprovedByAdminTelemetryTxt: Label 'The privacy notice %1 was auto-approved by the admin', Locked = true;
-        PrivacyNoticeAutoRejectedByAdminTelemetryTxt: Label 'The privacy notice %1 was auto-rejected by the admin', Locked = true;
-        PrivacyNoticeAutoApprovedByUserTelemetryTxt: Label 'The privacy notice %1 was auto-approved by the user', Locked = true;
-        ShowingPrivacyNoticeTelemetryTxt: Label 'Showing privacy notice %1', Locked = true;
-        PrivacyNoticeApprovalResultTelemetryTxt: Label 'Approval State after showing privacy notice %1: %2', Locked = true;
-        CheckPrivacyNoticeApprovalStateTelemetryTxt: Label 'Checking privacy approval state for privacy notice %1', Locked = true;
-        AdminPrivacyApprovalStateTelemetryTxt: Label 'Admin privacy approval state: %1 for privacy notice %2', Locked = true;
-        UserPrivacyApprovalStateTelemetryTxt: Label 'User privacy approval state: %1 for privacy notice %2', Locked = true;
+        CreatePrivacyNoticeTelemetryTxt: Label 'Creating privacy notice %1', Comment = '%1 = the identifier of a privacy notice', Locked = true;
+        ConfirmPrivacyNoticeTelemetryTxt: Label 'Confirming privacy notice %1', Comment = '%1 = the identifier of a privacy notice', Locked = true;
+        PrivacyNoticeAutoApprovedByAdminTelemetryTxt: Label 'The privacy notice %1 was auto-approved by the admin', Comment = '%1 = the identifier of a privacy notice', Locked = true;
+        PrivacyNoticeAutoRejectedByAdminTelemetryTxt: Label 'The privacy notice %1 was auto-rejected by the admin', Comment = '%1 = the identifier of a privacy notice', Locked = true;
+        PrivacyNoticeAutoApprovedByUserTelemetryTxt: Label 'The privacy notice %1 was auto-approved by the user', Comment = '%1 = the identifier of a privacy notice', Locked = true;
+        ShowingPrivacyNoticeTelemetryTxt: Label 'Showing privacy notice %1', Comment = '%1 = Approval state of a privacy notice', Locked = true;
+        PrivacyNoticeApprovalResultTelemetryTxt: Label 'Approval State after showing privacy notice %1: %2', Comment = '%1 = Approval state of a privacy notice, %2 = the identifier of a privacy notice', Locked = true;
+        CheckPrivacyNoticeApprovalStateTelemetryTxt: Label 'Checking privacy approval state for privacy notice %1', Comment = '%1 = the identifier of a privacy notice', Locked = true;
+        AdminPrivacyApprovalStateTelemetryTxt: Label 'Admin privacy approval state: %1 for privacy notice %2', Comment = '%1 = Approval state of a privacy notice, %2 = the identifier of a privacy notice', Locked = true;
+        UserPrivacyApprovalStateTelemetryTxt: Label 'User privacy approval state: %1 for privacy notice %2', Comment = '%1 = Approval state of a privacy notice, %2 = the identifier of a privacy notice', Locked = true;
         RegisteringPrivacyNoticesFailedTelemetryErr: Label 'Privacy notices could not be registered', Locked = true;
-        PrivacyNoticeNotCreatedTelemetryErr: Label 'A privacy notice with id %1 could not be created', Locked = true;
-        PrivacyNoticeDoesNotExistTelemetryTxt: Label 'The Privacy Notice %1 does not exist.', Locked = true;
-        SystemEventPrivacyNoticeNotCreatedTelemetryErr: Label 'System event privacy notice with id %1 could not be created.', Locked = true;
+        PrivacyNoticeNotCreatedTelemetryErr: Label 'A privacy notice with id %1 could not be created', Comment = '%1 = the identifier of a privacy notice', Locked = true;
+        PrivacyNoticeDoesNotExistTelemetryTxt: Label 'The Privacy Notice %1 does not exist.', Comment = '%1 = the identifier of a privacy notice', Locked = true;
+        SystemEventPrivacyNoticeNotCreatedTelemetryErr: Label 'System event privacy notice with id %1 could not be created.', Comment = '%1 = the identifier of a privacy notice', Locked = true;
 
     trigger OnRun()
     begin
