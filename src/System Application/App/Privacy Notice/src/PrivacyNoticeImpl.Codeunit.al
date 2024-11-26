@@ -21,22 +21,22 @@ codeunit 1565 "Privacy Notice Impl."
         MicrosoftPrivacyLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=521839';
         AdminDisabledIntegrationMsg: Label 'Your admin has disabled the integration with %1, please contact your administrator to approve this integration.', Comment = '%1 = a service name such as Microsoft Teams';
         MissingLinkErr: Label 'No privacy notice link was specified';
-        PrivacyNoticeDoesNotExistErr: Label 'The privacy notice %1 does not exist.', Comment = '%1 = the identifier of a privacy notice';
+        PrivacyNoticeDoesNotExistErr: Label 'The privacy notice %1 does not exist.', Comment = '%1 = Identifier of a privacy notice';
         TelemetryCategoryTxt: Label 'Privacy Notice', Locked = true;
-        CreatePrivacyNoticeTelemetryTxt: Label 'Creating privacy notice %1', Comment = '%1 = the identifier of a privacy notice', Locked = true;
-        ConfirmPrivacyNoticeTelemetryTxt: Label 'Confirming privacy notice %1', Comment = '%1 = the identifier of a privacy notice', Locked = true;
-        PrivacyNoticeAutoApprovedByAdminTelemetryTxt: Label 'The privacy notice %1 was auto-approved by the admin', Comment = '%1 = the identifier of a privacy notice', Locked = true;
-        PrivacyNoticeAutoRejectedByAdminTelemetryTxt: Label 'The privacy notice %1 was auto-rejected by the admin', Comment = '%1 = the identifier of a privacy notice', Locked = true;
-        PrivacyNoticeAutoApprovedByUserTelemetryTxt: Label 'The privacy notice %1 was auto-approved by the user', Comment = '%1 = the identifier of a privacy notice', Locked = true;
-        ShowingPrivacyNoticeTelemetryTxt: Label 'Showing privacy notice %1', Comment = '%1 = Approval state of a privacy notice', Locked = true;
-        PrivacyNoticeApprovalResultTelemetryTxt: Label 'Approval State after showing privacy notice %1: %2', Comment = '%1 = Approval state of a privacy notice, %2 = the identifier of a privacy notice', Locked = true;
-        CheckPrivacyNoticeApprovalStateTelemetryTxt: Label 'Checking privacy approval state for privacy notice %1', Comment = '%1 = the identifier of a privacy notice', Locked = true;
-        AdminPrivacyApprovalStateTelemetryTxt: Label 'Admin privacy approval state: %1 for privacy notice %2', Comment = '%1 = Approval state of a privacy notice, %2 = the identifier of a privacy notice', Locked = true;
-        UserPrivacyApprovalStateTelemetryTxt: Label 'User privacy approval state: %1 for privacy notice %2', Comment = '%1 = Approval state of a privacy notice, %2 = the identifier of a privacy notice', Locked = true;
+        CreatePrivacyNoticeTelemetryTxt: Label 'Creating privacy notice %1', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        ConfirmPrivacyNoticeTelemetryTxt: Label 'Confirming privacy notice %1', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        PrivacyNoticeAutoApprovedByAdminTelemetryTxt: Label 'The privacy notice %1 was auto-approved by the admin', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        PrivacyNoticeAutoRejectedByAdminTelemetryTxt: Label 'The privacy notice %1 was auto-rejected by the admin', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        PrivacyNoticeAutoApprovedByUserTelemetryTxt: Label 'The privacy notice %1 was auto-approved by the user', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        ShowingPrivacyNoticeTelemetryTxt: Label 'Showing privacy notice %1', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        PrivacyNoticeApprovalResultTelemetryTxt: Label 'Approval State after showing privacy notice %1: %2', Comment = '%1 = Identifier of a privacy notice, %2 = Approval state of a privacy notice', Locked = true;
+        CheckPrivacyNoticeApprovalStateTelemetryTxt: Label 'Checking privacy approval state for privacy notice %1', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        AdminPrivacyApprovalStateTelemetryTxt: Label 'Admin privacy approval state: %1 for privacy notice %2', Comment = '%1 = Approval state of a privacy notice, %2 = Identifier of a privacy notice', Locked = true;
+        UserPrivacyApprovalStateTelemetryTxt: Label 'User privacy approval state: %1 for privacy notice %2', Comment = '%1 = Approval state of a privacy notice, %2 = Identifier of a privacy notice', Locked = true;
         RegisteringPrivacyNoticesFailedTelemetryErr: Label 'Privacy notices could not be registered', Locked = true;
-        PrivacyNoticeNotCreatedTelemetryErr: Label 'A privacy notice with id %1 could not be created', Comment = '%1 = the identifier of a privacy notice', Locked = true;
-        PrivacyNoticeDoesNotExistTelemetryTxt: Label 'The Privacy Notice %1 does not exist.', Comment = '%1 = the identifier of a privacy notice', Locked = true;
-        SystemEventPrivacyNoticeNotCreatedTelemetryErr: Label 'System event privacy notice with id %1 could not be created.', Comment = '%1 = the identifier of a privacy notice', Locked = true;
+        PrivacyNoticeNotCreatedTelemetryErr: Label 'A privacy notice with id %1 could not be created', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        PrivacyNoticeDoesNotExistTelemetryTxt: Label 'The Privacy Notice %1 does not exist.', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        SystemEventPrivacyNoticeNotCreatedTelemetryErr: Label 'System event privacy notice with id %1 could not be created.', Comment = '%1 = Identifier of a privacy notice', Locked = true;
 
     trigger OnRun()
     begin
