@@ -448,5 +448,74 @@ function RunAndCheck {
     }
 }
 
+<#
+.SYNOPSIS
+    Invokes a command with retry logic.
+.DESCRIPTION
+    This function will invoke a command and retry it up to a specified number of times if it fails.
+    The function will sleep for an increasing amount of time between each retry.
+    The function will stop retrying if the maximum wait time is reached.
+.PARAMETER ScriptBlock
+    The script block to invoke.
+.PARAMETER RetryCount
+    The number of times to retry the command.
+.PARAMETER MaxWaitTimeBeforeLastAttempt
+    The maximum time in seconds to wait before
+.PARAMETER FirstDelay
+    The time in seconds to wait before the first retry.
+.PARAMETER MaxWaitBetweenRetries
+    The maximum time in seconds to wait between retries.
+#>
+function Invoke-CommandWithRetry {
+    [CmdletBinding()]
+    param (
+        [parameter(Mandatory = $true)]
+        [System.Management.Automation.ScriptBlock] $ScriptBlock,
+        [parameter(Mandatory = $false)]
+        [int] $RetryCount = 3,
+        [parameter(Mandatory = $false)]
+        [int] $MaxWaitTimeBeforeLastAttempt = 2 * 60 * 60,
+        [parameter(Mandatory = $false)]
+        [int] $FirstDelay = 60,
+        [parameter(Mandatory = $false)]
+        [ValidateRange(0, 60 * 60)]
+        [int] $MaxWaitBetweenRetries = 60 * 60
+    )
+    # Initialize the variables that will tell us when we should stop trying
+    $startTime = Get-Date
+    $retryNo = 0
+    # Start trying...
+    $nextSleepTime = $FirstDelay
+    while ($true) {
+        $retryNo++
+        try {
+            Invoke-Command -ScriptBlock $ScriptBlock -OutVariable output | Out-Null
+            return $output # Success!
+        }
+        catch [System.Exception] {
+            $exceptionMessage = $_.Exception.Message
+            $secondsSinceStart = ((Get-Date) - $startTime).TotalSeconds
+
+            # Determine if we should keep trying
+            $tryAgain = $retryNo -lt $RetryCount -and $secondsSinceStart -lt $MaxWaitTimeBeforeLastAttempt
+            # Try again, or stop?
+            if ($tryAgain) {
+                # Sleep
+                $sleepTime = [System.Math]::Min($nextSleepTime, $MaxWaitTimeBeforeLastAttempt - $secondsSinceStart) # don't sleep beyond the max time
+                $sleepTime = [System.Math]::Min($sleepTime, $MaxWaitBetweenRetries) # don't sleep for more than one hour (and don't go above what Start-Sleep can handle (2147483))
+                Write-Warning "Command failed with error '$exceptionMessage' in attempt no $retryNo after $secondsSinceStart seconds. Will retry up to $RetryCount times. Sleeping for $sleepTime seconds before trying again..."
+                Start-Sleep -Seconds $sleepTime
+                $nextSleepTime = 2 * $nextSleepTime # Next time sleep for longer
+                # Now try again
+            }
+            else {
+                # Failed!
+                $output | Write-Host
+                throw
+            }
+        }
+    }
+}
+
 Export-ModuleMember -Function *-*
 Export-ModuleMember -Function RunAndCheck
