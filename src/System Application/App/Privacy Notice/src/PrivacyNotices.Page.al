@@ -45,7 +45,7 @@ page 1565 "Privacy Notices"
                 field(Accepted; Accepted)
                 {
                     Caption = 'Agree for Everyone';
-                    ToolTip = 'Specifies whether an administrator has accepted the integration''s privacy notice on behalf of all users.';
+                    ToolTip = 'Specifies whether an administrator (or the system by default) has accepted the integration''s privacy notice on behalf of all users.';
                     ApplicationArea = All;
 
                     trigger OnValidate()
@@ -92,6 +92,7 @@ page 1565 "Privacy Notices"
                         SetRecordApprovalState();
                     end;
                 }
+
 #pragma warning disable AA0218
                 field(Accepted2; Rec.Enabled)
                 {
@@ -175,6 +176,8 @@ page 1565 "Privacy Notices"
             else
                 PrivacyNotice.SetApprovalState(Rec.ID, "Privacy Notice Approval State"::"Not set");
         end;
+
+        CurrPage.Update();
     end;
 
 }
