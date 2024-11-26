@@ -21,6 +21,7 @@ codeunit 7760 "Copilot Capability Install"
         ChatLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2255821', Locked = true;
         AnalyzeListLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2252783', Locked = true;
         SummarizeLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2284702', Locked = true;
+        AutofillLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2298223', Locked = true;
 
     internal procedure RegisterCapabilities()
     var
@@ -34,6 +35,7 @@ codeunit 7760 "Copilot Capability Install"
 
         RegisterSaaSCapability(Enum::"Copilot Capability"::"Analyze List", Enum::"Copilot Availability"::Preview, AnalyzeListLearnMoreLbl);
         RegisterSaaSCapability(Enum::"Copilot Capability"::Summarize, Enum::"Copilot Availability"::Preview, SummarizeLearnMoreLbl);
+        RegisterSaaSCapability(Enum::"Copilot Capability"::Autofill, Enum::"Copilot Availability"::Preview, AutofillLearnMoreLbl);
     end;
 
     local procedure RegisterSaaSCapability(Capability: Enum "Copilot Capability"; Availability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048])
