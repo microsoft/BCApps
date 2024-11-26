@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.RestClient;
 
-using System.RestClient;
-
 codeunit 2357 "Http Response Message Impl."
 {
     Access = Internal;
@@ -13,9 +11,9 @@ codeunit 2357 "Http Response Message Impl."
     InherentPermissions = X;
 
     #region Constructors
-    procedure Create(HttpResponseMessage: HttpResponseMessage): Codeunit "Http Response Message Impl."
+    procedure Create(ResponseMessage: HttpResponseMessage): Codeunit "Http Response Message Impl."
     begin
-        this.SetResponseMessage(HttpResponseMessage);
+        SetResponseMessage(ResponseMessage);
         exit(this);
     end;
     #endregion
@@ -144,38 +142,38 @@ codeunit 2357 "Http Response Message Impl."
 
     #region Cookies
     var
-        Cookies: Dictionary of [Text, Cookie];
+        GlobalCookies: Dictionary of [Text, Cookie];
 
     procedure SetCookies(Cookies: Dictionary of [Text, Cookie])
     begin
-        this.Cookies := Cookies;
+        this.GlobalCookies := Cookies;
     end;
 
     procedure GetCookies() Cookies: Dictionary of [Text, Cookie]
     begin
-        Cookies := this.Cookies;
+        Cookies := this.GlobalCookies;
     end;
 
     procedure GetCookieNames() CookieNames: List of [Text]
     begin
-        CookieNames := this.Cookies.Keys;
+        CookieNames := this.GlobalCookies.Keys;
     end;
 
     procedure GetCookie(Name: Text) Cookie: Cookie
     begin
-        if this.Cookies.Get(Name, Cookie) then;
+        if this.GlobalCookies.Get(Name, Cookie) then;
     end;
 
     procedure GetCookie(Name: Text; var Cookie: Cookie) Success: Boolean
     begin
-        Success := this.Cookies.Get(Name, Cookie);
+        Success := this.GlobalCookies.Get(Name, Cookie);
     end;
     #endregion
 
     #region ErrorMessage
     var
         ErrorMessage: Text;
-        Exception: ErrorInfo;
+        GlobalException: ErrorInfo;
 
     procedure SetErrorMessage(Value: Text)
     begin
@@ -184,8 +182,8 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure GetErrorMessage(): Text
     begin
-        if this.Exception.Message <> '' then
-            exit(this.Exception.Message);
+        if this.GlobalException.Message <> '' then
+            exit(this.GlobalException.Message);
 
         if this.ErrorMessage <> '' then
             exit(this.ErrorMessage);
@@ -195,24 +193,26 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure SetException(Exception: ErrorInfo)
     begin
-        this.Exception := Exception;
+        this.GlobalException := Exception;
     end;
 
     procedure GetException() Exception: ErrorInfo
     var
         RestClientExceptionBuilder: Codeunit "Rest Client Exception Builder";
     begin
-        if this.Exception.Message = '' then
+        if this.GlobalException.Message = '' then
             Exception := RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::UnknownException, GetErrorMessage())
+        else
+            Exception := this.GlobalException;
     end;
 
     procedure GetExceptionCode() ReturnValue: Enum "Rest Client Exception"
     var
         IntValue: Integer;
-        Execption: ErrorInfo;
+        Exception: ErrorInfo;
     begin
         Exception := this.GetException();
-        Evaluate(IntValue, Exception.CustomDimensions.Get('ExceptionCode'));
+        Evaluate(IntValue, GlobalException.CustomDimensions.Get('ExceptionCode'));
         ReturnValue := Enum::"Rest Client Exception".FromInteger(IntValue);
     end;
 

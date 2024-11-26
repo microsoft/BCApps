@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.RestClient;
 
-using System.RestClient;
-
 codeunit 2351 "Rest Client Impl."
 {
     Access = Internal;
@@ -18,14 +16,10 @@ codeunit 2351 "Rest Client Impl."
         RestClientExceptionBuilder: Codeunit "Rest Client Exception Builder";
         HttpAuthentication: Interface "Http Authentication";
         HttpClientHandler: Interface "Http Client Handler";
-        HttpResponseMessage: Codeunit "Http Response Message";
         HttpClient: HttpClient;
         IsInitialized: Boolean;
-        BlockedByEnvironmentErrorTok: Label 'BlockedByEnvironmentError', Locked = true;
         EnvironmentBlocksErr: Label 'Environment blocks an outgoing HTTP request to ''%1''.', Comment = '%1 = url, e.g. https://microsoft.com';
-        ConnectionErrorTok: Label 'NoConnectionError', Locked = true;
         ConnectionErr: Label 'Connection to the remote service ''%1'' could not be established.', Comment = '%1 = url, e.g. https://microsoft.com';
-        RequestFailedErrorTok: Label 'RequestFailedError', Locked = true;
         RequestFailedErr: Label 'The request failed: %1 %2', Comment = '%1 = HTTP status code, %2 = Reason phrase';
         UserAgentLbl: Label 'Dynamics 365 Business Central - |%1| %2/%3', Locked = true, Comment = '%1 = App Publisher; %2 = App Name; %3 = App Version';
         TimeoutOutOfRangeErr: Label 'The timeout value must be greater than 0.';
@@ -33,80 +27,79 @@ codeunit 2351 "Rest Client Impl."
     #region Constructors
     procedure Create() RestClientImpl: Codeunit "Rest Client Impl."
     begin
-        RestClientImpl := RestClientImpl.Create(DefaultHttpClientHandler, HttpAuthenticationAnonymous);
+        RestClientImpl := RestClientImpl.Create(this.DefaultHttpClientHandler, this.HttpAuthenticationAnonymous);
     end;
 
-    procedure Create(HttpClientHandler: Interface "Http Client Handler") RestClientImpl: Codeunit "Rest Client Impl."
+    procedure Create(HttpClientHandlerInstance: Interface "Http Client Handler") RestClientImpl: Codeunit "Rest Client Impl."
     begin
-        RestClientImpl := RestClientImpl.Create(HttpClientHandler, HttpAuthenticationAnonymous);
+        RestClientImpl := RestClientImpl.Create(HttpClientHandlerInstance, this.HttpAuthenticationAnonymous);
     end;
 
-    procedure Create(HttpAuthentication: Interface "Http Authentication") RestClientImpl: Codeunit "Rest Client Impl."
+    procedure Create(HttpAuthenticationInstance: Interface "Http Authentication") RestClientImpl: Codeunit "Rest Client Impl."
     begin
-        RestClientImpl := RestClientImpl.Create(DefaultHttpClientHandler, HttpAuthentication);
+        RestClientImpl := RestClientImpl.Create(this.DefaultHttpClientHandler, HttpAuthenticationInstance);
     end;
 
-    procedure Create(HttpClientHandler: Interface "Http Client Handler"; HttpAuthentication: Interface "Http Authentication"): Codeunit "Rest Client Impl."
+    procedure Create(HttpClientHandlerInstance: Interface "Http Client Handler"; HttpAuthenticationInstance: Interface "Http Authentication"): Codeunit "Rest Client Impl."
     begin
-        Initialize(HttpClientHandler, HttpAuthentication);
+        Initialize(HttpClientHandlerInstance, HttpAuthenticationInstance);
         exit(this);
     end;
-
     #endregion
 
     #region Initialization
     procedure Initialize()
     begin
-        Initialize(DefaultHttpClientHandler, HttpAuthenticationAnonymous);
+        Initialize(this.DefaultHttpClientHandler, this.HttpAuthenticationAnonymous);
     end;
 
-    procedure Initialize(HttpClientHandler: Interface "Http Client Handler")
+    procedure Initialize(HttpClientHandlerInstance: Interface "Http Client Handler")
     begin
-        Initialize(HttpClientHandler, HttpAuthenticationAnonymous);
+        Initialize(HttpClientHandlerInstance, this.HttpAuthenticationAnonymous);
     end;
 
-    procedure Initialize(HttpAuthentication: Interface "Http Authentication")
+    procedure Initialize(HttpAuthenticationInstance: Interface "Http Authentication")
     begin
-        Initialize(DefaultHttpClientHandler, HttpAuthentication);
+        Initialize(this.DefaultHttpClientHandler, HttpAuthenticationInstance);
     end;
 
     procedure Initialize(HttpClientHandlerInstance: Interface "Http Client Handler"; HttpAuthenticationInstance: Interface "Http Authentication")
     begin
         ClearAll();
 
-        HttpClient.Clear();
-        HttpClientHandler := HttpClientHandlerInstance;
-        HttpAuthentication := HttpAuthenticationInstance;
-        IsInitialized := true;
+        this.HttpClient.Clear();
+        this.HttpClientHandler := HttpClientHandlerInstance;
+        this.HttpAuthentication := HttpAuthenticationInstance;
+        this.IsInitialized := true;
         SetDefaultUserAgentHeader();
     end;
 
     procedure SetDefaultRequestHeader(Name: Text; Value: Text)
     begin
         CheckInitialized();
-        if HttpClient.DefaultRequestHeaders.Contains(Name) then
-            HttpClient.DefaultRequestHeaders.Remove(Name);
-        HttpClient.DefaultRequestHeaders.Add(Name, Value);
+        if this.HttpClient.DefaultRequestHeaders.Contains(Name) then
+            this.HttpClient.DefaultRequestHeaders.Remove(Name);
+        this.HttpClient.DefaultRequestHeaders.Add(Name, Value);
     end;
 
     procedure SetDefaultRequestHeader(Name: Text; Value: SecretText)
     begin
         CheckInitialized();
-        if HttpClient.DefaultRequestHeaders.Contains(Name) then
-            HttpClient.DefaultRequestHeaders.Remove(Name);
-        HttpClient.DefaultRequestHeaders.Add(Name, Value);
+        if this.HttpClient.DefaultRequestHeaders.Contains(Name) then
+            this.HttpClient.DefaultRequestHeaders.Remove(Name);
+        this.HttpClient.DefaultRequestHeaders.Add(Name, Value);
     end;
 
     procedure SetBaseAddress(Url: Text)
     begin
         CheckInitialized();
-        HttpClient.SetBaseAddress(Url);
+        this.HttpClient.SetBaseAddress(Url);
     end;
 
     procedure GetBaseAddress() Url: Text
     begin
         CheckInitialized();
-        Url := HttpClient.GetBaseAddress;
+        Url := this.HttpClient.GetBaseAddress;
     end;
 
     procedure SetTimeOut(TimeOut: Duration)
@@ -114,25 +107,25 @@ codeunit 2351 "Rest Client Impl."
         CheckInitialized();
         if TimeOut <= 0 then
             Error(TimeoutOutOfRangeErr);
-        HttpClient.Timeout := TimeOut;
+        this.HttpClient.Timeout := TimeOut;
     end;
 
     procedure GetTimeOut() TimeOut: Duration
     begin
         CheckInitialized();
-        TimeOut := HttpClient.Timeout;
+        TimeOut := this.HttpClient.Timeout;
     end;
 
     procedure AddCertificate(Certificate: Text)
     begin
         CheckInitialized();
-        HttpClient.AddCertificate(Certificate);
+        this.HttpClient.AddCertificate(Certificate);
     end;
 
     procedure AddCertificate(Certificate: Text; Password: SecretText)
     begin
         CheckInitialized();
-        HttpClient.AddCertificate(Certificate, Password);
+        this.HttpClient.AddCertificate(Certificate, Password);
     end;
 
     procedure SetAuthorizationHeader(Value: SecretText)
@@ -148,7 +141,7 @@ codeunit 2351 "Rest Client Impl."
     procedure SetUseResponseCookies(Value: Boolean)
     begin
         CheckInitialized();
-        HttpClient.UseResponseCookies(Value);
+        this.HttpClient.UseResponseCookies(Value);
     end;
     #endregion
 
@@ -161,10 +154,11 @@ codeunit 2351 "Rest Client Impl."
         if HasCollectedErrors() then
             exit;
 
-        if not HttpResponseMessage.GetIsSuccessStatusCode() then begin
+        if not HttpResponseMessage.GetIsSuccessStatusCode() then
             Error(HttpResponseMessage.GetException());
+
+        if IsCollectingErrors() and HasCollectedErrors() then
             exit;
-        end;
 
         JsonToken := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -178,10 +172,11 @@ codeunit 2351 "Rest Client Impl."
         if HasCollectedErrors() then
             exit;
 
-        if not HttpResponseMessage.GetIsSuccessStatusCode() then begin
+        if not HttpResponseMessage.GetIsSuccessStatusCode() then
             Error(HttpResponseMessage.GetException());
+
+        if IsCollectingErrors() and HasCollectedErrors() then
             exit;
-        end;
 
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -195,10 +190,11 @@ codeunit 2351 "Rest Client Impl."
         if HasCollectedErrors() then
             exit;
 
-        if not HttpResponseMessage.GetIsSuccessStatusCode() then begin
+        if not HttpResponseMessage.GetIsSuccessStatusCode() then
             Error(HttpResponseMessage.GetException());
+
+        if IsCollectingErrors() and HasCollectedErrors() then
             exit;
-        end;
 
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -212,10 +208,11 @@ codeunit 2351 "Rest Client Impl."
         if HasCollectedErrors() then
             exit;
 
-        if not HttpResponseMessage.GetIsSuccessStatusCode() then begin
+        if not HttpResponseMessage.GetIsSuccessStatusCode() then
             Error(HttpResponseMessage.GetException());
+
+        if IsCollectingErrors() and HasCollectedErrors() then
             exit;
-        end;
 
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -250,7 +247,7 @@ codeunit 2351 "Rest Client Impl."
     #region Local Methods
     local procedure CheckInitialized()
     begin
-        if not IsInitialized then
+        if not this.IsInitialized then
             Initialize();
     end;
 
@@ -274,30 +271,28 @@ codeunit 2351 "Rest Client Impl."
 
     local procedure SendRequest(var HttpRequestMessage: Codeunit "Http Request Message"; var HttpResponseMessage: Codeunit "Http Response Message"): Boolean
     begin
-        Clear(this.HttpResponseMessage);
+        Clear(HttpResponseMessage);
 
-        if HttpAuthentication.IsAuthenticationRequired() then
+        if this.HttpAuthentication.IsAuthenticationRequired() then
             Authorize(HttpRequestMessage);
 
-        if not HttpClientHandler.Send(HttpClient, HttpRequestMessage, this.HttpResponseMessage) then begin
-            if this.HttpResponseMessage.GetIsBlockedByEnvironment() then
-                this.HttpResponseMessage.SetException(
-                    RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::BlockedByEnvironment,
+        if not this.HttpClientHandler.Send(this.HttpClient, HttpRequestMessage, HttpResponseMessage) then begin
+            if HttpResponseMessage.GetIsBlockedByEnvironment() then
+                HttpResponseMessage.SetException(
+                    this.RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::BlockedByEnvironment,
                                                                StrSubstNo(EnvironmentBlocksErr, HttpRequestMessage.GetRequestUri())))
             else
-                this.HttpResponseMessage.SetException(
-                    RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::ConnectionFailed,
+                HttpResponseMessage.SetException(
+                    this.RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::ConnectionFailed,
                                                                StrSubstNo(ConnectionErr, HttpRequestMessage.GetRequestUri())));
-            HttpResponseMessage := this.HttpResponseMessage;
             exit(false);
         end;
 
-        if not this.HttpResponseMessage.GetIsSuccessStatusCode() then
-            this.HttpResponseMessage.SetException(
-                RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::RequestFailed,
+        if not HttpResponseMessage.GetIsSuccessStatusCode() then
+            HttpResponseMessage.SetException(
+                this.RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::RequestFailed,
                                                            StrSubstNo(RequestFailedErr, HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase())));
 
-        HttpResponseMessage := this.HttpResponseMessage;
         exit(true);
     end;
 
@@ -307,7 +302,7 @@ codeunit 2351 "Rest Client Impl."
         HeaderName: Text;
         HeaderValue: SecretText;
     begin
-        AuthorizationHeaders := HttpAuthentication.GetAuthorizationHeaders();
+        AuthorizationHeaders := this.HttpAuthentication.GetAuthorizationHeaders();
         foreach HeaderName in AuthorizationHeaders.Keys do begin
             HeaderValue := AuthorizationHeaders.Get(HeaderName);
             HttpRequestMessage.SetHeader(HeaderName, HeaderValue);
