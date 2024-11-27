@@ -21,22 +21,22 @@ codeunit 1565 "Privacy Notice Impl."
         MicrosoftPrivacyLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=521839';
         AdminDisabledIntegrationMsg: Label 'Your admin has disabled the integration with %1, please contact your administrator to approve this integration.', Comment = '%1 = a service name such as Microsoft Teams';
         MissingLinkErr: Label 'No privacy notice link was specified';
-        PrivacyNoticeDoesNotExistErr: Label 'The privacy notice %1 does not exist.', Comment = '%1 = the identifier of a privacy notice';
+        PrivacyNoticeDoesNotExistErr: Label 'The privacy notice %1 does not exist.', Comment = '%1 = Identifier of a privacy notice';
         TelemetryCategoryTxt: Label 'Privacy Notice', Locked = true;
-        CreatePrivacyNoticeTelemetryTxt: Label 'Creating privacy notice', Locked = true;
-        ConfirmPrivacyNoticeTelemetryTxt: Label 'Confirming privacy notice', Locked = true;
-        PrivacyNoticeAutoApprovedByAdminTelemetryTxt: Label 'The privacy notice was auto-approved by the admin', Locked = true;
-        PrivacyNoticeAutoRejectedByAdminTelemetryTxt: Label 'The privacy notice was auto-rejected by the admin', Locked = true;
-        PrivacyNoticeAutoApprovedByUserTelemetryTxt: Label 'The privacy notice was auto-approved by the user', Locked = true;
-        ShowingPrivacyNoticeTelemetryTxt: Label 'Showing privacy notice', Locked = true;
-        PrivacyNoticeApprovalResultTelemetryTxt: Label 'Approval State after showing privacy notice: %1', Locked = true;
-        CheckPrivacyNoticeApprovalStateTelemetryTxt: Label 'Checking privacy approval state', Locked = true;
-        AdminPrivacyApprovalStateTelemetryTxt: Label 'Admin privacy approval state: %1', Locked = true;
-        UserPrivacyApprovalStateTelemetryTxt: Label 'User privacy approval state: %1', Locked = true;
+        CreatePrivacyNoticeTelemetryTxt: Label 'Creating privacy notice %1', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        ConfirmPrivacyNoticeTelemetryTxt: Label 'Confirming privacy notice %1', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        PrivacyNoticeAutoApprovedByAdminTelemetryTxt: Label 'The privacy notice %1 was auto-approved by the admin', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        PrivacyNoticeAutoRejectedByAdminTelemetryTxt: Label 'The privacy notice %1 was auto-rejected by the admin', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        PrivacyNoticeAutoApprovedByUserTelemetryTxt: Label 'The privacy notice %1 was auto-approved by the user', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        ShowingPrivacyNoticeTelemetryTxt: Label 'Showing privacy notice %1', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        PrivacyNoticeApprovalResultTelemetryTxt: Label 'Approval State after showing privacy notice %1: %2', Comment = '%1 = Identifier of a privacy notice, %2 = Approval state of a privacy notice', Locked = true;
+        CheckPrivacyNoticeApprovalStateTelemetryTxt: Label 'Checking privacy approval state for privacy notice %1', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        AdminPrivacyApprovalStateTelemetryTxt: Label 'Admin privacy approval state for privacy notice %1: %2', Comment = '%1 = Identifier of a privacy notice, %2 = Approval state of a privacy notice', Locked = true;
+        UserPrivacyApprovalStateTelemetryTxt: Label 'User privacy approval state for privacy notice %1: %2', Comment = '%1 = Identifier of a privacy notice, %2 = Approval state of a privacy notice', Locked = true;
         RegisteringPrivacyNoticesFailedTelemetryErr: Label 'Privacy notices could not be registered', Locked = true;
-        PrivacyNoticeNotCreatedTelemetryErr: Label 'A privacy notice could not be created', Locked = true;
-        PrivacyNoticeDoesNotExistTelemetryTxt: Label 'The Privacy Notice %1 does not exist.', Locked = true;
-        SystemEventPrivacyNoticeNotCreatedTelemetryErr: Label 'System event privacy notice could be created.', Locked = true;
+        PrivacyNoticeNotCreatedTelemetryErr: Label 'A privacy notice %1 could not be created', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        PrivacyNoticeDoesNotExistTelemetryTxt: Label 'The Privacy Notice %1 does not exist.', Comment = '%1 = Identifier of a privacy notice', Locked = true;
+        SystemEventPrivacyNoticeNotCreatedTelemetryErr: Label 'System event privacy notice %1 could not be created.', Comment = '%1 = Identifier of a privacy notice', Locked = true;
 
     trigger OnRun()
     begin
@@ -70,7 +70,7 @@ codeunit 1565 "Privacy Notice Impl."
         Company: Record Company;
         PrivacyNotice: Record "Privacy Notice";
     begin
-        Session.LogMessage('0000GK8', ConfirmPrivacyNoticeTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+        Session.LogMessage('0000GK8', StrSubstNo(ConfirmPrivacyNoticeTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
 
         PrivacyNotice.SetAutoCalcFields(Enabled, Disabled);
         PrivacyNotice.SetRange("User SID Filter", EmptyGuid);
@@ -84,11 +84,11 @@ codeunit 1565 "Privacy Notice Impl."
 
         // First check if admin has made decision on this privacy notice and return that
         if PrivacyNotice.Enabled then begin
-            Session.LogMessage('0000GK9', PrivacyNoticeAutoApprovedByAdminTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+            Session.LogMessage('0000GK9', StrSubstNo(PrivacyNoticeAutoApprovedByAdminTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit(true);
         end;
         if PrivacyNotice.Disabled then begin
-            Session.LogMessage('0000GKA', PrivacyNoticeAutoRejectedByAdminTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+            Session.LogMessage('0000GKA', StrSubstNo(PrivacyNoticeAutoRejectedByAdminTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             if CanCurrentUserApproveForOrganization() then
                 exit(ShowPrivacyNotice(PrivacyNotice)); // User is admin so show the privacy notice again for them to re-approve
             Message(AdminDisabledIntegrationMsg, PrivacyNotice."Integration Service Name");
@@ -103,7 +103,7 @@ codeunit 1565 "Privacy Notice Impl."
         PrivacyNotice.SetRange("User SID Filter", UserSecurityId());
         PrivacyNotice.CalcFields(Enabled, Disabled);
         if PrivacyNotice.Enabled then begin
-            Session.LogMessage('0000GKB', PrivacyNoticeAutoApprovedByUserTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+            Session.LogMessage('0000GKB', StrSubstNo(PrivacyNoticeAutoApprovedByUserTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit(true); // If user clicked no, they will still be notified until admin makes a decision
         end;
 
@@ -123,7 +123,7 @@ codeunit 1565 "Privacy Notice Impl."
         Company: Record Company;
         PrivacyNotice: Record "Privacy Notice";
     begin
-        Session.LogMessage('0000GKC', CheckPrivacyNoticeApprovalStateTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+        Session.LogMessage('0000GKC', StrSubstNo(CheckPrivacyNoticeApprovalStateTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
 
         PrivacyNotice.SetAutoCalcFields(Enabled, Disabled);
         PrivacyNotice.SetRange("User SID Filter", EmptyGuid);
@@ -137,11 +137,11 @@ codeunit 1565 "Privacy Notice Impl."
 
         // First check if admin has made decision on this privacy notice and return that
         if PrivacyNotice.Enabled then begin
-            Session.LogMessage('0000GKD', StrSubstNo(AdminPrivacyApprovalStateTelemetryTxt, "Privacy Notice Approval State"::Agreed), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+            Session.LogMessage('0000GKD', StrSubstNo(AdminPrivacyApprovalStateTelemetryTxt, PrivacyNoticeId, "Privacy Notice Approval State"::Agreed), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit("Privacy Notice Approval State"::Agreed);
         end;
         if PrivacyNotice.Disabled then begin
-            Session.LogMessage('0000GKE', StrSubstNo(AdminPrivacyApprovalStateTelemetryTxt, "Privacy Notice Approval State"::Disagreed), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+            Session.LogMessage('0000GKE', StrSubstNo(AdminPrivacyApprovalStateTelemetryTxt, PrivacyNoticeId, "Privacy Notice Approval State"::Disagreed), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit("Privacy Notice Approval State"::Disagreed);
         end;
 
@@ -153,10 +153,10 @@ codeunit 1565 "Privacy Notice Impl."
         PrivacyNotice.SetRange("User SID Filter", UserSecurityId());
         PrivacyNotice.CalcFields(Enabled);
         if PrivacyNotice.Enabled then begin
-            Session.LogMessage('0000GKF', StrSubstNo(UserPrivacyApprovalStateTelemetryTxt, "Privacy Notice Approval State"::Agreed), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+            Session.LogMessage('0000GKF', StrSubstNo(UserPrivacyApprovalStateTelemetryTxt, "Privacy Notice Approval State"::Agreed, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit("Privacy Notice Approval State"::Agreed); // If user clicked no, they will still be notified until admin makes a decision
         end;
-        Session.LogMessage('0000GKG', StrSubstNo(UserPrivacyApprovalStateTelemetryTxt, "Privacy Notice Approval State"::"Not set"), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+        Session.LogMessage('0000GKG', StrSubstNo(UserPrivacyApprovalStateTelemetryTxt, "Privacy Notice Approval State"::"Not set", PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
         exit("Privacy Notice Approval State"::"Not set");
     end;
 
@@ -222,7 +222,7 @@ codeunit 1565 "Privacy Notice Impl."
                     if PrivacyNotice.Link = '' then
                         PrivacyNotice.Link := MicrosoftPrivacyLinkTxt;
                     if not PrivacyNotice.Insert() then
-                        Session.LogMessage('0000GMF', PrivacyNoticeNotCreatedTelemetryErr, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.TelemetryCategoryTxt)
+                        Session.LogMessage('0000GMF', StrSubstNo(PrivacyNoticeNotCreatedTelemetryErr, TempPrivacyNotice.ID), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', this.TelemetryCategoryTxt)
                     else
                         TryCreateDefaultApproval(PrivacyNotice);
                 end;
@@ -253,7 +253,7 @@ codeunit 1565 "Privacy Notice Impl."
 
     local procedure CreatePrivacyNotice(var PrivacyNotice: Record "Privacy Notice"; Id: Code[50]; IntegrationName: Text[250]; Link: Text[2048]): Boolean
     begin
-        Session.LogMessage('0000GK7', CreatePrivacyNoticeTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+        Session.LogMessage('0000GK7', StrSubstNo(CreatePrivacyNoticeTelemetryTxt, Id), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
 
         if Link = '' then
             Error(MissingLinkErr);
@@ -277,7 +277,7 @@ codeunit 1565 "Privacy Notice Impl."
         PrivacyNoticePage: Page "Privacy Notice";
         Handled: Boolean;
     begin
-        Session.LogMessage('0000GKH', ShowingPrivacyNoticeTelemetryTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+        Session.LogMessage('0000GKH', StrSubstNo(ShowingPrivacyNoticeTelemetryTxt, PrivacyNotice.Id), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
         // Allow overriding of the privacy notice
         PrivacyNoticeCodeunit.OnBeforeShowPrivacyNotice(PrivacyNotice, Handled);
         if Handled then begin
@@ -288,7 +288,7 @@ codeunit 1565 "Privacy Notice Impl."
         PrivacyNoticePage.SetRecord(PrivacyNotice);
         PrivacyNoticePage.RunModal();
         PrivacyNoticePage.GetRecord(PrivacyNotice);
-        Session.LogMessage('0000GKI', StrSubstNo(PrivacyNoticeApprovalResultTelemetryTxt, PrivacyNoticePage.GetUserApprovalState()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+        Session.LogMessage('0000GKI', StrSubstNo(PrivacyNoticeApprovalResultTelemetryTxt, PrivacyNotice.ID, PrivacyNoticePage.GetUserApprovalState()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
         exit(PrivacyNoticePage.GetUserApprovalState() = "Privacy Notice Approval State"::Agreed); // The user either accepted, rejected or cancelled the privacy notice. No matter the case we only return true if the privacy notice was accepted.
     end;
 
@@ -322,7 +322,7 @@ codeunit 1565 "Privacy Notice Impl."
             exit;
         end;
 
-        Session.LogMessage('0000GP9', SystemEventPrivacyNoticeNotCreatedTelemetryErr, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+        Session.LogMessage('0000GP9', StrSubstNo(SystemEventPrivacyNoticeNotCreatedTelemetryErr, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
         IsApproved := false;
     end;
 
