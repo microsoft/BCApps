@@ -189,7 +189,7 @@ page 149042 "AIT CommandLine Card"
             {
                 Caption = 'Run Suite';
                 Image = Start;
-                ToolTip = 'Starts running the AI test suite.';
+                ToolTip = 'Starts running the AI test suite. This action ignores the line number filter and runs all the test lines in the suite.';
 
                 trigger OnAction()
                 begin
@@ -200,7 +200,7 @@ page 149042 "AIT CommandLine Card"
             {
                 Caption = 'Run Next Test';
                 Image = TestReport;
-                ToolTip = 'Starts running the next test in the AI test suite.';
+                ToolTip = 'Starts running the next test from the Test Method Lines for the given suite.';
 
                 trigger OnAction()
                 begin
@@ -211,7 +211,7 @@ page 149042 "AIT CommandLine Card"
             {
                 Caption = 'Reset Test Suite';
                 Image = Restore;
-                ToolTip = 'Resets the test method lines status to run them again.';
+                ToolTip = 'Resets the test method lines status to run them again. This action ignores the line number filter and resets all the test lines in the suite.';
 
                 trigger OnAction()
                 var
