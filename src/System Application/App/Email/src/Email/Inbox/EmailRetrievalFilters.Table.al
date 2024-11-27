@@ -19,33 +19,40 @@ table 8885 "Email Retrieval Filters"
         field(1; Id; Integer)
         {
             AutoIncrement = true;
+            Caption = 'Id';
         }
 
         field(2; "Load Attachments"; Boolean)
         {
+            Caption = 'Load Attachments';
         }
 
         field(3; "Unread Emails"; Boolean)
         {
+            Caption = 'Unread Emails';
         }
 
         field(4; "Draft Emails"; Boolean)
         {
+            Caption = 'Draft Emails';
         }
 
         field(5; "Max No. of Emails"; Integer)
         {
             InitValue = 20;
+            Caption = 'Max No. of Emails';
         }
 
         field(6; "Body Type"; Option)
         {
             OptionMembers = "HTML","Text";
             InitValue = "HTML";
+            Caption = 'Body Type';
         }
 
         field(7; "Earliest Email"; DateTime)
         {
+            Caption = 'Earliest Email';
         }
     }
 

@@ -57,7 +57,7 @@ codeunit 134702 "Test Email Connector v3" implements "Email Connector v3"
 
     procedure GetLogoAsBase64(): Text
     begin
-
+        // Used for unit tests purposes, no rendering of the logo is needed
     end;
 
     procedure GetDescription(): Text[250]

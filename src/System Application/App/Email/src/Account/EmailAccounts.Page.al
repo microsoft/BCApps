@@ -477,10 +477,10 @@ page 8887 "Email Accounts"
     /// <summary>
     /// Filters the email accounts to only show accounts that are using the Email Connector v2 or v3.
     /// </summary>
-    /// <param name="Filter">True to filter the email accounts, false to show all email accounts</param>
-    procedure FilterConnectorV3Accounts(Filter: Boolean)
+    /// <param name="UseFilter">True to filter the email accounts, false to show all email accounts</param>
+    procedure FilterConnectorV3Accounts(UseFilter: Boolean)
     begin
-        V2V3Filter := Filter;
+        V2V3Filter := UseFilter;
     end;
 
     var
