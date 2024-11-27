@@ -4,10 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
-using System.Telemetry;
 #if not CLEAN25
 using System.Environment;
 #endif
+using System.Telemetry;
 
 codeunit 7769 "AOAI Deployments Impl"
 {
@@ -24,7 +24,7 @@ codeunit 7769 "AOAI Deployments Impl"
         GPT4oMiniPreviewLbl: Label 'gpt-4o-mini-preview', Locked = true;
         DeploymentDeprecationDates: Dictionary of [Text, Date];
         DeprecationDatesInitialized: Boolean;
-        DeprecationMessageLbl: Label 'Deployment %1 deprecated from %2. Check out code unit 7768 AOAI Deployments', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
+        DeprecationMessageLbl: Label 'Deployment %1 deprecated from %2. Check out codeunit 7768 AOAI Deployments', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
 #if not CLEAN25
         GPT4LatestLbl: Label 'gpt-4-latest', Locked = true;
         GPT4PreviewLbl: Label 'gpt-4-preview', Locked = true;
@@ -36,7 +36,6 @@ codeunit 7769 "AOAI Deployments Impl"
         Turbo0301Lbl: Label 'chatGPT_GPT35-turbo-0301', Locked = true;
         GPT40613Lbl: Label 'gpt-4-32k', Locked = true;
         Turbo031316kLbl: Label 'gpt-35-turbo-16k', Locked = true;
-
 
     procedure GetTurbo0301(CallerModuleInfo: ModuleInfo): Text
     var
@@ -143,7 +142,6 @@ codeunit 7769 "AOAI Deployments Impl"
             DeprecatedDate := DeploymentDeprecationDates.Get(DeploymentName);
             CustomDimensions.Add('DeploymentName', DeploymentName);
             CustomDimensions.Add('DeprecationDate', Format(DeprecatedDate));
-            //add date, check out code unit codeunit 7768 "AOAI Deployments", 
             Telemetry.LogMessage('0000AD1', StrSubstNo(DeprecationMessageLbl, DeploymentName, DeprecatedDate), Verbosity::Warning, DataClassification::SystemMetadata, Enum::"AL Telemetry Scope"::All, CustomDimensions);
         end;
 
