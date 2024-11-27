@@ -11,11 +11,12 @@ using System.Utilities;
 
 page 149042 "AIT CommandLine Card"
 {
-    Caption = 'AI Test CommandLine Runner';
+    Caption = 'AI Test Command Line Runner';
     PageType = Card;
     Extensible = false;
     ApplicationArea = All;
-    UsageCategory = None;
+    UsageCategory = Administration;
+    SourceTable = "AIT Test Method Line";
 
     layout
     {
@@ -29,6 +30,7 @@ page 149042 "AIT CommandLine Card"
                     Caption = 'Test Suite Code';
                     ToolTip = 'Specifies the ID of the suite.';
                     TableRelation = "AIT Test Suite".Code;
+                    ShowMandatory = true;
 
                     trigger OnValidate()
                     var
@@ -37,7 +39,23 @@ page 149042 "AIT CommandLine Card"
                         if not AITTestSuite.Get(AITCode) then
                             Error(CannotFindAITSuiteErr, AITCode);
 
-                        RefreshNoOfPendingTests();
+                        // Clear the filter on the test lines
+                        if AITCode <> xRec."Test Suite Code" then
+                            Clear(LineNoFilter);
+
+                        UpdateAITestMethodLines();
+                    end;
+                }
+                field("Line No. Filter"; LineNoFilter)
+                {
+                    Caption = 'Line No. Filter';
+                    ToolTip = 'Specifies the line number to filter the test method lines.';
+                    TableRelation = "AIT Test Method Line"."Line No." where("Test Suite Code" = field("Test Suite Code"));
+                    BlankZero = true;
+
+                    trigger OnValidate()
+                    begin
+                        UpdateAITestMethodLines();
                     end;
                 }
                 field("No. of Pending Tests"; NoOfPendingTests)
@@ -53,13 +71,13 @@ page 149042 "AIT CommandLine Card"
 
                 field("Input Dataset Filename"; InputDatasetFilename)
                 {
-                    Caption = 'Input Dataset Filename';
+                    Caption = 'Import Input Dataset Filename';
                     ToolTip = 'Specifies the input dataset filename to import for running the test suite.';
                     ShowMandatory = InputDataset <> '';
                 }
                 field("Input Dataset"; InputDataset)
                 {
-                    Caption = 'Input Dataset';
+                    Caption = 'Import Input Dataset';
                     MultiLine = true;
                     ToolTip = 'Specifies the input dataset to import for running the test suite.';
 
@@ -90,7 +108,7 @@ page 149042 "AIT CommandLine Card"
 
                 field("Suite Definition"; SuiteDefinition)
                 {
-                    Caption = 'Suite Definition';
+                    Caption = 'Import Suite Definition';
                     ToolTip = 'Specifies the suite definition to import.';
                     MultiLine = true;
 
@@ -118,6 +136,47 @@ page 149042 "AIT CommandLine Card"
                         if not XmlPort.Import(XmlPort::"AIT Test Suite Import/Export", SuiteDefinitionInStream) then
                             Error(SuiteImportErr);
                     end;
+                }
+            }
+            group("Test Method Lines Group")
+            {
+                Editable = false;
+                Caption = 'Test Method Lines';
+
+                repeater("Test Method Lines")
+                {
+                    field("TML Suite Code"; Rec."Test Suite Code")
+                    {
+                    }
+                    field("Line No."; Rec."Line No.")
+                    {
+                    }
+                    field("Codeunit ID"; Rec."Codeunit ID")
+                    {
+                    }
+                    field("Codeunit Name"; Rec."Codeunit Name")
+                    {
+                    }
+                    field("Test Description"; Rec."Description")
+                    {
+                    }
+                    field("Dataset"; Rec."Input Dataset")
+                    {
+                    }
+                    field("Status"; Rec.Status)
+                    {
+                    }
+                    field("No. of Tests Executed"; Rec."No. of Tests Executed")
+                    {
+                    }
+                    field("No. of Tests Passed"; Rec."No. of Tests Passed")
+                    {
+                    }
+                    field("No. of Tests Failed"; Rec."No. of Tests Executed" - Rec."No. of Tests Passed")
+                    {
+                        Caption = 'No. of Tests Failed';
+                        ToolTip = 'Specifies the number of failed tests for the test line.';
+                    }
                 }
             }
         }
@@ -160,7 +219,7 @@ page 149042 "AIT CommandLine Card"
                 begin
                     AITTestMethodLine.SetRange("Test Suite Code", AITCode);
                     AITTestMethodLine.ModifyAll(Status, AITTestMethodLine.Status::" ", true);
-                    RefreshNoOfPendingTests();
+                    UpdateAITestMethodLines();
                 end;
             }
 
@@ -208,11 +267,13 @@ page 149042 "AIT CommandLine Card"
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
         FeatureTelemetry.LogUptake('0000NF0', AITTestSuiteMgt.GetFeatureName(), Enum::"Feature Uptake Status"::Discovered);
+        Rec.SetRange("Test Suite Code", AITCode);
     end;
 
     var
         CannotFindAITSuiteErr: Label 'The specified Test Suite with code %1 cannot be found.', Comment = '%1 = Test Suite id.';
         AITCode: Code[100];
+        LineNoFilter: Integer;
         NoOfPendingTests: Integer;
         InputDataset: Text;
         SuiteDefinition: Text;
@@ -222,12 +283,14 @@ page 149042 "AIT CommandLine Card"
     var
         AITTestSuite: Record "AIT Test Suite";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
+        TestSuiteCodeNotFoundErr: Label 'Test Suite with code %1 not found.', Comment = '%1 = Test Suite id.';
     begin
+        VerifyTestSuiteCode();
         if not AITTestSuite.Get(AITCode) then
-            exit;
+            Error(TestSuiteCodeNotFoundErr, AITCode);
 
         AITTestSuiteMgt.StartAITSuite(AITTestSuite);
-        RefreshNoOfPendingTests();
+        UpdateAITestMethodLines();
     end;
 
     local procedure StartNextTest()
@@ -235,26 +298,47 @@ page 149042 "AIT CommandLine Card"
         AITTestMethodLine: Record "AIT Test Method Line";
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
-        if NoOfPendingTests = 0 then
-            exit;
-        AITTestMethodLine.SetRange("Test Suite Code", AITCode);
+        VerifyTestSuiteCode();
+        AITTestMethodLine.Copy(Rec);
         AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::" ");
-        if AITTestMethodLine.FindFirst() then
+        if AITTestMethodLine.FindFirst() then begin
             AITTestSuiteMgt.RunAITestLine(AITTestMethodLine, false);
+            UpdateAITestMethodLines();
+        end;
+    end;
 
-        RefreshNoOfPendingTests();
+    local procedure VerifyTestSuiteCode()
+    var
+        TestSuiteCodeRequiredErr: Label 'Test Suite Code is required to run the suite.';
+    begin
+        if AITCode = '' then
+            Error(TestSuiteCodeRequiredErr);
     end;
 
     local procedure RefreshNoOfPendingTests(): Integer
     var
-        AITTestMethodLine: Record "AIT Test Method Line";
+        Rec2: Record "AIT Test Method Line";
     begin
-        if AITCode <> '' then begin
-            AITTestMethodLine.SetRange("Test Suite Code", AITCode);
-            AITTestMethodLine.SetRange(Status, AITTestMethodLine.Status::" ");
-            NoOfPendingTests := AITTestMethodLine.Count();
-        end else
-            NoOfPendingTests := 0;
+        Rec2.CopyFilters(Rec);
+        Rec.SetRange(Status, Rec.Status::" ");
+        NoOfPendingTests := Rec.Count();
+        Rec.CopyFilters(Rec2);
+    end;
+
+    local procedure SetFilterOnTestLines(var AITTestMethodLine: Record "AIT Test Method Line")
+    begin
+        AITTestMethodLine.SetRange("Test Suite Code", AITCode);
+        if LineNoFilter > 0 then
+            AITTestMethodLine.SetRange("Line No.", LineNoFilter)
+        else
+            AITTestMethodLine.SetRange("Line No.");
+    end;
+
+    local procedure UpdateAITestMethodLines()
+    begin
+        SetFilterOnTestLines(Rec);
+        RefreshNoOfPendingTests();
+        CurrPage.Update(false);
     end;
 
 }
