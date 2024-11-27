@@ -172,6 +172,9 @@ codeunit 8900 "Email Impl"
         if GetEmailOutbox(EmailMessage.GetId(), EmailOutbox) and IsOutboxEnqueued(EmailOutbox) then
             Error(EmailMessageQueuedErr);
 
+        if EmailMessage.GetExternalId() = '' then
+            Error(ExternalIdCannotBeEmptyErr);
+
         // Get email account
         GetEmailAccount(EmailAccountId, EmailConnector, EmailAccountRec);
 
