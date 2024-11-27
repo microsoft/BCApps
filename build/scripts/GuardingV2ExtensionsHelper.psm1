@@ -259,7 +259,7 @@ function Test-IsStrictModeEnabled
 
 function Get-MaxAllowedObsoleteVersion() {
     Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
-    
+
     Invoke-CommandWithRetry -ScriptBlock { RunAndCheck git fetch origin main }
     $alGoSettings = $(RunAndCheck git show origin/main:.github/AL-Go-Settings.json) | ConvertFrom-Json
     if (-not $alGoSettings.repoVersion) {
