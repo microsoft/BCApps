@@ -80,7 +80,7 @@ page 149042 "AIT CommandLine Card"
                         InputDatasetOutStream := TempBlob.CreateOutStream();
                         InputDatasetOutStream.WriteText(InputDataset);
                         TempBlob.CreateInStream(InputDatasetInStream);
-                        TestInputsManagement.UploadAndImportDataInputsFromJson(InputDatasetFilename, InputDatasetInStream);
+                        TestInputsManagement.UploadAndImportDataInputs(InputDatasetFilename, InputDatasetInStream);
                     end;
                 }
             }
