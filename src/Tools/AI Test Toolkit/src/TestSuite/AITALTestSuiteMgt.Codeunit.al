@@ -226,7 +226,7 @@ codeunit 149037 "AIT AL Test Suite Mgt"
                         Error(SameDatasetNameErr, DatasetFileName, StrSubstNo(SourceOfTheDatasetIsAppIdLbl, TestInputGroup."Imported by AppId"));
                 end;
 
-        TestInputsManagement.UploadAndImportDataInputsFromJson(DatasetFileName, DatasetInStream, CallerModuleInfo.Id);
+        TestInputsManagement.UploadAndImportDataInputs(DatasetFileName, DatasetInStream, CallerModuleInfo.Id);
     end;
 
     /// <summary>
