@@ -18,6 +18,7 @@ var _showFilters = false;
 var _showPageSelection = false;
 var _showZoomBar = true;
 var _forceTransparentBackground = false;
+var _forceFitToPage = false;
 var _addBottomPadding = false;
 var _localeSettings = {};
 
@@ -154,6 +155,7 @@ function SetSettings(showBookmarkSelection, showFilters, showPageSelection, show
     _showZoomBar = showZoomBar;
     _forceTransparentBackground = forceTransparentBackground;
     _addBottomPadding = addBottomPadding;
+    _forceFitToPage = forceFitToPage;
 }
 
 // Exposed Functions
@@ -428,6 +430,13 @@ function CompileSettings() {
 
     if (_forceTransparentBackground) {
         settingsObject.background = models.BackgroundType.Transparent;
+    }
+
+    if (_forceFitToPage) {
+        settingsObject.layoutType = models.LayoutType.Custom;
+        settingsObject.customLayout = {
+            displayOption: models.DisplayOption.FitToPage
+        }
     }
 
     return settingsObject;
