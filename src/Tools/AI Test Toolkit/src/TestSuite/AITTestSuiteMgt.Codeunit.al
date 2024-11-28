@@ -28,6 +28,9 @@ codeunit 149034 "AIT Test Suite Mgt."
         CannotRunMultipleSuitesInParallelErr: Label 'There is already a test run in progress. You need to wait for it to finish or cancel it before starting a new test run.';
         FeatureNameLbl: Label 'AI Test Toolkit', Locked = true;
         LineNoFilterLbl: Label 'Codeunit %1 "%2" (Input: %3)', Locked = true;
+        TurnsLbl: Label '%1/%2', Comment = '%1 - No. of turns that passed, %2 - Total no. of turns';
+        DownloadResultsLbl: Label 'Download results';
+        ResultsFileNameLbl: Label 'Results.xlsx', Locked = true;
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
     var
@@ -355,6 +358,9 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITLogEntry."Procedure Name" := CurrentTestMethodLine.Function;
         AITLogEntry."Tokens Consumed" := AITTestRunIteration.GetAITokenUsedByLastTestMethodLine();
+        AITLogEntry."No. of Turns Executed" := AITTestRunIteration.GetNumberOfTurnsForLastTestMethodLine();
+        AITLogEntry."No. of Turns Passed" := AITTestRunIteration.GetNumberOfTurnsPassedForLastTestMethodLine();
+        AITLogEntry.Accuracy := AITTestRunIteration.GetAccuracyForLastTestMethodLine();
         AITLogEntry.Insert(true);
 
         Commit();
@@ -369,6 +375,17 @@ codeunit 149034 "AIT Test Suite Mgt."
         TelemetryCustomDimensions.Add('NoOfTestsExecuted', Format(NoOfTestsExecuted));
         TelemetryCustomDimensions.Add('NoOfTestsPassed', Format(NoOfTestsPassed));
         TelemetryCustomDimensions.Add('TotalDurationInMs', Format(TotalDurationInMs));
+    end;
+
+    internal procedure GetTurnsAsText(var AITTestMethodLine: Record "AIT Test Method Line"): Text
+    begin
+        AITTestMethodLine.CalcFields("No. of Turns Passed", "No. of Turns Executed");
+        exit(StrSubstNo(TurnsLbl, AITTestMethodLine."No. of Turns Passed", AITTestMethodLine."No. of Turns Executed"));
+    end;
+
+    internal procedure GetTurnsAsText(var AITLogEntry: Record "AIT Log Entry"): Text
+    begin
+        exit(StrSubstNo(TurnsLbl, AITLogEntry."No. of Turns Passed", AITLogEntry."No. of Turns Executed"));
     end;
 
     internal procedure GetAvgDuration(AITTestMethodLine: Record "AIT Test Method Line"): Integer
@@ -438,6 +455,24 @@ codeunit 149034 "AIT Test Suite Mgt."
     internal procedure GetFeatureName(): Text
     begin
         exit(FeatureNameLbl);
+    end;
+
+    internal procedure ExportResults(var AITLogEntries: Record "AIT Log Entry")
+    var
+        AITResults: Report "AIT Results";
+        ResultsTempBlob: Codeunit "Temp Blob";
+        ResultsOutStream: OutStream;
+        ResultsInStream: InStream;
+        Filename: Text;
+    begin
+        Filename := ResultsFileNameLbl;
+        ResultsTempBlob.CreateOutStream(ResultsOutStream);
+
+        AITResults.SetTableView(AITLogEntries);
+        AITResults.SaveAs('', ReportFormat::Excel, ResultsOutStream);
+
+        ResultsTempBlob.CreateInStream(ResultsInStream);
+        DownloadFromStream(ResultsInStream, DownloadResultsLbl, '', 'xlsx', Filename);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Suite", OnBeforeDeleteEvent, '', false, false)]
