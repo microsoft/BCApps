@@ -119,18 +119,19 @@ page 7774 "Copilot Capabilities GA"
                     end;
                 end;
             }
-
+#if not CLEAN26
             action(SupplementalTerms)
             {
                 Caption = 'Supplemental Terms of Use';
                 ToolTip = 'Opens the supplemental terms of use for generally available capabilities.';
                 Image = Info;
-
+                Visible = false;
                 trigger OnAction()
                 begin
                     Hyperlink(SupplementalTermsLinkTxt);
                 end;
             }
+#endif
         }
     }
 

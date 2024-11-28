@@ -15,11 +15,11 @@ page 7775 "Copilot AI Capabilities"
     PageType = Document;
     ApplicationArea = All;
     UsageCategory = Administration;
-    Caption = 'Copilot & AI capabilities';
+    Caption = 'Copilot & agent capabilities';
     DataCaptionExpression = '';
     AboutTitle = 'About Copilot';
     AboutText = 'Copilot is the AI-powered assistant that helps people across your organization unlock their creativity and automate tedious tasks.';
-    AdditionalSearchTerms = 'OpenAI,AI,Copilot,Co-pilot,Artificial Intelligence,GPT,GTP,Dynamics 365 Copilot,ChatGPT,Copilot settings,Copilot setup,enable Copilot,Copilot admin,Copilot and';
+    AdditionalSearchTerms = 'OpenAI,AI,Copilot,Co-pilot,Artificial Intelligence,GPT,GTP,Dynamics 365 Copilot,ChatGPT,Copilot settings,Copilot setup,enable Copilot,Copilot admin,Copilot and,agents,agentic capabilities,autonomous agents';
     InsertAllowed = false;
     DeleteAllowed = false;
     Extensible = false;
@@ -239,4 +239,5 @@ page 7775 "Copilot AI Capabilities"
         HasEarlyPreview: Boolean;
         CopilotGovernDataLbl: Label 'How do I govern my Copilot data?';
         AOAIServiceLocatedLbl: Label 'In which region will my data be stored and processed?';
+
 }
