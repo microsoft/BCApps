@@ -56,11 +56,9 @@ page 130459 "Test Input Part"
 
                 trigger OnAction()
                 var
-                    TestInputGroup: Record "Test Input Group";
                     TestInputsManagement: Codeunit "Test Inputs Management";
                 begin
-                    TestInputGroup.Get(Rec."Test Input Group Code");
-                    TestInputsManagement.UploadAndImportDataInputs(TestInputGroup);
+                    TestInputsManagement.UploadAndImportDataInputs();
                 end;
             }
         }

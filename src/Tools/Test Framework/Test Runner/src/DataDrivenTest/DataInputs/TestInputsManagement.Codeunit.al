@@ -100,13 +100,6 @@ codeunit 130458 "Test Inputs Management"
 
     procedure UploadAndImportDataInputs()
     var
-        TestInputGroup: Record "Test Input Group";
-    begin
-        UploadAndImportDataInputs(TestInputGroup);
-    end;
-
-    procedure UploadAndImportDataInputs(var TestInputGroup: Record "Test Input Group")
-    var
         TempDummyTestInput: Record "Test Input" temporary;
         TestInputInStream: InStream;
         FileName: Text;
@@ -170,7 +163,7 @@ codeunit 130458 "Test Inputs Management"
     [Obsolete('Replaced by UploadAndImportDataInputs.', '26.0')]
     procedure UploadAndImportDataInputsFromJson(var TestInputGroup: Record "Test Input Group")
     begin
-        UploadAndImportDataInputs(TestInputGroup)
+        UploadAndImportDataInputs()
     end;
 
     [Obsolete('Replaced by UploadAndImportDataInputs.', '26.0')]
