@@ -197,6 +197,63 @@ codeunit 8901 Email
     #endregion
 
     #region Reply
+#if not CLEAN26
+    /// <summary>
+    /// Sends a reply to an external message id in the foreground.
+    /// </summary>
+    /// <param name="EmailMessage">The email message with the details of the recipients and reply to be added.</param>
+    /// <param name="ExternalId">The external message id that is used to correlate and send the reply.</param>
+    /// <param name="EmailAccountId">The ID of the email account to use for sending the email.</param>
+    /// <param name="EmailConnector">The email connector to use for sending the email.</param>
+    /// <returns>True if sent</returns>
+    [Obsolete('Replaced by Reply without the ExternalId parameter. ExternalId is not used and is contained in the EmailMessage parameter.', '26.0')]
+    procedure Reply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"): Boolean
+    begin
+        exit(EmailImpl.Reply(EmailMessage, EmailAccountId, EmailConnector));
+    end;
+
+    /// <summary>
+    /// Sends a reply to an external message id to all recipients on that email in the foreground.
+    /// </summary>
+    /// <param name="EmailMessage">The email message with the details of the recipients and reply to be added.</param>
+    /// <param name="ExternalId">The external message id that is used to correlate and send the reply.</param>
+    /// <param name="EmailAccountId">The ID of the email account to use for sending the email.</param>
+    /// <param name="EmailConnector">The email connector to use for sending the email.</param>
+    /// <returns>True if sent</returns>
+    [Obsolete('Replaced by ReplyAll without the ExternalId parameter. ExternalId is not used and is contained in the EmailMessage parameter.', '26.0')]
+    procedure ReplyAll(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"): Boolean
+    begin
+        exit(EmailImpl.ReplyAll(EmailMessage, EmailAccountId, EmailConnector));
+    end;
+
+    /// <summary>
+    /// Sends a reply to an external message id in the background.
+    /// </summary>
+    /// <param name="EmailMessage">The email message with the details of the recipients and reply to be added.</param>
+    /// <param name="ExternalId">The external message id that is used to correlate and send the reply.</param>
+    /// <param name="EmailAccountId">The ID of the email account to use for sending the email.</param>
+    /// <param name="EmailConnector">The email connector to use for sending the email.</param>
+    /// <param name="EmailOutbox">The email outbox which is set up for sending in the background.</param>
+    [Obsolete('Replaced by EnqueueReply without the ExternalId parameter. ExternalId is not used and is contained in the EmailMessage parameter.', '26.0')]
+    procedure EnqueueReply(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox")
+    begin
+        EmailImpl.Reply(EmailMessage, EmailAccountId, EmailConnector, EmailOutbox);
+    end;
+
+    /// <summary>
+    /// Sends a reply to an external message id to all recipients on that email in the foreground.
+    /// </summary>
+    /// <param name="EmailMessage">The email message with the details of the recipients and reply to be added.</param>
+    /// <param name="ExternalId">The external message id that is used to correlate and send the reply.</param>
+    /// <param name="EmailAccountId">The ID of the email account to use for sending the email.</param>
+    /// <param name="EmailConnector">The email connector to use for sending the email.</param>
+    /// <param name="EmailOutbox">The email outbox which is set up for sending in the background.</param>
+    [Obsolete('Replaced by EnqueueReplyAll without the ExternalId parameter. ExternalId is not used and is contained in the EmailMessage parameter.', '26.0')]
+    procedure EnqueueReplyAll(EmailMessage: Codeunit "Email Message"; ExternalId: Text; EmailAccountId: Guid; EmailConnector: Enum "Email Connector"; var EmailOutbox: Record "Email Outbox")
+    begin
+        EmailImpl.ReplyAll(EmailMessage, EmailAccountId, EmailConnector, EmailOutbox);
+    end;
+#endif
 
     /// <summary>
     /// Sends a reply to an external message id in the foreground.
