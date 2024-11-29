@@ -73,7 +73,6 @@ page 9987 "Word Templates Related Part"
                         WordTemplateFieldSelection.ShowFieldSelection(Rec."Related Table ID", TempWordTemplateField);
                         NumberOfSelectedFields := WordTemplateFieldSelection.CalculateNoSelectedFields(Rec."Related Table ID", TempWordTemplateField);
                         SelectedFieldsCount.Set(Rec."Related Table ID", NumberOfSelectedFields);
-                        CalculateSelectedFields();
                     end;
                 }
                 field("Entity Relation"; RecordTypeTxt)
@@ -200,6 +199,8 @@ page 9987 "Word Templates Related Part"
         TempWordTemplateField.Reset();
         TempWordTemplateField.SetRange("Table ID", Rec."Related Table ID");
         TempWordTemplateField.DeleteAll();
+
+        SelectedFieldsCount.Remove(Rec."Related Table ID");
     end;
 
     internal procedure AddRelatedTable(TableId: Integer)
