@@ -288,4 +288,24 @@ table 149034 "AIT Log Entry"
         Rec.SetFilter("Procedure Name", '<>%1', '');
         Rec.SetRange(Status, Rec.Status::Error);
     end;
+
+    internal procedure GetSuiteDescription(): Text[250]
+    var
+        AITTestSuite: Record "AIT Test Suite";
+    begin
+        AITTestSuite.SetLoadFields("Description");
+        if AITTestSuite.Get(Rec."Test Suite Code") then
+            exit(AITTestSuite."Description");
+        exit('');
+    end;
+
+    internal procedure GetTestMethodLineDescription(): Text[250]
+    var
+        AITTestMethodLine: Record "AIT Test Method Line";
+    begin
+        AITTestMethodLine.SetLoadFields("Description");
+        if AITTestMethodLine.Get(Rec."Test Suite Code", Rec."Test Method Line No.") then
+            exit(AITTestMethodLine."Description");
+        exit('');
+    end;
 }
