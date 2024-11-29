@@ -1713,7 +1713,6 @@ codeunit 134685 "Email Test"
         EmailAccount: Record "Email Account";
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
-        Any: Codeunit Any;
     begin
         // [Scenario] Replying to an email with a V2 connector should succeed with no errors
         // [Given] An email account with a V2 connector
@@ -1723,7 +1722,7 @@ codeunit 134685 "Email Test"
 
         // [When] Reply to email
         // [Then] No error occurs and reply returns true
-        Assert.IsTrue(Email.Reply(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector), 'Did not succeed in replying the email');
+        Assert.IsTrue(Email.Reply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector), 'Did not succeed in replying the email');
     end;
 
     [Test]
@@ -1732,7 +1731,6 @@ codeunit 134685 "Email Test"
         EmailAccount: Record "Email Account";
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
-        Any: Codeunit Any;
     begin
         // [Scenario] Replying to an email with a V2 connector should succeed with no errors
         // [Given] An email account with a V2 connector
@@ -1742,7 +1740,7 @@ codeunit 134685 "Email Test"
 
         // [When] Reply to email
         // [Then] No error occurs and reply returns true
-        asserterror Email.Reply(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector);
+        asserterror Email.Reply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector);
         Assert.ExpectedError('You must specify a valid email account to send the message to');
     end;
 
@@ -1816,7 +1814,6 @@ codeunit 134685 "Email Test"
         EmailAccount: Record "Email Account";
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
-        Any: Codeunit Any;
     begin
         // [Scenario] Replying to an email with a V2 connector should succeed with no errors
         // [Given] An email account with a V2 connector
@@ -1826,7 +1823,7 @@ codeunit 134685 "Email Test"
 
         // [When] Reply to email
         // [Then] No error occurs and reply returns true
-        Assert.IsTrue(Email.ReplyAll(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector), 'Did not succeed in replying the email');
+        Assert.IsTrue(Email.ReplyAll(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector), 'Did not succeed in replying the email');
     end;
 
     [Test]
@@ -1835,7 +1832,6 @@ codeunit 134685 "Email Test"
         EmailAccount: Record "Email Account";
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
-        Any: Codeunit Any;
     begin
         // [Scenario] Replying to an email with a V2 connector fails due to some error
         // [Given] An email account with a V2 connector
@@ -1848,7 +1844,7 @@ codeunit 134685 "Email Test"
 
         // [When] Reply to email
         // [Then] No error occurs and reply returns true
-        Assert.IsFalse(Email.ReplyAll(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector), 'Did succeed in replying the email when it should fail');
+        Assert.IsFalse(Email.ReplyAll(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector), 'Did succeed in replying the email when it should fail');
     end;
 
     [Test]
@@ -1925,7 +1921,6 @@ codeunit 134685 "Email Test"
         EmailOutbox: Record "Email Outbox";
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
-        Any: Codeunit Any;
     begin
         // [Scenario] Replying to an email with a V2 connector should succeed with no errors
         // [Given] An email account with a V2 connector
@@ -1936,7 +1931,7 @@ codeunit 134685 "Email Test"
         // [When] Reply to email
         // [Then] No error occurs and reply returns true
         Assert.IsTrue(IsNullGuid(EmailOutbox."Message Id"), 'The email message id in the outbox should be empty');
-        Email.EnqueueReply(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
+        Email.EnqueueReply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
 
         Assert.AreEqual(EmailMessage.GetId(), EmailOutbox."Message Id", 'The email message id should be the same as the one in the outbox');
     end;
@@ -1948,7 +1943,6 @@ codeunit 134685 "Email Test"
         EmailOutbox: Record "Email Outbox";
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
-        Any: Codeunit Any;
     begin
         // [Scenario] Replying to an email with a V2 connector should succeed with no errors
         // [Given] An email account with a V2 connector
@@ -1958,7 +1952,7 @@ codeunit 134685 "Email Test"
 
         // [When] Reply to email
         // [Then] No error occurs and reply returns true
-        asserterror Email.EnqueueReply(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
+        asserterror Email.EnqueueReply(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
         Assert.ExpectedError('You must specify a valid email account to send the message to');
     end;
 
@@ -2014,7 +2008,6 @@ codeunit 134685 "Email Test"
         EmailOutbox: Record "Email Outbox";
         EmailMessage: Codeunit "Email Message";
         ConnectorMock: Codeunit "Connector Mock";
-        Any: Codeunit Any;
     begin
         // [Scenario] Replying to an email with a V2 connector fails due to some error
         // [Given] An email account with a V2 connector
@@ -2027,7 +2020,7 @@ codeunit 134685 "Email Test"
 
         // [When] Reply to email
         // [Then] No error occurs and reply returns true
-        Email.EnqueueReplyAll(EmailMessage, Any.AlphabeticText(10), EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
+        Email.EnqueueReplyAll(EmailMessage, EmailAccount."Account Id", EmailAccount.Connector, EmailOutbox);
     end;
 
     local procedure CreateEmail(var EmailMessage: Codeunit "Email Message")
