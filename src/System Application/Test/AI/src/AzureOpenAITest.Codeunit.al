@@ -25,7 +25,6 @@ codeunit 132684 "Azure OpenAI Test"
         DeploymentTxt: Label 'deploymentid', Locked = true;
 
     [Test]
-    [HandlerFunctions('HandleCopilotNotAvailable')]
     procedure TestIsEnabledRejectPrivacyNotice()
     var
         PrivacyNotice: Codeunit "Privacy Notice";
@@ -38,7 +37,7 @@ codeunit 132684 "Azure OpenAI Test"
         RegisterCapability(Enum::"Copilot Capability"::"Text Capability");
 
         // [WHEN] IsEnabled is called
-        // [THEN] IsEnabled opens "Copilot Not Available" page and also returns false
+        // [THEN] IsEnabled returns true
         LibraryAssert.IsTrue(AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Text Capability"), 'IsEnabled should return true when privacy notice is "Not Set" and not in geo.');
     end;
 
