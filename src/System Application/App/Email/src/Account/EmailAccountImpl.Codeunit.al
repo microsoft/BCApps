@@ -26,6 +26,16 @@ codeunit 8889 "Email Account Impl."
         CannotManageSetupErr: Label 'Your user account does not give you permission to set up email. Please contact your administrator.';
 
     procedure GetAllAccounts(LoadLogos: Boolean; var TempEmailAccount: Record "Email Account" temporary)
+    begin
+        GetAllAccounts(LoadLogos, false, TempEmailAccount);
+    end;
+
+    procedure GetAllV2Accounts(LoadLogos: Boolean; var TempEmailAccount: Record "Email Account" temporary)
+    begin
+        GetAllAccounts(LoadLogos, true, TempEmailAccount);
+    end;
+
+    local procedure GetAllAccounts(LoadLogos: Boolean; LoadV2Only: Boolean; var TempEmailAccount: Record "Email Account" temporary)
     var
         EmailAccounts: Record "Email Account";
         Connector: Enum "Email Connector";
@@ -40,18 +50,19 @@ codeunit 8889 "Email Account Impl."
             EmailAccounts.DeleteAll();
             IEmailConnector.GetAccounts(EmailAccounts);
 
-            if EmailAccounts.FindSet() then
-                repeat
-                    TempEmailAccount := EmailAccounts;
-                    TempEmailAccount.Connector := Connector;
+            if (not LoadV2Only) or (LoadV2Only and IEmailConnector is "Email Connector v2") then
+                if EmailAccounts.FindSet() then
+                    repeat
+                        TempEmailAccount := EmailAccounts;
+                        TempEmailAccount.Connector := Connector;
 
-                    if LoadLogos then begin
-                        ImportLogo(TempEmailAccount, Connector);
-                        ImportLogoBlob(TempEmailAccount, Connector);
-                    end;
+                        if LoadLogos then begin
+                            ImportLogo(TempEmailAccount, Connector);
+                            ImportLogoBlob(TempEmailAccount, Connector);
+                        end;
 
-                    if not TempEmailAccount.Insert() then;
-                until EmailAccounts.Next() = 0;
+                        if not TempEmailAccount.Insert() then;
+                    until EmailAccounts.Next() = 0;
         end;
 
         // Sort by account name
