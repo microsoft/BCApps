@@ -74,18 +74,22 @@ page 7775 "Copilot AI Capabilities"
                 {
                     ShowCaption = false;
                     Visible = WithinEUDB and (not AllowDataMovement);
-                    InstructionalText = 'Copilot and agents use the Azure OpenAI Service, which isn''t available in your region. To activate these capabilities, you must allow data movement.';
+                    InstructionalText = 'Copilot and agents use the Azure OpenAI Service available within the EU Data Boundary. To activate these capabilities, you must allow data movement within this boundary.';
                 }
                 group(AllowedDataMovementOnInfo)
                 {
                     ShowCaption = false;
                     Visible = WithinEUDB and AllowDataMovement;
-                    InstructionalText = 'Copilot and agents use the Azure OpenAI Service, which isn''t available in your region. To keep using these capabilities, you must allow data movement.';
+                    InstructionalText = 'Copilot and agents use the Azure OpenAI Service available within the EU Data Boundary. To keep using these capabilities, you must allow data movement within this boundary.';
                 }
                 group(EUDBAreaDataMovementGroup)
                 {
                     ShowCaption = false;
-                    InstructionalText = 'By allowing data movement, you agree to data being processed by the Azure OpenAI Service outside of your environment''s geographic region or compliance boundary.';
+                    label(EUDBAreaCaption)
+                    {
+                        ApplicationArea = All;
+                        Caption = 'By allowing data movement, you agree to data being processed by the Azure OpenAI Service within the EU Data Boundary.';
+                    }
                     field(EUDBAreaDataMovement; AllowDataMovement)
                     {
                         ApplicationArea = All;
