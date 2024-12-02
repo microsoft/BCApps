@@ -42,7 +42,7 @@ page 7775 "Copilot AI Capabilities"
 
                     trigger OnDrillDown()
                     begin
-                        Hyperlink('https://go.microsoft.com/fwlink/?linkid=2249575');
+                        Hyperlink(CopilotGovernDataDocLinkLbl);
                     end;
                 }
                 field(DataSecurityAndPrivacy; FAQForDataSecurityAndPrivacyLbl)
@@ -51,7 +51,7 @@ page 7775 "Copilot AI Capabilities"
 
                     trigger OnDrillDown()
                     begin
-                        Hyperlink('https://go.microsoft.com/fwlink/?linkid=2298505');
+                        Hyperlink(FAQForDataSecurityAndPrivacyDocLinkLbl);
                     end;
                 }
                 field(DataProcessByAOAI; DataProcessByAOAILbl)
@@ -60,7 +60,7 @@ page 7775 "Copilot AI Capabilities"
 
                     trigger OnDrillDown()
                     begin
-                        Hyperlink('https://go.microsoft.com/fwlink/?linkid=2298232');
+                        Hyperlink(DataProcessByAOAIDocLinkLbl);
                     end;
                 }
             }
@@ -108,7 +108,7 @@ page 7775 "Copilot AI Capabilities"
 
                         trigger OnDrillDown()
                         begin
-                            Hyperlink('https://go.microsoft.com/fwlink/?linkid=2250267');
+                            Hyperlink(AOAIServiceLocatedDocLinkLbl);
                         end;
                     }
                     field(EUDBAreaDataSecurityAndPrivacy; FAQForDataSecurityAndPrivacyLbl)
@@ -117,7 +117,7 @@ page 7775 "Copilot AI Capabilities"
 
                         trigger OnDrillDown()
                         begin
-                            Hyperlink('https://go.microsoft.com/fwlink/?linkid=2298505');
+                            Hyperlink(FAQForDataSecurityAndPrivacyDocLinkLbl);
                         end;
                     }
                     field(EUDBAreaDataProcess; DataProcessByAOAILbl)
@@ -126,7 +126,7 @@ page 7775 "Copilot AI Capabilities"
 
                         trigger OnDrillDown()
                         begin
-                            Hyperlink('https://go.microsoft.com/fwlink/?linkid=2298232');
+                            Hyperlink(DataProcessByAOAIDocLinkLbl);
                         end;
                     }
                 }
@@ -174,7 +174,7 @@ page 7775 "Copilot AI Capabilities"
 
                         trigger OnDrillDown()
                         begin
-                            Hyperlink('https://go.microsoft.com/fwlink/?linkid=2250267');
+                            Hyperlink(AOAIServiceLocatedDocLinkLbl);
                         end;
                     }
                     field(AOAIOutOfRegionAreaDataSecurityAndPrivacy; FAQForDataSecurityAndPrivacyLbl)
@@ -183,7 +183,7 @@ page 7775 "Copilot AI Capabilities"
 
                         trigger OnDrillDown()
                         begin
-                            Hyperlink('https://go.microsoft.com/fwlink/?linkid=2298505');
+                            Hyperlink(FAQForDataSecurityAndPrivacyDocLinkLbl);
                         end;
                     }
                     field(AOAIOutOfRegionAreaDataProcess; DataProcessByAOAILbl)
@@ -192,7 +192,7 @@ page 7775 "Copilot AI Capabilities"
 
                         trigger OnDrillDown()
                         begin
-                            Hyperlink('https://go.microsoft.com/fwlink/?linkid=2298232');
+                            Hyperlink(DataProcessByAOAIDocLinkLbl);
                         end;
                     }
                 }
@@ -233,7 +233,7 @@ page 7775 "Copilot AI Capabilities"
 
                 trigger OnAction()
                 begin
-                    Hyperlink('https://aka.ms/azurestatus');
+                    Hyperlink(CheckServiceHealthDocLinkLbl);
                 end;
             }
         }
@@ -326,4 +326,9 @@ page 7775 "Copilot AI Capabilities"
         FAQForDataSecurityAndPrivacyLbl: Label 'FAQ for data security and privacy';
         DataProcessByAOAILbl: Label 'What data is processed by Azure OpenAI Service?';
         AOAIServiceLocatedLbl: Label 'In which region will my data be stored and processed?';
+        CopilotGovernDataDocLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2249575', Locked = true;
+        FAQForDataSecurityAndPrivacyDocLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2298505', Locked = true;
+        DataProcessByAOAIDocLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2298232', Locked = true;
+        AOAIServiceLocatedDocLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2250267', Locked = true;
+        CheckServiceHealthDocLinkLbl: Label 'https://aka.ms/azurestatus', Locked = true;
 }
