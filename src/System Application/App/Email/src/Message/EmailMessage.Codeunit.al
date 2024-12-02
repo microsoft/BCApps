@@ -38,31 +38,13 @@ codeunit 8904 "Email Message"
     /// <summary>
     /// Creates the email with recipients, subject, and body.
     /// </summary>
-    /// <param name="ToRecipients">The recipient(s) of the email. A string containing the email addresses of the recipients separated by semicolon.</param>
-    /// <param name="Subject">The subject of the email.</param>
-    /// <param name="Body">The body of the email.</param>
-    /// <param name="HtmlFormatted">Whether the body is HTML formatted.</param>
-    /// <param name="Sanitize">If the body is of HTML formatting, most of it will be sanitized. Keeping only tags and no styling.</param>
-    /// <remarks>Sanitize is only applicable if the body is HTML formatted. It also helps prevent potential email messages from hiding images and text from the user.</remarks>
-    procedure Create(ToRecipients: Text; Subject: Text; Body: Text; HtmlFormatted: Boolean; Sanitize: Boolean)
-    begin
-        EmailMessageImpl.Create(ToRecipients, Subject, Body, HtmlFormatted, Sanitize);
-    end;
-
-
-    /// <summary>
-    /// Creates the email with recipients, subject, and body.
-    /// </summary>
     /// <param name="ToRecipients">The recipient(s) of the email. A list of email addresses the email will be send directly to.</param>
     /// <param name="Subject">The subject of the email.</param>
     /// <param name="Body">The body of the email</param>
     /// <param name="HtmlFormatted">Whether the body is HTML formatted</param>
     procedure Create(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean)
-    var
-        CCRecipients: List of [Text];
-        BCCRecipients: List of [Text];
     begin
-        EmailMessageImpl.Create(ToRecipients, Subject, Body, HtmlFormatted, CCRecipients, BCCRecipients, false);
+        EmailMessageImpl.Create(ToRecipients, Subject, Body, HtmlFormatted);
     end;
 
     /// <summary>
@@ -76,7 +58,7 @@ codeunit 8904 "Email Message"
     /// <param name="BCCRecipients">TThe BCC recipient(s) of the email. A list of email addresses that will be listed as BCC.</param>
     procedure Create(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; CCRecipients: List of [Text]; BCCRecipients: List of [Text])
     begin
-        EmailMessageImpl.Create(ToRecipients, Subject, Body, HtmlFormatted, CCRecipients, BCCRecipients, false);
+        EmailMessageImpl.Create(ToRecipients, Subject, Body, HtmlFormatted, CCRecipients, BCCRecipients);
     end;
 
     /// <summary>
@@ -101,11 +83,8 @@ codeunit 8904 "Email Message"
     /// <param name="HtmlFormatted">Whether the body is HTML formatted.</param>
     /// <param name="ExternalId">The external message id to reply to.</param>
     procedure CreateReply(ToRecipients: List of [Text]; Subject: Text; Body: Text; HtmlFormatted: Boolean; ExternalId: Text)
-    var
-        CCRecipients: List of [Text];
-        BCCRecipients: List of [Text];
     begin
-        EmailMessageImpl.CreateReply(ToRecipients, Subject, Body, HtmlFormatted, ExternalId, CCRecipients, BCCRecipients);
+        EmailMessageImpl.CreateReply(ToRecipients, Subject, Body, HtmlFormatted, ExternalId);
     end;
 
     /// <summary>

@@ -1,4 +1,3 @@
-#if not CLEAN26
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,9 +7,7 @@ namespace System.TestLibraries.Email;
 
 using System.Email;
 
-#pragma warning disable AL0432
-codeunit 134682 "Test Email Connector v2" implements "Email Connector v2"
-#pragma warning restore AL0432
+codeunit 134682 "Test Email Connector v2" implements "Email Connector v2", "Email Connector" // Temporary bug #540622
 {
 
     var
@@ -91,4 +88,3 @@ codeunit 134682 "Test Email Connector v2" implements "Email Connector v2"
             Error('Failed to mark email as read');
     end;
 }
-#endif
