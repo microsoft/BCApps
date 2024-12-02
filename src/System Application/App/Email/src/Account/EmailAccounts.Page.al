@@ -387,8 +387,8 @@ page 8887 "Email Accounts"
         IsSelected := not IsNullGuid(SelectedAccountId);
 
         EmailAccount.GetAllAccounts(true, Rec); // Refresh the email accounts
-        if V2Filter then
-            FilterToConnectorv2Accounts(Rec);
+        if V2V3Filter then
+            FilterToConnectorv2v3Accounts(Rec);
         EmailScenario.GetDefaultEmailAccount(DefaultEmailAccount); // Refresh the default email account
 
         if IsSelected then begin
@@ -402,7 +402,7 @@ page 8887 "Email Accounts"
         CurrPage.Update(false);
     end;
 
-    local procedure FilterToConnectorv2Accounts(var EmailAccounts: Record "Email Account")
+    local procedure FilterToConnectorv2v3Accounts(var EmailAccounts: Record "Email Account")
     var
         IConnector: Interface "Email Connector";
     begin
@@ -411,7 +411,13 @@ page 8887 "Email Accounts"
 
         repeat
             IConnector := EmailAccounts.Connector;
-            if not (IConnector is "Email Connector v2") then
+#if not CLEAN26
+#pragma warning disable AL0432
+            if not (IConnector is "Email Connector v2") and not (IConnector is "Email Connector v3") then
+#pragma warning restore AL0432
+#else
+            if not (IConnector is "Email Connector v3") then
+#endif
                 EmailAccounts.Delete();
         until EmailAccounts.Next() = 0;
     end;
@@ -457,12 +463,24 @@ page 8887 "Email Accounts"
     end;
 
     /// <summary>
-    /// Filters the email accounts to only show accounts that are using the Email Connector v2.
+    /// Filters the email accounts to only show accounts that are using the Email Connector v2 or v3.
     /// </summary>
     /// <param name="Filter">True to filter the email accounts, false to show all email accounts</param>
-    procedure FilterConnectorV2Accounts(Filter: Boolean)
+#if not CLEAN26
+    [Obsolete('Replaced by FilterConnectorV3Accounts. In addition, this function now returns both v2 and v3 accounts.', '26.0')]
+    procedure FilterConnectorV2Accounts(UseFilter: Boolean)
     begin
-        V2Filter := Filter;
+        V2V3Filter := UseFilter;
+    end;
+#endif
+
+    /// <summary>
+    /// Filters the email accounts to only show accounts that are using the Email Connector v2 or v3.
+    /// </summary>
+    /// <param name="UseFilter">True to filter the email accounts, false to show all email accounts</param>
+    procedure FilterConnectorV3Accounts(UseFilter: Boolean)
+    begin
+        V2V3Filter := UseFilter;
     end;
 
     var
@@ -477,6 +495,6 @@ page 8887 "Email Accounts"
         ShowLogo: Boolean;
         IsLookupMode: Boolean;
         HasEmailAccount: Boolean;
-        V2Filter: Boolean;
+        V2V3Filter: Boolean;
         EmailConnectorHasBeenUninstalledMsg: Label 'The selected email extension has been uninstalled. To view information about the email account, you must reinstall the extension.';
 }
