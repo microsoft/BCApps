@@ -82,6 +82,15 @@ page 7775 "Copilot AI Capabilities"
                     Visible = WithinEUDBArea and AllowDataMovement;
                     InstructionalText = 'Copilot and agents use the Azure OpenAI Service available within the EU Data Boundary. To keep using these capabilities, you must allow data movement within this boundary.';
                 }
+                field(EUDBAreaDataSecurityAndPrivacy; FAQForDataSecurityAndPrivacyLbl)
+                {
+                    ShowCaption = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        Hyperlink(FAQForDataSecurityAndPrivacyDocLinkLbl);
+                    end;
+                }
                 group(EUDBAreaDataMovementGroup)
                 {
                     ShowCaption = false;
@@ -109,15 +118,6 @@ page 7775 "Copilot AI Capabilities"
                         trigger OnDrillDown()
                         begin
                             Hyperlink(AOAIServiceLocatedDocLinkLbl);
-                        end;
-                    }
-                    field(EUDBAreaDataSecurityAndPrivacy; FAQForDataSecurityAndPrivacyLbl)
-                    {
-                        ShowCaption = false;
-
-                        trigger OnDrillDown()
-                        begin
-                            Hyperlink(FAQForDataSecurityAndPrivacyDocLinkLbl);
                         end;
                     }
                     field(EUDBAreaDataProcess; DataProcessByAOAILbl)
@@ -148,6 +148,15 @@ page 7775 "Copilot AI Capabilities"
                     Visible = WithinAOAIOutOfRegionArea and AllowDataMovement;
                     InstructionalText = 'Copilot and agents use the Azure OpenAI Service, which isn''t available in your region. To keep using these capabilities, you must allow data movement.';
                 }
+                field(AOAIOutOfRegionAreaDataSecurityAndPrivacy; FAQForDataSecurityAndPrivacyLbl)
+                {
+                    ShowCaption = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        Hyperlink(FAQForDataSecurityAndPrivacyDocLinkLbl);
+                    end;
+                }
                 group(AOAIOutOfRegionAreaDataMovementGroup)
                 {
                     ShowCaption = false;
@@ -175,15 +184,6 @@ page 7775 "Copilot AI Capabilities"
                         trigger OnDrillDown()
                         begin
                             Hyperlink(AOAIServiceLocatedDocLinkLbl);
-                        end;
-                    }
-                    field(AOAIOutOfRegionAreaDataSecurityAndPrivacy; FAQForDataSecurityAndPrivacyLbl)
-                    {
-                        ShowCaption = false;
-
-                        trigger OnDrillDown()
-                        begin
-                            Hyperlink(FAQForDataSecurityAndPrivacyDocLinkLbl);
                         end;
                     }
                     field(AOAIOutOfRegionAreaDataProcess; DataProcessByAOAILbl)
