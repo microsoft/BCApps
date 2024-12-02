@@ -16,7 +16,7 @@ var pbiAuthToken = null;
 var _showBookmarkSelection = false;
 var _showFilters = false;
 var _showPageSelection = false;
-var _showZoomBar = false;
+var _showZoomBar = true;
 var _forceTransparentBackground = false;
 var _forceFitToPage = false;
 var _addBottomPadding = false;
@@ -145,6 +145,17 @@ function InitializeFrame(fullpage, ratio) {
             displayOption: models.DisplayOption.FitToPage
         }
     }
+}
+
+function SetSettings(showBookmarkSelection, showFilters, showPageSelection, showZoomBar, forceTransparentBackground, forceFitToPage, addBottomPadding) {
+    // OBSOLETE
+    _showBookmarkSelection = showBookmarkSelection;
+    _showFilters = showFilters;
+    _showPageSelection = showPageSelection;
+    _showZoomBar = showZoomBar;
+    _forceTransparentBackground = forceTransparentBackground;
+    _addBottomPadding = addBottomPadding;
+    _forceFitToPage = forceFitToPage;
 }
 
 // Exposed Functions
@@ -345,14 +356,24 @@ function SetToken(authToken) {
     pbiAuthToken = authToken;
 }
 
-function SetSettings(showBookmarkSelection, showFilters, showPageSelection, showZoomBar, forceTransparentBackground, forceFitToPage, addBottomPadding) {
-    _showBookmarkSelection = showBookmarkSelection;
-    _showFilters = showFilters;
-    _showPageSelection = showPageSelection;
-    _showZoomBar = showZoomBar;
-    _forceTransparentBackground = forceTransparentBackground;
-    _forceFitToPage = forceFitToPage;
-    _addBottomPadding = addBottomPadding;
+function SetBookmarksVisible(visible) {
+    _showBookmarkSelection = visible;
+}
+
+function SetFiltersVisible(visible) {
+    _showFilters = visible;
+}
+
+function SetPageSelectionVisible(visible) {
+    _showPageSelection = visible;
+}
+
+function SetTransparentBackground(transparent) {
+    _forceTransparentBackground = transparent;
+}
+
+function AddBottomPadding(addPadding) {
+    _addBottomPadding = addPadding;
 }
 
 // Internal functions
@@ -504,12 +525,16 @@ function LogErrorToConsole(operation, error) {
 }
 
 function GetErrorMessage(error) {
-    if (error && error.message) {
-        return error.message;
+    if (error && error.detail && error.detail.detailedMessage) {
+        return error.detail.detailedMessage;
     }
 
     if (error && error.detail && error.detail.message) {
         return error.detail.message;
+    }
+
+    if (error && error.message) {
+        return error.message;
     }
 
     return error.toString();
