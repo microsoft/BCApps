@@ -104,7 +104,7 @@ page 7775 "Copilot AI Capabilities"
                         ApplicationArea = All;
                         Caption = 'Allow data movement';
                         ToolTip = 'Specifies whether data movement across regions is allowed. This is required to enable Copilot in your environment.';
-                        Editable = WithinAOAIOutOfRegionArea and AllowDataMovementEditable;
+                        Editable = WithinEUDBArea and AllowDataMovementEditable;
 
                         trigger OnValidate()
                         begin
@@ -284,7 +284,7 @@ page 7775 "Copilot AI Capabilities"
         //Todo: replace WithinEuropeGeo with WithinEUBD
         WithinEUDBArea := WithinEuropeGeo;
         WithinAOAIServicesInRegionArea := WithinGeo and (not WithinEuropeGeo);
-        WithinAOAIOutOfRegionArea := not WithinGeo;
+        WithinAOAIOutOfRegionArea := (not WithinGeo) and (not WithinEuropeGeo);
     end;
 
     local procedure HasEarlyPreviewCapabilities(): Boolean
@@ -325,7 +325,7 @@ page 7775 "Copilot AI Capabilities"
         CopilotGovernDataLbl: Label 'How do I govern my Copilot data?';
         FAQForDataSecurityAndPrivacyLbl: Label 'FAQ for data security and privacy';
         DataProcessByAOAILbl: Label 'What data is processed by Azure OpenAI Service?';
-        AOAIServiceLocatedLbl: Label 'In which region will my data be stored and processed?';
+        AOAIServiceLocatedLbl: Label 'In which region will my data be processed?';
         CopilotGovernDataDocLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2249575', Locked = true;
         FAQForDataSecurityAndPrivacyDocLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2298505', Locked = true;
         DataProcessByAOAIDocLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2298232', Locked = true;
