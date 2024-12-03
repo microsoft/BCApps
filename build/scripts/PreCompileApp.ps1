@@ -53,6 +53,8 @@ if($appType -eq 'app')
                 else {
                     Compile-AppInBcContainer @tempParameters | Out-Null
                 }
+
+                $parameters.Value["preprocessorsymbols"] = Get-PreprocessorSymbols
             }
 
             if(($appBuildMode -eq 'Strict') -and !(Test-IsStrictModeEnabled)) {

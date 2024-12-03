@@ -268,4 +268,14 @@ function Get-MaxAllowedObsoleteVersion() {
     return [System.Version]::Parse($alGoSettings.repoVersion).Major
 }
 
+function Get-PreprocessorSymbols() {
+    Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
+
+    [int] $currentVersion = (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go) -split '\.' | Select-Object -First 1
+    [int] $upperBound = Get-MaxAllowedObsoleteVersion
+    [int] $lowerBound = $CurrentVersion - 4
+
+    return $lowerBound..$upperBound | ForEach-Object { "CLEAN$_" }
+}
+
 Export-ModuleMember -Function *-*
