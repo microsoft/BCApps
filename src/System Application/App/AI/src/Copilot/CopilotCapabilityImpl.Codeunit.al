@@ -149,10 +149,9 @@ codeunit 7774 "Copilot Capability Impl"
             exit(CopilotSettings.Status = Enum::"Copilot Status"::Active);
 
         // check privacy notices
-        foreach RequiredPrivacyNotice in RequiredPrivacyNotices do begin
+        foreach RequiredPrivacyNotice in RequiredPrivacyNotices do
             if (PrivacyNotice.GetPrivacyNoticeApprovalState(RequiredPrivacyNotice, true) <> Enum::"Privacy Notice Approval State"::Agreed) then
                 exit(false);
-        end;
 
         exit(true);
     end;

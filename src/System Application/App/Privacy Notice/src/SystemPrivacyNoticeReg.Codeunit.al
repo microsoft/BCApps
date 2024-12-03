@@ -17,7 +17,7 @@ codeunit 1566 "System Privacy Notice Reg."
         PowerAutomateLabelTxt: Label 'Microsoft Power Automate', Locked = true; // Product names are not translated and it's important this entry exists.
         MicrosoftLearnTxt: Label 'Microsoft Learn', Locked = true; // Product names are not translated and it's important this entry exists.
 
-    procedure GetMicrosoftLearnID(): Text
+    procedure GetMicrosoftLearnID(): Code[50]
     begin
         exit(MicrosoftLearnTxt);
     end;
