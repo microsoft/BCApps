@@ -36,15 +36,6 @@ page 7775 "Copilot AI Capabilities"
                 Visible = WithinAOAIServicesInRegionArea;
                 InstructionalText = 'Copilot and agents use the Azure OpenAI Service. Your environment connects to this service in your own region.';
 
-                field(GovernData; CopilotGovernDataLbl)
-                {
-                    ShowCaption = false;
-
-                    trigger OnDrillDown()
-                    begin
-                        Hyperlink(CopilotGovernDataDocLinkLbl);
-                    end;
-                }
                 field(DataSecurityAndPrivacy; FAQForDataSecurityAndPrivacyLbl)
                 {
                     ShowCaption = false;
@@ -52,6 +43,15 @@ page 7775 "Copilot AI Capabilities"
                     trigger OnDrillDown()
                     begin
                         Hyperlink(FAQForDataSecurityAndPrivacyDocLinkLbl);
+                    end;
+                }
+                field(GovernData; CopilotGovernDataLbl)
+                {
+                    ShowCaption = false;
+
+                    trigger OnDrillDown()
+                    begin
+                        Hyperlink(CopilotGovernDataDocLinkLbl);
                     end;
                 }
                 field(DataProcessByAOAI; DataProcessByAOAILbl)
