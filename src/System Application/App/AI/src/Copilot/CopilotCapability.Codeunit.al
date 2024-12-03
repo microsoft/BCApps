@@ -118,4 +118,15 @@ codeunit 7773 "Copilot Capability"
     begin
         exit(CopilotCapabilityImpl.IsCapabilityActive(CopilotCapability, AppId));
     end;
+
+    /// <summary>
+    /// Event that is raised to specify if a Copilot capability depends on any additional privacy notices.
+    /// </summary>
+    /// <param name="CopilotCapability">The capability.</param>
+    /// <param name="AppId">The app id associated with the capability.</param>
+    /// <param name="RequiredPrivacyNotices">The list of required privacy notices for the capability to be enabled.</param>
+    [IntegrationEvent(false, false)]
+    procedure OnGetRequiredPrivacyNotices(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; var RequiredPrivacyNotices: List of [Code[50]])
+    begin
+    end;
 }

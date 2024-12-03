@@ -35,7 +35,7 @@ page 7774 "Copilot Capabilities GA"
                     Editable = false;
                     Width = 30;
                 }
-                field(Status; Rec.Status)
+                field(Status; Rec.EvaluatedStatus())
                 {
                     ApplicationArea = All;
                     Caption = 'Status';
@@ -179,7 +179,7 @@ page 7774 "Copilot Capabilities GA"
 
     local procedure SetStatusStyle()
     begin
-        if (Rec.Status = Rec.Status::Active) then
+        if (Rec.EvaluatedStatus() = Rec.Status::Active) then
             StatusStyleExpr := 'Favorable'
         else
             StatusStyleExpr := '';
