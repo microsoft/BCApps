@@ -30,7 +30,7 @@ codeunit 305 "No. Series - Setup Impl."
     var
         NoSeriesLine: Record "No. Series Line";
     begin
-        SetNoSeriesCurrentLineFilters(NoSeries, NoSeriesLine, true);
+        SelectCurrentNoSeriesLine(NoSeries, NoSeriesLine, true);
         Page.RunModal(0, NoSeriesLine);
     end;
 
@@ -52,7 +52,7 @@ codeunit 305 "No. Series - Setup Impl."
             exit;
 #pragma warning restore AL0432        
 #endif
-        SetNoSeriesCurrentLineFilters(NoSeriesRec, NoSeriesLine, false);
+        SelectCurrentNoSeriesLine(NoSeriesRec, NoSeriesLine, false);
 
         StartDate := NoSeriesLine."Starting Date";
         StartNo := NoSeriesLine."Starting No.";
@@ -89,7 +89,7 @@ codeunit 305 "No. Series - Setup Impl."
         NoSeries.MarkedOnly(true);
     end;
 
-    local procedure SetNoSeriesCurrentLineFilters(var NoSeriesRec: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; ResetForDrillDown: Boolean)
+    procedure SelectCurrentNoSeriesLine(var NoSeriesRec: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; ResetForDrillDown: Boolean)
     var
         NoSeries: Codeunit "No. Series";
 #if not CLEAN24
