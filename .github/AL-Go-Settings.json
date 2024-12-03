@@ -10,6 +10,11 @@
   "useProjectDependencies": true,
   "repoVersion": "26.0",
   "cleanModePreprocessorSymbols": [
+    "CLEAN22",
+    "CLEAN23",
+    "CLEAN24",
+    "CLEAN25",
+    "CLEAN26"
   ],
   "unusedALGoSystemFiles": [
     "AddExistingAppOrTestApp.yaml",
