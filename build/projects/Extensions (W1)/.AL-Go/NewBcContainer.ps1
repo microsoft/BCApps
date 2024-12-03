@@ -3,4 +3,4 @@ Param(
 )
 
 $script = Join-Path $PSScriptRoot "../../../scripts/NewBcContainer.ps1" -Resolve
-. $script -parameters $parameters
+. $script -parameters $parameters -keepApps @("System Application", "Business Foundation", "Base Application", "Application", "Test Runner", "AI Test Toolkit")

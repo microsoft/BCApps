@@ -1,5 +1,6 @@
 Param(
-    [Hashtable]$parameters
+    [Hashtable]$parameters,
+    [string[]]$keepApps
 )
 
 $parameters.multitenant = $false
@@ -15,7 +16,11 @@ New-BcContainer @parameters
 $installedApps = Get-BcContainerAppInfo -containerName $containerName -tenantSpecificProperties -sort DependenciesLast
 $installedApps | ForEach-Object {
     Write-Host "Removing $($_.Name)"
-    Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $_.Name -unInstall -doNotSaveData -doNotSaveSchema -force
+    if ($_.Name -notin $keepApps) {
+        Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $_.Name -unInstall -doNotSaveData -doNotSaveSchema -force
+    } else {
+        Write-Host "Skipping $($_.Name)"
+    }
 }
 
 Invoke-ScriptInBcContainer -containerName $parameters.ContainerName -scriptblock { $progressPreference = 'SilentlyContinue' }
