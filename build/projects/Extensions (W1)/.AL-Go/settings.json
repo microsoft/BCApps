@@ -1,0 +1,24 @@
+{
+    "projectName": "Business Foundation",
+    "appFolders":  [
+        "../../../src/Extensions/W1/*/app"
+    ],
+    "testFolders":  [
+        "../../../src/Extensions/W1/*/Test",
+        "../../../src/Extensions/W1/*/Test Library"
+    ],
+    "buildModes": [
+        "Translated"
+    ],
+    "installOnlyReferencedApps": false,
+    "ConditionalSettings": [
+        {
+            "branches": [
+                "releases/*.[0-5]"
+            ],
+            "settings": {
+                "buildModes": [ "Strict" ]
+            }
+        }
+    ]
+}
