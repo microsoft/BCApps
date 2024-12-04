@@ -49,28 +49,4 @@ codeunit 299 "No. Series - Setup"
     begin
         NoSeriesSetupImpl.UpdateNoSeriesLine(NoSeriesLine, NewNo, NewFieldCaption);
     end;
-
-    /// <summary>
-    /// Opens the No. Series Lines page filtered on the Series Code focused on the applicable line based on the workdate.
-    /// </summary>
-    /// <param name="NoSeries">The No. Series record to drill down on.</param>
-    procedure DrillDown(var NoSeries: Record "No. Series")
-    var
-        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
-    begin
-        NoSeriesSetupImpl.DrillDown(NoSeries);
-    end;
-
-    /// <summary>
-    /// Filters the No Series Lines and selects the currently applicable line based on the workdate.
-    /// </summary>
-    /// <param name="NoSeries">The No. Series for which to select a line.</param>
-    /// <param name="NoSeriesLine">The No Series Line is returned filtered and the currently applicable line is selected</param>
-    /// <param name="ResetFilters">If set to true, the filters on the Starting Date and Open fields are reset. The currently applicable line is still selected in the table.</param>
-    procedure SelectCurrentNoSeriesLine(var NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; ResetFilters: Boolean)
-    var
-        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
-    begin
-        NoSeriesSetupImpl.SelectCurrentNoSeriesLine(NoSeries, NoSeriesLine, ResetFilters);
-    end;
 }
