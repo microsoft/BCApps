@@ -5,6 +5,7 @@
 namespace System.AI;
 
 using System.Environment;
+using System.Privacy;
 
 codeunit 7760 "Copilot Capability Install"
 {
@@ -48,5 +49,23 @@ codeunit 7760 "Copilot Capability Install"
     local procedure OnRegisterCopilotCapability()
     begin
         RegisterCapabilities();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copilot Capability", 'OnGetRequiredPrivacyNotices', '', false, false)]
+    local procedure OnGetRequiredPrivacyNotices(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; var RequiredPrivacyNotices: List of [Code[50]])
+    var
+        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
+        ModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCurrentModuleInfo(ModuleInfo);
+
+        if AppId <> ModuleInfo.Id then
+            exit;
+
+        if CopilotCapability <> Enum::"Copilot Capability"::Chat then
+            exit;
+
+        if not RequiredPrivacyNotices.Contains(SystemPrivacyNoticeReg.GetMicrosoftLearnID()) then
+            RequiredPrivacyNotices.Add(SystemPrivacyNoticeReg.GetMicrosoftLearnID());
     end;
 }
