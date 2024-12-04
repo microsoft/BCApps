@@ -158,7 +158,7 @@ function Get-PackageLatestVersion() {
             if ($PackageName -eq "AppBaselines-BCArtifacts") {
                 # For app baselines, use the previous minor version as minimum version
                 if ($majorMinorVersion.Minor -gt 0) {
-                    $minimumVersion = "$($majorMinorVersion.Major).$($majorMinorVersion.Minor - 1)"
+                    $minimumVersion = "$($majorMinorVersion.Major).$([Math]::Min($majorMinorVersion.Minor - 1, 5))" # limit the minor version to 5, as it is the maximum minor version for SaaS
                 } else {
                     $minimumVersion = "$($majorMinorVersion.Major - 1)"
                 }
