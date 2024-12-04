@@ -1,0 +1,48 @@
+{
+  "id": "95f7c0f8-d9b8-4538-80f9-6e17f6f7b91a",
+  "name": "Agent",
+  "publisher": "Microsoft",
+  "brief": "Enables managing of agents",
+  "description": "Provides functionality for setting up, enabling and disabling, interacting and auditing agents.",
+  "version": "25.2.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?LinkId=847985",
+  "help": "https://go.microsoft.com/fwlink/?linkid=868966",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=868966",
+  "logo": "ExtensionLogo.png",
+  "screenshots": [],
+  "platform": "25.2.0.0",
+  "target": "OnPrem",
+  "idRanges": [
+    {
+      "from": 3000,
+      "to": 5000
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "dd4b9f8a-b018-4f69-a614-efdb744c5330",
+      "name": "Page Summary Provider",
+      "publisher": "Microsoft",
+      "version": "25.2.0.0"
+    },
+    {
+      "id": "7b9b59f5-a68d-4271-b11a-0d3b9c0938dd",
+      "name": "User Settings",
+      "publisher": "Microsoft",
+      "version": "25.2.0.0"
+    },
+    {
+      "id": "c56e3ef4-7ab0-4636-ae87-013a62f12213",
+      "name": "User Permissions",
+      "publisher": "Microsoft",
+      "version": "25.2.0.0"
+    }
+  ],
+  "propagateDependencies": true,
+  "features": [
+    "TranslationFile",
+    "NoImplicitWith"
+  ]
+}

@@ -154,6 +154,14 @@ codeunit 9175 "User Settings Impl."
         GetUserSettings(UserSettings."User Security ID", UserSettings);
     end;
 
+    procedure UpdateUserSettings(NewUserSettings: Record "User Settings")
+    var
+        CurrentUserSettings: Record "User Settings";
+    begin
+        GetUserSettings(NewUserSettings."User Security ID", CurrentUserSettings);
+        UpdateCurrentUsersSettings(CurrentUserSettings, NewUserSettings);
+    end;
+
     procedure UpdateUserSettings(OldUserSettings: Record "User Settings"; NewUserSettings: Record "User Settings")
     var
         UserSettings: Codeunit "User Settings";
