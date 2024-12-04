@@ -268,7 +268,7 @@ function Get-MaxAllowedObsoleteVersion() {
     return [System.Version]::Parse($alGoSettings.repoVersion).Major
 }
 
-function Get-MinAllowedCleantagVersion() {
+function Get-MinAllowedCleanTagVersion() {
     Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
     [int] $currentVersion = (Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go) -split '\.' | Select-Object -First 1
     $lowerBound = $CurrentVersion - 4
