@@ -159,6 +159,7 @@ page 1565 "Privacy Notices"
 
     trigger OnAfterGetRecord()
     begin
+        Rec.CalcFields(Rec.Enabled, Rec.Disabled);
         Accepted := Rec.Enabled;
         Rejected := Rec.Disabled;
         UserDecides := not (Accepted or Rejected);

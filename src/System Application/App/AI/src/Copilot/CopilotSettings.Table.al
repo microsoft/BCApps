@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI;
 
+using System.Privacy;
+
 /// <summary>
 /// Table to keep track of each Copilot Capability settings.
 /// </summary>
@@ -51,4 +53,36 @@ table 7775 "Copilot Settings"
             Clustered = true;
         }
     }
+
+    procedure EvaluateStatus(): Enum "Copilot Status"
+    var
+        CopilotCapability: Codeunit "Copilot Capability";
+    begin
+        if Rec.Status <> Rec.Status::Active then
+            exit(Rec.Status);
+
+        if CopilotCapability.IsCapabilityActive(Rec.Capability, Rec."App Id") then
+            exit(Rec.Status::Active)
+        else
+            exit(Rec.Status::Inactive);
+    end;
+
+    procedure EnsurePrivacyNoticesApproved(): Boolean
+    var
+        CopilotCapability: Codeunit "Copilot Capability";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        RequiredPrivacyNotices: List of [Code[50]];
+        RequiredPrivacyNotice: Code[50];
+    begin
+        CopilotCapability.OnGetRequiredPrivacyNotices(Rec.Capability, Rec."App Id", RequiredPrivacyNotices);
+
+        if RequiredPrivacyNotices.Count() <= 0 then
+            exit(true);
+
+        foreach RequiredPrivacyNotice in RequiredPrivacyNotices do
+            if not PrivacyNotice.ConfirmPrivacyNoticeApproval(RequiredPrivacyNotice, true) then
+                exit(false);
+
+        exit(true);
+    end;
 }
