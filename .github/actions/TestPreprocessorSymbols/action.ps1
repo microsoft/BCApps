@@ -19,7 +19,7 @@ if ($CurrentVersion -le 26) {
 
 # Define the preprocessor symbols to check for
 $symbolConfigs = @(
-    @{stem = "CLEAN"; lowerBound = (Get-MinAllowedCleantagVersion); upperBound = $mainVersion},
+    @{stem = "CLEAN"; lowerBound = (Get-MinAllowedCleanTagVersion); upperBound = $mainVersion},
     @{stem = "CLEANSCHEMA"; lowerBound = $schemaLowerBound; upperBound = $mainVersion + 3} # next lowerbound, after cleanup should be 25, then
 )
 
