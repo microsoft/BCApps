@@ -30,21 +30,6 @@
   ],
   "rules": [
     {
-      "id": "AL0432",
-      "action": "Warning",
-      "justification": "Needs to be fixed"
-    },
-    {
-      "id": "AL0667",
-      "action": "Warning",
-      "justification": "Needs to be fixed"
-    },
-    {
-      "id": "AL0254",
-      "action": "Warning",
-      "justification": "Needs to be fixed"
-    },
-    {
       "id": "AL0797",
       "action": "None",
       "justification": "Tables are moved from BaseApp to BCApps."
