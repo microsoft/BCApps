@@ -85,6 +85,19 @@ codeunit 152 "User Permissions"
 #endif
 
     /// <summary>
+    /// Assign a permission set to a given user
+    /// </summary>
+    /// <param name="UserSecurityId">The user's security ID.</param>
+    /// <param name="Company">The company for which to give the permission</param>
+    /// <param name="AggregatePermissionSet">Permission sets to assign</param>
+    procedure AssignPermissionSets(var UserSecurityId: Guid; CompanyName: Text; var AggregatePermissionSet: Record "Aggregate Permission Set")
+    var
+        UserPermissionsImpl: Codeunit "User Permissions Impl.";
+    begin
+        UserPermissionsImpl.AssignPermissionSets(UserSecurityId, CompanyName, AggregatePermissionSet);
+    end;
+    
+    /// <summary>
     /// Gets the effective permissions for the current user in the current company.
     /// </summary>
     /// <param name="PermissionObjectType">The object type to check for.</param>
