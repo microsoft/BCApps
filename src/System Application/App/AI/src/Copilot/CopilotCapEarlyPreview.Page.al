@@ -35,7 +35,7 @@ page 7770 "Copilot Cap. Early Preview"
                     Editable = false;
                     Width = 30;
                 }
-                field(Status; Rec.EvaluatedStatus())
+                field(Status; Rec.EvaluateStatus())
                 {
                     ApplicationArea = All;
                     Caption = 'Status';
@@ -169,7 +169,7 @@ page 7770 "Copilot Cap. Early Preview"
 
     local procedure SetStatusStyle()
     begin
-        if (Rec.EvaluatedStatus() = Rec.Status::Active) then
+        if (Rec.EvaluateStatus() = Rec.Status::Active) then
             StatusStyleExpr := 'Favorable'
         else
             StatusStyleExpr := '';

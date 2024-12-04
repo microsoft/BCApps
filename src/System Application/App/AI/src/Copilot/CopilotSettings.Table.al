@@ -54,7 +54,7 @@ table 7775 "Copilot Settings"
         }
     }
 
-    procedure EvaluatedStatus(): Enum "Copilot Status"
+    procedure EvaluateStatus(): Enum "Copilot Status"
     var
         CopilotCapability: Codeunit "Copilot Capability";
     begin
