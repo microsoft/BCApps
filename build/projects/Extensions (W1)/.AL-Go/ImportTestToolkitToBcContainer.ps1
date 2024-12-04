@@ -3,4 +3,5 @@ Param(
     [hashtable] $parameters
 )
 
-Write-Host "Skipping Test Toolkit import"
+$scriptPath = Join-Path $PSScriptRoot "../../../scripts/ImportTestToolkitToBcContainer.ps1" -Resolve
+. $scriptPath -parameters $parameters
