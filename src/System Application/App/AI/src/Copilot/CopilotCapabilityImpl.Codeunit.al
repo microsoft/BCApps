@@ -243,7 +243,7 @@ codeunit 7774 "Copilot Capability Impl"
         IsAdmin := AzureADGraphUser.IsUserDelegatedAdmin() or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetGlobalAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetBCAdminPlanId()) or AzureADPlan.IsPlanAssignedToUser(PlanIds.GetD365AdminPlanId()) or AzureADGraphUser.IsUserDelegatedHelpdesk() or UserPermissions.IsSuper(UserSecurityId());
     end;
 
-#if not clean26
+#if not CLEAN26
     [TryFunction]
     [Obsolete('Use the procedure CheckGeoAndEUDB', '26.0')]
     procedure CheckGeo(var WithinGeo: Boolean; var WithinEuropeGeo: Boolean)
