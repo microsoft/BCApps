@@ -24,10 +24,10 @@ page 9985 "Upgrade Tags"
         {
             repeater(GroupName)
             {
-                field(Tag; Rec.Tag) { }
-                field("Tag Timestamp"; Rec."Tag Timestamp") { }
-                field(Company; Rec.Company) { }
-                field("Skipped Upgrade"; Rec."Skipped Upgrade") { }
+                // field(Tag; Rec.Tag) { }
+                // field("Tag Timestamp"; Rec."Tag Timestamp") { }
+                // field(Company; Rec.Company) { }
+                // field("Skipped Upgrade"; Rec."Skipped Upgrade") { }
             }
         }
     }
