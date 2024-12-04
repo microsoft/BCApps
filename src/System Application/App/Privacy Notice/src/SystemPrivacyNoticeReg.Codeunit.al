@@ -6,7 +6,7 @@
 namespace System.Privacy;
 
 /// <summary>
-/// This codeunit registers platform level privacy notices and provides procedures to consistently reference the privcay notices.
+/// This codeunit registers platform level privacy notices and provides procedures to consistently reference the privacy notices.
 /// </summary>
 codeunit 1566 "System Privacy Notice Reg."
 {

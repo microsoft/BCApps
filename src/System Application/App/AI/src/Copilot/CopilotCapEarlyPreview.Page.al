@@ -90,6 +90,8 @@ page 7770 "Copilot Cap. Early Preview"
                 trigger OnAction()
                 begin
                     if Dialog.Confirm(ActivateEarlyPreviewTxt, false) then begin
+                        if not Rec.EnsurePrivacyNoticesApproved() then
+                            exit;
                         Rec.Status := Rec.Status::Active;
                         Rec.Modify(true);
 
@@ -176,10 +178,12 @@ page 7770 "Copilot Cap. Early Preview"
     end;
 
     local procedure SetActionsEnabled()
+    var
+        CopilotCapability: Codeunit "Copilot Capability";
     begin
         if CopilotCapabilityImpl.IsAdmin() then begin
             ActionsEnabled := (Rec.Capability.AsInteger() <> 0) and DataMovementEnabled;
-            CapabilityEnabled := Rec.Status = Rec.Status::Active;
+            CapabilityEnabled := CopilotCapability.IsCapabilityActive(Rec.Capability, Rec."App Id");
         end
         else begin
             ActionsEnabled := false;
