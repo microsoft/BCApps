@@ -253,7 +253,7 @@ codeunit 7774 "Copilot Capability Impl"
     end;
 
     [TryFunction]
-    procedure CheckGeoWithEUDB(var WithinGeo: Boolean; var WithinEUDB: Boolean)
+    procedure CheckGeoAndEUDB(var WithinGeo: Boolean; var WithinEUDB: Boolean)
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin

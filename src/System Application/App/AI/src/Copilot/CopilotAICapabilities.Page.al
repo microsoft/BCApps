@@ -254,7 +254,7 @@ page 7775 "Copilot AI Capabilities"
     begin
         OnRegisterCopilotCapability();
 
-        CopilotCapabilityImpl.CheckGeoWithEUDB(WithinGeo, WithinEUDB);
+        CopilotCapabilityImpl.CheckGeoAndEUDB(WithinGeo, WithinEUDB);
 
         case PrivacyNotice.GetPrivacyNoticeApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), false) of
             Enum::"Privacy Notice Approval State"::Agreed:
