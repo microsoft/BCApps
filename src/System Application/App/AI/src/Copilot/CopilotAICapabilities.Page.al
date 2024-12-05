@@ -271,7 +271,6 @@ page 7775 "Copilot AI Capabilities"
 
         CopilotCapabilityImpl.UpdateGuidedExperience(AllowDataMovement);
 
-
         WithinEUDBArea := WithinEUDB;
         WithinAOAIServicesInRegionArea := WithinGeo and (not WithinEUDB);
         WithinAOAIOutOfRegionArea := (not WithinGeo) and (not WithinEUDB);
