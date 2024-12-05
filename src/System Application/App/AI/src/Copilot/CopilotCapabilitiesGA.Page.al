@@ -119,18 +119,19 @@ page 7774 "Copilot Capabilities GA"
                     end;
                 end;
             }
-
+#if not CLEAN26
             action(SupplementalTerms)
             {
                 Caption = 'Supplemental Terms of Use';
                 ToolTip = 'Opens the supplemental terms of use for generally available capabilities.';
                 Image = Info;
-
+                Visible = false;
                 trigger OnAction()
                 begin
                     Hyperlink(SupplementalTermsLinkTxt);
                 end;
             }
+#endif
         }
     }
 
@@ -163,7 +164,9 @@ page 7774 "Copilot Capabilities GA"
         ActionsEnabled: Boolean;
         CapabilityEnabled: Boolean;
         DataMovementEnabled: Boolean;
+#if not CLEAN26
         SupplementalTermsLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2236010', Locked = true;
+#endif
         CopilotFeatureDeactivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been deactivated by UserSecurityId %3.', Locked = true;
         CopilotFeatureActivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been activated by UserSecurityId %3.', Locked = true;
 
