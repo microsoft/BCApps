@@ -15,5 +15,6 @@ permissionset 43 "Language - Edit"
 
     IncludedPermissionSets = "Language - View";
 
-    Permissions = tabledata Language = IMD, tabledata "Supported Language" = IMD;
+    Permissions = tabledata Language = IMD,
+                  tabledata "Allowed Language" = IMD;
 }

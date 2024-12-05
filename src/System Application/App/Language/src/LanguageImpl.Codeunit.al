@@ -19,7 +19,7 @@ codeunit 54 "Language Impl."
                   tabledata "Language Selection" = r,
                   tabledata "User Personalization" = rm,
                   tabledata "Windows Language" = r,
-                  tabledata "Supported Language" = rimd;
+                  tabledata "Allowed Language" = rimd;
 
     var
         ResetLanguageIdOverrideAfterUse, ResetFormatRegionOverrideAfterUse : Boolean;
@@ -152,20 +152,18 @@ codeunit 54 "Language Impl."
 
     procedure GetApplicationLanguages(var TempWindowsLanguage: Record "Windows Language" temporary)
     var
-        SupportedLanguage: Record "Supported Language";
+        AllowedLanguage: Record "Allowed Language";
         WindowsLanguage: Record "Windows Language";
         LanguageFilter: Text;
     begin
-        SupportedLanguage.Reset();
-        SupportedLanguage.ReadIsolation := IsolationLevel::ReadUncommitted;
-        SupportedLanguage.LoadFields("Language Id");
-        if SupportedLanguage.FindSet() then
+        AllowedLanguage.ReadIsolation := IsolationLevel::ReadCommitted;
+        AllowedLanguage.LoadFields("Language Id");
+        if AllowedLanguage.FindSet() then
             repeat
-                AddToFilter(Format(SupportedLanguage."Language Id"), LanguageFilter);
-            until SupportedLanguage.Next() = 0;
+                AddToFilter(Format(AllowedLanguage."Language Id"), LanguageFilter);
+            until AllowedLanguage.Next() = 0;
 
-        WindowsLanguage.Reset();
-        WindowsLanguage.ReadIsolation := IsolationLevel::ReadUncommitted;
+        WindowsLanguage.ReadIsolation := IsolationLevel::ReadCommitted;
         if LanguageFilter <> '' then
             WindowsLanguage.SetFilter("Language ID", LanguageFilter);
 
@@ -271,14 +269,16 @@ codeunit 54 "Language Impl."
 
     procedure LookupWindowsLanguageId(var LanguageId: Integer)
     var
-        WindowsLanguage: Record "Windows Language";
+        TempWindowsLanguage: Record "Windows Language" temporary;
     begin
-        WindowsLanguage.SetCurrentKey(Name);
+        GetApplicationLanguages(TempWindowsLanguage);
 
-        if WindowsLanguage.Get(LanguageId) then;
+        TempWindowsLanguage.SetCurrentKey(Name);
 
-        if Page.RunModal(Page::"Windows Languages", WindowsLanguage) = Action::LookupOK then
-            LanguageId := WindowsLanguage."Language ID";
+        if TempWindowsLanguage.Get(LanguageId) then;
+
+        if Page.RunModal(Page::"Windows Languages", TempWindowsLanguage) = Action::LookupOK then
+            LanguageId := TempWindowsLanguage."Language ID";
     end;
 
     procedure GetParentLanguageId(LanguageId: Integer) ParentLanguageId: Integer
