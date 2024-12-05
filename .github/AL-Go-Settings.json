@@ -18,7 +18,8 @@
     "CLEAN22",
     "CLEAN23",
     "CLEAN24",
-    "CLEAN25"
+    "CLEAN25",
+    "CLEAN26"
   ],
   "unusedALGoSystemFiles": [
     "AddExistingAppOrTestApp.yaml",
@@ -72,5 +73,5 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "c62bf167f8c516d997bed1ed600a9d03d5093ad5"
+  "templateSha": "bbc88d84c6c206b79a63ce535897e97c394d7059"
 }

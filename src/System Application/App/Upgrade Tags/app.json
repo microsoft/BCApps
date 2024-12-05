@@ -12,8 +12,12 @@
   "logo": "",
   "dependencies": [],
   "screenshots": [],
-  "platform": "25.0.0.0",
+  "platform": "25.2.0.0",
   "idRanges": [
+    {
+      "from": 9985,
+      "to": 9985
+    },
     {
       "from": 9992,
       "to": 9994

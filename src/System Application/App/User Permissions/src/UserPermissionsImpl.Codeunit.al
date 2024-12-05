@@ -290,6 +290,32 @@ codeunit 153 "User Permissions Impl."
         Evaluate(TempExpandedPermission."Execute Permission", SelectStr(5, PermissionMask));
     end;
 
+    procedure AssignPermissionSets(var UserSecurityId: Guid; CompanyName: Text; var AggregatePermissionSet: Record "Aggregate Permission Set")
+    begin
+        if not AggregatePermissionSet.FindSet() then
+            exit;
+
+        repeat
+            AssignPermissionSet(UserSecurityId, CompanyName, AggregatePermissionSet);
+        until AggregatePermissionSet.Next() = 0;
+    end;
+
+    procedure AssignPermissionSet(var UserSecurityId: Guid; CompanyName: Text; var AggregatePermissionSet: Record "Aggregate Permission Set")
+    var
+        AccessControl: Record "Access Control";
+    begin
+        if AccessControl.Get(UserSecurityId, AggregatePermissionSet."Role ID", '', AggregatePermissionSet.Scope, AggregatePermissionSet."App ID") then
+            exit;
+
+        AccessControl."App ID" := AggregatePermissionSet."App ID";
+        AccessControl."User Security ID" := UserSecurityId;
+        AccessControl."Role ID" := AggregatePermissionSet."Role ID";
+        AccessControl.Scope := AggregatePermissionSet.Scope;
+#pragma warning disable AA0139
+        AccessControl."Company Name" := CompanyName;
+#pragma warning restore AA0139
+        AccessControl.Insert();
+    end;
     /// <summary>
     /// An event that indicates that subscribers should set the result that should be returned when the CanManageUsersOnTenant is called.
     /// </summary>
