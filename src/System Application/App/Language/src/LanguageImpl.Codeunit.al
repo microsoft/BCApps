@@ -15,11 +15,11 @@ codeunit 54 "Language Impl."
     SingleInstance = true;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata Language = rimd,
+    Permissions = tabledata "Allowed Language" = rimd,
+                  tabledata Language = rimd,
                   tabledata "Language Selection" = r,
                   tabledata "User Personalization" = rm,
-                  tabledata "Windows Language" = r,
-                  tabledata "Allowed Language" = rimd;
+                  tabledata "Windows Language" = r;
 
     var
         ResetLanguageIdOverrideAfterUse, ResetFormatRegionOverrideAfterUse : Boolean;

@@ -10,7 +10,7 @@ permissionset 164 "Language - Objects"
     Access = Internal;
     Assignable = false;
 
-    Permissions = page Languages = X,
-                  page "Windows Languages" = X,
-                  page "Allowed Languages" = X;
+    Permissions = page "Allowed Languages" = X,
+                  page Languages = X,
+                  page "Windows Languages" = X;
 }
