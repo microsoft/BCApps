@@ -166,6 +166,30 @@ table 149032 "AIT Test Method Line"
             FieldClass = FlowField;
             CalcFormula = count("AIT Log Entry" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Base Version Filter")));
         }
+        field(40; "No. of Turns Executed"; Integer)
+        {
+            Caption = 'No. of Turns Executed';
+            ToolTip = 'Specifies the total number of turns for the test line.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("AIT Log Entry"."No. of Turns Executed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+        }
+        field(41; "No. of Turns Passed"; Integer)
+        {
+            Caption = 'No. of Turns Passed';
+            ToolTip = 'Specifies the total number of passed turns for the test line.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = sum("AIT Log Entry"."No. of Turns Passed" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+        }
+        field(45; Accuracy; Decimal)
+        {
+            Caption = 'Accuracy';
+            ToolTip = 'Specifies the average accuracy of the test line.';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = average("AIT Log Entry"."Accuracy" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
+        }
         field(101; "AL Test Suite"; Code[10])
         {
             Caption = 'AL Test Suite';
