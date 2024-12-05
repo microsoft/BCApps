@@ -243,11 +243,11 @@ page 7775 "Copilot AI Capabilities"
     var
         EnvironmentInformation: Codeunit "Environment Information";
         WithinGeo: Boolean;
-        WithinEuropeGeo: Boolean;
+        WithinEUDB: Boolean;
     begin
         OnRegisterCopilotCapability();
 
-        CopilotCapabilityImpl.CheckGeo(WithinGeo, WithinEuropeGeo);
+        CopilotCapabilityImpl.CheckGeoAndEUDB(WithinGeo, WithinEUDB);
 
         case PrivacyNotice.GetPrivacyNoticeApprovalState(CopilotCapabilityImpl.GetAzureOpenAICategory(), false) of
             Enum::"Privacy Notice Approval State"::Agreed:
@@ -266,15 +266,15 @@ page 7775 "Copilot AI Capabilities"
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             CopilotCapabilityImpl.ShowCapabilitiesNotAvailableOnPremNotification();
 
-        if (WithinGeo and not WithinEuropeGeo) and (not AllowDataMovement) then
+        if (WithinGeo and not WithinEUDB) and (not AllowDataMovement) then
             CopilotCapabilityImpl.ShowPrivacyNoticeDisagreedNotification();
 
         CopilotCapabilityImpl.UpdateGuidedExperience(AllowDataMovement);
 
-        //Todo: replace WithinEuropeGeo with WithinEUBD
-        WithinEUDBArea := WithinEuropeGeo;
-        WithinAOAIServicesInRegionArea := WithinGeo and (not WithinEuropeGeo);
-        WithinAOAIOutOfRegionArea := (not WithinGeo) and (not WithinEuropeGeo);
+
+        WithinEUDBArea := WithinEUDB;
+        WithinAOAIServicesInRegionArea := WithinGeo and (not WithinEUDB);
+        WithinAOAIOutOfRegionArea := (not WithinGeo) and (not WithinEUDB);
     end;
 
     local procedure UpdateAllowDataMovement()
