@@ -6,7 +6,7 @@
 namespace System.Globalization;
 
 /// <summary>
-/// This permission set allows editing of the list of languages.
+/// This permission set allows editing of the list of languages and supported languages.
 /// </summary>
 permissionset 43 "Language - Edit"
 {
@@ -15,5 +15,5 @@ permissionset 43 "Language - Edit"
 
     IncludedPermissionSets = "Language - View";
 
-    Permissions = tabledata Language = IMD;
+    Permissions = tabledata Language = IMD, tabledata "Supported Language" = IMD;
 }

@@ -11,5 +11,6 @@ permissionset 164 "Language - Objects"
     Assignable = false;
 
     Permissions = page Languages = X,
-                  page "Windows Languages" = X;
+                  page "Windows Languages" = X,
+                  page "Supported Languages" = X;
 }

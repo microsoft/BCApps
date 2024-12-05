@@ -6,8 +6,8 @@
 namespace System.Globalization;
 
 using System;
-using System.Environment.Configuration;
 using System.Environment;
+using System.Environment.Configuration;
 
 codeunit 54 "Language Impl."
 {
@@ -18,7 +18,8 @@ codeunit 54 "Language Impl."
     Permissions = tabledata Language = rimd,
                   tabledata "Language Selection" = r,
                   tabledata "User Personalization" = rm,
-                  tabledata "Windows Language" = r;
+                  tabledata "Windows Language" = r,
+                  tabledata "Supported Language" = rimd;
 
     var
         ResetLanguageIdOverrideAfterUse, ResetFormatRegionOverrideAfterUse : Boolean;
@@ -151,16 +152,38 @@ codeunit 54 "Language Impl."
 
     procedure GetApplicationLanguages(var TempWindowsLanguage: Record "Windows Language" temporary)
     var
+        SupportedLanguage: Record "Supported Language";
         WindowsLanguage: Record "Windows Language";
+        LanguageFilter: Text;
     begin
+        SupportedLanguage.Reset();
+        SupportedLanguage.ReadIsolation := IsolationLevel::ReadUncommitted;
+        SupportedLanguage.LoadFields("Language Id");
+        if SupportedLanguage.FindSet() then
+            repeat
+                AddToFilter(Format(SupportedLanguage."Language Id"), LanguageFilter);
+            until SupportedLanguage.Next() = 0;
+
+        WindowsLanguage.Reset();
+        WindowsLanguage.ReadIsolation := IsolationLevel::ReadUncommitted;
+        if LanguageFilter <> '' then
+            WindowsLanguage.SetFilter("Language ID", LanguageFilter);
+
         WindowsLanguage.SetRange("Localization Exist", true);
         WindowsLanguage.SetRange("Globally Enabled", true);
-
         if WindowsLanguage.FindSet() then
             repeat
                 TempWindowsLanguage := WindowsLanguage;
                 TempWindowsLanguage.Insert();
             until WindowsLanguage.Next() = 0;
+    end;
+
+    local procedure AddToFilter(Value: Text; var ValueFilter: Text)
+    begin
+        if ValueFilter = '' then
+            ValueFilter := Value
+        else
+            ValueFilter += '|' + Value;
     end;
 
     procedure GetDefaultApplicationLanguageId(): Integer

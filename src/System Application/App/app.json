@@ -22,7 +22,7 @@
       "name": "System Application Test Library",
       "publisher": "Microsoft"
     },
-    { 
+    {
       "id": "1a3ac64b-0e25-2345-8e9b-eab2a74b9e9a",
       "name": "Agent Developer Toolkit",
       "publisher": "Microsoft"
@@ -35,6 +35,10 @@
     {
       "from": 1,
       "to": 9999
+    },
+    {
+      "from": 50100,
+      "to": 50101
     }
   ],
   "features": [
