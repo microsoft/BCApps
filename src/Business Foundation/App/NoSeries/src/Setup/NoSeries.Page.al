@@ -41,9 +41,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -56,9 +56,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -71,9 +71,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -85,9 +85,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -100,9 +100,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -115,9 +115,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
@@ -130,9 +130,9 @@ page 456 "No. Series"
 
                     trigger OnDrillDown()
                     var
-                        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+                        NoSeries: Codeunit "No. Series";
                     begin
-                        NoSeriesSetupImpl.DrillDown(Rec);
+                        NoSeries.DrillDown(Rec);
                         CurrPage.Update(false);
                     end;
                 }
