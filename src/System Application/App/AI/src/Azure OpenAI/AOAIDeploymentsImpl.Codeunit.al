@@ -133,6 +133,11 @@ codeunit 7769 "AOAI Deployments Impl"
         CustomDimensions: Dictionary of [Text, Text];
         DeprecatedDate: Date;
     begin
+        //debug
+        CustomDimensions.Add('DeploymentName', DeploymentName);
+        Telemetry.LogMessage('0000AD0', StrSubstNo('DeprecationMessageLbl', DeploymentName, 'DeprecatedDate'), Verbosity::Warning, DataClassification::SystemMetadata, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+        //debug
+
         InitializeDeploymentDeprecationDates();
 
         NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
