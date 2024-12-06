@@ -6,6 +6,7 @@
 namespace System.DataAdministration;
 
 using System.Environment;
+using System.Reflection;
 
 codeunit 8700 "Table Information Cache Impl."
 {
@@ -144,8 +145,11 @@ codeunit 8700 "Table Information Cache Impl."
     end;
 
     procedure GetTableUrl(Company: Text; TableNo: Integer): Text
+    var
+        TableMetadata: Record "Table Metadata";
     begin
-        if Company = '' then
+        TableMetadata.Get(TableNo);
+        if not TableMetadata.DataPerCompany then
             Company := CompanyName(); // use the current company for the URL for the cases when table is not per company
 
         exit(GetUrl(ClientType::Web, Company, ObjectType::Table, TableNo));
