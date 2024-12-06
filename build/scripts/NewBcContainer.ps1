@@ -19,7 +19,8 @@ $installedApps | ForEach-Object {
     if ($_.Name -notin $keepApps) {
         Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $_.Name -unInstall -doNotSaveData -doNotSaveSchema -force
     } else {
-        UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $_.Name -doNotSaveData -doNotSaveSchema -Force
+        #UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $_.Name -doNotSaveData -doNotSaveSchema -Force
+        Write-Host "Keeping $($_.Name)"
     }
 }
 

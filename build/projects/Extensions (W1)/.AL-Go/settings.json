@@ -20,5 +20,6 @@
                 "buildModes": [ "Strict" ]
             }
         }
-    ]
+    ],
+    "useProjectDependencies": false
 }
