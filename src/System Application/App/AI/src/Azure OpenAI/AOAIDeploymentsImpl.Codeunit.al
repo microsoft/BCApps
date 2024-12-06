@@ -135,20 +135,21 @@ codeunit 7769 "AOAI Deployments Impl"
     begin
         //debug
         CustomDimensions.Add('DeploymentName', DeploymentName);
-        Telemetry.LogMessage('0000AD0', StrSubstNo('DeprecationMessageLbl', DeploymentName, 'DeprecatedDate'), Verbosity::Warning, DataClassification::SystemMetadata, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+        Telemetry.LogMessage('0000AD0', 'Test', Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
         //debug
 
         InitializeDeploymentDeprecationDates();
-
-        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
 
         IsDeprecated := DeploymentDeprecationDates.ContainsKey(DeploymentName);
         if IsDeprecated then begin
             DeprecatedDate := DeploymentDeprecationDates.Get(DeploymentName);
             CustomDimensions.Add('DeploymentName', DeploymentName);
             CustomDimensions.Add('DeprecationDate', Format(DeprecatedDate));
+            Telemetry.LogMessage('0000AD2', 'Test2', Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
             Telemetry.LogMessage('0000AD1', StrSubstNo(DeprecationMessageLbl, DeploymentName, DeprecatedDate), Verbosity::Warning, DataClassification::SystemMetadata, Enum::"AL Telemetry Scope"::All, CustomDimensions);
         end;
+
+        NavApp.GetCurrentModuleInfo(CurrentModuleInfo);
 
         if (CallerModuleInfo.Publisher <> CurrentModuleInfo.Publisher) and not AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls() then
             Error(UnableToGetDeploymentNameErr);
