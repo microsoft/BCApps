@@ -342,6 +342,13 @@ codeunit 54 "Language Impl."
         exit(CultureInfo.Name);
     end;
 
+    procedure GetCurrentCultureName(): Text
+    var
+        CultureInfo: DotNet CultureInfo;
+    begin
+        exit(CultureInfo.CurrentCulture.Name);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"UI Helper Triggers", GetApplicationLanguage, '', false, false)]
     local procedure SetApplicationLanguageId(var language: Integer)
     begin

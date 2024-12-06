@@ -309,6 +309,17 @@ codeunit 43 Language
     end;
 
     /// <summary>
+    /// Retrieves the current culture name for the session.
+    /// </summary>
+    /// <returns>The culture name. For example, 'en-US'.</returns>
+    procedure GetCurrentCultureName(): Text
+    var
+        LanguageImpl: Codeunit "Language Impl.";
+    begin
+        exit(LanguageImpl.GetCurrentCultureName());
+    end;
+
+    /// <summary>
     /// Integration event, emitted from <see cref="GetUserLanguageCode"/>.
     /// Subscribe to this event to change the default behavior by changing the provided parameter(s).
     /// </summary>
