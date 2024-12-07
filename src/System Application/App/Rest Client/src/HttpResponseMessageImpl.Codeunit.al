@@ -205,24 +205,5 @@ codeunit 2357 "Http Response Message Impl."
         else
             Exception := this.GlobalException;
     end;
-
-    procedure GetExceptionCode() ReturnValue: Enum "Rest Client Exception"
-    var
-        IntValue: Integer;
-        Exception: ErrorInfo;
-    begin
-        Exception := this.GetException();
-        Evaluate(IntValue, GlobalException.CustomDimensions.Get('ExceptionCode'));
-        ReturnValue := Enum::"Rest Client Exception".FromInteger(IntValue);
-    end;
-
-    procedure GetExceptionName() ReturnValue: Text
-    var
-        Exception: ErrorInfo;
-    begin
-        Exception := this.GetException();
-        ReturnValue := Exception.CustomDimensions.Get('ExceptionName');
-    end;
-
     #endregion
 }

@@ -2,7 +2,6 @@ namespace System.RestClient;
 
 codeunit 2362 "Rest Client Exception Builder"
 {
-    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -17,5 +16,13 @@ codeunit 2362 "Rest Client Exception Builder"
         Exception.CustomDimensions.Add('ExceptionCode', Format(RestClientException.AsInteger()));
         Exception.CustomDimensions.Add('ExceptionName', RestClientException.Names.Get(RestClientException.Ordinals.IndexOf(RestClientException.AsInteger())));
         Exception.Collectible := Collectible;
+    end;
+
+    procedure GetRestClientException(ErrInfo: ErrorInfo) RestClientException: Enum "Rest Client Exception"
+    var
+        ExceptionCode: Integer;
+    begin
+        Evaluate(ExceptionCode, ErrInfo.CustomDimensions.Get('ExceptionCode'));
+        RestClientException := Enum::"Rest Client Exception".FromInteger(ExceptionCode);
     end;
 }

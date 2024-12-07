@@ -18,9 +18,9 @@ codeunit 2351 "Rest Client Impl."
         HttpClientHandler: Interface "Http Client Handler";
         HttpClient: HttpClient;
         IsInitialized: Boolean;
-        EnvironmentBlocksErr: Label 'Environment blocks an outgoing HTTP request to ''%1''.', Comment = '%1 = url, e.g. https://microsoft.com';
-        ConnectionErr: Label 'Connection to the remote service ''%1'' could not be established.', Comment = '%1 = url, e.g. https://microsoft.com';
-        RequestFailedErr: Label 'The request failed: %1 %2', Comment = '%1 = HTTP status code, %2 = Reason phrase';
+        EnvironmentBlocksErr: Label 'The outgoing HTTP request to "%1" was blocked by the environment.', Comment = '%1 = url, e.g. https://microsoft.com';
+        ConnectionErr: Label 'Connection to the remote service "%1" could not be established.', Comment = '%1 = url, e.g. https://microsoft.com';
+        RequestFailedErr: Label 'The request to "%1" failed with status code %2 %3.', Comment = '%1 = url, %2 = HTTP status code, %3 = Reason phrase';
         UserAgentLbl: Label 'Dynamics 365 Business Central - |%1| %2/%3', Locked = true, Comment = '%1 = App Publisher; %2 = App Name; %3 = App Version';
         TimeoutOutOfRangeErr: Label 'The timeout value must be greater than 0.';
 
@@ -151,14 +151,16 @@ codeunit 2351 "Rest Client Impl."
         HttpResponseMessage: Codeunit "Http Response Message";
     begin
         HttpResponseMessage := Send(Enum::"Http Method"::GET, RequestUri);
-        if HasCollectedErrors() then
-            exit;
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         if not HttpResponseMessage.GetIsSuccessStatusCode() then
             Error(HttpResponseMessage.GetException());
 
-        if IsCollectingErrors() and HasCollectedErrors() then
-            exit;
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         JsonToken := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -169,14 +171,16 @@ codeunit 2351 "Rest Client Impl."
         HttpContent: Codeunit "Http Content";
     begin
         HttpResponseMessage := Send(Enum::"Http Method"::POST, RequestUri, HttpContent.Create(Content));
-        if HasCollectedErrors() then
-            exit;
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         if not HttpResponseMessage.GetIsSuccessStatusCode() then
             Error(HttpResponseMessage.GetException());
 
-        if IsCollectingErrors() and HasCollectedErrors() then
-            exit;
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -187,14 +191,16 @@ codeunit 2351 "Rest Client Impl."
         HttpContent: Codeunit "Http Content";
     begin
         HttpResponseMessage := Send(Enum::"Http Method"::PATCH, RequestUri, HttpContent.Create(Content));
-        if HasCollectedErrors() then
-            exit;
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         if not HttpResponseMessage.GetIsSuccessStatusCode() then
             Error(HttpResponseMessage.GetException());
 
-        if IsCollectingErrors() and HasCollectedErrors() then
-            exit;
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -205,14 +211,16 @@ codeunit 2351 "Rest Client Impl."
         HttpContent: Codeunit "Http Content";
     begin
         HttpResponseMessage := Send(Enum::"Http Method"::PUT, RequestUri, HttpContent.Create(Content));
-        if HasCollectedErrors() then
-            exit;
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         if not HttpResponseMessage.GetIsSuccessStatusCode() then
             Error(HttpResponseMessage.GetException());
 
-        if IsCollectingErrors() and HasCollectedErrors() then
-            exit;
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -291,7 +299,7 @@ codeunit 2351 "Rest Client Impl."
         if not HttpResponseMessage.GetIsSuccessStatusCode() then
             HttpResponseMessage.SetException(
                 this.RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::RequestFailed,
-                                                           StrSubstNo(RequestFailedErr, HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase())));
+                                                           StrSubstNo(RequestFailedErr, HttpRequestMessage.GetRequestUri(), HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase())));
 
         exit(true);
     end;

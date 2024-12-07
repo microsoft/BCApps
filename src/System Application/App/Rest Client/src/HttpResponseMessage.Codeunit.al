@@ -207,15 +207,5 @@ codeunit 2356 "Http Response Message"
     begin
         Exception := HttpResponseMessageImpl.GetException();
     end;
-
-    procedure GetExceptionCode() ReturnValue: Enum "Rest Client Exception"
-    begin
-        ReturnValue := HttpResponseMessageImpl.GetExceptionCode();
-    end;
-
-    procedure GetExceptionName() ReturnValue: Text
-    begin
-        ReturnValue := HttpResponseMessageImpl.GetExceptionName();
-    end;
     #endregion
 }

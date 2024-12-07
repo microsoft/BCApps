@@ -236,5 +236,23 @@ codeunit 2354 "Http Content"
     begin
         JsonToken := HttpContentImpl.AsJson();
     end;
+
+    /// <summary>Gets the content of the HTTP response message as a JsonObject.</summary>
+    /// <returns>The content of the HTTP response message as a JsonObject.</returns>
+    /// <remarks>Returns an empty JsonObject in case there is no content.
+    /// Fails in case the content is not a valid JSON document.</remarks>
+    procedure AsJsonObject() JsonObject: JsonObject
+    begin
+        JsonObject := HttpContentImpl.AsJsonObject();
+    end;
+
+    /// <summary>Gets the content of the HTTP response message as a JsonArray.</summary>
+    /// <returns>The content of the HTTP response message as a JsonArray.</returns>
+    /// <remarks>Returns an empty JsonArray in case there is no content.
+    /// Fails in case the content is not a valid JSON document.</remarks>
+    procedure AsJsonArray() JsonArray: JsonArray
+    begin
+        JsonArray := HttpContentImpl.AsJsonArray();
+    end;
     #endregion
 }

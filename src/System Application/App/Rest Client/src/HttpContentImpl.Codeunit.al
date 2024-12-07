@@ -203,6 +203,26 @@ codeunit 2355 "Http Content Impl."
                 ThrowInvalidJsonException();
     end;
 
+    procedure AsJsonObject() ReturnValue: JsonObject
+    var
+        Json: Text;
+    begin
+        Json := AsText();
+        if Json <> '' then
+            if not ReturnValue.ReadFrom(AsText()) then
+                ThrowInvalidJsonException();
+    end;
+
+    procedure AsJsonArray() ReturnValue: JsonArray
+    var
+        Json: Text;
+    begin
+        Json := AsText();
+        if Json <> '' then
+            if not ReturnValue.ReadFrom(AsText()) then
+                ThrowInvalidJsonException();
+    end;
+
     procedure SetContent(Content: Text; ContentType: Text)
     begin
         this.HttpContent.Clear();
