@@ -7,6 +7,7 @@ namespace System.Environment.Configuration;
 
 using System.Globalization;
 using System.Apps;
+using System.Environment;
 
 permissionset 1993 "Guided Experience - Edit"
 {
@@ -21,5 +22,7 @@ permissionset 1993 "Guided Experience - Edit"
                   tabledata "Checklist Item User" = IMD,
                   tabledata "Checklist Setup" = IMd,
                   tabledata "Published Application" = imd,
-                  tabledata "Spotlight Tour Text" = imd;
+                  tabledata "Spotlight Tour Text" = imd,
+                  tabledata "Tenant Media" = imd,
+                  tabledata "Tenant Media Set" = imd;
 }
