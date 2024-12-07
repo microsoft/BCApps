@@ -35,7 +35,7 @@ page 7774 "Copilot Capabilities GA"
                     Editable = false;
                     Width = 30;
                 }
-                field(Status; Rec.Status)
+                field(Status; Rec.EvaluateStatus())
                 {
                     ApplicationArea = All;
                     Caption = 'Status';
@@ -89,6 +89,9 @@ page 7774 "Copilot Capabilities GA"
 
                 trigger OnAction()
                 begin
+                    if not Rec.EnsurePrivacyNoticesApproved() then
+                        exit;
+
                     Rec.Status := Rec.Status::Active;
                     Rec.Modify(true);
 
@@ -119,18 +122,19 @@ page 7774 "Copilot Capabilities GA"
                     end;
                 end;
             }
-
+#if not CLEAN26
             action(SupplementalTerms)
             {
                 Caption = 'Supplemental Terms of Use';
                 ToolTip = 'Opens the supplemental terms of use for generally available capabilities.';
                 Image = Info;
-
+                Visible = false;
                 trigger OnAction()
                 begin
                     Hyperlink(SupplementalTermsLinkTxt);
                 end;
             }
+#endif
         }
     }
 
@@ -163,7 +167,9 @@ page 7774 "Copilot Capabilities GA"
         ActionsEnabled: Boolean;
         CapabilityEnabled: Boolean;
         DataMovementEnabled: Boolean;
+#if not CLEAN26
         SupplementalTermsLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2236010', Locked = true;
+#endif
         CopilotFeatureDeactivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been deactivated by UserSecurityId %3.', Locked = true;
         CopilotFeatureActivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been activated by UserSecurityId %3.', Locked = true;
 
@@ -176,17 +182,19 @@ page 7774 "Copilot Capabilities GA"
 
     local procedure SetStatusStyle()
     begin
-        if (Rec.Status = Rec.Status::Active) then
+        if (Rec.EvaluateStatus() = Rec.Status::Active) then
             StatusStyleExpr := 'Favorable'
         else
             StatusStyleExpr := '';
     end;
 
     local procedure SetActionsEnabled()
+    var
+        CopilotCapability: Codeunit "Copilot Capability";
     begin
         if CopilotCapabilityImpl.IsAdmin() then begin
             ActionsEnabled := (Rec.Capability.AsInteger() <> 0) and DataMovementEnabled;
-            CapabilityEnabled := Rec.Status = Rec.Status::Active;
+            CapabilityEnabled := CopilotCapability.IsCapabilityActive(Rec.Capability, Rec."App Id");
         end
         else begin
             ActionsEnabled := false;

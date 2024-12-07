@@ -133,13 +133,27 @@ codeunit 7774 "Copilot Capability Impl"
     procedure IsCapabilityActive(CopilotCapability: Enum "Copilot Capability"; AppId: Guid): Boolean
     var
         CopilotSettings: Record "Copilot Settings";
+        CopilotCapabilityCU: Codeunit "Copilot Capability";
+        PrivacyNotice: Codeunit "Privacy Notice";
+        RequiredPrivacyNotices: List of [Code[50]];
+        RequiredPrivacyNotice: Code[50];
     begin
         CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
         CopilotSettings.SetLoadFields(Status);
         if not CopilotSettings.Get(CopilotCapability, AppId) then
             exit(false);
 
-        exit(CopilotSettings.Status = Enum::"Copilot Status"::Active);
+        CopilotCapabilityCU.OnGetRequiredPrivacyNotices(CopilotCapability, AppId, RequiredPrivacyNotices);
+
+        if (CopilotSettings.Status <> Enum::"Copilot Status"::Active) or (RequiredPrivacyNotices.Count() <= 0) then
+            exit(CopilotSettings.Status = Enum::"Copilot Status"::Active);
+
+        // check privacy notices
+        foreach RequiredPrivacyNotice in RequiredPrivacyNotices do
+            if (PrivacyNotice.GetPrivacyNoticeApprovalState(RequiredPrivacyNotice, true) <> Enum::"Privacy Notice Approval State"::Agreed) then
+                exit(false);
+
+        exit(true);
     end;
 
     procedure SendActivateTelemetry(CopilotCapability: Enum "Copilot Capability"; AppId: Guid)
@@ -244,12 +258,12 @@ codeunit 7774 "Copilot Capability Impl"
     end;
 
     [TryFunction]
-    procedure CheckGeo(var WithinGeo: Boolean; var WithinEuropeGeo: Boolean)
+    procedure CheckGeoAndEUDB(var WithinGeo: Boolean; var WithinEUDB: Boolean)
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
     begin
         WithinGeo := ALCopilotFunctions.IsWithinGeo();
-        WithinEuropeGeo := ALCopilotFunctions.IsEuropeGeo();
+        WithinEUDB := ALCopilotFunctions.IsWithinEUDB();
     end;
 
     procedure UpdateGuidedExperience(AllowDataMovement: Boolean)

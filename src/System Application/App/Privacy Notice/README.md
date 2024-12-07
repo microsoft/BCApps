@@ -91,3 +91,10 @@ begin
 end;
 ```
 
+### How to have a privacy notice approved by default
+In `PrivacyNoticeImpl` codeunit, there is a procedure called `ShouldApproveByDefault`. Return true from this method if the integration ID matches
+the ID of the scenario you want to approve by default. In the following scenarios where the procedure returns true, it will have a default approval for the entire organization if:
+1. `PrivacyNotice.GetPrivacyNoticeApprovalState` is called for an integration with no privacy notice record created or,
+2. A privacy notice for the scenario is created and no approvals exist for it yet.
+
+An admin can later agree/disagree to this approval on the Privacy Notices page.

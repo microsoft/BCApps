@@ -18,6 +18,7 @@ codeunit 324 "No. Series Copilot Impl."
     InherentEntitlements = X;
 
     var
+        NoSeriesCopilotTelemetry: Codeunit "No. Series Copilot Telemetry";
         IncorrectCompletionErr: Label 'Incorrect completion. The property %1 is empty', Comment = '%1 = property name';
         EmptyCompletionErr: Label 'Incorrect completion. The completion is empty.';
         IncorrectCompletionNumberOfGeneratedNoSeriesErr: Label 'Incorrect completion. The number of generated number series is incorrect. Expected %1, but got %2', Comment = '%1 = Expected Number, %2 = Actual Number';
@@ -33,7 +34,6 @@ codeunit 324 "No. Series Copilot Impl."
 
     procedure GetNoSeriesSuggestions()
     var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
         NoSeriesCopilotRegister: Codeunit "No. Series Copilot Register";
         AzureOpenAI: Codeunit "Azure OpenAI";
     begin
@@ -41,7 +41,7 @@ codeunit 324 "No. Series Copilot Impl."
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"No. Series Copilot") then
             exit;
 
-        FeatureTelemetry.LogUptake('0000LF4', FeatureName(), Enum::"Feature Uptake Status"::Discovered);
+        NoSeriesCopilotTelemetry.LogFeatureDiscovery();
 
         Page.Run(Page::"No. Series Generation");
     end;
@@ -184,14 +184,19 @@ codeunit 324 "No. Series Copilot Impl."
         AOAIChatMessages.AddTool(ChangeNoSeriesIntent);
         AOAIChatMessages.AddTool(NextYearNoSeriesIntent);
 
+        NoSeriesCopilotTelemetry.ResetDurationTracking();
+        NoSeriesCopilotTelemetry.StartDurationTracking();
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
+        NoSeriesCopilotTelemetry.StopDurationTracking();
         if not AOAIOperationResponse.IsSuccess() then
             Error(AOAIOperationResponse.GetError());
 
         CompletionAnswerTxt := AOAIChatMessages.GetLastMessage(); // the model can answer to rephrase the question, if the user input is not clear
 
         if AOAIOperationResponse.IsFunctionCall() then
-            CompletionAnswerTxt := GenerateNoSeriesUsingToolResult(AzureOpenAI, InputText, AOAIOperationResponse, AddNoSeriesIntent.GetExistingNoSeries());
+            CompletionAnswerTxt := GenerateNoSeriesUsingToolResult(AzureOpenAI, InputText, AOAIOperationResponse, AddNoSeriesIntent.GetExistingNoSeries())
+        else
+            NoSeriesCopilotTelemetry.LogToolNotInvoked(AOAIOperationResponse);
 
         exit(CompletionAnswerTxt);
     end;
@@ -260,7 +265,10 @@ codeunit 324 "No. Series Copilot Impl."
     begin
         MaxAttempts := 3;
         for Attempt := 1 to MaxAttempts do begin
+            NoSeriesCopilotTelemetry.ResetDurationTracking();
+            NoSeriesCopilotTelemetry.StartDurationTracking();
             AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
+            NoSeriesCopilotTelemetry.StopDurationTracking();
             if not AOAIOperationResponse.IsSuccess() then
                 Error(AOAIOperationResponse.GetError());
 
@@ -272,8 +280,10 @@ codeunit 324 "No. Series Copilot Impl."
                 Error(AOAIFunctionResponse.GetError());
 
             GeneratedNoSeriesArrayText := AOAIFunctionResponse.GetResult();
-            if CheckIfValidResult(GeneratedNoSeriesArrayText, AOAIFunctionResponse.GetFunctionName(), ExpectedNoSeriesCount) then
+            if CheckIfValidResult(GeneratedNoSeriesArrayText, AOAIFunctionResponse.GetFunctionName(), ExpectedNoSeriesCount) then begin
+                NoSeriesCopilotTelemetry.LogGenerationCompletion(ReadGeneratedNumberSeriesJArray(GeneratedNoSeriesArrayText).Count, ExpectedNoSeriesCount, Attempt);
                 exit(true);
+            end;
 
             AOAIChatMessages.DeleteMessage(AOAIChatMessages.GetHistory().Count); // remove the last message with wrong assistant response, as we need to regenerate the completion
             Sleep(500);
