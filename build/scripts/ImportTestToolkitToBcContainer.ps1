@@ -10,7 +10,7 @@ $testToolkitApps = @(
     "Library Assert",
     "Library Variable Storage",
     "Permissions Mock",
-    "Test Runner",
+    #"Test Runner",
     "System Application Test Library", 
     "Business Foundation Test Libraries",
     "Tests-TestLibraries"
