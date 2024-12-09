@@ -345,6 +345,13 @@ codeunit 54 "Language Impl."
         exit(CultureInfo.Name);
     end;
 
+    procedure GetCurrentCultureName(): Text
+    var
+        CultureInfo: DotNet CultureInfo;
+    begin
+        exit(CultureInfo.CurrentCulture.Name);
+    end;
+
     procedure ShowAllowedLanguagesNotification()
     var
         AllowedLanguage: Record "Allowed Language";
