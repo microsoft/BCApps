@@ -22,6 +22,8 @@ foreach ($app in $testToolkitApps) {
     $appFile = $null
 } 
 
+$installedApps = Get-BcContainerAppInfo -containerName $containerName -tenantSpecificProperties -sort DependenciesLast
+
 $installedApps | ForEach-Object {
     Write-Host "App $($_.Name) is installed"
 }
