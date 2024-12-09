@@ -18,6 +18,10 @@ $testToolkitApps = @(
 
 foreach ($app in $testToolkitApps) {
     $appFile = $allApps | Where-Object { $($_.Name) -eq "Microsoft_$($app).app" }
-    Publish-BcContainerApp -containerName $containerName -appFile ":$($appFile.FullName)" -skipVerification -scope Tenant -install -sync
+    Publish-BcContainerApp -containerName $containerName -appFile ":$($appFile.FullName)" -skipVerification -install -sync
     $appFile = $null
 } 
+
+$installedApps | ForEach-Object {
+    Write-Host "App $($_.Name) is installed"
+}
