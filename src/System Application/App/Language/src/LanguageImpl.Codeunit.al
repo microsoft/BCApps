@@ -6,8 +6,8 @@
 namespace System.Globalization;
 
 using System;
-using System.Environment.Configuration;
 using System.Environment;
+using System.Environment.Configuration;
 
 codeunit 54 "Language Impl."
 {
@@ -15,7 +15,8 @@ codeunit 54 "Language Impl."
     SingleInstance = true;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata Language = rimd,
+    Permissions = tabledata "Allowed Language" = rimd,
+                  tabledata Language = rimd,
                   tabledata "Language Selection" = r,
                   tabledata "User Personalization" = rm,
                   tabledata "Windows Language" = r;
@@ -151,16 +152,36 @@ codeunit 54 "Language Impl."
 
     procedure GetApplicationLanguages(var TempWindowsLanguage: Record "Windows Language" temporary)
     var
+        AllowedLanguage: Record "Allowed Language";
         WindowsLanguage: Record "Windows Language";
+        LanguageFilter: Text;
     begin
+        AllowedLanguage.ReadIsolation := IsolationLevel::ReadCommitted;
+        AllowedLanguage.LoadFields("Language Id");
+        if AllowedLanguage.FindSet() then
+            repeat
+                AddToFilter(Format(AllowedLanguage."Language Id"), LanguageFilter);
+            until AllowedLanguage.Next() = 0;
+
+        WindowsLanguage.ReadIsolation := IsolationLevel::ReadCommitted;
+        if LanguageFilter <> '' then
+            WindowsLanguage.SetFilter("Language ID", LanguageFilter);
+
         WindowsLanguage.SetRange("Localization Exist", true);
         WindowsLanguage.SetRange("Globally Enabled", true);
-
         if WindowsLanguage.FindSet() then
             repeat
                 TempWindowsLanguage := WindowsLanguage;
                 TempWindowsLanguage.Insert();
             until WindowsLanguage.Next() = 0;
+    end;
+
+    local procedure AddToFilter(Value: Text; var ValueFilter: Text)
+    begin
+        if ValueFilter = '' then
+            ValueFilter := Value
+        else
+            ValueFilter += '|' + Value;
     end;
 
     procedure GetDefaultApplicationLanguageId(): Integer
@@ -248,14 +269,16 @@ codeunit 54 "Language Impl."
 
     procedure LookupWindowsLanguageId(var LanguageId: Integer)
     var
-        WindowsLanguage: Record "Windows Language";
+        TempWindowsLanguage: Record "Windows Language" temporary;
     begin
-        WindowsLanguage.SetCurrentKey(Name);
+        GetApplicationLanguages(TempWindowsLanguage);
 
-        if WindowsLanguage.Get(LanguageId) then;
+        TempWindowsLanguage.SetCurrentKey(Name);
 
-        if Page.RunModal(Page::"Windows Languages", WindowsLanguage) = Action::LookupOK then
-            LanguageId := WindowsLanguage."Language ID";
+        if TempWindowsLanguage.Get(LanguageId) then;
+
+        if Page.RunModal(Page::"Windows Languages", TempWindowsLanguage) = Action::LookupOK then
+            LanguageId := TempWindowsLanguage."Language ID";
     end;
 
     procedure GetParentLanguageId(LanguageId: Integer) ParentLanguageId: Integer

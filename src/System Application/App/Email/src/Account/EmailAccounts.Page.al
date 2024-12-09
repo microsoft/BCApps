@@ -34,7 +34,6 @@ page 8887 "Email Accounts"
         {
             repeater(Accounts)
             {
-                Visible = ShowLogo;
                 FreezeColumn = NameField;
 #pragma warning disable AW0009
                 field(LogoField; Rec.LogoBlob)
@@ -43,7 +42,6 @@ page 8887 "Email Accounts"
                     ApplicationArea = All;
                     ShowCaption = false;
                     Caption = ' ';
-                    Visible = ShowLogo;
                     ToolTip = 'Specifies the logo for the type of email account.';
                     Width = 1;
                 }
@@ -355,7 +353,6 @@ page 8887 "Email Accounts"
         CanUserManageEmailSetup := EmailAccountImpl.IsUserEmailAdmin();
         Rec.SetCurrentKey("Account Id", Connector);
         UpdateEmailAccounts();
-        ShowLogo := true;
     end;
 
     trigger OnAfterGetRecord()
@@ -492,7 +489,6 @@ page 8887 "Email Accounts"
         CanUserManageEmailSetup: Boolean;
         DefaultTxt: Text;
         UpdateAccounts: Boolean;
-        ShowLogo: Boolean;
         IsLookupMode: Boolean;
         HasEmailAccount: Boolean;
         V2V3Filter: Boolean;
