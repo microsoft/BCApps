@@ -29,6 +29,9 @@ codeunit 54 "Language Impl."
         LanguageIdOverrideMsg: Label 'LanguageIdOverride has been applied in GetLanguageIdOrDefault. The new Language Id is %1.', Comment = '%1 - Language ID';
         FormatRegionOverrideMsg: Label 'FormatRegionOverride has been applied in GetFormatRegionOrDefault. The new FormatRegion is %1.', Comment = '%1 - Format Region';
         LanguageCategoryTxt: Label 'Language';
+        NotificationAllowedLanguagesLbl: Label '2c2bd28b-926c-47a7-bbc4-cf76f8173549', Locked = true;
+        NotificationAllowedLanguagesMessageLbl: Label 'This list of languages has been filtered by your administrator.';
+        ReadMoreLbl: Label 'Read more';
 
     procedure GetUserLanguageCode() UserLanguageCode: Code[10]
     var
@@ -347,6 +350,27 @@ codeunit 54 "Language Impl."
         CultureInfo: DotNet CultureInfo;
     begin
         exit(CultureInfo.CurrentCulture.Name);
+    end;
+
+    procedure ShowAllowedLanguagesNotification()
+    var
+        AllowedLanguage: Record "Allowed Language";
+        Notification: Notification;
+        NotificationGuid: Guid;
+    begin
+        if AllowedLanguage.IsEmpty() then
+            exit;
+
+        NotificationGuid := NotificationAllowedLanguagesLbl;
+        Notification.Id(NotificationGuid);
+        Notification.Message(NotificationAllowedLanguagesMessageLbl);
+        Notification.AddAction(ReadMoreLbl, Codeunit::"Language Impl.", 'OpenReadMore');
+        Notification.Send();
+    end;
+
+    procedure OpenReadMore(Notification: Notification)
+    begin
+        Hyperlink('https://go.microsoft.com/fwlink/?linkid=2299275');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"UI Helper Triggers", GetApplicationLanguage, '', false, false)]
