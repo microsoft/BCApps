@@ -18,7 +18,7 @@ page 3563 "Allowed Languages"
     HelpLink = 'https://go.microsoft.com/fwlink/?linkid=2149387';
     AdditionalSearchTerms = 'company,role center,role,language';
     AboutTitle = 'About allowed languages.';
-    AboutText = 'Define a list of allowed languages which is enabled for this environment. If nothing is specified, then the user will be able to use all available languages.';
+    AboutText = 'Define a list of allowed languages which is enabled for this environment. If nothing is specified, the user will be able to select from all languages.';
     Permissions = tabledata "Allowed Language" = r;
 
     layout
@@ -28,9 +28,11 @@ page 3563 "Allowed Languages"
             repeater(AllowedLanguages)
             {
                 field("Language Id"; Rec."Language Id")
-                { }
+                {
+                }
                 field(Language; Rec.Language)
-                { }
+                {
+                }
             }
         }
     }

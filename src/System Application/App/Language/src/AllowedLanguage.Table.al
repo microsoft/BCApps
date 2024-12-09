@@ -13,8 +13,8 @@ table 3563 "Allowed Language"
     Caption = 'Allowed Language';
     DataClassification = SystemMetadata;
     DataPerCompany = false;
-    InherentEntitlements = X;
-    InherentPermissions = X;
+    InherentEntitlements = RX;
+    InherentPermissions = RX;
 
     fields
     {
