@@ -13,8 +13,11 @@ on:
         default: true
       directCommit:
         description: Direct Commit?
-        type: boolean
-        default: false
+        type: choice
+        options: 
+          - ""
+          - "Yes"
+          - "No"
 
 permissions:
   actions: read
