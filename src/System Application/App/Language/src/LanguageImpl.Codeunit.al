@@ -30,7 +30,7 @@ codeunit 54 "Language Impl."
         FormatRegionOverrideMsg: Label 'FormatRegionOverride has been applied in GetFormatRegionOrDefault. The new FormatRegion is %1.', Comment = '%1 - Format Region';
         LanguageCategoryTxt: Label 'Language';
         NotificationAllowedLanguagesLbl: Label '2c2bd28b-926c-47a7-bbc4-cf76f8173549', Locked = true;
-        NotificationAllowedLanguagesMessageLbl: Label 'This list of languages has been filtered by your adminitrator.';
+        NotificationAllowedLanguagesMessageLbl: Label 'This list of languages has been filtered by your administrator.';
         ReadMoreLbl: Label 'Read more';
 
     procedure GetUserLanguageCode() UserLanguageCode: Code[10]
