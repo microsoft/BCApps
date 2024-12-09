@@ -7,6 +7,7 @@ namespace System.RestClient;
 /// <summary>Provides functionality to easily work with the HttpClient object.</summary>
 codeunit 2350 "Rest Client"
 {
+    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 

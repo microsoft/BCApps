@@ -6,6 +6,7 @@ namespace System.RestClient;
 
 codeunit 2360 "Http Client Handler" implements "Http Client Handler"
 {
+    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 

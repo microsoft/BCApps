@@ -9,6 +9,7 @@ using System.Utilities;
 /// <summary>Holder object for the Http Content data.</summary>
 codeunit 2354 "Http Content"
 {
+    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 

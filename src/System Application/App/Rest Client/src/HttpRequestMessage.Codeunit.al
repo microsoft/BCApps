@@ -7,6 +7,7 @@ namespace System.RestClient;
 /// <summary>Holder object for the HTTP request data.</summary>
 codeunit 2352 "Http Request Message"
 {
+    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 

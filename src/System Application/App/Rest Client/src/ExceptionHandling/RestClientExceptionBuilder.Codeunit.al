@@ -1,7 +1,12 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
 namespace System.RestClient;
 
 codeunit 2362 "Rest Client Exception Builder"
 {
+    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 

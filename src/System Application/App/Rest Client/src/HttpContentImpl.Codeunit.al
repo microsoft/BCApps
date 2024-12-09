@@ -8,10 +8,9 @@ using System.Utilities;
 
 codeunit 2355 "Http Content Impl."
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-
-    Access = Internal;
 
     var
         HttpContent: HttpContent;
