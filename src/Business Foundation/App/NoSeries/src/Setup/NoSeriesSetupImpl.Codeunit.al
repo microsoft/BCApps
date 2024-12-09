@@ -26,11 +26,11 @@ codeunit 305 "No. Series - Setup Impl."
         NoSeriesLine.ModifyAll(Implementation, Implementation, true);
     end;
 
-    procedure DrillDown(var NoSeries: Record "No. Series")
+    procedure DrillDown(NoSeries: Record "No. Series")
     var
         NoSeriesLine: Record "No. Series Line";
     begin
-        SetNoSeriesCurrentLineFilters(NoSeries, NoSeriesLine, true);
+        SelectCurrentNoSeriesLine(NoSeries, NoSeriesLine, true);
         Page.RunModal(0, NoSeriesLine);
     end;
 
@@ -52,7 +52,7 @@ codeunit 305 "No. Series - Setup Impl."
             exit;
 #pragma warning restore AL0432        
 #endif
-        SetNoSeriesCurrentLineFilters(NoSeriesRec, NoSeriesLine, false);
+        SelectCurrentNoSeriesLine(NoSeriesRec, NoSeriesLine, false);
 
         StartDate := NoSeriesLine."Starting Date";
         StartNo := NoSeriesLine."Starting No.";
@@ -89,7 +89,7 @@ codeunit 305 "No. Series - Setup Impl."
         NoSeries.MarkedOnly(true);
     end;
 
-    local procedure SetNoSeriesCurrentLineFilters(var NoSeriesRec: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; ResetForDrillDown: Boolean)
+    procedure SelectCurrentNoSeriesLine(NoSeriesRec: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; ResetForDrillDown: Boolean) LineFound: Boolean
     var
         NoSeries: Codeunit "No. Series";
 #if not CLEAN24
@@ -118,7 +118,9 @@ codeunit 305 "No. Series - Setup Impl."
         if not NoSeriesLine.FindFirst() then begin
             NoSeriesLine.Init();
             NoSeriesLine."Series Code" := NoSeriesRec.Code;
-        end;
+            LineFound := false;
+        end else
+            LineFound := true;
 
         if ResetForDrillDown then begin
             NoSeriesLine.SetRange("Starting Date");
