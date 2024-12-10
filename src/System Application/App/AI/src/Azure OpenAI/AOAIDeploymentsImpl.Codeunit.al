@@ -143,7 +143,7 @@ codeunit 7769 "AOAI Deployments Impl"
         IsDeprecated := DeploymentDeprecationDates.ContainsKey(DeploymentName);
         if IsDeprecated then begin
             DeprecatedDate := DeploymentDeprecationDates.Get(DeploymentName);
-            CustomDimensions.Add('DeploymentName', DeploymentName);
+            //CustomDimensions.Add('DeploymentName', DeploymentName);
             CustomDimensions.Add('DeprecationDate', Format(DeprecatedDate));
             Telemetry.LogMessage('0000AD2', 'Test2', Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
             Telemetry.LogMessage('0000AD1', StrSubstNo(DeprecationMessageLbl, DeploymentName, DeprecatedDate), Verbosity::Warning, DataClassification::SystemMetadata, Enum::"AL Telemetry Scope"::All, CustomDimensions);
