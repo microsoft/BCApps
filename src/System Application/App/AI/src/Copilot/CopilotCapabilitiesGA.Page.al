@@ -35,7 +35,7 @@ page 7774 "Copilot Capabilities GA"
                     Editable = false;
                     Width = 30;
                 }
-                field(Status; Rec.Status)
+                field(Status; Rec.EvaluateStatus())
                 {
                     ApplicationArea = All;
                     Caption = 'Status';
@@ -89,6 +89,9 @@ page 7774 "Copilot Capabilities GA"
 
                 trigger OnAction()
                 begin
+                    if not Rec.EnsurePrivacyNoticesApproved() then
+                        exit;
+
                     Rec.Status := Rec.Status::Active;
                     Rec.Modify(true);
 
@@ -179,17 +182,19 @@ page 7774 "Copilot Capabilities GA"
 
     local procedure SetStatusStyle()
     begin
-        if (Rec.Status = Rec.Status::Active) then
+        if (Rec.EvaluateStatus() = Rec.Status::Active) then
             StatusStyleExpr := 'Favorable'
         else
             StatusStyleExpr := '';
     end;
 
     local procedure SetActionsEnabled()
+    var
+        CopilotCapability: Codeunit "Copilot Capability";
     begin
         if CopilotCapabilityImpl.IsAdmin() then begin
             ActionsEnabled := (Rec.Capability.AsInteger() <> 0) and DataMovementEnabled;
-            CapabilityEnabled := Rec.Status = Rec.Status::Active;
+            CapabilityEnabled := CopilotCapability.IsCapabilityActive(Rec.Capability, Rec."App Id");
         end
         else begin
             ActionsEnabled := false;
