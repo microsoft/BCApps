@@ -197,9 +197,10 @@ codeunit 2355 "Http Content Impl."
         Json: Text;
     begin
         Json := AsText();
-        if Json <> '' then
-            if not ReturnValue.ReadFrom(AsText()) then
-                ThrowInvalidJsonException();
+        if Json = '' then
+            exit;
+        if not ReturnValue.ReadFrom(Json) then
+            ThrowInvalidJsonException();
     end;
 
     procedure AsJsonObject() ReturnValue: JsonObject
@@ -207,9 +208,10 @@ codeunit 2355 "Http Content Impl."
         Json: Text;
     begin
         Json := AsText();
-        if Json <> '' then
-            if not ReturnValue.ReadFrom(AsText()) then
-                ThrowInvalidJsonException();
+        if Json = '' then
+            exit;
+        if not ReturnValue.ReadFrom(Json) then
+            ThrowInvalidJsonException();
     end;
 
     procedure AsJsonArray() ReturnValue: JsonArray
@@ -217,9 +219,10 @@ codeunit 2355 "Http Content Impl."
         Json: Text;
     begin
         Json := AsText();
-        if Json <> '' then
-            if not ReturnValue.ReadFrom(AsText()) then
-                ThrowInvalidJsonException();
+        if Json = '' then
+            exit;
+        if not ReturnValue.ReadFrom(Json) then
+            ThrowInvalidJsonException();
     end;
 
     procedure SetContent(Content: Text; ContentType: Text)
