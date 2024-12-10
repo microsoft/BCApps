@@ -13,7 +13,7 @@ $appFile = $parameters.appFile
 $installApp = $true
 foreach ($app in $doNotInstallApps) {
     if ($appFile -like "*Microsoft_$app*") {
-        Write-Host "Skipping installation of $app"
+        Write-Host "FIX: Skipping installation of $app"
         $installApp = $false
     }
 }

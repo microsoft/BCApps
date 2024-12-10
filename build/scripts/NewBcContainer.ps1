@@ -5,6 +5,8 @@ Param(
 
 $parameters.multitenant = $false
 $parameters.RunSandboxAsOnPrem = $true
+$parameters.installApps = @()
+$parameters.installTestApps = @()
 if ("$env:GITHUB_RUN_ID" -eq "") {
     $parameters.includeAL = $true
     $parameters.doNotExportObjectsToText = $true
@@ -15,11 +17,10 @@ New-BcContainer @parameters
 
 $installedApps = Get-BcContainerAppInfo -containerName $containerName -tenantSpecificProperties -sort DependenciesLast
 $installedApps | ForEach-Object {
-    Write-Host "Removing $($_.Name)"
     if ($_.Name -notin $keepApps) {
+        Write-Host "Removing $($_.Name)"
         Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $_.Name -unInstall -doNotSaveData -doNotSaveSchema -force
     } else {
-        #UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $_.Name -doNotSaveData -doNotSaveSchema -Force
         Write-Host "Keeping $($_.Name)"
     }
 }
