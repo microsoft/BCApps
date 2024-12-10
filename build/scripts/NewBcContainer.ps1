@@ -11,11 +11,6 @@ if ("$env:GITHUB_RUN_ID" -eq "") {
     $parameters.shortcuts = "none"
 }
 
-# Parameters is a hashtable. Print all keys and values.
-$parameters.GetEnumerator() | ForEach-Object {
-    Write-Host "$($_.Key): $($_.Value)"
-}
-
 New-BcContainer @parameters
 
 $installedApps = Get-BcContainerAppInfo -containerName $containerName -tenantSpecificProperties -sort DependenciesLast
