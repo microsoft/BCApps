@@ -5,12 +5,15 @@ Param(
 
 $parameters.multitenant = $false
 $parameters.RunSandboxAsOnPrem = $true
-$parameters.installApps = @()
-$parameters.installTestApps = @()
 if ("$env:GITHUB_RUN_ID" -eq "") {
     $parameters.includeAL = $true
     $parameters.doNotExportObjectsToText = $true
     $parameters.shortcuts = "none"
+}
+
+# Parameters is a hashtable. Print all keys and values.
+$parameters.GetEnumerator() | ForEach-Object {
+    Write-Host "$($_.Key): $($_.Value)"
 }
 
 New-BcContainer @parameters
