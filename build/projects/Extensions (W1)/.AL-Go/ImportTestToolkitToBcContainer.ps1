@@ -3,5 +3,14 @@ Param(
     [hashtable] $parameters
 )
 
-$scriptPath = Join-Path $PSScriptRoot "../../../scripts/ImportTestToolkitToBcContainer.ps1" -Resolve
-. $scriptPath -parameters $parameters
+$installedApps = Get-BcContainerAppInfo -containerName $parameters.containerName -tenantSpecificProperties -sort DependenciesLast
+$installedApps | ForEach-Object {
+    Write-Host "App $($_.Name) is installed"
+}
+
+Import-TestToolkitToBcContainer @parameters
+
+$installedApps = Get-BcContainerAppInfo -containerName $parameters.containerName -tenantSpecificProperties -sort DependenciesLast
+$installedApps | ForEach-Object {
+    Write-Host "App $($_.Name) is installed"
+}
