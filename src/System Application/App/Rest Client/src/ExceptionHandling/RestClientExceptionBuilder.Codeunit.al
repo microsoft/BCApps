@@ -10,11 +10,17 @@ codeunit 2362 "Rest Client Exception Builder"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    /// <summary>
+    /// Creates an exception with the specified error code and message. The exception is collectible if the errors are currently being collected.
+    /// </summary>
     procedure CreateException(RestClientException: Enum "Rest Client Exception"; ErrorMessage: Text) Exception: ErrorInfo
     begin
         Exception := CreateException(RestClientException, ErrorMessage, IsCollectingErrors());
     end;
 
+    /// <summary>
+    /// Creates an exception with the specified error code, message, and collectible flag.
+    /// </summary>
     procedure CreateException(RestClientException: Enum "Rest Client Exception"; ErrorMessage: Text; Collectible: Boolean) Exception: ErrorInfo
     begin
         Exception.Message := ErrorMessage;
@@ -23,6 +29,9 @@ codeunit 2362 "Rest Client Exception Builder"
         Exception.Collectible := Collectible;
     end;
 
+    /// <summary>
+    /// Gets the exception code from the error info.
+    /// </summary>
     procedure GetRestClientException(ErrInfo: ErrorInfo) RestClientException: Enum "Rest Client Exception"
     var
         ExceptionCode: Integer;
