@@ -145,12 +145,9 @@ codeunit 8700 "Table Information Cache Impl."
     end;
 
     procedure GetTableUrl(Company: Text; TableNo: Integer): Text
-    var
-        TableMetadata: Record "Table Metadata";
     begin
-        TableMetadata.Get(TableNo);
-        if not TableMetadata.DataPerCompany then
-            Company := CompanyName(); // use the current company for the URL for the cases when table is not per company
+        if Company = CrossCompanyDataLbl then
+            Company := ''; // Clear the Company text if it is the CrossCompanyDataLbl to avoid errors with GetUrl
 
         exit(GetUrl(ClientType::Web, Company, ObjectType::Table, TableNo));
     end;
