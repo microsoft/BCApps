@@ -327,6 +327,20 @@ codeunit 310 "No. Series"
     end;
 
     /// <summary>
+    /// Filters the No Series Lines and selects the currently applicable line based on the workdate.
+    /// </summary>
+    /// <param name="NoSeries">The No. Series for which to select a line.</param>
+    /// <param name="NoSeriesLine">The No Series Line is returned filtered and the currently applicable line is selected</param>
+    /// <param name="ResetFilters">If set to true, the filters on the Starting Date and Open fields are reset. The currently applicable line is still selected in the table.</param>
+    /// <returns>Returns true if a line was selected, false if no line was selected.</returns>
+    procedure SelectCurrentNoSeriesLine(NoSeries: Record "No. Series"; var NoSeriesLine: Record "No. Series Line"; ResetFilters: Boolean): Boolean
+    var
+        NoSeriesSetupImpl: Codeunit "No. Series - Setup Impl.";
+    begin
+        exit(NoSeriesSetupImpl.SelectCurrentNoSeriesLine(NoSeries, NoSeriesLine, ResetFilters));
+    end;
+
+    /// <summary>
     /// Returns true if the number series has Date Order set.
     /// </summary>
     /// <param name="NoSeriesCode">The No. Series code to check.</param>
