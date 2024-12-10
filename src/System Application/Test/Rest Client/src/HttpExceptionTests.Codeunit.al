@@ -8,7 +8,7 @@ namespace System.Test.RestClient;
 using System.RestClient;
 using System.TestLibraries.Utilities;
 
-codeunit 134975 "Http Exception Tests"
+codeunit 134977 "Http Exception Tests"
 {
     Subtype = Test;
 
