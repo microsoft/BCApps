@@ -11,7 +11,7 @@ codeunit 2353 "Http Request Message Impl."
     InherentPermissions = X;
 
     var
-        HttpRequestMessage: HttpRequestMessage;
+        CurrHttpRequestMessageInstance: HttpRequestMessage;
 
     procedure Create(Method: Enum "Http Method"; RequestUri: Text; Content: Codeunit "Http Content"): Codeunit "Http Request Message Impl."
     begin
@@ -24,7 +24,7 @@ codeunit 2353 "Http Request Message Impl."
 
     procedure SetHttpMethod(Method: Text)
     begin
-        HttpRequestMessage.Method := Method;
+        CurrHttpRequestMessageInstance.Method := Method;
     end;
 
     procedure SetHttpMethod(Method: Enum "Http Method")
@@ -34,52 +34,52 @@ codeunit 2353 "Http Request Message Impl."
 
     procedure GetHttpMethod() ReturnValue: Text
     begin
-        ReturnValue := HttpRequestMessage.Method;
+        ReturnValue := CurrHttpRequestMessageInstance.Method;
     end;
 
     procedure SetRequestUri(Uri: Text)
     begin
-        HttpRequestMessage.SetRequestUri(Uri);
+        CurrHttpRequestMessageInstance.SetRequestUri(Uri);
     end;
 
     procedure GetRequestUri() Uri: Text
     begin
-        Uri := HttpRequestMessage.GetRequestUri();
+        Uri := CurrHttpRequestMessageInstance.GetRequestUri();
     end;
 
     procedure SetHeader(HeaderName: Text; HeaderValue: Text)
     var
-        HttpHeaders: HttpHeaders;
+        RequestHttpHeaders: HttpHeaders;
     begin
-        HttpRequestMessage.GetHeaders(HttpHeaders);
-        if HttpHeaders.Contains(HeaderName) or HttpHeaders.ContainsSecret(HeaderName) then
-            HttpHeaders.Remove(HeaderName);
-        HttpHeaders.Add(HeaderName, HeaderValue);
+        CurrHttpRequestMessageInstance.GetHeaders(RequestHttpHeaders);
+        if RequestHttpHeaders.Contains(HeaderName) or RequestHttpHeaders.ContainsSecret(HeaderName) then
+            RequestHttpHeaders.Remove(HeaderName);
+        RequestHttpHeaders.Add(HeaderName, HeaderValue);
     end;
 
     procedure SetHeader(HeaderName: Text; HeaderValue: SecretText)
     var
-        HttpHeaders: HttpHeaders;
+        RequestHttpHeaders: HttpHeaders;
     begin
-        HttpRequestMessage.GetHeaders(HttpHeaders);
-        if HttpHeaders.Contains(HeaderName) or HttpHeaders.ContainsSecret(HeaderName) then
-            HttpHeaders.Remove(HeaderName);
-        HttpHeaders.Add(HeaderName, HeaderValue);
+        CurrHttpRequestMessageInstance.GetHeaders(RequestHttpHeaders);
+        if RequestHttpHeaders.Contains(HeaderName) or RequestHttpHeaders.ContainsSecret(HeaderName) then
+            RequestHttpHeaders.Remove(HeaderName);
+        RequestHttpHeaders.Add(HeaderName, HeaderValue);
     end;
 
     procedure GetHeaders() ReturnValue: HttpHeaders
     begin
-        HttpRequestMessage.GetHeaders(ReturnValue);
+        CurrHttpRequestMessageInstance.GetHeaders(ReturnValue);
     end;
 
     procedure GetHeaderValue(HeaderName: Text) Value: Text
     var
-        HttpHeaders: HttpHeaders;
+        RequestHttpHeaders: HttpHeaders;
         Values: List of [Text];
     begin
-        HttpRequestMessage.GetHeaders(HttpHeaders);
-        if HttpHeaders.Contains(HeaderName) then begin
-            HttpHeaders.GetValues(HeaderName, Values);
+        CurrHttpRequestMessageInstance.GetHeaders(RequestHttpHeaders);
+        if RequestHttpHeaders.Contains(HeaderName) then begin
+            RequestHttpHeaders.GetValues(HeaderName, Values);
             if Values.Count > 0 then
                 Value := Values.Get(1);
         end;
@@ -87,75 +87,75 @@ codeunit 2353 "Http Request Message Impl."
 
     procedure GetHeaderValues(HeaderName: Text) Values: List of [Text]
     var
-        HttpHeaders: HttpHeaders;
+        RequestHttpHeaders: HttpHeaders;
     begin
-        HttpRequestMessage.GetHeaders(HttpHeaders);
-        if HttpHeaders.Contains(HeaderName) then
-            HttpHeaders.GetValues(HeaderName, Values);
+        CurrHttpRequestMessageInstance.GetHeaders(RequestHttpHeaders);
+        if RequestHttpHeaders.Contains(HeaderName) then
+            RequestHttpHeaders.GetValues(HeaderName, Values);
     end;
 
     procedure GetSecretHeaderValues(HeaderName: Text) Values: List of [SecretText]
     var
-        HttpHeaders: HttpHeaders;
+        RequestHttpHeaders: HttpHeaders;
     begin
-        HttpRequestMessage.GetHeaders(HttpHeaders);
-        if HttpHeaders.ContainsSecret(HeaderName) then
-            HttpHeaders.GetSecretValues(HeaderName, Values);
+        CurrHttpRequestMessageInstance.GetHeaders(RequestHttpHeaders);
+        if RequestHttpHeaders.ContainsSecret(HeaderName) then
+            RequestHttpHeaders.GetSecretValues(HeaderName, Values);
     end;
 
     procedure SetCookie(Name: Text; Value: Text) Success: Boolean
     begin
-        Success := HttpRequestMessage.SetCookie(Name, Value);
+        Success := CurrHttpRequestMessageInstance.SetCookie(Name, Value);
     end;
 
-    procedure SetCookie(Cookie: Cookie) Success: Boolean
+    procedure SetCookie(TheCookie: Cookie) Success: Boolean
     begin
-        Success := HttpRequestMessage.SetCookie(Cookie);
+        Success := CurrHttpRequestMessageInstance.SetCookie(TheCookie);
     end;
 
     procedure GetCookieNames() CookieNames: List of [Text]
     begin
-        CookieNames := HttpRequestMessage.GetCookieNames();
+        CookieNames := CurrHttpRequestMessageInstance.GetCookieNames();
     end;
 
     procedure GetCookies() Cookies: List of [Cookie]
     var
         CookieName: Text;
-        Cookie: Cookie;
+        TheCookie: Cookie;
     begin
-        foreach CookieName in HttpRequestMessage.GetCookieNames() do begin
-            HttpRequestMessage.GetCookie(CookieName, Cookie);
-            Cookies.Add(Cookie);
+        foreach CookieName in CurrHttpRequestMessageInstance.GetCookieNames() do begin
+            CurrHttpRequestMessageInstance.GetCookie(CookieName, TheCookie);
+            Cookies.Add(TheCookie);
         end;
     end;
 
     procedure GetCookie(Name: Text) ReturnValue: Cookie
     begin
-        if HttpRequestMessage.GetCookie(Name, ReturnValue) then;
+        if CurrHttpRequestMessageInstance.GetCookie(Name, ReturnValue) then;
     end;
 
-    procedure GetCookie(Name: Text; var Cookie: Cookie) Success: Boolean
+    procedure GetCookie(Name: Text; var TheCookie: Cookie) Success: Boolean
     begin
-        Success := HttpRequestMessage.GetCookie(Name, Cookie);
+        Success := CurrHttpRequestMessageInstance.GetCookie(Name, TheCookie);
     end;
 
     procedure RemoveCookie(Name: Text) Success: Boolean
     begin
-        Success := HttpRequestMessage.RemoveCookie(Name);
+        Success := CurrHttpRequestMessageInstance.RemoveCookie(Name);
     end;
 
     procedure SetHttpRequestMessage(var RequestMessage: HttpRequestMessage)
     begin
-        HttpRequestMessage := RequestMessage;
+        CurrHttpRequestMessageInstance := RequestMessage;
     end;
 
     procedure SetContent(HttpContent: Codeunit "Http Content")
     begin
-        HttpRequestMessage.Content := HttpContent.GetHttpContent();
+        CurrHttpRequestMessageInstance.Content := HttpContent.GetHttpContent();
     end;
 
     procedure GetRequestMessage() ReturnValue: HttpRequestMessage
     begin
-        ReturnValue := HttpRequestMessage;
+        ReturnValue := CurrHttpRequestMessageInstance;
     end;
 }

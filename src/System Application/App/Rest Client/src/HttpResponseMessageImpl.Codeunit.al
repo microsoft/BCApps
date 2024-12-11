@@ -24,12 +24,12 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure SetIsBlockedByEnvironment(Value: Boolean)
     begin
-        this.IsBlockedByEnvironment := Value;
+        IsBlockedByEnvironment := Value;
     end;
 
     procedure GetIsBlockedByEnvironment() ReturnValue: Boolean
     begin
-        ReturnValue := this.IsBlockedByEnvironment;
+        ReturnValue := IsBlockedByEnvironment;
     end;
     #endregion
 
@@ -39,13 +39,13 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure SetHttpStatusCode(Value: Integer)
     begin
-        this.HttpStatusCode := Value;
-        this.IsSuccessStatusCode := Value in [200 .. 299];
+        HttpStatusCode := Value;
+        IsSuccessStatusCode := Value in [200 .. 299];
     end;
 
     procedure GetHttpStatusCode() ReturnValue: Integer
     begin
-        ReturnValue := this.HttpStatusCode
+        ReturnValue := HttpStatusCode
     end;
     #endregion
 
@@ -55,12 +55,12 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure GetIsSuccessStatusCode() Result: Boolean
     begin
-        Result := this.IsSuccessStatusCode;
+        Result := IsSuccessStatusCode;
     end;
 
     procedure SetIsSuccessStatusCode(Value: Boolean)
     begin
-        this.IsSuccessStatusCode := Value;
+        IsSuccessStatusCode := Value;
     end;
     #endregion
 
@@ -70,12 +70,12 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure SetReasonPhrase(Value: Text)
     begin
-        this.ReasonPhrase := Value;
+        ReasonPhrase := Value;
     end;
 
     procedure GetReasonPhrase() ReturnValue: Text
     begin
-        ReturnValue := this.ReasonPhrase;
+        ReturnValue := ReasonPhrase;
     end;
     #endregion
 
@@ -85,18 +85,18 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure SetContent(Content: Codeunit "Http Content")
     begin
-        this.HttpContent := Content;
+        HttpContent := Content;
     end;
 
     procedure GetContent() ReturnValue: Codeunit "Http Content"
     begin
-        ReturnValue := this.HttpContent;
+        ReturnValue := HttpContent;
     end;
     #endregion
 
     #region HttpResponseMessage
     var
-        HttpResponseMessage: HttpResponseMessage;
+        CurrHttpResponseMessageInstance: HttpResponseMessage;
 
     procedure SetResponseMessage(var ResponseMessage: HttpResponseMessage)
     var
@@ -105,7 +105,7 @@ codeunit 2357 "Http Response Message Impl."
         CookieName: Text;
     begin
         ClearAll();
-        this.HttpResponseMessage := ResponseMessage;
+        CurrHttpResponseMessageInstance := ResponseMessage;
         SetIsBlockedByEnvironment(ResponseMessage.IsBlockedByEnvironment);
         SetHttpStatusCode(ResponseMessage.HttpStatusCode);
         SetReasonPhrase(ResponseMessage.ReasonPhrase);
@@ -121,22 +121,22 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure GetResponseMessage() ReturnValue: HttpResponseMessage
     begin
-        ReturnValue := this.HttpResponseMessage;
+        ReturnValue := CurrHttpResponseMessageInstance;
     end;
     #endregion
 
     #region HttpHeaders
     var
-        HttpHeaders: HttpHeaders;
+        ResponseHttpHeaders: HttpHeaders;
 
     procedure SetHeaders(Headers: HttpHeaders)
     begin
-        this.HttpHeaders := Headers;
+        ResponseHttpHeaders := Headers;
     end;
 
     procedure GetHeaders() ReturnValue: HttpHeaders
     begin
-        ReturnValue := this.HttpHeaders;
+        ReturnValue := ResponseHttpHeaders;
     end;
     #endregion
 
@@ -146,27 +146,27 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure SetCookies(Cookies: Dictionary of [Text, Cookie])
     begin
-        this.GlobalCookies := Cookies;
+        GlobalCookies := Cookies;
     end;
 
     procedure GetCookies() Cookies: Dictionary of [Text, Cookie]
     begin
-        Cookies := this.GlobalCookies;
+        Cookies := GlobalCookies;
     end;
 
     procedure GetCookieNames() CookieNames: List of [Text]
     begin
-        CookieNames := this.GlobalCookies.Keys;
+        CookieNames := GlobalCookies.Keys;
     end;
 
-    procedure GetCookie(Name: Text) Cookie: Cookie
+    procedure GetCookie(Name: Text) TheCookie: Cookie
     begin
-        if this.GlobalCookies.Get(Name, Cookie) then;
+        if GlobalCookies.Get(Name, TheCookie) then;
     end;
 
-    procedure GetCookie(Name: Text; var Cookie: Cookie) Success: Boolean
+    procedure GetCookie(Name: Text; var TheCookie: Cookie) Success: Boolean
     begin
-        Success := this.GlobalCookies.Get(Name, Cookie);
+        Success := GlobalCookies.Get(Name, TheCookie);
     end;
     #endregion
 
@@ -177,33 +177,33 @@ codeunit 2357 "Http Response Message Impl."
 
     procedure SetErrorMessage(Value: Text)
     begin
-        this.ErrorMessage := Value;
+        ErrorMessage := Value;
     end;
 
     procedure GetErrorMessage(): Text
     begin
-        if this.GlobalException.Message <> '' then
-            exit(this.GlobalException.Message);
+        if GlobalException.Message <> '' then
+            exit(GlobalException.Message);
 
-        if this.ErrorMessage <> '' then
-            exit(this.ErrorMessage);
+        if ErrorMessage <> '' then
+            exit(ErrorMessage);
 
         exit(GetLastErrorText());
     end;
 
     procedure SetException(Exception: ErrorInfo)
     begin
-        this.GlobalException := Exception;
+        GlobalException := Exception;
     end;
 
     procedure GetException() Exception: ErrorInfo
     var
         RestClientExceptionBuilder: Codeunit "Rest Client Exception Builder";
     begin
-        if this.GlobalException.Message = '' then
+        if GlobalException.Message = '' then
             Exception := RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::UnknownException, GetErrorMessage())
         else
-            Exception := this.GlobalException;
+            Exception := GlobalException;
     end;
     #endregion
 }
