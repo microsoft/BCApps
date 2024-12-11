@@ -7,10 +7,10 @@
 
 [Here](https://github.com/microsoft/navcontainerhelper) you can read more about *BcContainerHelper*.
 
-## Create a development environment
+## Create a development envirment
 
 The development environment is a docker container running Business Central locally.
-In order to create it, simply run `.\build\scripts\DevEnv\NewDevEnv.ps1` with the desired parameters.
+In order to create it, simply run `.\build\scripts\DevEnv\NewDevEnv.ps1` with the desirerd parametesrs.
 
 
 ### Example - Set up a container and VSCode
