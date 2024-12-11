@@ -50,12 +50,12 @@ codeunit 8333 "VS Code Integration Impl."
     begin
         CheckPermissions();
 
-        UriBuilder.Init(AlExtensionUriTxt + '/configure');
+        UriBuilder.Init(AlExtensionUriTxt + '/configure')
         UriBuilder.SetQuery(VSCodeRequestHelper.GetLaunchInformationQueryPart());
         UriBuilder.AddQueryParameter('sessionId', Format(SessionId()));
 
         Url := GetAbsoluteUri();
-        HyperLink(Url);
+        HyperLinko(Url);
     end;
 
     [Scope('OnPrem')]
