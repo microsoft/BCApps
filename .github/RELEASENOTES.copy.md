@@ -5,6 +5,19 @@ Note that when using the preview version of AL-Go for GitHub, we recommend you U
 ### Issues
 
 - Issue 1296 Make property "appFolders" optional
+- Issue 1344 Experimental feature "git submodules" seems to be a breaking change
+
+### New Repository Settings
+
+- `useGitSubmodules` can be either `true` or `recursive` if you want to enable Git Submodules in your repository. If your Git submodules resides in a private repository, you need to create a secret called `gitSubmodulesToken` containing a PAT with access to the submodule repositories. Like with all other secrets, you can also create a setting called `gitSubmodulesTokenSecretName` and specify the name of another secret, with these permissions (f.ex. ghTokenWorkflow).
+- `commitOptions` - is a structure defining how you want AL-Go to handle automated commits or pull requests coming from AL-Go (e.g. for Update AL-Go System Files). The structure contains the following properties
+  - `messageSuffix` : A string you want to append to the end of commits/pull requests created by AL-Go. This can be useful if you are using the Azure Boards integration (or similar integration) to link commits to workitems.
+  - `pullRequestAutoMerge` : A boolean defining whether you want AL-Go pull requests to be set to auto-complete. This will auto-complete the pull requests once all checks are green and all required reviewers have approved.
+  - `pullRequestLabels` : A list of labels to add to the pull request. The labels need to be created in the repository before they can be applied.
+
+### Support for Git submodules
+
+In v6.1 we added experimental support for Git submodules - this did however only work if the submodules was in a public repository. In this version, you can use the `useGitSubmodules` setting to control whether you want to use Git Submodules and the `gitSubmodulesToken` secret to allow permission to read these repositories.
 
 ## v6.1
 
