@@ -166,9 +166,9 @@ page 7774 "Copilot Capabilities GA"
         DataMovementEnabled: Boolean;
 #if not CLEAN26
         SupplementalTermsLinkTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2236010', Locked = true;
+#endif
         CopilotFeatureDeactivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been deactivated by the UserSecurityId %3.', Locked = true;
         CopilotFeatureActivatedLbl: Label 'The copilot/AI capability %1, App Id %2 has been activated by the UserSecurityId %3.', Locked = true;
-#endif
 
     internal procedure SetDataMovement(Value: Boolean)
     begin
