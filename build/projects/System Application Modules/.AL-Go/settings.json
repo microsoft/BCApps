@@ -12,6 +12,7 @@
     ],
     "useCompilerFolder": true,
     "doNotPublishApps": true,
+    "doNotRunTests": true,
     "rulesetFile": "../../../src/rulesets/internal.module.ruleset.json",
     "buildModes": [ "Default", "Clean" ]
 }
