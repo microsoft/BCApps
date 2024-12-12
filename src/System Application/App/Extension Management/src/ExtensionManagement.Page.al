@@ -190,19 +190,6 @@ page 2500 "Extension Management"
                         ExtensionOperationImpl.DownloadExtensionSource(Rec."Package ID");
                     end;
                 }
-                action("Open Source in VS Code")
-                {
-                    Caption = 'Open Source in VS Code';
-                    Enabled = IsSourceSpecificationAvailable;
-                    Image = Download;
-                    Scope = Repeater;
-                    ToolTip = 'Open the source code for the extension based on the source control information.';
-
-                    trigger OnAction()
-                    begin
-                        VsCodeIntegration.OpenExtensionSourceInVSCode(Rec);
-                    end;
-                }
                 action("Learn More")
                 {
                     Caption = 'Learn More';
@@ -273,6 +260,75 @@ page 2500 "Extension Management"
                     ToolTip = 'Delete the data of orphaned extensions.';
                 }
             }
+
+            group("Develop in VS Code")
+            {
+                Caption = 'Develop in VS Code';
+                ToolTip = 'Set of actions to configure your local AL project in Visual Studio Code for extension development.';
+
+                action("Open Source in VS Code")
+                {
+                    Caption = 'Open source from Git';
+                    Enabled = IsSourceSpecificationAvailable;
+                    Image = Open;
+                    Scope = Repeater;
+                    ToolTip = 'Open the source code for the extension based on the source control information.';
+
+                    trigger OnAction()
+                    begin
+                        VsCodeIntegration.OpenExtensionSourceInVSCode(Rec);
+                    end;
+                }
+                action("Update configurations")
+                {
+                    AccessByPermission = System "Tools, Zoom" = X;
+                    Caption = 'Generate launch configurations';
+                    Image = Setup;
+                    ToolTip = 'Generates the launch configurations in your local AL project in Visual Studio Code for extension development in this environment.';
+
+                    trigger OnAction()
+                    begin
+                        VSCodeIntegration.UpdateConfigurationsInVSCode();
+                    end;
+                }
+
+                group("Get as dependencies")
+                {
+                    Caption = 'Get selected as dependencies';
+                    ToolTip = 'Set of actions to add the selected extensions as dependencies to your local project in Visual Studio Code.';
+
+                    action("Download dependencies")
+                    {
+                        AccessByPermission = System "Tools, Zoom" = X;
+                        Caption = 'Download in VS Code';
+                        Enabled = IsInstalled;
+                        Image = Download;
+                        ToolTip = 'Adds the selected extensions to your local project''s dependencies in Visual Studio Code, and downloads the symbols for them.';
+
+                        trigger OnAction()
+                        begin
+                            CurrPage.SetSelectionFilter(Rec);
+                            VSCodeIntegration.UpdateDependenciesInVSCode(Rec);
+                        end;
+                    }
+
+                    action("Show dependencies")
+                    {
+                        AccessByPermission = System "Tools, Zoom" = X;
+                        ApplicationArea = All;
+                        Caption = 'Show and copy';
+                        Enabled = IsInstalled;
+                        Image = Copy;
+                        ToolTip = 'Formats the selected dependencies as a json array and displays them in a dialog window.';
+
+                        trigger OnAction()
+                        begin
+                            CurrPage.SetSelectionFilter(Rec);
+                            Message(VSCodeIntegration.GetDependenciesAsJson(Rec));
+                        end;
+                    }
+                }
+            }
         }
         area(Promoted)
         {
@@ -298,9 +354,24 @@ page 2500 "Extension Management"
                 actionref(Unpublish_Promoted; Unpublish) { }
                 actionref(SetupApp_Promoted; SetupApp) { }
                 actionref("Download Source_Promoted"; "Download Source") { }
-                actionref("Open Source in VS Code_Promoted"; "Open Source in VS Code") { }
                 actionref("Learn More_Promoted"; "Learn More") { }
                 actionref(Refresh_Promoted; Refresh) { }
+            }
+
+            group("Develop in VS Code_Promoted")
+            {
+                Caption = 'Develop in VS Code';
+
+                actionref("Open Source in VS Code_Promoted"; "Open Source in VS Code") { }
+                actionref("Update configurations_Promoted"; "Update configurations") { }
+
+                group("Get as dependencies_Promoted")
+                {
+                    Caption = 'Get selected as dependencies';
+
+                    actionref("Download dependencies_Promoted"; "Download dependencies") { }
+                    actionref("Show dependencies_Promoted"; "Show dependencies") { }
+                }
             }
         }
     }

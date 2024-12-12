@@ -38,6 +38,10 @@ page 149038 "AIT Log Entry API"
                     NotBlank = true;
                     TableRelation = "AIT Test Suite";
                 }
+                field("suiteDescription"; SuiteDescription)
+                {
+                    Caption = 'Suite Description';
+                }
                 field("lineNumber"; Rec."Test Method Line No.")
                 {
                     Caption = 'Line No.';
@@ -69,6 +73,10 @@ page 149038 "AIT Log Entry API"
                 field("codeunitName"; Rec."Codeunit Name")
                 {
                     Caption = 'Codeunit Name';
+                }
+                field("testLineDescription"; TestMethodLineDescription)
+                {
+                    Caption = 'Test Line Description';
                 }
                 field("procedureName"; Rec."Procedure Name")
                 {
@@ -124,6 +132,8 @@ page 149038 "AIT Log Entry API"
         OutputText := Rec.GetOutputBlob();
         MessageTxt := Rec.GetMessage();
         ErrorCallStackText := Rec.GetErrorCallStack();
+        SuiteDescription := Rec.GetSuiteDescription();
+        TestMethodLineDescription := Rec.GetTestMethodLineDescription();
     end;
 
     var
@@ -131,4 +141,6 @@ page 149038 "AIT Log Entry API"
         OutputText: Text;
         MessageTxt: Text;
         ErrorCallStackText: Text;
+        SuiteDescription: Text[250];
+        TestMethodLineDescription: Text[250];
 }

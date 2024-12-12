@@ -6,8 +6,8 @@
 namespace System.Globalization;
 
 using System;
-using System.Environment.Configuration;
 using System.Environment;
+using System.Environment.Configuration;
 
 codeunit 54 "Language Impl."
 {
@@ -15,7 +15,8 @@ codeunit 54 "Language Impl."
     SingleInstance = true;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata Language = rimd,
+    Permissions = tabledata "Allowed Language" = rimd,
+                  tabledata Language = rimd,
                   tabledata "Language Selection" = r,
                   tabledata "User Personalization" = rm,
                   tabledata "Windows Language" = r;
@@ -28,6 +29,9 @@ codeunit 54 "Language Impl."
         LanguageIdOverrideMsg: Label 'LanguageIdOverride has been applied in GetLanguageIdOrDefault. The new Language Id is %1.', Comment = '%1 - Language ID';
         FormatRegionOverrideMsg: Label 'FormatRegionOverride has been applied in GetFormatRegionOrDefault. The new FormatRegion is %1.', Comment = '%1 - Format Region';
         LanguageCategoryTxt: Label 'Language';
+        NotificationAllowedLanguagesLbl: Label '2c2bd28b-926c-47a7-bbc4-cf76f8173549', Locked = true;
+        NotificationAllowedLanguagesMessageLbl: Label 'This list of languages has been filtered by your administrator.';
+        ReadMoreLbl: Label 'Read more';
 
     procedure GetUserLanguageCode() UserLanguageCode: Code[10]
     var
@@ -151,16 +155,36 @@ codeunit 54 "Language Impl."
 
     procedure GetApplicationLanguages(var TempWindowsLanguage: Record "Windows Language" temporary)
     var
+        AllowedLanguage: Record "Allowed Language";
         WindowsLanguage: Record "Windows Language";
+        LanguageFilter: Text;
     begin
+        AllowedLanguage.ReadIsolation := IsolationLevel::ReadCommitted;
+        AllowedLanguage.LoadFields("Language Id");
+        if AllowedLanguage.FindSet() then
+            repeat
+                AddToFilter(Format(AllowedLanguage."Language Id"), LanguageFilter);
+            until AllowedLanguage.Next() = 0;
+
+        WindowsLanguage.ReadIsolation := IsolationLevel::ReadCommitted;
+        if LanguageFilter <> '' then
+            WindowsLanguage.SetFilter("Language ID", LanguageFilter);
+
         WindowsLanguage.SetRange("Localization Exist", true);
         WindowsLanguage.SetRange("Globally Enabled", true);
-
         if WindowsLanguage.FindSet() then
             repeat
                 TempWindowsLanguage := WindowsLanguage;
                 TempWindowsLanguage.Insert();
             until WindowsLanguage.Next() = 0;
+    end;
+
+    local procedure AddToFilter(Value: Text; var ValueFilter: Text)
+    begin
+        if ValueFilter = '' then
+            ValueFilter := Value
+        else
+            ValueFilter += '|' + Value;
     end;
 
     procedure GetDefaultApplicationLanguageId(): Integer
@@ -248,14 +272,16 @@ codeunit 54 "Language Impl."
 
     procedure LookupWindowsLanguageId(var LanguageId: Integer)
     var
-        WindowsLanguage: Record "Windows Language";
+        TempWindowsLanguage: Record "Windows Language" temporary;
     begin
-        WindowsLanguage.SetCurrentKey(Name);
+        GetApplicationLanguages(TempWindowsLanguage);
 
-        if WindowsLanguage.Get(LanguageId) then;
+        TempWindowsLanguage.SetCurrentKey(Name);
 
-        if Page.RunModal(Page::"Windows Languages", WindowsLanguage) = Action::LookupOK then
-            LanguageId := WindowsLanguage."Language ID";
+        if TempWindowsLanguage.Get(LanguageId) then;
+
+        if Page.RunModal(Page::"Windows Languages", TempWindowsLanguage) = Action::LookupOK then
+            LanguageId := TempWindowsLanguage."Language ID";
     end;
 
     procedure GetParentLanguageId(LanguageId: Integer) ParentLanguageId: Integer
@@ -317,6 +343,34 @@ codeunit 54 "Language Impl."
     begin
         CultureInfo := CultureInfo.CultureInfo(LanguageID);
         exit(CultureInfo.Name);
+    end;
+
+    procedure GetCurrentCultureName(): Text
+    var
+        CultureInfo: DotNet CultureInfo;
+    begin
+        exit(CultureInfo.CurrentCulture.Name);
+    end;
+
+    procedure ShowAllowedLanguagesNotification()
+    var
+        AllowedLanguage: Record "Allowed Language";
+        Notification: Notification;
+        NotificationGuid: Guid;
+    begin
+        if AllowedLanguage.IsEmpty() then
+            exit;
+
+        NotificationGuid := NotificationAllowedLanguagesLbl;
+        Notification.Id(NotificationGuid);
+        Notification.Message(NotificationAllowedLanguagesMessageLbl);
+        Notification.AddAction(ReadMoreLbl, Codeunit::"Language Impl.", 'OpenReadMore');
+        Notification.Send();
+    end;
+
+    procedure OpenReadMore(Notification: Notification)
+    begin
+        Hyperlink('https://go.microsoft.com/fwlink/?linkid=2299275');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"UI Helper Triggers", GetApplicationLanguage, '', false, false)]

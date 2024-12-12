@@ -34,7 +34,6 @@ page 8887 "Email Accounts"
         {
             repeater(Accounts)
             {
-                Visible = ShowLogo;
                 FreezeColumn = NameField;
 #pragma warning disable AW0009
                 field(LogoField; Rec.LogoBlob)
@@ -43,7 +42,6 @@ page 8887 "Email Accounts"
                     ApplicationArea = All;
                     ShowCaption = false;
                     Caption = ' ';
-                    Visible = ShowLogo;
                     ToolTip = 'Specifies the logo for the type of email account.';
                     Width = 1;
                 }
@@ -355,7 +353,6 @@ page 8887 "Email Accounts"
         CanUserManageEmailSetup := EmailAccountImpl.IsUserEmailAdmin();
         Rec.SetCurrentKey("Account Id", Connector);
         UpdateEmailAccounts();
-        ShowLogo := true;
     end;
 
     trigger OnAfterGetRecord()
@@ -468,19 +465,19 @@ page 8887 "Email Accounts"
     /// <param name="Filter">True to filter the email accounts, false to show all email accounts</param>
 #if not CLEAN26
     [Obsolete('Replaced by FilterConnectorV3Accounts. In addition, this function now returns both v2 and v3 accounts.', '26.0')]
-    procedure FilterConnectorV2Accounts(Filter: Boolean)
+    procedure FilterConnectorV2Accounts(UseFilter: Boolean)
     begin
-        V2V3Filter := Filter;
+        V2V3Filter := UseFilter;
     end;
 #endif
 
     /// <summary>
     /// Filters the email accounts to only show accounts that are using the Email Connector v2 or v3.
     /// </summary>
-    /// <param name="Filter">True to filter the email accounts, false to show all email accounts</param>
-    procedure FilterConnectorV3Accounts(Filter: Boolean)
+    /// <param name="UseFilter">True to filter the email accounts, false to show all email accounts</param>
+    procedure FilterConnectorV3Accounts(UseFilter: Boolean)
     begin
-        V2V3Filter := Filter;
+        V2V3Filter := UseFilter;
     end;
 
     var
@@ -492,7 +489,6 @@ page 8887 "Email Accounts"
         CanUserManageEmailSetup: Boolean;
         DefaultTxt: Text;
         UpdateAccounts: Boolean;
-        ShowLogo: Boolean;
         IsLookupMode: Boolean;
         HasEmailAccount: Boolean;
         V2V3Filter: Boolean;

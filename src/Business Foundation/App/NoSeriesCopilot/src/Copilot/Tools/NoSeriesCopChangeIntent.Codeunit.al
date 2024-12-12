@@ -69,6 +69,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
         TempSetupTable: Record "Table Metadata" temporary;
         TempNoSeriesField: Record "Field" temporary;
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
+        NoSeriesCopilotTelemetry: Codeunit "No. Series Copilot Telemetry";
         ChangeNoSeriesPrompt, CustomPatternsPromptList, TablesYamlList, ExistingNoSeriesToChangeList : List of [Text];
         NumberOfToolResponses, i, ActualTablesChunkSize : Integer;
         NumberOfChangedTables: Integer;
@@ -102,6 +103,7 @@ codeunit 334 "No. Series Cop. Change Intent" implements "AOAI Function"
                 ToolResults.Add(ToolsImpl.ConvertListToText(ChangeNoSeriesPrompt), ActualTablesChunkSize);
             end;
         Progress.Close();
+        NoSeriesCopilotTelemetry.LogModifyExistingNumberSeriesToolUsage(ToolsImpl.GetEntities(Arguments).Count, CustomPatternsPromptList.Count > 0, NumberOfToolResponses, NumberOfChangedTables, UpdateForNextYear);
     end;
 
     [TryFunction]
