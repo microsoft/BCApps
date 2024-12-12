@@ -6,7 +6,7 @@
     "testFolders":  [
         "../../../src/Tools/Performance Toolkit/Test"
     ],
-    "buildModes": [ "Default", "Clean" ],
+    "buildModes": [ "Default" ],
     "installOnlyReferencedApps": false,
     "ConditionalSettings": [
         {
@@ -14,7 +14,7 @@
                 "releases/*.[0-5]"
             ],
             "settings": {
-                "buildModes": [ "Default", "Clean", "Strict" ]
+                "buildModes": [ "Default", "Strict" ]
             }
         }
     ]
