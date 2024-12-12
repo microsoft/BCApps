@@ -7,5 +7,6 @@
     ],
     "doNotRunTests": true,
     "useCompilerFolder": true,
-    "doNotPublishApps": true
+    "doNotPublishApps": true,
+    "buildModes": [ "Default", "Clean" ]
 }

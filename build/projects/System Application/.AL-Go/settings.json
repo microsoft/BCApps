@@ -6,7 +6,7 @@
         "../../../src/Tools/Test Framework/Test Libraries/*",
         "../../../src/Tools/Test Framework/Test Runner"
     ],
-    "buildModes": [ "Translated" ],
+    "buildModes": [ "Default", "Translated", "Clean" ],
     "doNotRunTests": true,
     "useCompilerFolder": true,
     "doNotPublishApps": true,
@@ -16,7 +16,7 @@
                 "releases/*.[0-5]"
             ],
             "settings": {
-                "buildModes": [ "Translated", "Strict"]
+                "buildModes": [ "Default", "Translated", "Clean", "Strict"]
             }
         }
     ]

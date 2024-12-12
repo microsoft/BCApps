@@ -37,10 +37,6 @@
   "excludeEnvironments": [
     "Official-Build"
   ],
-  "buildModes": [
-    "Default",
-    "Clean"
-  ],
   "CICDPushBranches": [
     "main",
     "releases/*"

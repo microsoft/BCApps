@@ -7,9 +7,7 @@
         "../../../src/Business Foundation/Test",
         "../../../src/Business Foundation/Test Library"
     ],
-    "buildModes": [
-        "Translated"
-    ],
+    "buildModes": [ "Default", "Translated", "Clean" ],
     "installOnlyReferencedApps": false,
     "ConditionalSettings": [
         {
@@ -17,7 +15,7 @@
                 "releases/*.[0-5]"
             ],
             "settings": {
-                "buildModes": [ "Strict" ]
+                "buildModes": [ "Default", "Translated", "Clean", "Strict"]
             }
         }
     ]

@@ -38,15 +38,6 @@ function Get-TestsInGroup {
     return $testsInGroup
 }
 
-$buildMode = Get-BuildMode
-if ($buildMode -ne "Default")
-{
-    Write-Host "Build mode is $buildMode. Skipping test execution."
-    return $true
-} else {
-    Write-Host "Build mode is $buildMode. Running tests."
-}
-
 $disabledTests = @(Get-DisabledTests)
 $noIsolationTests = Get-TestsInGroup -groupName "No Test Isolation"
 
