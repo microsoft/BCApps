@@ -153,7 +153,7 @@ codeunit 9453 "File Scenario Impl."
         FileAccountScenarios.SetCurrentKey("Display Name"); // sort scenarios by "Display Name"
     end;
 
-    local procedure AddEntry(var FileAccountScenario: Record "File Account Scenario"; EntryType: Enum "File Acount Entry Type"; Scenario: Integer; AccountId: Guid; FileSystemConnector: Enum "File System Connector"; DisplayName: Text[2048]; Default: Boolean; var Position: Integer)
+    local procedure AddEntry(var FileAccountScenario: Record "File Account Scenario"; EntryType: Enum "File Account Entry Type"; Scenario: Integer; AccountId: Guid; FileSystemConnector: Enum "File System Connector"; DisplayName: Text[2048]; Default: Boolean; var Position: Integer)
     begin
         // Add entry to the File Account Scenario while maintaining the position so that the tree represents the data correctly
         FileAccountScenario.Init();

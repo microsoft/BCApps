@@ -143,7 +143,7 @@ page 9451 "File Account Wizard"
                 }
             }
 
-            group(NoConnectrosAvailableGroup)
+            group(NoConnectorsAvailableGroup)
             {
                 Visible = ChooseConnectorVisible and not ConnectorsAvailable;
                 label(NoConnectorsAvailable)
@@ -466,7 +466,7 @@ page 9451 "File Account Wizard"
         AppSourceTok: Label 'AppSource';
         ExtensionManagementTok: Label 'Extension Management';
         FileCategoryLbl: Label 'File', Locked = true;
-        LearnMoreURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2134520', Locked = true;  //FIXME
+        LearnMoreURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2134520', Locked = true;  //TODO Replace with correct URL to new documentation
         LearnMoreTok: Label 'Learn more';
         NoLimitTxt: Label 'No limit';
         AccountCreationSuccessfullyCompletedDurationLbl: Label 'Successful creation of account completed. Duration: %1 milliseconds.', Comment = '%1 - Duration', Locked = true;

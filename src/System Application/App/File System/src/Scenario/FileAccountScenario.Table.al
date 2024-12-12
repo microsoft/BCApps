@@ -22,7 +22,7 @@ table 9453 "File Account Scenario"
         field(3; "Account Id"; Guid) { }
         field(4; "Display Name"; Text[2048]) { }
         field(5; Default; Boolean) { }
-        field(6; EntryType; Enum "File Acount Entry Type") { }
+        field(6; EntryType; Enum "File Account Entry Type") { }
         field(7; Position; Integer) { }
     }
 

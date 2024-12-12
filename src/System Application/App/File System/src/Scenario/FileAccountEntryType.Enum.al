@@ -5,7 +5,7 @@
 
 namespace System.FileSystem;
 
-enum 9453 "File Acount Entry Type"
+enum 9453 "File Account Entry Type"
 {
     Access = Internal;
     Extensible = false;
