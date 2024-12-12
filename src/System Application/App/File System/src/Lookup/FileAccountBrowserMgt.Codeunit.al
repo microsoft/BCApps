@@ -104,9 +104,9 @@ codeunit 9458 "File Account Browser Mgt."
             until FileAccountContentToAdd.Next() = 0;
 
         FileAccountContent.Init();
-        FileAccountContent.Name := '..';
-        FileAccountContent.Type := FileAccountContent.Type::Directory;
-        FileAccountContent."Parent Directory" := CopyStr(FileSystem.GetParentPath(CurrentPath), 1, MaxStrLen(FileAccountContent."Parent Directory"));
+        FileAccountContent.Validate(Name, '..');
+        FileAccountContent.Validate(Type, FileAccountContent.Type::Directory);
+        FileAccountContent.Validate("Parent Directory", CopyStr(FileSystem.GetParentPath(CurrentPath), 1, MaxStrLen(FileAccountContent."Parent Directory")));
         FileAccountContent.Insert();
     end;
 

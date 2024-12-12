@@ -161,7 +161,7 @@ page 8886 "Email Account Wizard"
                 }
             }
 
-            group(NoConnectrosAvailableGroup)
+            group(NoConnectorsAvailableGroup)
             {
                 Visible = ChooseConnectorVisible and not ConnectorsAvailable;
                 label(NoConnectorsAvailable)

@@ -143,7 +143,7 @@ page 9451 "File Account Wizard"
                 }
             }
 
-            group(NoConnectrosAvailableGroup)
+            group(NoConnectorsAvailableGroup)
             {
                 Visible = ChooseConnectorVisible and not ConnectorsAvailable;
                 label(NoConnectorsAvailable)

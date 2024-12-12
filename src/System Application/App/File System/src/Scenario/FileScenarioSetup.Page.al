@@ -181,7 +181,7 @@ page 9452 "File Scenario Setup"
         FileAccountId: Guid;
         FileConnector: Enum "File System Connector";
         Style, DefaultTxt : Text;
-        TypeOfEntry: Enum "File Acount Entry Type";
+        TypeOfEntry: Enum "File Account Entry Type";
         Indentation: Integer;
         CanUserManageFileSetup: Boolean;
 }

@@ -10,6 +10,7 @@ table 9455 "File Account Content"
     Caption = 'File Account Content';
     DataClassification = SystemMetadata;
     TableType = Temporary;
+    Extensible = false;
 
     fields
     {

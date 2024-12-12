@@ -39,11 +39,11 @@ page 9455 "File Account Browser"
                     trigger OnDrillDown()
                     begin
                         case true of
-                            (Rec.Name = '..'):
+                            Rec.Name = '..':
                                 BrowseFolder(Rec."Parent Directory");
-                            (Rec.Type = Rec.Type::Directory):
+                            Rec.Type = Rec.Type::Directory:
                                 BrowseFolder(Rec);
-                            (not IsInLookupMode):
+                            not IsInLookupMode:
                                 FileAccountBrowserMgt.DownloadFile(Rec);
                         end;
                     end;
@@ -56,7 +56,6 @@ page 9455 "File Account Browser"
 
             group(SaveFileNameGroup)
             {
-                Caption = '', Locked = true;
                 ShowCaption = false;
                 Visible = ShowFileName;
 
