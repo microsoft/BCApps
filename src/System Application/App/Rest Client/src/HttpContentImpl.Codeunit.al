@@ -8,18 +8,102 @@ using System.Utilities;
 
 codeunit 2355 "Http Content Impl."
 {
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
-    Access = Internal;
-
     var
-        HttpContent: HttpContent;
+        CurrHttpContentInstance: HttpContent;
         ContentTypeEmptyErr: Label 'The value of the Content-Type header must be specified.';
         MimeTypeTextPlainTxt: Label 'text/plain', Locked = true;
         MimeTypeTextXmlTxt: Label 'text/xml', Locked = true;
         MimeTypeApplicationOctetStreamTxt: Label 'application/octet-stream', Locked = true;
         MimeTypeApplicationJsonTxt: Label 'application/json', Locked = true;
+
+    #region Constructors
+    procedure Create(Content: Text) HttpContentImpl: Codeunit "Http Content Impl."
+    begin
+        HttpContentImpl := Create(Content, '');
+    end;
+
+    procedure Create(Content: SecretText) HttpContentImpl: Codeunit "Http Content Impl."
+    begin
+        HttpContentImpl := Create(Content, '');
+    end;
+
+    procedure Create(Content: Text; ContentType: Text): Codeunit "Http Content Impl."
+    begin
+        ClearAll();
+        SetContent(Content, ContentType);
+        exit(this);
+    end;
+
+    procedure Create(Content: SecretText; ContentType: Text): Codeunit "Http Content Impl."
+    begin
+        ClearAll();
+        SetContent(Content, ContentType);
+        exit(this);
+    end;
+
+    procedure Create(Content: JsonObject): Codeunit "Http Content Impl."
+    begin
+        ClearAll();
+        SetContent(Content.AsToken());
+        exit(this);
+    end;
+
+    procedure Create(Content: JsonArray): Codeunit "Http Content Impl."
+    begin
+        ClearAll();
+        SetContent(Content.AsToken());
+        exit(this);
+    end;
+
+    procedure Create(Content: JsonToken): Codeunit "Http Content Impl."
+    begin
+        ClearAll();
+        SetContent(Content);
+        exit(this);
+    end;
+
+    procedure Create(Content: XmlDocument): Codeunit "Http Content Impl."
+    begin
+        ClearAll();
+        SetContent(Content);
+        exit(this);
+    end;
+
+    procedure Create(Content: Codeunit "Temp Blob") HttpContentImpl: Codeunit "Http Content Impl."
+    begin
+        HttpContentImpl := Create(Content, '');
+    end;
+
+    procedure Create(Content: Codeunit "Temp Blob"; ContentType: Text): Codeunit "Http Content Impl."
+    begin
+        ClearAll();
+        SetContent(Content, ContentType);
+        exit(this);
+    end;
+
+    procedure Create(Content: InStream) HttpContent: Codeunit "Http Content Impl."
+    begin
+        HttpContent := Create(Content, '');
+    end;
+
+    procedure Create(Content: InStream; ContentType: Text): Codeunit "Http Content Impl."
+    begin
+        ClearAll();
+        SetContent(Content, ContentType);
+        exit(this);
+    end;
+
+    procedure Create(Content: HttpContent): Codeunit "Http Content Impl."
+    begin
+        ClearAll();
+        SetContent(Content);
+        exit(this);
+    end;
+    #endregion
 
     procedure SetContentTypeHeader(ContentType: Text)
     begin
@@ -30,58 +114,58 @@ codeunit 2355 "Http Content Impl."
 
     procedure AddContentEncoding(ContentEncoding: Text)
     var
-        Headers: HttpHeaders;
+        ContentHeaders: HttpHeaders;
     begin
-        if not HttpContent.GetHeaders(Headers) then begin
-            HttpContent.Clear();
-            HttpContent.GetHeaders(Headers);
+        if not CurrHttpContentInstance.GetHeaders(ContentHeaders) then begin
+            CurrHttpContentInstance.Clear();
+            CurrHttpContentInstance.GetHeaders(ContentHeaders);
         end;
-        Headers.Add('Content-Encoding', ContentEncoding);
+        ContentHeaders.Add('Content-Encoding', ContentEncoding);
     end;
 
     procedure SetHeader(Name: Text; Value: Text)
     var
-        Headers: HttpHeaders;
+        ContentHeaders: HttpHeaders;
     begin
-        if not HttpContent.GetHeaders(Headers) then begin
-            HttpContent.Clear();
-            HttpContent.GetHeaders(Headers);
+        if not CurrHttpContentInstance.GetHeaders(ContentHeaders) then begin
+            CurrHttpContentInstance.Clear();
+            CurrHttpContentInstance.GetHeaders(ContentHeaders);
         end;
 
-        if Headers.Contains(Name) then
-            Headers.Remove(Name);
+        if ContentHeaders.Contains(Name) or ContentHeaders.ContainsSecret(Name) then
+            ContentHeaders.Remove(Name);
 
-        Headers.Add(Name, Value);
+        ContentHeaders.Add(Name, Value);
     end;
 
     procedure SetHeader(Name: Text; Value: SecretText)
     var
-        Headers: HttpHeaders;
+        ContentHeaders: HttpHeaders;
     begin
-        if not HttpContent.GetHeaders(Headers) then begin
-            HttpContent.Clear();
-            HttpContent.GetHeaders(Headers);
+        if not CurrHttpContentInstance.GetHeaders(ContentHeaders) then begin
+            CurrHttpContentInstance.Clear();
+            CurrHttpContentInstance.GetHeaders(ContentHeaders);
         end;
 
-        if Headers.Contains(Name) then
-            Headers.Remove(Name);
+        if ContentHeaders.Contains(Name) or ContentHeaders.ContainsSecret(Name) then
+            ContentHeaders.Remove(Name);
 
-        Headers.Add(Name, Value);
+        ContentHeaders.Add(Name, Value);
     end;
 
     procedure GetHttpContent() ReturnValue: HttpContent
     begin
-        ReturnValue := HttpContent;
+        ReturnValue := CurrHttpContentInstance;
     end;
 
     procedure AsText() ReturnValue: Text
     begin
-        HttpContent.ReadAs(ReturnValue);
+        CurrHttpContentInstance.ReadAs(ReturnValue);
     end;
 
     procedure AsSecretText() ReturnValue: SecretText
     begin
-        HttpContent.ReadAs(ReturnValue);
+        CurrHttpContentInstance.ReadAs(ReturnValue);
     end;
 
     procedure AsBlob() ReturnValue: Codeunit "Temp Blob"
@@ -89,14 +173,14 @@ codeunit 2355 "Http Content Impl."
         InStr: InStream;
         OutStr: OutStream;
     begin
-        HttpContent.ReadAs(InStr);
+        CurrHttpContentInstance.ReadAs(InStr);
         ReturnValue.CreateOutStream(OutStr);
         CopyStream(OutStr, InStr);
     end;
 
     procedure AsInStream(var InStr: InStream)
     begin
-        HttpContent.ReadAs(InStr);
+        CurrHttpContentInstance.ReadAs(InStr);
     end;
 
     procedure AsXmlDocument() ReturnValue: XmlDocument
@@ -104,7 +188,8 @@ codeunit 2355 "Http Content Impl."
         XmlReadOptions: XmlReadOptions;
     begin
         XmlReadOptions.PreserveWhitespace(false);
-        XmlDocument.ReadFrom(AsText(), XmlReadOptions, ReturnValue);
+        if not XmlDocument.ReadFrom(AsText(), XmlReadOptions, ReturnValue) then
+            ThrowInvalidXmlException();
     end;
 
     procedure AsJson() ReturnValue: JsonToken
@@ -112,14 +197,38 @@ codeunit 2355 "Http Content Impl."
         Json: Text;
     begin
         Json := AsText();
-        if Json <> '' then
-            ReturnValue.ReadFrom(AsText());
+        if Json = '' then
+            exit;
+        if not ReturnValue.ReadFrom(Json) then
+            ThrowInvalidJsonException();
+    end;
+
+    procedure AsJsonObject() ReturnValue: JsonObject
+    var
+        Json: Text;
+    begin
+        Json := AsText();
+        if Json = '' then
+            exit;
+        if not ReturnValue.ReadFrom(Json) then
+            ThrowInvalidJsonException();
+    end;
+
+    procedure AsJsonArray() ReturnValue: JsonArray
+    var
+        Json: Text;
+    begin
+        Json := AsText();
+        if Json = '' then
+            exit;
+        if not ReturnValue.ReadFrom(Json) then
+            ThrowInvalidJsonException();
     end;
 
     procedure SetContent(Content: Text; ContentType: Text)
     begin
-        HttpContent.Clear();
-        HttpContent.WriteFrom(Content);
+        CurrHttpContentInstance.Clear();
+        CurrHttpContentInstance.WriteFrom(Content);
         if ContentType = '' then
             ContentType := MimeTypeTextPlainTxt;
         SetContentTypeHeader(ContentType);
@@ -127,8 +236,8 @@ codeunit 2355 "Http Content Impl."
 
     procedure SetContent(Content: SecretText; ContentType: Text)
     begin
-        HttpContent.Clear();
-        HttpContent.WriteFrom(Content);
+        CurrHttpContentInstance.Clear();
+        CurrHttpContentInstance.WriteFrom(Content);
         if ContentType = '' then
             ContentType := MimeTypeTextPlainTxt;
         SetContentTypeHeader(ContentType);
@@ -136,8 +245,8 @@ codeunit 2355 "Http Content Impl."
 
     procedure SetContent(Content: InStream; ContentType: Text)
     begin
-        HttpContent.Clear();
-        HttpContent.WriteFrom(Content);
+        CurrHttpContentInstance.Clear();
+        CurrHttpContentInstance.WriteFrom(Content);
         if ContentType = '' then
             ContentType := MimeTypeApplicationOctetStreamTxt;
         SetContentTypeHeader(ContentType);
@@ -173,6 +282,22 @@ codeunit 2355 "Http Content Impl."
 
     procedure SetContent(var Value: HttpContent)
     begin
-        HttpContent := Value;
+        CurrHttpContentInstance := Value;
+    end;
+
+    local procedure ThrowInvalidJsonException()
+    var
+        RestClientExceptionBuilder: Codeunit "Rest Client Exception Builder";
+        InvalidJsonMessageTxt: Label 'The content is not a valid JSON.';
+    begin
+        Error(RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::InvalidJson, InvalidJsonMessageTxt));
+    end;
+
+    local procedure ThrowInvalidXmlException()
+    var
+        RestClientExceptionBuilder: Codeunit "Rest Client Exception Builder";
+        InvalidXmlMessageTxt: Label 'The content is not a valid XML.';
+    begin
+        Error(RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::InvalidXml, InvalidXmlMessageTxt));
     end;
 }

@@ -25,17 +25,42 @@ codeunit 134971 "Rest Client Tests"
     begin
         // [SCENARIO] Test GET request
 
-        // [GIVEN] An uninitialized Rest Client
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
 
         // [WHEN] The Get method is called
         HttpResponseMessage := RestClient.Get('https://httpbin.org/get');
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(HttpResponseMessage.GetHttpStatusCode(), 200, 'The response status code should be 200');
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
-        Assert.AreEqual(GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'https://httpbin.org/get', 'The response should contain the expected url');
+        Assert.AreEqual('https://httpbin.org/get', GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'The response should contain the expected url');
+    end;
+
+    [Test]
+    procedure TestGetWithQueryParameters()
+    var
+        RestClient: Codeunit "Rest Client";
+        HttpResponseMessage: Codeunit "Http Response Message";
+        JsonObject: JsonObject;
+    begin
+        // [SCENARIO] Test GET request with query parameters
+
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
+        RestClient.Initialize(HttpClientHandler);
+
+        // [WHEN] The Get method is called with query parameters
+        HttpResponseMessage := RestClient.Get('https://httpbin.org/get?param1=value1&param2=value2');
+
+        // [THEN] The response contains the expected data
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
+        Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
+        JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
+        Assert.AreEqual('value1', SelectJsonToken(JsonObject, '$.args.param1').AsValue().AsText(), 'The response should contain the expected query parameter');
+        Assert.AreEqual('value2', SelectJsonToken(JsonObject, '$.args.param2').AsValue().AsText(), 'The response should contain the expected query parameter');
     end;
 
     [Test]
@@ -48,18 +73,19 @@ codeunit 134971 "Rest Client Tests"
     begin
         // [SCENARIO] Test POST request
 
-        // [GIVEN] An uninitialized Rest Client
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
 
         // [WHEN] The Post method is called
         HttpResponseMessage := RestClient.Post('https://httpbin.org/post', HttpGetContent.Create('Hello World'));
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(HttpResponseMessage.GetHttpStatusCode(), 200, 'The response status code should be 200');
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
-        Assert.AreEqual(GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'https://httpbin.org/post', 'The response should contain the expected url');
-        Assert.AreEqual(GetJsonToken(JsonObject, 'data').AsValue().AsText(), 'Hello World', 'The response should contain the expected data');
+        Assert.AreEqual('https://httpbin.org/post', GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'The response should contain the expected url');
+        Assert.AreEqual('Hello World', GetJsonToken(JsonObject, 'data').AsValue().AsText(), 'The response should contain the expected data');
     end;
 
     [Test]
@@ -72,18 +98,19 @@ codeunit 134971 "Rest Client Tests"
     begin
         // [SCENARIO] Test PATCH request
 
-        // [GIVEN] An uninitialized Rest Client
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
 
         // [WHEN] The Patch method is called
         HttpResponseMessage := RestClient.Patch('https://httpbin.org/patch', HttpGetContent.Create('Hello World'));
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(HttpResponseMessage.GetHttpStatusCode(), 200, 'The response status code should be 200');
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
-        Assert.AreEqual(GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'https://httpbin.org/patch', 'The response should contain the expected url');
-        Assert.AreEqual(GetJsonToken(JsonObject, 'data').AsValue().AsText(), 'Hello World', 'The response should contain the expected data');
+        Assert.AreEqual('https://httpbin.org/patch', GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'The response should contain the expected url');
+        Assert.AreEqual('Hello World', GetJsonToken(JsonObject, 'data').AsValue().AsText(), 'The response should contain the expected data');
     end;
 
     [Test]
@@ -96,18 +123,19 @@ codeunit 134971 "Rest Client Tests"
     begin
         // [SCENARIO] Test PUT request
 
-        // [GIVEN] An uninitialized Rest Client
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
 
         // [WHEN] The Put method is called
         HttpResponseMessage := RestClient.Put('https://httpbin.org/put', HttpGetContent.Create('Hello World'));
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(HttpResponseMessage.GetHttpStatusCode(), 200, 'The response status code should be 200');
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
-        Assert.AreEqual(GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'https://httpbin.org/put', 'The response should contain the expected url');
-        Assert.AreEqual(GetJsonToken(JsonObject, 'data').AsValue().AsText(), 'Hello World', 'The response should contain the expected data');
+        Assert.AreEqual('https://httpbin.org/put', GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'The response should contain the expected url');
+        Assert.AreEqual('Hello World', GetJsonToken(JsonObject, 'data').AsValue().AsText(), 'The response should contain the expected data');
     end;
 
     [Test]
@@ -119,17 +147,18 @@ codeunit 134971 "Rest Client Tests"
     begin
         // [SCENARIO] Test DELETE request
 
-        // [GIVEN] An uninitialized Rest Client
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
 
         // [WHEN] The Delete method is called
         HttpResponseMessage := RestClient.Delete('https://httpbin.org/delete');
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(HttpResponseMessage.GetHttpStatusCode(), 200, 'The response status code should be 200');
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
-        Assert.AreEqual(GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'https://httpbin.org/delete', 'The response should contain the expected url');
+        Assert.AreEqual('https://httpbin.org/delete', GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'The response should contain the expected url');
     end;
 
     [Test]
@@ -142,6 +171,7 @@ codeunit 134971 "Rest Client Tests"
         // [SCENARIO] Test GET request with headers
 
         // [GIVEN] An initialized Rest Client with default request headers
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
         RestClient.SetDefaultRequestHeader('X-Test-Header', 'Test');
 
@@ -149,11 +179,11 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Get('https://httpbin.org/get');
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(HttpResponseMessage.GetHttpStatusCode(), 200, 'The response status code should be 200');
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
-        Assert.AreEqual(GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'https://httpbin.org/get', 'The response should contain the expected url');
-        Assert.AreEqual(SelectJsonToken('$.headers.X-Test-Header', JsonObject).AsValue().AsText(), 'Test', 'The response should contain the expected header');
+        Assert.AreEqual('https://httpbin.org/get', GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'The response should contain the expected url');
+        Assert.AreEqual('Test', SelectJsonToken(JsonObject, '$.headers.X-Test-Header').AsValue().AsText(), 'The response should contain the expected header');
     end;
 
     [Test]
@@ -166,6 +196,7 @@ codeunit 134971 "Rest Client Tests"
         // [SCENARIO] Test GET request with base address
 
         // [GIVEN] An initialized Rest Client with base address
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
         RestClient.SetBaseAddress('https://httpbin.org');
 
@@ -173,10 +204,10 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Get('/get');
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(HttpResponseMessage.GetHttpStatusCode(), 200, 'The response status code should be 200');
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
-        Assert.AreEqual(GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'https://httpbin.org/get', 'The response should contain the expected url');
+        Assert.AreEqual('https://httpbin.org/get', GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'The response should contain the expected url');
     end;
 
     [Test]
@@ -188,17 +219,18 @@ codeunit 134971 "Rest Client Tests"
     begin
         // [SCENARIO] Test GET request with default User-Agent header
 
-        // [GIVEN] An uninitialized Rest Client 
+        // [GIVEN] An initialized Rest Client 
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
 
         // [WHEN] The Get method is called using the default User-Agent header
         HttpResponseMessage := RestClient.Get('https://httpbin.org/get');
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(HttpResponseMessage.GetHttpStatusCode(), 200, 'The response status code should be 200');
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
-        Assert.IsTrue(SelectJsonToken('$.headers.User-Agent', JsonObject).AsValue().AsText().StartsWith('Dynamics 365 Business Central '), 'The response should contain a User-Agent header');
+        Assert.IsTrue(SelectJsonToken(JsonObject, '$.headers.User-Agent').AsValue().AsText().StartsWith('Dynamics 365 Business Central '), 'The response should contain a User-Agent header');
     end;
 
     [Test]
@@ -211,6 +243,7 @@ codeunit 134971 "Rest Client Tests"
         // [SCENARIO] Test GET request with custom User-Agent header
 
         // [GIVEN] An initialized Rest Client with a customer User-Agent header
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
         RestClient.SetUserAgentHeader('BC Rest Client Test');
 
@@ -218,10 +251,10 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Get('https://httpbin.org/get');
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(HttpResponseMessage.GetHttpStatusCode(), 200, 'The response status code should be 200');
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
-        Assert.AreEqual(SelectJsonToken('$.headers.User-Agent', JsonObject).AsValue().AsText(), 'BC Rest Client Test', 'The response should contain the expected User-Agent header');
+        Assert.AreEqual('BC Rest Client Test', SelectJsonToken(JsonObject, '$.headers.User-Agent').AsValue().AsText(), 'The response should contain the expected User-Agent header');
     end;
 
     [Test]
@@ -232,14 +265,40 @@ codeunit 134971 "Rest Client Tests"
     begin
         // [SCENARIO] Test GET request with JSON response
 
-        // [GIVEN] An uninitialized Rest Client
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
 
         // [WHEN] The GetAsJson method is called
         JsonObject := RestClient.GetAsJson('https://httpbin.org/get').AsObject();
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'https://httpbin.org/get', 'The response should contain the expected url');
+        Assert.AreEqual('https://httpbin.org/get', GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'The response should contain the expected url');
+    end;
+
+    [Test]
+    [ErrorBehavior(ErrorBehavior::Collect)]
+    procedure TestGetAsJsonWithCollectingErrors()
+    var
+        RestClient: Codeunit "Rest Client";
+        JsonToken: JsonToken;
+        ExceptionList: List of [ErrorInfo];
+        Exception: ErrorInfo;
+    begin
+        // [SCENARIO] Test GET request with JSON response
+
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
+        RestClient.Initialize(HttpClientHandler);
+
+        // [WHEN] The GetAsJson method is called
+        JsonToken := RestClient.GetAsJson('https://httpbin.org/xml');
+
+        // [THEN] The response contains the expected data
+        ExceptionList := GetCollectedErrors(true);
+        Exception := ExceptionList.Get(1);
+
+        Assert.AreEqual('The content is not a valid JSON.', Exception.Message, 'The collected error message should be as expected');
     end;
 
     [Test]
@@ -252,7 +311,8 @@ codeunit 134971 "Rest Client Tests"
     begin
         // [SCENARIO] Test POST request with JSON request and response
 
-        // [GIVEN] An uninitialized Rest Client
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
 
         // [GIVEN] A Json object
@@ -264,10 +324,10 @@ codeunit 134971 "Rest Client Tests"
         JsonObject2 := RestClient.PostAsJson('https://httpbin.org/post', JsonObject1).AsObject();
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(GetJsonToken(JsonObject2, 'url').AsValue().AsText(), 'https://httpbin.org/post', 'The response should contain the expected url');
+        Assert.AreEqual('https://httpbin.org/post', GetJsonToken(JsonObject2, 'url').AsValue().AsText(), 'The response should contain the expected url');
         JsonObject2.ReadFrom(GetJsonToken(JsonObject2, 'data').AsValue().AsText());
-        Assert.AreEqual(GetJsonToken(JsonObject2, 'name').AsValue().AsText(), 'John', 'The response should contain the expected data');
-        Assert.AreEqual(GetJsonToken(JsonObject2, 'age').AsValue().AsInteger(), 30, 'The response should contain the expected data');
+        Assert.AreEqual('John', GetJsonToken(JsonObject2, 'name').AsValue().AsText(), 'The response should contain the expected data');
+        Assert.AreEqual(30, GetJsonToken(JsonObject2, 'age').AsValue().AsInteger(), 'The response should contain the expected data');
     end;
 
     [Test]
@@ -280,7 +340,8 @@ codeunit 134971 "Rest Client Tests"
     begin
         // [SCENARIO] Test PATCH request with JSON request and response
 
-        // [GIVEN] An uninitialized Rest Client
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
 
         // [GIVEN] A Json object
@@ -292,10 +353,10 @@ codeunit 134971 "Rest Client Tests"
         JsonObject2 := RestClient.PatchAsJson('https://httpbin.org/patch', JsonObject1).AsObject();
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(GetJsonToken(JsonObject2, 'url').AsValue().AsText(), 'https://httpbin.org/patch', 'The response should contain the expected url');
+        Assert.AreEqual('https://httpbin.org/patch', GetJsonToken(JsonObject2, 'url').AsValue().AsText(), 'The response should contain the expected url');
         JsonObject2.ReadFrom(GetJsonToken(JsonObject2, 'data').AsValue().AsText());
-        Assert.AreEqual(GetJsonToken(JsonObject2, 'name').AsValue().AsText(), 'John', 'The response should contain the expected data');
-        Assert.AreEqual(GetJsonToken(JsonObject2, 'age').AsValue().AsInteger(), 30, 'The response should contain the expected data');
+        Assert.AreEqual('John', GetJsonToken(JsonObject2, 'name').AsValue().AsText(), 'The response should contain the expected data');
+        Assert.AreEqual(30, GetJsonToken(JsonObject2, 'age').AsValue().AsInteger(), 'The response should contain the expected data');
     end;
 
     [Test]
@@ -308,7 +369,8 @@ codeunit 134971 "Rest Client Tests"
     begin
         // [SCENARIO] Test PUT request with JSON request and response
 
-        // [GIVEN] An uninitialized Rest Client
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
 
         // [GIVEN] A Json object
@@ -320,10 +382,10 @@ codeunit 134971 "Rest Client Tests"
         JsonObject2 := RestClient.PutAsJson('https://httpbin.org/put', JsonObject1).AsObject();
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(GetJsonToken(JsonObject2, 'url').AsValue().AsText(), 'https://httpbin.org/put', 'The response should contain the expected url');
+        Assert.AreEqual('https://httpbin.org/put', GetJsonToken(JsonObject2, 'url').AsValue().AsText(), 'The response should contain the expected url');
         JsonObject2.ReadFrom(GetJsonToken(JsonObject2, 'data').AsValue().AsText());
-        Assert.AreEqual(GetJsonToken(JsonObject2, 'name').AsValue().AsText(), 'John', 'The response should contain the expected data');
-        Assert.AreEqual(GetJsonToken(JsonObject2, 'age').AsValue().AsInteger(), 30, 'The response should contain the expected data');
+        Assert.AreEqual('John', GetJsonToken(JsonObject2, 'name').AsValue().AsText(), 'The response should contain the expected data');
+        Assert.AreEqual(30, GetJsonToken(JsonObject2, 'age').AsValue().AsInteger(), 'The response should contain the expected data');
     end;
 
     [Test]
@@ -335,17 +397,18 @@ codeunit 134971 "Rest Client Tests"
     begin
         // [SCENARIO] Test Send method without Getcontent
 
-        // [GIVEN] An uninitialized Rest Client
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
 
         // [WHEN] The Send method is called without Getcontent
         HttpResponseMessage := RestClient.Send(Enum::"Http Method"::GET, 'https://httpbin.org/get');
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(HttpResponseMessage.GetHttpStatusCode(), 200, 'The response status code should be 200');
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
-        Assert.AreEqual(GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'https://httpbin.org/get', 'The response should contain the expected url');
+        Assert.AreEqual('https://httpbin.org/get', GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'The response should contain the expected url');
     end;
 
     [Test]
@@ -358,18 +421,19 @@ codeunit 134971 "Rest Client Tests"
     begin
         // [SCENARIO] Test Send method with Getcontent
 
-        // [GIVEN] An uninitialized Rest Client
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
 
         // [WHEN] The Send method is called with Getcontent
         HttpResponseMessage := RestClient.Send(Enum::"Http Method"::POST, 'https://httpbin.org/post', HttpContent.Create('Hello World'));
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(HttpResponseMessage.GetHttpStatusCode(), 200, 'The response status code should be 200');
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
-        Assert.AreEqual(GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'https://httpbin.org/post', 'The response should contain the expected url');
-        Assert.AreEqual(GetJsonToken(JsonObject, 'data').AsValue().AsText(), 'Hello World', 'The response should contain the expected data');
+        Assert.AreEqual('https://httpbin.org/post', GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'The response should contain the expected url');
+        Assert.AreEqual('Hello World', GetJsonToken(JsonObject, 'data').AsValue().AsText(), 'The response should contain the expected data');
     end;
 
     [Test]
@@ -382,7 +446,8 @@ codeunit 134971 "Rest Client Tests"
     begin
         // [SCENARIO] Test Send method with request message
 
-        // [GIVEN] An uninitialized Rest Client
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
         RestClient.Initialize(HttpClientHandler);
 
         // [WHEN] The Send method is called with a request message
@@ -391,10 +456,10 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Send(ALHttpRequestMessage);
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(HttpResponseMessage.GetHttpStatusCode(), 200, 'The response status code should be 200');
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
-        Assert.AreEqual(GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'https://httpbin.org/get', 'The response should contain the expected url');
+        Assert.AreEqual('https://httpbin.org/get', GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'The response should contain the expected url');
     end;
 
     [Test]
@@ -417,9 +482,152 @@ codeunit 134971 "Rest Client Tests"
         HttpResponseMessage := RestClient.Get('https://httpbin.org/basic-auth/user01/Password123');
 
         // [THEN] The response contains the expected data
-        Assert.AreEqual(HttpResponseMessage.GetHttpStatusCode(), 200, 'The response status code should be 200');
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
         JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
-        Assert.AreEqual(GetJsonToken(JsonObject, 'authenticated').AsValue().AsBoolean(), true, 'The response should contain the expected data');
+        Assert.AreEqual(true, GetJsonToken(JsonObject, 'authenticated').AsValue().AsBoolean(), 'The response should contain the expected data');
+    end;
+
+    [Test]
+    procedure TestResponseWithCookies()
+    var
+        RestClient: Codeunit "Rest Client";
+        HttpResponseMessage: Codeunit "Http Response Message";
+    begin
+        // [SCENARIO] Test GET request with cookies
+
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
+        RestClient.Initialize(HttpClientHandler);
+
+        // [WHEN] The Get method is called
+        HttpResponseMessage := RestClient.Get('https://postman-echo.com/get');
+
+        // [THEN] The response contains the expected data
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
+        Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
+        Assert.IsTrue(HttpResponseMessage.GetCookieNames().Contains('sails.sid'), 'The response should contain the expected cookie');
+    end;
+
+    [Test]
+    procedure TestRequestWithCookies()
+    var
+        RestClient: Codeunit "Rest Client";
+        HttpRequestMessage: Codeunit "Http Request Message";
+        HttpResponseMessage: Codeunit "Http Response Message";
+        JsonObject: JsonObject;
+    begin
+        // [SCENARIO] Test GET request with cookies
+
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
+        RestClient.Initialize(HttpClientHandler);
+
+        // [GIVEN] A request message with cookies
+        HttpRequestMessage.SetRequestUri('https://httpbin.org/cookies');
+        HttpRequestMessage.SetCookie('cookie1', 'value1');
+        HttpRequestMessage.SetCookie('cookie2', 'value2');
+
+        // [WHEN] The Send method is called with a request message
+        HttpResponseMessage := RestClient.Send(HttpRequestMessage);
+
+        // [THEN] The response contains the expected data
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
+        Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
+        JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
+        Assert.AreEqual('value1', SelectJsonToken(JsonObject, '$.cookies.cookie1').AsValue().AsText(), 'The response should contain the expected cookie1');
+        Assert.AreEqual('value2', SelectJsonToken(JsonObject, '$.cookies.cookie2').AsValue().AsText(), 'The response should contain the expected cookie2');
+    end;
+
+    [Test]
+    procedure TestWithoutUseResponseCookies()
+    var
+        RestClient: Codeunit "Rest Client";
+        HttpResponseMessage: Codeunit "Http Response Message";
+        JsonObject: JsonObject;
+        JsonToken: JsonToken;
+    begin
+        // [SCENARIO] Test GET request without using response cookies
+
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
+        RestClient.Initialize(HttpClientHandler);
+
+        // [GIVEN] Use response cookies is disabled
+        RestClient.SetUseResponseCookies(false);
+
+        // [GIVEN] Specific cookies are set
+        HttpResponseMessage := RestClient.Get('https://httpbin.org/cookies/set?cookie1=value1');
+
+        // [WHEN] The cookies list is retrieved
+        HttpResponseMessage := RestClient.Get('https://httpbin.org/cookies');
+
+        // [THEN] The response contains the expected data
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
+        Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
+        JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
+        Assert.IsFalse(JsonObject.SelectToken('$.cookies.cookie1', JsonToken), 'The response should not contain cookies');
+    end;
+
+    [Test]
+    procedure TestWithUseResponseCookies()
+    var
+        RestClient: Codeunit "Rest Client";
+        HttpResponseMessage: Codeunit "Http Response Message";
+        JsonObject: JsonObject;
+    begin
+        // [SCENARIO] Test GET request with using response cookies
+
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
+        RestClient.Initialize(HttpClientHandler);
+
+        // [GIVEN] Use response cookies is enabled
+        RestClient.SetUseResponseCookies(true);
+
+        // [GIVEN] Specific cookies are set
+        HttpResponseMessage := RestClient.Get('https://httpbin.org/cookies/set?cookie1=value1');
+
+        // [WHEN] The cookies list is retrieved
+        HttpResponseMessage := RestClient.Get('https://httpbin.org/cookies');
+
+        // [THEN] The response contains the expected data
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
+        Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
+        JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
+        Assert.AreEqual('value1', SelectJsonToken(JsonObject, '$.cookies.cookie1').AsValue().AsText(), 'The response should contain the expected cookie');
+    end;
+
+    [Test]
+    procedure TestUseResponseCookiesWithAdditionalCookies()
+    var
+        RestClient: Codeunit "Rest Client";
+        HttpRequestMessage: Codeunit "Http Request Message";
+        HttpResponseMessage: Codeunit "Http Response Message";
+        JsonObject: JsonObject;
+    begin
+        // [SCENARIO] Test GET request with using response cookies and additional cookies
+
+        // [GIVEN] An initialized Rest Client
+        HttpClientHandler.Initialize();
+        RestClient.Initialize(HttpClientHandler);
+
+        // [GIVEN] Use response cookies is enabled
+        RestClient.SetUseResponseCookies(true);
+
+        // [GIVEN] Specific cookies are set
+        HttpResponseMessage := RestClient.Get('https://httpbin.org/cookies/set?cookie1=value1');
+
+        // [WHEN] The cookies list is retrieved with additional cookies
+        HttpRequestMessage.SetRequestUri('https://httpbin.org/cookies');
+        HttpRequestMessage.SetCookie('cookie2', 'value2');
+        HttpResponseMessage := RestClient.Send(HttpRequestMessage);
+
+        // [THEN] The response contains the expected data
+        Assert.AreEqual(200, HttpResponseMessage.GetHttpStatusCode(), 'The response status code should be 200');
+        Assert.IsTrue(HttpResponseMessage.GetIsSuccessStatusCode(), 'GetIsSuccessStatusCode should be true');
+        JsonObject := HttpResponseMessage.GetContent().AsJson().AsObject();
+        Assert.AreEqual('value1', SelectJsonToken(JsonObject, '$.cookies.cookie1').AsValue().AsText(), 'The response should contain the expected cookie1');
+        Assert.AreEqual('value2', SelectJsonToken(JsonObject, '$.cookies.cookie2').AsValue().AsText(), 'The response should contain the expected cookie2');
     end;
 
     local procedure GetJsonToken(JsonObject: JsonObject; Name: Text) JsonToken: JsonToken
@@ -427,7 +635,7 @@ codeunit 134971 "Rest Client Tests"
         JsonObject.Get(Name, JsonToken);
     end;
 
-    local procedure SelectJsonToken(Path: Text; JsonObject: JsonObject) JsonToken: JsonToken
+    local procedure SelectJsonToken(JsonObject: JsonObject; Path: Text) JsonToken: JsonToken
     begin
         JsonObject.SelectToken(Path, JsonToken);
     end;
