@@ -9,7 +9,6 @@
     "buildModes": [ "Default", "Translated", "Clean" ],
     "installOnlyReferencedApps": false,
     "doNotRunTests": true,
-    "useCompilerFolder": true,
     "ConditionalSettings": [
         {
             "branches": [
