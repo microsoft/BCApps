@@ -6,8 +6,6 @@
     "testFolders":  [
         "../../../src/Tools/Performance Toolkit/Test"
     ],
-    "buildModes": [ "Clean" ],
-    "installOnlyReferencedApps": false,
-    "doNotRunTests": true,
-    "useCompilerFolder": true
+    "buildModes": [ "Default" ],
+    "installOnlyReferencedApps": false
 }

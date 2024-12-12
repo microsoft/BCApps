@@ -7,15 +7,17 @@
         "../../../src/Business Foundation/Test",
         "../../../src/Business Foundation/Test Library"
     ],
-    "buildModes": [ "Default", "Translated" ],
+    "buildModes": [ "Default", "Translated", "Clean" ],
     "installOnlyReferencedApps": false,
+    "doNotRunTests": true,
+    "useCompilerFolder": true,
     "ConditionalSettings": [
         {
             "branches": [
                 "releases/*.[0-5]"
             ],
             "settings": {
-                "buildModes": [ "Default", "Translated", "Strict"]
+                "buildModes": ["Default", "Translated", "Clean", "Strict"]
             }
         }
     ]

@@ -6,15 +6,17 @@
     "testFolders":  [
         "../../../src/Tools/Performance Toolkit/Test"
     ],
-    "buildModes": [ "Default" ],
+    "buildModes": [ "Default", "Translated", "Clean" ],
     "installOnlyReferencedApps": false,
+    "doNotRunTests": true,
+    "useCompilerFolder": true,
     "ConditionalSettings": [
         {
             "branches": [
                 "releases/*.[0-5]"
             ],
             "settings": {
-                "buildModes": [ "Default", "Strict" ]
+                "buildModes": ["Default", "Translated", "Clean", "Strict"]
             }
         }
     ]

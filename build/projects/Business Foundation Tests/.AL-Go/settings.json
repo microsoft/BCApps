@@ -1,5 +1,5 @@
 {
-    "projectName": "Business Foundation",
+    "projectName": "Business Foundation Tests",
     "appFolders":  [
         "../../../src/Business Foundation/App"
     ],
@@ -7,8 +7,6 @@
         "../../../src/Business Foundation/Test",
         "../../../src/Business Foundation/Test Library"
     ],
-    "buildModes": [ "Clean" ],
-    "installOnlyReferencedApps": false,
-    "doNotRunTests": true,
-    "useCompilerFolder": true
+    "buildModes": [ "Default" ],
+    "installOnlyReferencedApps": false
 }
