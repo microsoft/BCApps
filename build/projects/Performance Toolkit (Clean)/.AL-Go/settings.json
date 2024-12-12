@@ -8,5 +8,6 @@
     ],
     "buildModes": [ "Clean" ],
     "installOnlyReferencedApps": false,
-    "doNotRunTests": true
+    "doNotRunTests": true,
+    "useCompilerFolder": true
 }
