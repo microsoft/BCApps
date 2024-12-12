@@ -122,15 +122,9 @@ page 9452 "File Scenario Setup"
         {
             group(Category_Process)
             {
-                actionref(AddScenario_Promoted; AddScenario)
-                {
-                }
-                actionref(ChangeAccount_Promoted; ChangeAccount)
-                {
-                }
-                actionref(Unassign_Promoted; Unassign)
-                {
-                }
+                actionref(AddScenario_Promoted; AddScenario) { }
+                actionref(ChangeAccount_Promoted; ChangeAccount) { }
+                actionref(Unassign_Promoted; Unassign) { }
             }
         }
     }
@@ -187,7 +181,7 @@ page 9452 "File Scenario Setup"
         FileAccountId: Guid;
         FileConnector: Enum "File System Connector";
         Style, DefaultTxt : Text;
-        TypeOfEntry: Option Account,Scenario;
+        TypeOfEntry: Enum "File Acount Entry Type";
         Indentation: Integer;
         CanUserManageFileSetup: Boolean;
 }

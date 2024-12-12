@@ -12,24 +12,16 @@ namespace System.FileSystem;
 /// </summary>
 table 9454 "File Scenario"
 {
+    DataClassification = SystemMetadata;
     Access = Internal;
     InherentPermissions = X;
     InherentEntitlements = X;
 
     fields
     {
-        field(1; Scenario; Enum "File Scenario")
-        {
-            DataClassification = SystemMetadata;
-        }
-        field(2; Connector; Enum "File System Connector")
-        {
-            DataClassification = SystemMetadata;
-        }
-        field(3; "Account Id"; Guid)
-        {
-            DataClassification = SystemMetadata;
-        }
+        field(1; Scenario; Enum "File Scenario") { }
+        field(2; Connector; Enum "File System Connector") { }
+        field(3; "Account Id"; Guid) { }
     }
 
     keys

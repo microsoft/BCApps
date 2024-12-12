@@ -14,18 +14,9 @@ table 9451 "File System Connector"
 
     fields
     {
-        field(1; Connector; Enum "File System Connector")
-        {
-            DataClassification = SystemMetadata;
-        }
-        field(2; Logo; Media)
-        {
-            DataClassification = SystemMetadata;
-        }
-        field(3; Description; Text[250])
-        {
-            DataClassification = SystemMetadata;
-        }
+        field(1; Connector; Enum "File System Connector") { }
+        field(2; Logo; Media) { }
+        field(3; Description; Text[250]) { }
     }
 
     keys

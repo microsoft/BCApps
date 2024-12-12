@@ -35,8 +35,6 @@ codeunit 9453 "File Scenario Impl."
                 FileAccount := AllFileAccounts;
                 exit(true);
             end;
-
-        exit(false);
     end;
 
     procedure SetFileAccount(Scenario: Enum "File Scenario"; FileAccount: Record "File Account")
@@ -155,7 +153,7 @@ codeunit 9453 "File Scenario Impl."
         FileAccountScenarios.SetCurrentKey("Display Name"); // sort scenarios by "Display Name"
     end;
 
-    local procedure AddEntry(var FileAccountScenario: Record "File Account Scenario"; EntryType: Option; Scenario: Integer; AccountId: Guid; FileSystemConnector: Enum "File System Connector"; DisplayName: Text[2048]; Default: Boolean; var Position: Integer)
+    local procedure AddEntry(var FileAccountScenario: Record "File Account Scenario"; EntryType: Enum "File Acount Entry Type"; Scenario: Integer; AccountId: Guid; FileSystemConnector: Enum "File System Connector"; DisplayName: Text[2048]; Default: Boolean; var Position: Integer)
     begin
         // Add entry to the File Account Scenario while maintaining the position so that the tree represents the data correctly
         FileAccountScenario.Init();
@@ -187,12 +185,12 @@ codeunit 9453 "File Scenario Impl."
         FileScenariosForAccount.SetRecord(FileAccountScenario);
 
         if FileScenariosForAccount.RunModal() <> Action::LookupOK then
-            exit(false);
+            exit;
 
         FileScenariosForAccount.GetSelectedScenarios(SelectedFileAccScenarios);
 
         if not SelectedFileAccScenarios.FindSet() then
-            exit(false);
+            exit;
 
         repeat
             if not FileScenario.Get(SelectedFileAccScenarios.Scenario) then begin
@@ -259,7 +257,7 @@ codeunit 9453 "File Scenario Impl."
         FileAccountImpl.CheckPermissions();
 
         if not FileAccountScenario.FindSet() then
-            exit(false);
+            exit;
 
         FileAccount.GetAllAccounts(false, SelectedFileAccount);
         if SelectedFileAccount.Get(FileAccountScenario."Account Id", FileAccountScenario.Connector) then;
@@ -269,7 +267,7 @@ codeunit 9453 "File Scenario Impl."
         AccountsPage.Caption := ChangeFileAccountForScenarioTxt;
 
         if AccountsPage.RunModal() <> Action::LookupOK then
-            exit(false);
+            exit;
 
         AccountsPage.GetAccount(SelectedFileAccount);
 
@@ -295,7 +293,7 @@ codeunit 9453 "File Scenario Impl."
         FileAccountImpl.CheckPermissions();
 
         if not FileAccountScenario.FindSet() then
-            exit(false);
+            exit;
 
         repeat
             if FileAccountScenario.EntryType = FileAccountScenario.EntryType::Scenario then begin

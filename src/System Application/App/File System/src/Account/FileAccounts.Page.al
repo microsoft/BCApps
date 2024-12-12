@@ -76,7 +76,7 @@ page 9450 "File Accounts"
             part(Scenarios; "File Scenarios FactBox")
             {
                 Caption = 'File Scenarios';
-                SubPageLink = "Account Id" = field("Account Id"), Connector = field(Connector), Scenario = filter(<> 0); // Do not show Default scenario
+                SubPageLink = "Account Id" = field("Account Id"), Connector = field(Connector), Scenario = filter(<> Default);
             }
         }
     }
@@ -192,32 +192,22 @@ page 9450 "File Accounts"
             {
                 Caption = 'New';
 
-                actionref(AddAccount_Promoted; AddAccount)
-                {
-                }
+                actionref(AddAccount_Promoted; AddAccount) { }
             }
             group(Category_Process)
             {
                 Caption = 'Process';
 
-                actionref(MakeDefault_Promoted; MakeDefault)
-                {
-                }
-                actionref(BrowseAccount_Promoted; BrowseAccount)
-                {
-                }
-                actionref(Delete_Promoted; Delete)
-                {
-                }
+                actionref(MakeDefault_Promoted; MakeDefault) { }
+                actionref(BrowseAccount_Promoted; BrowseAccount) { }
+                actionref(Delete_Promoted; Delete) { }
             }
 
             group(Category_Category4)
             {
                 Caption = 'Navigate';
 
-                actionref(FileScenarioSetup_Promoted; FileScenarioSetup)
-                {
-                }
+                actionref(FileScenarioSetup_Promoted; FileScenarioSetup) { }
             }
         }
     }

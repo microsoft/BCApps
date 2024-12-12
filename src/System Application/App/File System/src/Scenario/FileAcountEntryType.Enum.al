@@ -5,24 +5,11 @@
 
 namespace System.FileSystem;
 
-table 9452 "File System Connector Logo"
+enum 9453 "File Acount Entry Type"
 {
-    DataClassification = SystemMetadata;
     Access = Internal;
-    InherentPermissions = X;
-    InherentEntitlements = X;
+    Extensible = false;
 
-    fields
-    {
-        field(1; Connector; Enum "File System Connector") { }
-        field(2; Logo; Media) { }
-    }
-
-    keys
-    {
-        key(PK; Connector)
-        {
-            Clustered = true;
-        }
-    }
+    value(0; Account) { }
+    value(1; Scenario) { }
 }

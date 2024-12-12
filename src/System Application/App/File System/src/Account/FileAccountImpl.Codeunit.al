@@ -112,12 +112,11 @@ codeunit 9451 "File Account Impl."
         FileAccountsPage.LookupMode(true);
         FileAccountsPage.EnableLookupMode();
         FileAccountsPage.Caption(ChooseNewDefaultTxt);
-        if FileAccountsPage.RunModal() = Action::LookupOK then begin
-            FileAccountsPage.GetAccount(NewDefaultFileAccount);
-            exit(true);
-        end;
+        if FileAccountsPage.RunModal() <> Action::LookupOK then
+            exit;
 
-        exit(false);
+        FileAccountsPage.GetAccount(NewDefaultFileAccount);
+        exit(true);
     end;
 
     local procedure ImportLogo(var FileAccount: Record "File Account"; FileSystemConnector: Interface "File System Connector")
@@ -134,6 +133,7 @@ codeunit 9451 "File Account Impl."
 
         if ConnectorLogoBase64 = '' then
             exit;
+
         if not FileSystemConnectorLogo.Get(FileAccount.Connector) then begin
             TempBlob.CreateOutStream(OutStream);
             Base64Convert.FromBase64(ConnectorLogoBase64, OutStream);

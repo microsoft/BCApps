@@ -17,35 +17,13 @@ table 9453 "File Account Scenario"
 
     fields
     {
-        field(1; Scenario; Integer)
-        {
-            DataClassification = SystemMetadata;
-        }
-        field(2; Connector; Enum "File System Connector")
-        {
-            DataClassification = SystemMetadata;
-        }
-        field(3; "Account Id"; Guid)
-        {
-            DataClassification = SystemMetadata;
-        }
-        field(4; "Display Name"; Text[2048])
-        {
-            DataClassification = SystemMetadata;
-        }
-        field(5; Default; Boolean)
-        {
-            DataClassification = SystemMetadata;
-        }
-        field(6; EntryType; Option)
-        {
-            DataClassification = SystemMetadata;
-            OptionMembers = Account,Scenario;
-        }
-        field(7; Position; Integer)
-        {
-            DataClassification = SystemMetadata;
-        }
+        field(1; Scenario; Integer) { }
+        field(2; Connector; Enum "File System Connector") { }
+        field(3; "Account Id"; Guid) { }
+        field(4; "Display Name"; Text[2048]) { }
+        field(5; Default; Boolean) { }
+        field(6; EntryType; Enum "File Acount Entry Type") { }
+        field(7; Position; Integer) { }
     }
 
     keys

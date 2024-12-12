@@ -15,22 +15,12 @@ table 9450 "File Account"
 
     fields
     {
-        field(1; "Account Id"; Guid)
-        {
-            DataClassification = SystemMetadata;
-        }
-        field(2; Name; Text[250])
-        {
-            DataClassification = SystemMetadata; // Field only in Memory
-        }
-        field(4; Connector; Enum "File System Connector")
-        {
-            DataClassification = SystemMetadata;
-        }
+        field(1; "Account Id"; Guid) { }
+        field(2; Name; Text[250]) { }
+        field(4; Connector; Enum "File System Connector") { }
         field(5; Logo; Media)
         {
             Access = Internal;
-            DataClassification = SystemMetadata;
         }
     }
 
@@ -48,8 +38,6 @@ table 9450 "File Account"
 
     fieldgroups
     {
-        fieldgroup(Brick; Logo, Name)
-        {
-        }
+        fieldgroup(Brick; Logo, Name) { }
     }
 }

@@ -44,8 +44,7 @@ page 9451 "File Account Wizard"
                 {
                     Editable = false;
                     ShowCaption = false;
-                    ToolTip = ' ';
-                    Caption = ' ';
+                    ToolTip = ' ', Locked = true;
                 }
             }
             group(NotDone)
@@ -57,8 +56,7 @@ page 9451 "File Account Wizard"
                 {
                     Editable = false;
                     ShowCaption = false;
-                    ToolTip = ' ';
-                    Caption = ' ';
+                    ToolTip = ' ', Locked = true;
                 }
             }
 
@@ -76,7 +74,6 @@ page 9451 "File Account Wizard"
                 {
                     Editable = false;
                     ShowCaption = false;
-                    Caption = ' ';
                     ToolTip = 'View information about how to set up the file capabilities.';
 
                     trigger OnDrillDown()
