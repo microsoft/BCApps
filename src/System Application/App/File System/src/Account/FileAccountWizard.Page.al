@@ -3,22 +3,22 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Email;
+namespace System.FileSystem;
 
-using System.Telemetry;
-using System.Environment;
 using System.Apps;
+using System.Environment;
+using System.Telemetry;
 
 /// <summary>
-/// Step by step guide for adding a new email account in Business Central
+/// Step by step guide for adding a new file account in Business Central
 /// </summary>
-page 8886 "Email Account Wizard"
+page 9451 "File Account Wizard"
 {
     PageType = NavigatePage;
     ApplicationArea = All;
     UsageCategory = Administration;
-    Caption = 'Set Up Email';
-    SourceTable = "Email Connector";
+    Caption = 'Set Up File';
+    SourceTable = "File System Connector";
     SourceTableTemporary = true;
     InsertAllowed = false;
     ModifyAllowed = false;
@@ -26,15 +26,15 @@ page 8886 "Email Account Wizard"
     Editable = true;
     ShowFilter = false;
     LinksAllowed = false;
+    InherentPermissions = X;
+    InherentEntitlements = X;
     Permissions = tabledata Media = r,
-                  tabledata "Media Resources" = r,
-                  tabledata "Email Rate Limit" = imd;
+                  tabledata "Media Resources" = r;
 
     layout
     {
         area(Content)
         {
-
             group(Done)
             {
                 Editable = false;
@@ -42,11 +42,9 @@ page 8886 "Email Account Wizard"
                 Visible = not DoneVisible and TopBannerVisible;
                 field(NotDoneIcon; MediaResourcesStandard."Media Reference")
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ShowCaption = false;
-                    ToolTip = ' ';
-                    Caption = ' ';
+                    ToolTip = ' ', Locked = true;
                 }
             }
             group(NotDone)
@@ -56,11 +54,9 @@ page 8886 "Email Account Wizard"
                 Visible = DoneVisible and TopBannerVisible;
                 field(DoneIcon; MediaResourcesDone."Media Reference")
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ShowCaption = false;
-                    ToolTip = ' ';
-                    Caption = ' ';
+                    ToolTip = ' ', Locked = true;
                 }
             }
 
@@ -71,30 +67,25 @@ page 8886 "Email Account Wizard"
 
                 group(HeaderText)
                 {
-                    Caption = 'Welcome to email in Business Central';
-                    InstructionalText = 'Make outbound email communications easier by connecting email accounts to Business Central. For example, send sales quotes and orders without opening an email app.';
+                    Caption = 'Welcome to file in Business Central';
+                    InstructionalText = 'Make file communications easier by connecting file accounts to Business Central. For example, store sales quotes and orders pdfs without opening an file app.';
                 }
-
                 field(LearnMoreHeader; LearnMoreTok)
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ShowCaption = false;
-                    Caption = ' ';
-                    ToolTip = 'View information about how to set up the email capabilities.';
+                    ToolTip = 'View information about how to set up the file capabilities.';
 
                     trigger OnDrillDown()
                     begin
                         Hyperlink(LearnMoreURLTxt);
                     end;
                 }
-
                 group(Privacy)
                 {
                     Caption = 'Privacy notice';
-                    InstructionalText = 'By adding an email account you acknowledge that the email provider might be able to access the data you send in emails from Business Central.';
+                    InstructionalText = 'By adding a file account you acknowledge that the file provider might be able to access the data you send in files from Business Central.';
                 }
-
                 group(GetStartedText)
                 {
                     Caption = 'Let''s go!';
@@ -109,19 +100,17 @@ page 8886 "Email Account Wizard"
 
                 label(UsageWarning)
                 {
-                    Caption = 'Use caution when adding email accounts. Depending on your setup, accounts can be available to all users.';
+                    Caption = 'Use caution when adding file accounts. Depending on your setup, accounts can be available to all users.';
                 }
             }
 
             group(ConnectorsGroup)
             {
                 Visible = ChooseConnectorVisible and ConnectorsAvailable;
-                label("Specify the type of email account to add")
+                label("Specify the type of file account to add")
                 {
-                    Caption = 'Specify the type of email account to add';
-                    ApplicationArea = All;
+                    Caption = 'Specify the type of file account to add';
                 }
-
                 repeater(Connectors)
                 {
                     ShowCaption = false;
@@ -129,30 +118,23 @@ page 8886 "Email Account Wizard"
                     FreezeColumn = Name;
                     Editable = false;
 
-#pragma warning disable AW0009
                     field(Logo; Rec.Logo)
-#pragma warning restore AW0009
                     {
-                        ApplicationArea = All;
                         Caption = ' ';
                         Editable = false;
                         Visible = ChooseConnectorVisible;
-                        ToolTip = 'Select the type of account you want to create.';
+                        ToolTip = 'Specifies the type of the account you want to create.';
                         ShowCaption = false;
                         Width = 1;
                     }
-
                     field(Name; Rec.Connector)
                     {
-                        ApplicationArea = All;
                         Caption = 'Account Type';
                         ToolTip = 'Specifies the type of the account you want to create.';
                         Editable = false;
                     }
-
                     field(Details; Rec.Description)
                     {
-                        ApplicationArea = All;
                         Caption = 'Details';
                         ToolTip = 'Specifies more details about the account type.';
                         Editable = false;
@@ -166,19 +148,14 @@ page 8886 "Email Account Wizard"
                 Visible = ChooseConnectorVisible and not ConnectorsAvailable;
                 label(NoConnectorsAvailable)
                 {
-                    ApplicationArea = All;
-                    Caption = 'There are no email apps available. To use this feature you must install an email app.';
+                    Caption = 'There are no file apps available. To use this feature you must install an file app.';
                 }
-
                 label(NoConnectorsAvailable2)
                 {
-                    ApplicationArea = All;
-                    Caption = 'Email apps are available in Extension Management and AppSource.';
+                    Caption = 'File apps are available in Extension Management and AppSource.';
                 }
-
                 field(ExtensionManagement; ExtensionManagementTok)
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ShowCaption = false;
                     Caption = ' ';
@@ -189,10 +166,8 @@ page 8886 "Email Account Wizard"
                         Page.Run(Page::"Extension Management");
                     end;
                 }
-
                 field(AppSource; AppSourceTok)
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ShowCaption = false;
                     Visible = AppSourceAvailable;
@@ -205,20 +180,16 @@ page 8886 "Email Account Wizard"
                         AppSource.ShowAppSource();
                     end;
                 }
-
                 label(NoConnectorsAvailable3)
                 {
-                    ApplicationArea = All;
-                    Caption = 'View a list of the available email apps';
+                    Caption = 'View a list of the available file apps';
                 }
-
                 field(LearnMore; LearnMoreTok)
                 {
-                    ApplicationArea = All;
                     Editable = false;
                     ShowCaption = false;
                     Caption = ' ';
-                    ToolTip = 'View information about how to set up the email capabilities.';
+                    ToolTip = 'View information about how to set up the file capabilities.';
 
                     trigger OnDrillDown()
                     begin
@@ -234,59 +205,28 @@ page 8886 "Email Account Wizard"
                 group(AllSet)
                 {
                     Caption = 'Congratulations!';
-                    InstructionalText = 'You have successfully added the email account. To check that it is working, send a test email.';
+                    InstructionalText = 'You have successfully added the file account. To check that it is working, send a test file.';
                 }
-
                 group(Account)
                 {
                     Caption = 'Account';
-                    field(Namefield; RegisteredAccount.Name)
+                    field(NameField; RegisteredAccount.Name)
                     {
-                        ApplicationArea = All;
                         Editable = false;
                         Caption = 'Name';
                         ToolTip = 'Specifies the name of the account registered.';
                     }
-                    field(EmailAddressfield; RegisteredAccount."Email Address")
-                    {
-                        ApplicationArea = All;
-                        Editable = false;
-                        Caption = 'Email Address';
-                        ToolTip = 'Specifies the email address of the account registered.';
-                    }
                 }
-
                 group(Default)
                 {
                     Caption = '';
 
                     field(DefaultField; SetAsDefault)
                     {
-                        ApplicationArea = All;
                         Editable = true;
                         Enabled = true;
                         Caption = 'Set as default';
-                        ToolTip = 'Specifies the Account is the default. Use this account for all scenarios for which an account is not specified. Scenarios are processes that involve sending documents or notifications by email.';
-                    }
-                }
-
-                group(SetUpRateLimit)
-                {
-                    Caption = '';
-
-                    field(EmailRateLimitDisplay; EmailRateLimitDisplay)
-                    {
-                        ApplicationArea = All;
-                        Numeric = true;
-                        Caption = 'Rate Limit per Minute';
-                        ToolTip = 'Specifies the maximum number of emails per minute the account can send. A rate limit of 0 indicates no limit.';
-
-                        trigger OnValidate()
-                        begin
-                            Evaluate(RateLimit, EmailRateLimitDisplay);
-                            if RateLimit = 0 then
-                                EmailRateLimitDisplay := NoLimitTxt;
-                        end;
+                        ToolTip = 'Specifies the the account for all scenarios.';
                     }
                 }
             }
@@ -297,10 +237,8 @@ page 8886 "Email Account Wizard"
     {
         area(Processing)
         {
-
             action(Cancel)
             {
-                ApplicationArea = All;
                 Visible = CancelActionVisible;
                 Caption = 'Cancel';
                 ToolTip = 'Cancel';
@@ -315,7 +253,6 @@ page 8886 "Email Account Wizard"
 
             action(Back)
             {
-                ApplicationArea = All;
                 Visible = BackActionVisible;
                 Enabled = BackActionEnabled;
                 Caption = 'Back';
@@ -331,7 +268,6 @@ page 8886 "Email Account Wizard"
 
             action(Next)
             {
-                ApplicationArea = All;
                 Visible = NextActionVisible;
                 Enabled = NextActionEnabled;
                 Caption = 'Next';
@@ -347,7 +283,6 @@ page 8886 "Email Account Wizard"
 
             action(Finish)
             {
-                ApplicationArea = All;
                 Visible = FinishActionVisible;
                 Caption = 'Finish';
                 ToolTip = 'Finish';
@@ -356,33 +291,14 @@ page 8886 "Email Account Wizard"
 
                 trigger OnAction()
                 var
-                    EmailAccountImpl: Codeunit "Email Account Impl.";
-                    EmailRateLimitImpl: Codeunit "Email Rate Limit Impl.";
+                    FileAccountImpl: Codeunit "File Account Impl.";
                 begin
                     if SetAsDefault then
-                        EmailAccountImpl.MakeDefault(RegisteredAccount);
-
-                    EmailRateLimitImpl.RegisterRateLimit(RegisteredRateLimit, RegisteredAccount, RateLimit);
+                        FileAccountImpl.MakeDefault(RegisteredAccount);
 
                     CurrPage.Close();
                 end;
             }
-
-            action(TestEmail)
-            {
-                ApplicationArea = All;
-                Visible = TestEmailActionVisible;
-                Caption = 'Send Test Email';
-                ToolTip = 'Send Test Email';
-                InFooterBar = true;
-                Image = Action;
-
-                trigger OnAction()
-                begin
-                    Codeunit.Run(Codeunit::"Email Test Mail", RegisteredAccount);
-                end;
-            }
-
         }
     }
 
@@ -397,28 +313,28 @@ page 8886 "Email Account Wizard"
     begin
         DurationAsInt := CurrentDateTime() - StartTime;
         if Step = Step::Done then
-            Session.LogMessage('0000K8Q', StrSubstNo(AccountCreationSuccessfullyCompletedDurationLbl, DurationAsInt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl)
+            Session.LogMessage('0000CTK', StrSubstNo(AccountCreationSuccessfullyCompletedDurationLbl, DurationAsInt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl)
         else
-            Session.LogMessage('0000CTL', StrSubstNo(AccountCreationFailureDurationLbl, DurationAsInt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
+            Session.LogMessage('0000CTL', StrSubstNo(AccountCreationFailureDurationLbl, DurationAsInt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
     end;
 
     trigger OnInit()
     var
-        DefaultAccount: Record "Email Account";
-        EmailAccountImpl: Codeunit "Email Account Impl.";
-        EmailScenario: Codeunit "Email Scenario";
+        DefaultAccount: Record "File Account";
+        FileAccountImpl: Codeunit "File Account Impl.";
+        FileScenario: Codeunit "File Scenario";
     begin
-        EmailAccountImpl.CheckPermissions();
+        FileAccountImpl.CheckPermissions();
 
         Step := Step::Welcome;
         SetDefaultControls();
         ShowWelcomeStep();
 
-        EmailAccountImpl.FindAllConnectors(Rec);
+        FileAccountImpl.FindAllConnectors(Rec);
 
-        EmailRateLimitDisplay := NoLimitTxt;
+        FileRateLimitDisplay := NoLimitTxt;
 
-        if not EmailScenario.GetDefaultEmailAccount(DefaultAccount) then
+        if not FileScenario.GetDefaultFileAccount(DefaultAccount) then
             SetAsDefault := true;
 
         ConnectorsAvailable := Rec.FindFirst(); // Set the focus on the first record
@@ -464,28 +380,22 @@ page 8886 "Email Account Wizard"
     local procedure ShowRegisterAccountStep()
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        DefaultConnectorEmailRateLimit: Interface "Default Email Rate Limit";
-        DefaultEmailRateLimit: Integer;
+        Telemetry: Codeunit Telemetry;
         AccountWasRegistered: Boolean;
         ConnectorSucceeded: Boolean;
+        CustomDimensions: Dictionary of [Text, Text];
+        CTHLbl: Label '%1 account has been setup.', Locked = true;
+        CTILbl: Label '%1 account has failed to setup. Error: %2', Locked = true;
     begin
         ConnectorSucceeded := TryRegisterAccount(AccountWasRegistered);
+        CustomDimensions.Add('Category', FileCategoryLbl);
 
         if AccountWasRegistered then begin
-            DefaultConnectorEmailRateLimit := Rec.Connector;
-            DefaultEmailRateLimit := DefaultConnectorEmailRateLimit.GetDefaultEmailRateLimit();
-            if not (DefaultEmailRateLimit = 0) then begin
-                EmailRateLimitDisplay := Format(DefaultEmailRateLimit);
-                RateLimit := DefaultEmailRateLimit
-            end;
-
-            FeatureTelemetry.LogUptake('0000CTF', 'Emailing', Enum::"Feature Uptake Status"::"Set up");
-            Session.LogMessage('0000CTH', Format(Rec.Connector) + ' account has been setup.', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
+            FeatureTelemetry.LogUptake('0000CTF', 'File Access', Enum::"Feature Uptake Status"::"Set up");
+            Telemetry.LogMessage('0000CTH', StrSubstNo(CTHLbl, Rec.Connector), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             NextStep(false);
         end else begin
-#pragma warning disable AA0217
-            Session.LogMessage('0000CTI', StrSubstNo(Format(Rec.Connector) + ' account has failed to setup. Error: %1', GetLastErrorCallStack()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', EmailCategoryLbl);
-#pragma warning restore AA0217
+            Telemetry.LogMessage('0000CTI', StrSubstNo(CTILbl, Rec.Connector, GetLastErrorCallStack()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             NextStep(true);
         end;
 
@@ -496,18 +406,18 @@ page 8886 "Email Account Wizard"
     [TryFunction]
     local procedure TryRegisterAccount(var AccountWasRegistered: Boolean)
     var
-        EmailAccountImpl: Codeunit "Email Account Impl.";
-        EmailConnector: Interface "Email Connector";
+        FileAccountImpl: Codeunit "File Account Impl.";
+        FileConnector: Interface "File System Connector";
     begin
         // Check to validate that the connector is still installed
         // The connector could have been uninstalled by another user/session
-        if not EmailAccountImpl.IsValidConnector(Rec.Connector) then
-            Error(EmailConnectorHasBeenUninstalledMsg);
+        if not FileAccountImpl.IsValidConnector(Rec.Connector) then
+            Error(FileConnectorHasBeenUninstalledMsg);
 
-        EmailConnector := Rec.Connector;
+        FileConnector := Rec.Connector;
 
         ClearLastError();
-        AccountWasRegistered := EmailConnector.RegisterAccount(RegisteredAccount);
+        AccountWasRegistered := FileConnector.RegisterAccount(RegisteredAccount);
         RegisteredAccount.Connector := Rec.Connector;
     end;
 
@@ -518,7 +428,6 @@ page 8886 "Email Account Wizard"
         NextActionVisible := false;
         CancelActionVisible := false;
         FinishActionVisible := true;
-        TestEmailActionVisible := true;
     end;
 
     local procedure SetDefaultControls()
@@ -530,7 +439,6 @@ page 8886 "Email Account Wizard"
         NextActionEnabled := true;
         CancelActionVisible := true;
         FinishActionVisible := false;
-        TestEmailActionVisible := false;
 
         // Groups
         WelcomeVisible := false;
@@ -539,31 +447,31 @@ page 8886 "Email Account Wizard"
     end;
 
     local procedure LoadTopBanners()
+    var
+        AssistedSetupLogoTok: Label 'ASSISTEDSETUP-NOTEXT-400PX.PNG', Locked = true;
     begin
-        if MediaResourcesStandard.Get('ASSISTEDSETUP-NOTEXT-400PX.PNG') and
-            MediaResourcesDone.Get('ASSISTEDSETUPDONE-NOTEXT-400PX.PNG') and (CurrentClientType() = ClientType::Web)
+        if MediaResourcesStandard.Get(AssistedSetupLogoTok) and
+            MediaResourcesDone.Get(AssistedSetupLogoTok) and (CurrentClientType() = ClientType::Web)
         then
             TopBannerVisible := MediaResourcesDone."Media Reference".HasValue();
     end;
 
     var
-        RegisteredAccount: Record "Email Account";
-        RegisteredRateLimit: Record "Email Rate Limit";
+        RegisteredAccount: Record "File Account";
         MediaResourcesStandard: Record "Media Resources";
         MediaResourcesDone: Record "Media Resources";
         [RunOnClient]
         AppSource: DotNet AppSource;
         Step: Option Welcome,"Choose Connector","Register Account",Done;
-        RateLimit: Integer;
         AppSourceTok: Label 'AppSource';
         ExtensionManagementTok: Label 'Extension Management';
-        EmailCategoryLbl: Label 'Email', Locked = true;
-        LearnMoreURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2134520', Locked = true;
+        FileCategoryLbl: Label 'File', Locked = true;
+        LearnMoreURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2134520', Locked = true;  //FIXME
         LearnMoreTok: Label 'Learn more';
         NoLimitTxt: Label 'No limit';
         AccountCreationSuccessfullyCompletedDurationLbl: Label 'Successful creation of account completed. Duration: %1 milliseconds.', Comment = '%1 - Duration', Locked = true;
         AccountCreationFailureDurationLbl: Label 'Creation of account failed. Duration: %1 milliseconds.', Comment = '%1 - Duration', Locked = true;
-        EmailConnectorHasBeenUninstalledMsg: Label 'The selected email extension has been uninstalled. You must reinstall the extension to add an account with it.';
+        FileConnectorHasBeenUninstalledMsg: Label 'The selected file extension has been uninstalled. You must reinstall the extension to add an account with it.';
         AppSourceAvailable: Boolean;
         TopBannerVisible: Boolean;
         BackActionVisible: Boolean;
@@ -572,12 +480,11 @@ page 8886 "Email Account Wizard"
         NextActionEnabled: Boolean;
         CancelActionVisible: Boolean;
         FinishActionVisible: Boolean;
-        TestEmailActionVisible: Boolean;
         WelcomeVisible: Boolean;
         ChooseConnectorVisible: Boolean;
         DoneVisible: Boolean;
         ConnectorsAvailable: Boolean;
         SetAsDefault: Boolean;
         StartTime: DateTime;
-        EmailRateLimitDisplay: Text[250];
+        FileRateLimitDisplay: Text[250];
 }
