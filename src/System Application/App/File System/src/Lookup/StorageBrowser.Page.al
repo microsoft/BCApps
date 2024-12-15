@@ -5,9 +5,9 @@
 
 namespace System.FileSystem;
 
-page 9455 "File Account Browser"
+page 9455 "Storage Browser"
 {
-    Caption = 'File Account Browser';
+    Caption = 'Storage Browser';
     PageType = List;
     ApplicationArea = All;
     SourceTable = "File Account Content";

@@ -197,16 +197,16 @@ codeunit 9451 "File Account Impl."
 
     procedure BrowseAccount(var FileAccount: Record "File Account")
     var
-        FileAccountBrowser: Page "File Account Browser";
+        StorageBrowser: Page "Storage Browser";
     begin
         CheckPermissions();
 
         if IsNullGuid(FileAccount."Account Id") then
             exit;
 
-        FileAccountBrowser.SetFileAccount(FileAccount);
-        FileAccountBrowser.BrowseFileAccount('');
-        FileAccountBrowser.Run();
+        StorageBrowser.SetFileAccount(FileAccount);
+        StorageBrowser.BrowseFileAccount('');
+        StorageBrowser.Run();
     end;
 
     procedure CheckPermissions()

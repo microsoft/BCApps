@@ -140,18 +140,18 @@ codeunit 9455 "File System Impl."
     procedure SelectFolderUI(Path: Text; DialogTitle: Text): Text
     var
         FileAccountContent: Record "File Account Content";
-        FileAccountBrowser: Page "File Account Browser";
+        StorageBrowser: Page "Storage Browser";
     begin
         CheckPath(Path);
         CheckInitialization();
 
-        FileAccountBrowser.SetPageCaption(DialogTitle);
-        FileAccountBrowser.SetFileAccount(CurrFileAccount);
-        FileAccountBrowser.EnableDirectoryLookupMode(Path);
-        if FileAccountBrowser.RunModal() <> Action::LookupOK then
+        StorageBrowser.SetPageCaption(DialogTitle);
+        StorageBrowser.SetFileAccount(CurrFileAccount);
+        StorageBrowser.EnableDirectoryLookupMode(Path);
+        if StorageBrowser.RunModal() <> Action::LookupOK then
             exit('');
 
-        FileAccountBrowser.GetRecord(FileAccountContent);
+        StorageBrowser.GetRecord(FileAccountContent);
         if FileAccountContent.Type <> FileAccountContent.Type::Directory then
             exit('');
 
@@ -161,18 +161,18 @@ codeunit 9455 "File System Impl."
     procedure SelectFileUI(Path: Text; FileFilter: Text; DialogTitle: Text): Text
     var
         FileAccountContent: Record "File Account Content";
-        FileAccountBrowser: Page "File Account Browser";
+        StorageBrowser: Page "Storage Browser";
     begin
         CheckPath(Path);
         CheckInitialization();
 
-        FileAccountBrowser.SetPageCaption(DialogTitle);
-        FileAccountBrowser.SetFileAccount(CurrFileAccount);
-        FileAccountBrowser.EnableFileLookupMode(Path, FileFilter);
-        if FileAccountBrowser.RunModal() <> Action::LookupOK then
+        StorageBrowser.SetPageCaption(DialogTitle);
+        StorageBrowser.SetFileAccount(CurrFileAccount);
+        StorageBrowser.EnableFileLookupMode(Path, FileFilter);
+        if StorageBrowser.RunModal() <> Action::LookupOK then
             exit('');
 
-        FileAccountBrowser.GetRecord(FileAccountContent);
+        StorageBrowser.GetRecord(FileAccountContent);
         if FileAccountContent.Type <> FileAccountContent.Type::File then
             exit('');
 
@@ -181,7 +181,7 @@ codeunit 9455 "File System Impl."
 
     procedure SaveFileUI(Path: Text; FileExtension: Text; DialogTitle: Text): Text
     var
-        FileAccountBrowser: Page "File Account Browser";
+        StorageBrowser: Page "Storage Browser";
         FileName, FileNameWithExtension : Text;
         PleaseProvideFileExtensionErr: Label 'Please provide a valid file extension.';
         FileNameTok: Label '%1.%2', Locked = true;
@@ -192,18 +192,18 @@ codeunit 9455 "File System Impl."
         if FileExtension = '' then
             Error(PleaseProvideFileExtensionErr);
 
-        FileAccountBrowser.SetPageCaption(DialogTitle);
-        FileAccountBrowser.SetFileAccount(CurrFileAccount);
-        FileAccountBrowser.EnableSaveFileLookupMode(Path, FileExtension);
-        if FileAccountBrowser.RunModal() <> Action::LookupOK then
+        StorageBrowser.SetPageCaption(DialogTitle);
+        StorageBrowser.SetFileAccount(CurrFileAccount);
+        StorageBrowser.EnableSaveFileLookupMode(Path, FileExtension);
+        if StorageBrowser.RunModal() <> Action::LookupOK then
             exit('');
 
-        FileName := FileAccountBrowser.GetFileName();
+        FileName := StorageBrowser.GetFileName();
         if FileName = '' then
             exit('');
 
         FileNameWithExtension := StrSubstNo(FileNameTok, FileName, FileExtension);
-        exit(CombinePath(FileAccountBrowser.GetCurrentDirectory(), FileNameWithExtension));
+        exit(CombinePath(StorageBrowser.GetCurrentDirectory(), FileNameWithExtension));
     end;
 
     procedure BrowseAccount()

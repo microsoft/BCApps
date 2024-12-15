@@ -132,11 +132,11 @@ page 9450 "File Accounts"
                     CurrPage.Update(false);
                 end;
             }
-            action(BrowseAccount)
+            action(StorageBrowser)
             {
-                Image = SelectField;
-                Caption = 'Browse Account';
-                ToolTip = 'Opens a File Browser and shows the content of the selected account.';
+                Image = BOMVersions;
+                Caption = 'Storage Browser';
+                ToolTip = 'Opens the Storage Browser and shows the content of the selected account.';
                 Visible = (not IsInLookupMode) and CanUserManageFileSetup;
                 Scope = Repeater;
 
@@ -199,7 +199,7 @@ page 9450 "File Accounts"
                 Caption = 'Process';
 
                 actionref(MakeDefault_Promoted; MakeDefault) { }
-                actionref(BrowseAccount_Promoted; BrowseAccount) { }
+                actionref(StorageBrowser_Promoted; StorageBrowser) { }
                 actionref(Delete_Promoted; Delete) { }
             }
 
