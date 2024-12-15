@@ -221,7 +221,7 @@ codeunit 9451 "File Account Impl."
     end;
 
     var
-        CannotManageSetupErr: Label 'Your user account does not give you permission to set up file. Please contact your administrator.';
+        CannotManageSetupErr: Label 'Your user account does not give you permission to set up file accounts. Please contact your administrator.';
         ChooseNewDefaultTxt: Label 'Choose a Default Account';
         ConfirmDeleteQst: Label 'Go ahead and delete?';
 }
