@@ -17,7 +17,7 @@ page 9451 "File Account Wizard"
     PageType = NavigatePage;
     ApplicationArea = All;
     UsageCategory = Administration;
-    Caption = 'Set Up File';
+    Caption = 'Set Up File Accounts';
     SourceTable = "File System Connector";
     SourceTableTemporary = true;
     InsertAllowed = false;
