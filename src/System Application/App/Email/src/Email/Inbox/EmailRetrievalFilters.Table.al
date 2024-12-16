@@ -52,9 +52,9 @@ table 8885 "Email Retrieval Filters"
         {
             Caption = 'Earliest Email';
         }
-        field(8; "Remove Past Sections"; Boolean)
+        field(8; "Remove History"; Boolean)
         {
-            Caption = 'Remove Past Sections';
+            Caption = 'Remove History';
         }
     }
 
