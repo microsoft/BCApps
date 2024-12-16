@@ -25,6 +25,10 @@ codeunit 7767 "AOAI Authorization"
         [NonDebuggable]
         ManagedResourceDeployment: Text;
         ResourceUtilization: Enum "AOAI Resource Utilization";
+        [NonDebuggable]
+        FirstPartyAuthorization: Boolean;
+        SelfManagedAuthorization: Boolean;
+        MicrosoftManagedAuthorization: Boolean;
 
     [NonDebuggable]
     procedure IsConfigured(CallerModule: ModuleInfo): Boolean
@@ -37,11 +41,11 @@ codeunit 7767 "AOAI Authorization"
 
         case ResourceUtilization of
             Enum::"AOAI Resource Utilization"::"First Party":
-                exit((ManagedResourceDeployment <> '') and ALCopilotFunctions.IsPlatformAuthorizationConfigured(CallerModule.Publisher(), CurrentModule.Publisher()));
+                exit(FirstPartyAuthorization and ALCopilotFunctions.IsPlatformAuthorizationConfigured(CallerModule.Publisher(), CurrentModule.Publisher()));
             Enum::"AOAI Resource Utilization"::"Self-Managed":
-                exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()));
+                exit(SelfManagedAuthorization);
             Enum::"AOAI Resource Utilization"::"Microsoft Managed":
-                exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()) and (ManagedResourceDeployment <> '') and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls());
+                exit(MicrosoftManagedAuthorization and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls());
         end;
 
         exit(false);
@@ -57,6 +61,7 @@ codeunit 7767 "AOAI Authorization"
         Deployment := NewDeployment;
         ApiKey := NewApiKey;
         ManagedResourceDeployment := NewManagedResourceDeployment;
+        MicrosoftManagedAuthorization := true;
     end;
 
     [NonDebuggable]
@@ -70,6 +75,7 @@ codeunit 7767 "AOAI Authorization"
         if IsVerified then begin
             ResourceUtilization := Enum::"AOAI Resource Utilization"::"Microsoft Managed";
             ManagedResourceDeployment := NewManagedResourceDeployment;
+            MicrosoftManagedAuthorization := true;
         end;
     end;
 
@@ -82,6 +88,7 @@ codeunit 7767 "AOAI Authorization"
         Endpoint := NewEndpoint;
         Deployment := NewDeployment;
         ApiKey := NewApiKey;
+        SelfManagedAuthorization := true;
     end;
 
     [NonDebuggable]
@@ -91,6 +98,7 @@ codeunit 7767 "AOAI Authorization"
 
         ResourceUtilization := Enum::"AOAI Resource Utilization"::"First Party";
         ManagedResourceDeployment := NewDeployment;
+        FirstPartyAuthorization := true;
     end;
 
     [NonDebuggable]
@@ -129,6 +137,9 @@ codeunit 7767 "AOAI Authorization"
         Clear(Deployment);
         Clear(ManagedResourceDeployment);
         Clear(ResourceUtilization);
+        Clear(FirstPartyAuthorization);
+        clear(SelfManagedAuthorization);
+        Clear(MicrosoftManagedAuthorization);
     end;
 
     [NonDebuggable]
