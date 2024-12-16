@@ -142,13 +142,16 @@ codeunit 305 "No. Series - Setup Impl."
     var
         NoSeriesLine2: Record "No. Series Line";
         NoSeries: Codeunit "No. Series";
+        NoSeriesCodeFilter: Text;
     begin
         NoSeriesLine2.SetCurrentKey("Series Code", "Starting Date");
         NoSeriesLine2.SetRange("Starting Date", 0D, StartingDate);
         NoSeriesLine2.SetRange("Series Code", NoSeriesCode);
         NoSeries.OnSetNoSeriesLineFilters(NoSeriesLine2);
-        if NoSeriesLine2.GetFilter("Series Code") <> NoSeriesCode then
-            Error(CodeFieldChangedErr, NoSeriesLine2.FieldCaption("Series Code"), NoSeriesCode, NoSeriesLine2.GetFilter("Series Code"));
+        if NoSeriesCode <> '' then
+            NoSeriesCodeFilter := NoSeriesLine2.GetFilter("Series Code");
+        if NoSeriesCodeFilter <> NoSeriesCode then
+            Error(CodeFieldChangedErr, NoSeriesLine2.FieldCaption("Series Code"), NoSeriesCode, NoSeriesCodeFilter);
 
         NoSeriesLine.SetCurrentKey("Series Code", "Starting Date");
         NoSeriesLine.CopyFilters(NoSeriesLine2);
