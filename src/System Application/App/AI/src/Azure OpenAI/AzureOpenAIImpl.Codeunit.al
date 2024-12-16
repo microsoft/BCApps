@@ -662,6 +662,7 @@ codeunit 7772 "Azure OpenAI Impl"
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         EnvironmentInformation: Codeunit "Environment Information";
+        ModuleInfo: ModuleInfo;
         KVSecret: SecretText;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
@@ -669,7 +670,9 @@ codeunit 7772 "Azure OpenAI Impl"
 
         if not AzureKeyVault.GetAzureKeyVaultSecret('AOAI-Metaprompt-Text', KVSecret) then begin
             Telemetry.LogMessage('0000LX3', TelemetryMetapromptRetrievalErr, Verbosity::Error, DataClassification::SystemMetadata);
-            Error(MetapromptLoadingErr);
+            NavApp.GetCurrentModuleInfo(ModuleInfo);
+            if ModuleInfo.Publisher = 'Microsoft' then
+                Error(MetapromptLoadingErr);
         end;
         Metaprompt := KVSecret;
     end;
