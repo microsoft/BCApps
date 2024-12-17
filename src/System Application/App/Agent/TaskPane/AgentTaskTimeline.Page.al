@@ -7,7 +7,7 @@ namespace System.Agents;
 
 using System.Security.AccessControl;
 
-page 4307 "Task Timeline"
+page 4307 "Agent Task Timeline"
 {
     PageType = ListPart;
     ApplicationArea = All;

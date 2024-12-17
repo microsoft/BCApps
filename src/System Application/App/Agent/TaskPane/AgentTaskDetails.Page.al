@@ -5,7 +5,7 @@
 
 namespace System.Agents;
 
-page 4313 "Task Details"
+page 4313 "Agent Task Details"
 {
     PageType = ListPart;
     ApplicationArea = All;
