@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
 codeunit 9458 "File Account Browser Mgt."
 {
@@ -12,7 +12,7 @@ codeunit 9458 "File Account Browser Mgt."
     InherentEntitlements = X;
 
     var
-        FileSystem: Codeunit "File System";
+        FileSystem: Codeunit "External File Storage";
 
     procedure SetFileAccount(FileAccount: Record "File Account")
     begin

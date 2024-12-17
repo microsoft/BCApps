@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
-codeunit 9455 "File System Impl."
+codeunit 9455 "External File Storage Impl."
 {
     Access = Internal;
     InherentPermissions = X;
@@ -13,7 +13,7 @@ codeunit 9455 "File System Impl."
 
     var
         CurrFileAccount: Record "File Account";
-        FileSystemConnector: Interface "File System Connector";
+        FileSystemConnector: Interface "External File Storage Connector";
         IsInitialized: Boolean;
 
     procedure Initialize(Scenario: Enum "File Scenario")

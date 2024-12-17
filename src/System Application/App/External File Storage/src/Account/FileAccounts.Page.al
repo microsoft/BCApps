@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
 using System.Telemetry;
 
@@ -216,7 +216,7 @@ page 9450 "File Accounts"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000CTA', 'File System', Enum::"Feature Uptake Status"::Discovered);
+        FeatureTelemetry.LogUptake('0000CTA', 'External File Storage', Enum::"Feature Uptake Status"::Discovered);
         CanUserManageFileSetup := FileAccountImpl.IsUserFileAdmin();
         Rec.SetCurrentKey("Account Id", Connector);
         UpdateFileAccounts();
@@ -262,7 +262,7 @@ page 9450 "File Accounts"
 
     local procedure ShowAccountInformation()
     var
-        Connector: Interface "File System Connector";
+        Connector: Interface "External File Storage Connector";
     begin
         UpdateAccounts := true;
 

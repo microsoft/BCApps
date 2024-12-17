@@ -3,14 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestLibraries.FileSystem;
+namespace System.TestLibraries.ExternalFileStorage;
 
-using System.FileSystem;
+using System.ExternalFileStorage;
 
-enumextension 135815 "Test File System Connector" extends "File System Connector"
+enumextension 135815 "Test File Storage Connector" extends "Ext. File Storage Connector"
 {
-    value(135810; "Test File System Connector")
+    value(135810; "Test File Storage Connector")
     {
-        Implementation = "File System Connector" = "Test File System Connector";
+        Implementation = "External File Storage Connector" = "Test File Storage Connector";
     }
 }

@@ -3,12 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
 /// <summary>
 /// Indicator of what type the resource is.
 /// </summary>
-enum 9452 "File Type"
+enum 9452 "Ext. File Storage File Type"
 {
     Access = Public;
     Extensible = false;

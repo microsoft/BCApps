@@ -3,10 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Test.FileSystem;
+namespace System.Test.ExternalFileStorage;
 
-using System.TestLibraries.FileSystem;
-using System.FileSystem;
+using System.TestLibraries.ExternalFileStorage;
+using System.ExternalFileStorage;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
 
@@ -29,7 +29,7 @@ codeunit 134751 "File Scenario Page Test"
         FileScenarioPage: TestPage "File Scenario Setup";
     begin
         // [Scenario] The "File Scenario Setup" shows no data when there are no file accounts
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         // [Given] No file account is registered.
         FileConnectorMock.Initialize();
@@ -51,7 +51,7 @@ codeunit 134751 "File Scenario Page Test"
         FileScenarioPage: TestPage "File Scenario Setup";
     begin
         // [Scenario] The "File Scenario Setup" shows one entry when there is only one file account and no scenarios
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         // [Given] One file account is registered.
         FileConnectorMock.Initialize();
@@ -84,7 +84,7 @@ codeunit 134751 "File Scenario Page Test"
         FileScenarioPage: TestPage "File Scenario Setup";
     begin
         // [Scenario] The "File Scenario Setup" shows one entry when there is only one file account and no scenarios
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         // [Given] One file account is registered and it's set as default.
         FileConnectorMock.Initialize();
@@ -121,7 +121,7 @@ codeunit 134751 "File Scenario Page Test"
         FileScenarioPage: TestPage "File Scenario Setup";
     begin
         // [Scenario] Having one default account with a non-default scenario assigned displays properly on "File Scenario Setup"
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         // [Given] One file account is registered and it's set as default.
         FileConnectorMock.Initialize();
@@ -169,7 +169,7 @@ codeunit 134751 "File Scenario Page Test"
         FileScenarioPage: TestPage "File Scenario Setup";
     begin
         // [Scenario] The "File Scenario Setup" shows three entries when there are two accounts - one with the default scenario and one with a non-default scenario
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         // [Given] Two file accounts are registered. One is set as default.
         FileConnectorMock.Initialize();

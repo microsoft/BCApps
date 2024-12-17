@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestLibraries.FileSystem;
+namespace System.TestLibraries.ExternalFileStorage;
 
-using System.FileSystem;
+using System.ExternalFileStorage;
 using System.TestLibraries.Utilities;
 
 codeunit 135810 "File Connector Mock"
@@ -52,7 +52,7 @@ codeunit 135810 "File Connector Mock"
 
         FileAccount."Account Id" := TestFileAccount.Id;
         FileAccount.Name := TestFileAccount.Name;
-        FileAccount.Connector := Enum::"File System Connector"::"Test File System Connector";
+        FileAccount.Connector := Enum::"Ext. File Storage Connector"::"Test File Storage Connector";
     end;
 
     procedure AddAccount(var Id: Guid)

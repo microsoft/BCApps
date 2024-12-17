@@ -1,6 +1,6 @@
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
-permissionset 9452 "File System - Objects"
+permissionset 9452 "File Storage - Objects"
 {
     Access = Internal;
     Assignable = false;

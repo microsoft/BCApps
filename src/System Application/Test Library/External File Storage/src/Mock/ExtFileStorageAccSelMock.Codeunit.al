@@ -3,14 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Test.FileSystem;
+namespace System.Test.ExternalFileStorage;
 
-using System.FileSystem;
+using System.ExternalFileStorage;
 
 /// <summary>
 /// Used to mock selected file accounts on File Accounts page.
 /// </summary>
-codeunit 135812 "File System Acc Selection Mock"
+codeunit 135812 "Ext. File Storage Acc Sel Mock"
 {
     EventSubscriberInstance = Manual;
 

@@ -3,21 +3,21 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
 using System.Environment;
 
-permissionset 9451 "File System - Read"
+permissionset 9451 "File Storage - Read"
 {
     Access = Internal;
     Assignable = false;
-    IncludedPermissionSets = "File System - Objects";
+    IncludedPermissionSets = "File Storage - Objects";
 
     Permissions =
-        tabledata "File System Connector" = r,
-        tabledata "File System Connector Logo" = r,
+        tabledata "Ext. File Storage Connector" = r,
+        tabledata "File Storage Connector Logo" = r,
         tabledata "File Account Scenario" = r,
         tabledata "File Scenario" = r,
         tabledata "File Account Content" = r,
-        tabledata Media = r; // This permission is required by File System Account Wizard
+        tabledata Media = r; // This permission is required by External File Storage Account Wizard
 }

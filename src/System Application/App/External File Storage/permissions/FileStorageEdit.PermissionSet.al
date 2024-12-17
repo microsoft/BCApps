@@ -3,18 +3,18 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
 using System.Environment;
 
-permissionset 9453 "File System - Edit"
+permissionset 9453 "File Storage - Edit"
 {
     Access = Public;
     Assignable = false;
-    Caption = 'File System - Edit';
+    Caption = 'File Storage - Edit';
 
-    IncludedPermissionSets = "File System - Read";
+    IncludedPermissionSets = "File Storage - Read";
 
-    Permissions = tabledata "File System Connector Logo" = imd,
+    Permissions = tabledata "File Storage Connector Logo" = imd,
                   tabledata "Tenant Media" = imd;
 }

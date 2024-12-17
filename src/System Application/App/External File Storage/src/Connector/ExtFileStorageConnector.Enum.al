@@ -3,17 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestLibraries.FileSystem;
+namespace System.ExternalFileStorage;
 
-using System.FileSystem;
-
-permissionset 135810 "File System Admin"
+/// <summary>
+/// Enum that holds all of the available file connectors.
+/// </summary>
+enum 9450 "Ext. File Storage Connector" implements "External File Storage Connector"
 {
-    Assignable = true;
-    IncludedPermissionSets = "File System - Admin";
-
-    // Include Test Tables
-    Permissions =
-        tabledata "Test File Connector Setup" = RIMD,
-        tabledata "Test File Account" = RIMD;
+    Extensible = true;
 }

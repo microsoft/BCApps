@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
 table 9455 "File Account Content"
 {
@@ -14,7 +14,7 @@ table 9455 "File Account Content"
 
     fields
     {
-        field(1; "Type"; Enum "File Type")
+        field(1; "Type"; Enum "Ext. File Storage File Type")
         {
             Caption = 'Type';
         }

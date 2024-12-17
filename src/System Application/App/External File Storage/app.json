@@ -51,7 +51,7 @@
     "internalsVisibleTo":  [
                                {
                                    "id":  "f188754b-3ffb-443a-9507-f5fbdae3af2c",
-                                   "name":  "File System Test Library",
+                                   "name":  "External File Storage Test Library",
                                    "publisher":  "Microsoft"
                                }
                            ],

@@ -3,20 +3,19 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
-table 9451 "File System Connector"
+table 9452 "File Storage Connector Logo"
 {
-    TableType = Temporary;
+    DataClassification = SystemMetadata;
     Access = Internal;
     InherentPermissions = X;
     InherentEntitlements = X;
 
     fields
     {
-        field(1; Connector; Enum "File System Connector") { }
+        field(1; Connector; Enum "Ext. File Storage Connector") { }
         field(2; Logo; Media) { }
-        field(3; Description; Text[250]) { }
     }
 
     keys

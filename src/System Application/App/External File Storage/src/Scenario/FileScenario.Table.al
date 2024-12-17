@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
 /// <summary>
 /// Holds the mapping between file account and scenarios.
@@ -20,7 +20,7 @@ table 9454 "File Scenario"
     fields
     {
         field(1; Scenario; Enum "File Scenario") { }
-        field(2; Connector; Enum "File System Connector") { }
+        field(2; Connector; Enum "Ext. File Storage Connector") { }
         field(3; "Account Id"; Guid) { }
     }
 

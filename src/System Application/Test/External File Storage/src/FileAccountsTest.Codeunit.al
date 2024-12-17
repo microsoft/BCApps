@@ -3,10 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Test.FileSystem;
+namespace System.Test.ExternalFileStorage;
 
-using System.FileSystem;
-using System.TestLibraries.FileSystem;
+using System.ExternalFileStorage;
+using System.TestLibraries.ExternalFileStorage;
 using System.TestLibraries.Utilities;
 using System.TestLibraries.Security.AccessControl;
 
@@ -35,7 +35,7 @@ codeunit 134750 "File Accounts Test"
         FileConnectorMock.Initialize();
         FileConnectorMock.AddAccount(FileAccount);
 
-        PermissionsMock.Set('File System Edit');
+        PermissionsMock.Set('File Storage Edit');
 
         // [When] The accounts page is open
         AccountsPage.OpenView();
@@ -62,16 +62,16 @@ codeunit 134750 "File Accounts Test"
         FileConnectorMock.AddAccount(FirstFileAccount);
         FileConnectorMock.AddAccount(SecondFileAccount);
 
-        PermissionsMock.Set('File System Edit');
+        PermissionsMock.Set('File Storage Edit');
 
         // [When] The accounts page is open
         AccountsPage.OpenView();
 
         // [Then] The file entries are visible on the page
-        Assert.IsTrue(AccountsPage.GoToKey(FirstFileAccount."Account Id", Enum::"File System Connector"::"Test File System Connector"), 'The first File account should be on the page');
+        Assert.IsTrue(AccountsPage.GoToKey(FirstFileAccount."Account Id", Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The first File account should be on the page');
         Assert.AreEqual(FirstFileAccount.Name, Format(AccountsPage.NameField), 'The first account name on the page is wrong');
 
-        Assert.IsTrue(AccountsPage.GoToKey(SecondFileAccount."Account Id", Enum::"File System Connector"::"Test File System Connector"), 'The second File account should be on the page');
+        Assert.IsTrue(AccountsPage.GoToKey(SecondFileAccount."Account Id", Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The second File account should be on the page');
         Assert.AreEqual(SecondFileAccount.Name, Format(AccountsPage.NameField), 'The second account name on the page is wrong');
     end;
 
@@ -84,7 +84,7 @@ codeunit 134750 "File Accounts Test"
         AccountWizardPage: TestPage "File Account Wizard";
     begin
         // [SCENARIO] A new Account can be added through the Account Wizard
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         FileConnectorMock.Initialize();
 
@@ -99,7 +99,7 @@ codeunit 134750 "File Accounts Test"
         Assert.IsTrue(AccountWizardPage.Name.Visible(), 'Connector Name should be visible');
         Assert.IsTrue(AccountWizardPage.Details.Visible(), 'Connector Details should be visible');
 
-        Assert.IsTrue(AccountWizardPage.GoToKey(Enum::"File System Connector"::"Test File System Connector"), 'Test File connector was not shown in the page');
+        Assert.IsTrue(AccountWizardPage.GoToKey(Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'Test File connector was not shown in the page');
 
         // [WHEN] The Name field is drilled down
         AccountWizardPage.Next.Invoke();
@@ -118,7 +118,7 @@ codeunit 134750 "File Accounts Test"
         AccountsPage: TestPage "File Accounts";
     begin
         // [SCENARIO] The add Account action open the Account Wizard page in modal mode
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         AccountsPage.OpenView();
         // [WHEN] The AddAccount action is invoked
@@ -139,7 +139,7 @@ codeunit 134750 "File Accounts Test"
         // [GIVEN] A connector is installed and no account is added
         FileConnectorMock.Initialize();
 
-        PermissionsMock.Set('File System Edit');
+        PermissionsMock.Set('File Storage Edit');
 
         // [WHEN] GetAllAccounts is called
         FileAccount.GetAllAccounts(FileAccounts);
@@ -157,7 +157,7 @@ codeunit 134750 "File Accounts Test"
         Assert.AreEqual(1, FileAccounts.Count(), 'Record should not be empty');
         FileAccounts.FindFirst();
         Assert.AreEqual(FileAccountBuffer."Account Id", FileAccounts."Account Id", 'Wrong account ID');
-        Assert.AreEqual(Enum::"File System Connector"::"Test File System Connector", FileAccounts.Connector, 'Wrong connector');
+        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", FileAccounts.Connector, 'Wrong connector');
         Assert.AreEqual(FileAccountBuffer.Name, FileAccounts.Name, 'Wrong account name');
     end;
 
@@ -173,7 +173,7 @@ codeunit 134750 "File Accounts Test"
         // [GIVEN] A connector is installed and no account is added
         FileConnectorMock.Initialize();
 
-        PermissionsMock.Set('File System Edit');
+        PermissionsMock.Set('File Storage Edit');
 
         // [WHEN] Calling IsAnyAccountRegistered
         // [THEN] it evaluates to false
@@ -192,12 +192,12 @@ codeunit 134750 "File Accounts Test"
     procedure DeleteAllAccountsTest()
     var
         FileConnectorMock: Codeunit "File Connector Mock";
-        FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
+        FileAccountsSelectionMock: Codeunit "Ext. File Storage Acc Sel Mock";
         FirstAccountId, SecondAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
     begin
         // [SCENARIO] When all accounts are deleted, the File Accounts page is empty
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         // [GIVEN] A connector is installed and three account are added
         FileConnectorMock.Initialize();
@@ -226,12 +226,12 @@ codeunit 134750 "File Accounts Test"
     procedure DeleteAllAccountsCancelTest()
     var
         FileConnectorMock: Codeunit "File Connector Mock";
-        FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
+        FileAccountsSelectionMock: Codeunit "Ext. File Storage Acc Sel Mock";
         FirstAccountId, SecondAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
     begin
         // [SCENARIO] When all accounts are about to be deleted but the action in canceled, the File Accounts page contains all of them.
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         // [GIVEN] A connector is installed and three account are added
         FileConnectorMock.Initialize();
@@ -252,9 +252,9 @@ codeunit 134750 "File Accounts Test"
         FileAccountsTestPage.Delete.Invoke();
 
         // [THEN] All of the accounts are on the page
-        Assert.IsTrue(FileAccountsTestPage.GoToKey(FirstAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The first File account should be on the page');
-        Assert.IsTrue(FileAccountsTestPage.GoToKey(SecondAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The second File account should be on the page');
-        Assert.IsTrue(FileAccountsTestPage.GoToKey(ThirdAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The third File account should be on the page');
+        Assert.IsTrue(FileAccountsTestPage.GoToKey(FirstAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The first File account should be on the page');
+        Assert.IsTrue(FileAccountsTestPage.GoToKey(SecondAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The second File account should be on the page');
+        Assert.IsTrue(FileAccountsTestPage.GoToKey(ThirdAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The third File account should be on the page');
     end;
 
     [Test]
@@ -262,12 +262,12 @@ codeunit 134750 "File Accounts Test"
     procedure DeleteSomeAccountsTest()
     var
         FileConnectorMock: Codeunit "File Connector Mock";
-        FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
+        FileAccountsSelectionMock: Codeunit "Ext. File Storage Acc Sel Mock";
         FirstAccountId, SecondAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
     begin
         // [SCENARIO] When some accounts are deleted, they cannot be found on the page
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         // [GIVEN] A connector is installed and three account are added
         FileConnectorMock.Initialize();
@@ -287,9 +287,9 @@ codeunit 134750 "File Accounts Test"
         FileAccountsTestPage.Delete.Invoke();
 
         // [THEN] The deleted accounts are not on the page, the non-deleted accounts are on the page.
-        Assert.IsFalse(FileAccountsTestPage.GoToKey(FirstAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The first File account should not be on the page');
-        Assert.IsTrue(FileAccountsTestPage.GoToKey(SecondAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The second File account should be on the page');
-        Assert.IsFalse(FileAccountsTestPage.GoToKey(ThirdAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The third File account should not be on the page');
+        Assert.IsFalse(FileAccountsTestPage.GoToKey(FirstAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The first File account should not be on the page');
+        Assert.IsTrue(FileAccountsTestPage.GoToKey(SecondAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The second File account should be on the page');
+        Assert.IsFalse(FileAccountsTestPage.GoToKey(ThirdAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The third File account should not be on the page');
     end;
 
     [Test]
@@ -298,13 +298,13 @@ codeunit 134750 "File Accounts Test"
     var
         SecondAccount: Record "File Account";
         FileConnectorMock: Codeunit "File Connector Mock";
-        FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
+        FileAccountsSelectionMock: Codeunit "Ext. File Storage Acc Sel Mock";
         FileScenario: Codeunit "File Scenario";
         FirstAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
     begin
         // [SCENARIO] When the a non default account is deleted, the user is not prompted to choose a new default account.
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         // [GIVEN] A connector is installed and three account are added
         FileConnectorMock.Initialize();
@@ -326,12 +326,12 @@ codeunit 134750 "File Accounts Test"
         FileAccountsTestPage.Delete.Invoke();
 
         // [THEN] The deleted accounts are not on the page, the non-deleted accounts are on the page.
-        Assert.IsFalse(FileAccountsTestPage.GoToKey(FirstAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The first File account should not be on the page');
+        Assert.IsFalse(FileAccountsTestPage.GoToKey(FirstAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The first File account should not be on the page');
 
-        Assert.IsTrue(FileAccountsTestPage.GoToKey(SecondAccount."Account Id", Enum::"File System Connector"::"Test File System Connector"), 'The second File account should be on the page');
+        Assert.IsTrue(FileAccountsTestPage.GoToKey(SecondAccount."Account Id", Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The second File account should be on the page');
         Assert.IsTrue(GetDefaultFieldValueAsBoolean(FileAccountsTestPage.DefaultField.Value), 'The second account should be marked as default');
 
-        Assert.IsTrue(FileAccountsTestPage.GoToKey(ThirdAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The third File account should be on the page');
+        Assert.IsTrue(FileAccountsTestPage.GoToKey(ThirdAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The third File account should be on the page');
         Assert.IsFalse(GetDefaultFieldValueAsBoolean(FileAccountsTestPage.DefaultField.Value), 'The third account should not be marked as default');
     end;
 
@@ -341,13 +341,13 @@ codeunit 134750 "File Accounts Test"
     var
         SecondAccount: Record "File Account";
         FileConnectorMock: Codeunit "File Connector Mock";
-        FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
+        FileAccountsSelectionMock: Codeunit "Ext. File Storage Acc Sel Mock";
         FileScenario: Codeunit "File Scenario";
         FirstAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
     begin
         // [SCENARIO] When the default account is deleted, the user is not prompted to choose a new default account if there's only one account left
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         // [GIVEN] A connector is installed and three account are added
         FileConnectorMock.Initialize();
@@ -370,11 +370,11 @@ codeunit 134750 "File Accounts Test"
         FileAccountsTestPage.Delete.Invoke();
 
         // [THEN] The deleted accounts are not on the page, the non-deleted accounts are on the page.
-        Assert.IsTrue(FileAccountsTestPage.GoToKey(FirstAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The first File account should be on the page');
+        Assert.IsTrue(FileAccountsTestPage.GoToKey(FirstAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The first File account should be on the page');
         Assert.IsTrue(GetDefaultFieldValueAsBoolean(FileAccountsTestPage.DefaultField.Value), 'The first account should be marked as default');
 
-        Assert.IsFalse(FileAccountsTestPage.GoToKey(SecondAccount."Account Id", Enum::"File System Connector"::"Test File System Connector"), 'The second File account should not be on the page');
-        Assert.IsFalse(FileAccountsTestPage.GoToKey(ThirdAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The third File account should not be on the page');
+        Assert.IsFalse(FileAccountsTestPage.GoToKey(SecondAccount."Account Id", Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The second File account should not be on the page');
+        Assert.IsFalse(FileAccountsTestPage.GoToKey(ThirdAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The third File account should not be on the page');
     end;
 
     [Test]
@@ -383,13 +383,13 @@ codeunit 134750 "File Accounts Test"
     var
         SecondAccount: Record "File Account";
         FileConnectorMock: Codeunit "File Connector Mock";
-        FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
+        FileAccountsSelectionMock: Codeunit "Ext. File Storage Acc Sel Mock";
         FileScenario: Codeunit "File Scenario";
         FirstAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
     begin
         // [SCENARIO] When the default account is deleted, the user is prompted to choose a new default account but they cancel.
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         // [GIVEN] A connector is installed and three account are added
         FileConnectorMock.Initialize();
@@ -412,12 +412,12 @@ codeunit 134750 "File Accounts Test"
         FileAccountsTestPage.Delete.Invoke();
 
         // [THEN] The default account was deleted and there is no new default account
-        Assert.IsTrue(FileAccountsTestPage.GoToKey(FirstAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The first File account should be on the page');
+        Assert.IsTrue(FileAccountsTestPage.GoToKey(FirstAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The first File account should be on the page');
         Assert.IsFalse(GetDefaultFieldValueAsBoolean(FileAccountsTestPage.DefaultField.Value), 'The third account should not be marked as default');
 
-        Assert.IsFalse(FileAccountsTestPage.GoToKey(SecondAccount."Account Id", Enum::"File System Connector"::"Test File System Connector"), 'The second File account should not be on the page');
+        Assert.IsFalse(FileAccountsTestPage.GoToKey(SecondAccount."Account Id", Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The second File account should not be on the page');
 
-        Assert.IsTrue(FileAccountsTestPage.GoToKey(ThirdAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The third File account should be on the page');
+        Assert.IsTrue(FileAccountsTestPage.GoToKey(ThirdAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The third File account should be on the page');
         Assert.IsFalse(GetDefaultFieldValueAsBoolean(FileAccountsTestPage.DefaultField.Value), 'The third account should not be marked as default');
     end;
 
@@ -427,13 +427,13 @@ codeunit 134750 "File Accounts Test"
     var
         SecondAccount: Record "File Account";
         FileConnectorMock: Codeunit "File Connector Mock";
-        FileAccountsSelectionMock: Codeunit "File System Acc Selection Mock";
+        FileAccountsSelectionMock: Codeunit "Ext. File Storage Acc Sel Mock";
         FileScenario: Codeunit "File Scenario";
         FirstAccountId, ThirdAccountId : Guid;
         FileAccountsTestPage: TestPage "File Accounts";
     begin
         // [SCENARIO] When the default account is deleted, the user is prompted to choose a new default account
-        PermissionsMock.Set('File System Admin');
+        PermissionsMock.Set('File Storage Admin');
 
         // [GIVEN] A connector is installed and three account are added
         FileConnectorMock.Initialize();
@@ -456,12 +456,12 @@ codeunit 134750 "File Accounts Test"
         FileAccountsTestPage.Delete.Invoke();
 
         // [THEN] The second account is not on the page, the third account is set as default
-        Assert.IsTrue(FileAccountsTestPage.GoToKey(FirstAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The first File account should be on the page');
+        Assert.IsTrue(FileAccountsTestPage.GoToKey(FirstAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The first File account should be on the page');
         Assert.IsFalse(GetDefaultFieldValueAsBoolean(FileAccountsTestPage.DefaultField.Value), 'The first account should not be marked as default');
 
-        Assert.IsFalse(FileAccountsTestPage.GoToKey(SecondAccount."Account Id", Enum::"File System Connector"::"Test File System Connector"), 'The second File account should not be on the page');
+        Assert.IsFalse(FileAccountsTestPage.GoToKey(SecondAccount."Account Id", Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The second File account should not be on the page');
 
-        Assert.IsTrue(FileAccountsTestPage.GoToKey(ThirdAccountId, Enum::"File System Connector"::"Test File System Connector"), 'The third File account should be on the page');
+        Assert.IsTrue(FileAccountsTestPage.GoToKey(ThirdAccountId, Enum::"Ext. File Storage Connector"::"Test File Storage Connector"), 'The third File account should be on the page');
         Assert.IsTrue(GetDefaultFieldValueAsBoolean(FileAccountsTestPage.DefaultField.Value), 'The third account should be marked as default');
     end;
 
@@ -479,7 +479,7 @@ codeunit 134750 "File Accounts Test"
     [ModalPageHandler]
     procedure ChooseNewDefaultAccountHandler(var AccountsPage: TestPage "File Accounts")
     begin
-        AccountsPage.GoToKey(AccountToSelect, Enum::"File System Connector"::"Test File System Connector");
+        AccountsPage.GoToKey(AccountToSelect, Enum::"Ext. File Storage Connector"::"Test File Storage Connector");
         AccountsPage.OK().Invoke();
     end;
 

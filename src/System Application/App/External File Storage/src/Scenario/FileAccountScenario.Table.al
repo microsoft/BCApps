@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
 /// <summary>
 /// Temporary table used to display the tree structure in "File Scenario Setup".
@@ -18,7 +18,7 @@ table 9453 "File Account Scenario"
     fields
     {
         field(1; Scenario; Integer) { }
-        field(2; Connector; Enum "File System Connector") { }
+        field(2; Connector; Enum "Ext. File Storage Connector") { }
         field(3; "Account Id"; Guid) { }
         field(4; "Display Name"; Text[2048]) { }
         field(5; Default; Boolean) { }

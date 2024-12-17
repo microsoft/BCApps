@@ -3,19 +3,19 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
-permissionset 9450 "File System - Admin"
+permissionset 9450 "File Storage - Admin"
 {
     Access = Public;
     Assignable = true;
-    Caption = 'File System - Admin';
+    Caption = 'External File Storage - Admin';
 
-    IncludedPermissionSets = "File System - Edit";
+    IncludedPermissionSets = "File Storage - Edit";
 
     Permissions =
-        tabledata "File System Connector" = RIMD,
-        tabledata "File System Connector Logo" = RIMD,
+        tabledata "Ext. File Storage Connector" = RIMD,
+        tabledata "File Storage Connector Logo" = RIMD,
         tabledata "File Account Scenario" = RIMD,
         tabledata "File Scenario" = RIMD,
         tabledata "File Account Content" = RIMD;

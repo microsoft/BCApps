@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
 using System.Text;
 using System.Utilities;
@@ -13,14 +13,14 @@ codeunit 9451 "File Account Impl."
     Access = Internal;
     InherentPermissions = X;
     InherentEntitlements = X;
-    Permissions = tabledata "File System Connector Logo" = rimd,
+    Permissions = tabledata "File Storage Connector Logo" = rimd,
                   tabledata "File Scenario" = imd;
 
     procedure GetAllAccounts(LoadLogos: Boolean; var TempFileAccount: Record "File Account" temporary)
     var
         FileAccounts: Record "File Account";
-        FileSystemConnector: Interface "File System Connector";
-        Connector: Enum "File System Connector";
+        FileSystemConnector: Interface "External File Storage Connector";
+        Connector: Enum "Ext. File Storage Connector";
     begin
         TempFileAccount.Reset();
         TempFileAccount.DeleteAll();
@@ -52,7 +52,7 @@ codeunit 9451 "File Account Impl."
         CurrentDefaultFileAccount: Record "File Account";
         ConfirmManagement: Codeunit "Confirm Management";
         FileScenario: Codeunit "File Scenario";
-        FileSystemConnector: Interface "File System Connector";
+        FileSystemConnector: Interface "External File Storage Connector";
     begin
         CheckPermissions();
 
@@ -78,7 +78,7 @@ codeunit 9451 "File Account Impl."
         DefaultAccountDeletion(CurrentDefaultFileAccount."Account Id", CurrentDefaultFileAccount.Connector);
     end;
 
-    local procedure DefaultAccountDeletion(CurrentDefaultAccountId: Guid; Connector: Enum "File System Connector")
+    local procedure DefaultAccountDeletion(CurrentDefaultAccountId: Guid; Connector: Enum "Ext. File Storage Connector")
     var
         AllFileAccounts: Record "File Account";
         NewDefaultFileAccount: Record "File Account";
@@ -119,9 +119,9 @@ codeunit 9451 "File Account Impl."
         exit(true);
     end;
 
-    local procedure ImportLogo(var FileAccount: Record "File Account"; FileSystemConnector: Interface "File System Connector")
+    local procedure ImportLogo(var FileAccount: Record "File Account"; FileSystemConnector: Interface "External File Storage Connector")
     var
-        FileSystemConnectorLogo: Record "File System Connector Logo";
+        FileSystemConnectorLogo: Record "File Storage Connector Logo";
         Base64Convert: Codeunit "Base64 Convert";
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
@@ -162,13 +162,13 @@ codeunit 9451 "File Account Impl."
         exit(FileScenario.WritePermission());
     end;
 
-    procedure FindAllConnectors(var FileConnector: Record "File System Connector")
+    procedure FindAllConnectors(var FileConnector: Record "Ext. File Storage Connector")
     var
-        FileConnectorLogo: Record "File System Connector Logo";
-        ConnectorInterface: Interface "File System Connector";
-        FileSystemConnector: Enum "File System Connector";
+        FileConnectorLogo: Record "File Storage Connector Logo";
+        ConnectorInterface: Interface "External File Storage Connector";
+        FileSystemConnector: Enum "Ext. File Storage Connector";
     begin
-        foreach FileSystemConnector in Enum::"File System Connector".Ordinals() do begin
+        foreach FileSystemConnector in Enum::"Ext. File Storage Connector".Ordinals() do begin
             ConnectorInterface := FileSystemConnector;
             FileConnector.Connector := FileSystemConnector;
             FileConnector.Description := ConnectorInterface.GetDescription();
@@ -178,9 +178,9 @@ codeunit 9451 "File Account Impl."
         end;
     end;
 
-    procedure IsValidConnector(Connector: Enum "File System Connector"): Boolean
+    procedure IsValidConnector(Connector: Enum "Ext. File Storage Connector"): Boolean
     begin
-        exit("File System Connector".Ordinals().Contains(Connector.AsInteger()));
+        exit("Ext. File Storage Connector".Ordinals().Contains(Connector.AsInteger()));
     end;
 
     procedure MakeDefault(var FileAccount: Record "File Account")

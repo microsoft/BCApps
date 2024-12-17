@@ -3,15 +3,15 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestLibraries.FileSystem;
+namespace System.TestLibraries.ExternalFileStorage;
 
-using System.FileSystem;
+using System.ExternalFileStorage;
 
 codeunit 135811 "File Scenario Mock"
 {
     Permissions = tabledata "File Scenario" = rid;
 
-    procedure AddMapping(FileScenario: Enum "File Scenario"; AccountId: Guid; Connector: Enum "File System Connector")
+    procedure AddMapping(FileScenario: Enum "File Scenario"; AccountId: Guid; Connector: Enum "Ext. File Storage Connector")
     var
         Scenario: Record "File Scenario";
     begin

@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
 codeunit 9456 "File Pagination Data"
 {
@@ -32,7 +32,7 @@ codeunit 9456 "File Pagination Data"
     end;
 
     /// <summary>
-    /// Set this value to true, if all files or directories have been read a from the File System.
+    /// Set this value to true, if all files or directories have been read a from the File Service.
     /// </summary>
     /// <param name="NewEndOfListing">End of listing reached.</param>
     procedure SetEndOfListing(NewEndOfListing: Boolean)

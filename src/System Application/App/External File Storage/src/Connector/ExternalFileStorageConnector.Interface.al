@@ -3,12 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
 /// <summary>
-/// A File System Connector interface used to create file accounts and handle external files.
+/// A External File Storage Connector interface "used to create file accounts and handle external files."
 /// </summary>
-interface "File System Connector"
+interface "External File Storage Connector"
 {
     /// <summary>
     /// Gets a List of Files stored on the provided account.

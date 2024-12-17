@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
 using System.Apps;
 using System.Environment;
@@ -18,7 +18,7 @@ page 9451 "File Account Wizard"
     ApplicationArea = All;
     UsageCategory = Administration;
     Caption = 'Set Up File Accounts';
-    SourceTable = "File System Connector";
+    SourceTable = "Ext. File Storage Connector";
     SourceTableTemporary = true;
     InsertAllowed = false;
     ModifyAllowed = false;
@@ -407,7 +407,7 @@ page 9451 "File Account Wizard"
     local procedure TryRegisterAccount(var AccountWasRegistered: Boolean)
     var
         FileAccountImpl: Codeunit "File Account Impl.";
-        FileConnector: Interface "File System Connector";
+        FileConnector: Interface "External File Storage Connector";
     begin
         // Check to validate that the connector is still installed
         // The connector could have been uninstalled by another user/session

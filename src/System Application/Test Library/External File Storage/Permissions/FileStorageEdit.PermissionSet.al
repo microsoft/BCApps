@@ -3,19 +3,19 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestLibraries.FileSystem;
+namespace System.TestLibraries.ExternalFileStorage;
 
-using System.FileSystem;
+using System.ExternalFileStorage;
 using System.Environment;
 
-permissionset 135811 "File System Edit"
+permissionset 135811 "File Storage Edit"
 {
     Assignable = true;
-    IncludedPermissionSets = "File System - Edit";
+    IncludedPermissionSets = "File Storage - Edit";
 
     // Include Test Tables
     Permissions =
         tabledata "Test File Connector Setup" = RIMD,
-        tabledata "Test File Account" = RIMD, // Needed for the Record to get passed in Library Assert
+        tabledata "Test File Account" = RIMD,   // Needed for the Record to get passed in Library Assert
         tabledata "Scheduled Task" = rd;        // Needed for enqueue tests
 }

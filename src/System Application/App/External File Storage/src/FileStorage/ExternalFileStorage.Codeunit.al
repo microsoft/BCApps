@@ -3,32 +3,32 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
-codeunit 9454 "File System"
+codeunit 9454 "External File Storage"
 {
     InherentPermissions = X;
     InherentEntitlements = X;
 
     var
-        FileSystemImpl: Codeunit "File System Impl.";
+        ExternalFileStorageImpl: Codeunit "External File Storage Impl.";
 
     /// <summary>
-    /// Initialized the File System for the given scenario.
+    /// Initialized the File Storage for the given scenario.
     /// </summary>
     /// <param name="Scenario">File Scenario to use.</param>
     procedure Initialize(Scenario: Enum "File Scenario")
     begin
-        FileSystemImpl.Initialize(Scenario);
+        ExternalFileStorageImpl.Initialize(Scenario);
     end;
 
     /// <summary>
-    /// Initialized the File System for the give file account.
+    /// Initialized the File Storage for the give file account.
     /// </summary>
     /// <param name="FileAccount"> File Account to use.</param>
     procedure Initialize(FileAccount: Record "File Account")
     begin
-        FileSystemImpl.Initialize(FileAccount);
+        ExternalFileStorageImpl.Initialize(FileAccount);
     end;
 
     /// <summary>
@@ -39,7 +39,7 @@ codeunit 9454 "File System"
     /// <param name="FileAccountContent">File account content.</param>
     procedure ListFiles(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
     begin
-        FileSystemImpl.ListFiles(Path, FilePaginationData, FileAccountContent);
+        ExternalFileStorageImpl.ListFiles(Path, FilePaginationData, FileAccountContent);
     end;
 
     /// <summary>
@@ -50,7 +50,7 @@ codeunit 9454 "File System"
     [TryFunction]
     procedure GetFile(Path: Text; Stream: InStream)
     begin
-        FileSystemImpl.GetFile(Path, Stream);
+        ExternalFileStorageImpl.GetFile(Path, Stream);
     end;
 
     /// <summary>
@@ -61,7 +61,7 @@ codeunit 9454 "File System"
     [TryFunction]
     procedure CreateFile(Path: Text; Stream: InStream)
     begin
-        FileSystemImpl.CreateFile(Path, Stream);
+        ExternalFileStorageImpl.CreateFile(Path, Stream);
     end;
 
     /// <summary>
@@ -72,7 +72,7 @@ codeunit 9454 "File System"
     [TryFunction]
     procedure CopyFile(SourcePath: Text; TargetPath: Text)
     begin
-        FileSystemImpl.CopyFile(SourcePath, TargetPath);
+        ExternalFileStorageImpl.CopyFile(SourcePath, TargetPath);
     end;
 
     /// <summary>
@@ -83,7 +83,7 @@ codeunit 9454 "File System"
     [TryFunction]
     procedure MoveFile(SourcePath: Text; TargetPath: Text)
     begin
-        FileSystemImpl.MoveFile(SourcePath, TargetPath);
+        ExternalFileStorageImpl.MoveFile(SourcePath, TargetPath);
     end;
 
     /// <summary>
@@ -93,7 +93,7 @@ codeunit 9454 "File System"
     /// <returns>Returns true if the file exists.</returns>
     procedure FileExists(Path: Text): Boolean
     begin
-        exit(FileSystemImpl.FileExists(Path));
+        exit(ExternalFileStorageImpl.FileExists(Path));
     end;
 
     /// <summary>
@@ -103,7 +103,7 @@ codeunit 9454 "File System"
     [TryFunction]
     procedure DeleteFile(Path: Text)
     begin
-        FileSystemImpl.DeleteFile(Path);
+        ExternalFileStorageImpl.DeleteFile(Path);
     end;
 
     /// <summary>
@@ -115,7 +115,7 @@ codeunit 9454 "File System"
     [TryFunction]
     procedure ListDirectories(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
     begin
-        FileSystemImpl.ListDirectories(Path, FilePaginationData, FileAccountContent);
+        ExternalFileStorageImpl.ListDirectories(Path, FilePaginationData, FileAccountContent);
     end;
 
     /// <summary>
@@ -125,7 +125,7 @@ codeunit 9454 "File System"
     [TryFunction]
     procedure CreateDirectory(Path: Text)
     begin
-        FileSystemImpl.CreateDirectory(Path);
+        ExternalFileStorageImpl.CreateDirectory(Path);
     end;
 
     /// <summary>
@@ -135,7 +135,7 @@ codeunit 9454 "File System"
     /// <returns>Returns true if directory exists.</returns>
     procedure DirectoryExists(Path: Text): Boolean
     begin
-        exit(FileSystemImpl.DirectoryExists(Path));
+        exit(ExternalFileStorageImpl.DirectoryExists(Path));
     end;
 
     /// <summary>
@@ -145,7 +145,7 @@ codeunit 9454 "File System"
     [TryFunction]
     procedure DeleteDirectory(Path: Text)
     begin
-        FileSystemImpl.DeleteDirectory(Path);
+        ExternalFileStorageImpl.DeleteDirectory(Path);
     end;
 
     /// <summary>
@@ -156,7 +156,7 @@ codeunit 9454 "File System"
     /// <returns>Correctly combined path.</returns>
     procedure CombinePath(Path: Text; ChildPath: Text): Text
     begin
-        exit(FileSystemImpl.CombinePath(Path, ChildPath));
+        exit(ExternalFileStorageImpl.CombinePath(Path, ChildPath));
     end;
 
     /// <summary>
@@ -166,7 +166,7 @@ codeunit 9454 "File System"
     /// <returns>The parent of the specified path.</returns>
     procedure GetParentPath(Path: Text): Text
     begin
-        exit(FileSystemImpl.GetParentPath(Path));
+        exit(ExternalFileStorageImpl.GetParentPath(Path));
     end;
 
     /// <summary>
@@ -189,7 +189,7 @@ codeunit 9454 "File System"
     /// <returns>Returns the selected Folder.</returns>
     procedure SelectAndGetFolderPath(Path: Text; DialogTitle: Text): Text
     begin
-        exit(FileSystemImpl.SelectAndGetFolderPath(Path, DialogTitle));
+        exit(ExternalFileStorageImpl.SelectAndGetFolderPath(Path, DialogTitle));
     end;
 
     /// <summary>
@@ -214,7 +214,7 @@ codeunit 9454 "File System"
     /// <returns>Returns the path of the selected file.</returns>
     procedure SelectAndGetFilePath(Path: Text; FileFilter: Text; DialogTitle: Text): Text
     begin
-        exit(FileSystemImpl.SelectAndGetFilePath(Path, FileFilter, DialogTitle));
+        exit(ExternalFileStorageImpl.SelectAndGetFilePath(Path, FileFilter, DialogTitle));
     end;
 
     /// <summary>
@@ -239,7 +239,7 @@ codeunit 9454 "File System"
     /// <returns>Returns the selected file path.</returns>
     procedure SaveFile(Path: Text; FileExtension: Text; DialogTitle: Text): Text
     begin
-        exit(FileSystemImpl.SaveFile(Path, FileExtension, DialogTitle));
+        exit(ExternalFileStorageImpl.SaveFile(Path, FileExtension, DialogTitle));
     end;
 
     /// <summary>
@@ -247,6 +247,6 @@ codeunit 9454 "File System"
     /// </summary>
     procedure BrowseAccount()
     begin
-        FileSystemImpl.BrowseAccount();
+        ExternalFileStorageImpl.BrowseAccount();
     end;
 }

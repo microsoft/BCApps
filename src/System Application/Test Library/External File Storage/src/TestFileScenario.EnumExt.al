@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.TestLibraries.FileSystem;
+namespace System.TestLibraries.ExternalFileStorage;
 
-using System.FileSystem;
+using System.ExternalFileStorage;
 
 enumextension 135810 "Test File Scenario" extends "File Scenario"
 {

@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.FileSystem;
+namespace System.ExternalFileStorage;
 
 using System.Telemetry;
 
@@ -162,7 +162,7 @@ page 9452 "File Scenario Setup"
     end;
 
     // Used to set the focus on a file account
-    internal procedure SetFileAccountId(AccountId: Guid; Connector: Enum "File System Connector")
+    internal procedure SetFileAccountId(AccountId: Guid; Connector: Enum "Ext. File Storage Connector")
     begin
         FileAccountId := AccountId;
         FileConnector := Connector;
@@ -179,7 +179,7 @@ page 9452 "File Scenario Setup"
         FileScenarioImpl: Codeunit "File Scenario Impl.";
         FileAccountImpl: Codeunit "File Account Impl.";
         FileAccountId: Guid;
-        FileConnector: Enum "File System Connector";
+        FileConnector: Enum "Ext. File Storage Connector";
         Style, DefaultTxt : Text;
         TypeOfEntry: Enum "File Account Entry Type";
         Indentation: Integer;
