@@ -244,7 +244,7 @@ page 9450 "File Accounts"
         IsSelected: Boolean;
         SelectedAccountId: Guid;
     begin
-        // We need this code block to maintain the same selected record.
+        // Maintain the same selected record after updating accounts.
         SelectedAccountId := Rec."Account Id";
         IsSelected := not IsNullGuid(SelectedAccountId);
 
