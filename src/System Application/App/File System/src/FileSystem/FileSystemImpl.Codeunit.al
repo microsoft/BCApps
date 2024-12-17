@@ -37,80 +37,80 @@ codeunit 9455 "File System Impl."
 
     procedure ListFiles(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
     begin
-        CheckPath(Path);
         CheckInitialization();
+        CheckPath(Path);
         FileSystemConnector.ListFiles(CurrFileAccount."Account Id", Path, FilePaginationData, FileAccountContent);
     end;
 
     procedure GetFile(Path: Text; Stream: InStream)
     begin
-        CheckPath(Path);
         CheckInitialization();
+        CheckPath(Path);
         FileSystemConnector.GetFile(CurrFileAccount."Account Id", Path, Stream);
     end;
 
     procedure CreateFile(Path: Text; Stream: InStream)
     begin
-        CheckPath(Path);
         CheckInitialization();
+        CheckPath(Path);
         FileSystemConnector.CreateFile(CurrFileAccount."Account Id", Path, Stream);
     end;
 
     procedure CopyFile(SourcePath: Text; TargetPath: Text)
     begin
+        CheckInitialization();
         CheckPath(SourcePath);
         CheckPath(TargetPath);
-        CheckInitialization();
         FileSystemConnector.CopyFile(CurrFileAccount."Account Id", SourcePath, TargetPath);
     end;
 
     procedure MoveFile(SourcePath: Text; TargetPath: Text)
     begin
+        CheckInitialization();
         CheckPath(SourcePath);
         CheckPath(TargetPath);
-        CheckInitialization();
         FileSystemConnector.MoveFile(CurrFileAccount."Account Id", SourcePath, TargetPath);
     end;
 
     procedure FileExists(Path: Text): Boolean
     begin
-        CheckPath(Path);
         CheckInitialization();
+        CheckPath(Path);
         exit(FileSystemConnector.FileExists(CurrFileAccount."Account Id", Path));
     end;
 
     procedure DeleteFile(Path: Text)
     begin
-        CheckPath(Path);
         CheckInitialization();
+        CheckPath(Path);
         FileSystemConnector.DeleteFile(CurrFileAccount."Account Id", Path);
     end;
 
     procedure ListDirectories(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
     begin
-        CheckPath(Path);
         CheckInitialization();
+        CheckPath(Path);
         FileSystemConnector.ListDirectories(CurrFileAccount."Account Id", Path, FilePaginationData, FileAccountContent);
     end;
 
     procedure CreateDirectory(Path: Text)
     begin
-        CheckPath(Path);
         CheckInitialization();
+        CheckPath(Path);
         FileSystemConnector.CreateDirectory(CurrFileAccount."Account Id", Path);
     end;
 
     procedure DirectoryExists(Path: Text): Boolean
     begin
-        CheckPath(Path);
         CheckInitialization();
+        CheckPath(Path);
         exit(FileSystemConnector.DirectoryExists(CurrFileAccount."Account Id", Path));
     end;
 
     procedure DeleteDirectory(Path: Text)
     begin
-        CheckPath(Path);
         CheckInitialization();
+        CheckPath(Path);
         FileSystemConnector.DeleteDirectory(CurrFileAccount."Account Id", Path);
     end;
 
@@ -137,13 +137,13 @@ codeunit 9455 "File System Impl."
             ParentPath := Path.Substring(1, Path.LastIndexOf(PathSeparator()));
     end;
 
-    procedure SelectFolderUI(Path: Text; DialogTitle: Text): Text
+    procedure SelectAndGetFolderPath(Path: Text; DialogTitle: Text): Text
     var
         FileAccountContent: Record "File Account Content";
         StorageBrowser: Page "Storage Browser";
     begin
-        CheckPath(Path);
         CheckInitialization();
+        CheckPath(Path);
 
         StorageBrowser.SetPageCaption(DialogTitle);
         StorageBrowser.SetFileAccount(CurrFileAccount);
@@ -158,13 +158,13 @@ codeunit 9455 "File System Impl."
         exit(CombinePath(FileAccountContent."Parent Directory", FileAccountContent.Name));
     end;
 
-    procedure SelectFileUI(Path: Text; FileFilter: Text; DialogTitle: Text): Text
+    procedure SelectAndGetFilePath(Path: Text; FileFilter: Text; DialogTitle: Text): Text
     var
         FileAccountContent: Record "File Account Content";
         StorageBrowser: Page "Storage Browser";
     begin
-        CheckPath(Path);
         CheckInitialization();
+        CheckPath(Path);
 
         StorageBrowser.SetPageCaption(DialogTitle);
         StorageBrowser.SetFileAccount(CurrFileAccount);
@@ -179,15 +179,15 @@ codeunit 9455 "File System Impl."
         exit(CombinePath(FileAccountContent."Parent Directory", FileAccountContent.Name));
     end;
 
-    procedure SaveFileUI(Path: Text; FileExtension: Text; DialogTitle: Text): Text
+    procedure SaveFile(Path: Text; FileExtension: Text; DialogTitle: Text): Text
     var
         StorageBrowser: Page "Storage Browser";
         FileName, FileNameWithExtension : Text;
         PleaseProvideFileExtensionErr: Label 'Please provide a valid file extension.';
         FileNameTok: Label '%1.%2', Locked = true;
     begin
-        CheckPath(Path);
         CheckInitialization();
+        CheckPath(Path);
 
         if FileExtension = '' then
             Error(PleaseProvideFileExtensionErr);

@@ -174,11 +174,11 @@ codeunit 9454 "File System"
     /// </summary>
     /// <param name="Path">Start path of the dialog.</param>
     /// <returns>Returns the selected Folder.</returns>
-    procedure SelectFolderUI(Path: Text): Text
+    procedure SelectAndGetFolderPath(Path: Text): Text
     var
-        DefaultSelectFolderUILbl: Label 'Select a folder';
+        DefaultSelectFolderLbl: Label 'Select a folder';
     begin
-        exit(SelectFolderUI(Path, DefaultSelectFolderUILbl));
+        exit(SelectAndGetFolderPath(Path, DefaultSelectFolderLbl));
     end;
 
     /// <summary>
@@ -187,9 +187,9 @@ codeunit 9454 "File System"
     /// <param name="Path">Start path of the dialog.</param>
     /// <param name="DialogTitle">Title of the selection dialog.</param>
     /// <returns>Returns the selected Folder.</returns>
-    procedure SelectFolderUI(Path: Text; DialogTitle: Text): Text
+    procedure SelectAndGetFolderPath(Path: Text; DialogTitle: Text): Text
     begin
-        exit(FileSystemImpl.SelectFolderUI(Path, DialogTitle));
+        exit(FileSystemImpl.SelectAndGetFolderPath(Path, DialogTitle));
     end;
 
     /// <summary>
@@ -198,11 +198,11 @@ codeunit 9454 "File System"
     /// <param name="Path">Start path.</param>
     /// <param name="FileFilter">A filter string that applies only on files not on folders.</param>
     /// <returns>Returns the path of the selected file.</returns>
-    procedure SelectFileUI(Path: Text; FileFilter: Text): Text
+    procedure SelectAndGetFilePath(Path: Text; FileFilter: Text): Text
     var
         DefaultSelectFileUILbl: Label 'Select a file';
     begin
-        exit(SelectFileUI(Path, FileFilter, DefaultSelectFileUILbl));
+        exit(SelectAndGetFilePath(Path, FileFilter, DefaultSelectFileUILbl));
     end;
 
     /// <summary>
@@ -212,9 +212,9 @@ codeunit 9454 "File System"
     /// <param name="FileFilter">A filter string that applies only on files not on folders.</param>
     /// <param name="DialogTitle">Title of the selection dialog.</param>
     /// <returns>Returns the path of the selected file.</returns>
-    procedure SelectFileUI(Path: Text; FileFilter: Text; DialogTitle: Text): Text
+    procedure SelectAndGetFilePath(Path: Text; FileFilter: Text; DialogTitle: Text): Text
     begin
-        exit(FileSystemImpl.SelectFileUI(Path, FileFilter, DialogTitle));
+        exit(FileSystemImpl.SelectAndGetFilePath(Path, FileFilter, DialogTitle));
     end;
 
     /// <summary>
@@ -223,11 +223,11 @@ codeunit 9454 "File System"
     /// <param name="Path">Start path of the dialog.</param>
     /// <param name="FileExtension">The file extension without dot (like pdf or txt).</param>
     /// <returns>Returns the selected file path.</returns>
-    procedure SaveFileUI(Path: Text; FileExtension: Text): Text
+    procedure SaveFile(Path: Text; FileExtension: Text): Text
     var
-        DefaultSaveFileUITitleLbl: Label 'Save as';
+        DefaultSaveFileTitleLbl: Label 'Save as';
     begin
-        exit(SaveFileUI(Path, FileExtension, DefaultSaveFileUITitleLbl));
+        exit(SaveFile(Path, FileExtension, DefaultSaveFileTitleLbl));
     end;
 
     /// <summary>
@@ -237,9 +237,9 @@ codeunit 9454 "File System"
     /// <param name="FileExtension">The file extension without dot (like pdf or txt).</param>
     ///  <param name="DialogTitle">Title of the selection dialog.</param>
     /// <returns>Returns the selected file path.</returns>
-    procedure SaveFileUI(Path: Text; FileExtension: Text; DialogTitle: Text): Text
+    procedure SaveFile(Path: Text; FileExtension: Text; DialogTitle: Text): Text
     begin
-        exit(FileSystemImpl.SaveFileUI(Path, FileExtension, DialogTitle));
+        exit(FileSystemImpl.SaveFile(Path, FileExtension, DialogTitle));
     end;
 
     /// <summary>

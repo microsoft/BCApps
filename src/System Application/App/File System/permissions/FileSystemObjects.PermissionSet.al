@@ -7,8 +7,6 @@ permissionset 9452 "File System - Objects"
 
     Permissions =
         table "File Account" = X,
-        table "File System Connector" = X,
-        table "File System Connector Logo" = X,
         table "File Account Content" = X,
         table "File Account Scenario" = X,
         table "File Scenario" = X;
