@@ -1,9 +1,9 @@
 {
     "id":  "f188754b-3ffb-443a-9507-f5fbdae3af2c",
-    "name":  "File System Test Library",
+    "name":  "External File Storage Test Library",
     "publisher":  "Microsoft",
-    "brief":  "Test library for the File System module",
-    "description":  "Test library for the File System module",
+    "brief":  "Test library for the External File Storage module",
+    "description":  "Test library for the External File Storage module",
     "version":  "26.0.0.0",
     "privacyStatement":  "https://go.microsoft.com/fwlink/?linkid=724009",
     "EULA":  "https://go.microsoft.com/fwlink/?linkid=2009120",
@@ -13,7 +13,7 @@
     "dependencies":  [
                          {
                             "id":  "c9c54414-80c3-4cc9-98c6-589158882774",
-                            "name":  "File System",
+                            "name":  "External File Storage",
                             "publisher":  "Microsoft",
                              "version":  "26.0.0.0"
                          },
