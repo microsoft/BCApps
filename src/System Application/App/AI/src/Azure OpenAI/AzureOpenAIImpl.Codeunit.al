@@ -98,9 +98,14 @@ codeunit 7772 "Azure OpenAI Impl"
         EnvironmentInformation: Codeunit "Environment Information";
         AzureKeyVault: Codeunit "Azure Key Vault";
         AzureAdTenant: Codeunit "Azure AD Tenant";
+        ModuleInfo: ModuleInfo;
         BlockList: Text;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit(true);
+
+        NavApp.GetCurrentModuleInfo(ModuleInfo);
+        if ModuleInfo.Publisher <> 'Microsoft' then
             exit(true);
 
         if (not AzureKeyVault.GetAzureKeyVaultSecret(EnabledKeyTok, BlockList)) or (BlockList.Trim() = '') then begin
