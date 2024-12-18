@@ -1,11 +1,12 @@
-## preview
-
-Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+## v6.2
 
 ### Issues
 
 - Issue 1296 Make property "appFolders" optional
 - Issue 1344 Experimental feature "git submodules" seems to be a breaking change
+- Issue 1305 Extra telemetry Property RepositoryOwner and RepositoryName¨
+- Add RunnerEnvironment to Telemetry
+- Output a notice, not a warning, when there are no available updates for AL-Go for GitHub
 
 ### New Repository Settings
 
