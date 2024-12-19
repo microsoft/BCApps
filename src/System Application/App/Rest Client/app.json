@@ -34,11 +34,10 @@
   "idRanges": [
     {
       "from": 2350,
-      "to": 2361
+      "to": 2362
     }
   ],
   "target": "OnPrem",
-  "runtime": "12.0",
   "resourceExposurePolicy": {
     "allowDebugging": true,
     "allowDownloadingSource": true,
