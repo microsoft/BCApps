@@ -40,10 +40,10 @@ page 9454 "File Scenarios for Account"
         }
     }
 
-    internal procedure GetSelectedScenarios(var ResultFileAccountScenario: Record "File Account Scenario")
+    internal procedure GetSelectedScenarios(var TempResultFileAccountScenario: Record "File Account Scenario" temporary)
     begin
-        ResultFileAccountScenario.Reset();
-        ResultFileAccountScenario.DeleteAll();
+        TempResultFileAccountScenario.Reset();
+        TempResultFileAccountScenario.DeleteAll();
 
         CurrPage.SetSelectionFilter(Rec);
 
@@ -51,8 +51,8 @@ page 9454 "File Scenarios for Account"
             exit;
 
         repeat
-            ResultFileAccountScenario.Copy(Rec);
-            ResultFileAccountScenario.Insert();
+            TempResultFileAccountScenario.Copy(Rec);
+            TempResultFileAccountScenario.Insert();
         until Rec.Next() = 0;
     end;
 

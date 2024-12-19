@@ -12,11 +12,11 @@ codeunit 9458 "File Account Browser Mgt."
     InherentEntitlements = X;
 
     var
-        FileSystem: Codeunit "External File Storage";
+        ExternalFileStorage: Codeunit "External File Storage";
 
-    procedure SetFileAccount(FileAccount: Record "File Account")
+    procedure SetFileAccount(TempFileAccount: Record "File Account" temporary)
     begin
-        FileSystem.Initialize(FileAccount);
+        ExternalFileStorage.Initialize(TempFileAccount);
     end;
 
     procedure StripNotSupportedCharsInFileName(InText: Text): Text
@@ -35,7 +35,7 @@ codeunit 9458 "File Account Browser Mgt."
         TempFileAccountContent.DeleteAll();
 
         repeat
-            FileSystem.ListDirectories(Path, FilePaginationData, TempFileAccountContent);
+            ExternalFileStorage.ListDirectories(Path, FilePaginationData, TempFileAccountContent);
         until FilePaginationData.IsEndOfListing();
 
         ListFiles(TempFileAccountContent, Path, DoNotLoadFiles, CurrentPath, FileNameFilter);
@@ -47,7 +47,7 @@ codeunit 9458 "File Account Browser Mgt."
         Stream: InStream;
         FileName: Text;
     begin
-        FileSystem.GetFile(FileSystem.CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name), Stream);
+        ExternalFileStorage.GetFile(ExternalFileStorage.CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name), Stream);
         FileName := TempFileAccountContent.Name;
         DownloadFromStream(Stream, '', '', '', FileName);
     end;
@@ -61,7 +61,7 @@ codeunit 9458 "File Account Browser Mgt."
         if not UploadIntoStream(UploadDialogTxt, '', '', FromFile, Stream) then
             exit;
 
-        FileSystem.CreateFile(FileSystem.CombinePath(Path, FromFile), Stream);
+        ExternalFileStorage.CreateFile(ExternalFileStorage.CombinePath(Path, FromFile), Stream);
     end;
 
     procedure CreateDirectory(Path: Text)
@@ -73,10 +73,10 @@ codeunit 9458 "File Account Browser Mgt."
             exit;
 
         FolderName := StripNotSupportedCharsInFileName(FolderNameInput.GetFolderName());
-        FileSystem.CreateDirectory(FileSystem.CombinePath(Path, FolderName));
+        ExternalFileStorage.CreateDirectory(ExternalFileStorage.CombinePath(Path, FolderName));
     end;
 
-    local procedure ListFiles(var FileAccountContent: Record "File Account Content" temporary; Path: Text; DoNotLoadFields: Boolean; CurrentPath: Text; FileNameFilter: Text)
+    local procedure ListFiles(var TempFileAccountContent: Record "File Account Content" temporary; Path: Text; DoNotLoadFields: Boolean; CurrentPath: Text; FileNameFilter: Text)
     var
         TempFileAccountContentToAdd: Record "File Account Content" temporary;
         FilePaginationData: Codeunit "File Pagination Data";
@@ -85,29 +85,29 @@ codeunit 9458 "File Account Browser Mgt."
             exit;
 
         repeat
-            FileSystem.ListFiles(Path, FilePaginationData, FileAccountContent);
+            ExternalFileStorage.ListFiles(Path, FilePaginationData, TempFileAccountContent);
         until FilePaginationData.IsEndOfListing();
 
-        AddFiles(FileAccountContent, TempFileAccountContentToAdd, CurrentPath, FileNameFilter);
+        AddFiles(TempFileAccountContent, TempFileAccountContentToAdd, CurrentPath, FileNameFilter);
     end;
 
-    local procedure AddFiles(var FileAccountContent: Record "File Account Content" temporary; var FileAccountContentToAdd: Record "File Account Content" temporary; CurrentPath: Text; FileNameFilter: Text)
+    local procedure AddFiles(var TempFileAccountContent: Record "File Account Content" temporary; var FileAccountContentToAdd: Record "File Account Content" temporary; CurrentPath: Text; FileNameFilter: Text)
     begin
         if FileNameFilter <> '' then
             FileAccountContentToAdd.SetFilter(Name, FileNameFilter);
 
         if FileAccountContentToAdd.FindSet() then
             repeat
-                FileAccountContent.Init();
-                FileAccountContent.TransferFields(FileAccountContentToAdd);
-                FileAccountContent.Insert();
+                TempFileAccountContent.Init();
+                TempFileAccountContent.TransferFields(FileAccountContentToAdd);
+                TempFileAccountContent.Insert();
             until FileAccountContentToAdd.Next() = 0;
 
-        FileAccountContent.Init();
-        FileAccountContent.Validate(Name, '..');
-        FileAccountContent.Validate(Type, FileAccountContent.Type::Directory);
-        FileAccountContent.Validate("Parent Directory", CopyStr(FileSystem.GetParentPath(CurrentPath), 1, MaxStrLen(FileAccountContent."Parent Directory")));
-        FileAccountContent.Insert();
+        TempFileAccountContent.Init();
+        TempFileAccountContent.Validate(Name, '..');
+        TempFileAccountContent.Validate(Type, TempFileAccountContent.Type::Directory);
+        TempFileAccountContent.Validate("Parent Directory", CopyStr(ExternalFileStorage.GetParentPath(CurrentPath), 1, MaxStrLen(TempFileAccountContent."Parent Directory")));
+        TempFileAccountContent.Insert();
     end;
 
     procedure DeleteFileOrDirectory(var TempFileAccountContent: Record "File Account Content" temporary)
@@ -115,20 +115,20 @@ codeunit 9458 "File Account Browser Mgt."
         DeleteQst: Label 'Delete %1?', Comment = '%1 - Path to Delete';
         PathToDelete: Text;
     begin
-        PathToDelete := FileSystem.CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name);
+        PathToDelete := ExternalFileStorage.CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name);
         if not Confirm(DeleteQst, false, PathToDelete) then
             exit;
 
         case TempFileAccountContent.Type of
             TempFileAccountContent.Type::Directory:
-                FileSystem.DeleteDirectory(PathToDelete);
+                ExternalFileStorage.DeleteDirectory(PathToDelete);
             TempFileAccountContent.Type::File:
-                FileSystem.DeleteFile(PathToDelete);
+                ExternalFileStorage.DeleteFile(PathToDelete);
         end;
     end;
 
     internal procedure CombinePath(Path: Text; ChildPath: Text): Text
     begin
-        exit(FileSystem.CombinePath(Path, ChildPath));
+        exit(ExternalFileStorage.CombinePath(Path, ChildPath));
     end;
 }

@@ -137,9 +137,9 @@ page 9455 "Storage Browser"
             CurrPage.Caption(CurrentPageCaption);
     end;
 
-    internal procedure SetFileAccount(FileAccount: Record "File Account")
+    internal procedure SetFileAccount(TempFileAccount: Record "File Account" temporary)
     begin
-        FileAccountBrowserMgt.SetFileAccount(FileAccount);
+        FileAccountBrowserMgt.SetFileAccount(TempFileAccount);
     end;
 
     internal procedure BrowseFileAccount(Path: Text)

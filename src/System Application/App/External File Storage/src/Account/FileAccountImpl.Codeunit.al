@@ -18,7 +18,7 @@ codeunit 9451 "File Account Impl."
 
     procedure GetAllAccounts(LoadLogos: Boolean; var TempFileAccount: Record "File Account" temporary)
     var
-        FileAccounts: Record "File Account";
+        TempFileFileAccounts: Record "File Account" temporary;
         FileSystemConnector: Interface "External File Storage Connector";
         Connector: Enum "Ext. File Storage Connector";
     begin
@@ -28,28 +28,28 @@ codeunit 9451 "File Account Impl."
         foreach Connector in Connector.Ordinals do begin
             FileSystemConnector := Connector;
 
-            FileAccounts.DeleteAll();
-            FileSystemConnector.GetAccounts(FileAccounts);
+            TempFileFileAccounts.DeleteAll();
+            FileSystemConnector.GetAccounts(TempFileFileAccounts);
 
-            if FileAccounts.FindSet() then
+            if TempFileFileAccounts.FindSet() then
                 repeat
-                    TempFileAccount := FileAccounts;
+                    TempFileAccount := TempFileFileAccounts;
                     TempFileAccount.Connector := Connector;
 
                     if LoadLogos then
                         ImportLogo(TempFileAccount, Connector);
 
                     TempFileAccount.Insert();
-                until FileAccounts.Next() = 0;
+                until TempFileFileAccounts.Next() = 0;
         end;
 
         // Sort by account name
         TempFileAccount.SetCurrentKey(Name);
     end;
 
-    procedure DeleteAccounts(var FileAccountsToDelete: Record "File Account")
+    procedure DeleteAccounts(var TempFileAccountsToDelete: Record "File Account" temporary)
     var
-        CurrentDefaultFileAccount: Record "File Account";
+        TempCurrentDefaultFileAccount: Record "File Account" temporary;
         ConfirmManagement: Codeunit "Confirm Management";
         FileScenario: Codeunit "File Scenario";
         FileSystemConnector: Interface "External File Storage Connector";
@@ -59,53 +59,53 @@ codeunit 9451 "File Account Impl."
         if not ConfirmManagement.GetResponseOrDefault(ConfirmDeleteQst, true) then
             exit;
 
-        if not FileAccountsToDelete.FindSet() then
+        if not TempFileAccountsToDelete.FindSet() then
             exit;
 
         // Get the current default account to track if it was deleted
-        FileScenario.GetDefaultFileAccount(CurrentDefaultFileAccount);
+        FileScenario.GetDefaultFileAccount(TempCurrentDefaultFileAccount);
 
         // Delete all selected accounts
         repeat
             // Check to validate that the connector is still installed
             // The connector could have been uninstalled by another user/session
-            if IsValidConnector(FileAccountsToDelete.Connector) then begin
-                FileSystemConnector := FileAccountsToDelete.Connector;
-                FileSystemConnector.DeleteAccount(FileAccountsToDelete."Account Id");
+            if IsValidConnector(TempFileAccountsToDelete.Connector) then begin
+                FileSystemConnector := TempFileAccountsToDelete.Connector;
+                FileSystemConnector.DeleteAccount(TempFileAccountsToDelete."Account Id");
             end;
-        until FileAccountsToDelete.Next() = 0;
+        until TempFileAccountsToDelete.Next() = 0;
 
-        DefaultAccountDeletion(CurrentDefaultFileAccount."Account Id", CurrentDefaultFileAccount.Connector);
+        DefaultAccountDeletion(TempCurrentDefaultFileAccount."Account Id", TempCurrentDefaultFileAccount.Connector);
     end;
 
     local procedure DefaultAccountDeletion(CurrentDefaultAccountId: Guid; Connector: Enum "Ext. File Storage Connector")
     var
-        AllFileAccounts: Record "File Account";
-        NewDefaultFileAccount: Record "File Account";
+        TempAllFileAccounts: Record "File Account" temporary;
+        TempNewDefaultFileAccount: Record "File Account" temporary;
         FileScenario: Codeunit "File Scenario";
     begin
-        GetAllAccounts(false, AllFileAccounts);
+        GetAllAccounts(false, TempAllFileAccounts);
 
-        if AllFileAccounts.IsEmpty() then
+        if TempAllFileAccounts.IsEmpty() then
             exit; //All of the accounts were deleted, nothing to do
 
-        if AllFileAccounts.Get(CurrentDefaultAccountId, Connector) then
+        if TempAllFileAccounts.Get(CurrentDefaultAccountId, Connector) then
             exit; // The default account was not deleted or it never existed
 
         // In case there's only one account, set it as default
-        if AllFileAccounts.Count() = 1 then begin
-            MakeDefault(AllFileAccounts);
+        if TempAllFileAccounts.Count() = 1 then begin
+            MakeDefault(TempAllFileAccounts);
             exit;
         end;
 
         Commit();  // Commit the accounts deletion in order to prompt for a new default account
-        if PromptNewDefaultAccountChoice(NewDefaultFileAccount) then
-            MakeDefault(NewDefaultFileAccount)
+        if PromptNewDefaultAccountChoice(TempNewDefaultFileAccount) then
+            MakeDefault(TempNewDefaultFileAccount)
         else
             FileScenario.UnassignScenario(Enum::"File Scenario"::Default); // remove the default scenario as it is pointing to a non-existent account
     end;
 
-    local procedure PromptNewDefaultAccountChoice(var NewDefaultFileAccount: Record "File Account"): Boolean
+    local procedure PromptNewDefaultAccountChoice(var TempNewDefaultFileAccount: Record "File Account" temporary): Boolean
     var
         FileAccountsPage: Page "File Accounts";
     begin
@@ -115,11 +115,11 @@ codeunit 9451 "File Account Impl."
         if FileAccountsPage.RunModal() <> Action::LookupOK then
             exit;
 
-        FileAccountsPage.GetAccount(NewDefaultFileAccount);
+        FileAccountsPage.GetAccount(TempNewDefaultFileAccount);
         exit(true);
     end;
 
-    local procedure ImportLogo(var FileAccount: Record "File Account"; FileSystemConnector: Interface "External File Storage Connector")
+    local procedure ImportLogo(var TempFileAccount: Record "File Account" temporary; FileSystemConnector: Interface "External File Storage Connector")
     var
         FileSystemConnectorLogo: Record "File Storage Connector Logo";
         Base64Convert: Codeunit "Base64 Convert";
@@ -134,25 +134,25 @@ codeunit 9451 "File Account Impl."
         if ConnectorLogoBase64 = '' then
             exit;
 
-        if not FileSystemConnectorLogo.Get(FileAccount.Connector) then begin
+        if not FileSystemConnectorLogo.Get(TempFileAccount.Connector) then begin
             TempBlob.CreateOutStream(OutStream);
             Base64Convert.FromBase64(ConnectorLogoBase64, OutStream);
             TempBlob.CreateInStream(InStream);
             FileSystemConnectorLogo.Init();
-            FileSystemConnectorLogo.Connector := FileAccount.Connector;
-            FileSystemConnectorLogo.Logo.ImportStream(InStream, StrSubstNo(ConnectorLogoDescriptionTxt, FileAccount.Connector));
+            FileSystemConnectorLogo.Connector := TempFileAccount.Connector;
+            FileSystemConnectorLogo.Logo.ImportStream(InStream, StrSubstNo(ConnectorLogoDescriptionTxt, TempFileAccount.Connector));
             if FileSystemConnectorLogo.Insert() then;
         end;
-        FileAccount.Logo := FileSystemConnectorLogo.Logo;
+        TempFileAccount.Logo := FileSystemConnectorLogo.Logo;
     end;
 
     procedure IsAnyAccountRegistered(): Boolean
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account" temporary;
     begin
-        GetAllAccounts(false, FileAccount);
+        GetAllAccounts(false, TempFileAccount);
 
-        exit(not FileAccount.IsEmpty());
+        exit(not TempFileAccount.IsEmpty());
     end;
 
     procedure IsUserFileAdmin(): Boolean
@@ -162,7 +162,7 @@ codeunit 9451 "File Account Impl."
         exit(FileScenario.WritePermission());
     end;
 
-    procedure FindAllConnectors(var FileConnector: Record "Ext. File Storage Connector")
+    procedure FindAllConnectors(var TempFileConnector: Record "Ext. File Storage Connector" temporary)
     var
         FileConnectorLogo: Record "File Storage Connector Logo";
         ConnectorInterface: Interface "External File Storage Connector";
@@ -170,11 +170,11 @@ codeunit 9451 "File Account Impl."
     begin
         foreach FileSystemConnector in Enum::"Ext. File Storage Connector".Ordinals() do begin
             ConnectorInterface := FileSystemConnector;
-            FileConnector.Connector := FileSystemConnector;
-            FileConnector.Description := ConnectorInterface.GetDescription();
-            if FileConnectorLogo.Get(FileConnector.Connector) then
-                FileConnector.Logo := FileConnectorLogo.Logo;
-            FileConnector.Insert();
+            TempFileConnector.Connector := FileSystemConnector;
+            TempFileConnector.Description := ConnectorInterface.GetDescription();
+            if FileConnectorLogo.Get(TempFileConnector.Connector) then
+                TempFileConnector.Logo := FileConnectorLogo.Logo;
+            TempFileConnector.Insert();
         end;
     end;
 
@@ -183,28 +183,28 @@ codeunit 9451 "File Account Impl."
         exit("Ext. File Storage Connector".Ordinals().Contains(Connector.AsInteger()));
     end;
 
-    procedure MakeDefault(var FileAccount: Record "File Account")
+    procedure MakeDefault(var TempFileAccount: Record "File Account" temporary)
     var
         FileScenario: Codeunit "File Scenario";
     begin
         CheckPermissions();
 
-        if IsNullGuid(FileAccount."Account Id") then
+        if IsNullGuid(TempFileAccount."Account Id") then
             exit;
 
-        FileScenario.SetDefaultFileAccount(FileAccount);
+        FileScenario.SetDefaultFileAccount(TempFileAccount);
     end;
 
-    procedure BrowseAccount(var FileAccount: Record "File Account")
+    procedure BrowseAccount(var TempFileAccount: Record "File Account" temporary)
     var
         StorageBrowser: Page "Storage Browser";
     begin
         CheckPermissions();
 
-        if IsNullGuid(FileAccount."Account Id") then
+        if IsNullGuid(TempFileAccount."Account Id") then
             exit;
 
-        StorageBrowser.SetFileAccount(FileAccount);
+        StorageBrowser.SetFileAccount(TempFileAccount);
         StorageBrowser.BrowseFileAccount('');
         StorageBrowser.Run();
     end;
@@ -216,7 +216,7 @@ codeunit 9451 "File Account Impl."
     end;
 
     [InternalEvent(false)]
-    procedure OnAfterSetSelectionFilter(var FileAccount: Record "File Account")
+    procedure OnAfterSetSelectionFilter(var TempFileAccount: Record "File Account" temporary)
     begin
     end;
 

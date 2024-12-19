@@ -26,7 +26,7 @@ codeunit 134752 "File Scenario Test"
     [Scope('OnPrem')]
     procedure GetFileAccountScenarioNotExistsTest()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account" temporary;
     begin
         // [Scenario] When the File scenario isn't mapped an File account, GetFileAccount returns false
         PermissionsMock.Set('File Storage Admin');
@@ -36,14 +36,14 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] false is returned
-        Assert.IsFalse(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should not be any account');
+        Assert.IsFalse(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", TempFileAccount), 'There should not be any account');
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure GetFileAccountNotExistsTest()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account" temporary;
         NonExistentAccountId: Guid;
     begin
         // [Scenario] When the File scenario is mapped non-existing File account, GetFileAccount returns false
@@ -56,14 +56,14 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] false is returned
-        Assert.IsFalse(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should not be any account mapped to the scenario');
+        Assert.IsFalse(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", TempFileAccount), 'There should not be any account mapped to the scenario');
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure GetFileAccountDefaultNotExistsTest()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account" temporary;
         NonExistentAccountId: Guid;
     begin
         // [Scenario] When the default File scenario is mapped to a non-existing File account, GetFileAccount returns false
@@ -76,14 +76,14 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] false is returned
-        Assert.IsFalse(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should not be any account mapped to the scenario');
+        Assert.IsFalse(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", TempFileAccount), 'There should not be any account mapped to the scenario');
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure GetFileAccountDefaultExistsTest()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account" temporary;
         AccountId: Guid;
     begin
         // [Scenario] When the default File scenario is mapped to an existing File account, GetFileAccount returns that account
@@ -96,16 +96,16 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] true is returned and the File account is as expected
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
-        Assert.AreEqual(AccountId, FileAccount."Account Id", 'Wrong account ID');
-        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", FileAccount.Connector, 'Wrong connector');
+        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", TempFileAccount), 'There should be an File account');
+        Assert.AreEqual(AccountId, TempFileAccount."Account Id", 'Wrong account ID');
+        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", TempFileAccount.Connector, 'Wrong connector');
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure GetFileAccountExistsTest()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account" temporary;
         AccountId: Guid;
     begin
         // [Scenario] When the File scenario is mapped to an existing File account, GetFileAccount returns that account
@@ -118,16 +118,16 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] true is returned and the File account is as expected
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
-        Assert.AreEqual(AccountId, FileAccount."Account Id", 'Wrong account ID');
-        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", FileAccount.Connector, 'Wrong connector');
+        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", TempFileAccount), 'There should be an File account');
+        Assert.AreEqual(AccountId, TempFileAccount."Account Id", 'Wrong account ID');
+        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", TempFileAccount.Connector, 'Wrong connector');
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure GetFileAccountDefaultDifferentTest()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account" temporary;
         AccountId: Guid;
         DefaultAccountId: Guid;
     begin
@@ -143,20 +143,20 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] true is returned and the File accounts are as expected
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
-        Assert.AreEqual(AccountId, FileAccount."Account Id", 'Wrong account ID');
-        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", FileAccount.Connector, 'Wrong connector');
+        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", TempFileAccount), 'There should be an File account');
+        Assert.AreEqual(AccountId, TempFileAccount."Account Id", 'Wrong account ID');
+        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", TempFileAccount.Connector, 'Wrong connector');
 
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::Default, FileAccount), 'There should be an File account');
-        Assert.AreEqual(DefaultAccountId, FileAccount."Account Id", 'Wrong account ID');
-        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", FileAccount.Connector, 'Wrong connector');
+        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::Default, TempFileAccount), 'There should be an File account');
+        Assert.AreEqual(DefaultAccountId, TempFileAccount."Account Id", 'Wrong account ID');
+        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", TempFileAccount.Connector, 'Wrong connector');
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure GetFileAccountDefaultDifferentNotExistTest()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account" temporary;
         DefaultAccountId: Guid;
         NonExistingAccountId: Guid;
     begin
@@ -172,20 +172,20 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] true is returned and the File accounts are as expected
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
-        Assert.AreEqual(DefaultAccountId, FileAccount."Account Id", 'Wrong account ID');
-        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", FileAccount.Connector, 'Wrong connector');
+        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", TempFileAccount), 'There should be an File account');
+        Assert.AreEqual(DefaultAccountId, TempFileAccount."Account Id", 'Wrong account ID');
+        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", TempFileAccount.Connector, 'Wrong connector');
 
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::Default, FileAccount), 'There should be an File account for the default scenario');
-        Assert.AreEqual(DefaultAccountId, FileAccount."Account Id", 'Wrong default account ID');
-        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", FileAccount.Connector, 'Wrong default account connector');
+        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::Default, TempFileAccount), 'There should be an File account for the default scenario');
+        Assert.AreEqual(DefaultAccountId, TempFileAccount."Account Id", 'Wrong default account ID');
+        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", TempFileAccount.Connector, 'Wrong default account connector');
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure GetFileAccountDifferentDefaultNotExistTest()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account" temporary;
         AccountId: Guid;
         DefaultAccountId: Guid;
     begin
@@ -201,21 +201,20 @@ codeunit 134752 "File Scenario Test"
 
         // [When] calling GetFileAccount
         // [Then] true is returned and the File account is as expected
-        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount), 'There should be an File account');
-        Assert.AreEqual(AccountId, FileAccount."Account Id", 'Wrong account ID');
-        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", FileAccount.Connector, 'Wrong connector');
+        Assert.IsTrue(FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", TempFileAccount), 'There should be an File account');
+        Assert.AreEqual(AccountId, TempFileAccount."Account Id", 'Wrong account ID');
+        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", TempFileAccount.Connector, 'Wrong connector');
 
         // [Then] there's no account for the default File scenario
-        Assert.IsFalse(FileScenario.GetFileAccount(Enum::"File Scenario"::Default, FileAccount), 'There should not be an File account for the default scenario');
+        Assert.IsFalse(FileScenario.GetFileAccount(Enum::"File Scenario"::Default, TempFileAccount), 'There should not be an File account for the default scenario');
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure SetFileAccountTest()
     var
-        FileAccount: Record "File Account";
-        AnotherAccount: Record "File Account";
-        FileSystemTestLib: Codeunit "Ext. File Storage Test Lib.";
+        TempFileAccount, TempAnotherAccount : Record "File Account" temporary;
+        ExtFileStorageTestLib: Codeunit "Ext. File Storage Test Lib.";
         ExternalFileStorageConnector: Interface "External File Storage Connector";
         AccountId: Guid;
         Scenario: Enum "File Scenario";
@@ -225,58 +224,56 @@ codeunit 134752 "File Scenario Test"
 
         // [Given] A random File account
         Initialize();
-        FileAccount."Account Id" := Any.GuidValue();
-        FileAccount.Connector := Enum::"Ext. File Storage Connector"::"Test File Storage Connector";
+        TempFileAccount."Account Id" := Any.GuidValue();
+        TempFileAccount.Connector := Enum::"Ext. File Storage Connector"::"Test File Storage Connector";
         Scenario := Scenario::Default;
 
         // [When] Setting the File account for the scenario
-        FileScenario.SetFileAccount(Scenario, FileAccount);
+        FileScenario.SetFileAccount(Scenario, TempFileAccount);
 
         // [Then] The scenario exists and is as expected
-        Assert.IsTrue(FileSystemTestLib.GetFileScenarioAccountIdAndFileConnector(Scenario, AccountId, ExternalFileStorageConnector), 'The File scenario should exist');
-        Assert.AreEqual(AccountId, FileAccount."Account Id", 'Wrong account ID');
-        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", FileAccount.Connector, 'Wrong connector');
+        Assert.IsTrue(ExtFileStorageTestLib.GetFileScenarioAccountIdAndFileConnector(Scenario, AccountId, ExternalFileStorageConnector), 'The File scenario should exist');
+        Assert.AreEqual(AccountId, TempFileAccount."Account Id", 'Wrong account ID');
+        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", TempFileAccount.Connector, 'Wrong connector');
 
-        AnotherAccount."Account Id" := Any.GuidValue();
-        AnotherAccount.Connector := Enum::"Ext. File Storage Connector"::"Test File Storage Connector";
+        TempAnotherAccount."Account Id" := Any.GuidValue();
+        TempAnotherAccount.Connector := Enum::"Ext. File Storage Connector"::"Test File Storage Connector";
 
         // [When] Setting overwriting the File account for the scenario
-        FileScenario.SetFileAccount(Scenario, AnotherAccount);
+        FileScenario.SetFileAccount(Scenario, TempAnotherAccount);
 
         // [Then] The scenario still exists and is as expected
-        Assert.IsTrue(FileSystemTestLib.GetFileScenarioAccountIdAndFileConnector(Scenario, AccountId, ExternalFileStorageConnector), 'The File scenario should exist');
-        Assert.AreEqual(AccountId, AnotherAccount."Account Id", 'Wrong account ID');
-        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", AnotherAccount.Connector, 'Wrong connector');
+        Assert.IsTrue(ExtFileStorageTestLib.GetFileScenarioAccountIdAndFileConnector(Scenario, AccountId, ExternalFileStorageConnector), 'The File scenario should exist');
+        Assert.AreEqual(AccountId, TempAnotherAccount."Account Id", 'Wrong account ID');
+        Assert.AreEqual(Enum::"Ext. File Storage Connector"::"Test File Storage Connector", TempAnotherAccount.Connector, 'Wrong connector');
     end;
 
     [Test]
     [Scope('OnPrem')]
     procedure UnassignScenarioTest()
     var
-        DefaultAccount: Record "File Account";
-        FileAccount: Record "File Account";
-        ResultAccount: Record "File Account";
+        TempDefaultAccount, TempFileAccount, TempResultAccount : Record "File Account" temporary;
     begin
         // [Scenario] When unassigning a scenario then it falls back to the default account.
         PermissionsMock.Set('File Storage Admin');
 
         // [Given] Two accounts, one default and one not
         Initialize();
-        FileConnectorMock.AddAccount(FileAccount);
-        FileConnectorMock.AddAccount(DefaultAccount);
-        FileScenario.SetDefaultFileAccount(DefaultAccount);
-        FileScenario.SetFileAccount(Enum::"File Scenario"::"Test File Scenario", FileAccount);
+        FileConnectorMock.AddAccount(TempFileAccount);
+        FileConnectorMock.AddAccount(TempDefaultAccount);
+        FileScenario.SetDefaultFileAccount(TempDefaultAccount);
+        FileScenario.SetFileAccount(Enum::"File Scenario"::"Test File Scenario", TempFileAccount);
 
         // mid-test verification
-        FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", ResultAccount);
-        Assert.AreEqual(FileAccount."Account Id", ResultAccount."Account Id", 'Wrong account');
+        FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", TempResultAccount);
+        Assert.AreEqual(TempFileAccount."Account Id", TempResultAccount."Account Id", 'Wrong account');
 
         // [When] Unassign the File scenario
         FileScenario.UnassignScenario(Enum::"File Scenario"::"Test File Scenario");
 
         // [Then] The default account is returned for that account
-        FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", ResultAccount);
-        Assert.AreEqual(DefaultAccount."Account Id", ResultAccount."Account Id", 'The default account should have been returned');
+        FileScenario.GetFileAccount(Enum::"File Scenario"::"Test File Scenario", TempResultAccount);
+        Assert.AreEqual(TempDefaultAccount."Account Id", TempResultAccount."Account Id", 'The default account should have been returned');
     end;
 
     local procedure Initialize()

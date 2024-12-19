@@ -12,48 +12,48 @@ codeunit 9455 "External File Storage Impl."
     InherentEntitlements = X;
 
     var
-        CurrFileAccount: Record "File Account";
+        TempCurrFileAccount: Record "File Account" temporary;
         FileSystemConnector: Interface "External File Storage Connector";
         IsInitialized: Boolean;
 
     procedure Initialize(Scenario: Enum "File Scenario")
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account" temporary;
         FileScenarioMgt: Codeunit "File Scenario";
         NoFileAccountFoundErr: Label 'No default file account defined.';
     begin
-        if not FileScenarioMgt.GetFileAccount(Scenario, FileAccount) then
+        if not FileScenarioMgt.GetFileAccount(Scenario, TempFileAccount) then
             Error(NoFileAccountFoundErr);
 
-        Initialize(FileAccount);
+        Initialize(TempFileAccount);
     end;
 
-    procedure Initialize(FileAccount: Record "File Account")
+    procedure Initialize(TempFileAccount: Record "File Account" temporary)
     begin
-        CurrFileAccount := FileAccount;
-        FileSystemConnector := FileAccount.Connector;
+        TempCurrFileAccount := TempFileAccount;
+        FileSystemConnector := TempFileAccount.Connector;
         IsInitialized := true;
     end;
 
-    procedure ListFiles(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
+    procedure ListFiles(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     begin
         CheckInitialization();
         CheckPath(Path);
-        FileSystemConnector.ListFiles(CurrFileAccount."Account Id", Path, FilePaginationData, FileAccountContent);
+        FileSystemConnector.ListFiles(TempCurrFileAccount."Account Id", Path, FilePaginationData, TempFileAccountContent);
     end;
 
     procedure GetFile(Path: Text; Stream: InStream)
     begin
         CheckInitialization();
         CheckPath(Path);
-        FileSystemConnector.GetFile(CurrFileAccount."Account Id", Path, Stream);
+        FileSystemConnector.GetFile(TempCurrFileAccount."Account Id", Path, Stream);
     end;
 
     procedure CreateFile(Path: Text; Stream: InStream)
     begin
         CheckInitialization();
         CheckPath(Path);
-        FileSystemConnector.CreateFile(CurrFileAccount."Account Id", Path, Stream);
+        FileSystemConnector.CreateFile(TempCurrFileAccount."Account Id", Path, Stream);
     end;
 
     procedure CopyFile(SourcePath: Text; TargetPath: Text)
@@ -61,7 +61,7 @@ codeunit 9455 "External File Storage Impl."
         CheckInitialization();
         CheckPath(SourcePath);
         CheckPath(TargetPath);
-        FileSystemConnector.CopyFile(CurrFileAccount."Account Id", SourcePath, TargetPath);
+        FileSystemConnector.CopyFile(TempCurrFileAccount."Account Id", SourcePath, TargetPath);
     end;
 
     procedure MoveFile(SourcePath: Text; TargetPath: Text)
@@ -69,49 +69,49 @@ codeunit 9455 "External File Storage Impl."
         CheckInitialization();
         CheckPath(SourcePath);
         CheckPath(TargetPath);
-        FileSystemConnector.MoveFile(CurrFileAccount."Account Id", SourcePath, TargetPath);
+        FileSystemConnector.MoveFile(TempCurrFileAccount."Account Id", SourcePath, TargetPath);
     end;
 
     procedure FileExists(Path: Text): Boolean
     begin
         CheckInitialization();
         CheckPath(Path);
-        exit(FileSystemConnector.FileExists(CurrFileAccount."Account Id", Path));
+        exit(FileSystemConnector.FileExists(TempCurrFileAccount."Account Id", Path));
     end;
 
     procedure DeleteFile(Path: Text)
     begin
         CheckInitialization();
         CheckPath(Path);
-        FileSystemConnector.DeleteFile(CurrFileAccount."Account Id", Path);
+        FileSystemConnector.DeleteFile(TempCurrFileAccount."Account Id", Path);
     end;
 
-    procedure ListDirectories(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
+    procedure ListDirectories(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     begin
         CheckInitialization();
         CheckPath(Path);
-        FileSystemConnector.ListDirectories(CurrFileAccount."Account Id", Path, FilePaginationData, FileAccountContent);
+        FileSystemConnector.ListDirectories(TempCurrFileAccount."Account Id", Path, FilePaginationData, TempFileAccountContent);
     end;
 
     procedure CreateDirectory(Path: Text)
     begin
         CheckInitialization();
         CheckPath(Path);
-        FileSystemConnector.CreateDirectory(CurrFileAccount."Account Id", Path);
+        FileSystemConnector.CreateDirectory(TempCurrFileAccount."Account Id", Path);
     end;
 
     procedure DirectoryExists(Path: Text): Boolean
     begin
         CheckInitialization();
         CheckPath(Path);
-        exit(FileSystemConnector.DirectoryExists(CurrFileAccount."Account Id", Path));
+        exit(FileSystemConnector.DirectoryExists(TempCurrFileAccount."Account Id", Path));
     end;
 
     procedure DeleteDirectory(Path: Text)
     begin
         CheckInitialization();
         CheckPath(Path);
-        FileSystemConnector.DeleteDirectory(CurrFileAccount."Account Id", Path);
+        FileSystemConnector.DeleteDirectory(TempCurrFileAccount."Account Id", Path);
     end;
 
     procedure PathSeparator(): Text
@@ -139,44 +139,44 @@ codeunit 9455 "External File Storage Impl."
 
     procedure SelectAndGetFolderPath(Path: Text; DialogTitle: Text): Text
     var
-        FileAccountContent: Record "File Account Content";
+        TempFileAccountContent: Record "File Account Content" temporary;
         StorageBrowser: Page "Storage Browser";
     begin
         CheckInitialization();
         CheckPath(Path);
 
         StorageBrowser.SetPageCaption(DialogTitle);
-        StorageBrowser.SetFileAccount(CurrFileAccount);
+        StorageBrowser.SetFileAccount(TempCurrFileAccount);
         StorageBrowser.EnableDirectoryLookupMode(Path);
         if StorageBrowser.RunModal() <> Action::LookupOK then
             exit('');
 
-        StorageBrowser.GetRecord(FileAccountContent);
-        if FileAccountContent.Type <> FileAccountContent.Type::Directory then
+        StorageBrowser.GetRecord(TempFileAccountContent);
+        if TempFileAccountContent.Type <> TempFileAccountContent.Type::Directory then
             exit('');
 
-        exit(CombinePath(FileAccountContent."Parent Directory", FileAccountContent.Name));
+        exit(CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name));
     end;
 
     procedure SelectAndGetFilePath(Path: Text; FileFilter: Text; DialogTitle: Text): Text
     var
-        FileAccountContent: Record "File Account Content";
+        TempFileAccountContent: Record "File Account Content" temporary;
         StorageBrowser: Page "Storage Browser";
     begin
         CheckInitialization();
         CheckPath(Path);
 
         StorageBrowser.SetPageCaption(DialogTitle);
-        StorageBrowser.SetFileAccount(CurrFileAccount);
+        StorageBrowser.SetFileAccount(TempCurrFileAccount);
         StorageBrowser.EnableFileLookupMode(Path, FileFilter);
         if StorageBrowser.RunModal() <> Action::LookupOK then
             exit('');
 
-        StorageBrowser.GetRecord(FileAccountContent);
-        if FileAccountContent.Type <> FileAccountContent.Type::File then
+        StorageBrowser.GetRecord(TempFileAccountContent);
+        if TempFileAccountContent.Type <> TempFileAccountContent.Type::File then
             exit('');
 
-        exit(CombinePath(FileAccountContent."Parent Directory", FileAccountContent.Name));
+        exit(CombinePath(TempFileAccountContent."Parent Directory", TempFileAccountContent.Name));
     end;
 
     procedure SaveFile(Path: Text; FileExtension: Text; DialogTitle: Text): Text
@@ -193,7 +193,7 @@ codeunit 9455 "External File Storage Impl."
             Error(PleaseProvideFileExtensionErr);
 
         StorageBrowser.SetPageCaption(DialogTitle);
-        StorageBrowser.SetFileAccount(CurrFileAccount);
+        StorageBrowser.SetFileAccount(TempCurrFileAccount);
         StorageBrowser.EnableSaveFileLookupMode(Path, FileExtension);
         if StorageBrowser.RunModal() <> Action::LookupOK then
             exit('');
@@ -211,7 +211,7 @@ codeunit 9455 "External File Storage Impl."
         FileAccountImpl: Codeunit "File Account Impl.";
     begin
         CheckInitialization();
-        FileAccountImpl.BrowseAccount(CurrFileAccount);
+        FileAccountImpl.BrowseAccount(TempCurrFileAccount);
     end;
 
     local procedure CheckInitialization()

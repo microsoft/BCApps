@@ -13,11 +13,11 @@ codeunit 9452 "File Scenario"
     /// <summary>
     /// Gets the default file account.
     /// </summary>
-    /// <param name="FileAccount">Out parameter holding information about the default file account.</param>
+    /// <param name="TempFileAccount">Out parameter holding information about the default file account.</param>
     /// <returns>True if an account for the default scenario was found; otherwise - false.</returns>
-    procedure GetDefaultFileAccount(var FileAccount: Record "File Account"): Boolean
+    procedure GetDefaultFileAccount(var TempFileAccount: Record "File Account" temporary): Boolean
     begin
-        exit(FileScenarioImpl.GetFileAccount(Enum::"File Scenario"::Default, FileAccount));
+        exit(FileScenarioImpl.GetFileAccount(Enum::"File Scenario"::Default, TempFileAccount));
     end;
 
     /// <summary>
@@ -25,30 +25,30 @@ codeunit 9452 "File Scenario"
     /// If the no account is defined for the provided scenario, the default account (if defined) will be returned.
     /// </summary>
     /// <param name="Scenario">The scenario to look for.</param>
-    /// <param name="FileAccount">Out parameter holding information about the file account.</param>
+    /// <param name="TempFileAccount">Out parameter holding information about the file account.</param>
     /// <returns>True if an account for the specified scenario was found; otherwise - false.</returns>
-    procedure GetFileAccount(Scenario: Enum "File Scenario"; var FileAccount: Record "File Account"): Boolean
+    procedure GetFileAccount(Scenario: Enum "File Scenario"; var TempFileAccount: Record "File Account" temporary): Boolean
     begin
-        exit(FileScenarioImpl.GetFileAccount(Scenario, FileAccount));
+        exit(FileScenarioImpl.GetFileAccount(Scenario, TempFileAccount));
     end;
 
     /// <summary>
     /// Sets a default file account.
     /// </summary>
-    /// <param name="FileAccount">The file account to use.</param>
-    procedure SetDefaultFileAccount(FileAccount: Record "File Account")
+    /// <param name="TempFileAccount">The file account to use.</param>
+    procedure SetDefaultFileAccount(TempFileAccount: Record "File Account" temporary)
     begin
-        FileScenarioImpl.SetFileAccount(Enum::"File Scenario"::Default, FileAccount);
+        FileScenarioImpl.SetFileAccount(Enum::"File Scenario"::Default, TempFileAccount);
     end;
 
     /// <summary>
     /// Sets a file account to be used by the given file scenario.
     /// </summary>
     /// <param name="Scenario">The scenario for which to set a file account.</param>
-    /// <param name="FileAccount">The file account to use.</param>
-    procedure SetFileAccount(Scenario: Enum "File Scenario"; FileAccount: Record "File Account")
+    /// <param name="TempFileAccount">The file account to use.</param>
+    procedure SetFileAccount(Scenario: Enum "File Scenario"; TempFileAccount: Record "File Account" temporary)
     begin
-        FileScenarioImpl.SetFileAccount(Scenario, FileAccount);
+        FileScenarioImpl.SetFileAccount(Scenario, TempFileAccount);
     end;
 
     /// <summary>

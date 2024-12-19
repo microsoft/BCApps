@@ -47,7 +47,7 @@ codeunit 134751 "File Scenario Page Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure PageOpenOneEntryTest()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account" temporary;
         FileScenarioPage: TestPage "File Scenario Setup";
     begin
         // [Scenario] The "File Scenario Setup" shows one entry when there is only one file account and no scenarios
@@ -55,7 +55,7 @@ codeunit 134751 "File Scenario Page Test"
 
         // [Given] One file account is registered.
         FileConnectorMock.Initialize();
-        FileConnectorMock.AddAccount(FileAccount);
+        FileConnectorMock.AddAccount(TempFileAccount);
 
         // [When] Opening the the page
         FileScenarioPage.Trap();
@@ -65,7 +65,7 @@ codeunit 134751 "File Scenario Page Test"
         Assert.IsTrue(FileScenarioPage.First(), 'There should be an entry on the page');
 
         // Properties are as expected
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, FileAccount.Name), FileScenarioPage.Name.Value, 'Wrong entry name');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, TempFileAccount.Name), FileScenarioPage.Name.Value, 'Wrong entry name');
         Assert.IsFalse(GetDefaultFieldValueAsBoolean(FileScenarioPage.Default.Value), 'The account should not be marked as default');
 
         // Actions visibility is as expected
@@ -80,7 +80,7 @@ codeunit 134751 "File Scenario Page Test"
     [Scope('OnPrem')]
     procedure PageOpenOneDefaultEntryTest()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account" temporary;
         FileScenarioPage: TestPage "File Scenario Setup";
     begin
         // [Scenario] The "File Scenario Setup" shows one entry when there is only one file account and no scenarios
@@ -88,10 +88,10 @@ codeunit 134751 "File Scenario Page Test"
 
         // [Given] One file account is registered and it's set as default.
         FileConnectorMock.Initialize();
-        FileConnectorMock.AddAccount(FileAccount);
+        FileConnectorMock.AddAccount(TempFileAccount);
 
         FileScenarioMock.DeleteAllMappings();
-        FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, FileAccount."Account Id", FileAccount.Connector);
+        FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, TempFileAccount."Account Id", TempFileAccount.Connector);
 
         // [When] Opening the the page
         FileScenarioPage.Trap();
@@ -101,7 +101,7 @@ codeunit 134751 "File Scenario Page Test"
         Assert.IsTrue(FileScenarioPage.First(), 'There should be an entry on the page');
 
         // Properties are as expected
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, FileAccount.Name), FileScenarioPage.Name.Value, 'Wrong entry name');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, TempFileAccount.Name), FileScenarioPage.Name.Value, 'Wrong entry name');
         Assert.IsTrue(GetDefaultFieldValueAsBoolean(FileScenarioPage.Default.Value), 'The account should be marked as default');
 
         // Actions visibility is as expected
@@ -117,7 +117,7 @@ codeunit 134751 "File Scenario Page Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure PageOpenOneAcountsTwoScenariosTest()
     var
-        FileAccount: Record "File Account";
+        TempFileAccount: Record "File Account" temporary;
         FileScenarioPage: TestPage "File Scenario Setup";
     begin
         // [Scenario] Having one default account with a non-default scenario assigned displays properly on "File Scenario Setup"
@@ -125,11 +125,11 @@ codeunit 134751 "File Scenario Page Test"
 
         // [Given] One file account is registered and it's set as default.
         FileConnectorMock.Initialize();
-        FileConnectorMock.AddAccount(FileAccount);
+        FileConnectorMock.AddAccount(TempFileAccount);
 
         FileScenarioMock.DeleteAllMappings();
-        FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, FileAccount."Account Id", FileAccount.Connector);
-        FileScenarioMock.AddMapping(Enum::"File Scenario"::"Test File Scenario", FileAccount."Account Id", FileAccount.Connector);
+        FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, TempFileAccount."Account Id", TempFileAccount.Connector);
+        FileScenarioMock.AddMapping(Enum::"File Scenario"::"Test File Scenario", TempFileAccount."Account Id", TempFileAccount.Connector);
 
         // [When] Opening the the page
         FileScenarioPage.Trap();
@@ -139,7 +139,7 @@ codeunit 134751 "File Scenario Page Test"
         Assert.IsTrue(FileScenarioPage.First(), 'There should be data on the page');
 
         // Properties are as expected
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, FileAccount.Name), FileScenarioPage.Name.Value, 'Wrong entry name');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, TempFileAccount.Name), FileScenarioPage.Name.Value, 'Wrong entry name');
         Assert.IsTrue(GetDefaultFieldValueAsBoolean(FileScenarioPage.Default.Value), 'The account should be marked as default');
 
         // Actions visibility is as expected
@@ -165,7 +165,7 @@ codeunit 134751 "File Scenario Page Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure PageOpenTwoAcountsTwoScenariosTest()
     var
-        FirstFileAccount, SecondFileAccount : Record "File Account";
+        TempFirstFileAccount, TempSecondFileAccount : Record "File Account" temporary;
         FileScenarioPage: TestPage "File Scenario Setup";
     begin
         // [Scenario] The "File Scenario Setup" shows three entries when there are two accounts - one with the default scenario and one with a non-default scenario
@@ -173,24 +173,24 @@ codeunit 134751 "File Scenario Page Test"
 
         // [Given] Two file accounts are registered. One is set as default.
         FileConnectorMock.Initialize();
-        FileConnectorMock.AddAccount(FirstFileAccount);
-        FileConnectorMock.AddAccount(SecondFileAccount);
+        FileConnectorMock.AddAccount(TempFirstFileAccount);
+        FileConnectorMock.AddAccount(TempSecondFileAccount);
 
         FileScenarioMock.DeleteAllMappings();
-        FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, FirstFileAccount."Account Id", FirstFileAccount.Connector);
-        FileScenarioMock.AddMapping(Enum::"File Scenario"::"Test File Scenario", SecondFileAccount."Account Id", SecondFileAccount.Connector);
+        FileScenarioMock.AddMapping(Enum::"File Scenario"::Default, TempFirstFileAccount."Account Id", TempFirstFileAccount.Connector);
+        FileScenarioMock.AddMapping(Enum::"File Scenario"::"Test File Scenario", TempSecondFileAccount."Account Id", TempSecondFileAccount.Connector);
 
         // [When] Opening the the page
         FileScenarioPage.Trap();
         FileScenarioPage.OpenView();
 
         // [Then] There are three entries on the page. One is set as default
-        Assert.IsTrue(FileScenarioPage.GoToKey(-1, FirstFileAccount."Account Id", FirstFileAccount.Connector), 'There should be data on the page');
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, FirstFileAccount.Name), FileScenarioPage.Name.Value, 'Wrong first entry name');
+        Assert.IsTrue(FileScenarioPage.GoToKey(-1, TempFirstFileAccount."Account Id", TempFirstFileAccount.Connector), 'There should be data on the page');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, TempFirstFileAccount.Name), FileScenarioPage.Name.Value, 'Wrong first entry name');
         Assert.IsTrue(GetDefaultFieldValueAsBoolean(FileScenarioPage.Default.Value), 'The account should be marked as default');
 
-        Assert.IsTrue(FileScenarioPage.GoToKey(-1, SecondFileAccount."Account Id", SecondFileAccount.Connector), 'There should be another entry on the page');
-        Assert.AreEqual(StrSubstNo(DisplayNameTxt, SecondFileAccount.Name), FileScenarioPage.Name.Value, 'Wrong second entry name');
+        Assert.IsTrue(FileScenarioPage.GoToKey(-1, TempSecondFileAccount."Account Id", TempSecondFileAccount.Connector), 'There should be another entry on the page');
+        Assert.AreEqual(StrSubstNo(DisplayNameTxt, TempSecondFileAccount.Name), FileScenarioPage.Name.Value, 'Wrong second entry name');
         Assert.IsFalse(GetDefaultFieldValueAsBoolean(FileScenarioPage.Default.Value), 'The account should not be marked as default');
 
         FileScenarioPage.Expand(true);

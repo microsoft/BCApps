@@ -210,7 +210,7 @@ page 9451 "File Account Wizard"
                 group(Account)
                 {
                     Caption = 'Account';
-                    field(NameField; RegisteredAccount.Name)
+                    field(NameField; TempRegisteredAccount.Name)
                     {
                         Editable = false;
                         Caption = 'Name';
@@ -294,7 +294,7 @@ page 9451 "File Account Wizard"
                     FileAccountImpl: Codeunit "File Account Impl.";
                 begin
                     if SetAsDefault then
-                        FileAccountImpl.MakeDefault(RegisteredAccount);
+                        FileAccountImpl.MakeDefault(TempRegisteredAccount);
 
                     CurrPage.Close();
                 end;
@@ -320,7 +320,7 @@ page 9451 "File Account Wizard"
 
     trigger OnInit()
     var
-        DefaultAccount: Record "File Account";
+        TempDefaultAccount: Record "File Account" temporary;
         FileAccountImpl: Codeunit "File Account Impl.";
         FileScenario: Codeunit "File Scenario";
     begin
@@ -334,7 +334,7 @@ page 9451 "File Account Wizard"
 
         FileRateLimitDisplay := NoLimitTxt;
 
-        if not FileScenario.GetDefaultFileAccount(DefaultAccount) then
+        if not FileScenario.GetDefaultFileAccount(TempDefaultAccount) then
             SetAsDefault := true;
 
         ConnectorsAvailable := Rec.FindFirst(); // Set the focus on the first record
@@ -417,8 +417,8 @@ page 9451 "File Account Wizard"
         FileConnector := Rec.Connector;
 
         ClearLastError();
-        AccountWasRegistered := FileConnector.RegisterAccount(RegisteredAccount);
-        RegisteredAccount.Connector := Rec.Connector;
+        AccountWasRegistered := FileConnector.RegisterAccount(TempRegisteredAccount);
+        TempRegisteredAccount.Connector := Rec.Connector;
     end;
 
     local procedure ShowDoneStep()
@@ -457,7 +457,7 @@ page 9451 "File Account Wizard"
     end;
 
     var
-        RegisteredAccount: Record "File Account";
+        TempRegisteredAccount: Record "File Account" temporary;
         MediaResourcesStandard: Record "Media Resources";
         MediaResourcesDone: Record "Media Resources";
         [RunOnClient]

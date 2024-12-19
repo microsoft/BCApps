@@ -232,7 +232,7 @@ page 9450 "File Accounts"
 
         DefaultTxt := '';
 
-        IsDefault := DefaultFileAccount."Account Id" = Rec."Account Id";
+        IsDefault := TempDefaultFileAccount."Account Id" = Rec."Account Id";
         if IsDefault then
             DefaultTxt := '✓';
     end;
@@ -249,7 +249,7 @@ page 9450 "File Accounts"
         IsSelected := not IsNullGuid(SelectedAccountId);
 
         FileAccount.GetAllAccounts(true, Rec); // Refresh the file accounts
-        FileScenario.GetDefaultFileAccount(DefaultFileAccount); // Refresh the default file account
+        FileScenario.GetDefaultFileAccount(TempDefaultFileAccount); // Refresh the default file account
 
         if IsSelected then begin
             Rec."Account Id" := SelectedAccountId;
@@ -276,19 +276,19 @@ page 9450 "File Accounts"
     /// <summary>
     /// Gets the selected file account.
     /// </summary>
-    /// <param name="FileAccount">The selected file account</param>
-    procedure GetAccount(var FileAccount: Record "File Account")
+    /// <param name="TempFileAccount">The selected file account</param>
+    procedure GetAccount(var TempFileAccount: Record "File Account" temporary)
     begin
-        FileAccount := Rec;
+        TempFileAccount := Rec;
     end;
 
     /// <summary>
     /// Sets a file account to be selected.
     /// </summary>
-    /// <param name="FileAccount">The file account to be initially selected on the page</param>
-    procedure SetAccount(var FileAccount: Record "File Account")
+    /// <param name="TempFileAccount">The file account to be initially selected on the page</param>
+    procedure SetAccount(var TempFileAccount: Record "File Account" temporary)
     begin
-        Rec := FileAccount;
+        Rec := TempFileAccount;
     end;
 
     /// <summary>
@@ -301,7 +301,7 @@ page 9450 "File Accounts"
     end;
 
     var
-        DefaultFileAccount: Record "File Account";
+        TempDefaultFileAccount: Record "File Account" temporary;
         FileAccountImpl: Codeunit "File Account Impl.";
         CanUserManageFileSetup: Boolean;
         IsDefault: Boolean;

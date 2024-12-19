@@ -17,7 +17,7 @@ interface "External File Storage Connector"
     /// <param name="Path">The file path to list.</param>
     /// <param name="FilePaginationData">Defines the pagination data.</param>
     /// <param name="Files">A list with all files stored in the path.</param>
-    procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary);
+    procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);
 
     /// <summary>
     /// Gets a file from the provided account.
@@ -73,7 +73,7 @@ interface "External File Storage Connector"
     /// <param name="Path">The file path to list.</param>
     /// <param name="FilePaginationData">Defines the pagination data.</param>
     /// <param name="Files">A list with all directories stored in the path.</param>
-    procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary);
+    procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);
 
     /// <summary>
     /// Creates a directory on the provided account.
@@ -101,7 +101,7 @@ interface "External File Storage Connector"
     /// Gets the file accounts registered for the connector.
     /// </summary>
     /// <param name="Accounts">Out variable that holds the registered file accounts for the connector.</param>
-    procedure GetAccounts(var Accounts: Record "File Account");
+    procedure GetAccounts(var TempAccounts: Record "File Account" temporary);
 
     /// <summary>
     /// Shows the information for a file account.
@@ -115,7 +115,7 @@ interface "External File Storage Connector"
     /// <remarks>The out parameter must hold the account ID of the added account.</remarks>
     /// <param name="Account">Out parameter with the details of the registered Account.</param>
     /// <returns>True if an account was registered.</returns>
-    procedure RegisterAccount(var FileAccount: Record "File Account"): Boolean
+    procedure RegisterAccount(var TempFileAccount: Record "File Account" temporary): Boolean
 
     /// <summary>
     /// Deletes a file account for the connector.

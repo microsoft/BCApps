@@ -23,12 +23,12 @@ codeunit 135812 "Ext. File Storage Acc Sel Mock"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"File Account Impl.", 'OnAfterSetSelectionFilter', '', false, false)]
-    local procedure SelectAccounts(var FileAccount: Record "File Account")
+    local procedure SelectAccounts(var TempFileAccount: Record "File Account" temporary)
     var
         AccountId: Guid;
         SelectionFilter: Text;
     begin
-        FileAccount.Reset();
+        TempFileAccount.Reset();
 
         foreach AccountId in SelectedAccounts do
             SelectionFilter := StrSubstNo(SelectionFilterLbl, SelectionFilter, AccountId);
@@ -36,7 +36,7 @@ codeunit 135812 "Ext. File Storage Acc Sel Mock"
         SelectionFilter := DelChr(SelectionFilter, '<>', '|'); // remove trailing and leading pipes
 
         if SelectionFilter <> '' then
-            FileAccount.SetFilter("Account Id", SelectionFilter);
+            TempFileAccount.SetFilter("Account Id", SelectionFilter);
     end;
 
     var

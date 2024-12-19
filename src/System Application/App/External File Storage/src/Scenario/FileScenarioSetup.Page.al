@@ -69,7 +69,7 @@ page 9452 "File Scenario Setup"
 
                     trigger OnAction()
                     begin
-                        SelectedFileAccountScenario := Rec;
+                        TempSelectedFileAccountScenario := Rec;
                         FileScenarioImpl.AddScenarios(Rec);
 
                         FileScenarioImpl.GetScenariosByFileAccount(Rec);
@@ -91,7 +91,7 @@ page 9452 "File Scenario Setup"
                     trigger OnAction()
                     begin
                         CurrPage.SetSelectionFilter(Rec);
-                        SelectedFileAccountScenario := Rec;
+                        TempSelectedFileAccountScenario := Rec;
 
                         FileScenarioImpl.ChangeAccount(Rec);
                         FileScenarioImpl.GetScenariosByFileAccount(Rec); // refresh the data on the page
@@ -109,7 +109,7 @@ page 9452 "File Scenario Setup"
                     trigger OnAction()
                     begin
                         CurrPage.SetSelectionFilter(Rec);
-                        SelectedFileAccountScenario := Rec;
+                        TempSelectedFileAccountScenario := Rec;
 
                         FileScenarioImpl.DeleteScenario(Rec);
                         FileScenarioImpl.GetScenariosByFileAccount(Rec); // refresh the data on the page
@@ -170,12 +170,12 @@ page 9452 "File Scenario Setup"
 
     local procedure SetSelectedRecord()
     begin
-        if not Rec.Get(SelectedFileAccountScenario.Scenario, SelectedFileAccountScenario."Account Id", SelectedFileAccountScenario.Connector) then
+        if not Rec.Get(TempSelectedFileAccountScenario.Scenario, TempSelectedFileAccountScenario."Account Id", TempSelectedFileAccountScenario.Connector) then
             Rec.FindFirst();
     end;
 
     var
-        SelectedFileAccountScenario: Record "File Account Scenario";
+        TempSelectedFileAccountScenario: Record "File Account Scenario" temporary;
         FileScenarioImpl: Codeunit "File Scenario Impl.";
         FileAccountImpl: Codeunit "File Account Impl.";
         FileAccountId: Guid;

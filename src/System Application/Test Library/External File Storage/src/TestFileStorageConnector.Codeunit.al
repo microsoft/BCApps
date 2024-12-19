@@ -9,17 +9,17 @@ using System.ExternalFileStorage;
 
 codeunit 135814 "Test File Storage Connector" implements "External File Storage Connector"
 {
-    procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary);
+    procedure ListFiles(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);
     begin
-        FileAccountContent.Init();
-        FileAccountContent.Type := FileAccountContent.Type::Directory;
-        FileAccountContent.Name := 'Test Folder';
-        FileAccountContent.Insert();
+        TempFileAccountContent.Init();
+        TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
+        TempFileAccountContent.Name := 'Test Folder';
+        TempFileAccountContent.Insert();
 
-        FileAccountContent.Init();
-        FileAccountContent.Type := FileAccountContent.Type::File;
-        FileAccountContent.Name := 'Test.pdf';
-        FileAccountContent.Insert();
+        TempFileAccountContent.Init();
+        TempFileAccountContent.Type := TempFileAccountContent.Type::File;
+        TempFileAccountContent.Name := 'Test.pdf';
+        TempFileAccountContent.Insert();
     end;
 
     procedure GetFile(AccountId: Guid; Path: Text; Stream: InStream);
@@ -46,7 +46,7 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
     begin
     end;
 
-    procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary);
+    procedure ListDirectories(AccountId: Guid; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary);
     begin
     end;
 
@@ -62,9 +62,9 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
     begin
     end;
 
-    procedure GetAccounts(var Accounts: Record "File Account")
+    procedure GetAccounts(var TempAccounts: Record "File Account" temporary)
     begin
-        FileConnectorMock.GetAccounts(Accounts);
+        FileConnectorMock.GetAccounts(TempAccounts);
     end;
 
     procedure ShowAccountInformation(AccountId: Guid)
@@ -72,7 +72,7 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
         Message('Showing information for account: %1', AccountId);
     end;
 
-    procedure RegisterAccount(var FileAccount: Record "File Account"): Boolean
+    procedure RegisterAccount(var TempFileAccount: Record "File Account" temporary): Boolean
     var
     begin
         if FileConnectorMock.FailOnRegisterAccount() then
@@ -81,8 +81,8 @@ codeunit 135814 "Test File Storage Connector" implements "External File Storage 
         if FileConnectorMock.UnsuccessfulRegister() then
             exit(false);
 
-        FileAccount."Account Id" := CreateGuid();
-        FileAccount.Name := 'Test account';
+        TempFileAccount."Account Id" := CreateGuid();
+        TempFileAccount.Name := 'Test account';
 
         exit(true);
     end;

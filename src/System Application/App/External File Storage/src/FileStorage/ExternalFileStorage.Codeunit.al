@@ -22,10 +22,10 @@ codeunit 9454 "External File Storage"
     /// <summary>
     /// Initialized the File Storage for the give file account.
     /// </summary>
-    /// <param name="FileAccount"> File Account to use.</param>
-    procedure Initialize(FileAccount: Record "File Account")
+    /// <param name="TempFileAccount"> File Account to use.</param>
+    procedure Initialize(TempFileAccount: Record "File Account" temporary)
     begin
-        ExternalFileStorageImpl.Initialize(FileAccount);
+        ExternalFileStorageImpl.Initialize(TempFileAccount);
     end;
 
     /// <summary>
@@ -33,10 +33,10 @@ codeunit 9454 "External File Storage"
     /// </summary>
     /// <param name="Path">Folder to list</param>
     /// <param name="FilePaginationData">Defines the pagination data.</param>
-    /// <param name="FileAccountContent">File account content.</param>
-    procedure ListFiles(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
+    /// <param name="TempFileAccountContent">File account content.</param>
+    procedure ListFiles(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     begin
-        ExternalFileStorageImpl.ListFiles(Path, FilePaginationData, FileAccountContent);
+        ExternalFileStorageImpl.ListFiles(Path, FilePaginationData, TempFileAccountContent);
     end;
 
     /// <summary>
@@ -110,9 +110,9 @@ codeunit 9454 "External File Storage"
     /// <param name="FilePaginationData">Defines the pagination data.</param>
     /// <param name="FileAccountContent">File account content.</param>
     [TryFunction]
-    procedure ListDirectories(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var FileAccountContent: Record "File Account Content" temporary)
+    procedure ListDirectories(Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     begin
-        ExternalFileStorageImpl.ListDirectories(Path, FilePaginationData, FileAccountContent);
+        ExternalFileStorageImpl.ListDirectories(Path, FilePaginationData, TempFileAccountContent);
     end;
 
     /// <summary>
