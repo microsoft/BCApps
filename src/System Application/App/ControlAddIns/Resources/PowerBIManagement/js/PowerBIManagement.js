@@ -164,8 +164,8 @@ function EmbedPowerBIReport(reportLink, reportId, pageName) {
 
     RegisterCommonEmbedEvents();
 
-    embed.off("loaded");
-    embed.on('loaded', function (event) {
+    embed.off("rendered");
+    embed.on('rendered', function (event) {
         var reportPages = null;
         var reportFilters = null;
         var pageFilters = null;
@@ -196,6 +196,7 @@ function EmbedPowerBIReport(reportLink, reportId, pageName) {
 
         Promise.all(promises).then(
             function (values) {
+                embed.off("rendered");
                 RaiseReportLoaded(reportFilters, reportPages, pageFilters, embedCorrelationId);
             },
             function (error) {
