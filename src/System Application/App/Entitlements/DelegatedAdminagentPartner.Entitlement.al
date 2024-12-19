@@ -8,6 +8,7 @@ namespace System.Security.AccessControl;
 using System.Azure.Identity;
 using System.Environment.Configuration;
 using System.Email;
+using System.ExternalFileStorage;
 using System.Apps;
 using System.Integration;
 
@@ -25,6 +26,7 @@ entitlement "Delegated Admin agent - Partner"
                          "Exten. Mgt. - Admin",
                          "Email - Admin",
                          "Feature Key - Admin",
+                         "File Storage - Admin",
                          "VSC Intgr. - Admin";
 #pragma warning restore
 }
