@@ -10,9 +10,6 @@ namespace System.ExternalFileStorage;
 /// </summary>
 codeunit 9452 "File Scenario"
 {
-    InherentPermissions = X;
-    InherentEntitlements = X;
-
     /// <summary>
     /// Gets the default file account.
     /// </summary>

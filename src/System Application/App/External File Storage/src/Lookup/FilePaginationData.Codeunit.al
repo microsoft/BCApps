@@ -7,9 +7,6 @@ namespace System.ExternalFileStorage;
 
 codeunit 9456 "File Pagination Data"
 {
-    InherentPermissions = X;
-    InherentEntitlements = X;
-
     var
         FilePaginationDataImpl: Codeunit "File Pagination Data Impl.";
 

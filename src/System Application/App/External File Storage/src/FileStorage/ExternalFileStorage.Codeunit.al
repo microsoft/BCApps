@@ -7,9 +7,6 @@ namespace System.ExternalFileStorage;
 
 codeunit 9454 "External File Storage"
 {
-    InherentPermissions = X;
-    InherentEntitlements = X;
-
     var
         ExternalFileStorageImpl: Codeunit "External File Storage Impl.";
 
