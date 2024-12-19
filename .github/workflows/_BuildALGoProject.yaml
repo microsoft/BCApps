@@ -91,14 +91,13 @@ jobs:
         with:
           ref: ${{ inputs.checkoutRef }}
           lfs: true
-          submodules: recursive
 
       - name: Read settings
         uses: aholstrup1/AL-Go/Actions/ReadSettings@aholstrup/prefix
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
-          get: useCompilerFolder,keyVaultCodesignCertificateName,doNotSignApps,doNotRunTests,artifact,generateDependencyArtifact,trustedSigning
+          get: useCompilerFolder,keyVaultCodesignCertificateName,doNotSignApps,doNotRunTests,artifact,generateDependencyArtifact,trustedSigning,useGitSubmodules
 
       - name: Read secrets
         id: ReadSecrets
@@ -107,7 +106,16 @@ jobs:
         with:
           shell: ${{ inputs.shell }}
           gitHubSecrets: ${{ toJson(secrets) }}
-          getSecrets: '${{ inputs.secrets }},appDependencySecrets,AZURE_CREDENTIALS'
+          getSecrets: '${{ inputs.secrets }},appDependencySecrets,AZURE_CREDENTIALS,-gitSubmodulesToken'
+
+      - name: Checkout Submodules
+        if: env.useGitSubmodules != 'false' && env.useGitSubmodules != ''
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ inputs.checkoutRef }}
+          lfs: true
+          submodules: ${{ env.useGitSubmodules }}
+          token: '${{ fromJson(steps.ReadSecrets.outputs.Secrets).gitSubmodulesToken }}'
 
       - name: Determine ArtifactUrl
         uses: aholstrup1/AL-Go/Actions/DetermineArtifactUrl@aholstrup/prefix

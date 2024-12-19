@@ -5,7 +5,7 @@
 
 namespace System.Agents;
 
-page 4306 Tasks
+page 4306 "Agent Tasks"
 {
     PageType = ListPlus;
     ApplicationArea = All;
@@ -67,14 +67,14 @@ page 4306 Tasks
 
         area(FactBoxes)
         {
-            part(Timeline; "Task Timeline")
+            part(Timeline; "Agent Task Timeline")
             {
                 SubPageLink = "Task ID" = field("Task ID");
                 UpdatePropagation = Both;
                 Editable = true;
             }
 
-            part(Details; "Task Details")
+            part(Details; "Agent Task Details")
             {
                 Provider = Timeline;
                 SubPageLink = "Task ID" = field("Task ID"), "Timeline Entry ID" = field(ID);
