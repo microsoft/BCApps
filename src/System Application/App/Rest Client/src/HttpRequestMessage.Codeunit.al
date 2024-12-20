@@ -7,12 +7,23 @@ namespace System.RestClient;
 /// <summary>Holder object for the HTTP request data.</summary>
 codeunit 2352 "Http Request Message"
 {
+    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 
     var
         HttpRequestMessageImpl: Codeunit "Http Request Message Impl.";
 
+    /// <summary>Creates a new instance of the HttpRequestMessage object.</summary>
+    /// <param name="Method">The HTTP method to use. Valid options are GET, POST, PATCH, PUT, DELETE, HEAD, OPTIONS</param>
+    /// <param name="RequestUri">The Uri to use for the HTTP request.</param>
+    /// <param name="Content">The Http Content object to use for the HTTP request.</param>
+    /// <returns>The create Http Request Message</returns>
+    procedure Create(Method: Enum "Http Method"; RequestUri: Text; Content: Codeunit "Http Content") HttpRequestMessage: Codeunit "Http Request Message"
+    begin
+        HttpRequestMessageImpl := HttpRequestMessageImpl.Create(Method, RequestUri, Content);
+        HttpRequestMessage := this;
+    end;
 
     /// <summary>Sets the HTTP method or the HttpRequestMessage object.</summary>
     /// <param name="Method">The HTTP method to use. Valid options are GET, POST, PATCH, PUT, DELETE, HEAD, OPTIONS</param>
@@ -66,6 +77,79 @@ codeunit 2352 "Http Request Message"
     procedure SetHeader(HeaderName: Text; HeaderValue: SecretText)
     begin
         HttpRequestMessageImpl.SetHeader(HeaderName, HeaderValue);
+    end;
+
+    /// <summary>Gets the values of the header with the given name from the HttpRequestMessage object.</summary>
+    /// <param name="HeaderName">The name of the header to get.</param>
+    /// <returns>A list of values of the header with the given name.</returns>
+    /// <remarks>If the header is not found, an empty list is returned.</remarks>
+    procedure GetHeaderValues(HeaderName: Text) Values: List of [Text]
+    begin
+        Values := HttpRequestMessageImpl.GetHeaderValues(HeaderName);
+    end;
+
+    /// <summary>Gets the secret values of the header with the given name from the HttpRequestMessage object.</summary>
+    /// <param name="HeaderName">The name of the header to get.</param>
+    /// <returns>A list of values of the header with the given name.</returns>
+    /// <remarks>If the header is not found, an empty list is returned.</remarks>
+    procedure GetSecretHeaderValues(HeaderName: Text) Values: List of [SecretText]
+    begin
+        Values := HttpRequestMessageImpl.GetSecretHeaderValues(HeaderName);
+    end;
+
+    /// <summary>Sets the cookie given a name and value</summary>
+    /// <param name="Name">The name of the cookie to set.</param>
+    /// <param name="Value">The value of the cookie to set.</param>
+    procedure SetCookie(Name: Text; Value: Text) Success: Boolean
+    begin
+        Success := HttpRequestMessageImpl.SetCookie(Name, Value);
+    end;
+
+    /// <summary>Sets the cookie given a cookie object</summary>
+    /// <param name="Cookie">The cookie object to set.</param>
+    procedure SetCookie(Cookie: Cookie) Success: Boolean
+    begin
+        Success := HttpRequestMessageImpl.SetCookie(Cookie);
+    end;
+
+    /// <summary>Gets the names of the cookies that are set in the HttpRequestMessage object.</summary>
+    /// <returns>The names of the cookies that are set in the HttpRequestMessage object.</returns>
+    procedure GetCookieNames() CookieNames: List of [Text]
+    begin
+        CookieNames := HttpRequestMessageImpl.GetCookieNames();
+    end;
+
+    /// <summary>Gets the cookies that are set in the HttpRequestMessage object.</summary>
+    /// <returns>The cookies that are set in the HttpRequestMessage object.</returns>
+    procedure GetCookies() Cookies: List of [Cookie]
+    begin
+        Cookies := HttpRequestMessageImpl.GetCookies();
+    end;
+
+    /// <summary>Gets the cookie with the given name from the HttpRequestMessage object.</summary>
+    /// <param name="Name">The name of the cookie to get.</param>
+    /// <returns>The cookie object.</returns>
+    /// <remarks>If the cookie is not found, an empty cookie object is returned.</remarks>
+    procedure GetCookie(Name: Text) ReturnValue: Cookie
+    begin
+        ReturnValue := HttpRequestMessageImpl.GetCookie(Name);
+    end;
+
+    /// <summary>Gets the cookie with the given name from the HttpRequestMessage object.</summary>
+    /// <param name="Name">The name of the cookie to get.</param>
+    /// <param name="Cookie">The cookie object to get.</param>
+    /// <returns>True if the cookie was found, false otherwise.</returns>
+    procedure GetCookie(Name: Text; var Cookie: Cookie) Success: Boolean
+    begin
+        Success := HttpRequestMessageImpl.GetCookie(Name, Cookie);
+    end;
+
+    /// <summary>Removes the cookie with the given name from the HttpRequestMessage object.</summary>
+    /// <param name="Name">The name of the cookie to remove.</param>
+    /// <returns>True if the cookie was removed, false otherwise.</returns>
+    procedure RemoveCookie(Name: Text) Success: Boolean
+    begin
+        Success := HttpRequestMessageImpl.RemoveCookie(Name);
     end;
 
     /// <summary>Sets the HttpRequestMessage that is represented by the HttpRequestMessage object.</summary>
