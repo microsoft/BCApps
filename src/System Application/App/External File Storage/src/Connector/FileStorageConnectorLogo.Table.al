@@ -9,6 +9,7 @@ table 9452 "File Storage Connector Logo"
 {
     DataClassification = SystemMetadata;
     Access = Internal;
+    ReplicateData = false;
     InherentPermissions = X;
     InherentEntitlements = X;
 
