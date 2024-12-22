@@ -14,6 +14,7 @@ table 9454 "File Scenario"
 {
     DataClassification = SystemMetadata;
     Access = Internal;
+    ReplicateData = false;
     InherentPermissions = X;
     InherentEntitlements = X;
 
