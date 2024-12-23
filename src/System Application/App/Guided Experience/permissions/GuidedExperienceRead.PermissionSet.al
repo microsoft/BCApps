@@ -35,5 +35,7 @@ permissionset 1991 "Guided Experience - Read"
                   tabledata "Spotlight Tour Text" = r,
                   tabledata User = r,
                   tabledata "User Checklist Status" = R,
-                  tabledata "User Personalization" = r;
+                  tabledata "User Personalization" = r,
+                  tabledata "Tenant Media" = r,
+                  tabledata "Tenant Media Set" = r;
 }
