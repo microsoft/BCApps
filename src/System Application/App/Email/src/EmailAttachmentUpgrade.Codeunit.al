@@ -19,10 +19,6 @@ codeunit 8910 "Email Attachment Upgrade"
     ObsoleteState = Pending;
     ObsoleteTag = '26.0';
 
-    trigger OnUpgradePerCompany()
-    begin
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerCompanyUpgradeTags, '', false, false)]
     local procedure RegisterPerCompanyTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
