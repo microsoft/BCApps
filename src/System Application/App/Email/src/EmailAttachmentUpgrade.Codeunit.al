@@ -15,6 +15,9 @@ codeunit 8910 "Email Attachment Upgrade"
     Subtype = Upgrade;
     InherentPermissions = X;
     InherentEntitlements = X;
+    ObsoleteReason = 'Attachment field has been removed in version 26.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '26.0';
 
     trigger OnUpgradePerCompany()
     begin
