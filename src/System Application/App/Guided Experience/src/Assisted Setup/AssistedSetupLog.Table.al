@@ -36,6 +36,7 @@ table 1807 "Assisted Setup Log"
             DataClassification = SystemMetadata;
             Caption = 'Date Time';
         }
+#if not CLEANSCHEMA19
         field(11; "Invoked Action"; Option)
         {
             DataClassification = SystemMetadata;
@@ -46,6 +47,7 @@ table 1807 "Assisted Setup Log"
             ObsoleteReason = 'Only videos opened are logged.';
             ObsoleteTag = '19.0';
         }
+#endif
     }
 
     keys
