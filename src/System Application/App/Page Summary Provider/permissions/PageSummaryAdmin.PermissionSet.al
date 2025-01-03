@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 namespace System.Integration;
+using System.Environment;
 
 permissionset 2718 "Page Summary - Admin"
 {
@@ -13,5 +14,6 @@ permissionset 2718 "Page Summary - Admin"
 
     IncludedPermissionSets = "Page Summary Provider - Read";
 
-    Permissions = tabledata "Page Summary Settings" = IMD;
+    Permissions = tabledata "Page Summary Settings" = IMD,
+                   tabledata "Tenant Media Set" = i;
 }
