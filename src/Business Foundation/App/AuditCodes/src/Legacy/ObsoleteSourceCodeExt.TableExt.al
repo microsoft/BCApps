@@ -18,18 +18,6 @@ tableextension 230 ObsoleteSourceCodeExt extends "Source Code"
             MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
             ObsoleteTag = '25.0';
         }
-#if not CLEANSCHEMA15
-        field(10620; "SAFT Source Code"; Code[9])
-        {
-            Caption = 'SAF-T Source Code';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'Moved to extension';
-            ObsoleteState = Removed;
-#pragma warning disable AS0072
-            ObsoleteTag = '15.0';
-#pragma warning restore AS0072
-        }
-#endif
         field(28160; Simulation; Boolean)
         {
             Caption = 'Simulation';

@@ -36,16 +36,6 @@ table 1807 "Assisted Setup Log"
             DataClassification = SystemMetadata;
             Caption = 'Date Time';
         }
-        field(11; "Invoked Action"; Option)
-        {
-            DataClassification = SystemMetadata;
-            Caption = 'Invoked Action';
-            OptionCaption = ' ,Video,Help,Tour,Assisted Setup';
-            OptionMembers = " ",Video,Help,Tour,"Assisted Setup";
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Only videos opened are logged.';
-            ObsoleteTag = '19.0';
-        }
     }
 
     keys
