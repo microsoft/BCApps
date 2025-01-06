@@ -18,8 +18,8 @@ var BEFORE_CHART_FORMAT_TEMPLATE =
 // Note: This function is called by the manifest after loading the control add-in.
 function Initialize() {
   window.addEventListener('resize', function () {
-    var width = window.document.documentElement.clientWidth;
-    var height = window.document.documentElement.clientHeight;
+    var width = window.document.documentElement.getBoundingClientRect().width;
+    var height = window.document.documentElement.getBoundingClientRect().height;
 
     onChartSizeChanged(width, height);
   });
