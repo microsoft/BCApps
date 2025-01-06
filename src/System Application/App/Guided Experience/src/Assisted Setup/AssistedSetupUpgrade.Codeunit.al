@@ -14,4 +14,12 @@ codeunit 1807 "Assisted Setup Upgrade"
     ObsoleteReason = 'Table "Asssited Setup" has been removed in version 26.';
     ObsoleteState = Pending;
     ObsoleteTag = '26.0';
+
+    procedure DeleteAssistedSetup()
+    begin
+    end;
+
+    procedure UpgradeToGuidedExperienceItem()
+    begin
+    end;
 }
