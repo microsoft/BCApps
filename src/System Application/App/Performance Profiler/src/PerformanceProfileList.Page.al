@@ -68,14 +68,12 @@ page 1931 "Performance Profile List"
                     Caption = 'Duration of Http Calls';
                     ToolTip = 'Specifies the duration of the http calls during the activity that was profiled in milliseconds.';
                     AboutText = 'The duration of external http calls during the activity that was profiled.';
-                    Visible = false;
                 }
                 field("Http Call Number"; Rec."Http Call Number")
                 {
                     Caption = 'Number of Http Calls';
                     ToolTip = 'Specifies the number of http calls during the activity that was profiled.';
                     AboutText = 'The number of external http calls during the activity that was profiled.';
-                    Visible = false;
                 }
                 field("Correlation ID"; Rec."Activity ID")
                 {
