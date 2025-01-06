@@ -1070,19 +1070,6 @@ tableextension 242 ObsoleteSourceCodeSetupExt extends "Source Code Setup"
             ObsoleteTag = '25.0';
             MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
         }
-#if not CLEANSCHEMA24
-        field(5005350; "Phys. Invt. Order"; Code[10])
-        {
-            Caption = 'Phys. Invt. Order';
-            ObsoleteReason = 'Merged to W1';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            TableRelation = "Source Code";
-#pragma warning disable AS0072
-            ObsoleteTag = '24.0';
-#pragma warning restore AS0072
-        }
-#endif
         field(7000000; "Cartera Journal"; Code[10])
         {
             Caption = 'Cartera Journal';
