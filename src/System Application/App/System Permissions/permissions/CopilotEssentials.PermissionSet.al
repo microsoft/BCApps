@@ -9,7 +9,7 @@ permissionset 9680 "Copilot Essentials"
 {
     Access = Public;
     Assignable = true;
-    Caption = 'Copilot Summary';
+    Caption = 'Copilot Essentials';
 
     Permissions = system "Allow Copilot Summary" = X;
 }
