@@ -5,7 +5,7 @@
 namespace System.AI;
 
 using System.Environment;
-using System.Privacy;
+using System;
 
 codeunit 7760 "Copilot Capability Install"
 {
@@ -23,8 +23,17 @@ codeunit 7760 "Copilot Capability Install"
         AnalyzeListLearnMoreLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2252783', Locked = true;
 
     internal procedure RegisterCapabilities()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        WithinEUDB: Boolean;
+        ApplicationFamily: Text;
     begin
-        RegisterSaaSCapability(Enum::"Copilot Capability"::Chat, Enum::"Copilot Availability"::Preview, ChatLearnMoreLbl);
+        ApplicationFamily := EnvironmentInformation.GetApplicationFamily();
+        if TryGetIsWithinEUDB(WithinEUDB) then;
+
+        if ApplicationFamily in ['US', 'MX'] or WithinEUDB then
+            RegisterSaaSCapability(Enum::"Copilot Capability"::Chat, Enum::"Copilot Availability"::Preview, ChatLearnMoreLbl);
+
         RegisterSaaSCapability(Enum::"Copilot Capability"::"Analyze List", Enum::"Copilot Availability"::Preview, AnalyzeListLearnMoreLbl);
     end;
 
@@ -38,27 +47,17 @@ codeunit 7760 "Copilot Capability Install"
                 CopilotCapability.RegisterCapability(Capability, Availability, LearnMoreUrl);
     end;
 
+    [TryFunction]
+    local procedure TryGetIsWithinEUDB(var WithinEUDB: Boolean)
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+    begin
+        WithinEUDB := ALCopilotFunctions.IsWithinEUDB();
+    end;
+
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", 'OnRegisterCopilotCapability', '', false, false)]
     local procedure OnRegisterCopilotCapability()
     begin
         RegisterCapabilities();
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copilot Capability", 'OnGetRequiredPrivacyNotices', '', false, false)]
-    local procedure OnGetRequiredPrivacyNotices(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; var RequiredPrivacyNotices: List of [Code[50]])
-    var
-        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
-        ModuleInfo: ModuleInfo;
-    begin
-        NavApp.GetCurrentModuleInfo(ModuleInfo);
-
-        if AppId <> ModuleInfo.Id then
-            exit;
-
-        if CopilotCapability <> Enum::"Copilot Capability"::Chat then
-            exit;
-
-        if not RequiredPrivacyNotices.Contains(SystemPrivacyNoticeReg.GetMicrosoftLearnID()) then
-            RequiredPrivacyNotices.Add(SystemPrivacyNoticeReg.GetMicrosoftLearnID());
     end;
 }
