@@ -5,7 +5,7 @@
 
 namespace System.Security.AccessControl;
 
-permissionset 9680 "Copilot Summary"
+permissionset 9680 "Copilot Essentials"
 {
     Access = Public;
     Assignable = true;
