@@ -22,7 +22,7 @@ codeunit 8905 "Email Message Impl."
                   tabledata "Email Message" = rimd,
                   tabledata "Email Error" = rd,
                   tabledata "Email Recipient" = rid,
-                  tabledata "Email Message Attachment" = rid,
+                  tabledata "Email Message Attachment" = rimd,
                   tabledata "Email Related Record" = rd,
                   tabledata "Tenant Media" = rm,
                   tabledata "Email Attachments" = rimd;
