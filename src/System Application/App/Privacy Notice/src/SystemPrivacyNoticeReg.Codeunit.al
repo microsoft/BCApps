@@ -5,9 +5,11 @@
 
 namespace System.Privacy;
 
+/// <summary>
+/// This codeunit registers platform level privacy notices and provides procedures to consistently reference the privacy notices.
+/// </summary>
 codeunit 1566 "System Privacy Notice Reg."
 {
-    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -28,16 +30,28 @@ codeunit 1566 "System Privacy Notice Reg."
         if not TempPrivacyNotice.Insert() then;
     end;
 
+    /// <summary>
+    /// Gets the Microsoft Teams privacy notice identifier.
+    /// </summary>
+    /// <returns>The privacy notice id for Microsoft Teams.</returns>
     procedure GetTeamsPrivacyNoticeId(): Code[50]
     begin
         exit(MicrosoftTeamsTxt);
     end;
 
+    /// <summary>
+    /// Gets the Power Automate privacy notice identifier.
+    /// </summary>
+    /// <returns>The privacy notice id for Power Automate.</returns>
     procedure GetPowerAutomatePrivacyNoticeId(): Code[50]
     begin
         exit(PowerAutomateIdTxt);
     end;
 
+    /// <summary>
+    /// Gets the Power Automate privacy notice name.
+    /// </summary>
+    /// <returns>The privacy notice name for Power Automate.</returns>
     procedure GetPowerAutomatePrivacyNoticeName(): Code[250]
     begin
         exit(PowerAutomateLabelTxt);

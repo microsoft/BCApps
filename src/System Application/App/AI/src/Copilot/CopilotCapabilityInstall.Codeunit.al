@@ -5,6 +5,7 @@
 namespace System.AI;
 
 using System.Environment;
+using System;
 
 codeunit 7760 "Copilot Capability Install"
 {
@@ -24,11 +25,13 @@ codeunit 7760 "Copilot Capability Install"
     internal procedure RegisterCapabilities()
     var
         EnvironmentInformation: Codeunit "Environment Information";
+        WithinEUDB: Boolean;
         ApplicationFamily: Text;
     begin
         ApplicationFamily := EnvironmentInformation.GetApplicationFamily();
+        if TryGetIsWithinEUDB(WithinEUDB) then;
 
-        if ApplicationFamily = 'US' then
+        if ApplicationFamily in ['US', 'MX'] or WithinEUDB then
             RegisterSaaSCapability(Enum::"Copilot Capability"::Chat, Enum::"Copilot Availability"::Preview, ChatLearnMoreLbl);
 
         RegisterSaaSCapability(Enum::"Copilot Capability"::"Analyze List", Enum::"Copilot Availability"::Preview, AnalyzeListLearnMoreLbl);
@@ -42,6 +45,14 @@ codeunit 7760 "Copilot Capability Install"
         if EnvironmentInformation.IsSaaSInfrastructure() then
             if not CopilotCapability.IsCapabilityRegistered(Capability) then
                 CopilotCapability.RegisterCapability(Capability, Availability, LearnMoreUrl);
+    end;
+
+    [TryFunction]
+    local procedure TryGetIsWithinEUDB(var WithinEUDB: Boolean)
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+    begin
+        WithinEUDB := ALCopilotFunctions.IsWithinEUDB();
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Copilot AI Capabilities", 'OnRegisterCopilotCapability', '', false, false)]
