@@ -24,7 +24,7 @@ codeunit 7769 "AOAI Deployments Impl"
         GPT4oMiniPreviewLbl: Label 'gpt-4o-mini-preview', Locked = true;
         DeprecatedDeployments: Dictionary of [Text, Date];
         DeprecationDatesInitialized: Boolean;
-        DeprecationMessageLbl: Label 'Deployment %1 deprecated from %2. Check out codeunit 7768 AOAI Deployments', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
+        DeprecationMessageLbl: Label 'We detected usage of the Azure OpenAI deployment "%1". This model is obsoleted starting %2 and the quality of your results might vary after that date. Check out codeunit 7768 AOAI Deployments to find the supported deployments.', Comment = 'Telemetry message where %1 is the name of the deployment and %2 is the date of deprecation';
 #if not CLEAN25
         GPT4LatestLbl: Label 'gpt-4-latest', Locked = true;
         GPT4PreviewLbl: Label 'gpt-4-preview', Locked = true;
@@ -33,6 +33,7 @@ codeunit 7769 "AOAI Deployments Impl"
         Turbo0301SaasLbl: Label 'turbo-0301', Locked = true;
         GPT40613SaasLbl: Label 'gpt4-0613', Locked = true;
         Turbo0613SaasLbl: Label 'turbo-0613', Locked = true;
+
         Turbo0301Lbl: Label 'chatGPT_GPT35-turbo-0301', Locked = true;
         GPT40613Lbl: Label 'gpt-4-32k', Locked = true;
         Turbo031316kLbl: Label 'gpt-35-turbo-16k', Locked = true;
@@ -115,13 +116,19 @@ codeunit 7769 "AOAI Deployments Impl"
             exit;
 
         // Add deprecated deployments with their deprecation dates here
+#if not CLEAN25
+        DeprecatedDeployments.Add(GPT4LatestLbl, DMY2Date(1, 11, 2024));
+        DeprecatedDeployments.Add(GPT4PreviewLbl, DMY2Date(1, 11, 2024));
+        DeprecatedDeployments.Add(GPT35TurboLatestLbl, DMY2Date(1, 11, 2024));
+        DeprecatedDeployments.Add(GPT35TurboPreviewLbl, DMY2Date(1, 11, 2024));
         DeprecatedDeployments.Add(Turbo0301SaasLbl, DMY2Date(1, 11, 2024));
         DeprecatedDeployments.Add(GPT40613SaasLbl, DMY2Date(1, 11, 2024));
         DeprecatedDeployments.Add(Turbo0613SaasLbl, DMY2Date(1, 11, 2024));
-        DeprecatedDeployments.Add(GPT35TurboLatestLbl, DMY2Date(1, 11, 2024));
-        DeprecatedDeployments.Add(GPT35TurboPreviewLbl, DMY2Date(1, 11, 2024));
-        DeprecatedDeployments.Add(GPT4PreviewLbl, DMY2Date(1, 11, 2024));
-        DeprecatedDeployments.Add(GPT4LatestLbl, DMY2Date(1, 11, 2024));
+#endif
+        DeprecatedDeployments.Add(GPT4oLatestLbl, DMY2Date(13, 5, 2025));
+        DeprecatedDeployments.Add(GPT4oPreviewLbl, DMY2Date(13, 5, 2025));
+        DeprecatedDeployments.Add(GPT4oMiniLatestLbl, DMY2Date(18, 7, 2025));
+        DeprecatedDeployments.Add(GPT4oMiniPreviewLbl, DMY2Date(18, 7, 2025));
 
         DeprecationDatesInitialized := true;
     end;
