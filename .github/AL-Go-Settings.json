@@ -9,17 +9,24 @@
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "26.0",
-  "cleanModePreprocessorSymbols": [
-    "CLEAN17",
-    "CLEAN18",
-    "CLEAN19",
-    "CLEAN20",
-    "CLEAN21",
-    "CLEAN22",
-    "CLEAN23",
-    "CLEAN24",
-    "CLEAN25",
-    "CLEAN26"
+  "conditionalSettings": [
+    {
+        "buildModes": [ "Clean" ],
+        "settings": {
+            "preprocessorSymbols": [
+              "CLEAN17",
+              "CLEAN18",
+              "CLEAN19",
+              "CLEAN20",
+              "CLEAN21",
+              "CLEAN22",
+              "CLEAN23",
+              "CLEAN24",
+              "CLEAN25",
+              "CLEAN26"
+             ]
+        }
+    }
   ],
   "unusedALGoSystemFiles": [
     "AddExistingAppOrTestApp.yaml",
