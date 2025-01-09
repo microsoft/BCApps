@@ -2,13 +2,30 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+### Deprecations
+
+- `cleanModePreProcessorSymbols` will be removed after April 1st 2025. Use [Conditional Settings](https://aka.ms/algosettings#conditional-settings) instead, specifying buildModes and the `preProcessorSymbols` setting. Read [this](./DEPRECATIONS.md) for more information.
+
 ### Issues
 
 - It is now possible to skip the modification of dependency version numbers when running the Increment Version number workflow or the Create Release workflow
 
+### New Repository Settings
+
+- [`shortLivedArtifactsRetentionDays`](https://aka.ms/algosettings#shortLivedArtifactsRetentionDays) determines the number of days to keep short lived build artifacts (f.ex build artifacts from pull request builds, next minor or next major builds). 1 is default. 0 means use GitHub default.
+- [`preProcessorSymbols`](https://aka.ms/algosettings#preProcessorSymbols) is a list of preprocessor symbols to use when building the apps. This setting can be specified in [workflow specific settings files](https://aka.ms/algosettings#where-are-the-settings-located) or in [conditional settings](https://aka.ms/algosettings#conditional-settings).
+
 ### New Versioning Strategy
 
 Setting versioning strategy to 3 will allow 3 segments of the version number to be defined in app.json and repoVersion. Only the 4th segment (Revision) will be defined by the GitHub [run_number](https://go.microsoft.com/fwlink/?linkid=2217416&clcid=0x409) for the CI/CD workflow. Increment version number and Create Release now also supports the ability to set a third segment to the RepoVersion and appversion in app.json.
+
+### Change in published artifacts
+
+When using `useProjectDependencies` in a multi-project repository, AL-Go for GitHub used to generate short lived build artifacts called `thisBuild-<projectnaame>-<type>-...`. This is no longer the case. Instead, normal build artifacts will be published and used by depending projects. The retention period for the short lived artifacts generated are controlled by a settings called [`shortLivedArtifactsRetentionDays`](https://aka.ms/algosettings#shortLivedArtifactsRetentionDays).
+
+### Preprocessor symbols
+
+It is now possible to define preprocessor symbols, which will be used when building your apps using the [`preProcessorSymbols`](https://aka.ms/algosettings#preProcessorSymbols) setting. This setting can be specified in workflow specific settings file or it can be used in conditional settings.
 
 ## v6.2
 
@@ -142,7 +159,7 @@ AL-Go for GitHub now includes a new telemetry module. For detailed information o
   - **NumberOfSqlStmtsWarning** - a warning is issued if the number of SQL statements from a bcpt test increases more than this percentage (default 5)
   - **NumberOfSqlStmtsError** - an error is issued if the number of SQL statements from a bcpt test increases more than this percentage (default 10)
 
-> \[!NOTE\]
+> [!NOTE]
 > Duration thresholds are subject to varying results depending on the performance of the agent running the tests. Number of SQL statements executed by a test is often the most reliable indicator of performance degredation.
 
 ## v5.2
@@ -169,7 +186,7 @@ AL-Go for GitHub now includes a new telemetry module. For detailed information o
 - **Pull PowerPlatform Changes** for pulling changes from your PowerPlatform development environment into your AL-Go for GitHub repository
 - **Push PowerPlatform Changes** for pushing changes from your AL-Go for GitHub repository to your PowerPlatform development environment
 
-> \[!NOTE\]
+> [!NOTE]
 > PowerPlatform workflows are only available in the PTE template and will be removed if no PowerPlatformSolutionFolder is defined in settings.
 
 ### New Scenarios (Documentation)
@@ -179,7 +196,7 @@ AL-Go for GitHub now includes a new telemetry module. For detailed information o
 - [Try one of the Business Central and Power Platform samples](https://github.com/microsoft/AL-Go/blob/main/Scenarios/TryPowerPlatformSamples.md)
 - [Publish To AppSource](https://github.com/microsoft/AL-Go/blob/main/Scenarios/PublishToAppSource.md)
 
-> \[!NOTE\]
+> [!NOTE]
 > PowerPlatform functionality are only available in the PTE template.
 
 ## v5.1
@@ -317,8 +334,8 @@ AL-Go for GitHub allows you to build and test using insider builds without any e
 
 - `enableExternalRulesets`: set this setting to true if you want to allow AL-Go to automatically download external references in rulesets.
 - `deliverTo<deliveryTarget>`: is not really new, but has new properties and wasn't documented. The complete list of properties is here (note that some properties are deliveryTarget specific):
-  - **Branches** = an array of branch patterns, which are allowed to deliver to this deliveryTarget. (Default \[ "main" \])
-  - **CreateContainerIfNotExist** = *\[Only for DeliverToStorage\]* Create Blob Storage Container if it doesn't already exist. (Default false)
+  - **Branches** = an array of branch patterns, which are allowed to deliver to this deliveryTarget. (Default [ "main" ])
+  - **CreateContainerIfNotExist** = *[Only for DeliverToStorage]* Create Blob Storage Container if it doesn't already exist. (Default false)
 
 ### Deployment
 
@@ -359,7 +376,7 @@ Earlier, you could also specify the projects you want to deploy to an environmen
 - `deployTo<environmentName>`: is not really new, but has new properties. The complete list of properties is here:
   - **EnvironmentType** = specifies the type of environment. The environment type can be used to invoke a custom deployment. (Default SaaS)
   - **EnvironmentName** = specifies the "real" name of the environment if it differs from the GitHub environment
-  - **Branches** = an array of branch patterns, which are allowed to deploy to this environment. (Default \[ "main" \])
+  - **Branches** = an array of branch patterns, which are allowed to deploy to this environment. (Default [ "main" ])
   - **Projects** = In multi-project repositories, this property can be a comma separated list of project patterns to deploy to this environment. (Default \*)
   - **SyncMode** = ForceSync if deployment to this environment should happen with ForceSync, else Add. If deploying to the development endpoint you can also specify Development or Clean. (Default Add)
   - **ContinuousDeployment** = true if this environment should be used for continuous deployment, else false. (Default: AL-Go will continuously deploy to sandbox environments or environments, which doesn't end in (PROD) or (FAT)
@@ -417,8 +434,8 @@ Now, you can set the checkbox called Use GhTokenWorkflow to allowing you to use 
 
 ### New Settings
 
-- `keyVaultCodesignCertificateName`:  With this setting you can delegate the codesigning to an Azure Key Vault. This can be useful if your certificate has to be stored in a Hardware Security Module
-- `PullRequestTrigger`:  With this setting you can set which trigger to use for Pull Request Builds. By default AL-Go will use pull_request_target.
+- `keyVaultCodesignCertificateName`: With this setting you can delegate the codesigning to an Azure Key Vault. This can be useful if your certificate has to be stored in a Hardware Security Module
+- `PullRequestTrigger`: With this setting you can set which trigger to use for Pull Request Builds. By default AL-Go will use pull_request_target.
 
 ### New Actions
 
