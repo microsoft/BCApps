@@ -1,3 +1,5 @@
+using module ./GitHub/GitHubPullRequest.class.psm1
+
 <#
     .SYNOPSIS
     This script is used to backport a pull request to multiple branches.
@@ -21,7 +23,6 @@ function New-BCAppsBackport() {
         [switch] $ReuseWorkItem
     )
     Import-Module $PSScriptRoot/EnlistmentHelperFunctions.psm1
-    Import-Module $PSScriptRoot/GitHub/GitHubPullRequest.class.psm1
 
     # Change to the base folder of the repository
     Push-Location (Get-BaseFolderForPath -Path $PSScriptRoot)
