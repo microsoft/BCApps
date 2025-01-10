@@ -14,6 +14,7 @@ codeunit 7767 "AOAI Authorization"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata AOAIAccountVerificationLog = RIMD;
 
     var
         [NonDebuggable]
@@ -143,7 +144,7 @@ codeunit 7767 "AOAI Authorization"
     end;
 
     [NonDebuggable]
-    local procedure VerifyAOAIAccount(AOAIAccountName: Text; NewApiKey: Text): Boolean
+    local procedure PerformAOAIAccountVerification(AOAIAccountName: Text; NewApiKey: Text): Boolean
     var
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
@@ -173,6 +174,53 @@ codeunit 7767 "AOAI Authorization"
 
         if not HttpResponseMessage.IsSuccessStatusCode() then
             exit(false);
+
+        exit(true);
+    end;
+
+    local procedure VerifyAOAIAccount(AOAIAccountName: Text; NewApiKey: Text): Boolean
+    var
+        AOAIAccountVerificationLog: Record "AOAIAccountVerificationLog";
+        GracePeriod: Duration;
+        CachePeriod: Duration;
+        LastSuccessfulVerification: DateTime;
+        IsVerified: Boolean;
+        TruncatedAccountName: Text[100];
+    begin
+        GracePeriod := 14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
+        CachePeriod := 24 * 60 * 60 * 1000; // 1 day in milliseconds
+
+        TruncatedAccountName := CopyStr(AOAIAccountName, 1, 100);
+
+        // Check if the account has been successfully verified within the cache period
+        if AOAIAccountVerificationLog.Get(TruncatedAccountName) then begin
+            LastSuccessfulVerification := AOAIAccountVerificationLog.LastSuccessfulVerification;
+            if CurrentDateTime - LastSuccessfulVerification <= CachePeriod then
+                exit(true);
+        end;
+
+        IsVerified := PerformAOAIAccountVerification(AOAIAccountName, NewApiKey);
+
+        if not IsVerified then begin
+            // If verification fails, check if the last successful verification is within the grace period
+            if AOAIAccountVerificationLog.Get(TruncatedAccountName) then begin
+                LastSuccessfulVerification := AOAIAccountVerificationLog.LastSuccessfulVerification;
+                if CurrentDateTime - LastSuccessfulVerification <= GracePeriod then
+                    exit(true);
+            end;
+            exit(false);
+        end;
+
+        // Save verification date
+        if AOAIAccountVerificationLog.Get(TruncatedAccountName) then begin
+            AOAIAccountVerificationLog.LastSuccessfulVerification := CurrentDateTime;
+            AOAIAccountVerificationLog.Modify(true);
+        end else begin
+            AOAIAccountVerificationLog.Init();
+            AOAIAccountVerificationLog.AccountName := TruncatedAccountName;
+            AOAIAccountVerificationLog.LastSuccessfulVerification := CurrentDateTime;
+            AOAIAccountVerificationLog.Insert(true);
+        end;
 
         exit(true);
     end;
