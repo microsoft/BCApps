@@ -13,7 +13,7 @@ using System.Globalization;
 page 2510 "Marketplace Extn Deployment"
 {
     Extensible = false;
-    Caption = 'Extension Installation';
+    Caption = 'Install extension';
     PageType = NavigatePage;
     ContextSensitiveHelpPage = 'ui-extensions';
 
@@ -23,11 +23,6 @@ page 2510 "Marketplace Extn Deployment"
         {
             group(General)
             {
-            }
-            label("Choose Language")
-            {
-                ApplicationArea = All;
-                Caption = 'Choose language';
             }
             field(Language; LanguageName)
             {
