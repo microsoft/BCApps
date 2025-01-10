@@ -17,7 +17,8 @@ function New-BCAppsBackport() {
         [Parameter(Mandatory=$true)]
         [string[]] $TargetBranches,
         [Parameter(Mandatory=$false)]
-        [switch] $SkipConfirmation
+        [switch] $SkipConfirmation,
+        [switch] $ReuseWorkItem
     )
     Import-Module $PSScriptRoot/EnlistmentHelperFunctions.psm1
 
@@ -34,6 +35,20 @@ function New-BCAppsBackport() {
         Write-Host "Pull Request Target Branch: $($pullRequestDetails.baseRefName)" -ForegroundColor Cyan
         Write-Host "Pull Request Title: $($pullRequestDetails.title)" -ForegroundColor Cyan
         Write-Host "Pull Request Description: `n$($pullRequestDetails.body)" -ForegroundColor Cyan
+
+        if($ReuseWorkItem) {
+            Write-Warning "Reusing linked work items is not reccomended when backporting a hotfix. Please ensure the work items are valid for the target branches."
+
+            # Force confirmation when reusing work items
+            $SkipConfirmation = $false
+
+            $linkedWorkItem = [GitHubPullRequest]::Get($PullRequestNumber, 'microsoft/BCApps').GetLinkedADOWorkItemIDs() | Select-Object -First 1
+            if($linkedWorkItem) {
+                Write-Host "Reusing work item: $linkedWorkItem" -ForegroundColor Cyan
+            } else {
+                Write-Host "No linked work items found" -ForegroundColor Yellow
+            }
+        }
 
         if (-not $SkipConfirmation) {
             GetConfirmation -Message "Please review the above information and press (y)es to continue or any other key to stop"
@@ -52,8 +67,6 @@ function New-BCAppsBackport() {
             foreach($TargetBranch in $TargetBranches) {
                 $title = "[$TargetBranch] $($pullRequestDetails.title)"
                 $title = $title.Substring(0, [Math]::Min(255, $title.Length))
-                $body = "This pull request backports #$($pullRequestDetails.number) to $TargetBranch"
-                $body += "`r`n`r`nFixes AB#[**Insert Work Item Number Here**]"
 
                 # Check if there is already a pull request for this branch
                 $existingPr = $existingOpenPullRequests | Where-Object { ($_.title -eq $title) -and ($_.baseRefName -eq $TargetBranch) }
@@ -61,6 +74,9 @@ function New-BCAppsBackport() {
                     Write-Host "Pull request for $TargetBranch already exists: $($existingPr.url)" -ForegroundColor Yellow
                     continue
                 }
+
+                $body = "This pull request backports #$($pullRequestDetails.number) to $TargetBranch"
+                $body += "`r`n`r`nFixes AB#$linkedWorkItem"
 
                 # Create a new branch for the cherry-pick
                 $cherryPickBranch = "backport/$TargetBranch/$branchNameSuffix"
