@@ -725,9 +725,14 @@ codeunit 7772 "Azure OpenAI Impl"
         AllowlistedTenants: Text;
         EntraTenantIdAsText: Text;
         EntraTenantIdAsGuid: Guid;
+        ModuleInfo: ModuleInfo;
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit(false);
+
+        NavApp.GetCurrentModuleInfo(ModuleInfo);
+        if ModuleInfo.Publisher <> 'Microsoft' then
+            exit(true);
 
         if (not AzureKeyVault.GetAzureKeyVaultSecret(AllowlistedTenantsAkvKeyTok, AllowlistedTenants)) or (AllowlistedTenants.Trim() = '') then
             exit(false);
