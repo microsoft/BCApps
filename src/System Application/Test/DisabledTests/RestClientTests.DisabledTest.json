@@ -1,0 +1,38 @@
+[
+    {
+        "bug": "524800",
+        "codeunitId": 134971,
+        "codeunitName": "Rest Client Tests",
+        "method": "TestResponseWithCookies"
+    },
+    {
+        "bug": "524800",
+        "codeunitId": 134971,
+        "codeunitName": "Rest Client Tests",
+        "method": "TestRequestWithCookies"
+    },
+    {
+        "bug": "524800",
+        "codeunitId": 134971,
+        "codeunitName": "Rest Client Tests",
+        "method": "TestGetAsJson"
+    },
+    {
+        "bug": "524800",
+        "codeunitId": 134971,
+        "codeunitName": "Rest Client Tests",
+        "method": "TestWithoutUseResponseCookies"
+    },
+    {
+        "bug": "524800",
+        "codeunitId": 134971,
+        "codeunitName": "Rest Client Tests",
+        "method": "TestWithUseResponseCookies"
+    },
+    {
+        "bug": "524800",
+        "codeunitId": 134971,
+        "codeunitName": "Rest Client Tests",
+        "method": "TestUseResponseCookiesWithAdditionalCookies"
+    }
+]

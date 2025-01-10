@@ -13,14 +13,39 @@ codeunit 2351 "Rest Client Impl."
     var
         DefaultHttpClientHandler: Codeunit "Http Client Handler";
         HttpAuthenticationAnonymous: Codeunit "Http Authentication Anonymous";
+        RestClientExceptionBuilder: Codeunit "Rest Client Exception Builder";
         HttpAuthentication: Interface "Http Authentication";
         HttpClientHandler: Interface "Http Client Handler";
-        HttpClient: HttpClient;
+        CurrHttpClientInstance: HttpClient;
         IsInitialized: Boolean;
-        EnvironmentBlocksErr: Label 'Environment blocks an outgoing HTTP request to ''%1''.', Comment = '%1 = url, e.g. https://microsoft.com';
-        ConnectionErr: Label 'Connection to the remote service ''%1'' could not be established.', Comment = '%1 = url, e.g. https://microsoft.com';
-        RequestFailedErr: Label 'The request failed: %1 %2', Comment = '%1 = HTTP status code, %2 = Reason phrase';
+        EnvironmentBlocksErr: Label 'The outgoing HTTP request to "%1" was blocked by the environment.', Comment = '%1 = url, e.g. https://microsoft.com';
+        ConnectionErr: Label 'Connection to the remote service "%1" could not be established.', Comment = '%1 = url, e.g. https://microsoft.com';
+        RequestFailedErr: Label 'The request to "%1" failed with status code %2 %3.', Comment = '%1 = url, %2 = HTTP status code, %3 = Reason phrase';
         UserAgentLbl: Label 'Dynamics 365 Business Central - |%1| %2/%3', Locked = true, Comment = '%1 = App Publisher; %2 = App Name; %3 = App Version';
+        TimeoutOutOfRangeErr: Label 'The timeout value must be greater than 0.';
+
+    #region Constructors
+    procedure Create() RestClientImpl: Codeunit "Rest Client Impl."
+    begin
+        RestClientImpl := RestClientImpl.Create(DefaultHttpClientHandler, HttpAuthenticationAnonymous);
+    end;
+
+    procedure Create(HttpClientHandlerInstance: Interface "Http Client Handler") RestClientImpl: Codeunit "Rest Client Impl."
+    begin
+        RestClientImpl := RestClientImpl.Create(HttpClientHandlerInstance, HttpAuthenticationAnonymous);
+    end;
+
+    procedure Create(HttpAuthenticationInstance: Interface "Http Authentication") RestClientImpl: Codeunit "Rest Client Impl."
+    begin
+        RestClientImpl := RestClientImpl.Create(DefaultHttpClientHandler, HttpAuthenticationInstance);
+    end;
+
+    procedure Create(HttpClientHandlerInstance: Interface "Http Client Handler"; HttpAuthenticationInstance: Interface "Http Authentication"): Codeunit "Rest Client Impl."
+    begin
+        Initialize(HttpClientHandlerInstance, HttpAuthenticationInstance);
+        exit(this);
+    end;
+    #endregion
 
     #region Initialization
     procedure Initialize()
@@ -28,23 +53,21 @@ codeunit 2351 "Rest Client Impl."
         Initialize(DefaultHttpClientHandler, HttpAuthenticationAnonymous);
     end;
 
-#pragma warning disable AA0244
-    procedure Initialize(HttpClientHandler: Interface "Http Client Handler")
+    procedure Initialize(HttpClientHandlerInstance: Interface "Http Client Handler")
     begin
-        Initialize(HttpClientHandler, HttpAuthenticationAnonymous);
+        Initialize(HttpClientHandlerInstance, HttpAuthenticationAnonymous);
     end;
 
-    procedure Initialize(HttpAuthentication: Interface "Http Authentication")
+    procedure Initialize(HttpAuthenticationInstance: Interface "Http Authentication")
     begin
-        Initialize(DefaultHttpClientHandler, HttpAuthentication);
+        Initialize(DefaultHttpClientHandler, HttpAuthenticationInstance);
     end;
-#pragma warning restore AA0244
 
     procedure Initialize(HttpClientHandlerInstance: Interface "Http Client Handler"; HttpAuthenticationInstance: Interface "Http Authentication")
     begin
         ClearAll();
 
-        HttpClient.Clear();
+        CurrHttpClientInstance.Clear();
         HttpClientHandler := HttpClientHandlerInstance;
         HttpAuthentication := HttpAuthenticationInstance;
         IsInitialized := true;
@@ -54,53 +77,55 @@ codeunit 2351 "Rest Client Impl."
     procedure SetDefaultRequestHeader(Name: Text; Value: Text)
     begin
         CheckInitialized();
-        if HttpClient.DefaultRequestHeaders.Contains(Name) then
-            HttpClient.DefaultRequestHeaders.Remove(Name);
-        HttpClient.DefaultRequestHeaders.Add(Name, Value);
+        if CurrHttpClientInstance.DefaultRequestHeaders.Contains(Name) then
+            CurrHttpClientInstance.DefaultRequestHeaders.Remove(Name);
+        CurrHttpClientInstance.DefaultRequestHeaders.Add(Name, Value);
     end;
 
     procedure SetDefaultRequestHeader(Name: Text; Value: SecretText)
     begin
         CheckInitialized();
-        if HttpClient.DefaultRequestHeaders.Contains(Name) then
-            HttpClient.DefaultRequestHeaders.Remove(Name);
-        HttpClient.DefaultRequestHeaders.Add(Name, Value);
+        if CurrHttpClientInstance.DefaultRequestHeaders.Contains(Name) then
+            CurrHttpClientInstance.DefaultRequestHeaders.Remove(Name);
+        CurrHttpClientInstance.DefaultRequestHeaders.Add(Name, Value);
     end;
 
     procedure SetBaseAddress(Url: Text)
     begin
         CheckInitialized();
-        HttpClient.SetBaseAddress(Url);
+        CurrHttpClientInstance.SetBaseAddress(Url);
     end;
 
     procedure GetBaseAddress() Url: Text
     begin
         CheckInitialized();
-        Url := HttpClient.GetBaseAddress;
+        Url := CurrHttpClientInstance.GetBaseAddress;
     end;
 
     procedure SetTimeOut(TimeOut: Duration)
     begin
         CheckInitialized();
-        HttpClient.Timeout := TimeOut;
+        if TimeOut <= 0 then
+            Error(TimeoutOutOfRangeErr);
+        CurrHttpClientInstance.Timeout := TimeOut;
     end;
 
     procedure GetTimeOut() TimeOut: Duration
     begin
         CheckInitialized();
-        TimeOut := HttpClient.Timeout;
+        TimeOut := CurrHttpClientInstance.Timeout;
     end;
 
     procedure AddCertificate(Certificate: Text)
     begin
         CheckInitialized();
-        HttpClient.AddCertificate(Certificate);
+        CurrHttpClientInstance.AddCertificate(Certificate);
     end;
 
     procedure AddCertificate(Certificate: Text; Password: SecretText)
     begin
         CheckInitialized();
-        HttpClient.AddCertificate(Certificate, Password);
+        CurrHttpClientInstance.AddCertificate(Certificate, Password);
     end;
 
     procedure SetAuthorizationHeader(Value: SecretText)
@@ -112,8 +137,13 @@ codeunit 2351 "Rest Client Impl."
     begin
         SetDefaultRequestHeader('User-Agent', Value);
     end;
-    #endregion
 
+    procedure SetUseResponseCookies(Value: Boolean)
+    begin
+        CheckInitialized();
+        CurrHttpClientInstance.UseResponseCookies(Value);
+    end;
+    #endregion
 
     #region BasicMethodsAsJson
     procedure GetAsJson(RequestUri: Text) JsonToken: JsonToken
@@ -121,8 +151,16 @@ codeunit 2351 "Rest Client Impl."
         HttpResponseMessage: Codeunit "Http Response Message";
     begin
         HttpResponseMessage := Send(Enum::"Http Method"::GET, RequestUri);
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
+
         if not HttpResponseMessage.GetIsSuccessStatusCode() then
-            Error(HttpResponseMessage.GetErrorMessage());
+            Error(HttpResponseMessage.GetException());
+
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         JsonToken := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -133,9 +171,16 @@ codeunit 2351 "Rest Client Impl."
         HttpContent: Codeunit "Http Content";
     begin
         HttpResponseMessage := Send(Enum::"Http Method"::POST, RequestUri, HttpContent.Create(Content));
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         if not HttpResponseMessage.GetIsSuccessStatusCode() then
-            Error(HttpResponseMessage.GetErrorMessage());
+            Error(HttpResponseMessage.GetException());
+
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -146,9 +191,16 @@ codeunit 2351 "Rest Client Impl."
         HttpContent: Codeunit "Http Content";
     begin
         HttpResponseMessage := Send(Enum::"Http Method"::PATCH, RequestUri, HttpContent.Create(Content));
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         if not HttpResponseMessage.GetIsSuccessStatusCode() then
-            Error(HttpResponseMessage.GetErrorMessage());
+            Error(HttpResponseMessage.GetException());
+
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -159,9 +211,16 @@ codeunit 2351 "Rest Client Impl."
         HttpContent: Codeunit "Http Content";
     begin
         HttpResponseMessage := Send(Enum::"Http Method"::PUT, RequestUri, HttpContent.Create(Content));
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         if not HttpResponseMessage.GetIsSuccessStatusCode() then
-            Error(HttpResponseMessage.GetErrorMessage());
+            Error(HttpResponseMessage.GetException());
+
+        if IsCollectingErrors() then
+            if HasCollectedErrors() then
+                exit;
 
         Response := HttpResponseMessage.GetContent().AsJson();
     end;
@@ -179,15 +238,7 @@ codeunit 2351 "Rest Client Impl."
     var
         HttpRequestMessage: Codeunit "Http Request Message";
     begin
-        CheckInitialized();
-
-        HttpRequestMessage.SetHttpMethod(Method);
-        if RequestUri.StartsWith('http://') or RequestUri.StartsWith('https://') then
-            HttpRequestMessage.SetRequestUri(RequestUri)
-        else
-            HttpRequestMessage.SetRequestUri(GetBaseAddress() + RequestUri);
-        HttpRequestMessage.SetContent(Content);
-
+        HttpRequestMessage := CreateHttpRequestMessage(Method, RequestUri, Content);
         HttpResponseMessage := Send(HttpRequestMessage);
     end;
 
@@ -196,8 +247,9 @@ codeunit 2351 "Rest Client Impl."
         CheckInitialized();
 
         if not SendRequest(HttpRequestMessage, HttpResponseMessage) then
-            Error(HttpResponseMessage.GetErrorMessage());
+            Error(HttpResponseMessage.GetException());
     end;
+
     #endregion
 
     #region Local Methods
@@ -218,27 +270,36 @@ codeunit 2351 "Rest Client Impl."
         SetUserAgentHeader(UserAgentString);
     end;
 
+    local procedure CreateHttpRequestMessage(Method: Enum "Http Method"; RequestUri: Text; Content: Codeunit "Http Content") HttpRequestMessage: Codeunit "Http Request Message"
+    begin
+        if not (RequestUri.StartsWith('http://') or RequestUri.StartsWith('https://')) then
+            RequestUri := GetBaseAddress() + RequestUri;
+        HttpRequestMessage := HttpRequestMessage.Create(Method, RequestUri, Content);
+    end;
+
     local procedure SendRequest(var HttpRequestMessage: Codeunit "Http Request Message"; var HttpResponseMessage: Codeunit "Http Response Message"): Boolean
-    var
-        ErrorMessage: Text;
     begin
         Clear(HttpResponseMessage);
 
         if HttpAuthentication.IsAuthenticationRequired() then
             Authorize(HttpRequestMessage);
 
-        if not HttpClientHandler.Send(HttpClient, HttpRequestMessage, HttpResponseMessage) then begin
+        if not HttpClientHandler.Send(CurrHttpClientInstance, HttpRequestMessage, HttpResponseMessage) then begin
             if HttpResponseMessage.GetIsBlockedByEnvironment() then
-                ErrorMessage := StrSubstNo(EnvironmentBlocksErr, HttpRequestMessage.GetRequestUri())
+                HttpResponseMessage.SetException(
+                    RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::BlockedByEnvironment,
+                                                               StrSubstNo(EnvironmentBlocksErr, HttpRequestMessage.GetRequestUri())))
             else
-                ErrorMessage := StrSubstNo(ConnectionErr, HttpRequestMessage.GetRequestUri());
+                HttpResponseMessage.SetException(
+                    RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::ConnectionFailed,
+                                                               StrSubstNo(ConnectionErr, HttpRequestMessage.GetRequestUri())));
             exit(false);
         end;
 
-        if not HttpResponseMessage.GetIsSuccessStatusCode() then begin
-            ErrorMessage := StrSubstNo(RequestFailedErr, HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase());
-            HttpResponseMessage.SetErrorMessage(ErrorMessage);
-        end;
+        if not HttpResponseMessage.GetIsSuccessStatusCode() then
+            HttpResponseMessage.SetException(
+                RestClientExceptionBuilder.CreateException(Enum::"Rest Client Exception"::RequestFailed,
+                                                           StrSubstNo(RequestFailedErr, HttpRequestMessage.GetRequestUri(), HttpResponseMessage.GetHttpStatusCode(), HttpResponseMessage.GetReasonPhrase())));
 
         exit(true);
     end;
