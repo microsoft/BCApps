@@ -755,35 +755,4 @@ codeunit 7772 "Azure OpenAI Impl"
         Session.LogMessage('0000MLE', TelemetryTenantAllowlistedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
         exit(true);
     end;
-
-    procedure SendNotification()
-    var
-        Notif: Notification;
-    begin
-        Notif.Message := 'Whatever';
-        Notif.Scope := Notif.Scope::LocalScope;
-        notif.Send();
-        //notif.AddAction(); //for documentation
-    end;
-
-    procedure CreateRecord()
-    var
-        Whatever: Record "Aggregate Permission Set";
-    begin
-        //create
-        Whatever.Name := 'Name';
-        //define primary key (unique module name)
-        Whatever.Insert();
-
-        //add
-        Whatever.Name := 'Name';
-        Whatever.Modify();
-        //update
-        Whatever.Get(); //add primary key
-        Whatever.Name := 'Name';
-        Whatever.Modify();
-        //delete
-        Whatever.Get(); //add primary key
-        Whatever.Delete()
-    end;
 }
