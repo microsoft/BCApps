@@ -199,18 +199,14 @@ codeunit 7767 "AOAI Authorization"
         // Handle failed verification
         if not IsVerified then begin
             SendNotification(Notif);
-
-            LogTelemetry(AOAIAccountName, Today); // Replace Today with the actual deprecation date
+            LogTelemetry(AOAIAccountName, Today);
 
             if IsAccountVerifiedWithinPeriod(TruncatedAccountName, GracePeriod) then
-                // Verified if within grace period
-                exit(true);
-            // Failed verification if grace period has been exceeded
-            exit(false);
+                exit(true); // Verified if within grace period
+            exit(false); // Failed verification if grace period has been exceeded
         end;
 
         SaveVerificationTime(TruncatedAccountName);
-
         exit(true);
     end;
 
@@ -220,7 +216,6 @@ codeunit 7767 "AOAI Authorization"
     begin
         if Rec.Get(AccountName) then
             exit(CurrentDateTime - Rec.LastSuccessfulVerification <= Period);
-
         exit(false);
     end;
 
