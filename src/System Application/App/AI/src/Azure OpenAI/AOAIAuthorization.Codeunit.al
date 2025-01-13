@@ -5,7 +5,7 @@
 namespace System.AI;
 
 using System;
-
+using System.Telemetry;
 /// <summary>
 /// Store the authorization information for the AOAI service.
 /// </summary>
@@ -180,11 +180,10 @@ codeunit 7767 "AOAI Authorization"
 
     local procedure VerifyAOAIAccount(AOAIAccountName: Text; NewApiKey: Text): Boolean
     var
-        AOAIAccountVerificationLog: Record "AOAIAccountVerificationLog";
+        Notif: Notification;
+        IsVerified: Boolean;
         GracePeriod: Duration;
         CachePeriod: Duration;
-        LastSuccessfulVerification: DateTime;
-        IsVerified: Boolean;
         TruncatedAccountName: Text[100];
     begin
         GracePeriod := 14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
@@ -192,36 +191,79 @@ codeunit 7767 "AOAI Authorization"
 
         TruncatedAccountName := CopyStr(AOAIAccountName, 1, 100);
 
-        // Check if the account has been successfully verified within the cache period
-        if AOAIAccountVerificationLog.Get(TruncatedAccountName) then begin
-            LastSuccessfulVerification := AOAIAccountVerificationLog.LastSuccessfulVerification;
-            if CurrentDateTime - LastSuccessfulVerification <= CachePeriod then
-                exit(true);
-        end;
+        if IsAccountVerifiedWithinPeriod(TruncatedAccountName, CachePeriod) then
+            exit(true);
 
         IsVerified := PerformAOAIAccountVerification(AOAIAccountName, NewApiKey);
 
+        // Handle failed verification
         if not IsVerified then begin
-            // If verification fails, check if the last successful verification is within the grace period
-            if AOAIAccountVerificationLog.Get(TruncatedAccountName) then begin
-                LastSuccessfulVerification := AOAIAccountVerificationLog.LastSuccessfulVerification;
-                if CurrentDateTime - LastSuccessfulVerification <= GracePeriod then
-                    exit(true);
-            end;
+            SendNotification(Notif);
+
+            LogTelemetry(AOAIAccountName, Today); // Replace Today with the actual deprecation date
+
+            if IsAccountVerifiedWithinPeriod(TruncatedAccountName, GracePeriod) then
+                // Verified if within grace period
+                exit(true);
+            // Failed verification if grace period has been exceeded
             exit(false);
         end;
 
-        // Save verification date
-        if AOAIAccountVerificationLog.Get(TruncatedAccountName) then begin
-            AOAIAccountVerificationLog.LastSuccessfulVerification := CurrentDateTime;
-            AOAIAccountVerificationLog.Modify(true);
-        end else begin
-            AOAIAccountVerificationLog.Init();
-            AOAIAccountVerificationLog.AccountName := TruncatedAccountName;
-            AOAIAccountVerificationLog.LastSuccessfulVerification := CurrentDateTime;
-            AOAIAccountVerificationLog.Insert(true);
-        end;
+        SaveVerificationTime(TruncatedAccountName);
 
         exit(true);
+    end;
+
+    local procedure IsAccountVerifiedWithinPeriod(AccountName: Text[100]; Period: Duration): Boolean
+    var
+        Rec: Record "AOAIAccountVerificationLog";
+    begin
+        if Rec.Get(AccountName) then
+            exit(CurrentDateTime - Rec.LastSuccessfulVerification <= Period);
+
+        exit(false);
+    end;
+
+    local procedure SaveVerificationTime(AccountName: Text[100])
+    var
+        Rec: Record "AOAIAccountVerificationLog";
+    begin
+        if Rec.Get(AccountName) then begin
+            Rec.LastSuccessfulVerification := CurrentDateTime;
+            Rec.Modify(true);
+        end else begin
+            Rec.Init();
+            Rec.AccountName := AccountName;
+            Rec.LastSuccessfulVerification := CurrentDateTime;
+            Rec.Insert(true);
+        end;
+    end;
+
+    local procedure SendNotification(var Notif: Notification)
+    var
+        MessageLbl: Label 'Azure Open AI authorization failed. AI functionality will be disabled within 2 weeks. Please contact your system administrator or the extension developer for assistance.';
+    begin
+        Notif.Message := MessageLbl;
+        Notif.Scope := NotificationScope::LocalScope;
+        Notif.Send();
+    end;
+
+    local procedure LogTelemetry(AccountName: Text; VerificationDate: Date)
+    var
+        Telemetry: Codeunit Telemetry;
+        MessageLbl: Label 'Azure Open AI authorization failed for account %1 on %2 because it is not authorized to access AI services. The connection will be terminated within 2 weeks if not rectified', Comment = 'Telemetry message where %1 is the name of the Azure Open AI account name and %2 is the date where verification has taken place';
+        CustomDimensions: Dictionary of [Text, Text];
+    begin
+        CustomDimensions.Add('AccountName', AccountName);
+        CustomDimensions.Add('VerificationDate', Format(VerificationDate, 0, '<Year4>-<Month,2>-<Day,2>'));
+
+        Telemetry.LogMessage(
+            '0000AA1', // Event ID
+            StrSubstNo(MessageLbl, AccountName, VerificationDate), // Message
+            Verbosity::Warning,
+            DataClassification::SystemMetadata,
+            Enum::"AL Telemetry Scope"::All,
+            CustomDimensions
+        );
     end;
 }
