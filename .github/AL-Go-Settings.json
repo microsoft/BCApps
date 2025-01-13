@@ -5,10 +5,10 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "bcinsider/Sandbox/25.3/base/latest",
+  "artifact": "bcinsider/Sandbox/25.4/base/latest",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "25.3",
+  "repoVersion": "25.4",
   "conditionalSettings": [
     {
         "buildModes": [ "Clean" ],
