@@ -28,7 +28,7 @@
         }
     },
     {
-        "branch": [ "main", "releases/*.x" ],
+        "branches": [ "main", "releases/*.x" ],
         "settings": {
             "buildModes": [ "Clean" ]
         }
