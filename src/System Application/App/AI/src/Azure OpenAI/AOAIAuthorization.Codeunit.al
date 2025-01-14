@@ -186,13 +186,15 @@ codeunit 7767 "AOAI Authorization"
         CachePeriod: Duration;
         TruncatedAccountName: Text[100];
     begin
-        GracePeriod := 14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
-        CachePeriod := 24 * 60 * 60 * 1000; // 1 day in milliseconds
+        GracePeriod := 15 * 60 * 100;//14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
+        CachePeriod := 1 * 60 * 100;//24 * 60 * 60 * 1000; // 1 day in milliseconds
 
         TruncatedAccountName := CopyStr(AOAIAccountName, 1, 100);
 
-        if IsAccountVerifiedWithinPeriod(TruncatedAccountName, CachePeriod) then
+        if IsAccountVerifiedWithinPeriod(TruncatedAccountName, CachePeriod) then begin
+            Message('Verification skipped (within cache period).');
             exit(true);
+        end;
 
         IsVerified := PerformAOAIAccountVerification(AOAIAccountName, NewApiKey);
 
@@ -200,13 +202,15 @@ codeunit 7767 "AOAI Authorization"
         if not IsVerified then begin
             SendNotification(Notif);
             LogTelemetry(AOAIAccountName, Today);
-
-            if IsAccountVerifiedWithinPeriod(TruncatedAccountName, GracePeriod) then
+            if IsAccountVerifiedWithinPeriod(TruncatedAccountName, GracePeriod) then begin
+                Message('Verification failed, but account is still valid (within grace period).');
                 exit(true); // Verified if within grace period
+            end;
+            Message('Verification failed, and account is no longer valid (grace period expired).');
             exit(false); // Failed verification if grace period has been exceeded
         end;
-
         SaveVerificationTime(TruncatedAccountName);
+        Message('Verification successful. Record saved.');
         exit(true);
     end;
 
