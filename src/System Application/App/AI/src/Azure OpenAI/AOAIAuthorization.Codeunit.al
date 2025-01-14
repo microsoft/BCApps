@@ -186,8 +186,8 @@ codeunit 7767 "AOAI Authorization"
         CachePeriod: Duration;
         TruncatedAccountName: Text[100];
     begin
-        GracePeriod := 15 * 60 * 100;//14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
-        CachePeriod := 1 * 60 * 100;//24 * 60 * 60 * 1000; // 1 day in milliseconds
+        GracePeriod := 15 * 60 * 1000;//14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
+        CachePeriod := 1 * 60 * 1000;//24 * 60 * 60 * 1000; // 1 day in milliseconds
 
         TruncatedAccountName := CopyStr(AOAIAccountName, 1, 100);
 

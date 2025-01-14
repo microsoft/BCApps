@@ -5,7 +5,8 @@ table 7767 "AOAIAccountVerificationLog"
     Caption = 'AOAI Account Verification Log';
     Access = Internal;
     Extensible = false;
-    InherentEntitlements = RIMD;
+    InherentEntitlements = RIMDX;
+    InherentPermissions = X;
     DataPerCompany = false;
     ReplicateData = false;
 
