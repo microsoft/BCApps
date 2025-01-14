@@ -11,7 +11,6 @@ using System.Environment;
 using System.Globalization;
 using System.Privacy;
 using System.Telemetry;
-using System.Security.AccessControl;
 
 codeunit 7772 "Azure OpenAI Impl"
 {
