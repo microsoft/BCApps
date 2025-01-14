@@ -9,15 +9,30 @@
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "24.5",
-  "cleanModePreprocessorSymbols": [
-    "CLEAN17",
-    "CLEAN18",
-    "CLEAN19",
-    "CLEAN20",
-    "CLEAN21",
-    "CLEAN22",
-    "CLEAN23",
-    "CLEAN24"
+  "conditionalSettings": [
+    {
+        "buildModes": [ "Clean" ],
+        "settings": {
+            "preprocessorSymbols": [
+              "CLEAN17",
+              "CLEAN18",
+              "CLEAN19",
+              "CLEAN20",
+              "CLEAN21",
+              "CLEAN22",
+              "CLEAN23",
+              "CLEAN24",
+              "CLEAN25",
+              "CLEAN26"
+             ]
+        }
+    },
+    {
+        "branches": [ "main", "releases/*.x" ],
+        "settings": {
+            "buildModes": [ "Clean" ]
+        }
+    }
   ],
   "unusedALGoSystemFiles": [
     "AddExistingAppOrTestApp.yaml",
@@ -36,8 +51,7 @@
     "Official-Build"
   ],
   "buildModes": [
-    "Default",
-    "Clean"
+    "Default"
   ],
   "CICDPushBranches": [
     "main",
