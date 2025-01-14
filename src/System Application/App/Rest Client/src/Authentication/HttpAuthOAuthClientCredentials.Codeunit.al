@@ -7,6 +7,7 @@ namespace System.RestClient;
 
 codeunit 2361 "HttpAuthOAuthClientCredentials" implements "Http Authentication"
 {
+    Access = Public;
     InherentEntitlements = X;
     InherentPermissions = X;
 

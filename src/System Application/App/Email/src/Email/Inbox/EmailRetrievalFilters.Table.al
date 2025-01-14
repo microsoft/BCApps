@@ -48,10 +48,13 @@ table 8885 "Email Retrieval Filters"
             InitValue = "HTML";
             Caption = 'Body Type';
         }
-
         field(7; "Earliest Email"; DateTime)
         {
             Caption = 'Earliest Email';
+        }
+        field(8; "Last Message Only"; Boolean)
+        {
+            Caption = 'Last Message Only';
         }
     }
 
