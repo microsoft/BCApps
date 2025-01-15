@@ -684,9 +684,16 @@ codeunit 7772 "Azure OpenAI Impl"
 
     [NonDebuggable]
     local procedure CheckTextCompletionMetaprompt(Metaprompt: SecretText; CustomDimensions: Dictionary of [Text, Text])
+    var
+        ModuleInfo: ModuleInfo;
     begin
-        if Metaprompt.Unwrap().Trim() = '' then
+        if Metaprompt.Unwrap().Trim() = '' then begin
             FeatureTelemetry.LogError('0000LO8', CopilotCapabilityImpl.GetAzureOpenAICategory(), TelemetryGenerateTextCompletionLbl, EmptyMetapromptErr, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
+
+            NavApp.GetCurrentModuleInfo(ModuleInfo);
+            if ModuleInfo.Publisher = 'Microsoft' then
+                Error(EmptyMetapromptErr);
+        end;
     end;
 #if not CLEAN24
     [NonDebuggable]
