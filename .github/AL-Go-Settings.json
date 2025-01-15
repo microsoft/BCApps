@@ -11,27 +11,34 @@
   "repoVersion": "24.1",
   "conditionalSettings": [
     {
-        "buildModes": [ "Clean" ],
-        "settings": {
-            "preprocessorSymbols": [
-              "CLEAN17",
-              "CLEAN18",
-              "CLEAN19",
-              "CLEAN20",
-              "CLEAN21",
-              "CLEAN22",
-              "CLEAN23",
-              "CLEAN24",
-              "CLEAN25",
-              "CLEAN26"
-             ]
-        }
+      "buildModes": [
+        "Clean"
+      ],
+      "settings": {
+        "preprocessorSymbols": [
+          "CLEAN17",
+          "CLEAN18",
+          "CLEAN19",
+          "CLEAN20",
+          "CLEAN21",
+          "CLEAN22",
+          "CLEAN23",
+          "CLEAN24",
+          "CLEAN25",
+          "CLEAN26"
+        ]
+      }
     },
     {
-        "branches": [ "main", "releases/*.x" ],
-        "settings": {
-            "buildModes": [ "Clean" ]
-        }
+      "branches": [
+        "main",
+        "releases/*.x"
+      ],
+      "settings": {
+        "buildModes": [
+          "Clean"
+        ]
+      }
     }
   ],
   "unusedALGoSystemFiles": [
@@ -87,7 +94,7 @@
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "044c659dce8d72c3f1750a55dd7792c4db0a0a56",
+  "templateSha": "764fc413d9ab5b31265377c8422a71163b464db6",
   "commitOptions": {
     "messageSuffix": "Related to AB#539394",
     "pullRequestAutoMerge": true,
