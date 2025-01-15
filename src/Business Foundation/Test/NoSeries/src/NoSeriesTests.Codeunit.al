@@ -974,6 +974,7 @@ codeunit 134530 "No. Series Tests"
         NoSeries.Code.SetValue(NewNoSeriesCode);
         NoSeries.Next();
         NoSeries.GoToKey(NewNoSeriesCode);
+        // Fill in Starting Date and Starting No. on the No. Series Line
         NoSeries.StartNo.Drilldown();
 
         // Verify
@@ -995,6 +996,24 @@ codeunit 134530 "No. Series Tests"
 
         // Verify
         LibraryAssert.ExpectedError('The filter on Series Code was altered by an event subscriber. This is a programming error. Please contact your partner to resolve the issue.');
+    end;
+
+    [Test]
+    procedure TestOpenNoSeriesPageWithFilterCharacters()
+    var
+        NoSeriesRec: Record "No. Series";
+        NoSeries: TestPage "No. Series";
+    begin
+        // Setup
+        NoSeriesRec.Code := 'ABC&DEF|GHI<JKL>MNO';
+        NoSeriesRec.Insert();
+
+        // Execute
+        ClearLastError();
+        NoSeries.OpenView();
+
+        // Verify
+        LibraryAssert.AreEqual('', GetLastErrorText(), 'No error should be thrown when opening No. Series page with filter characters in the No. Series Code');
     end;
 
     [ModalPageHandler]
