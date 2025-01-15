@@ -5,6 +5,7 @@
 namespace System.AI;
 
 using System;
+
 using System.Telemetry;
 /// <summary>
 /// Store the authorization information for the AOAI service.
@@ -14,7 +15,7 @@ codeunit 7767 "AOAI Authorization"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata AOAIAccountVerificationLog = RIMD;
+    Permissions = tabledata "AOAI Account Verification Log" = RIMD;
 
     var
         [NonDebuggable]
@@ -26,7 +27,6 @@ codeunit 7767 "AOAI Authorization"
         [NonDebuggable]
         ManagedResourceDeployment: Text;
         ResourceUtilization: Enum "AOAI Resource Utilization";
-        [NonDebuggable]
         FirstPartyAuthorization: Boolean;
         SelfManagedAuthorization: Boolean;
         MicrosoftManagedAuthorization: Boolean;
@@ -71,7 +71,7 @@ codeunit 7767 "AOAI Authorization"
         IsVerified: Boolean;
     begin
         ClearVariables();
-        IsVerified := VerifyAOAIAccount(AOAIAccountName, NewApiKey.Unwrap());
+        IsVerified := VerifyAOAIAccount(AOAIAccountName, NewApiKey);
 
         if IsVerified then begin
             ResourceUtilization := Enum::"AOAI Resource Utilization"::"Microsoft Managed";
@@ -144,7 +144,7 @@ codeunit 7767 "AOAI Authorization"
     end;
 
     [NonDebuggable]
-    local procedure PerformAOAIAccountVerification(AOAIAccountName: Text; NewApiKey: Text): Boolean
+    local procedure PerformAOAIAccountVerification(AOAIAccountName: Text; NewApiKey: SecretText): Boolean
     var
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
@@ -178,7 +178,7 @@ codeunit 7767 "AOAI Authorization"
         exit(true);
     end;
 
-    local procedure VerifyAOAIAccount(AOAIAccountName: Text; NewApiKey: Text): Boolean
+    local procedure VerifyAOAIAccount(AOAIAccountName: Text; NewApiKey: SecretText): Boolean
     var
         Notif: Notification;
         IsVerified: Boolean;
@@ -186,7 +186,7 @@ codeunit 7767 "AOAI Authorization"
         CachePeriod: Duration;
         TruncatedAccountName: Text[100];
     begin
-        Message('Starting VerifyAOAIAccount procedure. Variables: AOAIAccountName=' + AOAIAccountName + ', NewApiKey=' + NewApiKey);
+        Message('Starting VerifyAOAIAccount procedure. Variables: AOAIAccountName=' + AOAIAccountName);
 
         GracePeriod := 15 * 60 * 1000;//14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
         CachePeriod := 1 * 60 * 1000;//24 * 60 * 60 * 1000; // 1 day in milliseconds
@@ -222,7 +222,7 @@ codeunit 7767 "AOAI Authorization"
 
     local procedure IsAccountVerifiedWithinPeriod(AccountName: Text[100]; Period: Duration): Boolean
     var
-        Rec: Record "AOAIAccountVerificationLog";
+        Rec: Record "AOAI Account Verification Log";
         IsVerified: Boolean;
     begin
         Message('Starting IsAccountVerifiedWithinPeriod procedure. Variables: AccountName=' + AccountName + ', Period=' + Format(Period, 0, '<Duration>'));
@@ -240,7 +240,7 @@ codeunit 7767 "AOAI Authorization"
 
     local procedure SaveVerificationTime(AccountName: Text[100])
     var
-        Rec: Record "AOAIAccountVerificationLog";
+        Rec: Record "AOAI Account Verification Log";
     begin
         Message('Starting SaveVerificationTime procedure. Variables: AccountName=' + AccountName);
         if Rec.Get(AccountName) then begin

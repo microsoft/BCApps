@@ -100,6 +100,7 @@ codeunit 7771 "Azure OpenAI"
     /// Deployment would look like: gpt-35-turbo-16k
     /// </remarks>
     [NonDebuggable]
+    [Obsolete('Using Managed AI resources now requires different input parameters. Use the other overload for SetManagedResourceAuthorization instead.', '26.0')]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text; Deployment: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
     begin
         AzureOpenAIImpl.SetManagedResourceAuthorization(ModelType, Endpoint, Deployment, ApiKey, ManagedResourceDeployment);

@@ -1,6 +1,6 @@
 namespace System.AI;
 
-table 7767 "AOAIAccountVerificationLog"
+table 7767 "AOAI Account Verification Log"
 {
     Caption = 'AOAI Account Verification Log';
     Access = Internal;
