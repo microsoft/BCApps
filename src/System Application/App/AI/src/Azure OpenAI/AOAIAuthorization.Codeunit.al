@@ -186,40 +186,55 @@ codeunit 7767 "AOAI Authorization"
         CachePeriod: Duration;
         TruncatedAccountName: Text[100];
     begin
+        Message('Starting VerifyAOAIAccount procedure. Variables: AOAIAccountName=' + AOAIAccountName + ', NewApiKey=' + NewApiKey);
+
         GracePeriod := 15 * 60 * 1000;//14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
         CachePeriod := 1 * 60 * 1000;//24 * 60 * 60 * 1000; // 1 day in milliseconds
 
         TruncatedAccountName := CopyStr(AOAIAccountName, 1, 100);
 
+        Message('Variables: GracePeriod=' + Format(GracePeriod, 0, '<Duration>') + ', CachePeriod=' + Format(CachePeriod, 0, '<Duration>') + ', TruncatedAccountName=' + TruncatedAccountName);
+
         if IsAccountVerifiedWithinPeriod(TruncatedAccountName, CachePeriod) then begin
-            Message('Verification skipped (within cache period).');
+            Message('Function IsAccountVerifiedWithinPeriod called. Result: Verification skipped (within cache period).');
             exit(true);
         end;
 
         IsVerified := PerformAOAIAccountVerification(AOAIAccountName, NewApiKey);
+
+        Message('Function PerformAOAIAccountVerification called. Result: IsVerified=' + Format(IsVerified, 0, '<Boolean>'));
 
         // Handle failed verification
         if not IsVerified then begin
             SendNotification(Notif);
             LogTelemetry(AOAIAccountName, Today);
             if IsAccountVerifiedWithinPeriod(TruncatedAccountName, GracePeriod) then begin
-                Message('Verification failed, but account is still valid (within grace period).');
+                Message('Function IsAccountVerifiedWithinPeriod called. Result: Verification failed, but account is still valid (within grace period).');
                 exit(true); // Verified if within grace period
             end;
-            Message('Verification failed, and account is no longer valid (grace period expired).');
+            Message('Function IsAccountVerifiedWithinPeriod called. Result: Verification failed, and account is no longer valid (grace period expired).');
             exit(false); // Failed verification if grace period has been exceeded
         end;
         SaveVerificationTime(TruncatedAccountName);
-        Message('Verification successful. Record saved.');
+        Message('Function SaveVerificationTime called. Verification successful. Record saved.');
         exit(true);
     end;
 
     local procedure IsAccountVerifiedWithinPeriod(AccountName: Text[100]; Period: Duration): Boolean
     var
         Rec: Record "AOAIAccountVerificationLog";
+        IsVerified: Boolean;
     begin
-        if Rec.Get(AccountName) then
-            exit(CurrentDateTime - Rec.LastSuccessfulVerification <= Period);
+        Message('Starting IsAccountVerifiedWithinPeriod procedure. Variables: AccountName=' + AccountName + ', Period=' + Format(Period, 0, '<Duration>'));
+
+        if Rec.Get(AccountName) then begin
+            Message('Record found. Variables: CurrentDateTime=' + Format(CurrentDateTime, 0, '<DateTime>') + ', Rec.LastSuccessfulVerification=' + Format(Rec.LastSuccessfulVerification, 0, '<DateTime>'));
+            IsVerified := CurrentDateTime - Rec.LastSuccessfulVerification <= Period;
+            Message('Verification result: ' + Format(IsVerified, 0, '<Boolean>'));
+            exit(IsVerified);
+        end;
+
+        Message('Record not found. Exiting with false.');
         exit(false);
     end;
 
@@ -227,14 +242,17 @@ codeunit 7767 "AOAI Authorization"
     var
         Rec: Record "AOAIAccountVerificationLog";
     begin
+        Message('Starting SaveVerificationTime procedure. Variables: AccountName=' + AccountName);
         if Rec.Get(AccountName) then begin
             Rec.LastSuccessfulVerification := CurrentDateTime;
             Rec.Modify(true);
+            Message('Record updated. Variables: Rec.LastSuccessfulVerification=' + Format(Rec.LastSuccessfulVerification, 0, '<DateTime>'));
         end else begin
             Rec.Init();
             Rec.AccountName := AccountName;
             Rec.LastSuccessfulVerification := CurrentDateTime;
             Rec.Insert(true);
+            Message('Record inserted. Variables: Rec.AccountName=' + Rec.AccountName + ', Rec.LastSuccessfulVerification=' + Format(Rec.LastSuccessfulVerification, 0, '<DateTime>'));
         end;
     end;
 
@@ -253,6 +271,8 @@ codeunit 7767 "AOAI Authorization"
         MessageLbl: Label 'Azure Open AI authorization failed for account %1 on %2 because it is not authorized to access AI services. The connection will be terminated within 2 weeks if not rectified', Comment = 'Telemetry message where %1 is the name of the Azure Open AI account name and %2 is the date where verification has taken place';
         CustomDimensions: Dictionary of [Text, Text];
     begin
+        Message('Starting LogTelemetry procedure. Variables: AccountName=' + AccountName + ', VerificationDate=' + Format(VerificationDate, 0, '<Year4>-<Month,2>-<Day,2>'));
+
         CustomDimensions.Add('AccountName', AccountName);
         CustomDimensions.Add('VerificationDate', Format(VerificationDate, 0, '<Year4>-<Month,2>-<Day,2>'));
 
@@ -264,5 +284,6 @@ codeunit 7767 "AOAI Authorization"
             Enum::"AL Telemetry Scope"::All,
             CustomDimensions
         );
+        Message('Telemetry logged successfully. CustomDimensions: AccountName=' + AccountName + ', VerificationDate=' + Format(VerificationDate, 0, '<Year4>-<Month,2>-<Day,2>'));
     end;
 }
