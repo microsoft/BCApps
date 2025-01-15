@@ -221,9 +221,9 @@ function DrawLayout(titletxt, subtitletxt, explanationtxt, intro, introDescripti
     document.getElementById('tile3Button')?.setAttribute('aria-labelledby', 'tileDescription3 tileSubDescription3');
     document.getElementById('legalDescriptionDiv')?.setAttribute('aria-labelledby', 'legalDiv');
 
-    document.getElementById('tile1Button')?.addEventListener(() => ThumbnailClick(1));
-    document.getElementById('tile2Button')?.addEventListener(() => ThumbnailClick(2));
-    document.getElementById('tile3Button')?.addEventListener(() => ThumbnailClick(3));
+    document.getElementById('tile1Button')?.addEventListener("click", () => ThumbnailClick(1));
+    document.getElementById('tile2Button')?.addEventListener("click", () => ThumbnailClick(2));
+    document.getElementById('tile3Button')?.addEventListener("click", () => ThumbnailClick(3));
 }
 
 function ThumbnailClick(id)
