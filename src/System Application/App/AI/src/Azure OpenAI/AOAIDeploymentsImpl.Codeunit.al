@@ -33,7 +33,6 @@ codeunit 7769 "AOAI Deployments Impl"
         Turbo0301SaasLbl: Label 'turbo-0301', Locked = true;
         GPT40613SaasLbl: Label 'gpt4-0613', Locked = true;
         Turbo0613SaasLbl: Label 'turbo-0613', Locked = true;
-
         Turbo0301Lbl: Label 'chatGPT_GPT35-turbo-0301', Locked = true;
         GPT40613Lbl: Label 'gpt-4-32k', Locked = true;
         Turbo031316kLbl: Label 'gpt-35-turbo-16k', Locked = true;
@@ -115,7 +114,7 @@ codeunit 7769 "AOAI Deployments Impl"
         if DeprecationDatesInitialized then
             exit;
 
-        // Add deprecated deployments with their deprecation dates here
+        // Add deprecated deployments with their deprecation dates here:
 #if not CLEAN25
         DeprecatedDeployments.Add(GPT4LatestLbl, DMY2Date(1, 11, 2024));
         DeprecatedDeployments.Add(GPT4PreviewLbl, DMY2Date(1, 11, 2024));
@@ -125,11 +124,6 @@ codeunit 7769 "AOAI Deployments Impl"
         DeprecatedDeployments.Add(GPT40613SaasLbl, DMY2Date(1, 11, 2024));
         DeprecatedDeployments.Add(Turbo0613SaasLbl, DMY2Date(1, 11, 2024));
 #endif
-        DeprecatedDeployments.Add(GPT4oLatestLbl, DMY2Date(13, 5, 2025));
-        DeprecatedDeployments.Add(GPT4oPreviewLbl, DMY2Date(13, 5, 2025));
-        DeprecatedDeployments.Add(GPT4oMiniLatestLbl, DMY2Date(18, 7, 2025));
-        DeprecatedDeployments.Add(GPT4oMiniPreviewLbl, DMY2Date(18, 7, 2025));
-
         DeprecationDatesInitialized := true;
     end;
 
