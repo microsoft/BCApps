@@ -178,6 +178,31 @@ codeunit 7767 "AOAI Authorization"
         exit(true);
     end;
 
+    local procedure FormatDurationAsString(DurationValue: Duration): Text
+    var
+        Hours: Integer;
+        Minutes: Integer;
+        Seconds: Integer;
+        Milliseconds: Integer;
+    begin
+        // Convert milliseconds into hours, minutes, seconds
+        Hours := DurationValue div (60 * 60 * 1000);
+        DurationValue := DurationValue mod (60 * 60 * 1000);
+
+        Minutes := DurationValue div (60 * 1000);
+        DurationValue := DurationValue mod (60 * 1000);
+
+        Seconds := DurationValue div 1000;
+        Milliseconds := DurationValue mod 1000;
+
+        // Format as HH:MM:SS.mmm
+        exit(StrSubstNo('%1:%2:%3.%4',
+            Format(Hours, 2, '<Sign><Integer,2>'),
+            Format(Minutes, 2, '<Sign><Integer,2>'),
+            Format(Seconds, 2, '<Sign><Integer,2>'),
+            Format(Milliseconds, 3, '<Sign><Integer,3>')));
+    end;
+
     local procedure VerifyAOAIAccount(AOAIAccountName: Text; NewApiKey: SecretText): Boolean
     var
         Notif: Notification;
@@ -193,7 +218,7 @@ codeunit 7767 "AOAI Authorization"
 
         TruncatedAccountName := CopyStr(AOAIAccountName, 1, 100);
 
-        Message('Variables: GracePeriod=' + Format(GracePeriod, 0, '<Duration>') + ', CachePeriod=' + Format(CachePeriod, 0, '<Duration>') + ', TruncatedAccountName=' + TruncatedAccountName);
+        Message('Variables: GracePeriod=' + FormatDurationAsString(GracePeriod) + ', CachePeriod=' + FormatDurationAsString(CachePeriod) + ', TruncatedAccountName=' + TruncatedAccountName);
 
         if IsAccountVerifiedWithinPeriod(TruncatedAccountName, CachePeriod) then begin
             Message('Function IsAccountVerifiedWithinPeriod called. Result: Verification skipped (within cache period).');
@@ -225,7 +250,8 @@ codeunit 7767 "AOAI Authorization"
         Rec: Record "AOAI Account Verification Log";
         IsVerified: Boolean;
     begin
-        Message('Starting IsAccountVerifiedWithinPeriod procedure. Variables: AccountName=' + AccountName + ', Period=' + Format(Period, 0, '<Duration>'));
+        ;
+        Message('Starting IsAccountVerifiedWithinPeriod procedure. Variables: AccountName=' + AccountName + ', Period=' + FormatDurationAsString(Period));
 
         if Rec.Get(AccountName) then begin
             Message('Record found. Variables: CurrentDateTime=' + Format(CurrentDateTime, 0, '<DateTime>') + ', Rec.LastSuccessfulVerification=' + Format(Rec.LastSuccessfulVerification, 0, '<DateTime>'));
