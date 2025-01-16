@@ -839,18 +839,6 @@ tableextension 242 ObsoleteSourceCodeSetupExt extends "Source Code Setup"
             ObsoleteTag = '25.0';
             MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
         }
-#if not CLEANSCHEMA15
-        field(11200; "Inward Registration"; Code[10])
-        {
-            Caption = 'Inward Registration';
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'Replaced by extension';
-            ObsoleteState = Removed;
-#pragma warning disable AS0072
-            ObsoleteTag = '15.0';
-#pragma warning restore AS0072
-        }
-#endif
         field(11307; "Financial Journal"; Code[10])
         {
             Caption = 'Financial Journal';
@@ -881,80 +869,6 @@ tableextension 242 ObsoleteSourceCodeSetupExt extends "Source Code Setup"
             ObsoleteTag = '25.0';
             MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
         }
-#if not CLEANSCHEMA20
-        field(11760; "Purchase VAT Delay"; Code[10])
-        {
-            Caption = 'Purchase VAT Delay';
-            TableRelation = "Source Code";
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Moved to Core Localization Pack for Czech.';
-#pragma warning disable AS0072
-            ObsoleteTag = '20.0';
-#pragma warning restore AS0072
-        }
-        field(11761; "Sales VAT Delay"; Code[10])
-        {
-            Caption = 'Sales VAT Delay';
-            TableRelation = "Source Code";
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Moved to Core Localization Pack for Czech.';
-#pragma warning disable AS0072
-            ObsoleteTag = '20.0';
-#pragma warning restore AS0072
-        }
-#endif
-#if not CLEANSCHEMA18
-        field(11762; "VAT Coefficient"; Code[10])
-        {
-            Caption = 'VAT Coefficient';
-            TableRelation = "Source Code";
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteReason = 'The functionality of Non-deductible VAT has been removed and this field should not be used.';
-#pragma warning disable AS0072
-            ObsoleteTag = '18.0';
-#pragma warning restore AS0072
-        }
-#endif
-#if not CLEANSCHEMA22
-        field(11764; "Close Balance Sheet"; Code[10])
-        {
-            Caption = 'Close Balance Sheet';
-            TableRelation = "Source Code";
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Moved to Core Localization Pack for Czech.';
-#pragma warning disable AS0072
-            ObsoleteTag = '22.0';
-#pragma warning restore AS0072
-        }
-        field(11765; "Open Balance Sheet"; Code[10])
-        {
-            Caption = 'Open Balance Sheet';
-            TableRelation = "Source Code";
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Moved to Core Localization Pack for Czech.';
-#pragma warning disable AS0072
-            ObsoleteTag = '22.0';
-#pragma warning restore AS0072
-        }
-#endif
-#if not CLEANSCHEMA20
-        field(11766; "Cash Desk"; Code[10])
-        {
-            Caption = 'Cash Desk';
-            TableRelation = "Source Code";
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Moved to Cash Desk Localization for Czech.';
-#pragma warning disable AS0072
-            ObsoleteTag = '20.0';
-#pragma warning restore AS0072
-        }
-#endif
         field(12400; "Advance Statements"; Code[10])
         {
             Caption = 'Advance Statements';
@@ -1075,30 +989,6 @@ tableextension 242 ObsoleteSourceCodeSetupExt extends "Source Code Setup"
             ObsoleteTag = '25.0';
             MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
         }
-#if not CLEANSCHEMA21
-        field(12450; "Item Receipt"; Code[10])
-        {
-            Caption = 'Item Receipt';
-            TableRelation = "Source Code";
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'Replaced by Inventory Documents feature.';
-            ObsoleteState = Removed;
-#pragma warning disable AS0072
-            ObsoleteTag = '21.0';
-#pragma warning restore AS0072
-        }
-        field(12451; "Item Shipment"; Code[10])
-        {
-            Caption = 'Item Shipment';
-            TableRelation = "Source Code";
-            DataClassification = CustomerContent;
-            ObsoleteReason = 'Replaced by Inventory Documents feature.';
-            ObsoleteState = Removed;
-#pragma warning disable AS0072
-            ObsoleteTag = '21.0';
-#pragma warning restore AS0072
-        }
-#endif
         field(12470; "FA Release"; Code[10])
         {
             Caption = 'FA Release';
@@ -1159,32 +1049,6 @@ tableextension 242 ObsoleteSourceCodeSetupExt extends "Source Code Setup"
             ObsoleteTag = '25.0';
             MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
         }
-#if not CLEANSCHEMA18
-        field(31041; "Maintenance Adjustment"; Code[10])
-        {
-            Caption = 'Maintenance Adjustment';
-            TableRelation = "Source Code";
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteReason = 'The functionality of Item consumption for FA maintenance will be removed and this field should not be used. (Obsolete::Removed in release 01.2021)';
-#pragma warning disable AS0072
-            ObsoleteTag = '18.0';
-#pragma warning restore AS0072
-        }
-#endif
-#if not CLEANSCHEMA21
-        field(31050; Credit; Code[10])
-        {
-            Caption = 'Credit';
-            TableRelation = "Source Code";
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            ObsoleteReason = 'Moved to Compensation Localization Pack for Czech.';
-#pragma warning disable AS0072
-            ObsoleteTag = '21.0';
-#pragma warning restore AS0072
-        }
-#endif
 #pragma warning disable AS0013
         field(2000020; "Domiciliation Journal"; Code[10])
         {
@@ -1206,19 +1070,6 @@ tableextension 242 ObsoleteSourceCodeSetupExt extends "Source Code Setup"
             ObsoleteTag = '25.0';
             MovedTo = '437dbf0e-84ff-417a-965d-ed2bb9650972';
         }
-#if not CLEANSCHEMA24
-        field(5005350; "Phys. Invt. Order"; Code[10])
-        {
-            Caption = 'Phys. Invt. Order';
-            ObsoleteReason = 'Merged to W1';
-            DataClassification = CustomerContent;
-            ObsoleteState = Removed;
-            TableRelation = "Source Code";
-#pragma warning disable AS0072
-            ObsoleteTag = '24.0';
-#pragma warning restore AS0072
-        }
-#endif
         field(7000000; "Cartera Journal"; Code[10])
         {
             Caption = 'Cartera Journal';
@@ -1232,4 +1083,3 @@ tableextension 242 ObsoleteSourceCodeSetupExt extends "Source Code Setup"
 #pragma warning restore AS0013
     }
 }
-
