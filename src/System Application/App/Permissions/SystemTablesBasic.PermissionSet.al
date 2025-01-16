@@ -34,7 +34,8 @@ permissionset 66 "System Tables - Basic"
                              "User Selection - Read",
                              "Webhook - Edit",
                              "Data Analysis - Exec",
-                             "Perf. Profiler Tables - Edit";
+                             "Perf. Profiler Tables - Edit",
+                             "Copilot Sys Features";
 
     Permissions = tabledata "Add-in" = R,
                   tabledata "Aggregate Permission Set" = Rimd,

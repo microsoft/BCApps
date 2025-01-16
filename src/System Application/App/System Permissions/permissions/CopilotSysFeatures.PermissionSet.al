@@ -5,11 +5,11 @@
 
 namespace System.Security.AccessControl;
 
-permissionset 9680 "Copilot Essentials"
+permissionset 9680 "Copilot Sys Features"
 {
     Access = Public;
     Assignable = true;
-    Caption = 'Copilot Essentials';
+    Caption = 'Copilot System Features';
 
     Permissions = system "Allow Copilot Summary" = X;
 }
