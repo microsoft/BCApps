@@ -1,7 +1,7 @@
 {
   "id": "9beafef7-a2fc-491c-85bd-8cd5c4650f2b",
   "name": "User Details Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for the User Details module.",
   "description": "Test objects for User Details module.",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "0e4ed208-7f60-4bad-a881-eeb03e09d832",
       "name": "User Details",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "c1d53fcd-ec4f-4ac5-ba49-af91a1dea38c",
       "name": "Azure AD Plan",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

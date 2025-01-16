@@ -1,7 +1,7 @@
 {
   "id": "7efce506-def2-4195-9d1e-bc538e729242",
   "name": "No. Series Suggestions",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
       "name": "System Application",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "d098b816-22fd-477f-9602-9122f5465527",
       "name": "No. Series",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],
@@ -28,7 +28,7 @@
     {
       "id": "ecb647bf-6fae-45b9-b136-28aa313f5e97",
       "name": "No. Series Suggestions Test Library",
-      "publisher": "Microsoft"
+      "publisher": "Darrick"
     }
   ],
   "screenshots": [],

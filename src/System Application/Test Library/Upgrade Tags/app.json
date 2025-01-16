@@ -1,7 +1,7 @@
 {
   "id": "4313b056-0cde-4a07-a700-c984cfbb209c",
   "name": "Upgrade Tags Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for the Upgrade Tags module.",
   "description": "Test objects for the Upgrade Tags module.",
   "version": "26.0.0.0",
@@ -13,7 +13,7 @@
   "dependencies": [
     {
       "id": "93b83ef6-9666-4c1d-b130-c232f4047621",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "name": "Upgrade Tags",
       "version": "26.0.0.0"
     }

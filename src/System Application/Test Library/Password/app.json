@@ -1,7 +1,7 @@
 {
   "id": "47f9b8b5-9aae-4384-8101-4519f7115381",
   "name": "Password Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for the Password module.",
   "description": "Test objects for the Password module.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "a2ca2793-e1b4-461d-8251-dbe934daec78",
       "name": "Password",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

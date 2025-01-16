@@ -1,7 +1,7 @@
 {
   "id": "0b52d89c-c2f9-4660-a466-02e07bb06742",
   "name": "Azure AD Graph",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Retrieve information from Microsoft Entra.",
   "description": "Accesses and retrieves information from Microsoft Entra.",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "2673d810-273e-402f-9093-2eaef7e03b83",
       "name": "Environment Information",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],
@@ -28,7 +28,7 @@
     {
       "id": "da17b564-d600-44d5-be0b-ca7ff7ac26fc",
       "name": "Azure AD Graph Test Library",
-      "publisher": "Microsoft"
+      "publisher": "Darrick"
     }
   ],
   "screenshots": [],

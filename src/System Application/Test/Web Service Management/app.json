@@ -1,7 +1,7 @@
 {
   "id": "86826d81-2e12-4ac5-abe1-30ab51d1326e",
   "name": "Web Service Management Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Tests the Web Service Management module.",
   "description": "",
   "version": "26.0.0.0",
@@ -13,32 +13,32 @@
   "dependencies": [
     {
       "id": "9bc20107-0927-405d-abec-ed877f67c2a3",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "name": "Web Service Management",
       "version": "26.0.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "name": "Library Assert",
       "version": "26.0.0.0"
     },
     {
       "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
       "name": "Any",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "40860557-a18d-42ad-aecb-22b7dd80dc80",
       "name": "Permissions Mock",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "dbfc4c4f-40d1-4206-b7b4-d428054637e8",
       "name": "Web Service Management Test Library",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

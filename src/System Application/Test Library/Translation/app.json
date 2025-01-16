@@ -1,7 +1,7 @@
 {
   "id": "5d986913-9dd6-44b7-875b-3e8c455fac7c",
   "name": "Translation Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Library with Test objects for the Translation module",
   "description": "Library with Test objects for the Translation module",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "3ade8173-2cc2-4727-8c57-eb0754f70cdc",
       "name": "Translation",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

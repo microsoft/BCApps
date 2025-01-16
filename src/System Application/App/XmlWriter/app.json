@@ -1,7 +1,7 @@
 {
   "id": "e88f7ce1-ef3d-42c0-ba61-63699c60d12f",
   "name": "XML Writer",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Write XML quickly with System.Xml.XmlTextWriter.",
   "description": "Provides a fast, non-cached, forward-only way to create streams or files with XML data that conforms to guidelines for W3C Extensible Markup Language (XML) 1.0 and Namespaces.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

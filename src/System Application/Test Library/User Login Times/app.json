@@ -1,7 +1,7 @@
 {
   "id": "9761c0ac-e4ea-4c14-8918-2f4ded158b12",
   "name": "User Login Times Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Library function to initialize test data for User Login Times module",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "959630b2-01c5-48d8-a477-d6d40da855fb",
       "name": "User Login Times",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

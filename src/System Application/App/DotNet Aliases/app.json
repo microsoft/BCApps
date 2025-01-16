@@ -1,7 +1,7 @@
 {
   "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
   "name": "DotNet Aliases",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Defines aliases for .NET classes.",
   "description": "Defines aliases for .NET classes so that you do not have to write the full name of the class. For example, rather than having to write \"System.Collections.Queue\", you can just use \"Queue\".",
   "version": "26.0.0.0",

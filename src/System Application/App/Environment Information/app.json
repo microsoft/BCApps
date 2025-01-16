@@ -1,7 +1,7 @@
 {
   "id": "2673d810-273e-402f-9093-2eaef7e03b83",
   "name": "Environment Information",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Contains helper methods for getting information about the tenant and general settings.",
   "description": "Contains helper methods for getting information about the tenant and general settings, such as determining whether this is a production or sandbox environment, or deployed as an online or on-premises version, and so on.",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "1a023056-d6fe-41af-a16e-da7d678cf266",
       "name": "Server Settings",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],
@@ -28,7 +28,7 @@
     {
       "id": "cc441290-a967-4601-9a7d-b4209339415b",
       "name": "Environment Information Test Library",
-      "publisher": "Microsoft"
+      "publisher": "Darrick"
     }
   ],
   "screenshots": [],

@@ -1,7 +1,7 @@
 {
   "id": "7f03f010-1703-47eb-a3cd-c6d28b8a806c",
   "name": "Geolocation",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "version": "26.0.0.0",
   "brief": "Provides access to geographical location data on client devices.",
   "description": "Open the Geolocation page and request geographical location data on your client device. The page will communicate the availability of data about the location.",
@@ -14,7 +14,7 @@
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],
@@ -22,7 +22,7 @@
     {
       "id": "ca744f73-dfb4-4702-b72f-e095cac5526e",
       "name": "Geolocation Test Library",
-      "publisher": "Microsoft"
+      "publisher": "Darrick"
     }
   ],
   "screenshots": [],

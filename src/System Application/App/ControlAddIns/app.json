@@ -1,7 +1,7 @@
 {
   "id": "a3964a53-9345-458a-af20-d13f7eab7bd8",
   "name": "Control Add-Ins",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Provides the System control add-ins.",
   "description": "Provides the control add-in and their resources, used throughout the application.",
   "version": "26.0.0.0",

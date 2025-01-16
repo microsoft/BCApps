@@ -1,7 +1,7 @@
 {
   "id": "4b948e84-8ef6-4317-95c1-ad9e29f02c79",
   "name": "Json Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Tests for the Json module",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "645965f7-95bf-4ee9-bf97-84e45dc6c6d1",
       "name": "Json",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

@@ -1,7 +1,7 @@
 {
   "id": "03ecb409-cce1-4f5b-b194-6ad3ad3d7378",
   "name": "Satisfaction Survey Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for the Satisfaction Survey module.",
   "description": "Test objects for the Satisfaction Survey module.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "5d03ef2d-13f0-4132-b941-48387b581434",
       "name": "Satisfaction Survey",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

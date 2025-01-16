@@ -1,7 +1,7 @@
 {
   "id": "8dc27b4c-ed38-4df0-9497-2724beea0e9d",
   "name": "Recurrence Schedule Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for the Recurrence Schedule module.",
   "description": "Test objects for the Recurrence Schedule module.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "f1d7a28a-e871-4eea-916e-203361cd31d9",
       "name": "Recurrence Schedule",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

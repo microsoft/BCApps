@@ -1,7 +1,7 @@
 {
   "id": "63daa962-23c7-4e14-b4b9-007c6ccdc4be",
   "name": "Base64 Convert Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Tests for the Base64 Convert module",
   "version": "26.0.0.0",
@@ -14,19 +14,19 @@
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "e31ad830-3d46-472e-afeb-1d3d35247943",
       "name": "BLOB Storage",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "0846d207-5dec-4c1b-afd8-6a25e1e14b9d",
       "name": "Base64 Convert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

@@ -1,7 +1,7 @@
 {
   "id": "355486a1-4c20-4a80-8cc0-be4a46ca90fb",
   "name": "Table Information",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Display information about the tables in the system",
   "description": "Display information about the tables in the system",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "c56e3ef4-7ab0-4636-ae87-013a62f12213",
       "name": "User Permissions",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

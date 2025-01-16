@@ -1,7 +1,7 @@
 {
   "id": "33003b8a-f6d8-4efe-af22-1a8cb8fbacbe",
   "name": "Retencion Policy Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Library with Test tables for the Retencion Policy module",
   "description": "Library with Test tables for the Retencion Policy module",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "a8177fd4-0adb-4482-889c-2e123a13b50a",
       "name": "Retention Policy",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

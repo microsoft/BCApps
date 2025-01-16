@@ -1,7 +1,7 @@
 {
   "id": "d098b816-22fd-477f-9602-9122f5465527",
   "name": "No. Series",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
       "name": "System Application",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],
@@ -22,7 +22,7 @@
     {
       "id": "f7277dc2-cc73-4b81-b7c6-4a58bfb33806",
       "name": "No. Series Test Library",
-      "publisher": "Microsoft"
+      "publisher": "Darrick"
     }
   ],
   "screenshots": [],

@@ -1,7 +1,7 @@
 {
   "id": "fd3d0b8e-61fa-4f87-b2fc-c4a1f3e53a63",
   "name": "Math",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Provides constants and static methods for trigonometric, logarithmic, and other common mathematical functions.",
   "description": "Provides constants and static methods for trigonometric, logarithmic, and other common mathematical functions.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

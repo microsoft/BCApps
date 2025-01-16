@@ -1,7 +1,7 @@
 {
   "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
   "name": "Any",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Library used to generate pseudo-random values.",
   "description": "In test code, Any should be used to generate values that should not be hardcoded to a specific values.",
   "version": "26.0.0.0",

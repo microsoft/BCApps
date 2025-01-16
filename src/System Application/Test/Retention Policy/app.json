@@ -1,7 +1,7 @@
 {
   "id": "489a0bcb-0619-4bd1-b626-9f30dbe8af4d",
   "name": "Retention Policy Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "version": "26.0.0.0",
   "brief": "Tests for the Retention Policy module",
   "description": "Tests for the Retention Policy module",
@@ -13,38 +13,38 @@
   "dependencies": [
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "name": "Library Assert",
       "version": "26.0.0.0"
     },
     {
       "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "name": "Any",
       "version": "26.0.0.0"
     },
     {
       "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "name": "Library Variable Storage",
       "version": "26.0.0.0"
     },
     {
       "id": "a8177fd4-0adb-4482-889c-2e123a13b50a",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "name": "Retention Policy",
       "version": "26.0.0.0"
     },
     {
       "id": "40860557-a18d-42ad-aecb-22b7dd80dc80",
       "name": "Permissions Mock",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "33003b8a-f6d8-4efe-af22-1a8cb8fbacbe",
       "name": "Retencion Policy Test Library",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

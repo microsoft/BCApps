@@ -1,7 +1,7 @@
 {
   "id": "b8070cc6-271c-4317-8aab-ffa1a571077c",
   "name": "Customer Experience Survey Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Library functions to initialize test data for Customer Experience Survey module",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "2bb91532-8396-4a7b-bc95-7ad7b988c47e",
       "name": "Customer Experience Survey",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

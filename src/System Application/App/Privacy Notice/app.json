@@ -1,7 +1,7 @@
 {
   "id": "daa5d70e-eaf5-4256-bf80-53545ef7629a",
   "name": "Privacy Notice",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Functionality for showing privacy notices.",
   "description": "Functionality to ensure privacy notices have been approved for integrations to other services.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "93b83ef6-9666-4c1d-b130-c232f4047621",
       "name": "Upgrade Tags",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],
@@ -25,7 +25,7 @@
     {
       "id": "7c2785ec-13a5-470b-87a4-6838a2c19a3a",
       "name": "Privacy Notice Tests",
-      "publisher": "Microsoft"
+      "publisher": "Darrick"
     }
   ],
   "idRanges": [

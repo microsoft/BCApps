@@ -1,7 +1,7 @@
 {
   "id": "7c2785ec-13a5-470b-87a4-6838a2c19a3a",
   "name": "Privacy Notice Tests",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Tests for Privacy Notice.",
   "version": "26.0.0.0",
@@ -14,19 +14,19 @@
     {
       "id": "daa5d70e-eaf5-4256-bf80-53545ef7629a",
       "name": "Privacy Notice",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "40860557-a18d-42ad-aecb-22b7dd80dc80",
       "name": "Permissions Mock",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

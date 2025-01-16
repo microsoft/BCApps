@@ -1,7 +1,7 @@
 {
   "id": "31536cf9-f47d-42d9-95eb-b0787abf853b",
   "name": "Video Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Library with Test tables for Video module",
   "description": "Library with Test tables for Video module",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "84e448ad-faa5-44c8-835a-ec4b408e8cec",
       "name": "Video",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

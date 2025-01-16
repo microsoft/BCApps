@@ -1,7 +1,7 @@
 {
   "id": "037bf597-815e-4ca0-85a9-70d6cbcb7ee7",
   "name": "MockGraphQuery test library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for working with MockGraphQuery .Net library.",
   "description": "Test objects for working with MockGraphQuery .Net library.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

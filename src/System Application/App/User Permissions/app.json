@@ -1,7 +1,7 @@
 {
   "id": "c56e3ef4-7ab0-4636-ae87-013a62f12213",
   "name": "User Permissions",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Checks whether users are assigned to the SUPER permission set or have been made capable to manage other users.",
   "description": "Checks whether users are assigned to the SUPER permission or have been made capable to manage other users. You can also remove the SUPER permission set from a user.",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "2673d810-273e-402f-9093-2eaef7e03b83",
       "name": "Environment Information",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],
@@ -28,7 +28,7 @@
     {
       "id": "5c2cb86b-321c-421b-8a76-f9ff768492d6",
       "name": "User Permission Test Library",
-      "publisher": "Microsoft"
+      "publisher": "Darrick"
     }
   ],
   "screenshots": [],

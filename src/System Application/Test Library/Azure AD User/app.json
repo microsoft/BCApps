@@ -1,7 +1,7 @@
 {
   "id": "67aadf15-618d-415f-8bfe-8309b657b4fb",
   "name": "Azure AD User Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for the Azure AD User module.",
   "description": "Test objects for the Azure AD User module.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "f2cc2ef8-949f-47d1-85b8-10bd6f8bc61c",
       "name": "Azure AD User",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

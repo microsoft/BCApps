@@ -1,7 +1,7 @@
 {
   "id": "fa2b571d-3f92-4685-9113-421ea9c0b5f5",
   "name": "Time Zone Selection",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Looks up and selects Time Zones.",
   "description": "Provides a page where you look up and select a Time Zone.",
   "version": "26.0.0.0",

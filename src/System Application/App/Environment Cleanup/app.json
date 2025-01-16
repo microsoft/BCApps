@@ -1,7 +1,7 @@
 {
   "id": "b3670666-3f31-4664-8531-a1cb0bdf69fd",
   "name": "Environment Cleanup",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Clean up data when copying environments",
   "description": "Provides events to subscribe to in order to clean up data when copying an environment.",
   "version": "26.0.0.0",

@@ -1,7 +1,7 @@
 {
   "id": "d4dcc3bc-265b-48fc-99e2-3262a6130236",
   "name": "Confirm Management Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Library functions to initialize test data for Confirm Management module",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "a4584a53-9345-458a-af20-d1df2fab7bd8",
       "name": "Confirm Management",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

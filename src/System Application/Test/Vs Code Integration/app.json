@@ -1,7 +1,7 @@
 {
   "id": "2245bae0-6048-49d8-bc86-c1c5d0fbabd9",
   "name": "VS Code Integration Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Tests for the VS Code Integration module",
   "description": "Tests for the VS Code Integration module.",
   "version": "26.0.0.0",
@@ -14,25 +14,25 @@
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
       "name": "Library Variable Storage",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "40860557-a18d-42ad-aecb-22b7dd80dc80",
       "name": "Permissions Mock",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "66d56517-9469-4cdf-83a8-7122c54af08f",
       "name": "VS Code Integration",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

@@ -1,7 +1,7 @@
 {
   "id": "cc441290-a967-4601-9a7d-b4209339415b",
   "name": "Environment Information Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Library functions to initialize test data for Azure Key Vault module",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "2673d810-273e-402f-9093-2eaef7e03b83",
       "name": "Environment Information",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

@@ -1,7 +1,7 @@
 {
   "id": "4a93fccd-c355-47ed-9634-913a54c7080a",
   "name": "Word Templates Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Test Module for Word Templates",
   "version": "26.0.0.0",
@@ -14,37 +14,37 @@
     {
       "id": "c0804406-ca14-4a8b-88a0-dd6999c550a8",
       "name": "Word Templates",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "e31ad830-3d46-472e-afeb-1d3d35247943",
       "name": "BLOB Storage",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "0846d207-5dec-4c1b-afd8-6a25e1e14b9d",
       "name": "Base64 Convert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "40860557-a18d-42ad-aecb-22b7dd80dc80",
       "name": "Permissions Mock",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "bfdf2a31-bb39-4f1a-bbb5-291e04dc8051",
       "name": "Word Templates Test Library",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

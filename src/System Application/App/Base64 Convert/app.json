@@ -1,7 +1,7 @@
 {
   "id": "0846d207-5dec-4c1b-afd8-6a25e1e14b9d",
   "name": "Base64 Convert",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Convert to and from base-64 strings",
   "description": "The module provides functionality to convert the text to and from base 64. It may be used for dealing with large XML files, pictures etc.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

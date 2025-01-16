@@ -1,7 +1,7 @@
 {
   "id": "ba17b564-d600-44d5-be0b-ca7ff7ac28fc",
   "name": "AppSource Gallery Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for the AppSource Gallery module.",
   "description": "Test objects for the AppSource Gallery module.",
   "version": "26.0.0.0",
@@ -14,19 +14,19 @@
     {
       "id": "79952567-63d7-4586-8b47-ba13a11a8a18",
       "name": "AppSource Product Gallery",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "812b339d-a9db-4a6e-84e4-fe35cbef0c44",
       "name": "Rest Client",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "7b9b59f5-a68d-4271-b11a-0d3b9c0938dd",
       "name": "User Settings",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

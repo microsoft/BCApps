@@ -1,7 +1,7 @@
 {
   "id": "0e4ed208-7f60-4bad-a881-eeb03e09d832",
   "name": "User Details",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Get details about users.",
   "description": "Provides functionality for retrieving and viewing user details.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "2673d810-273e-402f-9093-2eaef7e03b83",
       "name": "Environment Information",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],
@@ -22,7 +22,7 @@
     {
       "id": "9beafef7-a2fc-491c-85bd-8cd5c4650f2b",
       "name": "User Details Test Library",
-      "publisher": "Microsoft"
+      "publisher": "Darrick"
     }
   ],
   "screenshots": [],

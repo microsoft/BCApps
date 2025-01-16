@@ -1,7 +1,7 @@
 {
   "id": "949b9041-d2cb-4e69-bf31-c1e8fcb9462b",
   "name": "Email Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test library for the Email module",
   "description": "Test library for the Email module",
   "version": "26.0.0.0",
@@ -14,19 +14,19 @@
     {
       "id": "9c4a2cf2-be3a-4aa3-833b-99a5ffd11f25",
       "name": "Email",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "c0804406-ca14-4a8b-88a0-dd6999c550a8",
       "name": "Word Templates",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
       "name": "Any",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

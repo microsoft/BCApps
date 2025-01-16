@@ -1,7 +1,7 @@
 {
   "id": "b9663d62-d331-481d-9c06-38b6ebfb586b",
   "name": "Azure AD Licensing Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for the Azure AD Licensing module.",
   "description": "Test objects for the Azure AD Licensing module.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "b70307d1-2c71-40ec-aeea-5deb7d0434c8",
       "name": "Azure AD Licensing",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

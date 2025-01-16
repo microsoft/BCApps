@@ -1,7 +1,7 @@
 {
   "id": "d604b641-b148-4230-8bb7-70086b143ebf",
   "name": "Data Administration",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Provides an interface for managing and cleaning up data data in the database.",
   "description": "Provides the ability to manage data in the database.",
   "version": "26.0.0.0",
@@ -16,7 +16,7 @@
     {
       "id": "fd3d0b8e-61fa-4f87-b2fc-c4a1f3e53a63",
       "name": "Math",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

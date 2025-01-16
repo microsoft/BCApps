@@ -1,7 +1,7 @@
 {
   "id": "9e3edadc-af00-4623-9762-5a119e41755f",
   "name": "Caption Class Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Tests for the Caption Class module",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "3d7bb555-6ce1-419f-9f11-fd3b351b0991",
       "name": "Caption Class",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

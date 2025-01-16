@@ -1,7 +1,7 @@
 {
   "id": "c5e777db-554c-4aef-bdfb-a0d4505878ff",
   "name": "Recurrence Schedule Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Tests for the Recurrence Schedule module",
   "version": "26.0.0.0",
@@ -14,31 +14,31 @@
     {
       "id": "f1d7a28a-e871-4eea-916e-203361cd31d9",
       "name": "Recurrence Schedule",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
       "name": "Any",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "40860557-a18d-42ad-aecb-22b7dd80dc80",
       "name": "Permissions Mock",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "8dc27b4c-ed38-4df0-9497-2724beea0e9d",
       "name": "Recurrence Schedule Test Library",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

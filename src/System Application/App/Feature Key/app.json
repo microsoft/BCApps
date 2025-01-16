@@ -1,7 +1,7 @@
 {
   "id": "ae59aed1-040c-453c-9585-fe9da2f8211e",
   "name": "Feature Key",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Contains the functionality for selecting which features are enabled for a tenant.",
   "description": "Contains the functionality for selecting which features are enabled for a tenant.",
   "version": "26.0.0.0",
@@ -14,19 +14,19 @@
     {
       "id": "1b2efb4b-8c44-4d74-a56f-60646645bb21",
       "name": "URI",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "54911257-906e-42e5-b529-735f5b4bb244",
       "name": "Date-Time Dialog",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "2955a828-6c0a-4d51-a1b8-a4cf2a040b9a",
       "name": "System Initialization",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],
@@ -34,7 +34,7 @@
     {
       "id": "b5b9aea8-a0f3-4666-b755-c9996789f5bc",
       "name": "Feature Key Test Library",
-      "publisher": "Microsoft"
+      "publisher": "Darrick"
     }
   ],
   "screenshots": [],

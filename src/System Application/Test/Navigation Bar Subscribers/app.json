@@ -1,7 +1,7 @@
 {
   "id": "84cbe5f0-2e80-48e0-a317-520b558efd25",
   "name": "Navigation Bar Subscribers Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Tests for the Navigation Bar Subscribers module",
   "version": "26.0.0.0",
@@ -14,19 +14,19 @@
     {
       "id": "901c89b7-132b-4c59-bb3f-2bfa4fbc70b5",
       "name": "Navigation Bar Subscribers",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "c64d75f0-e9f1-4d0f-9949-cd453b9b1466",
       "name": "Guided Experience",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "87c6506c-a822-4ce9-a1c4-aba1b3822e09",
       "name": "Advanced Settings",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

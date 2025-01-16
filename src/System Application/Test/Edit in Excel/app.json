@@ -1,7 +1,7 @@
 {
   "id": "78ab7f3c-f374-42b5-aa2f-6c9253655ed7",
   "name": "Edit in Excel Tests",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Tests for edit in excel.",
   "version": "26.0.0.0",
@@ -14,25 +14,25 @@
     {
       "id": "5d848063-d779-42ed-8086-5400b3380378",
       "name": "Edit in Excel",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "c0380f61-b75f-497c-a7f6-e5a2f5f19994",
       "name": "Edit in Excel Test Library",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

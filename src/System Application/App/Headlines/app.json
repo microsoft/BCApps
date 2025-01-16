@@ -1,7 +1,7 @@
 {
   "id": "f3f75070-7762-41f5-9947-043a50dc9fc7",
   "name": "Headlines",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Helps with constructing the text for headlines.",
   "description": "This module provides methods for constructing headlines on Role Centers. It includes constants for the maximum allowed text length, functionality for truncating and emphasizing text, and methods related to the standard greeting headline.",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "959630b2-01c5-48d8-a477-d6d40da855fb",
       "name": "User Login Times",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],
@@ -28,12 +28,12 @@
     {
       "id": "4b7bef15-07dc-4b9e-ae9d-81ac1a71d630",
       "name": "Headlines Test",
-      "publisher": "Microsoft"
+      "publisher": "Darrick"
     },
     {
       "id": "32e12a85-56a3-43ca-bfbe-45d0de129d76",
       "name": "Headlines Test Library",
-      "publisher": "Microsoft"
+      "publisher": "Darrick"
     }
   ],
   "screenshots": [],

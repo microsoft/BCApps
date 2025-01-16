@@ -1,7 +1,7 @@
 {
   "id": "be679cd3-54a9-4d9c-9381-5ed0eeb973b8",
   "name": "Business Chart Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for the Business Chart module.",
   "description": "Test objects for the Business Chart module.",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "9c9b6fdc-6a1a-4cab-aa92-47ba72534897",
       "name": "Business Chart",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

@@ -1,7 +1,7 @@
 {
   "id": "3d7bb555-6ce1-419f-9f11-fd3b351b0991",
   "name": "Caption Class",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Defines how the CaptionClass property displays captions.",
   "description": "Defines how the CaptionClass property displays captions for pages and tables. You can define rules for how captions display.",
   "version": "26.0.0.0",

@@ -1,7 +1,7 @@
 {
   "id": "56cc5306-fd3f-494b-b0b2-72ebae7945dc",
   "name": "Language Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Test Module for Language",
   "version": "26.0.0.0",
@@ -14,37 +14,37 @@
     {
       "id": "5c36f279-480c-451b-b513-c1af8cfb0744",
       "name": "Language",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "7b9b59f5-a68d-4271-b11a-0d3b9c0938dd",
       "name": "User Settings",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "40860557-a18d-42ad-aecb-22b7dd80dc80",
       "name": "Permissions Mock",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "bb4bb65a-d7ba-4054-bfe7-e2d7c4ecc133",
       "name": "System Permissions",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "79e72120-0c70-4ccf-b45c-fb75a5c7af8b",
       "name": "Language Test Library",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

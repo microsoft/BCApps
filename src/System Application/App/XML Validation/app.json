@@ -1,7 +1,7 @@
 {
   "id": "4f3ad876-6f18-4b10-bb2c-08bb136f6919",
   "name": "XML Validation",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Performs XML validation",
   "description": "Validates an xml document against a xml schema.",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "e31ad830-3d46-472e-afeb-1d3d35247943",
       "name": "BLOB Storage",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

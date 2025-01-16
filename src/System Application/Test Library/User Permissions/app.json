@@ -1,7 +1,7 @@
 {
   "id": "5c2cb86b-321c-421b-8a76-f9ff768492d6",
   "name": "User Permission Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Library functions to initialize test data for User Permissions module",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "c56e3ef4-7ab0-4636-ae87-013a62f12213",
       "name": "User Permissions",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "2673d810-273e-402f-9093-2eaef7e03b83",
       "name": "Environment Information",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

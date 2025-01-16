@@ -1,7 +1,7 @@
 {
   "id": "84e448ad-faa5-44c8-835a-ec4b408e8cec",
   "name": "Video",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Looks up and plays videos.",
   "description": "Provides a page where you look up and select videos. For example, use this to access video tutorials.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "a3964a53-9345-458a-af20-d13f7eab7bd8",
       "name": "Control Add-Ins",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

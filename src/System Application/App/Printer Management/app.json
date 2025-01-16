@@ -1,7 +1,7 @@
 {
   "id": "7e134a60-9d64-4edd-8b5c-77253fb49fce",
   "name": "Printer Management",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Manages printers",
   "description": "Contains functionality for managing printers available for a tenant.",
   "version": "26.0.0.0",

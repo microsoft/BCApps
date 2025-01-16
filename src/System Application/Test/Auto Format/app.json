@@ -1,7 +1,7 @@
 {
   "id": "c6d95e6c-4af4-49a7-a2bb-75aac5aea70c",
   "name": "Auto Format Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Tests for the Auto Format module",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "34222918-6f0f-4623-a063-f716575b8529",
       "name": "Auto Format",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

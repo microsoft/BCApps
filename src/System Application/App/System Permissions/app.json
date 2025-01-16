@@ -1,7 +1,7 @@
 {
   "id": "bb4bb65a-d7ba-4054-bfe7-e2d7c4ecc133",
   "name": "System Permissions",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Permissions for system objects.",
   "description": "Permission sets for objects from Dynamics 365 Business Central platform.",
   "version": "26.0.0.0",

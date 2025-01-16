@@ -1,7 +1,7 @@
 {
   "id": "4a81e695-54d3-44a9-b870-3797c875714a",
   "name": "Data Classification Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Library function to initialize test data for the Data Classification module",
   "description": "Library function to initialize test data for the Data Classification module",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "370dcef7-9c6d-4a32-94b1-754230578672",
       "name": "Data Classification",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

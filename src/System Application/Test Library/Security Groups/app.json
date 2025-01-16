@@ -1,7 +1,7 @@
 {
   "id": "1f3da4d4-84a9-4b92-8d73-24cda11cdb9d",
   "name": "Security Groups Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for the Security Groups module.",
   "description": "Test objects for the Security Groups module.",
   "version": "26.0.0.0",
@@ -14,19 +14,19 @@
     {
       "id": "4846d32b-e7ca-4c4c-94e0-3eee0eccd715",
       "name": "Security Groups",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "2673d810-273e-402f-9093-2eaef7e03b83",
       "name": "Environment Information",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

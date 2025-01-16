@@ -1,7 +1,7 @@
 {
   "id": "c1830429-77f6-4469-837a-7bfd4705ff41",
   "name": "AppSource Product Gallery Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Tests for the AppSource Gallery module",
   "version": "26.0.0.0",
@@ -14,19 +14,19 @@
     {
       "id": "ba17b564-d600-44d5-be0b-ca7ff7ac28fc",
       "name": "AppSource Gallery Test Library",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
       "name": "Library Variable Storage",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

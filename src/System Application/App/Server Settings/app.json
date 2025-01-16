@@ -1,7 +1,7 @@
 {
   "id": "1a023056-d6fe-41af-a16e-da7d678cf266",
   "name": "Server Settings",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Gets settings from the server.",
   "description": "Exposes methods that get settings from the server configuration file. For example, it checks whether the Excel add-in is installed, or whether online services can be installed on the server.",
   "version": "26.0.0.0",

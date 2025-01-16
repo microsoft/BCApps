@@ -1,7 +1,7 @@
 {
   "id": "73929386-d848-492d-a6e2-ff0174326595",
   "name": "Encoding Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Tests for the encoding module",
   "version": "26.0.0.0",
@@ -14,19 +14,19 @@
     {
       "id": "ad94bc69-99fa-4bf0-85b3-6dbc72bd1543",
       "name": "Encoding",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
       "name": "Any",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

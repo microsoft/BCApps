@@ -1,7 +1,7 @@
 {
   "id": "29fa62c7-4a89-454a-b21d-f1a83d27c86e",
   "name": "Camera and Media Interaction Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Library functions to initialize test data for Camera and Media Interaction module",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "46992a88-9fae-4e32-948b-2b07735ea10a",
       "name": "Camera and Media Interaction",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "0846d207-5dec-4c1b-afd8-6a25e1e14b9d",
       "name": "Base64 Convert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

@@ -1,7 +1,7 @@
 {
   "id": "3ade8173-2cc2-4727-8c57-eb0754f70cdc",
   "name": "Translation",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Gets and stores translations.",
   "description": "Gets and stores language translations that users specify for values in table fields.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "5c36f279-480c-451b-b513-c1af8cfb0744",
       "name": "Language",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],
@@ -22,7 +22,7 @@
     {
       "id": "fccc16da-4362-40c7-8fb2-3ef91aee99c5",
       "name": "Translation Test",
-      "publisher": "Microsoft"
+      "publisher": "Darrick"
     }
   ],
   "screenshots": [],

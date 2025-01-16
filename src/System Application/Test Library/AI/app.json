@@ -1,7 +1,7 @@
 {
   "id": "f2d92a20-33a7-4174-a82f-666e8e2ad69e",
   "name": "AI Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for the AI.",
   "description": "Test objects for the AI.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "d3433b68-4901-445f-9547-fdfeca57575a",
       "name": "AI SDK",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

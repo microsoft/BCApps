@@ -1,7 +1,7 @@
 {
   "id": "bee8cf2f-494a-42f4-aabd-650e87934d39",
   "name": "Business Foundation Test Libraries",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test libraries that provide basic test setup for the Business Foundation tests.",
   "description": "Contains an expansive set of library methods to be used exclusively in tests.",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
       "name": "System Application",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "f3552374-a1f2-4356-848e-196002525837",
       "name": "Business Foundation",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

@@ -1,7 +1,7 @@
 {
   "id": "0c848154-92c5-4b73-987b-fc94ae48e2ff",
   "name": "Filter Tokens Test",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "",
   "description": "Tests for the Filter Tokens module",
   "version": "26.0.0.0",
@@ -14,13 +14,13 @@
     {
       "id": "dcfc6d73-8259-4595-ad3e-c2574fe2a197",
       "name": "Filter Tokens",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     },
     {
       "id": "dd0be2ea-f733-4d65-bb34-a28f4624fb14",
       "name": "Library Assert",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

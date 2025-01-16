@@ -1,7 +1,7 @@
 {
   "id": "1d643d12-c0df-4c82-af68-8e8fd80b32f9",
   "name": "Table Keys",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Provides functionality for working with table keys.",
   "description": "Provides functionality for disabling and re-enabling table keys.",
   "version": "26.0.0.0",

@@ -1,7 +1,7 @@
 {
   "id": "a42aa95e-45f6-4e85-bae1-26b3b89502f1",
   "name": "User Selection Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for the User Selection module.",
   "description": "Test objects for User Selection module.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "7f850a76-a58c-4ade-a14f-7d7acff97115",
       "name": "User Selection",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

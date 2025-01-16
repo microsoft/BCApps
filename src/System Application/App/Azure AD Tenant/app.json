@@ -1,7 +1,7 @@
 {
   "id": "95025170-61fc-4808-9505-4ba1fe1d05d9",
   "name": "Azure AD Tenant",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Gets information about the Microsoft Entra tenant.",
   "description": "Contains helper methods for getting information about the Microsoft Entra tenant, such as getting Microsoft Entra tenant ID and domain name.",
   "version": "26.0.0.0",
@@ -13,14 +13,14 @@
   "dependencies": [
     {
       "id": "0b52d89c-c2f9-4660-a466-02e07bb06742",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "name": "Azure AD Graph",
       "version": "26.0.0.0"
     },
     {
       "id": "7e3b999e-1182-45d2-8b82-d5127ddba9b2",
       "name": "DotNet Aliases",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

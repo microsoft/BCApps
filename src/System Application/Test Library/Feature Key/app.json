@@ -1,7 +1,7 @@
 {
   "id": "b5b9aea8-a0f3-4666-b755-c9996789f5bc",
   "name": "Feature Key Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Test objects for the Feature Key module.",
   "description": "Test objects for the Feature Key module.",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "ae59aed1-040c-453c-9585-fe9da2f8211e",
       "name": "Feature Key",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],

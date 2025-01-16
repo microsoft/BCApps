@@ -1,7 +1,7 @@
 {
   "id": "69fac4db-4559-4aa8-a2bf-d08469614599",
   "name": "Page Summary Provider Test Library",
-  "publisher": "Microsoft",
+  "publisher": "Darrick",
   "brief": "Library with Test objects for the Page Summary Provider module",
   "description": "Library with Test objects for the Page Summary Provider module",
   "version": "26.0.0.0",
@@ -14,7 +14,7 @@
     {
       "id": "dd4b9f8a-b018-4f69-a614-efdb744c5330",
       "name": "Page Summary Provider",
-      "publisher": "Microsoft",
+      "publisher": "Darrick",
       "version": "26.0.0.0"
     }
   ],
