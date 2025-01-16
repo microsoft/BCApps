@@ -28,6 +28,17 @@
           "CLEAN26"
         ]
       }
+    },
+    {
+      "branches": [ 
+        "main", 
+        "releases/*.x" 
+      ],
+      "settings": {
+        "buildModes": [
+          "Clean"
+        ]
+      }
     }
   ],
   "unusedALGoSystemFiles": [
@@ -47,8 +58,7 @@
     "Official-Build"
   ],
   "buildModes": [
-    "Default",
-    "Clean"
+    "Default"
   ],
   "CICDPushBranches": [
     "main",
