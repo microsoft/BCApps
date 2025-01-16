@@ -158,7 +158,9 @@ function validateYAxisRange(chartData) {
 function createMessage(text) {
   var element = document.createElement("div");
   element.className = getMessageClassName();
-  element.innerHTML = '<span>' + text + '<span>';
+  var spanElement = document.createElement("span");
+  spanElement.innerText = text;
+  element.appendChild(spanElement);
 
   controlAddIn().appendChild(element);
 }
