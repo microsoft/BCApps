@@ -27,12 +27,6 @@
         "bug":  "488815",
         "codeunitId":  132684,
         "CodeunitName": "Azure OpenAI Test",
-        "Method": "GenerateTextCompletionsMetapromptNotSetFails"
-    },
-    {
-        "bug":  "488815",
-        "codeunitId":  132684,
-        "CodeunitName": "Azure OpenAI Test",
         "Method": "GenerateTextCompletionsFails"
     },
     {
