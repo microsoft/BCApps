@@ -45,7 +45,7 @@ function DrawPage() {
 }
 
 function ReplaceFeaturesContent() {
-    $("#featuretable").remove();
+    document.getElementById("featuretable")?.remove();
     InsertFeaturesContent();
 }
 
