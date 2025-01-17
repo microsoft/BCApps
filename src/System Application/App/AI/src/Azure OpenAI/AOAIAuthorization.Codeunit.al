@@ -227,7 +227,7 @@ codeunit 7767 "AOAI Authorization"
 
         IsVerified := PerformAOAIAccountVerification(AOAIAccountName, NewApiKey);
 
-        Message('Function PerformAOAIAccountVerification called. Result: IsVerified=' + Format(IsVerified, 0, '<Boolean>'));
+        Message('Function PerformAOAIAccountVerification called. Result: IsVerified=' + Format(IsVerified));
 
         // Handle failed verification
         if not IsVerified then begin
@@ -254,9 +254,9 @@ codeunit 7767 "AOAI Authorization"
         Message('Starting IsAccountVerifiedWithinPeriod procedure. Variables: AccountName=' + AccountName + ', Period=' + FormatDurationAsString(Period));
 
         if Rec.Get(AccountName) then begin
-            Message('Record found. Variables: CurrentDateTime=' + Format(CurrentDateTime, 0, '<DateTime>') + ', Rec.LastSuccessfulVerification=' + Format(Rec.LastSuccessfulVerification, 0, '<DateTime>'));
+            Message('Record found. Variables: CurrentDateTime=' + Format(CurrentDateTime) + ', Rec.LastSuccessfulVerification=' + Format(Rec.LastSuccessfulVerification));
             IsVerified := CurrentDateTime - Rec.LastSuccessfulVerification <= Period;
-            Message('Verification result: ' + Format(IsVerified, 0, '<Boolean>'));
+            Message('Verification result: ' + Format(IsVerified));
             exit(IsVerified);
         end;
 
@@ -272,13 +272,13 @@ codeunit 7767 "AOAI Authorization"
         if Rec.Get(AccountName) then begin
             Rec.LastSuccessfulVerification := CurrentDateTime;
             Rec.Modify(true);
-            Message('Record updated. Variables: Rec.LastSuccessfulVerification=' + Format(Rec.LastSuccessfulVerification, 0, '<DateTime>'));
+            Message('Record updated. Variables: Rec.LastSuccessfulVerification=' + Format(Rec.LastSuccessfulVerification));
         end else begin
             Rec.Init();
             Rec.AccountName := AccountName;
             Rec.LastSuccessfulVerification := CurrentDateTime;
             Rec.Insert(true);
-            Message('Record inserted. Variables: Rec.AccountName=' + Rec.AccountName + ', Rec.LastSuccessfulVerification=' + Format(Rec.LastSuccessfulVerification, 0, '<DateTime>'));
+            Message('Record inserted. Variables: Rec.AccountName=' + Rec.AccountName + ', Rec.LastSuccessfulVerification=' + Format(Rec.LastSuccessfulVerification));
         end;
     end;
 
@@ -297,10 +297,10 @@ codeunit 7767 "AOAI Authorization"
         MessageLbl: Label 'Azure Open AI authorization failed for account %1 on %2 because it is not authorized to access AI services. The connection will be terminated within 2 weeks if not rectified', Comment = 'Telemetry message where %1 is the name of the Azure Open AI account name and %2 is the date where verification has taken place';
         CustomDimensions: Dictionary of [Text, Text];
     begin
-        Message('Starting LogTelemetry procedure. Variables: AccountName=' + AccountName + ', VerificationDate=' + Format(VerificationDate, 0, '<Year4>-<Month,2>-<Day,2>'));
+        Message('Starting LogTelemetry procedure. Variables: AccountName=' + AccountName + ', VerificationDate=' + Format(VerificationDate));
 
         CustomDimensions.Add('AccountName', AccountName);
-        CustomDimensions.Add('VerificationDate', Format(VerificationDate, 0, '<Year4>-<Month,2>-<Day,2>'));
+        CustomDimensions.Add('VerificationDate', Format(VerificationDate));
 
         Telemetry.LogMessage(
             '0000AA1', // Event ID
@@ -310,6 +310,6 @@ codeunit 7767 "AOAI Authorization"
             Enum::"AL Telemetry Scope"::All,
             CustomDimensions
         );
-        Message('Telemetry logged successfully. CustomDimensions: AccountName=' + AccountName + ', VerificationDate=' + Format(VerificationDate, 0, '<Year4>-<Month,2>-<Day,2>'));
+        Message('Telemetry logged successfully. CustomDimensions: AccountName=' + AccountName + ', VerificationDate=' + Format(VerificationDate));
     end;
 }
