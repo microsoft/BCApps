@@ -3,14 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace System.Test.Security.Encryption;
+namespace System.Security.AccessControl;
 
-dotnet
+permissionset 9680 "Copilot Essentials"
 {
-    assembly("netstandard")
-    {
-        type("System.TimeZoneInfo"; TimeZoneInfoTest)
-        {
-        }
-    }
+    Access = Public;
+    Assignable = true;
+    Caption = 'Copilot Essentials';
+
+    Permissions = system "Allow Copilot Summary" = X;
 }
