@@ -5,33 +5,40 @@
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/26.0.28997.0/base",
+  "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/26.0.29075.0/base",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "26.0",
   "conditionalSettings": [
     {
-        "buildModes": [ "Clean" ],
-        "settings": {
-            "preprocessorSymbols": [
-              "CLEAN17",
-              "CLEAN18",
-              "CLEAN19",
-              "CLEAN20",
-              "CLEAN21",
-              "CLEAN22",
-              "CLEAN23",
-              "CLEAN24",
-              "CLEAN25",
-              "CLEAN26"
-             ]
-        }
+      "buildModes": [
+        "Clean"
+      ],
+      "settings": {
+        "preprocessorSymbols": [
+          "CLEAN17",
+          "CLEAN18",
+          "CLEAN19",
+          "CLEAN20",
+          "CLEAN21",
+          "CLEAN22",
+          "CLEAN23",
+          "CLEAN24",
+          "CLEAN25",
+          "CLEAN26"
+        ]
+      }
     },
     {
-        "branches": [ "main", "releases/*.x" ],
-        "settings": {
-            "buildModes": [ "Clean" ]
-        }
+      "branches": [
+        "main",
+        "releases/*.x"
+      ],
+      "settings": {
+        "buildModes": [
+          "Clean"
+        ]
+      }
     }
   ],
   "unusedALGoSystemFiles": [
