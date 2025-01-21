@@ -41,7 +41,7 @@ codeunit 4303 "Agent Task"
 
 
     /// <summary>
-    /// Create a new task message for the given agent user.
+    /// Create a new task  for the given agent user. No message is added to the task.
     /// </summary>
     /// <param name="AgentSecurityID">The security ID of the agent to create the task for.</param>
     /// <param name="TaskTitle">The title of the task.</param>
