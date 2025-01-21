@@ -39,7 +39,6 @@ codeunit 4303 "Agent Task"
         AgentTaskImpl.CreateTaskMessage(From, MessageText, ExternalMessageId, CurrentAgentTask);
     end;
 
-
     /// <summary>
     /// Create a new task  for the given agent user. No message is added to the task.
     /// </summary>
@@ -47,6 +46,7 @@ codeunit 4303 "Agent Task"
     /// <param name="TaskTitle">The title of the task.</param>
     /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
     /// <param name="NewAgentTask">The new agent task record that was created.</param>
+    [Scope('OnPrem')]
     procedure CreateTaskWithoutMessage(AgentSecurityID: Guid; TaskTitle: Text[150]; ExternalId: Text[2048]; var NewAgentTask: Record "Agent Task")
     var
         AgentTaskImpl: Codeunit "Agent Task Impl.";
