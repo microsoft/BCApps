@@ -25,6 +25,20 @@ codeunit 4303 "Agent Task"
     end;
 
     /// <summary>
+    /// Create a new task message for the given agent user.
+    /// </summary>
+    /// <param name="AgentSecurityID">The security ID of the agent to create the task for.</param>
+    /// <param name="TaskTitle">The title of the task.</param>
+    /// <param name="ExternalId">The external ID of the task. This field is used to connect to external systems, like Message ID for emails.</param>
+    /// <param name="NewAgentTask">The new agent task record that was created.</param>
+    procedure CreateTask(AgentSecurityID: Guid; TaskTitle: Text[150]; ExternalId: Text[2048]; var NewAgentTask: Record "Agent Task")
+    var
+        AgentTaskImpl: Codeunit "Agent Task Impl.";
+    begin
+        AgentTaskImpl.CreateTask(AgentSecurityID, TaskTitle, ExternalId, NewAgentTask);
+    end;
+
+    /// <summary>
     /// Create a new task message for the given agent user and conversation.
     /// If task does not exist, it will be created.
     /// </summary>
