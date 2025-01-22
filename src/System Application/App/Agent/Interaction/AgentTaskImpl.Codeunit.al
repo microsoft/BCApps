@@ -65,6 +65,11 @@ codeunit 4300 "Agent Task Impl."
         StartTaskIfPossible(NewAgentTask);
     end;
 
+    procedure CreateTaskMessage(From: Text[250]; MessageText: Text; var CurrentAgentTask: Record "Agent Task")
+    begin
+        CreateTaskMessage(From, MessageText, '', CurrentAgentTask);
+    end;
+
     procedure CreateTaskMessage(From: Text[250]; MessageText: Text; ExternalMessageId: Text[2048]; var CurrentAgentTask: Record "Agent Task")
     var
         AgentTask: Record "Agent Task";
