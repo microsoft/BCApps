@@ -26,10 +26,13 @@ codeunit 7767 "AOAI Authorization"
         ApiKey: SecretText;
         [NonDebuggable]
         ManagedResourceDeployment: Text;
+        [NonDebuggable]
+        AOAIAccountName: Text;
         ResourceUtilization: Enum "AOAI Resource Utilization";
         FirstPartyAuthorization: Boolean;
         SelfManagedAuthorization: Boolean;
-        MicrosoftManagedAuthorization: Boolean;
+        MicrosoftManagedAuthorizationWithDeployment: Boolean;
+        MicrosoftManagedAuthorizationWithAOAIAccount: Boolean;
 
     [NonDebuggable]
     procedure IsConfigured(CallerModule: ModuleInfo): Boolean
@@ -37,6 +40,7 @@ codeunit 7767 "AOAI Authorization"
         AzureOpenAiImpl: Codeunit "Azure OpenAI Impl";
         CurrentModule: ModuleInfo;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
+        AOAIAccountIsVerified: Boolean;
     begin
         NavApp.GetCurrentModuleInfo(CurrentModule);
 
@@ -46,9 +50,14 @@ codeunit 7767 "AOAI Authorization"
             Enum::"AOAI Resource Utilization"::"Self-Managed":
                 exit(SelfManagedAuthorization);
             Enum::"AOAI Resource Utilization"::"Microsoft Managed":
-                exit(MicrosoftManagedAuthorization and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls());
+                if MicrosoftManagedAuthorizationWithAOAIAccount then begin
+                    AOAIAccountIsVerified := VerifyAOAIAccount(AOAIAccountName, ApiKey);
+                    exit(AOAIAccountIsVerified and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls());
+                end
+                else
+                    if MicrosoftManagedAuthorizationWithDeployment then
+                        exit(AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls());
         end;
-
         exit(false);
     end;
 
@@ -62,22 +71,19 @@ codeunit 7767 "AOAI Authorization"
         Deployment := NewDeployment;
         ApiKey := NewApiKey;
         ManagedResourceDeployment := NewManagedResourceDeployment;
-        MicrosoftManagedAuthorization := true;
+        MicrosoftManagedAuthorizationWithDeployment := true;
     end;
 
     [NonDebuggable]
-    procedure SetMicrosoftManagedAuthorization(AOAIAccountName: Text; NewApiKey: SecretText; NewManagedResourceDeployment: Text)
-    var
-        IsVerified: Boolean;
+    procedure SetMicrosoftManagedAuthorization(NewAOAIAccountName: Text; NewApiKey: SecretText; NewManagedResourceDeployment: Text)
     begin
         ClearVariables();
-        IsVerified := VerifyAOAIAccount(AOAIAccountName, NewApiKey);
 
-        if IsVerified then begin
-            ResourceUtilization := Enum::"AOAI Resource Utilization"::"Microsoft Managed";
-            ManagedResourceDeployment := NewManagedResourceDeployment;
-            MicrosoftManagedAuthorization := true;
-        end;
+        ResourceUtilization := Enum::"AOAI Resource Utilization"::"Microsoft Managed";
+        AOAIAccountName := NewAOAIAccountName;
+        ApiKey := NewApiKey;
+        ManagedResourceDeployment := NewManagedResourceDeployment;
+        MicrosoftManagedAuthorizationWithAOAIAccount := true;
     end;
 
     [NonDebuggable]
@@ -136,15 +142,17 @@ codeunit 7767 "AOAI Authorization"
         Clear(Endpoint);
         Clear(ApiKey);
         Clear(Deployment);
+        Clear(AOAIAccountName);
         Clear(ManagedResourceDeployment);
         Clear(ResourceUtilization);
         Clear(FirstPartyAuthorization);
         clear(SelfManagedAuthorization);
-        Clear(MicrosoftManagedAuthorization);
+        Clear(MicrosoftManagedAuthorizationWithDeployment);
+        Clear(MicrosoftManagedAuthorizationWithAOAIAccount);
     end;
 
     [NonDebuggable]
-    local procedure PerformAOAIAccountVerification(AOAIAccountName: Text; NewApiKey: SecretText): Boolean
+    local procedure PerformAOAIAccountVerification(AOAIAccountNameToVerify: Text; NewApiKey: SecretText): Boolean
     var
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
@@ -155,7 +163,7 @@ codeunit 7767 "AOAI Authorization"
         IsSuccessful: Boolean;
         UrlFormatTxt: Label 'https://%1.openai.azure.com/openai/models?api-version=2024-06-01', Locked = true;
     begin
-        Url := StrSubstNo(UrlFormatTxt, AOAIAccountName);
+        Url := StrSubstNo(UrlFormatTxt, AOAIAccountNameToVerify);
 
         HttpContent.GetHeaders(ContentHeaders);
         if ContentHeaders.Contains('Content-Type') then
@@ -178,6 +186,7 @@ codeunit 7767 "AOAI Authorization"
         exit(true);
     end;
 
+    // FOR DEBUGGING ONLY
     local procedure FormatDurationAsString(DurationValue: Duration): Text
     var
         Hours: Integer;
@@ -203,43 +212,60 @@ codeunit 7767 "AOAI Authorization"
             Format(Milliseconds, 3, '<Sign><Integer,3>')));
     end;
 
-    local procedure VerifyAOAIAccount(AOAIAccountName: Text; NewApiKey: SecretText): Boolean
+    local procedure VerifyAOAIAccount(AccountName: Text; NewApiKey: SecretText): Boolean
     var
-        Notif: Notification;
-        IsVerified: Boolean;
+        VerificationLog: Record "AOAI Account Verification Log";
+        AccountVerified: Boolean;
         GracePeriod: Duration;
         CachePeriod: Duration;
         TruncatedAccountName: Text[100];
-    begin
-        Message('Starting VerifyAOAIAccount procedure. Variables: AOAIAccountName=' + AOAIAccountName);
+        IsWithinCachePeriod: Boolean;
+        RemainingGracePeriod: Duration;
+        AuthFailedWithinGracePeriodLogMessageLbl: Label 'Azure Open AI authorization failed for account %1 on %2 because it is not authorized to access AI services. The connection will be terminated in %3 if not rectified', Comment = 'Telemetry message where %1 is the name of the Azure Open AI account name, %2 is the date where verification has taken place, and %3 is the remaining time until the grace period expires';
+        AuthFailedOutsideGracePeriodLogMessageLbl: Label 'Azure Open AI authorization failed for account %1 on %2 because it is not authorized to access AI services. The grace period has been exceeded and the connection has been terminated', Comment = 'Telemetry message where %1 is the name of the Azure Open AI account name and %2 is the date where verification has taken place';
+        AuthFailedWithinGracePeriodUserNotificationLbl: Label 'Azure Open AI authorization failed. AI functionality will be disabled in %1. Please contact your system administrator or the extension developer for assistance.', Comment = 'User notification explaining that AI functionality will be disabled soon, where %1 is the remaining time until the grace period expires';
+        AuthFailedOutsideGracePeriodUserNotificationLbl: Label 'Azure Open AI authorization failed and the AI functionality has been disabled. Please contact your system administrator or the extension developer for assistance.', Comment = 'User notification explaining that AI functionality has been disabled';
 
+    begin
+        Message('Starting VerifyAOAIAccount procedure. Variables: AOAIAccountName=' + AccountName);
         GracePeriod := 15 * 60 * 1000;//14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
         CachePeriod := 1 * 60 * 1000;//24 * 60 * 60 * 1000; // 1 day in milliseconds
-
-        TruncatedAccountName := CopyStr(AOAIAccountName, 1, 100);
-
+        TruncatedAccountName := CopyStr(DelChr(AccountName, '<>', ' '), 1, 100);
         Message('Variables: GracePeriod=' + FormatDurationAsString(GracePeriod) + ', CachePeriod=' + FormatDurationAsString(CachePeriod) + ', TruncatedAccountName=' + TruncatedAccountName);
 
-        if IsAccountVerifiedWithinPeriod(TruncatedAccountName, CachePeriod) then begin
+        // Within CACHE period
+        IsWithinCachePeriod := IsAccountVerifiedWithinPeriod(TruncatedAccountName, CachePeriod);
+        if IsWithinCachePeriod then begin
             Message('Function IsAccountVerifiedWithinPeriod called. Result: Verification skipped (within cache period).');
             exit(true);
         end;
 
-        IsVerified := PerformAOAIAccountVerification(AOAIAccountName, NewApiKey);
+        AccountVerified := PerformAOAIAccountVerification(AccountName, NewApiKey);
+        Message('Function PerformAOAIAccountVerification called. Result: IsVerified=' + Format(AccountVerified));
 
-        Message('Function PerformAOAIAccountVerification called. Result: IsVerified=' + Format(IsVerified));
+        if not AccountVerified then begin
+            // Calculate remaining grace period
+            if VerificationLog.Get(TruncatedAccountName) then
+                RemainingGracePeriod := GracePeriod - (CurrentDateTime - VerificationLog.LastSuccessfulVerification)
+            else
+                RemainingGracePeriod := GracePeriod;
 
-        // Handle failed verification
-        if not IsVerified then begin
-            SendNotification(Notif);
-            LogTelemetry(AOAIAccountName, Today);
+            // Within GRACE period
             if IsAccountVerifiedWithinPeriod(TruncatedAccountName, GracePeriod) then begin
+                ShowUserNotification(StrSubstNo(AuthFailedWithinGracePeriodUserNotificationLbl, FormatDurationAsDays(RemainingGracePeriod)));
+                LogTelemetry(AccountName, Today, StrSubstNo(AuthFailedWithinGracePeriodLogMessageLbl, AccountName, Today, FormatDurationAsDays(RemainingGracePeriod)));
                 Message('Function IsAccountVerifiedWithinPeriod called. Result: Verification failed, but account is still valid (within grace period).');
                 exit(true); // Verified if within grace period
+            end
+            // Outside GRACE period
+            else begin
+                ShowUserNotification(AuthFailedOutsideGracePeriodUserNotificationLbl);
+                LogTelemetry(AccountName, Today, AuthFailedOutsideGracePeriodLogMessageLbl);
+                Message('Function IsAccountVerifiedWithinPeriod called. Result: Verification failed, and account is no longer valid (grace period expired).');
+                exit(false); // Failed verification if grace period has been exceeded
             end;
-            Message('Function IsAccountVerifiedWithinPeriod called. Result: Verification failed, and account is no longer valid (grace period expired).');
-            exit(false); // Failed verification if grace period has been exceeded
         end;
+
         SaveVerificationTime(TruncatedAccountName);
         Message('Function SaveVerificationTime called. Verification successful. Record saved.');
         exit(true);
@@ -247,15 +273,14 @@ codeunit 7767 "AOAI Authorization"
 
     local procedure IsAccountVerifiedWithinPeriod(AccountName: Text[100]; Period: Duration): Boolean
     var
-        Rec: Record "AOAI Account Verification Log";
+        VerificationLog: Record "AOAI Account Verification Log";
         IsVerified: Boolean;
     begin
-        ;
         Message('Starting IsAccountVerifiedWithinPeriod procedure. Variables: AccountName=' + AccountName + ', Period=' + FormatDurationAsString(Period));
 
-        if Rec.Get(AccountName) then begin
-            Message('Record found. Variables: CurrentDateTime=' + Format(CurrentDateTime) + ', Rec.LastSuccessfulVerification=' + Format(Rec.LastSuccessfulVerification));
-            IsVerified := CurrentDateTime - Rec.LastSuccessfulVerification <= Period;
+        if VerificationLog.Get(AccountName) then begin
+            Message('Record found. Variables: CurrentDateTime=' + Format(CurrentDateTime) + ', Rec.LastSuccessfulVerification=' + Format(VerificationLog.LastSuccessfulVerification));
+            IsVerified := CurrentDateTime - VerificationLog.LastSuccessfulVerification <= Period;
             Message('Verification result: ' + Format(IsVerified));
             exit(IsVerified);
         end;
@@ -266,50 +291,70 @@ codeunit 7767 "AOAI Authorization"
 
     local procedure SaveVerificationTime(AccountName: Text[100])
     var
-        Rec: Record "AOAI Account Verification Log";
+        VerificationLog: Record "AOAI Account Verification Log";
     begin
+
         Message('Starting SaveVerificationTime procedure. Variables: AccountName=' + AccountName);
-        if Rec.Get(AccountName) then begin
-            Rec.LastSuccessfulVerification := CurrentDateTime;
-            Rec.Modify(true);
-            Message('Record updated. Variables: Rec.LastSuccessfulVerification=' + Format(Rec.LastSuccessfulVerification));
+        if VerificationLog.Get(AccountName) then begin
+            VerificationLog.LastSuccessfulVerification := CurrentDateTime;
+            VerificationLog.Modify();
+            Message('Record updated. Variables: Rec.LastSuccessfulVerification=' + Format(VerificationLog.LastSuccessfulVerification));
         end else begin
-            Rec.Init();
-            Rec.AccountName := AccountName;
-            Rec.LastSuccessfulVerification := CurrentDateTime;
-            Rec.Insert(true);
-            Message('Record inserted. Variables: Rec.AccountName=' + Rec.AccountName + ', Rec.LastSuccessfulVerification=' + Format(Rec.LastSuccessfulVerification));
+            VerificationLog.Init();
+            VerificationLog.AccountName := AccountName;
+            VerificationLog.LastSuccessfulVerification := CurrentDateTime;
+            if VerificationLog.Insert() then
+                Message('Record inserted. Variables: Rec.AccountName=' + VerificationLog.AccountName + ', Rec.LastSuccessfulVerification=' + Format(VerificationLog.LastSuccessfulVerification))
         end;
     end;
 
-    local procedure SendNotification(var Notif: Notification)
+    local procedure ShowUserNotification(Message: Text)
     var
-        MessageLbl: Label 'Azure Open AI authorization failed. AI functionality will be disabled within 2 weeks. Please contact your system administrator or the extension developer for assistance.';
+        Notif: Notification;
     begin
-        Notif.Message := MessageLbl;
+        Notif.Message := Message;
         Notif.Scope := NotificationScope::LocalScope;
         Notif.Send();
     end;
 
-    local procedure LogTelemetry(AccountName: Text; VerificationDate: Date)
+    local procedure LogTelemetry(AccountName: Text; VerificationDate: Date; LogMessage: Text)
     var
         Telemetry: Codeunit Telemetry;
-        MessageLbl: Label 'Azure Open AI authorization failed for account %1 on %2 because it is not authorized to access AI services. The connection will be terminated within 2 weeks if not rectified', Comment = 'Telemetry message where %1 is the name of the Azure Open AI account name and %2 is the date where verification has taken place';
         CustomDimensions: Dictionary of [Text, Text];
     begin
         Message('Starting LogTelemetry procedure. Variables: AccountName=' + AccountName + ', VerificationDate=' + Format(VerificationDate));
 
+        // Add default dimensions
         CustomDimensions.Add('AccountName', AccountName);
         CustomDimensions.Add('VerificationDate', Format(VerificationDate));
 
+        // Log the telemetry with the custom message
         Telemetry.LogMessage(
             '0000AA1', // Event ID
-            StrSubstNo(MessageLbl, AccountName, VerificationDate), // Message
+            StrSubstNo(LogMessage, AccountName, VerificationDate),
             Verbosity::Warning,
             DataClassification::SystemMetadata,
             Enum::"AL Telemetry Scope"::All,
             CustomDimensions
         );
+
         Message('Telemetry logged successfully. CustomDimensions: AccountName=' + AccountName + ', VerificationDate=' + Format(VerificationDate));
+    end;
+
+    local procedure FormatDurationAsDays(DurationValue: Duration): Text
+    var
+        Days: Decimal;
+        Hours: Decimal;
+        DaysLabelLbl: Label '%1 days', Comment = '%1 is the number of days';
+        HoursLabelLbl: Label '%1 hours', Comment = '%1 is the number of hours';
+    begin
+        // Convert milliseconds into days and hours
+        Days := DurationValue / (24 * 60 * 60 * 1000); // Total days
+        Hours := (DurationValue mod (24 * 60 * 60 * 1000)) / (60 * 60 * 1000); // Remaining hours
+
+        if Days >= 1 then
+            exit(StrSubstNo(DaysLabelLbl, Format(Days, 0, 9))) // Display days if more than 1 day
+        else
+            exit(StrSubstNo(HoursLabelLbl, Format(Hours, 0, 9))); // Display hours if less than 1 day
     end;
 }
