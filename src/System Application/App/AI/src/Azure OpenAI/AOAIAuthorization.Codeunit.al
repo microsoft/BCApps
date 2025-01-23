@@ -18,6 +18,7 @@ codeunit 7767 "AOAI Authorization"
     Permissions = tabledata "AOAI Account Verification Log" = RIMD;
 
     var
+        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         [NonDebuggable]
         Endpoint: Text;
         [NonDebuggable]
@@ -33,6 +34,11 @@ codeunit 7767 "AOAI Authorization"
         SelfManagedAuthorization: Boolean;
         MicrosoftManagedAuthorizationWithDeployment: Boolean;
         MicrosoftManagedAuthorizationWithAOAIAccount: Boolean;
+        TelemetryAOAIVerificationFailedTxt: Label 'Failed to authenticate account against Azure Open AI', Locked = true;
+        TelemetryAOAIVerificationSucceededTxt: Label 'Successfully authenticated account against Azure Open AI', Locked = true;
+        TelemetryAccessWithinCachePeriodTxt: Label 'Cached access to Azure Open AI was used', Locked = true;
+        TelemetryAccessTokenWithinGracePeriodTxt: Label 'Failed to authenticate against Azure Open AI but last successful authentication is within grace period. System still has access for %1', Locked = true;
+        TelemetryAccessTokenOutsideCachePeriodTxt: Label 'Failed to authenticate against Azure Open AI and last successful authentication is outside grace period. System no longer has access', Locked = true;
 
     [NonDebuggable]
     procedure IsConfigured(CallerModule: ModuleInfo): Boolean
@@ -177,12 +183,12 @@ codeunit 7767 "AOAI Authorization"
 
         IsSuccessful := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
 
-        if not IsSuccessful then
+        if not IsSuccessful or not HttpResponseMessage.IsSuccessStatusCode() then begin
+            Session.LogMessage('', TelemetryAOAIVerificationFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
             exit(false);
+        end;
 
-        if not HttpResponseMessage.IsSuccessStatusCode() then
-            exit(false);
-
+        Session.LogMessage('', TelemetryAOAIVerificationSucceededTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
         exit(true);
     end;
 
@@ -207,8 +213,10 @@ codeunit 7767 "AOAI Authorization"
 
         IsWithinCachePeriod := IsAccountVerifiedWithinPeriod(TruncatedAccountName, CachePeriod);
         // Within CACHE period
-        if IsWithinCachePeriod then
+        if IsWithinCachePeriod then begin
+            Session.LogMessage('', TelemetryAccessWithinCachePeriodTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
             exit(true);
+        end;
 
         // Outside CACHE period
         AccountVerified := PerformAOAIAccountVerification(AccountName, NewApiKey);
@@ -223,12 +231,14 @@ codeunit 7767 "AOAI Authorization"
             if IsAccountVerifiedWithinPeriod(TruncatedAccountName, GracePeriod) then begin
                 ShowUserNotification(StrSubstNo(AuthFailedWithinGracePeriodUserNotificationLbl, FormatDurationAsDays(RemainingGracePeriod)));
                 LogTelemetry(AccountName, Today, StrSubstNo(AuthFailedWithinGracePeriodLogMessageLbl, AccountName, Today, FormatDurationAsDays(RemainingGracePeriod)));
+                Session.LogMessage('', StrSubstNo(TelemetryAccessTokenWithinGracePeriodTxt, FormatDurationAsDays(RemainingGracePeriod)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
                 exit(true);
             end
             // Outside GRACE period
             else begin
                 ShowUserNotification(AuthFailedOutsideGracePeriodUserNotificationLbl);
                 LogTelemetry(AccountName, Today, AuthFailedOutsideGracePeriodLogMessageLbl);
+                Session.LogMessage('', TelemetryAccessTokenOutsideCachePeriodTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
                 exit(false);
             end;
         end;
