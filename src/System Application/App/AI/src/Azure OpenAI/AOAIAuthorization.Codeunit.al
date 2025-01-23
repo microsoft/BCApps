@@ -186,32 +186,6 @@ codeunit 7767 "AOAI Authorization"
         exit(true);
     end;
 
-    // FOR DEBUGGING ONLY
-    local procedure FormatDurationAsString(DurationValue: Duration): Text
-    var
-        Hours: Integer;
-        Minutes: Integer;
-        Seconds: Integer;
-        Milliseconds: Integer;
-    begin
-        // Convert milliseconds into hours, minutes, seconds
-        Hours := DurationValue div (60 * 60 * 1000);
-        DurationValue := DurationValue mod (60 * 60 * 1000);
-
-        Minutes := DurationValue div (60 * 1000);
-        DurationValue := DurationValue mod (60 * 1000);
-
-        Seconds := DurationValue div 1000;
-        Milliseconds := DurationValue mod 1000;
-
-        // Format as HH:MM:SS.mmm
-        exit(StrSubstNo('%1:%2:%3.%4',
-            Format(Hours, 2, '<Sign><Integer,2>'),
-            Format(Minutes, 2, '<Sign><Integer,2>'),
-            Format(Seconds, 2, '<Sign><Integer,2>'),
-            Format(Milliseconds, 3, '<Sign><Integer,3>')));
-    end;
-
     local procedure VerifyAOAIAccount(AccountName: Text; NewApiKey: SecretText): Boolean
     var
         VerificationLog: Record "AOAI Account Verification Log";
@@ -221,30 +195,25 @@ codeunit 7767 "AOAI Authorization"
         TruncatedAccountName: Text[100];
         IsWithinCachePeriod: Boolean;
         RemainingGracePeriod: Duration;
-        AuthFailedWithinGracePeriodLogMessageLbl: Label 'Azure Open AI authorization failed for account %1 on %2 because it is not authorized to access AI services. The connection will be terminated in %3 if not rectified', Comment = 'Telemetry message where %1 is the name of the Azure Open AI account name, %2 is the date where verification has taken place, and %3 is the remaining time until the grace period expires';
+        AuthFailedWithinGracePeriodLogMessageLbl: Label 'Azure Open AI authorization failed for account %1 on %2 because it is not authorized to access AI services. The connection will be terminated within %3 if not rectified', Comment = 'Telemetry message where %1 is the name of the Azure Open AI account name, %2 is the date where verification has taken place, and %3 is the remaining time until the grace period expires';
         AuthFailedOutsideGracePeriodLogMessageLbl: Label 'Azure Open AI authorization failed for account %1 on %2 because it is not authorized to access AI services. The grace period has been exceeded and the connection has been terminated', Comment = 'Telemetry message where %1 is the name of the Azure Open AI account name and %2 is the date where verification has taken place';
-        AuthFailedWithinGracePeriodUserNotificationLbl: Label 'Azure Open AI authorization failed. AI functionality will be disabled in %1. Please contact your system administrator or the extension developer for assistance.', Comment = 'User notification explaining that AI functionality will be disabled soon, where %1 is the remaining time until the grace period expires';
+        AuthFailedWithinGracePeriodUserNotificationLbl: Label 'Azure Open AI authorization failed. AI functionality will be disabled within %1. Please contact your system administrator or the extension developer for assistance.', Comment = 'User notification explaining that AI functionality will be disabled soon, where %1 is the remaining time until the grace period expires';
         AuthFailedOutsideGracePeriodUserNotificationLbl: Label 'Azure Open AI authorization failed and the AI functionality has been disabled. Please contact your system administrator or the extension developer for assistance.', Comment = 'User notification explaining that AI functionality has been disabled';
 
     begin
-        Message('Starting VerifyAOAIAccount procedure. Variables: AOAIAccountName=' + AccountName);
-        GracePeriod := 15 * 60 * 1000;//14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
-        CachePeriod := 1 * 60 * 1000;//24 * 60 * 60 * 1000; // 1 day in milliseconds
+        GracePeriod := 14 * 24 * 60 * 60 * 1000; // 2 weeks in milliseconds
+        CachePeriod := 24 * 60 * 60 * 1000; // 1 day in milliseconds
         TruncatedAccountName := CopyStr(DelChr(AccountName, '<>', ' '), 1, 100);
-        Message('Variables: GracePeriod=' + FormatDurationAsString(GracePeriod) + ', CachePeriod=' + FormatDurationAsString(CachePeriod) + ', TruncatedAccountName=' + TruncatedAccountName);
 
-        // Within CACHE period
         IsWithinCachePeriod := IsAccountVerifiedWithinPeriod(TruncatedAccountName, CachePeriod);
-        if IsWithinCachePeriod then begin
-            Message('Function IsAccountVerifiedWithinPeriod called. Result: Verification skipped (within cache period).');
+        // Within CACHE period
+        if IsWithinCachePeriod then
             exit(true);
-        end;
 
+        // Outside CACHE period
         AccountVerified := PerformAOAIAccountVerification(AccountName, NewApiKey);
-        Message('Function PerformAOAIAccountVerification called. Result: IsVerified=' + Format(AccountVerified));
 
         if not AccountVerified then begin
-            // Calculate remaining grace period
             if VerificationLog.Get(TruncatedAccountName) then
                 RemainingGracePeriod := GracePeriod - (CurrentDateTime - VerificationLog.LastSuccessfulVerification)
             else
@@ -254,20 +223,17 @@ codeunit 7767 "AOAI Authorization"
             if IsAccountVerifiedWithinPeriod(TruncatedAccountName, GracePeriod) then begin
                 ShowUserNotification(StrSubstNo(AuthFailedWithinGracePeriodUserNotificationLbl, FormatDurationAsDays(RemainingGracePeriod)));
                 LogTelemetry(AccountName, Today, StrSubstNo(AuthFailedWithinGracePeriodLogMessageLbl, AccountName, Today, FormatDurationAsDays(RemainingGracePeriod)));
-                Message('Function IsAccountVerifiedWithinPeriod called. Result: Verification failed, but account is still valid (within grace period).');
-                exit(true); // Verified if within grace period
+                exit(true);
             end
             // Outside GRACE period
             else begin
                 ShowUserNotification(AuthFailedOutsideGracePeriodUserNotificationLbl);
                 LogTelemetry(AccountName, Today, AuthFailedOutsideGracePeriodLogMessageLbl);
-                Message('Function IsAccountVerifiedWithinPeriod called. Result: Verification failed, and account is no longer valid (grace period expired).');
-                exit(false); // Failed verification if grace period has been exceeded
+                exit(false);
             end;
         end;
 
         SaveVerificationTime(TruncatedAccountName);
-        Message('Function SaveVerificationTime called. Verification successful. Record saved.');
         exit(true);
     end;
 
@@ -276,16 +242,11 @@ codeunit 7767 "AOAI Authorization"
         VerificationLog: Record "AOAI Account Verification Log";
         IsVerified: Boolean;
     begin
-        Message('Starting IsAccountVerifiedWithinPeriod procedure. Variables: AccountName=' + AccountName + ', Period=' + FormatDurationAsString(Period));
-
         if VerificationLog.Get(AccountName) then begin
-            Message('Record found. Variables: CurrentDateTime=' + Format(CurrentDateTime) + ', Rec.LastSuccessfulVerification=' + Format(VerificationLog.LastSuccessfulVerification));
             IsVerified := CurrentDateTime - VerificationLog.LastSuccessfulVerification <= Period;
-            Message('Verification result: ' + Format(IsVerified));
             exit(IsVerified);
         end;
 
-        Message('Record not found. Exiting with false.');
         exit(false);
     end;
 
@@ -293,18 +254,14 @@ codeunit 7767 "AOAI Authorization"
     var
         VerificationLog: Record "AOAI Account Verification Log";
     begin
-
-        Message('Starting SaveVerificationTime procedure. Variables: AccountName=' + AccountName);
         if VerificationLog.Get(AccountName) then begin
             VerificationLog.LastSuccessfulVerification := CurrentDateTime;
             VerificationLog.Modify();
-            Message('Record updated. Variables: Rec.LastSuccessfulVerification=' + Format(VerificationLog.LastSuccessfulVerification));
         end else begin
             VerificationLog.Init();
             VerificationLog.AccountName := AccountName;
             VerificationLog.LastSuccessfulVerification := CurrentDateTime;
-            if VerificationLog.Insert() then
-                Message('Record inserted. Variables: Rec.AccountName=' + VerificationLog.AccountName + ', Rec.LastSuccessfulVerification=' + Format(VerificationLog.LastSuccessfulVerification))
+            VerificationLog.Insert()
         end;
     end;
 
@@ -322,13 +279,9 @@ codeunit 7767 "AOAI Authorization"
         Telemetry: Codeunit Telemetry;
         CustomDimensions: Dictionary of [Text, Text];
     begin
-        Message('Starting LogTelemetry procedure. Variables: AccountName=' + AccountName + ', VerificationDate=' + Format(VerificationDate));
-
-        // Add default dimensions
         CustomDimensions.Add('AccountName', AccountName);
         CustomDimensions.Add('VerificationDate', Format(VerificationDate));
 
-        // Log the telemetry with the custom message
         Telemetry.LogMessage(
             '0000AA1', // Event ID
             StrSubstNo(LogMessage, AccountName, VerificationDate),
@@ -337,24 +290,21 @@ codeunit 7767 "AOAI Authorization"
             Enum::"AL Telemetry Scope"::All,
             CustomDimensions
         );
-
-        Message('Telemetry logged successfully. CustomDimensions: AccountName=' + AccountName + ', VerificationDate=' + Format(VerificationDate));
     end;
 
     local procedure FormatDurationAsDays(DurationValue: Duration): Text
     var
         Days: Decimal;
-        Hours: Decimal;
-        DaysLabelLbl: Label '%1 days', Comment = '%1 is the number of days';
-        HoursLabelLbl: Label '%1 hours', Comment = '%1 is the number of hours';
+        DaysLabelLbl: Label '%1 days', Comment = 'Days in plural. %1 is the number of days';
+        DayLabelLbl: Label '1 day', Comment = 'A single day';
     begin
-        // Convert milliseconds into days and hours
-        Days := DurationValue / (24 * 60 * 60 * 1000); // Total days
-        Hours := (DurationValue mod (24 * 60 * 60 * 1000)) / (60 * 60 * 1000); // Remaining hours
+        Days := DurationValue / (24 * 60 * 60 * 1000);
 
-        if Days >= 1 then
-            exit(StrSubstNo(DaysLabelLbl, Format(Days, 0, 9))) // Display days if more than 1 day
+        if Days <= 1 then
+            exit(DayLabelLbl)
         else
-            exit(StrSubstNo(HoursLabelLbl, Format(Hours, 0, 9))); // Display hours if less than 1 day
+            // Round up to the nearest whole day
+            Days := Round(Days, 1, '>');
+        exit(StrSubstNo(DaysLabelLbl, Format(Days, 0, 0)));
     end;
 }
