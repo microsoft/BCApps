@@ -2,12 +2,12 @@ namespace System.AI;
 
 table 7767 "AOAI Account Verification Log"
 {
-    Caption = 'AOAI Account Verification Log';
     Access = Internal;
+    Caption = 'AOAI Account Verification Log';
+    DataPerCompany = false;
     Extensible = false;
     InherentEntitlements = RIMDX;
     InherentPermissions = X;
-    DataPerCompany = false;
     ReplicateData = false;
 
     fields
