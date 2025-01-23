@@ -111,8 +111,8 @@ codeunit 7771 "Azure OpenAI"
     /// This will send the Azure OpenAI call to the deployment specified in <paramref name="ManagedResourceDeployment"/>, and will use the other parameters to verify that you have access to Azure OpenAI.
     /// </summary>
     /// <param name="ModelType">The model type to set authorization for.</param>
-    /// <param name="AOAIAccountName">Azure OpenAI account name)</param>
-    /// <param name="ApiKey">The API key to use  to verify access to Azure OpenAI. This is used only for verification, not for actual Azure OpenAI calls.</param>
+    /// <param name="AOAIAccountName">Name of the Azure Open AI resource like "MyAzureOpenAIResource"</param>
+    /// <param name="ApiKey">The API key to access the Azure Open AI resource. This is used only for verification of access, not for actual Azure Open AI calls.</param>
     /// <param name="ManagedResourceDeployment">The managed deployment to use for the model type.</param>
     [NonDebuggable]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; AOAIAccountName: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
