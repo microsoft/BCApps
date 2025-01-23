@@ -13,6 +13,7 @@ using Microsoft.Foundation.NoSeries;
 codeunit 134530 "No. Series Tests"
 {
     Subtype = Test;
+    EventSubscriberInstance = Manual;
 
     var
         Any: Codeunit Any;
@@ -955,6 +956,77 @@ codeunit 134530 "No. Series Tests"
 
         // Call to GetLastNoUsed must return empty number
         Assert.AreEqual('', NoSeries.GetLastNoUsed(''), 'GetLastNoUsed should return empty code if argument supplied is empty code');
+    end;
+
+    [HandlerFunctions('NoSeriesLineDrilldownHandler')]
+    [Test]
+    procedure TestCreateNewNoSeriesFromUI()
+    var
+        DummyNoSeriesRec: Record "No. Series";
+        NoSeries: TestPage "No. Series";
+        NewNoSeriesCode: Code[20];
+    begin
+        // Setup
+        NewNoSeriesCode := CopyStr(Any.AlphabeticText(MaxStrLen(DummyNoSeriesRec.Code)), 1, MaxStrLen(DummyNoSeriesRec.Code));
+
+        // Execute
+        NoSeries.OpenNew();
+        NoSeries.Code.SetValue(NewNoSeriesCode);
+        NoSeries.Next();
+        NoSeries.GoToKey(NewNoSeriesCode);
+        // Fill in Starting Date and Starting No. on the No. Series Line
+        NoSeries.StartNo.Drilldown();
+
+        // Verify
+        NoSeries.GoToKey(NewNoSeriesCode);
+        LibraryAssert.AreEqual('00001', NoSeries.StartNo.Value(), 'Starting No. was not as expected');
+    end;
+
+    [Test]
+    procedure TestNoSeriesCodeFilterChange()
+    var
+        NoSeriesTests: Codeunit "No. Series Tests";
+        NoSeries: TestPage "No. Series";
+    begin
+        // Setup
+        BindSubscription(NoSeriesTests);
+
+        // Execute
+        asserterror NoSeries.OpenNew();
+
+        // Verify
+        LibraryAssert.ExpectedError('The filter on Series Code was altered by an event subscriber. This is a programming error. Please contact your partner to resolve the issue.');
+    end;
+
+    [Test]
+    procedure TestOpenNoSeriesPageWithFilterCharacters()
+    var
+        NoSeriesRec: Record "No. Series";
+        NoSeries: TestPage "No. Series";
+    begin
+        // Setup
+        NoSeriesRec.Code := 'ABC&DEF|GHI<JKL>MNO';
+        NoSeriesRec.Insert();
+
+        // Execute
+        ClearLastError();
+        NoSeries.OpenView();
+
+        // Verify
+        LibraryAssert.AreEqual('', GetLastErrorText(), 'No error should be thrown when opening No. Series page with filter characters in the No. Series Code');
+    end;
+
+    [ModalPageHandler]
+    procedure NoSeriesLineDrilldownHandler(var NoSeriesLines: TestPage "No. Series Lines")
+    begin
+        NoSeriesLines."Starting Date".SetValue(WorkDate());
+        NoSeriesLines."Starting No.".SetValue('00001');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"No. Series", OnSetNoSeriesLineFilters, '', false, false)]
+    local procedure ClearNoSeriesLineFilters(var NoSeriesLine: Record "No. Series Line")
+    begin
+        NoSeriesLine.Reset();
     end;
 
     local procedure Initialize()

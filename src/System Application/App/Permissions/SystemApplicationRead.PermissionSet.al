@@ -11,6 +11,7 @@ using System.Visualization;
 using System.Privacy;
 using System.Environment.Configuration;
 using System.Integration.Excel;
+using System.ExternalFileStorage;
 using System.Reflection;
 using System.Globalization;
 using System.Integration;
@@ -39,6 +40,7 @@ permissionset 21 "System Application - Read"
                              "Extension Management - Read",
                              "Feature Key - Read",
                              "Field Selection - Read",
+                             "File Storage - Read",
                              "Guided Experience - Read",
                              "Headlines - Read",
                              "Object Selection - Read",

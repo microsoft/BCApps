@@ -23,7 +23,7 @@ codeunit 1482 "Edit in Excel Impl."
         CreateEndpointForObjectTxt: Label 'Creating endpoint for %1 %2.', Locked = true;
         EditInExcelHandledTxt: Label 'Edit in excel has been handled.', Locked = true;
         EditInExcelOnlySupportPageWebServicesTxt: Label 'Edit in Excel only support web services created from pages.', Locked = true;
-        EditInExcelInvalidFilterErr: Label 'We had to remove the filters applied to the following fields because they are not available in the Office Add-In. As a result, the number of rows you see in Excel may differ from what you see in Dynamics 365 Business Central.\ \ Removed filters: %1', Comment = '%1 = The field filters we had to remove because they are not exposed through OData';
+        EditInExcelInvalidFilterErr: Label 'Certain filters applied on the page are not available in Office, so more rows will be shown compared to Business Central.\ \ Removed filters: %1', Comment = '%1 = The field filters we had to remove because they are not exposed through OData';
         DialogTitleTxt: Label 'Export';
         ExcelFileNameTxt: Text;
         XmlByteEncodingTok: Label '_x00%1_%2', Locked = true;
@@ -205,6 +205,7 @@ codeunit 1482 "Edit in Excel Impl."
         StartStr: Text;
         EndStr: Text;
         ByteValue: DotNet Byte;
+        ConvertedByteValue: Text;
         IsByteValueUnderscore: Dictionary of [Integer, Boolean];
     begin
         ConvertedName := Name;
@@ -238,7 +239,9 @@ codeunit 1482 "Edit in Excel Impl."
                     ByteValue := Convert.ToByte(ConvertedName[CurrentPosition]);
                     StartStr := CopyStr(ConvertedName, 1, CurrentPosition - 1);
                     EndStr := CopyStr(ConvertedName, CurrentPosition + 1);
-                    ConvertedName := StrSubstNo(XmlByteEncoding2Tok, StartStr, Convert.ToString(ByteValue, 16), EndStr);
+                    ConvertedByteValue := Convert.ToString(ByteValue, 16);
+                    ConvertedByteValue := ConvertedByteValue.ToUpper();
+                    ConvertedName := StrSubstNo(XmlByteEncoding2Tok, StartStr, ConvertedByteValue, EndStr);
                 end;
                 // length of _x00nn_ minus one that will be added later
                 CurrentPosition += 6;
