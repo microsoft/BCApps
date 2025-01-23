@@ -1,6 +1,4 @@
-## preview
-
-Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
+## v6.3
 
 ### Deprecations
 
