@@ -30,11 +30,11 @@ codeunit 7779 "Azure DI Impl."
         AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
         if not SendRequest(Base64Data, Enum::"ADI Model Type"::Invoice, CallerModuleInfo, Result) then begin
-            FeatureTelemetry.LogError('', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeInvoiceFailureLbl, GetLastErrorText(), '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            FeatureTelemetry.LogError('0000OLK', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeInvoiceFailureLbl, GetLastErrorText(), '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
             exit;
         end;
 
-        FeatureTelemetry.LogUsage('', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeInvoiceCompletedLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+        FeatureTelemetry.LogUsage('0000OLM', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeInvoiceCompletedLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
 
     end;
 
@@ -52,11 +52,11 @@ codeunit 7779 "Azure DI Impl."
         AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
         if not SendRequest(Base64Data, Enum::"ADI Model Type"::Recepit, CallerModuleInfo, Result) then begin
-            FeatureTelemetry.LogError('', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeInvoiceFailureLbl, GetLastErrorText(), '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            FeatureTelemetry.LogError('0000OLL', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeInvoiceFailureLbl, GetLastErrorText(), '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
             exit;
         end;
 
-        FeatureTelemetry.LogUsage('', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeInvoiceCompletedLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+        FeatureTelemetry.LogUsage('0000OLN', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeInvoiceCompletedLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
     end;
 
     [TryFunction]
