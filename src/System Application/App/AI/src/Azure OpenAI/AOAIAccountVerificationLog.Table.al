@@ -20,7 +20,7 @@ table 7767 "AOAI Account Verification Log"
 
         field(2; LastSuccessfulVerification; DateTime)
         {
-            Caption = 'Access Verified';
+            Caption = 'Time of last successful verification';
             DataClassification = SystemMetadata;
         }
     }
