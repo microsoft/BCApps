@@ -184,11 +184,11 @@ codeunit 7767 "AOAI Authorization"
         IsSuccessful := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
 
         if not IsSuccessful or not HttpResponseMessage.IsSuccessStatusCode() then begin
-            Session.LogMessage('', TelemetryAOAIVerificationFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
+            Session.LogMessage('0000OLQ', TelemetryAOAIVerificationFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
             exit(false);
         end;
 
-        Session.LogMessage('', TelemetryAOAIVerificationSucceededTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
+        Session.LogMessage('0000OLR', TelemetryAOAIVerificationSucceededTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
         exit(true);
     end;
 
@@ -214,7 +214,7 @@ codeunit 7767 "AOAI Authorization"
         IsWithinCachePeriod := IsAccountVerifiedWithinPeriod(TruncatedAccountName, CachePeriod);
         // Within CACHE period
         if IsWithinCachePeriod then begin
-            Session.LogMessage('', TelemetryAccessWithinCachePeriodTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
+            Session.LogMessage('0000OLS', TelemetryAccessWithinCachePeriodTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
             exit(true);
         end;
 
@@ -231,14 +231,14 @@ codeunit 7767 "AOAI Authorization"
             if IsAccountVerifiedWithinPeriod(TruncatedAccountName, GracePeriod) then begin
                 ShowUserNotification(StrSubstNo(AuthFailedWithinGracePeriodUserNotificationLbl, FormatDurationAsDays(RemainingGracePeriod)));
                 LogTelemetry(AccountName, Today, StrSubstNo(AuthFailedWithinGracePeriodLogMessageLbl, AccountName, Today, FormatDurationAsDays(RemainingGracePeriod)));
-                Session.LogMessage('', StrSubstNo(TelemetryAccessTokenWithinGracePeriodTxt, FormatDurationAsDays(RemainingGracePeriod)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
+                Session.LogMessage('0000OLT', StrSubstNo(TelemetryAccessTokenWithinGracePeriodTxt, FormatDurationAsDays(RemainingGracePeriod)), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
                 exit(true);
             end
             // Outside GRACE period
             else begin
                 ShowUserNotification(AuthFailedOutsideGracePeriodUserNotificationLbl);
                 LogTelemetry(AccountName, Today, AuthFailedOutsideGracePeriodLogMessageLbl);
-                Session.LogMessage('', TelemetryAccessTokenOutsideCachePeriodTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
+                Session.LogMessage('0000OLU', TelemetryAccessTokenOutsideCachePeriodTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
                 exit(false);
             end;
         end;
