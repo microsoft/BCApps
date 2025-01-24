@@ -10,7 +10,6 @@ page 4301 "Agent Task Message List"
     PageType = List;
     ApplicationArea = All;
     Caption = 'Agent Task Messages';
-    UsageCategory = Administration;
     SourceTable = "Agent Task Message";
     CardPageId = "Agent Task Message Card";
     InsertAllowed = false;
