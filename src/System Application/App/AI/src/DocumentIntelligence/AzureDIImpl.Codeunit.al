@@ -73,9 +73,9 @@ codeunit 7779 "Azure DI Impl."
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), AzureDocumentIntelligenceCapabilityTok);
         case ModelType of
             Enum::"ADI Model Type"::Invoice:
-                ALCopilotResponse := ALCopilotFunctions.GenerateInvoiceIntelligence(Base64Data, ALCopilotCapability);
+                ALCopilotResponse := ALCopilotFunctions.GenerateInvoiceIntelligence(GenerateJson(Base64Data), ALCopilotCapability);
             Enum::"ADI Model Type"::Recepit:
-                ALCopilotResponse := ALCopilotFunctions.GenerateReceiptIntelligence(Base64Data, ALCopilotCapability);
+                ALCopilotResponse := ALCopilotFunctions.GenerateReceiptIntelligence(GenerateJson(Base64Data), ALCopilotCapability);
         end;
         ErrorMsg := ALCopilotResponse.ErrorText();
         if ErrorMsg <> '' then
@@ -102,6 +102,25 @@ codeunit 7779 "Azure DI Impl."
         CustomDimensions.Add('UserLanguage', Format(GlobalLanguage()));
 
         GlobalLanguage(SavedGlobalLanguageId);
+    end;
+
+    local procedure GenerateJson(Base64: Text): Text
+    var
+        JsonObject: JsonObject;
+        InputsObject: JsonObject;
+        InnerObject: JsonObject;
+        JsonText: Text;
+    begin
+        // Create the inner object with the base64Encoded property  
+        InnerObject.Add('base64_encoded', Base64);
+        // Create the inputs object and add the inner object to it  
+        InputsObject.Add('1', InnerObject);
+        // Create the main JSON object and add the inputs object to it  
+        JsonObject.Add('inputs', InputsObject);
+        // Convert the JSON object to text  
+        JsonObject.WriteTo(JsonText);
+        // Return the JSON text  
+        exit(JsonText);
     end;
 
     var
