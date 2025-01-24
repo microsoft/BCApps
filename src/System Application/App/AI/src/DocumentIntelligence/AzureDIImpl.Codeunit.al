@@ -52,11 +52,11 @@ codeunit 7779 "Azure DI Impl."
         AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
         if not SendRequest(Base64Data, Enum::"ADI Model Type"::Recepit, CallerModuleInfo, Result) then begin
-            FeatureTelemetry.LogError('0000OLL', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeInvoiceFailureLbl, GetLastErrorText(), '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            FeatureTelemetry.LogError('0000OLL', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeReceiptFailureLbl, GetLastErrorText(), '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
             exit;
         end;
 
-        FeatureTelemetry.LogUsage('0000OLN', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeInvoiceCompletedLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+        FeatureTelemetry.LogUsage('0000OLN', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeReceiptCompletedLbl, Enum::"AL Telemetry Scope"::All, CustomDimensions);
     end;
 
     [TryFunction]
