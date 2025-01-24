@@ -6,6 +6,7 @@ namespace System.Azure.DI;
 using System.AI;
 using System.Globalization;
 using System.Telemetry;
+using System;
 
 /// <summary>
 /// Azure Document Intelligence implementation.
