@@ -9,7 +9,6 @@ page 4300 "Agent Task List"
 {
     PageType = List;
     ApplicationArea = All;
-    UsageCategory = Administration;
     SourceTable = "Agent Task";
     Caption = 'Agent Tasks';
     InsertAllowed = false;
