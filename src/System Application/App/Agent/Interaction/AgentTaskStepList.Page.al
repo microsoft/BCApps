@@ -9,7 +9,6 @@ page 4303 "Agent Task Step List"
 {
     PageType = List;
     ApplicationArea = All;
-    UsageCategory = Administration;
     SourceTable = "Agent Task Step";
     Caption = 'Agent Task Steps';
     InsertAllowed = false;
