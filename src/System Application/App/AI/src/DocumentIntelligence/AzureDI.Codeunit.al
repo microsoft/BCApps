@@ -7,7 +7,7 @@ namespace System.Azure.DI;
 /// <summary>
 /// Azure Document Intelligence implementation.
 /// </summary>
-codeunit 9970 "Azure DI"
+codeunit 7780 "Azure DI"
 {
     Access = Public;
     InherentEntitlements = X;
