@@ -29,8 +29,9 @@ codeunit 149034 "AIT Test Suite Mgt."
         FeatureNameLbl: Label 'AI Test Toolkit', Locked = true;
         LineNoFilterLbl: Label 'Codeunit %1 "%2" (Input: %3)', Locked = true;
         TurnsLbl: Label '%1/%2', Comment = '%1 - No. of turns that passed, %2 - Total no. of turns';
+        EmptyLogEntriesErr: Label 'Cannot download test summary as there is no log entries within the filter.';
         DownloadResultsLbl: Label 'Download Test Summary';
-        ResultsFileNameLbl: Label 'AITestSummary.xlsx', Locked = true;
+        SummaryFileNameLbl: Label '%1_Test_Summary.xlsx', Locked = true;
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
     var
@@ -463,16 +464,19 @@ codeunit 149034 "AIT Test Suite Mgt."
         ResultsTempBlob: Codeunit "Temp Blob";
         ResultsOutStream: OutStream;
         ResultsInStream: InStream;
-        Filename: Text;
+        FilenameTxt: Text;
     begin
-        Filename := ResultsFileNameLbl;
+        if not AITLogEntries.FindFirst() then
+            Error(EmptyLogEntriesErr);
+
         ResultsTempBlob.CreateOutStream(ResultsOutStream);
 
         AITResults.SetTableView(AITLogEntries);
         AITResults.SaveAs('', ReportFormat::Excel, ResultsOutStream);
 
+        FilenameTxt := StrSubstNo(SummaryFileNameLbl, AITLogEntries."Test Suite Code");
         ResultsTempBlob.CreateInStream(ResultsInStream);
-        DownloadFromStream(ResultsInStream, DownloadResultsLbl, '', 'xlsx', Filename);
+        DownloadFromStream(ResultsInStream, DownloadResultsLbl, '', 'xlsx', FilenameTxt);
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"AIT Test Suite", OnBeforeDeleteEvent, '', false, false)]

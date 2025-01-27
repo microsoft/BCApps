@@ -17,7 +17,6 @@ report 149030 "AIT Test Summary"
     {
         dataitem(Results; "AIT Log Entry")
         {
-
             RequestFilterFields = Version;
             RequestFilterHeading = 'AI Test Log Entries';
 
