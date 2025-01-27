@@ -163,9 +163,10 @@ codeunit 149043 "AIT Test Context Impl."
     end;
 
     /// <summary>
-    /// Gets the accuracy of the test.
+    /// Gets the accuracy of the test. Can only be retrieved if the accuracy of the test was already set manually.
     /// </summary>
-    /// <returns>True if the accuracy was set, false otherwise.</returns>
+    /// <param name="AccuracyPct">The accuracy as a decimal between 0 and 1.</param>
+    /// <returns>True if it was possible to get the accuracy, false otherwise.</returns>
     procedure GetAccuracy(var AccuracyPct: Decimal): Boolean
     begin
         if AccuracySetManually then begin

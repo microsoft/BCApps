@@ -29,8 +29,8 @@ codeunit 149034 "AIT Test Suite Mgt."
         FeatureNameLbl: Label 'AI Test Toolkit', Locked = true;
         LineNoFilterLbl: Label 'Codeunit %1 "%2" (Input: %3)', Locked = true;
         TurnsLbl: Label '%1/%2', Comment = '%1 - No. of turns that passed, %2 - Total no. of turns';
-        DownloadResultsLbl: Label 'Download results';
-        ResultsFileNameLbl: Label 'Results.xlsx', Locked = true;
+        DownloadResultsLbl: Label 'Download Test Summary';
+        ResultsFileNameLbl: Label 'AITestSummary.xlsx', Locked = true;
 
     procedure StartAITSuite(Iterations: Integer; var AITTestSuite: Record "AIT Test Suite")
     var
@@ -457,9 +457,9 @@ codeunit 149034 "AIT Test Suite Mgt."
         exit(FeatureNameLbl);
     end;
 
-    internal procedure ExportResults(var AITLogEntries: Record "AIT Log Entry")
+    internal procedure DownloadTestSummary(var AITLogEntries: Record "AIT Log Entry")
     var
-        AITResults: Report "AIT Results";
+        AITResults: Report "AIT Test Summary";
         ResultsTempBlob: Codeunit "Temp Blob";
         ResultsOutStream: OutStream;
         ResultsInStream: InStream;

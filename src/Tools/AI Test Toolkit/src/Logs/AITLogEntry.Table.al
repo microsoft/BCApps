@@ -172,7 +172,7 @@ table 149034 "AIT Log Entry"
         field(45; Accuracy; Decimal)
         {
             Caption = 'Accuracy';
-            ToolTip = 'Specifies the accuracy of the test line.';
+            ToolTip = 'Specifies the accuracy of the test line. The accuracy is calculated as the percentage of turns that passed or can be set manually by the test.';
         }
         field(50; "Tokens Consumed"; Integer)
         {

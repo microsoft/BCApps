@@ -5,13 +5,13 @@
 
 namespace System.TestTools.AITestToolkit;
 
-report 149030 "AIT Results"
+report 149030 "AIT Test Summary"
 {
-    Caption = 'AI Test Results';
+    Caption = 'AI Test Summary';
     ApplicationArea = All;
     UsageCategory = Tasks;
     DefaultLayout = Excel;
-    ExcelLayout = 'Results.xlsx';
+    ExcelLayout = 'AITestSummary.xlsx';
 
     dataset
     {

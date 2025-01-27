@@ -185,7 +185,7 @@ table 149032 "AIT Test Method Line"
         field(45; Accuracy; Decimal)
         {
             Caption = 'Accuracy';
-            ToolTip = 'Specifies the average accuracy of the test line.';
+            ToolTip = 'Specifies the average accuracy of the test line. The accuracy is calculated as the percentage of turns that passed or can be set manually by the test.';
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = average("AIT Log Entry"."Accuracy" where("Test Suite Code" = field("Test Suite Code"), "Test Method Line No." = field("Line No."), Version = field("Version Filter"), Operation = const('Run Procedure'), "Procedure Name" = filter(<> '')));
