@@ -260,11 +260,11 @@ page 149031 "AIT Test Suite"
                     end;
                 end;
             }
-            action("Export Results")
+            action("Download Test Summary")
             {
-                Caption = 'Export Results';
+                Caption = 'Download Test Summary';
                 Image = Export;
-                ToolTip = 'Exports the results.';
+                ToolTip = 'Downloads a summary of the test results.';
 
                 trigger OnAction()
                 var
@@ -272,7 +272,7 @@ page 149031 "AIT Test Suite"
                     AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
                 begin
                     AITLogEntry.SetRange(Version, Rec.Version);
-                    AITTestSuiteMgt.ExportResults(AITLogEntry);
+                    AITTestSuiteMgt.DownloadTestSummary(AITLogEntry);
                 end;
             }
         }
