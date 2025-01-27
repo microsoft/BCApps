@@ -168,7 +168,7 @@ codeunit 149042 "AIT Test Run Iteration"
         GlobalNumberOfTurnsForLastTestMethodLine := 1;
 
         // Update Test Accuracy
-        GlobalTestAccuracy := 0.0;
+        GlobalTestAccuracy := 0;
 
         GlobalSessionAITokenUsed := AOAIToken.GetTotalServerSessionTokensConsumed();
 

@@ -121,7 +121,7 @@ page 149032 "AIT Run History"
                             AITLogEntryCodeunit.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No. Filter", Rec.Version);
                         end;
                     }
-                    field("Accuracy - By Version"; Rec.Accuracy)
+                    field("Accuracy - By Version"; Rec."Accuracy Per Version")
                     {
                         Visible = ViewBy = ViewBy::Version;
                         Caption = 'Accuracy';

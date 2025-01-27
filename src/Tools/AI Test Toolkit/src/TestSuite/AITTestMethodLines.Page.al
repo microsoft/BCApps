@@ -73,7 +73,7 @@ page 149034 "AIT Test Method Lines"
                         AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", AITTestSuite.Version);
                     end;
                 }
-                field(Accuracy; Rec.Accuracy)
+                field(Accuracy; Rec."Test Method Line Accuracy")
                 {
                 }
                 field(TurnsText; TurnsText)
@@ -93,7 +93,7 @@ page 149034 "AIT Test Method Lines"
                         AITLogEntry.DrillDownFailedAITLogEntries(Rec."Test Suite Code", Rec."Line No.", AITTestSuite."Base Version");
                     end;
                 }
-                field("No. of Turns"; Rec."No. of Turns Executed")
+                field("No. of Turns"; Rec."No. of Turns")
                 {
                     Visible = false;
                 }
@@ -101,7 +101,7 @@ page 149034 "AIT Test Method Lines"
                 {
                     Visible = false;
                 }
-                field("No. of Turns Failed"; Rec."No. of Turns Executed" - Rec."No. of Turns Passed")
+                field("No. of Turns Failed"; Rec."No. of Turns" - Rec."No. of Turns Passed")
                 {
                     Visible = false;
                     Editable = false;

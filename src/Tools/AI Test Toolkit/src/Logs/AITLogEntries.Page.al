@@ -68,14 +68,14 @@ page 149033 "AIT Log Entries"
                 {
                     StyleExpr = StatusStyleExpr;
                 }
-                field(Accuracy; Rec.Accuracy)
+                field(Accuracy; Rec."Test Method Line Accuracy")
                 {
                 }
                 field("No. of Turns Passed"; Rec."No. of Turns Passed")
                 {
                     Visible = false;
                 }
-                field("No. of Turns Executed"; Rec."No. of Turns Executed")
+                field("No. of Turns"; Rec."No. of Turns")
                 {
                     Visible = false;
                 }
@@ -357,7 +357,7 @@ page 149033 "AIT Log Entries"
     local procedure SetTurnsStyleExpr()
     begin
         case Rec."No. of Turns Passed" of
-            Rec."No. of Turns Executed":
+            Rec."No. of Turns":
                 TurnsStyleExpr := 'Favorable';
             0:
                 TurnsStyleExpr := 'Unfavorable';

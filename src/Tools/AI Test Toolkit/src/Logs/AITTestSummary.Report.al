@@ -32,10 +32,10 @@ report 149030 "AIT Test Summary"
             column(Status; Results.Status)
             {
             }
-            column(Accuracy; Results.Accuracy)
+            column(Accuracy; Results."Test Method Line Accuracy")
             {
             }
-            column(TurnsExecuted; Results."No. of Turns Executed")
+            column(TurnsExecuted; Results."No. of Turns")
             {
             }
             column(TurnsPassed; Results."No. of Turns Passed")

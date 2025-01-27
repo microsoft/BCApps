@@ -359,9 +359,9 @@ codeunit 149034 "AIT Test Suite Mgt."
 
         AITLogEntry."Procedure Name" := CurrentTestMethodLine.Function;
         AITLogEntry."Tokens Consumed" := AITTestRunIteration.GetAITokenUsedByLastTestMethodLine();
-        AITLogEntry."No. of Turns Executed" := AITTestRunIteration.GetNumberOfTurnsForLastTestMethodLine();
+        AITLogEntry."No. of Turns" := AITTestRunIteration.GetNumberOfTurnsForLastTestMethodLine();
         AITLogEntry."No. of Turns Passed" := AITTestRunIteration.GetNumberOfTurnsPassedForLastTestMethodLine();
-        AITLogEntry.Accuracy := AITTestRunIteration.GetAccuracyForLastTestMethodLine();
+        AITLogEntry."Test Method Line Accuracy" := AITTestRunIteration.GetAccuracyForLastTestMethodLine();
         AITLogEntry.Insert(true);
 
         Commit();
@@ -380,13 +380,13 @@ codeunit 149034 "AIT Test Suite Mgt."
 
     internal procedure GetTurnsAsText(var AITTestMethodLine: Record "AIT Test Method Line"): Text
     begin
-        AITTestMethodLine.CalcFields("No. of Turns Passed", "No. of Turns Executed");
-        exit(StrSubstNo(TurnsLbl, AITTestMethodLine."No. of Turns Passed", AITTestMethodLine."No. of Turns Executed"));
+        AITTestMethodLine.CalcFields("No. of Turns Passed", "No. of Turns");
+        exit(StrSubstNo(TurnsLbl, AITTestMethodLine."No. of Turns Passed", AITTestMethodLine."No. of Turns"));
     end;
 
     internal procedure GetTurnsAsText(var AITLogEntry: Record "AIT Log Entry"): Text
     begin
-        exit(StrSubstNo(TurnsLbl, AITLogEntry."No. of Turns Passed", AITLogEntry."No. of Turns Executed"));
+        exit(StrSubstNo(TurnsLbl, AITLogEntry."No. of Turns Passed", AITLogEntry."No. of Turns"));
     end;
 
     internal procedure GetAvgDuration(AITTestMethodLine: Record "AIT Test Method Line"): Integer

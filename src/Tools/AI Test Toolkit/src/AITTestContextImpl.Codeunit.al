@@ -18,12 +18,12 @@ codeunit 149043 "AIT Test Context Impl."
     var
         AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         GlobalTestOutputJson: Codeunit "Test Output Json";
-        Accuracy: Decimal;
+        GlobalAccuracy: Decimal;
         CurrentTurn: Integer;
         NumberOfTurns: Integer;
         IsMultiTurn: Boolean;
         AccuracySetManually: Boolean;
-        AccuracyErr: Label 'Accuracy must be between 0.0 and 1.0.';
+        AccuracyErr: Label 'Accuracy must be between 0 and 1.';
         AnswerTok: Label 'answer', Locked = true;
         ContextTok: Label 'context', Locked = true;
         GroundTruthTok: Label 'ground_truth', Locked = true;
@@ -152,25 +152,25 @@ codeunit 149043 "AIT Test Context Impl."
     /// <summary>
     /// Sets the accuracy of the test.
     /// </summary>
-    /// <param name="AccuracyPct">The accuracy as a decimal between 0 and 1.</param>
-    procedure SetAccuracy(AccuracyPct: Decimal)
+    /// <param name="Accuracy">The accuracy as a decimal between 0 and 1.</param>
+    procedure SetAccuracy(Accuracy: Decimal)
     begin
-        if (AccuracyPct < 0) or (AccuracyPct > 1.0) then
+        if (Accuracy < 0) or (Accuracy > 1) then
             Error(AccuracyErr);
 
         AccuracySetManually := true;
-        Accuracy := AccuracyPct;
+        GlobalAccuracy := Accuracy;
     end;
 
     /// <summary>
     /// Gets the accuracy of the test. Can only be retrieved if the accuracy of the test was already set manually.
     /// </summary>
-    /// <param name="AccuracyPct">The accuracy as a decimal between 0 and 1.</param>
+    /// <param name="Accuracy">The accuracy as a decimal between 0 and 1.</param>
     /// <returns>True if it was possible to get the accuracy, false otherwise.</returns>
-    procedure GetAccuracy(var AccuracyPct: Decimal): Boolean
+    procedure GetAccuracy(var Accuracy: Decimal): Boolean
     begin
         if AccuracySetManually then begin
-            AccuracyPct := Accuracy;
+            Accuracy := GlobalAccuracy;
             exit(true);
         end;
 
@@ -246,7 +246,7 @@ codeunit 149043 "AIT Test Context Impl."
         TurnsInputJson: Codeunit "Test Input Json";
     begin
         AccuracySetManually := false;
-        Accuracy := 0;
+        GlobalAccuracy := 0;
         CurrentTurn := 1;
         GlobalTestOutputJson.Initialize();
         TurnsInputJson := TestInput.GetTestInput().ElementExists(TurnsTok, IsMultiTurn);
