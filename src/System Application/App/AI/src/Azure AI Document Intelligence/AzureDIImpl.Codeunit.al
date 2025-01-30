@@ -5,6 +5,7 @@
 namespace System.Azure.DI;
 using System.AI;
 using System.Globalization;
+using System.Privacy;
 using System.Telemetry;
 using System;
 
@@ -87,7 +88,6 @@ codeunit 7779 "Azure DI Impl."
         Result := ALCopilotResponse.Result();
     end;
 
-
     local procedure AddTelemetryCustomDimensions(var CustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     var
         Language: Codeunit Language;
@@ -123,13 +123,34 @@ codeunit 7779 "Azure DI Impl."
         exit(JsonText);
     end;
 
+    procedure GetAzureAIDocumentIntelligenceCategory(): Code[50]
+    begin
+        exit(AzureAiDocumentIntelligenceTxt);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", OnRegisterPrivacyNotices, '', false, false)]
+    local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
+    begin
+        TempPrivacyNotice.Init();
+        TempPrivacyNotice.ID := AzureAiDocumentIntelligenceTxt;
+        TempPrivacyNotice."Integration Service Name" := AzureAiDocumentIntelligenceTxt;
+        if not TempPrivacyNotice.Insert() then;
+    end;
+
     var
+        // CopilotSettings: Record "Copilot Settings";
+        // CopilotCapabilityCU: Codeunit "Copilot Capability";
+        // CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        // TelemetrySetCapabilityLbl: Label 'Set Capability', Locked = true;
+        // TelemetryCopilotCapabilityNotRegisteredLbl: Label 'Copilot capability not registered.', Locked = true;
+        // CapabilityNotRegisteredErr: Label 'Copilot capability ''%1'' has not been registered by the module.', Comment = '%1 is the name of the Copilot Capability';
         AzureDocumentIntelligenceCapabilityTok: Label 'ADI', Locked = true;
         TelemetryAnalyzeInvoiceFailureLbl: Label 'Analyze invoice failed.', Locked = true;
         TelemetryAnalyzeInvoiceCompletedLbl: Label 'Analyze invoice completed.', Locked = true;
         TelemetryAnalyzeReceiptFailureLbl: Label 'Analyze receipt failed.', Locked = true;
         TelemetryAnalyzeReceiptCompletedLbl: Label 'Analyze receipt completed.', Locked = true;
         GenerateRequestFailedErr: Label 'The request did not return a success status code.';
+        AzureAiDocumentIntelligenceTxt: Label 'Azure AI Document Intelligence', Locked = true;
 
 }
