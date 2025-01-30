@@ -18,7 +18,7 @@ codeunit 7779 "Azure DI Impl."
     InherentPermissions = X;
 
     /// <summary>
-    /// Analyze the invoice.
+    /// Analyze a single invoice.
     /// </summary>
     /// <param name="Base64Data">Data to analyze.</param>
     /// <param name="CallerModuleInfo">The module info of the caller.</param>
@@ -40,7 +40,7 @@ codeunit 7779 "Azure DI Impl."
     end;
 
     /// <summary>
-    /// Analyze the receipt.
+    /// Analyze a single receipt.
     /// </summary>
     /// <param name="Base64Data">Data to analyze.</param>
     /// <param name="CallerModuleInfo">The module info of the caller.</param>
@@ -52,7 +52,7 @@ codeunit 7779 "Azure DI Impl."
     begin
         AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
-        if not SendRequest(Base64Data, Enum::"ADI Model Type"::Recepit, CallerModuleInfo, Result) then begin
+        if not SendRequest(Base64Data, Enum::"ADI Model Type"::Receipt, CallerModuleInfo, Result) then begin
             FeatureTelemetry.LogError('0000OLL', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeReceiptFailureLbl, GetLastErrorText(), '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
             exit;
         end;
@@ -73,9 +73,9 @@ codeunit 7779 "Azure DI Impl."
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), AzureDocumentIntelligenceCapabilityTok);
         case ModelType of
             Enum::"ADI Model Type"::Invoice:
-                ALCopilotResponse := ALCopilotFunctions.GenerateInvoiceIntelligence(GenerateJson(Base64Data), ALCopilotCapability);
-            Enum::"ADI Model Type"::Recepit:
-                ALCopilotResponse := ALCopilotFunctions.GenerateReceiptIntelligence(GenerateJson(Base64Data), ALCopilotCapability);
+                ALCopilotResponse := ALCopilotFunctions.GenerateInvoiceIntelligence(GenerateJsonForSingleInput(Base64Data), ALCopilotCapability);
+            Enum::"ADI Model Type"::Receipt:
+                ALCopilotResponse := ALCopilotFunctions.GenerateReceiptIntelligence(GenerateJsonForSingleInput(Base64Data), ALCopilotCapability);
         end;
         ErrorMsg := ALCopilotResponse.ErrorText();
         if ErrorMsg <> '' then
@@ -104,7 +104,7 @@ codeunit 7779 "Azure DI Impl."
         GlobalLanguage(SavedGlobalLanguageId);
     end;
 
-    local procedure GenerateJson(Base64: Text): Text
+    local procedure GenerateJsonForSingleInput(Base64: Text): Text
     var
         JsonObject: JsonObject;
         InputsObject: JsonObject;

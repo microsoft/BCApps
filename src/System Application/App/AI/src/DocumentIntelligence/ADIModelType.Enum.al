@@ -20,9 +20,9 @@ enum 7779 "ADI Model Type"
     }
 
     /// <summary>
-    /// Recepit model type.
+    /// Receipt model type.
     /// </summary>
-    value(1; Recepit)
+    value(1; Receipt)
     {
     }
 
