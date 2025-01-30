@@ -95,6 +95,7 @@ page 9801 "User Subform"
         PermissionSetLookupRecord: Record "Aggregate Permission Set";
         User: Record User;
         MultipleRoleIDErr: Label 'The permission set %1 is defined multiple times in this context. Use the lookup button to select the relevant permission set.', Comment = '%1 will be replaced with a Role ID code value from the Permission Set table';
+        PermissionSetAddedToUserLbl: Label 'The permission set %1 has been added to the user %2 by UserSecurityId %3.', Comment = '%1 - Role ID, %2 - UserSecurityId, %3 - Current UserSecurityId';
         PermissionScope: Text;
         PermissionSetNotFound: Boolean;
 
@@ -120,6 +121,7 @@ page 9801 "User Subform"
     begin
         User.TestField("User Name");
         Rec.CalcFields("App Name", Rec."Role Name");
+        Session.LogAuditMessage(StrSubstNo(PermissionSetAddedToUserLbl, Rec."Role ID", rec."User Security ID", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::UserManagement, 2, 0);
     end;
 
     trigger OnModifyRecord(): Boolean
