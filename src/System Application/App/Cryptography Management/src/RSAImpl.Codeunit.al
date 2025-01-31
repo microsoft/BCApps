@@ -249,7 +249,7 @@ codeunit 1476 "RSA Impl." implements "Signature Algorithm v2"
     end;
 
     [NonDebuggable]
-    internal procedure ExportRSAPrivateKeyPem(): Text
+    internal procedure ExportRSAPrivateKeyPem(): SecretText
     begin
         exit(DotNetRSA.ExportRSAPrivateKeyPem());
     end;
