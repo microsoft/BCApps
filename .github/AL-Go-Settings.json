@@ -8,7 +8,7 @@
   "artifact": "bcinsider/Sandbox/25.4/base/latest",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "25.4",
+  "repoVersion": "25.5",
   "conditionalSettings": [
     {
       "buildModes": [
