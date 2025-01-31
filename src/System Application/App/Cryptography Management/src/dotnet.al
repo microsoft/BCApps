@@ -50,5 +50,9 @@ dotnet
 
     }
 
+    assembly("X509CertificateWrapper")
+    {
+        type(X509CertificateWrapper.X509CertificateWrapper; X509CertificateWrapper) { }
+    }
 }
 
