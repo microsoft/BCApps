@@ -98,6 +98,7 @@ page 9801 "User Subform"
         PermissionSetAddedToUserLbl: Label 'The permission set %1 has been added to the user %2 by UserSecurityId %3.', Comment = '%1 - Role ID, %2 - UserSecurityId, %3 - Current UserSecurityId';
         PermissionScope: Text;
         PermissionSetNotFound: Boolean;
+        UserPermissionsTok: Label 'User Permissions', Locked = true;
 
     trigger OnAfterGetRecord()
     var
@@ -121,7 +122,8 @@ page 9801 "User Subform"
     begin
         User.TestField("User Name");
         Rec.CalcFields("App Name", Rec."Role Name");
-        Session.LogAuditMessage(StrSubstNo(PermissionSetAddedToUserLbl, Rec."Role ID", rec."User Security ID", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::UserManagement, 2, 0);
+        Session.LogSecurityAudit(UserPermissionsTok, SecurityOperationResult::Success, StrSubstNo(PermissionSetAddedToUserLbl, Rec."Role ID", Rec."User Security ID", UserSecurityId()), AuditCategory::UserManagement);
+        Session.LogAuditMessage(StrSubstNo(PermissionSetAddedToUserLbl, Rec."Role ID", Rec."User Security ID", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::UserManagement, 2, 0);
     end;
 
     trigger OnModifyRecord(): Boolean
