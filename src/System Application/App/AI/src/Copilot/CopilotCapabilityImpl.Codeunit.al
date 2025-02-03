@@ -23,12 +23,15 @@ codeunit 7774 "Copilot Capability Impl"
     var
         Telemetry: Codeunit Telemetry;
         CopilotCategoryLbl: Label 'Copilot', Locked = true;
-        AzureOpenAiTxt: Label 'Azure OpenAI', Locked = true;
         AlreadyRegisteredErr: Label 'Capability has already been registered.';
         NotRegisteredErr: Label 'Copilot capability has not been registered by the module.';
         ReviewPrivacyNoticeLbl: Label 'Review the privacy notice';
         PrivacyNoticeDisagreedNotificationMessageLbl: Label 'To enable Copilot, please review and accept the privacy notice.';
         CapabilitiesNotAvailableOnPremNotificationMessageLbl: Label 'Copilot capabilities published by Microsoft are not available on-premises. You can extend Copilot with custom capabilities and use them on-premises for development purposes only.';
+        CapabilityNotRegisteredErr: Label 'Copilot capability ''%1'' has not been registered by the module.', Comment = '%1 is the name of the Copilot Capability';
+        CapabilityNotEnabledErr: Label 'Copilot capability ''%1'' has not been enabled. Please contact your system administrator.', Comment = '%1 is the name of the Copilot Capability';
+        TelemetrySetCapabilityLbl: Label 'Set Capability', Locked = true;
+        TelemetryCopilotCapabilityNotRegisteredLbl: Label 'Copilot capability not registered.', Locked = true;
         TelemetryRegisteredNewCopilotCapabilityLbl: Label 'New copilot capability registered.', Locked = true;
         TelemetryModifiedCopilotCapabilityLbl: Label 'Copilot capability modified', Locked = true;
         TelemetryUnregisteredCopilotCapabilityLbl: Label 'Copilot capability unregistered.', Locked = true;
@@ -66,6 +69,38 @@ codeunit 7774 "Copilot Capability Impl"
 
         AddTelemetryDimensions(CopilotCapability, CallerModuleInfo.Id(), CustomDimensions);
         Telemetry.LogMessage('0000LDV', TelemetryRegisteredNewCopilotCapabilityLbl, Verbosity::Normal, DataClassification::OrganizationIdentifiableInformation, Enum::"AL Telemetry Scope"::All, CustomDimensions);
+    end;
+
+    procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo; AzureAIServiceName: Text)
+    var
+        CopilotSettings: Record "Copilot Settings";
+        CopilotTelemetry: Codeunit "Copilot Telemetry";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        Language: Codeunit Language;
+        SavedGlobalLanguageId: Integer;
+        CustomDimensions: Dictionary of [Text, Text];
+        ErrorMessage: Text;
+    begin
+        if not IsCapabilityRegistered(Capability, CallerModuleInfo.Id()) then begin
+            SavedGlobalLanguageId := GlobalLanguage();
+            GlobalLanguage(Language.GetDefaultApplicationLanguageId());
+            CustomDimensions.Add('Capability', Format(Capability));
+            CustomDimensions.Add('AppId', Format(CallerModuleInfo.Id()));
+            GlobalLanguage(SavedGlobalLanguageId);
+
+            FeatureTelemetry.LogError('0000LFN', AzureAIServiceName, TelemetrySetCapabilityLbl, TelemetryCopilotCapabilityNotRegisteredLbl, '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
+            ErrorMessage := StrSubstNo(CapabilityNotRegisteredErr, Capability);
+            Error(ErrorMessage);
+        end;
+
+        CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
+        CopilotSettings.SetLoadFields(Status);
+        CopilotSettings.Get(Capability, CallerModuleInfo.Id());
+        if CopilotSettings.Status = Enum::"Copilot Status"::Inactive then begin
+            ErrorMessage := StrSubstNo(CapabilityNotEnabledErr, Capability);
+            Error(ErrorMessage);
+        end;
+        CopilotTelemetry.SetCopilotCapability(Capability, CallerModuleInfo.Id());
     end;
 
     procedure ModifyCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
@@ -209,11 +244,6 @@ codeunit 7774 "Copilot Capability Impl"
         Page.Run(Page::"Privacy Notices");
     end;
 
-    procedure GetAzureOpenAICategory(): Code[50]
-    begin
-        exit(AzureOpenAiTxt);
-    end;
-
     procedure GetCopilotCategory(): Code[50]
     begin
         exit(CopilotCategoryLbl);
@@ -274,15 +304,6 @@ codeunit 7774 "Copilot Capability Impl"
             GuidedExperience.CompleteAssistedSetup(ObjectType::Page, Page::"Copilot AI Capabilities")
         else
             GuidedExperience.ResetAssistedSetup(ObjectType::Page, Page::"Copilot AI Capabilities");
-    end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", 'OnRegisterPrivacyNotices', '', false, false)]
-    local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
-    begin
-        TempPrivacyNotice.Init();
-        TempPrivacyNotice.ID := AzureOpenAiTxt;
-        TempPrivacyNotice."Integration Service Name" := AzureOpenAiTxt;
-        if not TempPrivacyNotice.Insert() then;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", 'GetCopilotCapabilityStatus', '', false, false)]

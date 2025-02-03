@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.Azure.DI;
 
+using System.AI;
+
 /// <summary>
 /// Azure Document Intelligence implementation.
 /// </summary>
@@ -14,7 +16,7 @@ codeunit 7780 "Azure DI"
     InherentPermissions = X;
 
     var
-        AzureOpenAIImpl: Codeunit "Azure DI Impl.";
+        AzureDIImpl: Codeunit "Azure DI Impl.";
 
 
     /// <summary>
@@ -28,7 +30,7 @@ codeunit 7780 "Azure DI"
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        exit(AzureOpenAIImpl.AnalyzeInvoice(Base64Data, CallerModuleInfo));
+        exit(AzureDIImpl.AnalyzeInvoice(Base64Data, CallerModuleInfo));
     end;
 
     /// <summary>
@@ -42,8 +44,22 @@ codeunit 7780 "Azure DI"
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        exit(AzureOpenAIImpl.AnalyzeReceipt(Base64Data, CallerModuleInfo));
+        exit(AzureDIImpl.AnalyzeReceipt(Base64Data, CallerModuleInfo));
     end;
 
+
+    /// <summary>
+    /// Sets the copilot capability that the API is running for.
+    /// </summary>
+    /// <param name="CopilotCapability">The copilot capability to set.</param>
+    [NonDebuggable]
+    procedure SetCopilotCapability(CopilotCapability: Enum "Copilot Capability")
+    var
+        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        CopilotCapabilityImpl.SetCopilotCapability(CopilotCapability, CallerModuleInfo, AzureDIImpl.GetAzureAIDocumentIntelligenceCategory());
+    end;
 
 }

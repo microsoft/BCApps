@@ -265,11 +265,13 @@ codeunit 7771 "Azure OpenAI"
     [NonDebuggable]
     procedure SetCopilotCapability(CopilotCapability: Enum "Copilot Capability")
     var
+        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        AzureOpenAIImpl.SetCopilotCapability(CopilotCapability, CallerModuleInfo);
+        CopilotCapabilityImpl.SetCopilotCapability(CopilotCapability, CallerModuleInfo, AzureOpenAIImpl.GetAzureOpenAICategory());
     end;
+
 #if not CLEAN24
     /// <summary>
     /// Gets the approximate token count for the input.

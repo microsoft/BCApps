@@ -5,6 +5,7 @@
 namespace System.Azure.DI;
 using System.AI;
 using System.Globalization;
+using System.Privacy;
 using System.Telemetry;
 using System;
 
@@ -18,7 +19,7 @@ codeunit 7779 "Azure DI Impl."
     InherentPermissions = X;
 
     /// <summary>
-    /// Analyze the invoice.
+    /// Analyze a single invoice.
     /// </summary>
     /// <param name="Base64Data">Data to analyze.</param>
     /// <param name="CallerModuleInfo">The module info of the caller.</param>
@@ -40,7 +41,7 @@ codeunit 7779 "Azure DI Impl."
     end;
 
     /// <summary>
-    /// Analyze the receipt.
+    /// Analyze a single receipt.
     /// </summary>
     /// <param name="Base64Data">Data to analyze.</param>
     /// <param name="CallerModuleInfo">The module info of the caller.</param>
@@ -52,7 +53,7 @@ codeunit 7779 "Azure DI Impl."
     begin
         AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
-        if not SendRequest(Base64Data, Enum::"ADI Model Type"::Recepit, CallerModuleInfo, Result) then begin
+        if not SendRequest(Base64Data, Enum::"ADI Model Type"::Receipt, CallerModuleInfo, Result) then begin
             FeatureTelemetry.LogError('0000OLL', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeReceiptFailureLbl, GetLastErrorText(), '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
             exit;
         end;
@@ -73,9 +74,9 @@ codeunit 7779 "Azure DI Impl."
         ALCopilotCapability := ALCopilotCapability.ALCopilotCapability(CallerModuleInfo.Publisher(), CallerModuleInfo.Id(), Format(CallerModuleInfo.AppVersion()), AzureDocumentIntelligenceCapabilityTok);
         case ModelType of
             Enum::"ADI Model Type"::Invoice:
-                ALCopilotResponse := ALCopilotFunctions.GenerateInvoiceIntelligence(GenerateJson(Base64Data), ALCopilotCapability);
-            Enum::"ADI Model Type"::Recepit:
-                ALCopilotResponse := ALCopilotFunctions.GenerateReceiptIntelligence(GenerateJson(Base64Data), ALCopilotCapability);
+                ALCopilotResponse := ALCopilotFunctions.GenerateInvoiceIntelligence(GenerateJsonForSingleInput(Base64Data), ALCopilotCapability);
+            Enum::"ADI Model Type"::Receipt:
+                ALCopilotResponse := ALCopilotFunctions.GenerateReceiptIntelligence(GenerateJsonForSingleInput(Base64Data), ALCopilotCapability);
         end;
         ErrorMsg := ALCopilotResponse.ErrorText();
         if ErrorMsg <> '' then
@@ -86,7 +87,6 @@ codeunit 7779 "Azure DI Impl."
 
         Result := ALCopilotResponse.Result();
     end;
-
 
     local procedure AddTelemetryCustomDimensions(var CustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
     var
@@ -104,7 +104,7 @@ codeunit 7779 "Azure DI Impl."
         GlobalLanguage(SavedGlobalLanguageId);
     end;
 
-    local procedure GenerateJson(Base64: Text): Text
+    local procedure GenerateJsonForSingleInput(Base64: Text): Text
     var
         JsonObject: JsonObject;
         InputsObject: JsonObject;
@@ -123,13 +123,34 @@ codeunit 7779 "Azure DI Impl."
         exit(JsonText);
     end;
 
+    procedure GetAzureAIDocumentIntelligenceCategory(): Code[50]
+    begin
+        exit(AzureAiDocumentIntelligenceTxt);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", OnRegisterPrivacyNotices, '', false, false)]
+    local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
+    begin
+        TempPrivacyNotice.Init();
+        TempPrivacyNotice.ID := AzureAiDocumentIntelligenceTxt;
+        TempPrivacyNotice."Integration Service Name" := AzureAiDocumentIntelligenceTxt;
+        if not TempPrivacyNotice.Insert() then;
+    end;
+
     var
+        // CopilotSettings: Record "Copilot Settings";
+        // CopilotCapabilityCU: Codeunit "Copilot Capability";
+        // CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         FeatureTelemetry: Codeunit "Feature Telemetry";
+        // TelemetrySetCapabilityLbl: Label 'Set Capability', Locked = true;
+        // TelemetryCopilotCapabilityNotRegisteredLbl: Label 'Copilot capability not registered.', Locked = true;
+        // CapabilityNotRegisteredErr: Label 'Copilot capability ''%1'' has not been registered by the module.', Comment = '%1 is the name of the Copilot Capability';
         AzureDocumentIntelligenceCapabilityTok: Label 'ADI', Locked = true;
         TelemetryAnalyzeInvoiceFailureLbl: Label 'Analyze invoice failed.', Locked = true;
         TelemetryAnalyzeInvoiceCompletedLbl: Label 'Analyze invoice completed.', Locked = true;
         TelemetryAnalyzeReceiptFailureLbl: Label 'Analyze receipt failed.', Locked = true;
         TelemetryAnalyzeReceiptCompletedLbl: Label 'Analyze receipt completed.', Locked = true;
         GenerateRequestFailedErr: Label 'The request did not return a success status code.';
+        AzureAiDocumentIntelligenceTxt: Label 'Azure AI Document Intelligence', Locked = true;
 
 }
