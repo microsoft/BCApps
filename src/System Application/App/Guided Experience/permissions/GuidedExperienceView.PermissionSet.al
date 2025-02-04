@@ -5,6 +5,7 @@
 
 namespace System.Environment.Configuration;
 
+using System.Environment;
 using System.Globalization;
 using System.Reflection;
 
@@ -24,5 +25,7 @@ permissionset 1992 "Guided Experience - View"
                   tabledata "Guided Experience Item" = imd,
                   tabledata "Primary Guided Experience Item" = imd,
                   tabledata "Spotlight Tour Text" = imd,
-                  tabledata "User Checklist Status" = im;
+                  tabledata "User Checklist Status" = im,
+                  tabledata "Tenant Media" = im,
+                  tabledata "Tenant Media Set" = im;
 }
