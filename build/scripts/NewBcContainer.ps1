@@ -10,6 +10,8 @@ if ("$env:GITHUB_RUN_ID" -eq "") {
     $parameters.shortcuts = "none"
 }
 
+$parameters.additionalParameters = @("--env customNavSettings=ClrRetrieverKind=OneApplicationObjectOneAssembly")
+
 New-BcContainer @parameters
 
 $installedApps = Get-BcContainerAppInfo -containerName $containerName -tenantSpecificProperties -sort DependenciesLast
