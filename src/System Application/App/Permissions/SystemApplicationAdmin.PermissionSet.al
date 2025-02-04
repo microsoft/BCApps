@@ -28,7 +28,7 @@ permissionset 154 "System Application - Admin"
                              "Exten. Mgt. - Admin",
                              "Edit in Excel-Admin",
                              "Feature Key - Admin",
-                             "File Storage - Admin"
+                             "File Storage - Admin",
                              "Permissions & Licenses - Edit",
                              "Priv. Notice - Admin",
                              "Retention Policy - Admin",
