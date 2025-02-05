@@ -2,12 +2,12 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace System.Azure.DI;
-using System.AI;
-using System.Globalization;
+namespace System.AI.DocumentIntelligence;
+
 using System.Privacy;
 using System.Telemetry;
 using System;
+using System.AI;
 
 /// <summary>
 /// Azure Document Intelligence implementation.
@@ -18,18 +18,36 @@ codeunit 7779 "Azure DI Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
 
+    var
+        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        AzureDocumentIntelligenceCapabilityTok: Label 'ADI', Locked = true;
+        TelemetryAnalyzeInvoiceFailureLbl: Label 'Analyze invoice failed.', Locked = true;
+        TelemetryAnalyzeInvoiceCompletedLbl: Label 'Analyze invoice completed.', Locked = true;
+        TelemetryAnalyzeReceiptFailureLbl: Label 'Analyze receipt failed.', Locked = true;
+        TelemetryAnalyzeReceiptCompletedLbl: Label 'Analyze receipt completed.', Locked = true;
+        GenerateRequestFailedErr: Label 'The request did not return a success status code.';
+        AzureAiDocumentIntelligenceTxt: Label 'Azure AI Document Intelligence', Locked = true;
+
+
+    procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo; AzureAIServiceName: Text)
+    begin
+        CopilotCapabilityImpl.SetCopilotCapability(Capability, CallerModuleInfo, AzureAIServiceName);
+    end;
+
     /// <summary>
     /// Analyze a single invoice.
     /// </summary>
     /// <param name="Base64Data">Data to analyze.</param>
     /// <param name="CallerModuleInfo">The module info of the caller.</param>
     /// <returns>The analyzed result.</returns>
-    [NonDebuggable]
     procedure AnalyzeInvoice(Base64Data: Text; CallerModuleInfo: ModuleInfo) Result: Text
     var
         CustomDimensions: Dictionary of [Text, Text];
     begin
-        AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+        CopilotCapabilityImpl.CheckCapabilitySet();
+        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo, Enum::"Azure AI Service Type"::"Azure Document Intelligence");
+        CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
         if not SendRequest(Base64Data, Enum::"ADI Model Type"::Invoice, CallerModuleInfo, Result) then begin
             FeatureTelemetry.LogError('0000OLK', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeInvoiceFailureLbl, GetLastErrorText(), '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
@@ -46,12 +64,13 @@ codeunit 7779 "Azure DI Impl."
     /// <param name="Base64Data">Data to analyze.</param>
     /// <param name="CallerModuleInfo">The module info of the caller.</param>
     /// <returns>The analyzed result.</returns>
-    [NonDebuggable]
     procedure AnalyzeReceipt(Base64Data: Text; CallerModuleInfo: ModuleInfo) Result: Text
     var
         CustomDimensions: Dictionary of [Text, Text];
     begin
-        AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
+        CopilotCapabilityImpl.CheckCapabilitySet();
+        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo, Enum::"Azure AI Service Type"::"Azure Document Intelligence");
+        CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
         if not SendRequest(Base64Data, Enum::"ADI Model Type"::Receipt, CallerModuleInfo, Result) then begin
             FeatureTelemetry.LogError('0000OLL', AzureDocumentIntelligenceCapabilityTok, TelemetryAnalyzeReceiptFailureLbl, GetLastErrorText(), '', Enum::"AL Telemetry Scope"::All, CustomDimensions);
@@ -88,22 +107,6 @@ codeunit 7779 "Azure DI Impl."
         Result := ALCopilotResponse.Result();
     end;
 
-    local procedure AddTelemetryCustomDimensions(var CustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
-    var
-        Language: Codeunit Language;
-        SavedGlobalLanguageId: Integer;
-    begin
-        SavedGlobalLanguageId := GlobalLanguage();
-        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
-
-        CustomDimensions.Add('Capability', AzureDocumentIntelligenceCapabilityTok);
-        CustomDimensions.Add('AppId', CallerModuleInfo.Id);
-        CustomDimensions.Add('Publisher', CallerModuleInfo.Publisher);
-        CustomDimensions.Add('UserLanguage', Format(GlobalLanguage()));
-
-        GlobalLanguage(SavedGlobalLanguageId);
-    end;
-
     local procedure GenerateJsonForSingleInput(Base64: Text): Text
     var
         JsonObject: JsonObject;
@@ -132,25 +135,11 @@ codeunit 7779 "Azure DI Impl."
     local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
     begin
         TempPrivacyNotice.Init();
-        TempPrivacyNotice.ID := AzureAiDocumentIntelligenceTxt;
-        TempPrivacyNotice."Integration Service Name" := AzureAiDocumentIntelligenceTxt;
+        TempPrivacyNotice.ID := GetAzureAIDocumentIntelligenceCategory();
+        TempPrivacyNotice."Integration Service Name" := GetAzureAIDocumentIntelligenceCategory();
         if not TempPrivacyNotice.Insert() then;
     end;
 
-    var
-        // CopilotSettings: Record "Copilot Settings";
-        // CopilotCapabilityCU: Codeunit "Copilot Capability";
-        // CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-        // TelemetrySetCapabilityLbl: Label 'Set Capability', Locked = true;
-        // TelemetryCopilotCapabilityNotRegisteredLbl: Label 'Copilot capability not registered.', Locked = true;
-        // CapabilityNotRegisteredErr: Label 'Copilot capability ''%1'' has not been registered by the module.', Comment = '%1 is the name of the Copilot Capability';
-        AzureDocumentIntelligenceCapabilityTok: Label 'ADI', Locked = true;
-        TelemetryAnalyzeInvoiceFailureLbl: Label 'Analyze invoice failed.', Locked = true;
-        TelemetryAnalyzeInvoiceCompletedLbl: Label 'Analyze invoice completed.', Locked = true;
-        TelemetryAnalyzeReceiptFailureLbl: Label 'Analyze receipt failed.', Locked = true;
-        TelemetryAnalyzeReceiptCompletedLbl: Label 'Analyze receipt completed.', Locked = true;
-        GenerateRequestFailedErr: Label 'The request did not return a success status code.';
-        AzureAiDocumentIntelligenceTxt: Label 'Azure AI Document Intelligence', Locked = true;
+
 
 }

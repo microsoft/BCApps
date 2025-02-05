@@ -2,14 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace System.Azure.DI;
+namespace System.AI.DocumentIntelligence;
 
 using System.AI;
 
 /// <summary>
 /// Azure Document Intelligence implementation.
 /// </summary>
-codeunit 7780 "Azure DI"
+codeunit 7780 "Azure Document Intelligence"
 {
     Access = Public;
     InherentEntitlements = X;
@@ -55,11 +55,10 @@ codeunit 7780 "Azure DI"
     [NonDebuggable]
     procedure SetCopilotCapability(CopilotCapability: Enum "Copilot Capability")
     var
-        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        CopilotCapabilityImpl.SetCopilotCapability(CopilotCapability, CallerModuleInfo, AzureDIImpl.GetAzureAIDocumentIntelligenceCategory());
+        AzureDIImpl.SetCopilotCapability(CopilotCapability, CallerModuleInfo, AzureDIImpl.GetAzureAIDocumentIntelligenceCategory());
     end;
 
 }

@@ -6,10 +6,12 @@ namespace System.AI;
 
 using System;
 using System.Azure.Identity;
+using System.Azure.KeyVault;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
 using System.Privacy;
+using System.AI.DocumentIntelligence;
 using System.Security.User;
 using System.Telemetry;
 
@@ -21,6 +23,8 @@ codeunit 7774 "Copilot Capability Impl"
     Permissions = tabledata "Copilot Settings" = rimd;
 
     var
+        CopilotSettings: Record "Copilot Settings";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         Telemetry: Codeunit Telemetry;
         CopilotCategoryLbl: Label 'Copilot', Locked = true;
         AlreadyRegisteredErr: Label 'Capability has already been registered.';
@@ -31,6 +35,13 @@ codeunit 7774 "Copilot Capability Impl"
         CapabilityNotRegisteredErr: Label 'Copilot capability ''%1'' has not been registered by the module.', Comment = '%1 is the name of the Copilot Capability';
         CapabilityNotEnabledErr: Label 'Copilot capability ''%1'' has not been enabled. Please contact your system administrator.', Comment = '%1 is the name of the Copilot Capability';
         TelemetrySetCapabilityLbl: Label 'Set Capability', Locked = true;
+        CopilotNotEnabledErr: Label 'Copilot is not enabled. Please contact your system administrator.';
+        CopilotCapabilityNotSetErr: Label 'Copilot capability has not been set.';
+        CopilotDisabledForTenantErr: Label 'Copilot is not enabled for the tenant. Please contact your system administrator.';
+        TelemetryIsEnabledLbl: Label 'Is Enabled', Locked = true;
+        TelemetryUnableToCheckEnvironmentKVTxt: Label 'Unable to check if environment is allowed to run AOAI.', Locked = true;
+        TelemetryEnvironmentNotAllowedtoRunCopilotTxt: Label 'Copilot is not allowed on this environment.', Locked = true;
+        EnabledKeyTok: Label 'AOAI-Enabled', Locked = true;
         TelemetryCopilotCapabilityNotRegisteredLbl: Label 'Copilot capability not registered.', Locked = true;
         TelemetryRegisteredNewCopilotCapabilityLbl: Label 'New copilot capability registered.', Locked = true;
         TelemetryModifiedCopilotCapabilityLbl: Label 'Copilot capability modified', Locked = true;
@@ -48,7 +59,6 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     var
-        CopilotSettings: Record "Copilot Settings";
         CustomDimensions: Dictionary of [Text, Text];
     begin
         if IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
@@ -73,9 +83,7 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo; AzureAIServiceName: Text)
     var
-        CopilotSettings: Record "Copilot Settings";
         CopilotTelemetry: Codeunit "Copilot Telemetry";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
         Language: Codeunit Language;
         SavedGlobalLanguageId: Integer;
         CustomDimensions: Dictionary of [Text, Text];
@@ -105,7 +113,6 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure ModifyCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     var
-        CopilotSettings: Record "Copilot Settings";
         CustomDimensions: Dictionary of [Text, Text];
     begin
         if not IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
@@ -129,7 +136,6 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure UnregisterCapability(CopilotCapability: Enum "Copilot Capability"; var CallerModuleInfo: ModuleInfo)
     var
-        CopilotSettings: Record "Copilot Settings";
         CustomDimensions: Dictionary of [Text, Text];
     begin
         if not IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
@@ -151,8 +157,6 @@ codeunit 7774 "Copilot Capability Impl"
     end;
 
     procedure IsCapabilityRegistered(CopilotCapability: Enum "Copilot Capability"; AppId: Guid): Boolean
-    var
-        CopilotSettings: Record "Copilot Settings";
     begin
         CopilotSettings.ReadIsolation(IsolationLevel::ReadCommitted);
         CopilotSettings.SetRange("Capability", CopilotCapability);
@@ -167,7 +171,6 @@ codeunit 7774 "Copilot Capability Impl"
 
     procedure IsCapabilityActive(CopilotCapability: Enum "Copilot Capability"; AppId: Guid): Boolean
     var
-        CopilotSettings: Record "Copilot Settings";
         CopilotCapabilityCU: Codeunit "Copilot Capability";
         PrivacyNotice: Codeunit "Privacy Notice";
         RequiredPrivacyNotices: List of [Code[50]];
@@ -189,6 +192,148 @@ codeunit 7774 "Copilot Capability Impl"
                 exit(false);
 
         exit(true);
+    end;
+
+    procedure GetCapabilityName(): Text
+    var
+        CapabilityIndex: Integer;
+        CapabilityName: Text;
+    begin
+        CheckCapabilitySet();
+
+        CapabilityIndex := CopilotSettings.Capability.Ordinals.IndexOf(CopilotSettings.Capability.AsInteger());
+        CapabilityName := CopilotSettings.Capability.Names.Get(CapabilityIndex);
+
+        if CapabilityName.Trim() = '' then
+            exit(Format(CopilotSettings.Capability, 0, 9));
+
+        exit(CapabilityName);
+    end;
+
+    procedure CheckCapabilitySet()
+    begin
+        if CopilotSettings.Capability.AsInteger() = 0 then
+            Error(CopilotCapabilityNotSetErr);
+    end;
+
+    procedure CheckEnabled(CallerModuleInfo: ModuleInfo; ServiceType: Enum "Azure AI Service Type")
+    begin
+        if not IsCapabilityEnabled(CopilotSettings.Capability, true, CallerModuleInfo, ServiceType) then
+            Error(CopilotNotEnabledErr);
+    end;
+
+    procedure IsCapabilityEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo; ServiceType: Enum "Azure AI Service Type"): Boolean
+    begin
+        exit(IsCapabilityEnabled(Capability, false, CallerModuleInfo, ServiceType));
+    end;
+
+    procedure IsCapabilityEnabled(Capability: Enum "Copilot Capability"; Silent: Boolean; CallerModuleInfo: ModuleInfo; ServiceType: Enum "Azure AI Service Type"): Boolean
+    var
+        CopilotNotAvailable: Page "Copilot Not Available";
+    begin
+        if not IsTenantAllowed(ServiceType) then begin
+            if not Silent then
+                Error(CopilotDisabledForTenantErr); // Copilot capabilities cannot be run on this environment.
+
+            exit(false);
+        end;
+
+        if not IsCapabilityActive(Capability, CallerModuleInfo.Id()) then begin
+            if not Silent then begin
+                CopilotNotAvailable.SetCopilotCapability(Capability);
+                CopilotNotAvailable.Run();
+            end;
+
+            exit(false);
+        end;
+
+        exit(CheckPrivacyNoticeState(Silent, Capability, ServiceType));
+    end;
+
+    [NonDebuggable]
+    local procedure IsTenantAllowed(ServiceType: Enum "Azure AI Service Type"): Boolean
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+        AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
+        AzureDIImpl: Codeunit "Azure DI Impl.";
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        AzureAdTenant: Codeunit "Azure AD Tenant";
+        ModuleInfo: ModuleInfo;
+        BlockList, TelemtryTok : Text;
+    begin
+        if not EnvironmentInformation.IsSaaSInfrastructure() then
+            exit(true);
+
+        NavApp.GetCurrentModuleInfo(ModuleInfo);
+        if ModuleInfo.Publisher <> 'Microsoft' then
+            exit(true);
+
+        case ServiceType of
+            Enum::"Azure AI Service Type"::"Azure OpenAI":
+                TelemtryTok := AzureOpenAIImpl.GetAzureOpenAICategory();
+            Enum::"Azure AI Service Type"::"Azure Document Intelligence":
+                TelemtryTok := AzureDIImpl.GetAzureAIDocumentIntelligenceCategory()
+        end;
+
+        if (not AzureKeyVault.GetAzureKeyVaultSecret(EnabledKeyTok, BlockList)) or (BlockList.Trim() = '') then begin
+            FeatureTelemetry.LogError('0000KYC', TelemtryTok, TelemetryIsEnabledLbl, TelemetryUnableToCheckEnvironmentKVTxt);
+            exit(false);
+        end;
+
+        if BlockList.Contains(AzureAdTenant.GetAadTenantId()) then begin
+            FeatureTelemetry.LogError('0000LFP', TelemtryTok, TelemetryIsEnabledLbl, TelemetryEnvironmentNotAllowedtoRunCopilotTxt);
+            exit(false);
+        end;
+
+        exit(true);
+    end;
+
+    local procedure CheckPrivacyNoticeState(Silent: Boolean; Capability: Enum "Copilot Capability"; ServiceType: Enum "Azure AI Service Type"): Boolean
+    var
+        PrivacyNotice: Codeunit "Privacy Notice";
+        AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
+        AzureDIImpl: Codeunit "Azure DI Impl.";
+        CopilotNotAvailable: Page "Copilot Not Available";
+        PrivacyNoticeApprovalState: Enum "Privacy Notice Approval State";
+    begin
+        case ServiceType of
+            Enum::"Azure AI Service Type"::"Azure OpenAI":
+                PrivacyNoticeApprovalState := PrivacyNotice.GetPrivacyNoticeApprovalState(AzureOpenAIImpl.GetAzureOpenAICategory(), false);
+            Enum::"Azure AI Service Type"::"Azure Document Intelligence":
+                PrivacyNoticeApprovalState := PrivacyNotice.GetPrivacyNoticeApprovalState(AzureDIImpl.GetAzureAIDocumentIntelligenceCategory(), false);
+        end;
+
+        case PrivacyNoticeApprovalState of
+            Enum::"Privacy Notice Approval State"::Agreed:
+                exit(true);
+            Enum::"Privacy Notice Approval State"::Disagreed:
+                begin
+                    if not Silent then begin
+                        CopilotNotAvailable.SetCopilotCapability(Capability);
+                        CopilotNotAvailable.Run();
+                    end;
+
+                    exit(false);
+                end;
+            else
+                exit(true);
+        end;
+    end;
+
+    procedure AddTelemetryCustomDimensions(var CustomDimensions: Dictionary of [Text, Text]; CallerModuleInfo: ModuleInfo)
+    var
+        Language: Codeunit Language;
+        SavedGlobalLanguageId: Integer;
+    begin
+        SavedGlobalLanguageId := GlobalLanguage();
+        GlobalLanguage(Language.GetDefaultApplicationLanguageId());
+
+        CustomDimensions.Add('Capability', Format(CopilotSettings.Capability));
+        CustomDimensions.Add('AppId', Format(CopilotSettings."App Id"));
+        CustomDimensions.Add('Publisher', CallerModuleInfo.Publisher);
+        CustomDimensions.Add('UserLanguage', Format(GlobalLanguage()));
+
+        GlobalLanguage(SavedGlobalLanguageId);
     end;
 
     procedure SendActivateTelemetry(CopilotCapability: Enum "Copilot Capability"; AppId: Guid)

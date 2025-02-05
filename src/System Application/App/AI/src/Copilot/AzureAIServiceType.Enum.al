@@ -2,28 +2,29 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace System.AI.DocumentIntelligence;
+namespace System.AI;
 
 /// <summary>
-/// The supported model types for Azure OpenAI.
+/// The supported service types for Azure AI.
 /// </summary>
-enum 7779 "ADI Model Type"
+enum 7778 "Azure AI Service Type"
 {
     Access = Public;
     Extensible = false;
 
     /// <summary>
-    /// Invoice model type.
+    /// Azure OpenAI service type.
     /// </summary>
-    value(0; Invoice)
+    value(0; "Azure OpenAI")
     {
+        Caption = 'Azure OpenAI';
     }
 
     /// <summary>
-    /// Receipt model type.
+    /// Azure Document Intelligence service type.
     /// </summary>
-    value(1; Receipt)
+    value(1; "Azure Document Intelligence")
     {
+        Caption = 'Azure Document Intelligence';
     }
-
 }

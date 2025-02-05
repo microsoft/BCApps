@@ -265,11 +265,10 @@ codeunit 7771 "Azure OpenAI"
     [NonDebuggable]
     procedure SetCopilotCapability(CopilotCapability: Enum "Copilot Capability")
     var
-        CopilotCapabilityImpl: Codeunit "Copilot Capability Impl";
         CallerModuleInfo: ModuleInfo;
     begin
         NavApp.GetCallerModuleInfo(CallerModuleInfo);
-        CopilotCapabilityImpl.SetCopilotCapability(CopilotCapability, CallerModuleInfo, AzureOpenAIImpl.GetAzureOpenAICategory());
+        AzureOpenAIImpl.SetCopilotCapability(CopilotCapability, CallerModuleInfo, AzureOpenAIImpl.GetAzureOpenAICategory());
     end;
 
 #if not CLEAN24
