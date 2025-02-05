@@ -64,6 +64,7 @@ codeunit 7774 "Copilot Capability Impl"
         if IsCapabilityRegistered(CopilotCapability, CallerModuleInfo) then
             Error(AlreadyRegisteredErr);
 
+        Clear(CopilotSettings);
         CopilotSettings.Init();
         CopilotSettings.Capability := CopilotCapability;
         CopilotSettings."App Id" := CallerModuleInfo.Id();
