@@ -284,6 +284,11 @@ page 7775 "Copilot AI Capabilities"
         WithinEUDBArea := WithinEUDB;
         WithinAOAIServicesInRegionArea := WithinGeo and (not WithinEUDB);
         WithinAOAIOutOfRegionArea := (not WithinGeo) and (not WithinEUDB);
+
+        if EnvironmentInformation.IsSaaSInfrastructure() then begin
+            CopilotCapabilityImpl.ShowBillingInTheFutureNotification();
+            CopilotCapabilityImpl.CheckAIQuota();
+        end;
     end;
 
     local procedure HasEarlyPreviewCapabilities(): Boolean
