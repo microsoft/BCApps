@@ -3,7 +3,6 @@
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
-  "memoryLimit": "16G",
   "cacheImageName": "",
   "UsePsSession": false,
   "artifact": "https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/sandbox/26.0.29863.0/base",
