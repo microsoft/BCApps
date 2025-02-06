@@ -208,6 +208,21 @@ codeunit 7772 "Azure OpenAI Impl"
     end;
 
     [NonDebuggable]
+    procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; AOAIAccountName: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
+    begin
+        case ModelType of
+            Enum::"AOAI Model Type"::"Text Completions":
+                TextCompletionsAOAIAuthorization.SetMicrosoftManagedAuthorization(AOAIAccountName, ApiKey, ManagedResourceDeployment);
+            Enum::"AOAI Model Type"::Embeddings:
+                EmbeddingsAOAIAuthorization.SetMicrosoftManagedAuthorization(AOAIAccountName, ApiKey, ManagedResourceDeployment);
+            Enum::"AOAI Model Type"::"Chat Completions":
+                ChatCompletionsAOAIAuthorization.SetMicrosoftManagedAuthorization(AOAIAccountName, ApiKey, ManagedResourceDeployment);
+            else
+                Error(InvalidModelTypeErr);
+        end;
+    end;
+
+    [NonDebuggable]
     procedure GenerateTextCompletion(Prompt: SecretText; var AOAIOperationResponse: Codeunit "AOAI Operation Response"; CallerModuleInfo: ModuleInfo): Text
     var
         AOAICompletionParameters: Codeunit "AOAI Text Completion Params";
@@ -757,5 +772,4 @@ codeunit 7772 "Azure OpenAI Impl"
         Session.LogMessage('0000MLE', TelemetryTenantAllowlistedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
         exit(true);
     end;
-
 }
