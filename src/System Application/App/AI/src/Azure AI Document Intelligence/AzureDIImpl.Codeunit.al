@@ -136,7 +136,7 @@ codeunit 7779 "Azure DI Impl."
     begin
         TempPrivacyNotice.Init();
         TempPrivacyNotice.ID := GetAzureAIDocumentIntelligenceCategory();
-        TempPrivacyNotice."Integration Service Name" := GetAzureAIDocumentIntelligenceCategory();
+        TempPrivacyNotice."Integration Service Name" := AzureAiDocumentIntelligenceTxt;
         if not TempPrivacyNotice.Insert() then;
     end;
 
