@@ -617,7 +617,7 @@ codeunit 7772 "Azure OpenAI Impl"
     begin
         TempPrivacyNotice.Init();
         TempPrivacyNotice.ID := GetAzureOpenAICategory();
-        TempPrivacyNotice."Integration Service Name" := GetAzureOpenAICategory();
+        TempPrivacyNotice."Integration Service Name" := AzureOpenAiTxt;
         if not TempPrivacyNotice.Insert() then;
     end;
 
