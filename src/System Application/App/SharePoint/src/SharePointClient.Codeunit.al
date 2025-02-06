@@ -404,6 +404,16 @@ codeunit 9100 "SharePoint Client"
     end;
 
     /// <summary>
+    /// Checks if a folder exists.
+    /// </summary>
+    /// <param name="ServerRelativeUrl">URL of the folder to check.</param>
+    /// <returns>True if the folder exists; otherwise - false.</returns>
+    procedure FolderExistsByServerRelativeUrl(ServerRelativeUrl: Text): Boolean
+    begin
+        exit(SharePointClientImpl.FolderExistsByServerRelativeUrl(ServerRelativeUrl));
+    end;
+
+    /// <summary>
     /// Deletes a folder.
     /// </summary>
     /// <param name="OdataId">The odata.id parameter of the folder entity.</param>
