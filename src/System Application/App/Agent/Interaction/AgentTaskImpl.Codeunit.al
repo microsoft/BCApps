@@ -52,6 +52,19 @@ codeunit 4300 "Agent Task Impl."
         Page.Run(Page::"Agent Task Step List", AgentTaskStep);
     end;
 
+    procedure CreateTask(AgentSecurityID: Guid; TaskTitle: Text[150]; ExternalId: Text[2048]; var NewAgentTask: Record "Agent Task")
+    begin
+        Clear(NewAgentTask);
+        NewAgentTask."Agent User Security ID" := AgentSecurityID;
+        NewAgentTask.Title := TaskTitle;
+        NewAgentTask."Created By" := UserSecurityId();
+        NewAgentTask."Needs Attention" := false;
+        NewAgentTask.Status := NewAgentTask.Status::Paused;
+        NewAgentTask."External ID" := ExternalId;
+        NewAgentTask.Insert();
+        StartTaskIfPossible(NewAgentTask);
+    end;
+
     procedure CreateTaskMessage(From: Text[250]; MessageText: Text; var CurrentAgentTask: Record "Agent Task")
     begin
         CreateTaskMessage(From, MessageText, '', CurrentAgentTask);
@@ -82,13 +95,7 @@ codeunit 4300 "Agent Task Impl."
         AgentTaskMessage.Insert();
 
         SetMessageText(AgentTaskMessage, MessageText);
-
-        // Only change the status if the task is in a status where it can be started again.
-        // If the task is running, we should not change the state, as platform will pickup a new message automatically.
-        if ((AgentTask.Status = AgentTask.Status::Paused) or (AgentTask.Status = AgentTask.Status::Completed)) then begin
-            AgentTask.Status := AgentTask.Status::Ready;
-            AgentTask.Modify(true);
-        end;
+        StartTaskIfPossible(AgentTask);
     end;
 
     procedure CreateUserInterventionTaskStep(UserInterventionRequestStep: Record "Agent Task Step")
@@ -168,6 +175,16 @@ codeunit 4300 "Agent Task Impl."
     procedure GetDefaultEncoding(): TextEncoding
     begin
         exit(TextEncoding::UTF8);
+    end;
+
+    local procedure StartTaskIfPossible(var AgentTask: Record "Agent Task")
+    begin
+        // Only change the status if the task is in a status where it can be started again.
+        // If the task is running, we should not change the state, as platform will pickup a new message automatically.
+        if ((AgentTask.Status = AgentTask.Status::Paused) or (AgentTask.Status = AgentTask.Status::Completed)) then begin
+            AgentTask.Status := AgentTask.Status::Ready;
+            AgentTask.Modify(true);
+        end;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetAgentTaskMessagePageId, '', true, true)]

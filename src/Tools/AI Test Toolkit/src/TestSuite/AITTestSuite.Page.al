@@ -213,14 +213,14 @@ page 149031 "AIT Test Suite"
             }
             action(ResetStatus)
             {
-                Enabled = Rec.Status = Rec.Status::Running;
-                Caption = 'Reset Status';
-                ToolTip = 'Reset the status.';
-                Image = ResetStatus;
+                Visible = Rec.Status = Rec.Status::Running;
+                Caption = 'Cancel';
+                ToolTip = 'Cancels the run and marks the run as Cancelled.';
+                Image = Cancel;
 
                 trigger OnAction()
                 begin
-                    AITTestSuiteMgt.ResetStatus(Rec);
+                    AITTestSuiteMgt.CancelRun(Rec);
                 end;
             }
 
@@ -280,6 +280,9 @@ page 149031 "AIT Test Suite"
         {
             group(Category_Process)
             {
+                actionref(ResetStatus_Promoted; ResetStatus)
+                {
+                }
                 actionref(Start_Promoted; Start)
                 {
                 }

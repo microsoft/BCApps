@@ -26,6 +26,8 @@ page 8700 "Table Information"
     ModifyAllowed = false;
     DeleteAllowed = false;
     Permissions = tabledata "Table Information" = r;
+    AboutTitle = 'About Table Information';
+    AboutText = 'Get information about the number of records in all system and business tables, and how much data each table contains. This information is useful for troubleshooting performance problems, because it lets you see the distribution of data size across tables.';
 
     layout
     {
