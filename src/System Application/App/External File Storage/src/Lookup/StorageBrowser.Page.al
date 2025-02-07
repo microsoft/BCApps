@@ -7,7 +7,7 @@ namespace System.ExternalFileStorage;
 
 page 9455 "Storage Browser"
 {
-    Caption = 'Storage Browser';
+    Caption = 'External Storage Browser';
     PageType = List;
     ApplicationArea = All;
     SourceTable = "File Account Content";
