@@ -86,6 +86,7 @@ codeunit 7771 "Azure OpenAI"
         exit(AzureOpenAIImpl.IsInitialized(CopilotCapability, ModelType, CallerModuleInfo));
     end;
 
+#if not CLEAN26
     /// <summary>
     /// Sets the managed Azure OpenAI API authorization to use for a specific model type.
     /// This will send the Azure OpenAI call to the deployment specified in <paramref name="ManagedResourceDeployment"/>, and will use the other parameters to verify that you have access to Azure OpenAI.
@@ -105,6 +106,7 @@ codeunit 7771 "Azure OpenAI"
     begin
         AzureOpenAIImpl.SetManagedResourceAuthorization(ModelType, Endpoint, Deployment, ApiKey, ManagedResourceDeployment);
     end;
+#endif
 
     /// <summary>
     /// Sets the managed Azure OpenAI API authorization to use for a specific model type.

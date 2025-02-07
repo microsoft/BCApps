@@ -192,6 +192,7 @@ codeunit 7772 "Azure OpenAI Impl"
         end;
     end;
 
+#if not CLEAN26
     [NonDebuggable]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; Endpoint: Text; Deployment: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)
     begin
@@ -206,6 +207,7 @@ codeunit 7772 "Azure OpenAI Impl"
                 Error(InvalidModelTypeErr);
         end;
     end;
+#endif
 
     [NonDebuggable]
     procedure SetManagedResourceAuthorization(ModelType: Enum "AOAI Model Type"; AOAIAccountName: Text; ApiKey: SecretText; ManagedResourceDeployment: Text)

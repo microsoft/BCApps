@@ -30,10 +30,6 @@ codeunit 7767 "AOAI Authorization"
         [NonDebuggable]
         AOAIAccountName: Text;
         ResourceUtilization: Enum "AOAI Resource Utilization";
-        FirstPartyAuthorization: Boolean;
-        SelfManagedAuthorization: Boolean;
-        MicrosoftManagedAuthorizationWithDeployment: Boolean;
-        MicrosoftManagedAuthorizationWithAOAIAccount: Boolean;
         TelemetryAOAIVerificationFailedTxt: Label 'Failed to authenticate account against Azure Open AI', Locked = true;
         TelemetryAOAIVerificationSucceededTxt: Label 'Successfully authenticated account against Azure Open AI', Locked = true;
         TelemetryAccessWithinCachePeriodTxt: Label 'Cached access to Azure Open AI was used', Locked = true;
@@ -46,24 +42,26 @@ codeunit 7767 "AOAI Authorization"
         AzureOpenAiImpl: Codeunit "Azure OpenAI Impl";
         CurrentModule: ModuleInfo;
         ALCopilotFunctions: DotNet ALCopilotFunctions;
-        AOAIAccountIsVerified: Boolean;
     begin
         NavApp.GetCurrentModuleInfo(CurrentModule);
 
         case ResourceUtilization of
             Enum::"AOAI Resource Utilization"::"First Party":
-                exit(FirstPartyAuthorization and ALCopilotFunctions.IsPlatformAuthorizationConfigured(CallerModule.Publisher(), CurrentModule.Publisher()));
+                exit((ManagedResourceDeployment <> '') and ALCopilotFunctions.IsPlatformAuthorizationConfigured(CallerModule.Publisher(), CurrentModule.Publisher()));
             Enum::"AOAI Resource Utilization"::"Self-Managed":
-                exit(SelfManagedAuthorization);
+                exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()));
             Enum::"AOAI Resource Utilization"::"Microsoft Managed":
-                if MicrosoftManagedAuthorizationWithAOAIAccount then begin
-                    AOAIAccountIsVerified := VerifyAOAIAccount(AOAIAccountName, ApiKey);
-                    exit(AOAIAccountIsVerified and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls());
-                end
+#if CLEAN26
+                if (AOAIAccountName <> '') and (ManagedResourceDeployment <> '') and (not ApiKey.IsEmpty()) then
+                    exit(VerifyAOAIAccount(AOAIAccountName, ApiKey) and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls())
+#else
+                if (AOAIAccountName <> '') and (ManagedResourceDeployment <> '') and (not ApiKey.IsEmpty()) then
+                    exit(VerifyAOAIAccount(AOAIAccountName, ApiKey) and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls())
                 else
-                    if MicrosoftManagedAuthorizationWithDeployment then
-                        exit(AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls());
+                    exit((Deployment <> '') and (Endpoint <> '') and (not ApiKey.IsEmpty()) and (ManagedResourceDeployment <> '') and AzureOpenAiImpl.IsTenantAllowlistedForFirstPartyCopilotCalls());
+#endif
         end;
+
         exit(false);
     end;
 
@@ -77,7 +75,6 @@ codeunit 7767 "AOAI Authorization"
         Deployment := NewDeployment;
         ApiKey := NewApiKey;
         ManagedResourceDeployment := NewManagedResourceDeployment;
-        MicrosoftManagedAuthorizationWithDeployment := true;
     end;
 
     [NonDebuggable]
@@ -89,9 +86,9 @@ codeunit 7767 "AOAI Authorization"
         AOAIAccountName := NewAOAIAccountName;
         ApiKey := NewApiKey;
         ManagedResourceDeployment := NewManagedResourceDeployment;
-        MicrosoftManagedAuthorizationWithAOAIAccount := true;
     end;
 
+#if not CLEAN26
     [NonDebuggable]
     procedure SetSelfManagedAuthorization(NewEndpoint: Text; NewDeployment: Text; NewApiKey: SecretText)
     begin
@@ -101,8 +98,8 @@ codeunit 7767 "AOAI Authorization"
         Endpoint := NewEndpoint;
         Deployment := NewDeployment;
         ApiKey := NewApiKey;
-        SelfManagedAuthorization := true;
     end;
+#endif
 
     [NonDebuggable]
     procedure SetFirstPartyAuthorization(NewDeployment: Text)
@@ -111,7 +108,6 @@ codeunit 7767 "AOAI Authorization"
 
         ResourceUtilization := Enum::"AOAI Resource Utilization"::"First Party";
         ManagedResourceDeployment := NewDeployment;
-        FirstPartyAuthorization := true;
     end;
 
     [NonDebuggable]
@@ -151,10 +147,6 @@ codeunit 7767 "AOAI Authorization"
         Clear(AOAIAccountName);
         Clear(ManagedResourceDeployment);
         Clear(ResourceUtilization);
-        Clear(FirstPartyAuthorization);
-        clear(SelfManagedAuthorization);
-        Clear(MicrosoftManagedAuthorizationWithDeployment);
-        Clear(MicrosoftManagedAuthorizationWithAOAIAccount);
     end;
 
     [NonDebuggable]
@@ -225,7 +217,7 @@ codeunit 7767 "AOAI Authorization"
             if VerificationLog.Get(TruncatedAccountName) then
                 RemainingGracePeriod := GracePeriod - (CurrentDateTime - VerificationLog.LastSuccessfulVerification)
             else
-                RemainingGracePeriod := GracePeriod;
+                exit(false);
 
             // Within GRACE period
             if IsAccountVerifiedWithinPeriod(TruncatedAccountName, GracePeriod) then begin
@@ -237,7 +229,7 @@ codeunit 7767 "AOAI Authorization"
             // Outside GRACE period
             else begin
                 ShowUserNotification(AuthFailedOutsideGracePeriodUserNotificationLbl);
-                LogTelemetry(AccountName, Today, AuthFailedOutsideGracePeriodLogMessageLbl);
+                LogTelemetry(AccountName, Today, StrSubstNo(AuthFailedOutsideGracePeriodLogMessageLbl, AccountName, Today));
                 Session.LogMessage('0000OLU', TelemetryAccessTokenOutsideCachePeriodTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CopilotCapabilityImpl.GetAzureOpenAICategory());
                 exit(false);
             end;
@@ -284,7 +276,7 @@ codeunit 7767 "AOAI Authorization"
         Notif.Send();
     end;
 
-    local procedure LogTelemetry(AccountName: Text; VerificationDate: Date; LogMessage: Text)
+    local procedure LogTelemetry(AccountName: Text; VerificationDate: Date; FormattedLogMessage: Text)
     var
         Telemetry: Codeunit Telemetry;
         CustomDimensions: Dictionary of [Text, Text];
@@ -294,9 +286,9 @@ codeunit 7767 "AOAI Authorization"
 
         Telemetry.LogMessage(
             '0000AA1', // Event ID
-            StrSubstNo(LogMessage, AccountName, VerificationDate),
+            FormattedLogMessage,
             Verbosity::Warning,
-            DataClassification::SystemMetadata,
+            DataClassification::OrganizationIdentifiableInformation,
             Enum::"AL Telemetry Scope"::All,
             CustomDimensions
         );
