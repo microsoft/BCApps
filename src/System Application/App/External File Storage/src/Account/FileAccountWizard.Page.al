@@ -314,10 +314,10 @@ page 9451 "File Account Wizard"
     begin
         DurationAsInt := CurrentDateTime() - StartTime;
         if Step = Step::Done then begin
-            Session.LogMessage('', StrSubstNo(AccountCreationSuccessfullyCompletedDurationLbl, DurationAsInt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
-            FeatureTelemetry.LogUptake('', 'External File Storage', Enum::"Feature Uptake Status"::"Set up");
+            Session.LogMessage('0000OPM', StrSubstNo(AccountCreationSuccessfullyCompletedDurationLbl, DurationAsInt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
+            FeatureTelemetry.LogUptake('0000OPI', 'External File Storage', Enum::"Feature Uptake Status"::"Set up");
         end else
-            Session.LogMessage('', StrSubstNo(AccountCreationFailureDurationLbl, DurationAsInt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
+            Session.LogMessage('0000OPN', StrSubstNo(AccountCreationFailureDurationLbl, DurationAsInt), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', FileCategoryLbl);
     end;
 
     trigger OnInit()
@@ -393,11 +393,11 @@ page 9451 "File Account Wizard"
         CustomDimensions.Add('Category', FileCategoryLbl);
 
         if AccountWasRegistered then begin
-            FeatureTelemetry.LogUptake('', 'File Access', Enum::"Feature Uptake Status"::"Set up");
-            Telemetry.LogMessage('', StrSubstNo(TelemetryAccountRegisteredLbl, Rec.Connector), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+            FeatureTelemetry.LogUptake('0000OPJ', 'File Access', Enum::"Feature Uptake Status"::"Set up");
+            Telemetry.LogMessage('0000OPK', StrSubstNo(TelemetryAccountRegisteredLbl, Rec.Connector), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             NextStep(false);
         end else begin
-            Telemetry.LogMessage('', StrSubstNo(TelemetryAccountFailedtoRegisterLbl, Rec.Connector, GetLastErrorCallStack()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+            Telemetry.LogMessage('0000OPL', StrSubstNo(TelemetryAccountFailedtoRegisterLbl, Rec.Connector, GetLastErrorCallStack()), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
             NextStep(true);
         end;
 

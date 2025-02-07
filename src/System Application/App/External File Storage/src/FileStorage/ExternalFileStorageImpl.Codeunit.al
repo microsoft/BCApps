@@ -30,7 +30,7 @@ codeunit 9455 "External File Storage Impl."
 
         Initialize(TempFileAccount);
 
-        FeatureTelemetry.LogUptake('', 'External File Storage', Enum::"Feature Uptake Status"::Used);
+        FeatureTelemetry.LogUptake('0000OPO', 'External File Storage', Enum::"Feature Uptake Status"::Used);
     end;
 
     procedure Initialize(TempFileAccount: Record "File Account" temporary)

@@ -216,7 +216,7 @@ page 9450 "File Accounts"
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('', 'External File Storage', Enum::"Feature Uptake Status"::Discovered);
+        FeatureTelemetry.LogUptake('0000OPH', 'External File Storage', Enum::"Feature Uptake Status"::Discovered);
         CanUserManageFileSetup := FileAccountImpl.IsUserFileAdmin();
         Rec.SetCurrentKey("Account Id", Connector);
         UpdateFileAccounts();
