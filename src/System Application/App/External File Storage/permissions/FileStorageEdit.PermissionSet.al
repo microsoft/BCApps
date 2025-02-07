@@ -11,7 +11,7 @@ permissionset 9453 "File Storage - Edit"
 {
     Access = Public;
     Assignable = false;
-    Caption = 'File Storage - Edit';
+    Caption = 'External File Storage - Edit';
 
     IncludedPermissionSets = "File Storage - Read";
 
