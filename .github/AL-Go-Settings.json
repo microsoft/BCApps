@@ -8,7 +8,7 @@
   "artifact": "bcinsider/Sandbox/24.10/base/latest",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "24.10",
+  "repoVersion": "24.11",
   "unusedALGoSystemFiles": [
     "AddExistingAppOrTestApp.yaml",
     "CreateApp.yaml",
