@@ -287,7 +287,7 @@ page 7775 "Copilot AI Capabilities"
 
         if EnvironmentInformation.IsSaaSInfrastructure() then begin
             CopilotCapabilityImpl.ShowBillingInTheFutureNotification();
-            CopilotCapabilityImpl.CheckAIQuota();
+            CopilotCapabilityImpl.CheckAIQuotaAndShowNotification();
         end;
     end;
 

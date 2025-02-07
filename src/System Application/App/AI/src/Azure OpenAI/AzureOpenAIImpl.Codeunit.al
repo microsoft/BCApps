@@ -549,7 +549,7 @@ codeunit 7772 "Azure OpenAI Impl"
         AOAIOperationResponse.SetOperationResponse(ALCopilotOperationResponse.IsSuccess(), ALCopilotOperationResponse.StatusCode(), ALCopilotOperationResponse.Result(), Error);
 
         if AOAIOperationResponse.GetStatusCode() = 402 then
-            CopilotCapabilityImpl.CheckAIQuota();
+            CopilotCapabilityImpl.CheckAIQuotaAndShowNotification();
 
         if not ALCopilotOperationResponse.IsSuccess() then
             Error(GenerateRequestFailedErr);

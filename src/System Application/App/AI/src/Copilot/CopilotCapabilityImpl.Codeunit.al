@@ -42,9 +42,12 @@ codeunit 7774 "Copilot Capability Impl"
         AIQuotaUsedUpNotificationGuidTok: Label 'eced148b-4721-4ff9-b4c8-a8b5b1209692', Locked = true;
         AIQuotaUsedUpNotificationMsg: Label 'AI capabilities are currently unavailable because your organization has used up its AI quota.';
         AIQuotaUsedUpLearnMoreLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2302511', Locked = true;
+        AIQuotaUsedUpAdminMsg: Label 'AI capabilities in Business Central require AI quota.\\Your organization has used up its AI quota, so AI capabilities are currently unavailable.\\Would you like to open the <BC Admin Center?> to learn more about AI quota?';
         AIQuotaNearlyUsedUpNotificationGuidTok: Label '4a15b17c-1f88-4cc6-a342-4300ba400c8a', Locked = true;
         AIQuotaNearlyUsedUpNotificationMsg: Label 'The AI quota in this environment is nearly used up. When it is, AI capabilities will be unavailable.';
         AIQuotaNearlyUsedUpLearnMoreLinkLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2302603', Locked = true;
+        AIQuotaNearlyUsedUpAdminMsg: Label 'AI capabilities in Business Central require AI quota, and your organization has a limited amount remaining.\\When it''s used up, AI capabilities will be unavailable until AI quota is available again.\\Would you like to open the <BC Admin Center?> to learn more about AI quota?';
+        BCAdminCenterSaaSLinkTxt: Label '%1/admin', Comment = '%1 - BC url', Locked = true;
 
     procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     begin
@@ -189,7 +192,7 @@ codeunit 7774 "Copilot Capability Impl"
         GlobalLanguage(SavedGlobalLanguageId);
     end;
 
-    procedure CheckAIQuota()
+    procedure CheckAIQuotaAndShowNotification()
     var
         ALCopilotFunctions: DotNet ALCopilotFunctions;
         ALCopilotQuotaDetails: Dotnet ALCopilotQuotaDetails;
@@ -264,8 +267,8 @@ codeunit 7774 "Copilot Capability Impl"
     procedure ShowAIQuotaUsedUpLearnMore(AIQuotaUsedUpNotification: Notification)
     begin
         if IsAdmin() then begin
-            if Dialog.Confirm('AI capabilities in Business Central require AI quota.\\Your organization has used up its AI quota, so AI capabilities are currently unavailable.\\Would you like to open the <BC Admin Center?> to learn more about AI quota?') then
-                Hyperlink('https://aka.ms');
+            if Dialog.Confirm(AIQuotaUsedUpAdminMsg) then
+                OpenBCAdminCenter();
         end
         else
             Hyperlink(AIQuotaUsedUpLearnMoreLinkLbl);
@@ -285,11 +288,20 @@ codeunit 7774 "Copilot Capability Impl"
     procedure ShowAIQuotaNearlyUsedUpLearnMore(AIQuotaNearlyUsedUpNotification: Notification)
     begin
         if IsAdmin() then begin
-            if Dialog.Confirm('AI capabilities in Business Central require AI quota, and your organization has a limited amount remaining.\\When it''s used up, AI capabilities will be unavailable until AI quota is available again.\\Would you like to open the <BC Admin Center?> to learn more about AI quota?') then
-                Hyperlink('https://aka.ms');
+            if Dialog.Confirm(AIQuotaNearlyUsedUpAdminMsg) then
+                OpenBCAdminCenter();
         end
         else
             Hyperlink(AIQuotaNearlyUsedUpLearnMoreLinkLbl);
+    end;
+
+    local procedure OpenBCAdminCenter()
+    var
+        Url: Text;
+    begin
+        Url := GetUrl(ClientType::Web);
+        Url := StrSubstNo(BCAdminCenterSaaSLinkTxt, CopyStr(Url, 1, Url.LastIndexOf('/') - 1));
+        Hyperlink(Url);
     end;
 
     procedure OpenPrivacyNotice(Notification: Notification)
