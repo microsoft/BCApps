@@ -115,6 +115,8 @@ codeunit 130464 "Test Input Json"
         if TextOutput = 'null' then
             exit('');
 
+        TextOutput := TextOutput.TrimStart('"').TrimEnd('"');
+
         exit(TextOutput);
     end;
 
