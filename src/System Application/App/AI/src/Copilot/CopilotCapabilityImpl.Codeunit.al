@@ -11,7 +11,6 @@ using System.Environment;
 using System.Environment.Configuration;
 using System.Globalization;
 using System.Privacy;
-using System.AI.DocumentIntelligence;
 using System.Security.User;
 using System.Telemetry;
 
@@ -58,6 +57,11 @@ codeunit 7774 "Copilot Capability Impl"
     end;
 
     procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
+    begin
+        RegisterCapability(CopilotCapability, CopilotAvailability, Enum::"Azure AI Service Type"::"Azure OpenAI", LearnMoreUrl, CallerModuleInfo);
+    end;
+
+    procedure RegisterCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; AzureAIServiceType: Enum "Azure AI Service Type"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
     var
         CustomDimensions: Dictionary of [Text, Text];
     begin
@@ -71,6 +75,7 @@ codeunit 7774 "Copilot Capability Impl"
         CopilotSettings.Publisher := CopyStr(CallerModuleInfo.Publisher, 1, MaxStrLen(CopilotSettings.Publisher));
         CopilotSettings.Availability := CopilotAvailability;
         CopilotSettings."Learn More Url" := LearnMoreUrl;
+        CopilotSettings."Service Type" := AzureAIServiceType;
         if CopilotSettings.Availability = Enum::"Copilot Availability"::"Early Preview" then
             CopilotSettings.Status := Enum::"Copilot Status"::Inactive
         else
@@ -165,6 +170,11 @@ codeunit 7774 "Copilot Capability Impl"
         exit(not CopilotSettings.IsEmpty());
     end;
 
+    procedure IsCapabilityActive(CallerModuleInfo: ModuleInfo): Boolean
+    begin
+        exit(IsCapabilityActive(CopilotSettings.Capability, CallerModuleInfo.Id()));
+    end;
+
     procedure IsCapabilityActive(CopilotCapability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
         exit(IsCapabilityActive(CopilotCapability, CallerModuleInfo.Id()));
@@ -217,22 +227,28 @@ codeunit 7774 "Copilot Capability Impl"
             Error(CopilotCapabilityNotSetErr);
     end;
 
-    procedure CheckEnabled(CallerModuleInfo: ModuleInfo; ServiceType: Enum "Azure AI Service Type")
+    procedure CheckCapabilityServiceType(ServiceType: Enum "Azure AI Service Type")
     begin
-        if not IsCapabilityEnabled(CopilotSettings.Capability, true, CallerModuleInfo, ServiceType) then
+        if CopilotSettings."Service Type" <> ServiceType then
+            Error(CopilotCapabilityNotSetErr);
+    end;
+
+    procedure CheckEnabled(CallerModuleInfo: ModuleInfo)
+    begin
+        if not IsCapabilityEnabled(CopilotSettings.Capability, true, CallerModuleInfo) then
             Error(CopilotNotEnabledErr);
     end;
 
-    procedure IsCapabilityEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo; ServiceType: Enum "Azure AI Service Type"): Boolean
+    procedure IsCapabilityEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
-        exit(IsCapabilityEnabled(Capability, false, CallerModuleInfo, ServiceType));
+        exit(IsCapabilityEnabled(Capability, false, CallerModuleInfo));
     end;
 
-    procedure IsCapabilityEnabled(Capability: Enum "Copilot Capability"; Silent: Boolean; CallerModuleInfo: ModuleInfo; ServiceType: Enum "Azure AI Service Type"): Boolean
+    procedure IsCapabilityEnabled(Capability: Enum "Copilot Capability"; Silent: Boolean; CallerModuleInfo: ModuleInfo): Boolean
     var
         CopilotNotAvailable: Page "Copilot Not Available";
     begin
-        if not IsTenantAllowed(ServiceType) then begin
+        if not IsTenantAllowedToUseAOAI() then begin
             if not Silent then
                 Error(CopilotDisabledForTenantErr); // Copilot capabilities cannot be run on this environment.
 
@@ -248,15 +264,14 @@ codeunit 7774 "Copilot Capability Impl"
             exit(false);
         end;
 
-        exit(CheckPrivacyNoticeState(Silent, Capability, ServiceType));
+        exit(CheckPrivacyNoticeState(Silent, Capability));
     end;
 
     [NonDebuggable]
-    local procedure IsTenantAllowed(ServiceType: Enum "Azure AI Service Type"): Boolean
+    local procedure IsTenantAllowedToUseAOAI(): Boolean
     var
         EnvironmentInformation: Codeunit "Environment Information";
         AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
-        AzureDIImpl: Codeunit "Azure DI Impl.";
         AzureKeyVault: Codeunit "Azure Key Vault";
         AzureAdTenant: Codeunit "Azure AD Tenant";
         ModuleInfo: ModuleInfo;
@@ -269,13 +284,7 @@ codeunit 7774 "Copilot Capability Impl"
         if ModuleInfo.Publisher <> 'Microsoft' then
             exit(true);
 
-        case ServiceType of
-            Enum::"Azure AI Service Type"::"Azure OpenAI":
-                TelemtryTok := AzureOpenAIImpl.GetAzureOpenAICategory();
-            Enum::"Azure AI Service Type"::"Azure Document Intelligence":
-                TelemtryTok := AzureDIImpl.GetAzureAIDocumentIntelligenceCategory()
-        end;
-
+        TelemtryTok := AzureOpenAIImpl.GetAzureOpenAICategory();
         if (not AzureKeyVault.GetAzureKeyVaultSecret(EnabledKeyTok, BlockList)) or (BlockList.Trim() = '') then begin
             FeatureTelemetry.LogError('0000KYC', TelemtryTok, TelemetryIsEnabledLbl, TelemetryUnableToCheckEnvironmentKVTxt);
             exit(false);
@@ -289,21 +298,14 @@ codeunit 7774 "Copilot Capability Impl"
         exit(true);
     end;
 
-    local procedure CheckPrivacyNoticeState(Silent: Boolean; Capability: Enum "Copilot Capability"; ServiceType: Enum "Azure AI Service Type"): Boolean
+    local procedure CheckPrivacyNoticeState(Silent: Boolean; Capability: Enum "Copilot Capability"): Boolean
     var
         PrivacyNotice: Codeunit "Privacy Notice";
         AzureOpenAIImpl: Codeunit "Azure OpenAI Impl";
-        AzureDIImpl: Codeunit "Azure DI Impl.";
         CopilotNotAvailable: Page "Copilot Not Available";
         PrivacyNoticeApprovalState: Enum "Privacy Notice Approval State";
     begin
-        case ServiceType of
-            Enum::"Azure AI Service Type"::"Azure OpenAI":
-                PrivacyNoticeApprovalState := PrivacyNotice.GetPrivacyNoticeApprovalState(AzureOpenAIImpl.GetAzureOpenAICategory(), false);
-            Enum::"Azure AI Service Type"::"Azure Document Intelligence":
-                PrivacyNoticeApprovalState := PrivacyNotice.GetPrivacyNoticeApprovalState(AzureDIImpl.GetAzureAIDocumentIntelligenceCategory(), false);
-        end;
-
+        PrivacyNoticeApprovalState := PrivacyNotice.GetPrivacyNoticeApprovalState(AzureOpenAIImpl.GetAzureOpenAICategory(), false);
         case PrivacyNoticeApprovalState of
             Enum::"Privacy Notice Approval State"::Agreed:
                 exit(true);

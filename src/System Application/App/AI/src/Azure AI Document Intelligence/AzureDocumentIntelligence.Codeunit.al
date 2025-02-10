@@ -18,7 +18,6 @@ codeunit 7780 "Azure Document Intelligence"
     var
         AzureDIImpl: Codeunit "Azure DI Impl.";
 
-
     /// <summary>
     /// Analyze the invoice.
     /// </summary>
@@ -47,6 +46,19 @@ codeunit 7780 "Azure Document Intelligence"
         exit(AzureDIImpl.AnalyzeReceipt(Base64Data, CallerModuleInfo));
     end;
 
+    /// <summary>
+    /// Register a capability for Azure Document Intelligence.
+    /// </summary>
+    /// <param name="CopilotCapability">The capability.</param>
+    /// <param name="CopilotAvailability">The availability.</param>
+    /// <param name="LearnMoreUrl">The learn more url.</param>
+    procedure RegisterCopilotCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048])
+    var
+        CallerModuleInfo: ModuleInfo;
+    begin
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        AzureDIImpl.RegisterCopilotCapability(CopilotCapability, CopilotAvailability, LearnMoreUrl, CallerModuleInfo);
+    end;
 
     /// <summary>
     /// Sets the copilot capability that the API is running for.

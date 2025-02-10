@@ -53,12 +53,12 @@ codeunit 7772 "Azure OpenAI Impl"
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo): Boolean
     begin
-        CopilotCapabilityImpl.IsCapabilityEnabled(Capability, CallerModuleInfo, Enum::"Azure AI Service Type"::"Azure OpenAI");
+        CopilotCapabilityImpl.IsCapabilityEnabled(Capability, CallerModuleInfo);
     end;
 
     procedure IsEnabled(Capability: Enum "Copilot Capability"; Silent: Boolean; CallerModuleInfo: ModuleInfo): Boolean
     begin
-        CopilotCapabilityImpl.IsCapabilityEnabled(Capability, Silent, CallerModuleInfo, Enum::"Azure AI Service Type"::"Azure OpenAI");
+        CopilotCapabilityImpl.IsCapabilityEnabled(Capability, Silent, CallerModuleInfo);
     end;
 
     procedure SetCopilotCapability(Capability: Enum "Copilot Capability"; CallerModuleInfo: ModuleInfo; AzureAIServiceName: Text)
@@ -163,7 +163,7 @@ codeunit 7772 "Azure OpenAI Impl"
         GuiCheck(TextCompletionsAOAIAuthorization);
 
         CopilotCapabilityImpl.CheckCapabilitySet();
-        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo, Enum::"Azure AI Service Type"::"Azure OpenAI");
+        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(TextCompletionsAOAIAuthorization, CallerModuleInfo);
 
         CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
@@ -197,7 +197,7 @@ codeunit 7772 "Azure OpenAI Impl"
         GuiCheck(EmbeddingsAOAIAuthorization);
 
         CopilotCapabilityImpl.CheckCapabilitySet();
-        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo, Enum::"Azure AI Service Type"::"Azure OpenAI");
+        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(EmbeddingsAOAIAuthorization, CallerModuleInfo);
 
         Payload.Add('input', Input.Unwrap());
@@ -251,7 +251,7 @@ codeunit 7772 "Azure OpenAI Impl"
         GuiCheck(ChatCompletionsAOAIAuthorization);
 
         CopilotCapabilityImpl.CheckCapabilitySet();
-        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo, Enum::"Azure AI Service Type"::"Azure OpenAI");
+        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo);
         CheckAuthorizationEnabled(ChatCompletionsAOAIAuthorization, CallerModuleInfo);
         CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 

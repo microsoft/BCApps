@@ -291,6 +291,7 @@ page 7775 "Copilot AI Capabilities"
         CopilotSettings: Record "Copilot Settings";
     begin
         CopilotSettings.SetRange(Availability, Enum::"Copilot Availability"::"Early Preview");
+        CopilotSettings.SetRange("Service Type", Enum::"Azure AI Service Type"::"Azure OpenAI");
         exit(not CopilotSettings.IsEmpty());
     end;
 

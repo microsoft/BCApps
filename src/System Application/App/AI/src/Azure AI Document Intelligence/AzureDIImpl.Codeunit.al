@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.AI.DocumentIntelligence;
 
-using System.Privacy;
 using System.Telemetry;
 using System;
 using System.AI;
@@ -35,6 +34,11 @@ codeunit 7779 "Azure DI Impl."
         CopilotCapabilityImpl.SetCopilotCapability(Capability, CallerModuleInfo, AzureAIServiceName);
     end;
 
+    procedure RegisterCopilotCapability(CopilotCapability: Enum "Copilot Capability"; CopilotAvailability: Enum "Copilot Availability"; LearnMoreUrl: Text[2048]; CallerModuleInfo: ModuleInfo)
+    begin
+        CopilotCapabilityImpl.RegisterCapability(CopilotCapability, CopilotAvailability, Enum::"Azure AI Service Type"::"Azure Document Intelligence", LearnMoreUrl, CallerModuleInfo);
+    end;
+
     /// <summary>
     /// Analyze a single invoice.
     /// </summary>
@@ -46,7 +50,8 @@ codeunit 7779 "Azure DI Impl."
         CustomDimensions: Dictionary of [Text, Text];
     begin
         CopilotCapabilityImpl.CheckCapabilitySet();
-        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo, Enum::"Azure AI Service Type"::"Azure Document Intelligence");
+        CopilotCapabilityImpl.IsCapabilityActive(CallerModuleInfo);
+        CopilotCapabilityImpl.CheckCapabilityServiceType(Enum::"Azure AI Service Type"::"Azure Document Intelligence");
         CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
         if not SendRequest(Base64Data, Enum::"ADI Model Type"::Invoice, CallerModuleInfo, Result) then begin
@@ -69,7 +74,7 @@ codeunit 7779 "Azure DI Impl."
         CustomDimensions: Dictionary of [Text, Text];
     begin
         CopilotCapabilityImpl.CheckCapabilitySet();
-        CopilotCapabilityImpl.CheckEnabled(CallerModuleInfo, Enum::"Azure AI Service Type"::"Azure Document Intelligence");
+        CopilotCapabilityImpl.IsCapabilityActive(CallerModuleInfo);
         CopilotCapabilityImpl.AddTelemetryCustomDimensions(CustomDimensions, CallerModuleInfo);
 
         if not SendRequest(Base64Data, Enum::"ADI Model Type"::Receipt, CallerModuleInfo, Result) then begin
@@ -130,16 +135,5 @@ codeunit 7779 "Azure DI Impl."
     begin
         exit(AzureAiDocumentIntelligenceTxt);
     end;
-
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", OnRegisterPrivacyNotices, '', false, false)]
-    local procedure CreatePrivacyNoticeRegistrations(var TempPrivacyNotice: Record "Privacy Notice" temporary)
-    begin
-        TempPrivacyNotice.Init();
-        TempPrivacyNotice.ID := GetAzureAIDocumentIntelligenceCategory();
-        TempPrivacyNotice."Integration Service Name" := AzureAiDocumentIntelligenceTxt;
-        if not TempPrivacyNotice.Insert() then;
-    end;
-
-
 
 }
