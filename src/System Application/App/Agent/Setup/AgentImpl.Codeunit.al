@@ -303,7 +303,6 @@ codeunit 4301 "Agent Impl."
 
     local procedure GetAgent(var Agent: Record Agent; UserSecurityID: Guid)
     begin
-        Agent.SetAutoCalcFields(Instructions);
         if not Agent.Get(UserSecurityID) then
             Error(AgentDoesNotExistErr);
     end;
